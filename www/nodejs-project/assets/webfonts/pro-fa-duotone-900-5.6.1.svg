@@ -1,0 +1,33 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" >
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+<metadata>
+Created by FontForge 20200314 at Wed Jan 13 11:59:49 2021
+ By Robert Madole
+Copyright (c) Font Awesome
+</metadata>
+<!-- Font Awesome Pro 5.15.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) --><defs>
+<font id="FontAwesome5Duotone-Solid" horiz-adv-x="576" >
+  <font-face 
+    font-family="Font Awesome 5 Duotone Solid"
+    font-weight="900"
+    font-stretch="normal"
+    units-per-em="512"
+    panose-1="2 0 5 3 0 0 0 0 0 0"
+    ascent="448"
+    descent="-64"
+    bbox="0.00348668 -64 576.012 448"
+    underline-thickness="25"
+    underline-position="-50"
+    unicode-range="U+0020-10F8FF"
+  />
+    <missing-glyph />
+    <glyph glyph-name="exclamation-triangle-primary" unicode="&#xf071;" 
+d="M310.32 256c8.81152 -0.0224609 15.959 -7.16699 15.959 -15.9834c0 -0.541992 -0.0263672 -1.07812 -0.0791016 -1.60645l-12.7998 -128c-0.806641 -8.07715 -7.63184 -14.4102 -15.9199 -14.4102h-19c-8.28906 0 -15.1143 6.33301 -15.9209 14.4102l-12.7998 128
+c-0.0527344 0.52832 -0.0791016 1.04785 -0.0791016 1.58984c0 8.83008 7.16895 16 15.999 16h44.6406zM288 64c17.6611 0 32 -14.3389 32 -32s-14.3389 -32 -32 -32s-32 14.3389 -32 32s14.3389 32 32 32z" />
+    <glyph glyph-name="exclamation-triangle-secondary" unicode="&#x10f071;" 
+d="M569.52 8c18.4805 -32 -4.70996 -72 -41.5791 -72h-479.891c-36.9297 0 -59.9902 40.0596 -41.5693 72l239.939 416c18.4697 32 64.7197 32 83.1602 0zM288 0c17.6611 0 32 14.3389 32 32s-14.3389 32 -32 32s-32 -14.3389 -32 -32s14.3389 -32 32 -32zM326.24 238.41
+c0.0527344 0.52832 0.0791016 1.04785 0.0791016 1.58984c0 8.83008 -7.16895 16 -15.999 16h-44.6406c-8.81152 -0.0224609 -15.959 -7.16699 -15.959 -15.9834c0 -0.541992 0.0263672 -1.07812 0.0791016 -1.60645l12.7998 -128
+c0.806641 -8.07715 7.63184 -14.4102 15.9199 -14.4102h19c8.28906 0 15.1143 6.33301 15.9209 14.4102z" />
+  </font>
+</defs></svg>

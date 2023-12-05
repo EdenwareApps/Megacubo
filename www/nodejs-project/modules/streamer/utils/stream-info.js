@@ -56,7 +56,7 @@ class StreamInfo {
 						let strSample = String(sample)
 						if(strSample.toLowerCase().indexOf('#ext-x-stream-inf') != -1){
 							let trackUrl = strSample.split("\n").map(s => s.trim()).filter(line => line.length > 3 && line.charAt(0) != '#').shift()
-							trackUrl = global.absolutize(trackUrl, url)
+							trackUrl = global.absolutize(trackUrl, download.currentURL)
 							recursion--
 							if(recursion <= 0){
 								return reject('Max recursion reached.')
@@ -67,7 +67,7 @@ class StreamInfo {
 							})
 						} else if(strSample.toLowerCase().indexOf('#extinf') != -1){
 							let trackUrl = strSample.split("\n").map(s => s.trim()).filter(line => line.length > 3 && line.charAt(0) != '#').shift()
-							trackUrl = global.absolutize(trackUrl, url)
+							trackUrl = global.absolutize(trackUrl, download.currentURL)
 							recursion--
 							if(recursion <= 0){
 								return reject('Max recursion reached.')

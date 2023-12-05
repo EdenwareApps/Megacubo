@@ -1,0 +1,30 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" >
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+<metadata>
+Created by FontForge 20200314 at Wed Jan 13 11:59:52 2021
+ By Robert Madole
+Copyright (c) Font Awesome
+</metadata>
+<!-- Font Awesome Pro 5.15.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) --><defs>
+<font id="FontAwesome5Pro-Solid" horiz-adv-x="576" >
+  <font-face 
+    font-family="Font Awesome 5 Pro Solid"
+    font-weight="900"
+    font-stretch="normal"
+    units-per-em="512"
+    panose-1="2 0 5 3 0 0 0 0 0 0"
+    ascent="448"
+    descent="-64"
+    bbox="0 -64 576.032 447.975"
+    underline-thickness="25"
+    underline-position="-50"
+    unicode-range="U+0020-F8FF"
+  />
+    <missing-glyph />
+    <glyph glyph-name="hand-holding-water" unicode="&#xf4c1;" 
+d="M288 192c-53 0 -96 42.0996 -96 94c0 40 57.0996 120.7 83.2002 155.6c6.39941 8.5 19.2002 8.5 25.5996 0c26.1006 -34.8994 83.2002 -115.6 83.2002 -155.6c0 -51.9004 -43 -94 -96 -94zM565.3 119.9c15.1006 -13.6006 13.9004 -36.8008 -1.2998 -48.9004l-151.2 -121
+c-11.3994 -9.09961 -25.5 -14 -40 -14h-356.8c-8.7998 0 -16 7.2002 -16 16v96c0 8.7998 7.2002 16 16 16h55.4004l46.5 37.7002c21 17 47.0996 26.2998 74.0996 26.2998h160c19.5 0 34.9004 -17.4004 31.5996 -37.4004
+c-2.59961 -15.6992 -17.3994 -26.5996 -33.2998 -26.5996h-78.2998c-8.7998 0 -16 -7.2002 -16 -16s7.2002 -16 16 -16h118.3c14.6006 0 28.7002 4.90039 40 14l92.4004 73.9004c12.3994 10 30.7998 10.6992 42.5996 0z" />
+  </font>
+</defs></svg>

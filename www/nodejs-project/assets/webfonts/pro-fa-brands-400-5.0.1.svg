@@ -1,0 +1,34 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" >
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+<metadata>
+Created by FontForge 20200314 at Wed Jan 13 11:59:31 2021
+ By Robert Madole
+Copyright (c) Font Awesome
+</metadata>
+<!-- Font Awesome Pro 5.15.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) --><defs>
+<font id="FontAwesome5Brands-Regular" horiz-adv-x="528" >
+  <font-face 
+    font-family="Font Awesome 5 Brands Regular"
+    font-weight="400"
+    font-stretch="normal"
+    units-per-em="512"
+    panose-1="2 0 5 3 0 0 0 0 0 0"
+    ascent="448"
+    descent="-64"
+    bbox="0 -64 528 448"
+    underline-thickness="25"
+    underline-position="-50"
+    unicode-range="U+0020-F8E8"
+  />
+    <missing-glyph />
+    <glyph glyph-name="dropbox" unicode="&#xf16b;" 
+d="M264.4 331.7l-132 -84.2998l132 -84.3008l-132 -84.2998l-132.4 85.1006l132.3 84.2998l-132.3 83.5l132.3 84.2998zM131.6 52.2998l132 84.2998l132 -84.2998l-132 -84.2998zM264.4 163.9l132 84.2998l-132 83.5996l131.3 84.2002l132.3 -84.2998l-132.3 -84.2998
+l132.3 -84.2002l-132.3 -84.2998z" />
+    <glyph glyph-name="font-awesome-flag" unicode="&#xf425;" horiz-adv-x="448" 
+d="M444.373 88.5762c0 -7.16797 -6.14453 -10.2402 -13.3125 -13.3125c-28.6719 -12.2881 -59.3916 -23.5518 -92.1592 -23.5518c-46.0801 0 -67.584 28.6719 -122.88 28.6719c-39.9365 0 -81.9209 -14.3359 -115.713 -29.6953
+c-2.04785 -1.02441 -4.0957 -1.02441 -6.14355 -2.04883v-77.8232c0 -21.4053 -16.1221 -34.8164 -33.792 -34.8164c-19.4561 0 -34.8164 15.3604 -34.8164 34.8164v374.783c-13.3115 10.2402 -22.5273 26.624 -22.5273 45.0566c0 31.7441 25.5996 57.3438 57.3438 57.3438
+s57.3438 -25.5996 57.3438 -57.3438c0 -18.4326 -8.19141 -34.8164 -22.5273 -45.0566v-31.7432c4.12402 1.37402 58.7676 28.6719 114.688 28.6719c65.2705 0 97.6758 -27.6484 126.976 -27.6484c38.9121 0 81.9209 27.6484 92.1602 27.6484
+c8.19238 0 15.3604 -6.14453 15.3604 -13.3125v-240.64z" />
+  </font>
+</defs></svg>

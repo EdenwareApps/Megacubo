@@ -429,8 +429,8 @@ class OptionsExportImport extends OptionsGPU {
                             global.histo.load()
                         }                    
                         if(entry.entryName.startsWith('categories')) {
-                            zip.extractEntryTo(entry, global.storage.raw.folder, false, true, path.basename(global.storage.raw.resolve(global.channels.categoriesCacheKey)))
-                            delete global.storage.raw.cacheExpiration[global.channels.categoriesCacheKey]
+                            zip.extractEntryTo(entry, global.storage.raw.folder, false, true, path.basename(global.storage.raw.resolve(global.channels.loader.key)))
+                            delete global.storage.raw.cacheExpiration[global.channels.loader.key]
                             global.channels.load()
                         }
                         if(entry.entryName.startsWith('icons')) {
@@ -468,7 +468,7 @@ class OptionsExportImport extends OptionsGPU {
             }
         }
         add(global.config.file);
-        [global.bookmarks.key, global.histo.key, global.channels.categoriesCacheKey].forEach(key => {
+        [global.bookmarks.key, global.histo.key, global.channels.loader.key].forEach(key => {
             files.push(global.storage.resolve(key, false))
             files.push(global.storage.resolve(key, true))
         })
@@ -529,6 +529,7 @@ class Options extends OptionsExportImport {
         return entries
     }
     async showLanguageEntriesDialog(){
+        const restart = global.config.get('communitary-mode-lists-amount')
         let options = [], def = global.lang.locale
         let map = await global.lang.availableLocalesMap()
         Object.keys(map).forEach(id => {
@@ -546,23 +547,76 @@ class Options extends OptionsExportImport {
             id: 'improve'
         })
         let locale = await global.explorer.dialog([
-            {template: 'question', text: global.lang.LANGUAGE, fa: 'fas fa-language'}
+            {template: 'question', text: global.lang.SELECT_LANGUAGE, fa: 'fas fa-language'}
         ].concat(options), def)
         if(locale == 'improve') {
             global.ui.emit('open-external-url', 'https://github.com/efoxbr/megacubo/tree/master/www/nodejs-project/lang')
             return await this.showLanguageEntriesDialog()
         }
         let _def = global.config.get('locale') || global.lang.locale
-        if(locale && (locale != _def)){
-            global.config.set('countries', [])
-            global.config.set('locale', locale)
-            let texts = await global.lang.loadLanguage(locale)
-            if(texts){
-                global.lang.applyTexts(texts)
-                global.ui.emit('lang', texts)
+        if(locale) {
+            if (locale != _def) {
+                global.osd.show(global.lang.PROCESSING, 'fa-mega spin-x-alt', 'countries', 'persistent')
+                global.config.set('countries', [])
+                global.config.set('locale', locale)
+                let texts = await global.lang.loadLanguage(locale).catch(console.error)
+                if(texts){
+                    global.lang.locale = locale
+                    global.lang.applyTexts(texts)
+                    global.ui.emit('lang', texts)
+                    global.explorer.pages = {'': []}
+                    global.explorer.refreshNow()
+                }
+                global.osd.hide('countries')
+            }
+            let countries = global.lang.countries.getCountriesFromLanguage(locale)
+            countries = global.lang.countries.orderCodesBy(countries, 'population', true)
+            await this.country(
+                countries,
+                true
+            ).catch(console.error)
+            restart && global.energy.restart()
+        }
+    }
+    async country(suggestedCountries, force){
+        if(!Array.isArray(suggestedCountries) || !suggestedCountries.length) {
+            suggestedCountries = global.lang.alternateCountries
+        }
+        if((force || !global.config.get('country')) && suggestedCountries && suggestedCountries.length){            
+            const to = global.lang.locale
+            const opts = [
+                {template: 'question', fa: 'fas fa-info-circle', text: global.lang.SELECT_COUNTRY}
+            ].concat(suggestedCountries.map(id => {
+                const text = global.lang.countries.getCountryName(id, to)
+                return {template: 'option', text, fa: 'fas fa-globe', id}
+            }))
+            opts.push({template: 'option', text: global.lang.OTHER_COUNTRIES, details: global.lang.ALL, fa: 'fas fa-globe', id: 'countries'})
+            let ret = suggestedCountries.length == 1 ? suggestedCountries[0] : (await global.explorer.dialog(opts))
+            if(ret == 'countries') {
+                const nopts = opts.slice(0, 1).concat(
+                    global.lang.countries.getCountries().map(id => {
+                        const text = global.lang.countries.getCountryName(id, to)
+                        return {template: 'option', text, fa: 'fas fa-globe', id}
+                    })
+                )
+                ret = await global.explorer.dialog(nopts)
+            }
+            global.osd.show(global.lang.PROCESSING, 'fa-mega spin-x-alt', 'countries', 'persistent') // update language of message
+            if(!ret && force) {
+                ret = suggestedCountries[0]
+            }
+            if(ret && global.lang.countries.countryCodeExists(ret)){
+                global.lang.countryCode = ret // reference for upcoming lang.getActiveCountries()
+                global.config.set('country', ret)
+                global.config.set('countries', []) // reset
+                let countries = await global.lang.getActiveCountries()
+                global.config.set('countries', countries)
                 global.explorer.pages = {'': []}
                 global.explorer.refreshNow()
+                await global.channels.load()
+                await global.watching.update()
             }
+            global.osd.hide('countries')
         }
     }
     async countriesEntries(chosenLocale, path){
@@ -666,12 +720,13 @@ class Options extends OptionsExportImport {
             })
             options.push({
                 name: global.lang.OTHER_COUNTRIES,
+                details: global.lang.ALL,
                 fa: 'fas fa-chevron-right',
                 type: 'group',
                 renderer: () => this.countriesEntries(true, path)
             })
             entries.push({
-                name: global.lang.OTHER_COUNTRIES,
+                name: global.lang.ALL,
                 fa: 'fas fa-chevron-right',
                 type: 'group',
                 entries: options
@@ -713,7 +768,7 @@ class Options extends OptionsExportImport {
         const os = require('os')
         let text = lang.LEGAL_NOTICE +': '+ lang.ABOUT_LEGAL_NOTICE
         let title = global.ucWords(global.MANIFEST.name) +' v'+ global.MANIFEST.version
-        let versionStatus = outdated ? global.lang.OUTDATED : global.lang.CURRENT_VERSION
+        let versionStatus = outdated ? global.lang.OUTDATED.toUpperCase() : global.lang.CURRENT_VERSION
         title += ' ('+ versionStatus +', ' + process.platform +' '+ os.arch() +')'
         let ret = await global.explorer.dialog([
             {template: 'question', fa: 'fas fa-mega', text: title},
@@ -1166,7 +1221,7 @@ class Options extends OptionsExportImport {
         return opts
     }
     requestClearCache(){
-        let folders = [global.storage.folder, global.paths.temp, global.icons.opts.folder], size = 0, gfs = require('get-folder-size')
+        let folders = [global.paths.temp, global.icons.opts.folder], size = 0, gfs = require('get-folder-size')
         async.eachOf(folders, (folder, i, done) => {
             gfs(folder, (err, s) => {
                 if(!err){
@@ -1330,7 +1385,6 @@ class Options extends OptionsExportImport {
             global.tuning.destroy()
         }
         let folders = [
-            global.storage.folder, 
             global.paths.temp, 
             global.icons.opts.folder
         ]
@@ -1530,7 +1584,7 @@ class Options extends OptionsExportImport {
                 return opts
             }},
             {name: global.lang.PERFORMANCE_MODE, details: global.lang.SELECT, fa: 'fas fa-tachometer-alt', type: 'action', action: () => this.performance()},
-            {name: global.lang.LANGUAGE, fa: 'fas fa-language', type: 'action', action: () => this.showLanguageEntriesDialog()},
+            {name: global.lang.LANGUAGE, details: global.lang.SELECT_LANGUAGE, fa: 'fas fa-language', type: 'action', action: () => this.showLanguageEntriesDialog()},
             {name: global.lang.COUNTRIES, details: global.lang.COUNTRIES_HINT, fa: 'fas fa-globe', type: 'group', renderer: () => this.countriesEntries()},
             secOpt,
             {name: global.lang.MANAGE_CHANNEL_LIST, fa: 'fas fa-list', type: 'group', details: global.lang.LIVE, renderer: global.channels.options.bind(global.channels)},

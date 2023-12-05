@@ -130,7 +130,7 @@ class CloudConfiguration {
                     return data
                 } else {
                     if(err && String(err).endsWith('404')) this.notFound.push(key)
-                    throw err || 'empty response, no fallback'
+                    throw err || 'empty response, no fallback for '+url
                 }
             }
         }

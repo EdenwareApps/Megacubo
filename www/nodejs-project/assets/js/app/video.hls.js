@@ -39,27 +39,15 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 		hls.on(Events.ERROR, (event, data) => {
 			console.error('HLS ERROR', data)			
 			if (!data) data = event
-			if(data && ['fragParsingError', 'fragLoadError'].includes(data.details)){
-				// handle fragment load errors
-				const loader = data.frag.loader
-				if (data.response && data.response.status === 404) {
-					// skip current segment and continue with the same level
-					hls.streamController.skipCurrentSegment()
-				} else if(loader) { // preferred way
-					// retry fragment load
-					loader.abort()
-					loader.startPosition = data.frag.start
-					hls.trigger(Events.LEVEL_LOADING, { url: data.frag.url })
-				} else { // last resort
-					hls.stopLoad()
-					hls.startLoad(data.frag.end + 0.1)
+			if(data && data.details) {
+				if(['fragParsingError', 'fragLoadError', 'bufferStalledError'].includes(data.details) && !data.fatal){
+					// handle fragment load errors
+					return this.skipCurrentSegment(data.frag)
+				} else if(data.details == 'manifestLoadTimeOut'){
+					hls.recoverMediaError()
+					hls.startLoad()
+					return
 				}
-				return
-			}
-			if(data && data.details == 'manifestLoadTimeOut'){
-				hls.recoverMediaError()
-				hls.startLoad()
-				return
 			}
 			if (data && data.fatal) {
 				switch (data.type) {
@@ -82,6 +70,21 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 		})
 		this.hls = hls
 		this.connect()
+	}
+	skipCurrentSegment(frag) {
+		const start = frag.start + frag.duration
+		console.warn('Skip to '+ start)
+		if(frag.loader) {
+			frag.loader.abort()
+			loader.startPosition = start
+			hls.trigger(Events.LEVEL_LOADING, {
+				url: frag.url
+			})
+		} else {
+			this.hls.startLoad(start)
+			this.hls.recoverMediaError()
+			this.hls.media.play()
+		}
 	}
 	unload() {
 		console.log('unload hls')

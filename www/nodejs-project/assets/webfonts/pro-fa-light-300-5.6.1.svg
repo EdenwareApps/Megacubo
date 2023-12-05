@@ -1,0 +1,30 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" >
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+<metadata>
+Created by FontForge 20200314 at Wed Jan 13 11:59:45 2021
+ By Robert Madole
+Copyright (c) Font Awesome
+</metadata>
+<!-- Font Awesome Pro 5.15.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) --><defs>
+<font id="FontAwesome5Pro-Light" horiz-adv-x="576" >
+  <font-face 
+    font-family="Font Awesome 5 Pro Light"
+    font-weight="300"
+    font-stretch="normal"
+    units-per-em="512"
+    panose-1="2 0 3 3 0 0 0 0 0 0"
+    ascent="448"
+    descent="-64"
+    bbox="0.026679 -64 576.003 448"
+    underline-thickness="25"
+    underline-position="-50"
+    unicode-range="U+0020-F8FF"
+  />
+    <missing-glyph />
+    <glyph glyph-name="exclamation-triangle" unicode="&#xf071;" 
+d="M270.2 288h35.5c3.39941 0 6.09961 -2.7998 6 -6.2002l-7.5 -196c-0.100586 -3.2002 -2.7998 -5.7998 -6 -5.7998h-20.5c-3.2002 0 -5.90039 2.5 -6 5.7998l-7.5 196c-0.100586 3.40039 2.59961 6.2002 6 6.2002zM288 60c15.5 0 28 -12.5 28 -28s-12.5 -28 -28 -28
+s-28 12.5 -28 28s12.5 28 28 28zM569.5 8c18.5 -32 -4.7002 -72 -41.5 -72h-479.9c-37 0 -60 40.0996 -41.5996 72l239.9 416c18.5 32 64.7998 32 83.1992 0zM528 -32c12.2998 0 20 13.4004 13.7998 24l-240 416c-6.09961 10.7002 -21.5996 10.5996 -27.7002 0l-240 -416
+c-6.09961 -10.7002 1.60059 -24 13.9004 -24h480z" />
+  </font>
+</defs></svg>

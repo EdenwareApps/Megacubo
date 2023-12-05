@@ -1,0 +1,32 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" >
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+<metadata>
+Created by FontForge 20200314 at Wed Jan 13 11:59:38 2021
+ By Robert Madole
+Copyright (c) Font Awesome
+</metadata>
+<!-- Font Awesome Pro 5.15.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) --><defs>
+<font id="FontAwesome5Brands-Regular" horiz-adv-x="512" >
+  <font-face 
+    font-family="Font Awesome 5 Brands Regular"
+    font-weight="400"
+    font-stretch="normal"
+    units-per-em="512"
+    panose-1="2 0 5 3 0 0 0 0 0 0"
+    ascent="448"
+    descent="-64"
+    bbox="8 -55.9639 504 440"
+    underline-thickness="25"
+    underline-position="-50"
+    unicode-range="U+0020-F8E8"
+  />
+    <missing-glyph />
+    <glyph glyph-name="facebook-messenger" unicode="&#xf39f;" 
+d="M256.55 440c140.04 0 247.45 -102.34 247.45 -240.57c0 -175.13 -166.15 -273.229 -319.44 -231.04c-8.96973 2.44043 -9.64941 0.600586 -62.5596 -22.6992c-2.4375 -1.06445 -5.14355 -1.6543 -7.97168 -1.6543c-10.7617 0 -19.541 8.55176 -19.9082 19.2236
+c-1.41992 46.3701 0.299805 50.7207 -8.0498 58.2305c-48.3604 43.1602 -78.0703 105.64 -78.0703 177.939c0 138.23 108.52 240.57 248.55 240.57zM405.79 254.87c7.0498 11.0801 -6.65039 23.5996 -17.0898 15.6201l-78.4102 -59.3799
+c-2.50586 -1.87988 -5.64258 -2.99316 -9.0127 -2.99316s-6.48145 1.11328 -8.9873 2.99316l-58.0596 43.46c-6.23047 4.65234 -13.9668 7.46582 -22.333 7.46582c-13.2803 0 -24.9512 -6.94434 -31.5771 -17.3965l-73 -115.569
+c-7.05078 -11.0703 6.64941 -23.6006 17.1094 -15.6699l78.3701 59.4395c2.50586 1.87891 5.64258 2.99316 9.0127 2.99316s6.48242 -1.11426 8.9873 -2.99316l58.0801 -43.4697c6.23047 -4.65039 13.9658 -7.46191 22.3301 -7.46191
+c13.2803 0 24.9512 6.94141 31.5801 17.3916z" />
+  </font>
+</defs></svg>

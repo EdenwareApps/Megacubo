@@ -18,9 +18,7 @@ class StreamState extends Events {
                 this.sync()
             }
         }).catch(global.displayErr)
-        global.streamer.on('connecting', () => {
-            this.cancelTests()
-        })
+        global.streamer.on('connecting', () => this.cancelTests())
         global.streamer.on('connecting-failure', data => {
             if(data){
                 this.set(data.url, 'offline', true, { source: data.source })
@@ -33,11 +31,10 @@ class StreamState extends Events {
             this.set(url, intent.type, true, { source: intent.data.source })
             if(this.data[url]){
                 const data = this.data[url]
-                if(data.position && data.position > 10 && (data.position < (data.duration - 30))){
-                    const cb = () => {
-                        global.ui.emit('resume-dialog', data.position)
-                    }
-                    process.nextTick(cb)
+                if(data.duration && data.position && data.position > 10 && (data.position < (data.duration - 30))){
+                    process.nextTick(() => {
+                        global.ui.emit('resume-dialog', data.position, data.duration)
+                    })
                 }
             }
         })
@@ -53,9 +50,7 @@ class StreamState extends Events {
                 }
             }, 500)
         })
-        global.explorer.on('open', () => {
-            this.cancelTests()
-        })
+        global.explorer.on('open', () => this.cancelTests())
         global.explorer.on('render', entries => {
             this.cancelTests()
             if(entries.some(e => this.supports(e))){
@@ -73,9 +68,7 @@ class StreamState extends Events {
                 this.set(url, state, true, atts)
             }
         })
-        this.on('state', (url, state) => {
-            global.ui.emit('set-status-flag', url, state)
-        })
+        this.on('state', (url, state) => global.ui.emit('set-status-flag', url, state))
         global.onexit(() => {
             this.cancelTests()
             this.save() // sync
@@ -258,7 +251,10 @@ class StreamState extends Events {
                         if(typeof(state) == 'string'){
                             if(state && state != 'offline'){
                                 syncData[e.url] = state
-                                this.set(e.url, state, false, { source: e.source })
+                                const data = this.data[e.url]
+                                if(data && this.isWatched(data)){
+                                    syncData[e.url] += ',watched'
+                                }
                             } else if(typeof(this.clientFailures[e.url]) != 'undefined') {
                                 syncData[e.url] = 'offline'
                             } else {
@@ -331,6 +327,23 @@ class StreamState extends Events {
             }
             this.testing.finish()
         }
+    }
+    isWatched(data){
+        if(!data) return
+        if(typeof(data) == 'string') {
+            data = this.data[data]
+            if(!data) return
+        }
+        if(!data.position || !data.duration) {
+            if(data.url) {
+                data = this.data[data.url]
+                if(!data || !data.position || !data.duration) return
+            } else {
+                return
+            }
+        }
+        const creditsTime = Math.min(180, Math.max(data.duration * 0.05, 30))
+        return data.position && data.position > (data.duration - creditsTime)
     }
 }
 

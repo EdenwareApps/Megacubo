@@ -1,0 +1,29 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" >
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+<metadata>
+Created by FontForge 20200314 at Wed Jan 13 11:59:30 2021
+ By Robert Madole
+Copyright (c) Font Awesome
+</metadata>
+<!-- Font Awesome Pro 5.15.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) --><defs>
+<font id="FontAwesome5Pro-Solid" horiz-adv-x="576" >
+  <font-face 
+    font-family="Font Awesome 5 Pro Solid"
+    font-weight="900"
+    font-stretch="normal"
+    units-per-em="512"
+    panose-1="2 0 5 3 0 0 0 0 0 0"
+    ascent="448"
+    descent="-64"
+    bbox="0 -64 576 448.001"
+    underline-thickness="25"
+    underline-position="-50"
+    unicode-range="U+0020-F8FF"
+  />
+    <missing-glyph />
+    <glyph glyph-name="lock-open" unicode="&#xf3c1;" 
+d="M423.5 448c84 0.299805 152.5 -68 152.5 -152v-80c0 -13.2998 -10.7002 -24 -24 -24h-32c-13.2998 0 -24 10.7002 -24 24v80c0 39.9004 -32.7002 72.4004 -72.7002 72c-39.5996 -0.400391 -71.2998 -33.2998 -71.2998 -72.9004v-71.0996h48c26.5 0 48 -21.5 48 -48v-192
+c0 -26.5 -21.5 -48 -48 -48h-352c-26.5 0 -48 21.5 -48 48v192c0 26.5 21.5 48 48 48h224v70.5c0 84 67.5 153.2 151.5 153.5z" />
+  </font>
+</defs></svg>

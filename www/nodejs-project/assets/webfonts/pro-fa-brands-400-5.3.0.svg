@@ -1,0 +1,31 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" >
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+<metadata>
+Created by FontForge 20200314 at Wed Jan 13 11:59:34 2021
+ By Robert Madole
+Copyright (c) Font Awesome
+</metadata>
+<!-- Font Awesome Pro 5.15.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) --><defs>
+<font id="FontAwesome5Brands-Regular" horiz-adv-x="448" >
+  <font-face 
+    font-family="Font Awesome 5 Brands Regular"
+    font-weight="400"
+    font-stretch="normal"
+    units-per-em="512"
+    panose-1="2 0 5 3 0 0 0 0 0 0"
+    ascent="448"
+    descent="-64"
+    bbox="0 -32 448 416"
+    underline-thickness="25"
+    underline-position="-50"
+    unicode-range="U+0020-F8E8"
+  />
+    <missing-glyph />
+    <glyph glyph-name="alipay" unicode="&#xf642;" 
+d="M377.74 416c38.6895 0 70.0898 -31.5703 69.9297 -70.2598v-234.41c-48.6104 16.7002 -99.6895 36.04 -148.62 52.7402c23.1406 44.2998 38.3506 90.9199 38.3506 90.9199h-88.7705v31.2402h109.45v19.0098h-109.44v50.4199h-50.9199v-50.4199h-109.439v-19.0098h109.439
+v-31.2402h-92.0801v-16.7002h178.2s-9.91992 -30.25 -26.4502 -60.3398c-47.7793 14.71 -91.75 24.96 -127.13 24.96c-84.6396 0 -103.49 -42.4902 -99.5195 -81.5c3.30957 -31.0703 26.4502 -76.3701 97.04 -76.3701c64.4795 0 116.55 37.0303 148.62 81
+c61.0098 -28.0996 125.64 -62.8203 171.6 -88.4404c-0.5 -38.5195 -31.7402 -69.5996 -70.2598 -69.5996h-307.48c-38.8496 0 -70.2598 31.4102 -70.2598 70.2598v307.48c0 38.8496 31.4102 70.2598 70.2598 70.2598h307.48zM47.2803 125.05
+c-0.990234 17.5205 10.9102 50.5801 78.3594 50.5801c24.96 0 64.8105 -12.7295 109.44 -31.4102c-25.29 -33.2197 -65.7998 -72.8994 -117.87 -72.8994c-59.6797 0 -68.9404 33.5596 -69.9297 53.7295z" />
+  </font>
+</defs></svg>

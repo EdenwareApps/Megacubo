@@ -594,7 +594,11 @@ class StreamerGoNext extends StreamerThrottling {
 	constructor(opts){
 		super(opts)
 		if(!this.opts.shadow){
-			global.ui.on('video-ended', () => this.goNext().catch(global.displayErr))
+			global.ui.on('video-ended', () => {
+				if(this.active && this.active.mediaType == 'video') {
+					this.goNext().catch(global.displayErr)
+				}
+			})
 			global.ui.on('video-resumed', () => this.cancelGoNext())
 			global.ui.on('stop', () => this.cancelGoNext())
 			global.ui.on('go-prev', () => this.goPrev().catch(global.displayErr))

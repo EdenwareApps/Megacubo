@@ -1,4 +1,4 @@
-const StreamerBaseIntent = require('./base.js'), StreamerFFmpeg = require('../utils/ffmpeg')
+const StreamerBaseIntent = require('./base.js'), StreamerProxy = require('../utils/proxy')
 
 class StreamerDashIntent extends StreamerBaseIntent {    
     constructor(data, opts, info){
@@ -8,19 +8,19 @@ class StreamerDashIntent extends StreamerBaseIntent {
         Object.assign(opts, {audioCodec, videoCodec})
         super(data, opts, info)
         this.type = 'dash'
-        this.mimetype = this.mimeTypes.hls
+        this.mimetype = this.mimeTypes.dash
         this.mediaType = 'live'
         this.once('destroy', () => {
             console.log('DASHINTENTDESTROY')
         })
     }  
     async _start(){
-        this.tohls = new StreamerFFmpeg(this.data.url, this.opts)
-        this.mimetype = this.mimeTypes[this.tohls.opts.outputFormat]
-        this.connectAdapter(this.tohls)
-        this.tohls.audioCodec = this.opts.audioCodec
-        await this.tohls.start()
-        this.endpoint = this.tohls.endpoint
+        this.prx = new StreamerProxy(Object.assign({
+            authURL: this.data.authURL || this.data.source
+        }, this.opts))
+        this.connectAdapter(this.prx)
+        await this.prx.start()
+        this.endpoint = this.prx.proxify(this.data.url)
         return {endpoint: this.endpoint, mimetype: this.mimetype}
     }
 }

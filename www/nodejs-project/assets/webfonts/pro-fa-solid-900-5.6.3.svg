@@ -1,0 +1,30 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" >
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+<metadata>
+Created by FontForge 20200314 at Wed Jan 13 11:59:42 2021
+ By Robert Madole
+Copyright (c) Font Awesome
+</metadata>
+<!-- Font Awesome Pro 5.15.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) --><defs>
+<font id="FontAwesome5Pro-Solid" horiz-adv-x="448" >
+  <font-face 
+    font-family="Font Awesome 5 Pro Solid"
+    font-weight="900"
+    font-stretch="normal"
+    units-per-em="512"
+    panose-1="2 0 5 3 0 0 0 0 0 0"
+    ascent="448"
+    descent="-64"
+    bbox="0 -64 448 448"
+    underline-thickness="25"
+    underline-position="-50"
+    unicode-range="U+0020-F8FF"
+  />
+    <missing-glyph />
+    <glyph glyph-name="fire-alt" unicode="&#xf7e4;" 
+d="M323.56 396.8c72.46 -67.2598 124.44 -177.13 124.44 -230.399c0 -127.25 -100.29 -230.4 -224 -230.4s-224 103.15 -224 230.4c0 71.6396 69.7402 190.43 168 281.6c38.2803 -35.5303 72.0801 -73.6201 99.3398 -111.17
+c16.6406 20.3799 35.4199 40.6699 56.2197 59.9697zM304.09 56.1504c49.2402 34.4492 60.7803 101.229 33.4297 153.42c-3.35938 6.41992 -7.12988 13.1201 -11.2695 19.9697l-58.6299 -66.8799s-91.9004 117.359 -98.8301 125.34
+c-48.4805 -58.1201 -72.79 -92.1396 -72.79 -130.75c0 -77.5098 58.71 -125.25 130.86 -125.25c28.8594 0 55.5693 8.99023 77.2295 24.1504z" />
+  </font>
+</defs></svg>

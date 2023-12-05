@@ -1736,13 +1736,23 @@ class ExplorerStatusFlags extends ExplorerSlider {
 						} else if(status == 'waiting') {
 							content = '<i class="fas fa-clock"></i>'
 						} else {
-							if(status == 'offline') {
-								content = '<span class="entry-status-flag entry-status-flag-failure"><i class="fas fa-times"></i></span>'
-							} else if(config['status-flags-type']) {
-								content = '<span class="entry-status-flag entry-status-flag-success">'+ status +'</span>'
-							} else {
-								content = '<span class="entry-status-flag entry-status-flag-success"><i class="fas fa-check"></i></span>'
+							let watched
+							if(status.endsWith(',watched')) {
+								watched = true
+								status = status.substr(0, status.length - 8)
 							}
+							let cls = '', txt = '', icon = watched ? 'fas fa-check' : ''
+							if(status == 'offline') {
+								if(!watched) icon = 'fas fa-times'
+								cls = 'entry-status-flag-failure'
+							} else {
+								if(!watched) icon = 'fas fa-play'
+								cls = 'entry-status-flag-success'
+								if(config['status-flags-type']) txt = ' '+ status
+							}
+							content = '<i class="'+ icon +'" aria-hidden="true"></i>'+ txt
+							if(config['status-flags-type']) content = '&nbsp;'+ content +'&nbsp;'
+							content = '<span class="entry-status-flag '+ cls +'">'+ content +'</span>'
 						}
 						this[status == 'offline' ? 'addClass' : 'removeClass'](element, 'entry-disabled')
 						if(content != element.getAttribute('data-status-flags-html')){
@@ -1993,7 +2003,7 @@ class Explorer extends ExplorerLoading {
 		let move
 		entries.forEach((e, j) => {
 			let ne, flag = -1
-			if(!['check', 'slider'].includes(e.type)){
+			if(!['check', 'slider', 'action'].includes(e.type)){
 				prevEntries.some((n, i) => {
 					let diff = this.diffEntries(e, n)
 					if(!diff){

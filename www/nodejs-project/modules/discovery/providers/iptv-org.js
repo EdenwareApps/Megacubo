@@ -7,23 +7,18 @@ class IPTV extends Events {
         this.opts = opts
         this.data = {}
         this.countries = new Countries()
-        this.load().catch(console.error)    
+        this.load().catch(console.error)
         global.uiReady(() => global.explorer.addFilter(this.hook.bind(this)))
     }
-	async load(){
-        if(!this.repo){
-            let cf
-            await Promise.allSettled([
-                global.cloud.get('configure').then(c => cf = c),
-                this.countries.ready()
-            ])
-            if(cf){
-                this.data = cf['sources'] || {}
-                this.isReady = true
-                this.emit('ready')
-            }
+    async load() {
+        if (!this.repo) {
+            await global.cloud.get('configure').then(c => {
+                this.data = c['sources'] || {}
+            }).catch(console.error)
+            this.isReady = true
+            this.emit('ready')
         }
-	}
+    }
 	async ready(){
 		return new Promise((resolve, reject) => {
             if(this.isReady){

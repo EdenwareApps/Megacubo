@@ -31,35 +31,33 @@ class Language extends Events {
         return this.hints.langs
     }
     async findCountryCode(force){
-
         const countriesTz = this.countries.getCountriesFromTZ(this.timezone.minutes)
         const countriesHintsTz = this.hints.countries.filter(c => countriesTz.includes(c))
-
         if(force !== true){
             const country = global.config.get('country')
             if(country){
+                this.isTrusted = true
                 this.alternateCountries = countriesHintsTz.filter(c => c != country)
                 this.countryCode = country
                 return
             }
         }
-
         if(countriesHintsTz.length){ // country in navigator hints, right timezone
             this.alternateCountries = countriesHintsTz
+            this.isTrusted = this.alternateCountries.length == 1
             return this.countryCode = this.alternateCountries.shift()
         }
-
         const countriesTzAllLangs = this.hints.langs.map(l => this.countries.getCountriesFromLanguage(l)).flat().filter(c => countriesTz.includes(c)) // country should be in tz
         if(countriesTzAllLangs.length){ // language in navigator hints, right timezone
             this.alternateCountries = countriesTzAllLangs.unique()
+            this.isTrusted = this.alternateCountries.length == 1
             return this.countryCode = this.alternateCountries.shift()
         }
-
         if(this.hints.countries.length){ // country in navigator hints, wrong timezone
             this.alternateCountries = this.hints.countries.slice(0)
+            this.isTrusted = false
             return this.countryCode = this.alternateCountries.shift()
         }
-
         this.alternateCountries = []
         return this.countryCode = 'us'
     }
@@ -84,21 +82,23 @@ class Language extends Events {
             return this.countries.getCountriesFromLanguage(loc)
         }).flat().unique()
     }
-    async getActiveCountries(limit=5){
+    async getActiveCountries(limit=8){
         await this.ready()
         let actives = global.config.get('countries')
         if(!Array.isArray(actives) || !actives.length){
             await this.ready()
             let languages = this.countries.getCountryLanguages(this.countryCode)
             actives = await this.getCountries(languages)
-            actives = actives.filter(a => !this.hints.countries.includes(a))
-            actives = this.hints.countries.slice(0).concat(actives)
+            const hintedActives = actives.filter(a => !this.hints.countries.includes(a))
+            if(hintedActives.length) {
+                const unhintedActives = actives.filter(a => !hintedActives.includes(a))
+                actives = hintedActives.concat(unhintedActives)
+            }
         }
         actives = this.countries.getNearest(this.countryCode, actives, limit || 999)
         return actives
     }
     async getCountriesMap(locale, additionalCountries){ // return countries of same ui language
-        await this.countries.ready()
         const codes = await this.getCountries(locale)
         if(Array.isArray(additionalCountries)) {
             additionalCountries.forEach(c => {
@@ -119,10 +119,7 @@ class Language extends Events {
         return false
     }
     async load(){
-        await Promise.allSettled([
-            this.findLanguages(),
-            this.countries.ready()
-        ])
+        await this.findLanguages().catch(console.error)
         this.locale = 'en'
         let utexts, texts = await this.loadLanguage('en').catch(global.displayErr) // english will be a base/fallback language for any key missing in translation chosen
         if(!texts) texts = {}

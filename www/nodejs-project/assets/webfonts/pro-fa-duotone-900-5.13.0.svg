@@ -1,0 +1,32 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" >
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+<metadata>
+Created by FontForge 20200314 at Wed Jan 13 12:00:03 2021
+ By Robert Madole
+Copyright (c) Font Awesome
+</metadata>
+<!-- Font Awesome Pro 5.15.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) --><defs>
+<font id="FontAwesome5Duotone-Solid" horiz-adv-x="576" >
+  <font-face 
+    font-family="Font Awesome 5 Duotone Solid"
+    font-weight="900"
+    font-stretch="normal"
+    units-per-em="512"
+    panose-1="2 0 5 3 0 0 0 0 0 0"
+    ascent="448"
+    descent="-64"
+    bbox="0 -64 576.037 448.023"
+    underline-thickness="25"
+    underline-position="-50"
+    unicode-range="U+0020-10F8FF"
+  />
+    <missing-glyph />
+    <glyph glyph-name="hand-holding-water-primary" unicode="&#xf4c1;" 
+d="M300.8 441.62c26.1006 -34.8896 83.2002 -115.62 83.2002 -155.62c0 -51.9004 -43 -94 -96 -94s-96 42.0996 -96 94c0 40 57.0996 120.71 83.2002 155.6c2.91895 3.89941 7.57422 6.42383 12.8154 6.42383c5.23145 0 9.86426 -2.5166 12.7842 -6.40332z" />
+    <glyph glyph-name="hand-holding-water-secondary" unicode="&#x10f4c1;" 
+d="M564 71l-151.2 -121c-10.9551 -8.74512 -24.8379 -13.9756 -39.9326 -13.9756c-0.00683594 0 -0.0595703 -0.0244141 -0.0673828 -0.0244141h-356.8c-8.81836 0.0273438 -15.9727 7.18164 -16 16v96c0 8.83105 7.16895 16 16 16h55.4004l46.5 37.71
+c20.2207 16.4033 46.0605 26.2803 74.0996 26.29h160h0.0605469c17.6611 0 32 -14.3389 32 -32c0 -1.85059 -0.158203 -3.63477 -0.460938 -5.40039c-2.59961 -15.6992 -17.3994 -26.5996 -33.2998 -26.5996h-78.2998c-8.83105 0 -16 -7.16895 -16 -16s7.16895 -16 16 -16
+h118.3h0.168945c15.0498 0 28.9287 5.25586 39.8311 14l92.4004 73.9004c12.3994 10 30.7998 10.6992 42.5996 0c6.58594 -5.86328 10.7373 -14.4043 10.7373 -23.9072c0 -10.1172 -4.69727 -19.127 -12.0371 -24.9932z" />
+  </font>
+</defs></svg>

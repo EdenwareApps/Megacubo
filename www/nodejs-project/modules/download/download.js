@@ -1,7 +1,8 @@
 const Events = require('events'), parseRange = require('range-parser')
 const zlib = require('zlib')
+const Writer = require('../writer')
 const StringDecoder = require('string_decoder').StringDecoder
-const DownloadCacheMap = require('./download-cache'), fs = require('fs')
+const DownloadCacheMap = require('./download-cache')
 const DownloadStreamHybrid = require('./stream-hybrid')
 
 const getDomain = (u, includePort) => {
@@ -149,7 +150,7 @@ class Download extends Events {
 		if(!this.started && !this.ended && !this.destroyed){
 			this.started = true
 			if(this.opts.file) {
-				this.fileStream = fs.createWriteStream(this.opts.file)
+				this.fileStream = new Writer(this.opts.file)
 			}
 			if(global.osd && global.debugConns){
 				let txt = this.opts.url.split('?')[0].split('/').pop()
@@ -936,8 +937,10 @@ class Download extends Events {
 						try {
 							data = global.parseJSON(String(data))
 						} catch(e) {
+							Download.cache.remove(this.opts.url)
+							Download.cache.remove(this.currentURL)
 							this.listenerCount('error') && this.emit('error', e)
-							data = undefined
+							this.endWithError(e)
 						}
 						break
 				}
@@ -1036,18 +1039,25 @@ class Download extends Events {
 			}
 			if(!this.ended){
 				this.ended = true
-				this.emit('end')
 			}
 			if(this.opts.cacheTTL){
 				Download.cache.save(this, null, true) // end it always despite of responseSource
 			}
 			this.destroyed = true
 			this.destroyStream()
-			this.emit('close')
-			this.emit('destroy')
-			this.removeAllListeners()
 			this.buffer = [] // discard
-			this.fileStream && this.fileStream.close()
+			const finish = () => {
+				this.emit('end')
+				this.emit('close')
+				this.emit('destroy')
+				this.removeAllListeners()
+			}
+			if(this.fileStream) { // wait file writing before emit 'end'
+				this.fileStream.end()
+				this.fileStream.ready(finish)
+			} else {
+				finish()
+			}
 			process.nextTick(() => {
 				if(global.osd && global.debugConns){
 					let txt = this.opts.url.split('?')[0].split('/').pop() +' ('+ this.statusCode +') - '

@@ -9,6 +9,7 @@ class Writer extends Events {
 		this.file = file
 		this.opts = opts
 		this.written = 0
+		this.writable = true
 		this.writing = false
 		this.writeQueue = []
 		this.position = 0
@@ -136,6 +137,8 @@ class Writer extends Events {
 		this.writeQueue = []
 	}
 	end() {
+		this.writable = false
+		this.finished = true
 		this.ended = true
 		this.ready(() => this.destroy())
 	}

@@ -6,6 +6,7 @@ class StreamerBaseIntent extends Events {
         super()
         this.mimeTypes = {
             hls: 'application/x-mpegURL', //; codecs="avc1.42E01E, mp4a.40.2"
+            dash: 'application/dash+xml',
             mpegts: 'video/MP2T',
             video: 'video/mp4'
         }        

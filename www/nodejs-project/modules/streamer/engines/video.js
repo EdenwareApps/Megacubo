@@ -36,7 +36,8 @@ class StreamerVideoIntent extends StreamerBaseIntent {
                 }
             } else {
                 const adapter = new StreamerProxy(Object.assign({
-                    authURL: this.data.authURL || this.data.source
+                    authURL: this.data.authURL || this.data.source,
+                    timeout: global.config.get('read-timeout')
                 }, this.opts))
                 adapter.bitrateChecker.opts.minCheckSize = 6 * (1024 * 1024)
                 adapter.bitrateChecker.opts.maxCheckSize = 3 * adapter.bitrateChecker.opts.minCheckSize

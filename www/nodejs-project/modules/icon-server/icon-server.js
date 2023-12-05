@@ -369,7 +369,7 @@ class IconServer extends IconServerStore {
         this.opts = {
             addr: '127.0.0.1',
             port: 0, // let the http.server sort
-            downloadLimit: 0.5 * (1024 * 1024), // 1mb
+            downloadLimit: 1 * (1024 * 1024), // 1mb
             folder: './cache',
             debug: false
         }

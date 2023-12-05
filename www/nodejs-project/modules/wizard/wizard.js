@@ -42,7 +42,9 @@ class Wizard extends WizardUtils {
         })
     }
     async init(){
-        await this.country()
+        if(!global.lang.isTrusted) {
+            await global.options.showLanguageEntriesDialog()
+        }
         await this.lists()
         await this.performance()
         this.isDone = true
@@ -97,67 +99,6 @@ class Wizard extends WizardUtils {
         }
         await global.options.performance(true)
         return true
-    }
-    async country(){
-        if(!global.config.get('country') && global.lang.alternateCountries && global.lang.alternateCountries.length){            
-            const to = global.lang.locale
-            const opts = [
-                {template: 'question', fa: 'fas fa-info-circle', text: global.lang.SELECT_COUNTRY}
-            ].concat(global.lang.alternateCountries.concat([global.lang.countryCode]).map(id => {
-                const text = global.lang.countries.getCountryName(id, to)
-                return {template: 'option', text, fa: 'fas fa-globe', id}
-            }))
-            opts.push({template: 'option', text: global.lang.OTHER_COUNTRIES, fa: 'fas fa-globe', id: 'countries'})
-            let ret = await global.explorer.dialog(opts)
-            if(ret && ret == 'countries') {
-                const nopts = opts.slice(0, 1).concat(
-                    global.lang.countries.getCountries().map(id => {
-                        const text = global.lang.countries.getCountryName(id, to)
-                        return {template: 'option', text, fa: 'fas fa-globe', id}
-                    })
-                )
-                ret = await global.explorer.dialog(nopts)
-            }
-            if(ret && global.lang.countries.countryCodeExists(ret)){
-                global.lang.countryCode = ret // reference for upcoming lang.getActiveCountries()
-                global.config.set('country', ret)
-                global.config.set('countries', []) // reset
-                let countries = await global.lang.getActiveCountries()
-                global.config.set('countries', countries)
-                let languages = global.lang.countries.getCountryLanguages(ret)
-                const map = await global.lang.availableLocalesMap()
-                languages = Object.keys(map).filter(code => languages.includes(code))
-                if(!languages.length) {
-                    languages = ['en']
-                }
-                if(languages.length > 1) {
-                    const lopts = []
-                    languages.forEach(id => {
-                        lopts.push({
-                            text: map[id] || id,
-                            template: 'option',
-                            fa: 'fas fa-language',
-                            id
-                        })
-                    })
-                    ret = await global.explorer.dialog(opts)
-                    if(ret && map[ret]) languages = [ret]
-                }
-                const locale = languages.shift()              
-                if(locale != global.lang.locale) {
-                    global.config.set('locale', locale)
-                    let texts = await global.lang.loadLanguage(locale)
-                    if(texts){
-                        global.lang.applyTexts(texts)
-                        global.ui.emit('lang', texts)
-                        global.explorer.pages = {'': []}
-                        global.explorer.refreshNow()
-                    }
-                }
-                global.channels.updateCategoriesCacheKey()
-                global.channels.load()
-            }
-        }
     }
 }
 

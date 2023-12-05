@@ -1,13 +1,5 @@
 var body = $('body'), content = $('#explorer content'), wrap = document.querySelector('#explorer wrap'), wrapper = $(wrap)
 
-function parseMomentLocale(content){
-    let startPos = content.indexOf('moment.defineLocale('), endPos = content.lastIndexOf('return ')
-    if(startPos != -1 && endPos != -1){
-        content = content.substr(startPos, endPos - startPos)
-    }
-    return content
-}
-
 function importMomentLocale(locale, cb){
     importMomentLocaleCallback = cb
     jQuery.ajax({
@@ -15,8 +7,8 @@ function importMomentLocale(locale, cb){
         dataType: 'text',
         cache: true
     }).done(content => {
-        let txt = this.parseMomentLocale(content)
-        jQuery('<script>').attr('type', 'text/javascript').text('try{ '+ txt + '} catch(e) { console.error(e) };importMomentLocaleCallback()').appendTo('head')
+        window.global = window
+        jQuery('<script>').attr('type', 'text/javascript').text('try{ '+ content + '} catch(e) { console.error(e) };importMomentLocaleCallback()').appendTo('head')
     }).fail((jqXHR, textStatus) => {
         console.error( "Request failed: " + textStatus )
     })

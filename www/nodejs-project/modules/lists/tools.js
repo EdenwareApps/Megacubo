@@ -154,6 +154,20 @@ class Tools {
 				entries.push(group)
 				n++
 			}
+			entries = entries.map((group, i) => {
+				if(i >= (entries.length - 1)) return group
+				const nextGroup = entries[i + 1].name
+				group.entries.push({
+					name: global.lang.MORE,
+					details: nextGroup,
+					type: 'action',
+					fa: 'fas fa-chevron-right',
+					action: () => {
+						explorer.open(explorer.dirname(explorer.path) +'/'+ nextGroup).catch(global.displayErr)
+					}
+				})
+				return group
+			})
 			sentries = entries
 		}
 		return sentries

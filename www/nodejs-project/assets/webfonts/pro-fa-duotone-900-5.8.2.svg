@@ -1,0 +1,34 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" >
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+<metadata>
+Created by FontForge 20200314 at Wed Jan 13 11:59:54 2021
+ By Robert Madole
+Copyright (c) Font Awesome
+</metadata>
+<!-- Font Awesome Pro 5.15.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) --><defs>
+<font id="FontAwesome5Duotone-Solid" horiz-adv-x="512" >
+  <font-face 
+    font-family="Font Awesome 5 Duotone Solid"
+    font-weight="900"
+    font-stretch="normal"
+    units-per-em="512"
+    panose-1="2 0 5 3 0 0 0 0 0 0"
+    ascent="448"
+    descent="-64"
+    bbox="-0.00488281 -64.0107 512.002 448.001"
+    underline-thickness="25"
+    underline-position="-50"
+    unicode-range="U+0020-10F8FF"
+  />
+    <missing-glyph />
+    <glyph glyph-name="check-double-primary" unicode="&#xf560;" 
+d="M504.5 276c4.63672 -4.6748 7.50195 -11.1084 7.50195 -18.2061s-2.86523 -13.5391 -7.50195 -18.2139l-294.4 -296.04c-4.61816 -4.66113 -11.0225 -7.55078 -18.0967 -7.55078s-13.4844 2.88965 -18.1025 7.55078l-166.4 167.36
+c-4.6377 4.67188 -7.50488 11.1035 -7.50488 18.2002s2.86719 13.5371 7.50488 18.209l36.2002 36.4102c4.61816 4.66211 11.0225 7.55078 18.0967 7.55078s13.4844 -2.88867 18.1035 -7.55078l112.1 -112.72l240.1 241.46c4.62109 4.65625 11.0254 7.54199 18.0977 7.54199
+s13.4814 -2.88574 18.1025 -7.54199z" />
+    <glyph glyph-name="check-double-secondary" unicode="&#x10f560;" 
+d="M166.57 165.29l-122.57 123.5c-3.16016 3.22363 -5.11035 7.63867 -5.11035 12.5059c0 4.95996 2.02344 9.45508 5.29004 12.6943l42.1006 41.7695c3.22363 3.16113 7.63867 5.11035 12.5059 5.11035c4.95898 0 9.45508 -2.02344 12.6943 -5.29004l68.2295 -68.7705
+l157.16 156.08c3.22559 3.16113 7.64258 5.11133 12.5107 5.11133c4.96094 0 9.45898 -2.02344 12.6992 -5.29102l41.9199 -42.1201c3.16113 -3.22559 5.11133 -7.64258 5.11133 -12.5107c0 -4.96094 -2.02344 -9.45898 -5.29102 -12.6992l-212.04 -210.27
+c-3.22559 -3.16113 -7.64258 -5.11133 -12.5117 -5.11133c-4.96094 0 -9.45801 2.02344 -12.6982 5.29102z" />
+  </font>
+</defs></svg>

@@ -1,0 +1,31 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" >
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+<metadata>
+Created by FontForge 20200314 at Wed Jan 13 11:59:41 2021
+ By Robert Madole
+Copyright (c) Font Awesome
+</metadata>
+<!-- Font Awesome Pro 5.15.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) --><defs>
+<font id="FontAwesome5Pro-Regular" horiz-adv-x="512" >
+  <font-face 
+    font-family="Font Awesome 5 Pro Regular"
+    font-weight="400"
+    font-stretch="normal"
+    units-per-em="512"
+    panose-1="2 0 5 3 0 0 0 0 0 0"
+    ascent="448"
+    descent="-64"
+    bbox="-0.0380859 -64.0078 511.979 448.006"
+    underline-thickness="25"
+    underline-position="-50"
+    unicode-range="U+0020-F8FF"
+  />
+    <missing-glyph />
+    <glyph glyph-name="wand" unicode="&#xf72a;" 
+d="M432 256h-29.2305l-272.939 -302.53c-9.69141 -10.7383 -23.7178 -17.4775 -39.3076 -17.4775c-14.6328 0 -27.8857 5.94824 -37.4727 15.5576l-37.5303 37.5205c-9.60059 9.59473 -15.5576 22.8516 -15.5576 37.4844c0 15.5664 6.72656 29.5752 17.4277 39.2754
+l0.0605469 0.0498047l78.5498 70.8398v39.2803c0 8.83105 7.16895 16 16 16h45.2598l272.74 246.08c6.82227 6.16211 15.8818 9.92578 25.79 9.92578c10.623 0 20.2451 -4.31445 27.21 -11.2861l17.6904 -17.6299c6.97852 -6.9668 11.2881 -16.6172 11.2881 -27.2471
+c0 -9.94336 -3.7793 -19.0107 -9.97852 -25.8428l-54 -59.8896v-34.1104c0 -8.83105 -7.16895 -16 -16 -16zM94.2002 -14.3604l366.189 405.87l-4.90918 4.87988l-405.87 -366.12c-0.890625 -0.829102 -3.16016 -4.26953 -0.160156 -7.26953l37.5303 -37.5303
+c2.98926 -3.06934 6.39941 -0.739258 7.21973 0.169922z" />
+  </font>
+</defs></svg>

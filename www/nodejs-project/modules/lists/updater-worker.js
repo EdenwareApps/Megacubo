@@ -17,7 +17,7 @@ class ListsUpdater extends Common {
 	async getInfo(){
 		return this.info
 	}
-	async update(url, force, progressId){
+	async update(url, params={}){
 		if(!url){
 			return this.info[url] = 'invalid url'
 		}
@@ -29,7 +29,7 @@ class ListsUpdater extends Common {
 			console.log('updater - updating', url)
 		}
 		let err
-		const updated = await this.updateList(url, force, progressId).catch(e => err = e)
+		const updated = await this.updateList(url, params).catch(e => err = e)
 		if(typeof(err) != 'undefined'){
 			this.info[url] = 'update failed, '+ String(err)
 			console.error('updater - err: '+ err +' '+ global.traceback())
@@ -41,12 +41,12 @@ class ListsUpdater extends Common {
 		}
 		return this.info[url]
     }
-	async updateList(url, force, progressId=0){
+	async updateList(url, params={}){
 		if(this.debug){
 			console.log('updater updateList', url)
 		}
-		utils.emit('progress', {progressId, progress: 0, url})
-		const should = force === true || (await this.updaterShouldUpdate(url))
+		utils.emit('progress', {progressId: params.uid, progress: 0, url})
+		const should = params.force === true || (await this.updaterShouldUpdate(url))
 		const now = global.time()
 		if(this.debug){
 			console.log('updater - should 1', url, should, force)
@@ -54,7 +54,7 @@ class ListsUpdater extends Common {
 		if(should){
 			const updateMeta = {}
 			const file = global.storage.raw.resolve(global.LIST_DATA_KEY_MASK.format(url))
-			const updater = new UpdateListIndex(url, url, file, this, Object.assign({}, updateMeta), force === true)
+			const updater = new UpdateListIndex(url, url, file, this, Object.assign({}, updateMeta), params.force === true)
 			updateMeta.updateAfter = now + 180
 			if(this.debug){
 				console.log('updater - should 2', url, should)
@@ -64,7 +64,7 @@ class ListsUpdater extends Common {
 			if(this.debug){
 				console.log('updater - should 3', url, should)
 			}
-			updater.on('progress', progress => progress > 0 && utils.emit('progress', {progressId, progress, url}))
+			updater.on('progress', progress => progress > 0 && utils.emit('progress', {progressId: params.uid, progress, url}))
 			const start = global.time()
 			await updater.start()
 			if(this.debug){

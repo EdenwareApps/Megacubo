@@ -1066,13 +1066,24 @@ span.entry-status-flags {
 }
 span.entry-status-flag {
     border-radius: var(--radius);
-    padding: 0 var(--padding-quarter);    
-    max-height: var(--explorer-entry-name-font-size);
+    height: calc(var(--explorer-entry-name-font-size) + var(--padding-quarter));
+    min-width: calc(var(--explorer-entry-name-font-size) + var(--padding-quarter));
     font-weight: bold;
     text-transform: uppercase;
-    display: inline-block;
-    opacity: var(--opacity-level-4);
-    box-sizing: border-box;    
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0.9;
+    box-sizing: border-box; 
+    white-space: pre;   
+}
+span.entry-status-flag i.fas.fa-times, span.entry-status-flag i.fas.fa-check {
+    margin: calc(var(--padding-quarter)*0.5) calc(var(--padding-quarter)*0.5) 0 calc(var(--padding-quarter)*0.5);
+    font-size: calc(var(--explorer-entry-name-font-size) - var(--padding-quarter));
+}
+span.entry-status-flag i.fas.fa-play {
+    margin: calc(var(--padding-quarter)*0.5) 0 0 calc(var(--padding-quarter)*0.5);
+    font-size: calc(var(--explorer-entry-name-font-size) - var(--padding-quarter) - var(--padding-quarter));
 }
 span.entry-status-flag-success {
     background: #094;

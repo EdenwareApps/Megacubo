@@ -289,21 +289,37 @@ function loadResizeObserverPolyfill(cb) {
 	}
 }
 
+function loadHLSDashScripts(cb) {
+	updateSplashProgress();
+	if(window.plugins && window.plugins.megacubo) {
+		updateSplashProgress();
+		return cb()
+	}
+	loadJS('./node_modules/hls.js/dist/hls.js', function() { // hls.light.js will not play fmp4 or handle subtitles
+		loadJS('./assets/js/app/video.hls.js', function () {
+			loadJS('./node_modules/dashjs/dist/dash.all.min.js', function() { // hls.light.js will not play fmp4 or handle subtitles
+				updateSplashProgress();
+				loadJS('./assets/js/app/video.dash.js', function () {
+					loadJS('./node_modules/mpegts.js/dist/mpegts.js', function () {
+						loadJS('./assets/js/app/video.ts.js', function () {
+							cb()
+						});
+					});
+				});
+			});
+		});
+	});
+}
+
 function loadScripts() {
 	updateSplashProgress();
 	loadJS('./modules/bridge/client.js', function () {
 		updateSplashProgress();
 		loadResizeObserverPolyfill(function () {
 			loadJS('./assets/js/app/video.js', function () {
-				loadJS('./node_modules/hls.js/dist/hls.js', function() { // hls.light.js will not play fmp4 or handle subtitles
-					loadJS('./assets/js/app/video.hls.js', function () {
-						updateSplashProgress();
-						loadJS('./assets/js/app/video.ts.js', function () {
-							loadJS('./assets/js/app/window.js', function () {
-								updateSplashProgress();
-							});
-						});
-					});
+				loadHLSDashScripts(function() {
+					updateSplashProgress();
+					loadJS('./assets/js/app/window.js', function () {});
 				});
 			});
 		});

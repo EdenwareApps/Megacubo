@@ -91,6 +91,7 @@ module.exports = {
 	'transcoding-tuning': false,
 	'mpegts-packet-filter-policy': 1,
 	'mpegts-use-worker': true,
+	'read-timeout': 30,
 	'tune-concurrency': 8,
 	'tune-ffmpeg-concurrency': 3,
 	'tuning-blind-trust': 'live,video',

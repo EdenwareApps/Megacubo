@@ -1,0 +1,30 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" >
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+<metadata>
+Created by FontForge 20200314 at Wed Jan 13 11:59:42 2021
+ By Robert Madole
+Copyright (c) Font Awesome
+</metadata>
+<!-- Font Awesome Pro 5.15.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) --><defs>
+<font id="FontAwesome5Pro-Solid" horiz-adv-x="576" >
+  <font-face 
+    font-family="Font Awesome 5 Pro Solid"
+    font-weight="900"
+    font-stretch="normal"
+    units-per-em="512"
+    panose-1="2 0 5 3 0 0 0 0 0 0"
+    ascent="448"
+    descent="-64"
+    bbox="-0.000587085 -64 576 448"
+    underline-thickness="25"
+    underline-position="-50"
+    unicode-range="U+0020-F8FF"
+  />
+    <missing-glyph />
+    <glyph glyph-name="exclamation-triangle" unicode="&#xf071;" 
+d="M569.517 7.9873c18.458 -31.9941 -4.71094 -71.9873 -41.5762 -71.9873h-479.887c-36.9365 0 -59.999 40.0547 -41.5771 71.9873l239.946 416.027c18.4668 32.0098 64.7197 31.9512 83.1543 0zM288 94c-25.4053 0 -46 -20.5947 -46 -46s20.5947 -46 46 -46
+s46 20.5947 46 46s-20.5947 46 -46 46zM244.327 259.346l7.41797 -136c0.34668 -6.36328 5.6084 -11.3457 11.9814 -11.3457h48.5469c6.37305 0 11.6348 4.98242 11.9814 11.3457l7.41797 136c0.375 6.87402 -5.09766 12.6543 -11.9814 12.6543h-63.3838
+c-6.88379 0 -12.3555 -5.78027 -11.9805 -12.6543z" />
+  </font>
+</defs></svg>

@@ -1,0 +1,32 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" >
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+<metadata>
+Created by FontForge 20200314 at Wed Jan 13 11:59:45 2021
+ By Robert Madole
+Copyright (c) Font Awesome
+</metadata>
+<!-- Font Awesome Pro 5.15.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) --><defs>
+<font id="FontAwesome5Duotone-Solid" horiz-adv-x="512" >
+  <font-face 
+    font-family="Font Awesome 5 Duotone Solid"
+    font-weight="900"
+    font-stretch="normal"
+    units-per-em="512"
+    panose-1="2 0 5 3 0 0 0 0 0 0"
+    ascent="448"
+    descent="-64"
+    bbox="-0.00488281 -63.9697 511.985 448.001"
+    underline-thickness="25"
+    underline-position="-50"
+    unicode-range="U+0020-10F8FF"
+  />
+    <missing-glyph />
+    <glyph glyph-name="wand-primary" unicode="&#xf72a;" 
+d="M507.87 401.82l-410.711 -455.261c-5.85742 -6.46582 -14.3184 -10.5293 -23.7207 -10.5293c-8.23926 0 -15.7646 3.13672 -21.4395 8.25977c-0.399414 0.360352 -0.789062 0.730469 -1.16895 1.11035l-41.46 41.4297c-5.79102 5.79199 -9.375 13.791 -9.375 22.6201
+c0 8.83008 3.58398 16.8379 9.375 22.6299c0.379883 0.379883 0.769531 0.75 1.16016 1.11035l455.26 410.699c2.83594 2.55566 6.58887 4.11133 10.7031 4.11133c4.40332 0 8.40234 -1.77832 11.2969 -4.66113l19.4795 -19.4697
+c2.91211 -2.89844 4.71582 -6.90918 4.71582 -11.3389c0 -4.11328 -1.56055 -7.875 -4.11523 -10.7109z" />
+    <glyph glyph-name="wand-secondary" unicode="&#x10f72a;" 
+d="M128 176c0 8.83105 7.16895 16 16 16h42.5996l-58.5996 -52.8701v36.8701zM376.35 256l39.6504 44v-28c0 -8.83105 -7.16895 -16 -16 -16h-23.6504z" />
+  </font>
+</defs></svg>

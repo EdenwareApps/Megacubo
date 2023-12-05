@@ -537,7 +537,7 @@ class ManagerEPG extends ManagerCommunityLists {
                     entries.push(...[
                         global.channels.epgSearchEntry(),
                         global.channels.chooseChannelGridOption(true),
-                        ...global.channels.getCategories().map(category => {
+                        ...global.channels.loader.getCategories().map(category => {
                             const rawname = global.lang.CATEGORY_KIDS == category.name ? '[fun]'+ category.name +'[|fun]' : category.name
                             return {
                                 name: category.name,
@@ -574,41 +574,15 @@ class ManagerEPG extends ManagerCommunityLists {
                 return e
             }
         }).filter(e => e)
-        const epgData = await global.lists.epg(channels, 72)
-        let centries = []
-        const kids = global.lang.CATEGORY_KIDS == category.name
-        if(!Array.isArray(epgData)){
-            Object.keys(epgData).forEach((ch, i) => {
-                if(!epgData[ch]) return
-                let current, next
-                Object.keys(epgData[ch]).some(start => {
-                    if(!current){
-                        current = epgData[ch][start]
-                        current.start = start
-                    } else {
-                        if(!next) {
-                            next = epgData[ch][start]
-                            next.start = start
-                        }
-                        return true
-                    }
-                })
-                if(current){
-                    current.ch = ch
-                    const rawname = kids ? '[fun]'+ current.t +'[|fun]' : current.t
-                    centries.push({
-                        name: current.t,
-                        rawname,
-                        details: ch,
-                        type: 'group',
-                        fa: 'fas fa-play-circle',
-                        programme: current,
-                        renderer: async () => global.channels.epgDataToEntries(epgData[ch], ch, terms[ch])
-                    })
+        return channels.map(c => {
+            return {
+                name: c.name,
+                type: 'group',
+                renderer: async () => {
+                    return await global.channels.epgChannelEntries(c)
                 }
-            })
-        }
-        return centries
+            }
+        })
     }
 }
 
@@ -766,11 +740,11 @@ class Manager extends ManagerEPG {
         if(stat && stat.size && stat.size < 16384) {
             await fs.promises.unlink(cacheFile).catch(console.error) // invalidate possibly bad caches
         }
-
         const fetch = new this.master.Fetcher(url, {
             progress: p => {
                 global.osd.show(global.lang.RECEIVING_LIST +' '+ p +'%', 'fa-mega spin-x-alt', 'add-list-progress-'+ uid, 'persistent')
-            }
+            },
+            timeout: global.config.get('read-timeout')
         }, this.master)
         let err, entries = await fetch.getMap().catch(e => err = e)
         this.addingList = false
@@ -1168,6 +1142,15 @@ class Manager extends ManagerEPG {
             fa: 'fas fa-globe'
         })
         if(!server) throw 'no server provided'
+        if(server.charAt(server.length - 1) == '/') {
+            server = server.substr(0, server.length - 1)
+        }
+        if(server.charAt(0) == '/') {
+            server = 'http:'+ server
+        }
+        if(server.indexOf('username=') != -1) {
+            return server
+        }
         const user = await global.explorer.prompt({
             question: global.lang.USERNAME,
             placeholder: global.lang.USERNAME,
@@ -1181,9 +1164,6 @@ class Manager extends ManagerEPG {
             isPassword: true
         })
         if(!pass) throw 'no pass provided'
-        if(server.charAt(server.length - 1) == '/') {
-            server = server.substr(0, server.length - 1)
-        }
         global.osd.show(global.lang.PROCESSING, 'fa-mega spin-x-alt', 'add-list-pre', 'persistent')
         let url = await this.getM3UFromCredentials(server, user, pass).catch(console.error)
         if(typeof(url) != 'string') {
@@ -1201,20 +1181,21 @@ class Manager extends ManagerEPG {
     }
     async debugCredentials() {
         let err
-        const data = {}
+        const data = {version: global.MANIFEST.version}
         const {promises: fsp} = require('fs'), Xtr = require('./xtr')
         const output = global.paths.temp+ '/xtr-'+ parseInt(Math.random() * 10000000) +'.log.txt'
         const url = await this.askListCredentials().catch(e => err = e)
         if(err) {
             data.askListCredentials = String(err)
-        } else if(url.indexOf('#xtream') == -1) {
-            data.askListCredentials = url
         } else {
-            const xtr = new Xtr(url, true)
-            await xtr.run().catch(e => err = e)
-            data.calls = xtr.debugInfo
-            if(err) data.run = String(err)
-            xtr.destroy()
+            data.askListCredentials = url
+            if(url.indexOf('#xtream') != -1) {
+                const xtr = new Xtr(url, true)
+                await xtr.run().catch(e => err = e)
+                data.calls = xtr.debugInfo
+                if(err) data.run = String(err)
+                xtr.destroy()
+            }
         }
         await fsp.writeFile(output, global.crashlog.stringify(data))
         await global.downloads.serve(output, true)
@@ -1226,6 +1207,9 @@ class Manager extends ManagerEPG {
             '{0}/get.php?username={1}&password={2}&output=hls&type=m3u_plus',
             '{0}/get.php?username={1}&password={2}&type=m3u_plus'
         ]
+        if(server.indexOf('username=') != -1) {
+            masks.push(server)
+        }
         for(const mask of masks) {
             const url = mask.format(server, user, pass)
             const ret = await global.Download.head({url}).catch(() => {})
@@ -1322,7 +1306,8 @@ class Manager extends ManagerEPG {
         return {
             name: manageOnly ? global.lang.IPTV_LISTS : global.lang.MY_LISTS, 
             details: manageOnly ? global.lang.CONFIGURE : global.lang.IPTV_LISTS, 
-            type: 'group', 
+            type: 'group',
+            fa: 'fas fa-list',
             renderer: async () => {
                 let lists = this.get()
                 const extInfo = await this.master.info(true)

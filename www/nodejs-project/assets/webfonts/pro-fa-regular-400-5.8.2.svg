@@ -1,0 +1,32 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" >
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+<metadata>
+Created by FontForge 20200314 at Wed Jan 13 11:59:47 2021
+ By Robert Madole
+Copyright (c) Font Awesome
+</metadata>
+<!-- Font Awesome Pro 5.15.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) --><defs>
+<font id="FontAwesome5Pro-Regular" horiz-adv-x="448" >
+  <font-face 
+    font-family="Font Awesome 5 Pro Regular"
+    font-weight="400"
+    font-stretch="normal"
+    units-per-em="512"
+    panose-1="2 0 5 3 0 0 0 0 0 0"
+    ascent="448"
+    descent="-64"
+    bbox="0 -31.9902 447.99 416"
+    underline-thickness="25"
+    underline-position="-50"
+    unicode-range="U+0020-F8FF"
+  />
+    <missing-glyph />
+    <glyph glyph-name="check-double" unicode="&#xf560;" 
+d="M444.09 281.01c2.60059 -1.9502 3.91016 -4.56934 3.90039 -7.80957c0 -3.25 -1.31055 -6.19043 -3.91016 -8.7998l-293.45 -293.45c-1.9502 -1.95996 -4.5498 -2.94043 -7.82031 -2.94043c-3.26953 0 -6.19922 0.980469 -8.7998 2.94043l-130.1 131.069
+c-2.60059 1.9502 -3.91016 4.57031 -3.91016 7.82031s1.30957 6.19043 3.91016 8.7998l27.3994 27.3799c2.59082 2.61035 5.53027 3.91016 8.80078 3.91016c3.26953 0 5.85938 -1.2998 7.81934 -3.91016l94.8799 -94.8799l257.271 258.24
+c1.9502 1.9502 4.5498 2.92969 7.82031 2.92969c3.26953 0 6.19922 -0.969727 8.7998 -2.92969zM131.88 162.96l-95.9297 96.9297c-2.62012 1.9707 -3.9502 4.60059 -3.9502 7.89062c0 3.2793 1.33008 6.23926 3.9502 8.87988l27.6299 27.6299
+c2.62012 2.63965 5.58008 3.9502 8.87988 3.9502s5.91992 -1.31055 7.88965 -3.9502l60.4102 -60.4102l168.181 169.16c1.96973 1.96973 4.58984 2.95996 7.88965 2.95996s6.25977 -0.990234 8.87988 -2.95996l27.6299 -28.6201
+c2.62012 -1.96973 3.9502 -4.61035 3.9502 -7.88965c0 -3.28027 -1.33008 -6.24023 -3.9502 -8.87988l-204.689 -204.69c-1.9707 -1.96973 -4.59082 -2.95996 -7.89062 -2.95996s-6.25977 0.990234 -8.87988 2.95996z" />
+  </font>
+</defs></svg>

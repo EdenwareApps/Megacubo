@@ -310,15 +310,10 @@ class StreamerState extends StreamerCasting {
                 }
             }
         })
-        this.app.on('resume-dialog', position => {
+        this.app.on('resume-dialog', (position, duration) => {
             const next = () => {
                 console.warn('RESUME', position)
-                parent.player.pause()
-                explorer.dialog([
-                    {template: 'question', text: lang.CONTINUE, fa: 'fas fa-redo-alt'},
-                    {template: 'option', text: lang.RESUME_FROM_X.format(hmsSecondsToClock(position)), id: 'resume', fa: 'fas fa-redo-alt'},
-                    {template: 'option', text: lang.PLAY_FROM_START, id: 'play', fa: 'fas fa-play'}
-                ], choose => {
+                const next = choose => {
                     switch(choose){
                         case 'resume':
                             parent.player.time(position) // no "break;" here
@@ -327,7 +322,17 @@ class StreamerState extends StreamerCasting {
                             break
                     }
                     return true
-                }, 'resume-from')
+                }
+                if(position > (duration * 0.8)) {
+                    parent.player.pause()
+                    explorer.dialog([
+                        {template: 'question', text: lang.CONTINUE, fa: 'fas fa-redo-alt'},
+                        {template: 'option', text: lang.RESUME_FROM_X.format(hmsSecondsToClock(position)), id: 'resume', fa: 'fas fa-redo-alt'},
+                        {template: 'option', text: lang.PLAY_FROM_START, id: 'play', fa: 'fas fa-play'}
+                    ], next, 'resume-from')
+                } else {
+                    next('resume')
+                }
             }
             if(this.animating){
                 this.once('animated', next)

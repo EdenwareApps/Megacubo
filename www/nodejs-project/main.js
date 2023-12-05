@@ -695,7 +695,11 @@ const init = (language, timezone) => {
             await global.lists.manager.waitListsReady()
 
             console.log('WaitListsReady resolved!')
-            let c = await global.cloud.get('configure') // all below in func depends on 'configure' data
+            let err, c = await global.cloud.get('configure').catch(e => err = e) // all below in func depends on 'configure' data
+            if(err) {
+                console.error(err)
+                c = {}
+            }
             await global.options.updateEPGConfig(c).catch(console.error)
             console.log('checking update...')
             if(!global.config.get('hide-updates')){

@@ -479,7 +479,7 @@ class StreamerProxyHLS extends HLSRequests {
 						if(this.opts.debug){
 							console.log('dn', dn, df, segment.uri)
 						}
-						u = global.absolutize(segment.uri, url)
+						u = global.absolutize(segment.uri, baseUrl)
 						let n = this.proxify(u)
 						replaces[dn] = n.substr(0, n.length - df)
 						if(this.opts.debug){
@@ -503,7 +503,7 @@ class StreamerProxyHLS extends HLSRequests {
 				}
 				parser.manifest.playlists.forEach(playlist => {
 					let dn = this.dirname(playlist.uri)
-					u = global.absolutize(playlist.uri, url)
+					u = global.absolutize(playlist.uri, baseUrl)
 					if(!this.playlists[url][u]){
 						this.playlists[url][u] = {state: true, name: this.trackName(playlist)} // state=true here means "online"
 					}
@@ -543,7 +543,7 @@ class StreamerProxyHLS extends HLSRequests {
 			*/
 			body = body.replace(new RegExp('(URI="?)([^\\n"\']+)', 'ig'), (...match) => { // for #EXT-X-KEY:METHOD=AES-128,URI="https://...
 				if(match[2].indexOf('127.0.0.1') == -1){
-					match[2] = global.absolutize(match[2], url)
+					match[2] = global.absolutize(match[2], baseUrl)
 					match[2] = this.proxify(match[2])
 				}
 				return match[1] + match[2]

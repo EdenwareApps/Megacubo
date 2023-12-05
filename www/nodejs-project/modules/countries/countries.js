@@ -3,68 +3,63 @@ const fs = require('fs'), path = require('path'), Events = require('events')
 class Countries extends Events {
 	constructor(){
 		super()
-		this.data = []
-		this.load()
+		this.data = require(path.join(__dirname, 'countries.json'))
 	}
-	load(){
-		fs.readFile(path.join(__dirname, 'countries.json'), (err, content) => {
-			if(content){
-				try {
-					let data = global.parseJSON(String(content))
-					this.data = data
-				} catch(e) {
-					console.error(e)
-				}
-			}
-			this.isReady = true
-			this.emit('ready')
-		})
-	}
-	async ready(){
-		return new Promise((resolve, reject) => {
-            if(this.isReady){
-                resolve()
-            } else {
-                this.once('ready', resolve)
-            }
-        })
-	}
-	select(code, retrieveKeys, by, unique){
-		if(!by) by = 'code'
-		var results = []
-		if(typeof(retrieveKeys) == 'string' && retrieveKeys){
-			retrieveKeys = retrieveKeys.split(',')
+	query(fields, where = {}, orderBy, desc) {
+		const ret = []
+		if (typeof (fields) == 'string' && fields) {
+			fields = fields.split(',')
 		}
-		for(var key in this.data){
-			if(this.data[key][by] && this.data[key][by].substr(0, code.length) == code){
-				if(retrieveKeys){
-					for(var i=0; i<retrieveKeys.length; i++){
-						if(typeof(this.data[key][retrieveKeys[i]])!='undefined'){
-							results.push(this.data[key][retrieveKeys[i]])
-							break;
-						}
-					}
+		for (var key in this.data) {
+			const fine = Object.keys(where).every(by => {
+				if (typeof (where[by]) == 'function') {
+					return where[by](this.data[key][by])
+				} else if (Array.isArray(where[by])) {
+					return where[by].includes(this.data[key][by])
 				} else {
-					results.push(this.data[key])
+					return where[by] == this.data[key][by]
 				}
+			})
+			if (fine) {
+				const result = {}
+				if (fields) {
+					fields.forEach(k => result[k] = this.data[key][k])
+				} else {
+					Object.assign(result, this.data[key])
+				}
+				ret.push(result)
 			}
 		}
-		return unique ? results.shift() : results
+		if (orderBy) {
+			let sorter
+			if (typeof (orderBy) == 'function') {
+				sorter = orderBy
+			} else if (desc) {
+				sorter = (a, b) => {
+					return a[orderBy] > b[orderBy] ? -1 : (a[orderBy] < b[orderBy] ? 1 : 0)
+				}
+			} else {
+				sorter = (a, b) => {
+					return a[orderBy] > b[orderBy] ? 1 : (a[orderBy] < b[orderBy] ? -1 : 0)
+				}
+			}
+			return ret.sort(sorter)
+		}
+		return ret
+	}
+	getRow(field, where={}, orderBy, desc) {
+		const results = this.query(field, where, orderBy, desc)
+		return results.shift()
+	}
+	getVar(field, where={}, orderBy, desc) {
+		const result = this.getRow(field, where, orderBy, desc)
+		return result[field]
 	}
 	countryCodeExists(code){
 		return this.data.some(c => c.code == code)
 	}
 	getCountry(code){
-		let ret
-		if(typeof(code) == 'string' && code.length == 2){
-			this.data.some(c => {
-				if(c.code == code) {
-					ret = c
-					return true
-				}
-			})
-		}
-		return ret
+		return this.getRow('', {code})
 	}
 	getCountryName(code, targetLanguage){
 		let row = this.getCountry(code)
@@ -91,6 +86,10 @@ class Countries extends Events {
 		}
 		return countries
     }
+	orderCodesBy(codes, field, desc=true) {
+		const results = this.query('code', {code: codes}, 'field', desc)
+		return results.map(c => c.code)
+	}
 	extractCountryCodes(text){
 		let results = text.toLowerCase().matchAll(new RegExp('(^|[^a-z])([a-z]{2})(^|[^a-z])', 'g'))
 		if(results){
@@ -121,13 +120,12 @@ class Countries extends Events {
 		return distance
 	}
 	getNearest(fromCode, dests, amount){
-		let from = this.select(fromCode, false, 'code', true)
+		let fromCountry = this.getCountry(fromCode)
 		let dists = dests.map(code => {
-			let c = this.select(code, false, 'code', true)
-			if(c){
-				c.code = code
-				c.dist = this.getDistance(from, c)
-				return c
+			let country = this.getCountry(code)
+			if(country){
+				country.dist = this.getDistance(fromCountry, country)
+				return country
 			}
 		}).filter(c => c).sortByProp('dist')
 		return dists.slice(0, amount).map(c => c.code)

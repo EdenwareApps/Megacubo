@@ -684,7 +684,7 @@ class Explorer extends Events {
                 let icon = ret.parent ? ret.parent.fa : ''
                 global.ui.emit('explorer-select', ret.entries, destPath, icon)
             } else {
-                await this.open(destPath, tabindex)
+                await this.open(destPath, tabindex, undefined, undefined, true) // set backInSelect to prevent looping
             }
         }
         return ret

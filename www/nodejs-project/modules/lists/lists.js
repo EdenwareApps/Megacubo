@@ -80,9 +80,9 @@ class ListsEPGTools extends Index {
 		if(!this._epg) throw 'no epg 3'
 		return await this._epg.search(this.applySearchRedirects(terms), nowLive)
 	}
-	async epgSearchChannel(terms){
+	async epgSearchChannel(terms, limit){
 		if(!this._epg) throw 'no epg 4'
-		return await this._epg.searchChannel(this.applySearchRedirects(terms))
+		return await this._epg.searchChannel(this.applySearchRedirects(terms), limit)
 	}
 	async epgSearchChannelIcon(terms){
 		if(!this._epg) throw 'no epg 5'

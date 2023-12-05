@@ -164,7 +164,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
                 if(state != currentState){
                     currentState = state
                 }
-                timer = setTimeout(() => fail('Timeouted'), this.timeout[state])
+                timer = setTimeout(() => fail('Timeouted after '+ this.timeout.connect +'ms'), this.timeout[state])
             }
             const finish = () => {
                 clearTimer()

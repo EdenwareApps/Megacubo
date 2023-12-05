@@ -207,7 +207,7 @@ class ListsLoader extends Events {
         }
         urls.filter(u => this.pings[u] == 0).forEach(u => delete this.pings[u])
     }
-    async addListNow(url, progress) {
+    async addListNow(url, progress) { // reserved for manual list adding
         const uid = parseInt(Math.random() * 1000000)
         const progressListener = p => {
             if(p.progressId == uid) progress(p.progress)
@@ -215,7 +215,7 @@ class ListsLoader extends Events {
         await global.Download.waitNetworkConnection()
         await this.prepareUpdater()
         progress && this.updater.on('progress', progressListener)
-        await this.updater.update(url, false, uid).catch(console.error)
+        await this.updater.update(url, {uid}).catch(console.error)
         progress && this.updater.removeListener('progress', progressListener)
         this.updater && this.updater.close && this.updater.close()  
         this.master.addList(url, 1)
@@ -235,7 +235,7 @@ class ListsLoader extends Events {
                 await this.prepareUpdater()
                 this.debug && console.error('[listsLoader] schedule processing 3: '+ url)
                 this.results[url] = 'awaiting'
-                this.results[url] = await this.updater.update(url, false).catch(console.error)
+                this.results[url] = await this.updater.update(url).catch(console.error)
                 this.debug && console.error('[listsLoader] schedule processing 4: '+ url +' | '+ this.results[url])
                 this.updater && this.updater.close && this.updater.close()
                 done = true
@@ -280,7 +280,10 @@ class ListsLoader extends Events {
         await this.prepareUpdater()
         this.updater.on('progress', progressListener)
         this.results[url] = 'reloading'       
-        this.results[url] = await this.updater.updateList(url, true, progressId).catch(err => updateErr = err)
+        this.results[url] = await this.updater.updateList(url, {
+            force: true,
+            uid: progressId
+        }).catch(err => updateErr = err)
         this.updater && this.updater.close && this.updater.close()
         this.updater.removeListener('progress', progressListener)
         global.osd.hide('progress-'+ progressId)

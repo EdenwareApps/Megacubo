@@ -1,0 +1,34 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" >
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+<metadata>
+Created by FontForge 20200314 at Wed Jan 13 11:59:50 2021
+ By Robert Madole
+Copyright (c) Font Awesome
+</metadata>
+<!-- Font Awesome Pro 5.15.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) --><defs>
+<font id="FontAwesome5Duotone-Solid" horiz-adv-x="448" >
+  <font-face 
+    font-family="Font Awesome 5 Duotone Solid"
+    font-weight="900"
+    font-stretch="normal"
+    units-per-em="512"
+    panose-1="2 0 5 3 0 0 0 0 0 0"
+    ascent="448"
+    descent="-64"
+    bbox="0 -64 448 448"
+    underline-thickness="25"
+    underline-position="-50"
+    unicode-range="U+0020-10F8FF"
+  />
+    <missing-glyph />
+    <glyph glyph-name="fire-alt-primary" unicode="&#xf7e4;" 
+d="M304.09 56.1504c-21.7627 -15.1738 -48.2168 -24.0752 -76.7344 -24.0752c-0.125 0 -0.371094 -0.0751953 -0.495117 -0.0751953c-72.1504 0 -130.86 47.7402 -130.86 125.25c0 38.6104 24.3096 72.6299 72.79 130.75c6.92969 -8 98.8301 -125.34 98.8301 -125.34
+l58.6299 66.8799c4.13965 -6.84961 7.91016 -13.5498 11.2695 -20c27.3506 -52.1904 15.8105 -119 -33.4297 -153.42v0.0302734z" />
+    <glyph glyph-name="fire-alt-secondary" unicode="&#x10f7e4;" 
+d="M323.56 396.8c72.4404 -67.2598 124.44 -177.13 124.44 -230.399c0 -127.25 -100.29 -230.4 -224 -230.4s-224 103.15 -224 230.4c0 71.5996 69.7402 190.43 168 281.6c38.2803 -35.5303 72.0801 -73.6201 99.3398 -111.2c17.4688 21.4258 35.9922 41.1924 56.2197 60z
+M322.44 29.9297c30.1592 21.0703 50.9092 53.0205 58.3994 89.8701c2.03906 10.1211 3.01367 20.6318 3.01367 31.3496c0 26.4375 -6.50977 51.3672 -18.0137 73.2705c-7.05957 13.5098 -10.5195 18.8496 -34.8398 59.0996l-62 -70.7393
+c-82.21 104.81 -70.7002 90 -100.7 124.59c-61.5 -73.7305 -104.3 -120.69 -104.3 -180.12c0 -23.25 4.34961 -45.0703 12.9199 -64.9404c8.30469 -19.3398 20.5381 -36.4141 35.8799 -50.3896c29.6299 -27.0303 70.1299 -41.9199 114.061 -41.9199
+c0.188477 -0.000976562 0.523438 0.0917969 0.711914 0.0917969c35.2695 0 67.9805 11.0352 94.8682 29.8379z" />
+  </font>
+</defs></svg>

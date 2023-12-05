@@ -1,0 +1,33 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" >
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+<metadata>
+Created by FontForge 20200314 at Wed Jan 13 11:59:55 2021
+ By Robert Madole
+Copyright (c) Font Awesome
+</metadata>
+<!-- Font Awesome Pro 5.15.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) --><defs>
+<font id="FontAwesome5Pro-Regular" horiz-adv-x="576" >
+  <font-face 
+    font-family="Font Awesome 5 Pro Regular"
+    font-weight="400"
+    font-stretch="normal"
+    units-per-em="512"
+    panose-1="2 0 5 3 0 0 0 0 0 0"
+    ascent="448"
+    descent="-64"
+    bbox="0 -64 575.939 448"
+    underline-thickness="25"
+    underline-position="-50"
+    unicode-range="U+0020-F8FF"
+  />
+    <missing-glyph />
+    <glyph glyph-name="hand-holding-water" unicode="&#xf4c1;" 
+d="M551.9 136c15.8994 -13.5 24.6992 -33.0996 24 -53.5996c-0.600586 -20.5 -10.5 -39.5 -27.1006 -52l-100.8 -75.9004c-15.9004 -12 -35.2998 -18.5 -55.2002 -18.5h-376.8c-8.7998 0 -16 7.2002 -16 16v16c0 8.7998 7.2002 16 16 16h376.5
+c9.7002 0 19.0996 3.2002 26.9004 9l100.6 75.5c10.2002 7.59961 11 22.2002 0.900391 30.7002c-7.90039 6.7002 -20.1006 6.2002 -28.4004 0l-61.2998 -46.1006c-7.7002 -5.7998 -17.2002 -9 -26.9004 -9h-134.5c-7.59961 0 -13.7998 6.2002 -13.7998 13.8008v0.0996094
+c0 7.59961 6.2002 13.7998 13.7998 13.7998h59.7998c30.2002 0 29 40.2002 1.10059 40.2002h-144c-18 0 -35.4004 -5.7998 -49.4004 -16.5l-41.2998 -31.5h-80c-8.7998 0 -16 7.2002 -16 16v16c0 8.7998 7.2002 16 16 16h63.7998l28.2998 21.7998
+c22.2002 16.9004 50.1006 26.2998 78.5 26.2998h144c38.7002 0 69 -29.7998 69.2002 -67.7998h3.2998l60.4004 45.5c19.0996 14.2998 57.2998 24.6006 88.4004 -1.7998zM288 192c-53 0 -96 42.0996 -96 94c0 40 57.0996 120.7 83.2002 155.6
+c3.2002 4.30078 8 6.40039 12.7998 6.40039s9.59961 -2.09961 12.7998 -6.40039c26.1006 -34.8994 83.2002 -115.6 83.2002 -155.6c0 -51.9004 -43 -94 -96 -94zM288 377.1c-34 -49.7998 -47.5 -81.1992 -48 -91.2998c0 -25.2002 21.5 -45.7998 48 -45.7998
+s48 20.5996 48 46c-0.5 10 -14 41.2998 -48 91.0996z" />
+  </font>
+</defs></svg>

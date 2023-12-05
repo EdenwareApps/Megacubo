@@ -109,21 +109,20 @@ class Suggestions {
             let additionalCategories = {}
             const additionalLimit = limit - Object.keys(programmeCategories).length
             const expandedCategories = await global.lists.epgExpandSuggestions(Object.keys(programmeCategories))
-            if(!expandedCategories) {
-                throw 'Failed to generate suggestions: '+ JSON.stringify(expandedCategories)
-            }
-            Object.keys(expandedCategories).forEach(term => {
-                const score = programmeCategories[term]
-                expandedCategories[term].forEach(t => {
-                    if(programmeCategories[t]) return
-                    if(typeof(additionalCategories[t]) == 'undefined'){
-                        additionalCategories[t] = 0
-                    }
-                    additionalCategories[t] += score / 2
+            if(expandedCategories) {
+                Object.keys(expandedCategories).forEach(term => {
+                    const score = programmeCategories[term]
+                    expandedCategories[term].forEach(t => {
+                        if(programmeCategories[t]) return
+                        if(typeof(additionalCategories[t]) == 'undefined'){
+                            additionalCategories[t] = 0
+                        }
+                        additionalCategories[t] += score / 2
+                    })
                 })
-            })
-            additionalCategories = this.prepareCategories(additionalCategories, additionalLimit)
-            Object.assign(programmeCategories, additionalCategories)
+                additionalCategories = this.prepareCategories(additionalCategories, additionalLimit)
+                Object.assign(programmeCategories, additionalCategories)
+            }
         }
         return this.prepareCategories(programmeCategories)
     }
@@ -164,7 +163,6 @@ class Suggestions {
                 remainingTime = 0
             }
             score += 100 - (remainingTime / timeRangeP)
-
             r.score = score
             return r
         })

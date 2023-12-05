@@ -11,6 +11,7 @@
     "check-disk-space": "^3.3.1",
     "color-thief-jimp": "^2.0.2",
     "create-desktop-shortcuts": "^1.10.1",
+    "dashjs": "^4.7.2",
     "decode-entities": "^1.0.7",
     "env-paths": "^2.2.1",
     "exec-finder": "^0.0.2",
@@ -47,7 +48,7 @@
   "description": "A intuitive, multi-language and cross-platform IPTV player.",
   "name": "megacubo",
   "icon": "./default_icon.png",
-  "version": "17.3.2",
+  "version": "17.3.3",
   "theme": {
     "fullScreen": true
   },

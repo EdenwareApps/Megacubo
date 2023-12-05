@@ -1,33 +1,54 @@
 
 const path = require('path'), fs = require('fs'), Events = require('events'), pLimit = require('p-limit')
 
-class ChannelsData extends Events {
-    constructor(){
-        super()
-        this.emptyEntry = {
-            name: global.lang.EMPTY, 
-            type: 'action', 
-            fa: 'fas fa-info-circle', 
-            class: 'entry-empty'
-        }
+class ChannelsLoader {
+    constructor(countries) {
+        this.countries = countries
+        this.key = 'categories-'+ countries.join('-')
         this.channelsIndex = {}
         this.categories = {}
-		global.config.on('change', async (keys, data) => {
-            if(['parental-control', 'parental-control-terms'].some(k => keys.includes(k))){
-                await this.load()
-            }
-        })
-        this.radioTerms = ['radio', 'fm', 'am']
-        this.isChannelCache = {}
-        this.load().catch(console.error)
+        this.type = global.config.get('channel-grid')
+        if(this.type && this.type != 'lists') this.key += '-'+ this.type
     }
-    async updateCategoriesCacheKey(){
-        let countries = await global.lang.getActiveCountries(0)
-        const type = global.config.get('channel-grid')
-        let categoriesCacheKey = 'categories-'+ countries.join('-')
-        if(type && type != 'lists') categoriesCacheKey += '-'+ type
-        this.categoriesCacheKey = categoriesCacheKey
-        return categoriesCacheKey
+    async load() {
+        let fine, data = await global.storage.raw.promises.get(this.key).catch(console.error)
+        if(data){
+            try {
+                let cs = global.parseJSON(data)
+                if(!Object.keys(cs).length){
+                    throw 'Empty list'
+                }
+                this.categories = cs
+                fine = true
+            } catch(e) {
+                console.error(e)
+            }
+        }
+        if(!fine) {
+            let err
+            data = await this.getDefaultCategories().catch(e => err = e)
+            if(err) {
+                console.error('channel.getDefaultCategories error: '+ err)
+            } else {
+                if(!Object.keys(data).length){
+                    console.log('channel.load', data)
+                }
+                this.channelsIndex = null
+                this.categories = data
+                await this.save(this.key)
+                fine = true
+            }
+        }
+        this.updateChannelsIndex(false)
+        if(!this.categories || typeof(this.categories) != 'object'){
+            this.categories = {}
+        }
+    }
+    async reset() {        
+        delete this.categories
+        await global.storage.raw.promises.delete(this.key).catch(console.error)
+        global.config.set('channel-grid', '')
+        await this.load()
     }
     async getAdultCategories(){
         return await global.cloud.get('channels/adult')
@@ -36,22 +57,92 @@ class ChannelsData extends Events {
         const data = await global.lists.epgLiveNowChannelsList()
         return data.categories
     }
-    ready(cb){
-        if(this.loaded){
-            cb()
-        } else {
-            this.once('loaded', cb)
+    updateChannelsIndex(refresh){
+        if(refresh === true || !this.channelsIndex || !Object.keys(this.channelsIndex).length){
+            let index = {}
+            this.getCategories().forEach(cat => {
+                cat.entries.forEach(e => {
+                    index[e.name] = e.terms.name
+                })
+            })
+            let keys = Object.keys(index)
+            keys.sort((a, b) => { return index[a].length > index[b].length ? -1 : (index[a].length < index[b].length) ? 1 : 0 })
+            this.isChannelCache = {}
+            this.channelsIndex = {}
+            keys.forEach(k => this.channelsIndex[k] = index[k])
         }
     }
-    readyp(){
-        return new Promise(resolve => this.ready(resolve))
+    mapSize(n) { // count strings (channel names) in channel maps
+        return Object.values(n).map(k => Array.isArray(k) ? k.length : 0).reduce((s, v) => s + v, 0)
     }
-    async load(){
-        await this.updateCategoriesCacheKey().catch(global.displayErr)
-        console.log('channels.load')
-        await this.loadCategories()
-        this.loaded = true
-        this.emit('loaded')
+    applyMapCategories(map, target, amount, weighted = false) {
+        const categories = Object.keys(target).concat(Object.keys(map).map(k => this.translateKey(k)).filter(k => !(k in target)))
+        const quota = amount / Math.max(categories.length, 5)
+        for (const k of Object.keys(map)) {
+            const cat = this.translateKey(k)
+            target[cat] = target[cat] || []
+            const left = quota - target[cat].length
+            if (left > 0 && Array.isArray(map[k])) {
+                const slice = map[k].filter(s => !target[cat].includes(s)).slice(0, weighted ? left : map[k].length)
+                if (slice.length) {
+                    target[cat].push(...slice)
+                }
+            }
+        }
+        return target
+    }
+    translateKey(k){
+        let lk = 'CATEGORY_' + k.replaceAll(' & ', ' ').replace(new RegExp(' +', 'g'), '_').toUpperCase()
+        let nk = global.lang[lk] || k
+        return nk
+    }
+    async getDefaultCategories(amount=256){
+        const type = global.config.get('channel-grid')
+        if(type == 'xxx') {
+            return await this.getAdultCategories()
+        } else if(type == 'epg') {
+            return await this.getEPGCategories()
+        }
+        let data = {}, weighted = true
+        const completed = c => {
+            return this.mapSize(data) >= amount
+        }
+        const processCountry = async country => {
+            let err
+            const isMainCountry = this.countries[0] == country
+            if(!isMainCountry && completed()) throw 'completed'
+            const map = await global.cloud.get('channels/' + country).catch(e => err = e)
+            if(err) return
+            if(!isMainCountry && completed()) throw 'completed'
+            data = await this.applyMapCategories(map, data, amount, isMainCountry ? false : weighted)
+        }
+        const limit = pLimit(2)
+        const tasks = () => this.countries.map(country => {
+            return limit(async () => {
+                return await processCountry(country)
+            })
+        })
+        if(this.countries.length) {
+            await Promise.allSettled(tasks()).catch(console.error)
+            if(!completed()){
+                data = {}
+                weighted = false
+                await Promise.allSettled(tasks()).catch(console.error)
+            }
+        }
+        return data
+    }   
+    getCategories(compact){
+        return compact ? this.categories : this.expand(this.categories)
+    }
+    async setCategories(data, silent){
+        this.categories = data
+        this.channelsIndex = null
+        await this.save()
+        console.log('Categories file imported')
+        if(silent !== true){
+            global.osd.show(global.lang.IMPORTED_FILE, 'fas fa-check-circle', 'options', 'normal')
+        }
     }
     compactName(name, terms){
         if(terms && terms.length > 1 && terms != name){
@@ -96,22 +187,6 @@ class ChannelsData extends Events {
             }
         })
     }
-    updateChannelsIndex(refresh){
-        if(refresh === true || !this.channelsIndex || !Object.keys(this.channelsIndex).length || this.categoriesCacheKey != this.lastChannelsIndexCategoriesCacheKey){
-            this.lastChannelsIndexCategoriesCacheKey = this.categoriesCacheKey
-            let index = {}
-            this.getCategories().forEach(cat => {
-                cat.entries.forEach(e => {
-                    index[e.name] = e.terms.name
-                })
-            })
-            let keys = Object.keys(index)
-            keys.sort((a, b) => { return index[a].length > index[b].length ? -1 : (index[a].length < index[b].length) ? 1 : 0 })
-            this.isChannelCache = {}
-            this.channelsIndex = {}
-            keys.forEach(k => this.channelsIndex[k] = index[k])
-        }
-    }
     async save(){
         let ordering = {}
         Object.keys(this.categories).sort().forEach(k => {
@@ -126,127 +201,56 @@ class ChannelsData extends Events {
         })
         this.categories = ordering
         this.updateChannelsIndex(true)
-        await global.storage.raw.promises.set(this.categoriesCacheKey, JSON.stringify(this.categories, null, 3), true)
+        await global.storage.raw.promises.set(this.key, JSON.stringify(this.categories, null, 3), true)
+    }
+    destroy() {
+        this.destroyed = true
     }
 }
 
-class ChannelsCategories extends ChannelsData {
+class ChannelsData extends Events {
     constructor(){
         super()
-    }    
-    async loadCategories(){
-        let fine, data = await global.storage.raw.promises.get(this.categoriesCacheKey).catch(console.error)
-        if(data){
-            try {
-                let cs = global.parseJSON(data)
-                if(!Object.keys(cs).length){
-                    throw 'Empty list'
-                }
-                this.categories = cs
-                fine = true
-            } catch(e) {
-                console.error(e)
+        this.emptyEntry = {
+            name: global.lang.EMPTY, 
+            type: 'action', 
+            fa: 'fas fa-info-circle', 
+            class: 'entry-empty'
+        }
+        this.channelsIndex = {}
+        this.categories = {}
+		global.config.on('change', async (keys, data) => {
+            if(['parental-control', 'parental-control-terms'].some(k => keys.includes(k))){
+                await this.load()
             }
-        }
-        if(!fine) {
-            let err
-            data = await this.getDefaultCategories().catch(e => err = e)
-            if(err) {
-                console.error('channel.getDefaultCategories error: '+ err)
-            } else {
-                if(!Object.keys(data).length){
-                    console.log('channel.load', data)
-                }
-                this.channelsIndex = null
-                this.categories = data
-                await this.save()
-                fine = true
-            }
-        }
-        this.updateChannelsIndex(false)
-        if(!this.categories || typeof(this.categories) != 'object'){
-            this.categories = {}
+        })
+        this.radioTerms = ['radio', 'fm', 'am']
+        this.load().catch(console.error)
+    }
+    ready(cb){
+        if(this.loaded){
+            cb()
+        } else {
+            this.once('loaded', cb)
         }
     }
-    mapSize(n) { // count strings (channel names) in channel maps
-        return Object.values(n).map(k => Array.isArray(k) ? k.length : 0).reduce((s, v) => s + v, 0)
-    }
-    applyMapCategories(map, target, amount, weighted = false) {
-        const categories = Object.keys(target).concat(Object.keys(map).map(k => this.translateKey(k)).filter(k => !(k in target)))
-        const quota = amount / Math.max(categories.length, 5)
-        for (const k of Object.keys(map)) {
-            const cat = this.translateKey(k)
-            target[cat] = target[cat] || []
-            const left = quota - target[cat].length
-            if (left > 0 && Array.isArray(map[k])) {
-                const slice = map[k].filter(s => !target[cat].includes(s)).slice(0, weighted ? left : map[k].length)
-                if (slice.length) {
-                    target[cat].push(...slice)
-                }
-            }
-        }
-        return target
-    }
-    translateKey(k){
-        let lk = 'CATEGORY_' + k.replaceAll(' & ', ' ').replace(new RegExp(' +', 'g'), '_').toUpperCase()
-        let nk = global.lang[lk] || k
-        return nk
-    }
-    async getDefaultCategories(amount=256){
-        const type = global.config.get('channel-grid')
-        if(type == 'xxx') {
-            return await this.getAdultCategories()
-        } else if(type == 'epg') {
-            return await this.getEPGCategories()
-        }
-        let data = {}, weighted = true
+    async load(){
         const countries = await global.lang.getActiveCountries(0)
-        const completed = c => {
-            return this.mapSize(data) >= amount
+        if(
+            !this.loader || 
+            this.loader.type != global.config.get('channel-grid') || 
+            JSON.stringify(this.loader.countries) != JSON.stringify(countries)
+        ) {
+            this.loader && this.loader.destroy()
+            this.loader = new ChannelsLoader(countries)
         }
-        const processCountry = async country => {
-            let err
-            const isMainCountry = countries[0] == country
-            if(!isMainCountry && completed()) throw 'completed'
-            const map = await global.cloud.get('channels/' + country).catch(e => err = e)
-            if(err) return
-            if(!isMainCountry && completed()) throw 'completed'
-            data = await this.applyMapCategories(map, data, amount, isMainCountry ? false : weighted)
-        }
-        const limit = pLimit(2)
-        const tasks = () => countries.map(country => {
-            return limit(async () => {
-                return await processCountry(country)
-            })
-        })
-        if(countries.length) {
-            await Promise.allSettled(tasks()).catch(console.error)
-            if(!completed()){
-                data = {}
-                weighted = false
-                await Promise.allSettled(tasks()).catch(console.error)
-            }
-        }
-        return data
-    }   
-    getCategories(compact){
-        return compact ? this.categories : this.expand(this.categories)
-    }
-    setCategories(data, silent){
-        this.updateCategoriesCacheKey().catch(global.displayErr).finally(() => {
-            this.categories = data
-            this.channelsIndex = null
-            this.save().finally(() => {
-                console.log('Categories file imported')
-                if(silent !== true){
-                    global.osd.show(global.lang.IMPORTED_FILE, 'fas fa-check-circle', 'options', 'normal')
-                }
-            })
-        })
+        await this.loader.load()
+        this.loaded = true
+        this.emit('loaded')
     }
 }
 
-class ChannelsEPG extends ChannelsCategories {
+class ChannelsEPG extends ChannelsData {
     constructor(){
         super()
         this.epgStatusTimer = false
@@ -461,27 +465,26 @@ class ChannelsEPG extends ChannelsCategories {
         })
         return ret
     }
-    epgChannelsAddLiveNow(entries, keepIcon){
-        return new Promise((resolve, reject) => {
-            if(this.loadedEPG){
-                const cs = entries.filter(e => e.terms || e.type == 'select').map(e => this.isChannel(e.name)).filter(e => e)
-                this.epgChannelsLiveNow(cs).then(epg => {
-                    //console.warn('epgChannelsAddLiveNow', cs, entries, epg)
-                    entries.forEach((e, i) => {
-                        if(typeof(epg[e.name]) != 'undefined' && epg[e.name].t){
-                            if(entries[i].details){
-                                entries[i].details += ' &middot; '+ epg[e.name].t
-                            } else {
-                                entries[i].details = epg[e.name].t
-                            }
-                            entries[i].programme = epg[e.name]
+    async epgChannelsAddLiveNow(entries, keepIcon){
+        if(this.loadedEPG){
+            let err
+            const cs = entries.filter(e => e.terms || e.type == 'select').map(e => this.isChannel(e.name)).filter(e => e)
+            const epg = await this.epgChannelsLiveNow(cs).catch(e => err = e)
+            if(!err && epg) {
+                //console.warn('epgChannelsAddLiveNow', cs, entries, epg)
+                entries.forEach((e, i) => {
+                    if(typeof(epg[e.name]) != 'undefined' && epg[e.name].t){
+                        if(entries[i].details){
+                            entries[i].details += ' &middot; '+ epg[e.name].t
+                        } else {
+                            entries[i].details = epg[e.name].t
                         }
-                    })
-                }).catch(console.error).finally(() => resolve(entries))
-            } else {
-                resolve(entries)
+                        entries[i].programme = epg[e.name]
+                    }
+                })
             }
-        })
+        }
+        return entries
     }
     adjustEPGChannelEntry(e, detached){
         return {
@@ -495,16 +498,21 @@ class ChannelsEPG extends ChannelsCategories {
     }
     async adjustEPGChannelEntryRenderer(e, detached){
         const terms = this.entryTerms(e).filter(t => t.charAt(0) != '-')
-        const options = [], results = await global.lists.epgSearchChannel(terms)
+        const options = [], results = await global.lists.epgSearchChannel(terms, 99)
         //console.log('adjustEPGChannelEntryRenderer', e, terms, results)
         Object.keys(results).forEach(name => {
             let keys = Object.keys(results[name])
             if(!keys.length) return
+            let details = results[name][keys[0]].t
+            if(keys.length > 1) {
+                details += '&nbsp;<span style="opacity: var(--opacity-level-3);">&middot;</span> +'+ (keys.length - 1)
+            }
             options.push({
                 name,
-                details: results[name][keys[0]].t,
+                details,
                 fa: 'fas fa-th-large',
                 type: 'action',
+                icon: results[name][keys[0]].i,
                 action: () => {
                     console.log('adjustEPGChannelEntryRenderer RESULT', e.name, name)
                     let map = global.config.get('epg-map') || {}
@@ -663,7 +671,7 @@ class ChannelsEditing extends ChannelsEPG {
                         console.warn('RENAME', name, 'TO', val, category)
                         if(val && val != name) {
                             let i = -1
-                            this.categories[category].some((n, j) => {
+                            this.loader.categories[category].some((n, j) => {
                                 if(n.substr(0, name.length) == name){
                                     i = j
                                     return true
@@ -672,12 +680,12 @@ class ChannelsEditing extends ChannelsEPG {
                             if(i != -1){
                                 let t = (o.terms || e.terms || terms)
                                 t = t && t.name ? t.name : (Array.isArray(t) ? t.join(' ') : name)
-                                this.categories[category][i] = this.compactName(val, t)
+                                this.loader.categories[category][i] = this.loader.compactName(val, t)
                                 this.emit('edited', 'rename', e.name, val, e)
-                                console.warn('RENAMED', this.categories[category][i], category, i)
+                                console.warn('RENAMED', this.loader.categories[category][i], category, i)
                                 this.save().then(() => {
                                     const category = _category
-                                    console.warn('RENAMED*', this.categories[category][i], category, i)
+                                    console.warn('RENAMED*', this.loader.categories[category][i], category, i)
                                     let destPath = global.explorer.path.replace(name, val).replace('/'+ global.lang.RENAME, '')
                                     console.log('opening', destPath)
                                     global.explorer.refresh(true, destPath)
@@ -692,36 +700,34 @@ class ChannelsEditing extends ChannelsEPG {
                         return t
                     }, action: async (entry, val) => {
                         const category = _category
-                        if(!this.categories[category]) return console.error('Category not found')
-                        console.warn('ALIASES', this.categories[category], category, val, o)
+                        if(!this.loader.categories[category]) return console.error('Category not found')
                         let i = -1
-                        this.categories[category].some((n, j) => {
+                        this.loader.categories[category].some((n, j) => {
                             if(n.substr(0, name.length) == name){
                                 i = j
                                 return true
                             }
                         })
                         if(i != -1){
-                            this.channelsIndex = null
-                            this.categories[category][i] = this.compactName(name, val)
+                            this.loader.channelsIndex = null
+                            this.loader.categories[category][i] = this.loader.compactName(name, val)
                             this.emit('edited', 'searchTerms', e, val)
                             e.terms = o.terms = {name: global.lists.terms(val, true), group: []}
-                            await this.save()
+                            await this.loader.save()
                             global.explorer.refreshNow()
                         }
                     }},
                     {name: global.lang.REMOVE, fa: 'fas fa-trash', type: 'action', details: o.name, action: async () => {
                         const category = _category
                         console.warn('REMOVE', name)
-                        if(!this.categories[category]) {
+                        if(!this.loader.categories[category]) {
                             global.explorer.open(global.lang.LIVE).catch(displayErr)
                             return
                         }
-                        this.categories[category] = this.categories[category].filter(c => {
+                        this.loader.categories[category] = this.loader.categories[category].filter(c => {
                             return c.split(',')[0] != name
                         })
-                        await this.save()
-                        console.log('REMOVING')
+                        await this.loader.save()
                         global.explorer.refresh(true, global.explorer.dirname(global.explorer.dirname(global.explorer.path)))
                         global.osd.show(global.lang.CHANNEL_REMOVED, 'fas fa-check-circle', 'channels', 'normal')
                     }}
@@ -734,11 +740,11 @@ class ChannelsEditing extends ChannelsEPG {
     }
     getCategoryEntry(){
         return {name: global.lang.ADD_CATEGORY, fa: 'fas fa-plus-square', type: 'input', action: async (data, val) => {
-            let categories = this.getCategories()
+            let categories = this.loader.getCategories()
             if(val && !categories.map(c => c.name).includes(val)){
                 console.warn('ADD', val)
-                this.categories[val] = []
-                await this.save()
+                this.loader.categories[val] = []
+                await this.loader.save()
                 console.warn('saved', global.lang.LIVE +'/'+ val +'/'+ global.lang.EDIT_CATEGORY)
                 delete global.explorer.pages[global.lang.LIVE]
                 global.explorer.open(global.lang.LIVE +'/'+ val +'/'+ global.lang.EDIT_CATEGORY +'/'+ global.lang.EDIT_CHANNELS).catch(displayErr)
@@ -752,7 +758,7 @@ class ChannelsEditing extends ChannelsEPG {
             fa: 'fas fa-tasks',
             renderer: async () => {
                 this.disableWatchNowAuto = true
-                return this.getCategories(false).map(c => this.editCategoryEntry(c, true))
+                return this.loader.getCategories(false).map(c => this.editCategoryEntry(c, true))
             }
         }
     }
@@ -777,19 +783,19 @@ class ChannelsEditing extends ChannelsEPG {
                 }},
                 {name: global.lang.RENAME_CATEGORY, fa: 'fas fa-edit', type: 'input', details: cat.name, value: cat.name, action: async (e, val) => {
                     console.warn('RENAME', cat.name, 'TO', val)
-                    if(val && val != cat.name && typeof(this.categories[val]) == 'undefined'){
-                        let o = this.categories[cat.name]
+                    if(val && val != cat.name && typeof(this.loader.categories[val]) == 'undefined'){
+                        let o = this.loader.categories[cat.name]
                         delete this.categories[cat.name]
-                        this.categories[val] = o
-                        await this.save()
+                        this.loader.categories[val] = o
+                        await this.loader.save()
                         let destPath = global.explorer.path.replace(cat.name, val).replace('/'+ global.lang.RENAME_CATEGORY, '')
                         global.explorer.refresh(true, destPath)
                         global.osd.show(global.lang.CATEGORY_RENAMED, 'fas fa-check-circle', 'channels', 'normal')
                     }
                 }},
                 {name: global.lang.REMOVE_CATEGORY, fa: 'fas fa-trash', type: 'action', details: cat.name, action: async () => {
-                    delete this.categories[cat.name]
-                    await this.save()
+                    delete this.loader.categories[cat.name]
+                    await this.loader.save()
                     global.explorer.open(global.lang.LIVE).catch(displayErr)
                     global.osd.show(global.lang.CATEGORY_REMOVED, 'fas fa-check-circle', 'channels', 'normal')
                 }}
@@ -808,14 +814,11 @@ class ChannelsEditing extends ChannelsEPG {
             placeholder: global.lang.CHANNEL_NAME, 
             action: async (data, val) => {
                 const catName = cat.name
-                console.warn('ADD', data, '|||', val)
                 this.disableWatchNowAuto = true
-                if(val && !Object.keys(this.categories).map(c => c.name).includes(val)){
-                    console.warn('ADD', val, this.categories[catName], cat)
-                    if(this.categories[catName] && !this.categories[catName].includes(val)){
-                        this.categories[catName].push(val)
-                        await this.save()
-                        console.log('ADDING')
+                if(val && !Object.keys(this.loader.categories).map(c => c.name).includes(val)){
+                    if(this.loader.categories[catName] && !this.loader.categories[catName].includes(val)){
+                        this.loader.categories[catName].push(val)
+                        await this.loader.save()
                         let targetPath = global.explorer.path
                         if(inline !== true){
                             targetPath = global.explorer.dirname(targetPath)
@@ -905,7 +908,7 @@ class Channels extends ChannelsKids {
     }
     getAllChannels(){
         let list = []
-        this.getCategories().forEach(category => {
+        this.loader.getCategories().forEach(category => {
             category.entries.forEach(e => {
                 list.push(e)
             })
@@ -916,7 +919,7 @@ class Channels extends ChannelsKids {
         return this.getAllChannels().map(c => c.name)
     }
     getChannelCategory(name){
-        let ct, sure, cats = this.getCategories(true)
+        let ct, sure, cats = this.loader.getCategories(true)
         Object.keys(cats).some(c => {
             let i = -1
             cats[c].some((n, j) => {
@@ -998,7 +1001,7 @@ class Channels extends ChannelsKids {
 		return 0
 	}
     isChannel(terms){
-        let tms, chs = this.channelsIndex || {}
+        let tms, chs = this.loader.channelsIndex || {}
         if(Array.isArray(terms)){
             tms = terms
         } else {
@@ -1019,7 +1022,7 @@ class Channels extends ChannelsKids {
             }
         })
         if(chosenScore > 1){
-            if(typeof(this.isChannelCache[chosen]) == 'undefined'){
+            if(typeof(this.loader.isChannelCache[chosen]) == 'undefined'){
                 let alts = {}, excludes = [], chTerms = global.deepClone(chs[chosen])
                 Object.keys(chs).forEach(name => {
                     if(name == chosen) return
@@ -1047,9 +1050,9 @@ class Channels extends ChannelsKids {
                     }
                     return t
                 }).map(s => s.join(' ')).join(' | ').split(' ')
-                this.isChannelCache[chosen] = {name: chosen, terms: chTerms, alts, excludes}
+                this.loader.isChannelCache[chosen] = {name: chosen, terms: chTerms, alts, excludes}
             }
-            return this.isChannelCache[chosen]
+            return this.loader.isChannelCache[chosen]
         }
     }
     expandTerms(terms){
@@ -1082,14 +1085,14 @@ class Channels extends ChannelsKids {
                 terms = global.lists.terms(terms)
             }
             let epgEntries = [], entries = [], already = {}
-            Object.keys(this.channelsIndex).sort().forEach(name => {
+            Object.keys(this.loader.channelsIndex).sort().forEach(name => {
                 if(typeof(already[name]) == 'undefined'){
-                    let score = this.cmatch(this.channelsIndex[name], terms, partial)
+                    let score = this.cmatch(this.loader.channelsIndex[name], terms, partial)
                     if(score){
                         already[name] = null
                         entries.push({
                             name,
-                            terms: {name: this.channelsIndex[name]}
+                            terms: {name: this.loader.channelsIndex[name]}
                         })
                     }
                 }
@@ -1331,8 +1334,8 @@ class Channels extends ChannelsKids {
         return new Promise((resolve, reject) => {
             this.ready(() => {
                 let keywords = [], badChrs = ['|', '-']
-                this.getDefaultCategories().then(data => {
-                    keywords.push(...Object.values(data).flat().map(n => this.expandName(n).terms.name).flat())
+                this.loader.getDefaultCategories().then(data => {
+                    keywords.push(...Object.values(data).flat().map(n => this.loader.expandName(n).terms.name).flat())
                 }).catch(reject).finally(() => {
                     keywords = keywords.unique().filter(w => !badChrs.includes(w.charAt(0)))
                     resolve(keywords)
@@ -1365,7 +1368,7 @@ class Channels extends ChannelsKids {
         if(type == 'lists') {
             list = await this.groupsRenderer('live')
         } else {
-            const categories = this.getCategories()
+            const categories = this.loader.getCategories()
             list = categories.map(category => {
                 category.renderer = async (c, e) => {
                     let times = {}, startTime = global.time()
@@ -1388,12 +1391,32 @@ class Channels extends ChannelsKids {
                 return category
             })
             list = global.lists.sort(list)
+            list.push(this.allCategoriesEntry())
         }
         if(editable){
             list.push(this.getCategoryEntry())
         }
         list.unshift(this.chooseChannelGridOption())
         return list
+    }
+    allCategoriesEntry() {
+        return {
+            name: global.lang.ALL_CHANNELS,
+            type: 'group',
+            renderer: async () => {
+                let entries = []
+                for(const category of this.loader.getCategories()) {
+                    category.entries.map(e => this.isChannel(e.name)).filter(e => !!e).forEach(e => {
+                        const entry = this.toMetaEntry(e, category)
+                        entry.details = category.name
+                        entries.push(entry)
+                    })
+                }
+                entries = await this.epgChannelsAddLiveNow(entries, true)
+                entries = global.lists.sort(entries)
+                return global.lists.tools.paginateList(global.lists.sort(entries))
+            }
+        }
     }
     chooseChannelGridOption(epgFocused){
         return {
@@ -1470,7 +1493,7 @@ class Channels extends ChannelsKids {
         try {
             data = global.parseJSON(data)
             if(typeof(data) == 'object'){
-                this.setCategories(data)
+                this.loader.setCategories(data)
                 global.osd.show('OK', 'fas fa-check-circle faclr-green', 'options', 'normal')
             } else {
                 throw new Error('Not a JSON file.')
@@ -1491,7 +1514,7 @@ class Channels extends ChannelsKids {
                     fa: 'fas fa-file-export', 
                     action: () => {
                         const filename = 'categories.json', file = global.downloads.folder + path.sep + filename
-                        fs.writeFile(file, JSON.stringify(this.getCategories(true), null, 3), {encoding: 'utf-8'}, err => {
+                        fs.writeFile(file, JSON.stringify(this.loader.getCategories(true), null, 3), {encoding: 'utf-8'}, err => {
                             if(err) return global.displayErr(err)
                             global.downloads.serve(file, true, false).catch(global.displayErr)
                         })
@@ -1512,9 +1535,7 @@ class Channels extends ChannelsKids {
                     fa: 'fas fa-undo-alt', 
                     action: async () => {
                         global.osd.show(global.lang.PROCESSING, 'fa-mega spin-x-alt', 'options', 'persistent')
-                        delete this.categories
-                        await global.storage.raw.promises.delete(this.categoriesCacheKey).catch(console.error)
-                        global.config.set('channel-grid', '')
+                        await this.loader.reset()
                         await this.load()
                         global.osd.show('OK', 'fas fa-check-circle faclr-green', 'options', 'normal')
                     }
@@ -1673,7 +1694,7 @@ class Channels extends ChannelsKids {
     }
     async hook(entries, path){
         if(!path) {
-            const liveEntry = {name: global.lang.LIVE, fa: 'fas fa-tv', details: '<i class="fas fa-satellite-dish"></i>&nbsp; '+ global.lang.CATEGORIES, type: 'group', renderer: this.entries.bind(this)}
+            const liveEntry = {name: global.lang.LIVE, fa: 'fas fa-tv', details: '<i class="fas fa-th"></i>&nbsp; '+ global.lang.ALL_CHANNELS, type: 'group', renderer: this.entries.bind(this)}
             const moviesEntry = {name: global.lang.CATEGORY_MOVIES_SERIES,  fa: 'fas fa-th', details: '', type: 'group', renderer: () => this.groupsRenderer('')}
             global.options.insertEntry(liveEntry, entries, 1, global.lang.MY_LISTS)
             global.options.insertEntry(moviesEntry, entries, 2, global.lang.MY_LISTS)

@@ -30,12 +30,13 @@ class UpdateListIndex extends ListIndexUtils {
 		}
     }
 	indexate(entry, i){
-		entry = this.master.prepareEntry(entry)
-		entry.terms.name.concat(entry.terms.group).forEach(term => {
-			if(typeof(this.index.terms[term]) == 'undefined'){
-				this.index.terms[term] = {n: [], g: []}
-			}
-		})
+        entry = this.master.prepareEntry(entry)
+        if (!entry.terms) entry.terms = { name: [], group: [] }
+        entry.terms.name.concat(entry.terms.group).forEach(term => {
+            if (typeof (this.index.terms[term]) == 'undefined') {
+                this.index.terms[term] = { n: [], g: [] }
+            }
+        })
 		entry.terms.name.forEach(term => {
             // ensure it's an array an not a method
 			if(Array.isArray(this.index.terms[term].n) && !this.index.terms[term].n.includes(i)){
@@ -88,7 +89,7 @@ class UpdateListIndex extends ListIndexUtils {
                     headers: {
                         'accept-charset': 'utf-8, *;q=0.1'
                     },
-                    timeout: Math.max(30, global.config.get('connect-timeout')), // some servers will take too long to send the initial response
+                    timeout: global.config.get('read-timeout'), // some servers will take too long to send the initial response
                     downloadLimit: 200 * (1024 * 1024), // 200Mb
                     cacheTTL: this.forceDownload ? 0 : 3600,
                     encoding: 'utf8'

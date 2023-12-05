@@ -54,6 +54,7 @@ class Downloads extends Events {
 						this.activeDownloads[url].destroy()
 						fs.unlink(this.activeDownloads[url].file, () => {})
 						global.ui.emit('background-mode-unlock', 'saving-file-'+ uid)
+						global.osd.hide(uid)
 						delete this.activeDownloads[url]
 						global.explorer.refreshNow()
 						return true

@@ -100,6 +100,7 @@ class DownloadCacheChunks extends Events {
         this.end()
         this.finish()
         this.destroy()
+        this.file && fs.unlink(this.file, () => {})
     }
     end(){
         this.ended = true // before pump()
@@ -293,6 +294,17 @@ class DownloadCacheMap extends Events {
             }
         })
         await fs.promises.writeFile(this.indexFile, JSON.stringify(findex)).catch(console.error)
+    }
+    remove(url) {
+        if(this.index[url]) {
+            if(this.index[url].type == 'file') {
+                fs.unlink(String(this.index[url].data), () => {})
+            }
+            if(this.index[url].chunks && this.index[url].chunks.fail) {
+                this.index[url].chunks.fail('Removed')
+            }
+            delete this.index[url]
+        }
     }
     save(downloader, chunk, ended){
         const opts = downloader.opts

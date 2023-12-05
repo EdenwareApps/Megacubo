@@ -1,0 +1,29 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" >
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+<metadata>
+Created by FontForge 20200314 at Wed Jan 13 11:59:37 2021
+ By Robert Madole
+Copyright (c) Font Awesome
+</metadata>
+<!-- Font Awesome Pro 5.15.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) --><defs>
+<font id="FontAwesome5Brands-Regular" horiz-adv-x="448" >
+  <font-face 
+    font-family="Font Awesome 5 Brands Regular"
+    font-weight="400"
+    font-stretch="normal"
+    units-per-em="512"
+    panose-1="2 0 5 3 0 0 0 0 0 0"
+    ascent="448"
+    descent="-64"
+    bbox="0 0 448 447.99"
+    underline-thickness="25"
+    underline-position="-50"
+    unicode-range="U+0020-F8E8"
+  />
+    <missing-glyph />
+    <glyph glyph-name="linkedin-in" unicode="&#xf0e1;" 
+d="M100.28 0h-92.8799v299.1h92.8799v-299.1zM53.79 339.9c-29.7002 0 -53.79 24.5996 -53.79 54.2998c0 29.6875 24.1025 53.79 53.79 53.79s53.79 -24.1025 53.79 -53.79c0 -29.7002 -24.0996 -54.2998 -53.79 -54.2998zM447.9 0h-92.6807v145.6
+c0 34.7002 -0.700195 79.2002 -48.29 79.2002c-48.29 0 -55.6895 -37.7002 -55.6895 -76.7002v-148.1h-92.7803v299.1h89.0801v-40.7998h1.2998c12.4004 23.5 42.6904 48.2998 87.8799 48.2998c94 0 111.28 -61.8994 111.28 -142.3v-164.3h-0.0996094z" />
+  </font>
+</defs></svg>

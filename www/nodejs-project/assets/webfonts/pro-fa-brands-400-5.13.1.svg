@@ -1,0 +1,35 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" >
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+<metadata>
+Created by FontForge 20200314 at Wed Jan 13 11:59:40 2021
+ By Robert Madole
+Copyright (c) Font Awesome
+</metadata>
+<!-- Font Awesome Pro 5.15.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) --><defs>
+<font id="FontAwesome5Brands-Regular" horiz-adv-x="512" >
+  <font-face 
+    font-family="Font Awesome 5 Brands Regular"
+    font-weight="400"
+    font-stretch="normal"
+    units-per-em="512"
+    panose-1="2 0 5 3 0 0 0 0 0 0"
+    ascent="448"
+    descent="-64"
+    bbox="8 -56 504 440"
+    underline-thickness="25"
+    underline-position="-50"
+    unicode-range="U+0020-F8E8"
+  />
+    <missing-glyph />
+    <glyph glyph-name="yahoo" unicode="&#xf19e;" 
+d="M223.69 306.94h93.5791l-140.909 -338.94h-94.1699l38.5693 89.8096l-105.83 249.131h96.0703l56 -143.171zM329.09 171.15c32.1328 0 58.2197 -26.0879 58.2197 -58.2207c0 -32.1318 -26.0869 -58.2197 -58.2197 -58.2197s-58.2197 26.0879 -58.2197 58.2197
+c0 32.1328 26.0869 58.2207 58.2197 58.2207zM394.65 416h104.42l-92.6299 -223.47h-104.79z" />
+    <glyph glyph-name="google-plus" unicode="&#xf2b3;" 
+d="M256 440c136.9 0 248 -111.1 248 -248s-111.1 -248 -248 -248s-248 111.1 -248 248s111.1 248 248 248zM185.3 68c71.2998 0 118.8 50.4004 118.8 121.2c0.000976562 0.140625 0.00195312 0.182617 0.00195312 0.323242c0 6.96289 -0.65332 13.7744 -1.90137 20.377
+h-116.9v-42.6006h70.1006c-5.2002 -34.2002 -37.5 -53.2998 -70.1006 -53.2998c-43 0 -77.2002 35.5 -77.2002 78.0996c0 42.6006 34.3008 78.1006 77.2002 78.1006c18.1006 0 36.2002 -6.2002 49.4004 -19.1006l33.5996 32.6006
+c-22.8994 21.2998 -51.7002 32.2998 -83 32.2998c-68.4375 0 -124 -55.5625 -124 -124s55.5625 -124 124 -124zM415.5 174.2h35.2002v35.5h-35.2002v35.5h-35.5v-35.5h-35.5v-35.5h35.5v-35.5h35.5v35.5z" />
+    <glyph glyph-name="bandcamp" unicode="&#xf2d5;" 
+d="M256 440c137 0 248 -111 248 -248s-111 -248 -248 -248s-248 111 -248 248s111 248 248 248zM304.2 113.9l84.7002 156.1h-181l-84.7002 -156.1h181z" />
+  </font>
+</defs></svg>

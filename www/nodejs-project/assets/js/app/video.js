@@ -168,6 +168,8 @@ class VideoControl extends EventEmitter {
 				this.setup('html5h', VideoControlAdapterHTML5HLS)
 			} else if(m.indexOf('mp2t') != -1 || (src.endsWith('.ts') && mediatype == 'video') || (data && data.mpegts === true)){
 				this.setup('html5t', VideoControlAdapterHTML5TS)
+			} else if(m.indexOf('dash') != -1 || src.endsWith('.mpd')) {
+				this.setup('html5d', VideoControlAdapterHTML5DASH)
 			} else if(m.indexOf('audio/') != -1){
 				this.setup('html5a', VideoControlAdapterHTML5Audio)
 			} else {
@@ -531,7 +533,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		this.resume()
 		console.log('adapter resume', this.object.outerHTML, src, mimetype)
 	}
-	unload(silent){
+	unload(){
 		console.log('adapter unload')
 		this.hasReceivedRatio = false
 		if(this.active){
@@ -540,11 +542,9 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 			if(this.object.currentSrc) {
 				this.pause()
 				this._paused = false
-				if(!silent) {
-					this.object.innerHTML = '<source type="video/mp4" src="" />'
-					this.object.removeAttribute('src')
-					this.object.load()
-				}
+				this.object.innerHTML = '<source type="video/mp4" src="" />'
+				this.object.removeAttribute('src')
+				this.object.load()
 			}
 		}
 	}

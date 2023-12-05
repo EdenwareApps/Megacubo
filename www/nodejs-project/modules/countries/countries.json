@@ -10,8 +10,8 @@
       "it": "Andorra",
       "nl": "Andorra",
       "pt": "Andorra",
-      "lat": 42.5407167,
-      "lng": 1.5732033,
+      "lat": 42.5,
+      "lng": 1.5,
       "tz": [
          60
       ],
@@ -31,8 +31,8 @@
       "it": "Emirati Arabi Uniti",
       "nl": "Verenigde Arabische Emiraten",
       "pt": "Emirados Árabes Unidos",
-      "lat": 24.0002488,
-      "lng": 53.9994829,
+      "lat": 24,
+      "lng": 54,
       "tz": [
          240
       ],
@@ -52,8 +52,8 @@
       "it": "Afghanistan",
       "nl": "Afghanistan",
       "pt": "Afeganistão",
-      "lat": 33.7680065,
-      "lng": 66.2385139,
+      "lat": 33,
+      "lng": 65,
       "tz": [
          270
       ],
@@ -74,8 +74,8 @@
       "it": "Antigua e Barbuda",
       "nl": "Antigua en Barbuda",
       "pt": "Antígua e Barbuda",
-      "lat": 17.2234721,
-      "lng": -61.9554608,
+      "lat": 17.05,
+      "lng": -61.8,
       "tz": [
          -240
       ],
@@ -95,8 +95,8 @@
       "it": "Anguilla",
       "nl": "Anguilla",
       "pt": "Anguilha",
-      "lat": 18.1954947,
-      "lng": -63.0750234,
+      "lat": 18.25,
+      "lng": -63.16666666,
       "tz": [
          -240
       ],
@@ -114,8 +114,8 @@
       "it": "Albania",
       "nl": "Albanië",
       "pt": "Albânia",
-      "lat": 33.2588817,
-      "lng": -86.8295337,
+      "lat": 41,
+      "lng": 20,
       "tz": [
          60
       ],
@@ -135,8 +135,8 @@
       "it": "Armenia",
       "nl": "Armenië",
       "pt": "Arménia",
-      "lat": 40.7696272,
-      "lng": 44.6736646,
+      "lat": 40,
+      "lng": 45,
       "tz": [
          240
       ],
@@ -156,8 +156,8 @@
       "it": "Angola",
       "nl": "Angola",
       "pt": "Angola",
-      "lat": 47.59397,
-      "lng": 14.12456,
+      "lat": -12.5,
+      "lng": 18.5,
       "tz": [
          60
       ],
@@ -180,8 +180,8 @@
       "it": "Antartide",
       "nl": "Antarctica",
       "pt": "Antárctica",
-      "lat": 42.1368853,
-      "lng": 13.610341,
+      "lat": -74.65,
+      "lng": 4.48,
       "tz": [
          180
       ],
@@ -199,8 +199,8 @@
       "it": "Argentina",
       "nl": "Argentinië",
       "pt": "Argentina",
-      "lat": 35.2048883,
-      "lng": -92.4479108,
+      "lat": -34,
+      "lng": -64,
       "tz": [
          -180
       ],
@@ -220,8 +220,8 @@
       "it": "Samoa Americane",
       "nl": "Amerikaans Samoa",
       "pt": "Samoa Americana",
-      "lat": 42.6073975,
-      "lng": 25.4856617,
+      "lat": -14.33333333,
+      "lng": -170,
       "tz": [
          -660
       ],
@@ -239,8 +239,8 @@
       "it": "Austria",
       "nl": "Oostenrijk",
       "pt": "Áustria",
-      "lat": 47.59397,
-      "lng": 14.12456,
+      "lat": 47.33333333,
+      "lng": 13.33333333,
       "tz": [
          60
       ],
@@ -260,8 +260,8 @@
       "it": "Australia",
       "nl": "Australië",
       "pt": "Austrália",
-      "lat": -24.7761086,
-      "lng": 134.755,
+      "lat": -27,
+      "lng": 133,
       "tz": [
          600,
          660,
@@ -285,8 +285,8 @@
       "it": "Aruba",
       "nl": "Aruba",
       "pt": "Aruba",
-      "lat": 12.5013629,
-      "lng": -69.9618475,
+      "lat": 12.5,
+      "lng": -69.96666666,
       "tz": [
          -240
       ],
@@ -294,6 +294,27 @@
          "nl"
       ],
       "population": 106766
+   },
+   {
+      "code": "ax",
+      "iso": "Aland Islands",
+      "da": "Åland",
+      "de": "Alandinseln",
+      "en": "Åland Islands",
+      "es": "Islas Åland",
+      "fr": "Îles Åland",
+      "it": "Isole Aland",
+      "nl": "Alandeilanden",
+      "pt": "Ilhas Alanda",
+      "lat": 60.116667,
+      "lng": 19.9,
+      "tz": [
+         120
+      ],
+      "languages": [
+         "sv"
+      ],
+      "population": 29789
    },
    {
       "code": "az",
@@ -306,8 +327,8 @@
       "it": "Azerbaigian",
       "nl": "Azerbeidzjan",
       "pt": "Azerbeijão",
-      "lat": 34.395342,
-      "lng": -111.763275,
+      "lat": 40.5,
+      "lng": 47.5,
       "tz": [
          240
       ],
@@ -327,8 +348,8 @@
       "it": "Bosnia Erzegovina",
       "nl": "Bosnië en Herzegovina",
       "pt": "Bósnia-Herzegovina",
-      "lat": 44.3053476,
-      "lng": 17.5961467,
+      "lat": 44,
+      "lng": 18,
       "tz": [
          60
       ],
@@ -350,8 +371,8 @@
       "it": "Barbados",
       "nl": "Barbados",
       "pt": "Barbados",
-      "lat": 13.1500331,
-      "lng": -59.5250305,
+      "lat": 13.16666666,
+      "lng": -59.53333333,
       "tz": [
          -240
       ],
@@ -371,8 +392,8 @@
       "it": "Bangladesh",
       "nl": "Bangladesh",
       "pt": "Bangladeche",
-      "lat": 24.4769288,
-      "lng": 90.2934413,
+      "lat": 24,
+      "lng": 90,
       "tz": [
          360
       ],
@@ -392,8 +413,8 @@
       "it": "Belgio",
       "nl": "België",
       "pt": "Bélgica",
-      "lat": 50.6402809,
-      "lng": 4.6667145,
+      "lat": 50.83333333,
+      "lng": 4,
       "tz": [
          60
       ],
@@ -415,8 +436,8 @@
       "it": "Burkina Faso",
       "nl": "Burkina Faso",
       "pt": "Burkina-Faso",
-      "lat": 12.0753083,
-      "lng": -1.6880314,
+      "lat": 13,
+      "lng": -2,
       "tz": [
          0
       ],
@@ -437,8 +458,8 @@
       "it": "Bulgaria",
       "nl": "Bulgarije",
       "pt": "Bulgária",
-      "lat": 42.6073975,
-      "lng": 25.4856617,
+      "lat": 43,
+      "lng": 25,
       "tz": [
          120
       ],
@@ -458,8 +479,8 @@
       "it": "Bahrein",
       "nl": "Bahrein",
       "pt": "Bahrein",
-      "lat": 44.3053476,
-      "lng": 17.5961467,
+      "lat": 26,
+      "lng": 50.55,
       "tz": [
          180
       ],
@@ -479,8 +500,8 @@
       "it": "Burundi",
       "nl": "Burundi",
       "pt": "Burundi",
-      "lat": 50.6402809,
-      "lng": 4.6667145,
+      "lat": -3.5,
+      "lng": 30,
       "tz": [
          120
       ],
@@ -501,8 +522,8 @@
       "it": "Benin",
       "nl": "Benin",
       "pt": "Benim",
-      "lat": 9.5293472,
-      "lng": 2.2584408,
+      "lat": 9.5,
+      "lng": 2.25,
       "tz": [
          0
       ],
@@ -512,6 +533,27 @@
          "yo"
       ],
       "population": 12123200
+   },
+   {
+      "code": "bl",
+      "iso": "Saint Barthélemy",
+      "da": "Saint Barthélemy",
+      "de": "Saint-Barthélemy",
+      "en": "Saint Barthélemy",
+      "es": "San Bartolomé",
+      "fr": "Saint-Barthélemy",
+      "it": "Saint-Barthélemy",
+      "nl": "Saint-Barthélemy",
+      "pt": "São Bartolomeu",
+      "lat": 18.5,
+      "lng": -63.41666666,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "fr"
+      ],
+      "population": 9796
    },
    {
       "code": "bm",
@@ -524,8 +566,8 @@
       "it": "Bermuda",
       "nl": "Bermuda",
       "pt": "Bermudas",
-      "lat": 32.30382,
-      "lng": -64.7561647,
+      "lat": 32.33333333,
+      "lng": -64.75,
       "tz": [
          -240
       ],
@@ -543,8 +585,8 @@
       "it": "Brunei",
       "nl": "Brunei",
       "pt": "Brunei",
-      "lat": 4.4137155,
-      "lng": 114.5653908,
+      "lat": 4.5,
+      "lng": 114.66666666,
       "tz": [
          480
       ],
@@ -564,8 +606,8 @@
       "it": "Bolivia",
       "nl": "Bolivia",
       "pt": "Bolívia",
-      "lat": -17.0568696,
-      "lng": -64.9912286,
+      "lat": -17,
+      "lng": -65,
       "tz": [
          -240
       ],
@@ -578,6 +620,25 @@
       "population": 11673029
    },
    {
+      "code": "bq",
+      "iso": "Caribbean Netherlands",
+      "da": "Caribbean Netherlands",
+      "de": "Karibische Niederlande",
+      "en": "Caribbean Netherlands",
+      "es": "Caribe Países Bajos",
+      "fr": "Caraïbes Pays-Bas",
+      "it": "Caraibi Olandesi",
+      "nl": "Caribisch Nederland",
+      "pt": "Caribe Holanda",
+      "lat": 12.15,
+      "lng": -68.266667,
+      "tz": [
+         -240
+      ],
+      "languages": [],
+      "population": 262100
+   },
+   {
       "code": "br",
       "iso": "Brazil",
       "da": "Brasilien",
@@ -588,8 +649,8 @@
       "it": "Brasile",
       "nl": "Brazilië",
       "pt": "Brasil",
-      "lat": -10.3333333,
-      "lng": -53.2,
+      "lat": -10,
+      "lng": -55,
       "tz": [
          -180,
          -240,
@@ -611,10 +672,10 @@
       "es": "Bahamas",
       "fr": "Bahamas",
       "it": "Bahamas",
-      "nl": "Bahama?s",
+      "nl": "Bahama's",
       "pt": "Baamas",
-      "lat": 24.7736546,
-      "lng": -78.0000547,
+      "lat": 24.25,
+      "lng": -76,
       "tz": [
          -300
       ],
@@ -634,8 +695,8 @@
       "it": "Bhutan",
       "nl": "Bhutan",
       "pt": "Butão",
-      "lat": 27.549511,
-      "lng": 90.5119273,
+      "lat": 27.5,
+      "lng": 90.5,
       "tz": [
          360
       ],
@@ -655,8 +716,8 @@
       "it": "Isola Bouvet",
       "nl": "Bouveteiland",
       "pt": "Ilha Bouvet",
-      "lat": 15.1009234,
-      "lng": -90.3139743,
+      "lat": -54.43333333,
+      "lng": 3.4,
       "tz": [
          60
       ],
@@ -674,8 +735,8 @@
       "it": "Botswana",
       "nl": "Botswana",
       "pt": "Botswana",
-      "lat": 48.53775,
-      "lng": 9.041169,
+      "lat": -22,
+      "lng": 24,
       "tz": [
          120
       ],
@@ -696,8 +757,8 @@
       "it": "Bielorussia",
       "nl": "Wit-Rusland",
       "pt": "Bielorrússia",
-      "lat": 53.4250605,
-      "lng": 27.6971358,
+      "lat": 53,
+      "lng": 28,
       "tz": [
          180
       ],
@@ -718,8 +779,8 @@
       "it": "Belize",
       "nl": "Belize",
       "pt": "Belize",
-      "lat": 16.8259793,
-      "lng": -88.7600927,
+      "lat": 17.25,
+      "lng": -88.75,
       "tz": [
          -360
       ],
@@ -739,8 +800,8 @@
       "it": "Canada",
       "nl": "Canada",
       "pt": "Canadá",
-      "lat": 36.7014631,
-      "lng": -118.755997,
+      "lat": 60,
+      "lng": -95,
       "tz": [
          -210,
          -240,
@@ -770,13 +831,39 @@
       "it": "Isole Cocos",
       "nl": "Cocoseilanden",
       "pt": "Ilhas Cocos",
-      "lat": -12.0728315,
-      "lng": 96.8409375,
+      "lat": -12.5,
+      "lng": 96.83333333,
       "tz": [
          390
       ],
       "languages": [],
       "population": 628
+   },
+   {
+      "code": "cd",
+      "iso": "Congo, Democratic Republic of the",
+      "da": "Den Demokratiske Republik Congo",
+      "de": "Demokratische Republik Kongo",
+      "en": "Democratic Republic of Congo",
+      "es": "República Democrática del Congo",
+      "fr": "République démocratique du Congo",
+      "it": "Repubblica Democratica del Congo",
+      "nl": "Congo-Kinshasa",
+      "pt": "República Democrática do Congo",
+      "lat": 0,
+      "lng": 25,
+      "tz": [
+         60,
+         120
+      ],
+      "languages": [
+         "fr",
+         "kg",
+         "ln",
+         "sw",
+         "lu"
+      ],
+      "population": 89561403
    },
    {
       "code": "cf",
@@ -789,8 +876,8 @@
       "it": "Repubblica Centrafricana",
       "nl": "Centraal-Afrikaanse Republiek",
       "pt": "República Centro-Africana",
-      "lat": 7.0323598,
-      "lng": 19.9981227,
+      "lat": 7,
+      "lng": 21,
       "tz": [
          60
       ],
@@ -811,8 +898,8 @@
       "it": "Congo",
       "nl": "Congo",
       "pt": "Congo-Brazzaville",
-      "lat": -0.7264327,
-      "lng": 15.6419155,
+      "lat": -1,
+      "lng": 15,
       "tz": [
          60
       ],
@@ -834,8 +921,8 @@
       "it": "Svizzera",
       "nl": "Zwitserland",
       "pt": "Suíça",
-      "lat": 46.7985624,
-      "lng": 8.2319736,
+      "lat": 47,
+      "lng": 8,
       "tz": [
          60
       ],
@@ -848,6 +935,27 @@
       "population": 8654622
    },
    {
+      "code": "ci",
+      "iso": "Cote D'ivoire",
+      "da": "Elfenbenskysten",
+      "de": "Côte d'Ivoire",
+      "en": "Ivory Coast",
+      "es": "Costa de Marfil",
+      "fr": "Côte d'Ivoire",
+      "it": "Costa d'Avorio",
+      "nl": "Ivoorkust",
+      "pt": "Costa do Marfim",
+      "lat": 8,
+      "lng": -5,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "fr"
+      ],
+      "population": 26378274
+   },
+   {
       "code": "ck",
       "iso": "Cook Islands",
       "da": "Cook-øerne",
@@ -858,8 +966,8 @@
       "it": "Isole Cook",
       "nl": "Cookeilanden",
       "pt": "Ilhas Cook",
-      "lat": -19.9969716,
-      "lng": -157.7858714,
+      "lat": -21.23333333,
+      "lng": -159.76666666,
       "tz": [
          -600
       ],
@@ -877,8 +985,8 @@
       "it": "Cile",
       "nl": "Chili",
       "pt": "Chile",
-      "lat": -31.7613365,
-      "lng": -71.3187697,
+      "lat": -30,
+      "lng": -71,
       "tz": [
          -180,
          -240
@@ -899,8 +1007,8 @@
       "it": "Camerun",
       "nl": "Kameroen",
       "pt": "República dos Camarões",
-      "lat": 4.6125522,
-      "lng": 13.1535811,
+      "lat": 6,
+      "lng": 12,
       "tz": [
          60
       ],
@@ -921,8 +1029,8 @@
       "it": "Cina",
       "nl": "China",
       "pt": "China",
-      "lat": 35.000074,
-      "lng": 104.999927,
+      "lat": 35,
+      "lng": 105,
       "tz": [
          480
       ],
@@ -943,8 +1051,8 @@
       "it": "Colombia",
       "nl": "Colombia",
       "pt": "Colômbia",
-      "lat": 38.7251776,
-      "lng": -105.607716,
+      "lat": 4,
+      "lng": -72,
       "tz": [
          -300
       ],
@@ -964,8 +1072,8 @@
       "it": "Costa Rica",
       "nl": "Costa Rica",
       "pt": "Costa Rica",
-      "lat": 45.2208641,
-      "lng": 10.037038,
+      "lat": 10,
+      "lng": -84,
       "tz": [
          -360
       ],
@@ -985,8 +1093,8 @@
       "it": "Cuba",
       "nl": "Cuba",
       "pt": "Cuba",
-      "lat": 23.0131338,
-      "lng": -80.8328748,
+      "lat": 21.5,
+      "lng": -80,
       "tz": [
          -300
       ],
@@ -1006,8 +1114,8 @@
       "it": "Capo Verde",
       "nl": "Kaapverdië",
       "pt": "Cabo Verde",
-      "lat": 16.0000552,
-      "lng": -24.0083947,
+      "lat": 16,
+      "lng": -24,
       "tz": [
          -60
       ],
@@ -1016,6 +1124,28 @@
       ],
       "dist": 4346.959803572377,
       "population": 555987
+   },
+   {
+      "code": "cw",
+      "iso": "Curaçao",
+      "da": "Curaçao",
+      "de": "Curaçao",
+      "en": "Curaçao",
+      "es": "Curaçao",
+      "fr": "Curaçao",
+      "it": "Curaçao",
+      "nl": "Curaçao",
+      "pt": "Curaçao",
+      "lat": 12.116667,
+      "lng": -68.933333,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "nl",
+         "en"
+      ],
+      "population": 164093
    },
    {
       "code": "cx",
@@ -1028,8 +1158,8 @@
       "it": "Isola di Christmas",
       "nl": "Christmaseiland",
       "pt": "Ilha do Natal",
-      "lat": -10.4837768,
-      "lng": 105.64723,
+      "lat": -10.5,
+      "lng": 105.66666666,
       "tz": [
          420
       ],
@@ -1047,8 +1177,8 @@
       "it": "Cipro",
       "nl": "Cyprus",
       "pt": "Chipre",
-      "lat": 34.9823018,
-      "lng": 33.1451285,
+      "lat": 35,
+      "lng": 33,
       "tz": [
          12
       ],
@@ -1069,8 +1199,8 @@
       "it": "Cechia",
       "nl": "Tsjechië",
       "pt": "Tcheca",
-      "lat": 49.7439047,
-      "lng": 15.3381061,
+      "lat": 49.75,
+      "lng": 15.5,
       "tz": [
          60
       ],
@@ -1091,8 +1221,8 @@
       "it": "Germania",
       "nl": "Duitsland",
       "pt": "Alemanha",
-      "lat": 51.1638175,
-      "lng": 10.4478313,
+      "lat": 51,
+      "lng": 9,
       "tz": [
          60
       ],
@@ -1112,8 +1242,8 @@
       "it": "Gibuti",
       "nl": "Djibouti",
       "pt": "Djibuti",
-      "lat": 11.8145966,
-      "lng": 42.8453061,
+      "lat": 11.5,
+      "lng": 43,
       "tz": [
          180
       ],
@@ -1136,8 +1266,8 @@
       "it": "Danimarca",
       "nl": "Denemarken",
       "pt": "Dinamarca",
-      "lat": 55.670249,
-      "lng": 10.3333283,
+      "lat": 56,
+      "lng": 10,
       "tz": [
          60
       ],
@@ -1157,8 +1287,8 @@
       "it": "Dominica",
       "nl": "Dominica",
       "pt": "Dominica",
-      "lat": 15.4113138,
-      "lng": -61.3653618,
+      "lat": 15.41666666,
+      "lng": -61.33333333,
       "tz": [
          -240
       ],
@@ -1178,8 +1308,8 @@
       "it": "Repubblica Dominicana",
       "nl": "Dominicaanse Republiek",
       "pt": "República Dominicana",
-      "lat": 19.0974031,
-      "lng": -70.3028026,
+      "lat": 19,
+      "lng": -70.66666666,
       "tz": [
          -240
       ],
@@ -1199,8 +1329,8 @@
       "it": "Algeria",
       "nl": "Algerije",
       "pt": "Argélia",
-      "lat": 28.0000272,
-      "lng": 2.9999825,
+      "lat": 28,
+      "lng": 3,
       "tz": [
          60
       ],
@@ -1220,8 +1350,8 @@
       "it": "Ecuador",
       "nl": "Ecuador",
       "pt": "Equador",
-      "lat": -1.3397668,
-      "lng": -79.3666965,
+      "lat": -2,
+      "lng": -77.5,
       "tz": [
          -300
       ],
@@ -1241,8 +1371,8 @@
       "it": "Estonia",
       "nl": "Estland",
       "pt": "Estónia",
-      "lat": 58.7523778,
-      "lng": 25.3319078,
+      "lat": 59,
+      "lng": 26,
       "tz": [
          120
       ],
@@ -1262,8 +1392,8 @@
       "it": "Egitto",
       "nl": "Egypte",
       "pt": "Egipto",
-      "lat": 26.2540493,
-      "lng": 29.2675469,
+      "lat": 27,
+      "lng": 30,
       "tz": [
          120
       ],
@@ -1271,6 +1401,27 @@
          "ar"
       ],
       "population": 104258327
+   },
+   {
+      "code": "eh",
+      "iso": "Western Sahara",
+      "da": "Vestlige Sahara",
+      "de": "Westsahara",
+      "en": "Western Sahara",
+      "es": "Sahara Occidental",
+      "fr": "Sahara occidental",
+      "it": "Sahara Occidentale",
+      "nl": "Westelijke Sahara",
+      "pt": "Saara Ocidental",
+      "lat": 24.5,
+      "lng": -13,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "ar"
+      ],
+      "population": 567421
    },
    {
       "code": "er",
@@ -1283,8 +1434,8 @@
       "it": "Eritrea",
       "nl": "Eritrea",
       "pt": "Eritreia",
-      "lat": 52.865196,
-      "lng": -7.9794599,
+      "lat": 15,
+      "lng": 39,
       "tz": [
          180
       ],
@@ -1306,8 +1457,8 @@
       "it": "Spagna",
       "nl": "Spanje",
       "pt": "Espanha",
-      "lat": 39.3260685,
-      "lng": -4.8379791,
+      "lat": 40,
+      "lng": -4,
       "tz": [
          60
       ],
@@ -1327,8 +1478,8 @@
       "it": "Etiopia",
       "nl": "Ethiopië",
       "pt": "Etiópia",
-      "lat": 10.2116702,
-      "lng": 38.6521203,
+      "lat": 8,
+      "lng": 38,
       "tz": [
          180
       ],
@@ -1348,8 +1499,8 @@
       "it": "Finlandia",
       "nl": "Finland",
       "pt": "Finlândia",
-      "lat": 63.2467777,
-      "lng": 25.9209164,
+      "lat": 64,
+      "lng": 26,
       "tz": [
          120
       ],
@@ -1370,8 +1521,8 @@
       "it": "Figi",
       "nl": "Fiji",
       "pt": "Fiji",
-      "lat": -18.1239696,
-      "lng": 179.0122737,
+      "lat": -18,
+      "lng": 175,
       "tz": [
          720
       ],
@@ -1394,8 +1545,8 @@
       "it": "Isole Falkland",
       "nl": "Falklandeilanden",
       "pt": "Ilhas Falkland ou Malvinas",
-      "lat": -51.9492937,
-      "lng": -59.5383657,
+      "lat": -51.75,
+      "lng": -59,
       "tz": [
          -240
       ],
@@ -1413,8 +1564,8 @@
       "it": "Micronesia",
       "nl": "Micronesië",
       "pt": "Micronésia",
-      "lat": 43.0922489,
-      "lng": 13.6387681,
+      "lat": 6.91666666,
+      "lng": 158.25,
       "tz": [
          660
       ],
@@ -1434,8 +1585,8 @@
       "it": "Isole Faroe",
       "nl": "Faeröer",
       "pt": "Ilhas Faroé",
-      "lat": 19.1399952,
-      "lng": -72.3570972,
+      "lat": 62,
+      "lng": -7,
       "tz": [
          0
       ],
@@ -1455,8 +1606,8 @@
       "it": "Francia",
       "nl": "Frankrijk",
       "pt": "França",
-      "lat": 46.603354,
-      "lng": 1.8883335,
+      "lat": 46,
+      "lng": 2,
       "tz": [
          60
       ],
@@ -1464,27 +1615,6 @@
          "fr"
       ],
       "population": 65273511
-   },
-   {
-      "code": "ci",
-      "iso": "Cote D?ivoire",
-      "da": "Elfenbenskysten",
-      "de": "Côte d?Ivoire",
-      "en": "Ivory Coast",
-      "es": "Costa de Marfil",
-      "fr": "Côte d?Ivoire",
-      "it": "Costa d?Avorio",
-      "nl": "Ivoorkust",
-      "pt": "Costa do Marfim",
-      "lat": 7.9897371,
-      "lng": -5.5679458,
-      "tz": [
-         0
-      ],
-      "languages": [
-         "fr"
-      ],
-      "population": 26378274
    },
    {
       "code": "ga",
@@ -1497,8 +1627,8 @@
       "it": "Gabon",
       "nl": "Gabon",
       "pt": "Gabão",
-      "lat": 32.3293809,
-      "lng": -83.1137366,
+      "lat": -1,
+      "lng": 11.75,
       "tz": [
          60
       ],
@@ -1506,6 +1636,28 @@
          "fr"
       ],
       "population": 2225734
+   },
+   {
+      "code": "gb",
+      "iso": "United Kingdom",
+      "da": "Storbritannien",
+      "de": "Großbritannien",
+      "en": "United Kingdom",
+      "es": "Gran Bretaña",
+      "fr": "Grande-Bretagne",
+      "it": "Gran Bretagna",
+      "nl": "Groot-Brittannië",
+      "pt": "Grã-Bretanha",
+      "lat": 54,
+      "lng": -2,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "en",
+         "cy"
+      ],
+      "population": 67886011
    },
    {
       "code": "gd",
@@ -1518,8 +1670,8 @@
       "it": "Grenada",
       "nl": "Grenada",
       "pt": "Granada",
-      "lat": 12.1360374,
-      "lng": -61.6904045,
+      "lat": 12.11666666,
+      "lng": -61.66666666,
       "tz": [
          -240
       ],
@@ -1539,8 +1691,8 @@
       "it": "Georgia",
       "nl": "Georgië",
       "pt": "Geórgia",
-      "lat": 41.6809707,
-      "lng": 44.0287382,
+      "lat": 42,
+      "lng": 43.5,
       "tz": [
          240
       ],
@@ -1560,8 +1712,8 @@
       "it": "Guiana Francese",
       "nl": "Frans-Guyana",
       "pt": "Guiana Francesa",
-      "lat": 48.3800301,
-      "lng": 16.7157604,
+      "lat": 4,
+      "lng": -53,
       "tz": [
          -180
       ],
@@ -1569,6 +1721,25 @@
          "fr"
       ],
       "population": 298682
+   },
+   {
+      "code": "gg",
+      "iso": "Guernsey",
+      "da": "Guernsey",
+      "de": "Guernsey",
+      "en": "Guernsey",
+      "es": "Guernsey",
+      "fr": "Guernsey",
+      "it": "Guernsey",
+      "nl": "Guernsey",
+      "pt": "Guernsey",
+      "lat": 49.46666666,
+      "lng": -2.58333333,
+      "tz": [
+         0
+      ],
+      "languages": [],
+      "population": 67052
    },
    {
       "code": "gh",
@@ -1581,8 +1752,8 @@
       "it": "Ghana",
       "nl": "Ghana",
       "pt": "Gana",
-      "lat": 8.0300284,
-      "lng": -1.0800271,
+      "lat": 8,
+      "lng": -2,
       "tz": [
          0
       ],
@@ -1604,8 +1775,8 @@
       "it": "Gibilterra",
       "nl": "Gibraltar",
       "pt": "Gibraltar",
-      "lat": 36.1285933,
-      "lng": -5.3474761,
+      "lat": 36.13333333,
+      "lng": -5.35,
       "tz": [
          60
       ],
@@ -1623,8 +1794,8 @@
       "it": "Groenlandia",
       "nl": "Groenland",
       "pt": "Gronelândia",
-      "lat": 77.6192349,
-      "lng": -42.8125967,
+      "lat": 72,
+      "lng": -40,
       "tz": [
          -180
       ],
@@ -1642,8 +1813,8 @@
       "it": "Gambia",
       "nl": "Gambia",
       "pt": "Gâmbia",
-      "lat": 13.470062,
-      "lng": -15.4900464,
+      "lat": 13.46666666,
+      "lng": -16.56666666,
       "tz": [
          0
       ],
@@ -1663,8 +1834,8 @@
       "it": "Guinea",
       "nl": "Guinee",
       "pt": "Guiné",
-      "lat": 8.0300284,
-      "lng": -1.0800271,
+      "lat": 11,
+      "lng": -10,
       "tz": [
          0
       ],
@@ -1684,8 +1855,8 @@
       "it": "Guadalupa",
       "nl": "Guadeloupe",
       "pt": "Guadalupe",
-      "lat": 16.2528827,
-      "lng": -61.5686855,
+      "lat": 16.25,
+      "lng": -61.583333,
       "tz": [
          -240
       ],
@@ -1705,8 +1876,8 @@
       "it": "Guinea Equatoriale",
       "nl": "Equatoriaal-Guinea",
       "pt": "Guiné Equatorial",
-      "lat": 1.613172,
-      "lng": 10.5170357,
+      "lat": 2,
+      "lng": 10,
       "tz": [
          60
       ],
@@ -1729,8 +1900,8 @@
       "it": "Grecia",
       "nl": "Griekenland",
       "pt": "Grécia",
-      "lat": 38.9953683,
-      "lng": 21.9877132,
+      "lat": 39,
+      "lng": 22,
       "tz": [
          120
       ],
@@ -1751,8 +1922,8 @@
       "it": "Georgia del Sud e Isole Sandwich del Sud",
       "nl": "Zuid-Georgië en Zuidelijke Sandwicheilanden",
       "pt": "Geórgia do Sul e Ilhas Sandwich do Sul",
-      "lat": -54.8432857,
-      "lng": -35.8090698,
+      "lat": -54.5,
+      "lng": -37,
       "tz": [
          -120
       ],
@@ -1770,8 +1941,8 @@
       "it": "Guatemala",
       "nl": "Guatemala",
       "pt": "Guatemala",
-      "lat": 15.5855545,
-      "lng": -90.345759,
+      "lat": 15.5,
+      "lng": -90.25,
       "tz": [
          -360
       ],
@@ -1791,8 +1962,8 @@
       "it": "Guam",
       "nl": "Guam",
       "pt": "Guam",
-      "lat": 13.4499943,
-      "lng": 144.7651677,
+      "lat": 13.46666666,
+      "lng": 144.78333333,
       "tz": [
          600
       ],
@@ -1810,8 +1981,8 @@
       "it": "Guinea-Bissau",
       "nl": "Guinee-Bissau",
       "pt": "Guiné-Bissau",
-      "lat": 12.100035,
-      "lng": -14.9000214,
+      "lat": 12,
+      "lng": -15,
       "tz": [
          0
       ],
@@ -1832,8 +2003,8 @@
       "it": "Guyana",
       "nl": "Guyana",
       "pt": "Guiana",
-      "lat": 4.8417097,
-      "lng": -58.6416891,
+      "lat": 5,
+      "lng": -59,
       "tz": [
          -240
       ],
@@ -1853,8 +2024,8 @@
       "it": "Hong Kong",
       "nl": "Hongkong",
       "pt": "Hong Kong",
-      "lat": 22.350627,
-      "lng": 114.1849161,
+      "lat": 22.25,
+      "lng": 114.16666666,
       "tz": [
          480
       ],
@@ -1875,8 +2046,8 @@
       "it": "Isole Heard ed Isole McDonald",
       "nl": "Heard- en McDonaldeilanden",
       "pt": "Ilha Heard e Ilhas McDonald",
-      "lat": 51.6804093,
-      "lng": 7.815197,
+      "lat": -53.1,
+      "lng": 72.51666666,
       "tz": [
          300
       ],
@@ -1894,8 +2065,8 @@
       "it": "Honduras",
       "nl": "Honduras",
       "pt": "Honduras",
-      "lat": 15.2572432,
-      "lng": -86.0755145,
+      "lat": 15,
+      "lng": -86.5,
       "tz": [
          -360
       ],
@@ -1915,8 +2086,8 @@
       "it": "Croazia",
       "nl": "Kroatië",
       "pt": "Croácia",
-      "lat": 45.3658443,
-      "lng": 15.6575209,
+      "lat": 45.16666666,
+      "lng": 15.5,
       "tz": [
          60
       ],
@@ -1937,8 +2108,8 @@
       "it": "Haiti",
       "nl": "Haïti",
       "pt": "Haiti",
-      "lat": 19.1399952,
-      "lng": -72.3570972,
+      "lat": 19,
+      "lng": -72.41666666,
       "tz": [
          -300
       ],
@@ -1959,8 +2130,8 @@
       "it": "Ungheria",
       "nl": "Hongarije",
       "pt": "Hungria",
-      "lat": 47.1817585,
-      "lng": 19.5060937,
+      "lat": 47,
+      "lng": 20,
       "tz": [
          60
       ],
@@ -1980,8 +2151,8 @@
       "it": "Indonesia",
       "nl": "Indonesië",
       "pt": "Indonésia",
-      "lat": 43.6447642,
-      "lng": -114.015407,
+      "lat": -5,
+      "lng": 120,
       "tz": [
          420
       ],
@@ -2002,8 +2173,8 @@
       "it": "Irlanda",
       "nl": "Ierland",
       "pt": "Irlanda",
-      "lat": 52.865196,
-      "lng": -7.9794599,
+      "lat": 53,
+      "lng": -8,
       "tz": [
          0
       ],
@@ -2024,8 +2195,8 @@
       "it": "Israele",
       "nl": "Israël",
       "pt": "Israel",
-      "lat": 40.0796606,
-      "lng": -89.4337288,
+      "lat": 31.5,
+      "lng": 34.75,
       "tz": [
          120
       ],
@@ -2034,6 +2205,25 @@
          "he"
       ],
       "population": 8655535
+   },
+   {
+      "code": "im",
+      "iso": "Isle of Man",
+      "da": "Isle of Man",
+      "de": "Isle of Man",
+      "en": "Isle of Man",
+      "es": "Isla de Man",
+      "fr": "Isle of Man",
+      "it": "Isle of Man",
+      "nl": "Isle of Man",
+      "pt": "Ilha de Man",
+      "lat": 54.25,
+      "lng": -4.5,
+      "tz": [
+         0
+      ],
+      "languages": [],
+      "population": 85032
    },
    {
       "code": "in",
@@ -2046,8 +2236,8 @@
       "it": "India",
       "nl": "India",
       "pt": "Índia",
-      "lat": 40.3270127,
-      "lng": -86.1746933,
+      "lat": 20,
+      "lng": 77,
       "tz": [
          330
       ],
@@ -2070,11 +2260,11 @@
       "en": "British Indian Ocean Territory",
       "es": "Territorio Británico del Océano Índico",
       "fr": "Territoire britannique de l'océan Indien",
-      "it": "Territorio Britannico dell?Oceano Indiano",
+      "it": "Territorio Britannico dell'Oceano Indiano",
       "nl": "Britse Gebieden in de Indische Oceaan",
       "pt": "Território Britânico do Oceano Índico",
-      "lat": -5.3497093,
-      "lng": 71.8606423,
+      "lat": -6,
+      "lng": 71.5,
       "tz": [
          360
       ],
@@ -2092,8 +2282,8 @@
       "it": "Iraq",
       "nl": "Irak",
       "pt": "Iraque",
-      "lat": 33.0955793,
-      "lng": 44.1749775,
+      "lat": 33,
+      "lng": 44,
       "tz": [
          180
       ],
@@ -2114,8 +2304,8 @@
       "it": "Iran",
       "nl": "Iran",
       "pt": "Irão",
-      "lat": 32.6475314,
-      "lng": 54.5643516,
+      "lat": 32,
+      "lng": 53,
       "tz": [
          210
       ],
@@ -2135,8 +2325,8 @@
       "it": "Islanda",
       "nl": "IJsland",
       "pt": "Islândia",
-      "lat": 64.9841821,
-      "lng": -18.1059013,
+      "lat": 65,
+      "lng": -18,
       "tz": [
          0
       ],
@@ -2157,8 +2347,8 @@
       "it": "Italia",
       "nl": "Italië",
       "pt": "Itália",
-      "lat": 42.6384261,
-      "lng": 12.674297,
+      "lat": 42.83333333,
+      "lng": 12.83333333,
       "tz": [
          60
       ],
@@ -2168,6 +2358,27 @@
          "it"
       ],
       "population": 60461826
+   },
+   {
+      "code": "je",
+      "iso": "Jersey",
+      "da": "Jersey",
+      "de": "Jersey",
+      "en": "Jersey",
+      "es": "Jersey",
+      "fr": "Jersey",
+      "it": "Jersey",
+      "nl": "Jersey",
+      "pt": "Jersey",
+      "lat": 49.25,
+      "lng": -2.16666666,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "fr"
+      ],
+      "population": 108858
    },
    {
       "code": "jm",
@@ -2180,8 +2391,8 @@
       "it": "Giamaica",
       "nl": "Jamaica",
       "pt": "Jamaica",
-      "lat": 18.1850507,
-      "lng": -77.3947693,
+      "lat": 18.25,
+      "lng": -77.5,
       "tz": [
          -300
       ],
@@ -2201,8 +2412,8 @@
       "it": "Giordania",
       "nl": "Jordanië",
       "pt": "Jordânia",
-      "lat": 31.1667049,
-      "lng": 36.941628,
+      "lat": 31,
+      "lng": 36,
       "tz": [
          180
       ],
@@ -2222,8 +2433,8 @@
       "it": "Giappone",
       "nl": "Japan",
       "pt": "Japão",
-      "lat": 36.5748441,
-      "lng": 139.2394179,
+      "lat": 36,
+      "lng": 138,
       "tz": [
          540
       ],
@@ -2244,8 +2455,8 @@
       "it": "Kenya",
       "nl": "Kenia",
       "pt": "Quénia",
-      "lat": 1.4419683,
-      "lng": 38.4313975,
+      "lat": 1,
+      "lng": 38,
       "tz": [
          180
       ],
@@ -2266,8 +2477,8 @@
       "it": "Kirghizistan",
       "nl": "Kirgizië",
       "pt": "Quirguizistão",
-      "lat": 41.5089324,
-      "lng": 74.724091,
+      "lat": 41,
+      "lng": 75,
       "tz": [
          360
       ],
@@ -2288,8 +2499,8 @@
       "it": "Cambogia",
       "nl": "Cambodja",
       "pt": "Camboja",
-      "lat": 31.5535141,
-      "lng": 49.0077168,
+      "lat": 13,
+      "lng": 105,
       "tz": [
          420
       ],
@@ -2309,8 +2520,8 @@
       "it": "Kiribati",
       "nl": "Kiribati",
       "pt": "Quiribati",
-      "lat": 0.3448612,
-      "lng": 173.6641773,
+      "lat": 1.41666666,
+      "lng": 173,
       "tz": [
          720
       ],
@@ -2330,8 +2541,8 @@
       "it": "Comore",
       "nl": "Comoren",
       "pt": "Comores",
-      "lat": -12.2045176,
-      "lng": 44.2832964,
+      "lat": -12.16666666,
+      "lng": 44.25,
       "tz": [
          180
       ],
@@ -2352,8 +2563,8 @@
       "it": "Saint Kitts e Nevis",
       "nl": "Saint Kitts en Nevis",
       "pt": "Saint Kitts e Nevis",
-      "lat": 50.776351,
-      "lng": 6.083862,
+      "lat": 17.33333333,
+      "lng": -62.75,
       "tz": [
          -240
       ],
@@ -2364,7 +2575,7 @@
    },
    {
       "code": "kp",
-      "iso": "Korea, Democratic People?s Republic of (North)",
+      "iso": "Korea, Democratic People's Republic of (North)",
       "da": "Nordkorea",
       "de": "Nord Korea",
       "en": "Korea (North)",
@@ -2373,8 +2584,8 @@
       "it": "Corea del Nord",
       "nl": "Noord-Korea",
       "pt": "Coreia do Norte",
-      "lat": 40.3736611,
-      "lng": 127.0870417,
+      "lat": 40,
+      "lng": 127,
       "tz": [
          510
       ],
@@ -2394,8 +2605,8 @@
       "it": "Corea del Sud",
       "nl": "Zuid-Korea",
       "pt": "Coreia do Sul",
-      "lat": 36.638392,
-      "lng": 127.6961188,
+      "lat": 37,
+      "lng": 127.5,
       "tz": [
          540
       ],
@@ -2416,8 +2627,8 @@
       "it": "Kuwait",
       "nl": "Koeweit",
       "pt": "Cuaite",
-      "lat": 29.2733964,
-      "lng": 47.4979476,
+      "lat": 29.5,
+      "lng": 45.75,
       "tz": [
          180
       ],
@@ -2437,8 +2648,8 @@
       "it": "Isole Cayman",
       "nl": "Caymaneilanden",
       "pt": "Ilhas Caimão",
-      "lat": 37.5726028,
-      "lng": -85.1551411,
+      "lat": 19.5,
+      "lng": -80.5,
       "tz": [
          -300
       ],
@@ -2456,8 +2667,8 @@
       "it": "Kazakistan",
       "nl": "Kazachstan",
       "pt": "Cazaquistão",
-      "lat": 48.1012954,
-      "lng": 66.7780818,
+      "lat": 48,
+      "lng": 68,
       "tz": [
          360,
          420
@@ -2470,7 +2681,7 @@
    },
    {
       "code": "la",
-      "iso": "Lao People?s Democratic Republic",
+      "iso": "Lao People's Democratic Republic",
       "da": "Laos",
       "de": "Laos",
       "en": "Laos",
@@ -2479,8 +2690,8 @@
       "it": "Laos",
       "nl": "Laos",
       "pt": "Laos",
-      "lat": 30.8703881,
-      "lng": -92.007126,
+      "lat": 18,
+      "lng": 105,
       "tz": [
          420
       ],
@@ -2500,8 +2711,8 @@
       "it": "Libano",
       "nl": "Libanon",
       "pt": "Líbano",
-      "lat": 33.8750629,
-      "lng": 35.843409,
+      "lat": 33.83333333,
+      "lng": 35.83333333,
       "tz": [
          120
       ],
@@ -2521,8 +2732,8 @@
       "it": "Saint Lucia",
       "nl": "Saint Lucia",
       "pt": "Santa Lúcia",
-      "lat": 13.8250489,
-      "lng": -60.975036,
+      "lat": 13.88333333,
+      "lng": -60.96666666,
       "tz": [
          -240
       ],
@@ -2542,8 +2753,8 @@
       "it": "Liechtenstein",
       "nl": "Liechtenstein",
       "pt": "Liechtenstein",
-      "lat": 42.7902166,
-      "lng": 10.3402787,
+      "lat": 47.26666666,
+      "lng": 9.53333333,
       "tz": [
          60
       ],
@@ -2563,8 +2774,8 @@
       "it": "Sri Lanka",
       "nl": "Sri Lanka",
       "pt": "Sri Lanka",
-      "lat": 7.5554942,
-      "lng": 80.7137847,
+      "lat": 7,
+      "lng": 81,
       "tz": [
          330
       ],
@@ -2586,8 +2797,8 @@
       "it": "Liberia",
       "nl": "Liberia",
       "pt": "Libéria",
-      "lat": 5.7499721,
-      "lng": -9.3658524,
+      "lat": 6.5,
+      "lng": -9.5,
       "tz": [
          0
       ],
@@ -2607,8 +2818,8 @@
       "it": "Lesotho",
       "nl": "Lesotho",
       "pt": "Lesoto",
-      "lat": 20.0171109,
-      "lng": 103.378253,
+      "lat": -29.5,
+      "lng": 28.5,
       "tz": [
          120
       ],
@@ -2629,8 +2840,8 @@
       "it": "Lituania",
       "nl": "Litouwen",
       "pt": "Lituânia",
-      "lat": 55.3500003,
-      "lng": 23.7499997,
+      "lat": 56,
+      "lng": 24,
       "tz": [
          120
       ],
@@ -2650,8 +2861,8 @@
       "it": "Lussemburgo",
       "nl": "Luxemburg",
       "pt": "Luxemburgo",
-      "lat": 49.8158683,
-      "lng": 6.1296751,
+      "lat": 49.75,
+      "lng": 6.16666666,
       "tz": [
          60
       ],
@@ -2673,8 +2884,8 @@
       "it": "Lettonia",
       "nl": "Letland",
       "pt": "Letónia",
-      "lat": 56.8406494,
-      "lng": 24.7537645,
+      "lat": 57,
+      "lng": 25,
       "tz": [
          120
       ],
@@ -2694,8 +2905,8 @@
       "it": "Libia",
       "nl": "Libië",
       "pt": "Líbia",
-      "lat": 26.8234472,
-      "lng": 18.1236723,
+      "lat": 25,
+      "lng": 17,
       "tz": [
          120
       ],
@@ -2715,8 +2926,8 @@
       "it": "Marocco",
       "nl": "Marokko",
       "pt": "Marrocos",
-      "lat": 42.3788774,
-      "lng": -72.032366,
+      "lat": 32,
+      "lng": -5,
       "tz": [
          0
       ],
@@ -2736,8 +2947,8 @@
       "it": "Monaco",
       "nl": "Monaco",
       "pt": "Mónaco",
-      "lat": 43.7323492,
-      "lng": 7.4276832,
+      "lat": 43.73333333,
+      "lng": 7.4,
       "tz": [
          60
       ],
@@ -2757,8 +2968,8 @@
       "it": "Moldavia",
       "nl": "Moldavië",
       "pt": "Moldávia",
-      "lat": 39.5162401,
-      "lng": -76.9382069,
+      "lat": 47,
+      "lng": 29,
       "tz": [
          120
       ],
@@ -2766,6 +2977,48 @@
          "ro"
       ],
       "population": 2657637
+   },
+   {
+      "code": "me",
+      "iso": "Montenegro",
+      "da": "Montenegro",
+      "de": "Montenegro",
+      "en": "Montenegro",
+      "es": "Montenegro",
+      "fr": "Monténégro",
+      "it": "Montenegro",
+      "nl": "Montenegro",
+      "pt": "Montenegro",
+      "lat": 42.5,
+      "lng": 19.3,
+      "tz": [
+         60
+      ],
+      "languages": [],
+      "population": 622359
+   },
+   {
+      "code": "mf",
+      "iso": "Saint Martin",
+      "da": "Saint Martin",
+      "de": "Saint-Martin",
+      "en": "Saint Martin",
+      "es": "San Martín",
+      "fr": "Saint-Martin",
+      "it": "Saint Martin",
+      "nl": "Sint-Maarten",
+      "pt": "São Martinho",
+      "lat": 18.08333333,
+      "lng": -63.95,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "fr",
+         "nl",
+         "en"
+      ],
+      "population": 38817
    },
    {
       "code": "mg",
@@ -2778,8 +3031,8 @@
       "it": "Madagascar",
       "nl": "Madagaskar",
       "pt": "Madagáscar",
-      "lat": -18.9249604,
-      "lng": 46.4416422,
+      "lat": -20,
+      "lng": 47,
       "tz": [
          180
       ],
@@ -2800,8 +3053,8 @@
       "it": "Isole Marshall",
       "nl": "Marshalleilanden",
       "pt": "Ilhas Marshall",
-      "lat": 33.8389917,
-      "lng": -96.7599994,
+      "lat": 9,
+      "lng": 168,
       "tz": [
          720
       ],
@@ -2822,8 +3075,8 @@
       "it": "Macedonia",
       "nl": "Macedonië",
       "pt": "Macedónia",
-      "lat": 41.6171214,
-      "lng": 21.7168387,
+      "lat": 41.83333333,
+      "lng": 22,
       "tz": [
          60
       ],
@@ -2843,8 +3096,8 @@
       "it": "Mali",
       "nl": "Mali",
       "pt": "Mali",
-      "lat": 16.3700359,
-      "lng": -2.2900239,
+      "lat": 17,
+      "lng": -4,
       "tz": [
          0
       ],
@@ -2866,8 +3119,8 @@
       "it": "Myanmar",
       "nl": "Myanmar",
       "pt": "Mianmar",
-      "lat": 17.1750495,
-      "lng": 95.9999652,
+      "lat": 22,
+      "lng": 98,
       "tz": [
          390
       ],
@@ -2887,8 +3140,8 @@
       "it": "Mongolia",
       "nl": "Mongolië",
       "pt": "Mongólia",
-      "lat": 45.9896587,
-      "lng": -94.6113288,
+      "lat": 46,
+      "lng": 105,
       "tz": [
          480,
          540
@@ -2909,8 +3162,8 @@
       "it": "Macao",
       "nl": "Macao",
       "pt": "Macau",
-      "lat": 38.7604815,
-      "lng": -92.5617875,
+      "lat": 22.16666666,
+      "lng": 113.55,
       "tz": [
          480
       ],
@@ -2932,8 +3185,8 @@
       "it": "Isole Marianne Settentrionali",
       "nl": "Noordelijke Marianeneilanden",
       "pt": "Ilhas Mariana do Norte",
-      "lat": 15.1753648,
-      "lng": 145.7379338,
+      "lat": 15.2,
+      "lng": 145.75,
       "tz": [
          600
       ],
@@ -2951,8 +3204,8 @@
       "it": "Martinica",
       "nl": "Martinique",
       "pt": "Martinica",
-      "lat": 48.2031834,
-      "lng": 16.3583503,
+      "lat": 14.666667,
+      "lng": -61,
       "tz": [
          -240
       ],
@@ -2972,8 +3225,8 @@
       "it": "Mauritania",
       "nl": "Mauritanië",
       "pt": "Mauritânia",
-      "lat": 20.2540382,
-      "lng": -9.2399263,
+      "lat": 20,
+      "lng": -12,
       "tz": [
          0
       ],
@@ -2993,8 +3246,8 @@
       "it": "Montserrat",
       "nl": "Montserrat",
       "pt": "Monserrate",
-      "lat": 32.9715285,
-      "lng": -89.7348497,
+      "lat": 16.75,
+      "lng": -62.2,
       "tz": [
          -240
       ],
@@ -3012,8 +3265,8 @@
       "it": "Malta",
       "nl": "Malta",
       "pt": "Malta",
-      "lat": 47.3752671,
-      "lng": -109.638757,
+      "lat": 35.83333333,
+      "lng": 14.58333333,
       "tz": [
          60
       ],
@@ -3034,8 +3287,8 @@
       "it": "Mauritius",
       "nl": "Mauritius",
       "pt": "Maurícias",
-      "lat": -20.2759451,
-      "lng": 57.5703566,
+      "lat": -20.28333333,
+      "lng": 57.55,
       "tz": [
          240
       ],
@@ -3057,8 +3310,8 @@
       "it": "Maldive",
       "nl": "Maldiven",
       "pt": "Maldivas",
-      "lat": 3.7203503,
-      "lng": 73.2244152,
+      "lat": 3.25,
+      "lng": 73,
       "tz": [
          300
       ],
@@ -3078,8 +3331,8 @@
       "it": "Malawi",
       "nl": "Malawi",
       "pt": "Malaui",
-      "lat": -13.2687204,
-      "lng": 33.9301963,
+      "lat": -13.5,
+      "lng": 34,
       "tz": [
          120
       ],
@@ -3100,8 +3353,8 @@
       "it": "Messico",
       "nl": "Mexico",
       "pt": "México",
-      "lat": 23.6585116,
-      "lng": -102.0077097,
+      "lat": 23,
+      "lng": -102,
       "tz": [
          -360,
          -420,
@@ -3123,8 +3376,8 @@
       "it": "Malesia",
       "nl": "Maleisië",
       "pt": "Malásia",
-      "lat": 39.7837304,
-      "lng": -100.445882,
+      "lat": 2.5,
+      "lng": 112.5,
       "tz": [
          480
       ],
@@ -3146,8 +3399,8 @@
       "it": "Mozambico",
       "nl": "Mozambique",
       "pt": "Moçambique",
-      "lat": -19.302233,
-      "lng": 34.9144977,
+      "lat": -18.25,
+      "lng": 35,
       "tz": [
          120
       ],
@@ -3168,8 +3421,8 @@
       "it": "Namibia",
       "nl": "Namibië",
       "pt": "Namíbia",
-      "lat": -23.2335499,
-      "lng": 17.3231107,
+      "lat": -22,
+      "lng": 17,
       "tz": [
          60
       ],
@@ -3189,8 +3442,8 @@
       "it": "Nuova Caledonia",
       "nl": "Nieuw-Caledonië",
       "pt": "Nova Caledónia",
-      "lat": 35.6729639,
-      "lng": -79.0392919,
+      "lat": -21.5,
+      "lng": 165.5,
       "tz": [
          660
       ],
@@ -3210,8 +3463,8 @@
       "it": "Niger",
       "nl": "Niger",
       "pt": "Níger",
-      "lat": 41.7370229,
-      "lng": -99.5873816,
+      "lat": 16,
+      "lng": 8,
       "tz": [
          60
       ],
@@ -3235,8 +3488,8 @@
       "it": "Isola Norfolk",
       "nl": "Norfolkeiland",
       "pt": "Ilha Norfolque",
-      "lat": 51.4413766,
-      "lng": 0.3507035,
+      "lat": -29.03333333,
+      "lng": 167.95,
       "tz": [
          690
       ],
@@ -3254,8 +3507,8 @@
       "it": "Nigeria",
       "nl": "Nigeria",
       "pt": "Nigéria",
-      "lat": 9.6000359,
-      "lng": 7.9999721,
+      "lat": 10,
+      "lng": 8,
       "tz": [
          60
       ],
@@ -3278,8 +3531,8 @@
       "it": "Nicaragua",
       "nl": "Nicaragua",
       "pt": "Nicarágua",
-      "lat": 54.5859836,
-      "lng": -6.9591554,
+      "lat": 13,
+      "lng": -85,
       "tz": [
          -360
       ],
@@ -3299,8 +3552,8 @@
       "it": "Paesi Bassi",
       "nl": "Nederland",
       "pt": "Países Baixos",
-      "lat": 52.2476498,
-      "lng": 5.5412468,
+      "lat": 52.5,
+      "lng": 5.75,
       "tz": [
          60
       ],
@@ -3320,8 +3573,8 @@
       "it": "Norvegia",
       "nl": "Noorwegen",
       "pt": "Noruega",
-      "lat": 61.1529386,
-      "lng": 8.7876653,
+      "lat": 62,
+      "lng": 10,
       "tz": [
          0
       ],
@@ -3344,8 +3597,8 @@
       "it": "Nepal",
       "nl": "Nepal",
       "pt": "Nepal",
-      "lat": 28.1083929,
-      "lng": 84.0917139,
+      "lat": 28,
+      "lng": 84,
       "tz": [
          345
       ],
@@ -3365,8 +3618,8 @@
       "it": "Nauru",
       "nl": "Nauru",
       "pt": "Nauru",
-      "lat": -0.5252306,
-      "lng": 166.9324426,
+      "lat": -0.53333333,
+      "lng": 166.91666666,
       "tz": [
          720
       ],
@@ -3386,8 +3639,8 @@
       "it": "Niue",
       "nl": "Niue",
       "pt": "Niue",
-      "lat": 40.7127281,
-      "lng": -74.0060152,
+      "lat": -19.03333333,
+      "lng": -169.86666666,
       "tz": [
          -660
       ],
@@ -3405,8 +3658,8 @@
       "it": "Nuova Zelanda",
       "nl": "Nieuw-Zeeland",
       "pt": "Nova Zelândia",
-      "lat": -41.5000831,
-      "lng": 172.8344077,
+      "lat": -41,
+      "lng": 174,
       "tz": [
          720
       ],
@@ -3427,8 +3680,8 @@
       "it": "Oman",
       "nl": "Oman",
       "pt": "Omã",
-      "lat": 21.0000287,
-      "lng": 57.0036901,
+      "lat": 21,
+      "lng": 57,
       "tz": [
          240
       ],
@@ -3448,8 +3701,8 @@
       "it": "Panama",
       "nl": "Panama",
       "pt": "Panamá",
-      "lat": 40.9699889,
-      "lng": -77.7278831,
+      "lat": 9,
+      "lng": -80,
       "tz": [
          -300
       ],
@@ -3469,8 +3722,8 @@
       "it": "Perù",
       "nl": "Peru",
       "pt": "Peru",
-      "lat": 46.5036807,
-      "lng": -63.595411,
+      "lat": -10,
+      "lng": -76,
       "tz": [
          -300
       ],
@@ -3492,8 +3745,8 @@
       "it": "Polinesia Francese",
       "nl": "Frans-Polynesië",
       "pt": "Polinésia Francesa",
-      "lat": 48.6164857,
-      "lng": 9.6719927,
+      "lat": -15,
+      "lng": -140,
       "tz": [
          -600
       ],
@@ -3513,8 +3766,8 @@
       "it": "Papua Nuova Guinea",
       "nl": "Papoea-Nieuw-Guinea",
       "pt": "Papua Nova Guiné",
-      "lat": -5.6816069,
-      "lng": 144.2489081,
+      "lat": -6,
+      "lng": 147,
       "tz": [
          600
       ],
@@ -3535,8 +3788,8 @@
       "it": "Filippine",
       "nl": "Filipijnen",
       "pt": "Filipinas",
-      "lat": 12.7503486,
-      "lng": 122.7312101,
+      "lat": 13,
+      "lng": 122,
       "tz": [
          480
       ],
@@ -3557,8 +3810,8 @@
       "it": "Pakistan",
       "nl": "Pakistan",
       "pt": "Paquistão",
-      "lat": 30.3308401,
-      "lng": 71.247499,
+      "lat": 30,
+      "lng": 70,
       "tz": [
          300
       ],
@@ -3579,8 +3832,8 @@
       "it": "Polonia",
       "nl": "Polen",
       "pt": "Polónia",
-      "lat": 52.215933,
-      "lng": 19.134422,
+      "lat": 52,
+      "lng": 20,
       "tz": [
          60
       ],
@@ -3600,8 +3853,8 @@
       "it": "Saint Pierre e Miquelon",
       "nl": "Saint Pierre en Miquelon",
       "pt": "Saint Pierre e Miquelon",
-      "lat": 54.24556,
-      "lng": 18.1099,
+      "lat": 46.83333333,
+      "lng": -56.33333333,
       "tz": [
          -120
       ],
@@ -3621,8 +3874,8 @@
       "it": "Pitcairn",
       "nl": "Pitcairn",
       "pt": "Pitcairn",
-      "lat": -25.0657719,
-      "lng": -130.101782,
+      "lat": -25.06666666,
+      "lng": -130.1,
       "tz": [
          -480
       ],
@@ -3640,8 +3893,8 @@
       "it": "Portorico",
       "nl": "Puerto Rico",
       "pt": "Porto Rico",
-      "lat": 18.2247706,
-      "lng": -66.4858295,
+      "lat": 18.25,
+      "lng": -66.5,
       "tz": [
          -240
       ],
@@ -3649,6 +3902,25 @@
          "es"
       ],
       "population": 3193694
+   },
+   {
+      "code": "ps",
+      "iso": "State of Palestine",
+      "da": "Palæstina",
+      "de": "Palästina",
+      "en": "Palestine",
+      "es": "Palestina",
+      "fr": "Palestine",
+      "it": "Palestina",
+      "nl": "Palestina",
+      "pt": "Palestina",
+      "lat": 31.9,
+      "lng": 35.2,
+      "tz": [
+         120
+      ],
+      "languages": [],
+      "population": 5101414
    },
    {
       "code": "pt",
@@ -3661,8 +3933,8 @@
       "it": "Portogallo",
       "nl": "Portugal",
       "pt": "Portugal",
-      "lat": 39.6621648,
-      "lng": -8.1353519,
+      "lat": 39.5,
+      "lng": -8,
       "tz": [
          0
       ],
@@ -3683,8 +3955,8 @@
       "it": "Palau",
       "nl": "Palau",
       "pt": "Palau",
-      "lat": 5.3783537,
-      "lng": 132.9102573,
+      "lat": 7.5,
+      "lng": 134.5,
       "tz": [
          600
       ],
@@ -3704,8 +3976,8 @@
       "it": "Paraguay",
       "nl": "Paraguay",
       "pt": "Paraguai",
-      "lat": -23.3165935,
-      "lng": -58.1693445,
+      "lat": -23,
+      "lng": -58,
       "tz": [
          -240
       ],
@@ -3726,8 +3998,8 @@
       "it": "Qatar",
       "nl": "Qatar",
       "pt": "Qatar",
-      "lat": 25.3336984,
-      "lng": 51.2295295,
+      "lat": 25.5,
+      "lng": 51.25,
       "tz": [
          180
       ],
@@ -3747,8 +4019,8 @@
       "it": "Réunion",
       "nl": "Réunion",
       "pt": "Reunião",
-      "lat": 44.608664,
-      "lng": 10.5947968,
+      "lat": -21.15,
+      "lng": 55.5,
       "tz": [
          240
       ],
@@ -3768,8 +4040,8 @@
       "it": "Romania",
       "nl": "Roemenië",
       "pt": "Roménia",
-      "lat": 45.9852129,
-      "lng": 24.6859225,
+      "lat": 46,
+      "lng": 25,
       "tz": [
          120
       ],
@@ -3777,6 +4049,28 @@
          "ro"
       ],
       "population": 19237691
+   },
+   {
+      "code": "rs",
+      "iso": "Serbia",
+      "da": "Serbien",
+      "de": "Serbien",
+      "en": "Serbia",
+      "es": "Serbia",
+      "fr": "Serbie",
+      "it": "Serbia",
+      "nl": "Servië",
+      "pt": "Sérvia",
+      "lat": 44,
+      "lng": 21,
+      "tz": [
+         60
+      ],
+      "ownDiffLangCode": "sr",
+      "languages": [
+         "sr"
+      ],
+      "population": 8737371
    },
    {
       "code": "ru",
@@ -3789,8 +4083,8 @@
       "it": "Russia",
       "nl": "Rusland",
       "pt": "Rússia",
-      "lat": 64.6863136,
-      "lng": 97.7453061,
+      "lat": 60,
+      "lng": 100,
       "tz": [
          180,
          240,
@@ -3819,8 +4113,8 @@
       "it": "Ruanda",
       "nl": "Rwanda",
       "pt": "Ruanda",
-      "lat": -1.9646631,
-      "lng": 30.0644358,
+      "lat": -2,
+      "lng": 30,
       "tz": [
          120
       ],
@@ -3842,8 +4136,8 @@
       "it": "Arabia Saudita",
       "nl": "Saoedi-Arabië",
       "pt": "Arábia Saudita",
-      "lat": 25.6242618,
-      "lng": 42.3528328,
+      "lat": 25,
+      "lng": 45,
       "tz": [
          180
       ],
@@ -3863,8 +4157,8 @@
       "it": "Isole Solomon",
       "nl": "Salomonseilanden",
       "pt": "Ilhas Salomão",
-      "lat": 44.1534121,
-      "lng": 20.55144,
+      "lat": -8,
+      "lng": 159,
       "tz": [
          660
       ],
@@ -3884,8 +4178,8 @@
       "it": "Seychelles",
       "nl": "Seychellen",
       "pt": "Seicheles",
-      "lat": 33.6874388,
-      "lng": -80.4363743,
+      "lat": -4.58333333,
+      "lng": 55.66666666,
       "tz": [
          240
       ],
@@ -3906,8 +4200,8 @@
       "it": "Sudan",
       "nl": "Soedan",
       "pt": "Sudão",
-      "lat": 44.6471761,
-      "lng": -100.348761,
+      "lat": 15,
+      "lng": 30,
       "tz": [
          120
       ],
@@ -3928,8 +4222,8 @@
       "it": "Svezia",
       "nl": "Zweden",
       "pt": "Suécia",
-      "lat": 59.6749712,
-      "lng": 14.5208584,
+      "lat": 62,
+      "lng": 15,
       "tz": [
          60
       ],
@@ -3949,8 +4243,8 @@
       "it": "Singapore",
       "nl": "Singapore",
       "pt": "Singapura",
-      "lat": 1.357107,
-      "lng": 103.8194992,
+      "lat": 1.36666666,
+      "lng": 103.8,
       "tz": [
          480
       ],
@@ -3970,11 +4264,11 @@
       "en": "St. Helena",
       "es": "Santa Elena",
       "fr": "Sainte-Hélène",
-      "it": "Sant?Elena",
+      "it": "Sant'Elena",
       "nl": "Sint-Helena",
       "pt": "Santa Helena",
-      "lat": 54.1853998,
-      "lng": 9.8220089,
+      "lat": -15.95,
+      "lng": -5.7,
       "tz": [
          0
       ],
@@ -3992,8 +4286,8 @@
       "it": "Slovenia",
       "nl": "Slovenië",
       "pt": "Eslovénia",
-      "lat": 46.1199444,
-      "lng": 14.8153333,
+      "lat": 46.11666666,
+      "lng": 14.81666666,
       "tz": [
          60
       ],
@@ -4014,8 +4308,8 @@
       "it": "Svalbard e Jan Mayen",
       "nl": "Svalbard en Jan Mayen",
       "pt": "Esvalbarda e Jan Mayen",
-      "lat": -30.7054363,
-      "lng": -69.1988222,
+      "lat": 78,
+      "lng": 20,
       "tz": [
          0
       ],
@@ -4033,8 +4327,8 @@
       "it": "Slovacchia",
       "nl": "Slowakije",
       "pt": "Eslováquia",
-      "lat": 55.5321257,
-      "lng": -106.1412243,
+      "lat": 48.66666666,
+      "lng": 19.5,
       "tz": [
          60
       ],
@@ -4055,8 +4349,8 @@
       "it": "Sierra Leone",
       "nl": "Sierra Leone",
       "pt": "Serra Leoa",
-      "lat": 8.6400349,
-      "lng": -11.8400269,
+      "lat": 8.5,
+      "lng": -11.5,
       "tz": [
          0
       ],
@@ -4076,8 +4370,8 @@
       "it": "San Marino",
       "nl": "San Marino",
       "pt": "São Marino",
-      "lat": 43.9458623,
-      "lng": 12.458306,
+      "lat": 43.76666666,
+      "lng": 12.41666666,
       "tz": [
          60
       ],
@@ -4097,8 +4391,8 @@
       "it": "Senegal",
       "nl": "Senegal",
       "pt": "Senegal",
-      "lat": 14.4750607,
-      "lng": -14.4529612,
+      "lat": 14,
+      "lng": -14,
       "tz": [
          0
       ],
@@ -4120,8 +4414,8 @@
       "it": "Somalia",
       "nl": "Somalië",
       "pt": "Somália",
-      "lat": 8.3676771,
-      "lng": 49.083416,
+      "lat": 10,
+      "lng": 49,
       "tz": [
          180
       ],
@@ -4142,8 +4436,8 @@
       "it": "Suriname",
       "nl": "Suriname",
       "pt": "Suriname",
-      "lat": 4.1413025,
-      "lng": -56.0771187,
+      "lat": 4,
+      "lng": -56,
       "tz": [
          -180
       ],
@@ -4151,6 +4445,27 @@
          "nl"
       ],
       "population": 586632
+   },
+   {
+      "code": "ss",
+      "iso": "South Sudan",
+      "da": "Sydsudan",
+      "de": "Südsudan",
+      "en": "South Sudan",
+      "es": "Sudán del Sur",
+      "fr": "Soudan du Sud",
+      "it": "Sud Sudan",
+      "nl": "Zuid-Soedan",
+      "pt": "Sudão do Sul",
+      "lat": 7,
+      "lng": 30,
+      "tz": [
+         180
+      ],
+      "languages": [
+         "en"
+      ],
+      "population": 11496358
    },
    {
       "code": "st",
@@ -4163,8 +4478,8 @@
       "it": "Sao Tomé e Príncipe",
       "nl": "Sao Tomé en Principe",
       "pt": "São Tomé e Príncipe",
-      "lat": 50.0601579,
-      "lng": 13.8307479,
+      "lat": 1,
+      "lng": 7,
       "tz": [
          0
       ],
@@ -4185,8 +4500,8 @@
       "it": "El Salvador",
       "nl": "El Salvador",
       "pt": "El Salvador",
-      "lat": 13.8000382,
-      "lng": -88.9140683,
+      "lat": 13.83333333,
+      "lng": -88.91666666,
       "tz": [
          -360
       ],
@@ -4194,6 +4509,28 @@
          "es"
       ],
       "population": 6486205
+   },
+   {
+      "code": "sx",
+      "iso": "Sint Maarten",
+      "da": "Sint Maarten",
+      "de": "Sint Maarten",
+      "en": "Sint Maarten",
+      "es": "Sint Maarten",
+      "fr": "Sint Maarten",
+      "it": "Sint Maarten",
+      "nl": "Sint Maarten",
+      "pt": "Sint Maarten",
+      "lat": 18.033333,
+      "lng": -63.05,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "nl",
+         "en"
+      ],
+      "population": 42876
    },
    {
       "code": "sy",
@@ -4206,8 +4543,8 @@
       "it": "Siria",
       "nl": "Syrië",
       "pt": "Síria",
-      "lat": 34.6401861,
-      "lng": 39.0494106,
+      "lat": 35,
+      "lng": 38,
       "tz": [
          120
       ],
@@ -4227,8 +4564,8 @@
       "it": "Swaziland",
       "nl": "Swaziland",
       "pt": "Suazilândia",
-      "lat": -26.5624806,
-      "lng": 31.3991317,
+      "lat": -26.5,
+      "lng": 31.5,
       "tz": [
          120
       ],
@@ -4249,8 +4586,8 @@
       "it": "Isole Turks e Caicos",
       "nl": "Turks- en Caicoseilanden",
       "pt": "Ilhas Turcas e Caicos",
-      "lat": 21.721746,
-      "lng": -71.5527809,
+      "lat": 21.75,
+      "lng": -71.58333333,
       "tz": [
          -300
       ],
@@ -4268,8 +4605,8 @@
       "it": "Ciad",
       "nl": "Tsjaad",
       "pt": "Chade",
-      "lat": 15.6134137,
-      "lng": 19.0156172,
+      "lat": 15,
+      "lng": 19,
       "tz": [
          60
       ],
@@ -4290,8 +4627,8 @@
       "it": "Territori australi francesi",
       "nl": "Franse Gebieden in de zuidelijke Indische Oceaan",
       "pt": "Territórios Franceses do Sul",
-      "lat": 60.1860107,
-      "lng": 24.8326676,
+      "lat": -49.25,
+      "lng": 69.167,
       "tz": [
          300
       ],
@@ -4309,8 +4646,8 @@
       "it": "Togo",
       "nl": "Togo",
       "pt": "Togo",
-      "lat": 8.7800265,
-      "lng": 1.0199765,
+      "lat": 8,
+      "lng": 1.16666666,
       "tz": [
          0
       ],
@@ -4331,8 +4668,8 @@
       "it": "Tailandia",
       "nl": "Thailand",
       "pt": "Tailândia",
-      "lat": 14.8971921,
-      "lng": 100.83273,
+      "lat": 15,
+      "lng": 100,
       "tz": [
          420
       ],
@@ -4352,8 +4689,8 @@
       "it": "Tagikistan",
       "nl": "Tadzjikistan",
       "pt": "Tajiquistão",
-      "lat": 38.6281733,
-      "lng": 70.8156541,
+      "lat": 39,
+      "lng": 71,
       "tz": [
          300
       ],
@@ -4375,13 +4712,35 @@
       "it": "Tokelau",
       "nl": "Tokelau",
       "pt": "Toquelau",
-      "lat": 50.1039198,
-      "lng": 14.3906435,
+      "lat": -9,
+      "lng": -172,
       "tz": [
          780
       ],
       "languages": [],
       "population": 1352
+   },
+   {
+      "code": "tl",
+      "iso": "Timor-Leste",
+      "da": "Timor-Leste",
+      "de": "Osttimor",
+      "en": "East Timor",
+      "es": "Timor Oriental",
+      "fr": "Timor oriental",
+      "it": "Timor Est",
+      "nl": "Oost-Timor",
+      "pt": "Timor Leste",
+      "lat": -8.83333333,
+      "lng": 125.91666666,
+      "tz": [
+         540
+      ],
+      "languages": [
+         "pt"
+      ],
+      "dist": 17892.18352897251,
+      "population": 1318445
    },
    {
       "code": "tm",
@@ -4394,8 +4753,8 @@
       "it": "Turkmenistan",
       "nl": "Turkmenistan",
       "pt": "Turquemenistão",
-      "lat": 39.3763807,
-      "lng": 59.3924609,
+      "lat": 40,
+      "lng": 60,
       "tz": [
          300
       ],
@@ -4415,8 +4774,8 @@
       "it": "Tunisia",
       "nl": "Tunesië",
       "pt": "Tunísia",
-      "lat": 35.7730076,
-      "lng": -86.2820081,
+      "lat": 34,
+      "lng": 9,
       "tz": [
          60
       ],
@@ -4436,8 +4795,8 @@
       "it": "Tonga",
       "nl": "Tonga",
       "pt": "Tonga",
-      "lat": -19.9160819,
-      "lng": -175.202642,
+      "lat": -20,
+      "lng": -175,
       "tz": [
          780
       ],
@@ -4445,28 +4804,6 @@
          "en"
       ],
       "population": 105697
-   },
-   {
-      "code": "tl",
-      "iso": "Timor-Leste",
-      "da": "Timor-Leste",
-      "de": "Osttimor",
-      "en": "East Timor",
-      "es": "Timor Oriental",
-      "fr": "Timor oriental",
-      "it": "Timor Est",
-      "nl": "Oost-Timor",
-      "pt": "Timor Leste",
-      "lat": -8.7443169,
-      "lng": 126.063482,
-      "tz": [
-         540
-      ],
-      "languages": [
-         "pt"
-      ],
-      "dist": 17892.18352897251,
-      "population": 1318445
    },
    {
       "code": "tr",
@@ -4479,8 +4816,8 @@
       "it": "Turchia",
       "nl": "Turkije",
       "pt": "Turquia",
-      "lat": 38.9597594,
-      "lng": 34.9249653,
+      "lat": 39,
+      "lng": 35,
       "tz": [
          120
       ],
@@ -4500,8 +4837,8 @@
       "it": "Trinidad e Tobago",
       "nl": "Trinidad en Tobago",
       "pt": "Trindade e Tobago",
-      "lat": 10.7466905,
-      "lng": -61.0840075,
+      "lat": 11,
+      "lng": -61,
       "tz": [
          -240
       ],
@@ -4521,8 +4858,8 @@
       "it": "Tuvalu",
       "nl": "Tuvalu",
       "pt": "Tuvalu",
-      "lat": 45.8066913,
-      "lng": 12.2063158,
+      "lat": -8,
+      "lng": 178,
       "tz": [
          720
       ],
@@ -4542,8 +4879,8 @@
       "it": "Taiwan",
       "nl": "Taiwan",
       "pt": "Taiwan",
-      "lat": 23.9739374,
-      "lng": 120.9820179,
+      "lat": 23.5,
+      "lng": 121,
       "tz": [
          480
       ],
@@ -4563,8 +4900,8 @@
       "it": "Tanzania",
       "nl": "Tanzania",
       "pt": "Tanzânia",
-      "lat": -6.5247123,
-      "lng": 35.7878438,
+      "lat": -6,
+      "lng": 35,
       "tz": [
          180
       ],
@@ -4585,8 +4922,8 @@
       "it": "Ucraina",
       "nl": "Oekraïne",
       "pt": "Ucrânia",
-      "lat": 49.4871968,
-      "lng": 31.2718321,
+      "lat": 49,
+      "lng": 32,
       "tz": [
          120
       ],
@@ -4607,8 +4944,8 @@
       "it": "Uganda",
       "nl": "Oeganda",
       "pt": "Uganda",
-      "lat": 1.5333554,
-      "lng": 32.2166578,
+      "lat": 1,
+      "lng": 32,
       "tz": [
          180
       ],
@@ -4619,26 +4956,25 @@
       "population": 45741007
    },
    {
-      "code": "gb",
-      "iso": "United Kingdom",
-      "da": "Storbritannien",
-      "de": "Großbritannien",
-      "en": "United Kingdom",
-      "es": "Gran Bretaña",
-      "fr": "Grande-Bretagne",
-      "it": "Gran Bretagna",
-      "nl": "Groot-Brittannië",
-      "pt": "Grã-Bretanha",
-      "lat": 54.7023545,
-      "lng": -3.2765753,
+      "code": "um",
+      "iso": "United States Minor Outlying Islands",
+      "da": "Amerikanske oversøiske øer",
+      "de": "Kleinere Inselbesitzungen der Vereinigten Staaten",
+      "en": "United States Minor Outlying Islands",
+      "es": "Islas Ultramarinas Menores de Estados Unidos",
+      "fr": "Îles mineures éloignées des États-Unis",
+      "it": "Isole minori esterne degli Stati Uniti d'America",
+      "nl": "Kleine afgelegen eilanden van de Verenigde Staten",
+      "pt": "Ilhas Menores Distantes dos Estados Unidos",
+      "lat": 0,
+      "lng": 0,
       "tz": [
-         0
+         -720
       ],
       "languages": [
-         "en",
-         "cy"
+         "en"
       ],
-      "population": 67886011
+      "population": 300
    },
    {
       "code": "us",
@@ -4651,8 +4987,8 @@
       "it": "Stati Uniti",
       "nl": "Verenigde Staten",
       "pt": "Estados Unidos",
-      "lat": 39.7837304,
-      "lng": -100.445882,
+      "lat": 38,
+      "lng": -97,
       "tz": [
          -660,
          -600,
@@ -4676,6 +5012,48 @@
       "population": 331002651
    },
    {
+      "code": "uy",
+      "iso": "Uruguay",
+      "da": "Uruguay",
+      "de": "Uruguay",
+      "en": "Uruguay",
+      "es": "Uruguay",
+      "fr": "Uruguay",
+      "it": "Uruguay",
+      "nl": "Uruguay",
+      "pt": "Uruguai",
+      "lat": -33,
+      "lng": -56,
+      "tz": [
+         -180
+      ],
+      "languages": [
+         "es"
+      ],
+      "population": 3461734
+   },
+   {
+      "code": "uz",
+      "iso": "Uzbekistan",
+      "da": "Usbekistan",
+      "de": "Usbekistan",
+      "en": "Uzbekistan",
+      "es": "Uzbekistán",
+      "fr": "Ouzbékistan",
+      "it": "Uzbekistan",
+      "nl": "Oezbekistan",
+      "pt": "Uzbequistão",
+      "lat": 41,
+      "lng": 64,
+      "tz": [
+         300
+      ],
+      "languages": [
+         "uz"
+      ],
+      "population": 33580650
+   },
+   {
       "code": "va",
       "iso": "Vatican City State",
       "da": "Vatican City State",
@@ -4686,8 +5064,8 @@
       "it": "Vaticano",
       "nl": "Vaticaanstad",
       "pt": "Vaticano",
-      "lat": 37.1232245,
-      "lng": -78.4927721,
+      "lat": 41.9,
+      "lng": 12.45,
       "tz": [
          60
       ],
@@ -4708,8 +5086,8 @@
       "it": "Saint Vincent e Grenadines",
       "nl": "Saint Vincent en de Grenadines",
       "pt": "São Vicente e Granadinas",
-      "lat": 39.6819591,
-      "lng": -0.7654406,
+      "lat": 13.25,
+      "lng": -61.2,
       "tz": [
          -240
       ],
@@ -4717,6 +5095,134 @@
          "en"
       ],
       "population": 110210
+   },
+   {
+      "code": "ve",
+      "iso": "Venezuela",
+      "da": "Venezuela",
+      "de": "Venezuela",
+      "en": "Venezuela",
+      "es": "Venezuela",
+      "fr": "Venezuela",
+      "it": "Venezuela",
+      "nl": "Venezuela",
+      "pt": "Venezuela",
+      "lat": 8,
+      "lng": -66,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "es"
+      ],
+      "population": 28435940
+   },
+   {
+      "code": "vg",
+      "iso": "Virgin Islands (British)",
+      "da": "Britiske Jomfruøer",
+      "de": "Britische Jungferninseln",
+      "en": "Virgin Islands (British)",
+      "es": "Islas Vírgenes Británicas",
+      "fr": "Îles Vierges britanniques",
+      "it": "Isole Vergini Britanniche",
+      "nl": "Britse Maagdeneilanden",
+      "pt": "Ilhas Virgens Britânicas",
+      "lat": 18.431383,
+      "lng": -64.62305,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "en"
+      ],
+      "population": 30030
+   },
+   {
+      "code": "vi",
+      "iso": "Virgin Islands US",
+      "da": "De Amerikanske Jomfruøer",
+      "de": "Amerikanische Jungferninseln",
+      "en": "Virgin Islands US",
+      "es": "Islas Vírgenes de los Estados Unidos",
+      "fr": "Îles Vierges des États-Unis",
+      "it": "Isole Vergini degli Stati Uniti",
+      "nl": "Amerikaanse Maagdeneilanden",
+      "pt": "Ilhas Virgens dos Estados Unidos",
+      "lat": 18.34,
+      "lng": -64.93,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "en"
+      ],
+      "population": 106405
+   },
+   {
+      "code": "vn",
+      "iso": "Vietnam",
+      "da": "Vietnam",
+      "de": "Vietnam",
+      "en": "Vietnam",
+      "es": "Vietnam",
+      "fr": "Vietnam",
+      "it": "Vietnam",
+      "nl": "Vietnam",
+      "pt": "Vietnã",
+      "lat": 16.16666666,
+      "lng": 107.83333333,
+      "tz": [
+         420
+      ],
+      "languages": [
+         "vi"
+      ],
+      "population": 96491146
+   },
+   {
+      "code": "vu",
+      "iso": "Vanuatu",
+      "da": "Vanuatu",
+      "de": "Vanuatu",
+      "en": "Vanuatu",
+      "es": "Vanuatu",
+      "fr": "Vanuatu",
+      "it": "Vanuatu",
+      "nl": "Vanuatu",
+      "pt": "Vanuatu",
+      "lat": -16,
+      "lng": 167,
+      "tz": [
+         660
+      ],
+      "languages": [
+         "bi",
+         "en",
+         "fr"
+      ],
+      "population": 307145
+   },
+   {
+      "code": "wf",
+      "iso": "Wallis and Futuna",
+      "da": "Wallis og Futuna",
+      "de": "Wallis und Futuna",
+      "en": "Wallis and Futuna",
+      "es": "Wallis y Futuna",
+      "fr": "Wallis-et-Futuna",
+      "it": "Wallis e Futuna",
+      "nl": "Wallis en Futuna",
+      "pt": "Wallis e Futuna",
+      "lat": -13.3,
+      "lng": -176.2,
+      "tz": [
+         43200
+      ],
+      "languages": [
+         "fr"
+      ],
+      "population": 15289
    },
    {
       "code": "ws",
@@ -4729,8 +5235,8 @@
       "it": "Samoa",
       "nl": "Samoa",
       "pt": "Samoa",
-      "lat": -13.7693895,
-      "lng": -172.12005,
+      "lat": -13.58333333,
+      "lng": -172.33333333,
       "tz": [
          660
       ],
@@ -4738,6 +5244,49 @@
          "en"
       ],
       "population": 198414
+   },
+   {
+      "code": "xk",
+      "iso": "Kosovo",
+      "da": "Kosovo",
+      "de": "Kosovo",
+      "en": "Kosovo",
+      "es": "Kosovo",
+      "fr": "Kosovo",
+      "it": "Kosovo",
+      "nl": "Kosovo",
+      "pt": "Kosovo",
+      "lat": 42.5612909,
+      "lng": 20.3403035,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "sq",
+         "sr"
+      ],
+      "population": 1810463
+   },
+   {
+      "code": "ye",
+      "iso": "Yemen",
+      "da": "Yemen",
+      "de": "Jemen",
+      "en": "Yemen",
+      "es": "Yemen",
+      "fr": "Yémen",
+      "it": "Yemen",
+      "nl": "Jemen",
+      "pt": "Iémen",
+      "lat": 15,
+      "lng": 48,
+      "tz": [
+         180
+      ],
+      "languages": [
+         "ar"
+      ],
+      "population": 29825968
    },
    {
       "code": "yt",
@@ -4750,8 +5299,8 @@
       "it": "Mayotte",
       "nl": "Mayotte",
       "pt": "Mayotte",
-      "lat": 63.000147,
-      "lng": -136.002502,
+      "lat": -12.83333333,
+      "lng": 45.16666666,
       "tz": [
          180
       ],
@@ -4771,8 +5320,8 @@
       "it": "Sudafrica",
       "nl": "Zuid-Afrika",
       "pt": "África do Sul",
-      "lat": -28.8166236,
-      "lng": 24.991639,
+      "lat": -29,
+      "lng": 24,
       "tz": [
          120,
          180
@@ -4793,232 +5342,45 @@
       "population": 59308690
    },
    {
-      "code": "cd",
-      "iso": "Congo, Democratic Republic of the",
-      "da": "Den Demokratiske Republik Congo",
-      "de": "Demokratische Republik Kongo",
-      "en": "Democratic Republic of Congo",
-      "es": "República Democrática del Congo",
-      "fr": "République démocratique du Congo",
-      "it": "Repubblica Democratica del Congo",
-      "nl": "Congo-Kinshasa",
-      "pt": "República Democrática do Congo",
-      "lat": -2.9814344,
-      "lng": 23.8222636,
-      "tz": [
-         60,
-         120
-      ],
-      "languages": [
-         "fr",
-         "kg",
-         "ln",
-         "sw",
-         "lu"
-      ],
-      "population": 89561403
-   },
-   {
-      "code": "rs",
-      "iso": "Serbia",
-      "da": "Serbien",
-      "de": "Serbien",
-      "en": "Serbia",
-      "es": "Serbia",
-      "fr": "Serbie",
-      "it": "Serbia",
-      "nl": "Servië",
-      "pt": "Sérvia",
-      "lat": 44.1534121,
-      "lng": 20.55144,
-      "tz": [
-         60
-      ],
-      "ownDiffLangCode": "sr",
-      "languages": [
-         "sr"
-      ],
-      "population": 8737371
-   },
-   {
-      "code": "ax",
-      "iso": "Aland Islands",
-      "da": "Åland",
-      "de": "Alandinseln",
-      "en": "Åland Islands",
-      "es": "Islas Åland",
-      "fr": "Îles Åland",
-      "it": "Isole Aland",
-      "nl": "Alandeilanden",
-      "pt": "Ilhas Alanda",
-      "lat": 42.7193597,
-      "lng": 1.8379765,
+      "code": "zm",
+      "iso": "Zambia",
+      "da": "Zambia",
+      "de": "Sambia",
+      "en": "Zambia",
+      "es": "Zambia",
+      "fr": "Zambie",
+      "it": "Zambia",
+      "nl": "Zambia",
+      "pt": "Zâmbia",
+      "lat": -15,
+      "lng": 30,
       "tz": [
          120
       ],
       "languages": [
-         "sv"
-      ],
-      "population": 29789
-   },
-   {
-      "code": "ps",
-      "iso": "State of Palestine",
-      "da": "Palæstina",
-      "de": "Palästina",
-      "en": "Palestine",
-      "es": "Palestina",
-      "fr": "Palestine",
-      "it": "Palestina",
-      "nl": "Palestina",
-      "pt": "Palestina",
-      "lat": 34.0346534,
-      "lng": -5.0161926,
-      "tz": [
-         120
-      ],
-      "languages": [],
-      "population": 5101414
-   },
-   {
-      "code": "me",
-      "iso": "Montenegro",
-      "da": "Montenegro",
-      "de": "Montenegro",
-      "en": "Montenegro",
-      "es": "Montenegro",
-      "fr": "Monténégro",
-      "it": "Montenegro",
-      "nl": "Montenegro",
-      "pt": "Montenegro",
-      "lat": 45.709097,
-      "lng": -68.8590201,
-      "tz": [
-         60
-      ],
-      "languages": [],
-      "population": 622359
-   },
-   {
-      "code": "cw",
-      "iso": "Curaçao",
-      "da": "Curaçao",
-      "de": "Curaçao",
-      "en": "Curaçao",
-      "es": "Curaçao",
-      "fr": "Curaçao",
-      "it": "Curaçao",
-      "nl": "Curaçao",
-      "pt": "Curaçao",
-      "lat": 12.1176488,
-      "lng": -68.9309263,
-      "tz": [
-         -240
-      ],
-      "languages": [
-         "nl",
          "en"
       ],
-      "population": 164093
+      "population": 12935368
    },
    {
-      "code": "sx",
-      "iso": "Sint Maarten",
-      "da": "Sint Maarten",
-      "de": "Sint Maarten",
-      "en": "Sint Maarten",
-      "es": "Sint Maarten",
-      "fr": "Sint Maarten",
-      "it": "Sint Maarten",
-      "nl": "Sint Maarten",
-      "pt": "Sint Maarten",
-      "lat": 18.0423736,
-      "lng": -63.0549948,
+      "code": "zw",
+      "iso": "Zimbabwe",
+      "da": "Zimbabwe",
+      "de": "Simbabwe",
+      "en": "Zimbabwe",
+      "es": "Zimbabue",
+      "fr": "Zimbabwe",
+      "it": "Zimbabwe",
+      "nl": "Zimbabwe",
+      "pt": "Zimbábue",
+      "lat": -20,
+      "lng": 30,
       "tz": [
-         -240
+         120
       ],
       "languages": [
-         "nl",
          "en"
       ],
-      "population": 42876
-   },
-   {
-      "code": "bq",
-      "iso": "Caribbean Netherlands",
-      "da": "Caribbean Netherlands",
-      "de": "Karibische Niederlande",
-      "en": "Caribbean Netherlands",
-      "es": "Caribe Países Bajos",
-      "fr": "Caraïbes Pays-Bas",
-      "it": "Caraibi Olandesi",
-      "nl": "Caribisch Nederland",
-      "pt": "Caribe Holanda",
-      "lat": 36.2109553,
-      "lng": 54.448222,
-      "tz": [
-         -240
-      ],
-      "languages": [],
-      "population": 262100
-   },
-   {
-      "code": "im",
-      "iso": "Isle of Man",
-      "da": "Isle of Man",
-      "de": "Isle of Man",
-      "en": "Isle of Man",
-      "es": "Isla de Man",
-      "fr": "Isle of Man",
-      "it": "Isle of Man",
-      "nl": "Isle of Man",
-      "pt": "Ilha de Man",
-      "lat": 43.9583753,
-      "lng": 7.8667427,
-      "tz": [
-         0
-      ],
-      "languages": [],
-      "population": 85032
-   },
-   {
-      "code": "je",
-      "iso": "Jersey",
-      "da": "Jersey",
-      "de": "Jersey",
-      "en": "Jersey",
-      "es": "Jersey",
-      "fr": "Jersey",
-      "it": "Jersey",
-      "nl": "Jersey",
-      "pt": "Jersey",
-      "lat": 49.2214561,
-      "lng": -2.1358386,
-      "tz": [
-         0
-      ],
-      "languages": [
-         "fr"
-      ],
-      "population": 108858
-   },
-   {
-      "code": "gg",
-      "iso": "Guernsey",
-      "da": "Guernsey",
-      "de": "Guernsey",
-      "en": "Guernsey",
-      "es": "Guernsey",
-      "fr": "Guernsey",
-      "it": "Guernsey",
-      "nl": "Guernsey",
-      "pt": "Guernsey",
-      "lat": 49.4566233,
-      "lng": -2.5822348,
-      "tz": [
-         0
-      ],
-      "languages": [],
-      "population": 67052
+      "population": 12644041
    }
 ]
