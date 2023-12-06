@@ -473,7 +473,6 @@ class ManagerEPG extends ManagerCommunityLists {
                     }
                 }
                 if(!url){
-                    global.channels.updateCategoriesCacheKey()
                     global.channels.load()
                     if(ui){
                         global.osd.show(global.lang.EPG_DISABLED, 'fas fa-times-circle', 'epg', 'normal')                            
