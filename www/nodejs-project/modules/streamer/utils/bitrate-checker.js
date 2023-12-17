@@ -8,17 +8,17 @@ class BitrateChecker extends Events {
         this.bitrates = []
         this.bitrate = 0
         this.minSampleSize = 96 * 1024
-		this.queue = []
-		this.checking = false
+        this.queue = []
+        this.checking = false
         this.checkingCount = 0
-		this.checkingFails = 0
-		this.checkingBuffers = {}
+        this.checkingFails = 0
+        this.checkingBuffers = {}
         this.opts = Object.assign({
-            debug: true,
-			minCheckSize: 48 * 1024,
-			maxCheckSize: 3 * (1024 * 1024),
-			checkingAmount: 2,
-			maxCheckingFails: 8
+            debug: false,
+            minCheckSize: 48 * 1024,
+            maxCheckSize: 3 * (1024 * 1024),
+            checkingAmount: 2,
+            maxCheckingFails: 8
         }, opts)
 	}
 	findTwoClosestValues(values){
@@ -154,15 +154,15 @@ class BitrateChecker extends Events {
 		if(bitrate) {
 			this.save(bitrate, true)
 		}
-	}
-	clearSamples(){
-		Object.keys(this.checkingBuffers).forEach(id => {
-			let file = this.checkingBuffers[id].file
-			this.checkingBuffers[id].destroy()
-			file && fs.unlink(file, () => {})
-		})
-		this.checkingBuffers = {}
-	}
+    }
+    clearSamples() {
+        Object.keys(this.checkingBuffers).forEach(id => {
+            let file = this.checkingBuffers[id].file
+            this.checkingBuffers[id].destroy()
+            file && fs.unlink(file, () => { })
+        })
+        this.checkingBuffers = {}
+    }
 	pump(){
 		if(!this.checking) {
 		    if(this.queue.length && !this.destroyed){

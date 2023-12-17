@@ -281,7 +281,7 @@ class Lists extends ListsEPGTools {
         const max = Math.max(...terms.map(t => t.score))
         let cterms = global.config.get('communitary-mode-interests')
         if(cterms){ // user specified interests
-            cterms = this.terms(cterms, false).filter(c => c[0] != '-')
+            cterms = this.terms(cterms, true).filter(c => c[0] != '-')
             if(cterms.length){
                 addTerms(cterms, max)
             }
@@ -808,7 +808,7 @@ class Lists extends ListsEPGTools {
 		if(m && m.length && (m[1].length == 1 || m[1].toLowerCase() == 'file')){ // drive letter or file protocol
 			return true
 		} else {
-			if(file.length >= 2 && file.charAt(0) == '/' && file.charAt(1) != '/'){ // unix path
+			if(file.length >= 2 && file.startsWith('/') && file.charAt(1) != '/'){ // unix path
 				return true
 			}
 		}

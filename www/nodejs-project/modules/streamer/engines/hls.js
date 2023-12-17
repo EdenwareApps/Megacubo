@@ -189,7 +189,8 @@ class StreamerHLSIntent extends StreamerBaseIntent {
         const prefetch = global.config.get('hls-prefetching')
         const useff = await this.useFF()
         this.prx = new (prefetch ? StreamerHLSProxy : StreamerProxy)(Object.assign({
-            authURL: this.data.authURL || this.data.source
+            authURL: this.data.authURL || this.data.source,
+            discardContentLength: true
         }, this.opts))
         this.connectAdapter(this.prx)
         await this.prx.start()
@@ -212,7 +213,7 @@ StreamerHLSIntent.mediaType = 'live'
 StreamerHLSIntent.supports = info => {
     if(info.sample){
         if(String(info.sample).match(new RegExp('#ext(m3u|inf)', 'i'))){
-            if(global.isVODM3U8(info.sample, info.contentLength)){
+            if(global.isVODM3U8(info.sample, info.contentLength, info.headers)){
                 return false // is vodhls
             } else {
                 return true

@@ -322,7 +322,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 		if(m && m.length && (m[1].length == 1 || m[1].toLowerCase() == 'file')){ // drive letter or file protocol
 			return true
 		} else {
-			if(file.length >= 2 && file.charAt(0) == '/' && file.charAt(1) != '/'){ // unix path
+			if(file.length >= 2 && file.startsWith('/') && file.charAt(1) != '/'){ // unix path
 				return true
 			}
 		}

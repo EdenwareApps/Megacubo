@@ -68,7 +68,7 @@ StreamerVideoIntent.supports = info => {
         return true
     }
     if(info.contentType){
-        let c = info.contentType.toLowerCase()
+        let c = info.contentType
         if(c.indexOf('mp2t') != -1 && (!info.headers || !info.headers['content-length'])){
             return false
         }

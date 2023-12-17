@@ -63,7 +63,7 @@ class Fetcher extends Events {
 		if(m && m.length > 1 && (m[1].length == 1 || m[1].toLowerCase() == 'file')){ // drive letter or file protocol
 			return true
 		} else {
-			if(file.length >= 2 && file.charAt(0) == '/' && file.charAt(1) != '/'){ // unix path
+			if(file.length >= 2 && file.startsWith('/') && file.charAt(1) != '/'){ // unix path
 				return true
 			}
 		}
@@ -90,7 +90,7 @@ class Common extends Events {
 	constructor(opts){
 		super()
 		this.regexes = regexes
-		this.charToSpaceRegex = new RegExp('["/=\\,\\.\\|:]+')
+		this.charToSpaceRegex = new RegExp('["/=\\,\\.:]+')
 		this.sanitizeName = sanitizeName
 		this.Fetcher = Fetcher
 		this.searchRedirects = []
@@ -151,7 +151,7 @@ class Common extends Events {
 		}
 		return e
 	}
-	terms(txt, allowModifier, keepStopWords){
+	terms(txt, noModifiers, keepStopWords){
 		if(!txt){
 			return []
 		}
@@ -178,14 +178,14 @@ class Common extends Events {
 			normalize('NFD').toLowerCase().replace(this.regexes['accents'], ''). // replace/normalize accents
 			split(' ').
 			map(s => {
-				if(s.charAt(0) == '-'){
-					if(allowModifier){
+				if(s.startsWith('-')){
+					if(noModifiers){
+						return ''
+					} else {
 						s = s.replace(this.regexes['hyphen-not-modifier'], '$1')
 						return s.length > 1 ? s : ''
-					} else {
-						return ''
 					}
-				} else if(s == '|' && !allowModifier){
+				} else if(s == '|' && noModifiers){
 					return ''
 				}
 				return s.replace(this.regexes['hyphen-not-modifier'], '$1')
@@ -214,7 +214,7 @@ class Common extends Events {
 		if(needleTerms.length && stackTerms.length){
 			let score = 0, sTerms = [], nTerms = []
 			let excludeMatch = needleTerms.some(t => {
-				if(t.charAt(0) == '-'){
+				if(t.startsWith('-')){
 					if(stackTerms.includes(t.substr(1))){
 						return true
 					}
@@ -222,7 +222,7 @@ class Common extends Events {
 					nTerms.push(t)
 				}
 			}) || stackTerms.some(t => {
-				if(t.charAt(0) == '-'){
+				if(t.startsWith('-')){
 					if(needleTerms.includes(t.substr(1))){
 						return true
 					}

@@ -23,7 +23,8 @@ class StreamerFFmpeg extends Events {
             audioCodec: global.cordova ? 'copy' : 'aac', // force aac transcode for HTML
             outputFormat,
             isLive: true,
-            vprofile: 'baseline'
+            vprofile: 'baseline',
+            masterPlaylist: true
         };
         this.setOpts(opts)
         this.OUTDATED = 'outdated file'
@@ -185,7 +186,7 @@ class StreamerFFmpeg extends Events {
     }
     unproxify(url){
         if(typeof(url)=='string'){
-            if(url.charAt(0) == '/'){
+            if(url.startsWith('/')){
                 url = url.slice(1)
             }
             url = url.replace(new RegExp('^.*:[0-9]+/+'), '')
@@ -273,7 +274,7 @@ class StreamerFFmpeg extends Events {
                     if(this.destroyed){
                         return reject('destroyed')
                     }
-                    this.endpoint = this.proxify(fine ? this.decoder.file : this.decoder.playlist) // happened with a plutotv stream that the master playlist got empty while playlist was functional
+                    this.endpoint = this.proxify((fine && this.opts.masterPlaylist) ? this.decoder.file : this.decoder.playlist) // happened with a plutotv stream that the master playlist got empty while playlist was functional
                     console.log('FFMPEG SERVE', this.decoder.file)
                     this.emit('ready')
                     resolve()
@@ -462,7 +463,7 @@ class StreamerFFmpeg extends Events {
         this.clearTimeout()
         this.timeoutStart = global.time()
         this.timeoutTimer = setTimeout(() => {
-            if(this && !this.failed && !this.destroyed && !this.committed){
+            if(this && !this.failed && !this.destroyed && !this.started) {
                 console.log('Timeouted engine after '+ (global.time() - this.timeoutStart), this.committed)
                 this.fail('timeout')
                 this.destroy()
@@ -481,6 +482,7 @@ class StreamerFFmpeg extends Events {
             let responded
             const resolve = (...args) => {
                 if(!responded) {
+                    this.started = !this.destroyed
                     res(...args)
                     responded = true
                 }
@@ -637,7 +639,7 @@ class StreamerFFmpeg extends Events {
         })
     }
     destroy(){
-        this.destroyed = true
+        this.destroyed = global.traceback()
         if(this.server){
             this.server.close()
             this.server = null

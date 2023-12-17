@@ -278,7 +278,6 @@ class Downloader extends StreamerAdapterBase {
 				initialErrorLimit: Number.MAX_SAFE_INTEGER, // wait server trying until connect it
 				errorLimit: 1
 			})
-			console.warn('opts', opts)
 		}
 		const download = this.currentRequest = new global.Download(opts)
 		download.on('error', error => {

@@ -47,7 +47,7 @@ class ManagerCommunityLists extends Events {
         const max = Math.max(...terms.map(t => t.score))
         let cterms = global.config.get('communitary-mode-interests')
         if(cterms){ // user specified interests
-            cterms = this.master.terms(cterms, false).filter(c => c[0] != '-')
+            cterms = this.master.terms(cterms, true).filter(c => c[0] != '-')
             if(cterms.length){
                 addTerms(cterms, max)
             }
@@ -536,7 +536,7 @@ class ManagerEPG extends ManagerCommunityLists {
                     entries.push(...[
                         global.channels.epgSearchEntry(),
                         global.channels.chooseChannelGridOption(true),
-                        ...global.channels.loader.getCategories().map(category => {
+                        ...global.channels.channelList.getCategories().map(category => {
                             const rawname = global.lang.CATEGORY_KIDS == category.name ? '[fun]'+ category.name +'[|fun]' : category.name
                             return {
                                 name: category.name,
@@ -891,7 +891,7 @@ class Manager extends ManagerEPG {
 		if(m && m.length && (m[1].length == 1 || m[1].toLowerCase() == 'file')){ // drive letter or file protocol
 			return true
 		} else {
-			if(file.length >= 2 && file.charAt(0) == '/' && file.charAt(1) != '/'){ // unix path
+			if(file.length >= 2 && file.startsWith('/') && file.charAt(1) != '/'){ // unix path
 				return true
 			}
 		}
@@ -1144,7 +1144,7 @@ class Manager extends ManagerEPG {
         if(server.charAt(server.length - 1) == '/') {
             server = server.substr(0, server.length - 1)
         }
-        if(server.charAt(0) == '/') {
+        if(server.startsWith('/')) {
             server = 'http:'+ server
         }
         if(server.indexOf('username=') != -1) {
@@ -1349,7 +1349,7 @@ class Manager extends ManagerEPG {
                                     class: 'skip-testing', 
                                     action: (e, v) => {
                                         if(v !== false){
-                                            let path = global.explorer.path, parentPath = global.explorer.dirname(global.explorer.dirname(path))
+                                            let path = global.explorer.path, parentPath = global.explorer.dirname(path)
                                             if(path.indexOf(name) != -1){
                                                 path = path.replace('/'+ name, '/'+ v)
                                             } else {
@@ -1358,7 +1358,7 @@ class Manager extends ManagerEPG {
                                             name = v
                                             this.rename(url, v)
                                             if(path){
-                                                delete global.explorer.pages[parentPath]
+                                                if(parentPath) delete global.explorer.pages[parentPath]
                                                 global.explorer.open(path).catch(global.displayErr)
                                             } else {
                                                 global.explorer.back(null, true)

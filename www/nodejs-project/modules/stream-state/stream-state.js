@@ -68,7 +68,7 @@ class StreamState extends Events {
                 this.set(url, state, true, atts)
             }
         })
-        this.on('state', (url, state) => global.ui.emit('set-status-flag', url, state))
+        this.on('state', (url, state) => global.ui.emit('stream-state-set', url, state))
         global.onexit(() => {
             this.cancelTests()
             this.save() // sync
@@ -152,7 +152,7 @@ class StreamState extends Events {
             Object.keys(this.data).forEach(url => {
                 syncMap[url] = this.data[url].state
             })
-            global.ui.emit('sync-status-flags', syncMap)
+            global.ui.emit('stream-state-sync', syncMap)
         }
     }
     trim(){
@@ -209,7 +209,7 @@ class StreamState extends Events {
 		if(m && m.length > 1 && (m[1].length == 1 || m[1].toLowerCase() == 'file')){ // drive letter or file protocol
 			return true
 		} else {
-			if(file.length >= 2 && file.charAt(0) == '/' && file.charAt(1) != '/'){ // unix path
+			if(file.length >= 2 && file.startsWith('/') && file.charAt(1) != '/'){ // unix path
 				return true
 			}
 		}
@@ -237,7 +237,7 @@ class StreamState extends Events {
                 global.ui.emit('set-loading', nt, true, global.lang.TESTING)
                 global.osd.show(global.lang.TESTING + ' 0%', 'fa-mega spin-x-alt', 'stream-state-tester', 'persistent') 
             }
-            let retest = [], syncData = {}
+            const retest = [], syncData = {}
             entries = entries.filter(e => {
                 if(e.url && this.supports(e)){
                     if(global.mega.isMega(e.url)){
@@ -280,16 +280,18 @@ class StreamState extends Events {
                     }
                 }                
             })
-            global.ui.emit('sync-status-flags', syncData)
-            if(!manuallyTesting && !autoTesting) {
-                return resolve(true)
+            retest.length && entries.push(...retest)
+            const shouldTest = manuallyTesting || autoTesting
+            if(!shouldTest || !entries.length) {
+                Object.keys(syncData).forEach(k => {
+                    if(syncData[k] == 'waiting') delete syncData[k]
+                })
             }
+            global.ui.emit('stream-state-sync', syncData)
+            if(!shouldTest) return resolve(true)
             if(!entries.length){
                 manuallyTesting && global.osd.show(global.lang.TESTING + ' 100%', 'fa-mega spin-x-alt', 'stream-state-tester', 'normal') 
                 return resolve(true)
-            }
-            if(retest.length){
-                entries.push(...retest)
             }
             this.testing = new Tuner(entries, { skipSample: true, shadow: true }, name)
             this.testing.ctrlKey = ctrlKey
@@ -309,6 +311,7 @@ class StreamState extends Events {
                     this.testing = null 
                     resolve(true)
                     this.saveAsync()
+                    this.sync()
                 }
             })
             this.testing.start()

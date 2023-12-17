@@ -51,18 +51,29 @@ class Index extends Common {
 		}
 	}
 	parseQuery(terms, opts){
-		if(!Array.isArray(terms)){
-			terms = this.terms(terms, true)
+		if(!Array.isArray(terms)) {
+			terms = this.terms(terms)
 		}
-		if(terms.includes('|')){
-			let needles = terms.join(' ').split(' | ').map(s => s.split(' '))
-			return needles.map(gterms => {
-				return this.parseQuery(gterms, opts).shift()
+		if(terms.includes('|')) {
+			let excludes = [], aterms = []
+			terms.forEach(term => {
+				if(term.startsWith('-')) {
+					excludes.push(term.substr(1))
+				} else {
+					aterms.push(term)
+				}
 			})
+			let needles = aterms.join(' ').split(' | ').map(s => s.split(' '))
+			return {
+				excludes,
+				queries: needles.map(nterms => {
+					return this.parseQuery(nterms, opts).queries.shift()
+				})
+			}
 		} else {
 			let aliases = {}, excludes = []
 			terms = terms.filter(term => { // separate excluding terms
-				if(term.charAt(0) == '-'){
+				if(term.startsWith('-')){
 					excludes.push(term.substr(1))
 					return false
 				}
@@ -108,18 +119,28 @@ class Index extends Common {
 				})
 			}
 			terms = terms.filter(t => !excludes.includes(t))
-			return [{terms, excludes, aliases}]
+			const queries = [terms]
+			Object.keys(aliases).forEach(from => {
+				const i = terms.indexOf(from)
+				if(i == -1) return
+				queries.push(...aliases[from].map(alias => {
+					const nterms = terms.slice(0)
+					nterms[i] = alias
+					return nterms
+				}))
+			})
+			return {queries, excludes}
 		}
 	}
 	searchMap(query, opts){
 		let fullMap
-		//console.log('searchMap', query)
+		this.debug && console.log('searchMap', query)
 		opts = this.optimizeSearchOpts(opts)
-		query.forEach(q => {
-			let map = this.querySearchMap(q, opts)
+		query.queries.forEach(q => {
+			let map = this.querySearchMap(q, query.excludes, opts)
 			fullMap = fullMap ? this.joinMap(fullMap, map) : map
 		})
-		//console.log('searchMap', opts)
+		this.debug && console.log('searchMap', opts)
 		return this.cloneMap(fullMap)
 	}
 	queryTermMap(terms, group){
@@ -142,7 +163,7 @@ class Index extends Common {
 				if(this.debug) {
 					console.log('joining map '+ term)
 				}
-				tmap = this.joinMap(tmap, map)
+				tmap = this.intersectMap(tmap, map)
 			} else {
 				tmap = this.cloneMap(map)
 			}
@@ -153,20 +174,17 @@ class Index extends Common {
 		this.searchMapCache[key] = this.cloneMap(tmap)
 		return tmap
 	}
-	querySearchMap(q, opts){
+	querySearchMap(terms, excludes=[], opts={}){
 		let smap
-		let key = 'qsm-'+ opts.group +'-'+ q.terms.join(',') + q.excludes.join(',') + JSON.stringify(opts)
+		let key = 'qsm-'+ opts.group +'-'+ terms.join(',') +'_'+ excludes.join(',') + JSON.stringify(opts) // use _ to diff excludes from terms in key
 		if(typeof(this.searchMapCache[key]) != 'undefined'){
 			return this.cloneMap(this.searchMapCache[key])
 		}
 		if(typeof(opts.type) != 'string'){
 			opts.type = false
 		}
-		q.terms.some(term => {
+		terms.some(term => {
 			let tms = [term]
-			if(typeof(q.aliases[term]) != 'undefined'){
-				tms.push(...q.aliases[term])
-			}
 			if(this.debug) {
 				console.log('querying term map', tms)
 			}
@@ -187,18 +205,19 @@ class Index extends Common {
 				return true
 			}
 		})
-		if(smap){
-			if(q.excludes.length){
+		if(smap && this.mapSize(smap, opts.group)){
+			if(excludes.length){
 				if(this.debug) {
 					console.log('processing search excludes')
 				}
-				let ms = this.mapSize(smap, opts.group)
-				if(ms){
-					let xmap = this.queryTermMap(q.excludes)
+				excludes.some(xterm => {
+					this.debug && console.error('before exclude '+ xterm +': '+ this.mapSize(smap, opts.group))
+					let xmap = this.queryTermMap([xterm])
 					smap = this.diffMap(smap, xmap)
-					ms = this.mapSize(smap, opts.group)
-					//console.warn('XMAPSIZE', this.mapSize(xmap), ms)
-				}
+					const ms = this.mapSize(smap, opts.group)
+					this.debug && console.error('after exclude '+ xterm +': '+ ms)
+					return !this.mapSize(smap, opts.group)
+				})
 			}
 			if(this.debug) {
 				console.log('done')
@@ -211,7 +230,7 @@ class Index extends Common {
 	}
 	async search(terms, opts={}) {
 		if(typeof(terms) == 'string'){
-			terms = this.terms(terms, true, true)
+			terms = this.terms(terms, false, true)
 		}
 		let start = global.time(), bestResults = [], maybe = []
 		const limit = opts.limit || 256, maxWorkingSetLimit = limit * 2
@@ -407,28 +426,8 @@ class Index extends Common {
 		}
 		return c
 	}
-	_diffMap(a, b){
-		let c
-		for(const listUrl in b) {
-			if(typeof(a[listUrl]) != 'undefined') {
-				for(const type in b[listUrl]) {
-					if(typeof(a[listUrl][type]) != 'undefined'){
-						const map = new Set(c ? c[listUrl][type] : a[listUrl][type])
-						b[listUrl][type].forEach(n => {
-							let i = c ? c[listUrl][type].indexOf(n) : a[listUrl][type].indexOf(n)
-							if(map.has(n)){
-								if(!c) c = this.cloneMap(a) // clone it lazily
-								c[listUrl][type].splice(i, 1)
-							}
-						})
-					}
-				}
-			}
-		}
-		return c || a
-	}
 	diffMap(a, b) {
-		let c = {}
+		let c = global.deepClone(a) // cloning needed
 		for (const listUrl in b) {
 			if (a[listUrl] !== undefined) {
 				c[listUrl] = {g: [], n: []}
@@ -513,9 +512,8 @@ class Index extends Common {
         }
     }
 	async group(group){
-		console.error('GGROUP='+JSON.stringify(group))
-		
 		if(!this.lists[group.url]){
+			global.displayErr('GROUP='+JSON.stringify(group))
 			throw 'List not loaded'
 		}
 

@@ -33,7 +33,7 @@ class StreamerAACIntent extends StreamerBaseIntent {
 StreamerAACIntent.mediaType = 'audio'
 StreamerAACIntent.supports = info => {
     if(info.contentType){
-        let c = info.contentType.toLowerCase()
+        let c = info.contentType
         if(c.indexOf('audio/') != -1 && c.indexOf('mpegurl') == -1){
             return true
         }

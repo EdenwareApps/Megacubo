@@ -36,13 +36,6 @@ class Zap extends Events {
             global.ui.emit('add-player-button', 'zap', 'ZAP', this.icon, 6, 'zap')
         })
     }
-    ready(cb){
-        if(this.isReady){
-            cb()
-        } else {
-            this.once('ready', cb)
-        }
-    }
     hook(entries, path){
         return new Promise((resolve, reject) => {
             if(path == global.lang.LIVE && global.lists.loaded() && global.lists.activeLists.length){
@@ -124,12 +117,12 @@ class Zap extends Events {
         (await global.watching.entries()).forEach(e => {
             wdata[e.name] = e.users
         });
-        Object.keys(global.channels.channelsIndex).forEach(name => {
+        Object.keys(global.channels.channelList.channelsIndex).forEach(name => {
             if(!global.lists.mi.isRadio(name)){
                 channels.push({
                     name,
                     weight: wdata[name] || 1,
-                    terms: global.channels.channelsIndex[name]
+                    terms: global.channels.channelList.channelsIndex[name]
                 })
             }
         })

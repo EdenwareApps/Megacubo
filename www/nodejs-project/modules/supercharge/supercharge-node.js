@@ -17,10 +17,11 @@ function patch(scope) {
 		}
 	}
 	scope.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS = 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Content-Range, Range, Vary, range, Authorization'
-	scope.prepareCORS = (headers, url) => {
-		let origin = '*'
+	scope.prepareCORS = (headers, url, forceOrigin) => {
+		let origin = typeof(forceorigin) == 'string' ? forceOrigin : '*'
 		if(url) {
 			if(typeof(url) != 'string') { // is req object
+				scope.reqip = url
 				if(url.headers.origin) {
 					url = url.headers.origin
 				} else {
@@ -30,19 +31,21 @@ function patch(scope) {
 				}
 			}
 			let pos = url.indexOf('//')
-			if(pos != -1 && pos <= 5) {
+			if(!forceOrigin && pos != -1 && pos <= 5) {
 				origin = url.split('/').slice(0, 3).join('/')
 			}
 		}
 		if(headers.setHeader) { // response object
 			headers.setHeader('access-control-allow-origin', origin)
-			headers.setHeader('access-control-allow-methods', 'GET, HEAD, OPTIONS')
+			headers.setHeader('access-control-allow-methods', 'GET,HEAD,OPTIONS')
 			headers.setHeader('access-control-allow-headers', scope.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS)
+			headers.setHeader('access-control-expose-headers', scope.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS)
 			headers.setHeader('access-control-allow-credentials', true)
 		} else {
 			headers['access-control-allow-origin'] = origin
-			headers['access-control-allow-methods'] = 'GET, HEAD, OPTIONS'
+			headers['access-control-allow-methods'] = 'GET,HEAD,OPTIONS'
 			headers['access-control-allow-headers'] = scope.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS
+			headers['access-control-expose-headers'] = scope.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS
 			headers['access-control-allow-credentials'] = true
 		}
 		return headers

@@ -119,7 +119,7 @@ class History extends EntriesGroup {
                 } else {
                     e.type = 'group'
                     e.renderer = async () => {
-                        let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.terms(atts.name, true)
+                        let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.terms(atts.name)
                         const es = await global.lists.search(terms, {
                             type: 'video',
                             group: true,

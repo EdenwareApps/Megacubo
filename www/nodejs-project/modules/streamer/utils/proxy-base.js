@@ -4,6 +4,7 @@ const StreamerAdapterBase = require('../adapters/base.js')
 class StreamerProxyBase extends StreamerAdapterBase {
 	constructor(opts){
 		super('', opts)
+		this.typeMismatchCheckingThreshold  = 512 * 1024 // m3u8 with more de 512KB will be checked if it's not a ts stream instead
 		this.connectable = false
 		this.isCacheableRegex = new RegExp('^.*\\.(m4s|mts|m2ts|ts|key)', 'i')
 		this.segmentExts = {
@@ -11,6 +12,18 @@ class StreamerProxyBase extends StreamerAdapterBase {
 			'mts': null,
 			'm2ts': null,
 			'm4s': null
+		}
+		this.responseHeadersRemoval = [
+			'transfer-encoding', 
+			'content-encoding', 
+			'keep-alive',
+			'strict-transport-security',
+			'content-security-policy',
+			'x-xss-protection',
+			'cross-origin-resource-policy'
+		]
+		if(this.opts.discardContentLength) { // some servers send incorrect (minor) content lengths for video segments f***ing the whole thing for HTML5 video
+			this.responseHeadersRemoval.push('content-length')
 		}
 	}
     basename(path){
@@ -47,7 +60,7 @@ class StreamerProxyBase extends StreamerAdapterBase {
 				return url.substr(0, pos + 1)
 			}
 		} else {
-			if(url.charAt(0) == '/'){
+			if(url.startsWith('/')) {
 				pos = url.indexOf('/', 1)
 				if(pos == -1){
 					return '/'
@@ -106,11 +119,27 @@ class StreamerProxyBase extends StreamerAdapterBase {
 	isSegmentURL(url){
 		return typeof(this.segmentExts[this.ext(url)]) != 'undefined'
 	}
+	isM3U8Content(body) {
+		// Error: Cannot create a string longer than 0x1fffffe8 characters
+		return body.length < 0x1fffffe8 && body.substr(0, 12).indexOf('#EXT') != -1
+	}
 	addCachingHeaders(headers, secs){		
 		return Object.assign(headers, {
 			'cache-control': 'max-age=' + secs + ', public',
 			'expires': (new Date(Date.now() + secs)).toUTCString()
 		})
+	}
+	typeMismatchCheck(data) {
+		if(this.typeMismatchChecked) return
+		this.typeMismatchChecked = true
+		if(this.committed) {
+			const sample = String(Buffer.concat(data))
+			if(sample.indexOf('#EXT') == -1) {
+				this.emit('type-mismatch')
+			}
+		} else {
+			this.once('commit', () => this.typeMismatchCheck(data))
+		}
 	}
     destroy(){
 		if(!this.destroyed){

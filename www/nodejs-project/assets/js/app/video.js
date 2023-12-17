@@ -753,9 +753,7 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 		})		
 		this.object.on('error', (err, data) => {
 			console.log('Error: ', err, 'data:', data)
-			this.emit('error', String(err), true)
-			this.state = ''
-			this.emit('state', '')
+			this.errorCallback(err)
 		})
 	}
 	uiVisible(visible){
@@ -767,7 +765,6 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 		this.duration = 0
 		this.state = 'loading'
 		this.emit('state', this.state)
-		this.object.setBackBuffer(config['live-window-time'] * 1000)
 		this.object.play(src, mimetype, additionalSubtitles, cookie, mediatype, this.successCallback.bind(this), this.errorCallback.bind(this))
 	}
 	successCallback(){
@@ -778,9 +775,6 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 		this.emit('error', args.length ? args[0] : 'Exoplayer error', true)
 		this.state = ''
 		this.emit('state', '')
-		//console.error(err, arguments)
-		//this.stop()
-		//this.emit('error', err)
 	}
 	unload(){
 		this.hasReceivedRatio = false
@@ -847,7 +841,7 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 window.player = new VideoControl(document.querySelector('player'))
 
 if(!parent.cordova){
-	['play', 'pause', 'seekRewindward', 'seekforward', 'seekto', 'previoustrack', 'nexttrack', 'skipad'].forEach(n => {
+	['play', 'pause', 'seekbackward', 'seekforward', 'seekto', 'previoustrack', 'nexttrack', 'skipad'].forEach(n => {
 		// disable media keys on this frame
 		try {
 			navigator.mediaSession.setActionHandler(n, function() {})

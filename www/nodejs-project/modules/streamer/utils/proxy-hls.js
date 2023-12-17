@@ -26,7 +26,7 @@ class HLSJournal {
 				if(isExtinf){
 					extinf = line
 				} else if(extinf) {
-					if(line.charAt(0) == '#'){
+					if(line.startsWith('#')) {
 						extinf += "\r\n"+ line
 					} else {
 						let name = this.segmentName(line)
@@ -36,8 +36,9 @@ class HLSJournal {
 					header.push(line)
 				}
 			})
-			this.liveJournal = Object.keys(segments).map(u => global.absolutize(u, this.url))
-			Object.keys(segments).forEach(name => {
+			const segmentKeys = Object.keys(segments)
+			this.liveJournal = segmentKeys.map(u => global.absolutize(u, this.url))
+			segmentKeys.forEach(name => {
 				if(typeof(this.journal[name]) == 'undefined' || this.journal[name] != segments[name]){
 					this.journal[name] = segments[name]
 				}
@@ -45,18 +46,33 @@ class HLSJournal {
 			this.header = header.join("\r\n")
 			let m = content.match(new RegExp('EXT-X-MEDIA-SEQUENCE: *([0-9]+)', 'i'))
 			if(m){
-				m = parseInt(m[1])
-				let skeys = Object.keys(segments), jkeys = Object.keys(this.journal), i = jkeys.indexOf(skeys[0])
-				if(i == -1){
-					console.error('Media sequence processing error')
-				} else {
-					m -= i
-					this.header = this.header.replace(new RegExp('EXT-X-MEDIA-SEQUENCE: *([0-9]+)', 'i'), 'EXT-X-MEDIA-SEQUENCE:'+ m)
-				}
+				this.mediaSequence[segmentKeys[0]] = parseInt(m[1])
 			} else {
 				console.error('Media sequence missing', content)
 			}
+			let d = content.match(new RegExp('EXTINF: *([0-9\\.]+)', 'i')), lwt = global.config.get('live-window-time')
+			d = d ? parseFloat(d[1]) : 2
+			let journalKeys = Object.keys(this.journal)
+			let maxJournalSize = parseInt(lwt / d)
+			if(journalKeys.length > maxJournalSize) {
+				const trimCount = journalKeys.length - maxJournalSize
+				journalKeys.slice(0, trimCount).forEach(k => {
+					delete this.journal[k]
+				})
+			}
 		}
+	}
+	readM3U8() {
+		let content = this.header
+		Object.keys(this.journal).forEach((key, i) => {
+			if(i == 0) {
+				if(this.mediaSequence[key]) {
+					content = content.replace(new RegExp('EXT-X-MEDIA-SEQUENCE: *([0-9]+)', 'i'), 'EXT-X-MEDIA-SEQUENCE:'+ this.mediaSequence[key])
+				}
+			}
+			content += "\r\n"+ this.journal[key]
+		})
+		return content
 	}
 	segmentName(url, basename){
 		let match, nurl = url
@@ -90,10 +106,9 @@ class HLSRequests extends StreamerProxyBase {
 		super(opts)
 		this.debugConns = false
 		this.debugUnfinishedRequests = false
-		this.finishRequestsOutsideFromLiveWindow = true
-		this.prefetchMaxConcurrency = global.config.get('in-disk-caching') ? 1 : 0 // meaningless with no in-disk caching
 		this.activeManifest = null
 		this.activeRequests = {}
+		this.mpegURLRegex = new RegExp('mpegurl', 'i')
 		this.once('destroy', () => {
 			Object.keys(this.activeRequests).forEach(url => {
 				if(this.activeRequests[url].request){
@@ -106,6 +121,8 @@ class HLSRequests extends StreamerProxyBase {
 			}
 		})
 		this.maxDiskUsage = 200 * (1024 * 1024)
+		/* disable content ranging, as we are rewriting meta and segments length comes incorrect from server sometimes */
+		this.responseHeadersRemoval.push(...['content-range', 'accept-ranges'])
 	}
     url2file(url){
         let f = global.sanitize(url)
@@ -125,100 +142,88 @@ class HLSRequests extends StreamerProxyBase {
 		}
 		return ret
 	}
+	findSegmentIndexInJournal(segmentUrl, journalUrl) {
+		if(!this.journals[journalUrl]) return
+		let key, index
+		const purl = this.proxify(segmentUrl)
+		Object.keys(this.journals[journalUrl].journal).some((k, i) => {
+			if(this.journals[journalUrl].journal[k].indexOf(purl) != -1) {
+				key = k
+				index = i
+				return true
+			}
+		})
+		if(key) return {key, index}
+	}
 	findJournalFromSegment(url){
-		let ret;
-		[false, true].some(flag => {
-			const needle = this.segmentName(url, flag)
-			return Object.keys(this.journals).some(jurl => {
-				return Object.keys(this.journals[jurl].journal).some((k, i) => {
-					if(k.indexOf(needle) != -1){
-						ret = {journal: jurl, segment: k}
+		let ret
+		Object.keys(this.journals).some(jurl => {
+			const ptr = this.findSegmentIndexInJournal(url, jurl)
+			if(ptr) {
+				ret = {journal: jurl, segment: ptr.key, index: ptr.index}
+				return true
+			}
+		})
+		return ret
+	}
+	getNextInactiveSegment(){
+		const journalUrl = this.activeManifest
+		if(typeof(this.journals[journalUrl]) == 'undefined') return
+		const journal = this.journals[journalUrl].journal
+		let next, lastDownloadingKey, lastDownloadingKeyIndex
+		Object.keys(journal).some((k, i) => {
+			journal[k].split("\n").forEach(line => {
+				if(line.length > 3 && !line.startsWith('#')){
+					let segmentUrl = this.unproxify(global.absolutize(line, journalUrl))
+					if(segmentUrl == this.lastUserRequestedSegment) {
+						lastDownloadingKey = k
+						lastDownloadingKeyIndex = i
+						return true
+					}
+				}
+			})
+		})
+		if(lastDownloadingKey){
+			Object.keys(journal).slice(lastDownloadingKeyIndex + 1).some(k => {
+				journal[k].split("\n").some(line => {
+					if(line.length > 3 && !line.startsWith('#')){
+						let segmentUrl = global.absolutize(this.unproxify(line), journalUrl)
+						if(global.Download.cache.index[segmentUrl]){
+							return false
+						}
+						if(this.activeRequests[segmentUrl]){
+							return false
+						}
+						if(!this.journals[journalUrl].inLiveWindow(segmentUrl)){
+							return false
+						}
+						next = segmentUrl
 						return true
 					}
 				})
 			})
-		})
-		return ret
-	}
-	checkJournalSegment(url, jurl){ // is segment from this journal?
-		if(!this.journals[jurl]){
-			return false
-		}
-		const needle = this.segmentName(url, false)
-		return Object.keys(this.journals[jurl].journal).some((k, i) => {
-			if(k.indexOf(needle) != -1){
-				return true
-			}
-		})
-	}
-	getNextInactiveSegment(journalUrl){
-		if(typeof(this.journals[journalUrl]) == 'undefined') return
-		let next, lastDownloading
-		let ks = Object.keys(this.journals[journalUrl].journal)
-		ks.forEach(k => {
-			this.journals[journalUrl].journal[k].split("\n").forEach(line => {
-				if(line.length > 3 && !line.startsWith('#')){
-					let segmentUrl = this.unproxify(global.absolutize(line, journalUrl))
-					if(typeof(this.activeRequests[segmentUrl]) != 'undefined' || typeof(global.Download.cache.index[segmentUrl]) != 'undefined') {
-						lastDownloading = k
-					}
-				}
-			})
-		})
-		if(lastDownloading){
-			ks.some((k, i) => {
-				if(k == lastDownloading){
-					// console.log('PREFETCH ..', needle, k)
-					let i = ks.indexOf(k)
-					if(ks[i + 1]){
-						this.journals[journalUrl].journal[ks[i + 1]].split("\n").some(line => {
-							if(line.length > 3 && !line.startsWith('#')){
-								next = global.absolutize(this.unproxify(line), journalUrl)
-							}
-						})
-						ks.slice(i + 1).some(k => {
-							this.journals[journalUrl].journal[k].split("\n").some(line => {
-								if(line.length > 3 && !line.startsWith('#')) {
-									let segmentUrl = global.absolutize(this.unproxify(line), journalUrl)
-									if(!this.finishRequestsOutsideFromLiveWindow || this.journals[journalUrl].inLiveWindow(segmentUrl)){
-										next = segmentUrl
-										return true
-									}
-								}
-							})
-						})
-					}
-					return true
-				}
-			})
 		}
 		return next
 	}
-	finishObsoleteSegmentRequests(url){
-		let pos = this.findJournalFromSegment(url)
-		if(pos){
-			let ks = Object.keys(this.journals[pos.journal].journal)
-			let i = ks.indexOf(pos.segment)
-			if(this.debugConns) console.log('report404', pos, i)
-			if(i != -1){				
-				ks.slice(0, i).forEach(k => {
-					this.journals[pos.journal].journal[k].split("\n").forEach(line => {
-						if(line.length > 3 && !line.startsWith('#')){
-							let segmentUrl = this.unproxify(global.absolutize(line, pos.journal))
-							if(typeof(this.activeRequests[segmentUrl]) != 'undefined'){
-								const requestEnded = !this.activeRequests[segmentUrl] || this.activeRequests[segmentUrl].ended
-								const finishNotLive = this.finishRequestsOutsideFromLiveWindow && !this.journals[pos.journal].inLiveWindow(segmentUrl)
-								if(finishNotLive && !requestEnded){
-									console.log('finishing request due to no clients or i\'ts outside of live window', segmentUrl, url)
-									this.activeRequests[segmentUrl].destroy()
-									delete this.activeRequests[segmentUrl]
-								}
-							}
+	finishObsoleteSegmentRequests(journalUrl){
+		if(!this.journals[journalUrl]) return
+		Object.keys(this.journals[journalUrl].journal).forEach(k => {
+			this.journals[journalUrl].journal[k].split("\n").forEach(line => {
+				if(line.length > 3 && !line.startsWith('#')){
+					let segmentUrl = this.unproxify(global.absolutize(line, journalUrl))
+					if(typeof(this.activeRequests[segmentUrl]) != 'undefined'){
+						if(!this.activeRequests[segmentUrl] || this.activeRequests[segmentUrl].ended) return
+						const notLive = !this.journals[journalUrl].inLiveWindow(segmentUrl)
+						const notFromUser = this.activeRequests[segmentUrl].opts.shadowClient
+						if(notFromUser && notLive){
+							console.log('finishing request due to no clients or i\'ts outside of live window', segmentUrl, url)
+							this.activeRequests[segmentUrl].destroy()
+							delete this.activeRequests[segmentUrl]
 						}
-					})
-				})
-			}
-		}
+					}
+				}
+			})
+		})
 	}
 	inLiveWindow(url){
 		let pos = this.findJournalFromSegment(url)
@@ -234,11 +239,15 @@ class HLSRequests extends StreamerProxyBase {
 			let i = ks.indexOf(pos.segment)
 			if(this.debugConns) console.log('report404', pos, i)
 			if(i != -1){
-				ks.some((k, i) => {
+				const ret = ks.some((k, i) => {
 					delete this.journals[pos.journal].journal[k]
 					if(k == pos.segment) return true
 				})
+			} else {
+				console.error('report404 ERR '+ url +' segment not found in journal '+JSON.stringify(pos))
 			}
+		} else {
+			console.error('report404 ERR '+ url +' not found in journal')
 		}
 	}
 	validateStatus(code){
@@ -246,9 +255,18 @@ class HLSRequests extends StreamerProxyBase {
 	}
 	download(opts){
 		const now = global.time(), url = opts.url, seg = this.isSegmentURL(url)
-		const inLiveWindow = this.inLiveWindow(url)
+		const ptr = this.findJournalFromSegment(url)
+		if(ptr) {
+			if(!this.journals[ptr.journal].inLiveWindow(url)) {
+				console.error('OUT OF LIVE WINDOW', url)
+				opts.cachedOnly = true
+			}
+		}
 		if(this.debugConns){
-			console.warn('REQUEST CONNECT START', now, url, inLiveWindow ? 'IN LIVE WINDOW LIVE' : 'NOT IN LIVE WINDOW')
+			console.warn('REQUEST CONNECT START', now, url)
+		}
+		if(seg && !opts.shadowClient) {
+			this.lastUserRequestedSegment = url
 		}
 		const request = new global.Download(opts)
 		this.activeRequests[url] = request
@@ -256,7 +274,7 @@ class HLSRequests extends StreamerProxyBase {
 		if(this.debugUnfinishedRequests){
 			global.osd.show('unfinished: '+ Object.values(this.activeRequests).length, 'fas fa-info-circle', 'hlsu', 'persistent')
 		}
-		let ended, mediaType, end = () => {
+		let ended, doPrefetch, mediaType, end = () => {
 			if(this.debugConns){
 				console.error('REQUEST CONNECT END', global.time() - now, url, request.statusCode, ext)
 			}
@@ -269,28 +287,30 @@ class HLSRequests extends StreamerProxyBase {
 			}
 			if(!ended){
 				ended = true
-				let manifest
-				if(mediaType == 'meta'){
-					manifest = url
-				} else if(mediaType == 'video'){
-					if(!this.checkJournalSegment(url, this.activeManifest)){
-						const n = this.findJournalFromSegment(url)
-						if(n && n.journal && n.journal != this.activeManifest){
-							manifest = n.journal
+				if(!opts.shadowClient) {
+					let manifest
+					if(mediaType == 'meta'){
+						manifest = url
+					} else if(mediaType == 'video'){
+						if(!this.findSegmentIndexInJournal(url, this.activeManifest)){
+							const n = this.findJournalFromSegment(url)
+							if(n && n.journal && n.journal != this.activeManifest){
+								manifest = n.journal
+							}
 						}
 					}
-				}
-				if(manifest && manifest != this.activeManifest){
-					this.activeManifest = manifest
-					if(this.playlistsMeta[manifest]) {
-						if(this.playlistsMeta[manifest].bandwidth && !isNaN(this.playlistsMeta[manifest].bandwidth) && this.playlistsMeta[manifest].bandwidth > 0) {
-							this.bitrateChecker.save(this.playlistsMeta[manifest].bandwidth, true)
+					if(manifest && manifest != this.activeManifest){
+						this.activeManifest = manifest
+						if(this.playlistsMeta[manifest]) {
+							if(this.playlistsMeta[manifest].bandwidth && !isNaN(this.playlistsMeta[manifest].bandwidth) && this.playlistsMeta[manifest].bandwidth > 0) {
+								this.bitrateChecker.save(this.playlistsMeta[manifest].bandwidth, true)
+							}
+							if(this.playlistsMeta[manifest].resolution) {
+								this.emit('dimensions', this.playlistsMeta[manifest].resolution)
+							}
 						}
-						if(this.playlistsMeta[manifest].resolution) {
-							this.emit('dimensions', this.playlistsMeta[manifest].resolution)
-						}
+						this.finishObsoleteSegmentRequests(manifest)
 					}
-					this.finishObsoleteSegmentRequests(manifest)
 				}
 				if(this.activeManifest && this.committed){ // has downloaded at least one segment to know from where the player is starting
 					if(seg &&  this.bitrateChecker.acceptingSamples()){
@@ -299,15 +319,23 @@ class HLSRequests extends StreamerProxyBase {
 						}
 					}					
 					// Using nextTick to prevent "RangeError: Maximum call stack size exceeded"
-					process.nextTick(() => this.prefetch(url, opts))
+					doPrefetch && process.nextTick(() => this.prefetch(url, opts))
 				}
 			}
 		}
 		request.once('response', (status, headers) => {
 			if(this.validateStatus(status)) {
 				mediaType = 'video'
-				if(this.ext(request.currentURL) == 'm3u8' || (headers['content-type'] && headers['content-type'].indexOf('mpegurl') != -1)){
+				if(this.ext(request.currentURL) == 'm3u8' || (headers['content-type'] && headers['content-type'].match(this.mpegURLRegex))){
 					mediaType = 'meta'
+				} else {
+					// only prefetch if player is downloading old segments (user has seeked back)
+					if(headers['x-megacubo-dl-source'] && headers['x-megacubo-dl-source'].indexOf('cache') != -1) {
+						// meaningless with no in-disk caching
+						if(global.config.get('hls-prefetching') && global.config.get('in-disk-caching')) {
+							doPrefetch = true
+						}
+					}
 				}
 			} else {
 				if(this.debugConns){
@@ -320,9 +348,6 @@ class HLSRequests extends StreamerProxyBase {
 				if(status == 410){
 					status = 404
 				}
-				if(status == 403 && this.prefetchMaxConcurrency > 0){ // concurrent connection limit?
-					this.prefetchMaxConcurrency--
-				}
 				if(status == 404){
 					this.report404ToJournal(url)
 					status = 204 // Exoplayer doesn't plays well with 404 errors
@@ -334,12 +359,13 @@ class HLSRequests extends StreamerProxyBase {
 		return request
 	}
 	prefetch(url, opts){
-		if(!this.destroyed && Object.keys(this.activeRequests).length < this.prefetchMaxConcurrency) {
-			let next = this.getNextInactiveSegment(this.activeManifest)
+		if(!this.destroyed && !Object.keys(this.activeRequests).length) {
+			let next = this.getNextInactiveSegment()
 			if(next){
-				if(this.debugConns) console.warn('PREFETCHING', next, url)
+				if(this.debugConns) console.warn('PREFETCHING', url, '=>', next)
 				const nopts = opts
 				nopts.url = next
+				nopts.cachedOnly = false
 				nopts.shadowClient = true
 				this.download(nopts).start()
 			} else {
@@ -379,6 +405,8 @@ class StreamerProxyHLS extends HLSRequests {
 		this.journals = {}
 		this.opts.followRedirect = true // some servers require m3u8 to requested by original url, otherwise will trigger 406 status, while the player may call directly the "location" header url on next requests ¬¬
 		this.opts.forceExtraHeaders = null
+		/* disable content ranging, as we are rewriting meta and segments length comes incorrect from server sometimes */
+		this.requestHeadersRemoval = ['range', 'cookie', 'referer', 'origin', 'user-agent']
 		if(this.opts.debug){
 			console.log('OPTS', this.opts)
 		}
@@ -409,7 +437,7 @@ class StreamerProxyHLS extends HLSRequests {
         if(typeof(url) == 'string'){
             if(url.substr(0, 3) == '/s/'){
                 url = 'https://' + url.substr(3)
-            } else if(url.charAt(0) == '/' && url.charAt(1) != '/'){
+            } else if(url.startsWith('/') && url.charAt(1) != '/'){
                 url = 'http://' + url.substr(1)
             } else if(this.opts.addr && url.indexOf('//') != -1){
                 if(url.indexOf(this.opts.addr +':'+ this.opts.port +'/') != -1){
@@ -449,11 +477,8 @@ class StreamerProxyHLS extends HLSRequests {
 		}).join(' &middot; ')
 		return name || track.uri
 	}
-	isM3U8(body) {
-		return body.substr(0, 12).indexOf('#EXT') != -1
-	}
 	proxifyM3U8(body, baseUrl, url) {
-		if(!this.isM3U8(body)) return body
+		if(!this.isM3U8Content(body)) return body
 		body = body.trim()
 		let u, parser = new m3u8Parser.Parser(), replaces = {}
 		try{ 
@@ -496,6 +521,7 @@ class StreamerProxyHLS extends HLSRequests {
 					this.journals[baseUrl] = journal = new HLSJournal(baseUrl, url)
 				}
 				journal.process(body)
+				body = journal.readM3U8(body)
 			}
 			if(parser.manifest.playlists && parser.manifest.playlists.length){
 				if(typeof(this.playlists[url]) == 'undefined'){
@@ -556,7 +582,7 @@ class StreamerProxyHLS extends HLSRequests {
 	applyM3U8Replace(body, from, to){
 		let lines = body.split("\n")
 		lines.forEach((line, i) => {
-			if(line.length < 3 || line.charAt(0) == '#') {
+			if(line.length < 3 || line.startsWith('#')) {
 				return
 			}
 			if(line.indexOf('/') == -1 || line.substr(0, 2) == './' || line.substr(0, 3) == '../') {
@@ -619,7 +645,7 @@ class StreamerProxyHLS extends HLSRequests {
 		}
 		let ended, url = this.unproxify(req.url)		
 		let reqHeaders = req.headers
-		reqHeaders = this.removeHeaders(reqHeaders, ['cookie', 'referer', 'origin', 'user-agent'])
+		reqHeaders = this.removeHeaders(reqHeaders, this.requestHeadersRemoval)
 		if(this.type == 'network-proxy'){
 			reqHeaders['x-from-network-proxy'] = '1'
 		} else {
@@ -637,7 +663,7 @@ class StreamerProxyHLS extends HLSRequests {
 		}
 		let match
 		const isCacheable = this.committed && (match = url.match(this.isCacheableRegex)) && match.length && match[0].length // strangely it was returning [""] sometimes on electron@9.1.2
-		const cacheTTL = isCacheable ? 60 : 0
+		const cacheTTL = isCacheable ? global.config.get('live-window-time') : 0
 		const keepalive = this.committed && global.config.get('use-keepalive')
 		const download = this.download({
 			url,
@@ -695,22 +721,12 @@ class StreamerProxyHLS extends HLSRequests {
 		})
 		download.once('response', (statusCode, headers) => {
 			//console.warn('RECEIVING RESPONSE', statusCode, headers, download.currentURL, download)
-			headers = this.removeHeaders(headers, [
-				'transfer-encoding', 
-				'content-encoding', 
-				'keep-alive',
-				'strict-transport-security',
-				'content-security-policy',
-				'x-xss-protection',
-				'cross-origin-resource-policy'
-			])
+			headers = this.removeHeaders(headers, this.responseHeadersRemoval)
 			headers = global.prepareCORS(headers, url)
 			if(this.opts.forceExtraHeaders){
 				Object.assign(headers, this.opts.forceExtraHeaders)
 			}
 			//console.log('download response', url, statusCode, headers)
-			/* disable content ranging, as we are rewriting meta and video */
-			headers = this.removeHeaders(headers, ['content-range', 'accept-ranges'])
 			headers['connection'] = 'close'
 			if(!statusCode || [-1, 0, 401, 403].includes(statusCode)){
 				/* avoid to passthrough 403 errors to the client as some streams may return it esporadically */
@@ -761,6 +777,8 @@ class StreamerProxyHLS extends HLSRequests {
 					})
 				} else if(typeof(headers.location) != 'undefined') {
 					location = this.proxify(global.absolutize(headers.location, url))
+				} else if(!statusCode) {
+					statusCode = 500
 				}
 				if(fallback){
 					headers.location = fallback
@@ -791,13 +809,17 @@ class StreamerProxyHLS extends HLSRequests {
 		if(isSRT) headers['content-type'] = 'text/vtt'
 		let closed, data = []
 		if(!response.headersSent){
-			response.writeHead(statusCode, this.removeHeaders(headers, ['content-length']))
+			response.writeHead(statusCode, headers)
 			if(this.opts.debug){
 				console.log('download sent response headers', statusCode, headers)
 			}
 		}
-        // console.log('handleResponse', headers)
-		download.on('data', chunk => data.push(chunk))
+		download.on('data', chunk => {
+			data.push(chunk)
+			if(download.receivedUncompressed >= this.typeMismatchCheckingThreshold) {
+				this.typeMismatchCheck(data)
+			}
+		})
 		download.once('end', () => {
 			data = String(Buffer.concat(data))
 			if(isSRT) {
@@ -820,11 +842,10 @@ class StreamerProxyHLS extends HLSRequests {
 		})
 	}	
 	handleResponse(download, statusCode, headers, response, end){
-		if(this.ext(download.currentURL) == 'm3u8' || (headers['content-type'] && headers['content-type'].indexOf('mpegurl') != -1)) {
+		if(this.ext(download.currentURL) == 'm3u8' || this.ext(download.opts.url) == 'm3u8' || (headers['content-type'] && headers['content-type'].match(this.mpegURLRegex))) {
 			return this.handleMetaResponse(download, statusCode, headers, response, end)
 		}
 		let closed
-		headers = this.removeHeaders(headers, ['content-length']) // avoid incorrect length error
 		if(!response.headersSent){
 			response.writeHead(statusCode, headers)
 			if(this.opts.debug){
@@ -845,7 +866,7 @@ class StreamerProxyHLS extends HLSRequests {
 			}
 		})
 		download.once('end', end)
-	}	
+	}
 }
 
 module.exports = StreamerProxyHLS

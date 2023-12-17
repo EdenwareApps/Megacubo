@@ -339,9 +339,18 @@ class ExplorerPointer extends ExplorerSelectionMemory {
         this.scrolling = false
         this.scrollingTimer = 0
         this.scrollDirection = 'down'
-        this.lastScrollTop = 0
-        this.scrollContainer.on('mousedown', () => this.manuallyScrolling = true)
-        this.scrollContainer.on('mouseup', () => this.manuallyScrolling = false);
+		this.lastScrollTop = 0
+		this.scrollContainer.on('mousedown', () => {
+			this.manuallyScrolling = true
+			this.manuallyScrollingStartScrollTop = this.lastScrollTop
+		})
+		this.scrollContainer.on('mouseup', () => {
+			if (!this.manuallyScrolling) return
+			this.manuallyScrolling = false
+			if (this.manuallyScrollingStartScrollTop != this.lastScrollTop) {
+				this.scrollSnap(this.lastScrollTop, this.scrollDirection, () => { })
+			}
+		});
         ['touchmove', 'scroll', 'mousewheel', 'DOMMouseScroll'].forEach(n => {
             this.scrollContainer.on(n, event => {
                 if(this.debug){
@@ -369,16 +378,18 @@ class ExplorerPointer extends ExplorerSelectionMemory {
                         this.scrollSnapping = false
                     }
                 }
-                clearTimeout(this.scrollingTimer)
-                let st = this._scrollContainer.scrollTop
-                if(st > this.lastScrollTop){
-                    this.scrollDirection = 'down'
-                } else if(st < this.lastScrollTop) {
-                    this.scrollDirection = 'up'
-                }
-                if(this.debug){
-                    console.log('pointer.scroll', n, this.lastScrollTop, st)
-                } 
+				clearTimeout(this.scrollingTimer)
+				let st = this._scrollContainer.scrollTop
+				if (!this.scrollSnapping) {
+					if (st > this.lastScrollTop) {
+						this.scrollDirection = 'down'
+					} else if (st < this.lastScrollTop) {
+						this.scrollDirection = 'up'
+					}
+				}
+				if (this.debug) {
+					console.log('pointer.scroll', n, this.lastScrollTop, st)
+				} 
                 if(['mousewheel', 'DOMMouseScroll'].indexOf(n) != -1){
                     this.scrolling = false
                     let now = (new Date()).getTime()
@@ -427,16 +438,19 @@ class ExplorerPointer extends ExplorerSelectionMemory {
     }
     scrollSnap(scrollTop, direction, cb){
         if(this.rendering){
-            return
+			return cb()
         }
         if(scrollTop == 0 && this._scrollContainer.scrollTop == 0){ 
             return cb()
         }
+		if(this._scrollContainer.scrollTop == this.lastScrollSnappingScrollTop) { // prevent looping on consecutive scroll snappings
+			return cb()
+		}
         let h = this.currentElements[0].offsetHeight, ih = parseInt(scrollTop / h)
         let start = ih * h, end = start + h, startDf = Math.abs(start - scrollTop), endDf = Math.abs(end - scrollTop)
         if(direction == 'down') {
             if((startDf + (h / 3)) > endDf){ // give down direction hint of 1/3
-                ih++
+                ih--
             }
         } else { // up by default, if not defined
             if((startDf - (h / 3)) > endDf){ // give up direction hint of 1/3
@@ -444,7 +458,9 @@ class ExplorerPointer extends ExplorerSelectionMemory {
             }
         }
         this.scrollSnapping = true
-        this.scrollContainer.animate({scrollTop: ih * h}, 150, () => {
+		const newScrollTop = this.currentElements[ih * this.viewSizeX] ? this.currentElements[ih * this.viewSizeX].offsetTop : ih * h
+        this.lastScrollSnappingScrollTop = newScrollTop
+        this.scrollContainer.stop().animate({scrollTop: newScrollTop}, 150, () => {
             this.scrollSnapping = false
             this.lastScrollTop = this._scrollContainer.scrollTop
             cb()
@@ -866,10 +882,12 @@ class ExplorerPointer extends ExplorerSelectionMemory {
             this.focus(closer)
             if(view.default){   
                 this.lastScrollTop = this._scrollContainer.scrollTop
-                if(this.lastScrollTop != pst){
-                    this.scrollDirection = (this.lastScrollTop < pst) ? 'up' : 'down'
-                    this.emit('scroll', this.lastScrollTop, this.scrollDirection)
-                }
+				if (this.lastScrollTop != pst) {
+					if (!this.scrollSnapping) {
+						this.scrollDirection = (this.lastScrollTop < pst) ? 'up' : 'down'
+					}
+					this.emit('scroll', this.lastScrollTop, this.scrollDirection)
+				}
             } else {
                 closer.scrollIntoViewIfNeeded({ behavior: 'smooth', block: 'nearest', inline: 'start' })
             }
@@ -1665,12 +1683,8 @@ class ExplorerSlider extends ExplorerPrompt {
 		n.setAttribute('min', range.start)
 		n.setAttribute('max', range.end)
 		n.setAttribute('step', step)
-		n.addEventListener('input', () => {
-			this.sliderSync(e, range, mask)
-		})
-		n.addEventListener('change', () => {
-			this.sliderSync(e, range, mask)
-		})
+		n.addEventListener('input', () => this.sliderSync(e, range, mask))
+		n.addEventListener('change', () => this.sliderSync(e, range, mask))
 		n.parentNode.addEventListener('keydown', event => {
 			console.log('SLIDERINPUT', event, s)
 			switch(event.keyCode) {
@@ -1696,13 +1710,13 @@ class ExplorerStatusFlags extends ExplorerSlider {
 		this.statusFlags = {}
 		this.on('render', this.processStatusFlags.bind(this))
 		this.on('update-range', this.processStatusFlags.bind(this))
-		this.app.on('set-status-flag', (url, flag) => {
+		this.app.on('stream-state-set', (url, flag) => {
 			if(this.debug){
 				console.warn('SETFLAGEVT', url, flag)
 			}
 			this.setStatusFlag(url, flag)
 		})
-		this.app.on('sync-status-flags', data => {
+		this.app.on('stream-state-sync', data => {
 			if(this.debug){
 				console.warn('SYNCSTATUSFLAGS', data)
 			}
@@ -1724,7 +1738,7 @@ class ExplorerStatusFlags extends ExplorerSlider {
 	}
 	processStatusFlags(){
 		this.currentEntries.forEach((e, i) => {
-			if(!this.ranging || (i >= this.range.start && i <= this.range.end)){
+			if(!this.ranging || (i >= (this.range.start - 1) && i <= this.range.end)){ // -1 added due to entry-2x entries possibility
 				if(e.url && typeof(this.statusFlags[e.url]) != 'undefined'){
 					let element = this.currentElements[i], status = this.statusFlags[e.url], type = element ? element.getAttribute('data-type') : '', cls = e.class || ''
 					if(status && element && cls.indexOf('skip-testing') == -1 && (cls.indexOf('allow-stream-state') != -1 || !['spacer', 'action'].includes(type))){

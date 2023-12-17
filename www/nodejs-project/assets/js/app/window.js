@@ -67,11 +67,9 @@ class WinMan extends EventEmitter {
 		}
 		try {
 			w.streamer.stop()
-			//w.$('wrap').html('<div style="vertical-align: middle; height: 100%; display: flex; justify-content: center; align-items: center;"><i class="fa-mega" style="font-size: 25vh;color: var(--font-color);"></i></div>')
-			//w.$('#home-arrows').hide()
 			const useCurtains = config && config['fx-nav-intensity']
 			if(useCurtains){
-				$('html').removeClass('curtains-close').addClass('curtains')
+				jQuery('html').removeClass('curtains-close').addClass('curtains')
 			}
 		} catch(e) {
 			console.error(e)
@@ -202,8 +200,8 @@ class CordovaMiniplayer extends MiniPlayerBase {
 		this.setup()
 		this.on('enter', () => {
 			let app = this.getAppWindow()
-			if(app){
-				app.$(app.document.body).addClass('miniplayer-cordova')
+			if(app && app.jQuery){
+				app.jQuery(app.document.body).addClass('miniplayer-cordova')
 			}
 		})
 		this.on('leave', () => {
@@ -211,7 +209,9 @@ class CordovaMiniplayer extends MiniPlayerBase {
 			console.warn('leaved miniplayer')
 			let app = this.getAppWindow()
 			if(app){
-				app.$(app.document.body).removeClass('miniplayer-cordova')
+				if(app.jQuery) {
+					app.jQuery(app.document.body).removeClass('miniplayer-cordova')
+				}
 				if(app.streamer && app.streamer.active){
 					app.streamer.enterFullScreen()	
 				}

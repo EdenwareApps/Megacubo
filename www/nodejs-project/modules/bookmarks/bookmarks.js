@@ -150,7 +150,7 @@ class Bookmarks extends EntriesGroup {
                 if(atts.mediaType == 'live'){
                     return (epgAddLiveNowMap[i] = global.channels.toMetaEntry(e, false))
                 } else {
-                    let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.terms(atts.name, true)
+                    let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.terms(atts.name)
                     e.url = global.mega.build(global.ucWords(terms.join(' ')), {terms, mediaType: 'video'})
                     e = global.channels.toMetaEntry(e)
                 }

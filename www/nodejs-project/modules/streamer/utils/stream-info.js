@@ -139,6 +139,7 @@ class StreamInfo {
 					const mediaType = this.mi.mediaType(url)
 					if(blindTrust.includes(mediaType)) {
 						let contentType
+						// this function should return contentType always lowercase
 						const ext = this.mi.ext(url)
 						if(mediaType == 'video') {
 							if(this.mi.isVideo(url, ext)) {
@@ -146,12 +147,14 @@ class StreamInfo {
 							}
 						} else {
 							if(ext == 'm3u8') {
-								contentType = 'application/x-mpegURL'
-							} else if(ext == 'm3u8') {
+								contentType = 'application/x-mpegurl'
+							} else if(ext == 'ts') {
 								contentType = 'video/mp2t'
+							} else if(ext == 'mpd') {
+								contentType = 'application/dash+xml'
 							}
 						}
-						if(contentType) {
+						if(contentType && contentType != 'application/x-mpegurl') { // m3u8 requires additional checking for availability and to know if it's a vodhls
 							const ret = {
 								status: 200,
 								headers: {
@@ -168,10 +171,10 @@ class StreamInfo {
 					}
 				}
 			}
-
 			const ret = await this._probe(url, timeout, retries, opts)
 			let cl = ret.headers['content-length'] || -1, ct = ret.headers['content-type'] || '', st = ret.status || 0
 			if(st < 200 || st >= 400 || st == 204){ // 204=No content
+				if(st == 0) st = 'timeout'
 				throw st
 			}
 			if(ct){
@@ -320,7 +323,7 @@ class StreamInfo {
 		if(m && m.length > 1 && (m[1].length == 1 || m[1].toLowerCase() == 'file')){ // drive letter or file protocol
 			return true
 		} else {
-			if(file.length >= 2 && file.charAt(0) == '/' && file.charAt(1) != '/'){ // unix path
+			if(file.length >= 2 && file.startsWith('/') && file.charAt(1) != '/'){ // unix path
 				return true
 			}
 		}

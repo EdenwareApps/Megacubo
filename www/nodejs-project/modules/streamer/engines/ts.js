@@ -75,14 +75,14 @@ class StreamerTSIntent extends StreamerBaseIntent {
 
 StreamerTSIntent.mediaType = 'live'
 StreamerTSIntent.supports = info => {
-    if(info.ext && ['mp4'].includes(info.ext)) { // mp4 files have been seen with video/mp2t contentType
+    if(info.ext && ['mp4'].includes(info.ext)) { // mp4 files have been seen with video/MP2T contentType
         return false
     }
     if(info.headers && info.headers['content-length']) {
         return false // not live
     }
     if(info.contentType) {
-        let c = info.contentType.toLowerCase()
+        let c = info.contentType
         if(c.indexOf('mpegurl') != -1){ // is hls
             return false
         }

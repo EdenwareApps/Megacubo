@@ -16,9 +16,11 @@ class DownloadStreamCache extends DownloadStreamBase {
             throw 'Already destroyed'
         }
         const url = this.opts.url
-        const row = Download.cache.index[url]
+        const row = global.Download.cache.index[url]
         if(!row || !row.status || row.uid == this.opts.uid) {
-            throw 'Cache download failed'
+            this.response = new DownloadStreamBase.Response(404, {})
+            this.emit('response', this.response)
+            return this.end()
         }
         let stream, range
         const headers = Object.assign({}, Download.cache.index[url].headers) || {}
@@ -46,7 +48,7 @@ class DownloadStreamCache extends DownloadStreamBase {
                 if(fs.existsSync(file)) {
                     stream = new Reader(file, range)
                 } else {
-                    this.emitError('Cache download failed', false)
+                    this.emitError('Cache download failed*', false)
                 }
                 break
         }

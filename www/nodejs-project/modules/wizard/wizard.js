@@ -18,7 +18,7 @@ class WizardUtils extends Events {
             if(m && m.length > 1 && (m[1].length == 1 || m[1].toLowerCase() == 'file')){ // drive letter or file protocol
                 return true
             } else {
-                if(u.length >= 2 && u.charAt(0) == '/' && u.charAt(1) != '/'){ // unix path
+                if(u.length >= 2 && u.startsWith('/') && u.charAt(1) != '/'){ // unix path
                     return true
                 }
             }

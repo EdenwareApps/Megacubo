@@ -303,7 +303,7 @@ function patch(scope, isBrowser){
 			ffile = scope.forwardSlashes(ffile)
 		}
 		let folderEndsWithSlash = ffolder.charAt(ffolder.length - 1) == '/'
-		let fileStartsWithSlash = ffile.charAt(0) == '/'
+		let fileStartsWithSlash = ffile.startsWith('/')
 		if(fileStartsWithSlash && folderEndsWithSlash) {
 			ret = ffolder + ffile.substr(1)
 		} else if(fileStartsWithSlash || folderEndsWithSlash) {
@@ -316,17 +316,28 @@ function patch(scope, isBrowser){
 	scope.time = () => {
 		return Date.now() / 1000
 	}
-	scope.isVODM3U8 = (content, contentLength) => {
+	scope.isVODM3U8 = (content, contentLength, headers) => {
         let sample = String(content).toLowerCase()
-		if(sample.indexOf('#ext-x-playlist-type:vod') != -1) return true
-		if(sample.match(new RegExp('#ext-x-media-sequence:0[^0-9]'))) return true
+		if(sample.match(new RegExp('ext-x-playlist-type: *(vod|event)'))) return true
+		if(sample.indexOf('#ext-x-media-sequence') == -1) return false
+		if(headers) {
+			if(headers['last-modified']) {
+				let date = new Date(headers['last-modified'])
+				if (!isNaN(date.getTime())) {
+    				const elapsed = scope.time() - (date.getTime() / 1000)
+					if(elapsed > 180) {
+						return true
+					}
+  				}
+			}
+		}
 		let pe = sample.indexOf('#ext-x-endlist')
 		let px = sample.lastIndexOf('#extinf')
 		if(pe != -1){
 			return pe > px
 		}
 		if(sample.indexOf('#ext-x-program-date-time') == -1){
-			let pieces = sample.split('#extinf')
+			const pieces = sample.split('#extinf')
 			if(pieces.length > 30){
 				return true
 			}

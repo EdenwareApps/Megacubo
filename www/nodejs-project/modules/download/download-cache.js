@@ -56,22 +56,17 @@ class DownloadCacheChunks extends Events {
     async pump(){
         if(this.finished || this.pumping) return
         this.pumping = true
-        let written = 0
-        for(let i=0; i<this.chunks.length; i++) {
-            if(this.chunks[i].type != 'buffer' || this.chunks[i].writing) {
-                continue
-            }
+        let err, written = 0, amount = this.chunks.length
+        if(!this.created) {
+            this.created = true
+            await fs.promises.writeFile(this.file, '', { flag: 'wx'}).catch(e => err = e)
+        }
+        for(let i=0; i<amount; i++) {
+            if(this.chunks[i].type != 'buffer') continue
             let err
-            if(!this.created) {
-                await fs.promises.writeFile(this.file, '', { flag: 'wx'}).catch(e => err = e)
-                if(err) {
-                    break
-                }
-            }
-            this.chunks[i].writing = true            
             await fs.promises.appendFile(this.file, this.chunks[i].data, {encoding: null}).catch(e => err = e)
-            delete this.chunks[i].writing
             if(err) {
+                console.error(err)
                 break
             } else {
                 written++
@@ -80,26 +75,25 @@ class DownloadCacheChunks extends Events {
             }
         }
         this.pumping = false
-        if(written > 0) {
-            this.pump().catch(console.error)
-        } else {
-            if(this.ended && !this.finished) {
-                this.finished = true
-                this.emit('finish')
-            }
+        if(amount < this.chunks.length) { // chunks added
+            await this.pump().catch(console.error)
         }
-    }
-    finish(){
-        if(!this.finished) {
+        if(this.ended && !this.finished) {
             this.finished = true
             this.emit('finish')
         }
     }
+    finish(){
+        if(!this.finished) {
+            this.ended = true
+            this.finished = true
+            this.emit('finish')
+            this.destroy()
+        }
+    }
     fail(err){
         this.emit('error', err)
-        this.end()
         this.finish()
-        this.destroy()
         this.file && fs.unlink(this.file, () => {})
     }
     end(){
@@ -111,7 +105,7 @@ class DownloadCacheChunks extends Events {
     }
     destroy(){
         this.chunks = []
-        this.finish()
+        this.finished || this.finish()
         this.removeAllListeners()
     }
 }
@@ -163,6 +157,7 @@ class DownloadCacheMap extends Events {
         if(this.started) return
         this.started = true
         await fs.promises.mkdir(this.folder, {recursive: true}).catch(console.error)
+        const now = global.time()
         let caches = await fs.promises.readdir(this.folder).catch(console.error)
         if(Array.isArray(caches)){
             caches = caches.map(f => this.folder +'/'+ f)
@@ -183,15 +178,19 @@ class DownloadCacheMap extends Events {
                 }
             })
             if(global.ui){
-                const indexFiles = Object.values(this.index).map(r => String(r.data))
-                caches.forEach(file => {
+                const indexFiles = Object.values(this.index).map(r => String(r.chunks ? r.chunks.file : r.data))
+                for(const file of caches) {
                     if(!indexFiles.includes(file) && file != this.indexFile){
                         if(this.debug){
                             console.warn('DLCACHE RM orphaned file', file, Object.values(this.index).filter(r => r.type == 'file').map(r => String(r.data)))
                         }
-                        fs.promises.unlink(file).catch(console.error)
+                        let err
+                        const stat = await fs.promises.stat(file).catch(e => err = e)
+                        if(stat && stat.mtime && (now - stat.mtime) > 300) {
+                            await fs.promises.unlink(file).catch(console.error)
+                        }
                     }
-                })
+                }
             }
             if(this.debug){
                 console.warn('DLCACHE RM result', Object.keys(this.index))
@@ -247,7 +246,7 @@ class DownloadCacheMap extends Events {
         expired = Object.keys(this.index).map(url => {
             return {
                 ttl: this.index[url].ttl,
-                url
+                url, time
             }
         }).sortByProp('ttl', true).filter(row => {
             if(now > row.ttl) {
@@ -274,6 +273,24 @@ class DownloadCacheMap extends Events {
             this.emit('update', this.export())
         }
         await this.saveIndex().catch(console.error)
+        
+        const caches = await fs.promises.readdir(this.folder).catch(console.error)
+        if(Array.isArray(caches)){
+            const indexFiles = Object.values(this.index).map(r => String(r.chunks ? r.chunks.file : r.data))
+            for(const file of caches.map(f => this.folder +'/'+ f)) {
+                if(!indexFiles.includes(file) && file != this.indexFile){
+                    if(this.debug){
+                        console.warn('DLCACHE RM orphaned file', file, Object.values(this.index).filter(r => r.type == 'file').map(r => String(r.data)))
+                    }
+                    let err
+                    const stat = await fs.promises.stat(file).catch(e => err = e)
+                    if(stat && stat.mtime && (now - stat.mtime) > 300) {
+                        await fs.promises.unlink(file).catch(console.error)
+                    }
+                }
+            }
+        }
+
         let delay = -1
         if(nextRun >= now) delay = nextRun - now
         if(delay < 0 || delay > this.maxMaintenanceInterval) delay = this.maxMaintenanceInterval
@@ -284,7 +301,7 @@ class DownloadCacheMap extends Events {
                 delay, nextRun, now
             }))
         }
-       return delay
+        return delay
     }
     async saveIndex(){
         const findex = {}
@@ -343,15 +360,14 @@ class DownloadCacheMap extends Events {
                 status: downloader.lastStatusCodeReceived,
                 size: headers['content-length'] || false,
                 headers,
-                uid: opts.uid,
-                traceback: [opts, opts.cacheTTL, global.traceback()]
+                uid: opts.uid
+                //, traceback: [opts, opts.cacheTTL, global.traceback()]
             }
             this.emit('update', this.export())
         }
         if(this.index[url] && this.index[url].type == 'saving' && this.index[url].uid == opts.uid) {
             if(chunk){
                 this.index[url].chunks.push(chunk)
-                chunk = null // freeup
             }
             if(ended) {
                 const chunks = this.index[url].chunks
@@ -360,18 +376,17 @@ class DownloadCacheMap extends Events {
                     const expectedLength = this.index[url].size === false ? downloader.totalContentLength : chunks.size
                     if(chunks.error) {
                         console.warn(chunks.error)
-                        chunks.destroy()
-                        delete this.index[url].chunks
+                        chunks.fail(chunks.error)
                         delete this.index[url]
                     } else if((this.index[url].size === false && !expectedLength) || (expectedLength > chunks.size)) {
-                        console.warn('Bad file size. Expected: '+ this.index[url].size +', received: '+ chunks.size +', discarding http cache.')
-                        chunks.destroy()
-                        delete this.index[url].chunks
+                        const err = 'Bad file size. Expected: '+ this.index[url].size +', received: '+ chunks.size +', discarding http cache.'
+                        console.warn(err)
+                        chunks.fail(err)
                         delete this.index[url]
                     } else if(downloader.statusCode < 200 || downloader.statusCode > 400 || (downloader.errors.length && !downloader.received)) {
-                        console.warn('Bad download. Status: '+ downloader.statusCode +', received: '+ chunks.size, downloader.errors, downloader.received)
-                        chunks.destroy()
-                        delete this.index[url].chunks
+                        const err = 'Bad download. Status: '+ downloader.statusCode +', received: '+ chunks.size
+                        console.warn(err)
+                        chunks.fail(err)
                         delete this.index[url]
                     } else {
                         if(!this.index[url].status){
@@ -380,7 +395,7 @@ class DownloadCacheMap extends Events {
                         this.index[url].headers['content-length'] = this.index[url].size = chunks.size
                         this.index[url].data = chunks.file
                         this.index[url].type = 'file'
-                        chunks.destroy()
+                        chunks.end()
                         delete this.index[url].chunks
                     }
                 }

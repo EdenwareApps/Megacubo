@@ -132,7 +132,7 @@ class PerformanceProfiles extends Timer {
                 'hls-prefetching': false,
                 'in-disk-caching': false,
                 'live-stream-fmt': 'auto',
-                'live-window-time': 10,
+                'live-window-time': 30,
                 'play-while-loading': false,
                 'resume': false,
                 'search-missing-logos': false,
@@ -401,7 +401,7 @@ class OptionsExportImport extends OptionsGPU {
     }
     import(data){
         const sample = String(data.slice(0, 12))
-        if(sample.charAt(0) == '{' || sample.charAt(0) == '['){ // is json?
+        if(sample.startsWith('{') || sample.startsWith('[')){ // is json?
             this.importConfigFile(data)            
             global.osd.show(global.lang.IMPORTED_FILE, 'fas fa-check-circle', 'options', 'normal')
         } else {
@@ -429,8 +429,8 @@ class OptionsExportImport extends OptionsGPU {
                             global.histo.load()
                         }                    
                         if(entry.entryName.startsWith('categories')) {
-                            zip.extractEntryTo(entry, global.storage.raw.folder, false, true, path.basename(global.storage.raw.resolve(global.channels.loader.key)))
-                            delete global.storage.raw.cacheExpiration[global.channels.loader.key]
+                            zip.extractEntryTo(entry, global.storage.raw.folder, false, true, path.basename(global.storage.raw.resolve(global.channels.channelList.key)))
+                            delete global.storage.raw.cacheExpiration[global.channels.channelList.key]
                             global.channels.load()
                         }
                         if(entry.entryName.startsWith('icons')) {
@@ -468,7 +468,7 @@ class OptionsExportImport extends OptionsGPU {
             }
         }
         add(global.config.file);
-        [global.bookmarks.key, global.histo.key, global.channels.loader.key].forEach(key => {
+        [global.bookmarks.key, global.histo.key, global.channels.channelList.key].forEach(key => {
             files.push(global.storage.resolve(key, false))
             files.push(global.storage.resolve(key, true))
         })
@@ -817,8 +817,9 @@ class Options extends OptionsExportImport {
             txt[2] = 'Connection speed: '+ global.kbsfmt(global.streamer.downlink || 0) +'<br />'
             txt[3] = 'User agent: '+ (global.config.get('user-agent') || global.config.get('default-user-agent')) +'<br />'
             txt[4] = 'Network IP: '+ global.networkIP() +'<br />'
+            txt[5] = 'Language: '+ global.lang.languageHint +' ('+ global.lang.countryCode +')<br />'
             if(process.platform == 'android'){
-                txt[4] = global.androidIPCommand() +'<br />'
+                txt[4] = 'Network IP: '+ global.androidIPCommand() +'<br />'
             } 
             global.explorer.info('System info', txt.join(''), 'fas fa-memory')
         })
@@ -1005,6 +1006,7 @@ class Options extends OptionsExportImport {
                 action: (data, value) => {
                     console.warn('ELAPSED_TIME_TO_KEEP_CACHED', data, value)
                     global.config.set('live-window-time', value)
+                    global.streamer.active && global.streamer.reload()
                 }, 
                 value: () => {
                     return global.config.get('live-window-time')
@@ -1323,16 +1325,16 @@ class Options extends OptionsExportImport {
                         type: 'select', 
                         renderer: async () => {
                             const def = global.config.get('mpegts-packet-filter-policy'), opts = [
-                                {name: 'Do not remove repetitions', type: 'action', selected: (def == 'no'), action: () => {
+                                {name: 'Do not remove repetitions', type: 'action', selected: (def == -1), action: () => {
                                     global.config.set('mpegts-packet-filter-policy', -1)
                                 }},
-                                {name: 'Trim larger packets, remove smaller ones', type: 'action', selected: (def == 'no'), action: () => {
+                                {name: 'Trim larger packets, remove smaller ones', type: 'action', selected: (def == 1), action: () => {
                                     global.config.set('mpegts-packet-filter-policy', 1)
                                 }},
-                                {name: 'Remove invalid size packets', type: 'action', selected: (def == 'no'), action: () => {
+                                {name: 'Remove invalid size packets', type: 'action', selected: (def == 2), action: () => {
                                     global.config.set('mpegts-packet-filter-policy', 2)
                                 }},
-                                {name: 'Ignore invalid size packets', type: 'action', selected: (def == 'no'), action: () => {
+                                {name: 'Ignore invalid size packets', type: 'action', selected: (def == 3), action: () => {
                                     global.config.set('mpegts-packet-filter-policy', 3)
                                 }}
                             ]

@@ -16,7 +16,8 @@ class StreamerDashIntent extends StreamerBaseIntent {
     }  
     async _start(){
         this.prx = new StreamerProxy(Object.assign({
-            authURL: this.data.authURL || this.data.source
+            authURL: this.data.authURL || this.data.source,
+            discardContentLength: true
         }, this.opts))
         this.connectAdapter(this.prx)
         await this.prx.start()

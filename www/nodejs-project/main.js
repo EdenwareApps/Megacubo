@@ -459,10 +459,10 @@ const init = (language, timezone) => {
             global.streamer.reload()
         })
         global.ui.on('video-error', async (type, errData) => {
+            console.error('VIDEO ERROR', {type, errData})
             if(global.streamer.zap.isZapping){
                 await global.streamer.zap.go()
             } else if(global.streamer.active && !global.streamer.active.isTranscoding()) {
-                console.error('VIDEO ERROR', {type, errData})
                 if(type == 'timeout'){
                     if(!showingSlowBroadcastDialog){
                         let opts = [{template: 'question', text: global.lang.SLOW_BROADCAST}], def = 'wait'
@@ -482,17 +482,20 @@ const init = (language, timezone) => {
                         videoErrorTimeoutCallback(ret)
                     }
                 } else {
-                    if(global.streamer.active) {
+                    const active = global.streamer.active
+                    if(active) {
                         if(type == 'playback') {
                             if(errData && errData.details && errData.details == 'NetworkError') {
                                 type = 'request error'
                             }
                             if(type == 'playback') { // if type stills being 'playback'
-                                const data = global.streamer.active.data
+                                const data = active.data
                                 data.allowBlindTrust = false
                                 const info = await global.streamer.info(data.url, 2, data).catch(e => {
                                     type = 'request error'
                                 })
+                                const ret = await global.streamer.typeMismatchCheck(info).catch(console.error)
+                                if(ret === true) return
                             }
                         }
                         if(!global.cordova && type == 'playback') {
@@ -500,7 +503,6 @@ const init = (language, timezone) => {
                             const openedExternal = await global.streamer.askExternalPlayer().catch(console.error)
 						    if(openedExternal === true) return
                         }
-                        console.error('VIDEO ERR', type, errData)
                         global.streamer.handleFailure(null, type).catch(global.displayErr)
                     }
                 }

@@ -632,8 +632,11 @@ class EPG extends EPGPaginateChannelsList {
     async searchChannel(terms, limit=2){
         let results = {}, data = []
         Object.keys(this.terms).forEach(name => {
-            if(!Array.isArray(this.terms[name])) delete this.terms[name]
-            const score = this.terms[name].filter(t => terms.includes(t)).length
+            if(!Array.isArray(this.terms[name])) {
+                delete this.terms[name] // clean incorrect format
+                return
+            }
+            const score = this.listsCommon.match(terms, this.terms[name], true)
             data.push({name, score})
         })
         data = data.filter(r => r.score).sortByProp('score', true).slice(0, 24)

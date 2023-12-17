@@ -1,10 +1,11 @@
 
 const path = require('path'), fs = require('fs'), Events = require('events'), pLimit = require('p-limit')
 
-class ChannelsLoader {
+class ChannelsList {
     constructor(countries) {
         this.countries = countries
         this.key = 'categories-'+ countries.join('-')
+        this.isChannelCache = {}
         this.channelsIndex = {}
         this.categories = {}
         this.type = global.config.get('channel-grid')
@@ -163,7 +164,7 @@ class ChannelsLoader {
         } else {
             terms = name
         }
-        terms = global.lists.terms(terms, true)
+        terms = global.lists.terms(terms)
         return {name, terms: {name: terms, group: []}}
     }
     compact(data, withTerms){
@@ -217,8 +218,6 @@ class ChannelsData extends Events {
             fa: 'fas fa-info-circle', 
             class: 'entry-empty'
         }
-        this.channelsIndex = {}
-        this.categories = {}
 		global.config.on('change', async (keys, data) => {
             if(['parental-control', 'parental-control-terms'].some(k => keys.includes(k))){
                 await this.load()
@@ -237,14 +236,14 @@ class ChannelsData extends Events {
     async load(){
         const countries = await global.lang.getActiveCountries(0)
         if(
-            !this.loader || 
-            this.loader.type != global.config.get('channel-grid') || 
-            JSON.stringify(this.loader.countries) != JSON.stringify(countries)
+            !this.channelList || 
+            this.channelList.type != global.config.get('channel-grid') || 
+            JSON.stringify(this.channelList.countries) != JSON.stringify(countries)
         ) {
-            this.loader && this.loader.destroy()
-            this.loader = new ChannelsLoader(countries)
+            this.channelList && this.channelList.destroy()
+            this.channelList = new ChannelsList(countries)
         }
-        await this.loader.load()
+        await this.channelList.load()
         this.loaded = true
         this.emit('loaded')
     }
@@ -341,7 +340,7 @@ class ChannelsEPG extends ChannelsData {
     epgSearch(terms, liveNow){
         return new Promise((resolve, reject) => {
             if(typeof(terms) == 'string'){
-                terms = global.lists.terms(terms, true)
+                terms = global.lists.terms(terms)
             }
             global.lists.epgSearch(terms, liveNow).then(epgData => {                                
                 let entries = []
@@ -671,7 +670,7 @@ class ChannelsEditing extends ChannelsEPG {
                         console.warn('RENAME', name, 'TO', val, category)
                         if(val && val != name) {
                             let i = -1
-                            this.loader.categories[category].some((n, j) => {
+                            this.channelList.categories[category].some((n, j) => {
                                 if(n.substr(0, name.length) == name){
                                     i = j
                                     return true
@@ -680,12 +679,12 @@ class ChannelsEditing extends ChannelsEPG {
                             if(i != -1){
                                 let t = (o.terms || e.terms || terms)
                                 t = t && t.name ? t.name : (Array.isArray(t) ? t.join(' ') : name)
-                                this.loader.categories[category][i] = this.loader.compactName(val, t)
+                                this.channelList.categories[category][i] = this.channelList.compactName(val, t)
                                 this.emit('edited', 'rename', e.name, val, e)
-                                console.warn('RENAMED', this.loader.categories[category][i], category, i)
-                                this.save().then(() => {
+                                console.warn('RENAMED', this.channelList.categories[category][i], category, i)
+                                this.channelList.save().then(() => {
                                     const category = _category
-                                    console.warn('RENAMED*', this.loader.categories[category][i], category, i)
+                                    console.warn('RENAMED*', this.channelList.categories[category][i], category, i)
                                     let destPath = global.explorer.path.replace(name, val).replace('/'+ global.lang.RENAME, '')
                                     console.log('opening', destPath)
                                     global.explorer.refresh(true, destPath)
@@ -700,34 +699,34 @@ class ChannelsEditing extends ChannelsEPG {
                         return t
                     }, action: async (entry, val) => {
                         const category = _category
-                        if(!this.loader.categories[category]) return console.error('Category not found')
+                        if(!this.channelList.categories[category]) return console.error('Category not found')
                         let i = -1
-                        this.loader.categories[category].some((n, j) => {
+                        this.channelList.categories[category].some((n, j) => {
                             if(n.substr(0, name.length) == name){
                                 i = j
                                 return true
                             }
                         })
                         if(i != -1){
-                            this.loader.channelsIndex = null
-                            this.loader.categories[category][i] = this.loader.compactName(name, val)
+                            this.channelList.channelsIndex = null
+                            this.channelList.categories[category][i] = this.channelList.compactName(name, val)
                             this.emit('edited', 'searchTerms', e, val)
-                            e.terms = o.terms = {name: global.lists.terms(val, true), group: []}
-                            await this.loader.save()
+                            e.terms = o.terms = {name: global.lists.terms(val), group: []}
+                            await this.channelList.save()
                             global.explorer.refreshNow()
                         }
                     }},
                     {name: global.lang.REMOVE, fa: 'fas fa-trash', type: 'action', details: o.name, action: async () => {
                         const category = _category
                         console.warn('REMOVE', name)
-                        if(!this.loader.categories[category]) {
+                        if(!this.channelList.categories[category]) {
                             global.explorer.open(global.lang.LIVE).catch(displayErr)
                             return
                         }
-                        this.loader.categories[category] = this.loader.categories[category].filter(c => {
+                        this.channelList.categories[category] = this.channelList.categories[category].filter(c => {
                             return c.split(',')[0] != name
                         })
-                        await this.loader.save()
+                        await this.channelList.save()
                         global.explorer.refresh(true, global.explorer.dirname(global.explorer.dirname(global.explorer.path)))
                         global.osd.show(global.lang.CHANNEL_REMOVED, 'fas fa-check-circle', 'channels', 'normal')
                     }}
@@ -740,11 +739,11 @@ class ChannelsEditing extends ChannelsEPG {
     }
     getCategoryEntry(){
         return {name: global.lang.ADD_CATEGORY, fa: 'fas fa-plus-square', type: 'input', action: async (data, val) => {
-            let categories = this.loader.getCategories()
+            let categories = this.channelList.getCategories()
             if(val && !categories.map(c => c.name).includes(val)){
                 console.warn('ADD', val)
-                this.loader.categories[val] = []
-                await this.loader.save()
+                this.channelList.categories[val] = []
+                await this.channelList.save()
                 console.warn('saved', global.lang.LIVE +'/'+ val +'/'+ global.lang.EDIT_CATEGORY)
                 delete global.explorer.pages[global.lang.LIVE]
                 global.explorer.open(global.lang.LIVE +'/'+ val +'/'+ global.lang.EDIT_CATEGORY +'/'+ global.lang.EDIT_CHANNELS).catch(displayErr)
@@ -758,7 +757,7 @@ class ChannelsEditing extends ChannelsEPG {
             fa: 'fas fa-tasks',
             renderer: async () => {
                 this.disableWatchNowAuto = true
-                return this.loader.getCategories(false).map(c => this.editCategoryEntry(c, true))
+                return this.channelList.getCategories(false).map(c => this.editCategoryEntry(c, true))
             }
         }
     }
@@ -783,19 +782,19 @@ class ChannelsEditing extends ChannelsEPG {
                 }},
                 {name: global.lang.RENAME_CATEGORY, fa: 'fas fa-edit', type: 'input', details: cat.name, value: cat.name, action: async (e, val) => {
                     console.warn('RENAME', cat.name, 'TO', val)
-                    if(val && val != cat.name && typeof(this.loader.categories[val]) == 'undefined'){
-                        let o = this.loader.categories[cat.name]
-                        delete this.categories[cat.name]
-                        this.loader.categories[val] = o
-                        await this.loader.save()
+                    if(val && val != cat.name && typeof(this.channelList.categories[val]) == 'undefined'){
+                        let o = this.channelList.categories[cat.name]
+                        delete this.channelList.categories[cat.name]
+                        this.channelList.categories[val] = o
+                        await this.channelList.save()
                         let destPath = global.explorer.path.replace(cat.name, val).replace('/'+ global.lang.RENAME_CATEGORY, '')
                         global.explorer.refresh(true, destPath)
                         global.osd.show(global.lang.CATEGORY_RENAMED, 'fas fa-check-circle', 'channels', 'normal')
                     }
                 }},
                 {name: global.lang.REMOVE_CATEGORY, fa: 'fas fa-trash', type: 'action', details: cat.name, action: async () => {
-                    delete this.loader.categories[cat.name]
-                    await this.loader.save()
+                    delete this.channelList.categories[cat.name]
+                    await this.channelList.save()
                     global.explorer.open(global.lang.LIVE).catch(displayErr)
                     global.osd.show(global.lang.CATEGORY_REMOVED, 'fas fa-check-circle', 'channels', 'normal')
                 }}
@@ -815,10 +814,10 @@ class ChannelsEditing extends ChannelsEPG {
             action: async (data, val) => {
                 const catName = cat.name
                 this.disableWatchNowAuto = true
-                if(val && !Object.keys(this.loader.categories).map(c => c.name).includes(val)){
-                    if(this.loader.categories[catName] && !this.loader.categories[catName].includes(val)){
-                        this.loader.categories[catName].push(val)
-                        await this.loader.save()
+                if(val && !Object.keys(this.channelList.categories).map(c => c.name).includes(val)){
+                    if(this.channelList.categories[catName] && !this.channelList.categories[catName].includes(val)){
+                        this.channelList.categories[catName].push(val)
+                        await this.channelList.save()
                         let targetPath = global.explorer.path
                         if(inline !== true){
                             targetPath = global.explorer.dirname(targetPath)
@@ -908,7 +907,7 @@ class Channels extends ChannelsKids {
     }
     getAllChannels(){
         let list = []
-        this.loader.getCategories().forEach(category => {
+        this.channelList.getCategories().forEach(category => {
             category.entries.forEach(e => {
                 list.push(e)
             })
@@ -919,7 +918,7 @@ class Channels extends ChannelsKids {
         return this.getAllChannels().map(c => c.name)
     }
     getChannelCategory(name){
-        let ct, sure, cats = this.loader.getCategories(true)
+        let ct, sure, cats = this.channelList.getCategories(true)
         Object.keys(cats).some(c => {
             let i = -1
             cats[c].some((n, j) => {
@@ -952,7 +951,7 @@ class Channels extends ChannelsKids {
 		if(needleTerms.length && stackTerms.length){
 			let score = 0, sTerms = [], nTerms = []
 			let excludeMatch = needleTerms.some(t => {
-				if(t.charAt(0) == '-'){
+				if(t.startsWith('-')){
 					if(stackTerms.includes(t.substr(1))){
 						return true
 					}
@@ -960,7 +959,7 @@ class Channels extends ChannelsKids {
 					nTerms.push(t)
 				}
 			}) || stackTerms.some(t => {
-				if(t.charAt(0) == '-'){
+				if(t.startsWith('-')){
 					if(needleTerms.includes(t.substr(1))){
 						return true
 					}
@@ -1001,14 +1000,18 @@ class Channels extends ChannelsKids {
 		return 0
 	}
     isChannel(terms){
-        let tms, chs = this.loader.channelsIndex || {}
+        let tms, tmsKey, chs = this.channelList.channelsIndex || {}
         if(Array.isArray(terms)){
             tms = terms
+            tmsKey = tms.join(' ')
+            if(this.channelList.isChannelCache[tmsKey]) return this.channelList.isChannelCache[tmsKey]
         } else {
+            tmsKey = terms
+            if(this.channelList.isChannelCache[tmsKey]) return this.channelList.isChannelCache[tmsKey] // before terms()
             if(typeof(chs[terms]) != 'undefined'){
                 tms = chs[terms]
             } else {
-                tms = global.lists.terms(terms, true)
+                tms = global.lists.terms(terms)
             }
         }
         let chosen, chosenScore = -1
@@ -1022,7 +1025,7 @@ class Channels extends ChannelsKids {
             }
         })
         if(chosenScore > 1){
-            if(typeof(this.loader.isChannelCache[chosen]) == 'undefined'){
+            if(typeof(this.channelList.isChannelCache[chosen]) == 'undefined'){
                 let alts = {}, excludes = [], chTerms = global.deepClone(chs[chosen])
                 Object.keys(chs).forEach(name => {
                     if(name == chosen) return
@@ -1050,9 +1053,10 @@ class Channels extends ChannelsKids {
                     }
                     return t
                 }).map(s => s.join(' ')).join(' | ').split(' ')
-                this.loader.isChannelCache[chosen] = {name: chosen, terms: chTerms, alts, excludes}
+                this.channelList.isChannelCache[chosen] = {name: chosen, terms: chTerms, alts, excludes}
             }
-            return this.loader.isChannelCache[chosen]
+            if(tmsKey != chosen) this.channelList.isChannelCache[tmsKey] = this.channelList.isChannelCache[chosen]
+            return this.channelList.isChannelCache[chosen]
         }
     }
     expandTerms(terms){
@@ -1085,14 +1089,14 @@ class Channels extends ChannelsKids {
                 terms = global.lists.terms(terms)
             }
             let epgEntries = [], entries = [], already = {}
-            Object.keys(this.loader.channelsIndex).sort().forEach(name => {
+            Object.keys(this.channelList.channelsIndex).sort().forEach(name => {
                 if(typeof(already[name]) == 'undefined'){
-                    let score = this.cmatch(this.loader.channelsIndex[name], terms, partial)
+                    let score = this.cmatch(this.channelList.channelsIndex[name], terms, partial)
                     if(score){
                         already[name] = null
                         entries.push({
                             name,
-                            terms: {name: this.loader.channelsIndex[name]}
+                            terms: {name: this.channelList.channelsIndex[name]}
                         })
                     }
                 }
@@ -1306,7 +1310,7 @@ class Channels extends ChannelsKids {
                     class: 'entry-meta-stream',
                     fa: 'fas fa-play-circle' ,
                     renderer: async () => {
-                        let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.terms(atts.name, true)
+                        let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.terms(atts.name)
                         let es = await global.lists.search(terms, {
                             type: atts.mediaType,
                             group: true,
@@ -1334,8 +1338,8 @@ class Channels extends ChannelsKids {
         return new Promise((resolve, reject) => {
             this.ready(() => {
                 let keywords = [], badChrs = ['|', '-']
-                this.loader.getDefaultCategories().then(data => {
-                    keywords.push(...Object.values(data).flat().map(n => this.loader.expandName(n).terms.name).flat())
+                this.channelList.getDefaultCategories().then(data => {
+                    keywords.push(...Object.values(data).flat().map(n => this.channelList.expandName(n).terms.name).flat())
                 }).catch(reject).finally(() => {
                     keywords = keywords.unique().filter(w => !badChrs.includes(w.charAt(0)))
                     resolve(keywords)
@@ -1368,7 +1372,7 @@ class Channels extends ChannelsKids {
         if(type == 'lists') {
             list = await this.groupsRenderer('live')
         } else {
-            const categories = this.loader.getCategories()
+            const categories = this.channelList.getCategories()
             list = categories.map(category => {
                 category.renderer = async (c, e) => {
                     let times = {}, startTime = global.time()
@@ -1404,9 +1408,12 @@ class Channels extends ChannelsKids {
             name: global.lang.ALL_CHANNELS,
             type: 'group',
             renderer: async () => {
-                let entries = []
-                for(const category of this.loader.getCategories()) {
-                    category.entries.map(e => this.isChannel(e.name)).filter(e => !!e).forEach(e => {
+                let entries = [], already = {}
+                for(const category of this.channelList.getCategories()) {
+                    category.entries.map(e => this.isChannel(e.name)).filter(e => {
+                        if(!e || already[e.name]) return
+                        return already[e.name] = true
+                    }).forEach(e => {
                         const entry = this.toMetaEntry(e, category)
                         entry.details = category.name
                         entries.push(entry)
@@ -1493,7 +1500,7 @@ class Channels extends ChannelsKids {
         try {
             data = global.parseJSON(data)
             if(typeof(data) == 'object'){
-                this.loader.setCategories(data)
+                this.channelList.setCategories(data)
                 global.osd.show('OK', 'fas fa-check-circle faclr-green', 'options', 'normal')
             } else {
                 throw new Error('Not a JSON file.')
@@ -1514,7 +1521,7 @@ class Channels extends ChannelsKids {
                     fa: 'fas fa-file-export', 
                     action: () => {
                         const filename = 'categories.json', file = global.downloads.folder + path.sep + filename
-                        fs.writeFile(file, JSON.stringify(this.loader.getCategories(true), null, 3), {encoding: 'utf-8'}, err => {
+                        fs.writeFile(file, JSON.stringify(this.channelList.getCategories(true), null, 3), {encoding: 'utf-8'}, err => {
                             if(err) return global.displayErr(err)
                             global.downloads.serve(file, true, false).catch(global.displayErr)
                         })
@@ -1535,7 +1542,7 @@ class Channels extends ChannelsKids {
                     fa: 'fas fa-undo-alt', 
                     action: async () => {
                         global.osd.show(global.lang.PROCESSING, 'fa-mega spin-x-alt', 'options', 'persistent')
-                        await this.loader.reset()
+                        await this.channelList.reset()
                         await this.load()
                         global.osd.show('OK', 'fas fa-check-circle faclr-green', 'options', 'normal')
                     }
@@ -1658,7 +1665,7 @@ class Channels extends ChannelsKids {
         }        
         const renderer = async group => {
             console.error('GROUP='+ JSON.stringify(group))
-            let entries = await global.lists.group(group).catch(console.error)
+            let entries = await global.lists.group(group).catch(global.displayErr)
             if(Array.isArray(entries)) {
                 let gentries = (group.entries || []).map(g => groupToEntry(g))
                 while(entries.length == 1){
@@ -1681,7 +1688,6 @@ class Channels extends ChannelsKids {
                 }
                 return gentries
             } else {
-                process.nextTick(() => global.explorer.back(null, true))
                 return []
             }
         }

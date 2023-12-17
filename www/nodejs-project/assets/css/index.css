@@ -572,6 +572,9 @@ div#loading-layer {
     transition: opacity 0.5s ease-in 0s;
     flex-direction: column;
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.125) 0%, rgba(0, 0, 0, 0.068) 80%, rgba(0, 0, 0, 0.042) 90%, transparent 100%);
+    width: 100vw;
+    text-align: center;
+    justify-content: center;
 }
 div#loading-layer i.fa-mega {
     font-size: 150%;
@@ -1078,12 +1081,16 @@ span.entry-status-flag {
     white-space: pre;   
 }
 span.entry-status-flag i.fas.fa-times, span.entry-status-flag i.fas.fa-check {
-    margin: calc(var(--padding-quarter)*0.5) calc(var(--padding-quarter)*0.5) 0 calc(var(--padding-quarter)*0.5);
+    margin: calc(var(--padding-quarter) * 0.5) calc(var(--padding-quarter) * 0.5) 0 calc(var(--padding-quarter) * 0.5);
     font-size: calc(var(--explorer-entry-name-font-size) - var(--padding-quarter));
 }
 span.entry-status-flag i.fas.fa-play {
-    margin: calc(var(--padding-quarter)*0.5) 0 0 calc(var(--padding-quarter)*0.5);
-    font-size: calc(var(--explorer-entry-name-font-size) - var(--padding-quarter) - var(--padding-quarter));
+    margin: calc(var(--padding-quarter) * 0.5) 0 0 calc(var(--padding-quarter) * 0.75);
+    font-size: calc(var(--explorer-entry-name-font-size) - (2 * var(--padding-quarter)));
+}
+body.explorer-vertical span.entry-status-flag i.fas.fa-play {
+    margin: calc(var(--padding-quarter) * 0.5) 0 0 calc(var(--padding-quarter) * 1.25);
+    font-size: calc(var(--explorer-entry-name-font-size) - (4 * var(--padding-quarter)));
 }
 span.entry-status-flag-success {
     background: #094;

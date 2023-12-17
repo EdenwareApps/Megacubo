@@ -81,15 +81,16 @@ class StreamerAdapterBase extends Events {
 		return this.codecData
 	}
     connectAdapter(adapter){  
-		this.adapters.push(adapter) 
-        adapter.mediaType = this.mediaType
+		this.adapters.push(adapter)
+		adapter.mediaType = this.mediaType
+		adapter.on('type-mismatch', () => this.emit('type-mismatch'))
 		adapter.on('outside-of-live-window', () => this.emit('outside-of-live-window'))
-        adapter.on('dimensions', dimensions => {
-			if(dimensions && this._dimensions != dimensions){
+		adapter.on('dimensions', dimensions => {
+			if (dimensions && this._dimensions != dimensions) {
 				this._dimensions = dimensions
 				this.emit('dimensions', this._dimensions)
 			}
-        })
+		})
         adapter.on('codecData', codecData => {
 			this.addCodecData(codecData)
         })
@@ -132,7 +133,7 @@ class StreamerAdapterBase extends Events {
     }
     disconnectAdapter(adapter){
         adapter.removeListener('fail', this.onFail);
-        ['dimensions', 'codecData', 'bitrate', 'speed', 'commit', 'uncommit', 'wait'].forEach(n => adapter.removeAllListeners(n))
+        ['dimensions', 'codecData', 'bitrate', 'type-mismatch', 'speed', 'commit', 'uncommit', 'wait'].forEach(n => adapter.removeAllListeners(n))
 		let pos = this.adapters.indexOf(adapter)
 		if(pos != -1){
 			this.adapters.splice(pos, 1)

@@ -23,7 +23,10 @@ class DownloadStream extends DownloadStreamBase {
         if(this.destroyed){
             throw 'Already destroyed'
         }
-        const types = [DownloadStreamHttp]
+        const types = []
+        if(!this.opts.cachedOnly) {
+            types.push(DownloadStreamHttp)
+        }
         if(typeof(this.opts.cacheTTL) == 'number' && this.opts.cacheTTL > 0 && global.config.get('in-disk-caching')) {
             types.unshift(DownloadStreamCache)
         }
@@ -55,6 +58,11 @@ class DownloadStream extends DownloadStreamBase {
                         responseData = {
                             statusCode: response.statusCode,
                             headers: response.headers
+                        }
+                    } else if(this.opts.cachedOnly) {
+                        responseData = {
+                            statusCode: 404,
+                            headers: {}
                         }
                     }
                 }

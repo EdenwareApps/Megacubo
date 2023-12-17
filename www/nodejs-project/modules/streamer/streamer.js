@@ -53,7 +53,7 @@ class StreamerTools extends Events {
 		if(m && m.length > 1 && (m[1].length == 1 || m[1].toLowerCase() == 'file')){ // drive letter or file protocol
 			return true
 		} else {
-			if(file.length >= 2 && file.charAt(0) == '/' && file.charAt(1) != '/'){ // unix path
+			if(file.length >= 2 && file.startsWith('/') && file.charAt(1) != '/'){ // unix path
 				return true
 			}
 		}
@@ -65,7 +65,7 @@ class StreamerTools extends Events {
 		await this.pingSource(entry.source).catch(console.error)
 		let type = false
 		const now = global.time()
-		const cachingKey = this.infoCacheKey(url), skipSample = entry.skipSample || this.streamInfo.mi.isVideo(url)
+		const cachingKey = this.infoCacheKey(url), skipSample = entry.skipSample || entry.allowBlindTrust || this.streamInfo.mi.isVideo(url)
 		if(cachingKey && this.streamInfoCaching[cachingKey] && now < this.streamInfoCaching[cachingKey].until) {
 			if(skipSample || (this.streamInfoCaching[cachingKey].sample && this.streamInfoCaching[cachingKey].sample.length)) {
 				return this.streamInfoCaching[cachingKey]
@@ -81,8 +81,8 @@ class StreamerTools extends Events {
 			})
 		}
 		if(type){
-			if(type == 'ts' && !nfo.sample.length) {
-				console.error('empty response', nfo, Object.keys(this.engines).slice(0), this.destroyed)
+			if(type == 'ts' && !skipSample && !nfo.sample.length) {
+				console.error('empty response', entry, nfo, Object.keys(this.engines).slice(0), this.destroyed)
 				throw 'empty response'
 			}
 			nfo.type = type
@@ -345,6 +345,7 @@ class StreamerBase extends StreamerTools {
 						global.ui.emit('streamer-bitrate', bitrate)
 					}
 				})
+				intent.on('type-mismatch', () => this.typeMismatchCheck())
 				intent.on('fail', err => {
 					this.emit('uncommit', intent)
 					if(this.opts.debug){
@@ -389,6 +390,32 @@ class StreamerBase extends StreamerTools {
 		} else {
 			return 'NO INTENT'
 		}
+	}
+	async typeMismatchCheck(info) {
+		if(!this.active) return
+		if(this.active.typeMismatchChecked) return
+		this.active.typeMismatchChecked = true
+		let err
+		const data = this.active.data
+		if(!data.allowBlindTrust) return
+		data.allowBlindTrust = false
+		if(!info) info = await this.info(data.url, 2, data).catch(e => err = e)
+		if(err !== undefined) {
+			this.active.typeMismatchChecked = false
+			return false
+		}
+		this.active.typeMismatchChecked = info
+		const incorrectEngineDetected = this.active && info && 
+			info.type != this.active.info.type &&
+			this.engines[info.type]
+		
+		console.error('TYPEMISMATCH', info.type, this.active.info.type)
+		if(incorrectEngineDetected) {
+			// some servers use m3u8 ext but send mp2t content directly on it
+			// blind trust config may let pass these cases, so here is a late fix to reopen on right engine
+			await this.intentFromInfo(data, {}, false, info) // commit fixed intent
+		}
+		return true
 	}
 	async getProxyAdapter(intent) {
 		let adapter
@@ -667,12 +694,12 @@ class StreamerGoNext extends StreamerThrottling {
 	}
 	async saveQueue(e){
 		if(e.url){
-			const entries = global.explorer.pages[global.explorer.path].filter(n => n.url)
-			if(entries.length > 1 && entries.some(n => n.url == e.url)){
-				entries.forEach((n, i) => {
-					if(n.renderer) delete entries[i].renderer
-				})
-				global.storage.set('streamer-go-next-queue', entries, true)
+			const entries = global.explorer.currentStreamEntries(true) // will clone before alter
+			if(entries.length > 1){
+				global.storage.set('streamer-go-next-queue', entries.map(n => {
+					if(n.renderer) delete n.renderer
+					return n
+				}), true)
 			}
 		}
 	}
@@ -1392,7 +1419,7 @@ class Streamer extends StreamerAbout {
 			if(opts.name){
 				name = opts.name
 			}
-			let terms = opts.terms || global.lists.terms(name, false)
+			let terms = opts.terms || global.lists.terms(name)
 			silent || global.osd.show(global.lang.TUNING_WAIT_X.format(name), 'fa-mega spin-x-alt', 'streamer', 'persistent')
 			const listsReady = await global.lists.manager.waitListsReady(10)
 			if(listsReady !== true) {				
@@ -1408,7 +1435,7 @@ class Streamer extends StreamerAbout {
 				silent || global.explorer.setLoadingEntries(loadingEntriesData, false)
 				throw 'another play intent in progress'
 			}		
-			// console.warn('ABOUT TO TUNE', terms, name, JSON.stringify(entries), opts)
+			// console.error('ABOUT TO TUNE', terms, name, JSON.stringify(entries), opts)
 			entries = entries.results		
 			if(entries.length){
 				entries = entries.map(s => {

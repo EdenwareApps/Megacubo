@@ -29,7 +29,8 @@ class StreamerProxy extends StreamerProxyBase {
 			if(this.connections[uid].response){
 				if(data && typeof(data) != 'number' && global.isWritable(this.connections[uid].response)){
 					if(!this.connections[uid].response.headersSent){
-            			global.prepareCORS(response)
+            			const origin = this.type == 'network-proxy' ? '*' : undefined
+						this.connections[uid].response.writeHead(500, global.prepareCORS(response, undefined, origin))
 					}
 					this.connections[uid].response.end(data)
 				} else {
@@ -66,7 +67,7 @@ class StreamerProxy extends StreamerProxyBase {
         if(typeof(url) == 'string'){
             if(url.substr(0, 3) == '/s/'){
                 url = 'https://' + url.substr(3)
-            } else if(url.charAt(0) == '/' && url.charAt(1) != '/'){
+            } else if(url.startsWith('/') && url.charAt(1) != '/'){
                 url = 'http://' + url.substr(1)
             } else if(this.opts.addr && url.indexOf('//') != -1){
 				/*
@@ -90,6 +91,7 @@ class StreamerProxy extends StreamerProxyBase {
         return url
 	}
 	proxifyM3U8(body, url){
+		if(!this.isM3U8Content(body)) return body
 		body = body.replace(new RegExp('^ +', 'gm'), '')
 		body = body.replace(new RegExp(' +$', 'gm'), '')
 		let parser = new m3u8Parser.Parser(), replaces = {}, u
@@ -163,7 +165,7 @@ class StreamerProxy extends StreamerProxyBase {
 	applyM3U8Replace(body, from, to){
 		let lines = body.split("\n")
 		lines.forEach((line, i) => {
-			if(line.length < 3 || line.charAt(0) == '#'){
+			if(line.length < 3 || line.startsWith('#')) {
 				return
 			}
 			if(line.indexOf('/') == -1 || line.substr(0, 2) == './' || line.substr(0, 3) == '../'){
@@ -317,16 +319,9 @@ class StreamerProxy extends StreamerProxyBase {
 			}
 		})
 		download.once('response', (statusCode, headers) => {
-			headers = this.removeHeaders(headers, [
-				'transfer-encoding', 
-				'content-encoding', 
-				'keep-alive',
-				'strict-transport-security',
-				'content-security-policy',
-				'x-xss-protection',
-				'cross-origin-resource-policy'
-			])
-			headers = global.prepareCORS(headers, url)
+			const origin = this.type == 'network-proxy' ? '*' : undefined
+			headers = this.removeHeaders(headers, this.responseHeadersRemoval)
+			headers = global.prepareCORS(headers, url, origin)
 			if(this.opts.forceExtraHeaders){
 				Object.assign(headers, this.opts.forceExtraHeaders)
 			}
@@ -401,12 +396,19 @@ class StreamerProxy extends StreamerProxyBase {
 		download.start()
 	}
 	handleMetaResponse(download, statusCode, headers, response, end, url){
+		let data = []
 		if(!headers['content-type']){
 			headers['content-type'] = 'application/x-mpegURL'
 		}	
-		headers = this.removeHeaders(headers, ['content-length']) // we'll change the content
 		headers = this.addCachingHeaders(headers, 6) // set a min cache to this m3u8 to prevent his overfetching
-		download.once('end', data => {
+		download.on('data', chunk => {
+			data.push(chunk)
+			if(download.receivedUncompressed >= this.typeMismatchCheckingThreshold) {
+				this.typeMismatchCheck(data)
+			}
+		})		
+		download.once('end', () => {
+			data = Buffer.concat(data)
 			if(data && data.length > 12){
 				const isSRT = this.isSRT(headers, url)
 				if(isSRT) {

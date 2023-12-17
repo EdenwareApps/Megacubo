@@ -5,7 +5,7 @@ class StreamerBaseIntent extends Events {
 	constructor(data, opts, info){
         super()
         this.mimeTypes = {
-            hls: 'application/x-mpegURL', //; codecs="avc1.42E01E, mp4a.40.2"
+            hls: 'application/x-mpegURL',
             dash: 'application/dash+xml',
             mpegts: 'video/MP2T',
             video: 'video/mp4'
@@ -89,12 +89,13 @@ class StreamerBaseIntent extends Events {
             })
         }
     }
-    connectAdapter(adapter){    
+    connectAdapter(adapter) {
         this.adapters.push(adapter)
         adapter.mediaType = this.mediaType
+        adapter.on('type-mismatch', () => this.emit('type-mismatch'))
         adapter.on('outside-of-live-window', () => this.emit('outside-of-live-window'))
         adapter.on('dimensions', dimensions => {
-			this.emit('dimensions', dimensions)
+            this.emit('dimensions', dimensions)
         })
         adapter.on('codecData', codecData => this.addCodecData(codecData))
         adapter.on('speed', speed => {
@@ -134,7 +135,7 @@ class StreamerBaseIntent extends Events {
     }
     disconnectAdapter(adapter){
         adapter.removeListener('fail', this.failListener);
-        ['dimensions', 'codecData', 'bitrate', 'speed', 'commit', 'uncommit'].forEach(n => adapter.removeAllListeners(n))
+        ['dimensions', 'codecData', 'bitrate', 'type-mismatch', 'speed', 'commit', 'uncommit'].forEach(n => adapter.removeAllListeners(n))
         let pos = this.adapters.indexOf(adapter)
 		if(pos != -1){
 			this.adapters.splice(pos, 1)

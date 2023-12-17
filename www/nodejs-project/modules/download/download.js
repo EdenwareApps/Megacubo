@@ -531,8 +531,10 @@ class Download extends Events {
 							this.ignoreBytes = 0
 						}
 					}
-					if(this.contentLength != -1 && (chunk.length + this.received) > this.contentLength){
-						console.error('Received more data then expected', this.contentLength, this.opts.url, this.received + chunk.length, global.traceback(), global.Download.cache.index[this.opts.url])
+					const currentContentLength = chunk.length + this.received
+					if(this.contentLength != -1 && currentContentLength > this.contentLength){
+						console.warn('Received more data then expected ('+ this.retryCount +' retries), expected: '+ this.contentLength +', received: '+ (this.received + chunk.length), this.opts.url)
+						this.contentLength = currentContentLength
 					}
 					this.received += chunk.length
 					this.emitData(chunk)

@@ -17,15 +17,14 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 			this.currentSrc = src
 			this.currentMimetype = mimetype
 		}
-		const timeout = 10000
+		const timeout = 15000
 		const config = {
 			enableWorker: true,
 			liveDurationInfinity: false,
-			fragLoadingTimeOut: timeout,
-			fragLoadingMaxRetry: 1,
 			lowLatencyMode: true,
 			backBufferLength: 0,
-			fragLoadingMaxRetry: 0,
+			fragLoadingTimeOut: timeout,
+			fragLoadingMaxRetry: 1,
 			levelLoadingMaxRetry: 2,
 			manifestLoadingMaxRetry: 20,
 			fragLoadingMaxRetryTimeout: timeout,
@@ -40,7 +39,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 			console.error('HLS ERROR', data)			
 			if (!data) data = event
 			if(data && data.details) {
-				if(['fragParsingError', 'fragLoadError', 'bufferStalledError'].includes(data.details) && !data.fatal){
+				if(data.frag && ['fragParsingError', 'fragLoadError', 'bufferStalledError'].includes(data.details) && !data.fatal){
 					// handle fragment load errors
 					return this.skipCurrentSegment(data.frag)
 				} else if(data.details == 'manifestLoadTimeOut'){
@@ -52,6 +51,9 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 			if (data && data.fatal) {
 				switch (data.type) {
 					case ErrorTypes.MEDIA_ERROR:
+						if(data.frag) {
+							this.skipCurrentSegment(data.frag) // skip before recover to prevent loading same frag
+						}
 						console.error('HLS fatal media error encountered, reload')
 						hls.recoverMediaError()
 						break
@@ -73,17 +75,20 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 	}
 	skipCurrentSegment(frag) {
 		const start = frag.start + frag.duration
-		console.warn('Skip to '+ start)
 		if(frag.loader) {
+			console.warn('Fix level to '+ start)
 			frag.loader.abort()
 			loader.startPosition = start
 			hls.trigger(Events.LEVEL_LOADING, {
 				url: frag.url
 			})
 		} else {
+			const fixPlayback = this.hls.media.currentTime >= (frag.start - 2) && this.hls.media.currentTime < start
+			console.warn('Skip from '+ this.hls.media.currentTime +' to '+ start, fixPlayback)		
+			this.hls.stopLoad()
+			if(fixPlayback) this.hls.media.currentTime = start
 			this.hls.startLoad(start)
-			this.hls.recoverMediaError()
-			this.hls.media.play()
+			if(fixPlayback) this.hls.media.play()
 		}
 	}
 	unload() {

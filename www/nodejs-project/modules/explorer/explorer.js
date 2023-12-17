@@ -79,25 +79,18 @@ class Explorer extends Events {
             }
             this.open(path, tabindex).catch(global.displayErr)
         })
-        global.ui.on('explorer-check', (path, val) => {
-            this.check(path, val)
-        })
+        global.ui.on('explorer-action', (path, tabindex) => this.action(path, tabindex))
+        global.ui.on('explorer-back', () => this.back())
+        global.ui.on('explorer-check', (path, val) => this.check(path, val))
         global.ui.on('explorer-input', (path, val) => {
             if(this.opts.debug){
                 console.log('explorer-input', path, val)
             }
             this.input(path, val)
         })
-        global.ui.on('explorer-action', (path, tabindex) => {
-            this.action(path, tabindex)
-        })
         global.ui.on('explorer-select', (path, tabindex) => {
             this.select(path, tabindex).catch(global.displayErr)
         })
-        global.ui.on('explorer-back', () => {
-            this.back()
-        })
-
         this.applyFilters(this.pages[this.path], this.path).then(es => {
             this.pages[this.path] = es
             if(this.waitingRender){
@@ -299,7 +292,7 @@ class Explorer extends Events {
     }
     syncPages(){
         Object.keys(this.pages).forEach(page => {
-            if(this.path.indexOf(page) == -1){
+            if(this.path && this.path.indexOf(page) == -1){
                 delete this.pages[page]
             }
         })
@@ -518,11 +511,19 @@ class Explorer extends Events {
             i++
         }
         if(!found) {
+            // maybe it's a "ghost" page like search results, which is not linked on navigation
+            // but shown directly via render() instead
             if(typeof(this.pages[destPath]) != 'undefined'){ // fallback
                 console.error('path not found, falling back', destPath, this.pages[destPath])
                 return finish(this.pages[destPath])
             }
-            console.error('path not found', destPath, tabindex, basePath, page.map(e => e.name))
+            console.error('path not found', {
+                parentPath,
+                destPath,
+                tabindex,
+                basePath,
+                nmPage: page.map(e => e.name)
+            })
             throw 'path not found '+ global.traceback()
         }
     }
@@ -767,9 +768,7 @@ class Explorer extends Events {
             })
             this.pages[path] = this.currentEntries.slice(0)
             this.currentEntries = this.cleanEntries(this.currentEntries, 'renderer,entries,action')
-            if(path && this.path != path){
-                this.path = path
-            }
+            if(path && this.path != path) this.path = path
             this.syncPages()
         }
         if(this.rendering){

@@ -1068,7 +1068,7 @@ class StreamerClientTimeWarp extends StreamerLiveStreamClockTimer {
         parent.player.on('timeupdate', pos => this.doTimeWarp(pos))
         parent.player.on('durationchange', () => this.doTimeWarp())
         this.app.on('streamer-connect', (src, mimetype, cookie, mediatype) => {
-            if(!config['in-disk-caching'] && mimetype.indexOf('mpegurl') != -1 && mediatype != 'video') {
+            if(!config['in-disk-caching'] && mimetype.toLowerCase().indexOf('mpegurl') != -1 && mediatype != 'video') {
                 this.bufferTimeSecs = this.defaultBufferTimeSecs.pressure
             } else {
                 this.bufferTimeSecs = this.defaultBufferTimeSecs.lazy
@@ -1163,7 +1163,9 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
                 this.on('stop', () => {
                     clearTimeout(timer)
                     // wait a bit, maybe it will start again immediately, like when tuning
-                    timer = setTimeout(() => this.leaveFullScreen(), 1500)
+                    timer = setTimeout(() => {
+                        this.active || this.leaveFullScreen()
+                    }, 2000)
                 })
                 parent.plugins.megacubo.on('appmetrics', this.updateAndroidAppMetrics.bind(this))
                 parent.plugins.megacubo.on('nightmode', this.handleDarkModeInfoDialog.bind(this))
