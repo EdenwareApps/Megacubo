@@ -65,7 +65,7 @@ class StreamerTools extends Events {
 		await this.pingSource(entry.source).catch(console.error)
 		let type = false
 		const now = global.time()
-		const cachingKey = this.infoCacheKey(url), skipSample = entry.skipSample || entry.allowBlindTrust || this.streamInfo.mi.isVideo(url)
+		const cachingKey = this.infoCacheKey(url), skipSample = entry.skipSample || entry.allowBlindTrust || (entry.skipSample !== false && this.streamInfo.mi.isVideo(url))
 		if(cachingKey && this.streamInfoCaching[cachingKey] && now < this.streamInfoCaching[cachingKey].until) {
 			if(skipSample || (this.streamInfoCaching[cachingKey].sample && this.streamInfoCaching[cachingKey].sample.length)) {
 				return this.streamInfoCaching[cachingKey]

@@ -2,12 +2,12 @@
   "bugs": "https://www.facebook.com/messages/t/MegacuboTV",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.4.2",
-    "adm-zip": "github:efoxbr/adm-zip",
+    "adm-zip": "github:EdenwareApps/adm-zip",
     "agentkeepalive": "^4.3.0",
     "async": "^3.2.4",
     "bl": "^6.0.1",
     "buzz": "^1.2.1",
-    "bytenode": "github:efoxbr/bytenode",
+    "bytenode": "github:EdenwareApps/bytenode",
     "check-disk-space": "^3.3.1",
     "color-thief-jimp": "^2.0.2",
     "create-desktop-shortcuts": "^1.10.1",
@@ -27,7 +27,7 @@
     "moment-timezone": "^0.5.42",
     "mpegts.js": "^1.7.3",
     "node-cleanup": "^2.1.2",
-    "nw-custom-frame": "github:efoxbr/nw-custom-frame",
+    "nw-custom-frame": "github:EdenwareApps/nw-custom-frame",
     "opensubtitles.com": "^1.0.0",
     "p-queue": "^6.6.2",
     "png-to-ico": "^2.1.8",
@@ -41,14 +41,19 @@
     "swipey.js": "^1.0.3",
     "tough-cookie": "^4.1.2",
     "url-search-params-polyfill": "^8.1.1",
-    "xmltv": "github:efoxbr/node-xmltv",
+    "xmltv": "github:EdenwareApps/node-xmltv",
     "ytdl-core": "^4.11.5",
     "ytsr": "^3.8.4"
   },
   "description": "A intuitive, multi-language and cross-platform IPTV player.",
   "name": "megacubo",
+  "author": {
+    "name": "megacubo.tv",
+    "email": "contact@megacubo.tv",
+    "url": "https://megacubo.tv"
+},
   "icon": "./default_icon.png",
-  "version": "17.3.4",
+  "version": "17.3.5",
   "theme": {
     "fullScreen": true
   },

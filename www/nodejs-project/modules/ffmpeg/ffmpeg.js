@@ -219,7 +219,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 	}
 	codecs(nfo, raw) {
 		let rp = raw === true ? ': ([^\r\n]+)' : ': ([^,\r\n]+)'
-	    let video = nfo.match(new RegExp('Video' + rp)), audio = nfo.match(new RegExp('Audio' + rp)), unknown = nfo.match(new RegExp('Unknown' + rp))
+	    let video = nfo.match(new RegExp('Video'+ rp)), audio = nfo.match(new RegExp('Audio' + rp)), unknown = nfo.match(new RegExp('Unknown' + rp))
 	    video = Array.isArray(video) ? video[1] : (Array.isArray(unknown) ? 'unknown' : '')
 		audio = Array.isArray(audio) ? audio[1] : ''
 	    return {video, audio}

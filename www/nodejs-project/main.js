@@ -24,9 +24,6 @@ if(!global.cordova){
 const fs = require('fs'), path = require('path')
 
 global.APPDIR = String(__dirname || process.cwd()).replace(new RegExp('\\\\', 'g'), '/')
-if(!global.APPDIR.endsWith('/package.nw') && !fs.existsSync(global.APPDIR + '/package.json')){
-    global.APPDIR += '/package.nw'
-}
 global.MANIFEST = JSON.parse(fs.readFileSync(global.APPDIR + '/package.json'))
 
 global.tuning = false
@@ -42,7 +39,7 @@ if(global.cordova){
     if(fs.existsSync(global.APPDIR +'/.portable') && checkDirWritePermissionSync(global.APPDIR +'/.portable')) {
         global.paths = {data: global.APPDIR +'/.portable/Data', temp: global.APPDIR +'/.portable/temp'}
     } else {
-    	global.paths = require('env-paths')(global.global.MANIFEST.window.title, {suffix: ''})
+    	global.paths = require('env-paths')(global.MANIFEST.window.title, {suffix: ''})
     }
 }
 
@@ -463,7 +460,7 @@ const init = (language, timezone) => {
             if(global.streamer.zap.isZapping){
                 await global.streamer.zap.go()
             } else if(global.streamer.active && !global.streamer.active.isTranscoding()) {
-                if(type == 'timeout'){
+                if(type == 'timeout') {
                     if(!showingSlowBroadcastDialog){
                         let opts = [{template: 'question', text: global.lang.SLOW_BROADCAST}], def = 'wait'
                         let isCH = global.streamer.active.type != 'video' && global.channels.isChannel(global.streamer.active.data.terms ? global.streamer.active.data.terms.name : global.streamer.active.data.name)
@@ -490,7 +487,10 @@ const init = (language, timezone) => {
                             }
                             if(type == 'playback') { // if type stills being 'playback'
                                 const data = active.data
-                                data.allowBlindTrust = false
+                                Object.assign(data, {
+                                    allowBlindTrust: false,
+                                    skipSample: false
+                                })
                                 const info = await global.streamer.info(data.url, 2, data).catch(e => {
                                     type = 'request error'
                                 })

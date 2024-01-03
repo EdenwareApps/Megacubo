@@ -729,7 +729,9 @@ class Explorer extends Events {
     }
     currentStreamEntries(includeMegaStreams){
         return this.currentEntries.filter(e => {
-            return (!e.type ? (typeof(e.url) != 'undefined') : (e.type == 'stream')) && (includeMegaStreams !== true || global.mega.isMega(e.url))
+            if(e.url && (!e.type || e.type == 'stream')) {
+                return includeMegaStreams === true || !global.mega.isMega(e.url)
+            }
         })
     }
     cleanEntries(entries, props){ // clean entries by removing specific props

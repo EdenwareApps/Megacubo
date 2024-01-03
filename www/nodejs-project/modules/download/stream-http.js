@@ -10,7 +10,7 @@ const httpsJar = new CookieJar()
 const kaAgentOpts = {
     rejectUnauthorized: false,
 	keepAlive: true,
-	freeSocketTimeout: 4000, // The default server-side timeout is 5000 milliseconds, to avoid ECONNRESET exceptions, we set the default value to 4000 milliseconds.
+	freeSocketTimeout: 9000, // The default server-side timeout is 10000 milliseconds, to avoid ECONNRESET exceptions, we set the default value to 9000 milliseconds.
 	maxSockets: 4,
 	maxFreeSockets: 2,
 	socketActiveTTL: 30

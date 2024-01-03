@@ -9,7 +9,7 @@ module.exports = {
 	'broadcast-start-timeout': 40,
 	'channels-list-smart-sorting': 0,
 	'communitary-mode-lists-amount': 0,
-	'connect-timeout': 5,
+	'connect-timeout': 10,
 	'countries': [],
 	'custom-background-image': '',
 	'custom-background-video': '',

@@ -210,8 +210,8 @@ class StreamerProxy extends StreamerProxyBase {
 		this.networkOnly = enable
 		this.destroyAllConns()
 	}
-	disable(){
-		this.disabled = true
+	disable(type){
+		this.disabled = type || 'ts'
 		this.destroyAllConns()
 	}
 	enable(){
@@ -220,8 +220,8 @@ class StreamerProxy extends StreamerProxyBase {
 		}
 	}
 	handleRequest(req, response){
-		if(this.disabled){
-			response.writeHead(410, global.prepareCORS({
+		if(this.disabled && this.disabled != 'hls'){
+			response.writeHead(404, global.prepareCORS({ // 410 seems most apropriated but possibly less supported
 				'connection': 'close'
 			}, req))
 			return response.end()
@@ -415,6 +415,9 @@ class StreamerProxy extends StreamerProxyBase {
 					data = this.srt2vtt(String(data))
 				} else {
 					data = this.proxifyM3U8(String(data), download.currentURL)
+				}
+				if(this.disabled) {
+					data += "\r\n#EXT-X-ENDLIST"
 				}
 				headers['content-length'] = data.length
 				if(!response.headersSent){

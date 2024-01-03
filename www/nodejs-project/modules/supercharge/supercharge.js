@@ -364,7 +364,7 @@ function patch(scope, isBrowser){
 		return text
 	}
 	scope.listNameFromURL = url => {
-		let name
+		let name, subName
 		if (url.indexOf('?') !== -1) {
 			url.split('?')[1].split('&').forEach(s => {
 				s = s.split('=')
@@ -372,6 +372,11 @@ function patch(scope, isBrowser){
 					if (['name', 'dn', 'title'].includes(s[0])) {
 						if (!name || name.length < s[1].length) {
 							name = s[1]
+						}
+					}
+					if (['user', 'username'].includes(s[0])) {
+						if (!subName) {
+							subName = s[1]
 						}
 					}
 				}
@@ -399,7 +404,7 @@ function patch(scope, isBrowser){
             } else if(url.length == 1) {
                 return scope.trimExt(url[0], ['m3u'])
             } else {
-                return scope.trimExt(url[0].split('.')[0] + ' ' + url[url.length - 1], ['m3u'])
+                return scope.trimExt(url[0].split('.')[0] + ' ' + (subName || url[url.length - 1]), ['m3u'])
             }
         }
 	}
