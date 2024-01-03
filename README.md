@@ -5,11 +5,11 @@
 
 Megacubo is an intuitive, multi-language and cross-platform IPTV player with support for history, bookmarks and much more.
 
-You can add as many IPTV lists you want (M3U format) and with Miniplayer mode, you can work or navigate on your PC while watching any broadcast.
+You can add as many IPTV lists you want and with Miniplayer mode, you can work or navigate while watching any broadcast.
 
-Platforms: Windows, Linux, MacOS and Android.
+Megacubo can be installed on computers (Windows, Linux or macOS) and its Android version can be installed on smartphones, tablets, TV boxes, Android smart TVs and TV sticks.
 
-Available languages: English, Español, Português, Ελληνικά, Deutsch, Français, Italiano, हिन्दी, Polski, русский, Shqip, 普通话 and Türkçe.
+Available languages: English, Español, Português, عربي, বাংলা, Deutsch, Ελληνικά, Français, हिन्दी, Bahasa Indonesia, Italiano, 日本, ਪੰਜਾਬੀ, Polski, русский, Shqip, Kiswahili, తెలుగు, Türkçe, اردو and 普通话.
 
 Can you help us by adding [more languages](https://github.com/efoxbr/megacubo/tree/master/www/nodejs-project/lang) or improving current ones?
 
