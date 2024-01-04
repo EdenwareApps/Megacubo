@@ -1,14 +1,14 @@
 
 # Development setup.
 
-### With NW.js (for desktop):
-Easier and recommended way. [NW.js installed version](https://subscription.packtpub.com/book/web-development/9781785280863/1/ch01lvl1sec10/downloading-and-installing-nw-js) should be >= 0.37.4.
+### With Electron (for desktop):
+Easier and recommended way.
 ```
 git clone https://github.com/efoxbr/megacubo.git
-# put ffmpeg binary at ./megacubo/www/nodejs-project/ffmpeg/ (named as ffmpeg or ffmpeg.exe)
+# (optional) put ffmpeg binary at ./megacubo/www/nodejs-project/ffmpeg/ (named as 'ffmpeg' or 'ffmpeg.exe')
 cd megacubo
 npm --prefix ./www/nodejs-project install ./www/nodejs-project
-nw --nwapp=www/nodejs-project
+npm run start
 ```
 
 ### With Cordova (for Android):
