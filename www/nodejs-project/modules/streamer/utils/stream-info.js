@@ -203,7 +203,7 @@ class StreamInfo {
 			if(!ret.directURL){
 				ret.directURL = ret.url
 			}
-			ret.ext = this.ext(ret.directURL) || this.ext(url)
+			ret.ext = this.mi.ext(ret.directURL) || this.mi.ext(url)
 			return ret
 		} else if(this.validate(url)) { // maybe rtmp
 			let ret = {}
@@ -212,7 +212,7 @@ class StreamInfo {
 			ret.contentLength = 999999
 			ret.url = url
 			ret.directURL = url
-			ret.ext = this.ext(url)
+			ret.ext = this.mi.ext(url)
 			return ret
 		} else if(this.isLocalFile(url)) {
 			let err
@@ -224,7 +224,7 @@ class StreamInfo {
 				ret.contentLength = stat.size
 				ret.url = url
 				ret.directURL = url
-				ret.ext = this.ext(url)
+				ret.ext = this.mi.ext(url)
 				ret.isLocalFile = true
 
 				let err
@@ -237,15 +237,6 @@ class StreamInfo {
 			throw global.lang.INVALID_URL
 		}
 	}
-    ext(file){
-		let basename = String(file).split('?')[0].split('#')[0].split('/').pop()
-		basename = basename.split('.')
-		if(basename.length > 1){
-			return basename.pop().toLowerCase()
-		} else {
-			return ''
-		}
-    }
 	proto(url, len){
 		var ret = '', res = url.split(':')
 		if(res.length > 1 && res[0].length >= 3 && res[0].length <= 6){

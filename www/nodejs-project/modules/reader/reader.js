@@ -15,11 +15,22 @@ class Reader extends Readable {
 		process.nextTick(() => this.openFile())
 	}
 	_read(size) {
+		clearTimeout(this.nextReadTimer)
 		if (this.isPaused()) {
-			return this.once('resume', () => this._read(size))
+			this.once('resume', () => this._read(size))
+			return
 		}
 		if (this.fd === null) {
-			return this.once('open', () => this._read(size))
+			this.once('open', () => this._read(size))
+			return
+		}
+		if(this._isReading) {
+			return
+		}
+		if(this.closed) {
+			this.close()
+			this.push(null)
+			return
 		}
 		const remainingBytes = this.end !== undefined ? this.end - this.bytesRead : undefined
 		if (this.end !== undefined && remainingBytes <= 0) {
@@ -30,7 +41,13 @@ class Reader extends Readable {
 		const bufferSize = Math.min(size || this.bufferSize, remainingBytes || this.bufferSize)
 		const buffer = Buffer.alloc(bufferSize)
 		const position = this.start + this.bytesRead
+		this._isReading = true
 		fs.read(this.fd, buffer, 0, bufferSize, position, (err, bytesRead) => {
+			if (bytesRead && bytesRead > 0) {
+				this.bytesRead += bytesRead
+				this.push(buffer.slice(0, bytesRead))
+			}
+			this._isReading = false
 			if (err) {
 				console.error('READER ERROR: '+ err)
 				this.emit('error', err)
@@ -40,8 +57,8 @@ class Reader extends Readable {
 				this.push(buffer.slice(0, bytesRead))
 			} else {
 				if(this.opts.persistent === true) {
-					setTimeout(() => {
-						this._read(size)
+					this.nextReadTimer = setTimeout(() => {
+						if(this.fd) this._read()
 					}, 1000)
 				} else {
 					this.close()

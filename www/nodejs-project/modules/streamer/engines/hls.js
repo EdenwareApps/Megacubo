@@ -1,5 +1,5 @@
-const StreamerBaseIntent = require('./base.js'), StreamerProxy = require('../utils/proxy.js'), StreamerHLSProxy = require('../utils/proxy-hls.js')
-const StreamerFFmpeg = require('../utils/ffmpeg'), async = require('async'), m3u8Parser = require('m3u8-parser')
+const StreamerBaseIntent = require('./base.js'), StreamerHLSProxy = require('../utils/proxy-hls.js')
+const StreamerFFmpeg = require('../utils/ffmpeg'), m3u8Parser = require('m3u8-parser')
 
 class HLSTrackSelector {
     constructor(){
@@ -125,11 +125,6 @@ class StreamerHLSIntent extends StreamerBaseIntent {
         let opts = this.getTranscodingOpts()
         this.trackUrl = ret.url
         this.setActiveQualityTrack(ret.url, ret.bandwidth)
-        this.prx = new StreamerProxy(Object.assign({
-            authURL: this.data.authURL || this.data.source
-        }, this.opts))
-        this.connectAdapter(this.prx)
-        await this.prx.start().catch(e => err = e)
         if (err) { 
             this.transcoderStarting = false
             this.emit('transcode-failed', err)
@@ -186,9 +181,8 @@ class StreamerHLSIntent extends StreamerBaseIntent {
         this.endpoint = this[type].endpoint
     }
     async _start(){ 
-        const prefetch = global.config.get('hls-prefetching')
         const useff = await this.useFF()
-        this.prx = new (prefetch ? StreamerHLSProxy : StreamerProxy)(Object.assign({
+        this.prx = new StreamerHLSProxy(Object.assign({
             authURL: this.data.authURL || this.data.source,
             discardContentLength: true
         }, this.opts))

@@ -20,17 +20,22 @@ class HLSJournal {
 	}
 	process(content){
 		if(content){
-			let header = [], segments = {}, extinf
+			let header = [], segments = {}, extinf, currentSegmentName
 			content.split("\n").filter(s => s.length >= 7).forEach(line => {
 				let isExtinf = line.substr(0, 7) == '#EXTINF'
 				if(isExtinf){
 					extinf = line
+					currentSegmentName = null
 				} else if(extinf) {
 					if(line.startsWith('#')) {
 						extinf += "\r\n"+ line
+						if(currentSegmentName) {
+							segments[currentSegmentName] = extinf
+						}
 					} else {
-						let name = this.segmentName(line)
-						segments[name] = extinf +"\r\n"+ line
+						currentSegmentName = this.segmentName(line)
+						extinf += "\r\n"+ line
+						segments[currentSegmentName] = extinf
 					}
 				} else {
 					header.push(line)
@@ -559,14 +564,6 @@ class StreamerProxyHLS extends HLSRequests {
 					}
 				})
 			}
-			/*
-			body = body.replace(new RegExp('(URI="?)((https?://||//)[^\\n"\']+)', 'ig'), (...match) => { // for #EXT-X-KEY:METHOD=AES-128,URI="https://...
-				if(match[2].indexOf('127.0.0.1') == -1){
-					match[2] = this.proxify(match[2])
-				}
-				return match[1] + match[2]
-			})
-			*/
 			body = body.replace(new RegExp('(URI="?)([^\\n"\']+)', 'ig'), (...match) => { // for #EXT-X-KEY:METHOD=AES-128,URI="https://...
 				if(match[2].indexOf('127.0.0.1') == -1){
 					match[2] = global.absolutize(match[2], baseUrl)
@@ -732,7 +729,7 @@ class StreamerProxyHLS extends HLSRequests {
 				/* avoid to passthrough 403 errors to the client as some streams may return it esporadically */
 				return abort()					
 			}
-			if(statusCode >= 200 && statusCode < 300){ // is data response
+			if(statusCode >= 200 && statusCode < 300) { // is data response
 				if(statusCode == 206){
 					statusCode = 200
 				}
@@ -840,9 +837,14 @@ class StreamerProxyHLS extends HLSRequests {
 			}
 			end()
 		})
-	}	
+	}
 	handleResponse(download, statusCode, headers, response, end){
-		if(this.ext(download.currentURL) == 'm3u8' || this.ext(download.opts.url) == 'm3u8' || (headers['content-type'] && headers['content-type'].match(this.mpegURLRegex))) {
+		const ext1 = this.ext(download.opts.url)
+		const ext2 = this.ext(download.currentURL)
+		if(
+			ext1 == 'm3u8' || ext2 == 'm3u8' || 
+			(!ext1 && !ext2 && headers['content-type'] && headers['content-type'].match(this.mpegURLRegex)) // TS segments sent with application/x-mpegURL has been seen ¬¬
+		) {
 			return this.handleMetaResponse(download, statusCode, headers, response, end)
 		}
 		let closed

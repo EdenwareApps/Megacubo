@@ -20,9 +20,7 @@ class StreamState extends Events {
         }).catch(global.displayErr)
         global.streamer.on('connecting', () => this.cancelTests())
         global.streamer.on('connecting-failure', data => {
-            if(data){
-                this.set(data.url, 'offline', true, { source: data.source })
-            }
+            data && this.set(data.url, 'offline', true, { source: data.source })
             this.test(global.explorer.currentStreamEntries()).catch(console.error)
         })
         global.streamer.on('commit', intent => {
@@ -39,9 +37,7 @@ class StreamState extends Events {
             }
         })
         global.streamer.on('failure', data => {
-            if(data){
-                this.set(data.url, 'offline', true, { source: data.source })
-            }
+            data && this.set(data.url, 'offline', true, { source: data.source })
         })
         global.streamer.on('stop', (err, e) => {
             setTimeout(() => {
@@ -57,7 +53,7 @@ class StreamState extends Events {
                 this.test(entries).catch(console.error)
             }
         })
-        global.ui.on('state-atts', (url, atts) => {
+        global.ui.on('state-atts', (url, atts) => { // playback data from player
             let state
             if(global.streamer.active && url == global.streamer.active.data.url) {
                 state = global.streamer.active.type
@@ -97,7 +93,7 @@ class StreamState extends Events {
     set(url, state, isTrusted, atts){
         if(typeof(this.data) == 'object') {
             if(!isTrusted && typeof(this.clientFailures[url]) != 'undefined') {
-                return
+                state = 'offline'
             }
             let isMega = global.mega.isMega(url)
             if(!isMega) {
@@ -121,20 +117,20 @@ class StreamState extends Events {
                             this.data[url][k] = atts[k]
                             changed = true
                         }
-                    } else if(atts[k] != this.data[url]){
+                    } else if(atts[k] != this.data[url][k]){
                         this.data[url][k] = atts[k]
                         changed = true
                     }
                 })
-                if(isTrusted){
-                    if(state){
-                        if(typeof(this.clientFailures[url]) != 'undefined'){
-                            delete this.clientFailures[url]
+                if(isTrusted) {
+                    if(state == 'offline'){
+                        if(typeof(this.clientFailures[url]) == 'undefined'){
+                            this.clientFailures[url] = true
                             changed = true
                         }
                     } else {
-                        if(typeof(this.clientFailures[url]) == 'undefined'){
-                            this.clientFailures[url] = true
+                        if(typeof(this.clientFailures[url]) != 'undefined'){
+                            delete this.clientFailures[url]
                             changed = true
                         }
                     }
@@ -321,7 +317,7 @@ class StreamState extends Events {
         this.set(entry.url, info.type, false, { source: entry.source })
     }
     failure(entry){
-        this.set(entry.url, 'offline', false, { source: entry.source })
+        this.set(entry.url, 'offline', true, { source: entry.source })
     }
     cancelTests(){
         if(this.testing){

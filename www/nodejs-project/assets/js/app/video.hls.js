@@ -78,8 +78,8 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 		if(frag.loader) {
 			console.warn('Fix level to '+ start)
 			frag.loader.abort()
-			loader.startPosition = start
-			hls.trigger(Events.LEVEL_LOADING, {
+			frag.loader.startPosition = start
+			this.hls.trigger(Events.LEVEL_LOADING, {
 				url: frag.url
 			})
 		} else {

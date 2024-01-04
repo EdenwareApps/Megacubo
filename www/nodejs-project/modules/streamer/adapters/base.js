@@ -26,6 +26,7 @@ class StreamerAdapterBase extends Events {
 		this.bitrateChecker.on('bitrate', (...args) => this.emit('bitrate', ...args))
 		this.bitrateChecker.on('codecData', this.addCodecData.bind(this))
 		this.bitrateChecker.on('dimensions', (...args) => this.emit('dimensions', ...args))
+		this.extAsURLParam = new RegExp('[#&\\?]ext=([^&]+)')
 		this.errors = []
         this.type = 'base'
 		this.downloadLogging = {}
@@ -146,7 +147,16 @@ class StreamerAdapterBase extends Events {
         }
     }
 	ext(url){
-		return String(url).split('?')[0].split('#')[0].split('.').pop().toLowerCase()  
+		let parts = url.split('?')[0].split('#')[0].split('/').pop().split('.')
+		if(parts.length > 1) {
+			const ext = parts.pop()
+			if(ext.length >= 2 && ext.length <= 4) return ext.toLowerCase()
+		}
+		if(url.indexOf('ext=') != -1) {
+			const m = url.match(this.extAsURLParam)
+			if(m && m[1].length >= 2 && m[1].length <= 4) return m[1].toLowerCase()
+		}
+		return ''
 	}
 	proto(url, len){
 		var ret = '', res = url.match(new RegExp('^([A-Za-z0-9]{2,6}):'))
