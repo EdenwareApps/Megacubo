@@ -11,12 +11,12 @@ Megacubo can be installed on computers (Windows, Linux or macOS) and its Android
 
 Available languages: English, Español, Português, عربي, বাংলা, Deutsch, Ελληνικά, Français, हिन्दी, Bahasa Indonesia, Italiano, 日本, ਪੰਜਾਬੀ, Polski, русский, Shqip, Kiswahili, తెలుగు, Türkçe, اردو and 普通话.
 
-Can you help us by adding [more languages](https://github.com/efoxbr/megacubo/tree/master/www/nodejs-project/lang) or improving current ones?
+Can you help us by adding [more languages](https://github.com/EdenwareApps/Megacubo/tree/master/www/nodejs-project/lang) or improving current ones?
 
 <br/>
 
 # Releases
-Want to use the software, go to [our releases folder](https://github.com/efoxbr/megacubo/releases) to get it.
+Want to use the software, go to [our releases folder](https://github.com/EdenwareApps/Megacubo/releases) to get it.
 
 <br/>
 
@@ -32,8 +32,8 @@ Want to use the software, go to [our releases folder](https://github.com/efoxbr/
 
 # Contributing
 
-Please, feel free to contribute to the project by opening a discussion under Issues section or [sending your PR](https://github.com/efoxbr/megacubo/blob/master/DEVELOPING.md).
+Please, feel free to contribute to the project by opening a discussion under Issues section or [sending your PR](https://github.com/EdenwareApps/Megacubo/blob/master/DEVELOPING.md).
 
-You can help us by [improving/creating translations](https://github.com/efoxbr/megacubo/tree/master/www/nodejs-project/lang) and the [known channel names list for your country](https://github.com/efoxbr/world-tv-channels).
+You can help us by [improving/creating translations](https://github.com/EdenwareApps/Megacubo/tree/master/www/nodejs-project/lang) and the [known channel names list for your country](https://github.com/EdenwareApps/world-tv-channels).
 
 Do you want to thank me for the development and help maintain this project in another way? How about buying me a coffee via [PayPal by clicking here](https://www.paypal.com/donate/?item_name=megacubo.tv&cmd=_donations&business=efox.web%40gmail.com)? This will help me a lot! :)
