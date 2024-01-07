@@ -391,6 +391,7 @@ div#home-arrows > div > * {
     font-size: 0;
     width: var(--explorer-width);
     height: inherit;
+    scroll-snap-type: y mandatory;
     transition: transform var(--explorer-fx-nav-duration) ease-in-out 0s;
 }
 #explorer content wrap a {
@@ -402,6 +403,7 @@ div#home-arrows > div > * {
     overflow: hidden;
     color: var(--font-color);
     text-align: center;
+    scroll-snap-align: start;
 }
 #explorer .entry-loading {
     opacity: var(--opacity-level-4);

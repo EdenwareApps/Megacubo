@@ -261,18 +261,14 @@ class ExplorerSelectionMemory extends ExplorerBase {
 	}
 	updateSelectionCB(path, icon){
 		if(this.isExploring()){
-            this.scrollDirection = ''
-            this.scrollSnapping = true
-			let target = 0, index = 1
+            let target = 0, index = 1
 			const inSearch = path.indexOf(lang.SEARCH) != -1 || this.path.indexOf(lang.MORE_RESULTS) != -1 || this.path.indexOf(lang.SEARCH_MORE) != -1
 			const inSameSearch = inSearch && this.selectionMemory[path] && this.currentSearch == this.selectionMemory[path].search		
 			if(inSearch && !inSameSearch){
                 this._scrollContainer.scrollTop = target
                 this.focusIndex(index, false, true)
-                this.scrollSnapping = false
-				return true
+            	return true
             } else {
-                this.scrolling = false
 				return this.restoreSelection()
 			}
 		}
@@ -292,7 +288,6 @@ class ExplorerSelectionMemory extends ExplorerBase {
 			}
         }
         //console.log('selectionMemory restore', data.scroll, data.index, this.path)
-		// this._scrollContainer.scrollTop = data.scroll
         this.scrollTop(data.scroll)
         if(this.activeView().level == 'default'){
 			let range = this.viewportRange(data.scroll)
@@ -305,11 +300,7 @@ class ExplorerSelectionMemory extends ExplorerBase {
         }
     }
 	scrollTop(y){
-        if(typeof(this._scrollContainer.scrollTo) == 'function'){
-			this._scrollContainer.scrollTo(0, y)
-		} else {
-			this._scrollContainer.scrollTop = y
-		}
+        this._scrollContainer.scrollTop = y
 	}
 }
 
@@ -320,12 +311,6 @@ class ExplorerPointer extends ExplorerSelectionMemory {
             container = document.querySelector(container)
         }
 		this._scrollContainer = container.querySelector('wrap')
-		if(typeof(this._scrollContainer.scrollTo) != 'function'){
-			this._scrollContainer.scrollTo = (x, y) => { // "scrollTo is not a function" in a tx2 tvbox device
-				this._scrollContainer.scrollTop = y
-				this._scrollContainer.scrollLeft = x
-			}
-		}
 		this.scrollContainer = this.j(this._scrollContainer)
 		this.views = []
 		this.defaultNavGroup = ''
@@ -336,140 +321,31 @@ class ExplorerPointer extends ExplorerSelectionMemory {
         this.setViewSize(2, 5, 1, 8)
         this.mouseWheelMovingTime = 0
         this.mouseWheelMovingInterval = 300
-        this.scrolling = false
         this.scrollingTimer = 0
-        this.scrollDirection = 'down'
-		this.scrollMouseUpTimer = 0
-		this.lastScrollTop = 0
-		this.scrollContainer.on('mousedown', () => {
-			clearTimeout(this.scrollMouseUpTimer)
-			this.manuallyScrolling = true
-			this.manuallyScrollingStartScrollTop = this.lastScrollTop
-		})
-		this.scrollContainer.on('mouseup', () => {
-			if (!this.manuallyScrolling) return
-			clearTimeout(this.scrollMouseUpTimer)
-			this.manuallyScrolling = false
-			if (this.manuallyScrollingStartScrollTop != this.lastScrollTop) {
-				this.scrollMouseUpTimer = setTimeout(() => {
-					this.scrollSnap(this.lastScrollTop, this.scrollDirection, () => { })
-				}, 400)
-			}
-		});
-        ['touchmove', 'scroll', 'mousewheel', 'DOMMouseScroll'].forEach(n => {
-            this.scrollContainer.on(n, event => {
-				clearTimeout(this.scrollMouseUpTimer)
-                if(this.debug){
-                    console.log('pointer.scroll', this.rendering)
-                }
-                if(this.rendering){
-                    return
-                }
-                let isTrusted
-                if(n == 'scroll'){
-                    isTrusted = false
-                } else {
-                    if(typeof(event.isTrusted) != 'undefined'){
-                        isTrusted = event.isTrusted
-                    } else if(event.originalEvent && typeof(event.originalEvent.isTrusted) != 'undefined'){
-                        isTrusted = event.originalEvent.isTrusted
-                    }
-                }
-                if(this.debug){
-                    console.log('pointer.scroll', n, this.scrollSnapping, isTrusted, event)
-                }
-                if(this.scrollSnapping){
-                    if(isTrusted){
-                        this.scrollContainer.stop(true, false)
-                        this.scrollSnapping = false
-                    }
-                }
-				clearTimeout(this.scrollingTimer)
-				let st = this._scrollContainer.scrollTop
-				if (!this.scrollSnapping) {
-					if (st > this.lastScrollTop) {
-						this.scrollDirection = 'down'
-					} else if (st < this.lastScrollTop) {
-						this.scrollDirection = 'up'
-					}
-				}
-				if (this.debug) {
-					console.log('pointer.scroll', n, this.lastScrollTop, st)
-				} 
-                if(['mousewheel', 'DOMMouseScroll'].indexOf(n) != -1){
-                    this.scrolling = false
-                    let now = (new Date()).getTime()
-                    if(now > (this.mouseWheelMovingTime + this.mouseWheelMovingInterval)){
-                        this.mouseWheelMovingTime = now
-                        let delta = (event.originalEvent.wheelDelta || -event.originalEvent.detail)
-                        this.arrow((delta > 0) ? 'up' : 'down', true)
-                        this.emit('scroll', this.lastScrollTop, this.scrollDirection)
-                    }
-                    event.preventDefault()
-                } else { 
-                    if(this.lastScrollTop != st){
-                        this.lastScrollTop = st    
-                        this.scrolling = true
-                        this.scrollingTimer = setTimeout(() => {
-                            if(this.debug){
-                                console.log('pointer.scroll', this.rendering)
-                            }
-                            if(this.rendering){
-                                return
-                            }
-                            if(this.scrolling){
-                                this.scrolling = false
-                            }
-                            const done = () => {                                
-                                if(this.debug){
-                                    console.log('pointer.scroll', this.rendering)
-                                }
-                                if(this.rendering) return
-                                this.emit('scroll', this.lastScrollTop, this.scrollDirection)
-                            }
-                            if(this.manuallyScrolling){
-                                done()
-                            } else {
-                                this.scrollSnap(this.lastScrollTop, this.scrollDirection, done)
-                            }
-                        }, 250)
-                    }
-                }
-            })
+        this.scrollContainer.on('scroll', () => {
+			this.resetScrollEmittingTimer(this.rendering)
         }) 
         window.addEventListener('resize', this.resize.bind(this))
 		this.resize() // to apply initial icons size
     }
-    scrollSnap(scrollTop, direction, cb){
-        if(this.rendering){
-			return cb()
-        }
-        if(scrollTop == 0 && this._scrollContainer.scrollTop == 0){ 
-            return cb()
-        }
-		if(this._scrollContainer.scrollTop == this.lastScrollSnappingScrollTop) { // prevent looping on consecutive scroll snappings
-			return cb()
-		}
-        let h = this.currentElements[0].offsetHeight, ih = parseInt(scrollTop / h)
-        let start = ih * h, end = start + h, startDf = Math.abs(start - scrollTop), endDf = Math.abs(end - scrollTop)
-        if(direction == 'down') {
-            if((startDf + (h / 3)) > endDf){ // give down direction hint of 1/3
-                ih--
-            }
-        } else { // up by default, if not defined
-            if((startDf - (h / 3)) > endDf){ // give up direction hint of 1/3
-                ih++
-            }
-        }
-        this.scrollSnapping = true
-		const newScrollTop = this.currentElements[ih * this.viewSizeX] ? this.currentElements[ih * this.viewSizeX].offsetTop : ih * h
-        this.lastScrollSnappingScrollTop = newScrollTop
-        this.scrollContainer.stop().animate({scrollTop: newScrollTop}, 150, () => {
-            this.scrollSnapping = false
-            this.lastScrollTop = this._scrollContainer.scrollTop
-            cb()
-        })
-    }
+	resetScrollEmittingTimer(clear) {
+		clearTimeout(this.scrollingTimer)
+		if(clear === true) return
+		this.scrollingTimer = setTimeout(() => {
+			if(this.debug){
+				console.log('pointer.scroll', this.rendering)
+			}
+			if(this.rendering) return
+			const done = () => {                                
+				if(this.debug){
+					console.log('pointer.scroll', this.rendering)
+				}
+				if(this.rendering) return
+				this.emit('scroll', this._scrollContainer.scrollTop)
+			}
+			done()
+		}, 250)
+	}
     setViewSize(x, y, px, py){
         this._viewSizeX = x
         this._viewSizeY = y
@@ -882,15 +758,11 @@ class ExplorerPointer extends ExplorerSelectionMemory {
             if(this.debug){
                 console.warn('POINTER', closer, closerDist)
             }
-            let pst = this._scrollContainer.scrollTop
+            let previousScrollTop = this._scrollContainer.scrollTop
             this.focus(closer)
             if(view.default){   
-                this.lastScrollTop = this._scrollContainer.scrollTop
-				if (this.lastScrollTop != pst) {
-					if (!this.scrollSnapping) {
-						this.scrollDirection = (this.lastScrollTop < pst) ? 'up' : 'down'
-					}
-					this.emit('scroll', this.lastScrollTop, this.scrollDirection)
+                if (this._scrollContainer.scrollTop != previousScrollTop) {
+					this.emit('scroll', this._scrollContainer.scrollTop)
 				}
             } else {
                 closer.scrollIntoViewIfNeeded({ behavior: 'smooth', block: 'nearest', inline: 'start' })
@@ -2054,7 +1926,7 @@ class Explorer extends ExplorerLoading {
 	}
 	render(entries, path, icon){
 		this.rendering = true
-		clearTimeout(this.scrollingTimer)
+		this.resetScrollEmittingTimer()
 		let html = '', targetScrollTop = 0
 		if(typeof(this.selectionMemory[path]) != 'undefined') {
 			targetScrollTop = this.selectionMemory[path].scroll

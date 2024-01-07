@@ -665,8 +665,9 @@ const init = (language, timezone) => {
                     {template: 'question', text: ucWords(global.MANIFEST.name) +' v'+ global.MANIFEST.version +' > v'+ c.version, fa: 'fas fa-star'},
                     {template: 'message', text: global.lang.NEW_VERSION_AVAILABLE},
                     {template: 'option', text: global.lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
-                    {template: 'option', text: global.lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle'},
-                    {template: 'option', text: global.lang.HOW_TO_UPDATE, id: 'how', fa: 'fas fa-question-circle'}
+                    {template: 'option', text: global.lang.HOW_TO_UPDATE, id: 'how', fa: 'fas fa-question-circle'},
+                    {template: 'option', text: global.lang.WHATS_NEW, id: 'changelog', fa: 'fas fa-info-circle'},
+                    {template: 'option', text: global.lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle'}
                 ], 'yes')
                 console.log('update callback', chosen)
                 if(chosen == 'yes'){
@@ -677,6 +678,9 @@ const init = (language, timezone) => {
                         {template: 'message', text: global.lang.UPDATE_APP_INFO},
                         {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
                     ], 'yes')
+                    await updatePrompt(c)
+                } else if(chosen == 'changelog') {
+                    global.ui.emit('open-external-url', 'https://github.com/EdenwareApps/Megacubo/releases/latest')
                     await updatePrompt(c)
                 }
             }
