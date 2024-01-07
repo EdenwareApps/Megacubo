@@ -759,6 +759,12 @@ if(global.cordova) {
         })
     }
 
+    global.ui.on('electron-relaunch', () => {
+        app.relaunch()
+        app.quit()
+        setTimeout(() => app.exit(), 2000) // some deadline
+    })
+
     const initAppWindow = async () => {
         const isLinux = process.platform == 'linux'
         await global.updateUserTasks(app).catch(console.error)

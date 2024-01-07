@@ -43,7 +43,8 @@ class Reader extends Readable {
 		const position = this.start + this.bytesRead
 		this._isReading = true
 		fs.read(this.fd, buffer, 0, bufferSize, position, (err, bytesRead) => {
-			if (bytesRead && bytesRead > 0) {
+			const readen = bytesRead > 0
+			if (readen) {
 				this.bytesRead += bytesRead
 				this.push(buffer.slice(0, bytesRead))
 			}
@@ -52,10 +53,7 @@ class Reader extends Readable {
 				console.error('READER ERROR: '+ err)
 				this.emit('error', err)
 				this.close()
-			} else if (bytesRead > 0) {
-				this.bytesRead += bytesRead
-				this.push(buffer.slice(0, bytesRead))
-			} else {
+			} else if (!readen) {
 				if(this.opts.persistent === true) {
 					this.nextReadTimer = setTimeout(() => {
 						if(this.fd) this._read()

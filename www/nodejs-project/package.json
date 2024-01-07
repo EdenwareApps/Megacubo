@@ -53,7 +53,7 @@
     "url": "https://megacubo.tv"
 },
   "icon": "./default_icon.png",
-  "version": "17.3.6",
+  "version": "17.3.7",
   "theme": {
     "fullScreen": true
   },

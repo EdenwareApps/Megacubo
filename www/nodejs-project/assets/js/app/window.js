@@ -90,7 +90,13 @@ class WinMan extends EventEmitter {
 				if(typeof(plugins) != 'undefined' && plugins.megacubo){ // cordova
 					return plugins.megacubo.restartApp()
 				} else if(parent.parent.Manager) {
-					return parent.parent.Manager.restart()
+					let w = this.getAppWindow()
+					if(w && w.app) {
+						w.app.emit('electron-relaunch')
+					} else {
+						parent.parent.Manager.restart()
+					}
+					return
 				}
 			}
 			this.exit()
