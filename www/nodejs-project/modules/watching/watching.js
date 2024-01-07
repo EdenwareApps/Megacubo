@@ -41,12 +41,16 @@ class Watching extends EntriesGroup {
             cb()
         } else {
             this.once('update', cb)
+            if(!this.updating) {
+                this.update().catch(console.error)
+            }
         }
     }
     showChannelOnHome(){
         return global.lists.manager.get().length || global.config.get('communitary-mode-lists-amount')
     }
     async update(rawEntries=null){
+        this.updating = true
         clearTimeout(this.timer)
         let prv = this.entry()
         await this.process(rawEntries).catch(err => {
@@ -56,6 +60,7 @@ class Watching extends EntriesGroup {
                 this.currentRawEntries = []
             }
         })
+        this.updating = false
         this.emit('update')
         clearTimeout(this.timer) // clear again to be sure
         this.timer = setTimeout(() => this.update().catch(console.error), this.updateIntervalSecs * 1000)
