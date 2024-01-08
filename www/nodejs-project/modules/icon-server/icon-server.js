@@ -11,7 +11,7 @@ class IconDefault {
         if(!Array.isArray(terms)){
             terms = global.lists.terms(terms)
         }
-        return global.sanitize(terms.filter(s => s.length && s.charAt(0) != '-').join('-'))
+        return global.sanitize(terms.filter(s => s.length && !s.startsWith('-')).join('-'))
     }
     getDefault(terms){
         return new Promise((resolve, reject) => {

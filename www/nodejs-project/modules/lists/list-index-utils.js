@@ -93,7 +93,7 @@ class ListIndexUtils extends Events {
                             }
                             reject('list destroyed')
                         } else {
-                            if(!line || line.charAt(0) != '{'){
+                            if(!line || !line.startsWith('{')){
                                 console.error('Bad line readen', this.file, i)
                             }
                             if(!map || map.includes(i)){

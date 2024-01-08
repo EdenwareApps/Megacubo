@@ -144,7 +144,7 @@ class Download extends Events {
 	}
 	start(){
 		if(typeof(this.opts.url) != 'string' || !global.validateURL(this.opts.url)){
-			this.endWithError('Invalid URL: '+ JSON.stringify(this.opts))
+			this.endWithError('Invalid URL: '+ JSON.stringify(this.opts), 400)
 			return
 		}
 		if(!this.started && !this.ended && !this.destroyed){
@@ -252,7 +252,7 @@ class Download extends Events {
 			return
 		}
 		if(!Download.isNetworkConnected){
-			this.endWithError('No internet connection')
+			this.endWithError('No internet connection', 422)
 			return
 		}
 		if(this.stream){
@@ -266,7 +266,7 @@ class Download extends Events {
 			this.currentURL = 'http:'+ this.currentURL
 		}
 		if(!global.validateURL(this.currentURL)){
-			this.endWithError('Invalid URL: '+ this.currentURL)
+			this.endWithError('Invalid URL: '+ this.currentURL, 400)
 			return
 		}
 		if(this.continueTimer){
@@ -619,7 +619,7 @@ class Download extends Events {
 			if(global.isWritable(this.fileStream)) {
 				this.fileStream.write(chunk)
 			} else {
-				return this.endWithError('File not writable')
+				return this.endWithError('File not writable', 112)
 			}
 		}
 		if(this.opts.encoding && this.opts.encoding != 'binary') {
@@ -662,7 +662,7 @@ class Download extends Events {
 					this.decompressEnded = 'error'
 					this.zlibErrors++
 					if(this.zlibErrors >= this.opts.maxZlibErrors) {
-						this.endWithError(err)
+						this.endWithError(err, 422)
 					} else {
 						this.opts.cacheTTL = 0
 						this.emit('decompressed')
@@ -754,7 +754,7 @@ class Download extends Events {
 					} else {
 						this.statusCode = 500
 						this.headers = {}
-						this.endWithError('Redirection limit reached')
+						this.endWithError('Redirection limit reached', 508)
 					}
 				} else {
 					if(!this.headersSent){
@@ -942,7 +942,7 @@ class Download extends Events {
 							Download.cache.remove(this.opts.url)
 							Download.cache.remove(this.currentURL)
 							this.listenerCount('error') && this.emit('error', e)
-							this.endWithError(e)
+							this.endWithError(e, 415)
 						}
 						break
 				}
@@ -961,8 +961,8 @@ class Download extends Events {
 		}
 		return data
 	}
-	endWithError(err){
-		this.statusCode = 500
+	endWithError(err, statusCode=500){
+		this.statusCode = statusCode
 		this.headers = {}
 		this.buffer = [] // discard any
 		console.warn('Download error: '+ err, this.redirectLog, this.opts.url, this.currentURL, this.redirectCount, this, global.traceback())

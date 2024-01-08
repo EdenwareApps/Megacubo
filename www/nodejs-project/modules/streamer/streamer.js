@@ -1485,7 +1485,7 @@ class Streamer extends StreamerAbout {
 				if(intent.mediaType != 'live'){
 					this.setTuneable(false)
 				}
-				console.warn('STREAMER INTENT SUCCESS', intent, e)
+				console.warn('STREAMER INTENT SUCCESS', intent.type, e)
 				succeeded = true
 			}
 		}
@@ -1639,6 +1639,7 @@ class Streamer extends StreamerAbout {
 					case '404':
 					case '406':
 					case '410':
+					case '508':
 						msg = global.lang.PLAYBACK_OFFLINE_STREAM
 						if(r == -1) status = 'unreachable'
 						break
@@ -1649,6 +1650,9 @@ class Streamer extends StreamerAbout {
 					case '503':
 					case '504':
 						msg = global.lang.PLAYBACK_OVERLOADED_SERVER
+						break
+					case '422':
+						msg = global.lang.NO_INTERNET_CONNECTION
 						break
 				}
 		}

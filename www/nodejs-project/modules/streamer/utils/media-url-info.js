@@ -95,11 +95,11 @@ class MediaStreamInfo {
 		}
 		return (def && typeof(def) == 'string') ? def : 'live' // "live" by default
 	}
-	isM3U8(url, ext){
-		if(!ext){
-			ext = this.ext(url)
-		}
-		return ['m3u8', 'm3u'].indexOf(ext) != -1          
+	isM3U8(url, ext, headers){
+		if(!ext) ext = this.ext(url)
+		if(ext == 'm3u8' || ext == 'm3u') return true
+		if(headers && headers['content-type'] && headers['content-type'].toLowerCase().indexOf('mpegurl') != -1) return true
+		return false
 	}
 	isLocalTS(url, ext, proto){
 		if(!ext){

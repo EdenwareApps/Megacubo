@@ -496,7 +496,7 @@ class ChannelsEPG extends ChannelsData {
         }
     }
     async adjustEPGChannelEntryRenderer(e, detached){
-        const terms = this.entryTerms(e).filter(t => t.charAt(0) != '-')
+        const terms = this.entryTerms(e).filter(t => !t.startsWith('-'))
         const options = [], results = await global.lists.epgSearchChannel(terms, 99)
         //console.log('adjustEPGChannelEntryRenderer', e, terms, results)
         Object.keys(results).forEach(name => {

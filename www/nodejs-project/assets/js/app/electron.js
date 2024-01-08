@@ -365,7 +365,7 @@ class WindowManagerCommon extends ClassesHandler {
 		}
 		if(cmd.length){
 			cmd = cmd.pop()
-			if(cmd.length && cmd.charAt(0) != '-' && cmd.indexOf('\\') == -1) {
+			if(cmd.length && !cmd.startsWith('-') && cmd.indexOf('\\') == -1) {
 				cmd = cmd.replace(new RegExp('^"|"$', 'g'), '')
 				if(!cmd.match(new RegExp('^/[^/]'))){
 					console.log('cmdline*: ' + cmd)

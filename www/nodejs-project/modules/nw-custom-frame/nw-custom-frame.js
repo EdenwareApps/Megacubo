@@ -336,7 +336,7 @@ class CustomFrame {
 				if(_path.startsWith('package.nw')){
 					_path = _path.substr(10)
 				}
-				if(_path.charAt(0) != '/'){
+				if(!_path.startsWith('/')) {
 					_path = '/'+ _path
 				}
 				options.uiIconsTheme = '.'+ _path + '/icons/css/nw-cf-fa.css';

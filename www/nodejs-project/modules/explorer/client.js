@@ -1590,14 +1590,14 @@ class ExplorerStatusFlags extends ExplorerSlider {
 			if(this.debug){
 				console.warn('SETFLAGEVT', url, flag)
 			}
-			this.setStatusFlag(url, flag)
+			flag && this.setStatusFlag(url, flag)
 		})
 		this.app.on('stream-state-sync', data => {
 			if(this.debug){
 				console.warn('SYNCSTATUSFLAGS', data)
 			}
 			Object.keys(data).forEach(url => {
-				this.setStatusFlag(url, data[url], true)
+				data[url] && this.setStatusFlag(url, data[url], true)
 			})
 			this.processStatusFlags()
 		})

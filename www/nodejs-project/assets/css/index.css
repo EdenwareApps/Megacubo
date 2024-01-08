@@ -94,6 +94,7 @@ body {
     overflow: hidden;
     height: 100vh;
     background-color: transparent;
+    overscroll-behavior-y: none; /* prevents scroll snap bug */
 }
 body.video {
     --modal-background-color: rgba(0, 0, 0, 0.75);
@@ -256,10 +257,8 @@ body.explorer-vertical #explorer content a .entry-name, body.explorer-vertical #
         min-width: 0;
     }
 }
-body:not(.explorer-vertical) {
-    #explorer content a.entry-2x {
-        width: calc(200% / var(--entries-per-row));
-    }
+body:not(.explorer-vertical) #explorer content a.entry-2x {
+    width: calc(200% / var(--entries-per-row));
 }
 #explorer header .explorer-omni > span.selected {
     background: linear-gradient(to bottom, var(--font-color) 0%, var(--secondary-font-color) 100%);

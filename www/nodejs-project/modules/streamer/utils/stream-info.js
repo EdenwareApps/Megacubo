@@ -8,9 +8,19 @@ class StreamInfo {
         }
         this.mi = new MediaURLInfo()
     }
+	takeMiddleValue(arr) {
+		if(!arr.length) {
+			return undefined
+		}
+		if(arr.length < 3) {
+			return arr[0]
+		}
+		let i = Math.ceil(arr.length / 2)
+		return arr[i]
+	}
 	_probe(url, timeoutSecs, retries=0, opts={}, recursion=10){
 		return new Promise((resolve, reject) => {
-			const sampleSize = opts.probeSampleSize ? 
+			let sampleSize = typeof(opts.probeSampleSize) == 'number' ? 
 				opts.probeSampleSize : 
 				(opts.skipSample ? 0 : this.opts.probeSampleSize)
 			let status = 0, timer = 0, headers = {}, sample = [], start = global.time()
@@ -55,31 +65,34 @@ class StreamInfo {
 						sample = Buffer.concat(sample)
 						let strSample = String(sample)
 						if(strSample.toLowerCase().indexOf('#ext-x-stream-inf') != -1){
-							let trackUrl = strSample.split("\n").map(s => s.trim()).filter(line => line.length > 3 && line.charAt(0) != '#').shift()
+							let trackUrls = strSample.split("\n").map(s => s.trim()).filter(line => line.length > 3 && !line.startsWith('#'))
+							let trackUrl = this.takeMiddleValue(trackUrls) // get a middle track to try to prevent possibly offline tracks in m3u8
 							trackUrl = global.absolutize(trackUrl, download.currentURL)
+							console.error(JSON.stringify({trackUrl},null,3))
 							recursion--
 							if(recursion <= 0){
 								return reject('Max recursion reached.')
 							}
 							return this._probe(trackUrl, timeoutSecs, retries, opts, recursion).then( resolve ).catch(err => {
-								console.error('HLSTRACKERR', err, url, trackUrl)
+								console.error('HLSTRACKERR*', err, url, trackUrl)
 								reject(err)
 							})
-						} else if(strSample.toLowerCase().indexOf('#extinf') != -1){
-							let trackUrl = strSample.split("\n").map(s => s.trim()).filter(line => line.length > 3 && line.charAt(0) != '#').shift()
-							trackUrl = global.absolutize(trackUrl, download.currentURL)
+						} else if(strSample.toLowerCase().indexOf('#extinf') != -1) {
+							let segmentUrls = strSample.split("\n").map(s => s.trim()).filter(line => line.length > 3 && !line.startsWith('#'))
+							let segmentUrl = this.takeMiddleValue(segmentUrls) // get a middle segment to try to prevent possibly expiring segments in m3u8
+							segmentUrl = global.absolutize(segmentUrl, download.currentURL)
 							recursion--
 							if(recursion <= 0){
 								return reject('Max recursion reached.')
 							}
-							return this._probe(trackUrl, timeoutSecs, retries, opts, recursion).then(ret =>{
+							return this._probe(segmentUrl, timeoutSecs, retries, opts, recursion).then(ret =>{
 								if(ret && ret.status && ret.status >= 200 && ret.status < 300){
 									done() // send data from m3u8
 								} else {
 									resolve(ret) // send bad data from ts
 								}
 							}).catch(err => {
-								console.error('HLSTRACKERR', err, url, trackUrl)
+								console.error('HLSTRACKERR', err, url, segmentUrl)
 								reject(err)
 							})
 						} else {
@@ -109,6 +122,9 @@ class StreamInfo {
 					}
 					headers = responseHeaders
 					status = statusCode
+					if(this.mi.isM3U8(download.currentURL, false, headers) && sampleSize < 2048) {
+						sampleSize = 2048 // ensure segment testing
+					}
 					sampleSize || finish()
 				})
 				download.once('end', finish)

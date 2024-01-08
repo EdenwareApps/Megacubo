@@ -53,7 +53,6 @@ class Bookmarks extends EntriesGroup {
             }
             ges = null
             let bookmarker, bookmarkable = {name, type: 'group', entries: entries.filter(this.streamFilter)}
-            console.log('bookmarkable', bookmarkable)
             if(this.has(bookmarkable)){
                 bookmarker = {
                     type: 'action',

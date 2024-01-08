@@ -596,7 +596,7 @@ class Manager extends ManagerEPG {
         this.openingList = false    
         global.uiReady(() => {
             global.streamer.on('hard-failure', es => this.checkListExpiral(es).catch(console.error))
-            global.explorer.addFilter(async (es, path) => {
+            global.explorer.prependFilter(async (es, path) => {
                 es = await this.expandEntries(es, path)
                 return this.labelify(es)
             })

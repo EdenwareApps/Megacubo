@@ -244,15 +244,16 @@ class StreamState extends Events {
                         syncData[e.url] = s
                     } else {
                         let state = this.get(e.url)
-                        if(typeof(state) == 'string'){
-                            if(state && state != 'offline'){
+                        if(typeof(this.clientFailures[e.url]) != 'undefined') {
+                            state = 'offline'
+                        }
+                        if(state && typeof(state) == 'string'){
+                            if(state != 'offline'){
                                 syncData[e.url] = state
                                 const data = this.data[e.url]
                                 if(data && this.isWatched(data)){
                                     syncData[e.url] += ',watched'
                                 }
-                            } else if(typeof(this.clientFailures[e.url]) != 'undefined') {
-                                syncData[e.url] = 'offline'
                             } else {
                                 if(manuallyTesting || autoTesting) { // if did it failed previously, move to end of queue to try again after the untested ones
                                     syncData[e.url] = 'waiting'
