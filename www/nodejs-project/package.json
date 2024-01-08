@@ -88,6 +88,6 @@
     "lint": "echo \"No linting configured\""
   },
   "devDependencies": {
-    "electron": "^9.1.2"
+    "electron": "^22.3.25"
   }
 }
