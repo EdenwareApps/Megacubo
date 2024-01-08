@@ -116,6 +116,5 @@ www/nodejs-project/ffmpeg/*
 www/nodejs-project/.arch
 build-extras.gradle
 www/nodejs-project/arch.dat
-www/nodejs-project/package-lock.json
 www/nodejs-project/run-node.cmd
 www/nodejs-project/tool.html
