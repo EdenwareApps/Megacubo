@@ -3,16 +3,22 @@
   "displayName": "Megacubo",
   "version": "17.3.8",
   "description": "A intuitive and multi-language IPTV player.",
+  "bugs": "https://www.facebook.com/messages/t/MegacuboTV",
   "main": "index.js",
   "scripts": {
     "start": "cd www/nodejs-project && npm start",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "debug": "cd www/nodejs-project && npm run debug",
+    "test": "echo \"No test specified\" && exit 0"
   },
   "bin": {
     "megacubo": "./www/nodejs-project/bin.js",
     "megacubo-debug": "./www/nodejs-project/bin-debug.js"
   },
-  "author": "Apache Cordova Team",
+  "author": {
+    "name": "megacubo.tv",
+    "email": "contact@megacubo.tv",
+    "url": "https://megacubo.tv"
+  },
   "license": "Apache-2.0",
   "dependencies": {
     "cordova": "^11.1.0",
