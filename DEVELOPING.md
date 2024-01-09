@@ -5,18 +5,22 @@
 Easier and recommended way.
 ```
 git clone https://github.com/EdenwareApps/Megacubo.git
-# (optional) put ffmpeg binary at ./megacubo/www/nodejs-project/ffmpeg/ (named as 'ffmpeg' or 'ffmpeg.exe')
 cd Megacubo
-npm --prefix ./www/nodejs-project install ./www/nodejs-project
-npm run start
+npm ci
+npm start
+```
+
+### Install globally with NPM (for desktop):
+```
+npm i -g megacubo
+npx megacubo
 ```
 
 ### With Cordova (for Android):
 ```
 git clone https://github.com/EdenwareApps/Megacubo.git
-# ffmpeg binary not needed, it will install and use mobile-ffmpeg lib
-cd megacubo
-npm --prefix ./www/nodejs-project install ./www/nodejs-project
+cd Megacubo
+npm ci
 cordova prepare
 ```
 After that, edit the file build-extras.gradle to choose the target ABIs. 
