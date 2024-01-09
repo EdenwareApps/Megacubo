@@ -1,30 +1,27 @@
 
 # Development setup.
 
-### With Electron (for desktop):
+### With Electron (Windows/Linux/macOS):
 Easier and recommended way.
 ```
 git clone https://github.com/EdenwareApps/Megacubo.git
 cd Megacubo
 npm ci
-npm start
+npm run debug
 ```
 
-### Install globally with NPM (for desktop):
-```
-npm i -g megacubo
-npx megacubo
-```
-
-### With Cordova (for Android):
+### With Cordova (Android):
 ```
 git clone https://github.com/EdenwareApps/Megacubo.git
 cd Megacubo
 npm ci
 cordova prepare
 ```
-After that, edit the file build-extras.gradle to choose the target ABIs. 
 
-If you are in doubt, go with Electron, as for Cordova it's tricky to set project up and running.
+### With NPM (install globally):
+```
+npm i -g megacubo
+npx megacubo
+```
 
 Any errors along the way? [Let us know](https://github.com/EdenwareApps/Megacubo/issues).
