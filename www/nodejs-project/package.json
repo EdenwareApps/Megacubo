@@ -1,5 +1,9 @@
 {
-  "bugs": "https://www.facebook.com/messages/t/MegacuboTV",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EdenwareApps/Megacubo.git"
+  },
+  "bugs": "https://github.com/EdenwareApps/Megacubo/issues",
   "dependencies": {
     "@electron/remote": "^2.1.1",
     "@fortawesome/fontawesome-free": "^6.4.2",

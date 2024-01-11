@@ -3,7 +3,11 @@
   "displayName": "Megacubo",
   "version": "17.3.9",
   "description": "A intuitive and multi-language IPTV player.",
-  "bugs": "https://www.facebook.com/messages/t/MegacuboTV",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EdenwareApps/Megacubo.git"
+  },
+  "bugs": "https://github.com/EdenwareApps/Megacubo/issues",
   "main": "index.js",
   "scripts": {
     "start": "cd www/nodejs-project && npm start",
