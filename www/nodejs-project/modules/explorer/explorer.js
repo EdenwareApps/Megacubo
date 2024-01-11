@@ -775,7 +775,7 @@ class Explorer extends Events {
         }
         if(this.rendering){
             const icon = typeof(parentEntryOrIcon) == 'string' ? parentEntryOrIcon : (parentEntryOrIcon ? parentEntryOrIcon.fa : 'fas fa-home')
-            global.ui.emit('render', this.cleanEntries(this.checkFlags(this.currentEntries), 'users,terms'), path, icon)
+            global.ui.emit('render', this.cleanEntries(this.checkFlags(this.currentEntries), 'checked,users,terms'), path, icon)
             this.emit('render', this.currentEntries, path, parentEntryOrIcon, backTo)
         }
     }

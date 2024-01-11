@@ -3,6 +3,7 @@
 	<head>
 		<meta name="color-scheme" content="light" />
 		<title>Megacubo</title>
+		<script type="text/javascript" src="assets/custom-frame/custom-frame.js"></script>
         <style type="text/css">
 			html {
 				background: #100927 url(assets/images/default_icon_white.png) no-repeat center center;
@@ -17,11 +18,10 @@
 			}
 			header {
 				z-index: 1;
-				height: 60px !important;
 				background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 3%, transparent 100%) !important;
 				pointer-events: none;
 			}
-			.nw-cf-inner {
+			.cf-inner {
 				pointer-events: auto;
 			}
 			iframe {
@@ -32,7 +32,7 @@
 				z-index: 0;
 				visibility: hidden;
 			}
-			.nw-cf-title {
+			.cf-title {
 				color: white;
 				text-shadow: 1px 1px black;
 				opacity: 0.85;
@@ -43,7 +43,7 @@
   				-ms-user-select: none;      
   				user-select: none;
 			}
-			.nw-cf-icon {
+			.cf-icon {
 				background-image: url(assets/images/default_icon_white.png) !important;
 				transform: scale(0.75);
 			}
@@ -56,15 +56,6 @@
 		<iframe src="about:blank" frameborder="0" scrolling="no" allow="fullscreen; autoplay"></iframe>
 		<script type="text/javascript" src="assets/js/app/electron.js"></script>
 		<script>
-			process.on('warning', e => {
-				console.warn(e, e.stack)
-			})
-			process.on('unhandledRejection', (reason, promise) => {
-				console.error('Unhandled rejection (client) at:', promise, 'reason:', reason)
-			})
-			process.on('uncaughtException', (exception) => {
-				console.error('uncaughtException', exception)
-			})
 			const fr = document.querySelector('iframe')
 			fr.onload = () => {
 				fr.style.visibility = 'visible'

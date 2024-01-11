@@ -224,8 +224,8 @@ function openExternalFile(file, mimetype) {
 	console.log('openExternalFile', file);
 	if (parent.cordova) {
 		alert('Cannot open file: ' + file.split('/').pop())
-	} else if (parent.getElectronRemote) {
-		parent.getElectronRemote().shell.openExternal(file)
+	} else if (parent.shell) { // electron
+		parent.shell.openExternal(file)
 	} else {
 		window.open(file, '_system')
 	}
@@ -237,8 +237,8 @@ function openExternalURL(url) {
 			url = url.replace('https:', 'http:'); // bypass Ionic Deeplink
 		}
 		parent.navigator.app.loadUrl(url, { openExternal: true })
-	} else if (parent.getElectronRemote) {
-		parent.getElectronRemote().shell.openExternal(url)
+	} else if (parent.shell) { // electron
+		parent.shell.openExternal(url)
 	} else {
 		window.open(url);
 	}
@@ -273,9 +273,9 @@ function traceback() {
 function handleOpenURL(url) { 
 	setTimeout(function() {
 		if (url && url.match('^[a-z]*:?//')) {
-			onBackendReady(function() {
+			appChannel.waitBackend(() => {
 				channel.post('message', ['open-url', url.replace(new RegExp('.*megacubo\.tv/(w|assistir)/', ''), 'mega://')]);
-			});
+			})
 		}
 	}, 0);
 }

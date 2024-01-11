@@ -738,7 +738,7 @@ class Theme extends Events {
         global.ui.emit('theme-background', bgi, bgv, global.config.get('background-color'), global.config.get('font-color'), global.config.get('animate-background'))
     }
     refresh(){
-        let bgi = global.config.get('custom-background-image'), bgv = global.config.get('custom-background-video'), file = __dirname.replace(path.dirname(require.main.filename), '').replace(new RegExp('\\\\', 'g'), '/') +'/client.js?_='+ Math.random()
+        let bgi = global.config.get('custom-background-image'), bgv = global.config.get('custom-background-video'), file = './modules/theme/client.js?_='+ Math.random()
         global.ui.emit('load-js', '.'+ file)
         if(bgv) {
             this.refreshCallback('', global.ui.serve(bgv) || '')

@@ -14,7 +14,7 @@ class ClassesHandler {
 	}
 }
 
-const fs = require('fs'), path = require('path')
+const fs = require('fs'), path = require('path'), Events = require('events')
 
 class FFmpegDownloader {
 	constructor(){}
@@ -308,8 +308,8 @@ class ExitPage {
 class WindowManagerCommon extends ClassesHandler {
 	constructor(){
 		super()
-		this.screenScaleFactor = electronScreen.getPrimaryDisplay().scaleFactor || 1
-		this.win = getCurrentWindow()
+		this.screenScaleFactor = electronScreen.getPrimaryDisplay().scaleFactor || 1		
+		this.win = process.getWindow()
 		this.waitAppCallbacks = []
 		this.trayMode = false
 		this.leftWindowDiff = 0
@@ -322,14 +322,18 @@ class WindowManagerCommon extends ClassesHandler {
 		this.exitPage = new ExitPage()
 		this.externalPlayer = new ExternalPlayer()
 		this.inFullScreen = false
-		this.nwcf = require('./modules/nw-custom-frame')
-		this.nwcf.attach(window, {
+		CustomFrame.attach(window, {
 			icon: './assets/images/default_icon_white.png',
-			uiIconsTheme: './modules/nw-custom-frame/icons/css/nw-cf-fa.css',
-			frameIconSize: 21, // You can specify the size in em,rem, etc...
-			size: 30, // You can specify the size in em,rem, etc...
+			uiIconsTheme: './assets/custom-frame/icons/css/cf-fa.css',
+			style: './assets/custom-frame/custom-frame-core.css',
+			frameTheme: './assets/custom-frame/custom-frame-theme.css',
+			frameIconSize: 21,
+			size: 30,
 			win: this.win,
-			details: require('./package.json').window
+			details: {
+				title: 'Megacubo',
+				icon: './default_icon.png'
+			}
 		})
 		this.resizeListenerDisabled = false
 		this.load()
@@ -370,14 +374,10 @@ class WindowManagerCommon extends ClassesHandler {
 				if(!cmd.match(new RegExp('^/[^/]'))){
 					console.log('cmdline*: ' + cmd)
 					let sharing = '/w/', pos = cmd.indexOf(sharing)
-					if(pos != -1){
-						cmd = cmd.substr(pos + sharing.length)
-					}
-					if(cmd.indexOf('//') == -1){
-						cmd = 'mega://'+ cmd
-					}
+					if(pos != -1) cmd = cmd.substr(pos + sharing.length)
+					if(cmd.indexOf('//') == -1) cmd = 'mega://'+ cmd
 					console.log('cmdline**: ' + cmd)
-					this.container.onBackendReady(() => {
+					this.container.appChannel.waitBackend(() => {
 						this.app.app.emit('open-url', decodeURIComponent(cmd))
 					})
 				}
@@ -499,17 +499,17 @@ class WindowManagerCommon extends ClassesHandler {
 		this.setFullScreen(!s)
 	}
 	showMaximizeButton(){
-		var e = document.querySelector('.nw-cf-maximize')
+		var e = document.querySelector('.cf-maximize')
 		if(e){ // at fullscreen out or unminimize the maximize button was disappearing
 			e.style.display = 'inline-block'
-			document.querySelector('.nw-cf-restore').style.display = 'none'
+			document.querySelector('.cf-restore').style.display = 'none'
 		}
 	}
 	showRestoreButton(){
-		var e = document.querySelector('.nw-cf-restore')
+		var e = document.querySelector('.cf-restore')
 		if(e){
 			e.style.display = 'inline-block'
-			document.querySelector('.nw-cf-maximize').style.display = 'none'
+			document.querySelector('.cf-maximize').style.display = 'none'
 		}
 	}
 	patchButton(sel, fn, label){
@@ -519,22 +519,22 @@ class WindowManagerCommon extends ClassesHandler {
 		['title', 'aria-label'].forEach(k => new_element.setAttribute(k, label))
 	}
 	patch(){    
-		if(!document.querySelector('.nw-cf-maximize')){
+		if(!document.querySelector('.cf-maximize')){
 			return setTimeout(this.patch.bind(this), 250)
 		}    
-		this.patchButton('.nw-cf-maximize', this.maximize.bind(this), this.app.lang.MAXIMIZE)
-		this.patchButton('.nw-cf-restore', () => {
+		this.patchButton('.cf-maximize', this.maximize.bind(this), this.app.lang.MAXIMIZE)
+		this.patchButton('.cf-restore', () => {
 			setTimeout(this.fixMaximizeButton.bind(this), 50)
 			this.restore()
 		}, this.app.lang.RESTORE)
-		this.patchButton('.nw-cf-minimize', () => {
+		this.patchButton('.cf-minimize', () => {
 			this.resizeListenerDisabled = true
 			this.minimizeWindow()
 			setTimeout(() => {
 				this.resizeListenerDisabled = false
 			}, 500)
 		}, this.app.lang.MINIMIZE)
-		this.patchButton('.nw-cf-close', () => this.closeWindow(), this.app.lang.CLOSE)
+		this.patchButton('.cf-close', () => this.closeWindow(), this.app.lang.CLOSE)
 		this.patch = () => {}
 	}
 	closeWindow(){ // will be overwritten by winman
@@ -576,8 +576,6 @@ class WindowManager extends WindowManagerCommon {
 			setTimeout(() => {
 				this.focusApp()
 				this.app.explorer.reset()
-				const { app } = getElectronRemote()
-				app.on('open-file', (event, path) => this.handleArgs(path))
 			}, 100)
 		})
 	}
@@ -641,10 +639,10 @@ class WindowManager extends WindowManagerCommon {
 	restart(){
 		console.log('restartApp') 
 		const { app } = getElectronRemote()
-		process.nextTick(() => {
+		setTimeout(() => {
 			app.relaunch()
 			app.exit()
-		})
+		}, 0)
 	}
 	getScreen() {
 		const primaryDisplay = electronScreen.getPrimaryDisplay()
@@ -725,8 +723,8 @@ class WindowManager extends WindowManagerCommon {
 			}
 		}
 		this.win.show()
-		if(!this.nwcfHeader) this.nwcfHeader = document.querySelector('.nw-cf')
-		this.nwcfHeader.style.display = enterFullscreen ? 'none' : 'block';
+		if(!this.cfHeader) this.cfHeader = document.querySelector('.cf')
+		this.cfHeader.style.display = enterFullscreen ? 'none' : 'block';
 		setTimeout(() => {
 			// if(enterFullscreen) this.win.blur()
 			this.updateTitlebarHeight()

@@ -1,49 +1,19 @@
 var lang, config, nodejs, channel, app = document.querySelector('iframe').contentWindow
 
-window['frontendBackendReady'] = {frontend: false, backend: false, callbacks: [], backendCallbacks: []}
-
-function onFrontendBackendReady(fn){
-	if(frontendBackendReady.frontend && frontendBackendReady.backend){
-		fn()
-	} else {
-		frontendBackendReady.callbacks.push(fn)
-	}
-}
-
-function onBackendReady(fn){
-	if(frontendBackendReady.backend){
-		fn()
-	} else {
-		frontendBackendReady.backendCallbacks.push(fn)
-	}
-}
-
-function frontendBackendReadyCallback(origin){
-	if(typeof(frontendBackendReady) == 'undefined'){
-		frontendBackendReady = {frontend: false, backend: !!lang}
-	}
-	frontendBackendReady[origin] = true
-	if(origin == 'backend'){
-		config = arguments[1]
-		lang = arguments[2]
-		frontendBackendReady.backendCallbacks.forEach(f => f())
-		frontendBackendReady.backendCallbacks = []
-	}
-	if(!app) {
-		app = document.querySelector('iframe').contentWindow
-	}
-	if(frontendBackendReady.frontend && frontendBackendReady.backend){
-		app.lang = lang
-		app.config = config
-		frontendBackendReady.callbacks.forEach(f => f())
-		frontendBackendReady.callbacks = []
-	}
-}
-
 class BridgeClient extends EventEmitter {
 	constructor() {
         super()
+		this.isReady = {frontend: false, backend: false}
 		this.localEmit = super.emit
+		this.on('get-lang', () => this.channelGetLangCallback())
+		this.once('frontend', () => {
+			this.isReady.frontend = true
+		})
+		this.once('backend', (...args) => {
+			this.isReady.backend = true
+			config = args[0]
+			lang = args[1]
+		})
 		if (window.cordova) {
 			this.configureCordovaChannel()
 			this.startNodeMainScript()
@@ -66,56 +36,28 @@ class BridgeClient extends EventEmitter {
 	configureCordovaChannel() {
 		fakeUpdateProgress()
 		this.channel = window.parent.nodejs.channel
-		this.channel.on('message', (...args) => {
-			this.channelCallback.apply(this, args[0])
-		})
+		this.channel.on('message', args => this.localEmit(...args))
 	}
 	configureElectronChannel() {
-		const bridgeChannel = this
+		const bridge = this
 		class ElectronChannel extends EventEmitter {
 			constructor() {
 				super()
-				const { getGlobal } = window.parent.getElectronRemote()
-				this.getMain = () => (this.main = getGlobal('ui'))
 				this.originalEmit = this.emit.bind(this)
-				this.emit = (...args) => this.post('', Array.from(args))
+				this.emit = (...args) => parent.Manager.win.emit(...args)
 				this.connect()
 			}
 			connect(){
 				if(this.connected) return
-				this.getMain()
-				if(this.main){
-					const { ipcMain } = window.parent.getElectronRemote()
-					this.io = ipcMain
-					this.io.on('message', (...args) => {
-						bridgeChannel.channelCallback.apply(bridgeChannel, args[0])
-					})
-					this.connected = true
-				} else {
-					setTimeout(() => this.connect(), 1000)
-				}
+				parent.Manager.win.on('message', args => bridge.localEmit(...args))
+				this.connected = true
 			}
 			post(_, args) {
 				this.connect()
-				if (this.main) {
-					this.main.localEmit(...args)
-				} else {
-					console.error('POST MISSED?', args)
-				}
+				this.emit(...args)
 			}
 		}
 		this.channel = new ElectronChannel()
-	}
-	channelCallback(...args){
-		setTimeout(() => { // async to prevent blocking main
-			if(args[0] == 'backend-ready'){
-				frontendBackendReadyCallback('backend', args[1], args[2])
-			} else if(args[0] == 'get-lang'){
-				this.channelGetLangCallback()
-			} else {
-				this.localEmit.apply(this, Array.from(arguments))
-			}
-		}, 0)
 	}
 	channelGetLangCallback(){
 		var next = lng => {
@@ -139,9 +81,13 @@ class BridgeClient extends EventEmitter {
 			next()
 		}
 	}
-    emit(){
-        this.channel.post('message', Array.from(arguments))
+    emit(...args){
+        this.channel.post('message', Array.from(args))
     }
+	waitBackend(f) {
+		if(this.isReady.backend) return f()
+		this.once('backend', f)
+	}
 }
 
 var appChannel = new BridgeClient()

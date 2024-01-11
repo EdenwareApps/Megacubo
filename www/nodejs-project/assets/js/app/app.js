@@ -751,16 +751,15 @@ function initApp(){
                     event.stopPropagation()
                 }
             })
-        }           
-
-        if(parent.frontendBackendReadyCallback){
-            parent.frontendBackendReadyCallback('frontend') 
+        }
+        if(parent.appChannel){
+            parent.appChannel.localEmit('frontend') 
         } else {
             parent.addEventListener('load', () => {
-                parent.frontendBackendReadyCallback('frontend') 
+                parent.appChannel.localEmit('frontend')
             })
         }
     })
 }
 
-parent.onBackendReady(initApp)
+parent.appChannel.waitBackend(initApp)

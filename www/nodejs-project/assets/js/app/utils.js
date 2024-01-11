@@ -702,7 +702,7 @@ function applyIcon(icon){
         link.rel = 'shortcut icon';
         link.href = icon;
         doc.querySelector('head').appendChild(link);
-        var c = doc.querySelector('.nw-cf-icon');
+        var c = doc.querySelector('.cf-icon');
         if(c) {
             c.style.backgroundImage = 'url("{0}")'.format(icon)
         }

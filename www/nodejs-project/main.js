@@ -51,9 +51,7 @@ Object.keys(global.paths).forEach(k => {
 
 global.crashlog = require('./modules/crashlog')
 
-process.on('warning', e => {
-    console.warn(e, e.stack)
-})
+process.on('warning', e => console.warn(e, e.stack))
 process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled rejection at:', promise, 'reason:', reason, reason.stack || '')
     global.crashlog.save('Unhandled rejection at:', promise, 'reason:', reason)
@@ -720,7 +718,7 @@ const init = (language, timezone) => {
         })
         
         console.warn('Prepared to connect...')
-        global.ui.emit('backend-ready', global.config.all(), global.lang.getTexts())
+        global.ui.emit('backend', global.config.all(), global.lang.getTexts())
     })
 }
 
@@ -741,7 +739,7 @@ global.ui.on('get-lang-callback', (locale, timezone, ua, online) => {
     } else {
         console.log('get-lang-callback 2')
         global.lang.ready().catch(global.displayErr).finally(() => {
-            global.ui.emit('backend-ready', global.config.all(), global.lang.getTexts())        
+            global.ui.emit('backend', global.config.all(), global.lang.getTexts())        
         })
     }
 })
@@ -750,14 +748,14 @@ if(global.cordova) {
     global.ui.emit('get-lang')
 } else {
     const tcpFastOpen = global.config.get('tcp-fast-open') ? 'true' : 'false'
-    const remoteModuleExternal = parseFloat(process.versions.electron) >= 22
-    remoteModuleExternal && require('@electron/remote/main').initialize()
+    const contextIsolation = parseFloat(process.versions.electron) >= 22
+    contextIsolation && require('@electron/remote/main').initialize()
     const { app, BrowserWindow, globalShortcut, Menu } = require('electron')
 
     app.requestSingleInstanceLock() || app.quit()    
     Menu.setApplicationMenu(null)
     onexit(() => app.quit())
-    if(remoteModuleExternal){
+    if(contextIsolation){
         app.on('browser-window-created', (_, window) => {
             require('@electron/remote/main').enable(window.webContents)
         })
@@ -770,7 +768,7 @@ if(global.cordova) {
     })
 
     const initAppWindow = async () => {
-        const isLinux = process.platform == 'linux'
+        const isLinux = process.platform == 'linux'	
         await global.updateUserTasks(app).catch(console.error)
 
         if(global.config.get('gpu')) {
@@ -803,7 +801,7 @@ if(global.cordova) {
         app.commandLine.appendSwitch('allow-file-access-from-files')
         
         await app.whenReady()
-        const window = new BrowserWindow({  
+        const window = global.window = new BrowserWindow({
             frame: false,
             maximizable: false, // macos
             minimizable: false, // macos
@@ -814,16 +812,17 @@ if(global.cordova) {
                 fullscreenable: true,
                 disablePreconnect: true,
                 dnsPrefetchingEnabled: false,
-                contextIsolation: false, // false is required for nodeIntegration
+                contextIsolation, // false is required for nodeIntegration, but true is required for preload script
                 nodeIntegration: true,
                 nodeIntegrationInWorker: false,
                 nodeIntegrationInSubFrames: false,
+                preload: path.join(__dirname, 'preload.js'),
                 enableRemoteModule: true,
                 experimentalFeatures: true, // audioTracks support
                 webSecurity: false // desabilita o webSecurity
             }
         })
-        window.loadURL('file://'+ global.APPDIR +'/electron.html', {userAgent: global.ui.ua}) // file:// is required on Linux to prevent blank window on Electron 9.1.2
+        window.loadURL('http://127.0.0.1:'+ global.ui.opts.port +'/electron.html', {userAgent: global.ui.ua}) // file:// is required on Linux to prevent blank window on Electron 9.1.2
         app.on('browser-window-focus', () => {
             // We'll use Ctrl+M to enable Miniplayer instead of minimizing
             globalShortcut.registerAll(['CommandOrControl+M'], () => { return })
@@ -838,7 +837,22 @@ if(global.cordova) {
                 window.focus()
                 global.ui.emit('arguments', commandLine)
             }
+        });
+        const updateMetrics = () => {
+            const [x, y] = window.getPosition()
+            const [width, height] = window.getSize()
+            const isMaximized = window.isMaximized()
+            global.ui.emit('electron-window-metrics', {x, y, width, height, isMaximized})
+        }
+        ['focus', 'blur', 'show', 'hide', 'minimize', 'maximize', 'restore', 'close', 'setSize', 'setAlwaysOnTop', 'setFullScreen', 'setPosition'].forEach(k => {
+            updateMetrics()
+            global.ui.on('electron-window-'+ k, (...args) => window[k](...args))
+        });
+        ['maximize', 'enter-fullscreen', 'leave-fullscreen', 'restore', 'minimize', 'close'].forEach(k => {
+            global.ui.on(k, (...args) => global.ui.emit('electron-window-'+ k, ...args))
         })
+        window.on('resize', updateMetrics)
+        global.ui.setElectronWindow(window)
     }
 
     initAppWindow().catch(console.error)

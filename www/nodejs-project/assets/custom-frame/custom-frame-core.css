@@ -1,0 +1,59 @@
+body {
+    margin:0;
+}
+
+.cf * {
+	box-sizing: border-box;
+}
+
+.cf {
+	position:fixed;
+	width:100%;
+	top:0;
+	left:0;
+	line-height: 100%;
+	box-sizing: border-box;
+}
+
+.cf-icon {
+	display: inline-flex;
+	vertical-align: inherit;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+.cf-title {
+	vertical-align: top;
+}
+
+.cf-inner {
+	display: flex;
+	pointer-events: auto;
+}
+
+.cf-handle {
+	flex: 1 0 0;
+	-webkit-app-region: drag;
+}
+
+.cf-btn {
+	background: #FFF;
+	color: #000;
+	border:0;
+	outline:0;
+	padding:1px .75rem;
+}
+
+.cf-btn:hover {
+	background: #FFF;
+	color: #000;
+}
+
+.cf-close:hover {
+	background: #FFF;
+	color: #000;
+}
+
+.cf-btn:focus {
+	outline:0;
+}

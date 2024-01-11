@@ -11,6 +11,7 @@ class Reader extends Readable {
 		this.fd = null
 		this.bytesRead = 0
 		this.bufferSize = opts.highWaterMark || 64 * 1024 // Tamanho do buffer padrão (64 KB)
+		if(typeof(this.start) == 'undefined') this.start = 0
 		if(!this.file) throw 'Reader initialized with no file specified'
 		process.nextTick(() => this.openFile())
 	}
@@ -27,7 +28,7 @@ class Reader extends Readable {
 		if(this._isReading) {
 			return
 		}
-		if(this.closed) {
+		if(this.isClosed) {
 			this.close()
 			this.push(null)
 			return
@@ -43,7 +44,7 @@ class Reader extends Readable {
 		const position = this.start + this.bytesRead
 		this._isReading = true
 		fs.read(this.fd, buffer, 0, bufferSize, position, (err, bytesRead) => {
-			const readen = bytesRead > 0
+			const readen = bytesRead && bytesRead > 0
 			if (readen) {
 				this.bytesRead += bytesRead
 				this.push(buffer.slice(0, bytesRead))
@@ -103,8 +104,8 @@ class Reader extends Readable {
 			})
 			this.fd = null
 		}
-		if(!this.closed) {			
-			this.closed = true
+		if(!this.isClosed) { // Cannot set property closed of #<Readable> which has only a getter		
+			this.isClosed = true
 			this.emit('finish')
 			this.emit('close')
 			this.destroy()

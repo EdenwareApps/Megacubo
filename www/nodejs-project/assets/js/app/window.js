@@ -511,4 +511,4 @@ function updateConfig(cfg){
 	}
 }
 
-onFrontendBackendReady(updateConfig)
+appChannel.once('ready', updateConfig)
