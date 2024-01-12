@@ -14,7 +14,7 @@ class ClassesHandler {
 	}
 }
 
-const fs = require('fs'), path = require('path'), Events = require('events')
+const fs = require('fs'), path = require('path')
 
 class FFmpegDownloader {
 	constructor(){}

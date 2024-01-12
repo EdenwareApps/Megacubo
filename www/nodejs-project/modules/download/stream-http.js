@@ -1,4 +1,4 @@
-const Events = require('events'), http = require('http'), https = require('https'), url = require('url')
+const http = require('http'), https = require('https'), url = require('url')
 const {CookieJar} = require('tough-cookie')
 const AbortController = require("abort-controller")
 const KeepAliveAgent = require('agentkeepalive'), net = require('net')
