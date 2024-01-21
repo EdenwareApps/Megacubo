@@ -268,7 +268,6 @@ function initApp(){
                 const element = data.tabindex == -1 ? document.querySelector('.explorer-location-icon i') : explorer.currentElements[data.tabindex]
                 const isCover = element && !data.alpha && (config['stretch-logos'] || (entry && entry.class && entry.class.indexOf('entry-force-cover') != -1))
                 const bg = 'url("' + data.url + '")' // keep quotes
-                console.warn('THUMB',{isCover, data, entry})
                 const m = () => {
                     let d, g = document.createElement('img')
                     if(isCover){

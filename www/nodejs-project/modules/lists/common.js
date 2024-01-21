@@ -15,7 +15,6 @@ class Fetcher extends Events {
         this.url = url
 		this.playlists = []
 		this.master = master
-		this.file = global.storage.raw.resolve(global.LIST_DATA_KEY_MASK.format(url))
 		process.nextTick(() => {
 			this.start().catch(e => this.error = e).finally(() => {
 				this.isReady = true
@@ -314,7 +313,7 @@ class Common extends Events {
 		return this.listMetaKeyPrefix + url
 	}
 	async getListMeta(url){
-		let haserr, meta = await global.storage.promises.get(this.listMetaKey(url)).catch(err => {
+		let haserr, meta = await global.storage.get(this.listMetaKey(url)).catch(err => {
 			haserr = true
 			console.error(err)
 		})
@@ -335,7 +334,9 @@ class Common extends Events {
 				}
 			})
 			if(changed){
-				await global.storage.promises.set(this.listMetaKey(url), meta)
+				await global.storage.set(this.listMetaKey(url), meta, {
+					expiration: true
+				})
 			}
 		}
 	}
@@ -347,9 +348,6 @@ class Common extends Events {
 		const meta = await this.getListMeta(url)
 		meta[key] = value
 		await this.setListMeta(url, meta)
-	}
-	trimListMeta(cb){
-		global.storage.deleteAnyStartsWithOlder(this.listMetaKeyPrefix, 30 * (24 * 3600), cb)
 	}
 }
 

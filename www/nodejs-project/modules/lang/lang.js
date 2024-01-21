@@ -15,7 +15,7 @@ class Language extends Events {
         this.timezone = timezone
     }
     async ready(){
-        return new Promise(resolve => {
+        await new Promise(resolve => {
             if(this.isReady){
                 resolve()
             } else {

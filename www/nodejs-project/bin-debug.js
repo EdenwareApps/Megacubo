@@ -64,7 +64,7 @@ findElectronExecutable().then(electronPath => {
 		child.on('error', (error) => {
 			console.error(error);
 		});
-		child.on('close', (code) => {
+		child.once('close', (code) => {
 			console.log('exitcode: '+ code)
 			process.exit(code);
 		});

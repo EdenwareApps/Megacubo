@@ -937,7 +937,7 @@ class Download extends Events {
 						break
 					case 'json':
 						try {
-							data = global.parseJSON(String(data))
+							data = JSON.parse(String(data)) // use JSON.parse instead of global.parseJSON to catch error
 						} catch(e) {
 							Download.cache.remove(this.opts.url)
 							Download.cache.remove(this.currentURL)
@@ -976,9 +976,10 @@ class Download extends Events {
 	end(){
 		if(!this.ended){
 			this.destroyStream()
-			if(this.destroyed){
-				return
+			if(this.opts.debug){
+				console.log('download ending', this.opts, this.statusCode)
 			}
+			if(this.destroyed) return
 			if(!this.headersSent){
 				this.headersSent = true
 				this.checkStatusCode()
@@ -992,15 +993,29 @@ class Download extends Events {
 				if(this.paused) {
 					return this.once('resume', flush)
 				}
-				this.ended = true
+				if(this.opts.debug){
+					console.log('download ending**', this.opts, this.statusCode)
+				}
 				const ret = this.prepareOutputData(this.buffer)
-				if(this.listenerCount('data')) {
-					this.emit('data', ret)
-					this.emit('end')
-				} else {
-					this.emit('end', ret)
+				if(!this.ended) { // will end on error at prepareOutputData()
+					if(this.opts.debug){
+						console.log('download ending***', this.opts, this.statusCode)
+					}
+					this.ended = true
+					if(this.listenerCount('data')) {
+						this.emit('data', ret)
+						this.emit('end')
+					} else {
+						this.emit('end', ret)
+					}
+				}
+				if(this.opts.debug){
+					console.log('download ending****', this.opts, this.statusCode)
 				}
 				this.destroy()
+			}
+			if(this.opts.debug){
+				console.log('download ending*', this.opts, this.statusCode)
 			}
 			if(!this.isResponseCompressed || this.decompressEnded || !this.decompressor){
 				flush()

@@ -172,8 +172,8 @@ class EPG extends EPGPaginateChannelsList {
         }
     }
     async update(){
-        let lastFetchedAt = await global.storage.promises.get(this.fetchCtrlKey)
-        let lastModifiedAt = await global.storage.promises.get(this.lastmCtrlKey)
+        let lastFetchedAt = await global.storage.get(this.fetchCtrlKey)
+        let lastModifiedAt = await global.storage.get(this.lastmCtrlKey)
         const now = this.time()
         if(Object.keys(this.data).length < this.minExpectedEntries || !lastFetchedAt || lastFetchedAt < (this.time() - (this.ttl / 2))){
             if(this.request || this.parser){
@@ -227,9 +227,9 @@ class EPG extends EPGPaginateChannelsList {
                 this.scheduleNextUpdate()
                 if(Object.keys(this.data).length){
                     if(newLastModified){
-                        global.storage.set(this.lastmCtrlKey, newLastModified, this.ttl)
+                        global.storage.set(this.lastmCtrlKey, newLastModified, {ttl: this.ttl})
                     }
-                    global.storage.set(this.fetchCtrlKey, now, this.ttl)
+                    global.storage.set(this.fetchCtrlKey, now, {ttl: this.ttl})
                     this.state = 'loaded'
                     this.loaded = true
                     this.error = null
@@ -758,7 +758,7 @@ class EPG extends EPGPaginateChannelsList {
         return epgData
     }
     async load(){
-        let data = await global.storage.promises.get(this.key)
+        let data = await global.storage.get(this.key)
         let loaded
         if(data){
             const now = this.time()
@@ -776,7 +776,7 @@ class EPG extends EPGPaginateChannelsList {
             })
         }
         if(loaded){
-            let cdata = await global.storage.promises.get(this.channelsKey)
+            let cdata = await global.storage.get(this.channelsKey)
             if(cdata){
                 Object.keys(cdata).forEach(name => {
                     if(typeof(this.channels[name]) == 'undefined'){
@@ -784,7 +784,7 @@ class EPG extends EPGPaginateChannelsList {
                     }
                 })
             }
-            let tdata = await global.storage.promises.get(this.termsKey)
+            let tdata = await global.storage.get(this.termsKey)
             if(tdata){
                 Object.keys(data).forEach(name => {
                     if(typeof(this.terms[name]) == 'undefined'){
@@ -833,9 +833,9 @@ class EPG extends EPGPaginateChannelsList {
         Object.keys(this.data).forEach(c => {
             this.data[c] = this.normalizeChannelClock(this.data[c])
         })
-        global.storage.set(this.key, this.data, 3 * this.ttl)
-        global.storage.set(this.termsKey, this.terms, 3 * this.ttl)
-        global.storage.set(this.channelsKey, this.channels, 3 * this.ttl)
+        global.storage.set(this.key, this.data, {compress: true, ttl: 3 * this.ttl})
+        global.storage.set(this.termsKey, this.terms, {compress: true, ttl: 3 * this.ttl})
+        global.storage.set(this.channelsKey, this.channels, {compress: true, ttl: 3 * this.ttl})
     }
     clean(){
         Object.keys(this.terms).forEach(e => {

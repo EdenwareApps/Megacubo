@@ -10,11 +10,12 @@ class EntriesGroup extends Events {
         this.data = []
         this.isReady = false
         this.isUIReady = false
+        this.storeInConfig = false
         global.uiReady(() => {
             this.isUIReady = true
             this.emit('ui-ready')
         })
-		this.load()
+		process.nextTick(() => this.load()) // allow to change storeInConfig before loading
 	}
 	ready(fn){
 		if(this.isReady){
@@ -32,7 +33,7 @@ class EntriesGroup extends Events {
 	}
 	load(){
         let data
-		global.storage.promises.get(this.key).then(ret => data = ret).catch(global.displayErr).finally(() => {
+		this.retrieve().then(ret => data = ret).catch(console.error).finally(() => {
             if(!Array.isArray(data)){
                 data = []
             }
@@ -119,7 +120,7 @@ class EntriesGroup extends Events {
         this.save(true)
     }
     save(changed){
-        global.storage.set(this.key, this.data, true)
+        this.store(this.data)
         this.data = this.prepare(this.data)
         if(changed){
             this.emit('change', this.data)
@@ -155,13 +156,30 @@ class EntriesGroup extends Events {
         this.data = this.prepare(this.data.filter((item) => {
             return item !== undefined
         }))
-        global.storage.set(this.key, this.data, true)
+        this.store(this.data)
         this.emit('change', this.data)
     }
     clear(){
         this.data = []
-        global.storage.set(this.key, this.data, true)
+        this.store(this.key, this.data)
         this.emit('change', this.data)
+    }
+    store(data) {
+        if(this.storeInConfig) {
+            global.config.set(this.key, data)
+        } else {
+            global.storage.set(this.key, data, {
+                permanent: true,
+                expiration: true
+            })
+        }
+    }
+    async retrieve() {
+        if(this.storeInConfig) {
+            return global.config.get(this.key)
+        } else {
+            return await global.storage.get(this.key)
+        }
     }
 }
 

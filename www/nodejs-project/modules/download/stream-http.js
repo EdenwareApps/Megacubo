@@ -29,7 +29,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
         this.failedIPs = []
         this.errors = []
         this.once('destroy', () => {
-            this.responseWrapper && this.responseWrapper.end()
+            this.responder && this.responder.end()
         })
 	}
     async options(ip, family){
@@ -97,7 +97,6 @@ class DownloadStreamHttp extends DownloadStreamBase {
             throw 'Connection already destroyed (on start) '+ (this.error || this.ended || this.destroyed)
         }
         const start = global.time()
-        let fine
         this.parsed = url.parse(this.opts.url, false)
         this.jar = this.parsed.protocol == 'http:' ? httpJar : httpsJar
         await this.resolve(this.parsed.hostname)
@@ -109,31 +108,35 @@ class DownloadStreamHttp extends DownloadStreamBase {
         }
         for(let ip of this.ips){
             const options = await this.options(ip.address, ip.family)
-            fine = await this.get(options).catch(console.error)
-            if(fine === true) {
-                break
-            }
+            await this.get(options).catch(console.error)
+            if(this.responder || this.ended) break
         }
-        if(fine){
+        if(this.responder) {
+            this.responder.end()
             this.end()
         } else {
-            this.emitError(this.errors.map(s => String(s)).unique().join("\n"), true)
+            console.error('ERROR', this.opts.url, this.errors)
+            const err = this.errors.map(s => String(s)).unique().join("\n") || 'Unknown error'
+            console.error('ERROR', this.opts.url, err)
+            this.emitError(err, true)
         }
     }
+    /*
 	get(options){
-        return new Promise(resolve => {
-            let timer, fine, req, res, resolved
-            
+        return new Promise((resolve, reject) => {
+            let timer, fine, req, res, resolved, closed
             const controller = new AbortController()  
-            const close = () => {
+            const close = force => {
                 this.removeListener('destroy', close)
-                this.responseWrapper && this.responseWrapper.end()
-                controller.abort()
+                this.responder && this.responder.end()
+                if(closed && force !== true) return
+                closed = true
                 if(req) {
                     req.abort()
                     req.destroy()
                 }
                 if(res) {
+                    force && controller.abort()
                     res.destroy()
                 }
             }
@@ -142,15 +145,13 @@ class DownloadStreamHttp extends DownloadStreamBase {
                 this.errors.push(error)
                 if(!resolved){
                     resolved = true
+                    close(true)
                     if(options.realHost && options.ip){ // before resolving
                         lookup.defer(options.realHost, options.ip) // if it failed with a IP, try some other at next time
                     }
-                    resolve(fine)
+                    reject(error)
                 }
-                if(this.responseWrapper){
-                    this.responseWrapper.emitError(error)
-                }
-                close()
+                this.responder && this.responder.emitError(error)
             }
             const clearTimer = () => {
                 timer && clearTimeout(timer)
@@ -164,7 +165,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
                 if(state != currentState){
                     currentState = state
                 }
-                timer = setTimeout(() => fail('Timeouted after '+ this.timeout.connect +'ms'), this.timeout[state])
+                timer = setTimeout(() => fail('Timeouted after '+ this.timeout.connect +'ms ('+ state +')'), this.timeout[state])
             }
             const finish = () => {
                 clearTimer()
@@ -175,23 +176,20 @@ class DownloadStreamHttp extends DownloadStreamBase {
                 }
                 close()
             }
-            this.once('destroy', close)     
+            this.once('destroy', () => close(true))
             options.signal = controller.signal
             req = (options.protocol == 'http:' ? http : https).request(options, response => {
-                if(this.destroyed){
-                    fail('destroyed')
-                    return close()
-                }
+                if(this.destroyed) return fail('destroyed')
                 fine = true
                 res = response
-                this.responseWrapper = new DownloadStreamBase.Response(res.statusCode, res.headers)
-                if(this.responseWrapper.headers['set-cookie']){
-                    if (this.responseWrapper.headers['set-cookie'] instanceof Array) {
-                        this.responseWrapper.headers['set-cookie'].map(c => this.setCookies(c).catch(console.error))
+                this.responder = new DownloadStreamBase.Response(res.statusCode, res.headers)
+                if(this.responder.headers['set-cookie']){
+                    if (this.responder.headers['set-cookie'] instanceof Array) {
+                        this.responder.headers['set-cookie'].map(c => this.setCookies(c).catch(console.error))
                     } else {
-                        this.setCookies(this.responseWrapper.headers['set-cookie']).catch(console.error)
+                        this.setCookies(this.responder.headers['set-cookie']).catch(console.error)
                     }
-                    delete this.responseWrapper.headers['set-cookie']
+                    delete this.responder.headers['set-cookie']
                 }
                 res.once('error', fail)
                 res.once('timeout', fail)
@@ -201,19 +199,94 @@ class DownloadStreamHttp extends DownloadStreamBase {
                 res.socket.once('end', () => finish())
                 res.socket.once('close', () => finish())
                 res.socket.once('finish', () => finish())
-                this.once('destroy', () => (resolved || finish()))
-                this.emit('response', this.responseWrapper)
                 res.on('data', chunk => {
-                    if(this.ended || this.destroyed){
+                    if(this.ended || this.destroyed) {
                         console.error('RECEIVING DATA AFTER END ', this.ended, this.destroyed, this.errors)
+                        close(true)
                     }
-                    this.responseWrapper && this.responseWrapper.write(chunk)
+                    this.responder && this.responder.write(chunk)
                     startTimer('response')                  
                 })
+                this.once('destroy', () => (resolved || finish()))
+                this.emit('response', this.responder)
                 startTimer('response')
             }).on('error', fail)
             req.end()
             startTimer('connect')
+        })
+	}
+    */
+	async get(options){
+        let timer, req, res, closed, currentState = 'connect'
+        const controller = new AbortController()
+        const via = options.protocol == 'http:' ? http : https
+        const clearTimer = () => {
+            timer && clearTimeout(timer)
+        }
+        return await new Promise((resolve, reject) => {
+            const close = err => {
+                clearTimer()
+                if(closed) return
+                closed = true
+                if(err) {
+                    this.errors.push(err)
+                    if(options.realHost && options.ip){ // before resolving
+                        lookup.defer(options.realHost, options.ip) // if it failed with a IP, try some other at next time
+                    }
+                    reject(err)
+                } else {
+                    resolve()
+                }
+                if(req) {
+                    req.abort()
+                    req.destroy()
+                }
+                if(res) {
+                    res.destroy()
+                }
+            }
+            const requested = response => {
+                if(this.destroyed) return
+                res = response
+                this.responder = new DownloadStreamBase.Response(res.statusCode, res.headers)
+                if(this.responder.headers['set-cookie']){
+                    if (this.responder.headers['set-cookie'] instanceof Array) {
+                        this.responder.headers['set-cookie'].map(c => this.setCookies(c).catch(console.error))
+                    } else {
+                        this.setCookies(this.responder.headers['set-cookie']).catch(console.error)
+                    }
+                    delete this.responder.headers['set-cookie']
+                }
+                res.once('error', e => close(e))
+                res.once('timeout', e => close(e))
+                //res.once('end', close)
+                res.once('close', close)
+                res.once('finish', close)
+                res.socket.once('end', close)
+                res.socket.once('close', close)
+                res.socket.once('finish', close)
+                res.on('data', chunk => {
+                    if(this.ended || this.destroyed) {
+                        console.error('RECEIVING DATA AFTER END ', this.ended, this.destroyed, this.errors)
+                        return controller.abort()
+                    }
+                    this.responder.write(chunk)
+                    startTimer('response')                  
+                })
+                this.emit('response', this.responder)
+                startTimer('response')
+            }
+            const startTimer = state => {
+                clearTimer()
+                if(!state) state = currentState
+                if(state != currentState) currentState = state
+                timer = setTimeout(() => close('Timeouted after '+ this.timeout.connect +'ms ('+ state +')'), this.timeout[state])
+            }
+            this.once('destroy', close)
+            options.signal = controller.signal            
+            req = via.request(options, requested).on('error', close).on('abort', close)
+            startTimer('connect')
+            req.end()
         })
 	}
     getCookies(){

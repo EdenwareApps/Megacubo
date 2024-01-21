@@ -15,15 +15,18 @@ class DownloadStreamResponse extends Events {
 		this.end()
 	}
     end(){
-        if(!this.ended) {
-            this.ended = true
-            this.emit('end')
-        }
         this.destroy()
     }
     destroy(){
-        this.emit('destroy')
-        this.removeAllListeners()
+        if(this.ended !== true) {
+            this.ended = true
+            this.emit('end')
+        }
+        if(this.destroyed !== true) {
+            this.destroyed = true
+            this.emit('destroy')
+            this.removeAllListeners()
+        }
     }
 }
 
@@ -31,6 +34,7 @@ class DownloadStream extends Events {
 	constructor(opts){
 		super()
         this.setMaxListeners(20)
+        this.uid = parseInt(Math.random() * 1000000)
 		this.opts = opts
         this.timeout = opts.timeout
         this.headersSent = false
@@ -78,7 +82,7 @@ class DownloadStream extends Events {
         this.error = error
         report && !this.destroyed && console.warn('DownloadStream:'+ this.type, this.opts.url, error)
 		this.listenerCount('error') && this.emit('error', error, report)
-		this.end()
+		this.destroy()
 	}
     end(){
         this.destroyed || this.destroy()

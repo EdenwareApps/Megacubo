@@ -1,26 +1,26 @@
 const pLimit = require('p-limit'), EntriesGroup = require('../entries-group')
 
 class Watching extends EntriesGroup {
-    constructor(){
+    constructor() {
         super('watching')
         this.timer = 0
         this.currentEntries = null
         this.currentRawEntries = null
         this.updateIntervalSecs = global.cloud.expires['watching-country'] || 300
         global.config.on('change', (keys, data) => {
-            if(keys.includes('only-known-channels-in-been-watched') || keys.includes('parental-control') || keys.includes('parental-control-terms')){
+            if (keys.includes('only-known-channels-in-been-watched') || keys.includes('parental-control') || keys.includes('parental-control-terms')) {
                 this.update().catch(console.error)
             }
-        })     
-        global.storage.promises.get('watching-current').then(data => {
+        })
+        global.storage.get('watching-current').then(data => {
             global.channels.ready(() => {
-                if(!this.currentRawEntries || !this.currentRawEntries.length){
+                if (!this.currentRawEntries || !this.currentRawEntries.length) {
                     this.currentRawEntries = data
                     this.update(data).catch(console.error)
-                } else if(Array.isArray(data)) {                  
-                    this.currentEntries && this.currentEntries.forEach((c, i) => {  
+                } else if (Array.isArray(data)) {
+                    this.currentEntries && this.currentEntries.forEach((c, i) => {
                         data.forEach(e => {
-                            if(typeof(c.trend) == 'undefined' && typeof(e.trend) != 'undefined'){
+                            if (typeof (c.trend) == 'undefined' && typeof (e.trend) != 'undefined') {
                                 this.currentEntries[i].trend = e.trend
                                 return true
                             }
@@ -33,29 +33,28 @@ class Watching extends EntriesGroup {
             console.error(err)
         })
     }
-    title(){
+    title() {
         return global.lang.TRENDING
     }
-    ready(cb){
-        if(this.currentRawEntries){
-            cb()
-        } else {
-            this.once('update', cb)
-            if(!this.updating) {
-                this.update().catch(console.error)
+    ready() {
+        return new Promise((resolve, reject) => {
+            if (this.currentRawEntries !== null) {
+                resolve()
+            } else {
+                this.once('update', resolve)
+                if (!this.updating) this.update().catch(reject)
             }
-        }
+        })
     }
-    showChannelOnHome(){
+    showChannelOnHome() {
         return global.lists.manager.get().length || global.config.get('communitary-mode-lists-amount')
     }
-    async update(rawEntries=null){
+    async update(rawEntries = null) {
         this.updating = true
         clearTimeout(this.timer)
         let prv = this.entry()
         await this.process(rawEntries).catch(err => {
-            console.error('watching '+ err)
-            if(!this.currentRawEntries){
+            if (!this.currentRawEntries) {
                 this.currentEntries = []
                 this.currentRawEntries = []
             }
@@ -65,83 +64,77 @@ class Watching extends EntriesGroup {
         clearTimeout(this.timer) // clear again to be sure
         this.timer = setTimeout(() => this.update().catch(console.error), this.updateIntervalSecs * 1000)
         let nxt = this.entry()
-        if(this.showChannelOnHome() && global.explorer.path == '' && (prv.details != nxt.details || prv.name != nxt.name)){
+        if (this.showChannelOnHome() && global.explorer.path == '' && (prv.details != nxt.details || prv.name != nxt.name)) {
             global.explorer.updateHomeFilters()
         } else {
             this.updateView()
         }
     }
-    updateView(){
-        if(global.explorer.path == this.title()){
+    updateView() {
+        if (global.explorer.path == this.title()) {
             global.explorer.refresh()
         }
     }
-    hook(entries, path){
-        return new Promise((resolve, reject) => {
-            if(path == ''){
-                let pos = 0, entry = this.entry()
-                if(!entry.originalName){
-                    entries.some((e, i) => {
-                        if(e.name == global.lang.TOOLS){
-                            pos = i + 1
-                            return true
-                        }
-                    })
-                }
-                entries = entries.filter(e => e.hookId != this.key)
-                entries.splice(pos, 0, entry)
+    async hook(entries, path) {
+        if (path == '') {
+            let pos = 0, entry = this.entry()
+            if (!entry.originalName) {
+                entries.some((e, i) => {
+                    if (e.name == global.lang.TOOLS) {
+                        pos = i + 1
+                        return true
+                    }
+                })
             }
-            resolve(entries)
-        })
+            entries = entries.filter(e => e.hookId != this.key)
+            entries.splice(pos, 0, entry)
+        }
+        return entries
     }
-    extractUsersCount(e){
-        if(e.users){
+    extractUsersCount(e) {
+        if (e.users) {
             return e.users
         }
         let n = String(e.label || e.details).match(new RegExp('([0-9]+)($|[^&])'))
-        return n && n.length ? parseInt(n[1]) : 0 
+        return n && n.length ? parseInt(n[1]) : 0
     }
-    entries(){
-        return new Promise((resolve, reject) => {
-            if(!global.lists.loaded()){
-                return resolve([global.lists.manager.updatingListsEntry()])
-            }
-            if(!global.lists.activeLists.length){
-                return resolve([global.lists.manager.noListsEntry()])
-            }
-            this.ready(() => {
-                let list = this.currentEntries ? global.deepClone(this.currentEntries, true) : []
-                list = list.map((e, i) => {
-                    e.position = (i + 1)
-                    return e
-                })
-                if(!list.length){
-                    list = [{name: global.lang.EMPTY, fa: 'fas fa-info-circle', type: 'action', class: 'entry-empty'}]
-                } else {
-                    const acpolicy = global.config.get('parental-control')
-                    if(['remove', 'block'].includes(acpolicy)){
-                        list = global.lists.parentalControl.filter(list)		
-                    } else if(acpolicy == 'only') {
-                        list = global.lists.parentalControl.only(list)
-                    }     
-                }
-                this.currentTopProgrammeEntry = false
-                list = this.prepare(list) 
-                global.channels.epgChannelsAddLiveNow(list, false).then(es => {
-                    if(es.length) {
-                        es.some(e => {
-                            if(e.programme && e.programme.i) {
-                                this.currentTopProgrammeEntry = e
-                                return true
-                            }
-                        })
-                    }
-                    resolve(es)
-                }).catch(reject)
-            })       
+    async entries() {
+        if (!global.lists.loaded()) {
+            return [global.lists.manager.updatingListsEntry()]
+        }
+        if (!global.lists.activeLists.length) {
+            return [global.lists.manager.noListsEntry()]
+        }
+        await this.ready()
+        let list = this.currentEntries ? global.deepClone(this.currentEntries, true) : []
+        list = list.map((e, i) => {
+            e.position = (i + 1)
+            return e
         })
+        if (!list.length) {
+            list = [{ name: global.lang.EMPTY, fa: 'fas fa-info-circle', type: 'action', class: 'entry-empty' }]
+        } else {
+            const acpolicy = global.config.get('parental-control')
+            if (['remove', 'block'].includes(acpolicy)) {
+                list = global.lists.parentalControl.filter(list)
+            } else if (acpolicy == 'only') {
+                list = global.lists.parentalControl.only(list)
+            }
+        }
+        this.currentTopProgrammeEntry = false
+        list = this.prepare(list)
+        const es = await global.channels.epgChannelsAddLiveNow(list, false)
+        if (es.length) {
+            es.some(e => {
+                if (e.programme && e.programme.i) {
+                    this.currentTopProgrammeEntry = e
+                    return true
+                }
+            })
+        }
+        return es
     }
-    applyUsersPercentages(entries){
+    applyUsersPercentages(entries) {
         let totalUsersCount = 0
         entries.forEach(e => totalUsersCount += e.users)
         let pp = totalUsersCount / 100
@@ -150,44 +143,53 @@ class Watching extends EntriesGroup {
         })
         return entries
     }
-    async getRawEntries(){
+    async getRawEntries() {
         let data = []
-        const limit = pLimit(3)
         const countries = await global.lang.getActiveCountries()
+        const validator = a => Array.isArray(a) && a.length
+        const limit = pLimit(3)
+        global.cloud.debug = true
+        /*
         const tasks = countries.map(country => {
             return async () => {
-                let es = await global.cloud.get('watching-country.'+ country, false, a => Array.isArray(a) && a.length).catch(console.error)
-                if(Array.isArray(es)) {
-                    data.push(...es)
-                }
+                let es = await global.cloud.get('watching-country.' + country, false, validator).catch(console.error)
+                Array.isArray(es) && data.push(...es)
             }
         }).map(limit)
         await Promise.allSettled(tasks)
+        */
+        for(const country of countries) {
+            let es = await global.cloud.get('watching-country.'+ country, false, validator).catch(e => {
+                console.error('watching country error: ', e)
+            })
+            Array.isArray(es) && data.push(...es)
+        }
+        global.cloud.debug = false
         data.forEach((e, i) => {
-            if(e.logo && !e.icon){
+            if (e.logo && !e.icon) {
                 data[i].icon = e.logo
                 delete data[i].logo
             }
         })
         return data
     }
-    async process(rawEntries){
+    async process(rawEntries) {
         let data = Array.isArray(rawEntries) ? rawEntries : (await this.getRawEntries())
         let recoverNameFromMegaURL = true
-        if(!Array.isArray(data) || !data.length) return []
+        if (!Array.isArray(data) || !data.length) return []
         data = global.lists.prepareEntries(data)
-        data = data.filter(e => (e && typeof(e) == 'object' && typeof(e.name) == 'string')).map(e => {
+        data = data.filter(e => (e && typeof (e) == 'object' && typeof (e.name) == 'string')).map(e => {
             const isMega = global.mega.isMega(e.url)
-            if(isMega && recoverNameFromMegaURL){
+            if (isMega && recoverNameFromMegaURL) {
                 let n = global.mega.parse(e.url)
-                if(n && n.name){
+                if (n && n.name) {
                     e.name = global.ucWords(n.name)
                 }
             }
             e.name = global.lists.sanitizeName(e.name)
             e.users = this.extractUsersCount(e)
             e.details = ''
-            if(!isMega){
+            if (!isMega) {
                 e.url = global.mega.build(e.name)
             }
             return e
@@ -200,34 +202,34 @@ class Watching extends EntriesGroup {
         let gsearches = [], searchTerms = sentries.map(s => s.search_term).filter(s => s.length >= 3).filter(s => !global.channels.isChannel(s)).filter(s => global.lists.parentalControl.allow(s)).map(s => global.lists.terms(s))
         data.forEach((entry, i) => {
             let ch = global.channels.isChannel(entry.terms.name)
-            if(!ch){
+            if (!ch) {
                 searchTerms.some(terms => {
-                    if(global.lists.match(terms, entry.terms.name)){
+                    if (global.lists.match(terms, entry.terms.name)) {
                         const name = terms.join(' ')
                         gsearches.includes(name) || gsearches.push(name)
-                        ch = {name}
+                        ch = { name }
                         return true
                     }
                 })
             }
-            if(ch){ 
+            if (ch) {
                 let term = ch.name
-                if(typeof(groups[term]) == 'undefined'){
+                if (typeof (groups[term]) == 'undefined') {
                     groups[term] = []
                     gcount[term] = 0
                 }
-                if(typeof(entry.users) != 'undefined'){
+                if (typeof (entry.users) != 'undefined') {
                     entry.users = this.extractUsersCount(entry)
                 }
                 gcount[term] += entry.users
                 delete data[i]
             } else {
-                if(onlyKnownChannels){
+                if (onlyKnownChannels) {
                     delete data[i]
                 } else {
-                    if(!global.mega.isMega(entry.url)) {
+                    if (!global.mega.isMega(entry.url)) {
                         const mediaType = global.lists.mi.mediaType(entry)
-                        entry.url = global.mega.build(entry.name, {mediaType})
+                        entry.url = global.mega.build(entry.name, { mediaType })
                     }
                     data[i] = global.channels.toMetaEntry(entry)
                 }
@@ -236,11 +238,11 @@ class Watching extends EntriesGroup {
         Object.keys(groups).forEach(n => {
             const name = global.ucWords(n)
             gentries.push(global.channels.toMetaEntry({
-                name, 
+                name,
                 type: 'group',
                 fa: 'fas fa-play-circle',
                 users: gcount[n],
-                url: global.mega.build(name, {terms: n.split(' '), mediaType: gsearches.includes(n) ? 'all' : 'live'})
+                url: global.mega.build(name, { terms: n.split(' '), mediaType: gsearches.includes(n) ? 'all' : 'live' })
             }))
         })
         data = data.filter(e => {
@@ -251,21 +253,24 @@ class Watching extends EntriesGroup {
         data = this.addTrendAttr(data)
         data = this.applyUsersPercentages(data)
         this.currentEntries = data
-        global.storage.promises.set('watching-current', this.currentRawEntries, true).catch(console.error) // do not await
+        global.storage.set('watching-current', this.currentRawEntries, {
+            permanent: true,
+            expiration: true
+        }).catch(console.error) // do not await
         global.updateUserTasks().catch(console.error) // do not await
         return data
     }
-    addTrendAttr(entries){
-        if(this.currentEntries){
+    addTrendAttr(entries) {
+        if (this.currentEntries) {
             const k = entries.some(e => e.usersPercentage) ? 'usersPercentage' : 'users'
             entries.map(e => {
                 this.currentEntries.some(c => {
-                    if(c.url == e.url){
-                        if(e[k] > c[k]) {
+                    if (c.url == e.url) {
+                        if (e[k] > c[k]) {
                             e.trend = 1
-                        } else if(e[k] < c[k]) {
+                        } else if (e[k] < c[k]) {
                             e.trend = -1
-                        } else if(typeof(c.trend) == 'number') {
+                        } else if (typeof (c.trend) == 'number') {
                             e.trend = c.trend
                         }
                         return true
@@ -276,39 +281,36 @@ class Watching extends EntriesGroup {
         }
         return entries
     }
-    order(entries){
-        return new Promise((resolve, reject) => {
-            if(this.currentRawEntries){
-                let up = [], es = entries.slice(0)
-                this.currentRawEntries.forEach(r => {
-                    es.some((e, i) => {
-                        if(r.url == e.url){
-                            e.users = r.users
-                            up.push(e)
-                            delete es[i]
-                            return true
-                        }
-                    })
+    async order(entries) {
+        if (this.currentRawEntries) {
+            let up = [], es = entries.slice(0)
+            this.currentRawEntries.forEach(r => {
+                es.some((e, i) => {
+                    if (r.url == e.url) {
+                        e.users = r.users
+                        up.push(e)
+                        delete es[i]
+                        return true
+                    }
                 })
-                up.push(...es.filter(e => { return !!e }))
-                resolve(up)
-            } else {
-                resolve(entries)
-            }     
-        })
+            })
+            up.push(...es.filter(e => { return !!e }))
+            return up
+        }
+        return entries
     }
-    entry(){
-        const entry = {name: this.title(), details: global.lang.BEEN_WATCHED, fa: 'fas fa-chart-bar', hookId: this.key, type: 'group', renderer: this.entries.bind(this)}
-        if(this.currentEntries && this.showChannelOnHome()){
+    entry() {
+        const entry = { name: this.title(), details: global.lang.BEEN_WATCHED, fa: 'fas fa-chart-bar', hookId: this.key, type: 'group', renderer: this.entries.bind(this) }
+        if (this.currentEntries && this.showChannelOnHome()) {
             let top = this.currentTopProgrammeEntry
-            if(top) {
+            if (top) {
                 let s = top.users == 1 ? 'user' : 'users'
                 entry.name = this.title()
-                entry.class = 'entry-icon' 
+                entry.class = 'entry-icon'
                 entry.originalName = top.name
-                if(entry.rawname) entry.rawname = top.name
+                if (entry.rawname) entry.rawname = top.name
                 entry.prepend = '<i class="fas fa-chart-bar"></i> '
-                entry.details = top.programme.t + ' &middot; <i class="fas fa-'+ s +'"></i> '+ global.lang.X_WATCHING.format(top.users)
+                entry.details = top.programme.t + ' &middot; <i class="fas fa-' + s + '"></i> ' + global.lang.X_WATCHING.format(top.users)
                 entry.programme = top.programme
             }
         }

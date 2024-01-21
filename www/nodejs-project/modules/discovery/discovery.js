@@ -28,7 +28,10 @@ class PublicIPTVListsDiscovery extends Events {
         })
         this.on('found', () => this.save().catch(console.error))
         this.saver = new Limiter(() => {
-            global.storage.set(this.key, this.knownLists, true)
+            global.storage.set(this.key, this.knownLists, {
+                permanent: true,
+                expiration: true
+            })
         }, 10000)
         this.restore().catch(console.error)
         const iptv = new IPTVOrgProvider()
@@ -42,7 +45,7 @@ class PublicIPTVListsDiscovery extends Events {
         })
     }
     async restore(){
-        const data = await global.storage.promises.get(this.key).catch(console.error)
+        const data = await global.storage.get(this.key).catch(console.error)
         Array.isArray(data) && this.add(data)
     }
     async save(){

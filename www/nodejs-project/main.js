@@ -62,8 +62,6 @@ process.on('uncaughtException', (exception) => {
     return false
 })
 
-global.storage = require('./modules/storage')({main: true})
-
 global.onexit(() => {
     global.isExiting = true
     console.error('APP_EXIT='+ traceback())
@@ -106,7 +104,9 @@ global.uiReady = (f, done) => {
     return ready
 }
 
-global.config = require('./modules/config')(global.paths['data'] + '/config.json')
+const Storage = require('./modules/storage')
+global.config = require('./modules/config')(global.paths.data + '/config.json')
+global.storage = new Storage({main: true})
 global.Download = require('./modules/download')
 global.jimp = null
 
@@ -172,7 +172,7 @@ let playOnLoaded, tuningHintShown, showingSlowBroadcastDialog
 global.updateUserTasks = async app => {
     if(process.platform != 'win32') return
     if(app) { // set from cache, Electron won't set after window is opened
-        const tasks = await global.storage.promises.get('user-tasks')
+        const tasks = await global.storage.get('user-tasks')
         if(tasks && !app.setUserTasks(tasks)) {
             throw 'Failed to set user tasks. '+ JSON.stringify(tasks)
         }
@@ -207,7 +207,10 @@ global.updateUserTasks = async app => {
             iconIndex: 0
         }
     })
-    await global.storage.promises.set('user-tasks', tasks, true)
+    await global.storage.set('user-tasks', tasks, {
+        expiration: true,
+        permanent: true
+    })
 }
 
 const videoErrorTimeoutCallback = ret => {
@@ -283,11 +286,10 @@ const init = (language, timezone) => {
         global.options = new Options()
         global.watching = new Watching()
         global.bookmarks = new Bookmarks()
-        global.icons = new IconServer({folder: global.paths['data'] + '/icons'})        
+        global.icons = new IconServer({folder: global.paths['data'] + '/icons'})
+        global.explorer = new Explorer({})
 
         global.rmdir(global.streamer.opts.workDir, false, true)
-
-        global.explorer = new Explorer({})
         
         console.log('Initializing premium...')
         Premium = require('./modules/premium-helper')
@@ -534,7 +536,7 @@ const init = (language, timezone) => {
                             group: []
                         }
                     }
-                    global.storage.raw.set('open-url', url, true)
+                    global.config.set('open-url', url)
                     global.lists.manager.waitListsReady().then(() => {                       
                         if(isStreamerReady){
                             global.streamer.play(e)
@@ -852,6 +854,7 @@ if(global.cordova) {
             global.ui.on(k, (...args) => global.ui.emit('electron-window-'+ k, ...args))
         })
         window.on('resize', updateMetrics)
+        window.on('closed', () => window.closed = true) // prevent bridge IPC error
         global.ui.setElectronWindow(window)
     }
 

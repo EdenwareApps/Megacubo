@@ -1068,7 +1068,7 @@ class StreamerClientTimeWarp extends StreamerLiveStreamClockTimer {
         parent.player.on('timeupdate', pos => this.doTimeWarp(pos))
         parent.player.on('durationchange', () => this.doTimeWarp())
         this.app.on('streamer-connect', (src, mimetype, cookie, mediatype) => {
-            if(!config['in-disk-caching'] && mimetype.toLowerCase().indexOf('mpegurl') != -1 && mediatype != 'video') {
+            if(!config['in-disk-caching-size'] && mimetype.toLowerCase().indexOf('mpegurl') != -1 && mediatype != 'video') {
                 this.bufferTimeSecs = this.defaultBufferTimeSecs.pressure
             } else {
                 this.bufferTimeSecs = this.defaultBufferTimeSecs.lazy
@@ -1083,7 +1083,7 @@ class StreamerClientTimeWarp extends StreamerLiveStreamClockTimer {
         const currentTime = parent.player.time()
         const nudge = 10
         let duration, pduration = parent.player.duration()
-        if(!config['in-disk-caching'] && this.activeMimetype.indexOf('mpegurl') != -1 && this.activeMediatype != 'video') {
+        if(!config['in-disk-caching-size'] && this.activeMimetype.indexOf('mpegurl') != -1 && this.activeMediatype != 'video') {
             duration = this.clockTimerDuration()
         } else {
             duration = pduration
@@ -1101,7 +1101,7 @@ class StreamerClientTimeWarp extends StreamerLiveStreamClockTimer {
                 ptime = parent.player.time()
             }
             let duration, pduration = parent.player.duration()
-            if(!config['in-disk-caching'] && this.activeMimetype.indexOf('mpegurl') != -1 && this.activeMediatype != 'video') {
+            if(!config['in-disk-caching-size'] && this.activeMimetype.indexOf('mpegurl') != -1 && this.activeMediatype != 'video') {
                 duration = this.clockTimerDuration()
             } else {
                 duration = pduration

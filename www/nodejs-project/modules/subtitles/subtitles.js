@@ -106,7 +106,7 @@ class Subtitles extends Events {
                     const dl = async() => {
                         let err
                         const cacheKey = 'os-sub-'+ file_id
-                        const cached = await global.storage.promises.get(cacheKey).catch(console.error)
+                        const cached = await global.storage.get(cacheKey).catch(console.error)
                         if(cached && typeof(cached) == 'string') return cached
                         const ret = await this.os.download({file_id}).catch(e => err = e)
                         if(err) return fail(err)
@@ -120,7 +120,7 @@ class Subtitles extends Events {
                         }).catch(e => err = e)
                         if(err) return fail(err)
                         body = this.srt2vtt(body)
-                        await global.storage.promises.set(cacheKey, body, 24 * 3600)
+                        await global.storage.set(cacheKey, body, {ttl: 24 * 3600})
                         resHeaders['Content-Type'] = 'text/vtt'
                         response.writeHead(200, resHeaders)
                         response.write(body)
@@ -151,7 +151,7 @@ class Subtitles extends Events {
     }
     async search(query) {
         const cacheKey = 'os-search-'+ query
-        const cached = await global.storage.promises.get(cacheKey).catch(console.error)
+        const cached = await global.storage.get(cacheKey).catch(console.error)
         if(Array.isArray(cached)) return cached
         await this.ready()
         let results = await this.os.subtitles({
@@ -167,7 +167,7 @@ class Subtitles extends Events {
             ret.url = this.host +'/?id='+ ret.id
             return ret
         }).filter(r => r)
-        await global.storage.promises.set(cacheKey, ret, 24 * 3600)
+        await global.storage.set(cacheKey, ret, {ttl: 24 * 3600})
         return ret
     } 
 }

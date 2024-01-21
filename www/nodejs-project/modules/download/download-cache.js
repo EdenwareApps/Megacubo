@@ -1,5 +1,9 @@
 const fs = require('fs'), Events = require('events'), Reader = require('../reader')
 
+const url2id = (url, folder) => {
+    return 'dlc-'+ url.replace(new RegExp('^https?://'), '').replace(new RegExp('[^A-Za-z0-9]+', 'g'), '-').substr(0, 260 - (folder.length + 4))
+}
+
 class DownloadCacheFileReader extends Events {
     constructor(master, opts){
         super()
@@ -10,7 +14,11 @@ class DownloadCacheFileReader extends Events {
             this.opts.persistent = false
             this.stream && this.stream.endPersistence()
         })
-        this.on('error', console.error)
+        master.once('error', err => {
+            this.emit('error', err)
+            this.destroy()
+        })
+        this.once('close', () => this.destroy())
         process.nextTick(() => this.init())
     }
     init(){
@@ -21,6 +29,9 @@ class DownloadCacheFileReader extends Events {
         this.stream.on(name, (...args) => this.emit(name, ...args))
     }
     destroy(){
+        if(this.destroyed) return
+        this.destroyed = true
+        this.emit('end')
         this.emit('close')
         this.emit('finish')
         this.removeAllListeners()
@@ -35,9 +46,9 @@ class DownloadCacheChunks extends Events {
     constructor(url){
         super()
         this.setMaxListeners(99)
-        this.folder = global.storage.folder +'/dlcache/'
-        this.uid = 'dcc-'+ url.replace(new RegExp('^https?://'), '').replace(new RegExp('[^A-Za-z0-9]+', 'g'), '-').substr(0, 260 - (this.folder.length + 4))
-        this.file = this.folder + this.uid + '.bin'
+        this.folder = global.storage.folder +'/'
+        this.uid = url2id(url, this.folder)
+        this.file = global.storage.resolve(this.uid)
         this.chunks = []
         this.size = 0
         this.created = false
@@ -92,6 +103,7 @@ class DownloadCacheChunks extends Events {
         }
     }
     fail(err){
+        this.error = err
         this.emit('error', err)
         this.finish()
         this.file && fs.unlink(this.file, () => {})
@@ -113,220 +125,40 @@ class DownloadCacheChunks extends Events {
 class DownloadCacheMap extends Events {
     constructor(){
         super()
-        this.index = {}
-        this.uid = parseInt(Math.random() * 100000)
+        this.saving = {}
         this.debug = false
-        this.maxDiskUsage = 512 * (1024 * 1024) // 512MB
-        this.maxMaintenanceInterval = 60
-        this.maintenanceTimer = 0
-        this.folder = global.storage.folder +'/dlcache'
-        this.indexFile = this.folder +'/index.json'
-        this.tempnamIterator = 0
-        this.start().catch(console.error).finally(() => {
-            this.emit('update', this.export())            
-            this.scheduleMaintenance(15000) // delay a bit for performance
-        })
+        this.folder = global.storage.folder +'/'
     }
-    async reload(){
-        const data = await this.readIndexFile()
-        if(typeof(data) == 'object'){
-            Object.keys(data).forEach(url => {
-                if(typeof(this.index[url]) == 'undefined' || (this.index[url].ttl < data[url].ttl)){
-                    this.index[url] = data[url]
-                }
-            })
+    async info(url) {
+        if(this.saving[url]) return this.saving[url]
+        const key = url2id(url, this.folder)
+        const hkey = 'dch-'+ key.substr(4)
+        if(!global.storage.index[key] || !global.storage.index[hkey]) {
+            return null
         }
-        if(this.debug){
-            console.warn('DLCACHE reload', global.time())
+        const info = await global.storage.get(hkey).catch(() => {})
+        if(!info || !info.headers) return null
+        const file = global.storage.resolve(key)
+        const stat = await fs.promises.stat(file).catch(() => {})
+        if(!stat || typeof(stat.size) != 'number') return null
+        return {
+            status: info.statusCode,
+            headers: info.headers,
+            size: info.size,
+            type: 'file',
+            file
         }
-    }
-    async readIndexFile(){
-        let hasErr, ret = {}
-        await fs.promises.access(this.indexFile, fs.constants.R_OK).catch(e => hasErr = e)
-        if(hasErr) return ret
-        try {
-            let data = await fs.promises.readFile(this.indexFile, {encoding: null})
-            data = global.parseJSON(data)
-            ret = data            
-        } catch(e) {
-            console.error(e)
-        }
-        return ret
-    }
-    async start(){
-        if(this.started) return
-        this.started = true
-        await fs.promises.mkdir(this.folder, {recursive: true}).catch(console.error)
-        const now = global.time()
-        let caches = await fs.promises.readdir(this.folder).catch(console.error)
-        if(Array.isArray(caches)){
-            caches = caches.map(f => this.folder +'/'+ f)
-        } else {
-            caches = []
-        }
-        if(caches.includes(this.indexFile)){
-            let changed
-            await this.reload()
-            Object.keys(this.index).forEach(url => {
-                const file = String(this.index[url].data)
-                if(!caches.includes(file) && this.index[url].type == 'file' && this.index[url].size > 0){
-                    if(!changed) changed = true
-                    if(this.debug){
-                        console.warn('DLCACHE RM file missing')
-                    }
-                    delete this.index[url] // cache file missing
-                }
-            })
-            if(global.ui){
-                const indexFiles = Object.values(this.index).map(r => String(r.chunks ? r.chunks.file : r.data))
-                for(const file of caches) {
-                    if(!indexFiles.includes(file) && file != this.indexFile){
-                        if(this.debug){
-                            console.warn('DLCACHE RM orphaned file', file, Object.values(this.index).filter(r => r.type == 'file').map(r => String(r.data)))
-                        }
-                        let err
-                        const stat = await fs.promises.stat(file).catch(e => err = e)
-                        if(stat && stat.mtime && (now - stat.mtime) > 300) {
-                            await fs.promises.unlink(file).catch(console.error)
-                        }
-                    }
-                }
-            }
-            if(this.debug){
-                console.warn('DLCACHE RM result', Object.keys(this.index))
-            }
-            this.emit('update', this.export())
-        } else if(caches.length) { // index file missing
-            this.truncate()
-        }
-    }
-    export(){
-        const ndx = {}, now = global.time()
-        Object.keys(this.index).forEach(k => {
-            if(now > (this.index[k].ttl - 10)) {
-                delete this.index[k]
-            } else {
-                const v = {};
-                ['time', 'ttl', 'size'].forEach(p => v[p] = this.index[k][p])
-                ndx[k] = v
-            }
-        })
-        return ndx
-    }
-    truncate(){
-        if(Object.keys(this.index).length){
-            if(this.debug){
-                console.warn('DLCACHE RM truncate', global.traceback())
-            }
-            this.index = {}
-            global.rmdir && global.rmdir(this.folder, false, () => {})
-            this.emit('update', this.export())
-        }
-    }
-    scheduleMaintenance(sdelay) {
-        if(this.inMaintenance) return
-        this.inMaintenance = true
-        clearTimeout(this.maintenanceTimer)        
-        this.maintenanceTimer = setTimeout(() => {
-            let delay = this.maxMaintenanceInterval
-            this.maintenance().then(ret => {
-                if(ret >= 0) delay = ret
-            }).catch(console.error).finally(() => {
-                this.inMaintenance = false
-                this.scheduleMaintenance(delay * 1000)
-            })
-        }, parseInt(sdelay))
-    }
-    async maintenance(now){
-        let expired = [], nextRun = 0, diskUsage = 0
-        await this.reload()
-        if(!now){
-            now = global.time()
-        }
-        expired = Object.keys(this.index).map(url => {
-            return {
-                ttl: this.index[url].ttl,
-                url, time
-            }
-        }).sortByProp('ttl', true).filter(row => {
-            if(now > row.ttl) {
-                return true // expired
-            }
-            diskUsage += this.index[row.url].size
-            if(diskUsage >= this.maxDiskUsage) {
-                return true // freeup
-            }
-            if(nextRun <= 0 || nextRun > this.index[row.url].ttl) {
-                nextRun = this.index[row.url].ttl + 1
-            }
-        })
-        if(expired.length){
-            if(this.debug){
-                console.warn('DLCACHE RM expired', expired)
-            }
-            for(let row of expired){
-                if(this.index[row.url].type == 'file'){
-                    fs.promises.unlink(this.index[row.url].data).catch(() => {})
-                }
-                delete this.index[row.url]
-            }
-            this.emit('update', this.export())
-        }
-        await this.saveIndex().catch(console.error)
-        
-        const caches = await fs.promises.readdir(this.folder).catch(console.error)
-        if(Array.isArray(caches)){
-            const indexFiles = Object.values(this.index).map(r => String(r.chunks ? r.chunks.file : r.data))
-            for(const file of caches.map(f => this.folder +'/'+ f)) {
-                if(!indexFiles.includes(file) && file != this.indexFile){
-                    if(this.debug){
-                        console.warn('DLCACHE RM orphaned file', file, Object.values(this.index).filter(r => r.type == 'file').map(r => String(r.data)))
-                    }
-                    let err
-                    const stat = await fs.promises.stat(file).catch(e => err = e)
-                    if(stat && stat.mtime && (now - stat.mtime) > 300) {
-                        await fs.promises.unlink(file).catch(console.error)
-                    }
-                }
-            }
-        }
-
-        let delay = -1
-        if(nextRun >= now) delay = nextRun - now
-        if(delay < 0 || delay > this.maxMaintenanceInterval) delay = this.maxMaintenanceInterval
-        if(this.debug){
-            console.warn('DLCACHE maintenance', JSON.stringify({
-                thread: global.file ? global.file : 'main',
-                uid: this.uid,
-                delay, nextRun, now
-            }))
-        }
-        return delay
-    }
-    async saveIndex(){
-        const findex = {}
-        Object.keys(this.index).forEach(url => {
-            if(this.index[url].type == 'file'){
-                findex[url] = this.index[url]
-            }
-        })
-        await fs.promises.writeFile(this.indexFile, JSON.stringify(findex)).catch(console.error)
     }
     remove(url) {
-        if(this.index[url]) {
-            if(this.index[url].type == 'file') {
-                fs.unlink(String(this.index[url].data), () => {})
+        if(this.saving[url]) {
+            if(this.saving[url].chunks && this.saving[url].chunks.fail) {
+                this.saving[url].chunks.fail('Removed')
             }
-            if(this.index[url].chunks && this.index[url].chunks.fail) {
-                this.index[url].chunks.fail('Removed')
-            }
-            delete this.index[url]
+            delete this.saving[url]
         }
     }
     save(downloader, chunk, ended){
-        const opts = downloader.opts
-        const url = downloader.currentURL
-        if(!global.config.get('in-disk-caching')) return
+        if(!global.config.get('in-disk-caching-size')) return
         if(downloader.requestingRange && 
             (downloader.requestingRange.start > 0 || 
                 (downloader.requestingRange.end && downloader.requestingRange.end < (downloader.totalContentLength - 1))
@@ -334,7 +166,11 @@ class DownloadCacheMap extends Events {
         ){ // partial content request, skip saving
             return
         }
-        if(typeof(this.index[url]) == 'undefined') {
+        const opts = downloader.opts
+        const url = downloader.currentURL
+        if(typeof(this.saving[url]) == 'undefined') {
+            const uid = url2id(url, this.folder)
+            const huid = 'dch-'+ uid.substr(4)
             const time = parseInt(global.time())
             let ttl = time + opts.cacheTTL
             if(downloader.lastHeadersReceived && typeof(downloader.lastHeadersReceived['x-cache-ttl']) != 'undefined') {
@@ -352,7 +188,7 @@ class DownloadCacheMap extends Events {
                     delete headers['content-length'] // length uncompressed is unknown
                 }
             }
-            this.index[url] = {
+            this.saving[url] = {
                 type: 'saving',
                 chunks,
                 time,
@@ -360,43 +196,51 @@ class DownloadCacheMap extends Events {
                 status: downloader.lastStatusCodeReceived,
                 size: headers['content-length'] || false,
                 headers,
-                uid: opts.uid
+                uid,
+                huid,
+                dlid: opts.uid 
                 //, traceback: [opts, opts.cacheTTL, global.traceback()]
             }
-            this.emit('update', this.export())
         }
-        if(this.index[url] && this.index[url].type == 'saving' && this.index[url].uid == opts.uid) {
-            if(chunk){
-                this.index[url].chunks.push(chunk)
-            }
+        if(this.saving[url] && this.saving[url].type == 'saving' && this.saving[url].dlid == opts.uid) {
+            chunk && this.saving[url].chunks.push(chunk)
             if(ended) {
-                const chunks = this.index[url].chunks
+                const chunks = this.saving[url].chunks
                 const finish = () => {
-                    if(!this.index[url] || this.index[url].type != 'saving') return
-                    const expectedLength = this.index[url].size === false ? downloader.totalContentLength : chunks.size
+                    if(!this.saving[url]) return
+                    const expectedLength = this.saving[url].size === false ? downloader.totalContentLength : chunks.size
                     if(chunks.error) {
                         console.warn(chunks.error)
                         chunks.fail(chunks.error)
-                        delete this.index[url]
-                    } else if((this.index[url].size === false && !expectedLength) || (expectedLength > chunks.size)) {
-                        const err = 'Bad file size. Expected: '+ this.index[url].size +', received: '+ chunks.size +', discarding http cache.'
+                        delete this.saving[url]
+                    } else if((this.saving[url].size === false && !expectedLength) || (expectedLength > chunks.size)) {
+                        const err = 'Bad file size. Expected: '+ this.saving[url].size +', received: '+ chunks.size +', discarding http cache.'
                         console.warn(err)
                         chunks.fail(err)
-                        delete this.index[url]
+                        delete this.saving[url]
                     } else if(downloader.statusCode < 200 || downloader.statusCode > 400 || (downloader.errors.length && !downloader.received)) {
                         const err = 'Bad download. Status: '+ downloader.statusCode +', received: '+ chunks.size
                         console.warn(err)
                         chunks.fail(err)
-                        delete this.index[url]
+                        delete this.saving[url]
                     } else {
-                        if(!this.index[url].status){
-                            this.index[url].status = downloader.statusCode
-                        }
-                        this.index[url].headers['content-length'] = this.index[url].size = chunks.size
-                        this.index[url].data = chunks.file
-                        this.index[url].type = 'file'
-                        chunks.end()
-                        delete this.index[url].chunks
+                        const size = chunks.size
+                        const ttl = this.saving[url].ttl
+                        global.storage.touch(this.saving[url].uid, {
+                            raw: true,
+                            size,
+                            ttl,
+                            file: chunks.file,
+                            expiration: true
+                        })
+                        global.storage.set(this.saving[url].huid, {
+                            statusCode: this.saving[url].status,
+                            headers: this.saving[url].headers,
+                            size
+                        }, {
+                            expiration: true
+                        })
+                        delete this.saving[url]
                     }
                 }
                 if(chunks.finished){

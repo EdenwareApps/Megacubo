@@ -3,6 +3,7 @@ const EntriesGroup = require('../entries-group'), Suggestions = require('./sugge
 class EPGHistory extends EntriesGroup {
     constructor(){
         super('epg-history')
+        this.storeInConfig = true
         this.suggestions = new Suggestions(this)
         this.limit = 48
         this.minWatchingTime = 240

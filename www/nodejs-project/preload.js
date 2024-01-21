@@ -22,7 +22,39 @@ function getElectron() {
 }
 
 const { contextBridge, ipcRenderer, getGlobal } = getElectron()
-const Events = require('events')
+const Events = require('events'), Download = getGlobal('Download'), paths = getGlobal('paths')
+
+function download(opts) {
+    let _reject
+    const dl = new Download(opts)
+    const promise = new Promise((resolve, reject) => {  
+        _reject = reject
+        dl.once('response', statusCode => {
+            if(statusCode < 200 && statusCode >= 400){
+                dl.destroy()	
+                reject('http error '+ statusCode)
+            }
+        })
+        dl.on('error', e => {
+            err = e
+        })
+        dl.once('end', buf => {
+            dl.destroy()
+            resolve(buf)
+        })
+        if(opts.progress) {        
+            dl.on('progress', opts.progress)
+        }
+        dl.start()
+    })
+    promise.cancel = () => {
+        if(dl && !dl.ended){
+            _reject('Promise was cancelled')
+            dl.destroy()
+        }
+    }
+    return promise
+}
 
 class ElectronWindow extends Events {
     constructor() {
@@ -53,6 +85,8 @@ class ElectronWindow extends Events {
 
 if (parseFloat(process.versions.electron) < 22) {
     process.getWindow = () => new ElectronWindow()
+    process.download = download
+    process.paths = paths
 } else {
     // On older Electron version (9.1.1) exposing 'require' doesn't works as expected.
     contextBridge.exposeInMainWorld('require', require)
@@ -63,7 +97,9 @@ if (parseFloat(process.versions.electron) < 22) {
             cwd: () => process.cwd(),
             versions: process.versions,
             resourcesPath: process.resourcesPath,
-            getWindow: () => new ElectronWindow()
+            getWindow: () => new ElectronWindow(),
+            download,
+            paths
         }
     )
 }

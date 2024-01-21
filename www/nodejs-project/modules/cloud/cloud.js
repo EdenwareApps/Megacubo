@@ -82,58 +82,67 @@ class CloudConfiguration {
             throw "cloud data \'"+ key +"\' not found"
         }
         const expiralKey = key.split('/')[0].split('.')[0]
-        const store = raw === true ? global.storage.raw : global.storage
-        let data = await store.promises.get(this.cachingDomain + key).catch(console.error)
+        const permanent = ['configure'].includes(expiralKey)
+        let data = await global.storage.get(this.cachingDomain + key).catch(console.error)
         if(data){
             if(this.debug){
                 console.log('cloud: got cache', key)
             }
             return data
-        } else {
-            if(this.debug){
-                console.log('cloud: no cache', key)
-            }
-            if(this.debug){
-                console.log('cloud: fallback', key)
-            }
-            const url = this.url(key)
-            let err, err2, body = await global.Download.get({
-                url,
-                retry: 10,
-                timeout: 60,
-                responseType: raw === true ? 'text' : 'json',
-                cacheTTL: this.expires[expiralKey] || 300,
-                encoding: 'utf8'
-            }).catch(e => err = e)
-            if(this.debug){
-                console.log('cloud: got', key, err, body)
-            }
-            // use validator here only for minor overhead, so we'll not cache any bad data
-            const succeeded = !err && body && (typeof(validator) != 'function' || validator(body))
-            if(succeeded){
-                if(this.debug){
-                    console.log('cloud: got', key, body, this.expires[expiralKey])
-                }
-                if(typeof(this.expires[expiralKey]) != 'undefined'){
-                    store.set(this.cachingDomain + key, body, this.expires[expiralKey])
-                    store.set(this.cachingDomain + key + '-fallback', body, true)
-                } else {
-                    console.error('"'+ key +'" is not cacheable (no expires set)')
-                }
-                if(this.debug){
-                    console.log('cloud: got', key, body, this.expires[expiralKey])
-                }
-                return body
-            } else {
-                data = await store.promises.get(this.cachingDomain + key + '-fallback').catch(e => err2 = e)
-                if(data && !err2){
-                    return data
-                } else {
-                    if(err && String(err).endsWith('404')) this.notFound.push(key)
-                    throw err || 'empty response, no fallback for '+url
-                }
-            }
         }
+        if(this.debug){
+            console.log('cloud: no cache fallback', key)
+        }
+        const url = this.url(key)
+        let err, err2, body = await global.Download.get({
+            url,
+            retry: 10,
+            timeout: 60,
+            responseType: raw === true ? 'text' : 'json',
+            cacheTTL: this.expires[expiralKey] || 300,
+            encoding: 'utf8'
+        }).catch(e => err = e)
+        if(this.debug){
+            console.log('cloud: got '+ JSON.stringify({key, err, body}))
+        }
+        // use validator here only for minor overhead, so we'll not cache any bad data
+        const succeeded = !err && body && (typeof(validator) != 'function' || validator(body))
+        if(this.debug){
+            console.log('cloud: got '+ JSON.stringify({key, succeeded}))
+        }
+        if(succeeded){
+            if(this.debug){
+                console.log('cloud: got', key, body, this.expires[expiralKey])
+            }
+            if(typeof(this.expires[expiralKey]) != 'undefined'){
+                global.storage.set(this.cachingDomain + key, body, {ttl: this.expires[expiralKey], permanent})
+                global.storage.set(this.cachingDomain + key + '-fallback', body, {expiration: true, permanent})
+            } else {
+                console.error('"'+ key +'" is not cacheable (no expires set)')
+            }
+            if(this.debug){
+                console.log('cloud: got', key, body, this.expires[expiralKey])
+            }
+            return body
+        }
+        if(this.debug){
+            console.log('cloud: get fallback '+ JSON.stringify({key}))
+        }
+        data = await global.storage.get(this.cachingDomain + key + '-fallback').catch(e => err2 = e)
+        if(this.debug){
+            console.log('cloud: get fallback* '+ JSON.stringify({key, data, err2}))
+        }
+        if(data && !err2){
+            return data
+        }
+        if(err && String(err).endsWith('404')) {
+            this.notFound.push(key)
+        }
+        if(this.debug){
+            console.log('cloud: get fallback** '+ JSON.stringify({key, err, url}))
+        }
+        if(!err) err = 'empty response, no fallback for '+ url
+        throw err
     }    
     async discovery(adder){
         const timeoutMs = 30000

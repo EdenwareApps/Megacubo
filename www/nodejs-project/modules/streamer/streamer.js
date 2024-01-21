@@ -646,7 +646,7 @@ class StreamerGoNext extends StreamerThrottling {
 		return new Promise(resolve => setTimeout(resolve, ms))
 	}
 	async getQueue() {
-		let entries = await global.storage.promises.get('streamer-go-next-queue').catch(console.error)
+		let entries = await global.storage.get('streamer-go-next-queue').catch(console.error)
 		if(!Array.isArray(entries)) entries = []
 		return entries
 	}
@@ -699,7 +699,7 @@ class StreamerGoNext extends StreamerThrottling {
 				global.storage.set('streamer-go-next-queue', entries.map(n => {
 					if(n.renderer) delete n.renderer
 					return n
-				}), true)
+				}), {expiration: true})
 			}
 		}
 	}

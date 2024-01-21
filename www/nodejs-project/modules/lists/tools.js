@@ -99,7 +99,7 @@ class Tools {
 			return await this.asyncMapRecursively(list, async slist => {
 				let key = 'offload-'+ i + '-' + url
                 limit(async () => {
-                    return await global.storage.temp.promises.set(key, slist, true)
+                    return await global.storage.set(key, slist, {expiration: true})
                 })
 				i++
 				return key

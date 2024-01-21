@@ -1,4 +1,4 @@
-const Cloud = require('../cloud')
+const Cloud = require('../cloud'), Storage = require('../storage')
 const { logErr, parentPort, loadGlobalVars } = require('./utils')(__filename)
 
 loadGlobalVars()
@@ -22,11 +22,14 @@ process.on('uncaughtException', (exception) => {
 })
 
 global.crashlog = require(global.APPDIR +'/modules/crashlog')
-global.storage = require('../storage')({})
+global.config = require(global.APPDIR + '/modules/config')(global.paths.data + '/config.json')
+global.storage = new Storage({})
 
-global.config = require(global.APPDIR + '/modules/config')(global.paths['data'] + '/config.json')
 global.config.on('change', () => {
     parentPort.postMessage({id: 0, type: 'event', data: 'config-change'})
+})
+global.storage.on('touch', (key, entry) => {
+    parentPort.postMessage({id: 0, type: 'event', data: 'storage-touch:'+ JSON.stringify({key, entry})})
 })
 
 global.Download = require('../download')
@@ -37,13 +40,12 @@ if(global.bytenode){
 }
 
 const drivers = {}
-
 parentPort.on('message', msg => {
     if(msg.method == 'configChange'){
-        global.config.reload()
-        setTimeout(() => {
-            global.config.reload() // read again after some seconds, the config file may delay on writing
-        }, 3000)
+        // delay for some seconds, the config file may delay on writing
+        setTimeout(() => global.config.reload(), 1000)
+    } else if(msg.method == 'storageTouch'){
+        global.storage.touch(msg.key, msg.entry, true)
     } else if(msg.method == 'loadWorker') {
         const Driver = require(msg.file)
         drivers[msg.file] = new Driver()

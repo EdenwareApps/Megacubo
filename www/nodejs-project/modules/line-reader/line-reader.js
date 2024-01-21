@@ -46,14 +46,14 @@ class LineReader extends EventEmitter {
 	start() {
 		this.liner = new LineEmitter()
 		this.liner.on('line', line => this.emit('line', line))
-		this.liner.on('close', () => this.close())
+		this.liner.once('close', () => this.close())
 		this.liner.on('finish', () => this.close())
 		this.opts.stream.on('error', err => {
 			console.error(err)
 			this.listenerCount('error') && this.emit('error', err)
 		})
 		this.opts.stream.on('data', chunk => this.liner.write(chunk))
-		this.opts.stream.on('close', () => this.end())
+		this.opts.stream.once('close', () => this.end())
 	}
 	end() {
 		this.liner && this.liner.end()

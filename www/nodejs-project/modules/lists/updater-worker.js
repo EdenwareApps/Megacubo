@@ -53,7 +53,8 @@ class ListsUpdater extends Common {
 		}
 		if(should){
 			const updateMeta = {}
-			const file = global.storage.raw.resolve(global.LIST_DATA_KEY_MASK.format(url))
+			const key = global.LIST_DATA_KEY_MASK.format(url)
+			const file = global.storage.resolve(key)
 			const updater = new UpdateListIndex(url, url, file, this, Object.assign({}, updateMeta), params.force === true)
 			updateMeta.updateAfter = now + 180
 			if(this.debug){
@@ -83,7 +84,12 @@ class ListsUpdater extends Common {
 			updater.destroy()
 			if(this.debug){
 				console.log('updater - updated 2', url, should)
-			}
+			}			
+			global.storage.touch(key, {
+				size: 'auto',
+				raw: true,
+				expiration: true
+			})
 			return ret || false
 		} else {
 			return false // no need to update, by updateAfter

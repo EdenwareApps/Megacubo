@@ -251,7 +251,7 @@ class UltimateLookup extends Events {
 		})
 	}
 	async load(){
-		let data = await global.storage.promises.get(this.cacheKey)
+		let data = await global.storage.get(this.cacheKey)
 		if(data && data.data){
 			this.data = Object.assign(data.data, this.data)
 			this.ttlData = Object.assign(data.ttlData, this.ttlData)
@@ -269,7 +269,10 @@ class UltimateLookup extends Events {
 		}
 		this.saveTimer = setTimeout(() => {
 			this.clean()
-			global.storage.set(this.cacheKey, {data: this.data, ttlData: this.ttlData}, true)
+			global.storage.set(this.cacheKey, {data: this.data, ttlData: this.ttlData}, {
+				permanent: true,
+				expiration: true
+			})
 		}, this.saveDelayMs)
 	}
 }

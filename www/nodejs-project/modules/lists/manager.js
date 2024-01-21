@@ -246,12 +246,12 @@ class ManagerCommunityLists extends Events {
     showInfo(){
         global.explorer.dialog([
             {template: 'question', text: global.lang.COUNTRIES, fa: this.icon},
-            {template: 'message', text: global.lang.IPTV_INFO},
+            {template: 'message', text: global.lang.IPTV_INFO +"\r\n"+ global.lang.TOS_CONTENT},
             {template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle'},
             {template: 'option', text: global.lang.KNOW_MORE, id: 'know', fa: 'fas fa-info-circle'}
         ], 'ok').then(ret => {
             if(ret == 'know'){
-                global.ui.emit('open-external-url', 'https://github.com/efoxbr/megacubo/')
+                global.ui.emit('open-external-url', 'https://megacubo.net/tos')
             }
         }).catch(console.error)
     }
@@ -734,7 +734,7 @@ class Manager extends ManagerEPG {
         this.addingList = true
         global.explorer.path.endsWith(global.lang.MY_LISTS) && global.explorer.refreshNow()
         
-        const cacheFile = global.storage.raw.resolve(global.LIST_DATA_KEY_MASK.format(url))
+        const cacheFile = global.storage.resolve(global.LIST_DATA_KEY_MASK.format(url))
         const stat = await fs.promises.stat(cacheFile).catch(console.error)
         if(stat && stat.size && stat.size < 16384) {
             await fs.promises.unlink(cacheFile).catch(console.error) // invalidate possibly bad caches
@@ -1244,62 +1244,51 @@ class Manager extends ManagerEPG {
         }
         return mask.join(':').substr(0, 17)
     }
-    async getM3UPlaylistForMac(mac, baseUrl) {
+    async getM3UPlaylistForMac(mac, server) {
         const macAddress = encodeURIComponent(mac)
         const tokenUrl = '/portal.php?action=handshake&type=stb&token='
-        const profileUrl = '/portal.php?type=stb&action=get_profile'
         const listUrl = '/portal.php?action=get_ordered_list&type=vod&p=1&JsHttpRequest=1-xml'
+        const headers = {
+            'user-agent': 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 4 rev: 1812 Mobile Safari/533.3',
+            'cookie': 'mac='+ macAddress +'; stb_lang=en; timezone=Europe%2FAmsterdam',
+			'accept' : '*/*',
+			'x-user-agent' : 'Model: MAG254; Link: Ethernet'
+        }
         const firstToken  = (await global.Download.get({
-            url: baseUrl + tokenUrl,
+            url: server + tokenUrl,
             responseType: 'json'
         })).js.token
+        headers.authorization = 'Bearer '+ firstToken
         const secondToken = (await global.Download.get({
-            url: baseUrl + tokenUrl,
+            url: server + tokenUrl,
             responseType: 'json',
-            headers: {
-                'authorization': 'Bearer '+ firstToken,
-                'cookie': 'mac='+ macAddress +'; stb_lang=en; timezone=Europe%2FAmsterdam'
-            }
+            headers
         })).js.token
+        if(secondToken) headers.authorization = 'Bearer '+ secondToken
         /*
+        const profileUrl = '/portal.php?type=stb&action=get_profile'
         const profileId = await global.Download.get({ // is this call required?
-            url: baseUrl + profileUrl,
+            url: server + profileUrl,
             responseType: 'json',
-            headers: {
-                'authorization': 'Bearer '+ secondToken,
-                'cookie': 'mac='+ macAddress +'; stb_lang=en; timezone=Europe%2FAmsterdam'
-            }
+            headers
         }).js.id
         if (typeof(profileId) === 'undefined') throw 'Profile not found'
         */       
-        await global.Download.get({ // is this call required for auth?
-            url: baseUrl + profileUrl,
-            responseType: 'json',
-            headers: {
-                'authorization': 'Bearer '+ secondToken,
-                'cookie': 'mac='+ macAddress +'; stb_lang=en; timezone=Europe%2FAmsterdam'
-            }
-        })
         const list = await global.Download.get({
-            url: baseUrl + listUrl, 
+            url: server + listUrl, 
             responseType: 'json',
-            headers: {
-                'authorization': 'Bearer '+ secondToken,
-                'cookie': 'mac='+ macAddress +'; stb_lang=en; timezone=Europe%2FAmsterdam'
-        }})
+            headers
+        })
         const cmd = list.js.data[0].cmd
-        const commandUrl = '/portal.php?action=create_link&type=vod&cmd='+ cmd +'a&JsHttpRequest=1-xml'
+        const commandUrl = '/portal.php?action=create_link&type=vod&cmd='+ cmd +'&JsHttpRequest=1-xml'
         const res = (await global.Download.get({
-            url: baseUrl + commandUrl,
+            url: server + commandUrl,
             responseType: 'json',
-            headers: {
-                'authorization': 'Bearer '+ secondToken,
-                'cookie': 'mac='+ macAddress +'; stb_lang=en; timezone=Europe%2FAmsterdam'
-            }
+            headers
         })).js.cmd.split('/')
         if (res.length < 6) return false
-        const usr = res[4], pw = res[5]
-        return baseUrl +'/get.php?username='+ encodeURIComponent(usr) +'&password='+ encodeURIComponent(pw) +'&type=m3u&output=ts'
+        const user = res[4], pass = res[5]
+        return await this.getM3UFromCredentials(server, user, pass)
     }   
     listsEntry(manageOnly){
         return {

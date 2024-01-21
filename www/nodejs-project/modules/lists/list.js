@@ -12,11 +12,14 @@ class List extends Events {
         this.relevance = {}
         this.reset()
 		this.dataKey = global.LIST_DATA_KEY_MASK.format(url)
-        this.file = global.storage.raw.resolve(this.dataKey)
+        this.file = global.storage.resolve(this.dataKey)
         this.constants = {BREAK: -1}
 		this._log = [
 			this.url
 		]
+        if(global.storage.has(this.dataKey)) {
+            global.storage.touch(this.dataKey, {permanent: true}) // avoid cache eviction for loaded up lists
+        }
 	}
 	log(...args){
 		if(this.destroyed) return
@@ -56,6 +59,10 @@ class List extends Events {
                 if(index.length){
                     let err
                     this.setIndex(index).catch(e => err = e).finally(() => {
+                        global.storage.touch(this.dataKey, {
+                            size: 'auto',
+                            permanent: true
+                        })
                         resolved = true
                         if(err){
                             reject(err)
@@ -105,8 +112,13 @@ class List extends Events {
 		return p
 	}
 	async verifyListQuality(){
-        const cacheTTL = 120, cacheKey = 'list-quality-'+ this.url
-        const cached = await global.storage.promises.get(cacheKey)
+        const ttl = 120, cacheKey = 'list-quality-'+ this.url
+        const cached = await global.storage.get(cacheKey)
+        const atts = {
+            ttl,
+            raw: true,
+            permanent: true // will be set to false on list destroying, create as permanent to avoid cache eviction on loaded lists
+        }
         if(cached) {
             if(cached.err) throw cached.err
             return cached.result
@@ -115,7 +127,7 @@ class List extends Events {
         let len = this.index.length
         if(!len){
             const err = 'insufficient streams '+ len
-            global.storage.promises.set(cacheKey, {err}, cacheTTL).catch(console.error)
+            global.storage.set(cacheKey, {err}, atts).catch(console.error)
             throw err
         }
         let tests = Math.min(len, 10), mtp = Math.floor((len - 1) / (tests - 1))
@@ -131,12 +143,12 @@ class List extends Events {
             const res = await racing.next().catch(console.error)
             if(res && res.valid){
                 const result = 100 / i
-                global.storage.promises.set(cacheKey, {result}, cacheTTL).catch(console.error)
+                global.storage.set(cacheKey, {result}, atts).catch(console.error)
                 return result
             }
         }
         const err = 'no valid links'
-        global.storage.promises.set(cacheKey, {err}, cacheTTL).catch(console.error)
+        global.storage.set(cacheKey, {err}, atts).catch(console.error)
         throw err
 	}
 	async verifyListRelevance(index){
@@ -222,6 +234,9 @@ class List extends Events {
 	}
 	destroy(){
 		if(!this.destroyed){
+            if(global.storage.has(this.dataKey)) {
+                global.storage.touch(this.dataKey, {permanent: false}) // freeup for cache eviction
+            }
 			this.destroyed = true
 			this.reset()
             if(this.indexer){

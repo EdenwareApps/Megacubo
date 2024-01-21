@@ -50,7 +50,9 @@ class ElectronChannel extends BaseChannel {
         super()
     }
     customEmit(...args){
-        this.window && this.window.webContents.send('message', this.prepareSerialization(args))
+        this.window && !this.window.closed && this.window.webContents.send('message', 
+            this.prepareSerialization(args)
+        )
     }    
 }
 
@@ -136,6 +138,8 @@ class BridgeServer extends Events {
             }
         })
         this.server.listen(0, this.opts.addr, err => {
+            if(err) console.error(err)
+            if(!this.server) return
             this.opts.port = this.server.address().port
             console.log('Bridge server started', err)
             this.uploadURL = 'http://' + this.opts.addr + ':' + this.opts.port + '/upload'

@@ -6,6 +6,7 @@ class History extends EntriesGroup {
         super('history')
         this.limit = 36
         this.resumed = false
+        this.storeInConfig = true
         this.uiReady(() => {
             global.streamer.on('commit', () => {
                 if(!streamer.active.info.isLocalFile){

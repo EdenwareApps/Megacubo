@@ -12,7 +12,7 @@ class StreamState extends Events {
         this.waiting = {}
         this.clientFailures = {}
         this.key = 'streamstate'
-        global.storage.promises.get(this.key).then(data => {
+        global.storage.get(this.key).then(data => {
             if(data){
                 Object.assign(this.data, data)
                 this.sync()
@@ -161,12 +161,12 @@ class StreamState extends Events {
             }
         }
     }
-    save(){ // must be sync
+    async save(){ // must be sync
         if(typeof(this.data) != 'undefined'){
             const now = global.time()
             this.lastSaveTime = now
             this.trim()
-            global.storage.setSync(this.key, this.data, true)
+            await global.storage.set(this.key, this.data, {expiration: true})
             console.warn('STREAMSTATE SAVE', now)
         }
     }
@@ -181,7 +181,7 @@ class StreamState extends Events {
             const now = global.time()
             this.lastSaveTime = now
             this.trim()
-            global.storage.set(this.key, this.data, true)
+            global.storage.set(this.key, this.data, {expiration: true}).catch(console.error)
             console.warn('STREAMSTATE SAVE', now)
         }
     }

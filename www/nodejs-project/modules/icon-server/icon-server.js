@@ -272,29 +272,30 @@ class IconServerStore extends IconSearch {
         })
     }
     resolveHTTPCache(key){
-        return global.storage.rawTemp.resolve('icons-cache-'+ key)
+        return global.storage.resolve('icons-cache-'+ key)
     }
     async checkHTTPCache(key){
-        const has = await global.storage.rawTemp.promises.has('icons-cache-' + key)
+        const has = await global.storage.exists('icons-cache-' + key)
         if(has !== false){
             return this.resolveHTTPCache(key)
         }
         throw 'no http cache'
     }
     async getHTTPCache(key){
-        const data = await global.storage.rawTemp.promises.get('icons-cache-'+ key)
+        const data = await global.storage.promises.get('icons-cache-'+ key)
         if(data){
             return {data}
         }
         throw 'no cache*'
     }
-    saveHTTPCache(key, data, cb){
-        const time = data && data.length ? this.ttlHTTPCache : this.ttlBadHTTPCache
-        global.storage.rawTemp.set('icons-cache-' + key, data, time, cb || (() => {}))
+    async saveHTTPCache(key, data){
+        if(!cb) cb = () => {}
+        const ttl = data && data.length ? this.ttlHTTPCache : this.ttlBadHTTPCache
+        await global.storage.set('icons-cache-' + key, data, {raw: true, ttl})
     }
     async saveHTTPCacheExpiration(key, size){
         let stat
-        const file = global.storage.rawTemp.resolve('icons-cache-' + key)
+        const file = global.storage.resolve('icons-cache-' + key)
         if(typeof(size) != 'number') {
             let err
             stat = await fs.promises.stat(file).catch(e => err = e)
@@ -304,7 +305,7 @@ class IconServerStore extends IconSearch {
         if(stat && stat.size){
             time = this.ttlHTTPCache
         }
-        global.storage.rawTemp.setExpiration('icons-cache-'+ key, time, () => {})
+        global.storage.setTTL('icons-cache-'+ key, time)
     }
     async fetchURL(url){
         const suffix = 'data:image/png;base64,'

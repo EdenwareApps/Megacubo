@@ -608,7 +608,7 @@ class Explorer extends Events {
         if(typeof(e.renderer) == 'function') {
             entries = await e.renderer(e)
         } else if(typeof(e.renderer) == 'string') {
-            entries = await global.storage.temp.promises.get(e.renderer)
+            entries = await global.storage.get(e.renderer)
         } else {
             entries = e.entries || []
         }

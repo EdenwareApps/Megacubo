@@ -120,7 +120,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
             this.transcoderStarting = false
             this.emit('transcode-failed', err)
             console.warn('COMMITERR', this.endpoint, err)
-            throw err || 'hls adapter failed'
+            throw (err || 'hls adapter failed')
         }
         this.resetTimeout()
         let opts = this.getTranscodingOpts()

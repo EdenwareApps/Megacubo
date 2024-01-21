@@ -10,6 +10,7 @@
     "adm-zip": "github:EdenwareApps/adm-zip",
     "agentkeepalive": "^4.3.0",
     "async": "^3.2.4",
+    "axios": "^1.6.5",
     "bl": "^6.0.1",
     "buzz": "^1.2.1",
     "bytenode": "github:EdenwareApps/bytenode",
@@ -58,7 +59,7 @@
     "url": "https://megacubo.tv"
   },
   "icon": "./default_icon.png",
-  "version": "17.3.9",
+  "version": "17.4.0",
   "theme": {
     "fullScreen": true
   },

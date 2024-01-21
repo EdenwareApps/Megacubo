@@ -12,18 +12,10 @@ class ChannelsList {
         if(this.type && this.type != 'lists') this.key += '-'+ this.type
     }
     async load() {
-        let fine, data = await global.storage.raw.promises.get(this.key).catch(console.error)
+        let fine, data = await global.storage.get(this.key).catch(console.error)
         if(data){
-            try {
-                let cs = global.parseJSON(data)
-                if(!Object.keys(cs).length){
-                    throw 'Empty list'
-                }
-                this.categories = cs
-                fine = true
-            } catch(e) {
-                console.error(e)
-            }
+            this.categories = data
+            fine = true
         }
         if(!fine) {
             let err
@@ -47,7 +39,7 @@ class ChannelsList {
     }
     async reset() {        
         delete this.categories
-        await global.storage.raw.promises.delete(this.key).catch(console.error)
+        await global.storage.delete(this.key).catch(console.error)
         global.config.set('channel-grid', '')
         await this.load()
     }
@@ -202,7 +194,10 @@ class ChannelsList {
         })
         this.categories = ordering
         this.updateChannelsIndex(true)
-        await global.storage.raw.promises.set(this.key, JSON.stringify(this.categories, null, 3), true)
+        await global.storage.set(this.key, this.categories, {
+            permanent: true,
+            expiration: true
+        })
     }
     destroy() {
         this.destroyed = true
@@ -1607,7 +1602,7 @@ class Channels extends ChannelsKids {
                     type: 'select',
                     fa: 'fas fa-step-forward',
                     renderer: () => {
-                        return new Promise((resolve, reject) => {
+                        return new Promise(resolve => {
                             let def = global.config.get('watch-now-auto'), opts = [
                                 {name: global.lang.AUTO, type: 'action', selected: (def == 'auto'), action: data => {
                                     global.config.set('watch-now-auto', 'auto')
@@ -1664,7 +1659,6 @@ class Channels extends ChannelsKids {
             return entries
         }        
         const renderer = async group => {
-            console.error('GROUP='+ JSON.stringify(group))
             let entries = await global.lists.group(group).catch(global.displayErr)
             if(Array.isArray(entries)) {
                 let gentries = (group.entries || []).map(g => groupToEntry(g))
@@ -1675,7 +1669,7 @@ class Channels extends ChannelsKids {
                     } else if(typeof(entry.renderer) == 'function') {
                         entries = await entry.renderer(entry)
                     } else if(typeof(entry.renderer) == 'string') {
-                        entries = await global.storage.temp.promises.get(entry.renderer)
+                        entries = await global.storage.get(entry.renderer)
                     } else {
                         break
                     }

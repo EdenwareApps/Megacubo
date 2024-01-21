@@ -6,7 +6,7 @@ class SearchTermsHistory {
         this.maxlength = 12
     }
     async get(){
-        let ret = await global.storage.promises.get(this.key)
+        let ret = await global.storage.get(this.key)
         if(!Array.isArray(ret)){
             ret = []
         }
@@ -20,7 +20,7 @@ class SearchTermsHistory {
             let tms = terms.join('')
             vs = vs.filter(v => v.join('') != tms).slice((this.maxlength - 1) * -1)
             vs.push(terms)
-            global.storage.set(this.key, vs, true)
+            global.storage.set(this.key, vs, {expiration: true})
         })
     }
     async terms(){

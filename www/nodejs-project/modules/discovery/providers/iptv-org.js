@@ -20,7 +20,7 @@ class IPTV extends Events {
         }
     }
 	async ready(){
-		return new Promise((resolve, reject) => {
+		await new Promise((resolve, reject) => {
             if(this.isReady){
                 resolve()
             } else {

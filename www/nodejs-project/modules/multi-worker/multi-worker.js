@@ -103,20 +103,27 @@ const setupConstructor = () => {
 				throw 'Worker already terminated: '+ file
 			}
 		}
-		bindConfigChangeListener(){
+		bindChangeListeners(){
 			this.on('config-change', data => {
 				//console.log('Config changed from worker driver', data)
 				global.config.reload()
-				setTimeout(() => global.config.reload(), 3000) // read again after some seconds, the config file may delay on writing
+			})
+			this.on('storage-touch', msg => {
+				global.storage.touch(msg.key, msg.entry, true)
 			})
 			this.configChangeListener = () => {
 				this.worker && this.worker.postMessage({method: 'configChange', id: 0})
 			}
+			this.storageTouchListener = (key, entry) => {
+				this.worker && this.worker.postMessage({method: 'storageTouch', entry, key, id: 0})
+			}
 			global.config.on('change', this.configChangeListener)
+			global.storage.on('touch', this.storageTouchListener)
 		}
 		terminate(){
 			this.finished = true
 			this.configChangeListener && global.config.removeListener('change', this.configChangeListener)
+			this.storageTouchListener && global.storage.removeListener('touch', this.storageTouchListener)
 			if(this.worker){
 				setTimeout(() => { // try to prevent closing abruptely due to bug in v8 (FATAL ERROR: v8::FromJust Maybe value is Nothing)
 					const maybePromise = this.worker.terminate()
@@ -126,7 +133,6 @@ const setupConstructor = () => {
 			}
 			this.rejectAll(null, 'worker manually terminated')
 			this.removeAllListeners()
-			global.config.removeListener('change', this.configChangeListener)
 		}
 	}
 	class ThreadWorkerDriver extends WorkerDriver {
@@ -188,7 +194,7 @@ const setupConstructor = () => {
 					}
 				}
 			})
-			this.bindConfigChangeListener()
+			this.bindChangeListeners()
 		}
 	}
 	class DirectDriver extends Events {

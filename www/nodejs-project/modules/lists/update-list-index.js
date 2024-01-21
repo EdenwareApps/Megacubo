@@ -91,7 +91,6 @@ class UpdateListIndex extends ListIndexUtils {
                     },
                     timeout: global.config.get('read-timeout'), // some servers will take too long to send the initial response
                     downloadLimit: 200 * (1024 * 1024), // 200Mb
-                    cacheTTL: this.forceDownload ? 0 : 3600,
                     encoding: 'utf8'
                 }
                 this.stream = new global.Download(opts)
@@ -169,7 +168,7 @@ class UpdateListIndex extends ListIndexUtils {
         }
         await fs.promises.mkdir(global.dirname(this.tmpOutputFile), {recursive: true}).catch(console.error)
         const writer = fs.createWriteStream(this.tmpOutputFile)
-        writer.on('close', () => this.writerClosed = true)
+        writer.once('close', () => this.writerClosed = true)
         for(let url of urls){
             let err
             if(url.indexOf('#xtream') != -1) {
@@ -353,7 +352,7 @@ class UpdateListIndex extends ListIndexUtils {
                             fs.access(this.tmpOutputFile, err => err || fs.unlink(this.tmpOutputFile, () => {}))
                         }, 10)
                     }
-                    writer.on('close', finish)
+                    writer.once('close', finish)
                     writer.on('error', finish)
                     
                     const indexLine = JSON.stringify(this.index) +"\n"

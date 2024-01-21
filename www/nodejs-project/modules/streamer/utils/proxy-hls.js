@@ -171,7 +171,7 @@ class HLSRequests extends StreamerProxyBase {
 		})
 		return ret
 	}
-	getNextInactiveSegment(){
+	async getNextInactiveSegment(){
 		const journalUrl = this.activeManifest
 		if(typeof(this.journals[journalUrl]) == 'undefined') return
 		const journal = this.journals[journalUrl].journal
@@ -189,24 +189,18 @@ class HLSRequests extends StreamerProxyBase {
 			})
 		})
 		if(lastDownloadingKey){
-			Object.keys(journal).slice(lastDownloadingKeyIndex + 1).some(k => {
-				journal[k].split("\n").some(line => {
-					if(line.length > 3 && !line.startsWith('#')){
-						let segmentUrl = global.absolutize(this.unproxify(line), journalUrl)
-						if(global.Download.cache.index[segmentUrl]){
-							return false
-						}
-						if(this.activeRequests[segmentUrl]){
-							return false
-						}
-						if(!this.journals[journalUrl].inLiveWindow(segmentUrl)){
-							return false
-						}
-						next = segmentUrl
-						return true
-					}
-				})
-			})
+			for(const k of Object.keys(journal).slice(lastDownloadingKeyIndex + 1)) {
+				const line = journal[k].split("\n").filter(line => {
+					return line.length > 3 && !line.startsWith('#')
+				}).shift().trim()
+				const segmentUrl = global.absolutize(this.unproxify(line), journalUrl)
+				const cachedInfo = await global.Download.cache.info(segmentUrl)
+				if(cachedInfo) continue
+				if(this.activeRequests[segmentUrl]) continue
+				if(!this.journals[journalUrl].inLiveWindow(segmentUrl)) continue
+				next = segmentUrl
+				break
+			}
 		}
 		return next
 	}
@@ -337,7 +331,7 @@ class HLSRequests extends StreamerProxyBase {
 					// only prefetch if player is downloading old segments (user has seeked back)
 					if(headers['x-megacubo-dl-source'] && headers['x-megacubo-dl-source'].indexOf('cache') != -1) {
 						// meaningless with no in-disk caching
-						if(global.config.get('hls-prefetching') && global.config.get('in-disk-caching')) {
+						if(global.config.get('hls-prefetching') && global.config.get('in-disk-caching-size')) {
 							doPrefetch = true
 						}
 					}
@@ -363,9 +357,9 @@ class HLSRequests extends StreamerProxyBase {
 		request.once('end', end)
 		return request
 	}
-	prefetch(url, opts){
+	async prefetch(url, opts){
 		if(!this.destroyed && !Object.keys(this.activeRequests).length) {
-			let next = this.getNextInactiveSegment()
+			let next = await this.getNextInactiveSegment()
 			if(next){
 				if(this.debugConns) console.warn('PREFETCHING', url, '=>', next)
 				const nopts = opts

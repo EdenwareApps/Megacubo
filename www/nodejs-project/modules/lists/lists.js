@@ -195,7 +195,7 @@ class Lists extends ListsEPGTools {
 		this.loadCachedLists(newLists) // load them up if cached
 	}
 	async isListCached(url){
-		let err, file = global.storage.raw.resolve(LIST_DATA_KEY_MASK.format(url))
+		let err, file = global.storage.resolve(LIST_DATA_KEY_MASK.format(url))
 		const stat = await fs.promises.stat(file).catch(e => err = e)
 		return (stat && stat.size >= 1024)
 	}

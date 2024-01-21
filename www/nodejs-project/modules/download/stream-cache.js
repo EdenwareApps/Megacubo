@@ -16,16 +16,14 @@ class DownloadStreamCache extends DownloadStreamBase {
             throw 'Already destroyed'
         }
         const url = this.opts.url
-        const row = global.Download.cache.index[url]
-        if(!row || !row.status || row.uid == this.opts.uid) {
-            this.response = new DownloadStreamBase.Response(404, {})
-            this.emit('response', this.response)
-            return this.end()
+        const row = await global.Download.cache.info(url)
+        if(!row || !row.status || row.dlid == this.opts.uid) {
+            throw 'Not cached'
         }
         let stream, range
-        const headers = Object.assign({}, Download.cache.index[url].headers) || {}
+        const headers = Object.assign({}, row.headers) || {}
         headers['x-megacubo-dl-source'] = headers['x-megacubo-dl-source'] ? 'cache-'+ headers['x-megacubo-dl-source'] : 'cache'
-        if(this.opts.headers.range){
+        if(this.opts.headers.range) {
             range = this.parseRange(this.opts.headers.range)
             if(!range.end && row.size){
                 range.end = row.size
@@ -38,15 +36,13 @@ class DownloadStreamCache extends DownloadStreamBase {
         headers['x-megacubo-dl-source'] += '-'+ row.type
         this.response = new DownloadStreamBase.Response(range ? 206 : 200, headers)
         this.emit('response', this.response)
-        if(row.type == 'file' && row.size === 0) return this.end()
         switch(row.type){
             case 'saving':
-                stream = Download.cache.index[url].chunks.createReadStream(range)
+                stream = row.chunks.createReadStream(range)
                 break
             case 'file':
-                const file = String(row.data)
-                if(fs.existsSync(file)) {
-                    stream = new Reader(file, range)
+                if(fs.existsSync(row.file)) {
+                    stream = new Reader(row.file, range)
                 } else {
                     this.emitError('Cache download failed*', false)
                 }
@@ -59,10 +55,10 @@ class DownloadStreamCache extends DownloadStreamBase {
         stream.on('data', chunk => {
             this.response.write(chunk)
         })
-        if(stream.readableEnded || stream.closed){
+        if(stream.isClosed || stream.closed){
             this.end()
         } else {
-            stream.once('end', () => this.end())
+            stream.once('close', () => this.end())
         }
         return true
     }

@@ -131,7 +131,7 @@ class Downloader extends StreamerAdapterBase {
 							}
 						}
 					}
-					req.on('close', finish)
+					req.once('close', finish)
 					this.on('data', listener)
 					this.once('destroy', finish)
 					this.pump()

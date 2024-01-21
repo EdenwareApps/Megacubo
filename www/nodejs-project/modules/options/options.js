@@ -108,7 +108,7 @@ class PerformanceProfiles extends Timer {
                 'ffmpeg-broadcast-pre-processing': 'auto',
                 'fx-nav-intensity': 2,
                 'hls-prefetching': true,
-                'in-disk-caching': true,
+                'in-disk-caching-size': 1024,
                 'live-window-time': 180,
                 'play-while-loading': true,
                 'search-missing-logos': true,
@@ -130,7 +130,7 @@ class PerformanceProfiles extends Timer {
                 'ffmpeg-broadcast-pre-processing': 'no',
                 'fx-nav-intensity': 0,
                 'hls-prefetching': false,
-                'in-disk-caching': false,
+                'in-disk-caching-size': 768,
                 'live-stream-fmt': 'auto',
                 'live-window-time': 30,
                 'play-while-loading': false,
@@ -399,60 +399,57 @@ class OptionsExportImport extends OptionsGPU {
             cb(err, file)
         })
     }
-    import(data){
+    async import(data){
         const sample = String(data.slice(0, 12))
         if(sample.startsWith('{') || sample.startsWith('[')){ // is json?
             this.importConfigFile(data)            
             global.osd.show(global.lang.IMPORTED_FILE, 'fas fa-check-circle', 'options', 'normal')
         } else {
+            let err
             const zipFile = global.paths.temp +'/temp.zip'
-            fs.writeFile(zipFile, data, err => {
-                if(err){
-                    return global.displayErr(err)
+            await fs.promises.writeFile(zipFile, data).catch(e => err = e)
+            if(err){
+                return global.displayErr(err)
+            }
+            try {
+                const AdmZip = require('adm-zip')
+                const zip = new AdmZip(zipFile), imported = {}
+                for(const entry of zip.getEntries()) {
+                    if(entry.entryName.startsWith('config')) {
+                        zip.extractEntryTo(entry, path.dirname(global.config.file), false, true)
+                        imported.config = entry.getData().toString('utf8')
+                    }
+                    if(entry.entryName.startsWith('bookmarks')) {
+                        zip.extractEntryTo(entry, global.storage.folder, false, true)
+                        delete global.storage.cacheExpiration[global.bookmarks.key]
+                    }
+                    if(entry.entryName.startsWith('history')) {
+                        zip.extractEntryTo(entry, global.storage.folder, false, true)
+                        delete global.storage.cacheExpiration[global.histo.key]
+                    }
+                    if(entry.entryName.startsWith('categories')) {
+                        zip.extractEntryTo(entry, global.storage.folder, false, true, path.basename(global.storage.resolve(global.channels.channelList.key)))
+                        delete global.storage.cacheExpiration[global.channels.channelList.key]
+                        global.channels.load()
+                    }
+                    if(entry.entryName.startsWith('icons')) {
+                        try {
+                            zip.extractEntryTo(entry, path.dirname(global.icons.opts.folder), true, true) // Error: ENOENT: no such file or directory, chmod 'C:\\Users\\samsung\\AppData\\Local\\Megacubo\\Data\\icons\\a&e-|-a-&-e.png'
+                        } catch(e) {}
+                    }
+                    if(entry.entryName.startsWith('Themes')) {
+                        zip.extractEntryTo(entry, path.dirname(global.theme.folder), true, true)
+                    }
                 }
-                try {
-                    const AdmZip = require('adm-zip')
-                    const zip = new AdmZip(zipFile), imported = {}
-                    async.eachOf(zip.getEntries(), (entry, i, done) => {
-                        if(entry.entryName.startsWith('config')) {
-                            zip.extractEntryTo(entry, path.dirname(global.config.file), false, true)
-                            imported.config = entry.getData().toString('utf8')
-                        }
-                        if(entry.entryName.startsWith('bookmarks')) {
-                            zip.extractEntryTo(entry, global.storage.folder, false, true)
-                            delete global.storage.cacheExpiration[global.bookmarks.key]
-                            global.bookmarks.load()
-                        }
-                        if(entry.entryName.startsWith('history')) {
-                            zip.extractEntryTo(entry, global.storage.folder, false, true)
-                            delete global.storage.cacheExpiration[global.histo.key]
-                            global.histo.load()
-                        }                    
-                        if(entry.entryName.startsWith('categories')) {
-                            zip.extractEntryTo(entry, global.storage.raw.folder, false, true, path.basename(global.storage.raw.resolve(global.channels.channelList.key)))
-                            delete global.storage.raw.cacheExpiration[global.channels.channelList.key]
-                            global.channels.load()
-                        }
-                        if(entry.entryName.startsWith('icons')) {
-                            try {
-                                zip.extractEntryTo(entry, path.dirname(global.icons.opts.folder), true, true) // Error: ENOENT: no such file or directory, chmod 'C:\\Users\\samsung\\AppData\\Local\\Megacubo\\Data\\icons\\a&e-|-a-&-e.png'
-                            } catch(e) {}
-                        }
-                        if(entry.entryName.startsWith('Themes')) {
-                            zip.extractEntryTo(entry, path.dirname(global.theme.folder), true, true)
-                        }
-                        done()
-                    }, () => {
-                        if(imported.config) {
-                            console.warn('CONFIG', imported.config)
-                            global.config.reload(imported.config)
-                        }
-                        global.osd.show(global.lang.IMPORTED_FILE, 'fas fa-check-circle', 'options', 'normal')
-                    })
-                } catch(e) {
-                    global.displayErr(e)
+                if(imported.config) {
+                    console.warn('CONFIG', imported.config)
+                    global.config.reload(imported.config)
                 }
-            })
+                await global.storage.cleanup()
+                global.osd.show(global.lang.IMPORTED_FILE, 'fas fa-check-circle', 'options', 'normal')
+            } catch(e) {
+                global.displayErr(e)
+            }
         }
     }
     export(cb){
@@ -510,7 +507,7 @@ class Options extends OptionsExportImport {
     }
     async tools(){
         let err, defaultURL = ''
-        const url = await global.storage.raw.promises.get('open-url').catch(e => err = e)
+        const url = global.config.get('open-url')
         if(!err && url){
             defaultURL = url
         }
@@ -832,6 +829,7 @@ class Options extends OptionsExportImport {
             {template: 'option', text: global.lang.YES, fa: 'fas fa-check-circle', id: 'yes'},            {template: 'option', text: global.lang.NO, fa: 'fas fa-times-circle', id: 'no'}
         ], 'no')
         if(ret == 'yes'){
+            await global.storage.clear(true)
             global.rmdir(global.paths.data, false, true)
             global.rmdir(global.paths.temp, false, true)
             global.energy.restart()
@@ -1142,15 +1140,6 @@ class Options extends OptionsExportImport {
                 }
             },
             {
-                name: global.lang.ENABLE_DISK_CACHE, type: 'check',
-                details: global.lang.RECOMMENDED,
-                action: (data, checked) => {
-                    global.config.set('in-disk-caching', checked)
-                    global.streamer.active && global.streamer.reload()
-                },
-                checked: () => global.config.get('in-disk-caching')
-            },
-            {
                 name: global.lang.TUNING_CONCURRENCY_LIMIT, 
                 fa: 'fas fa-poll-h', 
                 type: 'slider', 
@@ -1223,50 +1212,33 @@ class Options extends OptionsExportImport {
         return opts
     }
     requestClearCache(){
-        let folders = [global.paths.temp, global.icons.opts.folder], size = 0, gfs = require('get-folder-size')
-        async.eachOf(folders, (folder, i, done) => {
-            gfs(folder, (err, s) => {
-                if(!err){
-                    size += s
-                }
-                done()
-            })
-        }, () => {
-            let highUsage = size > (512 * (1024 * 1024))
-            size = '<font class="faclr-' + (highUsage ? 'red' : 'green') + '">' + global.kbfmt(size) + '</font>'
-            global.explorer.dialog([
-                {template: 'question', text: global.lang.CLEAR_CACHE, fa: 'fas fa-broom'},
-                {template: 'message', text: global.lang.CLEAR_CACHE_WARNING.format(size)},
-                {template: 'option', text: global.lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
-                {template: 'option', text: global.lang.NO, id: 'no', fa: 'fas fa-times-circle'}
-            ], 'no').then(ret => {
-                if(ret == 'yes') this.clearCache()
-            }).catch(console.error)
-        })
+        const usage = global.storage.size()
+        const highUsage = usage > (512 * (1024 * 1024))
+        const size = '<font class="faclr-' + (highUsage ? 'red' : 'green') + '">' + global.kbfmt(usage) + '</font>'
+        global.explorer.dialog([
+            {template: 'question', text: global.lang.CLEAR_CACHE, fa: 'fas fa-broom'},
+            {template: 'message', text: global.lang.CLEAR_CACHE_WARNING.format(size)},
+            {template: 'option', text: global.lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
+            {template: 'option', text: global.lang.NO, id: 'no', fa: 'fas fa-times-circle'}
+        ], 'no').then(ret => {
+            if(ret == 'yes') this.clearCache().catch(console.error)
+        }).catch(console.error)
     }
     async developerEntries() {
         const opts = [
             {
-                name: 'Config server base URL', 
-                fa: 'fas fa-server', 
-                type: 'input', 
-                action: (e, value) => {
-                    if(!value){
-                        value = global.cloud.defaultServer // allow reset by leaving field empty
-                    }
-                    if(value != global.cloud.server){
-                        global.cloud.testConfigServer(value).then(() => {
-                            global.osd.show('OK', 'fas fa-check-circle faclr-green', 'config-server', 'persistent')
-                            global.config.set('config-server', value)
-                            setTimeout(() => this.clearCache(), 2000) // allow user to see OK message
-                        }).catch(global.displayErr)
-                    }
+                name: global.lang.ENABLE_DISK_CACHE,
+                fa: 'fas fa-download',
+                type: 'slider', 
+                range: {start: 512, end: 8192}, // need to cache at least the user lists
+                mask: '{0} MB',
+                action: (data, value) => {
+                    global.config.set('in-disk-caching-size', value)
+                    global.storage.opts.maxDiskUsage = value * (1024 * 1024)
+                    global.storage.alignLimiter.call().catch(console.error)
                 },
-                value: () => {
-                    return global.config.get('config-server')
-                },
-                placeholder: global.cloud.defaultServer
-            }, 
+                value: () => global.config.get('in-disk-caching-size')
+            },
             {
                 name: 'System info', fa: 'fas fa-memory', type: 'action', action: this.aboutResources.bind(this)
             },
@@ -1368,6 +1340,27 @@ class Options extends OptionsExportImport {
                 action: async () => {
                     global.diag.saveReport().catch(console.error)
                 }
+            },
+            {
+                name: 'Config server base URL', 
+                fa: 'fas fa-server', 
+                type: 'input', 
+                action: (e, value) => {
+                    if(!value){
+                        value = global.cloud.defaultServer // allow reset by leaving field empty
+                    }
+                    if(value != global.cloud.server){
+                        global.cloud.testConfigServer(value).then(() => {
+                            global.osd.show('OK', 'fas fa-check-circle faclr-green', 'config-server', 'persistent')
+                            global.config.set('config-server', value)
+                            setTimeout(() => this.clearCache().catch(console.error), 2000) // allow user to see OK message
+                        }).catch(global.displayErr)
+                    }
+                },
+                value: () => {
+                    return global.config.get('config-server')
+                },
+                placeholder: global.cloud.defaultServer
             }                          
         ]
         if(!global.cordova){
@@ -1380,23 +1373,14 @@ class Options extends OptionsExportImport {
         }
         return opts
     }
-    clearCache(){
+    async clearCache(){
         global.osd.show(global.lang.CLEANING_CACHE, 'fa-mega spin-x-alt', 'clear-cache', 'persistent')
         global.streamer.stop()
-        if(global.tuning){
-            global.tuning.destroy()
-        }
-        let folders = [
-            global.paths.temp, 
-            global.icons.opts.folder
-        ]
-        async.eachOf(folders, (folder, i, done) => {
-            global.rmdir(folder, false, done)
-        }, () => {
-            global.osd.show('OK', 'fas fa-check-circle faclr-green', 'clear-cache', 'normal')
-            global.config.save()
-			global.energy.restart()
-        })
+        global.tuning && global.tuning.destroy()
+        await global.storage.clear()
+        global.osd.show('OK', 'fas fa-check-circle faclr-green', 'clear-cache', 'normal')
+        global.config.save()
+        global.energy.restart()
     }
     entries(){
         let secOpt = global.lists.parentalControl.entry()

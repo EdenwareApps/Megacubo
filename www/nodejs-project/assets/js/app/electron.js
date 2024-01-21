@@ -18,11 +18,7 @@ const fs = require('fs'), path = require('path')
 
 class FFmpegDownloader {
 	constructor(){}
-	dl(){
-		return getElectronRemote().getGlobal('Download')
-	}
 	async download(target, osd, mask) {
-		const Download = this.dl()
 		const tmpZipFile = path.join(target, 'ffmpeg.zip')
 		const arch = process.arch == 'x64' ? 64 : 32
 		let osName
@@ -40,11 +36,11 @@ class FFmpegDownloader {
 		const variant = osName + '-' + arch
 		const url = await this.getVariantURL(variant)
 		osd.show(mask.replace('{0}', '0%'), 'fas fa-circle-notch fa-spin', 'ffmpeg-dl', 'persistent')
-		await Download.file({
+		await process.download({
 			url,
 			file: tmpZipFile,
 			progress: p => {
-				osd.show(mask.replace('{0}', p + '%'), 'fas fa-circle-notch fa-spin', 'ffmpeg-dl', 'persistent')
+				Manager.app.osd.show(mask.replace('{0}', p + '%'), 'fas fa-circle-notch fa-spin', 'ffmpeg-dl', 'persistent')
 			}
 		})
 		const AdmZip = require('adm-zip')
@@ -80,10 +76,9 @@ class FFmpegDownloader {
 		return false
 	}
 	async getVariantURL(variant){
-		const Download = this.dl()
-		const data = await Download.get({url: 'https://ffbinaries.com/api/v1/versions', responseType: 'json'})
+		const data = await process.download({url: 'https://ffbinaries.com/api/v1/versions', responseType: 'json'})
 		for(const version of Object.keys(data.versions).sort().reverse()){
-			const versionInfo = await Download.get({url: data.versions[version], responseType: 'json'})
+			const versionInfo = await process.download({url: data.versions[version], responseType: 'json'})
 			if(versionInfo.bin && typeof(versionInfo.bin[variant]) != 'undefined'){
 				return versionInfo.bin[variant].ffmpeg
 			}
@@ -100,8 +95,12 @@ class FFMpeg extends FFmpegDownloader {
 			this.executable += '.exe'
 		}
 		this.executableDir = process.resourcesPath || path.resolve('ffmpeg')
+		this.executableDir = this.executableDir.replace(new RegExp('\\\\', 'g'), '/')
+		if(this.executableDir.indexOf('resources/app') != -1) {
+			this.executableDir = this.executableDir.split('resources/app').shift() +'resources'
+		}
 		this.executable = path.basename(this.executable)
-		this.tmpdir = require('os').tmpdir()
+		this.tmpdir = process.paths.temp
 	}
 	isMetadata(s){
 		return s.indexOf('Stream mapping:') != -1

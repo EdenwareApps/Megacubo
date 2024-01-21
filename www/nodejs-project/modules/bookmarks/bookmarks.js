@@ -4,6 +4,7 @@ const EntriesGroup = require('../entries-group')
 class Bookmarks extends EntriesGroup {
     constructor(){
         super('bookmarks')
+        this.storeInConfig = true
         this.currentBookmarkAddingByName = {
             name: '',
             live: true,

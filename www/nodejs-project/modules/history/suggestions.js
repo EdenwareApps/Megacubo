@@ -71,7 +71,7 @@ class Suggestions {
     }
     async featuredEntry(){
         const key = 'epg-suggestions-featured-0'
-        let e = await global.storage.promises.get(key).catch(console.error)
+        let e = await global.storage.get(key).catch(console.error)
         if(!e || !e.name){
             e = await this.get()
             if(e.length){
@@ -84,7 +84,7 @@ class Suggestions {
                 e = e.shift()
                 const ttl = Math.min(600, (e.programme.e - minWindow) - now)
                 if (ttl > 0) {
-                    global.storage.promises.set(key, e, ttl)                    
+                    global.storage.set(key, e, {permanent: true, ttl})
                 }
             } else {
                 e = null

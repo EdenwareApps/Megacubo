@@ -69,12 +69,12 @@ class Theme extends Events {
                         }
                         resolve(colors)
                     }
-                    global.storage.temp.get(key, content => {
+                    global.storage.get(key, content => {
                         if(Array.isArray(content)){
                             next(content)
                         } else {
                             global.jimp.colors(file).then(colors => {
-                                global.storage.temp.set(key, colors, true)
+                                global.storage.set(key, colors, {expiration: true})
                                 next(colors)
                             }).catch(err => {
                                 console.error(err)

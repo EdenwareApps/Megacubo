@@ -27,7 +27,7 @@ class DownloadStream extends DownloadStreamBase {
         if(!this.opts.cachedOnly) {
             types.push(DownloadStreamHttp)
         }
-        if(typeof(this.opts.cacheTTL) == 'number' && this.opts.cacheTTL > 0 && global.config.get('in-disk-caching')) {
+        if(typeof(this.opts.cacheTTL) == 'number' && this.opts.cacheTTL > 0 && global.config.get('in-disk-caching-size')) {
             types.unshift(DownloadStreamCache)
         }
         let chosen, responseData
@@ -43,26 +43,23 @@ class DownloadStream extends DownloadStreamBase {
                 via.validation = [response, this.validate(response)]
                 if(this.validate(response)) {
                     chosen = via
-                    vias.filter(v => v != via).forEach(v => v.destroy())
+                    vias.filter(v => v.uid != chosen.uid).forEach(v => v.destroy())
                     if(!response.headers['x-megacubo-dl-source']) {
-                        response.headers['x-megacubo-dl-source'] = via.type
+                        response.headers['x-megacubo-dl-source'] = chosen.type
                     }
                     this.emit('response', response)
-                    if(response.ended){
+                    if(response.ended || response.destroyed){
                         this.end()
                     } else {
-                        response.once('end', () => this.end())
+                        response.once('end', () => {
+                            this.end()
+                        })
                     }
                 } else {
-                    if(via.type == 'http') {
+                    if(via.type == 'http' || this.opts.cachedOnly) {
                         responseData = {
                             statusCode: response.statusCode,
                             headers: response.headers
-                        }
-                    } else if(this.opts.cachedOnly) {
-                        responseData = {
-                            statusCode: 404,
-                            headers: {}
                         }
                     }
                 }

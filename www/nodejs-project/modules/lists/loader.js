@@ -268,7 +268,7 @@ class ListsLoader extends Events {
     }
     async reload(url){
         let updateErr
-        const file = global.storage.raw.resolve(global.LIST_DATA_KEY_MASK.format(url))
+        const file = global.storage.resolve(global.LIST_DATA_KEY_MASK.format(url))
         const progressId = 'reloading-'+ parseInt(Math.random() * 1000000)
         const progressListener = p => {
             if(p.progressId == progressId) {
