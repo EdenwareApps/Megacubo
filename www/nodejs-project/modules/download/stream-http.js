@@ -115,109 +115,12 @@ class DownloadStreamHttp extends DownloadStreamBase {
             this.responder.end()
             this.end()
         } else {
-            console.error('ERROR', this.opts.url, this.errors)
             const err = this.errors.map(s => String(s)).unique().join("\n") || 'Unknown error'
-            console.error('ERROR', this.opts.url, err)
             this.emitError(err, true)
         }
     }
-    /*
-	get(options){
-        return new Promise((resolve, reject) => {
-            let timer, fine, req, res, resolved, closed
-            const controller = new AbortController()  
-            const close = force => {
-                this.removeListener('destroy', close)
-                this.responder && this.responder.end()
-                if(closed && force !== true) return
-                closed = true
-                if(req) {
-                    req.abort()
-                    req.destroy()
-                }
-                if(res) {
-                    force && controller.abort()
-                    res.destroy()
-                }
-            }
-            const fail = error => {
-                clearTimer()
-                this.errors.push(error)
-                if(!resolved){
-                    resolved = true
-                    close(true)
-                    if(options.realHost && options.ip){ // before resolving
-                        lookup.defer(options.realHost, options.ip) // if it failed with a IP, try some other at next time
-                    }
-                    reject(error)
-                }
-                this.responder && this.responder.emitError(error)
-            }
-            const clearTimer = () => {
-                timer && clearTimeout(timer)
-            }
-            let currentState = 'connect'
-            const startTimer = state => {
-                clearTimer()
-                if(!state){
-                    state = currentState
-                }
-                if(state != currentState){
-                    currentState = state
-                }
-                timer = setTimeout(() => fail('Timeouted after '+ this.timeout.connect +'ms ('+ state +')'), this.timeout[state])
-            }
-            const finish = () => {
-                clearTimer()
-                if(!resolved){
-                    this.finishTraceback = true
-                    resolved = true
-                    resolve(fine)
-                }
-                close()
-            }
-            this.once('destroy', () => close(true))
-            options.signal = controller.signal
-            req = (options.protocol == 'http:' ? http : https).request(options, response => {
-                if(this.destroyed) return fail('destroyed')
-                fine = true
-                res = response
-                this.responder = new DownloadStreamBase.Response(res.statusCode, res.headers)
-                if(this.responder.headers['set-cookie']){
-                    if (this.responder.headers['set-cookie'] instanceof Array) {
-                        this.responder.headers['set-cookie'].map(c => this.setCookies(c).catch(console.error))
-                    } else {
-                        this.setCookies(this.responder.headers['set-cookie']).catch(console.error)
-                    }
-                    delete this.responder.headers['set-cookie']
-                }
-                res.once('error', fail)
-                res.once('timeout', fail)
-                //res.once('end', () => finish())
-                res.once('close', () => finish())
-                res.once('finish', () => finish())
-                res.socket.once('end', () => finish())
-                res.socket.once('close', () => finish())
-                res.socket.once('finish', () => finish())
-                res.on('data', chunk => {
-                    if(this.ended || this.destroyed) {
-                        console.error('RECEIVING DATA AFTER END ', this.ended, this.destroyed, this.errors)
-                        close(true)
-                    }
-                    this.responder && this.responder.write(chunk)
-                    startTimer('response')                  
-                })
-                this.once('destroy', () => (resolved || finish()))
-                this.emit('response', this.responder)
-                startTimer('response')
-            }).on('error', fail)
-            req.end()
-            startTimer('connect')
-        })
-	}
-    */
 	async get(options){
-        let timer, req, res, closed, currentState = 'connect'
+        let timer, req, res, closed, currentState = 'pre-connect'
         const controller = new AbortController()
         const via = options.protocol == 'http:' ? http : https
         const clearTimer = () => {
@@ -247,6 +150,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
             }
             const requested = response => {
                 if(this.destroyed) return
+                startTimer('response')
                 res = response
                 this.responder = new DownloadStreamBase.Response(res.statusCode, res.headers)
                 if(this.responder.headers['set-cookie']){
@@ -274,7 +178,6 @@ class DownloadStreamHttp extends DownloadStreamBase {
                     startTimer('response')                  
                 })
                 this.emit('response', this.responder)
-                startTimer('response')
             }
             const startTimer = state => {
                 clearTimer()

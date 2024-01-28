@@ -59,7 +59,7 @@
     "url": "https://megacubo.tv"
   },
   "icon": "./default_icon.png",
-  "version": "17.4.0",
+  "version": "17.3.9",
   "theme": {
     "fullScreen": true
   },
@@ -70,10 +70,6 @@
     "https://*/"
   ],
   "main": "main.js",
-  "js-flags": "--max_old_space_size=2048",
-  "webkit": {
-    "page-cache": false
-  },
   "window": {
     "icon": "default_icon.png",
     "title": "Megacubo"

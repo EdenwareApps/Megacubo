@@ -763,19 +763,13 @@ if(global.cordova) {
         })
     }
 
-    global.ui.on('electron-relaunch', () => {
-        app.relaunch()
-        app.quit()
-        setTimeout(() => app.exit(), 2000) // some deadline
-    })
-
     const initAppWindow = async () => {
-        const isLinux = process.platform == 'linux'	
+        const isLinux = process.platform == 'linux'
         await global.updateUserTasks(app).catch(console.error)
 
-        if(global.config.get('gpu')) {
+        if (global.config.get('gpu')) {
             global.config.get('gpu-flags').forEach(f => {
-                if(isLinux && f == 'in-process-gpu') {
+                if (isLinux && f == 'in-process-gpu') {
                     // --in-process-gpu chromium flag is enabled by default to prevent IPC
                     // but it causes fatal error on Linux
                     return
@@ -800,10 +794,11 @@ if(global.cordova) {
         app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport')  // TODO: Allow user to activate Metal (macOS) and VaapiVideoDecoder (Linux) features
         app.commandLine.appendSwitch('disable-features', 'IsolateOrigins,SitePerProcess,NetworkPrediction')
         app.commandLine.appendSwitch('disable-web-security')
-        app.commandLine.appendSwitch('allow-file-access-from-files')
         
         await app.whenReady()
         const window = global.window = new BrowserWindow({
+            width: 320,
+            height: 240,
             frame: false,
             maximizable: false, // macos
             minimizable: false, // macos
@@ -815,7 +810,7 @@ if(global.cordova) {
                 disablePreconnect: true,
                 dnsPrefetchingEnabled: false,
                 contextIsolation, // false is required for nodeIntegration, but true is required for preload script
-                nodeIntegration: true,
+                nodeIntegration: false,
                 nodeIntegrationInWorker: false,
                 nodeIntegrationInSubFrames: false,
                 preload: path.join(__dirname, 'preload.js'),
@@ -839,21 +834,7 @@ if(global.cordova) {
                 window.focus()
                 global.ui.emit('arguments', commandLine)
             }
-        });
-        const updateMetrics = () => {
-            const [x, y] = window.getPosition()
-            const [width, height] = window.getSize()
-            const isMaximized = window.isMaximized()
-            global.ui.emit('electron-window-metrics', {x, y, width, height, isMaximized})
-        }
-        ['focus', 'blur', 'show', 'hide', 'minimize', 'maximize', 'restore', 'close', 'setSize', 'setAlwaysOnTop', 'setFullScreen', 'setPosition'].forEach(k => {
-            updateMetrics()
-            global.ui.on('electron-window-'+ k, (...args) => window[k](...args))
-        });
-        ['maximize', 'enter-fullscreen', 'leave-fullscreen', 'restore', 'minimize', 'close'].forEach(k => {
-            global.ui.on(k, (...args) => global.ui.emit('electron-window-'+ k, ...args))
         })
-        window.on('resize', updateMetrics)
         window.on('closed', () => window.closed = true) // prevent bridge IPC error
         global.ui.setElectronWindow(window)
     }

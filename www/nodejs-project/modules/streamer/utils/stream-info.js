@@ -146,7 +146,7 @@ class StreamInfo {
 		return buffer.slice(0, bytesRead)
 	}
 	async probe(url, retries = 2, opts={}){
-		const timeout = global.config.get('connect-timeout') * 2
+		const timeout = global.config.get('connect-timeout-secs') * 2
 		const proto = this.mi.proto(url)
 		if(proto.startsWith('http')) {
 			if(opts.allowBlindTrust) {

@@ -104,7 +104,7 @@ class PerformanceProfiles extends Timer {
                 'auto-test': false,
                 'autocrop-logos': true,
                 'broadcast-start-timeout': 40,
-                'connect-timeout': 5,
+                'connect-timeout-secs': 10,
                 'ffmpeg-broadcast-pre-processing': 'auto',
                 'fx-nav-intensity': 2,
                 'hls-prefetching': true,
@@ -124,7 +124,7 @@ class PerformanceProfiles extends Timer {
                 'auto-test': false,
                 'autocrop-logos': false,
                 'broadcast-start-timeout': 60,
-                'connect-timeout': 10,
+                'connect-timeout-secs': 12,
                 'custom-background-video': '',
                 'epg': 'disabled',
                 'ffmpeg-broadcast-pre-processing': 'no',
@@ -419,17 +419,11 @@ class OptionsExportImport extends OptionsGPU {
                         zip.extractEntryTo(entry, path.dirname(global.config.file), false, true)
                         imported.config = entry.getData().toString('utf8')
                     }
-                    if(entry.entryName.startsWith('bookmarks')) {
-                        zip.extractEntryTo(entry, global.storage.folder, false, true)
-                        delete global.storage.cacheExpiration[global.bookmarks.key]
-                    }
-                    if(entry.entryName.startsWith('history')) {
-                        zip.extractEntryTo(entry, global.storage.folder, false, true)
-                        delete global.storage.cacheExpiration[global.histo.key]
+                    if(['bookmarks', 'history', 'epg-history'].some(k => entry.entryName.startsWith(k))) {
+                        zip.extractEntryTo(entry, global.storage.opts.folder, false, true)
                     }
                     if(entry.entryName.startsWith('categories')) {
-                        zip.extractEntryTo(entry, global.storage.folder, false, true, path.basename(global.storage.resolve(global.channels.channelList.key)))
-                        delete global.storage.cacheExpiration[global.channels.channelList.key]
+                        zip.extractEntryTo(entry, global.storage.opts.folder, false, true, path.basename(global.storage.resolve(global.channels.channelList.key)))
                         global.channels.load()
                     }
                     if(entry.entryName.startsWith('icons')) {
@@ -445,7 +439,7 @@ class OptionsExportImport extends OptionsGPU {
                     console.warn('CONFIG', imported.config)
                     global.config.reload(imported.config)
                 }
-                await global.storage.cleanup()
+                await global.storage.cleanup() // import bookmarks and history to config
                 global.osd.show(global.lang.IMPORTED_FILE, 'fas fa-check-circle', 'options', 'normal')
             } catch(e) {
                 global.displayErr(e)
@@ -1042,9 +1036,9 @@ class Options extends OptionsExportImport {
                 mask: 'time',
                 range: {start: 3, end: 30},
                 action: (data, value) => {
-                    global.config.set('connect-timeout', value)
+                    global.config.set('connect-timeout-secs', value)
                 }, 
-                value: () => global.config.get('connect-timeout')
+                value: () => global.config.get('connect-timeout-secs')
             },
             {
                 name: global.lang.BROADCAST_START_TIMEOUT, 
@@ -1639,10 +1633,10 @@ class Options extends OptionsExportImport {
         const p = global.premium
         if(p) {
             if(p.active) return !strict || p.active == 'activation'
-            if(p.enabling) return true
+            if(!strict && p.enabling) return true
         }
         const licensed = global.config.get('premium-license') && !global.config.get('premium-disable')
-        return !!licensed
+        return licensed
     }
     insertEntry(entry, entries, preferredPosition=-1, before, after, prop='name'){
         const i = entries.findIndex(e => e[prop] == entry[prop])

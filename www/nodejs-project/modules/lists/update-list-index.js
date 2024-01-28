@@ -168,7 +168,7 @@ class UpdateListIndex extends ListIndexUtils {
         }
         await fs.promises.mkdir(global.dirname(this.tmpOutputFile), {recursive: true}).catch(console.error)
         const writer = fs.createWriteStream(this.tmpOutputFile)
-        writer.once('close', () => this.writerClosed = true)
+        writer.once('finish', () => this.writerClosed = true)
         for(let url of urls){
             let err
             if(url.indexOf('#xtream') != -1) {
@@ -352,7 +352,7 @@ class UpdateListIndex extends ListIndexUtils {
                             fs.access(this.tmpOutputFile, err => err || fs.unlink(this.tmpOutputFile, () => {}))
                         }, 10)
                     }
-                    writer.once('close', finish)
+                    writer.once('finish', finish)
                     writer.on('error', finish)
                     
                     const indexLine = JSON.stringify(this.index) +"\n"

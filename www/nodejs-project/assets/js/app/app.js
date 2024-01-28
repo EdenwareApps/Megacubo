@@ -1,4 +1,4 @@
-var body = $('body'), content = $('#explorer content'), wrap = document.querySelector('#explorer wrap'), wrapper = $(wrap)
+var body = jQuery('body'), content = jQuery('#explorer content'), wrap = document.querySelector('#explorer wrap'), wrapper = jQuery(wrap)
 
 function importMomentLocale(locale, cb){
     importMomentLocaleCallback = cb
@@ -218,7 +218,7 @@ function initApp(){
     app.on('background-mode-unlock', name => {
         if(parent.player && parent.winman) parent.winman && parent.winman.backgroundModeUnlock(name)
     });
-    $(() => {
+    jQuery(() => {
         console.log('load app')
         if(typeof(Explorer) == 'undefined') {
             parent.updateWebView()
@@ -421,7 +421,7 @@ function initApp(){
                     explorer.reset()
                 }
             }, 100)
-        }, true)
+        }, {passive: true})
 
         explorer.on('prompt-start', explorer.reset.bind(explorer))
         explorer.on('ask-start', explorer.reset.bind(explorer))
@@ -446,7 +446,7 @@ function initApp(){
                         break
                 }
             }
-        })
+        }, {passive: true})
 
         langUpdated()
         app.emit('init')
@@ -501,7 +501,7 @@ function initApp(){
             haUpdate()
         })
 
-        var elp = $('.explorer-location-pagination'), elpTxt = elp.find('span'), elpTimer = 0, elpDuration = 5000, elpShown = false
+        var elp = jQuery('.explorer-location-pagination'), elpTxt = elp.find('span'), elpTimer = 0, elpDuration = 5000, elpShown = false
         const elpShow = txt => {
             clearTimeout(elpTimer)
             if(!elpShown){
@@ -528,7 +528,7 @@ function initApp(){
         explorer.on('focus', elpListener)
         explorer.on('render', elpListener)
 
-        var haTop = $('#home-arrows-top'), haBottom = $('#home-arrows-bottom')
+        var haTop = jQuery('#home-arrows-top'), haBottom = jQuery('#home-arrows-bottom')
         haTop.on('click', () => explorer.arrow('up'))
         haBottom.on('click', () => explorer.arrow('down'))
 
@@ -679,15 +679,21 @@ function initApp(){
             }
         })
 
-        var parentRoot = jQuery(parent.document.documentElement)
-        var energySaver = {
+        const parentRoot = jQuery(parent.document.documentElement)
+        const energySaver = {
+            active: false,
             start: () => {
+                if(energySaver.active || typeof(config) == 'undefined' || !config['timeout-secs-energy-saving']) return
+                energySaver.active = true
                 parent.animateBackground('none')
-                parentRoot.addClass('curtains curtains-alpha').removeClass('curtains-close')
+                parent.player.closeCurtains(true, false)
             }, 
             end: () => {
-                typeof(config) != 'undefined' && parent.animateBackground(config['animate-background'])
-                parentRoot.addClass('curtains-close curtains-alpha').removeClass('curtains')
+                if(!energySaver.active || typeof(config) == 'undefined' || !config['timeout-secs-energy-saving']) return
+                energySaver.active = false
+                parent.player.openCurtains(true, true, () => {
+                    typeof(config) != 'undefined' && parent.animateBackground(config['animate-background'])
+                })
             }
         }
         idle.on('idle', () => {
@@ -701,7 +707,7 @@ function initApp(){
             streamer.active || streamer.isTuning() || energySaver.start()
         })
         idle.on('active', () => energySaver.end())
-        streamer.on('show', () => energySaver.start())
+        streamer.on('show', () => parent.animateBackground('none'))
         streamer.on('hide', () => {
             idle.reset() // will not call idle.on('active') if not idle, so keep lines below to ensure
             energySaver.end()
@@ -714,13 +720,13 @@ function initApp(){
         hs.title = hs.alt = lang.EXIT
         hs.addEventListener('click',  () => {
             parent.winman && parent.winman.askExit()
-        })
+        }, {passive: true})
 
         let ha = document.getElementById('header-about')
         ha.title = ha.alt = lang.ABOUT
         ha.addEventListener('click',  () => {
             app.emit('about-dialog')
-        })
+        }, {passive: true})
 
         ha = hs = undefined
 
@@ -756,7 +762,7 @@ function initApp(){
         } else {
             parent.addEventListener('load', () => {
                 parent.appChannel.localEmit('frontend')
-            })
+            }, {once: true, passive: true})
         }
     })
 }

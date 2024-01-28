@@ -90,7 +90,7 @@ class ListIndex extends ListIndexUtils {
                     this.emit('end')                    
                 }).catch(err => this.fail(err))
 			} else {
-                this.fail('file not found or empty')
+                this.fail('file not found or empty '+ this.file +' '+ err)
 			}
 		})
 	}

@@ -132,8 +132,9 @@ class CustomFrame {
 		var iconClose = document.createElement('i');
 		iconClose.setAttribute('class', options.classes.icons.close);
 		buttonClose.appendChild(iconClose);
-		var size = options.win.getSize();
-		var initialPosX = options.win.x, initialPosY = options.win.y;
+		var size = options.win.getSize()
+		var position = options.win.getPosition()
+		var initialPosX = position[0], initialPosY = position[1]
 		var initialSizeW = size[0], initialSizeH = size[1];
 		if (options.customFrameState === 'maximized') {
 			buttonMaximize.setAttribute('style', buttonMaximize.getAttribute('style') === null ? 'display: none;' : buttonMaximize.getAttribute('style') + 'display: none;');
@@ -182,8 +183,9 @@ class CustomFrame {
 		});
 		options.win.on('close', function () {
 			if (that.window.localStorage.customFrameState !== 'maximized') {
-				that.window.localStorage.customFramePosX = options.win.x;
-				that.window.localStorage.customFramePosY = options.win.y;
+				const position = options.win.getPosition(), size = options.win.getSize()
+				that.window.localStorage.customFramePosX = position[0];
+				that.window.localStorage.customFramePosY = position[1];
 				that.window.localStorage.customFrameSizeW = size[0];
 				that.window.localStorage.customFrameSizeH = size[1];
 			}
@@ -196,20 +198,21 @@ class CustomFrame {
 		});
 		buttonMinimize.addEventListener('click', function () {
 			options.win.minimize();
-		});
+		}, {passive: true});
 		buttonMaximize.addEventListener('click', function () {
-			initialPosX = options.win.x;
-			initialPosY = options.win.y;
+			const position = options.win.getPosition()
+			initialPosX = position[0];
+			initialPosY = position[1];
 			initialSizeW = size[0];
 			initialSizeH = size[1];
 			options.win.maximize();
-		});
+		}, {passive: true});
 		buttonRestore.addEventListener('click', function () {
 			options.win.restore();
-		});
+		}, {passive: true});
 		buttonClose.addEventListener('click', function () {
 			options.win.close();
-		});
+		}, {passive: true});
 		
 		this.createElement('link', { href: options.style, rel: 'stylesheet', type: 'text/css' }, null, that.document.head);
 		this.createElement('link', { href: options.uiIconsTheme, rel: 'stylesheet', type: 'text/css' }, null, that.document.head);

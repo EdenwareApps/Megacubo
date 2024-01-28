@@ -371,11 +371,6 @@ class StreamerBase extends StreamerTools {
 							}
 						}
 					}
-					if(codecData.audio && !codecData.video) { // is an audio stream
-						if(global.tuning && global.tuning.opts.name == intent.data.originalName && !this.streamInfo.mi.isRadio(intent.data.originalName)){ // not expecing an audio stream
- 							return intent.fail('unsupported format') // fail this audio only stream for tuning resuming
-						}
-					}
 				})
 				intent.on('streamer-connect', () => this.uiConnect().catch(console.error))
 				if(intent.codecData){

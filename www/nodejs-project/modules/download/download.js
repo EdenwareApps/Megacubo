@@ -376,7 +376,7 @@ class Download extends Events {
 			if(typeof(this.opts.timeout) == 'number' && this.opts.timeout > 0){
 				ms = this.opts.timeout * 1000
 			} else {
-				ms = (global.config.get('connect-timeout') || 5) * 1000
+				ms = (global.config.get('connect-timeout-secs') || 10) * 1000
 			}
 			return {
 				lookup: ms,
@@ -937,7 +937,7 @@ class Download extends Events {
 						break
 					case 'json':
 						try {
-							data = JSON.parse(String(data)) // use JSON.parse instead of global.parseJSON to catch error
+							data = JSON.parse(String(data)) // use JSON.parse instead of global.parseJSON to catch any error
 						} catch(e) {
 							Download.cache.remove(this.opts.url)
 							Download.cache.remove(this.currentURL)

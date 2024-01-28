@@ -201,18 +201,9 @@
 				visibility: hidden !important;
 				animation-name: none !important;
 			}
-			html.curtains .curtain, html.curtains-close .curtain {				
-				transition: left 0.15s ease-in 0s, right 0.15s ease-in 0s, opacity 0.15s ease-in 0s;
-			}
-			html.curtains-alpha .curtain, html.curtains-close-alpha .curtain {				
+			html.curtains-alpha .curtain {				
 				opacity: 0.6; /* energy saving black filter */
 				pointer-events: none;
-			}
-			html.curtains-close .curtain-b {
-				left: 101vw;
-			}
-			html.curtains-close .curtain-a {
-				left: -51vw;
 			}
 			.curtain {
 				background: black;
@@ -223,17 +214,18 @@
 				top: 0;
 				z-index: 1;
 				box-sizing: border-box;
+				transition: left 0.15s ease-in 0s, right 0.15s ease-in 0s, opacity 0.15s ease-in 0s;
 			}
-			html.curtains .curtain-a, html.curtains-static .curtain-a {
+			html.curtains-closed .curtain-a {
 				left: 0;
 			}
-			html.curtains .curtain-b, html.curtains-static .curtain-b {
+			html.curtains-closed .curtain-b {
 				left: 50vw;
 			}
-			.curtain-a, html.curtains-close .curtain-a {
+			.curtain-a, html.curtains-opened .curtain-a {
 				left: -51vw;
 			}
-			.curtain-b, html.curtains-close .curtain-b {
+			.curtain-b, html.curtains-opened .curtain-b {
 				left: 101vw;
 			}
 		</style>

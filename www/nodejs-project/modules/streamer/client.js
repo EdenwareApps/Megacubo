@@ -426,15 +426,7 @@ class StreamerClientVideoAspectRatio extends StreamerUnmuteHack {
         ]
         this.activeAspectRatio = this.aspectRatioList[0]
         this.lanscape = window.innerWidth > window.innerHeight
-        window.addEventListener('resize', () => {
-            let landscape = window.innerWidth > window.innerHeight
-            if(landscape != this.landscape){ // orientation changed
-                this.landscape = landscape
-                setTimeout(() => this.applyAspectRatio(this.activeAspectRatio), 500) // give a delay to avoid confusion
-            } else {
-                this.applyAspectRatio(this.activeAspectRatio)
-            }
-        })
+        window.addEventListener('resize', () => this.resize(), {passive: true})
         parent.player.on('setup-ratio', r => {
             console.log('SETUP-RATIO', r)
             this.setupAspectRatio()
@@ -446,6 +438,15 @@ class StreamerClientVideoAspectRatio extends StreamerUnmuteHack {
             this.aspectRatioList = this.aspectRatioList.filter(m => typeof(m.custom) == 'undefined')
             this.activeAspectRatio = this.aspectRatioList[0]
         })
+    }
+    resize() {
+        let landscape = window.innerWidth > window.innerHeight
+        if(landscape != this.landscape){ // orientation changed
+            this.landscape = landscape
+            setTimeout(() => this.applyAspectRatio(this.activeAspectRatio), 500) // give a delay to avoid confusion
+        } else {
+            this.applyAspectRatio(this.activeAspectRatio)
+        }
     }
     generateAspectRatioMetrics(r){
         let h = r, v = 1
@@ -578,7 +579,7 @@ class StreamerSpeedo extends StreamerIdle {
             console.log('NAVIGATOR.CONNECTION CHANGED!!!')
             this.speedoUpdate()
             this.app.emit('downlink', this.downlink())
-        })
+        }, {passive: true})
         this.app.emit('downlink', this.downlink())
     }
     isLocal(){
@@ -691,14 +692,14 @@ class StreamerButtonActionFeedback extends StreamerSpeedo {
     addedPlayerButton(id, name, button, fa) {
         if(this.buttonActionFeedbackIgnores.includes(id)) return
         this.buttonActionFeedbackListeners[name] = () => this.buttonActionFeedback(id, fa)
-        button.addEventListener('click', this.buttonActionFeedbackListeners[name])
+        button.addEventListener('click', this.buttonActionFeedbackListeners[name], {passive: true})
     }
     updatedPlayerButton(id, name, button, fa) {
         if(this.buttonActionFeedbackIgnores.includes(id)) return
         console.warn('updatedPlayerButton', id, name, button, fa)
         button.removeEventListener('click', this.buttonActionFeedbackListeners[name])
         this.buttonActionFeedbackListeners[name] = () => this.buttonActionFeedback(id, fa)
-        button.addEventListener('click', this.buttonActionFeedbackListeners[name])
+        button.addEventListener('click', this.buttonActionFeedbackListeners[name], {passive: true})
     }
     buttonActionFeedback(id, fa) {
         if(['paused', 'loading'].includes(this.state)) return
@@ -735,7 +736,7 @@ class StreamerSeek extends StreamerButtonActionFeedback {
                     console.log('INPUTINPUT', this.seekbarNput.value)
                     this.seekByPercentage(this.seekbarNput.value)
                 }
-            })
+            }, {passive: true})
             this.seekRewindLayerCounter = document.querySelector('div#seek-back > span.seek-layer-time > span') 
             this.seekForwardLayerCounter = document.querySelector('div#seek-fwd > span.seek-layer-time > span') 
             idle.on('active', () => this.seekBarUpdate(true))
@@ -1363,7 +1364,7 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
         this.jVolumeInput = jQuery(this.volumeButton)
         if(parent.cordova){
             // input and change events are not triggering satisfatorely on mobile, so we'll use touchmove instead ;)
-            this.volumeInput.addEventListener('touchmove', this.volumeBarCalcValueFromMove.bind(this))
+            this.volumeInput.addEventListener('touchmove', this.volumeBarCalcValueFromMove.bind(this), {passive: true})
         } else {
             this.jVolumeInput.
             on('input', this.volumeChanged.bind(this)).
@@ -1406,7 +1407,7 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
             if(document.activeElement != this.volumeInput && !document.activeElement.contains(this.volumeInput)){
                 this.volumeBarHide()
             }
-        })
+        }, {passive: true})
     }
     isVolumeButtonActive(){
         let s = explorer.selected()
@@ -1534,7 +1535,7 @@ class StreamerClientControls extends StreamerAudioUI {
                 this.app.emit('about')
             })
         this.controls.querySelectorAll('button').forEach(bt => {
-            bt.addEventListener('touchstart', () => explorer.focus(bt))
+            bt.addEventListener('touchstart', () => explorer.focus(bt), {passive: true})
         })
         this.emit('draw')
         $('#explorer').on('click', e => {
@@ -1581,9 +1582,9 @@ class StreamerClientControls extends StreamerAudioUI {
         }
         let button = container.querySelector('#' + id)
         if(typeof(action) == 'function'){
-            button.addEventListener('click', action)
+            button.addEventListener('click', action, {passive: true})
         } else {
-            button.addEventListener('click', () => this.app.emit(action))
+            button.addEventListener('click', () => this.app.emit(action), {passive: true})
         }
         if(name == 'cast' && parent.parent.Manager) parent.parent.Manager.exitPage.touch()
         this.emit('added-player-button', id, name, button, fa)

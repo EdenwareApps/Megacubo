@@ -224,8 +224,8 @@ function openExternalFile(file, mimetype) {
 	console.log('openExternalFile', file);
 	if (parent.cordova) {
 		alert('Cannot open file: ' + file.split('/').pop())
-	} else if (parent.shell) { // electron
-		parent.shell.openExternal(file)
+	} else if (parent.api) { // electron
+		parent.api.openExternal(file)
 	} else {
 		window.open(file, '_system')
 	}
@@ -237,8 +237,8 @@ function openExternalURL(url) {
 			url = url.replace('https:', 'http:'); // bypass Ionic Deeplink
 		}
 		parent.navigator.app.loadUrl(url, { openExternal: true })
-	} else if (parent.shell) { // electron
-		parent.shell.openExternal(url)
+	} else if (parent.api) { // electron
+		parent.api.openExternal(url)
 	} else {
 		window.open(url);
 	}
@@ -365,28 +365,28 @@ document.addEventListener('pause', function () {
 	if (window.channel) {
 		channel.post('message', ['suspend']);
 	}
-});
+}, {passive: true});
 
 document.addEventListener('resume', function () {
 	if (window.channel) {
 		channel.post('message', ['resume']);
 	}
-});
+}, {passive: true});
 
 document.addEventListener('backbutton', function (e) {
 	if (window.app) {
 		e.preventDefault();
 		app.postMessage({ action: 'backbutton' }, location.origin);
 	}
-}, false);
+}, {capture: true});
 
 if (typeof Keyboard != 'undefined') {
 	window.addEventListener('keyboardWillShow', function (event) {
 		adjustLayoutForKeyboard(event.keyboardHeight);
-	});
+	}, {passive: true});
 	window.addEventListener('keyboardWillHide', function () {
 		adjustLayoutForKeyboard(false);
-	});
+	}, {passive: true});
 	function adjustLayoutForKeyboard(keyboardHeight) {
 		var m, mi;
 		m = app.document.body.querySelector('div#modal > div > div');
@@ -434,16 +434,16 @@ if (window.cordova) {
 					player && player.emit('app-pause', ret);
 				});
 				plugins.insomnia.allowSleepAgain();   
-			});
+			}, {passive: true});
 			document.addEventListener('resume', function () {
 				player && player.emit('app-resume');
 				plugins.insomnia.keepAwake();
-			});
+			}, {passive: true});
 		} else {
 			log('No ES6 support');
 			updateWebView();
 		}
-	}, false);
+	}, {once: true, passive: true});
 } else {
 	updateSplashProgress(2);
 	loadScripts();

@@ -82,7 +82,7 @@ class CloudConfiguration {
             throw "cloud data \'"+ key +"\' not found"
         }
         const expiralKey = key.split('/')[0].split('.')[0]
-        const permanent = ['configure'].includes(expiralKey)
+        const permanent = 'configure' == expiralKey
         let data = await global.storage.get(this.cachingDomain + key).catch(console.error)
         if(data){
             if(this.debug){

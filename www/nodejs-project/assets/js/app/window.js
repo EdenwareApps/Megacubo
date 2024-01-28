@@ -59,7 +59,7 @@ class WinMan extends EventEmitter {
 			}
 		}, 'submit')
 	}
-	exitUI(){
+	exitUI(cb){
 		let w = this.getAppWindow()
 		console.log('exitUI()')
 		if(typeof(cordova) != 'undefined'){
@@ -67,19 +67,17 @@ class WinMan extends EventEmitter {
 		}
 		try {
 			w.streamer.stop()
-			const useCurtains = config && config['fx-nav-intensity']
-			if(useCurtains){
-				jQuery('html').removeClass('curtains-close').addClass('curtains')
-			}
 		} catch(e) {
 			console.error(e)
 		}
+		player.closeCurtains(false, false, cb)
+		player.closeCurtains = () => {} // prevent duped effect
 	}
 	canAutoRestart(){ 
 		let autoRestartSupport
-		if(parent.parent.process && parent.parent.process.platform == 'win32'){
+		if(parent.api && parent.api.platform == 'win32'){
 			autoRestartSupport = true
-		} else if(typeof(cordova) != 'undefined' && cordova && parseInt(parent.parent.device.version) < 10 && typeof(plugins) != 'undefined' && plugins.megacubo) {
+		} else if(typeof(cordova) != 'undefined' && cordova && parseInt(parent.device.version) < 10 && typeof(plugins) != 'undefined' && plugins.megacubo) {
 			autoRestartSupport = true
 		}
 		return autoRestartSupport
@@ -90,12 +88,7 @@ class WinMan extends EventEmitter {
 				if(typeof(plugins) != 'undefined' && plugins.megacubo){ // cordova
 					return plugins.megacubo.restartApp()
 				} else if(parent.parent.Manager) {
-					let w = this.getAppWindow()
-					if(w && w.app) {
-						w.app.emit('electron-relaunch')
-					} else {
-						parent.parent.Manager.restart()
-					}
+					parent.api.restart()
 					return
 				}
 			}
@@ -123,14 +116,13 @@ class WinMan extends EventEmitter {
 				this.setBackgroundMode(true, true)
 				cordova.plugins.backgroundMode.moveToBackground()
 			} else {
-				parent.parent.Manager.goToTray()
+				parent.api.tray.goToTray()
 			}
 		} else {
 			if(typeof(cordova) != 'undefined'){
 				this.setBackgroundMode(false, true)
 			}
-			this.exitUI()
-			setTimeout(() => {
+			this.exitUI(() => {
 				if(w){
 					w.app.emit('exit')
 				}
@@ -141,7 +133,7 @@ class WinMan extends EventEmitter {
 				} else {
 					parent.parent.Manager.close()
 				}
-			}, 500)
+			})
 		}
 	}
 }
@@ -424,27 +416,27 @@ class ElectronMiniplayer extends MiniPlayerBase {
 			this.pip.closeWindow = () => this.exit()
 			this.pip.on('miniplayer-on', () => this.set(true))
 			this.pip.on('miniplayer-off', () => this.set(false))
-			window.addEventListener('resize', () => {
-				if(this.pip.resizeListenerDisabled !== false) return
-				if(this.seemsPIP()){
-					if(!this.pip.miniPlayerActive){
-						this.pip.miniPlayerActive = true  
-						this.pip.emit('miniplayer-on')
-					}
-				} else {
-					if(this.pip.miniPlayerActive){
-						this.pip.miniPlayerActive = false
-						this.pip.emit('miniplayer-off')
-					}
-				}
-			})
+			window.addEventListener('resize', () => this.resize(), 150)
+		}
+	}
+	resize() {
+		if(this.pip.resizeListenerDisabled !== false) return
+		if(this.seemsPIP()){
+			if(!this.pip.miniPlayerActive){
+				this.pip.miniPlayerActive = true  
+				this.pip.emit('miniplayer-on')
+			}
+		} else {
+			if(this.pip.miniPlayerActive){
+				this.pip.miniPlayerActive = false
+				this.pip.emit('miniplayer-off')
+			}
 		}
 	}
 	seemsPIP(){
 		let dimensions = this.getDimensions();
 		['height', 'width'].forEach(m => dimensions[m] = dimensions[m] * 1.5)
 		let seemsPIP = window.innerWidth <= dimensions.width && window.innerHeight <= dimensions.height
-		console.log('resize', seemsPIP, dimensions)
 		return seemsPIP
 	}
     enter(){

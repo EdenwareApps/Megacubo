@@ -739,7 +739,7 @@ class Theme extends Events {
     }
     refresh(){
         let bgi = global.config.get('custom-background-image'), bgv = global.config.get('custom-background-video'), file = './modules/theme/client.js?_='+ Math.random()
-        global.ui.emit('load-js', '.'+ file)
+        global.ui.emit('load-js', file)
         if(bgv) {
             this.refreshCallback('', global.ui.serve(bgv) || '')
         } else if(bgi){

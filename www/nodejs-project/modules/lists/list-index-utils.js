@@ -93,11 +93,14 @@ class ListIndexUtils extends Events {
                             }
                             reject('list destroyed')
                         } else {
-                            if(!line || !line.startsWith('{')){
-                                console.error('Bad line readen', this.file, i)
-                            }
-                            if(!map || map.includes(i)){
-                                lines[i] = line
+                            if(!map || map.includes(i)) {
+                                if(!line || !line.startsWith('{')) {
+                                    if(map || !line.startsWith('[')) {
+                                        console.error('Bad line readen', this.file, i, line)
+                                    }
+                                } else {
+                                    lines[i] = line
+                                }
                             }
                             if(max > 0 && i == max){
                                 if(rl){

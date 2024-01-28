@@ -10,8 +10,7 @@ class Reader extends Readable {
 		this.opts = opts
 		this.fd = null
 		this.bytesRead = 0
-		this.bufferSize = opts.highWaterMark || 64 * 1024 // Tamanho do buffer padrão (64 KB)
-		if(typeof(this.start) == 'undefined') this.start = 0
+		if(typeof(this.opts.start) == 'undefined') this.opts.start = 0
 		if(!this.file) throw 'Reader initialized with no file specified'
 		process.nextTick(() => this.openFile())
 	}
@@ -33,28 +32,24 @@ class Reader extends Readable {
 			this.push(null)
 			return
 		}
-		const remainingBytes = this.end !== undefined ? this.end - this.bytesRead : undefined
-		if (this.end !== undefined && remainingBytes <= 0) {
+		const remainingBytes = this.end !== undefined ? (this.end - this.bytesRead) : undefined
+		if (remainingBytes !== undefined && remainingBytes <= 0) {
 			this.close()
 			this.push(null)
 			return
 		}
-		const bufferSize = Math.min(size || this.bufferSize, remainingBytes || this.bufferSize)
-		const buffer = Buffer.alloc(bufferSize)
-		const position = this.start + this.bytesRead
+		const position = this.opts.start + this.bytesRead
 		this._isReading = true
-		fs.read(this.fd, buffer, 0, bufferSize, position, (err, bytesRead) => {
-			const readen = bytesRead && bytesRead > 0
-			if (readen) {
-				this.bytesRead += bytesRead
-				this.push(buffer.slice(0, bytesRead))
-			}
-			this._isReading = false
+		fs.fstat(this.fd, (err, stat) => {
 			if (err) {
 				console.error('READER ERROR: '+ err)
 				this.emit('error', err)
-				this.close()
-			} else if (!readen) {
+				return this.close()
+			}
+			const available = stat.size - position
+			const readSize = typeof(size) == 'number' ? Math.min(size, available) : available
+			const buffer = Buffer.alloc(readSize)
+			const done = () => {
 				if(this.opts.persistent === true) {
 					this.nextReadTimer = setTimeout(() => {
 						if(this.fd) this._read()
@@ -64,6 +59,28 @@ class Reader extends Readable {
 					this.push(null)
 				}
 			}
+			if(readSize < 0)  {
+				err = 'Readen more than the file size'
+				console.error('READER ERROR: '+ err)
+				return this.close()
+			} else if(readSize == 0) {
+				return done()
+			}
+			fs.read(this.fd, buffer, 0, readSize, position, (err, bytesRead) => {
+				const readen = bytesRead && bytesRead > 0
+				if (readen) {
+					this.bytesRead += bytesRead
+					this.push(buffer.slice(0, bytesRead))
+				}
+				this._isReading = false
+				if (err) {
+					console.error('READER ERROR: '+ err)
+					this.emit('error', err)
+					this.close()
+				} else if (!readen) {
+					done()
+				}
+			})			
 		})
 	}
 	openFile() {

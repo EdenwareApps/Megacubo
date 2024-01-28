@@ -96,7 +96,7 @@ class ListsUpdater extends Common {
 		}
 	}
 	async validateIndex(url){
-		const list = new List(url, null)
+		const list = new List(url, this.relevantKeywords)
 		await list.start()
 		const validated = list.index.length > 0
 		list.destroy()

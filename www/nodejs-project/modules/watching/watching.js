@@ -148,8 +148,6 @@ class Watching extends EntriesGroup {
         const countries = await global.lang.getActiveCountries()
         const validator = a => Array.isArray(a) && a.length
         const limit = pLimit(3)
-        global.cloud.debug = true
-        /*
         const tasks = countries.map(country => {
             return async () => {
                 let es = await global.cloud.get('watching-country.' + country, false, validator).catch(console.error)
@@ -157,14 +155,6 @@ class Watching extends EntriesGroup {
             }
         }).map(limit)
         await Promise.allSettled(tasks)
-        */
-        for(const country of countries) {
-            let es = await global.cloud.get('watching-country.'+ country, false, validator).catch(e => {
-                console.error('watching country error: ', e)
-            })
-            Array.isArray(es) && data.push(...es)
-        }
-        global.cloud.debug = false
         data.forEach((e, i) => {
             if (e.logo && !e.icon) {
                 data[i].icon = e.logo

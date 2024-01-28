@@ -109,7 +109,7 @@ const setupConstructor = () => {
 				global.config.reload()
 			})
 			this.on('storage-touch', msg => {
-				global.storage.touch(msg.key, msg.entry, true)
+				msg && global.storage.touch(msg.key, msg.entry, true)
 			})
 			this.configChangeListener = () => {
 				this.worker && this.worker.postMessage({method: 'configChange', id: 0})

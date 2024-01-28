@@ -1,7 +1,8 @@
-const fs = require('fs'), Events = require('events'), Reader = require('../reader')
+const fs = require('fs'), Events = require('events')
+const Reader = require('../reader'), Writer = require('../writer')
 
-const url2id = (url, folder) => {
-    return 'dlc-'+ url.replace(new RegExp('^https?://'), '').replace(new RegExp('[^A-Za-z0-9]+', 'g'), '-').substr(0, 260 - (folder.length + 4))
+const url2id = url => {
+    return 'dlc-'+ url.replace(new RegExp('^https?://'), '').replace(new RegExp('[^A-Za-z0-9]+', 'g'), '-').substr(0, 255)
 }
 
 class DownloadCacheFileReader extends Events {
@@ -46,57 +47,26 @@ class DownloadCacheChunks extends Events {
     constructor(url){
         super()
         this.setMaxListeners(99)
-        this.folder = global.storage.folder +'/'
-        this.uid = url2id(url, this.folder)
+        this.folder = global.storage.opts.folder +'/'
+        this.uid = url2id(url)
         this.file = global.storage.resolve(this.uid)
-        this.chunks = []
         this.size = 0
         this.created = false
+        this.writer = new Writer(this.file)
+        this.writer.once('open', () => {
+            this.opened = true
+            this.emit('open')
+        })
+        this.writer.once('finish', () => this.finish())
     }
     push(chunk){
-        this.emit('data', chunk, this.size) 
-        this.chunks.push({
-            type: 'buffer',
-            data: chunk,
-            start: this.size,
-            length: chunk.length
-        })
+        this.writer.write(chunk)
         this.size += chunk.length
-        this.pump().catch(console.error)
-    }
-    async pump(){
-        if(this.finished || this.pumping) return
-        this.pumping = true
-        let err, written = 0, amount = this.chunks.length
-        if(!this.created) {
-            this.created = true
-            await fs.promises.writeFile(this.file, '', { flag: 'wx'}).catch(e => err = e)
-        }
-        for(let i=0; i<amount; i++) {
-            if(this.chunks[i].type != 'buffer') continue
-            let err
-            await fs.promises.appendFile(this.file, this.chunks[i].data, {encoding: null}).catch(e => err = e)
-            if(err) {
-                console.error(err)
-                break
-            } else {
-                written++
-                this.chunks[i].type = 'file'
-                this.chunks[i].data = null
-            }
-        }
-        this.pumping = false
-        if(amount < this.chunks.length) { // chunks added
-            await this.pump().catch(console.error)
-        }
-        if(this.ended && !this.finished) {
-            this.finished = true
-            this.emit('finish')
-        }
     }
     finish(){
-        if(!this.finished) {
-            this.ended = true
+        if(!this.ended) {
+            this.end()
+        } else if(!this.finished) {
             this.finished = true
             this.emit('finish')
             this.destroy()
@@ -106,19 +76,18 @@ class DownloadCacheChunks extends Events {
         this.error = err
         this.emit('error', err)
         this.finish()
-        this.file && fs.unlink(this.file, () => {})
+        fs.unlink(this.file, () => {})
     }
     end(){
-        this.ended = true // before pump()
-        this.pump().catch(console.error)
+        this.ended = true
+        this.writer.end()
+        if(this.writer.finished) this.finish()
     }
     createReadStream(opts={}){
         return new DownloadCacheFileReader(this, opts)
     }
     destroy(){
-        this.chunks = []
-        this.finished || this.finish()
-        this.removeAllListeners()
+        this.end()
     }
 }
 
@@ -127,11 +96,11 @@ class DownloadCacheMap extends Events {
         super()
         this.saving = {}
         this.debug = false
-        this.folder = global.storage.folder +'/'
+        this.folder = global.storage.opts.folder +'/'
     }
     async info(url) {
         if(this.saving[url]) return this.saving[url]
-        const key = url2id(url, this.folder)
+        const key = url2id(url)
         const hkey = 'dch-'+ key.substr(4)
         if(!global.storage.index[key] || !global.storage.index[hkey]) {
             return null
@@ -169,7 +138,7 @@ class DownloadCacheMap extends Events {
         const opts = downloader.opts
         const url = downloader.currentURL
         if(typeof(this.saving[url]) == 'undefined') {
-            const uid = url2id(url, this.folder)
+            const uid = url2id(url)
             const huid = 'dch-'+ uid.substr(4)
             const time = parseInt(global.time())
             let ttl = time + opts.cacheTTL
@@ -198,7 +167,7 @@ class DownloadCacheMap extends Events {
                 headers,
                 uid,
                 huid,
-                dlid: opts.uid 
+                dlid: opts.uid
                 //, traceback: [opts, opts.cacheTTL, global.traceback()]
             }
         }
@@ -224,23 +193,30 @@ class DownloadCacheMap extends Events {
                         chunks.fail(err)
                         delete this.saving[url]
                     } else {
-                        const size = chunks.size
-                        const ttl = this.saving[url].ttl
-                        global.storage.touch(this.saving[url].uid, {
-                            raw: true,
-                            size,
-                            ttl,
-                            file: chunks.file,
-                            expiration: true
-                        })
-                        global.storage.set(this.saving[url].huid, {
-                            statusCode: this.saving[url].status,
-                            headers: this.saving[url].headers,
-                            size
-                        }, {
-                            expiration: true
-                        })
-                        delete this.saving[url]
+                        const done = () => {
+                            const size = chunks.size
+                            const ttl = this.saving[url].ttl
+                            global.storage.set(this.saving[url].huid, {
+                                statusCode: this.saving[url].status,
+                                headers: this.saving[url].headers,
+                                compress: true,
+                                size
+                            }, { expiration: true })
+                            global.storage.touch(this.saving[url].uid, {
+                                raw: true,
+                                size,
+                                ttl,
+                                file: chunks.file,
+                                expiration: true
+                            })
+                            delete this.saving[url]
+                        }
+                        if(chunks.finished) {
+                            done()
+                        } else {
+                            chunks.once('finish', done)
+                            chunks.end()
+                        }
                     }
                 }
                 if(chunks.finished){

@@ -271,8 +271,9 @@ function centralizedResizeWindow(w, h, animate){
     if(tw){
         var t = (screen.availHeight - h) / 2, l = (screen.availWidth - w) / 2;
         if(animate){
-            var initialTop = parent.parent.win.y;
-            var initialLeft = parent.parent.win.x;
+            var position = api.window.getPosition();
+            var initialTop = position[0];
+            var initialLeft = position[1];
             var initialWidth = tw.outerWidth;
             var initialHeight = tw.outerHeight;
             $({percent: 0}).animate({percent: 100}, {

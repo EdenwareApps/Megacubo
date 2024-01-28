@@ -1,13 +1,17 @@
 const Events = require('events'), ListIndex = require('./list-index'), ConnRacing = require('../conn-racing')
 
 class List extends Events {
-	constructor(url, master){
-		super(url, master)
+	constructor(url, masterOrKeywords){
+		super()
 		this.debug = false
 		if(url.startsWith('//')){
 			url = 'http:'+ url
-		}
-		this.master = master
+        }
+        if (Array.isArray(masterOrKeywords)) {
+            this.relevantKeywords = masterOrKeywords
+        } else {
+            this.master = masterOrKeywords
+        }
         this.url = url
         this.relevance = {}
         this.reset()
@@ -87,7 +91,7 @@ class List extends Events {
         this.started = false
         return this.start()
     }
-    async setIndex(index, cb){
+    async setIndex(index){
         this.index = index
         let quality = 0, relevance = 0
         const qualityPromise = this.verifyListQuality().then(q => quality = q).catch(console.error)
@@ -138,11 +142,11 @@ class List extends Events {
         if(this.debug){
             console.log('validating list quality', this.url, tests, mtp, urls)
         }
-        const racing = new ConnRacing(urls, {retries: 1, timeout: 5})
+        const racing = new ConnRacing(urls, {retries: 1, timeout: 8})
 		for(let i=0; i<urls.length; i++){
             const res = await racing.next().catch(console.error)
             if(res && res.valid){
-                const result = 100 / i
+                const result = 100 / (i + 1)
                 global.storage.set(cacheKey, {result}, atts).catch(console.error)
                 return result
             }
@@ -160,9 +164,9 @@ class List extends Events {
             mtime: 0.25
         }
         // relevantKeywords (check user channels presence in these lists and list size by consequence)
-        let rks = this.master ? await this.master.relevantKeywords() : []
+        let rks = this.master ? await this.master.relevantKeywords() : this.relevantKeywords
 		if(!rks || !rks.length){
-			console.error('no parent keywords', rks)
+			console.error('no parent keywords', rks, typeof(global.ui))
 			values.relevantKeywords = 50
 		} else {
             let hits = 0, presence = 0

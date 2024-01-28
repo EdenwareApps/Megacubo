@@ -192,7 +192,7 @@ class ListsLoader extends Events {
         urls.forEach(u => this.pings[u] = 0)
         already.sortByProp('time').map(u => u.url).forEach(url => this.schedule(url, priority))
         const start = global.time()
-        const racing = new ConnRacing(urls, {retries: 1, timeout: 5})
+        const racing = new ConnRacing(urls, {retries: 1, timeout: 8})
         this.debug && console.error('[listsLoader] enqueue conn racing: '+ urls.join("\n"))
 		for(let i=0; i<urls.length; i++) {
             const res = await racing.next().catch(console.error)

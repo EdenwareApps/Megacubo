@@ -1,55 +1,69 @@
 
 const path = require('path'), fs = require('fs'), Events = require('events')
-const Limiter = require('../limiter'), zlib = require("zlib")
+const Limiter = require('../limiter'), zlib = require('zlib')
 
 class StorageTools extends Events {
-	constructor(){
+	constructor(opts){
 		super()
+		this.opts = {
+			main: false,
+			debug: false,
+			minIdleTime: 20,
+			folder: global.paths.data +'/storage',
+			maxExpiration: 100 * (365 * (24 * 3600)),
+			maxDiskUsage: global.config.get('in-disk-caching-size') * (1024 * 1024)
+		}
+		opts && Object.assign(this.opts, opts)
+		this.indexFile = 'storage-index.json'
+		this.locked = {}
+		this.index = {}
+		this.load()
+		if(!this.opts.main) return
 		this.lastSaveTime = global.time()
         this.saveLimiter = new Limiter(() => this.save().catch(console.error), 5000)
         this.alignLimiter = new Limiter(() => this.align().catch(console.error), 2000)
 		process.nextTick(() => {
-			if(this.opts.main) global.onexit(() => this.saveSync())
+			global.onexit(() => this.saveSync())
 		})
 	}
 	async cleanup(){
 		const now = global.time()
-		const files = await fs.promises.readdir(this.folder).catch(() => {})
+		const files = await fs.promises.readdir(this.opts.folder).catch(() => {})
 		if(Array.isArray(files) && files.length) {
 			let upgraded
 			for(const file of files) {
-				if(file == 'storage-index.json') continue
+				if(file == this.indexFile) continue
 				const ext = file.split('.').pop()
-				const key = this.unresolve(file, true)
+				const key = this.unresolve(file)
 				if(ext == 'dat') {
 					if(this.index[key]) {
 						if(this.index[key].permanent || this.index[key].expiration > now) continue // fine
 					}
-					this.delete(key, this.folder +'/'+ file)
+					this.delete(key, this.opts.folder +'/'+ file)
 				} else if(ext == 'json') {
 					upgraded = true
 					await this.upgrade(file)					
 				} else {
-					fs.promises.unlink(this.folder +'/'+ file).catch(() => {})
+					fs.promises.unlink(this.opts.folder +'/'+ file).catch(() => {})
 				}
 			}
 			for(const f of files.filter(f => f.split('.').pop() == 'commit')) {
-				const file = this.folder +'/'+ f
+				const file = this.opts.folder +'/'+ f
 				const stat = await fs.promises.stat(file).catch(() => {})
 				if(stat && typeof(stat.size) == 'number') {
 					const mtime = stat.mtimeMs / 1000
-					if((now - mtime) > 30) {
+					if((now - mtime) > this.opts.minIdleTime) {
 						fs.promises.unlink(file, () => {}).catch(() => {})
 					}
 				}
 			}
-			if(upgraded) global.rmdir(this.folder +'/dlcache', true)
+			if(upgraded) global.rmdir(this.opts.folder +'/dlcache', true)
 		}
 	}
 	async clear(force){
 		for(const k of Object.keys(this.index)) {
 			if(force || !this.index[k].permanent) {
-				await fs.promises.unlink(this.resolve(k, true), () => {})
+				await fs.promises.unlink(this.resolve(k)).catch(() => {})
 				delete this.index[k]
 			}
 		}
@@ -77,12 +91,12 @@ class StorageTools extends Events {
 		const efile = file.replace('.json', '.expires.json')
 		const tfile = file.replace('.json', '.dat')
 		const key = this.unresolve(tfile)
-		const tstat = await fs.promises.stat(this.folder +'/'+ tfile).catch(() => {})
+		const tstat = await fs.promises.stat(this.opts.folder +'/'+ tfile).catch(() => {})
 		if(!tstat || typeof(tstat) != 'number') {
-			let expiration = parseInt(await fs.promises.readFile(this.folder +'/'+ efile).catch(() => {}))
+			let expiration = parseInt(await fs.promises.readFile(this.opts.folder +'/'+ efile).catch(() => {}))
 			if(!isNaN(expiration)) {
 				let err
-				let content = await fs.promises.readFile(this.folder +'/'+ file).catch(e => err = e)
+				let content = await fs.promises.readFile(this.opts.folder +'/'+ file).catch(e => err = e)
 				if(!err && content) {
 					const movedToConfigKeys = ['bookmarks', 'history', 'epg-history']
 					let raw = true
@@ -92,12 +106,12 @@ class StorageTools extends Events {
 						raw = false
 					} catch(e) { }
 					if(movedToConfigKeys.includes(key)) {
-						config.set(key, content)
+						global.config.set(key, content)
 					} else {
 						await this.set(key, content, {expiration, raw})
 					}
-					await fs.promises.unlink(this.folder +'/'+ file).catch(() => {})
-					await fs.promises.unlink(this.folder +'/'+ efile).catch(() => {})
+					await fs.promises.unlink(this.opts.folder +'/'+ file).catch(() => {})
+					await fs.promises.unlink(this.opts.folder +'/'+ efile).catch(() => {})
 					console.error('+++++++ UPGRADED '+ tfile)
 					return // upgraded
 				} else {
@@ -109,8 +123,8 @@ class StorageTools extends Events {
 		} else {
 			reason = 'newer file exists'
 		}
-		await fs.promises.unlink(this.folder +'/'+ file).catch(() => {})
-		await fs.promises.unlink(this.folder +'/'+ efile).catch(() => {})
+		await fs.promises.unlink(this.opts.folder +'/'+ file).catch(() => {})
+		await fs.promises.unlink(this.opts.folder +'/'+ efile).catch(() => {})
 		console.error('+++++++ NOT UPGRADED '+ ofile +' :: '+ reason)
 	}
 	size() {
@@ -125,18 +139,15 @@ class StorageTools extends Events {
 }
 
 class StorageIndex extends StorageTools {
-	constructor() {
-		super()
-		this.index = {}
-		this.syncInterval = 30000
-		process.nextTick(() => { // wait options to be set (folder)				
-			this.indexFile = this.folder +'/storage-index.json'
-			this.load().catch(console.error)
-		})
+	constructor(opts) {
+		super(opts)
 	}
-	async load() {
-		let err, index = await fs.promises.readFile(this.indexFile, {encoding: 'utf8'}).catch(e => err = e)
-		if(!err && typeof(index) == 'string') {
+	load() {
+		let index
+		try {
+			index = fs.readFileSync(this.opts.folder +'/'+ this.indexFile, {encoding: 'utf8'})
+		} catch(e) { }
+		if(typeof(index) == 'string') {
 			try {
 				index = JSON.parse(index)
 				Object.keys(index).forEach(k => { // add to index new keys from worker
@@ -147,6 +158,7 @@ class StorageIndex extends StorageTools {
 			} catch(e) {
 				console.error(e)
 			}
+			this.opts.main && this.cleanup().catch(console.error)
 		}
 	}
 	mtime() {
@@ -156,11 +168,11 @@ class StorageIndex extends StorageTools {
 	async save() {
 		if(this.mtime() < this.lastSaveTime) return
 		this.lastSaveTime = global.time()
-		const tmp = this.folder +'/'+ parseInt(Math.random() * 100000) +'.commit'
+		const tmp = this.opts.folder +'/'+ parseInt(Math.random() * 100000) +'.commit'
 		await fs.promises.writeFile(tmp, JSON.stringify(this.index), 'utf8').catch(console.error)
 		try {
-			await fs.promises.unlink(this.indexFile).catch(console.error)
-			await fs.promises.rename(tmp, this.indexFile)
+			await fs.promises.unlink(this.opts.folder +'/'+ this.indexFile).catch(console.error)
+			await fs.promises.rename(tmp, this.opts.folder +'/'+ this.indexFile)
 		} catch(err) {
 			fs.promises.unlink(tmp).catch(console.error)
 			throw err
@@ -169,45 +181,55 @@ class StorageIndex extends StorageTools {
 	saveSync() {
 		if(this.mtime() < this.lastSaveTime) return
 		this.lastSaveTime = global.time()
-		const tmp = this.folder +'/'+ parseInt(Math.random() * 100000) +'.commit'
+		const tmp = this.opts.folder +'/'+ parseInt(Math.random() * 100000) +'.commit'
 		fs.writeFileSync(tmp, JSON.stringify(this.index), 'utf8')
 		try {
-			fs.unlinkSync(this.indexFile)
-			fs.renameSync(tmp, this.indexFile)
+			fs.unlinkSync(this.opts.folder +'/'+ this.indexFile)
+			fs.renameSync(tmp, this.opts.folder +'/'+ this.indexFile)
 		} catch(e) {
 			fs.unlinkSync(tmp)
 		}
 	}
 	async align() {
-		let now = global.time(), left = this.opts.maxDiskUsage
+		let left = this.opts.maxDiskUsage
+		const now = parseInt(global.time())
 		this.lastAlignTime = now
 		const ordered = Object.keys(this.index).filter(a => {
 			if(this.index[a].permanent) {
-				left -= this.index[a].size
+				if(typeof(this.index[a].size) == 'number') {
+					left -= this.index[a].size
+				}
 				return false
 			}
 			return true
 		}).sort((a, b) => {
 			return (this.index[a].time > this.index[b].time) ? 1 : (this.index[a].time < this.index[b].time) ? -1 : 0
 		})
-		const removals = ordered.filter(a => {
-			if(typeof(this.index[a].size) == 'number') {
-				left -= this.index[a].size
+		const removals = ordered.filter(key => {
+			if(this.locked[key]) return false
+			if(this.index[key].expiration && (now > this.index[key].expiration)) {
+				this.index[key].expired = true
+				return true // expired
 			}
-			return left <= 0
+			const elapsed = now - this.index[key].time
+			if(elapsed < this.opts.minIdleTime) return false
+			if(typeof(this.index[key].size) == 'number') {
+				left -= this.index[key].size
+				return left <= 0
+			}
+			return false
 		})
-		console.error('Removals ('+ left +'): '+ removals.join(', '))
 		for(const key of removals) {
-			const file = this.resolve(key, true)
+			const file = this.resolve(key)
 			const size = this.index[key].size
 			const elapsed = now - this.index[key].time
-			fs.promises.unlink(file).catch(() => {})
-			console.error('LRU cache eviction '+ key +' ('+ global.kbfmt(size) +') after '+ elapsed +'s idle')
-			this.delete(key)
+			const expired = this.index[key].expired ? ', expired' : ''
+			console.error('LRU cache eviction '+ key +' ('+ global.kbfmt(size) + expired +') after '+ elapsed +'s idle')
+			this.delete(key, file)
 		}
 		this.saveLimiter.call() // always
 	}
-	async touch(key, atts, silent) { // atts=false to not create if it doesn't exists already
+	async touch(key, atts, silent, skipAlign) { // atts=false to not create if it doesn't exists already
 		key = this.prepareKey(key)
 		if(atts && atts.delete === true) { // IPC sync only
 			if(this.index[key]) {
@@ -224,7 +246,7 @@ class StorageIndex extends StorageTools {
 		if(!atts) atts = {}
 		entry.time = time
 		if(atts.size === 'auto' || typeof(entry.size) == 'undefined') {
-			const stat = await fs.promises.stat(this.resolve(key, true)).catch(() => {})
+			const stat = await fs.promises.stat(this.resolve(key)).catch(() => {})
 			if(stat && stat.size) {
 				atts.size = stat.size
 			} else {
@@ -239,15 +261,15 @@ class StorageIndex extends StorageTools {
 		}
 		this.index[key] = Object.assign(entry, atts)
 		silent || this.emit('touch', key, this.index[key])
-		if(this.opts.main) { // only main process should align/save index, worker will sync through IPC		
+		if(!skipAlign && this.opts.main) { // only main process should align/save index, worker will sync through IPC		
 			this.alignLimiter.call() // will call saver when done
 		}
 	}
 }
 
 class StorageIO extends StorageIndex {
-	constructor() {
-		super()
+	constructor(opts) {
+		super(opts)
 	}
 	async get(key, encoding) {
 		key = this.prepareKey(key)
@@ -259,7 +281,7 @@ class StorageIO extends StorageIndex {
 				encoding = 'utf-8'
 			}
 		}
-		this.touch(key, false)
+		this.touch(key, false) // wait writing on file to finish
 		await this.lock(key, false)
 		const now = global.time()
 		if(this.index[key].expiration < now) return null
@@ -269,8 +291,8 @@ class StorageIO extends StorageIndex {
 		if(exists) {
 			let err
 			this.touch(key, {size: stat.size})
-			const content = await fs.promises.readFile(file, {encoding}).catch(e => err = e)
-			if(err) {			
+			let content = await fs.promises.readFile(file, {encoding}).catch(e => err = e)
+			if(!err) {			
 				if(this.index[key].compress) {
 					content = await this.decompress(content)
 				}
@@ -295,7 +317,7 @@ class StorageIO extends StorageIndex {
 	}
 	async set(key, content, atts){
 		key = this.prepareKey(key)
-		const lock = await this.lock(key), t = typeof(atts)
+		const lock = await this.lock(key, true), t = typeof(atts)
 		if(t == 'boolean' || t == 'number') {
 			if(t == 'number') {
 				atts += global.time()
@@ -329,7 +351,7 @@ class StorageIO extends StorageIndex {
 				atts.expiration = prevAtts.expiration
 			}
 		} else {
-			atts.expiration = now + this.maxExpiration // true = forever (100 years)
+			atts.expiration = now + this.opts.maxExpiration // true = forever (100 years)
 		}
 		return atts
 	}
@@ -337,7 +359,7 @@ class StorageIO extends StorageIndex {
 		if(expiration === false) {
 			expiration = 600 // default = 10min
 		} else if(expiration === true || typeof(expiration) != 'number') {
-			expiration = this.maxExpiration // true = forever (100 years)
+			expiration = this.opts.maxExpiration // true = forever (100 years)
 		}
 		expiration = global.time() + expiration
 		this.touch(key, {size: 'auto', expiration})
@@ -397,37 +419,24 @@ class StorageIO extends StorageIndex {
 class Storage extends StorageIO {
 	constructor(opts){
 		super(opts)
-		this.opts = {
-			maxDiskUsage: global.config.get('in-disk-caching-size') * (1024 * 1024)
-		}
-		opts && Object.assign(this.opts, opts)
-		this.locked = {}
-		this.debug = false
-		this.maxExpiration = 100 * (365 * (24 * 3600))
-		this.folder = global.paths.data +'/storage'
-		fs.access(this.folder, err => {
+		fs.access(this.opts.folder, err => {
 			if(err) {
-				fs.mkdir(this.folder, {recursive: true}, (err) => {
+				fs.mkdir(this.opts.folder, {recursive: true}, (err) => {
 					if (err){
 						console.error(err)
 					}
 				})
-			} else {
-				if(this.opts.main) {
-					this.cleanup().catch(console.error)
-				}
 			}
 		})
 	}
-	resolve(key, silent){ // key to file
+	resolve(key){ // key to file
 		key = this.prepareKey(key)
 		if(this.index[key]) {
-			silent || this.touch(key, {})
-			if(this.index[key].file) {
+			if(this.index[key].file) { // still there?
 				return this.index[key].file
 			}
 		}
-		return this.folder +'/'+ key +'.dat'
+		return this.opts.folder +'/'+ key +'.dat'
 	}
 	unresolve(file){ // file to key
 		const key = this.prepareKey(path.basename(file).replace(new RegExp('\\.(json|dat)$'), ''))

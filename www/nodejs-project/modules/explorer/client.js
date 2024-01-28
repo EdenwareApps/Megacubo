@@ -197,6 +197,9 @@ class ExplorerBase extends EventEmitter {
 		this.path = ''
 		this.body = this.j('body')
 		this.container = this.j(container)
+		this.content = this.container.find('content')
+		this.wrapper = this.content.find('wrap')
+		this._wrapper = this.wrapper.get(0)
 	}
     addClass(element, className){
         if(!this.hasClass(element, className)){
@@ -324,10 +327,27 @@ class ExplorerPointer extends ExplorerSelectionMemory {
         this.scrollingTimer = 0
         this.scrollContainer.on('scroll', () => {
 			this.resetScrollEmittingTimer(this.rendering)
-        }) 
-        window.addEventListener('resize', this.resize.bind(this))
+        })
+		this.scrollContainer.on('touchstart', () => {
+			this._scrollContainer.style.scrollSnapType = 'none'
+		})
+		this.scrollContainer.on('touchend', () => {
+			this._scrollContainer.style.scrollSnapType = 'y mandatory'
+		})
+		let resizeCappingTimer = 0
+		const onResize = event => {
+			if (!parent.cordova) return this.resize()
+			event.preventDefault()
+			event.stopPropagation()
+			clearTimeout(resizeCappingTimer)
+			this._wrapper.style.display = 'none'
+			resizeCappingTimer = setTimeout(() => this.resize(), 150)
+		}
+		window.addEventListener('resize', onResize, { capture: true })
+		window.addEventListener('orientationchange', onResize, { capture: true })
+		screen.orientation && screen.orientation.addEventListener('change', onResize)
 		this.resize() // to apply initial icons size
-    }
+	}
 	resetScrollEmittingTimer(clear) {
 		clearTimeout(this.scrollingTimer)
 		if(clear === true) return
@@ -366,6 +386,11 @@ class ExplorerPointer extends ExplorerSelectionMemory {
         const verticalLayout = config[portrait ? 'view-size-portrait-x' : 'view-size-x'] == 1
         jQuery(document.body)[wide ? 'addClass' : 'removeClass']('explorer-wide')
 		jQuery(document.body)[verticalLayout ? 'addClass' : 'removeClass']('explorer-vertical')
+		if(parent.cordova) this._wrapper.style.display = 'inline-block'
+		this.iconSizeDetect()
+    }
+	iconSizeDetect(){		
+		clearTimeout(this.iconSizeDetectTimer || 0)
 		let e = document.querySelector('a:not(.entry-2x) .entry-icon-image')
 		if(e){
 			let metrics = e.getBoundingClientRect()
@@ -383,9 +408,9 @@ class ExplorerPointer extends ExplorerSelectionMemory {
 			}			
 		} else {
 			console.log('Delaying icon size calc')
-			setTimeout(() => this.resize(), 1000)
+			this.iconSizeDetectTimer = setTimeout(() => this.resize(), 1000)
 		}
-    }
+	}
     isVisible(e) {
         return e.offsetParent !== null
     }
@@ -1754,9 +1779,6 @@ class Explorer extends ExplorerLoading {
 			'group': 'fas fa-box-open'
 		}
 		this.ranging = false
-		this.content = this.container.find('content')
-		this.wrapper = this.content.find('wrap')
-		this._wrapper = this.wrapper.get(0)
 		this.templates = {
 			default: `
 <a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-original-icon="{fa}" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)" class="{class}">

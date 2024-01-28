@@ -282,7 +282,7 @@ class IconServerStore extends IconSearch {
         throw 'no http cache'
     }
     async getHTTPCache(key){
-        const data = await global.storage.promises.get('icons-cache-'+ key)
+        const data = await global.storage.get('icons-cache-'+ key)
         if(data){
             return {data}
         }

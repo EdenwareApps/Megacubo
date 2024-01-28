@@ -40,7 +40,8 @@ class ConnRacing extends Events {
                     followRedirect: true,
                     acceptRanges: false,
                     keepalive: false,
-                    retries: 1
+                    retries: this.opts.retries || 1,
+                    timeout: this.opts.timeout
                 })
                 this.downloads.push(prom)
                 const ret = await prom.catch(console.error)

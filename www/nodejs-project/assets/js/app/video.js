@@ -18,6 +18,8 @@ class VideoControl extends EventEmitter {
 		this.uiVisibility = true
 		this.currentAudioTracks = null
 		this.currentSubtitleTracks = null
+		this.curtains = Array.from(document.querySelectorAll('.curtain'))
+		this.setCurtainsTransition(false, false)
 	}
 	uiVisible(visible){
 		if(this.current){
@@ -78,18 +80,12 @@ class VideoControl extends EventEmitter {
 		return 0
 	}
 	show(){
-		const useCurtains = config['fx-nav-intensity']
-		if(useCurtains){
-			this.rootElement.removeClass('curtains-alpha').removeClass('curtains-static').removeClass('curtains-close').addClass('curtains')
-		}
 		if(this.revealTimer){
 			clearTimeout(this.revealTimer)
 		}
+		this.closeCurtains(false, true)
 		this.revealTimer = setTimeout(() => {
 			this.rootElement.addClass('playing')
-			if(useCurtains){
-				this.rootElement.removeClass('curtains')
-			}
 			if(!this.uiFrame) {
 				this.uiFrame = jQuery(document.querySelector('iframe').contentWindow.document.body)
 			}
@@ -118,13 +114,79 @@ class VideoControl extends EventEmitter {
 			this.uiFrame = jQuery(document.querySelector('iframe').contentWindow.document.body)
 		}
 		this.uiFrame.removeClass('video video-loading video-playing video-paused')		
-		if(useCurtains){
-			this.rootElement.addClass('curtains-static').removeClass('curtains-alpha').removeClass('curtains').removeClass('curtains-close')
-			setTimeout(() => {
-				this.rootElement.addClass('curtains-close')
-			}, 0)
-		}
+		this.openCurtains(false, true)
 		this.container.style.display = 'none'
+	}
+	closeCurtains(alpha, hideAfter, cb){
+		if(!config || !config['fx-nav-intensity']) return
+		this.curtainsOpening = false
+		this.curtainsHideTimer && clearTimeout(this.curtainsHideTimer)
+		this.setCurtainsTransition(false, true)
+		this.setCurtainsState(true, alpha)
+		this.curtainsHideTimer = setTimeout(() => {
+			if(this.curtainsOpening) return
+			this.setCurtainsTransition(true)
+			this.curtainsHideTimer = setTimeout(() => {
+				if(this.curtainsOpening) return
+				this.curtainsHideTimer && clearTimeout(this.curtainsHideTimer)
+				this.setCurtainsState(false)
+				this.curtainsHideTimer = setTimeout(() => {
+					if(this.curtainsOpening) return
+					if(hideAfter){
+						this.curtainsHideTimer = setTimeout(() => {
+							this.setCurtainsTransition(false, false)
+							this.setCurtainsState(true, alpha)
+						}, 200)
+					}
+					cb && cb()
+				}, 200)
+			}, 25)
+		}, 25)
+	}
+	openCurtains(alpha, hideAfter, cb) {
+		if(!config || !config['fx-nav-intensity']) return
+		this.curtainsHideTimer && clearTimeout(this.curtainsHideTimer)
+		this.curtainsOpening = true
+		this.setCurtainsTransition(false, true)
+		this.setCurtainsState(false, alpha)
+		this.curtainsHideTimer = setTimeout(() => {
+			if(!this.curtainsOpening) return
+			this.setCurtainsTransition(true)
+			this.curtainsHideTimer = setTimeout(() => {
+				if(!this.curtainsOpening) return
+				this.curtainsHideTimer && clearTimeout(this.curtainsHideTimer)
+				this.setCurtainsState(true)
+				this.curtainsHideTimer = setTimeout(() => {
+					if(!this.curtainsOpening) return
+					if(hideAfter){
+						this.setCurtainsTransition(false, false)
+						this.setCurtainsState(true, alpha)
+					}
+					cb && cb()
+				}, 200)
+			}, 25)
+		}, 25)
+	}
+	setCurtainsTransition(enable, show) {
+		const atts = {}
+		atts.transition = enable ? 'left 0.15s ease-in 0s, right 0.15s ease-in 0s, opacity 0.15s ease-in 0s' : 'none 0s ease 0s'
+		if(typeof(show) == 'boolean') {
+			atts.display = show ? 'block' : 'none'
+		}
+		this.curtains.forEach(e => {
+			e.style.transition = atts.transition
+			if(atts.display) e.style.display = atts.display
+		})
+	}
+	setCurtainsState(opened, alpha) {
+		if(opened) {
+			this.rootElement.addClass('curtains-opened').removeClass('curtains-closed')
+		} else {
+			this.rootElement.addClass('curtains-closed').removeClass('curtains-opened')
+		}
+		if(typeof(alpha) == 'boolean') {
+			this.rootElement[alpha ? 'addClass': 'removeClass']('curtains-alpha')
+		}
 	}
 	resume(){
 		if(this.current){

@@ -1,4 +1,4 @@
-const fs = require('fs'), async = require('async'), path = require('path')
+const fs = require('fs'), path = require('path')
 const pLimit = require('p-limit'), { default: PQueue } = require('p-queue')
 const Parser = require('./parser'), Manager = require('./manager'), Loader = require('./loader')
 const Index = require('./index'), List = require('./list'), MultiWorker = require('../multi-worker')

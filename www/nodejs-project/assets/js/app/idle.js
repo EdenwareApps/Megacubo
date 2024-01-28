@@ -12,12 +12,23 @@ class Idle extends EventEmitter {
         this.reset()
         app.on('streamer-connect', () => this.reset())
         app.on('streamer-disconnect', () => this.reset())
-        jQuery(window).on('focus resize mousemove mousedown touchstart touchmove keyup play', () => {
+        jQuery(window).on('focus mousemove mousedown touchstart touchmove keyup play', () => {
             setTimeout(() => this.reset(), 400)
         }).on('blur', () => this.start())
     }
     setTimeoutAwayState(n){
-        this.awayTimeout = n * 1000
+        if(n > 5) {
+            this.timeout = 5000
+            this.awayTimeout = (n * 1000) - this.timeout
+        } else {
+            if(n) {
+                this.timeout = Math.min(5, n) * 1000
+                this.awayTimeout = 0
+            } else {
+                this.timeout = 5000
+                this.awayTimeout = null
+            }
+        }
         this.reset()
     }
     reset(){
@@ -43,7 +54,7 @@ class Idle extends EventEmitter {
                 this.idleTime = Date.now() / 1000
                 this.isIdle = this.idle = true
                 this.emit('idle')
-                if(this.awayTimeout){
+                if(typeof(this.awayTimeout) == 'number') {
                     this.idleTimer = setTimeout(() => this.away(), this.awayTimeout) //new timer
                 }
             }

@@ -20,9 +20,10 @@ class DownloadStreamCache extends DownloadStreamBase {
         if(!row || !row.status || row.dlid == this.opts.uid) {
             throw 'Not cached'
         }
-        let stream, range
+        let range
         const headers = Object.assign({}, row.headers) || {}
-        headers['x-megacubo-dl-source'] = headers['x-megacubo-dl-source'] ? 'cache-'+ headers['x-megacubo-dl-source'] : 'cache'
+        const source = headers['x-megacubo-dl-source']
+        headers['x-megacubo-dl-source'] = source ? 'cache-'+ source : 'cache'
         if(this.opts.headers.range) {
             range = this.parseRange(this.opts.headers.range)
             if(!range.end && row.size){
@@ -36,30 +37,27 @@ class DownloadStreamCache extends DownloadStreamBase {
         headers['x-megacubo-dl-source'] += '-'+ row.type
         this.response = new DownloadStreamBase.Response(range ? 206 : 200, headers)
         this.emit('response', this.response)
-        switch(row.type){
-            case 'saving':
-                stream = row.chunks.createReadStream(range)
-                break
-            case 'file':
-                if(fs.existsSync(row.file)) {
-                    stream = new Reader(row.file, range)
-                } else {
-                    this.emitError('Cache download failed*', false)
-                }
-                break
+        let stream, bytesRead = 0
+        if(row.chunks) {
+            stream = row.chunks.createReadStream(range)
+        } else {
+            try {
+                stream = new Reader(row.file, range)
+            } catch(e) {
+                return this.emitError('Cache download failed*', false)
+            }
         }
         stream.on('error', err => {
             this.response.emit('error', err)
             this.end()
         })
         stream.on('data', chunk => {
+            bytesRead += chunk.length
             this.response.write(chunk)
         })
-        if(stream.isClosed || stream.closed){
+        stream.once('close', () => {
             this.end()
-        } else {
-            stream.once('close', () => this.end())
-        }
+        })
         return true
     }
 }

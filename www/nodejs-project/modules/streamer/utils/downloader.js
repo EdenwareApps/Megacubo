@@ -32,7 +32,7 @@ class Downloader extends StreamerAdapterBase {
 			this.opts.errorLimit = Number.MAX_SAFE_INTEGER
 			this.opts.initialErrorLimit = Number.MAX_SAFE_INTEGER
 		}
-		const ms = (global.config.get('connect-timeout') || 5) * 1000
+		const ms = (global.config.get('connect-timeout-secs') || 5) * 1000
 		const pms = (7 * (24 * 3600)) * 1000
 		this.timeoutOpts = {
 			lookup: ms,

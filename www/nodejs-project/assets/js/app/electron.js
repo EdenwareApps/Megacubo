@@ -14,258 +14,7 @@ class ClassesHandler {
 	}
 }
 
-const fs = require('fs'), path = require('path')
-
-class FFmpegDownloader {
-	constructor(){}
-	async download(target, osd, mask) {
-		const tmpZipFile = path.join(target, 'ffmpeg.zip')
-		const arch = process.arch == 'x64' ? 64 : 32
-		let osName
-		switch (process.platform) {
-			case 'darwin':
-				osName = 'macos'
-				break
-			case 'win32':
-				osName = 'windows'
-				break
-			default:
-				osName = 'linux'
-				break
-		}
-		const variant = osName + '-' + arch
-		const url = await this.getVariantURL(variant)
-		osd.show(mask.replace('{0}', '0%'), 'fas fa-circle-notch fa-spin', 'ffmpeg-dl', 'persistent')
-		await process.download({
-			url,
-			file: tmpZipFile,
-			progress: p => {
-				Manager.app.osd.show(mask.replace('{0}', p + '%'), 'fas fa-circle-notch fa-spin', 'ffmpeg-dl', 'persistent')
-			}
-		})
-		const AdmZip = require('adm-zip')
-		const zip = new AdmZip(tmpZipFile)
-		const entryName = process.platform == 'win32' ? 'ffmpeg.exe' : 'ffmpeg'
-		const targetFile = path.join(target, entryName)
-		zip.extractEntryTo(entryName, target, false, true)
-		fs.unlink(tmpZipFile, () => {})
-		return targetFile
-	}
-	async check(osd, mask, folder){
-		try {
-			await fs.promises.access(path.join(this.executableDir, this.executable), fs.constants.F_OK)
-			return true
-		} catch (error) {
-			try {
-				await fs.promises.access(path.join(folder, this.executable), fs.constants.F_OK)
-				this.executableDir = folder
-				return true
-			} catch (error) {
-				let err
-				const file = await this.download(folder, osd, mask).catch(e => err = e)
-				if (err) {
-					osd.show(String(err), 'fas fa-exclamation-triangle faclr-red', 'ffmpeg-dl', 'normal')
-				} else {
-					osd.show(mask.replace('{0}', '100%'), 'fas fa-circle-notch fa-spin', 'ffmpeg-dl', 'normal')
-					this.executableDir = path.dirname(file)
-					this.executable = path.basename(file)
-					return true
-				}
-			}
-		}
-		return false
-	}
-	async getVariantURL(variant){
-		const data = await process.download({url: 'https://ffbinaries.com/api/v1/versions', responseType: 'json'})
-		for(const version of Object.keys(data.versions).sort().reverse()){
-			const versionInfo = await process.download({url: data.versions[version], responseType: 'json'})
-			if(versionInfo.bin && typeof(versionInfo.bin[variant]) != 'undefined'){
-				return versionInfo.bin[variant].ffmpeg
-			}
-		}
-	}
-}
-
-class FFMpeg extends FFmpegDownloader {
-	constructor(){
-		super()
-		this.childs = {}
-		this.executable = 'ffmpeg'
-		if(process.platform == 'win32'){
-			this.executable += '.exe'
-		}
-		this.executableDir = process.resourcesPath || path.resolve('ffmpeg')
-		this.executableDir = this.executableDir.replace(new RegExp('\\\\', 'g'), '/')
-		if(this.executableDir.indexOf('resources/app') != -1) {
-			this.executableDir = this.executableDir.split('resources/app').shift() +'resources'
-		}
-		this.executable = path.basename(this.executable)
-		this.tmpdir = process.paths.temp
-	}
-	isMetadata(s){
-		return s.indexOf('Stream mapping:') != -1
-	}
-	exec(cmd, cb){
-		if(!this.cp){
-			this.cp = window.require('child_process')
-		}
-		let exe, gotMetadata, output = ''
-		if(process.platform == 'linux' || process.platform == 'darwin'){ // cwd was not being honored on Linux/macOS
-			exe = this.executableDir +'/'+ this.executable
-		} else {
-			exe = this.executable
-		}
-		const child = this.cp.spawn(exe, cmd, {
-			cwd: this.executableDir, 
-			killSignal: 'SIGINT'
-		})
-		const maxLogLength = 1 * (1024 * 1024), log = s => {
-			s = String(s)
-			output += s
-			if(output.length > maxLogLength){
-				output = output.substr(-maxLogLength)
-			}
-			if(!gotMetadata && this.isMetadata(s)){
-				gotMetadata = true
-				cb('metadata-'+ output)
-			}
-		}
-		child.stdout.on('data', log)
-		child.stderr.on('data', log)
-		child.on('error', err => {
-			console.log('FFEXEC ERR', cmd, child, err, output)
-		})
-		child.once('close', () => {
-			delete this.childs[child.pid]
-			console.log('FFEXEC DONE', cmd.join(' '), child, output)
-			cb('return-'+ output)
-			child.removeAllListeners()
-		})
-		console.log('FFEXEC '+ this.executable, cmd, child)
-		this.childs[child.pid] = child
-		cb('start-'+ child.pid)
-	}
-	abort(pid){
-		if(typeof(this.childs[pid]) != 'undefined'){
-			const child = this.childs[pid]
-			delete this.childs[pid]
-			child.kill('SIGINT')
-		} else {
-			console.log('CANTKILL', pid)
-		}
-	}
-	cleanup(keepIds){
-		Object.keys(this.childs).forEach(pid => {
-			if(keepIds.includes(pid)){				
-				console.log("Cleanup keeping " + pid)
-			} else {
-				console.log("Cleanup kill " + pid)
-				this.abort(pid)
-			}
-		})
-	}
-}
-
-function getElectronRemote(){
-	let electronRemote
-	if(process.versions.electron && parseFloat(process.versions.electron) >= 22){
-		electronRemote = require('@electron/remote')
-	} else {
-		electronRemote = require('electron')
-		if(electronRemote.remote){
-			electronRemote = electronRemote.remote
-		}
-	}
-	return electronRemote
-}
-
-class ExternalPlayer {
-	constructor() {
-		this.players = [
-			{processName: 'vlc', playerName: 'VLC Media Player'},
-			{processName: 'smplayer', playerName: 'SMPlayer'},
-			{processName: 'mpv', playerName: 'MPV'},
-			{processName: 'mplayer', playerName: 'MPlayer'},
-			{processName: 'xine', playerName: 'Xine'},
-			{processName: 'wmplayer', playerName: 'Windows Media Player'},
-			{processName: 'mpc-hc64', playerName: 'Media Player Classic - Home Cinema (64-bit)'},
-			{processName: 'mpc-hc', playerName: 'Media Player Classic - Home Cinema (32-bit)'},
-			{processName: 'mpc-be64', playerName: 'MPC-BE (64-bit)'},
-			{processName: 'mpc-be', playerName: 'MPC-BE (32-bit)'},
-			{processName: 'GOM', playerName: 'GOM Player'}
-		]
-	}
-	setContext(context) {
-		this.context = context
-		this.context.app.on('get-external-players', () => {
-			this.available().catch(console.error) // will report available external players to main process
-		})
-	}
-	async play(url) {
-		this.context.streamer.castUIStart()
-		if(!url) url = this.context.streamer.data.url
-		const availables = await this.available()
-		const chosen = await this.ask(availables)
-		if(!chosen || !availables[chosen]) {
-			this.context.osd.hide('casting')
-			this.context.streamer.castUIStop()
-			return false
-		}
-		const message = this.context.lang.CASTING_TO.replace('{0}', chosen)
-		this.context.osd.show(message, 'fab fa-chromecast', 'casting', 'persistent')
-		const exitUI = () => {
-			this.context.osd.hide('casting')
-			this.context.streamer.castUIStop()
-		}
-		const { spawn } = require('child_process');
-		const inPlayer = this.context.streamer.active
-		if(inPlayer) {
-			this.context.streamer.once('cast-stop', exitUI)
-			url = this.context.streamer.activeSrc
-		} else {
-			exitUI()
-		}
-		const player = spawn(availables[chosen], [url], {detached: true, stdio: 'ignore'})
-		player.unref()
-		return true
-	}
-	async available() {
-		const results = {}
-		if(!this.finder) {
-			const ExecFinder = require('exec-finder')
-			this.finder = new ExecFinder({recursion: 3})
-		}
-		const available = await this.finder.find(this.players.map(p => p.processName))
-		Object.keys(available).filter(name => available[name].length).forEach(p => {
-			const name = this.players.filter(r => r.processName == p).shift().playerName
-			results[name] = available[p].sort((a, b) => a.length - b.length).shift()
-		})
-		this.context.app.emit('external-players', results)
-		return results
-	}
-	ask(players) {
-		return new Promise(resolve => {
-			if(this.context.config['external-player'] && players[this.context.config['external-player']]) {
-				return resolve(this.context.config['external-player'])
-			}
-			const keys = Object.keys(players)
-			if(!keys.length) {
-				return reject('No external players detected.')
-			} else if(keys.length == 1) {
-				return resolve(keys.shift())
-			}
-			const opts = keys.map(name => {
-				return {template: 'option', fa: 'fas fa-play-circle', text: name, id: name}
-			})
-			opts.unshift({template: 'question', fa: 'fas fa-window-restore', text: this.context.lang.OPEN_EXTERNAL_PLAYER})
-			opts.push({template: 'option', fa: 'fas fa-times-circle', text: this.context.lang.CANCEL, id: 'cancel'})
-			this.context.explorer.dialog(opts, resolve, null, true)
-		})
-	}
-}
-
-var ffmpeg = new FFMpeg()
-const { screen: electronScreen, Menu, Tray, getCurrentWindow, shell } = getElectronRemote()
+var ffmpeg = api.ffmpeg
 
 class ExitPage {
 	constructor(){
@@ -294,7 +43,7 @@ class ExitPage {
 		this.set('last-open', this.time())
 	}
 	open(){
-		this.allow() && shell.openExternal(this.url)
+		this.allow() && api.openExternal(this.url)
 	}
 	get(key){
 		return localStorage.getItem(key)
@@ -304,11 +53,65 @@ class ExitPage {
 	}
 }
 
+class ExternalPlayer {
+	constructor() {}
+	setContext(context) {
+		this.context = context
+		this.context.app.on('get-external-players', async () => {
+			const results = await api.externalPlayer.available()
+			this.context.app.emit('external-players', results)
+		})
+	}
+	async play(url) {
+		this.context.streamer.castUIStart()
+		if(!url) url = this.context.streamer.data.url
+		const availables = await api.externalPlayer.available()
+		const chosen = await this.ask(availables)
+		if(!chosen || !availables[chosen]) {
+			this.context.osd.hide('casting')
+			this.context.streamer.castUIStop()
+			return false
+		}
+		const message = this.context.lang.CASTING_TO.replace('{0}', chosen)
+		this.context.osd.show(message, 'fab fa-chromecast', 'casting', 'persistent')
+		const exit = () => {
+			this.context.osd.hide('casting')
+			this.context.streamer.castUIStop()
+		}
+		const inPlayer = this.context.streamer.active
+		if(inPlayer) {
+			this.context.streamer.once('cast-stop', exit)
+			url = this.context.streamer.activeSrc
+		} else {
+			exit()
+		}
+		api.externalPlayer.play(url, chosen)
+		return true
+	}
+	ask(players) {
+		return new Promise((resolve, reject) => {
+			if(this.context.config['external-player'] && players[this.context.config['external-player']]) {
+				return resolve(this.context.config['external-player'])
+			}
+			const keys = Object.keys(players)
+			if(!keys.length) {
+				return reject('No external players detected.')
+			} else if(keys.length == 1) {
+				return resolve(keys.shift())
+			}
+			const opts = keys.map(name => {
+				return {template: 'option', fa: 'fas fa-play-circle', text: name, id: name}
+			})
+			opts.unshift({template: 'question', fa: 'fas fa-window-restore', text: this.context.lang.OPEN_EXTERNAL_PLAYER})
+			opts.push({template: 'option', fa: 'fas fa-times-circle', text: this.context.lang.CANCEL, id: 'cancel'})
+			this.context.explorer.dialog(opts, resolve, null, true)
+		})
+	}
+}
+
 class WindowManagerCommon extends ClassesHandler {
 	constructor(){
 		super()
-		this.screenScaleFactor = electronScreen.getPrimaryDisplay().scaleFactor || 1		
-		this.win = process.getWindow()
 		this.waitAppCallbacks = []
 		this.trayMode = false
 		this.leftWindowDiff = 0
@@ -316,7 +119,7 @@ class WindowManagerCommon extends ClassesHandler {
 		this.miniPlayerRightMargin = 18
 		this.initialSize = this.getDefaultWindowSize(true)
 		this.initialSizeUnscaled = this.screenScale(this.initialSize, true)
-		this.win.setSize(...this.initialSizeUnscaled, false)
+		api.window.setSize(...this.initialSizeUnscaled, false)
 		this.centralizeWindow(...this.initialSizeUnscaled)
 		this.exitPage = new ExitPage()
 		this.externalPlayer = new ExternalPlayer()
@@ -328,7 +131,7 @@ class WindowManagerCommon extends ClassesHandler {
 			frameTheme: './assets/custom-frame/custom-frame-theme.css',
 			frameIconSize: 21,
 			size: 30,
-			win: this.win,
+			win: api.window,
 			details: {
 				title: 'Megacubo',
 				icon: './default_icon.png'
@@ -339,16 +142,15 @@ class WindowManagerCommon extends ClassesHandler {
 	}
 	load(){
 		const target = document.querySelector('iframe')
-		const { opts: { port } } = getElectronRemote().getGlobal('ui')
-		target.src = 'http://127.0.0.1:'+ port +'/index.html'
+		target.src = 'http://127.0.0.1:'+ api.window.port +'/index.html'
 	}
 	screenScale(v, reverse){
 		if(Array.isArray(v)){
 			return v.map(r => this.screenScale(r, reverse))
 		} else if(reverse) {
-			return Math.round(v / this.screenScaleFactor)
+			return Math.round(v / api.screenScaleFactor)
 		} else {
-			return Math.round(v * this.screenScaleFactor)
+			return Math.round(v * api.screenScaleFactor)
 		}
 	}
 	getDefaultWindowSize(real){
@@ -382,10 +184,10 @@ class WindowManagerCommon extends ClassesHandler {
 				}
 			}
 		}
-		if(this.tray){
-			this.restoreFromTray()
+		if(api.tray.active){
+			api.tray.restoreFromTray()
 		}
-		this.win.focus()
+		api.window.focus()
 	}
 	openFile(accepts, cb){
 		if(!this.openFileDialogChooser){ // JIT
@@ -442,7 +244,7 @@ class WindowManagerCommon extends ClassesHandler {
 	focusApp(){
 		[document.querySelector('iframe'), this.container.document.querySelector('iframe')].forEach(f => {
 			f.focus()
-			f.addEventListener('blur', () => f.focus())
+			f.addEventListener('blur', () => f.focus(), {passive: true})
 		})
 	}
 	getApp(){
@@ -547,15 +349,15 @@ class WindowManager extends WindowManagerCommon {
 		let appStarted
 		this.fsapiLastState = this.fsapi = false
 		this.on('miniplayer-on', () => {
-			this.setShowInTaskbar(false)
+			api.tray.setShowInTaskbar(false)
 			this.fixMaximizeButton()
-			this.win.show()
+			api.window.show()
 			appStarted && this.app.streamer.emit('miniplayer-on')
 			this.exitPage.open()
 		})
 		this.on('miniplayer-off', () => {
-			this.win.setAlwaysOnTop(false)
-			this.setShowInTaskbar(true)
+			api.window.setAlwaysOnTop(false)
+			api.tray.setShowInTaskbar(true)
 			this.fixMaximizeButton()
 			appStarted && this.app.streamer.emit('miniplayer-off')
 		})
@@ -578,96 +380,14 @@ class WindowManager extends WindowManagerCommon {
 			}, 100)
 		})
 	}
-	setShowInTaskbar(enable) {
-		if(enable){
-			this.win.setAlwaysOnTop(false)
-		} else {
-			this.win.setAlwaysOnTop(true, 'screen-saver')
-		}
-	}
-	prepareTray() {
-		if (!this.tray) {
-			const icon = path.join(process.resourcesPath, './app/default_icon.png')
-			const title = document.title
-			this.tray = new Tray(icon)
-			this.tray.setToolTip(title)
-			const contextMenu = Menu.buildFromTemplate([
-				{
-					label: title,
-					click: () => {
-						this.win.show()
-						this.tray.destroy()
-						this.tray = null
-					}
-				},
-				{
-					label: this.app.lang.CLOSE,
-					click: () => {
-						this.tray.destroy()
-						this.tray = null
-						this.close()
-					}
-				}
-			])
-			this.tray.setContextMenu(contextMenu)
-			this.tray.on('click', () => {
-				this.win.show()
-				this.tray.destroy()
-				this.tray = null
-			})
-		}
-	}
-	removeFromTray(){
-		console.error('leaveMiniPlayer')
-		if(this.tray) {
-			this.tray.destroy()
-			this.tray = false
-			this.setShowInTaskbar(true)
-		}
-	}
-	goToTray(){
-		this.prepareTray()
-		this.win.hide()
-		this.setShowInTaskbar(false)
-	}
-	restoreFromTray(){
-		console.error('leaveMiniPlayer')
-		this.win.show()
-		this.removeFromTray()
-	}
-	restart(){
-		console.log('restartApp') 
-		const { app } = getElectronRemote()
-		setTimeout(() => {
-			app.relaunch()
-			app.exit()
-		}, 0)
-	}
-	getScreen() {
-		const primaryDisplay = electronScreen.getPrimaryDisplay()
-		const scaleFactor = primaryDisplay.scaleFactor
-		const bounds = primaryDisplay.bounds
-		const workArea = primaryDisplay.workArea
-		const screenData = {
-			width: bounds.width,
-			height: bounds.height,
-			availWidth: workArea.width,
-			availHeight: workArea.height,
-			screenScaleFactor: scaleFactor
-		}	  
-		return screenData
-	}
 	getScreenSize(real){
-		const s = this.getScreen() || window.screen
+		const s = api.getScreen() || window.screen
 		let {width, height, availWidth, availHeight} = s
-		if(s.screenScaleFactor){
-			this.screenScaleFactor = s.screenScaleFactor
-		}
-		if(real && this.screenScaleFactor){
-			width *= this.screenScaleFactor
-			height *= this.screenScaleFactor
-			availWidth *= this.screenScaleFactor
-			availHeight *= this.screenScaleFactor
+		if(real && api.screenScaleFactor){
+			width *= api.screenScaleFactor
+			height *= api.screenScaleFactor
+			availWidth *= api.screenScaleFactor
+			availHeight *= api.screenScaleFactor
 		}
 		return {width, height, availWidth, availHeight}
 	}
@@ -702,7 +422,7 @@ class WindowManager extends WindowManagerCommon {
 				}
 			}
 		} else {
-			this.win.setFullScreen(this.inFullScreen)
+			api.window.setFullScreen(enterFullscreen)
 		}
 		if(enterFullscreen){
 			if(this.app){
@@ -721,15 +441,15 @@ class WindowManager extends WindowManagerCommon {
 				this.app.osd.hide('esc-to-exit')
 			}
 		}
-		this.win.show()
+		api.window.show()
 		if(!this.cfHeader) this.cfHeader = document.querySelector('.cf')
 		this.cfHeader.style.display = enterFullscreen ? 'none' : 'block';
 		setTimeout(() => {
-			// if(enterFullscreen) this.win.blur()
+			// if(enterFullscreen) api.window.blur()
 			this.updateTitlebarHeight()
 			this.fixMaximizeButton()
-			this.win.setAlwaysOnTop(enterFullscreen || this.miniPlayerActive)
-			this.win.focus()
+			api.window.setAlwaysOnTop(enterFullscreen || this.miniPlayerActive)
+			api.window.focus()
 		}, 400)
 	}
 	restore(){
@@ -738,11 +458,11 @@ class WindowManager extends WindowManagerCommon {
 			this.setFullScreen(false)
 		} else if(this.miniPlayerActive) {
 			this.leaveMiniPlayer()
-		} else if(this.win.isMaximized()) {
-			this.win.restore()
+		} else if(api.window.isMaximized()) {
+			api.window.restore()
 			const size = this.restoreSize || this.initialSize
 			console.warn('restore()', size)
-			this.win.setSize(size[0], size[1], false)
+			api.window.setSize(size[0], size[1], false)
 			this.centralizeWindow.apply(this, size)
 		}
 		this.showMaximizeButton()
@@ -750,37 +470,38 @@ class WindowManager extends WindowManagerCommon {
 	centralizeWindow(w, h){
 		var s = this.getScreenSize(false), x = Math.round((s.availWidth - (w || window.outerWidth)) / 2)
 		var y = Math.round((s.availHeight - (h || window.outerHeight)) / 2)
-		this.win.setPosition(x, y, false)
+		api.window.setPosition(x, y, false)
 	}
 	enterMiniPlayer(w, h){
 		console.warn('enterminiPlayer', w, h)
 		this.miniPlayerActive = true
 		this.emit('miniplayer-on')
 		let scr = this.getScreenSize()
-		const ww = (w + this.miniPlayerRightMargin) // * this.screenScaleFactor
+		const ww = (w + this.miniPlayerRightMargin) // * api.screenScaleFactor
 		const args = [scr.availWidth - ww, scr.availHeight - h].map(n => parseInt(n))
 		console.warn('enterMiniPlayer', args, {scr, w, h}, scr.availWidth - ww, scr.availHeight - h)
-		this.win.setPosition(...args, false)
-		this.win.setSize(w, h, false)
+		api.window.setPosition(...args, false)
+		api.window.setSize(w, h, false)
 	}
 	prepareLeaveMiniPlayer(){
 		console.warn('prepareLeaveMiniPlayer')
 		this.miniPlayerActive = false
-		this.win.setAlwaysOnTop(false)
+		api.window.setAlwaysOnTop(false)
 		this.emit('miniplayer-off')
 	}
 	leaveMiniPlayer(){
 		console.warn('leaveMiniPlayer')
 		this.prepareLeaveMiniPlayer()
-		this.win.setSize(...this.initialSizeUnscaled, false)
+		api.window.setSize(...this.initialSizeUnscaled, false)
 		this.centralizeWindow(...this.initialSizeUnscaled)
 	}
 	size(){
-		const [width, height] = this.win.getSize()
+		const [width, height] = api.window.getSize()
 		return {width, height}
 	}
 	isMaximized(){
-		if(this.win.x > 0 || this.win.y > 0) return false
+		const position = api.window.getPosition()
+		if(position.some(v => v > 0)) return false
 		var w = window, widthMargin = 6, heightMargin = 6, scr = this.getScreenSize()
 		return (w.outerWidth >= (scr.availWidth - widthMargin) && w.outerHeight >= (scr.availHeight - heightMargin))
 	}
@@ -790,20 +511,20 @@ class WindowManager extends WindowManagerCommon {
 				const ret = this.size()
 				ret && ret.width && (this.restoreSize = Object.values(ret))
 			}
-			this.win.maximize()
+			api.window.maximize()
 			this.showRestoreButton()
 		}
 	}
 	minimizeWindow(){		
 		this.resizeListenerDisabled = true
-		this.win.show()
-		this.win.minimize()
+		api.window.show()
+		api.window.minimize()
 		setTimeout(() => {
 			this.resizeListenerDisabled = false
 		}, 500)
 	}
 	close(){
 		this.exitPage.open()
-		this.win.close()
+		api.window.close()
 	}
 }

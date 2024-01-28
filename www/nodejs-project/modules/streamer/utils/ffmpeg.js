@@ -10,7 +10,7 @@ class StreamerFFmpeg extends Events {
         if(!['mpegts', 'hls'].includes(outputFormat)){
             outputFormat = 'hls' // compat
         }
-        this.timeout = Math.max(60, global.config.get('connect-timeout') * 6)
+        this.timeout = Math.max(60, global.config.get('connect-timeout-secs') * 6)
         this.started = false
         this.source = source 
         this.type = 'ffmpeg'
