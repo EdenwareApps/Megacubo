@@ -62,7 +62,7 @@ const window = getGlobal('window')
 
 class FFmpegDownloader {
 	constructor(){}
-	async download(target, osd, mask) {
+	async download(osd, target, mask) {
 		const tmpZipFile = path.join(target, 'ffmpeg.zip')
 		const arch = process.arch == 'x64' ? 64 : 32
 		let osName
@@ -80,11 +80,11 @@ class FFmpegDownloader {
 		const variant = osName + '-' + arch
 		const url = await this.getVariantURL(variant)
 		osd.show(mask.replace('{0}', '0%'), 'fas fa-circle-notch fa-spin', 'ffmpeg-dl', 'persistent')
-		await process.download({
+		await download({
 			url,
 			file: tmpZipFile,
 			progress: p => {
-				Manager.app.osd.show(mask.replace('{0}', p + '%'), 'fas fa-circle-notch fa-spin', 'ffmpeg-dl', 'persistent')
+				osd.show(mask.replace('{0}', p + '%'), 'fas fa-circle-notch fa-spin', 'ffmpeg-dl', 'persistent')
 			}
 		})
 		const AdmZip = require('adm-zip')
@@ -95,7 +95,8 @@ class FFmpegDownloader {
 		fs.unlink(tmpZipFile, () => {})
 		return targetFile
 	}
-	async check(osd, mask, folder){
+	async check(mask, folder){
+		const osd = getGlobal('osd')
 		try {
 			await fs.promises.access(path.join(this.executableDir, this.executable), fs.constants.F_OK)
 			return true
@@ -106,7 +107,7 @@ class FFmpegDownloader {
 				return true
 			} catch (error) {
 				let err
-				const file = await this.download(folder, osd, mask).catch(e => err = e)
+				const file = await this.download(osd, folder, mask).catch(e => err = e)
 				if (err) {
 					osd.show(String(err), 'fas fa-exclamation-triangle faclr-red', 'ffmpeg-dl', 'normal')
 				} else {
@@ -120,9 +121,9 @@ class FFmpegDownloader {
 		return false
 	}
 	async getVariantURL(variant){
-		const data = await process.download({url: 'https://ffbinaries.com/api/v1/versions', responseType: 'json'})
+		const data = await download({url: 'https://ffbinaries.com/api/v1/versions', responseType: 'json'})
 		for(const version of Object.keys(data.versions).sort().reverse()){
-			const versionInfo = await process.download({url: data.versions[version], responseType: 'json'})
+			const versionInfo = await download({url: data.versions[version], responseType: 'json'})
 			if(versionInfo.bin && typeof(versionInfo.bin[variant]) != 'undefined'){
 				return versionInfo.bin[variant].ffmpeg
 			}
@@ -152,7 +153,7 @@ class FFMpeg extends FFmpegDownloader {
 	isMetadata(s){
 		return s.indexOf('Stream mapping:') != -1
 	}
-	exec(cmd, cb){
+	exec(cmd, success, error, outputListener){
 		let exe, gotMetadata, output = ''
 		if(process.platform == 'linux' || process.platform == 'darwin'){ // cwd was not being honored on Linux/macOS
 			exe = this.executableDir +'/'+ this.executable
@@ -171,23 +172,25 @@ class FFMpeg extends FFmpegDownloader {
 			}
 			if(!gotMetadata && this.isMetadata(s)){
 				gotMetadata = true
-				cb('metadata-'+ output)
+				success('metadata-'+ output)
 			}
+			outputListener && outputListener(s)
 		}
 		child.stdout.on('data', log)
 		child.stderr.on('data', log)
 		child.on('error', err => {
 			console.log('FFEXEC ERR', cmd, child, err, output)
+			error && error(err)
 		})
 		child.once('close', () => {
 			delete this.childs[child.pid]
 			console.log('FFEXEC DONE', cmd.join(' '), child, output)
-			cb('return-'+ output)
+			success('return-'+ output)
 			child.removeAllListeners()
 		})
 		console.log('FFEXEC '+ this.executable, cmd, child)
 		this.childs[child.pid] = child
-		cb('start-'+ child.pid)
+		success('start-'+ child.pid)
 	}
 	abort(pid){
 		if(typeof(this.childs[pid]) != 'undefined'){
@@ -255,6 +258,7 @@ class TrayProxy {
 	}	
 	prepareTray() {
 		if (!this.active) {
+			const lang = getGlobal('lang')
 			const icon = process.resourcesPath +'/app/default_icon.png'
 			const title = 'Megacubo'
 			this.active = new Tray(icon)
@@ -269,7 +273,7 @@ class TrayProxy {
 					}
 				},
 				{
-					label: this.app.lang.CLOSE,
+					label: lang.CLOSE,
 					click: () => {
 						this.active.destroy()
 						this.active = null

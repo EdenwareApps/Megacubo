@@ -1,23 +1,25 @@
 
 const Events = require('events'), Limiter = require('../limiter')
-const IPTVOrgProvider = require('./providers/iptv-org')
 
-class PublicIPTVListsDiscovery extends Events {
+const PublicListsProvider = require('./providers/public-lists')
+const CommunityListsProvider = require('./providers/community-lists')
+const CommunityListsIPTVOrgProvider = require('./providers/community-lists-iptv-org')
+
+class ListsDiscovery extends Events {
     constructor(opts = {}) {
         super()
         this.factor = 0.1
-        this.key = 'public-iptv-lists-discovery'
+        this.key = 'lists-discovery'
         this.opts = Object.assign({
             countries: ['us', 'br'],
             limit: 256
         }, opts)
         this.providers = []
-        this.privateProperties = ['perceivedHealth', 'perceivedHealthTestCount'] // value between 0 and 1, like heath, but for user personal experience which smoothly increases health (between 0 and 1 too)
         this.knownLists = []
-        this.allowedAtts = ['url', 'name', 'image', 'length', 'health', 'perceivedHealth', 'lastModified'] 
+        this.allowedAtts = ['url', 'name', 'image', 'length', 'health', 'type', 'perceivedHealth', 'perceivedHealthTestCount', 'lastModified'] 
         this.on('registered', () => {
             process.nextTick(() => { // delay a bit to wait for any other registering
-                if(this.providers.length > 1 && this.providers.every(p => p.ready)){
+                if(this.providers.length > 1 && this.providers.every(p => p[0]._isLoaded)){
                     this.isReady = true
                     this.emit('ready')
                     this.save().catch(console.error)
@@ -33,16 +35,13 @@ class PublicIPTVListsDiscovery extends Events {
                 expiration: true
             })
         }, 10000)
-        this.restore().catch(console.error)
-        const iptv = new IPTVOrgProvider()
-        this.register(iptv.discovery.bind(iptv), 24 * 3600)
-        global.ui.on('public-iptv-lists-discovery', lists => {
-            if(Array.isArray(lists)) { // received from a peer
-                this.add(lists)
-            } else { // requested by client, update him
-                global.ui.emit('public-iptv-lists-discovery', this.knownLists)
-            }
-        })
+        this.restore().catch(console.error);
+        [
+            [new PublicListsProvider(), 'public'],
+            [new CommunityListsProvider(), 'community'],
+            [new CommunityListsIPTVOrgProvider(), 'community']
+        ].forEach(row => this.register(...row))
+        global.uiReady(() => global.explorer.addFilter(this.hook.bind(this)))
     }
     async restore(){
         const data = await global.storage.get(this.key).catch(console.error)
@@ -51,11 +50,12 @@ class PublicIPTVListsDiscovery extends Events {
     async save(){
         this.saver.call()
     }
-    register(provider){
-        provider.ready = false
-        this.providers.push(provider)
-        provider(this.add.bind(this)).then(this.add.bind(this)).catch(console.error).finally(() => {
-            provider.ready = true
+    register(provider, type){
+        provider._isLoaded = false
+        provider.type = type
+        this.providers.push([provider, type])
+        provider.discovery(lists => this.add(lists)).catch(console.error).finally(() => {
+            provider._isLoaded = true
             this.emit('registered')
         })
     }
@@ -70,7 +70,11 @@ class PublicIPTVListsDiscovery extends Events {
     async get(amount=8) {
         await this.ready()
         this.sort()
-        return this.domainCap(this.knownLists.slice(0), amount)
+        const active = {
+            public: global.config.get('public-lists'),
+            community: global.config.get('communitary-mode-lists-amount') > 0
+        }
+        return this.domainCap(this.knownLists.filter(list => active[list.type]), amount)
     }
 	domain(u){
 		if(u && u.indexOf('//')!=-1){
@@ -101,8 +105,14 @@ class PublicIPTVListsDiscovery extends Events {
         }
         return ret.slice(0, limit)
     }
-    details(url) {
-        return this.knownLists.find(l => l.url === url)
+    details(url, key) {
+        const list = this.knownLists.find(l => l.url === url)
+        if(list) {
+            if(key) {
+                return list[key]
+            }
+            return list
+        }
     }
     add(lists) {
         const now = new Date().getTime() / 1000
@@ -122,15 +132,11 @@ class PublicIPTVListsDiscovery extends Events {
                 }))
                 newOnes.push(list.url)
             } else {
-                const existingList = this.knownLists[existingListIndex]
-                const lastModified = new Date(list.lastModified)
-                if (lastModified > existingList.lastModified) {
-                    this.assimilate(existingListIndex, this.cleanAtts(list))
-                }
+                this.assimilate(existingListIndex, this.cleanAtts(list))
             }
         })
         if (newOnes.length) {
-            this.cleanupKnownLists()
+            this.alignKnownLists()
             this.emit('found', newOnes)
         }
     }
@@ -148,6 +154,9 @@ class PublicIPTVListsDiscovery extends Events {
             health: existingList.health,
             perceivedHealth: list.health
         }) // average health from both
+        if(list.type == 'community' && this.knownLists[existingListIndex].type == 'public') {
+            list.type = 'public' // prefer it as public list
+        }
         this.knownLists[existingListIndex] = {
             ...list,
             health,
@@ -193,79 +202,6 @@ class PublicIPTVListsDiscovery extends Events {
         }
         return health
     }
-    validateField(type, value){
-        switch(type){
-            /*
-            { 
-                url, 
-                name, 
-                image, 
-                length, 
-                health, 
-                perceivedHealth, 
-                lastModified, 
-                !country, 
-                !counts: {
-                    hls: 0, 
-                    video: 0,
-                    mpegts: 0,
-                    domains: {
-                        'example.com': 2,
-                        'teste.tv': 1
-                    }
-                }
-            }
-            */
-            case 'name':fc
-                return typeof(value) == 'string' && value.length
-            case 'length':
-                return typeof(value) == 'number' && value >= 0
-            case 'image':
-            case 'url':
-                return global.validateURL(value)
-            case 'lastModified':
-                return this.validateTimestamp(value)
-            default:
-                return true               
-        }
-    }
-    validateTimestamp(timestampSecs){
-        if (typeof(seconds) != 'number' || seconds < 0) {
-            return false
-        }          
-        const timestamp = seconds * 1000
-        if (isNaN(timestamp)) {
-            return false
-        }          
-        const date = new Date(timestamp)
-        if (date.toUTCString() === 'Invalid Date' || date.getFullYear() < 2000) {
-            return false
-        }          
-        return true
-    }
-    learn(list, isTrusted){
-        let ks
-        if(list.index && list.index.meta && (ks = Object.keys(list.index.meta))){
-            const i = this.knownLists.findIndex(l => l.url == list.url)
-            if(i !== -1){
-                let learned
-                ks.forEach(k => {
-                    if(this.validateField(k, list.index.meta[k]) && list.index.meta[k] != this.knownLists[i][k]){
-                        this.knownLists[i][k] = list.index.meta[k]
-                        learned = true
-                    }
-                })
-                if(this.knownLists[i].length != list.index.length){
-                    this.knownLists[i].length = list.index.length
-                    learned = true
-                }
-                if(learned) {
-                    this.save().catch(console.error)
-                    return true
-                }
-            }
-        }
-    }
     sort() {
         this.knownLists = this.knownLists.map(a => {
             a.averageHealth = this.averageHealth(a)
@@ -273,12 +209,128 @@ class PublicIPTVListsDiscovery extends Events {
         })
         this.knownLists.sort((a, b) => b.averageHealth - a.averageHealth)
     }
-    cleanupKnownLists() {
+    alignKnownLists() {
         if (this.knownLists.length > this.opts.limit) {
             this.sort()
             this.knownLists.splice(this.opts.limit)
         }
     }
+    async receivedListsEntries(){
+        const info = await global.lists.info()
+        let entries = Object.keys(info).filter(u => !info[u].owned).sort((a, b) => {
+            if([a, b].some(a => typeof(info[a].score) == 'undefined')) return 0
+            if(info[a].score == info[b].score) return 0
+            return info[a].score > info[b].score ? -1 : 1
+        }).map(url => {
+            let data = global.discovery.details(url)
+            if(!data){
+                console.error('LIST NOT FOUND '+ url)
+                return
+            }
+            let health = global.discovery.averageHealth(data) || -1
+            let name = data.name || global.listNameFromURL(url)
+            let author = data.author || undefined
+            let icon = data.icon || undefined
+            let length = data.length || info[url].length || 0
+            let details = []
+            if(author) details.push(author)
+            details.push(global.lang.RELEVANCE +': '+ parseInt((info[url].score || 0) * 100) +'%')
+            details.push('<i class="fas fa-play-circle" aria-label="hidden"></i> '+ global.kfmt(length, 1))
+            details = details.join(' &middot; ')
+            return {
+                name, url, icon, details,
+                fa: 'fas fa-satellite-dish',
+                type: 'group',
+                class: 'skip-testing',
+                renderer: global.lists.directListRenderer.bind(global.lists)
+            }
+        }).filter(l => l)
+        if(!entries.length){
+            if(!global.lists.loaded()){
+                entries = [global.lists.updatingListsEntry()]
+            } else {
+                entries = [global.lists.noListsRetryEntry()]
+            }
+        }
+        return entries
+    }
+    async hook(entries, path){
+        if(path.split('/').pop() == global.lang.MY_LISTS) {
+            entries.push({
+                name: global.lang.INTERESTS,
+                details: global.lang.SEPARATE_WITH_COMMAS, 
+                type: 'input',
+                fa: 'fas fa-edit',
+                action: (e, v) => {
+                    if(v !== false && v != global.config.get('interests')){
+                        global.config.set('interests', v)
+                        global.ui.emit('ask-restart')
+                    }
+                },
+                value: () => {
+                    return global.config.get('interests')
+                },
+                placeholder: global.lang.INTERESTS_HINT,
+                multiline: true,
+                safe: true
+            })
+        }
+        return entries
+    }
+    async interests() {
+        const badTerms = ['m3u8', 'ts', 'mp4', 'tv', 'channel']
+        let terms = [], addTerms = (tms, score) => {
+            if(typeof(score) != 'number'){
+                score = 1
+            }
+            tms.forEach(term => {
+                if(badTerms.includes(term)){
+                    return
+                }
+                const has = terms.some((r, i) => {
+                    if(r.term == term){
+                        terms[i].score += score
+                        return true
+                    }
+                })
+                if(!has){
+                    terms.push({term, score})
+                }
+            })
+        }
+        let bterms = global.bookmarks.get()
+        if(bterms.length){ // bookmarks terms
+            bterms = bterms.slice(-24)
+            bterms = bterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-')
+            addTerms(bterms)
+        }
+        let sterms = await global.search.history.terms()
+        if(sterms.length){ // searching terms history
+            sterms = sterms.slice(-24)
+            sterms = sterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-')
+            addTerms(sterms)
+        }
+        let hterms = global.histo.get()
+        if(hterms.length){ // user history terms
+            hterms = hterms.slice(-24)
+            hterms = hterms.map(e => channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-')
+            addTerms(hterms)
+        }
+        addTerms(await global.channels.keywords())
+        const max = Math.max(...terms.map(t => t.score))
+        let cterms = global.config.get('interests')
+        if(cterms){ // user specified interests
+            cterms = global.lists.terms(cterms, true).filter(c => c[0] != '-')
+            if(cterms.length){
+                addTerms(cterms, max)
+            }
+        }
+        terms = terms.sortByProp('score', true).map(t => t.term)
+        if(terms.length > 24) {
+            terms = terms.slice(0, 24)
+        }
+        return terms
+    }
 }
 
-module.exports = PublicIPTVListsDiscovery
+module.exports = ListsDiscovery

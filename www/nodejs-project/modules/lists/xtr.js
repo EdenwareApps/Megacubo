@@ -6,20 +6,20 @@ class Xtr extends Events {
         if(debug === true) this.debugInfo = []
 
         let parts = addr.split('#')
-        this.authAddr = parts[0]
+        let authAddr = parts[0]
         this.flags = parts.length > 1 ? parts[1] : ''
         
-        parts = this.authAddr.split('@')[0].split('/').pop().split(':')
+        parts = authAddr.split('@')[0].split('/').pop().split(':')
         this.user = parts[0]
         this.pass = parts[1]
-        this.addr = this.authAddr.replace(this.user +':'+ this.pass +'@', '')
+        this.addr = authAddr.replace(this.user +':'+ this.pass +'@', '')
 
         this.meta = {}
         this.foundStreams = 0
     }
     async execute(action) {
         let err
-        const url = this.authAddr +'/player_api.php?username='+ this.user +'&password=' + this.pass + '&action='+ action
+        const url = this.addr +'/player_api.php?username='+ this.user +'&password=' + this.pass + '&action='+ action
         const data = await global.Download.get({
             url,
             timeout: 15,

@@ -279,7 +279,7 @@ class Lists extends ListsEPGTools {
             addTerms(hterms)
         }
         const max = Math.max(...terms.map(t => t.score))
-        let cterms = global.config.get('communitary-mode-interests')
+        let cterms = global.config.get('interests')
         if(cterms){ // user specified interests
             cterms = this.terms(cterms, true).filter(c => c[0] != '-')
             if(cterms.length){
@@ -350,8 +350,12 @@ class Lists extends ListsEPGTools {
 		} else {
 			const communityListsQuota = communityListsAmount - this.myLists.length
 			if(communityListsQuota){
+				let ls = Object.values(this.lists)
+				if(global.config.get('public-lists') != 'only') {
+					ls = ls.filter(l => l.origin != 'public')
+				}
 				progresses.push(
-					...Object.values(this.lists).map(l => l.progress() || 0).sort((a, b) => b - a).slice(0, communityListsQuota)
+					...ls.map(l => l.progress() || 0).sort((a, b) => b - a).slice(0, communityListsQuota)
 				)
 				const left = communityListsQuota - progresses.length
 				if(left > 0) {
@@ -391,7 +395,12 @@ class Lists extends ListsEPGTools {
 		this.emit('status', ret)
 		return ret
 	}
-	loaded(){
+	loaded(isEnough){
+		if(isEnough === true) {
+			if(global.config.get('public-lists') != 'only' && !Object.values(this.lists).filter(l => l.origin != 'public').length) {
+				return false
+			}
+		}
 		const stat = this.status(), ret = stat.progress > 99
 		return ret
 	}
@@ -454,8 +463,9 @@ class Lists extends ListsEPGTools {
 		const list = new List(url, this)
 		list.skipValidating = true // list is already validated at lists/updater-worker, always
 		list.contentLength = contentLength
+		list.origin = global.discovery.details(url, 'type') || ''
 		list.once('destroy', () => {
-			if(!this.requesting[url] || (this.requesting[url] == 'loading')){
+			if(!this.requesting[url] || (this.requesting[url] == 'loading')) {
 				this.requesting[url] = 'destroyed'
 			}
 			if(isMine && this.myLists.includes(url)){ // isMine yet?
@@ -501,7 +511,6 @@ class Lists extends ListsEPGTools {
 				if(this.debug){
 					console.log('loadList else', url)
 				}
-				this.isPrivateList(list) || global.discovery.learn(list)
 				this.setListMeta(url, list.index.meta).catch(console.error)
 				if(list.index.meta['epg'] && !this.epgs.includes(list.index.meta['epg'])){
 					this.epgs.push(list.index.meta['epg'])
@@ -525,7 +534,7 @@ class Lists extends ListsEPGTools {
 				} else {
 					let replace
 					this.requesting[url] = 'added'
-					if(!isMine && this.loadedListsCount() > (this.myLists.length + global.config.get('communitary-mode-lists-amount'))){
+					if(!isMine && this.loadedListsCount('community') > (this.myLists.length + global.config.get('communitary-mode-lists-amount'))){
 						replace = this.shouldReplace(list)
 						if(replace){
 							const pr = this.lists[replace].relevance.total
@@ -572,9 +581,7 @@ class Lists extends ListsEPGTools {
 		}
 		let weaker
 		Object.keys(this.lists).forEach(k => {
-			if(this.myLists.includes(k) || !this.lists[k].isReady){
-				return
-			}
+			if(this.myLists.includes(k) || !this.lists[k].isReady) return
 			if(!weaker || (this.lists[k].relevance.total > -1 && this.lists[k].relevance.total < this.lists[weaker].relevance.total)){
 				weaker = k
 			}
@@ -655,9 +662,10 @@ class Lists extends ListsEPGTools {
 			return alreadyLoaded
 		}
 	}
-	loadedListsCount(communityListsOnly){
-		const loadedLists = Object.values(this.lists).filter(l => l.isReady).map(l => l.url)
-		if(communityListsOnly) return loadedLists.filter(u => !this.myLists.includes(u)).length
+	loadedListsCount(origin){
+		const loadedLists = Object.values(this.lists).filter(l => l.isReady).filter(l => {
+			return !origin || (origin == l.origin)
+		}).map(l => l.url)
 		return loadedLists.length
 	}
     updateActiveLists(){
@@ -729,15 +737,16 @@ class Lists extends ListsEPGTools {
 		return ret
 	}
 	delimitActiveLists(){
+        const publicListsActive = global.config.get('public-lists')
         const communityListsAmount = global.config.get('communitary-mode-lists-amount')
 		const communityListsQuota = Math.max(communityListsAmount - this.myLists.length, 0)
-		if(this.loadedListsCount(true) > communityListsQuota){
+		if(this.loadedListsCount('community') > communityListsQuota){
 			let results = {}
 			if(this.debug){
 				console.log('delimitActiveLists', Object.keys(this.lists), communityListsQuota)
 			}
 			Object.keys(this.lists).forEach(url => {
-				if(!this.myLists.includes(url)){
+				if(!this.myLists.includes(url) && this.lists[url].origin == 'community'){
 					results[url] = this.lists[url].relevance.total
 				}
 			})
@@ -750,6 +759,21 @@ class Lists extends ListsEPGTools {
 			})
 			if(this.debug){
 				console.log('delimitActiveLists', Object.keys(this.lists), communityListsQuota, results, sorted)
+			}
+		}
+		if(!publicListsActive) {
+			let results = {}
+			if(this.debug){
+				console.log('delimitActiveLists', Object.keys(this.lists), publicListsActive)
+			}
+			Object.keys(this.lists).forEach(url => {
+				if(!this.myLists.includes(url) && this.lists[url].origin == 'public'){
+					this.requesting[url] = 'destroyed on delimiting (public lists disabled), '+ JSON.stringify(global.traceback()).replace(new RegExp('[^A-Za-z0-9 /:]+', 'g'), ' ')
+					this.remove(url)
+				}
+			})
+			if(this.debug){
+				console.log('delimitActiveLists', Object.keys(this.lists), publicListsActive)
 			}
 		}
 	}
@@ -769,7 +793,7 @@ class Lists extends ListsEPGTools {
 			this.updateActiveLists()
 		}
 	}
-    async directListRenderer(v, opts){
+    async directListRenderer(v, opts={}){
         if(typeof(this.lists[v.url]) != 'undefined' && (!opts.fetch || (this.lists[v.url].isReady && !this.lists[v.url].indexer.hasFailed))){ // if not loaded yet, fetch directly
             let entries = await this.lists[v.url].getMap()
             return this.directListRendererPrepare(entries, v.url)

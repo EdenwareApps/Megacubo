@@ -1,7 +1,7 @@
 const fs = require('fs'), Events = require('events')
 const ListIndexUtils = require('./list-index-utils')
 const MediaURLInfo = require('../streamer/utils/media-url-info')
-const Parser = require('./parser'), Xtr = require('./xtr')
+const Parser = require('./parser')
 
 class UpdateListIndex extends ListIndexUtils { 
 	constructor(url, directURL, file, master, updateMeta, forceDownload){
@@ -171,8 +171,12 @@ class UpdateListIndex extends ListIndexUtils {
         writer.once('finish', () => this.writerClosed = true)
         for(let url of urls){
             let err
-            if(url.indexOf('#xtream') != -1) {
+            const hasCredentials = url.indexOf('@') != -1
+            if(hasCredentials && url.indexOf('#xtream') != -1) {
                 await this.xparse(url, writer).catch(console.error)
+                if(this.indexateIterator) break
+            } else if(hasCredentials && url.indexOf('#mag') != -1) {
+                await this.mparse(url, writer).catch(console.error)
                 if(this.indexateIterator) break
             } else {
                 const ret = await this.fetch(url).catch(e => err = e)
@@ -199,6 +203,7 @@ class UpdateListIndex extends ListIndexUtils {
 	}
     async xparse(url, writer){
         let err, count = 0
+        const Xtr = require('./xtr')
         const xtr = new Xtr(url)
         xtr.on('progress', p => this.emit('progress', p, this.url))
         xtr.on('meta', meta => {
@@ -229,6 +234,44 @@ class UpdateListIndex extends ListIndexUtils {
         })
         await xtr.run().catch(e => err = e)
         xtr.destroy()
+        if(err) {
+            console.error('XPARSE '+ err)
+            throw err
+        }
+    }
+    async mparse(url, writer){
+        let err, count = 0
+        const Mag = require('./mag')
+        const mag = new Mag(url)
+        mag.on('progress', p => this.emit('progress', p, this.url))
+        mag.on('meta', meta => {
+            Object.assign(this.index.meta, meta)
+        })
+        mag.on('entry', entry => {
+            count++
+            if(entry.group) { // collect some data to sniff after if each group seems live, serie or movie
+                if(typeof(this.groups[entry.group]) == 'undefined') {
+                    this.groups[entry.group] = []
+                }
+                this.groups[entry.group].push({
+                    name: entry.name,
+                    url: entry.url,
+                    icon: entry.icon
+                })
+            }
+            entry = this.indexate(entry, this.indexateIterator)
+            const line = Buffer.from(JSON.stringify(entry) + "\n")
+            writer.write(line)
+            this.linesMap.push(this.linesMapPtr)
+            this.linesMapPtr += line.byteLength
+            if(!this.uniqueStreamsIndexate.has(entry.url)) {
+                this.uniqueStreamsIndexate.set(entry.url, null)
+                this.uniqueStreamsIndexateIterator++
+            }
+            this.indexateIterator++
+        })
+        await mag.run().catch(e => err = e)
+        mag.destroy()
         if(err) {
             console.error('XPARSE '+ err)
             throw err

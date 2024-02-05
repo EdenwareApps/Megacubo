@@ -102,7 +102,7 @@ class Watching extends EntriesGroup {
         if (!global.lists.loaded()) {
             return [global.lists.manager.updatingListsEntry()]
         }
-        if (!global.lists.activeLists.length) {
+        if(!global.lists.loaded(true)) {
             return [global.lists.manager.noListsEntry()]
         }
         await this.ready()

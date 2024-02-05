@@ -175,7 +175,7 @@ class Search extends Events {
         if(!global.lists.loaded()){
             return [global.lists.manager.updatingListsEntry()]
         }
-        if(!global.lists.activeLists.length){ // one list available on index beyound meta watching list
+        if(!global.lists.loaded(true)) {
             return [global.lists.manager.noListsEntry()]
         }
         console.log('will search', terms, {
@@ -314,7 +314,7 @@ class Search extends Events {
         if(!global.lists.loaded()){
             return [global.lists.manager.updatingListsEntry()]
         }
-        if(!global.lists.activeLists.length){ // one list available on index beyound meta watching list
+        if(!global.lists.loaded(true)) {
             return [global.lists.manager.noListsEntry()]
         }
         let es = await global.channels.search(terms, this.searchInaccurate)

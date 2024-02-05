@@ -103,8 +103,8 @@ class Download extends Events {
 		if(typeof(this.opts.headers['range']) != 'undefined'){
 			this.checkRequestingRange(this.opts.headers['range'])
 		}
-		if(typeof(this.opts.oncreate) == 'function') { // allows Download.get to get the object instance
-			this.opts.oncreate(this)
+		if(this.opts.post && typeof(this.opts.post) != 'string') {
+			this.opts.post = this.object2QS(this.opts.post)
 		}
 	}
 	avoidKeepAlive(url){ // on some servers, the number of sockets increase indefinitely causing downloads to hang up after some time, doesn't seems that these sockets are really being reused
@@ -218,6 +218,13 @@ class Download extends Events {
 		})
 		return phases		
 	}
+	object2QS(o){
+		let qs = []
+		Object.keys(o).forEach(k => {
+			qs.push(encodeURIComponent(k) + '=' + encodeURIComponent(o[k]))
+		})
+		return qs.join('&')
+	}
 	connect(){
 		if(this.destroyed) return
 		if(this.stream){
@@ -266,7 +273,7 @@ class Download extends Events {
 			this.currentURL = 'http:'+ this.currentURL
 		}
 		if(!global.validateURL(this.currentURL)){
-			this.endWithError('Invalid URL: '+ this.currentURL, 400)
+			this.endWithError('Invalid URL*: '+ this.currentURL, 400)
 			return
 		}
 		if(this.continueTimer){
@@ -308,6 +315,12 @@ class Download extends Events {
 		}
 		opts.headers = requestHeaders
 		opts.timeout = this.getTimeoutOptions()
+		if(this.opts.post) {
+			opts.method = 'POST'
+			opts.postData = this.opts.post
+			opts.headers['content-type'] = 'application/x-www-form-urlencoded'
+			opts.headers['content-length'] = opts.postData.length
+		}
 		if(this.opts.debug) {
 			console.log('>> Download request: '+ this.currentURL, this.connectCount, opts, this.received, JSON.stringify(opts.headers), this.requestingRange, this.opts.headers['range'], global.traceback())
 		}
@@ -404,16 +417,16 @@ class Download extends Events {
 		this.responseSource = response.headers['x-megacubo-dl-source']
 		let validate = this.validateResponse(response)
 		if(validate === true){
-			if(!this.isResponseCompressed){
-				if(response.headers['content-type'] && response.headers['content-type'] == 'application/x-gzip'){
-					this.isResponseCompressed = 'gzip'
-				} else if(this.ext(this.currentURL) == 'gz'){
-					this.isResponseCompressed = 'gzip'
-				} else if(response.headers['content-encoding'] && response.headers['content-encoding'] != 'identity'){
-					this.isResponseCompressed = response.headers['content-encoding']
-				} else if(response.headers['content-disposition'] && response.headers['content-disposition'].match(new RegExp('filename.?=[^;]+\\.gz($|;|")'))){
-					this.isResponseCompressed = 'gzip'
-				}
+			if(response.headers['content-type'] && response.headers['content-type'] == 'application/x-gzip'){
+				this.isResponseCompressed = 'gzip'
+			} else if(this.ext(this.currentURL) == 'gz'){
+				this.isResponseCompressed = 'gzip'
+			} else if(response.headers['content-encoding'] && response.headers['content-encoding'] != 'identity'){
+				this.isResponseCompressed = response.headers['content-encoding']
+			} else if(response.headers['content-disposition'] && response.headers['content-disposition'].match(new RegExp('filename.?=[^;]+\\.gz($|;|")'))){
+				this.isResponseCompressed = 'gzip'
+			} else {
+				this.isResponseCompressed = false
 			}
 			if(this.opts.acceptRanges){
 				if(typeof(response.headers['accept-ranges']) == 'undefined' || response.headers['accept-ranges'] == 'none'){

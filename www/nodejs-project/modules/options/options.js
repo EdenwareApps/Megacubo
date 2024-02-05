@@ -1336,6 +1336,22 @@ class Options extends OptionsExportImport {
                 }
             },
             {
+                name: global.lang.ALLOW_COMMUNITY_LISTS, 
+                type: 'check',
+                action: (data, checked) => {
+                    const file = global.APPDIR +'/ALLOW_COMMUNITY.md'
+                    const restart = () => global.energy.askRestart()
+                    if (checked) {
+                        fs.writeFile(file, 'OK', restart)
+                    } else {
+                        global.config.set('communitary-mode-lists-amount', 0)
+                        fs.unlink(file, restart)
+                    }
+                }, checked: () => {
+                    return global.ALLOW_COMMUNITY_LISTS
+                }
+            },
+            {
                 name: 'Config server base URL', 
                 fa: 'fas fa-server', 
                 type: 'input', 

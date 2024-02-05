@@ -143,31 +143,6 @@ class CloudConfiguration {
         }
         if(!err) err = 'empty response, no fallback for '+ url
         throw err
-    }    
-    async discovery(adder){
-        const timeoutMs = 30000
-        const limit = pLimit(2)
-        const parseUsersCount = s => {
-            return parseInt(s.split(' ').shift().replace('.', ''))
-        }
-        const solved = [], locs = await global.lang.getActiveCountries()
-        await Promise.allSettled(locs.map((loc, i) => {
-            return async () => {
-                const scoreLimit = 1 - (i * (1 / locs.length))
-                let maxUsersCount = -1, lists = await this.get('country-sources.'+ loc, false, timeoutMs).catch(console.error)
-                solved.push(loc)
-                lists = lists.map(list => {
-                    const usersCount = parseUsersCount(list.label)
-                    if(maxUsersCount == -1) {
-                        maxUsersCount = usersCount
-                    }
-                    list.health = scoreLimit * (usersCount / maxUsersCount)
-                    return list
-                })
-                Array.isArray(lists) && adder(lists)
-            }
-        }).map(limit))
-        return [] // used 'adder'
     }
 }
 

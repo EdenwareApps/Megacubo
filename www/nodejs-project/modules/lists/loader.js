@@ -16,6 +16,7 @@ class ListsLoader extends Events {
         this.results = {}
         this.processes = []
         this.myCurrentLists = global.config.get('lists').map(l => l[1])
+        this.publicListsActive = global.config.get('public-lists')
         this.communityListsAmount = global.config.get('communitary-mode-lists-amount')
         this.enqueue(this.myCurrentLists, 1)
         global.uiReady(async () => {
@@ -35,7 +36,7 @@ class ListsLoader extends Events {
                 const removed = this.myCurrentLists.filter(l => !newMyLists.includes(l))
                 removed.forEach(u => this.master.remove(u))
                 newMyLists.forEach(u => {
-                    this.master.processedLists.has(u) && this.master.processedLists.delete(u)
+                    this.master.processedLists.has(u) && this.master.processedLists.delete(u) // allow reprocessing it
                 })
                 this.myCurrentLists = newMyLists
                 this.enqueue(added, 1)
@@ -46,6 +47,21 @@ class ListsLoader extends Events {
                     this.master.processedLists.clear()
                     this.resetLowPriorityUpdates()
                     if(!data['communitary-mode-lists-amount']) { // unload community lists
+                        const myLists = data.lists.map(l => l[1])
+                        const loadedLists = Object.keys(this.master.lists)
+                        this.master.processes.forEach(p => {
+                            if(!myLists.includes(p.url)) p.cancel()
+                        })
+                        this.master.delimitActiveLists()
+                    }
+                }
+            }
+            if(keys.includes('public-lists')){
+                if(this.publicListsActive != data['public-lists']){
+                    this.publicListsActive = data['public-lists']
+                    this.master.processedLists.clear()
+                    this.resetLowPriorityUpdates()
+                    if(!data['public-lists']) { // unload public lists
                         const myLists = data.lists.map(l => l[1])
                         const loadedLists = Object.keys(this.master.lists)
                         this.master.processes.forEach(p => {
@@ -79,10 +95,10 @@ class ListsLoader extends Events {
             return true
         })
 
-        if(!this.communityListsAmount) return
+        if(!this.publicListsActive && !this.communityListsAmount) return
 
-        const maxListsToTry = Math.max(72, this.communityListsAmount)
         const minListsToTry = Math.max(32, 3 * this.communityListsAmount)
+        const maxListsToTry = Math.max(72, this.communityListsAmount)
         if(minListsToTry < this.master.processedLists.size) return
 
         const taskId = Math.random()
@@ -91,20 +107,20 @@ class ListsLoader extends Events {
 
         this.debug && console.error('[listsLoader] resetLowPriorityUpdates(1)')
         const lists = await global.discovery.get(maxListsToTry)
-        const communityLists = []
-        lists.some(({ url }) => {
+        const loadingLists = []
+        lists.some(({url, type}) => {
             if( !this.myCurrentLists.includes(url) && 
                 !this.processes.some(p => p.url == url) && 
                 !this.master.processedLists.has(url)) {
-                    communityLists.push(url)
-                    return communityLists.length == maxListsToTry
+                    loadingLists.push(url)
+                    return loadingLists.length == maxListsToTry
                 }
         })
         this.debug && console.error('[listsLoader] resetLowPriorityUpdates(2)')
-        const communityListsCached = await this.master.filterCachedUrls(communityLists)
+        const loadingListsCached = await this.master.filterCachedUrls(loadingLists)
         this.debug && console.error('[listsLoader] resetLowPriorityUpdates(3)')
-        this.enqueue(communityLists.filter(u => !communityListsCached.includes(u)).concat(communityListsCached)) // update uncached lists first
-        this.master.loadCachedLists(communityListsCached)
+        this.enqueue(loadingLists.filter(u => !loadingListsCached.includes(u)).concat(loadingListsCached)) // update uncached lists first
+        this.master.loadCachedLists(loadingListsCached)
         this.queue.onIdle().catch(console.error).finally(() => {
             setTimeout(() => {
                 if(this.currentTaskId == taskId && !this.queue._pendingCount) {
@@ -149,19 +165,6 @@ class ListsLoader extends Events {
                 clearTimeout(this.updater.terminating)
                 this.updater.terminating = null
             }
-        }
-    }
-    async enqueue(urls, priority=9){
-        if(priority == 1){ // priority=1 should be reprocessed, as it is in our private lists            
-            urls = urls.filter(url => this.myCurrentLists.includes(url)) // list still added
-        } else {
-            urls = urls.filter(url => {
-                return !this.processes.some(p => p.url == url) // already processing/processed
-            })
-        }
-        if(!urls.length) return
-        for(const url of urls) {
-            this.schedule(url, priority)
         }
     }
     async enqueue(urls, priority=9){

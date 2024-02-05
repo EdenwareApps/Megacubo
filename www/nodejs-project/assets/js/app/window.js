@@ -403,14 +403,14 @@ class ElectronMiniplayer extends MiniPlayerBase {
 			this.pip.minimizeWindow = () => {
 				if(this.pip.miniPlayerActive){	// if already in miniplayer, minimize it				
 					this.pip.prepareLeaveMiniPlayer()
-					this.pip.win.hide()
-					this.pip.restore()
+					parent.api.window.hide()
+					parent.api.window.restore()
 					setTimeout(() => {
-						this.pip.win.show()
-						this.pip.win.minimize()
+						parent.api.window.show()
+						parent.api.window.minimize()
 					}, 0)
 				} else if(!this.enterIfPlaying()){
-					this.pip.win.minimize()
+					parent.api.window.minimize()
 				}
 			}
 			this.pip.closeWindow = () => this.exit()

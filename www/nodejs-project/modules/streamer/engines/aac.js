@@ -14,7 +14,7 @@ class StreamerAACIntent extends StreamerBaseIntent {
     }  
     _start(){ 
         return new Promise((resolve, reject) => {
-            this.downloader = new StreamerAdapterAAC(this.data.url, this.opts)
+            this.downloader = new StreamerAdapterAAC(this.info.url || this.data.url, this.opts)
             this.connectAdapter(this.downloader)
             this.downloader.start().then(() => {
                 this.decoder = new StreamerFFmpeg(this.downloader.source.endpoint, this.opts)

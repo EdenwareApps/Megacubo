@@ -52,7 +52,7 @@ class StreamerTSIntent extends StreamerBaseIntent {
     }
     async _start(){ 
         this.mimetype = this.mimeTypes.mpegts
-        this.downloader = new StreamerAdapterTS(this.data.url, Object.assign({
+        this.downloader = new StreamerAdapterTS(this.info.url || this.data.url, Object.assign({
             authURL: this.data.authURL || this.data.source
         }, this.opts))
         this.connectAdapter(this.downloader)

@@ -101,8 +101,8 @@ function initApp(){
     app = parent.appChannel
     if(!parent.cordova){
         app.on('ffmpeg-check', (mask, folder) => {
-            console.log('Starting FFmpeg check', [osd, mask, folder])
-            parent.parent.ffmpeg.check(osd, mask, folder).then(ret => {
+            console.log('Starting FFmpeg check', [mask, folder])
+            parent.parent.ffmpeg.check(mask, folder).then(ret => {
                 console.log('FFmpeg checking succeeded', ret)
             }).catch(err => {
                 console.error('FFmpeg checking error')

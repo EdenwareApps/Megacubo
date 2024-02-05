@@ -25,6 +25,7 @@ const fs = require('fs'), path = require('path')
 
 global.APPDIR = String(__dirname || process.cwd()).replace(new RegExp('\\\\', 'g'), '/')
 global.MANIFEST = JSON.parse(fs.readFileSync(global.APPDIR + '/package.json'))
+global.ALLOW_COMMUNITY_LISTS = fs.existsSync(APPDIR +'/ALLOW_COMMUNITY.md')
 
 global.tuning = false
 global.moment = require('moment-timezone')
@@ -268,7 +269,6 @@ const init = (language, timezone) => {
         
         global.osd = new OSD()
         global.discovery = new Discovery()
-        global.discovery.register(global.cloud.discovery.bind(global.cloud), 24 * 3600)
 
         global.lists = new Lists()
         global.lists.setNetworkConnectionState(global.Download.isNetworkConnected).catch(console.error)       
@@ -609,7 +609,7 @@ const init = (language, timezone) => {
         })
         global.config.on('change', (keys, data) => {
             global.ui.emit('config', keys, data)
-            if(['lists', 'communitary-mode-lists-amount', 'communitary-mode-interests'].some(k => keys.includes(k))){
+            if(['lists', 'communitary-mode-lists-amount', 'interests'].some(k => keys.includes(k))){
                 global.explorer.refresh()
                 global.lists.manager.update()
             }

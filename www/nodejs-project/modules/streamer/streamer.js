@@ -71,6 +71,17 @@ class StreamerTools extends Events {
 				return this.streamInfoCaching[cachingKey]
 			}
 		}
+		if(url.indexOf('#mag-') != -1) {
+			if(!entry.source) {
+				throw 'Source URL required'
+			}
+			if(!this.magResolver || this.magResolver.id != entry.source) {
+				const Mag = require('../lists/mag')
+				this.magResolver = new Mag(entry.source)
+				await this.magResolver.prepare()
+			}
+			url = await this.magResolver.link(url)
+		}
 		const nfo = await this.streamInfo.probe(url, retries, Object.assign({skipSample}, entry))
 		if(nfo && (nfo.headers || nfo.isLocalFile)) {
 			Object.keys(this.engines).some(name => {
@@ -206,7 +217,7 @@ class StreamerBase extends StreamerTools {
 		if(typeof(global.streamerPingSourceTTLs) == 'undefined'){ // using global here to make it unique between any tuning and streamer
 			global.streamerPingSourceTTLs = {}            
 		}
-		if(global.validateURL(url)){
+		if(global.validateURL(url) && !url.match(new RegExp('#(xtr|mag)'))){
 			let now = global.time()
 			if(!global.streamerPingSourceTTLs[url] || global.streamerPingSourceTTLs[url] < now){
 				console.log('pingSource', global.streamerPingSourceTTLs[url], now)	

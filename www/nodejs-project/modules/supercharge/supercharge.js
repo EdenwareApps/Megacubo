@@ -402,7 +402,7 @@ function patch(scope, isBrowser){
             if(!url.length){
                 return 'Untitled '+ parseInt(Math.random() * 9999)
             } else if(url.length == 1) {
-                return scope.trimExt(url[0], ['m3u'])
+                return scope.trimExt(url[0].split(':')[0], ['m3u'])
             } else {
                 return scope.trimExt(url[0].split('.')[0] + ' ' + (subName || url[url.length - 1]), ['m3u'])
             }

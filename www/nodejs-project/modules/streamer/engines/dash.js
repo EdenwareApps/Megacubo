@@ -21,7 +21,7 @@ class StreamerDashIntent extends StreamerBaseIntent {
         }, this.opts))
         this.connectAdapter(this.prx)
         await this.prx.start()
-        this.endpoint = this.prx.proxify(this.data.url)
+        this.endpoint = this.prx.proxify(this.info.url || this.data.url)
         return {endpoint: this.endpoint, mimetype: this.mimetype}
     }
 }

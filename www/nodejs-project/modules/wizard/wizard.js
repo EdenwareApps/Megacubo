@@ -29,7 +29,6 @@ class WizardUtils extends Events {
 class Wizard extends WizardUtils {
     constructor(){
         super()
-        this.offerCommunityMode = true
         this.skipList = global.setupSkipList
         if(!this.skipList){                    
             this.on('skip-list', () => {
@@ -59,7 +58,7 @@ class Wizard extends WizardUtils {
             {template: 'message', text},
             {template: 'option', text: global.lang.ADD_LIST, fa: 'fas fa-plus-square', id: 'ok'}
         ]
-        if(this.offerCommunityMode){
+        if(global.ALLOW_COMMUNITY_LISTS){
             opts.push({template: 'option', text: global.lang.DONT_HAVE_LIST, details: global.lang.LOAD_COMMUNITY_LISTS, fa: 'fas fa-times-circle', id: 'sh'})
         } else {
             opts.push({template: 'option', text: global.lang.ADD_LATER, fa: 'fas fa-clock', id: 'no'})

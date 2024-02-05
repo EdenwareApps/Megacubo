@@ -19,12 +19,12 @@ class StreamerVODTSIntent extends StreamerBaseIntent {
             this.mimetype = this.mimeTypes.mpegts
             const isLocalFile = this.info && this.info.isLocalFile
             if(isLocalFile) {
-                global.downloads.serve(this.data.url, false, false).then(url => {
+                global.downloads.serve(this.info.url || this.data.url, false, false).then(url => {
                     this.endpoint = url
                     resolve()
                 }).catch(reject)
             } else {
-                this.endpoint = this.data.url
+                this.endpoint = this.info.url || this.data.url
                 resolve()
             }
         })

@@ -79,7 +79,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
         this.type = 'hls'
         this.mimetype = this.mimeTypes.hls
         this.mediaType = 'live'
-        this.trackUrl = this.data.url
+        this.trackUrl = this.info.url || this.data.url
         this.trackSelector = new HLSTrackSelector()
     }
 	async getQualityTracks(includeBW){
@@ -115,7 +115,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
         this.disconnectAdapter(this.prx)
         this.prx.destroy()
         let err
-        const ret = await this.trackSelector.select(this.data.url).catch(e => err = e)
+        const ret = await this.trackSelector.select(this.info.url || this.data.url).catch(e => err = e)
         if (err) {
             this.transcoderStarting = false
             this.emit('transcode-failed', err)
@@ -195,7 +195,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
         this.connectAdapter(this.prx)
         await this.prx.start()
         if(useff){
-            const ret = await this.trackSelector.select(this.data.url).catch(console.error)
+            const ret = await this.trackSelector.select(this.info.url || this.data.url).catch(console.error)
             if(ret && ret.url){
                 this.trackUrl = ret.url     
                 console.log('Track selected', this.trackUrl, ret, this.trackSelector.tracks)                    
@@ -204,7 +204,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
                 return {endpoint: this.endpoint, mimetype: this.mimetype}
             }
         }
-        this.endpoint = this.prx.proxify(this.data.url)
+        this.endpoint = this.prx.proxify(this.info.url || this.data.url)
         return {endpoint: this.endpoint, mimetype: this.mimetype}
     }
 }

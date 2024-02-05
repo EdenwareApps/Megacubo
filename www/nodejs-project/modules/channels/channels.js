@@ -1358,7 +1358,7 @@ class Channels extends ChannelsKids {
         if(!global.lists.loaded()){
             return [global.lists.manager.updatingListsEntry()]
         }
-        if(!global.lists.activeLists.length){ // one list available on index beyound meta watching list
+        if(!global.lists.loaded(true)){ // one list available on index beyound meta watching list
             return [global.lists.manager.noListsEntry()]
         }
         let list
@@ -1626,7 +1626,7 @@ class Channels extends ChannelsKids {
         if(!global.lists.loaded()){
             return [global.lists.manager.updatingListsEntry()]
         }
-        if(!global.lists.activeLists.length){ // one list available on index beyound meta watching list
+        if(!global.lists.loaded(true)){
             return [global.lists.manager.noListsEntry()]
         }
         const isSeries = type == 'series'

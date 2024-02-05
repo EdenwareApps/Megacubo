@@ -44,7 +44,7 @@ class StreamerVideoIntent extends StreamerBaseIntent {
                 adapter.bitrateChecker.opts.checkingAmount = 1
                 this.connectAdapter(adapter)
                 adapter.start().then(() => {
-                    this.endpoint = adapter.proxify(this.data.url)
+                    this.endpoint = adapter.proxify(this.info.url || this.data.url)
                     resolve()
                 }).catch(e => {
                     reject(e)

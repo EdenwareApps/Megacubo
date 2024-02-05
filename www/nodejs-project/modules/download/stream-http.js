@@ -42,7 +42,8 @@ class DownloadStreamHttp extends DownloadStreamBase {
             headers: this.opts.headers || {host: this.parsed.hostname, connection: 'close'},
             timeout: this.timeout.connect,
             protocol: this.parsed.protocol,
-            decompress: false
+            decompress: false,
+            method: this.opts.method || 'GET'
         }
         const cookie = await this.getCookies()
         if(cookie){
@@ -56,7 +57,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
             opts.agent = this.parsed.protocol == 'http:' ? KHttpAgent : KHttpsAgent
         } else {
             opts.agent = this.parsed.protocol == 'http:' ? HttpAgent : HttpsAgent
-        }        
+        }
 		return opts
 	}
     async resolve(host){
@@ -108,7 +109,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
         }
         for(let ip of this.ips){
             const options = await this.options(ip.address, ip.family)
-            await this.get(options).catch(console.error)
+            await this.run(options).catch(console.error)
             if(this.responder || this.ended) break
         }
         if(this.responder) {
@@ -119,7 +120,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
             this.emitError(err, true)
         }
     }
-	async get(options){
+	async run(options){
         let timer, req, res, closed, currentState = 'pre-connect'
         const controller = new AbortController()
         const via = options.protocol == 'http:' ? http : https
@@ -189,6 +190,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
             options.signal = controller.signal            
             req = via.request(options, requested).on('error', close).on('abort', close)
             startTimer('connect')
+            this.opts.postData && req.write(this.opts.postData)
             req.end()
         })
 	}
