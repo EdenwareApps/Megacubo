@@ -15,9 +15,10 @@ class UpdateListIndex extends ListIndexUtils {
         this.updateMeta = updateMeta
         this.forceDownload = forceDownload === true
         this.uid = parseInt(Math.random() * 100000000000)
-        this.tmpOutputFile = global.paths.temp +'/'+ this.uid + '.out.tmp'
+        this.tmpOutputFile = global.paths.temp +'/'+ this.uid +'.out.tmp'
         this.linesMapPtr = 0
         this.linesMap = []
+        this.debug = false
         this.reset()
     }
     ext(file){
@@ -78,10 +79,10 @@ class UpdateListIndex extends ListIndexUtils {
                 path = 'http:' + path
             }
             if(path.match(new RegExp('^https?:'))){
-                console.error('ADDLIST '+ path)
+                console.error('UpdateListIndex fetch '+ path)
                 let resolved
                 const opts = {
-                    debug: false,
+                    debug: this.debug,
                     url: path,
                     retries: 3,
                     followRedirect: true,
@@ -96,8 +97,8 @@ class UpdateListIndex extends ListIndexUtils {
                 this.stream = new global.Download(opts)
                 this.stream.on('redirect', (url, headers) => this.parseHeadersMeta(headers))
                 this.stream.on('response', (statusCode, headers) => {
-                    if(this.debug){
-                        console.log('response', statusCode, headers, this.updateMeta)
+                    if(this.debug) {
+                        console.log('UpdateListIndex response', statusCode, headers, this.updateMeta)
                     }
                     resolved = true
                     this.parseHeadersMeta(headers)

@@ -72,6 +72,52 @@ class PublicLists extends Events {
         })
         return entries
     }
+    entry() {
+        return {
+            name: global.lang.PUBLIC_LISTS, type: 'group', fa: 'fas fa-broadcast-tower',
+            renderer: async () => {
+                let toggle = global.config.get('public-lists') ? 'fas fa-toggle-on' : 'fas fa-toggle-off'
+                let options = [
+                    {name: global.lang.ACCEPT_LISTS, details: '', type: 'select', fa: toggle,
+                    renderer: async () => {
+                        let def = global.config.get('public-lists')
+                        return [
+                            {
+                                name: global.lang.YES,
+                                value: 'yes'
+                            }, 
+                            {
+                                name: global.lang.ONLY,
+                                value: 'only'
+                            }, 
+                            {
+                                name: global.lang.NO,
+                                value: ''
+                            }
+                        ].map(n => {
+                            return {
+                                name: n.name,
+                                type: 'action',
+                                selected: def == n.value,
+                                action: () => {
+                                    global.config.set('public-lists', n.value)
+                                    global.explorer.refreshNow()
+                                }
+                            }
+                        })
+                    }},
+                    {
+                        name: global.lang.LEGAL_NOTICE,
+                        details: 'DMCA',
+                        fa: 'fas fa-info-circle',
+                        type: 'action',
+                        action: this.showInfo.bind(this)
+                    }
+                ]
+                return options
+            }
+        }
+    }
     async hook(entries, path){
         if(path.split('/').pop() == global.lang.PUBLIC_LISTS && global.config.get('public-lists')){
             entries.splice(entries.length - 1, 0, {
@@ -82,50 +128,7 @@ class PublicLists extends Events {
                 renderer: this.entries.bind(this)
             })
         } else if(path.split('/').pop() == global.lang.MY_LISTS) {
-            entries.splice(1, 0, {
-                name: global.lang.PUBLIC_LISTS, type: 'group', fa: 'fas fa-broadcast-tower',
-                renderer: async () => {
-                    let toggle = global.config.get('public-lists') ? 'fas fa-toggle-on' : 'fas fa-toggle-off'
-                    let options = [
-                        {name: global.lang.ACCEPT_LISTS, details: '', type: 'select', fa: toggle,
-                        renderer: async () => {
-                            let def = global.config.get('public-lists')
-                            return [
-                                {
-                                    name: global.lang.YES,
-                                    value: 'yes'
-                                }, 
-                                {
-                                    name: global.lang.ONLY,
-                                    value: 'only'
-                                }, 
-                                {
-                                    name: global.lang.NO,
-                                    value: ''
-                                }
-                            ].map(n => {
-                                return {
-                                    name: n.name,
-                                    type: 'action',
-                                    selected: def == n.value,
-                                    action: () => {
-                                        global.config.set('public-lists', n.value)
-                                        global.explorer.refreshNow()
-                                    }
-                                }
-                            })
-                        }},
-                        {
-                            name: global.lang.LEGAL_NOTICE,
-                            details: 'DMCA',
-                            fa: 'fas fa-info-circle',
-                            type: 'action',
-                            action: this.showInfo.bind(this)
-                        }
-                    ]
-                    return options
-                }
-            })
+            global.options.insertEntry(this.entry(), entries, 1, global.lang.ADD_LIST)
         }
         return entries
     }

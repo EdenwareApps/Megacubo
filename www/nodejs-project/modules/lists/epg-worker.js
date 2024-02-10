@@ -124,9 +124,7 @@ class EPG extends EPGPaginateChannelsList {
                     resolve(true)
                 }
             }
-            if(this.loaded){
-                return respond()
-            }
+            if(this.loaded) return respond()
             if(this.state == 'uninitialized'){
                 this.start().catch(e => {
                     console.error(e)
@@ -217,32 +215,6 @@ class EPG extends EPGPaginateChannelsList {
                 }
                 return true
             })
-            this.parser.once('end', () => {
-                console.log('EPG PARSER END')
-                this.applyMetaCache()
-                this.clean()
-                this.save()
-                this.parser && this.parser.destroy() // TypeError: Cannot read property 'destroy' of null
-                this.parser = null                                
-                this.scheduleNextUpdate()
-                if(Object.keys(this.data).length){
-                    if(newLastModified){
-                        global.storage.set(this.lastmCtrlKey, newLastModified, {ttl: this.ttl})
-                    }
-                    global.storage.set(this.fetchCtrlKey, now, {ttl: this.ttl})
-                    this.state = 'loaded'
-                    this.loaded = true
-                    this.error = null
-                    this.emit('load')
-                    utils.emit('updated')
-                } else {
-                    this.state = 'error'
-                    this.error = validEPG ? global.lang.EPG_OUTDATED : global.lang.EPG_BAD_FORMAT
-                    if(this.listenerCount('error')){
-                        this.emit('error', this.error)
-                    }
-                }
-            })
             let validEPG, received = 0
             const req = {
                 debug: false,
@@ -294,7 +266,35 @@ class EPG extends EPGPaginateChannelsList {
                 this.parser && this.parser.end()
             })
             this.request.start()
-            await this.ready()
+            return await new Promise(resolve => {
+                this.parser.once('end', () => {
+                    console.log('EPG PARSER END')
+                    this.applyMetaCache()
+                    this.clean()
+                    this.save()
+                    this.parser && this.parser.destroy() // TypeError: Cannot read property 'destroy' of null
+                    this.parser = null 
+                    resolve()                               
+                    this.scheduleNextUpdate()
+                    if(Object.keys(this.data).length){
+                        if(newLastModified){
+                            global.storage.set(this.lastmCtrlKey, newLastModified, {ttl: this.ttl})
+                        }
+                        global.storage.set(this.fetchCtrlKey, now, {ttl: this.ttl})
+                        this.state = 'loaded'
+                        this.loaded = true
+                        this.error = null
+                        this.emit('load')
+                        utils.emit('updated')
+                    } else {
+                        this.state = 'error'
+                        this.error = validEPG ? global.lang.EPG_OUTDATED : global.lang.EPG_BAD_FORMAT
+                        if(this.listenerCount('error')){
+                            this.emit('error', this.error)
+                        }
+                    }
+                })
+            })
         } else {
             console.log('epg update skipped')
             this.scheduleNextUpdate()

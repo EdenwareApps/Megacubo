@@ -1,20 +1,29 @@
 const Events = require('events')
 
-class ManagerCommunityLists extends Events {
+class ManagerEPG extends Events {
     constructor(){
         super()
-    }
-}
-
-class ManagerEPG extends ManagerCommunityLists {
-    constructor(){
-        super()
+        this.epgSelectionPath = global.lang.MY_LISTS +'/'+ global.lang.EPG +'/'+ global.lang.SELECT
         this.lastActiveEPGDetails = ''
+        global.uiReady(() => {
+            global.explorer.on('open', path => {        
+                if(this.addingEPG || (path == this.epgSelectionPath)) {
+                    if(!this.epgStatusTimer) {
+                        this.epgStatusTimer = setInterval(() => this.updateEPGStatus().catch(console.error), 1000)
+                    }
+                } else {
+                    if(this.epgStatusTimer){
+                        clearInterval(this.epgStatusTimer)
+                        this.epgStatusTimer = 0
+                    }
+                }
+            })
+        })
     }
     parseEPGURL(url, asArray){
         let urls = [url]
-        if(url.match(new RegExp(',(https?://|//)'))){
-            urls = url.replace(',//', ',http://').split(',http').map((u, i) => {
+        if(url.match(new RegExp(', *(https?://|//)'))){
+            urls = url.replace(',//', ',http://').replaceAll(', http', ',http').split(',http').map((u, i) => {
                 if(i){
                     u = 'http'+ u
                 }
@@ -42,7 +51,11 @@ class ManagerEPG extends ManagerCommunityLists {
                 }
             })
         }
-        epgs.push(...global.watching.currentRawEntries.map(e => e.epg).filter(e => !!e))
+        epgs.push(
+            ...global.watching.currentRawEntries.map(e => e.epg).filter(e => !!e).map(u => {
+                return this.parseEPGURL(u, true)
+            }).flat()
+        )
         epgs = epgs.sort().unique()
         return epgs
     }
@@ -66,38 +79,38 @@ class ManagerEPG extends ManagerCommunityLists {
                     details = global.lang.ENABLED
                     break
                 case 'error':
-                    details = 'Error: ' + epgStatus[1]
+                    if(epgStatus[1].indexOf('worker manually terminated') == -1) { // in EPG change worker transition
+                        details = 'Error: ' + epgStatus[1]
+                    }
                     break
             }
-        }
+        }        
+        this.lastActiveEPGDetails = details
         return details
     }
-    updateEPGStatus(){
-        const p = global.explorer.path
-        if(p.indexOf(global.lang.EPG +'/'+ global.lang.OPTIONS) == -1) {
-            clearInterval(this.epgStatusTimer)
-            this.epgStatusTimer = false
-        } else {
-            this.master.epg([], 2).then(epgData => {
-                let activeEPGDetails = this.epgLoadingStatus(epgData)
-                if(activeEPGDetails != this.lastActiveEPGDetails){
-                    this.lastActiveEPGDetails = activeEPGDetails
-                    this.epgOptionsEntries(activeEPGDetails).then(es => {
-                        if(p == global.explorer.path){
-                            es = es.map(e => {
-                                if(e.name == global.lang.SYNC_EPG_CHANNELS){
-                                    e.value = e.checked()
-                                }
-                                return e
-                            })
-                            global.explorer.render(es, p, global.channels.epgIcon)
+    async updateEPGStatus() {
+        let err
+        const epgData = await this.master.epg([], 2).catch(e => err = e)
+        err || this.epgLoadingStatus(epgData)
+        if(this.addingEPG && this.lastActiveEPGDetails && !this.lastActiveEPGDetails.startsWith('Error:')) {
+            global.osd.show(this.lastActiveEPGDetails, 'fas fa-circle-notch fa-spin', 'epg-add', 'persistent')
+        }
+        if(this.epgSelectionPath == global.explorer.path) {
+            if(this.lastDetailedEPGDetails !== this.lastActiveEPGDetails) {
+                this.lastDetailedEPGDetails = this.lastActiveEPGDetails
+                let es = await this.epgOptionsEntries()
+                if(this.epgStatusTimer) {
+                    es = es.map(e => {
+                        if(e.name == global.lang.SYNC_EPG_CHANNELS){
+                            e.value = e.checked()
                         }
-                    }).catch(console.error)
-                }                
-            }).catch(err => {
-                clearInterval(this.epgStatusTimer)
-                this.epgStatusTimer = false
-            })
+                        return e
+                    })
+                    global.explorer.render(es, this.epgSelectionPath, global.channels.epgIcon)
+                }
+            }
+        } else {
+            this.lastDetailedEPGDetails = undefined
         }
     }
     activeEPG() {
@@ -106,46 +119,22 @@ class ManagerEPG extends ManagerCommunityLists {
             activeEPG = ''
         }
         if(activeEPG){
-            activeEPG = this.formatEPGURL(activeEPG) 
+            activeEPG = this.parseEPGURL(activeEPG, false)
         }
         return activeEPG        
     }
-    async startEPGStatusUpdating(activeEPG, activeEPGDetails) {
-        if(activeEPG){            
-            if(typeof(activeEPGDetails) != 'string'){
-                await this.master.epg([], 2).then(epgData => {
-                    this.lastActiveEPGDetails = activeEPGDetails = this.epgLoadingStatus(epgData)
-                }).catch(err => {
-                    console.error(err)
-                    activeEPGDetails = ''
-                })
-            }
-            if(activeEPGDetails == global.lang.ENABLED){
-                if(this.epgStatusTimer){
-                    clearInterval(this.epgStatusTimer)
-                    this.epgStatusTimer = false
-                }
-            } else {
-                this.epgStatusTimer && clearInterval(this.epgStatusTimer)
-                this.epgStatusTimer = setInterval(this.updateEPGStatus.bind(this), 1000)
-            }
-        } else {
-            this.lastActiveEPGDetails = ''
-        }
-    }
-    async epgOptionsEntries(activeEPGDetails){
+    async epgOptionsEntries(){
         let options = [], epgs = []
         await this.searchEPGs().then(urls => epgs.push(...urls)).catch(console.error)
         let activeEPG = this.activeEPG()
         if(activeEPG){
             epgs.includes(activeEPG) || epgs.push(activeEPG)
         }
-        await this.startEPGStatusUpdating(activeEPG, activeEPGDetails).catch(global.displayErr)
         options = epgs.unique().sort().map(url => {
             let details = '', name = global.listNameFromURL(url)
             if(url == activeEPG){
-                if(activeEPGDetails){
-                    details = activeEPGDetails
+                if(this.lastActiveEPGDetails){
+                    details = this.lastActiveEPGDetails
                 } else {
                     if(global.channels.loadedEPG == url){
                         details = global.lang.EPG_LOAD_SUCCESS
@@ -177,13 +166,6 @@ class ManagerEPG extends ManagerCommunityLists {
         options.unshift(this.addEPGEntry())
         return options
     }
-    formatEPGURL(url){        
-        const fragment = ',http'
-        if(url && url.indexOf(fragment) != -1){
-            url = url.split(',http').shift()
-        }
-        return url
-    }
     addEPGEntry() {
         return {
             name: global.lang.ADD, fa: 'fas fa-plus-square',
@@ -204,14 +186,11 @@ class ManagerEPG extends ManagerCommunityLists {
         }
     }
     async setEPG(url, ui){
-        console.log('SETEPG', url)
         if(typeof(url) == 'string'){
             if(url){
-                url = this.formatEPGURL(url)
+                url = this.parseEPGURL(url, false)
             }
-            if(url == global.activeEPG) {
-                return
-            }
+            if(url == global.activeEPG) return
             if(!url || global.validateURL(url)) {
                 global.activeEPG = url
                 global.channels.loadedEPG = ''
@@ -223,9 +202,7 @@ class ManagerEPG extends ManagerCommunityLists {
                 }
                 if(!url){
                     global.channels.load()
-                    if(ui){
-                        global.osd.show(global.lang.EPG_DISABLED, 'fas fa-times-circle', 'epg', 'normal')                            
-                    }
+                    ui && global.osd.show(global.lang.EPG_DISABLED, 'fas fa-times-circle', 'epg', 'normal')
                 }
                 refresh()
             } else {
@@ -236,33 +213,37 @@ class ManagerEPG extends ManagerCommunityLists {
             }
         }
     }
-    loadEPG(url, ui){
-        return new Promise((resolve, reject) => {
-            global.channels.loadedEPG = ''
-            if(!url && global.config.get('epg-'+ global.lang.locale) != 'disabled'){
-                url = global.config.get('epg-'+ global.lang.locale)
-            }
-            if(!url && ui) ui = false
-            if(ui){
-                global.osd.show(global.lang.EPG_AVAILABLE_SOON, 'fas fa-check-circle', 'epg', 'normal')
-            }
-            console.log('loadEPG', url)
-            this.master.loadEPG(url).then(() => {
-                global.channels.loadedEPG = url
-                global.channels.emit('epg-loaded', url)
-                if(ui){
-                    global.osd.show(global.lang.EPG_LOAD_SUCCESS, 'fas fa-check-circle', 'epg', 'normal')
-                }
-                if(global.explorer.path == global.lang.TRENDING || (global.explorer.path.startsWith(global.lang.LIVE) && global.explorer.path.split('/').length == 2)){
-                    global.explorer.refresh()
-                }
-                resolve(true)
-            }).catch(err => {
-                console.error(err)
-                global.osd.show(global.lang.EPG_LOAD_FAILURE + ': ' + String(err), 'fas fa-times-circle', 'epg', 'normal')
-                reject(err)
-            })
-        })
+    async loadEPG(url, ui){
+        global.channels.loadedEPG = ''
+        if(!url && global.config.get('epg-'+ global.lang.locale) != 'disabled'){
+            url = global.config.get('epg-'+ global.lang.locale)
+        }
+        if(!url && ui) {
+            ui = false
+        }
+        this.lastActiveEPGDetails = global.lang.EPG_AVAILABLE_SOON
+        if(ui) {
+            this.addingEPG = true
+            console.error('ASSING EPG '+ global.traceback())
+            global.osd.show(global.lang.EPG_AVAILABLE_SOON, 'fas fa-circle-notch fa-spin', 'epg-add', 'persistent')
+        }
+        let err
+        await this.master.loadEPG(url).catch(e => err = e)
+        this.addingEPG = false
+        if(err) {
+            console.error(err)
+            global.osd.show(global.lang.EPG_LOAD_FAILURE + ': ' + String(err), 'fas fa-times-circle', 'epg-add', 'normal')
+            throw err
+        }
+        global.channels.loadedEPG = url
+        global.channels.emit('epg-loaded', url)
+        if(ui) {
+            global.osd.show(global.lang.EPG_LOAD_SUCCESS, 'fas fa-check-circle', 'epg-add', 'normal')
+        }
+        if(global.explorer.path == global.lang.TRENDING || (global.explorer.path.startsWith(global.lang.LIVE) && global.explorer.path.split('/').length == 2)) {
+            global.explorer.refresh()
+        }
+        return true
     }
     epgEntry(){
         return {
@@ -277,7 +258,8 @@ class ManagerEPG extends ManagerCommunityLists {
                         fa: 'fas fa-cog',
                         renderer: async () => {
                             const epgData = await this.master.epg([], 2)
-                            return await this.epgOptionsEntries(this.epgLoadingStatus(epgData))
+                            this.epgLoadingStatus(epgData)
+                            return await this.epgOptionsEntries()
                         }
                     }
                 ]
@@ -296,8 +278,6 @@ class ManagerEPG extends ManagerCommunityLists {
                         })
                     ])
                 } else {
-                    const activeEPG = this.activeEPG()
-                    await this.startEPGStatusUpdating(activeEPG).catch(global.displayErr)
                     entries.push({
                         name: global.channels.loadedEPG ? global.lang.EMPTY : global.lang.EPG_DISABLED,
                         details: this.lastActiveEPGDetails,
@@ -305,8 +285,7 @@ class ManagerEPG extends ManagerCommunityLists {
                         type: 'action',
                         class: 'entry-empty',
                         action: () => {
-                            const p = global.lang.MY_LISTS +'/'+ global.lang.EPG +'/'+ global.lang.OPTIONS
-                            global.explorer.open(p).catch(console.error)
+                            global.explorer.open(this.epgSelectionPath).catch(console.error)
                         }
                     })
                 }
@@ -339,7 +318,6 @@ class Manager extends ManagerEPG {
         super()
         this.master = master
         this.listFaIcon = 'fas fa-satellite-dish'
-        // this.listFaIcon = 'fas fa-broadcast-tower'
         this.key = 'lists'
         this.lastProgress = 0
         this.openingList = false    
@@ -470,7 +448,6 @@ class Manager extends ManagerEPG {
             url = 'http:'+ url
         }
         const fs = require('fs'), isURL = global.validateURL(url), isFile = this.isLocal(url)
-        console.error('lists.add '+url+' | '+ name +' | '+ isFile +' | '+ !isURL)
         if(!isFile && !isURL){
             throw global.lang.INVALID_URL_MSG +' Not a file or URL'
         }

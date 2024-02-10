@@ -42,9 +42,48 @@ class CommunityLists {
             }
         }).catch(console.error)
     }
+    async receivedListsEntries(){
+        const info = await global.lists.info()
+        let entries = Object.keys(info).filter(u => !info[u].owned).sort((a, b) => {
+            if([a, b].some(a => typeof(info[a].score) == 'undefined')) return 0
+            if(info[a].score == info[b].score) return 0
+            return info[a].score > info[b].score ? -1 : 1
+        }).map(url => {
+            let data = global.discovery.details(url)
+            if(!data){
+                console.error('LIST NOT FOUND '+ url)
+                return
+            }
+            let health = global.discovery.averageHealth(data) || -1
+            let name = data.name || global.listNameFromURL(url)
+            let author = data.author || undefined
+            let icon = data.icon || undefined
+            let length = data.length || info[url].length || 0
+            let details = []
+            if(author) details.push(author)
+            details.push(global.lang.RELEVANCE +': '+ parseInt((info[url].score || 0) * 100) +'%')
+            details.push('<i class="fas fa-play-circle" aria-label="hidden"></i> '+ global.kfmt(length, 1))
+            details = details.join(' &middot; ')
+            return {
+                name, url, icon, details,
+                fa: 'fas fa-satellite-dish',
+                type: 'group',
+                class: 'skip-testing',
+                renderer: global.lists.directListRenderer.bind(global.lists)
+            }
+        }).filter(l => l)
+        if(!entries.length){
+            if(!global.lists.loaded()){
+                entries = [global.lists.updatingListsEntry()]
+            } else {
+                entries = [global.lists.noListsRetryEntry()]
+            }
+        }
+        return entries
+    }
     async hook(entries, path){
-        if(global.ALLOW_COMMUNITY_LISTS && path.split('/').pop() == global.lang.MY_LISTS) {
-            entries.splice(2, 0, this.entry())
+        if(global.ALLOW_COMMUNITY_LISTS && path.split('/').pop() == global.lang.MY_LISTS) {            
+            global.options.insertEntry(this.entry(), entries, 2, global.lang.ADD_LIST)
         }
         return entries
     }
@@ -70,7 +109,13 @@ class CommunityLists {
                     }}
                 ]
                 if(global.config.get('communitary-mode-lists-amount') > 0){
-                    options.push({name: global.lang.RECEIVED_LISTS, details: global.lang.SHARED_AND_LOADED, fa: 'fas fa-users', type: 'group', renderer: this.receivedListsEntries.bind(this)})
+                    options.push({
+                        name: global.lang.RECEIVED_LISTS,
+                        details: global.lang.SHARED_AND_LOADED,
+                        fa: 'fas fa-users',
+                        type: 'group',
+                        renderer: this.receivedListsEntries.bind(this)
+                    })
                     options.push({
                         name: global.lang.AMOUNT_OF_LISTS,
                         details: global.lang.AMOUNT_OF_LISTS_HINT,

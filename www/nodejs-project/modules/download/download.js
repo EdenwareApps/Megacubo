@@ -54,6 +54,7 @@ class Download extends Events {
 				Object.keys(opts.headers).forEach(name => {
 					this.opts.headers[name.toLowerCase()] = opts.headers[name]
 				})
+				delete opts.headers // avoid reassigning it
 			}
 			Object.assign(this.opts, opts)
 		}

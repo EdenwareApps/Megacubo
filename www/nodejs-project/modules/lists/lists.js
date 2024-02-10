@@ -1,6 +1,6 @@
 const fs = require('fs'), path = require('path')
 const pLimit = require('p-limit'), { default: PQueue } = require('p-queue')
-const Parser = require('./parser'), Manager = require('./manager'), Loader = require('./loader')
+const Manager = require('./manager'), Loader = require('./loader')
 const Index = require('./index'), List = require('./list'), MultiWorker = require('../multi-worker')
 
 class ListsEPGTools extends Index {
@@ -23,8 +23,10 @@ class ListsEPGTools extends Index {
 				return await this._epg.ready()
 			}
 			console.error('changed epg url', this._epg.url, url)
-			await this._epg.terminate()
-			await this._epgWorker.terminate()
+			try {
+				await this._epg.terminate().catch(console.error)
+				await this._epgWorker.terminate()
+			} catch(e) { }
 			delete this._epg
 			delete this._epgWorker
 		}
@@ -43,9 +45,15 @@ class ListsEPGTools extends Index {
 		}
 	}
 	async epg(channelsList, limit){
-		let data, err
 		if(!this._epg) return ['error', 'no epg']
-		const ret = await this._epg.getState().catch(e => err = e)
+		let data, err, ret, retries = 2
+		while(retries >= 0) {
+			retries--
+			ret = await this._epg.getState().catch(e => err = e)
+			if(!err || String(err).indexOf('worker manually exited') == -1) {
+				break
+			}
+		}
 		if(err) return ['error', String(err)]
 		const { progress, state, error } = ret
 		if(error) {
@@ -100,7 +108,7 @@ class ListsEPGTools extends Index {
 			let currentScore = this.epgChannelsListSanityScore(data['categories'])
 			const limit = pLimit(3)
 			const tasks = Object.keys(this.lists).filter(url => {
-				return this.lists[url].index.meta['epg'] == this._epg.url
+				return this.lists[url].index.meta['epg'].indexOf(this._epg.url) != -1 // use indexOf as it can be a comma delimited list
 			}).map(url => {
 				return async () => {
 					let categories = {}

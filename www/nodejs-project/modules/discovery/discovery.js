@@ -215,45 +215,6 @@ class ListsDiscovery extends Events {
             this.knownLists.splice(this.opts.limit)
         }
     }
-    async receivedListsEntries(){
-        const info = await global.lists.info()
-        let entries = Object.keys(info).filter(u => !info[u].owned).sort((a, b) => {
-            if([a, b].some(a => typeof(info[a].score) == 'undefined')) return 0
-            if(info[a].score == info[b].score) return 0
-            return info[a].score > info[b].score ? -1 : 1
-        }).map(url => {
-            let data = global.discovery.details(url)
-            if(!data){
-                console.error('LIST NOT FOUND '+ url)
-                return
-            }
-            let health = global.discovery.averageHealth(data) || -1
-            let name = data.name || global.listNameFromURL(url)
-            let author = data.author || undefined
-            let icon = data.icon || undefined
-            let length = data.length || info[url].length || 0
-            let details = []
-            if(author) details.push(author)
-            details.push(global.lang.RELEVANCE +': '+ parseInt((info[url].score || 0) * 100) +'%')
-            details.push('<i class="fas fa-play-circle" aria-label="hidden"></i> '+ global.kfmt(length, 1))
-            details = details.join(' &middot; ')
-            return {
-                name, url, icon, details,
-                fa: 'fas fa-satellite-dish',
-                type: 'group',
-                class: 'skip-testing',
-                renderer: global.lists.directListRenderer.bind(global.lists)
-            }
-        }).filter(l => l)
-        if(!entries.length){
-            if(!global.lists.loaded()){
-                entries = [global.lists.updatingListsEntry()]
-            } else {
-                entries = [global.lists.noListsRetryEntry()]
-            }
-        }
-        return entries
-    }
     async hook(entries, path){
         if(path.split('/').pop() == global.lang.MY_LISTS) {
             entries.push({

@@ -49,7 +49,7 @@ class ListsUpdater extends Common {
 		const should = params.force === true || (await this.updaterShouldUpdate(url))
 		const now = global.time()
 		if(this.debug){
-			console.log('updater - should 1', url, should, force)
+			console.log('updater - should 1', url, should, params.force)
 		}
 		if(should){
 			const updateMeta = {}
@@ -57,7 +57,7 @@ class ListsUpdater extends Common {
 			const file = global.storage.resolve(key)
 			const updater = new UpdateListIndex(url, url, file, this, Object.assign({}, updateMeta), params.force === true)
 			updateMeta.updateAfter = now + 180
-			if(this.debug){
+			if(this.debug) {
 				console.log('updater - should 2', url, should)
 			}
 			await this.setListMeta(url, updateMeta).catch(console.error)
@@ -113,7 +113,7 @@ class ListsUpdater extends Common {
 			const start = global.time()
 			const valid = await this.validateIndex(url).catch(console.error)
 			if(this.debug){
-				console.log('updater shouldUpdate index validation took '+ parseInt(global.time() - start) +'s', JSON.stringify(updateMeta, null, 3), url)
+				console.log('updater shouldUpdate index validation took '+ parseInt(global.time() - start) +'s', JSON.stringify({valid, updateMeta}, null, 3), url)
 			}
 			if(valid === true) {
 				return false
