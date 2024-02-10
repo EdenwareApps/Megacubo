@@ -74,6 +74,7 @@ module.exports = {
 	'osd-speak': false,
 	'parental-control': 'remove',
 	'parental-control-terms': '.',
+	'public-lists': 'yes',
 	'play-while-loading': true,
 	'playback-rate-control': true,
 	'preferred-ip-version': 0,

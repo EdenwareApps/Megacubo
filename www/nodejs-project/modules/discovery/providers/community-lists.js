@@ -134,7 +134,7 @@ class CommunityLists {
                         name: global.lang.LEGAL_NOTICE,
                         fa: 'fas fa-info-circle',
                         type: 'action',
-                        action: this.showInfoCommunity.bind(this)
+                        action: this.showInfo.bind(this)
                     })
                 }
                 return options
