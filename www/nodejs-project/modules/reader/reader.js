@@ -48,7 +48,6 @@ class Reader extends Readable {
 			}
 			const available = stat.size - position
 			const readSize = typeof(size) == 'number' ? Math.min(size, available) : available
-			const buffer = Buffer.alloc(readSize)
 			const done = () => {
 				if(this.opts.persistent === true) {
 					this.nextReadTimer = setTimeout(() => {
@@ -63,9 +62,10 @@ class Reader extends Readable {
 				err = 'Readen more than the file size'
 				console.error('READER ERROR: '+ err)
 				return this.close()
-			} else if(readSize == 0) {
+			} else if(readSize == 0 || this.fd === null) {
 				return done()
 			}
+			const buffer = Buffer.alloc(readSize)
 			fs.read(this.fd, buffer, 0, readSize, position, (err, bytesRead) => {
 				const readen = bytesRead && bytesRead > 0
 				if (readen) {

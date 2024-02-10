@@ -24,7 +24,9 @@ class ListsEPGTools extends Index {
 			}
 			console.error('changed epg url', this._epg.url, url)
 			try {
-				await this._epg.terminate().catch(console.error)
+				await this._epg.terminate()
+			} catch(e) { }
+			try {
 				await this._epgWorker.terminate()
 			} catch(e) { }
 			delete this._epg

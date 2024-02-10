@@ -215,7 +215,7 @@ class HLSRequests extends StreamerProxyBase {
 						const notLive = !this.journals[journalUrl].inLiveWindow(segmentUrl)
 						const notFromUser = this.activeRequests[segmentUrl].opts.shadowClient
 						if(notFromUser && notLive){
-							console.log('finishing request due to no clients or i\'ts outside of live window', segmentUrl, url)
+							console.log('finishing request due to no clients or i\'ts outside of live window', segmentUrl)
 							this.activeRequests[segmentUrl].destroy()
 							delete this.activeRequests[segmentUrl]
 						}

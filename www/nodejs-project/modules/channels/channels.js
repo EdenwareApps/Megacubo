@@ -184,7 +184,7 @@ class ChannelsList {
         let ordering = {}
         Object.keys(this.categories).sort().forEach(k => {
             if(!Array.isArray(this.categories[k])) return
-            ordering[k] = this.categories[k].sort((a, b) => {
+            ordering[k] = this.categories[k].map(String).sort((a, b) => { // TypeError: a.indexOf is not a function
                 let aa = a.indexOf(',')
                 let bb = b.indexOf(',')
                 aa = aa == -1 ? a : a.substr(0, aa)
