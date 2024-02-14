@@ -65,14 +65,19 @@ class StreamerTools extends Events {
 		await this.pingSource(entry.source).catch(console.error)
 		let type = false
 		const now = global.time()
+		const isMAG = url.indexOf('#mag-') != -1 // MAG URLs should be revalidated
 		const cachingKey = this.infoCacheKey(url), skipSample = entry.skipSample || entry.allowBlindTrust || (entry.skipSample !== false && this.streamInfo.mi.isVideo(url))
-		if(cachingKey && this.streamInfoCaching[cachingKey] && now < this.streamInfoCaching[cachingKey].until) {
+		if(cachingKey && !isMAG && this.streamInfoCaching[cachingKey] && now < this.streamInfoCaching[cachingKey].until) {
 			if(skipSample || (this.streamInfoCaching[cachingKey].sample && this.streamInfoCaching[cachingKey].sample.length)) {
-				this.streamInfoCaching[cachingKey].url = url // avoid reopening same URL
-				return this.streamInfoCaching[cachingKey]
+				const result = Object.assign({}, this.streamInfoCaching[cachingKey])
+				if(result.url != url) { // avoid opening cached URL from other stream
+					result.url = url
+					result.directURL = url
+				}
+				return result
 			}
 		}
-		if(url.indexOf('#mag-') != -1) {
+		if(isMAG) {
 			if(!entry.source) {
 				throw 'Source URL required'
 			}
