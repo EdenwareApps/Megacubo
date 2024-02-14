@@ -68,6 +68,7 @@ class StreamerTools extends Events {
 		const cachingKey = this.infoCacheKey(url), skipSample = entry.skipSample || entry.allowBlindTrust || (entry.skipSample !== false && this.streamInfo.mi.isVideo(url))
 		if(cachingKey && this.streamInfoCaching[cachingKey] && now < this.streamInfoCaching[cachingKey].until) {
 			if(skipSample || (this.streamInfoCaching[cachingKey].sample && this.streamInfoCaching[cachingKey].sample.length)) {
+				this.streamInfoCaching[cachingKey].url = url // avoid reopening same URL
 				return this.streamInfoCaching[cachingKey]
 			}
 		}
