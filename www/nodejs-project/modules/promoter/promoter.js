@@ -151,7 +151,7 @@ class Promoter {
 					const n = entries[max.i]
 					entries.splice(max.i, 1)
 					entries.unshift(n)
-				} else {
+				} else if(promo) {
 					const a = entries.findIndex(e => e.name == promo.name)
 					const i = entries.findIndex(e => e.name == global.lang.KEEP_WATCHING)
 					if(promo && a == -1 && i != -1) {
