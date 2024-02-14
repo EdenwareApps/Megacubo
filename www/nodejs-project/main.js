@@ -274,7 +274,7 @@ const init = (language, timezone) => {
         global.lists.setNetworkConnectionState(global.Download.isNetworkConnected).catch(console.error)       
 
         new OMNI()
-        
+
         global.mega = new Mega()
         global.energy = new Energy()
         global.streamer = new Streamer()
@@ -299,8 +299,8 @@ const init = (language, timezone) => {
 
         promo = new Promoter()
         
-        streamState = new StreamState()
-        streamState.on('state', (url, state, source) => {
+        global.streamState = new StreamState()
+        global.streamState.on('state', (url, state, source) => {
             source && global.discovery.reportHealth(source, state != 'offline')
         })
 
@@ -440,7 +440,7 @@ const init = (language, timezone) => {
         })
         global.ui.on('testing-stop', () => {
             console.warn('TESTING STOP')
-            streamState.cancelTests()
+            global.streamState.cancelTests()
         })
         global.ui.on('tuning-stop', () => {
             console.warn('TUNING ABORT')
@@ -617,7 +617,7 @@ const init = (language, timezone) => {
         global.ui.once('init', () => {
             global.explorer.start()  
             global.icons.refresh()
-            streamState.sync()
+            global.streamState.sync()
             if(!global.uiReady()){
                 global.uiReady(null, true)
             }
@@ -651,12 +651,8 @@ const init = (language, timezone) => {
             if(global.streamer.active && !global.config.get('miniplayer-auto')){
                 global.streamer.stop()
             }
-            if(global.tuning){
-                global.tuning.destroy()
-            }
-            if(streamState){
-                streamState.cancelTests()
-            }
+            global.tuning && global.tuning.destroy()
+            global.streamState && global.streamState.cancelTests()
         })
 
         global.uiReady(async () => {

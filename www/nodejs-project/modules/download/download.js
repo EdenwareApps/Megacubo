@@ -979,7 +979,7 @@ class Download extends Events {
 		this.statusCode = statusCode
 		this.headers = {}
 		this.buffer = [] // discard any
-		console.warn('Download error: '+ err, this.redirectLog, this.opts.url, this.currentURL, this.redirectCount, this, global.traceback())
+		console.warn('Download error: '+ err, this.redirectLog, this.opts.url, this.currentURL, this.redirectCount, global.traceback())
 		this.errors.push(String(err) || 'unknown request error')
 		if(!this.currentRequestError){
 			this.currentRequestError = 'error'

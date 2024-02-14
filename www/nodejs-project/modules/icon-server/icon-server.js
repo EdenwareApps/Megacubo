@@ -232,7 +232,11 @@ class IconServerStore extends IconSearch {
             } else {
                 const gsign = content.toString('ascii', 0, 3)
                 if(gsign === 'GIF') {
-                    return 0 // no GIF please, too problematic
+                    if(content.length > (512 * 1024)) { // 512kb
+                        return 0 // avoid huge GIFs
+                    } else {
+                        return 1
+                    }
                 }
             }
             const magic = content.toString('hex', 0, 4)

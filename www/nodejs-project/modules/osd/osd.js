@@ -3,7 +3,7 @@ class OSDSrv {
     constructor(){
     }
     show(text, icon, name, time){
-        console.log('osd-show', text, global.traceback())
+        console.log('osd-show', text)
         global.ui.emit('osd-show', text, icon, name, time)
     }
     hide(name){

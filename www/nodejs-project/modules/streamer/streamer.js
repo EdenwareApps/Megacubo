@@ -1060,8 +1060,9 @@ class StreamerAbout extends StreamerTracks {
 		const addr = await global.Download.stream.lookup.lookup(domain, {})
 		const countryCode = await global.cloud.getCountry(addr).catch(global.displayErr)
 		const country = global.lang.countries.getCountryName(countryCode, global.lang.locale)
+		const source = this.active.data.source ? (await global.lists.manager.name(this.active.data.source)) : 'N/A'
 		const text = 'Broadcast server country: '+ (country || countryCode) +"\r\n"+
-			'Source list: '+ ((await global.lists.manager.name(this.active.data.source)) || 'N/A')
+			'Source list: '+ source
 		const opts = [
 			{template: 'question', text: global.lang.KNOW_MORE, fa: 'fas fa-info-circle'},
         	{template: 'message', text},

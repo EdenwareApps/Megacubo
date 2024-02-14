@@ -139,7 +139,9 @@ class Promoter {
 					return score
 				}
 				let max
+				const promo = await this.offer('stream')
 				entries.forEach((e, i) => {
+					if(promo && e.hookId == 'watching') return
 					const score = getScore(e)
 					if(score >= 7 && (!max || score > max.score)) {
 						max = {i, score}
@@ -149,6 +151,15 @@ class Promoter {
 					const n = entries[max.i]
 					entries.splice(max.i, 1)
 					entries.unshift(n)
+				} else {
+					const a = entries.findIndex(e => e.name == promo.name)
+					const i = entries.findIndex(e => e.name == global.lang.KEEP_WATCHING)
+					if(promo && a == -1 && i != -1) {
+						const n = entries[i]
+						entries.splice(i, 1)
+						delete n.renderer
+						entries.unshift(Object.assign(n, promo))
+					}
 				}
 			}
 			if(entries[chosen]){

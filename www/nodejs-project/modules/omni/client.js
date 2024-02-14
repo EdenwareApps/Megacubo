@@ -38,9 +38,8 @@ class OMNI extends OMNIUtils {
         jQuery(document).on('keyup', this.eventHandler.bind(this))
     }
     bind(){
-        app.on('omni-enable', () => {
-            this.element.css('display', 'inline-flex')
-        })
+        app.on('omni-enable', () => this.element.css('display', 'inline-flex'))
+        app.on('omni-disable', () => this.element.css('display', 'none'))
         app.on('omni-callback', (text, success) => {
             if(success){
                 this.save()

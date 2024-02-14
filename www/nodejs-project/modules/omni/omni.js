@@ -3,11 +3,8 @@ const Events = require('events')
 class OMNI extends Events {
     constructor (){
         super()
-        this.bind()
-    }
-    bind(){
         global.ui.on('omni-client-ready', () => {
-            if(this.omniEnabled){
+            if(this.enabled){
                 global.ui.emit('omni-enable') // on linux, ui was loading after lists update, this way the search field was not showing up
             }
         })
@@ -37,10 +34,13 @@ class OMNI extends Events {
                 global.ui.emit('omni-callback', text, true)
             })
         })
-        global.lists.manager.waitListsReady().then(() => {
-            this.omniEnabled = true
-            global.ui.emit('omni-enable')
-        }).catch(console.error)
+        global.lists.on('status', status => {
+            const enabled = global.lists.satisfied && status.length
+            if(enabled != this.enabled) {
+                this.enabled = enabled
+                global.ui.emit(enabled ? 'omni-enable' : 'omni-disable')
+            }
+        })
     }
 }
 

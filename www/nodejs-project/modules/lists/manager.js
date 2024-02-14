@@ -806,7 +806,7 @@ class Manager extends ManagerEPG {
         if(offerCommunityMode){
             extraOpts.push({template: 'option', text: global.lang.COMMUNITY_LISTS, fa: 'fas fa-users', id: 'sh'})
         }
-        extraOpts.push({template: 'option', text: global.lang.ADD_MAC_ADDRESS, fa: 'fas fa-hard-drive', id: 'mac'})
+        extraOpts.push({template: 'option', text: global.lang.ADD_MAC_ADDRESS, fa: 'fas fa-hdd', id: 'mac'})
         let id = await global.explorer.prompt({
             question: global.lang.ASK_IPTV_LIST,
             placeholder: 'http://',
@@ -949,7 +949,7 @@ class Manager extends ManagerEPG {
         const macAddress = this.formatMacAddress(await global.explorer.prompt({
             question: global.lang.MAC_ADDRESS,
             placeholder: '00:00:00:00:00:00',
-            fa: 'fas fa-hard-drive'
+            fa: 'fas fa-hdd'
         }))
         if(!macAddress || macAddress.length != 17) throw 'Invalid MAC address'
         let server = await global.explorer.prompt({
@@ -961,7 +961,11 @@ class Manager extends ManagerEPG {
         if(server.charAt(server.length - 1) == '/') {
             server = server.substr(0, server.length - 1)
         }
-        const url = await this.getM3UPlaylistForMac(macAddress, server)
+        let err
+        global.osd.show(global.lang.PROCESSING, 'fas fa-circle-notch fa-spin', 'add-list-mac', 'persistent')
+        const url = await this.getM3UPlaylistForMac(macAddress, server).catch(e => err = e)
+        global.osd.hide('add-list-mac')
+        if(err) throw err
         return await this.addList(url)
     }
     formatMacAddress(str) {

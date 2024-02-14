@@ -1173,7 +1173,7 @@ class Channels extends ChannelsKids {
                 throw global.lang.NONE_STREAM_FOUND
             }
         } else {
-            if(streams.length){
+            if(streams.length) {
                 let call = global.lists.mi.isRadio(e.name +' '+ category) ? global.lang.LISTEN_NOW : global.lang.WATCH_NOW
                 entries.push({
                     name: call, 
@@ -1192,17 +1192,18 @@ class Channels extends ChannelsKids {
                     type: 'group', 
                     renderer: async () => streams
                 }
-                if(this.loadedEPG){
+                if(this.loadedEPG) {
                     epgEntry =  {
                         name: global.lang.EPG, 
-                        type: 'group', 
+                        type: 'group',
                         fa: this.epgIcon,
                         details: (epgNow && epgNow != category) ? epgNow : '',
                         renderer: this.epgChannelEntries.bind(this, e)
                     }
                 }
-            } else {    
-                entries.push(Object.assign(this.emptyEntry, {name: global.lang.NONE_STREAM_FOUND}))
+            } else {
+                const name = global.lists.loaded(true) ? global.lang.NONE_STREAM_FOUND : global.lang.NO_LISTS_ADDED
+                entries.push(Object.assign(this.emptyEntry, { name }))
                 if(global.lists.activeLists.my.length) {
                     global.lists.manager.checkListExpiral(
                         global.lists.activeLists.my.map(source => ({source}))
@@ -1355,16 +1356,16 @@ class Channels extends ChannelsKids {
         global.explorer.refreshNow()
     }
     async entries(){
-        if(!global.lists.loaded()){
+        if(!global.lists.loaded()) {
             return [global.lists.manager.updatingListsEntry()]
         }
-        if(!global.lists.loaded(true)){ // one list available on index beyound meta watching list
-            return [global.lists.manager.noListsEntry()]
-        }
         let list
-        const type = global.config.get('channel-grid')
+        const publicMode = global.config.get('public-lists') && !global.lists.loaded(true) // no list available on index beyound public lists
+        const type = publicMode ? 'public' : global.config.get('channel-grid')
         const editable = !type && global.config.get('allow-edit-channel-list')
-        if(type == 'lists') {
+        if(type == 'public') {
+            list = await global.discovery.providers.find(p => p[1] == 'public')[0].entries()
+        } else if(type == 'lists') {
             list = await this.groupsRenderer('live')
         } else {
             const categories = this.channelList.getCategories()
@@ -1372,18 +1373,14 @@ class Channels extends ChannelsKids {
                 category.renderer = async (c, e) => {
                     let times = {}, startTime = global.time()
                     let channels = category.entries.map(e => this.isChannel(e.name)).filter(e => !!e)
-                    const ret = await global.lists.has(channels, {
-                        partial: false
-                    })
+                    const ret = await global.lists.has(channels, {partial: false})
                     times['has'] = global.time() - startTime
                     let entries = category.entries.filter(e => ret[e.name])
                     entries = entries.map(e => this.toMetaEntry(e, category))
                     times['meta'] = global.time() - startTime - times['has']
                     entries = await this.epgChannelsAddLiveNow(entries, true)
                     entries = this.sortCategoryEntries(entries)
-                    if(editable){
-                        entries.push(this.editCategoryEntry(c))
-                    }
+                    editable && entries.push(this.editCategoryEntry(c))
                     times['epg'] = global.time() - startTime - times['has'] - times['meta']
                     return entries
                 }
@@ -1392,10 +1389,9 @@ class Channels extends ChannelsKids {
             list = global.lists.sort(list)
             list.push(this.allCategoriesEntry())
         }
-        if(editable){
-            list.push(this.getCategoryEntry())
-        }
+        editable && list.push(this.getCategoryEntry())
         list.unshift(this.chooseChannelGridOption())
+        publicMode && list.unshift(global.lists.manager.noListsEntry())
         return list
     }
     allCategoriesEntry() {
@@ -1626,11 +1622,11 @@ class Channels extends ChannelsKids {
         if(!global.lists.loaded()){
             return [global.lists.manager.updatingListsEntry()]
         }
-        if(!global.lists.loaded(true)){
-            return [global.lists.manager.noListsEntry()]
-        }
         const isSeries = type == 'series'
         let groups = await global.lists.groups(type ? [type] : ['series', 'vod'])
+        if(!groups.length && !global.lists.loaded(true)){
+            return [global.lists.manager.noListsEntry()]
+        }
         const acpolicy = global.config.get('parental-control')        
         const groupToEntry = group => {
             const name = group.name

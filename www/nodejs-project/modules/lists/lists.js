@@ -384,11 +384,11 @@ class Lists extends ListsEPGTools {
 		const ret = {
 			url,
 			progress,
+			firstRun,
 			satisfyAmount,
 			communityListsAmount,
 			isUpdatingFinished: this.isUpdaterFinished,
 			pendingCount: this.queue._pendingCount,
-			firstRun,
 			length: Object.values(this.lists).filter(l => l.isReady).length
 		}
 		if(progress > 99) {
@@ -459,13 +459,16 @@ class Lists extends ListsEPGTools {
 				}
 			}
 		}
-		let err, isMine = this.myLists.includes(url)
+		let err, defaultOrigin, isMine = this.myLists.includes(url)
 		if(this.debug){
 			console.log('loadList start', url)
 		}
 		if(!this.loadTimes[url]){
 			this.loadTimes[url] = {}
 		} else {
+			if(this.lists[url]) {
+				defaultOrigin = this.lists[url].origin
+			}
 			this.remove(url)
 		}
 		this.loadTimes[url].adding = global.time()
@@ -473,7 +476,7 @@ class Lists extends ListsEPGTools {
 		const list = new List(url, this)
 		list.skipValidating = true // list is already validated at lists/updater-worker, always
 		list.contentLength = contentLength
-		list.origin = global.discovery.details(url, 'type') || ''
+		list.origin = isMine ? 'own' : (global.discovery.details(url, 'type') || defaultOrigin || '')
 		list.once('destroy', () => {
 			if(!this.requesting[url] || (this.requesting[url] == 'loading')) {
 				this.requesting[url] = 'destroyed'

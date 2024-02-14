@@ -93,9 +93,11 @@ class IconFetcher extends Events {
             const ret = await this.master.fetchURL(this.entry.programme.i).catch(e => err = e)
             if(!err) return [ret.key, true, ret.isAlpha]
         }
-        let err
-        const ret = await this.master.fetchURL(this.entry.icon).catch(e => err = e)
-        if(!err) return [ret.key, true, ret.isAlpha]
+        if(this.entry.icon) {
+            let err
+            const ret = await this.master.fetchURL(this.entry.icon).catch(e => err = e)
+            if(!err) return [ret.key, true, ret.isAlpha]
+        }
         if(!this.entry.class || this.entry.class.indexOf('entry-icon-no-fallback') == -1) {
             let atts
             this.terms = global.channels.entryTerms(this.entry)

@@ -364,6 +364,7 @@ function patch(scope, isBrowser){
 		return text
 	}
 	scope.listNameFromURL = url => {
+		if(!url) return 'Untitled '+ parseInt(Math.random() * 9999)
 		let name, subName
 		if (url.indexOf('?') !== -1) {
 			url.split('?')[1].split('&').forEach(s => {

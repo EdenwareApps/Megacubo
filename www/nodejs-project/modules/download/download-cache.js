@@ -183,7 +183,7 @@ class DownloadCacheMap extends Events {
                         chunks.fail(chunks.error)
                         delete this.saving[url]
                     } else if((this.saving[url].size === false && !expectedLength) || (expectedLength > chunks.size)) {
-                        const err = 'Bad file size. Expected: '+ this.saving[url].size +', received: '+ chunks.size +', discarding http cache.'
+                        const err = 'Bad file size. Expected: '+ this.saving[url].size +', expected*: '+ expectedLength +', received: '+ chunks.size +', discarding http cache.'
                         console.warn(err)
                         chunks.fail(err)
                         delete this.saving[url]

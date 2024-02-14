@@ -15,6 +15,17 @@ function patch(scope) {
 			}
 			return sanitizeFilename(ret)
 		}
+		const nodeMajorVersion = parseInt(process.versions.node.split('.').shift())
+		if(nodeMajorVersion < 16) {
+			const Mod = require('module')
+			const req = Mod.prototype.require
+			Mod.prototype.require = function () { // compat for 'openai' module with older Electron versions
+				if(arguments[0].startsWith('node:')) {
+					arguments[0] = arguments[0].substr(5)
+				}
+				return req.apply(this, arguments)
+			}
+		}
 	}
 	scope.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS = 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Content-Range, Range, Vary, range, Authorization'
 	scope.prepareCORS = (headers, url, forceOrigin) => {
@@ -194,12 +205,6 @@ function patch(scope) {
 			scope.androidSDKVerCache = parseInt(scope.execSync('getprop ro.build.version.sdk').trim())
 		}
 		return scope.androidSDKVerCache
-	}	
-	scope.os = () => {
-		if(!scope.osCache){
-			scope.osCache = require('os')
-		}
-		return scope.osCache
 	}
 	scope.networkIpCache = false
 	scope.networkIpCacheTTL = 10
@@ -249,7 +254,7 @@ function patch(scope) {
 				return scope.networkDummyInterfaces(addr)
 			}
 		}
-		return scope.os().networkInterfaces()
+		return require('os').networkInterfaces()
 	}
     scope.networkIP = () => {
 		let interfaces = scope.networkInterfaces(), addr = '127.0.0.1', skipIfs = new RegExp('(vmware|virtualbox)', 'i')

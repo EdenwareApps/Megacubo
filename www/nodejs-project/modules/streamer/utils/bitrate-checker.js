@@ -20,6 +20,7 @@ class BitrateChecker extends Events {
             checkingAmount: 2,
             maxCheckingFails: 8
         }, opts)
+        this.checkedPaths = {}
 	}
 	findTwoClosestValues(values){
 		let distances = [], closest = [], results = []
@@ -61,7 +62,7 @@ class BitrateChecker extends Events {
 		}
 	}
 	async addSample(file, size, deleteFileAfterChecking){
-        if(!this.acceptingSamples(size)){
+        if(!this.acceptingSamples(size) || this.checkedPaths[file]){
             if(deleteFileAfterChecking === true) {
                 fs.unlink(file, err => {
                     if(err) console.error(file, err)
@@ -80,6 +81,7 @@ class BitrateChecker extends Events {
             }
             size = stat.size
         }
+        this.checkedPaths[file] = true // avoid reprocessing same file/url
         this.queue.push({file, size, deleteFileAfterChecking})
         if(this.queue.length > this.opts.checkingAmount) {
             this.queue = this.queue.sortByProp('size', true)

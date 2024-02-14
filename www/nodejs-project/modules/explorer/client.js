@@ -2043,7 +2043,7 @@ class Explorer extends ExplorerLoading {
 				trange.start -= tolerance
 			}
 			this.currentEntries.forEach((e, i) => {
-				let lazy = i < trange.start || i > trange.end
+				const lazy = i < trange.start || i > trange.end
 				entries[i] = Object.assign({lazy}, e)
 				if(lazy && !this.ranging) {
 					this.ranging = true
@@ -2058,10 +2058,10 @@ class Explorer extends ExplorerLoading {
 		if(this.ranging){
 			const changed = [], shouldUpdateRange = config['show-logos'] && this.currentEntries.length > (this.viewSizeX * this.viewSizeY)
 			if(shouldUpdateRange){
-				let rgx = new RegExp('<img', 'i'), elements = this.currentElements, entries = this.getRange(y || this._wrapper.scrollTop)
+				let rgx = new RegExp('<img', 'i'), elements = this.currentElements, entries = this.getRange(y)
 				//console.log('selectionMemory upadeteRange', entries)
 				if(this.debug){
-					console.warn("UPDATING RANGE", entries, traceback())
+					console.warn("UPDATING RANGE", y, this._scrollContainer.scrollTop, entries, traceback())
 				}
 				entries.forEach(e => {
 					if(!elements[e.tabindex]) return
@@ -2074,7 +2074,7 @@ class Explorer extends ExplorerLoading {
 						}
 					}
 					if(this.debug){
-						console.warn(e.type, type, elements[e.tabindex], e.tabindex, this.selectedIndex)
+						//console.warn(e.type, type, elements[e.tabindex], e.tabindex, this.selectedIndex)
 					}
 					if(update){
 						if(e.lazy){
@@ -2085,7 +2085,7 @@ class Explorer extends ExplorerLoading {
 							tpl = this.templates[e.type]
 						}
 						let n = this.j(this.renderEntry(e, tpl, this.path)).get(0)
-						elements[e.tabindex].parentNode.replaceChild(n, elements[e.tabindex])
+						this._wrapper.replaceChild(n, elements[e.tabindex])
 						changed.push(n)
 					}
 				})
@@ -2097,7 +2097,7 @@ class Explorer extends ExplorerLoading {
 					}
 					this.currentElements = Array.from(this._wrapper.getElementsByTagName('a'))
 					this.emit('update-range', changed)
-					if(this.selectedIndex < this.range.start || this.selectedIndex >= this.range.end){
+					if(this.selectedIndex < this.range.start || this.selectedIndex > this.range.end){
 						this.focus(this.currentElements[this.range.start], true)
 					} else {
 						this.focus(this.currentElements[this.selectedIndex], true)

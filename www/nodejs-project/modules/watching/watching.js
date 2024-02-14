@@ -102,9 +102,6 @@ class Watching extends EntriesGroup {
         if (!global.lists.loaded()) {
             return [global.lists.manager.updatingListsEntry()]
         }
-        if(!global.lists.loaded(true)) {
-            return [global.lists.manager.noListsEntry()]
-        }
         await this.ready()
         let list = this.currentEntries ? global.deepClone(this.currentEntries, true) : []
         list = list.map((e, i) => {
@@ -131,6 +128,9 @@ class Watching extends EntriesGroup {
                     return true
                 }
             })
+        }
+        if(!global.lists.loaded(true)) {
+            es.unshift(global.lists.manager.noListsEntry())
         }
         return es
     }

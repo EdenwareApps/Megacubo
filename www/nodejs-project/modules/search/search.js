@@ -172,12 +172,6 @@ class Search extends Events {
             name: u, 
             url: global.mega.build(u, {terms, mediaType: this.searchMediaType})
         }
-        if(!global.lists.loaded()){
-            return [global.lists.manager.updatingListsEntry()]
-        }
-        if(!global.lists.loaded(true)) {
-            return [global.lists.manager.noListsEntry()]
-        }
         console.log('will search', terms, {
             partial: this.searchInaccurate, 
             type: this.searchMediaType, 
@@ -223,6 +217,9 @@ class Search extends Events {
             }
         }
         global.ui.emit('current-search', terms, this.searchMediaType)
+        if(!global.lists.loaded(true)) {
+            es.unshift(global.lists.manager.noListsEntry())
+        }
         return es
     }
     fixYTTitles(name){
@@ -314,9 +311,6 @@ class Search extends Events {
         if(!global.lists.loaded()){
             return [global.lists.manager.updatingListsEntry()]
         }
-        if(!global.lists.loaded(true)) {
-            return [global.lists.manager.noListsEntry()]
-        }
         let es = await global.channels.search(terms, this.searchInaccurate)
         es = es.map(e => global.channels.toMetaEntry(e))
         let minResultsWanted = (global.config.get('view-size-x') * global.config.get('view-size-y')) - 3
@@ -326,7 +320,11 @@ class Search extends Events {
                 es.push(...ys.slice(0, minResultsWanted - es.length))
             }
         }
-        return global.lists.sort(es)
+        es = global.lists.sort(es)        
+        if(!global.lists.loaded(true)) {
+            es.unshift(global.lists.manager.noListsEntry())
+        }
+        return es
     }
     isSearching(){
         return global.explorer.currentEntries.some(e => {
