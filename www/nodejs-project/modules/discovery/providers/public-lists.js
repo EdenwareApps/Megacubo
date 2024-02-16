@@ -46,9 +46,14 @@ class PublicLists extends Events {
             }))
         }
     }
-    async entries(){
+    async entries(local){
         await this.ready()
-        let entries = Object.keys(this.data).map(countryCode => {
+        let entries = Object.keys(this.data)
+        if(local === true) {
+            let locs = await global.lang.getActiveCountries(0).catch(console.error)
+            entries = entries.filter(e => locs.includes(e))
+        }
+        entries = entries.map(countryCode => {
             return {
                 name: this.countries.getCountryName(countryCode, global.lang.locale),
                 type: 'group',

@@ -110,7 +110,7 @@ class ListsEPGTools extends Index {
 			let currentScore = this.epgChannelsListSanityScore(data['categories'])
 			const limit = pLimit(3)
 			const tasks = Object.keys(this.lists).filter(url => {
-				return this.lists[url].index.meta['epg'].indexOf(this._epg.url) != -1 // use indexOf as it can be a comma delimited list
+				return this.lists[url].index.meta['epg'] && this.lists[url].index.meta['epg'].indexOf(this._epg.url) != -1 // use indexOf as it can be a comma delimited list
 			}).map(url => {
 				return async () => {
 					let categories = {}
@@ -825,7 +825,7 @@ class Lists extends ListsEPGTools {
 		}
 		const cachettl = 3600, now = global.time(), olen = list.length
 		if(typeof(this.directListRendererPrepareCache[url]) != 'undefined' && this.directListRendererPrepareCache[url].size == olen && this.directListRendererPrepareCache[url].time > (now - cachettl)){
-			return this.directListRendererPrepareCache[url].list
+			return this.directListRendererPrepareCache[url].list.slice(0) // clone it
 		}
 		if(list.length){
 			list = this.parentalControl.filter(list, true)
@@ -835,7 +835,7 @@ class Lists extends ListsEPGTools {
 		if(olen >= this.opts.offloadThreshold){
 			this.directListRendererPrepareCache[url] = {list, time: now, size: olen}
 		}
-		return list
+		return list.slice(0) // clone it to not alter cache
     }
 	isLocal(file){
 		if(typeof(file) != 'string'){

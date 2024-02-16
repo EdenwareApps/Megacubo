@@ -92,7 +92,7 @@ class Search extends Events {
         const rs = await this[mediaType == 'live' ? 'channelsResults' : 'results'](value).catch(e => err = e)
         global.osd.hide('search')
         if(Array.isArray(rs)){
-            console.log('results', rs)
+            console.log('results', rs.length)
             if(!rs.length && mediaType == 'live'){
                 return this.go(value, 'all')
             }

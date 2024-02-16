@@ -21,7 +21,7 @@ class OMNI extends Events {
                         return global.streamer.play(entry)
                     }
                 }
-            }     
+            }
             global.channels.search(text, true).then(results => {
                 if(results.length){
                     global.search.go(text, 'live')

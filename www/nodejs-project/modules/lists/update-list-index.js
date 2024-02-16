@@ -107,6 +107,7 @@ class UpdateListIndex extends ListIndexUtils {
                             this.contentLength = this.stream.totalContentLength
                         }
                         if(this.stream.totalContentLength > 0 && (this.stream.totalContentLength == this.updateMeta.contentLength)){
+                            console.log('UpdateListIndex fetch skipped')
                             this.stream.destroy()
                             resolve(false) // no need to update
                         } else {
@@ -123,7 +124,7 @@ class UpdateListIndex extends ListIndexUtils {
                 })
                 this.stream.on('end', () => {
                     if(this.debug){
-                        console.log('end')
+                        console.log('UpdateListIndex fetch end')
                     }
                     this.stream && this.stream.destroy()
                     if(!resolved) {
@@ -132,7 +133,7 @@ class UpdateListIndex extends ListIndexUtils {
                     }
                 })
                 this.stream.on('error', e => {
-                    if(this.debug) console.log('err', e)
+                    console.error('UpdateListIndex fetch err', e)
                 })
                 this.stream.start()
             } else {

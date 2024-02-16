@@ -151,7 +151,7 @@ class OMNI extends OMNIUtils {
     eventHandler(evt){
         if(!this.validateEvent(evt)) return
         if(evt.target && evt.target != this.rinput){
-            if(evt.key && evt.key.length == 1 && evt.key != ' '){
+            if(evt.key && evt.key.length == 1 && evt.key != ' ') {
                 this.defaultValue = evt.key
                 if(explorer.inPlayer() && !explorer.isExploring()) {
                     menuPlaying(true, true)
@@ -168,33 +168,35 @@ class OMNI extends OMNIUtils {
         if(this.typing){
             if(this.type != 'numeric' && this.typing.length == 1){
                 let lc = this.typing.toLowerCase(), pos = -1
-                explorer.currentEntries.some((n, i) => {
-					if(n.type == 'back') return
-                    if(n.name.charAt(0).toLowerCase() == lc){
-                        pos = i 
-                        return true
-                    }
-                })
-                if(pos < 0){
+                if(lc != '.' && lc != '*') {
                     explorer.currentEntries.some((n, i) => {
-					if(n.type == 'back') return
-                        if(n.name.charAt(0).toLowerCase() < lc){
+                        if(n.type == 'back') return
+                        if(n.name.charAt(0).toLowerCase() == lc){
                             pos = i 
-                        } else {
-							return true
-						}
+                            return true
+                        }
                     })
+                    if(pos < 0){
+                        explorer.currentEntries.some((n, i) => {
+                        if(n.type == 'back') return
+                            if(n.name.charAt(0).toLowerCase() < lc){
+                                pos = i 
+                            } else {
+                                return true
+                            }
+                        })
+                    }
+                    if(pos < 0){
+                        pos = explorer.currentEntries.length - 1
+                    }
+                    if(pos > 0){
+                        explorer.focus(explorer.currentElements[pos])
+                    }
+                    return
                 }
-                if(pos < 0){
-                    pos = explorer.currentEntries.length - 1
-                }
-                if(pos > 0){
-                    explorer.focus(explorer.currentElements[pos])
-                }
-            } else {
-                app.emit('omni', this.typing, this.type)
-                this.updateIcon('fas fa-circle-notch fa-spin')
             }
+            app.emit('omni', this.typing, this.type)
+            this.updateIcon('fas fa-circle-notch fa-spin')
         }
     }
 }

@@ -69,14 +69,14 @@ class CommunityLists {
                 fa: 'fas fa-satellite-dish',
                 type: 'group',
                 class: 'skip-testing',
-                renderer: global.lists.directListRenderer.bind(global.lists)
+                renderer: global.lists.manager.directListRenderer.bind(global.lists.manager)
             }
         }).filter(l => l)
         if(!entries.length){
             if(!global.lists.loaded()){
-                entries = [global.lists.updatingListsEntry()]
+                entries = [global.lists.manager.updatingListsEntry()]
             } else {
-                entries = [global.lists.noListsRetryEntry()]
+                entries = [global.lists.manager.noListsRetryEntry()]
             }
         }
         return entries

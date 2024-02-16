@@ -93,7 +93,7 @@ class Common extends Events {
 		this.sanitizeName = sanitizeName
 		this.Fetcher = Fetcher
 		this.searchRedirects = []
-		this.stopWords = ['sd', 'hd', 'h264', 'h.264', 'fhd'] // common words to ignore on searching
+		this.stopWords = ['sd', '4k', 'hd', 'h264', 'h.264', 'fhd', 'uhd'] // common words to ignore on searching
 		this.listMetaKeyPrefix = 'meta-cache-'
 		this.opts = {
 			defaultCommunityModeReach: 12,

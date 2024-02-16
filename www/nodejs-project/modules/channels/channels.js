@@ -1,23 +1,30 @@
 
 const path = require('path'), fs = require('fs'), Events = require('events'), pLimit = require('p-limit')
 
-class ChannelsList {
-    constructor(countries) {
+class ChannelsList extends Events {
+    constructor(type, countries) {
+        super()
+        this.type = type
         this.countries = countries
         this.key = 'categories-'+ countries.join('-')
         this.isChannelCache = {}
         this.channelsIndex = {}
         this.categories = {}
-        this.type = global.config.get('channel-grid')
-        if(this.type && this.type != 'lists') this.key += '-'+ this.type
+        this.key += '-'+ this.type        
     }
-    async load() {
+    ready() {
+        return new Promise(resolve => {
+            if(this.loaded) return resolve()
+            this.once('loaded', resolve)
+        })
+    }
+    async load(refresh) {
         let fine, data = await global.storage.get(this.key).catch(console.error)
         if(data){
             this.categories = data
             fine = true
         }
-        if(!fine) {
+        if(!fine || refresh) {
             let err
             data = await this.getDefaultCategories().catch(e => err = e)
             if(err) {
@@ -36,12 +43,14 @@ class ChannelsList {
         if(!this.categories || typeof(this.categories) != 'object'){
             this.categories = {}
         }
+        this.loaded = true
+        this.emit('loaded')
     }
     async reset() {        
         delete this.categories
         await global.storage.delete(this.key).catch(console.error)
         global.config.set('channel-grid', '')
-        await this.load()
+        await this.load(true)
     }
     async getAdultCategories(){
         return await global.cloud.get('channels/adult')
@@ -49,6 +58,64 @@ class ChannelsList {
     async getEPGCategories() {
         const data = await global.lists.epgLiveNowChannelsList()
         return data.categories
+    }
+    async getPublicListsCategories() {
+        const ret = {}
+        const groups = await global.discovery.providers.find(p => p[1] == 'public')[0].entries(true)
+        for(const group of groups) {
+            if(!group.renderer) continue
+            const entries = await group.renderer(group).catch(console.error)
+            if(Array.isArray(entries)) {
+                ret[group.name] = entries.filter(e => e.type != 'action').map(e => e.name)
+            }
+        }
+        return ret
+    }
+    async getListsCategories() {
+        const ret = {}
+        const groups = await global.lists.groups(['live'], true)
+        for(const group of groups) {
+            const entries = await global.lists.group(group).catch(console.error)
+            if(Array.isArray(entries)) {
+                let es = entries.map(e => {
+                    return e.name.split(' ').filter(w => {
+                        return w && !global.lists.stopWords.includes(w.toLowerCase())
+                    }).join(' ')
+                }).unique()
+                if(es.length) ret[group.name] = es
+            }
+        }
+        return ret
+    }
+    async getAppRecommendedCategories(amount=256) {
+        let data = {}, weighted = true
+        const completed = c => {
+            return this.mapSize(data) >= amount
+        }
+        const processCountry = async country => {
+            let err
+            const isMainCountry = this.countries[0] == country
+            if(!isMainCountry && completed()) throw 'completed'
+            const map = await global.cloud.get('channels/' + country).catch(e => err = e)
+            if(err) return
+            if(!isMainCountry && completed()) throw 'completed'
+            data = await this.applyMapCategories(map, data, amount, isMainCountry ? false : weighted)
+        }
+        const limit = pLimit(2)
+        const tasks = () => this.countries.map(country => {
+            return limit(async () => {
+                return await processCountry(country)
+            })
+        })
+        if(this.countries.length) {
+            await Promise.allSettled(tasks()).catch(console.error)
+            if(!completed()){
+                data = {}
+                weighted = false
+                await Promise.allSettled(tasks()).catch(console.error)
+            }
+        }
+        return data
     }
     updateChannelsIndex(refresh){
         if(refresh === true || !this.channelsIndex || !Object.keys(this.channelsIndex).length){
@@ -89,41 +156,18 @@ class ChannelsList {
         let nk = global.lang[lk] || k
         return nk
     }
-    async getDefaultCategories(amount=256){
-        const type = global.config.get('channel-grid')
-        if(type == 'xxx') {
-            return await this.getAdultCategories()
-        } else if(type == 'epg') {
-            return await this.getEPGCategories()
+    async getDefaultCategories(){
+        switch(this.type) {
+            case 'public':
+                return await this.getPublicListsCategories()
+            case 'lists':
+                return await this.getListsCategories()
+            case 'xxx':
+                return await this.getAdultCategories()
+            case 'epg':
+                return await this.getEPGCategories()
         }
-        let data = {}, weighted = true
-        const completed = c => {
-            return this.mapSize(data) >= amount
-        }
-        const processCountry = async country => {
-            let err
-            const isMainCountry = this.countries[0] == country
-            if(!isMainCountry && completed()) throw 'completed'
-            const map = await global.cloud.get('channels/' + country).catch(e => err = e)
-            if(err) return
-            if(!isMainCountry && completed()) throw 'completed'
-            data = await this.applyMapCategories(map, data, amount, isMainCountry ? false : weighted)
-        }
-        const limit = pLimit(2)
-        const tasks = () => this.countries.map(country => {
-            return limit(async () => {
-                return await processCountry(country)
-            })
-        })
-        if(this.countries.length) {
-            await Promise.allSettled(tasks()).catch(console.error)
-            if(!completed()){
-                data = {}
-                weighted = false
-                await Promise.allSettled(tasks()).catch(console.error)
-            }
-        }
-        return data
+        return await this.getAppRecommendedCategories()
     }   
     getCategories(compact){
         return compact ? this.categories : this.expand(this.categories)
@@ -201,6 +245,8 @@ class ChannelsList {
     }
     destroy() {
         this.destroyed = true
+        this.loaded = true
+        this.emit('loaded')
     }
 }
 
@@ -214,12 +260,13 @@ class ChannelsData extends Events {
             class: 'entry-empty'
         }
 		global.config.on('change', async (keys, data) => {
-            if(['parental-control', 'parental-control-terms'].some(k => keys.includes(k))){
-                await this.load()
+            if(['parental-control', 'parental-control-terms', 'lists'].some(k => keys.includes(k))){
+                await this.load(true)
             }
         })
         this.radioTerms = ['radio', 'fm', 'am']
         this.load().catch(console.error)
+        global.lists.manager.waitListsReady().then(() => this.load()).catch(console.error)
     }
     ready(cb){
         if(this.loaded){
@@ -228,17 +275,24 @@ class ChannelsData extends Events {
             this.once('loaded', cb)
         }
     }
-    async load(){
+    async load(refresh){
+        const hasOwnLists = global.config.get('lists').length
+        const publicMode = global.config.get('public-lists') && !global.lists.loaded(true) // no list available on index beyound public lists
         const countries = await global.lang.getActiveCountries(0)
+        const parentalControlActive = ['remove', 'block'].includes(global.config.get('parental-control'))
+        let type = global.config.get('channel-grid')
+        if(!type || (type == 'lists' && !hasOwnLists) || (type == 'xxx' && parentalControlActive)) {
+            type = hasOwnLists ? 'lists' : (publicMode ? 'public' : 'app')
+        }
         if(
             !this.channelList || 
-            this.channelList.type != global.config.get('channel-grid') || 
+            this.channelList.type != type || 
             JSON.stringify(this.channelList.countries) != JSON.stringify(countries)
         ) {
             this.channelList && this.channelList.destroy()
-            this.channelList = new ChannelsList(countries)
+            this.channelList = new ChannelsList(type, countries)
         }
-        await this.channelList.load()
+        await this.channelList.load(refresh)
         this.loaded = true
         this.emit('loaded')
     }
@@ -1084,9 +1138,10 @@ class Channels extends ChannelsKids {
                 terms = global.lists.terms(terms)
             }
             let epgEntries = [], entries = [], already = {}
+            let matchAll = !terms.length || (terms.length == 1 && terms[0] == '*')
             Object.keys(this.channelList.channelsIndex).sort().forEach(name => {
                 if(typeof(already[name]) == 'undefined'){
-                    let score = this.cmatch(this.channelList.channelsIndex[name], terms, partial)
+                    let score = matchAll ? 1 : this.cmatch(this.channelList.channelsIndex[name], terms, partial)
                     if(score){
                         already[name] = null
                         entries.push({
@@ -1330,24 +1385,20 @@ class Channels extends ChannelsKids {
         }
         return meta
     }
-    keywords(){
-        return new Promise((resolve, reject) => {
-            this.ready(() => {
-                let keywords = [], badChrs = ['|', '-']
-                this.channelList.getDefaultCategories().then(data => {
-                    keywords.push(...Object.values(data).flat().map(n => this.channelList.expandName(n).terms.name).flat())
-                }).catch(reject).finally(() => {
-                    keywords = keywords.unique().filter(w => !badChrs.includes(w.charAt(0)))
-                    resolve(keywords)
-                })
-            })
-        })
+    async keywords(){
+        let err, keywords = [], badChrs = ['|', '-']
+        const data = await this.channelList.getAppRecommendedCategories().catch(e => err = e)
+        if(!err) {
+            keywords.push(...Object.values(data).flat().map(n => this.channelList.expandName(n).terms.name).flat())
+        }
+        keywords = keywords.unique().filter(w => !badChrs.includes(w.charAt(0)))
+        return keywords
     }
     async setGridType(type){
         global.osd.show(global.lang.PROCESSING, 'fas fa-circle-notch fa-spin', 'channel-grid', 'persistent')
         global.config.set('channel-grid', type)
         let err
-        await this.load().catch(e => err = e)
+        await this.load(true).catch(e => err = e)
         if(err) return global.osd.show(err, 'fas fa-exclamation-triangle faclr-red', 'channel-grid', 'normal')
         this.emit('channel-grid-updated')
         global.explorer.once('render', () => {
@@ -1363,32 +1414,26 @@ class Channels extends ChannelsKids {
         const publicMode = global.config.get('public-lists') && !global.lists.loaded(true) // no list available on index beyound public lists
         const type = publicMode ? 'public' : global.config.get('channel-grid')
         const editable = !type && global.config.get('allow-edit-channel-list')
-        if(type == 'public') {
-            list = await global.discovery.providers.find(p => p[1] == 'public')[0].entries()
-        } else if(type == 'lists') {
-            list = await this.groupsRenderer('live')
-        } else {
-            const categories = this.channelList.getCategories()
-            list = categories.map(category => {
-                category.renderer = async (c, e) => {
-                    let times = {}, startTime = global.time()
-                    let channels = category.entries.map(e => this.isChannel(e.name)).filter(e => !!e)
-                    const ret = await global.lists.has(channels, {partial: false})
-                    times['has'] = global.time() - startTime
-                    let entries = category.entries.filter(e => ret[e.name])
-                    entries = entries.map(e => this.toMetaEntry(e, category))
-                    times['meta'] = global.time() - startTime - times['has']
-                    entries = await this.epgChannelsAddLiveNow(entries, true)
-                    entries = this.sortCategoryEntries(entries)
-                    editable && entries.push(this.editCategoryEntry(c))
-                    times['epg'] = global.time() - startTime - times['has'] - times['meta']
-                    return entries
-                }
-                return category
-            })
-            list = global.lists.sort(list)
-            list.push(this.allCategoriesEntry())
-        }
+        const categories = await this.channelList.getCategories()
+        list = categories.map(category => {
+            category.renderer = async (c, e) => {
+                let times = {}, startTime = global.time()
+                let channels = category.entries.map(e => this.isChannel(e.name)).filter(e => !!e)
+                const ret = await global.lists.has(channels, {partial: false})
+                times['has'] = global.time() - startTime
+                let entries = category.entries.filter(e => ret[e.name])
+                entries = entries.map(e => this.toMetaEntry(e, category))
+                times['meta'] = global.time() - startTime - times['has']
+                entries = await this.epgChannelsAddLiveNow(entries, true)
+                entries = this.sortCategoryEntries(entries)
+                editable && entries.push(this.editCategoryEntry(c))
+                times['epg'] = global.time() - startTime - times['has'] - times['meta']
+                return entries
+            }
+            return category
+        })
+        list = global.lists.sort(list)
+        list.push(this.allCategoriesEntry())
         editable && list.push(this.getCategoryEntry())
         list.unshift(this.chooseChannelGridOption())
         publicMode && list.unshift(global.lists.manager.noListsEntry())
@@ -1423,23 +1468,30 @@ class Channels extends ChannelsKids {
             fa: 'fas fa-th',
             renderer: async () => {
                 const def = global.config.get('channel-grid'), opts = [
-                    {name: global.lang.DEFAULT +' ('+ global.lang.RECOMMENDED +')', type: 'action', selected: !def, action: () => {
+                    {name: global.lang.AUTO +' ('+ global.lang.RECOMMENDED +')', type: 'action', selected: !def, action: () => {
                         this.setGridType('').catch(console.error)
+                    }},
+                    {name: global.lang.DEFAULT, type: 'action', selected: def == 'app', action: () => {
+                        this.setGridType('app').catch(console.error)
                     }},
                     {name: global.lang.EPG, type: 'action', selected: def == 'epg', action: () => {
                         this.setGridType('epg').catch(console.error)
                     }}
                 ]
                 if(epgFocused !== true) {
-                    opts.push(...[
-                        {name: global.lang.IPTV_LISTS, type: 'action', selected: def == 'lists', action: () => {
-                            this.setGridType('lists').catch(console.error)
-                        }},
-                        this.exportImportOption()
-                    ])
+                    if(global.config.get('lists').length) {
+                        opts.push({
+                            name: global.lang.MY_LISTS, type: 'action', 
+                            selected: def == 'lists',
+                            action: () => {
+                                this.setGridType('lists').catch(console.error)
+                            }
+                        })
+                    }
+                    opts.push(this.exportImportOption())
                 }
                 if(global.config.get('parental-control') != 'remove') {
-                    opts.splice(3, 0, {name: global.lang.ADULT_CONTENT, type: 'action', selected: def == 'xxx', action: () => {
+                    opts.splice(opts.length - 2, 0, {name: global.lang.ADULT_CONTENT, type: 'action', selected: def == 'xxx', action: () => {
                         this.setGridType('xxx').catch(console.error)
                     }})
                 }
@@ -1623,7 +1675,7 @@ class Channels extends ChannelsKids {
             return [global.lists.manager.updatingListsEntry()]
         }
         const isSeries = type == 'series'
-        let groups = await global.lists.groups(type ? [type] : ['series', 'vod'])
+        let groups = await global.lists.groups(type ? [type] : ['series', 'vod'], opts.myListsOnly)
         if(!groups.length && !global.lists.loaded(true)){
             return [global.lists.manager.noListsEntry()]
         }
@@ -1682,9 +1734,11 @@ class Channels extends ChannelsKids {
             }
         }
         let pentries = parentalFilter(groups).map(group => groupToEntry(group))
-        const deepEntries = await global.lists.tools.deepify(pentries).catch(console.error)
-        if(Array.isArray(deepEntries)) {
-            pentries = deepEntries
+        if(opts.deepify !== false) {
+            const deepEntries = await global.lists.tools.deepify(pentries).catch(console.error)
+            if(Array.isArray(deepEntries)) {
+                pentries = deepEntries
+            }
         }
         return pentries
     }

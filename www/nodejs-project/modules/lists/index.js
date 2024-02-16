@@ -63,7 +63,7 @@ class Index extends Common {
 					aterms.push(term)
 				}
 			})
-			let needles = aterms.join(' ').split(' | ').map(s => s.split(' '))
+			const needles = aterms.join(' ').split(' | ').map(s => s.replaceAll('|', '').split(' '))
 			return {
 				excludes,
 				queries: needles.map(nterms => {
@@ -450,9 +450,13 @@ class Index extends Common {
 	cloneMap(a){
 		return global.deepClone(a)
 	}
-	async groups(types){
+	async groups(types, myListsOnly){
 		let groups = [], map = {}
+		if(myListsOnly) {
+			myListsOnly = global.config.get('lists').map(l => l[1])
+		}
 		Object.keys(this.lists).forEach(url => {
+			if(myListsOnly && !myListsOnly.includes(url)) return
 			let entries = this.lists[url].index.groupsTypes
 			types.forEach(type => {
 				if(!entries || !entries[type]) return
