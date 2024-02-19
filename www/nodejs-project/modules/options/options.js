@@ -1034,7 +1034,7 @@ class Options extends OptionsExportImport {
                 fa: 'fas fa-plug', 
                 type: 'slider', 
                 mask: 'time',
-                range: {start: 3, end: 30},
+                range: {start: 3, end: 60},
                 action: (data, value) => {
                     global.config.set('connect-timeout-secs', value)
                 }, 

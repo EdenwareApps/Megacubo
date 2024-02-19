@@ -49,7 +49,7 @@ function theming(image, video, color, fontColor, animate){
 	console.warn('theming', image, video, color, fontColor, animate);
 	var bg = document.getElementById('background'), splash = document.getElementById('splash'), data = localStorage.getItem('background-data');
 	var defaultData = {
-		image: screen.width > 1920 ? './assets/images/background-3840x2160.png' : './assets/images/background-1920x1080.png', 
+		image: screen.width > 1920 ? './assets/images/background-3840x2160.jpg' : './assets/images/background-1920x1080.jpg', 
 		video: '', 
 		color: '#15002C', 
 		fontColor: '#FFFFFF', 

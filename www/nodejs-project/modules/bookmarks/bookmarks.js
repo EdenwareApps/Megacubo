@@ -38,9 +38,11 @@ class Bookmarks extends EntriesGroup {
     hook(entries, path){
         if(!path) {
             const bmEntry = {name: global.lang.BOOKMARKS, fa: 'fas fa-star', type: 'group', renderer: this.entries.bind(this)}
+            if(this.data.length) bmEntry.details = this.data.map(e => e.name).unique().slice(0, 3).join(', ') +'...'
             global.options.insertEntry(bmEntry, entries, -3, global.lang.MY_LISTS, global.lang.CATEGORY_MOVIES_SERIES)
+            return entries
         }
-        let isBookmarkable = path.startsWith(global.lang.CATEGORY_MOVIES_SERIES) || path.startsWith(global.lang.LIVE +'/'+ global.lang.MORE) || path.startsWith(global.lang.BOOKMARKS)
+        let isBookmarkable = path.startsWith(global.lang.CATEGORY_MOVIES_SERIES) || path.startsWith(global.lang.SEARCH) || path.startsWith(global.lang.LIVE +'/'+ global.lang.MORE) || path.startsWith(global.lang.BOOKMARKS)
         if(!isBookmarkable && path.startsWith(global.lang.MY_LISTS) && !entries.some(this.groupFilter)){
             isBookmarkable = true
         }

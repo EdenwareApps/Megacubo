@@ -24,7 +24,7 @@ class Index extends Common {
 			if(!terms.length){
                 return resolve({})
             }
-            terms.forEach(t => {				
+            terms.forEach(t => {
                 ret[t.name] = Array.isArray(t.terms) ? t.terms : this.terms(t.terms)
 				results[t.name] = false
 			})
@@ -254,9 +254,14 @@ class Index extends Common {
 			}
 			let results = []
 			ks.forEach(listUrl => {
-				let ls = smap[listUrl]['n']
-				if(opts.group){
-					ls.push(...smap[listUrl]['g'])
+				let ls
+				if(opts.groupsOnly) {
+					ls = smap[listUrl]['g']
+				} else {
+					ls = smap[listUrl]['n']
+					if(opts.group){
+						ls.push(...smap[listUrl]['g'])
+					}
 				}
 				smap[listUrl] = ls
 			})

@@ -1617,11 +1617,22 @@ class Channels extends ChannelsKids {
                     name: global.lang.ONLY_KNOWN_CHANNELS_IN_X.format(global.lang.TRENDING),
                     type: 'check',
                     action: (e, checked) => {
-                        global.config.set('only-known-channels-in-been-watched', checked)
+                        global.config.set('only-known-channels-in-trending', checked)
                         global.watching.update().catch(console.error)
                     }, 
                     checked: () => {
-                        return global.config.get('only-known-channels-in-been-watched')
+                        return global.config.get('only-known-channels-in-trending')
+                    }
+                },
+                {
+                    name: global.lang.SHOW_POPULAR_SEARCHES.format(global.lang.TRENDING),
+                    type: 'check',
+                    action: (e, checked) => {
+                        global.config.set('popular-searches-in-trending', checked)
+                        global.watching.update().catch(console.error)
+                    }, 
+                    checked: () => {
+                        return global.config.get('popular-searches-in-trending')
                     }
                 },
                 {

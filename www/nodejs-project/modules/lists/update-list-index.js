@@ -16,6 +16,7 @@ class UpdateListIndex extends ListIndexUtils {
         this.forceDownload = forceDownload === true
         this.uid = parseInt(Math.random() * 100000000000)
         this.tmpOutputFile = global.paths.temp +'/'+ this.uid +'.out.tmp'
+        this.timeout = global.config.get('read-timeout')
         this.linesMapPtr = 0
         this.linesMap = []
         this.debug = false
@@ -79,7 +80,7 @@ class UpdateListIndex extends ListIndexUtils {
                 path = 'http:' + path
             }
             if(path.match(new RegExp('^https?:'))){
-                console.error('UpdateListIndex fetch '+ path)
+                console.error('UpdateListIndex fetch '+ path +' ('+ this.timeout +')')
                 let resolved
                 const opts = {
                     debug: this.debug,
@@ -90,7 +91,7 @@ class UpdateListIndex extends ListIndexUtils {
                     headers: {
                         'accept-charset': 'utf-8, *;q=0.1'
                     },
-                    timeout: global.config.get('read-timeout'), // some servers will take too long to send the initial response
+                    timeout: this.timeout, // some servers will take too long to send the initial response
                     downloadLimit: 200 * (1024 * 1024), // 200Mb
                     encoding: 'utf8'
                 }

@@ -414,6 +414,7 @@
    "SHOULD_RESTART": "Reinicie la aplicación para que los cambios surtan efecto",
    "SHOW_FUN_LETTERS": "Mostrar títulos divertidos en la categoría \"{0}\"",
    "SHOW_LOGOS": "Mostrar logos",
+   "SHOW_POPULAR_SEARCHES": "Muestre buscas populares en \"{0}\"",
    "SHOW_UNSUPPORTED_VERSIONS": "Mostrar versiones no compatibles",
    "SHUTDOWN": "Shutdown",
    "SKIP": "Saltar",

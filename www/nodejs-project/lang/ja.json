@@ -414,6 +414,7 @@
    "SHOULD_RESTART": "変更が有効になるためにMegaCuboを再起動します",
    "SHOW_FUN_LETTERS": "カテゴリ「{0}」で楽しいタイトルを表示する",
    "SHOW_LOGOS": "ロゴを表示します",
+   "SHOW_POPULAR_SEARCHES": "「{0}」で人気のある研究を見せる",
    "SHOW_UNSUPPORTED_VERSIONS": "サポートされていないバージョンを表示します",
    "SHUTDOWN": "シャットダウン",
    "SKIP": "スキップ",

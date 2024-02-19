@@ -166,28 +166,34 @@ class Search extends Events {
         }
         return es
     }
-    async results(terms){
-        let u = global.ucWords(terms)
-        this.currentSearch = {
-            name: u, 
-            url: global.mega.build(u, {terms, mediaType: this.searchMediaType})
-        }
-        console.log('will search', terms, {
-            partial: this.searchInaccurate, 
-            type: this.searchMediaType, 
-            typeStrict: this.searchStrict,
-            group: this.searchMediaType != 'live'
+    async searchGroups(terms) {
+        const map = {}, entries = []
+        const es = await this.search(terms, {groupsOnly: true})
+        es.forEach(e => {
+            if(typeof(map[e.source]) == 'undefined') map[e.source] = {}
+            if(typeof(map[e.source][e.groupName]) == 'undefined') map[e.source][e.groupName] = {}
         })
+        Object.keys(map).forEach(url => {
+            Object.keys(map[url]).forEach(name => {
+                entries.push({name, type: 'group', renderer: () => global.lists.group({group: name, url})})
+            })
+        })
+        return global.lists.sort(entries)
+    }
+    async search(terms, atts={}) {
         const policy = global.config.get('parental-control')
         const parentalControlActive = ['remove', 'block'].includes(policy)
-        const isAdultQueryBlocked = policy == 'remove' && !global.lists.parentalControl.allow(u)
-        let es = await global.lists.search(terms, {
+        const isAdultQueryBlocked = policy == 'remove' && !global.lists.parentalControl.allow(terms)
+        const opts = {
             partial: this.searchInaccurate, 
             type: this.searchMediaType, 
             typeStrict: this.searchStrict,
             group: this.searchMediaType != 'live',
             parentalControl: policy == 'remove' ? false : undefined // allow us to count blocked results
-        })
+        }
+        Object.assign(opts, atts)
+        console.log('will search', terms, opts)
+        let es = await global.lists.search(terms, opts)
         es = (es.results && es.results.length) ? es.results : ((es.maybe && es.maybe.length) ? es.maybe : [])
         console.log('has searched', terms, es.length, parentalControlActive, isAdultQueryBlocked)
         if(isAdultQueryBlocked) {
@@ -216,6 +222,15 @@ class Search extends Events {
                 es = global.lists.parentalControl.filter(es)
             }
         }
+        return es
+    }
+    async results(terms){
+        let u = global.ucWords(terms)
+        this.currentSearch = {
+            name: u, 
+            url: global.mega.build(u, {terms, mediaType: this.searchMediaType})
+        }
+        const es = await this.search(terms)
         global.ui.emit('current-search', terms, this.searchMediaType)
         if(!global.lists.loaded(true)) {
             es.unshift(global.lists.manager.noListsEntry())
@@ -313,14 +328,15 @@ class Search extends Events {
         }
         let es = await global.channels.search(terms, this.searchInaccurate)
         es = es.map(e => global.channels.toMetaEntry(e))
+        const gs = await this.searchGroups(terms)
+        es.push(...gs.map(e => e))
         let minResultsWanted = (global.config.get('view-size-x') * global.config.get('view-size-y')) - 3
         if(global.config.get('search-youtube') && es.length < minResultsWanted){
             let ys = await this.ytLiveResults(terms).catch(console.error)
             if(Array.isArray(ys)) {
                 es.push(...ys.slice(0, minResultsWanted - es.length))
             }
-        }
-        es = global.lists.sort(es)        
+        }     
         if(!global.lists.loaded(true)) {
             es.unshift(global.lists.manager.noListsEntry())
         }

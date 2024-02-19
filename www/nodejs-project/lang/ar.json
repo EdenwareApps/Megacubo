@@ -414,6 +414,7 @@
    "SHOULD_RESTART": "أعد تشغيل Megacubo بحيث يكون للتغييرات تأثير",
    "SHOW_FUN_LETTERS": "إظهار عناوين ممتعة في الفئة \"{0}\"",
    "SHOW_LOGOS": "عرض الشعارات",
+   "SHOW_POPULAR_SEARCHES": "عرض البحوث الشعبية في \"{0}\"",
    "SHOW_UNSUPPORTED_VERSIONS": "إظهار الإصدارات الغير مدعومة",
    "SHUTDOWN": "إيقاف التشغيل",
    "SKIP": "تخطي",

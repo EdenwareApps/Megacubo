@@ -210,16 +210,20 @@ class ListsLoader extends Events {
         }
         urls.filter(u => this.pings[u] == 0).forEach(u => delete this.pings[u])
     }
-    async addListNow(url, progress) { // reserved for manual list adding
+    async addListNow(url, atts={}) { // reserved for manual list adding
         const uid = parseInt(Math.random() * 1000000)
         const progressListener = p => {
-            if(p.progressId == uid) progress(p.progress)
-        }
+            if(p.progressId == uid) atts.progress(p.progress)
+        }                                                                                                                                                                                                             
         await global.Download.waitNetworkConnection()
         await this.prepareUpdater()
-        progress && this.updater.on('progress', progressListener)
-        await this.updater.update(url, {uid}).catch(console.error)
-        progress && this.updater.removeListener('progress', progressListener)
+        atts.progress && this.updater.on('progress', progressListener)
+        console.error('addListNow '+ JSON.stringify(atts))
+        await this.updater.update(url, {
+            uid,
+            timeout: atts.timeout
+        }).catch(console.error)
+        atts.progress && this.updater.removeListener('progress', progressListener)
         this.updater && this.updater.close && this.updater.close()  
         this.master.addList(url, 1)
     }

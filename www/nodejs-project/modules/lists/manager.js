@@ -469,7 +469,7 @@ class Manager extends ManagerEPG {
             progress: p => {
                 global.osd.show(global.lang.RECEIVING_LIST +' '+ p +'%', 'fa-mega spin-x-alt', 'add-list-progress-'+ uid, 'persistent')
             },
-            timeout: global.config.get('read-timeout')
+            timeout: Math.max(90, global.config.get('read-timeout')) // some servers take too long to respond with the list
         }, this.master)
         let err, entries = await fetch.getMap().catch(e => err = e)
         this.addingList = false

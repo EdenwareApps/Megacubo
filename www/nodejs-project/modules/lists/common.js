@@ -37,7 +37,7 @@ class Fetcher extends Events {
 			this.list.skipValidating = true
 			this.list.start().then(resolve).catch(err => {
 				this.error = err
-				this.master.loader.addListNow(this.url, this.atts.progress).then(() => {
+				this.master.loader.addListNow(this.url, this.atts).then(() => {
 					this.list.start().then(resolve).catch(err => {
 						this.error += ' '+ err
 						this.list.destroy()

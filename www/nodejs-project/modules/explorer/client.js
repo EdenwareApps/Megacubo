@@ -557,8 +557,8 @@ class ExplorerPointer extends ExplorerSelectionMemory {
                 if(this.debug) {
                     console.log('pointer selectedIndex =', a.tabIndex, a)
                 }
-				//console.log('AVOID SCROLL', avoidScroll, a.offsetTop, this._scrollContainer.scrollTop, this._scrollContainer.offsetHeight, traceback())
 				if(avoidScroll && (a.offsetTop < this._scrollContainer.scrollTop || a.offsetTop >= (this._scrollContainer.scrollTop + this._scrollContainer.offsetHeight - 4))){
+					console.log('AVOID SCROLL IGNORED', a.offsetTop, [this._scrollContainer.scrollTop, this._scrollContainer.offsetHeight], traceback())
 					avoidScroll = false
 				}
                 if(!avoidScroll) {
@@ -2058,10 +2058,11 @@ class Explorer extends ExplorerLoading {
 		if(this.ranging){
 			const changed = [], shouldUpdateRange = config['show-logos'] && this.currentEntries.length > (this.viewSizeX * this.viewSizeY)
 			if(shouldUpdateRange){
-				let rgx = new RegExp('<img', 'i'), elements = this.currentElements, entries = this.getRange(y)
+				const rgx = new RegExp('<img', 'i'), elements = this.currentElements
+				const currentScrolltop = this._scrollContainer.scrollTop, entries = this.getRange(y)
 				//console.log('selectionMemory upadeteRange', entries)
 				if(this.debug){
-					console.warn("UPDATING RANGE", y, this._scrollContainer.scrollTop, entries, traceback())
+					console.warn("UPDATING RANGE", y, currentScrolltop, entries, traceback())
 				}
 				entries.forEach(e => {
 					if(!elements[e.tabindex]) return
@@ -2089,6 +2090,7 @@ class Explorer extends ExplorerLoading {
 						changed.push(n)
 					}
 				})
+				this._scrollContainer.scrollTop = currentScrolltop // scroll was somehow being changed from function start to this point
 				this.app.emit('explorer-update-range', this.range, this.path)
 				if(changed.length){
 					if(this.debug){

@@ -8,7 +8,7 @@ class Watching extends EntriesGroup {
         this.currentRawEntries = null
         this.updateIntervalSecs = global.cloud.expires['watching-country'] || 300
         global.config.on('change', (keys, data) => {
-            if (keys.includes('only-known-channels-in-been-watched') || keys.includes('parental-control') || keys.includes('parental-control-terms')) {
+            if (keys.includes('only-known-channels-in-trending') || keys.includes('popular-searches-in-trending') || keys.includes('parental-control') || keys.includes('parental-control-terms')) {
                 this.update().catch(console.error)
             }
         })
@@ -186,13 +186,24 @@ class Watching extends EntriesGroup {
         })
         data = global.lists.parentalControl.filter(data)
         this.currentRawEntries = data.slice(0)
-        const adultContentOnly = global.config.get('parental-control') == 'only', onlyKnownChannels = !adultContentOnly && global.config.get('only-known-channels-in-been-watched')
-        let groups = {}, gcount = {}, gentries = []
-        let sentries = await global.search.searchSuggestionEntries()
-        let gsearches = [], searchTerms = sentries.map(s => s.search_term).filter(s => s.length >= 3).filter(s => !global.channels.isChannel(s)).filter(s => global.lists.parentalControl.allow(s)).map(s => global.lists.terms(s))
+        let searchTerms = [], groups = {}, gcount = {},  gsearches = [], gentries = []
+        const adultContentOnly = global.config.get('parental-control') == 'only'
+        const onlyKnownChannels = !adultContentOnly && global.config.get('only-known-channels-in-trending')
+        const popularSearches = global.config.get('popular-searches-in-trending')
+        if(popularSearches) {
+            const sdata = {}, sentries = await global.search.searchSuggestionEntries()
+            sentries.map(s => s.search_term).filter(s => s.length >= 3).filter(s => !global.channels.isChannel(s)).filter(s => global.lists.parentalControl.allow(s)).forEach(name => {
+                sdata[name] = {name, terms: global.lists.terms(name)}
+            })
+            const filtered = await global.lists.has(Object.values(sdata))
+            Object.keys(filtered).forEach(name => {
+                if(!filtered[name]) return
+                searchTerms.push(sdata[name].terms)
+            })
+        }
         data.forEach((entry, i) => {
             let ch = global.channels.isChannel(entry.terms.name)
-            if (!ch) {
+            if (popularSearches && !ch) {
                 searchTerms.some(terms => {
                     if (global.lists.match(terms, entry.terms.name)) {
                         const name = terms.join(' ')
