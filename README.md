@@ -3,7 +3,7 @@
   <img src="https://static.megacubo.tv/wp-content/uploads/2022/03/cropped-default_icon-192x192.png" alt="Megacubo logo" title="Megacubo logo" />
 </p>
 
-Megacubo is an intuitive, free, multi-language and cross-platform IPTV player with support for history, bookmarks, EPG based recommendarions and much more.
+Megacubo is an intuitive, free, multi-language and cross-platform IPTV player with support for history, bookmarks, smart recommendations, [hotkeys](https://github.com/EdenwareApps/Megacubo/issues) and much more.
 
 You can add as many IPTV lists you want (supports M3U, Xtream and MAG device lists) and with Miniplayer mode, you can work or navigate while watching any broadcast.
 
