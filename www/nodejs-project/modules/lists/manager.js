@@ -832,17 +832,9 @@ class Manager extends ManagerEPG {
             return await this.addList(id)
         }
     }
-    addListDialogFile(){
-        return new Promise((resolve, reject) => {
-            const id = 'add-list-dialog-file-'+ parseInt(10000000 * Math.random())
-            global.ui.once(id, data => {
-                console.error('!!! IMPORT M3U FILE !!! '+ JSON.stringify(data))
-                global.ui.resolveFileFromClient(data).then(file => {
-                    this.addList(file).then(resolve).catch(reject)
-                }).catch(reject)
-            })
-            global.ui.emit('open-file', global.ui.uploadURL, id, 'audio/x-mpegurl', global.lang.OPEN_M3U_FILE)
-        })
+    async addListDialogFile(){
+        const file = await global.explorer.chooseFile('audio/x-mpegurl')
+        return await this.addList(file)
     }
     async communityModeDialog(){     
         let choose = await global.explorer.dialog([

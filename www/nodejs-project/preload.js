@@ -23,7 +23,7 @@ function getElectron() {
 
 const { contextBridge, ipcRenderer, getGlobal, screen, app, shell, Tray, Menu } = getElectron()
 const Events = require('events'), path = require('path'), fs = require('fs')
-const Download = getGlobal('Download'), paths = getGlobal('paths')
+const Download = getGlobal('Download'), paths = getGlobal('paths'), config = getGlobal('config')
 const { spawn } = require('child_process')
 
 function download(opts) {
@@ -245,6 +245,10 @@ class ExternalPlayer {
 				const name = this.players.filter(r => r.processName == p).shift().playerName
 				results[name] = available[p].sort((a, b) => a.length - b.length).shift()
 			})
+			const c = config.get('external-player')
+			if(Array.isArray(c)) {
+				results[c[1]] = c[0]
+			}
 			return results
 		}
 	}

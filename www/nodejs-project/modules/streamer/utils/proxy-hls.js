@@ -190,6 +190,7 @@ class HLSRequests extends StreamerProxyBase {
 		})
 		if(lastDownloadingKey){
 			for(const k of Object.keys(journal).slice(lastDownloadingKeyIndex + 1)) {
+				if(!journal[k]) continue
 				const line = journal[k].split("\n").filter(line => {
 					return line.length > 3 && !line.startsWith('#')
 				}).shift().trim()

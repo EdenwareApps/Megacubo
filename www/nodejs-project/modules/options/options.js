@@ -399,21 +399,15 @@ class OptionsExportImport extends OptionsGPU {
             cb(err, file)
         })
     }
-    async import(data){
-        const sample = String(data.slice(0, 12))
-        if(sample.startsWith('{') || sample.startsWith('[')){ // is json?
-            this.importConfigFile(data)            
+    async import(file){
+        if(file.endsWith('.json')){ // is json?
+            this.importConfigFile(await fs.promises.readFile(file))            
             global.osd.show(global.lang.IMPORTED_FILE, 'fas fa-check-circle', 'options', 'normal')
         } else {
             let err
-            const zipFile = global.paths.temp +'/temp.zip'
-            await fs.promises.writeFile(zipFile, data).catch(e => err = e)
-            if(err){
-                return global.displayErr(err)
-            }
             try {
                 const AdmZip = require('adm-zip')
-                const zip = new AdmZip(zipFile), imported = {}
+                const zip = new AdmZip(file), imported = {}
                 for(const entry of zip.getEntries()) {
                     if(entry.entryName.startsWith('config')) {
                         zip.extractEntryTo(entry, path.dirname(global.config.file), false, true)
@@ -475,10 +469,6 @@ class Options extends OptionsExportImport {
     constructor(){
         super()
         global.ui.on('devtools', () => this.devtools())
-        global.ui.on('config-import-file', data => {
-            console.warn('!!! IMPORT FILE !!! '+ typeof(global.ui.importFileFromClient), data)
-            global.ui.importFileFromClient(data).then(ret => this.import(ret)).catch(global.displayErr)
-        })
     }
     async updateEPGConfig(c){
         let activeEPG = global.config.get('epg-'+ global.lang.locale)
@@ -871,32 +861,36 @@ class Options extends OptionsExportImport {
         ]
         return entries
     }
-    chooseExternalPlayer() {
-        return new Promise((resolve, reject) => {
-            if(!this.availableExternalPlayers) {
+    async chooseExternalPlayer() {
+        if(!this.availableExternalPlayers) {
+            return await new Promise((resolve, reject) => {
                 global.ui.once('external-players', players => {
                     this.availableExternalPlayers = players
                     this.chooseExternalPlayer().then(resolve).catch(reject)
                 })
                 global.ui.emit('get-external-players')
-                return
-            }
-            const keys = Object.keys(this.availableExternalPlayers)
-            if(!keys.length) {
-                return reject('No external players detected.')
-            }
-            const opts = keys.map(name => {
-                return {template: 'option', fa: 'fas fa-play-circle', text: name, id: name}
             })
-            opts.unshift({template: 'question', fa: 'fas fa-window-restore', text: global.lang.OPEN_EXTERNAL_PLAYER})
-            global.explorer.dialog(opts, null, true).then(chosen => {
-                if(chosen && this.availableExternalPlayers[chosen]) {
-                    global.config.set('external-player', chosen)
-                }
-                global.osd.show('OK', 'fas fa-check-circle faclr-green', 'external-player', 'normal')
-                resolve(chosen)
-            }).catch(reject)
+        }
+        const keys = Object.keys(this.availableExternalPlayers)
+        if(!keys.length) return await this.chooseExternalPlayerFile()
+        const opts = keys.map(name => {
+            return {template: 'option', fa: 'fas fa-play-circle', text: name, id: name}
         })
+        opts.unshift({template: 'question', fa: 'fas fa-window-restore', text: global.lang.OPEN_EXTERNAL_PLAYER})
+        opts.push({template: 'option', fa: 'fas fa-folder-open', id: 'custom', text: global.lang.CUSTOMIZE})
+        const chosen = await global.explorer.dialog(opts, null, true)
+        if(chosen == 'custom') return await this.chooseExternalPlayerFile()
+        if(chosen && this.availableExternalPlayers[chosen]) global.config.set('external-player', chosen)
+        global.osd.show('OK', 'fas fa-check-circle faclr-green', 'external-player', 'normal')
+        return chosen
+    }
+    async chooseExternalPlayerFile() {
+        const file = await global.explorer.chooseFile('*')
+        if(file) {
+            const name = global.ucWords(path.basename(file).replace(new RegExp('\.[a-z]{2,4}$'), '').replaceAll('-', ' ').replaceAll('_', ' '))
+            global.config.set('external-player', [file, name])
+            global.osd.show('OK', 'fas fa-check-circle faclr-green', 'external-player', 'normal')
+        }
     }
     async playbackEntries(){
         const opts = [
@@ -1626,10 +1620,11 @@ class Options extends OptionsExportImport {
                         name: global.lang.IMPORT_CONFIG,
                         type: 'action',
                         fa: 'fas fa-file-import', 
-                        action: () => {
-                            global.ui.emit('open-file', global.ui.uploadURL, 'config-import-file', 'application/json, application/zip, application/octet-stream, application/x-zip-compressed, multipart/x-zip', global.lang.IMPORT_CONFIG)
+                        action: async () => {
+                            const ret = await global.explorer.chooseFile('application/json, application/zip, application/octet-stream, application/x-zip-compressed, multipart/x-zip')
+                            await this.import(ret)
                         }
-                    },                    
+                    },
                     {
                         name: global.lang.RESET_CONFIG, 
                         type: 'action',

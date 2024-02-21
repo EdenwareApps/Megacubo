@@ -633,12 +633,6 @@ class ChannelsEPG extends ChannelsData {
 class ChannelsEditing extends ChannelsEPG {
     constructor(){
         super()
-        global.ui.on('channels-import-file', data => {
-            console.warn('!!! IMPORT FILE !!!', data)
-            global.ui.importFileFromClient(data).then(ret => this.importFile(ret)).catch(err => {
-                global.displayErr(err)
-            })
-        })
     } 
     shareChannelEntry(e){
         return {
@@ -1574,9 +1568,10 @@ class Channels extends ChannelsKids {
                     name: global.lang.IMPORT,
                     type: 'action',
                     fa: 'fas fa-file-import', 
-                    action: () => {
+                    action: async () => {
                         global.config.set('channel-grid', '')
-                        global.ui.emit('open-file', global.ui.uploadURL, 'channels-import-file', 'application/json', global.lang.IMPORT)
+                        const file = await global.explorer.chooseFile('application/json')
+                        this.importFile(await fs.promises.readFile(file))
                     }
                 },
                 {

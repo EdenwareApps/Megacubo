@@ -23,8 +23,6 @@ class Theme extends Events {
                 }
             })
         })
-        global.ui.on('theme-background-image-file', this.importBackgroundImage.bind(this))
-        global.ui.on('theme-background-video-file', this.importBackgroundVideo.bind(this))
         global.ui.on('theme-creating-name', name => {
             if(name && name != global.lang.DEFAULT){
                 this.creatingThemeName = name
@@ -42,16 +40,6 @@ class Theme extends Events {
                     global.explorer.open(global.explorer.path.replace(prevName, this.creatingThemeName)).catch(displayErr)
                 }
             }
-        })
-        global.ui.on('theme-import-file', data => {
-            console.warn('!!! IMPORT FILE !!!', data)
-            global.ui.importFileFromClient(data).then(ret => {
-                global.options.importConfigFile(ret, this.keys, () => {
-                    global.explorer.refreshNow()
-                })
-            }).catch(err => {
-                global.displayErr(err)
-            })
         })
     }
     colors(file, filter, limit){
@@ -120,65 +108,46 @@ class Theme extends Events {
         })
         return (n / (255 * 3)) * 100
     }
-    importBackgroundImage(data){
+    async importBackgroundImage(file){
         global.ui.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_IMAGE}, true, global.lang.PROCESSING)
         global.osd.show(global.lang.PROCESSING, 'fas fa-cog fa-spin', 'theme-upload', 'persistent')
-        global.ui.importFileFromClient(data, this.customBackgroundImagePath).then(ret => this.importBackgroundImageCallback(ret)).catch(err => {
+        try {
+            await fs.promises.copyFile(file, this.customBackgroundImagePath)
+            console.warn('!!! IMPORT CUSTOM BACKGROUND FILE !!!', explorer.path, file, this.customBackgroundImagePath)
+            global.config.set('custom-background-image', this.customBackgroundImagePath)
+            global.config.set('custom-background-video', '')
+            this.update()
+            global.explorer.open([global.lang.TOOLS, global.lang.THEMES, global.lang.CREATE_THEME, global.lang.BACKGROUND, global.lang.BACKGROUND_COLOR].join('/')).catch(displayErr)
+        } catch(err) {
             global.displayErr(err)
-        }).finally(() => {
-            global.ui.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_IMAGE}, false)
-            global.osd.hide('theme-upload')
-        })
+        }
+        global.ui.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_IMAGE}, false)
+        global.osd.hide('theme-upload')
     }
-    importBackgroundVideo(data){
+    async importBackgroundVideo(file){
         global.ui.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_VIDEO}, true, global.lang.PROCESSING)
         global.osd.show(global.lang.PROCESSING, 'fas fa-cog fa-spin', 'theme-upload', 'persistent')
-        const uid = parseInt(Math.random() * 1000)
-        const file = this.customBackgroundVideoPath +'-'+ uid + '.mp4'
-        global.ui.importFileFromClient(data, file).then(ret => {
-            console.error('IMPORTED', ret, file)
-            this.importBackgroundVideoCallback(file).then(() => {
-                global.osd.show(global.lang.BACKGROUND_VIDEO_BLACK_SCREEN_HINT, 'fas fa-info-circle', 'theme-upload-hint', 'long')
-                this.cleanVideoBackgrounds(file)
-            }).catch(global.displayErr)
-        }).catch(global.displayErr).finally(() => {
-            global.ui.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_VIDEO}, false)
-            global.osd.hide('theme-upload')
-        })
-    }
-    importBackgroundImageCallback(err){
-        console.warn('!!! IMPORT CUSTOM BACKGROUND FILE !!!', explorer.path)
-        global.config.set('custom-background-image', this.customBackgroundImagePath)
-        global.config.set('custom-background-video', '')
-        this.update()
-        global.explorer.open([global.lang.TOOLS, global.lang.THEMES, global.lang.CREATE_THEME, global.lang.BACKGROUND, global.lang.BACKGROUND_COLOR].join('/')).catch(displayErr)
-    }
-    importBackgroundVideoCallback(file){
-        return new Promise((resolve, reject) => {
-            console.warn('!!! IMPORT CUSTOM BACKGROUND FILE !!!', explorer.path, file)
-            fs.stat(file, (err, stat) => {
-                const tooBig = stat && stat.size >= this.backgroundVideoSizeLimit
-                if(err || !stat || tooBig){
-                    let msg = err || 'Invalid file'
-                    if(tooBig){
-                        msg = 'This video file is too big. Limit it to 40MB at least.'
-                    }
-                    reject(msg)
-                    fs.unlink(file, err => {
-                        if(err) console.error(err)
-                    })
-                } else {
-                    global.config.set('custom-background-video', file)
-                    global.config.set('custom-background-image', '')
-                    if(global.config.get('background-color') == global.config.defaults['background-color']){
-                        global.config.set('background-color', '#000000')
-                    }
-                    this.update()
-                    global.explorer.open([global.lang.TOOLS, global.lang.THEMES, global.lang.CREATE_THEME, global.lang.BACKGROUND, global.lang.BACKGROUND_COLOR].join('/')).catch(displayErr)
-                    resolve()
-                }
-            })
-        })
+        try {
+            const targetFile = this.customBackgroundVideoPath +'-'+ uid + '.mp4'
+            const stat = await fs.promises.stat(file)
+            const tooBig = stat && stat.size >= this.backgroundVideoSizeLimit
+            if(tooBig) throw 'This video file is too big. Limit it to 40MB at least.'
+            await fs.promises.copyFile(file, targetFile)
+            console.warn('!!! IMPORT CUSTOM BACKGROUND FILE !!!', explorer.path, file, targetFile)
+            global.config.set('custom-background-video', targetFile)
+            global.config.set('custom-background-image', '')
+            if(global.config.get('background-color') == global.config.defaults['background-color']){
+                global.config.set('background-color', '#000000')
+            }
+            this.update()
+            this.cleanVideoBackgrounds(targetFile)
+            global.osd.show(global.lang.BACKGROUND_VIDEO_BLACK_SCREEN_HINT, 'fas fa-info-circle', 'theme-upload-hint', 'long')
+            global.explorer.open([global.lang.TOOLS, global.lang.THEMES, global.lang.CREATE_THEME, global.lang.BACKGROUND, global.lang.BACKGROUND_COLOR].join('/')).catch(displayErr)
+        } catch(err) {
+            global.displayErr(err)
+        }
+        global.ui.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_VIDEO}, false)
+        global.osd.hide('theme-upload')
     }
     cleanVideoBackgrounds(currentFile){
         const dir = path.dirname(currentFile), name = path.basename(currentFile)
@@ -375,8 +344,9 @@ class Theme extends Events {
                                             name: global.lang.CHOOSE_BACKGROUND_IMAGE,
                                             type: 'action',
                                             fa: 'fas fa-image', 
-                                            action: () => {
-                                                global.ui.emit('open-file', global.ui.uploadURL, 'theme-background-image-file', 'image/jpeg,image/png', global.lang.CHOOSE_BACKGROUND_IMAGE)
+                                            action: async () => {
+                                                const file = await global.explorer.chooseFile('image/jpeg,image/png')
+                                                await this.importBackgroundImage(file)
                                             }
                                         },
                                         {
@@ -384,8 +354,9 @@ class Theme extends Events {
                                             details: global.lang.HTML5_COMPAT_REQUIRED,
                                             type: 'action',
                                             fa: 'fas fa-film', 
-                                            action: () => {
-                                                global.ui.emit('open-file', global.ui.uploadURL, 'theme-background-video-file', 'video/mp4,video/webm,video/ogg', global.lang.CHOOSE_BACKGROUND_VIDEO)
+                                            action: async () => {
+                                                const file = await global.explorer.chooseFile('video/mp4,video/webm,video/ogg')
+                                                await this.importBackgroundVideo(file)
                                             }
                                         },
                                         {
@@ -593,8 +564,11 @@ class Theme extends Events {
                     name: global.lang.IMPORT,
                     type: 'action',
                     fa: 'fas fa-file-import', 
-                    action: () => {
-                        global.ui.emit('open-file', global.ui.uploadURL, 'theme-import-file', 'application/json', global.lang.IMPORT)
+                    action: async () => {
+                        const file = await global.explorer.chooseFile('application/json')
+                        global.options.importConfigFile(await fs.promises.readFile(file), this.keys, () => {
+                            global.explorer.refreshNow()
+                        })
                     }
                 })
                 entries.push({

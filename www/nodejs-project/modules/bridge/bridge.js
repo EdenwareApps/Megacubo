@@ -101,8 +101,10 @@ class BridgeServer extends Events {
                 form.parse(req, (err, fields, files) => {
                     response.writeHead(200, { 'content-type': 'text/plain' })
                     response.end('OK')
-                    if(fields['cbid'] && fields['cbid'].length){
-                        this.localEmit(fields['cbid'], files)
+                    if(fields && fields.cbid && fields.cbid.length){
+                        this.localEmit(fields.cbid, files)
+                    } else {
+                        this.localEmit(fields.cbid, null)
                     }
                 })
             } else {

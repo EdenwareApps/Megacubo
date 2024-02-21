@@ -785,6 +785,16 @@ class Explorer extends Events {
     resumeRendering(){
         this.rendering = true
     }
+    chooseFile(mimeTypes='*') {
+        return new Promise((resolve, reject) => {
+            const id = 'explorer-choose-file-'+ parseInt(10000000 * Math.random())
+            global.ui.once(id, data => {
+                if(data == null) return reject('File not selected')
+                global.ui.resolveFileFromClient(data).then(resolve).catch(reject)
+            })
+            global.ui.emit('open-file', global.ui.uploadURL, id, mimeTypes)
+        })
+    }
 }
 
 module.exports = Explorer

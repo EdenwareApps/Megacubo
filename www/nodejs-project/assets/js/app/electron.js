@@ -90,8 +90,12 @@ class ExternalPlayer {
 	}
 	ask(players) {
 		return new Promise((resolve, reject) => {
-			if(this.context.config['external-player'] && players[this.context.config['external-player']]) {
-				return resolve(this.context.config['external-player'])
+			console.warn('ASK', players, this.context.config['external-player'])
+			if(this.context.config['external-player']) {
+				const value = this.context.config['external-player']
+				const name = Array.isArray(value) ? value[1] : value
+				console.warn('ASK', players, name)
+				if(players[name]) return resolve(name)
 			}
 			const keys = Object.keys(players)
 			if(!keys.length) {

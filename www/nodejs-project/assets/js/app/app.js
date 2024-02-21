@@ -169,12 +169,13 @@ function initApp(){
             document.body.removeChild(e)
         }
     })
-    app.on('open-file', (uploadURL, cbID, mimetypes, optionTitle) => {
+    app.on('open-file', (uploadURL, cbID, mimetypes) => {
         const next = () => {
             explorer.openFile(uploadURL, cbID, mimetypes).catch(err => {
                 osd.show(String(err), 'fas fa-exclamation-triangle', 'explorer', 'normal')
+                app.emit(cbID, null)
             }).finally(() => {
-                parent.winman && parent.winman.backgroundModeLock('open-file')
+                parent.winman && parent.winman.backgroundModeUnlock('open-file')
             })
         }
         if(parent.cordova) {
@@ -184,7 +185,7 @@ function initApp(){
                 'WRITE_EXTERNAL_STORAGE'
             ], next)
         } else if(parent.parent.Manager) {
-            parent.parent.Manager.openFile(mimetypes, (err, file) => app.emit(cbID, [file]))
+            parent.parent.Manager.openFile(mimetypes, (err, file) => app.emit(cbID, err ? null : [file]))
         } else {
             next()
         }
