@@ -543,10 +543,14 @@ class Manager extends ManagerEPG {
         }
         if(info && info[listUrl] && info[listUrl].epg){
             const currentEPG = global.config.get('epg-'+ global.lang.locale)
+            const isMAG = listUrl.endsWith('#mag')
             info[listUrl].epg = this.parseEPGURL(info[listUrl].epg, false)
-            if(global.validateURL(info[listUrl].epg) && info[listUrl].epg != currentEPG){
-                const sample = await global.Download.get({url: info[listUrl].epg, range: '0-512', responseType: 'text'})
-                if(typeof(sample) != 'string' || sample.toLowerCase().indexOf('<tv') == -1) return
+            let valid =  isMAG || global.validateURL(info[listUrl].epg)
+            if(valid && info[listUrl].epg != currentEPG){
+                if(!isMAG) {
+                    const sample = await global.Download.get({url: info[listUrl].epg, range: '0-512', responseType: 'text'})
+                    if(typeof(sample) != 'string' || sample.toLowerCase().indexOf('<tv') == -1) return
+                }
                 let chosen = await global.explorer.dialog([
                     {template: 'question', text: ucWords(global.MANIFEST.name), fa: 'fas fa-star'},
                     {template: 'message', text: global.lang.ADDED_LIST_EPG},
@@ -1118,14 +1122,7 @@ class Manager extends ManagerEPG {
                     })
                 }
                 ls.push(this.addListEntry())
-                if(manageOnly) {
-                    const e = this.addEPGEntry()
-                    e.name = global.lang.EPG
-                    e.details = 'EPG'
-                    ls.push(e)
-                } else {
-                    ls.push(this.epgEntry())
-                }
+                manageOnly || ls.push(this.epgEntry())
                 return ls
             }
         }
@@ -1198,6 +1195,7 @@ class Manager extends ManagerEPG {
         global.osd.show(global.lang.OPENING_LIST, 'fa-mega spin-x-alt', 'list-open', 'persistent')
         let list = await this.master.directListRenderer(v, {
             fetch: opts.fetch,
+            expand: opts.expand,
             progress: p => {
                 global.osd.show(global.lang.OPENING_LIST +' '+ parseInt(p) +'%', 'fa-mega spin-x-alt', 'list-open', 'persistent')
             }
@@ -1209,36 +1207,40 @@ class Manager extends ManagerEPG {
             list.push({name: global.lang.EMPTY, fa: 'fas fa-info-circle', type: 'action', class: 'entry-empty'})
         }
         if(!opts.raw){
-            const actionIcons = ['fas fa-minus-square', 'fas fa-plus-square']
-            if(!list.some(e => actionIcons.includes(e.fa))){
-                if(this.has(v.url)){
-                    list.unshift({
-                        type: 'action',
-                        name: global.lang.LIST_ALREADY_ADDED,
-                        details: global.lang.REMOVE_LIST, 
-                        fa: 'fas fa-minus-square',
-                        action: () => {             
-                            this.remove(v.url)
-                            global.osd.show(global.lang.LIST_REMOVED, 'fas fa-info-circle', 'list-open', 'normal')
-                            global.explorer.refreshNow() // epg options path
-                        }
-                    })
-                } else {
-                    list.unshift({
-                        type: 'action',
-                        fa: 'fas fa-plus-square',
-                        name: global.lang.ADD_TO.format(global.lang.MY_LISTS),
-                        action: () => {
-                            this.addList(v.url, '', true).catch(console.error).finally(() => {
-                                setTimeout(() => global.explorer.refreshNow(), 100)
-                            })
-                        }
-                    })
-                }
-            }
+            list = this.prependBookmarkingAction(list, v.url)
         }
         this.openingList = false
         global.osd.hide('list-open')
+        return list
+    }
+    prependBookmarkingAction(list, url) {
+        const actionIcons = ['fas fa-minus-square', 'fas fa-plus-square']
+        if(!list.some(e => actionIcons.includes(e.fa))){
+            if(this.has(url)){
+                list.unshift({
+                    type: 'action',
+                    name: global.lang.LIST_ALREADY_ADDED,
+                    details: global.lang.REMOVE_LIST, 
+                    fa: 'fas fa-minus-square',
+                    action: () => {             
+                        this.remove(url)
+                        global.osd.show(global.lang.LIST_REMOVED, 'fas fa-info-circle', 'list-open', 'normal')
+                        global.explorer.refreshNow() // epg options path
+                    }
+                })
+            } else {
+                list.unshift({
+                    type: 'action',
+                    fa: 'fas fa-plus-square',
+                    name: global.lang.ADD_TO.format(global.lang.MY_LISTS),
+                    action: () => {
+                        this.addList(url, '', true).catch(console.error).finally(() => {
+                            setTimeout(() => global.explorer.refreshNow(), 100)
+                        })
+                    }
+                })
+            }
+        }
         return list
     }
     async checkListExpiral(es){
@@ -1306,7 +1308,7 @@ class Manager extends ManagerEPG {
         }
     }
     async hook(entries, path){
-        if(!path) {
+        if(!path && global.ALLOW_ADDING_LISTS) {
             const entry = this.listsEntry(false)
             global.options.insertEntry(entry, entries, -2, global.lang.TOOLS, [
                 global.lang.BOOKMARKS,
@@ -1314,6 +1316,10 @@ class Manager extends ManagerEPG {
                 global.lang.RECOMMENDED_FOR_YOU,
                 global.lang.CATEGORY_MOVIES_SERIES
             ])
+        } else if(path == global.lang.TOOLS) {
+            entries.push(this.epgEntry())
+        } else if(path.endsWith(global.lang.MANAGE_CHANNEL_LIST)) {
+            entries.push(this.addEPGEntry())
         }
         return entries
     }

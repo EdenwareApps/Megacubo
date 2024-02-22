@@ -129,7 +129,7 @@ class Watching extends EntriesGroup {
                 }
             })
         }
-        if(!global.lists.loaded(true)) {
+        if(global.ALLOW_ADDING_LISTS && !global.lists.loaded(true)) {
             es.unshift(global.lists.manager.noListsEntry())
         }
         return es

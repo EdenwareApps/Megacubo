@@ -20,12 +20,12 @@ if(!global.cordova){
     }
 }
 
-// Buffer = require('safe-buffer').Buffer
 const fs = require('fs'), path = require('path')
 
 global.APPDIR = String(__dirname || process.cwd()).replace(new RegExp('\\\\', 'g'), '/')
 global.MANIFEST = JSON.parse(fs.readFileSync(global.APPDIR + '/package.json'))
 global.ALLOW_COMMUNITY_LISTS = fs.existsSync(APPDIR +'/ALLOW_COMMUNITY.md')
+global.ALLOW_ADDING_LISTS = global.ALLOW_COMMUNITY_LISTS || fs.existsSync(APPDIR +'/ALLOW_ADDING_LISTS.md')
 
 global.tuning = false
 global.moment = require('moment-timezone')

@@ -496,15 +496,7 @@ class Options extends OptionsExportImport {
             defaultURL = url
         }
         let entries = [
-            {name: global.lang.OPEN_URL, fa: 'fas fa-link', details: global.lang.STREAMS, type: 'action', action: async () => {
-                await global.explorer.prompt({
-                    question: global.lang.OPEN_URL,
-                    placeholder: 'http://.../example.m3u8',
-                    defaultValue: defaultURL,
-                    callback: 'open-url',
-                    fa: 'fas fa-link'
-                })
-            }},
+            this.openURLEntry(),
             this.timerEntry()
         ]
         return entries
@@ -747,7 +739,8 @@ class Options extends OptionsExportImport {
             outdated = c[vkey] > global.MANIFEST.version
         }
         const os = require('os')
-        let text = lang.LEGAL_NOTICE +': '+ lang.ABOUT_LEGAL_NOTICE
+        const notice = global.ALLOW_ADDING_LISTS ? lang.ABOUT_LEGAL_NOTICE_LISTS : lang.ABOUT_LEGAL_NOTICE
+        let text = lang.LEGAL_NOTICE +': '+ notice
         let title = global.ucWords(global.MANIFEST.name) +' v'+ global.MANIFEST.version
         let versionStatus = outdated ? global.lang.OUTDATED.toUpperCase() : global.lang.CURRENT_VERSION
         title += ' ('+ versionStatus +', ' + process.platform +' '+ os.arch() +')'
@@ -1330,19 +1323,54 @@ class Options extends OptionsExportImport {
                 }
             },
             {
-                name: global.lang.ALLOW_COMMUNITY_LISTS, 
-                type: 'check',
-                action: (data, checked) => {
-                    const file = global.APPDIR +'/ALLOW_COMMUNITY.md'
-                    const restart = () => global.energy.askRestart()
-                    if (checked) {
-                        fs.writeFile(file, 'OK', restart)
-                    } else {
-                        global.config.set('communitary-mode-lists-amount', 0)
-                        fs.unlink(file, restart)
-                    }
-                }, checked: () => {
-                    return global.ALLOW_COMMUNITY_LISTS
+                name: global.lang.ALLOW_UNKNOWN_SOURCES,
+                fa: global.ALLOW_ADDING_LISTS ? 'fas fa-toggle-on' : 'fas fa-toggle-off', 
+                type: 'select', 
+                renderer: async () => {
+                    const privateFile = global.APPDIR +'/ALLOW_ADDING_LISTS.md'
+                    const communityFile = global.APPDIR +'/ALLOW_COMMUNITY.md'
+                    const def = global.ALLOW_COMMUNITY_LISTS ? 2 : (global.ALLOW_ADDING_LISTS ? 1 : 0), opts = [
+                        {
+                            name: global.lang.DO_NOT_ALLOW,
+                            type: 'action', selected: (def == 0),
+                            action: async (data) => {
+                                if(def == 0) return
+                                global.config.set('communitary-mode-lists-amount', 0)
+                                await fs.promises.unlink(privateFile).catch(console.error)
+                                await fs.promises.unlink(communityFile).catch(console.error)
+                                global.config.set('communitary-mode-lists-amount', 0)
+                                global.explorer.refreshNow()
+                                global.energy.askRestart()
+                            }
+                        },
+                        {
+                            name: global.lang.ALLOW_ADDING_LISTS,
+                            type: 'action', selected: (def == 1),
+                            action: async (data) => {
+                                if(def == 1) return
+                                await fs.promises.writeFile(privateFile, 'OK').catch(console.error)
+                                await fs.promises.unlink(communityFile).catch(console.error)
+                                global.config.set('communitary-mode-lists-amount', 0)
+                                global.explorer.refreshNow()
+                                await global.explorer.info(global.lang.LEGAL_NOTICE, global.lang.TOS_CONTENT)
+                                global.energy.askRestart()
+                            }
+                        },
+                        {
+                            name: global.lang.ALLOW_SHARING_LISTS,
+                            type: 'action', selected: (def == 2),
+                            action: async (data) => {
+                                if(def == 2) return
+                                await fs.promises.writeFile(privateFile, 'OK').catch(console.error)
+                                await fs.promises.writeFile(communityFile, 'OK').catch(console.error)
+                                global.config.set('communitary-mode-lists-amount', global.lists.opts.defaultCommunityModeReach)
+                                global.explorer.refreshNow()
+                                await global.explorer.info(global.lang.LEGAL_NOTICE, global.lang.TOS_CONTENT)
+                                global.energy.askRestart() 
+                            }
+                        }
+                    ]
+                    return opts
                 }
             },
             {
@@ -1649,21 +1677,40 @@ class Options extends OptionsExportImport {
         const licensed = global.config.get('premium-license') && !global.config.get('premium-disable')
         return licensed
     }
+    insertEntryLookup(e, term) {
+        if(Array.isArray(term)) {
+            return term.some(t => this.insertEntryLookup(e, t))
+        } else {
+            return e.name == term || e.hookId == term
+        }            
+    }
     insertEntry(entry, entries, preferredPosition=-1, before, after, prop='name'){
         const i = entries.findIndex(e => e[prop] == entry[prop])
         if(i >= 0) entries.splice(i, 1) // is already present
-        if(preferredPosition < 0) preferredPosition = entries.length - preferredPosition
+        if(preferredPosition < 0) preferredPosition = Math.max(0, entries.length - preferredPosition)
         if(before) {
-            const f = Array.isArray(before) ? (e => before.some(n => e.name == n || e.hookId == n)) : (e => e.name == before || e.hookId == before)
-            const n = entries.findIndex(f)
+            const n = entries.findIndex(e => this.insertEntryLookup(e, before))
             if(n >= 0) preferredPosition = n
         }
         if(after) {
-            const f = Array.isArray(after) ? (e => after.some(n => e.name == n || e.hookId == n)) : (e => e.name == before || e.hookId == before)
-            const n = entries.findLastIndex(f)
+            const n = entries.findLastIndex(e => this.insertEntryLookup(e, after))
             if(n >= 0) preferredPosition = n + 1
         }
         entries.splice(preferredPosition, 0, entry)
+    }
+    openURLEntry(){
+        return {
+            name: global.lang.OPEN_URL, fa: 'fas fa-link', details: global.lang.STREAMS, type: 'action',
+            action: async () => {
+                await global.explorer.prompt({
+                    question: global.lang.OPEN_URL,
+                    placeholder: 'http://.../example.m3u8',
+                    defaultValue: defaultURL,
+                    callback: 'open-url',
+                    fa: 'fas fa-link'
+                })
+            }
+        }
     }
     async hook(entries, path){
         if(!path) {
@@ -1671,6 +1718,7 @@ class Options extends OptionsExportImport {
             const details = sopts.join(', ')
             this.insertEntry({name: global.lang.TOOLS, fa: 'fas fa-box-open', type: 'group', details, renderer: this.tools.bind(this)}, entries, -2)
             this.insertEntry({name: global.lang.OPTIONS, fa: 'fas fa-cog', type: 'group', details: global.lang.CONFIGURE, renderer: this.entries.bind(this)}, entries, -1)
+            global.ALLOW_ADDING_LISTS || this.insertEntry(this.openURLEntry(), entries, -2, [global.lang.OPTIONS, global.lang.TOOLS])
         }
         return entries
     }

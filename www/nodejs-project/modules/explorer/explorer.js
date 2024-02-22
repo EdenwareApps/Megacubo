@@ -729,7 +729,7 @@ class Explorer extends Events {
     }
     currentStreamEntries(includeMegaStreams){
         return this.currentEntries.filter(e => {
-            if(e.url && (!e.type || e.type == 'stream')) {
+            if(e.url && (!e.type || e.type == 'stream' || e.type == 'select')) {
                 return includeMegaStreams === true || !global.mega.isMega(e.url)
             }
         })

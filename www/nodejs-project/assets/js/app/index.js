@@ -110,13 +110,17 @@ function theming(image, video, color, fontColor, animate){
 			}
 		}					
 	}
-	if(!data.image){
+	if(!data.image && !data.video){
 		data.image = defaultData.image;
 	}
-	if(!data.video){
+	if(data.video){
+		data.image = ''
+	} else {
 		data.video = defaultData.video;
 	}
-	var renderBackground = function () {
+	console.warn('theming pre renderbackground', data);
+	var renderBackground = function (data) {
+		console.warn('theming renderbackground', data);
 		if(data.video){
 			bg.style.backgroundImage = 'none';		
 			var v = bg.querySelector('video');
@@ -135,13 +139,13 @@ function theming(image, video, color, fontColor, animate){
 		}
 	};
 	if(themeBackgroundReady === true){
-		renderBackground();
+		renderBackground(data);
 	} else {
 		if(typeof(themeBackgroundReady) == 'undefined'){
-			themeBackgroundReady = function () {
+			themeBackgroundReady = (function (data) {
 				themeBackgroundReady = true;
-				renderBackground();
-			};
+				renderBackground(data);
+			}).apply(null, [data]);
 		}
 	}
 	if(splash){

@@ -184,10 +184,8 @@ class EPG extends EPGPaginateChannelsList {
             let errorCount = 0, failed, hasErr, newLastModified, initialBuffer = []
             this.error = null
             console.log('epg updating...')
-            this.parser = new xmltv.Parser()
-            this.parser.on('programme', this.programme.bind(this))
-            this.parser.on('channel', this.channel.bind(this))
-            this.parser.on('error', err => {
+            let validEPG, received = 0
+            const onErr = err => {
                 if(failed){
                     return
                 }
@@ -214,58 +212,66 @@ class EPG extends EPGPaginateChannelsList {
                     this.scheduleNextUpdate(30)
                 }
                 return true
-            })
-            let validEPG, received = 0
-            const req = {
-                debug: false,
-                url: this.url,
-                followRedirect: true,
-                keepalive: false,
-                retries: 5,
-                headers: {
-                    'accept-charset': 'utf-8, *;q=0.1'
-                    // 'range': 'bytes=0-' // was getting wrong content-length from Cloudflare
-                },
-                encoding: 'utf8',
-                cacheTTL: this.ttl - 30,
-                responseType: 'text',
-                progress: p => utils.emit('progress', p)
             }
-            this.request = new global.Download(req)
-            this.request.on('error', err => {
-                console.warn(err)
-                return true
-            })
-            this.request.once('response', (code, headers) => {
-                if(this.loaded){
-                    if(headers['last-modified']) {
-                        if(headers['last-modified'] == lastModifiedAt) {
-                            console.log('epg update skipped by last-modified '+ lastModifiedAt)
-                            this.request.destroy()
-                            return
-                        } else {
-                            newLastModified = headers['last-modified']
+            if(this.url.endsWith('#mag')) {
+                const Mag = require('./mag')
+                this.parser = new Mag.EPG(this.url)
+            } else {
+                const req = {
+                    debug: false,
+                    url: this.url,
+                    followRedirect: true,
+                    keepalive: false,
+                    retries: 5,
+                    headers: {
+                        'accept-charset': 'utf-8, *;q=0.1'
+                        // 'range': 'bytes=0-' // was getting wrong content-length from Cloudflare
+                    },
+                    encoding: 'utf8',
+                    cacheTTL: this.ttl - 30,
+                    responseType: 'text',
+                    progress: p => utils.emit('progress', p)
+                }
+                this.parser = new xmltv.Parser()
+                this.request = new global.Download(req)
+                this.request.on('error', err => {
+                    console.warn(err)
+                    return true
+                })
+                this.request.once('response', (code, headers) => {
+                    if(this.loaded){
+                        if(headers['last-modified']) {
+                            if(headers['last-modified'] == lastModifiedAt) {
+                                console.log('epg update skipped by last-modified '+ lastModifiedAt)
+                                this.request.destroy()
+                                return
+                            } else {
+                                newLastModified = headers['last-modified']
+                            }
                         }
+                    } else {
+                        this.state = 'connected' // only update state on initial connect
                     }
-                } else {
-                    this.state = 'connected' // only update state on initial connect
-                }
-            })
-            this.request.on('data', chunk => {
-                received += chunk.length
-                if(!hasErr) initialBuffer.push(chunk)
-                this.parser.write(chunk)
-                if(!validEPG && chunk.toLowerCase().indexOf('<programme') != -1){
-                    validEPG = true
-                }
-            })
-            this.request.once('end', () => {
-                this.request.destroy() 
-                this.request = null
-                console.log('EPG REQUEST ENDED', validEPG, received, Object.keys(this.data).length)
-                this.parser && this.parser.end()
-            })
-            this.request.start()
+                })
+                this.request.on('data', chunk => {
+                    received += chunk.length
+                    if(!hasErr) initialBuffer.push(chunk)
+                    this.parser.write(chunk)
+                    if(!validEPG && chunk.toLowerCase().indexOf('<programme') != -1){
+                        validEPG = true
+                    }
+                })
+                this.request.once('end', () => {
+                    this.request.destroy() 
+                    this.request = null
+                    console.log('EPG REQUEST ENDED', validEPG, received, Object.keys(this.data).length)
+                    this.parser && this.parser.end()
+                })
+                this.request.start()
+            }
+            this.parser.on('programme', this.programme.bind(this))
+            this.parser.on('channel', this.channel.bind(this))
+            this.parser.on('error', onErr)
             return await new Promise(resolve => {
                 this.parser.once('end', () => {
                     console.log('EPG PARSER END')
@@ -559,7 +565,13 @@ class EPG extends EPGPaginateChannelsList {
         }
     }
     time(dt){
-        if(!dt){
+        if(dt){
+            if(typeof(dt) == 'number') {
+                return dt
+            } else if(typeof(dt) == 'string') {
+                return parseInt(dt)
+            }
+        } else {
             dt = new Date()
         }
         return parseInt(dt.getTime() / 1000)

@@ -90,7 +90,6 @@ class ExternalPlayer {
 	}
 	ask(players) {
 		return new Promise((resolve, reject) => {
-			console.warn('ASK', players, this.context.config['external-player'])
 			if(this.context.config['external-player']) {
 				const value = this.context.config['external-player']
 				const name = Array.isArray(value) ? value[1] : value

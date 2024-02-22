@@ -89,7 +89,9 @@ class PublicLists extends Events {
         this.data = {}
         this.countries = new Countries()
         this.load().catch(console.error)
-        global.uiReady(() => global.explorer.addFilter(this.hook.bind(this)))
+        global.uiReady(() => {
+            global.explorer.addFilter(this.hook.bind(this))
+        })
     }
     async load() {
         if (!Object.keys(this.data).length) {
@@ -153,7 +155,7 @@ class PublicLists extends Events {
                     global.lists.manager.openingList = true
                     let ret = []
                     for(const url of this.data[countryCode]) {
-                        let es = await global.lists.manager.directListRenderer({url}, {fetch: true}).catch(e => err = e)
+                        let es = await global.lists.manager.directListRenderer({url}, {raw: true, fetch: true, expand: true}).catch(e => err = e)
                         if(Array.isArray(es)) {
                             ret.push(...es.filter(e => e.name != global.lang.EMPTY))
                         }
@@ -171,6 +173,7 @@ class PublicLists extends Events {
             let sb = b.countryCode == cc ? 2 : ((b.countryCode == loc) ? 1 : 0)
             return sa < sb ? 1 : (sa > sb ? -1 : 0)
         })
+        global.ALLOW_ADDING_LISTS || entries.unshift(this.infoEntry())
         return entries
     }
     entry() {
@@ -206,30 +209,39 @@ class PublicLists extends Events {
                                 }
                             }
                         })
-                    }},
-                    {
-                        name: global.lang.LEGAL_NOTICE,
-                        details: 'DMCA',
-                        fa: 'fas fa-info-circle',
-                        type: 'action',
-                        action: this.showInfo.bind(this)
-                    }
+                    }}
                 ]
+                global.config.get('public-lists') && options.push(this.countriesEntry())
+                options.push(this.infoEntry())
                 return options
             }
         }
     }
+    infoEntry() {
+        return {
+            name: global.lang.LEGAL_NOTICE,
+            details: 'DMCA',
+            fa: 'fas fa-info-circle',
+            type: 'action',
+            action: this.showInfo.bind(this)
+        }
+    }
+    countriesEntry() {
+        return {
+            name: global.lang.COUNTRIES,
+            fa: 'fas fa-globe',
+            details: this.details,
+            type: 'group',
+            renderer: this.entries.bind(this)
+        }
+    }
     async hook(entries, path){
-        if(path.split('/').pop() == global.lang.PUBLIC_LISTS && global.config.get('public-lists')){
-            entries.splice(entries.length - 1, 0, {
-                name: global.lang.COUNTRIES,
-                fa: 'fas fa-globe',
-                details: this.details,
-                type: 'group',
-                renderer: this.entries.bind(this)
-            })
-        } else if(path.split('/').pop() == global.lang.MY_LISTS) {
+        if(path.split('/').pop() == global.lang.MY_LISTS) {
             global.options.insertEntry(this.entry(), entries, 1, global.lang.ADD_LIST)
+        } else if(path == '') {
+            if(!global.ALLOW_ADDING_LISTS) {
+                global.options.insertEntry(this.countriesEntry(), entries, 6, [global.lang.TOOLS, global.lang.OPEN_URL], [global.lang.BOOKMARKS])
+            }
         }
         return entries
     }

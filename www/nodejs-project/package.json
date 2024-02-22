@@ -41,7 +41,6 @@
     "read-last-lines": "^1.8.0",
     "resize-observer": "^1.0.4",
     "rimraf": "^3.0.2",
-    "safe-buffer": "^5.2.1",
     "sanitize-filename": "^1.6.3",
     "stoppable": "^1.1.0",
     "swipey.js": "^1.0.3",
@@ -59,7 +58,7 @@
     "url": "https://megacubo.tv"
   },
   "icon": "./default_icon.png",
-  "version": "17.4.4",
+  "version": "17.4.5",
   "theme": {
     "fullScreen": true
   },

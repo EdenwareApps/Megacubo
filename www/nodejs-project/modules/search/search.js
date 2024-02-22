@@ -233,7 +233,10 @@ class Search extends Events {
         const es = await this.search(terms)
         global.ui.emit('current-search', terms, this.searchMediaType)
         if(!global.lists.loaded(true)) {
-            es.unshift(global.lists.manager.noListsEntry())
+            if(global.ALLOW_ADDING_LISTS) {
+                return [global.lists.manager.noListsEntry()]
+            }
+            return []
         }
         return es
     }
@@ -337,7 +340,7 @@ class Search extends Events {
                 es.push(...ys.slice(0, minResultsWanted - es.length))
             }
         }     
-        if(!global.lists.loaded(true)) {
+        if(global.ALLOW_ADDING_LISTS && !global.lists.loaded(true)) {
             es.unshift(global.lists.manager.noListsEntry())
         }
         return es

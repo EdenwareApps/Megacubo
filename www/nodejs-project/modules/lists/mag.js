@@ -1,5 +1,5 @@
 const Events = require('events')
-  
+
 class Mag extends Events {
     constructor(addr, debug) { // addr = http://mac@server
         super()
@@ -10,6 +10,7 @@ class Mag extends Events {
         this.flags = parts.length > 1 ? parts[1] : ''
         
         this.method = 'POST'
+        this.url = addr
         this.mac = authAddr.split('@')[0].split('/').pop()
         this.addr = authAddr.replace(this.mac +'@', '')    
         if(this.addr.endsWith('/')) {
@@ -35,7 +36,7 @@ class Mag extends Events {
             this.emit('progress', p)
         }
     }
-    async execute(atts, progress, endpoint='/portal.php') {
+    async execute(atts, progress, endpoint='/portal.php', retries=2) {
         let err
         let path = endpoint
         const options = {
@@ -57,9 +58,15 @@ class Mag extends Events {
         const data = await global.Download.get(options).catch(e => err = e)
         this.debugInfo && this.debugInfo.push({url: options.url, data, err})
         if(err) {
-            if(String(err).toLowerCase().indexOf('method not allowed') != -1) {
-                this.method = this.method == 'GET' ? 'POST' : 'GET'
-                return await this.execute(atts, progress, endpoint)
+            if(retries) {
+                retries--
+                if(String(err).toLowerCase().indexOf('method not allowed') != -1) {
+                    this.method = this.method == 'GET' ? 'POST' : 'GET'
+                    return await this.execute(atts, progress, endpoint, retries)
+                }
+                if(String(err).indexOf('end of JSON input') != -1) {
+                    return await this.execute(atts, progress, endpoint, retries)
+                }
             }
             throw err
         }
@@ -124,9 +131,8 @@ class Mag extends Events {
             const secondToken = (await this.execute({action: 'handshake', type: 'stb', token: ''})).token
             if(secondToken) headers.authorization = 'Bearer '+ secondToken
         } catch(e) {}
-
-        //this.meta.epg = this.addr +'/xmltv.php?username='+ this.user +'&pass='+ this.pass
-        //this.emit('meta', this.meta)
+        this.meta.epg = this.url
+        this.emit('meta', this.meta)
     }
     async link(cmd) {
         if(cmd.startsWith(this.fakeHost)) {
@@ -195,5 +201,57 @@ class Mag extends Events {
         this.emit('finish')
     }
 }
- 
+
+class MagEPG extends Events {
+    constructor(url) {
+        super()
+        this.url = url
+        this.map = {}
+        process.nextTick(() => {
+            this.start().catch(err => this.emitError(err)).finally(() => this.emit('end'))
+        })
+    }
+    async start() {
+        this.mag = new Mag(this.url)
+        await this.mag.prepare()
+        await this.getChannels()
+        await this.getProgrammes()
+    }
+    async getChannels() {
+        const channels = await this.mag.execute({type: 'itv', action: 'get_all_channels', JsHttpRequest: '1-xml'})
+        channels.data.forEach(ch => {
+            this.map[ch.id] = ch.name
+            this.emit('channel', {
+                name: ch.name,
+                id: ch.name, // do not passthrough 'id'
+                icon: ch.logo
+            })
+        })
+    }
+    async getProgrammes() {
+        const programmes = await this.mag.execute({type: 'itv', action: 'get_epg_info', period: 6, JsHttpRequest: '1-xml'})
+        Object.keys(programmes.data).forEach(id => {
+            if(!this.map[id]) return
+            programmes.data[id].forEach(prog => {
+                this.emit('programme', {
+                    channel: this.map[id],
+                    title: [prog.name],
+                    start: prog.start_timestamp,
+                    end: prog.stop_timestamp,
+                    icon: '',
+                    category: prog.category
+                })
+            })
+        })
+    }
+    emitError(err) {
+        this.listenerCount('error') && this.emit('error', err)
+    }
+    destroy() {
+        this.map = {}
+        this.removeAllListeners()
+    }
+}
+
+Mag.EPG = MagEPG
 module.exports = Mag

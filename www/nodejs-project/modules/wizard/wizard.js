@@ -29,14 +29,7 @@ class WizardUtils extends Events {
 class Wizard extends WizardUtils {
     constructor(){
         super()
-        this.skipList = global.setupSkipList
-        if(!this.skipList){                    
-            this.on('skip-list', () => {
-                global.setupSkipList = this.skipList = true
-            })   
-        }
         this.on('restart', () => {
-            global.setupSkipList = this.isDone = this.skipList = false
             this.init().catch(console.error)
         })
     }
@@ -46,13 +39,12 @@ class Wizard extends WizardUtils {
         }
         await this.lists()
         await this.performance()
-        this.isDone = true
         this.active = false
         global.config.set('setup-completed', true)
     }
     async lists(){
-        if(this.skipList) return true
         this.active = true
+        if(!global.ALLOW_ADDING_LISTS) return true
         let text = global.lang.ASK_IPTV_LIST_FIRST.split('. ').join(".\r\n"), def = 'ok', opts = [
             {template: 'question', text: global.MANIFEST.window.title, fa: 'fas fa-star'},
             {template: 'message', text},
@@ -73,7 +65,6 @@ class Wizard extends WizardUtils {
         }
     }
     async input(){
-        if(this.skipList) return true
         this.active = true
         let err, ret = await global.lists.manager.addListDialog(false).catch(e => err = e)
         console.log('ASKED', ret, global.traceback())
@@ -84,7 +75,6 @@ class Wizard extends WizardUtils {
         return true
     }
     async communityMode(){  
-        if(this.skipList) return true 
         let err, ret = await global.lists.manager.communityModeDialog().catch(e => err = e)
         console.warn('communityMode', err, ret)
         if(ret !== true) {

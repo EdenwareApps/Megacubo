@@ -1430,7 +1430,7 @@ class Channels extends ChannelsKids {
         list.push(this.allCategoriesEntry())
         editable && list.push(this.getCategoryEntry())
         list.unshift(this.chooseChannelGridOption())
-        publicMode && list.unshift(global.lists.manager.noListsEntry())
+        publicMode && global.ALLOW_ADDING_LISTS && list.unshift(global.lists.manager.noListsEntry())
         return list
     }
     allCategoriesEntry() {
@@ -1594,9 +1594,9 @@ class Channels extends ChannelsKids {
             if(!global.config.get('channel-grid') && global.config.get('allow-edit-channel-list')){
                 entries.push(this.editCategoriesEntry())
             }
+            entries.push(this.exportImportOption())
+            global.ALLOW_ADDING_LISTS && entries.push(global.lists.manager.listsEntry(true))
             entries.push(...[
-                this.exportImportOption(),
-                global.lists.manager.listsEntry(true),
                 {
                     name: global.lang.ALLOW_EDIT_CHANNEL_LIST,
                     type: 'check',
@@ -1683,7 +1683,10 @@ class Channels extends ChannelsKids {
         const isSeries = type == 'series'
         let groups = await global.lists.groups(type ? [type] : ['series', 'vod'], opts.myListsOnly)
         if(!groups.length && !global.lists.loaded(true)){
-            return [global.lists.manager.noListsEntry()]
+            if(global.ALLOW_ADDING_LISTS) {
+                return [global.lists.manager.noListsEntry()]
+            }
+            return []
         }
         const acpolicy = global.config.get('parental-control')        
         const groupToEntry = group => {
@@ -1751,9 +1754,11 @@ class Channels extends ChannelsKids {
     async hook(entries, path){
         if(!path) {
             const liveEntry = {name: global.lang.LIVE, fa: 'fas fa-tv', details: '<i class="fas fa-th"></i>&nbsp; '+ global.lang.ALL_CHANNELS, type: 'group', renderer: this.entries.bind(this)}
-            const moviesEntry = {name: global.lang.CATEGORY_MOVIES_SERIES,  fa: 'fas fa-th', details: '', type: 'group', renderer: () => this.groupsRenderer('')}
             global.options.insertEntry(liveEntry, entries, 1, global.lang.MY_LISTS)
-            global.options.insertEntry(moviesEntry, entries, 2, global.lang.MY_LISTS)
+            if(global.ALLOW_ADDING_LISTS) {
+                const moviesEntry = {name: global.lang.CATEGORY_MOVIES_SERIES,  fa: 'fas fa-th', details: '', type: 'group', renderer: () => this.groupsRenderer('')}
+                global.options.insertEntry(moviesEntry, entries, -1, [global.lang.OPTIONS, global.lang.TOOLS])
+            }
         }
         return entries
     }

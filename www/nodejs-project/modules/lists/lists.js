@@ -808,12 +808,22 @@ class Lists extends ListsEPGTools {
 	}
     async directListRenderer(v, opts={}){
         if(typeof(this.lists[v.url]) != 'undefined' && (!opts.fetch || (this.lists[v.url].isReady && !this.lists[v.url].indexer.hasFailed))){ // if not loaded yet, fetch directly
-            let entries = await this.lists[v.url].getMap()
+            let entries
+			if(opts.expand) {
+				entries = await this.lists[v.url].fetchAll()
+			} else {
+				entries = await this.lists[v.url].getMap()
+			}
             return this.directListRendererPrepare(entries, v.url)
         } else if(opts.fetch) {
-            let fetcher = new this.Fetcher(v.url, {
+            let entries, fetcher = new this.Fetcher(v.url, {
 				progress: opts.progress
-			}, this), entries = await fetcher.getMap()
+			}, this)
+			if(opts.expand) {
+				entries = await fetcher.fetch()
+			} else {
+				entries = await fetcher.getMap()
+			}
             return await this.directListRendererPrepare(entries, v.url)
         } else {
 			throw 'List not loaded'
