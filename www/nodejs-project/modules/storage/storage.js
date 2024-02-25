@@ -195,7 +195,7 @@ class StorageIndex extends StorageTools {
 		const now = parseInt(global.time())
 		this.lastAlignTime = now
 		const ordered = Object.keys(this.index).filter(a => {
-			if(this.index[a].permanent) {
+			if(this.index[a].permanent || this.locked[a]) {
 				if(typeof(this.index[a].size) == 'number') {
 					left -= this.index[a].size
 				}
@@ -203,16 +203,17 @@ class StorageIndex extends StorageTools {
 			}
 			return true
 		}).sort((a, b) => {
-			return (this.index[a].time > this.index[b].time) ? 1 : (this.index[a].time < this.index[b].time) ? -1 : 0
+			return (this.index[a].time > this.index[b].time) ? -1 : ((this.index[a].time < this.index[b].time) ? 1 : 0)
 		})
 		const removals = ordered.filter(key => {
-			if(this.locked[key]) return false
 			if(this.index[key].expiration && (now > this.index[key].expiration)) {
 				this.index[key].expired = true
 				return true // expired
 			}
-			const elapsed = now - this.index[key].time
-			if(elapsed < this.opts.minIdleTime) return false
+			const elapsed = now - this.index[key].time, size = this.index[key].size || 0
+			if(elapsed < this.opts.minIdleTime) {
+				return false
+			}
 			if(typeof(this.index[key].size) == 'number') {
 				left -= this.index[key].size
 				return left <= 0

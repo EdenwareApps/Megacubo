@@ -618,9 +618,7 @@ const init = (language, timezone) => {
             global.explorer.start()  
             global.icons.refresh()
             global.streamState.sync()
-            if(!global.uiReady()){
-                global.uiReady(null, true)
-            }
+            global.uiReady() || global.uiReady(null, true)
         })
         global.ui.on('streamer-ready', () => {        
             isStreamerReady = true  

@@ -14,6 +14,7 @@ class StreamerPlaybackTimeout extends EventEmitter {
                         console.warn('STUCK')
                         this.emit('stuck')
                         clearTimeout(this.playbackTimeoutTimer)
+                        parent.player.current.reload()
                         this.playbackTimeoutTimer = 0
                         this.app.emit('video-error', 'timeout', 'client playback timeout')
                     }, this.playbackTimeout)
@@ -1063,7 +1064,7 @@ class StreamerClientTimeWarp extends StreamerLiveStreamClockTimer {
         this.maxRateChange = 0.15
         this.defaultBufferTimeSecs = {
             pressure: 6,
-            lazy: 30
+            lazy: 20
         }
         this.currentPlaybackRate = 1
         parent.player.on('timeupdate', pos => this.doTimeWarp(pos))

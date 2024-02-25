@@ -6,17 +6,13 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 		this.currentSrc = ''
 		this.setup('video')
 	}
-	load(src, mimetype, additionalSubtitles, cookie, type) {
+	load(src, mimetype, additionalSubtitles, cookie, mediatype) {
 		if (!src) {
 			console.error('Bad source', src, mimetype, traceback())
 			return
 		}
 		this.active = true
-		this.engineType = type
-		if (this.currentSrc !== src) {
-			this.currentSrc = src
-			this.currentMimetype = mimetype
-		}
+		this.setVars(src, mimetype, additionalSubtitles, cookie, mediatype)
 		const timeout = 15000
 		const config = {
 			enableWorker: true,
@@ -37,31 +33,25 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 		hls.attachMedia(this.object)
 		hls.on(Events.ERROR, (event, data) => {
 			console.error('HLS ERROR', data)			
-			if (!data) data = event
-			if(data && data.details) {
-				if(data.frag && ['fragParsingError', 'fragLoadError', 'bufferStalledError'].includes(data.details) && !data.fatal){
+			if (!data) data = event			
+			if (!data) return
+			if(data.details && data.frag && !data.fatal) {
+				if(['fragParsingError', 'fragLoadError', 'bufferStalledError', 'bufferNudgeOnStall'].includes(data.details)){
 					// handle fragment load errors
-					return this.skipCurrentSegment(data.frag)
-				} else if(data.details == 'manifestLoadTimeOut'){
-					hls.recoverMediaError()
-					hls.startLoad()
-					return
+					return this.skipSegment(data.frag)
 				}
-			}
-			if (data && data.fatal) {
+			} else if (data.fatal) {
 				switch (data.type) {
 					case ErrorTypes.MEDIA_ERROR:
 						if(data.frag) {
-							this.skipCurrentSegment(data.frag) // skip before recover to prevent loading same frag
+							this.skipSegment(data.frag) // skip before recover to prevent loading same frag
 						}
 						console.error('HLS fatal media error encountered, reload')
-						hls.recoverMediaError()
+						this.reload()
 						break
 					case ErrorTypes.NETWORK_ERROR:
 						console.error('HLS fatal network error encountered, reload')
-						hls.stopLoad()
-						hls.recoverMediaError()
-						hls.startLoad()
+						this.reload()
 						break
 					default:
 						console.error('HLS unknown fatal error encountered, destroy')
@@ -73,7 +63,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 		this.hls = hls
 		this.connect()
 	}
-	skipCurrentSegment(frag) {
+	skipSegment(frag) {
 		const start = frag.start + frag.duration
 		if(frag.loader) {
 			console.warn('Fix level to '+ start)
@@ -83,8 +73,8 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 				url: frag.url
 			})
 		} else {
-			const fixPlayback = this.hls.media.currentTime >= (frag.start - 2) && this.hls.media.currentTime < start
-			console.warn('Skip from '+ this.hls.media.currentTime +' to '+ start, fixPlayback)		
+			const fixPlayback = this.hls.media.currentTime >= (frag.start - 12) && this.hls.media.currentTime < start
+			console.warn('Skip from '+ this.hls.media.currentTime +' to '+ start, frag, fixPlayback)		
 			this.hls.stopLoad()
 			if(fixPlayback) this.hls.media.currentTime = start
 			this.hls.startLoad(start)

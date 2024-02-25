@@ -25,7 +25,7 @@
     "formidable": "^2.1.1",
     "fs-chmod": "^1.0.6",
     "get-folder-size": "^2.0.1",
-    "hls.js": "^1.4.12",
+    "hls.js": "^1.5.6",
     "http-cookie-agent": "^5.0.2",
     "jimp": "^0.22.7",
     "jquery": "^3.6.4",

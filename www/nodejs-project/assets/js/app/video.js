@@ -220,6 +220,7 @@ class VideoControl extends EventEmitter {
 	}
 	load(src, mimetype, additionalSubtitles, cookie, mediatype, data){
 		this.setState('loading')
+		this.mediatype = mediatype
 		this.suspendStateChangeReporting = true
 		this.current && this.current.unload(true)
 		if(window.plugins && window.plugins.megacubo){
@@ -377,6 +378,28 @@ class VideoControlAdapter extends EventEmitter {
 			if(!this.suspendStateChangeReporting) this.emit('state', s, err)
 		}
 	}
+	setVars(src, mimetype, additionalSubtitles, cookie, mediatype) {
+		this.currentSrc = src
+		this.currentMimetype = mimetype
+		this.currentAdditionalSubtitles = additionalSubtitles
+		this.cookie = cookie
+		this.mediatype = mediatype
+	}
+	reload(cb) {
+		const t = this.time()
+		const {currentSrc, currentMimetype, currentAdditionalSubtitles, cookie, mediatype} = this
+		this.suspendStateChangeReporting = true
+		this.unload()
+		setTimeout(() => {
+			this.suspendStateChangeReporting = false
+			this.setState('loading')
+			this.load(currentSrc, currentMimetype, currentAdditionalSubtitles, cookie, mediatype)
+			if(t && this.mediatype == 'live') {
+				this.time(t + 0.5) // nudge a bit to skip any decoding error on part of the file
+			}
+			cb && cb()
+		}, 10)
+	}
 }
 
 class VideoControlAdapterHTML5 extends VideoControlAdapter {
@@ -434,17 +457,9 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 					this.setState('')
 				} else {
 					const c = this.errorsCount // load() will reset the counter
-					this.suspendStateChangeReporting = true
-					this.unload()
-					setTimeout(() => {
-						this.suspendStateChangeReporting = false
-						this.setState('loading')
-						this.load(this.currentSrc, this.currentMimetype, this.currentAdditionalSubtitles)
-						if(t){
-							this.object.currentTime = t + 0.5 // nudge a bit to skip any decoding error on part of the file
-						}
+					this.reload(() => {
 						this.errorsCount = c
-					}, 10)
+					})
 				}
 			}
 		}
@@ -572,12 +587,8 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		this.object.appendChild(track)
 		this.object.textTracks[0].mode = 'showing'
 	}
-	load(src, mimetype, additionalSubtitles){
-		if(this.currentSrc != src){
-			this.currentSrc = src
-			this.currentMimetype = mimetype
-			this.currentAdditionalSubtitles = additionalSubtitles
-		}
+	load(src, mimetype, additionalSubtitles, cookie, mediatype){
+		this.setVars(src, mimetype, additionalSubtitles, cookie, mediatype)
 		this._paused = false
 		this.setState('loading')
 		this.suspendStateChangeReporting = true
@@ -822,10 +833,12 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 		this.object.uiVisible(visible)
 	}
 	load(src, mimetype, additionalSubtitles, cookie, mediatype){
+		this.setVars(src, mimetype, additionalSubtitles, cookie, mediatype)
 		this.active = true
 		this.currentTime = 0
 		this.duration = 0
 		this.state = 'loading'
+		this.mediatype = mediatype
 		this.emit('state', this.state)
 		this.object.play(src, mimetype, additionalSubtitles, cookie, mediatype, this.successCallback.bind(this), this.errorCallback.bind(this))
 	}

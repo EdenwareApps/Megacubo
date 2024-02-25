@@ -3,58 +3,74 @@ const StreamerProxyBase = require('./proxy-base'), decodeEntities = require('dec
 const stoppable = require('stoppable'), m3u8Parser = require('m3u8-parser')
 
 class HLSJournal {
-	constructor(url, altURL){
+	constructor(url, altURL, master){
 		this.url = url
 		this.altURL = altURL
+		this.master = master
 		this.header = ''
 		this.journal = {}
-		this.liveJournal = {}
 		this.maxLen = Math.ceil(global.config.get('live-window-time') / 3)
+		this.initialMediaSequence = 0
+		this.currentMediaSequence = null
 		this.mediaSequence = {}
 		this.regexes = {
 			unproxify: new RegExp('/127\.0\.0\.1:[0-9]+(/s/|/)'),
 			protoNDomain: new RegExp('(https?://|//)[^/]+/'),
 			tsBasename: new RegExp('[^/]*\\.(m4s|mts|m2ts|ts)', 'i'),
-			ts: new RegExp('^.*\\.(m4s|mts|m2ts|ts)', 'i')			
+			ts: new RegExp('^[^\\\\?]*\\.(m4s|mts|m2ts|ts)', 'i')
 		}
 	}
 	process(content){
 		if(content){
 			let header = [], segments = {}, extinf, currentSegmentName
+			let m = content.match(new RegExp('EXT-X-MEDIA-SEQUENCE: *([0-9]+)', 'i'))
+			if(m){
+				this.currentMediaSequence = parseInt(m[1])
+				if(this.initialMediaSequence != this.currentMediaSequence) {
+					this.initialMediaSequence = this.currentMediaSequence
+				} 
+			}
+			let seg = 0
 			content.split("\n").filter(s => s.length >= 7).forEach(line => {
-				let isExtinf = line.substr(0, 7) == '#EXTINF'
+				const isExtinf = line.substr(0, 7) == '#EXTINF'
+				const key = seg + this.currentMediaSequence
+				if(!segments[key]) {
+					segments[key] = {live: true, url: '', extinf: ''}
+				}
 				if(isExtinf){
-					extinf = line
-					currentSegmentName = null
-				} else if(extinf) {
+					segments[key].extinf += line
+				} else if(segments[key].extinf) {
 					if(line.startsWith('#')) {
-						extinf += "\r\n"+ line
-						if(currentSegmentName) {
-							segments[currentSegmentName] = extinf
-						}
+						segments[key].extinf += "\r\n"+ line
 					} else {
-						currentSegmentName = this.segmentName(line)
-						extinf += "\r\n"+ line
-						segments[currentSegmentName] = extinf
+						segments[key].extinf += "\r\n"+ line
+						if(line.length > segments[key].url.length) {
+							segments[key].url = this.master.unproxify(global.absolutize(line, this.url))
+							seg++
+						}
 					}
 				} else {
 					header.push(line)
 				}
 			})
-			const segmentKeys = Object.keys(segments)
-			this.liveJournal = segmentKeys.map(u => global.absolutize(u, this.url))
-			segmentKeys.forEach(name => {
-				if(typeof(this.journal[name]) == 'undefined' || this.journal[name] != segments[name]){
-					this.journal[name] = segments[name]
+			Object.keys(this.journal).forEach(k => {
+				const live = !!segments[k]
+				if(this.journal[k].live !== live) {
+					this.journal[k].live = live
+				}
+			})
+			Object.keys(segments).forEach(k => {
+				if(!this.journal[k]) {
+					this.journal[k] = segments[k]
+					this.journal[k].urls = [segments[k].url]
+				} else {
+					if(!this.journal[k].urls.includes(segments[k].url)) {
+						this.journal[k].urls.push(segments[k].url)
+						this.journal[k].url = segments[k].url
+					}
 				}
 			})
 			this.header = header.join("\r\n")
-			let m = content.match(new RegExp('EXT-X-MEDIA-SEQUENCE: *([0-9]+)', 'i'))
-			if(m){
-				this.mediaSequence[segmentKeys[0]] = parseInt(m[1])
-			} else {
-				console.error('Media sequence missing', content)
-			}
 			let d = content.match(new RegExp('EXTINF: *([0-9\\.]+)', 'i')), lwt = global.config.get('live-window-time')
 			d = d ? parseFloat(d[1]) : 2
 			let journalKeys = Object.keys(this.journal)
@@ -69,29 +85,23 @@ class HLSJournal {
 	}
 	readM3U8() {
 		let content = this.header
-		Object.keys(this.journal).forEach((key, i) => {
+		Object.keys(this.journal).forEach((mediaSequence, i) => {
 			if(i == 0) {
-				if(this.mediaSequence[key]) {
-					content = content.replace(new RegExp('EXT-X-MEDIA-SEQUENCE: *([0-9]+)', 'i'), 'EXT-X-MEDIA-SEQUENCE:'+ this.mediaSequence[key])
-				}
+				content = content.replace(new RegExp('EXT-X-MEDIA-SEQUENCE: *([0-9]+)', 'i'), 'EXT-X-MEDIA-SEQUENCE:'+ mediaSequence - 1)
 			}
-			content += "\r\n"+ this.journal[key]
+			content += "\r\n"+ this.journal[mediaSequence].extinf
 		})
 		return content
 	}
-	segmentName(url, basename){
+	segmentName(url) {
 		let match, nurl = url
 		if(nurl.match(this.regexes.unproxify)){
 			nurl = nurl.replace(this.regexes.unproxify, '/')
 		}
-		if(basename){				
-			match = nurl.match(this.regexes.tsBasename)
-		} else {
-			if(nurl.match(this.regexes.protoNDomain)){
-				nurl = nurl.replace(this.regexes.protoNDomain, '')
-			}
-			match = nurl.match(this.regexes.ts)
+		if(nurl.match(this.regexes.protoNDomain)){
+			nurl = nurl.replace(this.regexes.protoNDomain, '/')
 		}
+		match = nurl.match(this.regexes.ts)
 		if(match){
 			return match[0]
 		}
@@ -102,7 +112,11 @@ class HLSJournal {
 		if(n.indexOf('://') != -1){
 			n = this.segmentName(n)
 		}
-		return this.liveJournal.some(u => u.indexOf(n) != -1)
+		return Object.keys(this.journal).some(k => {
+			this.journal[k].urls.some(u => {
+				return u.indexOf(n) != -1
+			})
+		})
 	}
 }
 
@@ -136,36 +150,25 @@ class HLSRequests extends StreamerProxyBase {
 		}
 		return f
     }
-	segmentName(url, basename){
-		let ret, fine = Object.keys(this.journals).some(j => {
-			ret = this.journals[j].segmentName(url, basename)
-			return true
-		})
-		if(!fine){
-			let j = new HLSJournal()
-			ret = j.segmentName(url, basename)
-		}
-		return ret
-	}
 	findSegmentIndexInJournal(segmentUrl, journalUrl) {
 		if(!this.journals[journalUrl]) return
-		let key, index
-		const purl = this.proxify(segmentUrl)
-		Object.keys(this.journals[journalUrl].journal).some((k, i) => {
-			if(this.journals[journalUrl].journal[k].indexOf(purl) != -1) {
-				key = k
-				index = i
-				return true
-			}
+		let key, mediaSequence, name = this.journals[journalUrl].segmentName(segmentUrl)
+		Object.keys(this.journals[journalUrl].journal).some(seq => {
+			return this.journals[journalUrl].journal[seq].urls.some(url => {
+				if(url.indexOf(name) != -1) {
+					mediaSequence = seq
+					return true
+				}
+			})
 		})
-		if(key) return {key, index}
+		if(key) return mediaSequence
 	}
 	findJournalFromSegment(url){
 		let ret
 		Object.keys(this.journals).some(jurl => {
-			const ptr = this.findSegmentIndexInJournal(url, jurl)
-			if(ptr) {
-				ret = {journal: jurl, segment: ptr.key, index: ptr.index}
+			const mediaSequence = this.findSegmentIndexInJournal(url, jurl)
+			if(mediaSequence !== undefined) {
+				ret = {journal: jurl, mediaSequence}
 				return true
 			}
 		})
@@ -175,77 +178,69 @@ class HLSRequests extends StreamerProxyBase {
 		const journalUrl = this.activeManifest
 		if(typeof(this.journals[journalUrl]) == 'undefined') return
 		const journal = this.journals[journalUrl].journal
-		let next, lastDownloadingKey, lastDownloadingKeyIndex
-		Object.keys(journal).some((k, i) => {
-			journal[k].split("\n").forEach(line => {
-				if(line.length > 3 && !line.startsWith('#')){
-					let segmentUrl = this.unproxify(global.absolutize(line, journalUrl))
-					if(segmentUrl == this.lastUserRequestedSegment) {
-						lastDownloadingKey = k
-						lastDownloadingKeyIndex = i
-						return true
-					}
+		let next, lastDownloadingMediaSequence, lastDownloadingMediaSequenceIndex
+		Object.keys(journal).some((mediaSequence, i) => {
+			return journal[mediaSequence].urls.some(url => {
+				if(url == this.lastUserRequestedSegment) {
+					lastDownloadingMediaSequence = mediaSequence
+					lastDownloadingMediaSequenceIndex = i
+					return true
 				}
 			})
 		})
-		if(lastDownloadingKey){
-			for(const k of Object.keys(journal).slice(lastDownloadingKeyIndex + 1)) {
-				if(!journal[k]) continue
-				const line = journal[k].split("\n").filter(line => {
-					return line.length > 3 && !line.startsWith('#')
-				}).shift().trim()
-				const segmentUrl = global.absolutize(this.unproxify(line), journalUrl)
-				const cachedInfo = await global.Download.cache.info(segmentUrl)
-				if(cachedInfo) continue
-				if(this.activeRequests[segmentUrl]) continue
-				if(!this.journals[journalUrl].inLiveWindow(segmentUrl)) continue
-				next = segmentUrl
+		if(lastDownloadingMediaSequence){
+			for(const k of Object.keys(journal).slice(lastDownloadingMediaSequenceIndex + 1)) {
+				let cached = await this.selectCacheAvailableURL(journal[k].urls)
+				if(cached) continue
+				if(this.activeRequests[journal[k].url]) continue
+				next = journal[k].url
 				break
+			}
+			if(this.debugConns && !next) {
+				console.warn('ALL CACHED IN: '+ journal[Object.keys(journal).pop()].url)
 			}
 		}
 		return next
 	}
+	async selectCacheAvailableURL(urls) {
+		if(!Array.isArray(urls)) {
+			const ptr = this.findJournalFromSegment(originalUrl)
+			if(!ptr) return
+			urls = this.journals[ptr.journal].journal[ptr.mediaSequence].urls
+		}
+		for(const url of urls) {
+			const cachedInfo = await global.Download.cache.info(url)
+			if(cachedInfo) return url
+		}
+	}
 	finishObsoleteSegmentRequests(journalUrl){
 		if(!this.journals[journalUrl]) return
-		Object.keys(this.journals[journalUrl].journal).forEach(k => {
-			this.journals[journalUrl].journal[k].split("\n").forEach(line => {
-				if(line.length > 3 && !line.startsWith('#')){
-					let segmentUrl = this.unproxify(global.absolutize(line, journalUrl))
-					if(typeof(this.activeRequests[segmentUrl]) != 'undefined'){
-						if(!this.activeRequests[segmentUrl] || this.activeRequests[segmentUrl].ended) return
-						const notLive = !this.journals[journalUrl].inLiveWindow(segmentUrl)
-						const notFromUser = this.activeRequests[segmentUrl].opts.shadowClient
-						if(notFromUser && notLive){
-							console.log('finishing request due to no clients or i\'ts outside of live window', segmentUrl)
-							this.activeRequests[segmentUrl].destroy()
-							delete this.activeRequests[segmentUrl]
-						}
+		Object.keys(this.journals[journalUrl].journal).forEach(mediaSequence => {
+			if(this.journals[journalUrl].journal[mediaSequence].live) return
+			for(const segmentUrl of this.journals[journalUrl].journal[mediaSequence].urls) {
+				if(typeof(this.activeRequests[segmentUrl]) != 'undefined') {
+					if(!this.activeRequests[segmentUrl] || this.activeRequests[segmentUrl].ended) continue
+					const notFromUser = this.activeRequests[segmentUrl].opts.shadowClient
+					if(notFromUser) {
+						console.log('finishing prefetch request outside of live window', segmentUrl)
+						this.activeRequests[segmentUrl].destroy()
+						delete this.activeRequests[segmentUrl]
 					}
 				}
-			})
+			}
 		})
 	}
 	inLiveWindow(url){
 		let pos = this.findJournalFromSegment(url)
 		if(pos){
-			return this.journals[pos.journal].inLiveWindow(url)
+			return this.journals[pos.journal].journal[pos.mediaSequence].live
 		}
 	}
 	report404ToJournal(url){
 		if(this.debugConns) console.log('report404')
 		let pos = this.findJournalFromSegment(url)
-		if(pos){
-			let ks = Object.keys(this.journals[pos.journal].journal)
-			let i = ks.indexOf(pos.segment)
-			if(this.debugConns) console.log('report404', pos, i)
-			if(i != -1){
-				const ret = ks.some((k, i) => {
-					delete this.journals[pos.journal].journal[k]
-					if(k == pos.segment) return true
-				})
-			} else {
-				console.error('report404 ERR '+ url +' segment not found in journal '+JSON.stringify(pos))
-			}
+		if(pos) {
+			this.journals[pos.journal].journal[pos.mediaSequence].offline = true
 		} else {
 			console.error('report404 ERR '+ url +' not found in journal')
 		}
@@ -253,13 +248,24 @@ class HLSRequests extends StreamerProxyBase {
 	validateStatus(code){
 		return code >= 200 && code <= 400 && code != 204
 	}
-	download(opts){
-		const now = global.time(), url = opts.url, seg = this.isSegmentURL(url)
-		const ptr = this.findJournalFromSegment(url)
-		if(ptr) {
-			if(!this.journals[ptr.journal].inLiveWindow(url)) {
-				console.error('OUT OF LIVE WINDOW', url)
-				opts.cachedOnly = true
+	async download(opts){
+		let url = opts.url
+		const now = global.time(), seg = this.isSegmentURL(url)
+		if(seg) {
+			const ptr = this.findJournalFromSegment(url)
+			if(ptr) {
+				if(!this.journals[ptr.journal].journal[ptr.mediaSequence].live) {
+					console.error('OUT OF LIVE WINDOW', url, this.journals[ptr.journal].journal[ptr.mediaSequence])
+					opts.cachedOnly = true
+					const bestUrl = await this.selectCacheAvailableURL(url) // get cached one alternative
+					if(bestUrl && bestUrl != url) {
+						opts.url = url = bestUrl
+					}
+				} else { // update url to most updated alternative
+					if(this.journals[ptr.journal].journal[ptr.mediaSequence].url != url) {
+						opts.url = url = this.journals[ptr.journal].journal[ptr.mediaSequence].url
+					}
+				}
 			}
 		}
 		if(this.debugConns){
@@ -274,9 +280,9 @@ class HLSRequests extends StreamerProxyBase {
 		if(this.debugUnfinishedRequests){
 			global.osd.show('unfinished: '+ Object.values(this.activeRequests).length, 'fas fa-info-circle', 'hlsu', 'persistent')
 		}
-		let ended, doPrefetch, mediaType, end = () => {
+		let ended, mediaType, end = () => {
 			if(this.debugConns){
-				console.error('REQUEST CONNECT END', global.time() - now, url, request.statusCode, ext)
+				console.error('REQUEST CONNECT END', global.time() - now, url, request.statusCode)
 			}
 			if(this.activeRequests[url]){
 				delete this.activeRequests[url]
@@ -293,9 +299,9 @@ class HLSRequests extends StreamerProxyBase {
 						manifest = url
 					} else if(mediaType == 'video'){
 						if(!this.findSegmentIndexInJournal(url, this.activeManifest)){
-							const n = this.findJournalFromSegment(url)
-							if(n && n.journal && n.journal != this.activeManifest){
-								manifest = n.journal
+							const pos = this.findJournalFromSegment(url)
+							if(pos && pos.journal && pos.journal != this.activeManifest){
+								manifest = pos.journal
 							}
 						}
 					}
@@ -319,7 +325,7 @@ class HLSRequests extends StreamerProxyBase {
 						}
 					}					
 					// Using nextTick to prevent "RangeError: Maximum call stack size exceeded"
-					doPrefetch && process.nextTick(() => this.prefetch(url, opts))
+					process.nextTick(() => this.prefetch(opts))
 				}
 			}
 		}
@@ -328,14 +334,6 @@ class HLSRequests extends StreamerProxyBase {
 				mediaType = 'video'
 				if(this.ext(request.currentURL) == 'm3u8' || (headers['content-type'] && headers['content-type'].match(this.mpegURLRegex))){
 					mediaType = 'meta'
-				} else {
-					// only prefetch if player is downloading old segments (user has seeked back)
-					if(headers['x-megacubo-dl-source'] && headers['x-megacubo-dl-source'].indexOf('cache') != -1) {
-						// meaningless with no in-disk caching
-						if(global.config.get('hls-prefetching') && global.config.get('in-disk-caching-size')) {
-							doPrefetch = true
-						}
-					}
 				}
 			} else {
 				if(this.debugConns){
@@ -358,22 +356,19 @@ class HLSRequests extends StreamerProxyBase {
 		request.once('end', end)
 		return request
 	}
-	async prefetch(url, opts){
-		if(!this.destroyed && !Object.keys(this.activeRequests).length) {
+	async prefetch(opts){
+		if(!this.destroyed) {
 			let next = await this.getNextInactiveSegment()
-			if(next){
-				if(this.debugConns) console.warn('PREFETCHING', url, '=>', next)
+			if(next && !Object.keys(this.activeRequests).length){
+				if(this.debugConns) console.warn('PREFETCHING', this.lastUserRequestedSegment, '=>', next)
 				const nopts = opts
 				nopts.url = next
 				nopts.cachedOnly = false
 				nopts.shadowClient = true
-				this.download(nopts).start()
+				const dl = await this.download(nopts)
+				dl.start()
 			} else {
-				let info
-				if(this.journals[this.activeManifest]){
-					info = Object.keys(this.journals[this.activeManifest].journal).slice(-5)
-				}
-				if(this.debugConns) console.warn('NOT PREFETCHING', Object.values(this.activeRequests).length, url, info)
+				if(this.debugConns) console.warn('NOT PREFETCHING', Object.values(this.activeRequests).length, this.lastUserRequestedSegment)
 			}
 		}
 	}
@@ -518,7 +513,7 @@ class StreamerProxyHLS extends HLSRequests {
 				})
 				let journal = this.findJournal(baseUrl, url)
 				if(typeof(journal) == 'undefined'){
-					this.journals[baseUrl] = journal = new HLSJournal(baseUrl, url)
+					this.journals[baseUrl] = journal = new HLSJournal(baseUrl, url, this)
 				}
 				journal.process(body)
 				body = journal.readM3U8(body)
@@ -614,7 +609,7 @@ class StreamerProxyHLS extends HLSRequests {
 	setNetworkOnly(enable){
 		this.networkOnly = enable
 	}
-	handleRequest(req, response){
+	async handleRequest(req, response){
 		if(this.destroyed || req.url.indexOf('favicon.ico') != -1){
 			response.writeHead(404, global.prepareCORS({
 				'connection': 'close'
@@ -657,7 +652,7 @@ class StreamerProxyHLS extends HLSRequests {
 		const isCacheable = this.committed && (match = url.match(this.isCacheableRegex)) && match.length && match[0].length // strangely it was returning [""] sometimes on electron@9.1.2
 		const cacheTTL = isCacheable ? global.config.get('live-window-time') : 0
 		const keepalive = this.committed && global.config.get('use-keepalive')
-		const download = this.download({
+		const download = await this.download({
 			url,
 			cacheTTL,
 			acceptRanges: !!cacheTTL,

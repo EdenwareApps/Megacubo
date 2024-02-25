@@ -5,14 +5,14 @@ class VideoControlAdapterHTML5DASH extends VideoControlAdapterHTML5Video {
         this.setup('video');
     }
 
-    load(src, mimetype, cookie, type) {
+    load(src, mimetype, additionalSubtitles, cookie, mediatype) {
         if (!src) {
             console.error('Bad source', src, mimetype, traceback());
             return;
         }
 
-        this.active = true;
-        this.engineType = type;
+        this.active = true
+		this.setVars(src, mimetype, additionalSubtitles, cookie, mediatype)
 
         if (this.currentSrc !== src) {
             this.currentSrc = src;

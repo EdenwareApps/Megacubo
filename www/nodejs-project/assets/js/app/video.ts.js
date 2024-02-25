@@ -5,17 +5,13 @@ class VideoControlAdapterHTML5TS extends VideoControlAdapterHTML5Video {
 		this.currentSrc = ''
         this.setup('video')
     }
-	load(src, mimetype, cookie, type){
+	load(src, mimetype, additionalSubtitles, cookie, mediatype){
 		if(!src){
 			console.error('Bad source', src, mimetype, traceback())
 			return
 		}
 		this.active = true
-		this.engineType = type
-		if(this.currentSrc != src){
-			this.currentSrc = src
-			this.currentMimetype = mimetype
-		}
+		this.setVars(src, mimetype, additionalSubtitles, cookie, mediatype)
         this.mpegts = mpegts.createPlayer({
             type: 'mse', // could be mse, mpegts, m2ts, flv
             url: this.currentSrc,
