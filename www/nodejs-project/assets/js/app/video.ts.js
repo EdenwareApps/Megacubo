@@ -15,7 +15,7 @@ class VideoControlAdapterHTML5TS extends VideoControlAdapterHTML5Video {
         this.mpegts = mpegts.createPlayer({
             type: 'mse', // could be mse, mpegts, m2ts, flv
             url: this.currentSrc,
-            isLive: type != 'video'
+            isLive: mediatype != 'video'
 		}, {
             lazyLoad: false,
             enableWorker: true,

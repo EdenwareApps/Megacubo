@@ -163,7 +163,7 @@ class Parser extends EventEmitter {
 					e.name = e.gid || global.listNameFromURL(e.url)
 				}
 				const name = e.name.replace(Parser.regexes['between-brackets'], '')
-				if (name === e.name) {
+				if (name != e.name) {
 					e.rawname = e.name
 					e.name = name
 				}

@@ -14,7 +14,7 @@ class StreamerPlaybackTimeout extends EventEmitter {
                         console.warn('STUCK')
                         this.emit('stuck')
                         clearTimeout(this.playbackTimeoutTimer)
-                        parent.player.current.reload()
+                        parent.player.current && parent.player.current.reload()
                         this.playbackTimeoutTimer = 0
                         this.app.emit('video-error', 'timeout', 'client playback timeout')
                     }, this.playbackTimeout)
@@ -1262,7 +1262,7 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
         if(this.inFullScreen){
             this.leaveFullScreen()
         } else {
-            if(parent.winman.inPIP) {
+            if(parent.winman && parent.winman.inPIP) {
                 parent.winman.leave().catch(console.error)
             } else {
                 this.enterFullScreen()

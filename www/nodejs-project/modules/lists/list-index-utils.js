@@ -15,7 +15,7 @@ class ListIndexUtils extends Events {
         }
     }
     sniffStreamType(e){
-        if(e.name.match(this.seriesRegex)) {
+        if(e.name && e.name.match(this.seriesRegex)) {
             return 'series'
         } else if(e.url.match(this.vodRegex)) {
             return 'vod'

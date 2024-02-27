@@ -90,7 +90,9 @@ global.uiReady = (f, done) => {
         }
     }
     if(!ready && done === true){
-        uiReadyCallbacks.map(f => {
+        const callbacks = uiReadyCallbacks
+        uiReadyCallbacks = null
+        callbacks.map(f => {
             try {
                 const p = f()
                 if(p && typeof(p.catch) == 'function') {
@@ -100,7 +102,6 @@ global.uiReady = (f, done) => {
                 console.error(e)
             }
         })
-        uiReadyCallbacks = null
     }
     return ready
 }
