@@ -39,6 +39,8 @@
 - Devtools console: F12 or Ctrl+Shift+I
 
 <br /><br />
-After enabling special features in the application, you can go to Tools > "Key Mapping" to change these and other hotkeys.
 
 If you miss a specific hotkey, [let us know](https://github.com/EdenwareApps/Megacubo/issues).
+
+Note: Enabling special features in the app, you can go to Tools > "Key Mapping" to customize these and other hotkeys.
+
