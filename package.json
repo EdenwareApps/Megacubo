@@ -13,6 +13,7 @@
     "start": "cd www/nodejs-project && npm start",
     "debug": "cd www/nodejs-project && npm run debug",
     "build": "cd www/nodejs-project && npm run build",
+    "postinstall": "npm run build",
     "test": "echo \"No test specified\" && exit 0"
   },
   "bin": {
