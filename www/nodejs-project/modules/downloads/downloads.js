@@ -1,15 +1,15 @@
-const Events = require('events'), fs = require('fs')
-const path = require('path'), http = require('http'), url = require('url')
-const closed = require('../on-closed'), parseRange = require('range-parser')
+const { EventEmitter } = require('events')
 
-class Downloads extends Events {
+class Downloads extends EventEmitter {
    constructor(){
 	   	super()
 		this.map = {}
 		this.server = false
 		this.timer = 0
 		this.served = []
-		this.folder = global.paths.temp
+			
+		const { temp } = require('../paths')
+		this.folder = temp
 		if(this.folder.charAt(this.folder.length - 1) != '/'){
 			this.folder += '/'
 		}
@@ -37,7 +37,7 @@ class Downloads extends Events {
 		}
 		this.clear()
 	   	this.activeDownloads = {}
-		global.ui.on('download-in-background', this.download.bind(this))
+		global.renderer.on('download-in-background', this.download.bind(this))
 	}
 	dialogCallback(ret){
 		if(ret == 'downloads-start'){
@@ -47,16 +47,17 @@ class Downloads extends Events {
 		} else {
 			const cancelPrefix = 'downloads-cancel-'
 			if(String(ret).startsWith(cancelPrefix)){
+				const fs = require('fs')
 				const uid = ret.substr(cancelPrefix.length)
 				Object.keys(this.activeDownloads).some(url => {
 					if(this.activeDownloads[url].uid == uid){
 						this.activeDownloads[url].cancelled = true
 						this.activeDownloads[url].destroy()
 						fs.unlink(this.activeDownloads[url].file, () => {})
-						global.ui.emit('background-mode-unlock', 'saving-file-'+ uid)
+						global.renderer.emit('background-mode-unlock', 'saving-file-'+ uid)
 						global.osd.hide(uid)
 						delete this.activeDownloads[url]
-						global.explorer.refreshNow()
+						global.menu.refreshNow()
 						return true
 					}
 				})
@@ -75,8 +76,12 @@ class Downloads extends Events {
 			if(this.server){
 				return resolve(this.opts.port)
 			}
+			const fs = require('fs')
+			const http = require('http')
 			this.server = http.createServer((req, res) => {
 				const uid = global.time()
+				const url = require('url')
+				const path = require('path')
 				this.clients.push(uid)
 				console.log(`serve ${req.method} ${req.url}`)
 				const parsedUrl = url.parse(req.url)
@@ -147,6 +152,7 @@ class Downloads extends Events {
 						}
 						let status = 200, len = stat.size, start = 0, end = Math.max(0, len - 1)
 						if (req.headers.range) {
+							const parseRange = require('range-parser')
 							const ranges = parseRange(len, req.headers.range, { combine: true })
 							if (ranges === -1) {
 								res.writeHead(416, {
@@ -185,6 +191,7 @@ class Downloads extends Events {
 						if (req.method === 'HEAD' || len == 0) return res.end()
 						let stream = fs.createReadStream(pathname, {start, end})
 						let sent = 0
+						const closed = require('../on-closed')
 						closed(req, res, stream, () => {
 							console.log('serve res finished', sent, start, end)
 							if(stream){
@@ -213,7 +220,8 @@ class Downloads extends Events {
 		})
 	}
 	import(file){
-        return new Promise((resolve, reject) => {	
+        return new Promise((resolve, reject) => {
+			const path = require('path')
 			const name = path.basename(file)
 			console.log('serve import', this.folder, name)
 			const dest = path.join(this.folder, name)
@@ -222,6 +230,7 @@ class Downloads extends Events {
 			if(file == dest) {
 				resolve('http://' + this.opts.addr + ':' + this.opts.port + '/' + encodeURIComponent(name))
 			} else {
+				const fs = require('fs')
 				fs.copyFile(file, dest, err => {
 					if(err){
 						reject(err)
@@ -235,13 +244,14 @@ class Downloads extends Events {
 	async serve(file, triggerDownload, doImport, name){
         await this.prepare()
 		if(!name){
+			const path = require('path')
 			name = path.basename(file)
 		}
 		if(doImport){
 			const url = await this.import(file)
 			console.log('serve serve', file, url)
 			if(triggerDownload){						
-				global.ui.emit('download', url, name)
+				global.renderer.emit('download', url, name)
 			}
 			return url
 		} else {
@@ -249,13 +259,14 @@ class Downloads extends Events {
 			this.map['./' + name] = file
 			console.log('serve serve', file, url)
 			if(triggerDownload){						
-				global.ui.emit('download', url, name)
+				global.renderer.emit('download', url, name)
 			}
 			return url
 		}
 	}
     clear(){
 		console.log('serve clear', traceback())
+		const fs = require('fs')
         fs.access(this.folder, error => {
             if (error) {
                 fs.mkdir(this.folder, { recursive: true }, () => {})
@@ -267,29 +278,46 @@ class Downloads extends Events {
     }
 	async askDownload(url, name, target){		
 		this.askingDownloadStart = {url, name, target}
-		let ret = await global.explorer.dialog([
-			{template: 'question', text: global.MANIFEST.window.title, fa: this.icon},
+		let ret = await global.menu.dialog([
+			{template: 'question', text: global.paths.manifest.window.title, fa: this.icon},
 			{template: 'message', text: global.lang.DOWNLOAD_START_CONFIRM.format(name) +"\r\n\r\n"+ global.lang.DOWNLOAD_START_HINT.format([global.lang.TOOLS, global.lang.ACTIVE_DOWNLOADS].join('/'))},
 			{template: 'option', text: lang.YES, id: 'downloads-start', fa: 'fas fa-check-circle'},
 			{template: 'option', text: lang.NO, id: 'no', fa: 'fas fa-times-circle'}
 		], 'no')
 		this.dialogCallback(ret)
 	}
+	getUniqueFilenameHelper(name, i) {
+		let pos = name.lastIndexOf('.')
+		if(pos == -1){
+			return name + '-' + i
+		} else {
+			return name.substr(0, pos) + '-' + i + name.substr(pos)
+		}
+	}
+	getUniqueFilename(files, name) {
+		let i = 0, nname = name
+		while(files.includes(nname)) {
+			i++
+			nname = this.getUniqueFilenameHelper(name, i)
+		}
+		return nname
+	}	
 	download(url, name, target){  
 		target = target.replace('file:///', '/')  
 		console.log('Download in background', url, name, target)
 		if(typeof(this.activeDownloads[url]) != 'undefined'){
 			return
 		}
+		const fs = require('fs')
 		fs.readdir(target, (err, files) => {
 			if(Array.isArray(files)){
-				name = global.getUniqueFilename(files, name)
+				name = this.getUniqueFilename(files, name)
 				console.log('UNIQUE FILENAME ' + name + ' IN ' + files.join(','))
 			} else {
 				console.log('READDIR ERR ' + String(err))
 			}
 			const uid = 'download-'+ name.replace(new RegExp('[^A-Za-z0-9]+', 'g'), '')
-			global.ui.emit('background-mode-lock', 'saving-file-'+ uid)
+			global.renderer.emit('background-mode-lock', 'saving-file-'+ uid)
 			global.osd.show(global.lang.SAVING_FILE_X.format(name) +' 0%', 'fa-mega spin-x-alt', uid, 'persistent')
 			const file = target +'/'+ name
 			const writer = fs.createWriteStream(file, {flags: 'w' , highWaterMark: Number.MAX_SAFE_INTEGER}), download = new global.Download({
@@ -303,13 +331,13 @@ class Downloads extends Events {
 			download.file = file
 			download.filename = name
 			this.activeDownloads[url] = download
-			if(global.explorer.path == global.lang.TOOLS){
-				global.explorer.refresh()
+			if(global.menu.path == global.lang.TOOLS){
+				global.menu.refresh()
 			}
 			download.on('progress', progress => {
 				global.osd.show(global.lang.SAVING_FILE_X.format(name) +'  '+ parseInt(progress) +'%', 'fa-mega spin-x-alt', uid, 'persistent')
-				if(global.explorer.path.indexOf(global.lang.ACTIVE_DOWNLOADS) != -1){
-					global.explorer.refresh()
+				if(global.menu.path.indexOf(global.lang.ACTIVE_DOWNLOADS) != -1){
+					global.menu.refresh()
 				}
 			})
 			download.on('error', console.error)
@@ -318,16 +346,16 @@ class Downloads extends Events {
 				const finished = () => {
 					writer.destroy()
 					const done = () => {
-						global.ui.emit('background-mode-unlock', 'saving-file-'+ uid)
+						global.renderer.emit('background-mode-unlock', 'saving-file-'+ uid)
 						delete this.activeDownloads[url]
-						if(global.explorer.path.indexOf(global.lang.ACTIVE_DOWNLOADS) != -1){
-							global.explorer.refreshNow()
+						if(global.menu.path.indexOf(global.lang.ACTIVE_DOWNLOADS) != -1){
+							global.menu.refreshNow()
 						}
 					}
 					if(download.cancelled) {
 						done()
 					} else {
-						global.osd.show(global.lang.FILE_SAVED_ON.format(explorer.basename(target) || target, name), 'fas fa-check-circle', uid, 'normal')
+						global.osd.show(global.lang.FILE_SAVED_ON.format(menu.basename(target) || target, name), 'fas fa-check-circle', uid, 'normal')
 						fs.chmod(file, 0o777, err => { // https://stackoverflow.com/questions/45133892/fs-writefile-creates-read-only-file#comment77251452_45140694
 							console.log('Updated file permissions', err)
 							done()
@@ -359,8 +387,8 @@ class Downloads extends Events {
 					type: 'action',
 					fa: this.icon,
 					action: async () => {
-						let ret = await global.explorer.dialog([
-							{template: 'question', text: global.MANIFEST.window.title, fa: this.icon},
+						let ret = await global.menu.dialog([
+							{template: 'question', text: global.paths.manifest.window.title, fa: this.icon},
 							{template: 'message', text: global.lang.DOWNLOAD_CANCEL_CONFIRM.format(name)},
 							{template: 'option', text: lang.YES, id: 'downloads-cancel-'+ download.uid, fa: 'fas fa-check-circle'},
 							{template: 'option', text: lang.NO, id: 'no', fa: 'fas fa-times-circle'}
@@ -382,4 +410,4 @@ class Downloads extends Events {
     }
 }
 
-module.exports = Downloads
+module.exports = new Downloads()

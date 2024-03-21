@@ -1,4 +1,4 @@
-const fs = require('fs'), ListIndexUtils = require('./list-index-utils')
+const ListIndexUtils = require('./list-index-utils')
 
 class ListIndex extends ListIndexUtils {
 	constructor(file, url){
@@ -80,6 +80,7 @@ class ListIndex extends ListIndexUtils {
         return structure
     }
 	start(){
+        const fs = require('fs')
 		fs.stat(this.file, (err, stat) => {
 			if(this.debug){
 				console.log('loadCache', this.url, stat)

@@ -1,4 +1,3 @@
-
 class StreamWriter {
 	constructor(target){
 		this.target = target

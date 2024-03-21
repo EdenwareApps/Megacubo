@@ -1,4 +1,4 @@
-const Events = require('events')
+const { EventEmitter } = require('events')
 
 const FreeTVMap = {
     "al": ["playlist_albania.m3u8"],
@@ -81,7 +81,7 @@ const FreeTVMap = {
     "ve": ["playlist_venezuela.m3u8"]
 }
 
-class PublicLists extends Events {
+class PublicLists extends EventEmitter {
     constructor(opts={}){
         super()
         const Countries = require('../../countries')
@@ -89,8 +89,8 @@ class PublicLists extends Events {
         this.data = {}
         this.countries = new Countries()
         this.load().catch(console.error)
-        global.uiReady(() => {
-            global.explorer.addFilter(this.hook.bind(this))
+        global.rendererReady(() => {
+            global.menu.addFilter(this.hook.bind(this))
         })
     }
     async load() {
@@ -101,10 +101,11 @@ class PublicLists extends Events {
                     return 'https://github.com/Free-TV/IPTV/raw/master/playlists/'+ n
                 }))
             })
-            await global.cloud.get('configure').then(c => {
-                Object.keys(c['legal-iptv']).forEach(code => {
+            const cloud = require('../../cloud')
+            await cloud.get('configure').then(c => {
+                Object.keys(c['Free-IPTV-Extras']).forEach(code => {
                     if(!this.data[code]) this.data[code] = []
-                    this.data[code].push(c['legal-iptv'][code])
+                    this.data[code].push(c['Free-IPTV-Extras'][code])
                 })
             }).catch(console.error)
         }
@@ -132,6 +133,7 @@ class PublicLists extends Events {
             if(lists.length > maxLists){
                 lists = lists.slice(0, maxLists)
             }
+            if(!adder) return lists
             adder(lists.map((list, i) => {
                 list = {type: 'public', url: list, health: factor * (1 - (i * (1 / lists.length)))}
                 return list
@@ -141,37 +143,34 @@ class PublicLists extends Events {
     async entries(local){
         await this.ready()
         let entries = Object.keys(this.data)
+        entries.unshift(global.lang.countryCode)
         if(local === true) {
             let locs = await global.lang.getActiveCountries(0).catch(console.error)
             entries = entries.filter(e => locs.includes(e))
         }
-        entries = entries.map(countryCode => {
+        entries = entries.unique().map(countryCode => {
             return {
                 name: this.countries.getCountryName(countryCode, global.lang.locale),
                 type: 'group',
                 url: this.data[countryCode],
+                countryCode,
                 renderer: async () => {
                     let err
-                    global.lists.manager.openingList = true
+                    const lists = require('../../lists')
+                    lists.manager.openingList = true
                     let ret = []
                     for(const url of this.data[countryCode]) {
-                        let es = await global.lists.manager.directListRenderer({url}, {raw: true, fetch: true, expand: true}).catch(e => err = e)
+                        let es = await lists.manager.directListRenderer({url}, {raw: true, fetch: true, expand: true}).catch(e => err = e)
                         if(Array.isArray(es)) {
                             ret.push(...es.filter(e => e.name != global.lang.EMPTY))
                         }
                     }
-                    global.lists.manager.openingList = false
+                    lists.manager.openingList = false
                     global.osd.hide('list-open')
                     if(err) throw err
-                    return global.lists.sort(ret)
+                    return lists.sort(ret)
                 }
             }
-        })
-        let loc = global.lang.locale.substr(0, 2), cc = global.lang.countryCode
-        entries.sort((a, b) => {
-            let sa = a.countryCode == cc ? 2 : ((a.countryCode == loc) ? 1 : 0)
-            let sb = b.countryCode == cc ? 2 : ((b.countryCode == loc) ? 1 : 0)
-            return sa < sb ? 1 : (sa > sb ? -1 : 0)
         })
         global.ALLOW_ADDING_LISTS || entries.unshift(this.infoEntry())
         return entries
@@ -205,7 +204,7 @@ class PublicLists extends Events {
                                 selected: def == n.value,
                                 action: () => {
                                     global.config.set('public-lists', n.value)
-                                    global.explorer.refreshNow()
+                                    global.menu.refreshNow()
                                 }
                             }
                         })
@@ -220,7 +219,6 @@ class PublicLists extends Events {
     infoEntry() {
         return {
             name: global.lang.LEGAL_NOTICE,
-            details: 'DMCA',
             fa: 'fas fa-info-circle',
             type: 'action',
             action: this.showInfo.bind(this)
@@ -230,30 +228,31 @@ class PublicLists extends Events {
         return {
             name: global.lang.COUNTRIES,
             fa: 'fas fa-globe',
-            details: this.details,
+            details: global.lang.ALL,
             type: 'group',
             renderer: this.entries.bind(this)
         }
     }
     async hook(entries, path){
+        const options = require('../../options')
         if(path.split('/').pop() == global.lang.MY_LISTS) {
-            global.options.insertEntry(this.entry(), entries, 1, global.lang.ADD_LIST)
+            options.insertEntry(this.entry(), entries, 1, [], global.lang.ADD_LIST)
         } else if(path == '') {
             if(!global.ALLOW_ADDING_LISTS) {
-                global.options.insertEntry(this.countriesEntry(), entries, 6, [global.lang.TOOLS, global.lang.OPEN_URL], [global.lang.BOOKMARKS])
+                options.insertEntry(this.countriesEntry(), entries, 6, [global.lang.TOOLS], [global.lang.TREENDING])
             }
         }
         return entries
     }
     showInfo(){
-        global.explorer.dialog([
+        global.menu.dialog([
             {template: 'question', text: global.lang.PUBLIC_LISTS, fa: 'fas fa-users'},
             {template: 'message', text: global.lang.PUBLIC_LISTS_INFO},
             {template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle'},
             {template: 'option', text: global.lang.KNOW_MORE, id: 'know', fa: 'fas fa-info-circle'}
         ], 'ok').then(ret => {
             if(ret == 'know'){
-                global.ui.emit('open-external-url', 'https://github.com/EdenwareApps/Legal-IPTV')
+                global.renderer.emit('open-external-url', 'https://github.com/EdenwareApps/Free-IPTV-Extras')
             }
         }).catch(console.error)
     }

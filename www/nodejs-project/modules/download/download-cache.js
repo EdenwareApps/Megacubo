@@ -1,11 +1,10 @@
-const fs = require('fs'), Events = require('events')
-const Reader = require('../reader'), Writer = require('../writer')
+const { EventEmitter } = require('events')
 
 const url2id = url => {
     return 'dlc-'+ url.replace(new RegExp('^https?://'), '').replace(new RegExp('[^A-Za-z0-9]+', 'g'), '-').substr(0, 255)
 }
 
-class DownloadCacheFileReader extends Events {
+class DownloadCacheFileReader extends EventEmitter {
     constructor(master, opts){
         super()
         this.file = master.file
@@ -16,13 +15,14 @@ class DownloadCacheFileReader extends Events {
             this.stream && this.stream.endPersistence()
         })
         master.once('error', err => {
-            this.emit('error', err)
+            this.listenerCount('error') && this.emit('error', err)
             this.destroy()
         })
         this.once('close', () => this.destroy())
         process.nextTick(() => this.init())
     }
     init(){
+        const Reader = require('../reader')
         this.stream = new Reader(this.file, this.opts);
         ['data', 'end', 'error', 'finish', 'close'].forEach(n => this.forward(n))
     }
@@ -43,7 +43,7 @@ class DownloadCacheFileReader extends Events {
 /*
 Cache saver to disk which allows to read it even while saving, with createReadStream()
 */
-class DownloadCacheChunks extends Events {
+class DownloadCacheChunks extends EventEmitter {
     constructor(url){
         super()
         this.setMaxListeners(99)
@@ -52,6 +52,8 @@ class DownloadCacheChunks extends Events {
         this.file = global.storage.resolve(this.uid)
         this.size = 0
         this.created = false
+
+        const Writer = require('../writer')
         this.writer = new Writer(this.file)
         this.writer.once('open', () => {
             this.opened = true
@@ -76,6 +78,8 @@ class DownloadCacheChunks extends Events {
         this.error = err
         this.emit('error', err)
         this.finish()
+
+        const fs = require('fs')
         fs.unlink(this.file, () => {})
     }
     end(){
@@ -91,7 +95,7 @@ class DownloadCacheChunks extends Events {
     }
 }
 
-class DownloadCacheMap extends Events {
+class DownloadCacheMap extends EventEmitter {
     constructor(){
         super()
         this.saving = {}
@@ -107,6 +111,7 @@ class DownloadCacheMap extends Events {
         }
         const info = await global.storage.get(hkey).catch(() => {})
         if(!info || !info.headers) return null
+        const fs = require('fs')
         const file = global.storage.resolve(key)
         const stat = await fs.promises.stat(file).catch(() => {})
         if(!stat || typeof(stat.size) != 'number') return null

@@ -1,6 +1,6 @@
-const Tuner = require('./tuner'), Events = require('events')
+const { EventEmitter } = require('events')
 
-class AutoTuner extends Events {
+class AutoTuner extends EventEmitter {
     constructor(entries, opts){
         super()
         this.paused = false
@@ -14,8 +14,9 @@ class AutoTuner extends Events {
         opts.mediaType = opts.mediaType == 'audio' ? 'all' : opts.mediaType // is we're searching a radio, no problem to return a radio studio webcam
         if(!opts.allowedTypes || !Array.isArray(opts.allowedTypes)) {
             opts.allowedTypes = []
-            Object.keys(global.streamer.engines).forEach(n => {
-                if(global.streamer.engines[n].mediaType == opts.mediaType){
+            const streamer = require('../streamer/main')
+            Object.keys(streamer.engines).forEach(n => {
+                if(streamer.engines[n].mediaType == opts.mediaType){
                     opts.allowedTypes.push(n)
                 }
             })
@@ -28,6 +29,8 @@ class AutoTuner extends Events {
         if(!this.tuner){
             this.entries = await this.ceilPreferredStreams(this.entries, this.preferredStreamServers(), this.opts.preferredStreamURL)
             this.entries = await this.ceilMyListsStreams(this.entries, this.preferredStreamServers(), this.opts.preferredStreamURL)
+
+            const Tuner = require('./tuner')
             this.tuner = new Tuner(this.entries, this.opts, this.opts.megaURL)
             this.tuner.on('success', (e, nfo, n) => {
                 if(typeof(this.succeededs[n]) == 'undefined'){
@@ -54,7 +57,8 @@ class AutoTuner extends Events {
         return String(file).split('?')[0].split('#')[0].split('.').pop().toLowerCase()
     }
     preferredStreamServers(){
-        return global.histo.get().map(e => e.preferredStreamURL || e.url).map(u => this.domain(u)).unique()
+        const history = require('../history')
+        return history.get().map(e => e.preferredStreamURL || e.url).map(u => this.domain(u)).unique()
     }
 	domain(u){
 		if(u && u.indexOf('//') != -1){
@@ -105,11 +109,14 @@ class AutoTuner extends Events {
         })
         entries.push(...streams)
         entries.push(...deferredStreams)
-        return await global.watching.order(entries)
+
+        const watching = require('../watching')
+        return await watching.order(entries)
     }
     async ceilMyListsStreams(entries){
         const deferredEntries = []
-        const listsInfo = global.lists.info(true)
+        const lists = require('../lists')
+        const listsInfo = lists.info(true)
         entries = entries.filter(entry => {
             const isMine = listsInfo[entry.source] && listsInfo[entry.source].owned
             if(isMine){
@@ -192,7 +199,8 @@ class AutoTuner extends Events {
                         if(n.nid){
                             n = this.prepareIntentToEmit(n)
                             if(!this.headless){
-                                let ret = await global.streamer.commit(n)
+                                const streamer = require('../streamer/main')
+                                let ret = await streamer.commit(n)
                                 if(global.debugTuning){
                                     global.displayErr('TUNER COMMITING '+ ret +' - '+ n.data.name)
                                 }
@@ -303,8 +311,9 @@ class AutoTuner extends Events {
                 if(ffmpegBasedSlotCount <= 0){
                     return
                 }
-            }    
-            let intent = new global.streamer.engines[this.tuner.info[nid].type](this.tuner.entries[nid], {}, this.tuner.info[nid])
+            }
+            const streamer = require('../streamer/main')
+            let intent = new streamer.engines[this.tuner.info[nid].type](this.tuner.entries[nid], {}, this.tuner.info[nid])
             if(this.opts.mediaType && this.opts.mediaType != 'all' && intent.mediaType != this.opts.mediaType){
                 console.warn('bad mediaType, skipping', intent.data.url, intent.mediaType, this.opts.mediaType)
                 this.succeededs[n] = -1

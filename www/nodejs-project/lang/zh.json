@@ -1,7 +1,7 @@
 {
    "ABOUT": "关于",
-   "ABOUT_LEGAL_NOTICE": "Megacubo没有进行广播，此处可用的传输是广播公司本身公开提供的。 要要求包含或删除变速箱，请与我们联系。",
-   "ABOUT_LEGAL_NOTICE_LISTS": "Megacubo不会发射，用户添加到应用程序中的IPTV列表提供了传输。 该程序访问受权保护的内容的使用违反了使用条款。",
+   "ABOUT_LEGAL_NOTICE": "此处可用的广播直接来自官方电视频道，该电视频道公开提供其传输。 Megacubo不会传播广播。 所有徽标和商标都属于其各自的所有者。 有关内容请求或删除，请直接与我们联系。",
+   "ABOUT_LEGAL_NOTICE_LISTS": "Megacubo不会传播广播。 通过用户在应用程序中添加的IPTV列表提供传输。 没有适当授权的程序访问受版权保护的内容的任何使用都违反了使用条款。",
    "ACCEPT_LISTS": "接受列表",
    "ACTIVE_DOWNLOADS": "主动下载",
    "ADD": "加上",
@@ -305,6 +305,7 @@
    "OPEN_DEST_FOLDER": "打开目标文件夹",
    "OPEN_EXTERNAL_PLAYER": "在外部玩家上打开",
    "OPEN_EXTERNAL_PLAYER_ASK": "该变速箱与Megacubo不兼容，您想在外部玩家上打开它吗？",
+   "OPEN_FILE": "打开文件",
    "OPEN_M3U_FILE": "添加M3U文件",
    "OPEN_URL": "打开",
    "OPTION": "选项",

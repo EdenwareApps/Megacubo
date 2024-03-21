@@ -1,7 +1,4 @@
-const Downloader = require('../utils/downloader')
 const StreamerBaseIntent = require('./base.js')
-const StreamerAdapterTS = require('../adapters/ts.js')
-const StreamerFFmpeg = require('../utils/ffmpeg')
 
 class StreamerTSIntent extends StreamerBaseIntent {    
     constructor(data, opts, info){
@@ -20,6 +17,7 @@ class StreamerTSIntent extends StreamerBaseIntent {
                 this.transcoderStarting = true
                 this.resetTimeout()
                 let resolved, opts = this.getTranscodingOpts()
+                const StreamerFFmpeg = require('../utils/ffmpeg')
                 const decoder = new StreamerFFmpeg(this.downloader.source.endpoint, opts)
                 this.mimetype = this.mimeTypes[decoder.opts.outputFormat]
                 this.transcoder = decoder
@@ -52,12 +50,14 @@ class StreamerTSIntent extends StreamerBaseIntent {
     }
     async _start(){ 
         this.mimetype = this.mimeTypes.mpegts
+        const StreamerAdapterTS = require('../adapters/ts.js')
         this.downloader = new StreamerAdapterTS(this.info.url || this.data.url, Object.assign({
             authURL: this.data.authURL || this.data.source
         }, this.opts))
         this.connectAdapter(this.downloader)
         await this.downloader.start()
         if(this.useFF()){
+            const StreamerFFmpeg = require('../utils/ffmpeg')
             const decoder = new StreamerFFmpeg(this.downloader.source.endpoint, this.opts)
             this.mimetype = this.mimeTypes[decoder.opts.outputFormat]
             this.decoder = decoder

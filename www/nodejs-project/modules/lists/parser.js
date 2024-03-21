@@ -1,5 +1,4 @@
 const { EventEmitter } = require('events')
-const LineReader = require('../line-reader')
 
 class Parser extends EventEmitter {
 	constructor(opts) {
@@ -51,6 +50,8 @@ class Parser extends EventEmitter {
 	async start() {
 		if(!this.opts.stream) throw 'Parser instance started with no stream set!'
 		if(!this.opts.url) throw 'Parser instance started with no stream set!'
+
+		const LineReader = require('../line-reader')
 		this.liner = new LineReader(this.opts)
 		let inExtInf, g = '', a = {}, e = {url: '', icon: ''}
 		this.liner.on('line', line => {

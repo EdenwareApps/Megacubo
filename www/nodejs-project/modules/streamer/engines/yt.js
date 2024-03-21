@@ -1,5 +1,4 @@
-const StreamerHLSIntent = require('./hls.js'), fs = require('fs'), ytdl = require('ytdl-core')
-const StreamerProxy = require('../utils/proxy.js'), StreamerHLSProxy = require('../utils/proxy-hls.js')
+const StreamerHLSIntent = require('./hls.js')
 const YTDomainRegex = new RegExp('youtube\.com|youtu\.be')
 const YTIDRegex = new RegExp('(v=|/v/|/embed/|\.be/)([A-Za-z0-9\-_]+)')
 
@@ -35,6 +34,7 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
         return body
     }
     async getYTInfo(id){
+        const ytdl = require('ytdl-core')
         let info, err, retries = 5, url = 'https://www.youtube.com/watch?v='+ id
         while((!info || !info.formats) && retries) {
             retries--
@@ -116,12 +116,13 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
         return {url: chosen, mimetype: chosenMimeType, bandwidth: chosenBandwidth}
     }
     async _startVideo(info){
+        const streamer = require('../main')
         this.mimetype = this.mimeTypes.video
         this.mediaType = 'video'
         info.formats = info.formats.filter(fmt => {
             return fmt.hasAudio && fmt.hasVideo && !fmt.isDashMPD
         })
-        let ret = await this.selectTrackBW(info.formats, global.streamer.downlink)
+        let ret = await this.selectTrackBW(info.formats, streamer.downlink)
         this.mimetype = ret.mimetype
         this.prx = new StreamerProxy(Object.assign({}, this.opts))
         this.connectAdapter(this.prx)
@@ -139,6 +140,8 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
             return this._startVideo(info)
         }        
         const mw = global.config.get('hls-prefetching')
+        const StreamerProxy = require('../utils/proxy.js')
+        const StreamerHLSProxy = require('../utils/proxy-hls.js')
         this.prx = new (mw ? StreamerHLSProxy : StreamerProxy)(Object.assign({}, this.opts))
         this.connectAdapter(this.prx)
         await this.prx.start()
@@ -146,9 +149,12 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
             s.url = this.prx.proxify(s.url)
             return s
         })
-        let file = global.paths.temp +'/master.m3u8'
+        const downloads = require('../../downloads')
+        const fs = require('fs')
+        const { temp } = require('../../paths')
+        let file = temp +'/master.m3u8'
         await fs.promises.writeFile(file, this.generateMasterPlaylist(tracks))
-        let url = await global.downloads.serve(file)
+        let url = await downloads.serve(file)
         this.endpoint = this.prx.proxify(url) // proxify again to get tracks on super()
         return {endpoint: this.endpoint, mimetype: this.mimetype}
     }

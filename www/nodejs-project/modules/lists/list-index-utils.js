@@ -1,8 +1,6 @@
-const fs = require('fs'), Events = require('events')
-const readline = require('readline')
-const pLimit = require('p-limit')
+const { EventEmitter } = require('events')
 
-class ListIndexUtils extends Events {
+class ListIndexUtils extends EventEmitter {
 	constructor(){
 		super()
         this.seriesRegex = new RegExp('(\\b|^)[st]?[0-9]+ ?[epx]{1,2}[0-9]+($|\\b)', 'i')
@@ -33,7 +31,9 @@ class ListIndexUtils extends Events {
         const lines = {}
         let fd = null
         try {
+            const fs = require('fs')
            fd = await fs.promises.open(this.file, 'r')
+           const pLimit = require('p-limit')
            const limit = pLimit(4)
            const tasks = ranges.map((r, i) => {
                 return async () => {
@@ -71,17 +71,19 @@ class ListIndexUtils extends Events {
                     return this.readLinesByMap(map).then(resolve).catch(reject)
                 }
             }
+            const fs = require('fs')
             fs.stat(this.file, (err, stat) => {
                 if(err || !stat){
                     return reject(err || 'stat failed with no error')
                 }
                 if(stat.size){
+                    const readline = require('readline')
                     let max, i = 0, lines = {}, rl = readline.createInterface({
                         input: fs.createReadStream(this.file),
                         crlfDelay: Infinity
                     })
                     if(map){
-                        max = global.getArrayMax(map)
+                        max = Math.max(...map)
                     } else {
                         max = -1
                     }
@@ -127,6 +129,7 @@ class ListIndexUtils extends Events {
     }
     async readLastLine() {
         const bufferSize = 16834
+        const fs = require('fs')
         const { size } = await fs.promises.stat(this.file)
         const fd = await fs.promises.open(this.file, 'r')
         let line = ''
@@ -157,6 +160,7 @@ class ListIndexUtils extends Events {
                 let parsed = global.parseJSON(line)
                 if(Array.isArray(parsed)) {
                     this.linesMap = parsed
+                    const fs = require('fs')
                     const fd = await fs.promises.open(this.file, 'r')
                     const from = parsed[parsed.length - 2]
                     const length = parsed[parsed.length - 1] - from

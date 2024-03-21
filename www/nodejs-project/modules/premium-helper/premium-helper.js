@@ -1,10 +1,9 @@
-
 class PremiumHelper {
     constructor(){
-        global.explorer.prependFilter(this.hook.bind(this))
+        global.menu.prependFilter(this.hook.bind(this))
     }
     open(){
-        global.ui.emit('open-external-url', 'https://megacubo.net/')
+        global.renderer.emit('open-external-url', 'https://megacubo.net/')
     }
     entry(){
         return {
@@ -12,7 +11,7 @@ class PremiumHelper {
             type: 'action',
             fa: 'fas fa-rocket',
             action: async () => {
-                await global.explorer.dialog([
+                await global.menu.dialog([
                     {template: 'question', text: global.lang.ENABLE_PREMIUM_FEATURES, fa: 'fas fa-rocket'},
                     {template: 'message', text: global.lang.ENABLE_PREMIUM_MESSAGE},
                     {template: 'option', id: 'ok', fa: 'fas fa-check-circle', text: 'OK'}
@@ -29,7 +28,7 @@ class PremiumHelper {
     }
 }
 
-if(require('fs').existsSync(global.APPDIR +'/modules/premium')){
+if(require('fs').existsSync(global.paths.cwd +'/modules/premium')){
 	require('bytenode')
     try {
         let _PremiumHelper = require('../premium/premium')
@@ -42,4 +41,3 @@ if(require('fs').existsSync(global.APPDIR +'/modules/premium')){
 }
 
 module.exports = PremiumHelper
-

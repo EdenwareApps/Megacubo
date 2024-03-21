@@ -1,12 +1,12 @@
 
-const Events = require('events')
+const { EventEmitter } = require('events')
 
-class WizardUtils extends Events {
+class WizardUtils extends EventEmitter {
     constructor(){
         super()
     }
     isMobile(){
-        return !!global.cordova
+        return !!global.paths.cordova
     }
     validateURL(url){
 		if(url && url.length > 11){
@@ -35,7 +35,8 @@ class Wizard extends WizardUtils {
     }
     async init(){
         if(!global.lang.isTrusted) {
-            await global.options.showLanguageEntriesDialog()
+            const options = require('../options')
+            await options.showLanguageEntriesDialog()
         }
         await this.lists()
         await this.performance()
@@ -44,9 +45,20 @@ class Wizard extends WizardUtils {
     }
     async lists(){
         this.active = true
-        if(!global.ALLOW_ADDING_LISTS) return true
+        if(!global.ALLOW_ADDING_LISTS) {
+            if(!global.config.get('legal-notice-shown')) {
+                global.config.set('legal-notice-shown', true)
+                const opts = [
+                    {template: 'question', text: global.lang.LEGAL_NOTICE, fa: 'fas fa-info-circle'},
+                    {template: 'message', text: global.lang.ABOUT_LEGAL_NOTICE},
+                    {template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle'}
+                ]
+                await global.menu.dialog(opts, 'ok', true)
+            }
+            return true
+        }
         let text = global.lang.ASK_IPTV_LIST_FIRST.split('. ').join(".\r\n"), def = 'ok', opts = [
-            {template: 'question', text: global.MANIFEST.window.title, fa: 'fas fa-star'},
+            {template: 'question', text: global.paths.manifest.window.title, fa: 'fas fa-star'},
             {template: 'message', text},
             {template: 'option', text: global.lang.ADD_LIST, fa: 'fas fa-plus-square', id: 'ok'}
         ]
@@ -55,7 +67,7 @@ class Wizard extends WizardUtils {
         } else {
             opts.push({template: 'option', text: global.lang.ADD_LATER, fa: 'fas fa-clock', id: 'no'})
         }
-        let choose = await global.explorer.dialog(opts, def, true)
+        let choose = await global.menu.dialog(opts, def, true)
         if(choose == 'no') {
             return true
         } else if(choose == 'sh') {
@@ -66,7 +78,8 @@ class Wizard extends WizardUtils {
     }
     async input(){
         this.active = true
-        let err, ret = await global.lists.manager.addListDialog(false).catch(e => err = e)
+        const { manager } = require('../lists')
+        let err, ret = await manager.addListDialog(false).catch(e => err = e)
         console.log('ASKED', ret, global.traceback())
         if(typeof(err) != 'undefined'){
             global.displayErr(global.lang.INVALID_URL_MSG)
@@ -75,18 +88,22 @@ class Wizard extends WizardUtils {
         return true
     }
     async communityMode(){  
-        let err, ret = await global.lists.manager.communityModeDialog().catch(e => err = e)
+        const { manager } = require('../lists')
+        let err, ret = await manager.communityModeDialog().catch(e => err = e)
         console.warn('communityMode', err, ret)
         if(ret !== true) {
             return await this.lists()
         }
     }
     async performance(){
-        let ram = await global.diag.checkMemory().catch(console.error)
+        const diag = require('../diagnostics')
+        let ram = await diag.checkMemory().catch(console.error)
         if(typeof(ram) == 'number' && (ram / 1024) >= 2048){ // at least 2G of RAM
             return true
         }
-        await global.options.performance(true)
+
+        const options = require('../options')
+        await options.performance(true)
         return true
     }
 }

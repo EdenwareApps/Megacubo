@@ -1,7 +1,4 @@
-const fs = require('fs'), pathm = require('path'), http = require('http')
-const crypto = require('crypto'), Icon = require('./icon')
-const pLimit = require('p-limit'), closed = require('../on-closed')
-const Reader = require('../reader')
+const crypto = require('crypto')
 
 class IconDefault {
     constructor(){
@@ -9,7 +6,8 @@ class IconDefault {
     }
     prepareDefaultName(terms){
         if(!Array.isArray(terms)){
-            terms = global.lists.terms(terms)
+            const lists = require('../lists')
+            terms = lists.terms(terms)
         }
         return global.sanitize(terms.filter(s => s.length && !s.startsWith('-')).join('-'))
     }
@@ -18,7 +16,8 @@ class IconDefault {
             if(!terms || !terms.length){
                 return resolve(false)
             }
-            let name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder + pathm.sep + name
+            const fs = require('fs')
+            let name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder +'/'+ name
             fs.stat(file, (err, stat) => {
                 if(stat && stat.size){
                     fs.readFile(file, {encoding: null}, (err, content) => {
@@ -40,7 +39,8 @@ class IconDefault {
             if(!terms || !terms.length) {
                 return resolve(false)
             }
-            let name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder + pathm.sep + name
+            const fs = require('fs')
+            let name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder +'/'+ name
             fs.stat(file, (err, stat) => {
                 if(stat && stat.size >= 32) {
                     resolve(file)
@@ -51,12 +51,14 @@ class IconDefault {
         })
     }
     saveDefault(terms, data, cb){
-        const updating = !global.lists.loaded() || !global.lists.activeLists.length // we may find a better logo after
+        const lists = require('../lists')
+        const updating = !lists.loaded() || !lists.activeLists.length // we may find a better logo after
         if(!updating && terms && terms.length){
-            let name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder + pathm.sep + name
+            let name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder +'/'+ name
             if(this.opts.debug){
                 console.log('saveDefault', terms, name, file)
             }
+            const fs = require('fs')
             fs.writeFile(file, data, 'binary', () => {
                 if(cb){
                     cb(file)
@@ -69,14 +71,16 @@ class IconDefault {
         }
     }
     async saveDefaultFile(terms, sourceFile){
-        if(!global.lists.loaded() || !global.lists.activeLists.length){ // we may find a better logo later
+        const lists = require('../lists')
+        if(!lists.loaded() || !lists.activeLists.length){ // we may find a better logo later
             return false
         }
         if(terms && terms.length){
-            let err, name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder + pathm.sep + name
+            let err, name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder +'/'+ name
             if(this.opts.debug){
                 console.log('saveDefaultFile', terms, name, sourceFile, file)
             }
+            const fs = require('fs')
             await fs.promises.stat(sourceFile).catch(e => err = e)
             if(!err) await fs.promises.copyFile(sourceFile, file)
         }
@@ -86,7 +90,8 @@ class IconDefault {
             if(!terms || !terms.length) {
                 return resolve(false)
             }
-            let name = this.prepareDefaultName(terms) + '.icon.'+ this.defaultIconExtension, file = this.opts.folder + pathm.sep + name
+            const fs = require('fs')
+            let name = this.prepareDefaultName(terms) + '.icon.'+ this.defaultIconExtension, file = this.opts.folder +'/'+ name
             fs.stat(file, (err, stat) => {
                 if(stat && stat.size >= 32) {
                     resolve(file)
@@ -98,10 +103,11 @@ class IconDefault {
     }
     async saveDefaultIcon(terms, sourceFile){
         if(terms && terms.length){
-            let err, name = this.prepareDefaultName(terms) + '.icon.'+ this.defaultIconExtension, file = this.opts.folder + pathm.sep + name
+            let err, name = this.prepareDefaultName(terms) + '.icon.'+ this.defaultIconExtension, file = this.opts.folder +'/'+ name
             if(this.opts.debug){
                 console.log('saveDefaultFile', terms, name, sourceFile, file)
             }
+            const fs = require('fs')
             await fs.promises.stat(sourceFile).catch(e => err = e)
             if(!err) await fs.promises.copyFile(sourceFile, file)
             return file
@@ -113,13 +119,14 @@ class IconDefault {
         })
     }
     async doAdjust(file, options){
+        const jimp = require('../jimp-worker/main')
         let opts = {
             autocrop: global.config.get('autocrop-logos')
         }
         if(options){
             Object.assign(opts, options)
         }
-        return await global.jimp.transform(file, opts)
+        return await jimp.transform(file, opts)
     }
 }
 
@@ -127,22 +134,10 @@ class IconSearch extends IconDefault {
     constructor(){
         super()
         this.watchingIcons = {}
-        global.watching.on('watching', () => this.updateWatchingIcons())
     }
     seemsLive(e){
-        return (e.gid || global.lists.mi.isLive(e.url)) ? 1 : 0 // gid here serves as a hint of a live stream
-    }
-    updateWatchingIcons(){
-        const watchingIcons = {}
-        global.watching.currentRawEntries.forEach(e => {
-            if(e.icon){
-                if(typeof(watchingIcons[e.icon]) == 'undefined'){
-                    watchingIcons[e.icon] = 0
-                }
-                watchingIcons[e.icon] += parseInt(e.count)
-            }
-        })
-        this.watchingIcons = watchingIcons
+        const lists = require('../lists')
+        return (e.gid || lists.mi.isLive(e.url)) ? 1 : 0 // gid here serves as a hint of a live stream
     }
     search(ntms, liveOnly){
         if(this.opts.debug){
@@ -152,11 +147,12 @@ class IconSearch extends IconDefault {
             if(this.opts.debug){
                 console.log('is channel', ntms)
             }
+            const lists = require('../lists')
             let images = []
             const next = () => {
-                global.lists.search(ntms, {
+                lists.search(ntms, {
                     type: 'live',
-                    safe: !global.lists.parentalControl.lazyAuth()
+                    safe: !lists.parentalControl.lazyAuth()
                 }).then(ret => {
                     if(this.opts.debug){
                         console.log('fetch from terms', ntms, liveOnly, JSON.stringify(ret))
@@ -199,7 +195,7 @@ class IconSearch extends IconDefault {
                 }).catch(console.error).finally(() => resolve(images))
             }
             if(global.channels.loadedEPG){
-                global.lists.epgSearchChannelIcon(ntms).then(srcs => images = srcs.map(src => {
+                lists.epgSearchChannelIcon(ntms).then(srcs => images = srcs.map(src => {
                     return {icon: src, live: true, hits: 1, watching: 1, epg: 1}
                 })).catch(console.error).finally(next)
             } else {
@@ -257,6 +253,7 @@ class IconServerStore extends IconSearch {
     }
     validateFile(file){
         return new Promise((resolve, reject) => {
+            const fs = require('fs')
             fs.access(file, fs.constants.R_OK, err => {
                 if(err) return reject(err)
                 fs.open(file, 'r', (err, fd) => {
@@ -302,6 +299,7 @@ class IconServerStore extends IconSearch {
         const file = global.storage.resolve('icons-cache-' + key)
         if(typeof(size) != 'number') {
             let err
+            const fs = require('fs')
             stat = await fs.promises.stat(file).catch(e => err = e)
             err || (size = stat.size)
         }
@@ -313,15 +311,18 @@ class IconServerStore extends IconSearch {
     }
     async fetchURL(url){
         const suffix = 'data:image/png;base64,'
+        const crashlog = require('../crashlog')
         if(String(url).startsWith(suffix)) {
+            const fs = require('fs')
             const key = this.key(url)
             const file = this.resolveHTTPCache(key)
             await fs.promises.writeFile(file, Buffer.from(url.substr(suffix.length), 'base64'))
+            this.opts.debug && console.log('FETCHED '+ url +' => '+ file)
             const ret = await this.validateFile(file)
             return {key, file, isAlpha: ret == 2}
         }
         if(typeof(url) != 'string' || url.indexOf('//') == -1){
-            throw 'bad url '+ global.crashlog.stringify(url)
+            throw 'bad url '+ crashlog.stringify(url)
         }
         const key = this.key(url)
         if(this.opts.debug){
@@ -346,15 +347,17 @@ class IconServerStore extends IconSearch {
         await this.limiter.download(async () => {
             await global.Download.file({
                 url,
+                file,
+                retries: 2,
+                timeout: 10,
                 downloadLimit: this.opts.downloadLimit,
-                retries: 3,
                 headers: {
                     'content-encoding': 'identity'
-                },
-                file
+                }
             }).catch(e => err = e)
         })
         if(err){
+            const fs = require('fs')
             await fs.promises.unlink(file).catch(console.error)
             throw err
         }
@@ -369,37 +372,41 @@ class IconServerStore extends IconSearch {
 }
 
 class IconServer extends IconServerStore {
-    constructor(opts){    
+    constructor(){
         super()
+
+        const { data } = require('../paths')
         this.opts = {
             addr: '127.0.0.1',
             port: 0, // let the http.server sort
             downloadLimit: 1 * (1024 * 1024), // 1mb
-            folder: './cache',
+            folder: data + '/icons',
             debug: false
         }
-		if(opts){
-			Object.keys(opts).forEach((k) => {
-				this.opts[k] = opts[k]
-			})
-		}
-        this.opts.folder = pathm.resolve(this.opts.folder)
-		fs.access(this.opts.folder, err => {
+
+        const path = require('path')
+        this.opts.folder = path.resolve(this.opts.folder)
+		
+        const fs = require('fs')
+        fs.access(this.opts.folder, err => {
 			if(err !== null) {
 				fs.mkdir(this.opts.folder, () => {})
 			}
 		})
         this.closed = false
         this.server = false
+
+        const pLimit = require('p-limit')
         this.limiter = {
-            download: pLimit(8),
+            download: pLimit(20),
             adjust: pLimit(1)
         }
         this.rendering = {}
         this.renderingPath = null
         this.listen()
     }
-    get(e) {        
+    get(e) {
+        const Icon = require('./icon')
         const icon = new Icon(e, this)
         const promise = icon.get()
         promise.icon = icon
@@ -415,7 +422,7 @@ class IconServer extends IconServerStore {
             if(path.endsWith(e.name) && tabindex != -1) {
                 path = path.substr(0, path.length - 1 - e.name.length)
             }
-            global.ui.emit('icon', {
+            global.renderer.emit('icon', {
                 url: ret.url, 
                 path, 
                 tabindex, 
@@ -426,7 +433,8 @@ class IconServer extends IconServerStore {
         }
     }
     listsLoaded(){
-        return global.lists.loaded() && global.lists.activeLists.length
+        const lists = require('../lists')
+        return lists.loaded() && lists.activeLists.length
     }
     debug(...args){
         global.osd.show(Array.from(args).map(s => String(s)).join(', '), 'fas fa-info-circle', 'active-downloads', 'persistent')
@@ -454,30 +462,18 @@ class IconServer extends IconServerStore {
         range.end = Math.min(range.end + vx, limit)
         return range
     }
-    render(entries, path, parentEntry){
-        if(!global.config.get('show-logos')){
-            return
-        }
+    render(entries, path){
+        if(!global.config.get('show-logos')) return
         let vs = global.config.get('view-size-x') * global.config.get('view-size-y'), range = {
             start: 0, 
             end: vs
         }
         range = this.addRenderTolerance(range, entries.length)
         this.renderRange(range, path)
-        if(parentEntry && typeof(parentEntry) != 'string' && this.qualifyEntry(parentEntry)){
-            this.rendering[-1] = this.get(parentEntry) // do not use then directly to avoid losing destroy method
-            this.rendering[-1].icon.on('result', ret => {
-                this.result(parentEntry, parentEntry.path, -1, ret)
-            })
-            this.rendering[-1].catch(console.error)
-        }
     }
     renderRange(range, path){
-        if(!global.config.get('show-logos')){
-            return
-        }
-        if(path == global.explorer.path && Array.isArray(global.explorer.pages[path])){
-            range = this.addRenderTolerance(range, global.explorer.pages[path].length)
+        if(path == global.menu.path && Array.isArray(global.menu.pages[path])){
+            range = this.addRenderTolerance(range, global.menu.pages[path].length)
             if(path != this.renderingPath){
                 Object.keys(this.rendering).forEach(i => {
                     if(i != -1 && this.rendering[i]){
@@ -486,7 +482,7 @@ class IconServer extends IconServerStore {
                     }
                 })
                 this.renderingPath = path
-                global.explorer.pages[path].slice(range.start, range.end).map((e, i) => {
+                global.menu.pages[path].slice(range.start, range.end).map((e, i) => {
                     const j = range.start + i
                     if(this.qualifyEntry(e)){
                         this.rendering[j] = this.get(e) // do not use then directly to avoid losing destroy method
@@ -505,7 +501,7 @@ class IconServer extends IconServerStore {
                         delete this.rendering[i]
                     }
                 })
-                global.explorer.pages[path].slice(range.start, range.end).map((e, i) => {
+                global.menu.pages[path].slice(range.start, range.end).map((e, i) => {
                     const j = range.start + i
                     if((!this.rendering[j] || this.rendering[j].entry.name != e.name) && this.qualifyEntry(e)){
                         this.rendering[j] = this.get(e) // do not use then directly to avoid losing destroy method
@@ -520,6 +516,7 @@ class IconServer extends IconServerStore {
     }
     listen(){
         if(!this.server){
+            const http = require('http')
             if(this.server){
                 this.server.close()
             }
@@ -546,8 +543,11 @@ class IconServer extends IconServerStore {
                             'Cache-Control': 'max-age=0, no-cache, no-store',
                             'Content-Type': 'image/png'
                         }, req))
+                        const Reader = require('../reader')
                         const stream = new Reader(file)
                         stream.on('data', c => response.write(c))
+
+                        const closed = require('../on-closed')
                         closed(req, response, stream, () => {
                             stream.destroy()
                             response.end()
@@ -597,7 +597,7 @@ class IconServer extends IconServerStore {
     refresh(){
         Object.values(this.rendering).forEach(r => r && r.destroy())
         this.rendering = {}
-        this.render(explorer.pages[explorer.path], explorer.path)
+        this.render(menu.pages[menu.path], menu.path)
     }
     destroy(){
         if(this.opts.debug){
@@ -612,4 +612,4 @@ class IconServer extends IconServerStore {
     }
 }
 
-module.exports = IconServer
+module.exports = new IconServer()

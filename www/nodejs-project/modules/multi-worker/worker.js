@@ -1,8 +1,11 @@
-const Cloud = require('../cloud'), Storage = require('../storage')
 const { logErr, parentPort, loadGlobalVars } = require('./utils')(__filename)
 
 loadGlobalVars()
 require('../supercharge')(global)
+
+global.config = require(paths.cwd + '/modules/config')(paths.data + '/config.json')
+
+const Storage = require('../storage')
 
 process.on('warning', e => {
     console.warn(e, e.stack)
@@ -21,8 +24,6 @@ process.on('uncaughtException', (exception) => {
     return false
 })
 
-global.crashlog = require(global.APPDIR +'/modules/crashlog')
-global.config = require(global.APPDIR + '/modules/config')(global.paths.data + '/config.json')
 global.storage = new Storage({})
 
 global.config.on('change', () => {
@@ -33,7 +34,6 @@ global.storage.on('touch', (key, entry) => {
 })
 
 global.Download = require('../download')
-global.cloud = new Cloud()
 
 if(global.bytenode){
     global.bytenode = require('bytenode')

@@ -1,7 +1,4 @@
-const fs = require('fs'), path = require('path')
-const pLimit = require('p-limit'), { default: PQueue } = require('p-queue')
-const Manager = require('./manager'), Loader = require('./loader')
-const Index = require('./index'), List = require('./list'), MultiWorker = require('../multi-worker')
+const Index = require('./index')
 
 class ListsEPGTools extends Index {
     constructor(opts){
@@ -35,6 +32,8 @@ class ListsEPGTools extends Index {
 		console.error('will load epg '+ JSON.stringify(url))
 		if(url) {
 			// give EPG his own worker, otherwise it may slow down app navigation
+			const path = require('path')
+			const MultiWorker = require('../multi-worker')
 			this._epgWorker = new MultiWorker()
 			this._epg = this._epgWorker.load(path.join(__dirname, 'epg-worker'))
 			this._epg.setURL(url)
@@ -78,13 +77,13 @@ class ListsEPGTools extends Index {
 		}
 		return data	
 	}
-	async epgExpandSuggestions(categories){
+	async epgExpandRecommendations(categories){
 		if(!this._epg) throw 'no epg 1'
-		return await this._epg.expandSuggestions(categories)
+		return await this._epg.expandRecommendations(categories)
 	}
-	async epgSuggestions(categories, until, limit, searchTitles){
+	async epgRecommendations(categories, until, limit, searchTitles){
 		if(!this._epg) throw 'no epg 2'
-		return await this._epg.getSuggestions(categories, until, limit, searchTitles)
+		return await this._epg.getRecommendations(categories, until, limit, searchTitles)
 	}
 	async epgSearch(terms, nowLive){
 		if(!this._epg) throw 'no epg 3'
@@ -108,6 +107,7 @@ class ListsEPGTools extends Index {
 		let data = await this._epg.liveNowChannelsList()
 		if(data && data['categories'] && Object.keys(data['categories']).length){
 			let currentScore = this.epgChannelsListSanityScore(data['categories'])
+			const pLimit = require('p-limit')
 			const limit = pLimit(3)
 			const tasks = Object.keys(this.lists).filter(url => {
 				return this.lists[url].index.meta['epg'] && this.lists[url].index.meta['epg'].indexOf(this._epg.url) != -1 // use indexOf as it can be a comma delimited list
@@ -172,11 +172,13 @@ class Lists extends ListsEPGTools {
 		this.processes = []
 		this.satisfied = false
 		this.isFirstRun = !global.config.get('communitary-mode-lists-amount') && !global.config.get('lists').length
+
+		const { default: PQueue } = require('p-queue')
 		this.queue = new PQueue({ concurrency: 2 })
 		global.config.on('change', keys => {
 			keys.includes('lists') && this.configChanged()
 		})
-		global.uiReady(() => {
+		global.rendererReady(() => {
 			global.channels.on('channel-grid-updated', keys => {
 				this._relevantKeywords = null
 			})
@@ -186,6 +188,9 @@ class Lists extends ListsEPGTools {
                 this.queue._concurrency = 1 // try to change pqueue concurrency dinamically
             }
         })
+
+		const Loader = require('./loader')
+		const Manager = require('./manager')
         this.loader = new Loader(this)
         this.manager = new Manager(this)
 		this.configChanged()
@@ -205,6 +210,7 @@ class Lists extends ListsEPGTools {
 		this.loadCachedLists(newLists) // load them up if cached
 	}
 	async isListCached(url){
+		const fs = require('fs')
 		let err, file = global.storage.resolve(LIST_DATA_KEY_MASK.format(url))
 		const stat = await fs.promises.stat(file).catch(e => err = e)
 		return (stat && stat.size >= 1024)
@@ -219,6 +225,7 @@ class Lists extends ListsEPGTools {
 			loadedUrls.push(u)
 		})
 		if(urls.length){
+			const pLimit = require('p-limit')
 			const limit = pLimit(8), tasks = urls.map(url => {
 				return async () => {
 					let err
@@ -249,6 +256,8 @@ class Lists extends ListsEPGTools {
     async relevantKeywords(refresh) { // pick keywords that are relevant for the user, it will be used to choose community lists
 		if(!refresh && Array.isArray(this._relevantKeywords) && this._relevantKeywords.length) return this._relevantKeywords
         const badTerms = ['m3u8', 'ts', 'mp4', 'tv', 'channel']
+        const search = require('../search')
+		const history = require('../history')
         let terms = [], addTerms = (tms, score) => {
             if(typeof(score) != 'number'){
                 score = 1
@@ -268,7 +277,7 @@ class Lists extends ListsEPGTools {
                 }
             })
         }
-        const searchHistoryPromise = global.search.history.terms().then(sterms => {
+        const searchHistoryPromise = search.history.terms().then(sterms => {
 			if(sterms.length){ // searching terms history
 				sterms = sterms.slice(-24)
 				sterms = sterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-')
@@ -276,13 +285,14 @@ class Lists extends ListsEPGTools {
 			}
 		})
         const channelsPromise = global.channels.keywords().then(addTerms)
-        let bterms = global.bookmarks.get()
+		const bookmarks = require('../bookmarks')
+        let bterms = bookmarks.get()
         if(bterms.length){ // bookmarks terms
             bterms = bterms.slice(-24)
             bterms = bterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-')
             addTerms(bterms)
         }
-        let hterms = global.histo.get()
+        let hterms = history.get()
         if(hterms.length){ // user history terms
             hterms = hterms.slice(-24)
             hterms = hterms.map(e => channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-')
@@ -472,11 +482,18 @@ class Lists extends ListsEPGTools {
 			this.remove(url)
 		}
 		this.loadTimes[url].adding = global.time()
-		this.requesting[url] = 'loading'		
+		this.requesting[url] = 'loading'
+		
+		const List = require('./list')
 		const list = new List(url, this)
 		list.skipValidating = true // list is already validated at lists/updater-worker, always
 		list.contentLength = contentLength
-		list.origin = isMine ? 'own' : (global.discovery.details(url, 'type') || defaultOrigin || '')
+		if(isMine) {
+			list.origin = 'own'
+		} else {
+			const discovery = require('../discovery')
+			list.origin = discovery.details(url, 'type') || defaultOrigin || ''
+		}
 		list.once('destroy', () => {
 			if(!this.requesting[url] || (this.requesting[url] == 'loading')) {
 				this.requesting[url] = 'destroyed'
@@ -648,11 +665,13 @@ class Lists extends ListsEPGTools {
     }
 	async isSameContentLoaded(list){
 		let err, alreadyLoaded, listDataFile = list.file, listIndexLength = list.index.length
+		const fs = require('fs')
 		const stat = await fs.promises.stat(listDataFile).catch(e => err = e)
 		if(err || stat.size == 0){
 			return true // force this list discarding
 		} else {
 			const size = stat.size
+			const pLimit = require('p-limit')
 			const limit = pLimit(3)
 			const tasks = Object.keys(this.lists).map(url => {
 				return async () => {
@@ -866,4 +885,4 @@ class Lists extends ListsEPGTools {
 	}
 }
 
-module.exports = Lists
+module.exports = new Lists()

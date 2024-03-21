@@ -1,6 +1,6 @@
-const Events = require('events')
+const { EventEmitter } = require('events')
 
-class EntriesGroup extends Events {
+class EntriesGroup extends EventEmitter {
 	constructor(key){
 		super()
 		this.key = key
@@ -11,7 +11,7 @@ class EntriesGroup extends Events {
         this.isReady = false
         this.isUIReady = false
         this.storeInConfig = false
-        global.uiReady(() => {
+        global.rendererReady(() => {
             this.isUIReady = true
             this.emit('ui-ready')
         })
@@ -137,9 +137,9 @@ class EntriesGroup extends Events {
                     action: () => {
                         this.remove(e)
                         if(this.get().length){
-                            global.explorer.refreshNow()
+                            global.menu.refreshNow()
                         } else {
-                            global.explorer.back()
+                            global.menu.back()
                         }
                     }
                 })

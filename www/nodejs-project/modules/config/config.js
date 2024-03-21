@@ -1,6 +1,6 @@
-const fs = require('fs'), path = require('path'), Events = require('events')
+const { EventEmitter } = require('events')
 
-class Config extends Events {
+class Config extends EventEmitter {
 	constructor(file){
 		super()
 		this.setMaxListeners(20)
@@ -19,10 +19,12 @@ class Config extends Events {
 		this.load()
 	}
 	reset(){
+		const fs = require('fs')
 		fs.unlink(this.file, () => {})
 		this.data = Object.assign({}, this.defaults)		
 	}
 	load(txt){
+		const fs = require('fs')
 		if(!this.loaded  && (txt || fs.existsSync(this.file))){
 			this.loaded = true
 			var _data = typeof(txt) == 'string' ? txt : fs.readFileSync(this.file, 'utf8')
@@ -141,6 +143,7 @@ class Config extends Events {
 	}
 	save(){ // sync to prevent confusion
 		const userConfig = {}
+		const fs = require('fs'), path = require('path')
 		Object.keys(this.data).forEach(k => {
 			if(!this.equal(this.data[k], this.defaults[k])){
 				userConfig[k] = this.data[k]

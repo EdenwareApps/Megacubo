@@ -1,4 +1,4 @@
-const Events = require('events'), pLimit = require('p-limit')
+const { EventEmitter } = require('events')
 
 class SearchTermsHistory {
     constructor(){
@@ -14,7 +14,8 @@ class SearchTermsHistory {
     }
     add(terms){
         if(!Array.isArray(terms)){
-            terms = global.lists.terms(terms)
+            const lists = require('../lists')
+            terms = lists.terms(terms)
         }
         this.get().then(vs => {
             let tms = terms.join('')
@@ -29,7 +30,7 @@ class SearchTermsHistory {
     }
 }
 
-class Search extends Events {
+class Search extends EventEmitter {
     constructor(){
         super()
         this.history = new SearchTermsHistory()
@@ -53,6 +54,7 @@ class Search extends Events {
                 return resolve(this.currentEntries)
             }
             this.searchSuggestionEntries().then(es => {
+                const { parentalControl } = require('../lists')
                 es = es.map(e => {
                     return {
                         name: global.ucWords(e.search_term),
@@ -60,7 +62,7 @@ class Search extends Events {
                     }
                 })
                 es = es.map(e => global.channels.toMetaEntry(e, false))
-                es = global.lists.parentalControl.filter(es, true)
+                es = parentalControl.filter(es, true)
                 es = this.addFixedEntries(this.currentSearchType, es)
                 resolve(es)
             }).catch(global.displayErr)
@@ -85,7 +87,7 @@ class Search extends Events {
             mediaType = 'all'
         }
         console.log('search-start', value)
-        global.ui.emit('set-loading', {name: global.lang.SEARCH}, true, global.lang.SEARCHING)
+        global.renderer.emit('set-loading', {name: global.lang.SEARCH}, true, global.lang.SEARCHING)
         global.osd.show(global.lang.SEARCHING, 'fas fa-search spin-x-alt', 'search', 'persistent')
         this.searchMediaType = mediaType
         let err
@@ -97,17 +99,17 @@ class Search extends Events {
                 return this.go(value, 'all')
             }
             this.emit('search', {query: value})
-            if(!global.explorer.path){
-                global.explorer.path = global.lang.SEARCH
+            if(!global.menu.path){
+                global.menu.path = global.lang.SEARCH
             }
             const resultsCount = rs.length
-            global.explorer.render(this.addFixedEntries(mediaType, rs), global.explorer.path, 'fas fa-search', '/')
+            global.menu.render(this.addFixedEntries(mediaType, rs), global.menu.path, 'fas fa-search', '/')
             global.osd.show(global.lang.X_RESULTS.format(resultsCount), 'fas fa-check-circle', 'search', 'normal')
         } else {
             global.displayErr(err)
         }
-        global.ui.emit('set-loading', {name: global.lang.SEARCH}, false)
-        global.search.history.add(value)
+        global.renderer.emit('set-loading', {name: global.lang.SEARCH}, false)
+        this.history.add(value)
     }
     refresh(){
         if(this.currentSearch){
@@ -149,13 +151,13 @@ class Search extends Events {
                             {template: 'option', text: global.lang.EPG, details: global.lang.LIVE, fa: 'fas fa-th', id: 'epg'},
                             {template: 'option', text: global.lang.IPTV_LISTS, details: global.lang.CATEGORY_MOVIES_SERIES, fa: 'fas fa-list', id: 'lists'}
                         ], def = 'epg'
-                        let ret = await global.explorer.dialog(opts, def)
+                        let ret = await global.menu.dialog(opts, def)
                         if(ret == 'epg'){
                             global.channels.epgSearch(this.currentSearch.name).then(entries => {
                                 entries.unshift(global.channels.epgSearchEntry())
-                                let path = global.explorer.path.split('/').filter(s => s != global.lang.SEARCH).join('/')
-                                global.explorer.render(entries, path + '/' + global.lang.SEARCH, 'fas fa-search', path)
-                                global.search.history.add(this.currentSearch.name)
+                                let path = global.menu.path.split('/').filter(s => s != global.lang.SEARCH).join('/')
+                                global.menu.render(entries, path + '/' + global.lang.SEARCH, 'fas fa-search', path)
+                                this.history.add(this.currentSearch.name)
                             }).catch(global.displayErr)
                         } else {
                             this.go(this.currentSearch.name, 'all')
@@ -168,6 +170,7 @@ class Search extends Events {
     }
     async searchGroups(terms) {
         const map = {}, entries = []
+        const lists = require('../lists')
         const es = await this.search(terms, {groupsOnly: true})
         es.forEach(e => {
             if(typeof(map[e.source]) == 'undefined') map[e.source] = {}
@@ -175,15 +178,16 @@ class Search extends Events {
         })
         Object.keys(map).forEach(url => {
             Object.keys(map[url]).forEach(name => {
-                entries.push({name, type: 'group', renderer: () => global.lists.group({group: name, url})})
+                entries.push({name, type: 'group', renderer: () => lists.group({group: name, url})})
             })
         })
-        return global.lists.sort(entries)
+        return lists.sort(entries)
     }
     async search(terms, atts={}) {
+        const lists = require('../lists')
         const policy = global.config.get('parental-control')
         const parentalControlActive = ['remove', 'block'].includes(policy)
-        const isAdultQueryBlocked = policy == 'remove' && !global.lists.parentalControl.allow(terms)
+        const isAdultQueryBlocked = policy == 'remove' && !lists.parentalControl.allow(terms)
         const opts = {
             partial: this.searchInaccurate, 
             type: this.searchMediaType, 
@@ -193,7 +197,7 @@ class Search extends Events {
         }
         Object.assign(opts, atts)
         console.log('will search', terms, opts)
-        let es = await global.lists.search(terms, opts)
+        let es = await lists.search(terms, opts)
         es = (es.results && es.results.length) ? es.results : ((es.maybe && es.maybe.length) ? es.maybe : [])
         console.log('has searched', terms, es.length, parentalControlActive, isAdultQueryBlocked)
         if(isAdultQueryBlocked) {
@@ -205,7 +209,7 @@ class Search extends Events {
                     fa: 'fas fa-lock',
                     type: 'action',
                     action: () => {
-                        global.explorer.info(global.lang.ADULT_CONTENT_BLOCKED, global.lang.ADULT_CONTENT_BLOCKED_INFO.format(global.lang.OPTIONS, global.lang.ADULT_CONTENT))
+                        global.menu.info(global.lang.ADULT_CONTENT_BLOCKED, global.lang.ADULT_CONTENT_BLOCKED_INFO.format(global.lang.OPTIONS, global.lang.ADULT_CONTENT))
                     }
                 }
             ]
@@ -213,28 +217,30 @@ class Search extends Events {
             this.currentResults = es.slice(0)
             let minResultsWanted = (global.config.get('view-size-x') * global.config.get('view-size-y')) - 3
             if(global.config.get('search-youtube') && es.length < minResultsWanted){                
-                let ys = await this.ytResults(terms).catch(console.error)
+                let ys = await this.ytResults(lists.terms).catch(console.error)
                 if(Array.isArray(ys)) {
                     es.push(...ys)
                 }
             }
             if(es.length) {
-                es = global.lists.parentalControl.filter(es)
+                es = lists.parentalControl.filter(es)
             }
         }
         return es
     }
     async results(terms){
+        const mega = require('../mega')
         let u = global.ucWords(terms)
         this.currentSearch = {
             name: u, 
-            url: global.mega.build(u, {terms, mediaType: this.searchMediaType})
+            url: mega.build(u, {terms, mediaType: this.searchMediaType})
         }
+        const lists = require('../lists')
         const es = await this.search(terms)
-        global.ui.emit('current-search', terms, this.searchMediaType)
-        if(!global.lists.loaded(true)) {
+        global.renderer.emit('current-search', terms, this.searchMediaType)
+        if(!lists.loaded(true)) {
             if(global.ALLOW_ADDING_LISTS) {
-                return [global.lists.manager.noListsEntry()]
+                return [lists.manager.noListsEntry()]
             }
             return []
         }
@@ -278,11 +284,12 @@ class Search extends Events {
         })
     }
     async ytLiveResults(tms){
+        const lists = require('../lists')
         if(!this.ytsr){
             this.ytsr = require('ytsr')
         }
         if(!Array.isArray(tms)){
-            tms = global.lists.terms(tms)
+            tms = lists.terms(tms)
         }
         let terms = tms.join(' ')
         terms += ' ('+ global.lang.LIVE +' OR 24h)'
@@ -306,7 +313,7 @@ class Search extends Events {
         }
         const results = await this.ytsr(filter2.url, options)
         results.items = results.items.filter(t => {
-            let ytms = global.lists.terms(t.title)
+            let ytms = lists.terms(t.title)
             console.warn('YTSEARCH', tms, ytms)
             return lists.match(tms, ytms, true)
         })
@@ -321,13 +328,15 @@ class Search extends Events {
         })
     }
     async channelsResults(terms){
+        const mega = require('../mega')
         let u = global.ucWords(terms)
         this.currentSearch = {
             name: u, 
-            url: global.mega.build(u, {terms, mediaType: this.searchMediaType})
+            url: mega.build(u, {terms, mediaType: this.searchMediaType})
         }
-        if(!global.lists.loaded()){
-            return [global.lists.manager.updatingListsEntry()]
+        const lists = require('../lists')
+        if(!lists.loaded()){
+            return [lists.manager.updatingListsEntry()]
         }
         let es = await global.channels.search(terms, this.searchInaccurate)
         es = es.map(e => global.channels.toMetaEntry(e))
@@ -340,13 +349,13 @@ class Search extends Events {
                 es.push(...ys.slice(0, minResultsWanted - es.length))
             }
         }     
-        if(global.ALLOW_ADDING_LISTS && !global.lists.loaded(true)) {
-            es.unshift(global.lists.manager.noListsEntry())
+        if(global.ALLOW_ADDING_LISTS && !lists.loaded(true)) {
+            es.unshift(lists.manager.noListsEntry())
         }
         return es
     }
     isSearching(){
-        return global.explorer.currentEntries.some(e => {
+        return global.menu.currentEntries.some(e => {
             return e.name == global.lang.SEARCH || e.name == global.lang.NEW_SEARCH
         })
     }
@@ -379,15 +388,17 @@ class Search extends Events {
         })
     }
     async searchSuggestionEntries(removeAliases, countryOnly){
+        const pLimit = require('p-limit')
         const limit = pLimit(3)
         const ignoreKeywords = ['tv', 'hd', 'sd']
         let ret = {}, locs = await global.lang.getActiveCountries()
         if(countryOnly && locs.includes(global.lang.countryCode)){
             locs = [global.lang.countryCode]
         }
+        const cloud = require('../cloud')
         const tasks = locs.map(loc => {
             return async () => {
-                const data = await global.cloud.get('searching.'+ loc)
+                const data = await cloud.get('searching.'+ loc)
                 data.forEach(row => {
                     if(ignoreKeywords.includes(row.search_term)) return
 					let count = parseInt(row.cnt)
@@ -501,7 +512,8 @@ class Search extends Events {
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {
-            if(global.lists.loaded() && global.lists.activeLists.length){
+            const lists = require('../lists')
+            if(lists.loaded() && lists.activeLists.length){
                 if(path == global.lang.LIVE){
                     entries.unshift(this.entry('live'))
                 } else if(global.lang.CATEGORY_MOVIES_SERIES == path){
@@ -513,4 +525,4 @@ class Search extends Events {
     }
 }
 
-module.exports = Search
+module.exports = new Search()

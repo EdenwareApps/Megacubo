@@ -1,9 +1,6 @@
+const { EventEmitter } = require('events')
 
-const path = require('path'), fs = require('fs'), http = require('http')
-const Events = require('events'), Writer = require('../../writer')
-const BitrateChecker = require('../utils/bitrate-checker')
-
-class StreamerAdapterBase extends Events {
+class StreamerAdapterBase extends EventEmitter {
 	constructor(url, opts, data){
 		super()
 		this.data = data || {}
@@ -22,6 +19,8 @@ class StreamerAdapterBase extends Events {
 		this.connectable = false
 		this.adapters = []
 		this.bitrate = false
+		
+		const BitrateChecker = require('../utils/bitrate-checker')
 		this.bitrateChecker = new BitrateChecker()
 		this.bitrateChecker.on('bitrate', (...args) => this.emit('bitrate', ...args))
 		this.bitrateChecker.on('codecData', this.addCodecData.bind(this))

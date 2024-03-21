@@ -1,13 +1,8 @@
-
-const Events = require('events'), fs = require('fs')
-const ParentalControl = require('./parental-control')
-const { regexes, sanitizeName } = require('./parser')
-const MediaURLInfo = require('../streamer/utils/media-url-info')
-const M3UTools = require('./tools'), List = require('./list')
+const { EventEmitter } = require('events')
 
 global.LIST_DATA_KEY_MASK = 'list-data-1-{0}'
 
-class Fetcher extends Events {
+class Fetcher extends EventEmitter {
 	constructor(url, atts, master){
 		super()
 		this.progress = 0
@@ -33,6 +28,7 @@ class Fetcher extends Events {
 	}
 	start(){
 		return new Promise((resolve, reject) => {
+			const List = require('./list')
 			this.list = new List(this.url, this.master)
 			this.list.skipValidating = true
 			this.list.start().then(resolve).catch(err => {
@@ -85,9 +81,11 @@ class Fetcher extends Events {
 	}
 }
 
-class Common extends Events {
+class Common extends EventEmitter {
 	constructor(opts){
 		super()
+		
+		const { regexes, sanitizeName } = require('./parser')
 		this.regexes = regexes
 		this.charToSpaceRegex = new RegExp('["/=\\,\\.:]+')
 		this.sanitizeName = sanitizeName
@@ -105,13 +103,18 @@ class Common extends Events {
                 this[k] = opts[k]
             })
         }
-        this.tools = new M3UTools(opts)
-        this.mi = new MediaURLInfo()
+
+		const M3UTools = require('./tools')
+        const MediaURLInfo = require('../streamer/utils/media-url-info')
+        const ParentalControl = require('./parental-control')
+		this.tools = new M3UTools(opts)
+		this.mi = new MediaURLInfo()
 		this.parentalControl = new ParentalControl()
 		this.loadSearchRedirects()
 	}
 	loadSearchRedirects(){
 		if(!this.searchRedirects.length){
+			const fs = require('fs')
 			fs.readFile(global.joinPath(__dirname, 'search-redirects.json'), (err, content) => { // redirects to find right channel names, as sometimes they're commonly refered by shorter names on IPTV lists
 				console.warn('loadSearchRedirects', err, content)
 				if(err){
@@ -162,7 +165,7 @@ class Common extends Events {
 			txt = txt.replace(this.charToSpaceRegex, ' ')
 		}
 		const tchar = txt.charAt(2)
-		if(global.lang.countries && tchar == ' ') {
+		if(tchar == ' ') {
 			// for channels name formatted like 'US: CNN', 'US - CNN' or 'US | CNN'
 			const maybeCountryCode = txt.substr(0, 2)
 			if(!Array.isArray(this.countryCodes)) {

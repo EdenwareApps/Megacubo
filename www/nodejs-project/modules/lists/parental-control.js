@@ -1,21 +1,21 @@
 
-const Events = require('events')
+const { EventEmitter } = require('events')
 
-class ParentalControl extends Events {
+class ParentalControl extends EventEmitter {
 	constructor(){
 		super()
 		this.authTTL = 600
 		this.termsRegex = false
 		this.on('updated', () => {
-			if(global.explorer && global.explorer.path == global.lang.TRENDING){
-				global.explorer.refresh()
+			if(global.menu && global.menu.path == global.lang.TRENDING){
+				global.menu.refresh()
 			}
 		})
 		global.config.on('change', keys => {
 			keys.includes('parental-control-terms') && this.setTerms()
 		})
 		this.setupTerms()
-		global.uiReady && global.uiReady(() => this.update())
+		global.rendererReady && global.rendererReady(() => this.update())
 	}
 	entry(){
 		return {
@@ -82,8 +82,10 @@ class ParentalControl extends Events {
 											}
 										}
 										global.osd.show('OK', 'fas fa-check-circle faclr-green', 'options', 'normal')
-										global.watching.update().catch(console.error)
-										process.nextTick(() => global.explorer.refreshNow())
+
+										const watching = require('../watching')
+										watching.update().catch(console.error)
+										process.nextTick(() => global.menu.refreshNow())
 									}
 								}
 							})                                
@@ -142,7 +144,8 @@ class ParentalControl extends Events {
 	}
 	update(){
 		if(global.config.get('parental-control-terms') == global.config.defaults['parental-control-terms']){ // update only if the user didn't customized
-			global.cloud.get('configure').then(c => {
+			const cloud = require('../cloud')
+            cloud.get('configure').then(c => {
 				if(c && c.adultTerms){
 					this.setTerms(c.adultTerms)
 				}
@@ -211,7 +214,7 @@ class ParentalControl extends Events {
 	async auth(){
 		const now = global.time()
 		if((!this.authenticated || now > this.authenticated) && ['block', 'remove'].includes(global.config.get('parental-control')) && global.config.get('parental-control-pw')){
-			const pass = await global.explorer.prompt({
+			const pass = await global.menu.prompt({
 				question: global.lang.PASSWORD,
 				fa: 'fas fa-key',
 				isPassword: true
@@ -228,13 +231,13 @@ class ParentalControl extends Events {
 		}
 	}
 	async setupAuth(){
-		const pass = await global.explorer.prompt({
+		const pass = await global.menu.prompt({
 			question: global.lang.CREATE_YOUR_PASS,
 			fa: 'fas fa-key',
 			isPassword: true
 		})
 		if(pass){
-			const pass2 = await global.explorer.prompt({
+			const pass2 = await global.menu.prompt({
 				question: global.lang.TYPE_PASSWORD_AGAIN,
 				fa: 'fas fa-key',
 				isPassword: true
@@ -244,7 +247,7 @@ class ParentalControl extends Events {
 				return true
 			}
 		}
-		await global.explorer.dialog([
+		await global.menu.dialog([
 			{template: 'question', text: global.lang.PARENTAL_CONTROL, fa: 'fas fa-exclamation-triangle'},
 			{template: 'message', text: global.lang.PASSWORD_NOT_MATCH},
 			{template: 'option', id: 'ok', fa: 'fas fa-check-circle', text: 'OK'}
@@ -257,7 +260,7 @@ class ParentalControl extends Events {
 		const action = async () => {
 			let allow = await this.auth().catch(console.error)
 			if(allow === true){
-				global.explorer.emit('action', e)
+				global.menu.emit('action', e)
 			}
 		}
 		const entry = Object.assign(Object.assign({}, e), {action, class: 'parental-control-protected allow-stream-state', type: 'action', icon: undefined, fa: 'fas fa-lock'})

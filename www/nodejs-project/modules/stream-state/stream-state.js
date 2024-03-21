@@ -1,7 +1,6 @@
+const { EventEmitter } = require('events')
 
-const path = require('path'), Tuner = require('../tuner'), Events = require('events')
-
-class StreamState extends Events {
+class StreamState extends EventEmitter {
     constructor(){
         super()
         this.debug = false
@@ -18,12 +17,14 @@ class StreamState extends Events {
                 this.sync()
             }
         }).catch(global.displayErr)
-        global.streamer.on('connecting', () => this.cancelTests())
-        global.streamer.on('connecting-failure', data => {
+        
+        const streamer = require('../streamer/main')
+        streamer.on('connecting', () => this.cancelTests())
+        streamer.on('connecting-failure', data => {
             data && this.set(data.url, 'offline', true, { source: data.source })
-            this.test(global.explorer.currentStreamEntries()).catch(console.error)
+            this.test(global.menu.currentStreamEntries()).catch(console.error)
         })
-        global.streamer.on('commit', intent => {
+        streamer.on('commit', intent => {
             const url = intent.data.url
             this.cancelTests()
             this.set(url, intent.type, true, { source: intent.data.source })
@@ -31,32 +32,32 @@ class StreamState extends Events {
                 const data = this.data[url]
                 if(data.duration && data.position && data.position > 10 && (data.position < (data.duration - 30))){
                     process.nextTick(() => {
-                        global.ui.emit('resume-dialog', data.position, data.duration)
+                        global.renderer.emit('resume-dialog', data.position, data.duration)
                     })
                 }
             }
         })
-        global.streamer.on('failure', data => {
+        streamer.on('failure', data => {
             data && this.set(data.url, 'offline', true, { source: data.source })
         })
-        global.streamer.on('stop', (err, e) => {
+        streamer.on('stop', (err, e) => {
             setTimeout(() => {
-                if(!global.streamer.active){
-                    this.test(global.explorer.currentStreamEntries()).catch(console.error)
+                if(!streamer.active){
+                    this.test(global.menu.currentStreamEntries()).catch(console.error)
                 }
             }, 500)
         })
-        global.explorer.on('open', () => this.cancelTests())
-        global.explorer.on('render', entries => {
+        global.menu.on('open', () => this.cancelTests())
+        global.menu.on('render', entries => {
             this.cancelTests()
             if(entries.some(e => this.supports(e))){
                 this.test(entries).catch(console.error)
             }
         })
-        global.ui.on('state-atts', (url, atts) => { // playback data from player
+        global.renderer.on('state-atts', (url, atts) => { // playback data from player
             let state
-            if(global.streamer.active && url == global.streamer.active.data.url) {
-                state = global.streamer.active.type
+            if(streamer.active && url == streamer.active.data.url) {
+                state = streamer.active.type
             } else if(typeof(this.data[url]) != 'undefined') {
                 state = this.data[url].state
             }
@@ -64,8 +65,9 @@ class StreamState extends Events {
                 this.set(url, state, true, atts)
             }
         })
-        this.on('state', (url, state) => global.ui.emit('stream-state-set', url, state))
-        global.onexit(() => {
+        this.on('state', (url, state) => global.renderer.emit('stream-state-set', url, state))
+        const onexit = require('node-cleanup')
+        onexit(() => {
             this.cancelTests()
             this.save() // sync
         })
@@ -95,7 +97,8 @@ class StreamState extends Events {
             if(!isTrusted && typeof(this.clientFailures[url]) != 'undefined') {
                 state = 'offline'
             }
-            let isMega = global.mega.isMega(url)
+            const mega = require('../mega')
+            let isMega = mega.isMega(url)
             if(!isMega) {
                 let changed, time = global.time()
                 if(typeof(this.waiting[url]) != 'undefined'){
@@ -143,12 +146,12 @@ class StreamState extends Events {
         }
     }
     sync(){
-        if(global.ui){
+        if(global.renderer){
             let syncMap = {}
             Object.keys(this.data).forEach(url => {
                 syncMap[url] = this.data[url].state
             })
-            global.ui.emit('stream-state-sync', syncMap)
+            global.renderer.emit('stream-state-sync', syncMap)
         }
     }
     trim(){
@@ -230,14 +233,15 @@ class StreamState extends Events {
             const autoTesting = !manuallyTesting && allowAutoTest
             const nt = {name: global.lang.TEST_STREAMS}
             if(manuallyTesting){
-                global.ui.emit('set-loading', nt, true, global.lang.TESTING)
+                global.renderer.emit('set-loading', nt, true, global.lang.TESTING)
                 global.osd.show(global.lang.TESTING + ' 0%', 'fa-mega spin-x-alt', 'stream-state-tester', 'persistent') 
             }
             const retest = [], syncData = {}
+            const mega = require('../mega')
             entries = entries.filter(e => {
                 if(e.url && this.supports(e)){
-                    if(global.mega.isMega(e.url)){
-                        let s = 'tune', atts = global.mega.parse(e.url)
+                    if(mega.isMega(e.url)){
+                        let s = 'tune', atts = mega.parse(e.url)
                         if(atts && atts.mediaType && atts.mediaType != 'live'){
                             s = 'folder'
                         }
@@ -284,12 +288,14 @@ class StreamState extends Events {
                     if(syncData[k] == 'waiting') delete syncData[k]
                 })
             }
-            global.ui.emit('stream-state-sync', syncData)
+            global.renderer.emit('stream-state-sync', syncData)
             if(!shouldTest) return resolve(true)
             if(!entries.length){
                 manuallyTesting && global.osd.show(global.lang.TESTING + ' 100%', 'fa-mega spin-x-alt', 'stream-state-tester', 'normal') 
                 return resolve(true)
             }
+
+            const Tuner = require('../tuner')
             this.testing = new Tuner(entries, { skipSample: true, shadow: true }, name)
             this.testing.ctrlKey = ctrlKey
             this.testing.on('success', this.success.bind(this))
@@ -302,7 +308,7 @@ class StreamState extends Events {
                     if(this.debug){
                         console.warn('TESTER FINISH!', nt, this.testing.results, this.testing.states)
                     }
-                    global.ui.emit('set-loading', nt, false)
+                    global.renderer.emit('set-loading', nt, false)
                     manuallyTesting && global.osd.hide('stream-state-tester')
                     this.testing.destroy()
                     this.testing = null 
@@ -347,4 +353,4 @@ class StreamState extends Events {
     }
 }
 
-module.exports = StreamState
+module.exports = new StreamState()

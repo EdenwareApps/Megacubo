@@ -11,14 +11,15 @@ class Bookmarks extends EntriesGroup {
             icon: ''
         }
         this.uiReady(() => {
-            global.ui.on('toggle-fav', () => {
+            global.renderer.on('toggle-fav', () => {
                 if(this.current()){
                     this.toggle()
                 } else {
-                    global.explorer.open(global.lang.BOOKMARKS).catch(displayErr)
+                    global.menu.open(global.lang.BOOKMARKS).catch(displayErr)
                 }
             })
-            global.streamer.aboutRegisterEntry('fav', data => {
+            const streamer = require('../streamer/main')
+            streamer.aboutRegisterEntry('fav', data => {
                 if(!data.isLocal){
                     if(this.has(this.simplify(data))){
                         return {template: 'option', fa: 'fas fa-star-half', text: global.lang.REMOVE_FROM.format(global.lang.BOOKMARKS), id: 'fav'}
@@ -37,9 +38,10 @@ class Bookmarks extends EntriesGroup {
     }
     hook(entries, path){
         if(!path) {
-            const bmEntry = {name: global.lang.BOOKMARKS, fa: 'fas fa-star', type: 'group', renderer: this.entries.bind(this)}
+            const options = require('../options')
+            const bmEntry = {name: global.lang.BOOKMARKS, fa: 'fas fa-star', top: true, type: 'group', renderer: this.entries.bind(this)}
             if(this.data.length) bmEntry.details = this.data.map(e => e.name).unique().slice(0, 3).join(', ') +'...'
-            global.options.insertEntry(bmEntry, entries, -3, global.lang.MY_LISTS, global.lang.CATEGORY_MOVIES_SERIES)
+            options.insertEntry(bmEntry, entries, -3, global.lang.OPTIONS, global.lang.OPEN_URL)
             return entries
         }
         let isBookmarkable = path.startsWith(global.lang.CATEGORY_MOVIES_SERIES) || path.startsWith(global.lang.SEARCH) || path.startsWith(global.lang.LIVE +'/'+ global.lang.MORE) || path.startsWith(global.lang.BOOKMARKS)
@@ -63,7 +65,7 @@ class Bookmarks extends EntriesGroup {
                     name: global.lang.REMOVE_FROM.format(global.lang.BOOKMARKS),
                     action: () => {
                         this.remove(bookmarkable)
-                        global.explorer.refreshNow()
+                        global.menu.refreshNow()
                         global.osd.show(global.lang.BOOKMARK_REMOVED.format(bookmarkable.name), 'fas fa-star-half', 'bookmarks', 'normal')
                     }
                 }
@@ -74,7 +76,7 @@ class Bookmarks extends EntriesGroup {
                     name: global.lang.ADD_TO.format(global.lang.BOOKMARKS),
                     action: () => {
                         this.add(bookmarkable)
-                        global.explorer.refreshNow()
+                        global.menu.refreshNow()
                         global.osd.show(global.lang.BOOKMARK_ADDED.format(bookmarkable.name), 'fas fa-star', 'bookmarks', 'normal')
                     }
                 }
@@ -93,14 +95,15 @@ class Bookmarks extends EntriesGroup {
                 this.add(data)
                 global.osd.show(global.lang.BOOKMARK_ADDED.format(data.name), 'fas fa-star', 'bookmarks', 'normal')
             }
-            global.explorer.refreshNow()
+            global.menu.refreshNow()
         }
     }
     current(){
-        if(global.streamer.active){
-            return this.simplify(global.streamer.active.data)
+        const streamer = require('../streamer/main')
+        if(streamer.active){
+            return this.simplify(streamer.active.data)
         } else {
-            let streams = global.explorer.currentEntries.filter(e => e.url)
+            let streams = global.menu.currentEntries.filter(e => e.url)
             if(streams.length){
                 return this.simplify(streams[0])
             }
@@ -115,7 +118,8 @@ class Bookmarks extends EntriesGroup {
     search(terms){
         return new Promise((resolve, reject) => {
             if(typeof(terms) == 'string'){
-                terms = global.lists.terms(terms)
+                const lists = require('../lists')
+                terms = lists.terms(terms)
             }
             this.get().forEach(e => {
                 
@@ -123,12 +127,14 @@ class Bookmarks extends EntriesGroup {
         })
     }
     async entries(){
+        const streamer = require('../streamer/main')
         let es = [], current
-        if(global.streamer && global.streamer.active){
-            current = global.streamer.active.data
+        if(streamer && streamer.active){
+            current = streamer.active.data
         }
-        if(!current && global.histo){
-            let cs = global.histo.get().filter(c => {
+        if(!current){
+            const history = require('../history')
+            let cs = history.get().filter(c => {
                 return !this.has(c)
             })
             if(cs.length){
@@ -138,22 +144,24 @@ class Bookmarks extends EntriesGroup {
         if(current && !this.has(current)){
             es.push({name: global.lang.ADD + ': ' + current.name, fa: 'fas fa-star', icon: current.icon, type: 'action', action: () => {
                 this.add(current)
-                global.explorer.refreshNow()
+                global.menu.refreshNow()
             }})
         }
         es.push({name: global.lang.ADD_BY_NAME, fa: 'fas fa-star', type: 'group', renderer: this.addByNameEntries.bind(this)})
         const epgAddLiveNowMap = {}
         let gentries = this.get().map((e, i) => {
-            const isMega = e.url && global.mega.isMega(e.url)
+            const mega = require('../mega')
+            const isMega = e.url && mega.isMega(e.url)
             e.fa = 'fas fa-star'
             e.details = '<i class="fas fa-star"></i> ' + e.bookmarkId
             if(isMega){
-                let atts = global.mega.parse(e.url)
+                let atts = mega.parse(e.url)
                 if(atts.mediaType == 'live'){
                     return (epgAddLiveNowMap[i] = global.channels.toMetaEntry(e, false))
                 } else {
-                    let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.terms(atts.name)
-                    e.url = global.mega.build(global.ucWords(terms.join(' ')), {terms, mediaType: 'video'})
+                    const lists = require('../lists')
+                    let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : lists.terms(atts.name)
+                    e.url = mega.build(global.ucWords(terms.join(' ')), {terms, mediaType: 'video'})
                     e = global.channels.toMetaEntry(e)
                 }
             } else if(e.type != 'group'){
@@ -171,7 +179,7 @@ class Bookmarks extends EntriesGroup {
         }
         es.push(...gentries)
         if(gentries.length){
-            if(!global.cordova && global.config.get('bookmarks-desktop-icons')) {
+            if(!global.paths.cordova && global.config.get('bookmarks-desktop-icons')) {
                 es.push({name: global.lang.BOOKMARK_ICONS_SYNC, fa: 'fas fa-sync-alt', type: 'action', action: () => this.desktopIconsSync().catch(console.error)})
             }
             es.push({name: global.lang.REMOVE, fa: 'fas fa-trash', type: 'group', renderer: this.removalEntries.bind(this)})
@@ -204,13 +212,14 @@ class Bookmarks extends EntriesGroup {
             if(!this.currentBookmarkAddingByName.name){
                 resolve([])
                 return setTimeout(() => {
-                    global.explorer.back(2)
+                    global.menu.back(2)
                 }, 50)
             }
-            global.lists.search(this.currentBookmarkAddingByName.name, {
+            const lists = require('../lists')
+            lists.search(this.currentBookmarkAddingByName.name, {
                 partial: true,
                 group: !this.currentBookmarkAddingByName.live,
-                safe: !global.lists.parentalControl.lazyAuth(),
+                safe: !lists.parentalControl.lazyAuth(),
                 limit: 1024
             }).then(results => {                
                 if(!this.currentBookmarkAddingByName.url || this.currentBookmarkAddingByName.url.indexOf('/') == -1){
@@ -220,7 +229,7 @@ class Bookmarks extends EntriesGroup {
                     } else {
                         mediaType = 'video'
                     }
-                    this.currentBookmarkAddingByName.url = global.mega.build(this.currentBookmarkAddingByName.name, {mediaType})
+                    this.currentBookmarkAddingByName.url = mega.build(this.currentBookmarkAddingByName.name, {mediaType})
                 }
                 if(global.config.get('show-logos') && (!this.currentBookmarkAddingByName.icon || this.currentBookmarkAddingByName.icon.indexOf('/') == -1)){
                     let entries = []
@@ -270,7 +279,7 @@ class Bookmarks extends EntriesGroup {
             live: true,
             icon: ''
         }
-        global.explorer.back(backLvl)
+        global.menu.back(backLvl)
     }
     prepare(_entries){
         var knownBMIDs = [], entries = _entries.slice(0)
@@ -327,18 +336,19 @@ class Bookmarks extends EntriesGroup {
         })
     }
     async createDesktopShortcut(entry) {
-        if(global.cordova || !global.config.get('bookmarks-desktop-icons')) return
-        let outputPath, icon = global.APPDIR +'/default_icon.png'
+        if(global.paths.cordova || !global.config.get('bookmarks-desktop-icons')) return
+        let outputPath, icon = global.paths.cwd +'/default_icon.png'
         if(process.platform == 'win32') {
             const folder = await this.getWindowsDesktop().catch(console.error)
             if(typeof(folder) == 'string') {
                 outputPath = folder
             }
-            icon = global.APPDIR +'/default_icon.ico'
+            icon = global.paths.cwd +'/default_icon.ico'
         }
         let err, noEPGEntry = entry
         if(noEPGEntry.programme) delete noEPGEntry.programme
-        const nicon = await global.icons.get(noEPGEntry).catch(e => err = e)
+        const icons = require('../icon-server')
+        const nicon = await icons.get(noEPGEntry).catch(e => err = e)
         if(!err) {
             if(!nicon.file) {
                 const fs = require('fs')
@@ -349,10 +359,11 @@ class Bookmarks extends EntriesGroup {
                 }
             }
             if(nicon.file) {
-                const file = await global.jimp.iconize(nicon.file).catch(e => err = e)
+                const jimp = require('../jimp-worker/main')
+                const file = await jimp.iconize(nicon.file).catch(e => err = e)
                 if(!err) {
                     icon = file
-                    const cachedFile = await global.icons.saveDefaultIcon(entry.name, file).catch(e => err = e)
+                    const cachedFile = await icons.saveDefaultIcon(entry.name, file).catch(e => err = e)
                     if(!err && cachedFile) {
                         icon = cachedFile
                     }
@@ -383,4 +394,4 @@ class Bookmarks extends EntriesGroup {
     }
 }
 
-module.exports = Bookmarks
+module.exports = new Bookmarks()

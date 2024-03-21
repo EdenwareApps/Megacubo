@@ -1,6 +1,6 @@
-const Events = require('events')
+const { EventEmitter } = require('events')
 
-class Mag extends Events {
+class Mag extends EventEmitter {
     constructor(addr, debug) { // addr = http://mac@server
         super()
         if(debug === true) this.debugInfo = []
@@ -157,10 +157,28 @@ class Mag extends Events {
         if(data && data.cmd) {
             const ncmd = data.cmd.split(' ').pop()
             if(!cmd.startsWith('http') || ncmd.length > cmd) {
-                return ncmd
+                cmd = ncmd
             }
         }
-        return cmd
+        return await this.getRedirectURL(cmd)
+    }
+    async getRedirectURL(url) {
+        let err
+        const options = {
+            url,
+            timeout: 15,
+            responseType: 'json',
+            keepalive: true,
+        	maxAuthErrors: 0,
+			maxAbortErrors: 1,
+			redirectionLimit: 1,
+            headers: this.headers
+        }
+        const data = await global.Download.head(options).catch(e => err = e)
+        if(!err && data.currentURL && data.currentURL != url) {
+            return data.currentURL
+        }
+        return url
     }
     async run() {
         const firstStepWeight = 2
@@ -202,7 +220,7 @@ class Mag extends Events {
     }
 }
 
-class MagEPG extends Events {
+class MagEPG extends EventEmitter {
     constructor(url) {
         super()
         this.url = url

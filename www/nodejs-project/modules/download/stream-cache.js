@@ -1,4 +1,4 @@
-const fs = require('fs'), Reader = require('../reader'), DownloadStreamBase = require('./stream-base')
+const DownloadStreamBase = require('./stream-base')
 
 class DownloadStreamCache extends DownloadStreamBase {
 	constructor(opts){
@@ -42,13 +42,14 @@ class DownloadStreamCache extends DownloadStreamBase {
             stream = row.chunks.createReadStream(range)
         } else {
             try {
+                const Reader = require('../reader')
                 stream = new Reader(row.file, range)
             } catch(e) {
                 return this.emitError('Cache download failed*', false)
             }
         }
         stream.on('error', err => {
-            this.response.emit('error', err)
+            this.response.listenerCount('error') && this.response.emit('error', err)
             this.end()
         })
         stream.on('data', chunk => {

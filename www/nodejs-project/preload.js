@@ -22,7 +22,7 @@ function getElectron() {
 }
 
 const { contextBridge, ipcRenderer, getGlobal, screen, app, shell, Tray, Menu } = getElectron()
-const Events = require('events'), path = require('path'), fs = require('fs')
+const { EventEmitter } = require('events'), path = require('path'), fs = require('fs')
 const Download = getGlobal('Download'), paths = getGlobal('paths'), config = getGlobal('config')
 const { spawn } = require('child_process')
 
@@ -320,18 +320,24 @@ class TrayProxy {
 	}
 }
 
-class WindowProxy extends Events {
+class WindowProxy extends EventEmitter {
     constructor() {
         super()
         this.localEmit = super.emit.bind(this)
         this.on = super.on.bind(this)
-        this.main = getGlobal('ui')
-		this.port = this.main.opts.port
+        this.ipc = getGlobal('renderer')
+		this.port = this.ipc.opts.port
         this.removeAllListeners = super.removeAllListeners.bind(this)
         this.emit = (...args) => {
-            this.main.channel.originalEmit(...args)
+            this.ipc.channel.originalEmit(...args)
         }
-        ipcRenderer.on('message', (_, args) => this.localEmit('message', args));
+        ipcRenderer.on('message', (_, args) => {
+			try {
+				this.localEmit('message', args)
+			} catch(e) {
+				console.error(e, args)
+			}
+		});
         ['focus', 'blur', 'show', 'hide', 'minimize', 'maximize', 'restore', 'close', 'isMaximized', 'getPosition', 'getSize', 'setSize', 'setAlwaysOnTop', 'setFullScreen', 'setPosition'].forEach(k => {
             this[k] = (...args) => window[k](...args)
         });
@@ -386,6 +392,7 @@ if (parseFloat(process.versions.electron) < 22) {
 			screenScaleFactor,
 			externalPlayer: {
 				play: externalPlayer.play,
+				available: externalPlayer.available,
 				setContext: externalPlayer.setContext
 			},
 			getScreen,

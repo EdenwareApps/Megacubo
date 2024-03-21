@@ -1,4 +1,4 @@
-const pLimit = require('p-limit'), Events = require('events')
+const { EventEmitter } = require('events')
 
 let sharedStreamerObject
 const streamer = () => {
@@ -9,7 +9,7 @@ const streamer = () => {
 	return sharedStreamerObject
 }
 
-class TunerUtils extends Events {
+class TunerUtils extends EventEmitter {
     constructor(entries, opts, name){
         super()
         this.paused = true
@@ -284,6 +284,7 @@ class Tuner extends TunerTask {
 			console.log('TUNER STARTED')
 		}
 		this.stats()
+		const pLimit = require('p-limit')
 		const limit = pLimit(global.config.get('tune-concurrency'))
 		const tasks = new Array(this.entries.length).fill(this.task.bind(this)).map(limit)
 		const ret = await Promise.allSettled(tasks)

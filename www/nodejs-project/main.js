@@ -1,86 +1,57 @@
 console.log('Initializing node...')
 process.env.UV_THREADPOOL_SIZE = 16
 
-global.cordova = false
-
-try {
-    if(require.resolve('cordova-bridge')){
-        global.cordova = require('cordova-bridge')
-    }
-} catch(e) {
-    global.cordova = false
-}
-
-if(!global.cordova){    
+require('./modules/paths')
+if(!paths.cordova) {
     const electron = require('electron')
-    if(typeof(electron) == 'string'){ // get electron path and relaunch from it
+    if (typeof(electron) === 'string') {
         const { spawn } = require('child_process')
-        spawn(electron, [__filename], { detached: true, stdio: 'ignore' }).unref()
+        const args = [__filename, ...process.argv.slice(2)]
+        const child = spawn(electron, args, { detached: true, stdio: 'ignore' })
+        child.unref()
         process.exit()
     }
 }
 
 const fs = require('fs'), path = require('path')
-
-global.APPDIR = String(__dirname || process.cwd()).replace(new RegExp('\\\\', 'g'), '/')
-global.MANIFEST = JSON.parse(fs.readFileSync(global.APPDIR + '/package.json'))
-global.ALLOW_COMMUNITY_LISTS = fs.existsSync(APPDIR +'/ALLOW_COMMUNITY.md')
-global.ALLOW_ADDING_LISTS = global.ALLOW_COMMUNITY_LISTS || fs.existsSync(APPDIR +'/ALLOW_ADDING_LISTS.md')
-
-global.tuning = false
-global.moment = require('moment-timezone')
-global.onexit = require('node-cleanup')
+global.ALLOW_ADDING_LISTS = fs.existsSync(paths.cwd +'/ALLOW_ADDING_LISTS.md')
+global.ALLOW_COMMUNITY_LISTS = ALLOW_ADDING_LISTS && fs.existsSync(paths.cwd +'/ALLOW_COMMUNITY.md')
 
 require('./modules/supercharge')(global)
 
-if(global.cordova){
-    let datadir = global.cordova.app.datadir(), temp = path.join(path.dirname(datadir), 'cache')
-    global.paths = {data: datadir +'/Data', temp}
-} else {
-    if(fs.existsSync(global.APPDIR +'/.portable') && checkDirWritePermissionSync(global.APPDIR +'/.portable')) {
-        global.paths = {data: global.APPDIR +'/.portable/Data', temp: global.APPDIR +'/.portable/temp'}
-    } else {
-    	global.paths = require('env-paths')(global.MANIFEST.window.title, {suffix: ''})
-    }
-}
-
-Object.keys(global.paths).forEach(k => {
-    global.paths[k] = forwardSlashes(global.paths[k])
-    console.log('DEFAULT PATH ' + k + '=' + global.paths[k])
-    fs.mkdir(global.paths[k], {}, () => {})
-})
-
-global.crashlog = require('./modules/crashlog')
-
+const crashlog = require('./modules/crashlog')
 process.on('warning', e => console.warn(e, e.stack))
 process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled rejection at:', promise, 'reason:', reason, reason.stack || '')
-    global.crashlog.save('Unhandled rejection at:', promise, 'reason:', reason)
+    crashlog.save('Unhandled rejection at:', promise, 'reason:', reason)
 })
 process.on('uncaughtException', (exception) => {
-    console.error('uncaughtException: '+ global.crashlog.stringify(exception), exception.stack)
-    global.crashlog.save('uncaughtException', exception)
+    console.error('uncaughtException: '+ crashlog.stringify(exception), exception.stack)
+    crashlog.save('uncaughtException', exception)
     return false
 })
 
-global.onexit(() => {
+const onexit = require('node-cleanup')
+onexit(() => {
     global.isExiting = true
     console.error('APP_EXIT='+ traceback())
-    if(typeof(global.streamer) != 'undefined' && global.streamer.active){
-        global.streamer.stop()
+    const streamer = require('./modules/streamer/main')
+    if(typeof(streamer) != 'undefined' && streamer.active){
+        streamer.stop()
     }
-    if(typeof(global.tuning) != 'undefined' && global.tuning){
-        global.tuning.destroy()
+    if(global.tuning){
+        tuning.destroy()
+        tuning = null
     }
-    global.rmdir(global.paths.temp, false, true)
-    if(typeof(global.ui) != 'undefined' && global.ui){
-        global.ui.emit('exit', true)
-        global.ui.destroy()
+    rmdir(paths.temp, false, true)
+    if(typeof(renderer) != 'undefined' && renderer){
+        renderer.emit('exit', true)
+        renderer.destroy()
     }
 })
 
 let uiReadyCallbacks = []
-global.uiReady = (f, done) => {
+global.rendererReady = (f, done) => {
     const ready = !Array.isArray(uiReadyCallbacks)
     if(typeof(f) == 'function'){
         if(ready){
@@ -107,10 +78,9 @@ global.uiReady = (f, done) => {
 }
 
 const Storage = require('./modules/storage')
-global.config = require('./modules/config')(global.paths.data + '/config.json')
+global.config = require('./modules/config')(paths.data + '/config.json')
 global.storage = new Storage({main: true})
 global.Download = require('./modules/download')
-global.jimp = null
 
 let originalConsole
 function enableConsole(enable){
@@ -118,7 +88,7 @@ function enableConsole(enable){
     if(typeof(originalConsole) == 'undefined'){ // initialize
         originalConsole = {}
         fns.forEach(f => originalConsole[f] = console[f].bind(console))
-        global.config.on('change', (keys, data) => keys.includes('enable-console') && enableConsole(data['enable-console']))
+        config.on('change', (keys, data) => keys.includes('enable-console') && enableConsole(data['enable-console']))
         if(enable) return // enabled by default, stop here
     }
     if(enable){
@@ -128,53 +98,30 @@ function enableConsole(enable){
     }
 }
 
-enableConsole(global.config.get('enable-console') || process.argv.includes('--inspect'))
+enableConsole(config.get('enable-console') || process.argv.includes('--inspect'))
 
 console.log('Loading modules...')
 
 const Bridge = require('./modules/bridge')
-const FFMPEG = require('./modules/ffmpeg')
 const Language = require('./modules/lang')
 
 console.log('Modules loaded.')
 
-global.ui = new Bridge()
-global.ffmpeg = new FFMPEG()
-global.lang = false
+global.renderer = new Bridge()
 global.activeEPG = ''
-
-let isStreamerReady = false
+global.tuning = null
 
 global.displayErr = (...args) => {
     console.error.apply(null, args)
-    global.ui.emit('display-error', args.map(v => String(v)).join(', '))
+    renderer.emit('display-error', args.map(v => String(v)).join(', '))
 }
 
-global.setNetworkConnectionState = state => {
-    global.Download.setNetworkConnectionState(state)
-    if(typeof(lists) != 'undefined'){
-        global.lists.setNetworkConnectionState(state).catch(console.error)
-        if(state && isStreamerReady){
-            global.lists.manager.update()
-        }
-    }
-}
-
-global.setupCompleted = () => {
-    const l = global.config.get('lists')
-    const fine = (l && l.length) || global.config.get('communitary-mode-lists-amount')
-    if(fine != global.config.get('setup-completed')) {
-        global.config.set('setup-completed', fine)        
-    }
-    return fine
-}
-
-let playOnLoaded, tuningHintShown, showingSlowBroadcastDialog
+let isStreamerReady, playOnLoaded, tuningHintShown, showingSlowBroadcastDialog
 
 global.updateUserTasks = async app => {
     if(process.platform != 'win32') return
     if(app) { // set from cache, Electron won't set after window is opened
-        const tasks = await global.storage.get('user-tasks')
+        const tasks = await storage.get('user-tasks')
         if(tasks && !app.setUserTasks(tasks)) {
             throw 'Failed to set user tasks. '+ JSON.stringify(tasks)
         }
@@ -182,16 +129,19 @@ global.updateUserTasks = async app => {
     }
     const limit = 12
     const entries = []
-    entries.push(...global.bookmarks.get().slice(0, limit))
+    const bookmarks = require('./modules/bookmarks')
+    entries.push(...bookmarks.get().slice(0, limit))
     if(entries.length < limit) {
-        for(const entry of global.histo.get()) {
+        const history = require('./modules/history')
+        for(const entry of history.get()) {
             if(!entries.some(e => e.name == entry.name)) {
                 entries.push(entry)
                 if(entries.length == limit) break
             }
         }
-        if(entries.length < limit && Array.isArray(global.watching.currentEntries)) {
-            for(const entry of global.watching.currentEntries) {
+        const watching = require('./modules/watching')
+        if(entries.length < limit && Array.isArray(watching.currentEntries)) {
+            for(const entry of watching.currentEntries) {
                 if(!entries.some(e => e.name == entry.name)) {
                     entries.push(entry)
                     if(entries.length == limit) break
@@ -209,88 +159,73 @@ global.updateUserTasks = async app => {
             iconIndex: 0
         }
     })
-    await global.storage.set('user-tasks', tasks, {
+    await storage.set('user-tasks', tasks, {
         expiration: true,
         permanent: true
     })
 }
 
+const setupCompleted = () => {
+    const l = config.get('lists')
+    const fine = (l && l.length) || config.get('communitary-mode-lists-amount')
+    if(fine != config.get('setup-completed')) {
+        config.set('setup-completed', fine)        
+    }
+    return fine
+}
+
+const setNetworkConnectionState = state => {
+    Download.setNetworkConnectionState(state)
+    const lists = require('./modules/lists')
+    lists.setNetworkConnectionState(state).catch(console.error)
+    if(state && isStreamerReady){
+        lists.manager.update()
+    }
+}
+
 const videoErrorTimeoutCallback = ret => {
     console.log('video-error-timeout-callback', ret)
+    const streamer = require('./modules/streamer/main')
     if(ret == 'try-other'){
-        global.streamer.handleFailure(null, 'timeout', true, true).catch(global.displayErr)
+        streamer.handleFailure(null, 'timeout', true, true).catch(displayErr)
     } else if(ret == 'retry') {
-        global.streamer.reload()
+        streamer.reload()
     } else if(ret == 'transcode') {
-        global.streamer.transcode()
+        streamer.transcode()
     } else if(ret == 'external') {
-        global.ui.emit('external-player')
+        renderer.emit('external-player')
     } else if(ret == 'stop') {
-        global.streamer.stop()
+        streamer.stop()
     } else {
-        global.ui.emit('streamer-reset-timeout')
+        renderer.emit('streamer-reset-timeout')
     }
 }
 
 const init = (language, timezone) => {
     if(global.lang) return
-    global.lang = new Language(language, global.config.get('locale'), global.APPDIR + '/lang', timezone)
-    global.lang.load().catch(global.displayErr).finally(() => {
+    global.lang = new Language(language, config.get('locale'), paths.cwd + '/lang', timezone)
+    lang.load().catch(displayErr).finally(() => {
         console.log('Language loaded.')
 
-        const MultiWorker = require('./modules/multi-worker')        
-        const Lists = require('./modules/lists')
-        const Discovery = require('./modules/discovery')
-        const Cloud = require('./modules/cloud')
         const OSD = require('./modules/osd')
-        const Explorer = require('./modules/explorer')
+        const Menu = require('./modules/menu')
         const Channels = require('./modules/channels')
-        const IconServer = require('./modules/icon-server')
-        const Streamer = require('./modules/streamer')
-        const Options = require('./modules/options')
-        const Search = require('./modules/search')
-        const History = require('./modules/history')
-        const Bookmarks = require('./modules/bookmarks')
-        const Watching = require('./modules/watching')
         const Theme = require('./modules/theme')
-        const Energy = require('./modules/energy')
-        const Analytics = require('./modules/analytics')
-        const Diagnostics = require('./modules/diagnostics')
-        const StreamState = require('./modules/stream-state')
-        const Downloads = require('./modules/downloads')
-        const OMNI = require('./modules/omni')
-        const Mega = require('./modules/mega')
         const Promoter = require('./modules/promoter')
 
-        global.moment.locale(global.lang.locale)
-        global.cloud = new Cloud()
-        
-        global.workers = new MultiWorker()
-        global.jimp = global.workers.load(path.join(__dirname, './modules/jimp-worker'))
-        
-        global.osd = new OSD()
-        global.discovery = new Discovery()
+        const moment = require('moment-timezone')
+        moment.locale(lang.locale)
 
-        global.lists = new Lists()
-        global.lists.setNetworkConnectionState(global.Download.isNetworkConnected).catch(console.error)       
+        const lists = require('./modules/lists')
+        lists.setNetworkConnectionState(Download.isNetworkConnected).catch(console.error)
 
-        new OMNI()
-
-        global.mega = new Mega()
-        global.energy = new Energy()
-        global.streamer = new Streamer()
         global.channels = new Channels()
-        global.downloads = new Downloads()
         global.theme = new Theme()
-        global.search = new Search()
-        global.histo = new History()
-        global.options = new Options()
-        global.watching = new Watching()
-        global.bookmarks = new Bookmarks()
-        global.icons = new IconServer({folder: global.paths['data'] + '/icons'})
-        global.explorer = new Explorer({})
+        global.osd = new OSD()
+        global.menu = new Menu({})
 
-        global.rmdir(global.streamer.opts.workDir, false, true)
+        const streamer = require('./modules/streamer/main')
+        rmdir(streamer.opts.workDir, false, true)
         
         console.log('Initializing premium...')
         Premium = require('./modules/premium-helper')
@@ -300,24 +235,36 @@ const init = (language, timezone) => {
 
         promo = new Promoter()
         
-        global.streamState = new StreamState()
-        global.streamState.on('state', (url, state, source) => {
-            source && global.discovery.reportHealth(source, state != 'offline')
+        const streamState = require('./modules/stream-state')
+        streamState.on('state', (url, state, source) => {
+            if(source) {
+                const discovery = require('./modules/discovery')
+                discovery.reportHealth(source, state != 'offline')
+            }
         })
 
-        global.explorer.addFilter(global.channels.hook.bind(global.channels))
-        global.explorer.addFilter(global.bookmarks.hook.bind(global.bookmarks))
-        global.explorer.addFilter(global.histo.hook.bind(global.histo))
-        global.explorer.addFilter(global.watching.hook.bind(global.watching))
-        global.explorer.addFilter(global.lists.manager.hook.bind(global.lists.manager))
-        global.explorer.addFilter(global.options.hook.bind(global.options))
-        global.explorer.addFilter(global.theme.hook.bind(global.theme))
-        global.explorer.addFilter(global.search.hook.bind(global.search))
+        const bookmarks = require('./modules/bookmarks')
+        const search = require('./modules/search')
+        const watching = require('./modules/watching')
+        const history = require('./modules/history')
+        const options = require('./modules/options')
+        const recommendations = require('./modules/recommendations')
+        
+        menu.addFilter(channels.hook.bind(channels))
+        menu.addFilter(bookmarks.hook.bind(bookmarks))
+        menu.addFilter(history.hook.bind(history))
+        menu.addFilter(watching.hook.bind(watching))
+        menu.addFilter(lists.manager.hook.bind(lists.manager))
+        menu.addFilter(options.hook.bind(options))
+        menu.addFilter(theme.hook.bind(theme))
+        menu.addFilter(search.hook.bind(search))
+        menu.addFilter(recommendations.hook.bind(recommendations))
 
-        global.ui.on('explorer-update-range', global.icons.renderRange.bind(global.icons))
-        global.explorer.on('render', global.icons.render.bind(global.icons))
+        const icons = require('./modules/icon-server')
+        renderer.on('menu-update-range', icons.renderRange.bind(icons))
+        menu.on('render', icons.render.bind(icons))
 
-        global.explorer.on('action', async e => {
+        menu.on('action', async e => {
             console.warn('ACTION', e, typeof(e.action))
             if(typeof(e.type) == 'undefined'){
                 if(typeof(e.url) == 'string'){
@@ -329,21 +276,21 @@ const init = (language, timezone) => {
             switch(e.type){
                 case 'stream':
                     if(global.tuning){
-                        global.tuning.destroy()
-                        global.tuning = null
+                        tuning.destroy()
+                        tuning = null
                     }
-                    global.streamer.zap.setZapping(false, null, true)
+                    streamer.zap.setZapping(false, null, true)
                     if(typeof(e.action) == 'function') { // execute action for stream, if any
                         let ret = e.action(e)
                         if(ret && ret.catch) ret.catch(console.error)
                     } else {
-                        global.streamer.play(e)
+                        streamer.play(e)
                     }
                     break
                 case 'input':
                     if(typeof(e.action) == 'function') {
                         let defaultValue = typeof(e.value) == 'function' ? e.value() : (e.value || undefined)
-                        let val = await global.explorer.prompt({
+                        let val = await menu.prompt({
                             question: e.name,
                             placeholder: '',
                             defaultValue,
@@ -355,38 +302,39 @@ const init = (language, timezone) => {
                     }
                     break
                 case 'action':
+                    const mega = require('./modules/mega')
                     if(typeof(e.action) == 'function') {
                         let ret = e.action(e)
                         if(ret && ret.catch) ret.catch(displayErr)
-                    } else if(e.url && global.mega.isMega(e.url)) {
+                    } else if(e.url && mega.isMega(e.url)) {
                         if(global.tuning){
-                            global.tuning.destroy()
-                            global.tuning = null
+                            tuning.destroy()
+                            tuning = null
                         }
-                        global.streamer.zap.setZapping(false, null, true)
-                        global.streamer.play(e)
+                        streamer.zap.setZapping(false, null, true)
+                        streamer.play(e)
                     }
                     break
             }
         })
-        global.ui.on('config-set', (k, v) => global.config.set(k, v))
-        global.ui.on('crash', (...args) => global.crashlog.save(...args))
-        global.ui.on('lists-manager', ret => {
+        renderer.on('config-set', (k, v) => config.set(k, v))
+        renderer.on('crash', (...args) => crashlog.save(...args))
+        renderer.on('lists-manager', ret => {
             console.log('lists-manager', ret)
             switch(ret){
                 case 'agree':
-                    global.ui.emit('explorer-reset-selection')
-                    global.explorer.open('', 0).catch(global.displayErr)
-                    global.config.set('communitary-mode-lists-amount', global.lists.opts.defaultCommunityModeReach)
-                    global.explorer.info(global.lang.LEGAL_NOTICE, global.lang.TOS_CONTENT)
-                    global.lists.manager.update()
+                    renderer.emit('menu-reset-selection')
+                    menu.open('', 0).catch(displayErr)
+                    config.set('communitary-mode-lists-amount', lists.opts.defaultCommunityModeReach)
+                    menu.info(lang.LEGAL_NOTICE, lang.TOS_CONTENT)
+                    lists.manager.update()
                     break
                 case 'retry':
-                    global.lists.manager.update()
+                    lists.manager.update()
                     break
                 case 'add-list':
-                    global.explorer.prompt({
-                        question: global.lang.ASK_IPTV_LIST, 
+                    menu.prompt({
+                        question: lang[ALLOW_ADDING_LISTS? 'ASK_IPTV_LIST' : 'OPEN_URL'], 
                         placeholder: 'http://.../example.m3u',
                         defaultValue: '',
                         callback: 'lists-manager', 
@@ -394,93 +342,98 @@ const init = (language, timezone) => {
                     }).catch(console.error)
                     break
                 case 'back':
-                    global.explorer.refresh()
+                    menu.refresh()
                     break
                 default:
-                    global.lists.manager.addList(ret).catch(global.displayErr)
+                    lists.manager.addList(ret).catch(displayErr)
                     break
             }
         })
-        global.ui.on('reload', ret => {
+        renderer.on('reload', ret => {
             console.log('reload', ret)
             switch(ret){
                 case 'agree':
                     break
                 default:
-                    global.lists.manager.addList(ret).catch(global.displayErr)
+                    lists.manager.addList(ret).catch(displayErr)
                     break
             }
         })
-        global.ui.on('reload-dialog', async () => {
+        renderer.on('reload-dialog', async () => {
             console.log('reload-dialog')
-            if(!global.streamer.active) return
-            let opts = [{template: 'question', text: global.lang.RELOAD}], def = 'retry'
-            let isCH = global.streamer.active.type != 'video' && 
+            if(!streamer.active) return
+            const mega = require('./modules/mega')
+            let opts = [{template: 'question', text: lang.RELOAD}], def = 'retry'
+            let isCH = streamer.active.type != 'video' && 
                 (
-                    global.channels.isChannel(global.streamer.active.data.terms ? global.streamer.active.data.terms.name : global.streamer.active.data.name) 
+                    channels.isChannel(streamer.active.data.terms ? streamer.active.data.terms.name : streamer.active.data.name) 
                     || 
-                    global.mega.isMega(global.streamer.active.data.originalUrl || global.streamer.active.data.url)
+                    mega.isMega(streamer.active.data.originalUrl || streamer.active.data.url)
                 )
             if(isCH){
-                opts.push({template: 'option', text: global.lang.PLAY_ALTERNATE, fa: global.config.get('tuning-icon'), id: 'try-other'})
+                opts.push({template: 'option', text: lang.PLAY_ALTERNATE, fa: config.get('tuning-icon'), id: 'try-other'})
                 def = 'try-other'
             }
-            opts.push({template: 'option', text: global.lang.RELOAD_THIS_BROADCAST, fa: 'fas fa-redo', id: 'retry'})
-            if(!global.cordova){
-                opts.push({template: 'option', text: global.lang.OPEN_EXTERNAL_PLAYER, fa: 'fas fa-window-restore', id: 'external'})
+            opts.push({template: 'option', text: lang.RELOAD_THIS_BROADCAST, fa: 'fas fa-redo', id: 'retry'})
+            if(!paths.cordova){
+                opts.push({template: 'option', text: lang.OPEN_EXTERNAL_PLAYER, fa: 'fas fa-window-restore', id: 'external'})
             }
-            if(typeof(global.streamer.active.transcode) == 'function' && !global.streamer.active.isTranscoding()){
-                opts.push({template: 'option', text: global.lang.FIX_AUDIO_OR_VIDEO +' &middot; '+ global.lang.TRANSCODE, fa: 'fas fa-film', id: 'transcode'})
+            if(typeof(streamer.active.transcode) == 'function' && !streamer.active.isTranscoding()){
+                opts.push({template: 'option', text: lang.FIX_AUDIO_OR_VIDEO +' &middot; '+ lang.TRANSCODE, fa: 'fas fa-film', id: 'transcode'})
             }
             if(opts.length > 2){
-                let ret = await global.explorer.dialog(opts, def)
+                let ret = await menu.dialog(opts, def)
                 videoErrorTimeoutCallback(ret)
             } else { // only reload action is available
-                global.streamer.reload()
+                streamer.reload()
             }
         })
-        global.ui.on('testing-stop', () => {
+        renderer.on('testing-stop', () => {
             console.warn('TESTING STOP')
-            global.streamState.cancelTests()
+            streamState.cancelTests()
         })
-        global.ui.on('tuning-stop', () => {
+        renderer.on('tuning-stop', () => {
             console.warn('TUNING ABORT')
-            if(global.tuning) global.tuning.destroy()
+            if(global.tuning) tuning.destroy()
         })
-        global.ui.on('tune', () => {
-            let data = global.streamer.active ? global.streamer.active.data : global.streamer.lastActiveData
+        renderer.on('tune', () => {
+            let data = streamer.active ? streamer.active.data : streamer.lastActiveData
             console.warn('RETUNNING', data)
-            if(data) global.streamer.tune(data).catch(global.displayErr)
+            if(data) {
+                streamer.tune(data).catch(displayErr)
+            } else {
+                streamer.zap.go().catch(displayErr)
+            }
         })
-        global.ui.on('retry', () => {
+        renderer.on('retry', () => {
             console.warn('RETRYING')
-            global.streamer.reload()
+            streamer.reload()
         })
-        global.ui.on('video-error', async (type, errData) => {
+        renderer.on('video-error', async (type, errData) => {
             console.error('VIDEO ERROR', {type, errData})
-            if(global.streamer.zap.isZapping){
-                await global.streamer.zap.go()
-            } else if(global.streamer.active && !global.streamer.active.isTranscoding()) {
+            if(streamer.zap.isZapping){
+                await streamer.zap.go()
+            } else if(streamer.active && !streamer.active.isTranscoding()) {
                 if(type == 'timeout') {
                     if(!showingSlowBroadcastDialog){
-                        let opts = [{template: 'question', text: global.lang.SLOW_BROADCAST}], def = 'wait'
-                        let isCH = global.streamer.active.type != 'video' && global.channels.isChannel(global.streamer.active.data.terms ? global.streamer.active.data.terms.name : global.streamer.active.data.name)
+                        let opts = [{template: 'question', text: lang.SLOW_BROADCAST}], def = 'wait'
+                        let isCH = streamer.active.type != 'video' && channels.isChannel(streamer.active.data.terms ? streamer.active.data.terms.name : streamer.active.data.name)
                         if(isCH){
-                            opts.push({template: 'option', text: global.lang.PLAY_ALTERNATE, fa: global.config.get('tuning-icon'), id: 'try-other'})
+                            opts.push({template: 'option', text: lang.PLAY_ALTERNATE, fa: config.get('tuning-icon'), id: 'try-other'})
                             def = 'try-other'
                         }
-                        opts.push({template: 'option', text: global.lang.RELOAD_THIS_BROADCAST, fa: 'fas fa-redo', id: 'retry'})
-                        opts.push({template: 'option', text: global.lang.WAIT, fa: 'fas fa-clock', id: 'wait'})
+                        opts.push({template: 'option', text: lang.RELOAD_THIS_BROADCAST, fa: 'fas fa-redo', id: 'retry'})
+                        opts.push({template: 'option', text: lang.WAIT, fa: 'fas fa-clock', id: 'wait'})
                         if(!isCH){
-                            opts.push({template: 'option', text: global.lang.STOP, fa: 'fas fa-stop', id: 'stop'})                        
+                            opts.push({template: 'option', text: lang.STOP, fa: 'fas fa-stop', id: 'stop'})                        
                         }
                         showingSlowBroadcastDialog = true
-                        let ret = await global.explorer.dialog(opts, def, true)
+                        let ret = await menu.dialog(opts, def, true)
                         showingSlowBroadcastDialog = false
                         videoErrorTimeoutCallback(ret)
                     }
                 } else {
-                    const active = global.streamer.active
+                    const active = streamer.active
                     if(active) {
                         if(type == 'playback') {
                             if(errData && errData.details && errData.details == 'NetworkError') {
@@ -492,55 +445,55 @@ const init = (language, timezone) => {
                                     allowBlindTrust: false,
                                     skipSample: false
                                 })
-                                const info = await global.streamer.info(data.url, 2, data).catch(e => {
+                                const info = await streamer.info(data.url, 2, data).catch(e => {
                                     type = 'request error'
                                 })
-                                const ret = await global.streamer.typeMismatchCheck(info).catch(console.error)
+                                const ret = await streamer.typeMismatchCheck(info).catch(console.error)
                                 if(ret === true) return
                             }
                         }
-                        if(!global.cordova && type == 'playback') {
+                        if(!paths.cordova && type == 'playback') {
                             // skip if it's not a false positive due to tuning-blind-trust
-                            const openedExternal = await global.streamer.askExternalPlayer().catch(console.error)
+                            const openedExternal = await streamer.askExternalPlayer().catch(console.error)
 						    if(openedExternal === true) return
                         }
-                        global.streamer.handleFailure(null, type).catch(global.displayErr)
+                        streamer.handleFailure(null, type).catch(displayErr)
                     }
                 }
             }
         })
-        global.ui.on('share', () => global.streamer.share())
-        global.ui.on('stop', () => {
-            if(global.streamer.active){
+        renderer.on('share', () => streamer.share())
+        renderer.on('stop', () => {
+            if(streamer.active){
                 console.warn('STREAMER STOP FROM CLIENT')
-                global.streamer.emit('stop-from-client')
-                global.streamer.stop()
-                global.tuning && global.tuning.pause()
+                streamer.emit('stop-from-client')
+                streamer.stop()
+                tuning && tuning.pause()
             }
-            let isEPGEnabledPath = !global.search.isSearching() && global.channels.loadedEPG && [global.lang.TRENDING, global.lang.BOOKMARKS, global.lang.LIVE].some(p => global.explorer.path.substr(0, p.length) == p)
+            let isEPGEnabledPath = !search.isSearching() && channels.loadedEPG && [lang.TRENDING, lang.BOOKMARKS, lang.LIVE].some(p => menu.path.substr(0, p.length) == p)
             if(isEPGEnabledPath){ // update current section data for epg freshness
-                global.explorer.refresh()
+                menu.refresh()
             }
         })
-        global.ui.on('open-url', url => {
+        renderer.on('open-url', url => {
             console.log('OPENURL', url)
             if(url){
                 const isM3U = url.match(new RegExp('(get.php\\?username=|\\.m3u($|[^A-Za-z0-9])|\/supratv\\.)'))
                 if(isM3U) {
-                    global.lists.manager.addList(url).catch(global.displayErr)
+                    lists.manager.addList(url).catch(displayErr)
                 } else {
-                    const name = global.listNameFromURL(url), e = {
+                    const name = listNameFromURL(url), e = {
                         name, 
                         url, 
                         terms: {
-                            name: global.lists.terms(name), 
+                            name: lists.terms(name), 
                             group: []
                         }
                     }
-                    global.config.set('open-url', url)
-                    global.lists.manager.waitListsReady().then(() => {                       
+                    config.set('open-url', url)
+                    lists.manager.waitListsReady().then(() => {                       
                         if(isStreamerReady){
-                            global.streamer.play(e)
+                            streamer.play(e)
                         } else {
                             playOnLoaded = e
                         }
@@ -548,203 +501,211 @@ const init = (language, timezone) => {
                 }
             }
         })
-        global.ui.on('open-name', name => {
+        renderer.on('open-name', name => {
             console.log('OPEN STREAM BY NAME', name)
             if(name){
-                const e = {name, url: global.mega.build(name)}
+                const mega = require('./modules/mega')
+                const e = {name, url: mega.build(name)}
                 if(isStreamerReady){
-                    global.streamer.play(e)
+                    streamer.play(e)
                 } else {
                     playOnLoaded = e
                 }
             }
         })
-        global.ui.on('about', async () => {
-            if(global.streamer.active){
-                await global.streamer.about()
+        renderer.on('about', async () => {
+            if(streamer.active){
+                await streamer.about()
             } else {
-                global.options.about()
+                options.about()
             }
         })
-        global.ui.on('network-state-up', () => global.setNetworkConnectionState(true))
-        global.ui.on('network-state-down', () => global.setNetworkConnectionState(false))
-        global.ui.on('network-ip', ip => {
-            if(ip && isNetworkIP(ip)){
-                networkIP = () => {
-                    return ip
-                }
+        renderer.on('network-state-up', () => setNetworkConnectionState(true))
+        renderer.on('network-state-down', () => setNetworkConnectionState(false))
+        renderer.on('network-ip', ip => {
+            const np = require('./modules/network-ip')
+            if(ip && np.isNetworkIP(ip)){
+                np.networkIP = () => ip
             }
         })
-        global.streamer.on('streamer-connect', async (src, codecs, info) => {
-            if(!global.streamer.active) return
+        streamer.on('streamer-connect', async (src, codecs, info) => {
+            if(!streamer.active) return
             console.error('CONNECT', src, codecs, info)       
             let cantune
-            if(global.streamer.active.mediaType == 'live'){
+            if(streamer.active.mediaType == 'live'){
                 if(global.tuning){
-                    if(global.tuning.tuner && global.tuning.tuner.entries.length > 1){
+                    if(tuning.tuner && tuning.tuner.entries.length > 1){
                         cantune = true
                     }
-                } else if(global.channels.isChannel(info.name)) {
+                } else if(channels.isChannel(info.name)) {
                     cantune = true
                 }
             }
-            global.ui.emit('streamer-connect', src, codecs, '', global.streamer.active.mediaType, info, cantune)
+            renderer.emit('streamer-connect', src, codecs, '', streamer.active.mediaType, info, cantune)
             if(cantune){
-                if(!tuningHintShown && global.histo.get().length){
+                if(!tuningHintShown && history.get().length){
                     tuningHintShown = true
                 }
                 if(!tuningHintShown){                        
                     tuningHintShown = true
-                    global.ui.emit('streamer-show-tune-hint')
+                    renderer.emit('streamer-show-tune-hint')
                 }
             }
         })
-        global.streamer.on('streamer-disconnect', err => {
-            console.warn('DISCONNECT', err, global.tuning !== false)
-            global.ui.emit('streamer-disconnect', err, global.tuning !== false)
+        streamer.on('streamer-disconnect', err => {
+            console.warn('DISCONNECT', err, tuning !== false)
+            renderer.emit('streamer-disconnect', err, tuning !== false)
         })
-        global.streamer.on('stop', (err, data) => {
-            global.ui.emit('remove-status-flag-from-all', 'fas fa-play-circle faclr-green')
-            global.ui.emit('set-loading', data, false)
-            global.ui.emit('streamer-stop')
+        streamer.on('stop', (err, data) => {
+            renderer.emit('remove-status-flag-from-all', 'fas fa-play-circle faclr-green')
+            renderer.emit('set-loading', data, false)
+            renderer.emit('streamer-stop')
         })
-        global.config.on('change', (keys, data) => {
-            global.ui.emit('config', keys, data)
+        config.on('change', (keys, data) => {
+            renderer.emit('config', keys, data)
             if(['lists', 'communitary-mode-lists-amount', 'interests'].some(k => keys.includes(k))){
-                global.explorer.refresh()
-                global.lists.manager.update()
+                menu.refresh()
+                lists.manager.update()
             }
-        })     
-        global.ui.once('init', () => {
-            global.explorer.start()  
-            global.icons.refresh()
-            global.streamState.sync()
-            global.uiReady() || global.uiReady(null, true)
         })
-        global.ui.on('streamer-ready', () => {        
-            isStreamerReady = true  
-            if(!global.streamer.active){
-                global.lists.manager.waitListsReady().then(() => {
+        renderer.once('menu-ready', () => {
+            menu.start()  
+
+            const icons = require('./modules/icon-server')
+            icons.refresh()
+        })
+        renderer.on('streamer-ready', () => {        
+            isStreamerReady = true
+            streamState.sync()
+            rendererReady() || rendererReady(null, true)
+            if(!streamer.active){
+                lists.manager.waitListsReady().then(() => {
                     if(playOnLoaded){
-                        global.streamer.play(playOnLoaded)
-                    } else if(global.config.get('resume')) {
-                        if(global.explorer.path){
+                        streamer.play(playOnLoaded)
+                    } else if(config.get('resume')) {
+                        if(menu.path){
                             console.log('resume skipped, user navigated away')
                         } else {
-                            console.log('resuming', global.histo.resumed, streamer)
-                            global.histo.resume()
+                            console.log('resuming', history.resumed, streamer)
+                            history.resume()
                         }
                     }
+                    menu.path || menu.updateHomeFilters()
                 }).catch(console.error)
             }
         })
-        global.ui.once('close', () => {
+        renderer.once('close', () => {
             console.warn('Client closed!')
-            global.energy.exit()
+            const energy = require('./modules/energy')
+            energy.exit()
         })
-        global.ui.once('exit', () => {
+        renderer.once('exit', () => {
             console.error('Immediate exit called from client.')
             process.exit(0)
         })
-        global.ui.on('suspend', () => { // cordova only
-            if(global.streamer.active && !global.config.get('miniplayer-auto')){
-                global.streamer.stop()
+        renderer.on('suspend', () => { // cordova only
+            if(streamer.active && !config.get('miniplayer-auto')){
+                streamer.stop()
             }
-            global.tuning && global.tuning.destroy()
-            global.streamState && global.streamState.cancelTests()
+            tuning && tuning.destroy()
+            streamState && streamState.cancelTests()
         })
 
-        global.uiReady(async () => {
+        rendererReady(async () => {
             const updatePrompt = async c => { // 'recursive-ready' update dialog
-                let chosen = await global.explorer.dialog([
-                    {template: 'question', text: ucWords(global.MANIFEST.name) +' v'+ global.MANIFEST.version +' > v'+ c.version, fa: 'fas fa-star'},
-                    {template: 'message', text: global.lang.NEW_VERSION_AVAILABLE},
-                    {template: 'option', text: global.lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
-                    {template: 'option', text: global.lang.HOW_TO_UPDATE, id: 'how', fa: 'fas fa-question-circle'},
-                    {template: 'option', text: global.lang.WHATS_NEW, id: 'changelog', fa: 'fas fa-info-circle'},
-                    {template: 'option', text: global.lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle'}
+                let chosen = await menu.dialog([
+                    {template: 'question', text: ucWords(paths.manifest.name) +' v'+ paths.manifest.version +' > v'+ c.version, fa: 'fas fa-star'},
+                    {template: 'message', text: lang.NEW_VERSION_AVAILABLE},
+                    {template: 'option', text: lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
+                    {template: 'option', text: lang.HOW_TO_UPDATE, id: 'how', fa: 'fas fa-question-circle'},
+                    {template: 'option', text: lang.WHATS_NEW, id: 'changelog', fa: 'fas fa-info-circle'},
+                    {template: 'option', text: lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle'}
                 ], 'yes')
                 console.log('update callback', chosen)
                 if(chosen == 'yes'){
-                    global.ui.emit('open-external-url', 'https://megacubo.net/update?ver=' + global.MANIFEST.version)
+                    renderer.emit('open-external-url', 'https://megacubo.net/update?ver=' + paths.manifest.version)
                 } else if(chosen == 'how') {
-                    await global.explorer.dialog([
-                        {template: 'question', text: global.lang.HOW_TO_UPDATE, fa: 'fas fa-question-circle'},
-                        {template: 'message', text: global.lang.UPDATE_APP_INFO},
+                    await menu.dialog([
+                        {template: 'question', text: lang.HOW_TO_UPDATE, fa: 'fas fa-question-circle'},
+                        {template: 'message', text: lang.UPDATE_APP_INFO},
                         {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
                     ], 'yes')
                     await updatePrompt(c)
                 } else if(chosen == 'changelog') {
-                    global.ui.emit('open-external-url', 'https://github.com/EdenwareApps/Megacubo/releases/latest')
+                    renderer.emit('open-external-url', 'https://github.com/EdenwareApps/Megacubo/releases/latest')
                     await updatePrompt(c)
                 }
             }
-            global.diag = new Diagnostics()
 
-            const setupComplete = !!global.setupCompleted()
+            const setupComplete = setupCompleted()
             if(!setupComplete) {
                 const Wizard = require('./modules/wizard');
                 const wizard = new Wizard()
                 await wizard.init()
             }
 
-            global.explorer.addFilter(global.downloads.hook.bind(global.downloads))
-            new Analytics()
-            await global.crashlog.send().catch(console.error) 
+            const downloads = require('./modules/downloads')
+            menu.addFilter(downloads.hook.bind(downloads))
+            await crashlog.send().catch(console.error) 
                        
-            global.lists.manager.update()
-            await global.lists.manager.waitListsReady()
+            lists.manager.update()
+            await lists.manager.waitListsReady()
 
             console.log('WaitListsReady resolved!')
-            let err, c = await global.cloud.get('configure').catch(e => err = e) // all below in func depends on 'configure' data
+            const cloud = require('./modules/cloud')
+            let err, c = await cloud.get('configure').catch(e => err = e) // all below in func depends on 'configure' data
             if(err) {
                 console.error(err)
                 c = {}
             }
-            await global.options.updateEPGConfig(c).catch(console.error)
+            await options.updateEPGConfig(c).catch(console.error)
             console.log('checking update...')
-            if(!global.config.get('hide-updates')){
-                if(c.version > global.MANIFEST.version){
+            if(!config.get('hide-updates')){
+                if(c.version > paths.manifest.version){
                     console.log('new version found', c.version)
                     await updatePrompt(c)
                 } else {
                     console.log('updated')
                 }
             }
-            global.ui.emit('arguments', process.argv)
+            renderer.emit('arguments', process.argv)
         })
         
         console.warn('Prepared to connect...')
-        global.ui.emit('backend', global.config.all(), global.lang.getTexts())
+        renderer.emit('main-ready', config.all(), lang.getTexts())
+                
+        require('./modules/analytics')
+        require('./modules/omni')
     })
 }
 
-global.ui.on('get-lang-callback', (locale, timezone, ua, online) => {
+renderer.on('get-lang-callback', (locale, timezone, ua, online) => {
     console.log('get-lang-callback', timezone, ua, online)
     if(timezone){
-        global.moment.tz.setDefault(timezone.name)
+        const moment = require('moment-timezone')
+        moment.tz.setDefault(timezone.name)
     }
-    if(ua && ua != global.config.get('default-user-agent')){
-        global.config.set('default-user-agent', ua)
+    if(ua && ua != config.get('default-user-agent')){
+        config.set('default-user-agent', ua)
     }
     if(typeof(online) == 'boolean'){
-        global.setNetworkConnectionState(online)
+        setNetworkConnectionState(online)
     }
     if(!global.lang){
         console.log('get-lang-callback 1')
         init(locale, timezone)
     } else {
         console.log('get-lang-callback 2')
-        global.lang.ready().catch(global.displayErr).finally(() => {
-            global.ui.emit('backend', global.config.all(), global.lang.getTexts())        
+        lang.ready().catch(displayErr).finally(() => {
+            renderer.emit('main-ready', config.all(), lang.getTexts())        
         })
     }
 })
 
-if(global.cordova) {
-    global.ui.emit('get-lang')
+if(paths.cordova) {
+    renderer.emit('get-lang')
 } else {
-    const tcpFastOpen = global.config.get('tcp-fast-open') ? 'true' : 'false'
+    const tcpFastOpen = config.get('tcp-fast-open') ? 'true' : 'false'
     const contextIsolation = parseFloat(process.versions.electron) >= 22
     contextIsolation && require('@electron/remote/main').initialize()
     const { app, BrowserWindow, globalShortcut, Menu } = require('electron')
@@ -760,10 +721,10 @@ if(global.cordova) {
 
     const initAppWindow = async () => {
         const isLinux = process.platform == 'linux'
-        await global.updateUserTasks(app).catch(console.error)
+        await updateUserTasks(app).catch(console.error)
 
-        if (global.config.get('gpu')) {
-            global.config.get('gpu-flags').forEach(f => {
+        if (config.get('gpu')) {
+            config.get('gpu-flags').forEach(f => {
                 if (isLinux && f == 'in-process-gpu') {
                     // --in-process-gpu chromium flag is enabled by default to prevent IPC
                     // but it causes fatal error on Linux
@@ -791,7 +752,7 @@ if(global.cordova) {
         app.commandLine.appendSwitch('disable-web-security')
         
         await app.whenReady()
-        const window = global.window = new BrowserWindow({
+        global.window = new BrowserWindow({ // this global will be accessed from preload.js
             width: 320,
             height: 240,
             frame: false,
@@ -808,13 +769,13 @@ if(global.cordova) {
                 nodeIntegration: false,
                 nodeIntegrationInWorker: false,
                 nodeIntegrationInSubFrames: false,
-                preload: path.join(__dirname, 'preload.js'),
+                preload: path.join(paths.cwd, 'preload.js'),
                 enableRemoteModule: true,
                 experimentalFeatures: true, // audioTracks support
                 webSecurity: false // desabilita o webSecurity
             }
         })
-        window.loadURL('http://127.0.0.1:'+ global.ui.opts.port +'/electron.html', {userAgent: global.ui.ua}) // file:// is required on Linux to prevent blank window on Electron 9.1.2
+        window.loadURL('http://127.0.0.1:'+ renderer.opts.port +'/renderer/electron.html', {userAgent: renderer.ua}) // file:// is required on Linux to prevent blank window on Electron 9.1.2
         app.on('browser-window-focus', () => {
             // We'll use Ctrl+M to enable Miniplayer instead of minimizing
             globalShortcut.registerAll(['CommandOrControl+M'], () => { return })
@@ -827,11 +788,11 @@ if(global.cordova) {
             if (window) {
                 window.isMinimized() || window.restore()
                 window.focus()
-                global.ui.emit('arguments', commandLine)
+                renderer.emit('arguments', commandLine)
             }
         })
         window.on('closed', () => window.closed = true) // prevent bridge IPC error
-        global.ui.setElectronWindow(window)
+        renderer.setElectronWindow(window)
     }
 
     initAppWindow().catch(console.error)

@@ -1,10 +1,10 @@
-const Events = require('events'), MultiBuffer = require('./multibuffer')
+const { EventEmitter } = require('events')
 
 const SYNC_BYTE = 0x47
 const PACKET_SIZE = 188
 const ADAPTATION_POSITION = 6
 
-class MPEGTSProcessor extends Events {
+class MPEGTSProcessor extends EventEmitter {
 	constructor(){
         super()
         this.debug = false
@@ -16,6 +16,8 @@ class MPEGTSProcessor extends Events {
         2 = passing through permanently, not used
         */
         this.direction = 1 
+
+        const MultiBuffer = require('./multibuffer')
         this.packetBuffer = new MultiBuffer()
         this.packetFilterPolicy = global.config.get('mpegts-packet-filter-policy')
         this.pcrMemoNudgeSize = parseInt(this.maxPcrMemoSize / 10)

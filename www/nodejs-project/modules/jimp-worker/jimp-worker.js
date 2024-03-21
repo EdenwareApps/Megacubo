@@ -1,4 +1,3 @@
-
 class JimpWorker {
 	constructor(){}	
     load(){
@@ -7,7 +6,6 @@ class JimpWorker {
             const jdecoder = this.jimp.decoders['image/jpeg']
             this.jimp.decoders['image/jpeg'] = data => jdecoder(data, {maxMemoryUsageInMB: 256})
             this.jimpCustomAutocrop = require('../jimp-autocrop-custom')
-            this.jimpVersion = require(global.APPDIR+'/node_modules/jimp/package.json').version
         }
     }
     isAlpha(image){
@@ -103,10 +101,11 @@ class JimpWorker {
         })
     }
     async iconize(file, outputFolder){
-        if(!outputFolder) outputFolder = global.paths.temp
+        const { temp } = require('../paths')
+        if(!outputFolder) outputFolder = temp
         const fs = require('fs'), path = require('path')
         const ext = process.platform == 'win32' ? 'ico' : 'png'
-        const pngOutputFile = global.paths.temp +'/temp.png'
+        const pngOutputFile = temp +'/temp.png'
         const outputFile = outputFolder +'/'+ path.basename(file) +'.'+ ext
         this.load()
         let image = await this.jimp.read(file)

@@ -1,7 +1,6 @@
-const ListsCommon = require('../lists/common'), xmltv = require('xmltv')
-const Events = require('events'), utils = require('../multi-worker/utils')(__filename)
+const { EventEmitter } = require('events')
 
-class EPGPaginateChannelsList extends Events {
+class EPGPaginateChannelsList extends EventEmitter {
     constructor(){
         super()
         this.badTerms = new Map([
@@ -89,6 +88,8 @@ class EPGPaginateChannelsList extends Events {
 class EPG extends EPGPaginateChannelsList {
     constructor(){
         super()
+
+        const ListsCommon = require('../lists/common')
         this.listsCommon = new ListsCommon()
         this.debug = false
         this.metaCache = {icons:{}, categories: {}}
@@ -181,10 +182,10 @@ class EPG extends EPGPaginateChannelsList {
             if(!this.loaded){
                 this.state = 'connecting'
             }
-            let errorCount = 0, failed, hasErr, newLastModified, initialBuffer = []
+            let validEPG, failed, hasErr, newLastModified, received = 0, errorCount = 0, initialBuffer = []
+            const utils = require('../multi-worker/utils')(__filename)
             this.error = null
             console.log('epg updating...')
-            let validEPG, received = 0
             const onErr = err => {
                 if(failed){
                     return
@@ -232,6 +233,8 @@ class EPG extends EPGPaginateChannelsList {
                     responseType: 'text',
                     progress: p => utils.emit('progress', p)
                 }
+
+                const xmltv = require('xmltv')
                 this.parser = new xmltv.Parser()
                 this.request = new global.Download(req)
                 this.request.on('error', err => {
@@ -444,7 +447,7 @@ class EPG extends EPGPaginateChannelsList {
         }
         return {categories, updateAfter}
     }
-    async expandSuggestions(categories){
+    async expandRecommendations(categories){
         const results = {}
         Object.values(this.data).forEach(c => {
             Object.values(c).forEach(p => {
@@ -466,7 +469,7 @@ class EPG extends EPGPaginateChannelsList {
         })
         return results
     }
-    async getSuggestions(categories, until, limit = 24, searchTitles){
+    async getRecommendations(categories, until, limit = 24, searchTitles){
         if(!Object.keys(categories).length){
             return {}
         }

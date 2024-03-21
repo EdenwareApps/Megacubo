@@ -1,6 +1,4 @@
-const http = require('http'), closed = require('../../on-closed')
-const StreamerProxyBase = require('./proxy-base'), decodeEntities = require('decode-entities')
-const stoppable = require('stoppable'), m3u8Parser = require('m3u8-parser')
+const StreamerProxyBase = require('./proxy-base')
 
 class HLSJournal {
 	constructor(url, altURL, master){
@@ -190,6 +188,7 @@ class HLSRequests extends StreamerProxyBase {
 		})
 		if(lastDownloadingMediaSequence){
 			for(const k of Object.keys(journal).slice(lastDownloadingMediaSequenceIndex + 1)) {
+				if(!journal[k]) continue // TypeError: Cannot read property 'urls' of undefined
 				let cached = await this.selectCacheAvailableURL(journal[k].urls)
 				if(cached) continue
 				if(this.activeRequests[journal[k].url]) continue
@@ -441,6 +440,7 @@ class StreamerProxyHLS extends HLSRequests {
                 } 
             }                      
             if(url.indexOf('&') != -1 && url.indexOf(';') != -1){
+				const decodeEntities = require('decode-entities')
                 url = decodeEntities(url)
             }
         }
@@ -475,6 +475,8 @@ class StreamerProxyHLS extends HLSRequests {
 	proxifyM3U8(body, baseUrl, url) {
 		if(!this.isM3U8Content(body)) return body
 		body = body.trim()
+		
+		const m3u8Parser = require('m3u8-parser')
 		let u, parser = new m3u8Parser.Parser(), replaces = {}
 		try{ 
 			parser.push(body)
@@ -586,6 +588,8 @@ class StreamerProxyHLS extends HLSRequests {
 	}
 	start(){
 		return new Promise((resolve, reject) => {
+			const http = require('http')
+			const stoppable = require('stoppable')
 			this.server = http.createServer(this.handleRequest.bind(this))
             this.serverStopper = stoppable(this.server)
 			this.server.listen(0, this.opts.addr, (err) => {
@@ -687,6 +691,7 @@ class StreamerProxyHLS extends HLSRequests {
 				console.log('ended', traceback())
 			}
 		}
+		const closed = require('../../on-closed')
 		closed(req, response,  download, () => {
 			if(!ended){ // req disconnected
 				if(this.opts.debug){
@@ -795,6 +800,7 @@ class StreamerProxyHLS extends HLSRequests {
 		const isSRT = this.isSRT(headers, download.opts.url)
 		if(isSRT) headers['content-type'] = 'text/vtt'
 		let closed, data = []
+		if(headers['content-length']) delete headers['content-length']
 		if(!response.headersSent){
 			response.writeHead(statusCode, headers)
 			if(this.opts.debug){

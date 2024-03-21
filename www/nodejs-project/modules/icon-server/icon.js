@@ -1,7 +1,6 @@
+const { EventEmitter } = require('events')
 
-const fs = require('fs'), Events = require('events'), pLimit = require('p-limit')
-
-class IconFetcher extends Events {
+class IconFetcher extends EventEmitter {
     constructor(){
         super()
         this.isAlphaRegex = new RegExp('\.png', 'i')
@@ -33,6 +32,7 @@ class IconFetcher extends Events {
         if(this.master.opts.debug){
             console.log('GOFETCH', images)
         }
+        const pLimit = require('p-limit')
         const limit = pLimit(2)
         const tasks = images.map(image => {
             return async () => {
@@ -99,17 +99,19 @@ class IconFetcher extends Events {
             if(!err) return [ret.key, true, ret.isAlpha]
         }
         if(!this.entry.class || this.entry.class.indexOf('entry-icon-no-fallback') == -1) {
+            const mega = require('../mega')
             let atts
             this.terms = global.channels.entryTerms(this.entry)
             this.isChannel = global.channels.isChannel(this.terms)
             if(this.isChannel){
                 this.terms = this.isChannel.terms
-            } else if(atts = global.mega.parse(this.entry.url)) {
+            } else if(atts = mega.parse(this.entry.url)) {
                 if(!atts.terms){
                     atts.terms = this.entry.name
                 }
                 if(!Array.isArray(atts.terms)){
-                    atts.terms = global.lists.terms(atts.terms)
+                    const lists = require('../lists')
+                    atts.terms = lists.terms(atts.terms)
                 }
                 this.terms = atts.terms
             }
@@ -122,6 +124,7 @@ class IconFetcher extends Events {
             if(file){
                 let err
                 const noIcon = 'no-icon'
+                const fs = require('fs')
                 const stat = await fs.promises.stat(file).catch(e => err = e)
                 if(!err){
                     if(stat.size == noIcon.length) {

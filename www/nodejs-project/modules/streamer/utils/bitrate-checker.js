@@ -1,8 +1,7 @@
 
-const path = require('path'), fs = require('fs')
-const Events = require('events'), Writer = require('../../writer')
+const { EventEmitter } = require('events')
 
-class BitrateChecker extends Events {
+class BitrateChecker extends EventEmitter {
 	constructor(opts={}){
 		super()
         this.bitrates = []
@@ -62,6 +61,7 @@ class BitrateChecker extends Events {
 		}
 	}
 	async addSample(file, size, deleteFileAfterChecking){
+        const fs = require('fs')
         if(!this.acceptingSamples(size) || this.checkedPaths[file]){
             if(deleteFileAfterChecking === true) {
                 fs.unlink(file, err => {
@@ -97,6 +97,7 @@ class BitrateChecker extends Events {
         this.pump()
     }
 	check(file, size, deleteFileAfterChecking){
+        const fs = require('fs')
         if(!this.acceptingSamples(size)){
             if(deleteFileAfterChecking === true) {
                 fs.unlink(file, err => {
@@ -112,8 +113,9 @@ class BitrateChecker extends Events {
             this.queue = []
             this.clearSamples()
         } else {
+            const ffmpeg = require('../../ffmpeg')
             console.log('getBitrate', file, this.url, isHTTP ? null : size, this.opts.minCheckSize, traceback())
-            global.ffmpeg.bitrate(file, (err, bitrate, codecData, dimensions, nfo) => {
+            ffmpeg.bitrate(file, (err, bitrate, codecData, dimensions, nfo) => {
                 if(deleteFileAfterChecking) {
                     fs.unlink(file, err => {
                         if(err) console.error(file, err)
@@ -158,6 +160,7 @@ class BitrateChecker extends Events {
 		}
     }
     clearSamples() {
+        const fs = require('fs')
         Object.keys(this.checkingBuffers).forEach(id => {
             let file = this.checkingBuffers[id].file
             this.checkingBuffers[id].destroy()
@@ -178,6 +181,7 @@ class BitrateChecker extends Events {
             this.queue = this.queue.filter(row => {
                 if(row.size && row.size < this.opts.minCheckSize) {
                     if(row.deleteFileAfterChecking) {
+                        const fs = require('fs')
                         fs.unlink(row.file, err => {
                             if(err) console.error(row.file, err)
                         })

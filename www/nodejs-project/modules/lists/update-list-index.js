@@ -1,7 +1,4 @@
-const fs = require('fs'), Events = require('events')
 const ListIndexUtils = require('./list-index-utils')
-const MediaURLInfo = require('../streamer/utils/media-url-info')
-const Parser = require('./parser')
 
 class UpdateListIndex extends ListIndexUtils { 
 	constructor(url, directURL, file, master, updateMeta, forceDownload){
@@ -15,7 +12,9 @@ class UpdateListIndex extends ListIndexUtils {
         this.updateMeta = updateMeta
         this.forceDownload = forceDownload === true
         this.uid = parseInt(Math.random() * 100000000000)
-        this.tmpOutputFile = global.paths.temp +'/'+ this.uid +'.out.tmp'
+
+        const { temp } = require('../paths')
+        this.tmpOutputFile = temp +'/'+ this.uid +'.out.tmp'
         this.timeout = global.config.get('read-timeout')
         this.linesMapPtr = 0
         this.linesMap = []
@@ -139,6 +138,7 @@ class UpdateListIndex extends ListIndexUtils {
                 this.stream.start()
             } else {
                 const file = path
+                const fs = require('fs')
                 fs.stat(file, (err, stat) => {
                     if(stat && stat.size){
                         this.contentLength = stat.size
@@ -159,9 +159,11 @@ class UpdateListIndex extends ListIndexUtils {
         })
 	}
 	async start(){
+        const fs = require('fs')
         let alturl, urls = [this.directURL], fmt = global.config.get('live-stream-fmt')
         if(['hls', 'mpegts'].includes(fmt)) {
             if(!this.mi) {
+                const MediaURLInfo = require('../streamer/utils/media-url-info')
                 this.mi = new MediaURLInfo()
             }
             alturl = this.mi.setURLFmt(this.directURL, fmt)
@@ -293,6 +295,8 @@ class UpdateListIndex extends ListIndexUtils {
                 this.parser && this.parser.end()
             }
             this.parser && this.parser.destroy()
+
+            const Parser = require('./parser')
             this.parser = new Parser(opts)
 			this.parser.on('meta', meta => Object.assign(this.index.meta, meta))
 			this.parser.on('playlist', e => this.playlists.push(e))
@@ -376,6 +380,7 @@ class UpdateListIndex extends ListIndexUtils {
 	}
     writeIndex(writer){
         return new Promise((resolve, reject) => {
+            const fs = require('fs')
             fs.stat(this.file, (err, stat) => {
                 let resolved
                 const exists = !err && stat && stat.size

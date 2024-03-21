@@ -1,5 +1,5 @@
-const { EventEmitter } = require('events'), fs = require('fs')
-const Reader = require('../reader'), { Writable } = require('stream')
+const { EventEmitter } = require('events')
+const { Writable } = require('stream')
 
 class LineEmitter extends Writable {
 	constructor(options = {}) {

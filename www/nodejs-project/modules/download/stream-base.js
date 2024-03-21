@@ -1,6 +1,6 @@
-const Events = require('events'), parseRange = require('range-parser')
+const { EventEmitter } = require('events')
 
-class DownloadStreamResponse extends Events {
+class DownloadStreamResponse extends EventEmitter {
 	constructor(statusCode, headers){
 		super()
         this.statusCode = statusCode
@@ -30,7 +30,7 @@ class DownloadStreamResponse extends Events {
     }
 }
 
-class DownloadStream extends Events {
+class DownloadStream extends EventEmitter {
 	constructor(opts){
 		super()
         this.setMaxListeners(20)
@@ -49,6 +49,7 @@ class DownloadStream extends Events {
         })
 	}
 	parseRange(range){
+        const parseRange = require('range-parser')
         const maxInt = Number.MAX_SAFE_INTEGER
 		const ranges = parseRange(maxInt, range.replace('bytes ', 'bytes='))
 		if (Array.isArray(ranges)) { // TODO: enable multi-ranging support

@@ -1,7 +1,4 @@
-const Downloader = require('../utils/downloader')
 const StreamerBaseIntent = require('./base.js')
-const StreamerAdapterTS = require('../adapters/ts.js')
-const StreamerFFmpeg = require('../utils/ffmpeg')
 
 class StreamerVODTSIntent extends StreamerBaseIntent {    
     constructor(data, opts, info){
@@ -19,7 +16,8 @@ class StreamerVODTSIntent extends StreamerBaseIntent {
             this.mimetype = this.mimeTypes.mpegts
             const isLocalFile = this.info && this.info.isLocalFile
             if(isLocalFile) {
-                global.downloads.serve(this.info.url || this.data.url, false, false).then(url => {
+                const downloads = require('../../downloads')
+                downloads.serve(this.info.url || this.data.url, false, false).then(url => {
                     this.endpoint = url
                     resolve()
                 }).catch(reject)
@@ -34,7 +32,8 @@ class StreamerVODTSIntent extends StreamerBaseIntent {
 StreamerVODTSIntent.mediaType = 'video'
 StreamerVODTSIntent.supports = info => {
     if(info.ext && ['mp4', 'ts', 'mts', 'm2ts'].includes(info.ext)) { // mp4 files have been seen with video/mp2t contentType
-        if(info.sample && global.streamer.isPacketized(info.sample)) {
+        const streamer = require('../main')
+        if(info.sample && streamer.isPacketized(info.sample)) {
             return true
         }
     }

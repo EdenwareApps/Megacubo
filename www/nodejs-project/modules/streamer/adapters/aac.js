@@ -1,5 +1,5 @@
 
-const StreamerAdapterBase = require('./base.js'), Downloader = require('../utils/downloader.js')
+const StreamerAdapterBase = require('./base.js')
 		
 class StreamerAdapterAAC extends StreamerAdapterBase {
 	constructor(url, opts){
@@ -24,6 +24,8 @@ class StreamerAdapterAAC extends StreamerAdapterBase {
 					reject()
 				}
 			})
+
+			const Downloader = require('../utils/downloader.js')
 			this.source = new Downloader(this.url, this.opts)
 			this.connectAdapter(this.source)
 			this.source.start().then(resolve).catch(reject)

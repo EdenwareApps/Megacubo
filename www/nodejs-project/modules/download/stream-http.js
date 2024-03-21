@@ -1,7 +1,6 @@
-const http = require('http'), https = require('https'), url = require('url')
+const http = require('http'), https = require('https')
 const {CookieJar} = require('tough-cookie')
-const AbortController = require("abort-controller")
-const KeepAliveAgent = require('agentkeepalive'), net = require('net')
+const KeepAliveAgent = require('agentkeepalive')
 const lookup = require('./lookup'), DownloadStreamBase = require('./stream-base')
 
 const httpJar = new CookieJar()
@@ -63,6 +62,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
     async resolve(host){
         if(this.ended || this.destroyed) throw 'Connection already ended (on resolve)'
         if(!Array.isArray(this.ips)) {
+            const net = require('net')
             if(net.isIPv4(host) || net.isIPv6(host)){
                 this.ips = [{address: host, family: net.isIPv6(host) ? 6 : 4}]
             } else {
@@ -98,6 +98,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
             throw 'Connection already destroyed (on start) '+ (this.error || this.ended || this.destroyed)
         }
         const start = global.time()
+        const url = require('url')
         this.parsed = url.parse(this.opts.url, false)
         this.jar = this.parsed.protocol == 'http:' ? httpJar : httpsJar
         await this.resolve(this.parsed.hostname)
@@ -122,6 +123,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
     }
 	async run(options){
         let timer, req, res, closed, currentState = 'pre-connect'
+        const AbortController = require("abort-controller")
         const controller = new AbortController()
         const via = options.protocol == 'http:' ? http : https
         const clearTimer = () => {

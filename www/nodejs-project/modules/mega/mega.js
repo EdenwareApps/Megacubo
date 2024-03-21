@@ -1,4 +1,3 @@
-
 class Mega {
     constructor(){
 
@@ -41,7 +40,7 @@ class Mega {
 				name = nparts[0]
 			}
 			if(url && !name){
-				name = global.MANIFEST.window.title +' '+ global.Download.domain(url)
+				name = global.paths.manifest.window.title +' '+ global.Download.domain(url)
 			} else if(name.charAt(name.length - 1) == '/'){
 				name = name.substr(0, name.length - 1)
 			}
@@ -101,4 +100,4 @@ class Mega {
 	}
 }
 
-module.exports = Mega
+module.exports = new Mega()

@@ -6,7 +6,8 @@ Easier and recommended way.
 ```
 git clone https://github.com/EdenwareApps/Megacubo.git
 cd Megacubo
-npm ci
+npm i
+npm run build
 npm run debug
 ```
 
@@ -14,7 +15,7 @@ npm run debug
 ```
 git clone https://github.com/EdenwareApps/Megacubo.git
 cd Megacubo
-npm ci
+npm i
 cordova prepare
 ```
 

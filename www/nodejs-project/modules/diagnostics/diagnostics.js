@@ -1,34 +1,37 @@
-const Events = require('events'), fs = require('fs')
+const { EventEmitter } = require('events')
 
-class Diagnostics extends Events {
+class Diagnostics extends EventEmitter {
     constructor(){
 		super()
-		this.folder = global.paths.temp
+		const { temp } = require('../paths')
+		this.folder = temp
 		this.minDiskSpaceRequired = 512 * (1024 * 1024) // 512MB
 		this.minFreeMemoryRequired = 350 * (1024 * 1024) // 350MB
 		this.lowDiskSpaceWarnInterval = 5 * 50 // 5min
 		this.checkDiskUI().catch(console.error)
 	}
 	async report(){
-		const version = global.MANIFEST.version
+		const lists = require('../lists')
+		const version = global.paths.manifest.version
 		const diskSpace = await this.checkDisk()
 		const freeMem = global.kbfmt(await this.checkMemory())
 		const config = global.deepClone(global.config.data)
-		const lists = global.lists.info(true)
+		const listsInfo = lists.info(true)
 		const myLists = config.lists.map(a => a[1]);
-		const listsRequesting = global.lists.requesting
+		const listsRequesting = lists.requesting
 		const tuning = global.tuning ? global.tuning.logText(false) : ''
-		const processedLists = global.lists.processedLists.keys()
-		const processing = global.lists.loader.processes.filter(p => p.started() && !p.done()).map(p => {
+		const processedLists = lists.processedLists.keys()
+		const processing = lists.loader.processes.filter(p => p.started() && !p.done()).map(p => {
 			return {
 				url: p.url,
 				priority: p.priority
 			}
 		})
-		let err, crashlogContent = await global.crashlog.read().catch(e => err = e)
-		const crashlog = crashlogContent || err || 'Empty'
+		const crashlog = require('../crashlog')
+		let err, crashlogContent = await crashlog.read().catch(e => err = e)
+		const crashLog = crashlogContent || err || 'Empty'
 		const gpu = await this.gpuReport()
-		const updaterResults = global.lists.loader.results, privateLists = [];
+		const updaterResults = lists.loader.results, privateLists = [];
 		['lists', 'parental-control-terms', 'parental-control-pw', 'premium-license'].forEach(k => delete config[k])
 		Object.keys(lists).forEach(url => {
 			lists[url].owned = myLists.includes(url)
@@ -40,7 +43,7 @@ class Diagnostics extends Events {
 			diskSpace.free = global.kbfmt(diskSpace.free)
 			diskSpace.size = global.kbfmt(diskSpace.size)
 		}
-		let report = {version, diskSpace, freeMem, config, lists, listsRequesting, updaterResults, processedLists, processing, tuning, gpu, crashlog}
+		let report = {version, diskSpace, freeMem, config, listsInfo, listsRequesting, updaterResults, processedLists, processing, tuning, gpu, crashLog}
 		report = JSON.stringify(report, null, 3)
 		privateLists.forEach(url => {
 			report = report.replace(url, 'http://***')
@@ -48,7 +51,7 @@ class Diagnostics extends Events {
 		return report
 	}
     async gpuReport(){
-		if(global.cordova) return {}
+		if(global.paths.cordova) return {}
         let err
         const { app } = require('electron')
         const report = {
@@ -61,11 +64,13 @@ class Diagnostics extends Events {
         return report
     }
 	async saveReport(){
-		const file = global.downloads.folder +'/megacubo-report.txt'
+		const fs = require('fs')
+		const downloads = require('../downloads')
+		const file = downloads.folder +'/megacubo-report.txt'
 		const report = await this.report()
 		await fs.promises.writeFile(file, report, {encoding: 'utf8'})
-		global.downloads.serve(file, true, false).catch(global.displayErr)
-		global.ui.emit('clipboard-write', report)
+		downloads.serve(file, true, false).catch(global.displayErr)
+		global.renderer.emit('clipboard-write', report)
 		console.error('REPORT => '+ report)
 	}
     async checkDisk(){
@@ -83,14 +88,15 @@ class Diagnostics extends Events {
 		let data = await this.checkDisk()
 		let fine = data.free >= this.minDiskSpaceRequired
 		if(!fine || force){
-			global.explorer.dialog([
-				{template: 'question', text: global.MANIFEST.window.title, fa: 'fas fa-exclamation-triangle faclr-red'},
+			global.menu.dialog([
+				{template: 'question', text: global.paths.manifest.window.title, fa: 'fas fa-exclamation-triangle faclr-red'},
 				{template: 'message', text: global.lang.LOW_DISK_SPACE_AVAILABLE.format(global.kbfmt(data.free))},
 				{template: 'option', text: global.lang.CLEAR_CACHE, id: 'clear'},
 				{template: 'option', text: 'OK', id: 'ok'}
 			], 'ok').then(ret => {
 				if(ret == 'clear'){
-					global.options.requestClearCache()
+					const options = require('../options')
+					options.requestClearCache()
 				}
 			}).catch(console.error) // dont wait
 			// {diskPath: "C:", free: 12345678, size: 98756432}
@@ -131,8 +137,8 @@ class Diagnostics extends Events {
 		let freeBytes = await this.checkMemory()
 		let fine = freeBytes >= this.minFreeMemoryRequired
 		if(!fine || force){
-			global.explorer.dialog([
-				{template: 'question', text: global.MANIFEST.window.title, fa: 'fas fa-exclamation-triangle faclr-red'},
+			global.menu.dialog([
+				{template: 'question', text: global.paths.manifest.window.title, fa: 'fas fa-exclamation-triangle faclr-red'},
 				{template: 'message', text: global.lang.LOW_MEMORY_AVAILABLE.format(global.kbfmt(freeBytes))},
 				{template: 'option', text: 'OK', id: 'ok'}
 			], 'ok').catch(console.error) // dont wait
@@ -142,5 +148,4 @@ class Diagnostics extends Events {
     }
 }
 
-module.exports = Diagnostics
-
+module.exports = new Diagnostics()

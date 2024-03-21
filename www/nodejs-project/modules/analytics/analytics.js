@@ -1,6 +1,6 @@
-const Events = require('events'), http = require('http')
+const { EventEmitter } = require('events')
 
-class AnalyticsBase extends Events {
+class AnalyticsBase extends EventEmitter {
     constructor(){
         super()
         this.debug = false
@@ -23,16 +23,19 @@ class AnalyticsBase extends Events {
         data.arch = process.arch
         data.platform = process.platform
         data.country = global.lang.countryCode
-        data.ver = global.MANIFEST.version
+        data.ver = global.paths.manifest.version
         data.verinf = ''
-        if(global.options.prm() && global.premium) {
+
+        const options = require('../options')
+        if(options.prm() && global.premium) {
             data.verinf = global.premium.active
         }
+        const lists = require('../lists')
         if(data.url) data.url = this.obfuscateURL(data.url)
-        if(data.source && global.lists.isPrivateList(data.source)) data.source = '' // Source URL not shareable.
+        if(data.source && lists.isPrivateList(data.source)) data.source = '' // Source URL not shareable.
         data.epg = global.channels.loadedEPG || data.epg || ''
         const postData = this.toQS(data)
-        const options = {
+        const opts = {
             port: 80,
             family: 4, // https://github.com/nodejs/node/issues/5436
             method: 'POST',
@@ -45,9 +48,10 @@ class AnalyticsBase extends Events {
             }
         }
         if(this.debug){
-            console.log('register', options, postData)
+            console.log('register', opts, postData)
         }
-        const req = http.request(options, res => {
+        const http = require('http')
+        const req = http.request(opts, res => {
             res.setEncoding('utf8')
             let data = ''
             res.on('data', (d) => {
@@ -83,9 +87,10 @@ class AnalyticsEvents extends AnalyticsBase {
         super()
     }
     data(){
+        const streamer = require('../streamer/main')
         let data = {}
-        if(global.streamer && global.streamer.active){
-            data = global.streamer.active.data
+        if(streamer && streamer.active){
+            data = streamer.active.data
         }
         return this.prepareEntry(data)
     }
@@ -113,14 +118,17 @@ class AnalyticsEvents extends AnalyticsBase {
 class Analytics extends AnalyticsEvents {
     constructor(){
         super()
+        const streamer = require('../streamer/main')
         setInterval(this.alive.bind(this), this.keepAliveTTL)
-        global.streamer.on('commit', this.success.bind(this))
-        global.streamer.on('stop', this.stop.bind(this))
-        global.search.on('search', data => {
+        streamer.on('commit', this.success.bind(this))
+        streamer.on('stop', this.stop.bind(this))
+
+        const search = require('../search')
+        search.on('search', data => {
             this.search(data)
         })
         this.alive()
     }
 }
 
-module.exports = Analytics
+module.exports = new Analytics()

@@ -1,5 +1,4 @@
 const DownloadStreamHttp = require('./stream-http')
-const DownloadStreamCache = require('./stream-cache')
 const DownloadStreamBase = require('./stream-base')
 
 class DownloadStream extends DownloadStreamBase {
@@ -28,6 +27,7 @@ class DownloadStream extends DownloadStreamBase {
             types.push(DownloadStreamHttp)
         }
         if(typeof(this.opts.cacheTTL) == 'number' && this.opts.cacheTTL > 0 && global.config.get('in-disk-caching-size')) {
+            const DownloadStreamCache = require('./stream-cache')
             types.unshift(DownloadStreamCache)
         }
         let chosen, responseData

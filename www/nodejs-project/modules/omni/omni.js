@@ -1,47 +1,51 @@
-const Events = require('events')
+const { EventEmitter } = require('events')
 
-class OMNI extends Events {
+class OMNI extends EventEmitter {
     constructor (){
         super()
-        global.ui.on('omni-client-ready', () => {
+        global.renderer.on('omni-client-ready', () => {
             if(this.enabled){
-                global.ui.emit('omni-enable') // on linux, ui was loading after lists update, this way the search field was not showing up
+                global.renderer.emit('omni-enable') // on linux, ui was loading after lists update, this way the search field was not showing up
             }
         })
-        global.ui.on('omni', (text, type) => {
+        global.renderer.on('omni', (text, type) => {
             if(type == 'numeric'){
-                let es = global.bookmarks.get().filter(e => e.bookmarkId == parseInt(text))
+                const bookmarks = require('../bookmarks')
+                let es = bookmarks.get().filter(e => e.bookmarkId == parseInt(text))
                 if(es.length){
-                    global.ui.emit('omni-callback', text, !!es.length)
+                    global.renderer.emit('omni-callback', text, !!es.length)
                     console.warn('omni-callback', text, !!es.length, es)
                     let entry = es.shift()
                     if(entry.type == 'group'){
-                        return global.explorer.open([global.lang.BOOKMARKS, entry.name].join('/')).catch(displayErr)
+                        return global.menu.open([global.lang.BOOKMARKS, entry.name].join('/')).catch(displayErr)
                     } else {
-                        return global.streamer.play(entry)
+                        const streamer = require('../streamer/main')
+                        return streamer.play(entry)
                     }
                 }
             }
+            const search = require('../search')
             global.channels.search(text, true).then(results => {
                 if(results.length){
-                    global.search.go(text, 'live')
+                    search.go(text, 'live')
                 } else {
                     throw new Error('no channel found, going to general search')
                 }
             }).catch(err => {
-                global.search.go(text, 'all')
+                search.go(text, 'all')
             }).finally(() => {
-                global.ui.emit('omni-callback', text, true)
+                global.renderer.emit('omni-callback', text, true)
             })
         })
-        global.lists.on('status', status => {
-            const enabled = global.lists.satisfied && status.length
+        const lists = require('../lists')
+        lists.on('status', status => {
+            const enabled = lists.satisfied && status.length
             if(enabled != this.enabled) {
                 this.enabled = enabled
-                global.ui.emit(enabled ? 'omni-enable' : 'omni-disable')
+                global.renderer.emit(enabled ? 'omni-enable' : 'omni-disable')
             }
         })
     }
 }
 
-module.exports = OMNI
+module.exports = new OMNI()

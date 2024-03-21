@@ -1,15 +1,18 @@
-const fs = require('fs'), path = require('path'), Events = require('events')
+const { EventEmitter } = require('events')
 
-class Countries extends Events {
+class Countries extends EventEmitter {
 	constructor(){
 		super()
-		this.data = require(path.join(__dirname, 'countries.json'))
+
+		const path = require('path')
+		this.data = require('./countries.json')
 	}
 	query(fields, where = {}, orderBy, desc) {
 		const ret = []
 		if (typeof (fields) == 'string' && fields) {
 			fields = fields.split(',')
 		}
+		orderBy && (fields.includes(orderBy) || fields.push(orderBy))
 		for (var key in this.data) {
 			const fine = Object.keys(where).every(by => {
 				if (typeof (where[by]) == 'function') {
@@ -36,11 +39,11 @@ class Countries extends Events {
 				sorter = orderBy
 			} else if (desc) {
 				sorter = (a, b) => {
-					return a[orderBy] > b[orderBy] ? -1 : (a[orderBy] < b[orderBy] ? 1 : 0)
+					return (a[orderBy] > b[orderBy]) ? -1 : ((a[orderBy] < b[orderBy]) ? 1 : 0)
 				}
 			} else {
 				sorter = (a, b) => {
-					return a[orderBy] > b[orderBy] ? 1 : (a[orderBy] < b[orderBy] ? -1 : 0)
+					return (a[orderBy] > b[orderBy]) ? 1 : ((a[orderBy] < b[orderBy]) ? -1 : 0)
 				}
 			}
 			return ret.sort(sorter)
@@ -87,7 +90,7 @@ class Countries extends Events {
 		return countries
     }
 	orderCodesBy(codes, field, desc=true) {
-		const results = this.query('code', {code: codes}, 'field', desc)
+		const results = this.query('code', {code: codes}, field, desc)
 		return results.map(c => c.code)
 	}
 	extractCountryCodes(text){
@@ -129,6 +132,40 @@ class Countries extends Events {
 			}
 		}).filter(c => c).sortByProp('dist')
 		return dists.slice(0, amount).map(c => c.code)
+	}
+	getNearestPopulous(fromCode, dests, amount){
+		let scores = [], countries = {}
+		let fromCountry = this.getCountry(fromCode)
+		let maxDistance = 0
+		let maxPopulation = 0
+		let minPopulation = Number.MAX_SAFE_INTEGER
+		let minDistance = Number.MAX_SAFE_INTEGER
+		for(const code of dests) {
+			const country = this.getCountry(code)
+			if(country){
+				country.dist = this.getDistance(fromCountry, country)
+				if(minDistance > country.dist) {
+					minDistance = country.dist
+				}
+				if(maxDistance < country.dist) {
+					maxDistance = country.dist
+				}
+				if(minPopulation > country.population) {
+					minPopulation = country.population
+				}
+				if(maxPopulation < country.population) {
+					maxPopulation = country.population
+				}
+				countries[code] = country
+			}
+		}
+		for(const code of Object.keys(countries)) {
+			const scorePopulation = (countries[code].population - minPopulation) / (maxPopulation - minPopulation)
+			const scoreDistance = 1 - (countries[code].dist / maxDistance)
+			const score = (scorePopulation * 3) + scoreDistance // more weight for population
+			scores.push({code, score})
+		}
+		return scores.sortByProp('score', true).slice(0, amount).map(c => c.code)
 	}
 }
 

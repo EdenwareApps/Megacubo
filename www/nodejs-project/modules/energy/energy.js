@@ -1,22 +1,22 @@
-const Events = require('events')
+const { EventEmitter } = require('events')
 
-class Energy extends Events {
+class Energy extends EventEmitter {
     constructor(){
 		super()
     }
     restart(){
-		global.ui.emit('restart')
+		global.renderer.emit('restart')
 	}
     exit(){
 		console.error('ENERGY_EXIT='+ global.traceback())
-		global.ui.emit('exit', false)
+		global.renderer.emit('exit', false)
 	}
 	askRestart(){
-		global.ui.emit('ask-restart')
+		global.renderer.emit('ask-restart')
 	}
 	askExit(){
-		global.ui.emit('ask-exit')
+		global.renderer.emit('ask-exit')
 	}
 }
 
-module.exports = Energy
+module.exports = new Energy()

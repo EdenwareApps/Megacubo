@@ -1,8 +1,6 @@
 
 const path = require('path'), http = require('http')
-const fs = require('fs'), stoppable = require('stoppable')
 const StreamerAdapterBase = require('../adapters/base.js')
-const MultiBuffer = require('./multibuffer')
 
 const SYNC_BYTE = 0x47
 const PACKET_SIZE = 188
@@ -53,6 +51,7 @@ class Downloader extends StreamerAdapterBase {
 		this.ext = 'ts'
 		this.currentDownloadUID = undefined
 		if(this.opts.warmCache){
+			const MultiBuffer = require('./multibuffer')
 			this.warmCache = new MultiBuffer()
 			this.on('bitrate', bitrate => {
 				const newMaxSize = Math.min(Math.max(
@@ -140,6 +139,7 @@ class Downloader extends StreamerAdapterBase {
 					response.end('File not found!')
 				}
 			})
+			const stoppable = require('stoppable')
             this.serverStopper = stoppable(this.server)
 			this.server.listen(this.opts.port, '127.0.0.1', err => {
 				if(err){
@@ -167,7 +167,9 @@ class Downloader extends StreamerAdapterBase {
 		const startPosition = this.warmCache.length - desiredSize
 		const currentSize = this.warmCache.length
 		if(this.committed && this.bitrateChecker.acceptingSamples(currentSize)) {
-			const file = global.paths.temp +'/'+ parseInt(Math.random() * 1000000) +'.ts'
+			const fs = require('fs')
+			const { temp } = require('../../paths')
+			const file = temp +'/'+ parseInt(Math.random() * 1000000) +'.ts'
 			fs.writeFile(file, this.warmCache.slice(), () => this.bitrateChecker.addSample(file, currentSize, true))
 		}
 		const syncBytePosition = this.warmCache.indexOf(SYNC_BYTE, startPosition)
@@ -228,7 +230,9 @@ class Downloader extends StreamerAdapterBase {
 			const currentSize = this.warmCache.length
 			if(!this.minimalWarmCacheBitrateCheck && this.committed && this.bitrateChecker.acceptingSamples(currentSize)) {
 				this.minimalWarmCacheBitrateCheck = true
-				const file = global.paths.temp +'/'+ parseInt(Math.random() * 1000000) +'.ts'
+				const fs = require('fs')
+				const { temp } = require('../../paths')
+				const file = temp +'/'+ parseInt(Math.random() * 1000000) +'.ts'
 				fs.writeFile(file, this.warmCache.slice(), () => {
 					if(this.destroyed) {
 						return fs.unlink(file, () => {}) // late for the party

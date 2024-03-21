@@ -1,4 +1,4 @@
-const Events = require('events'), parseRange = require('range-parser')
+const { EventEmitter } = require('events')
 const zlib = require('zlib')
 const Writer = require('../writer')
 const StringDecoder = require('string_decoder').StringDecoder
@@ -19,7 +19,7 @@ const getDomain = (u, includePort) => {
 	return d
 }
 
-class Download extends Events {
+class Download extends EventEmitter {
 	constructor(opts){
 	   	super()
 		this.startTime = global.time()
@@ -181,6 +181,7 @@ class Download extends Events {
 	parseRange(range){
         let requestingRange
 		const maxInt = Number.MAX_SAFE_INTEGER
+		const parseRange = require('range-parser')
 		const ranges = parseRange(maxInt, range.replace('bytes ', 'bytes='))
 		if (Array.isArray(ranges)) { // TODO: enable multi-ranging support
 			requestingRange = ranges[0]
@@ -466,6 +467,7 @@ class Download extends Events {
 						this.totalContentLength = fullLength
 					}
 				}
+				const parseRange = require('range-parser')
 				const ranges = parseRange(this.totalContentLength, range)
 				if(this.opts.debug){
 					console.log('>> Download response range', this.totalContentLength, range, ranges)
@@ -1147,7 +1149,7 @@ Download.head = opts => {
 			if(resolved) return
 			resolved = true
 			// console.log('Download', g, global.traceback(), buf)
-			resolve({statusCode, headers})
+			resolve({statusCode, headers, currentURL: g.currentURL})
 			g.destroy()
 		})
 		g.once('end', buf => {
@@ -1199,9 +1201,10 @@ Download.get = opts => {
 	promise.handle = () => g
 	return promise
 }
-Download.file = (...args) => {
+Download.file = (...args) => {	
+	const { temp } = require('../paths')
 	let _reject, g, err, opts = args[0] || {}
-	if(!opts.file) opts.file = global.paths.temp +'/dl-file-'+ parseInt(Math.random() * 1000000000)
+	if(!opts.file) opts.file = temp +'/dl-file-'+ parseInt(Math.random() * 1000000000)
 	const file = opts.file
 	let promise = new Promise((resolve, reject) => {
 		_reject = reject

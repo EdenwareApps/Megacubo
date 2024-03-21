@@ -1,26 +1,27 @@
-const EntriesGroup = require('../entries-group'), Suggestions = require('./suggestions')
+const EntriesGroup = require('../entries-group')
 
 class EPGHistory extends EntriesGroup {
     constructor(){
         super('epg-history')
         this.storeInConfig = true
-        this.suggestions = new Suggestions(this)
+
         this.limit = 48
         this.minWatchingTime = 240
         this.checkingInterval = 60 // to prevent losing data on program closing, we'll save it periodically
         this.resumed = false
         this.session = null
         this.allowDupes = true
-        global.streamer.on('commit', async () => {
+        const streamer = require('../streamer/main')
+        streamer.on('commit', async () => {
             await this.busy()
             const data = this.currentStreamData()
             const name = data.originalName || data.name
             if(this.session && this.session.name != name){
                 await this.finishSession().catch(console.error)
             }
-            if(!global.streamer.active) return
+            if(!streamer.active) return
             if(!this.session){
-                let validate = !global.streamer.active.info.isLocalFile && global.streamer.active.mediaType == 'live' && global.channels.isChannel(name)
+                let validate = !streamer.active.info.isLocalFile && streamer.active.mediaType == 'live' && global.channels.isChannel(name)
                 if(validate){
                     console.warn('Session started')
                     this.startSession()
@@ -31,18 +32,19 @@ class EPGHistory extends EntriesGroup {
                 console.warn('Session already started')
             }
         })
-        global.streamer.on('uncommit', () => {
+        streamer.on('uncommit', () => {
             console.warn('Session finished')
             this.finishSession()
         })
         global.channels.on('epg-loaded', () => {
             if(this.inSection()){
-                global.explorer.refresh()
+                global.menu.refresh()
             }
         })
     }
     currentStreamData(){
-        return Object.assign({}, global.streamer.active ? global.streamer.active.data : global.streamer.lastActiveData)
+        const streamer = require('../streamer/main')
+        return Object.assign({}, streamer.active ? streamer.active.data : streamer.lastActiveData)
     }
     startSession(){
         this.session = this.currentStreamData()
@@ -112,7 +114,7 @@ class EPGHistory extends EntriesGroup {
                         }
                         this.add(data)
                         if(this.inSection() == 1){
-                            global.explorer.refreshNow()
+                            global.menu.refreshNow()
                         }
                     }
                 };
@@ -141,27 +143,12 @@ class EPGHistory extends EntriesGroup {
         }
         return null
     }
-    async entry(){
-        const featured = await this.suggestions.featuredEntry().catch(console.error)
-        const e = {
-            name: global.lang.RECOMMENDED_FOR_YOU, 
-            fa: 'fas fa-solid fa-thumbs-up', 
-            type: 'group',
-            hookId: this.key, 
-            renderer: this.entries.bind(this)
-        }
-        if(featured && featured.programme) {
-            e.details = featured.programme.t
-            e.programme = featured.programme
-        }
-        return e
-    }
     inSection(entries, path){
         if(!Array.isArray(entries)){
-            entries = global.explorer.currentEntries
+            entries = global.menu.currentEntries
         }
         if(typeof(path) != 'string') {
-            path = global.explorer.path
+            path = global.menu.path
         }
         if(this.data.length && global.channels.loadedEPG){
             if(path == global.lang.LIVE){
@@ -173,41 +160,11 @@ class EPGHistory extends EntriesGroup {
             }
         }
     }
-    async hook(entries, path){
-        const hookup = async () => {
-            let index = 1
-            const entry = await this.entry()
-            if(entries.some(e => e.hookId == entry.hookId)){
-                entries = entries.filter(e => e.hookId != entry.hookId)
-            }
-            if(!entry.programme){
-                entries.some((e, i) => {
-                    if(e.name == global.lang.TOOLS){
-                        index = i + 1
-                        return true
-                    }
-                })
-            }
-            if(index){
-                entries.splice(index, 0, entry)
-            } else {
-                entries.push(entry)
-            }
-        }
-        let i = this.inSection(entries, path)
-        if(!path){
-            if(entries.length > 2){
-                await hookup()
-            }
-        } else if(i == 2){
-            await hookup()
-        }
-        return entries
-    }
-    async historyRemovalEntries(e){
+    async historyRemovalEntries(e){        
+        const moment = require('moment-timezone')
         let es = this.get()
         es = es.map((o, i) => {
-            const details = global.moment(o.watched.start * 1000).fromNow()
+            const details = moment(o.watched.start * 1000).fromNow()
             const e = Object.assign({}, o)
             e.details = details
             if(e.icon){
@@ -218,7 +175,7 @@ class EPGHistory extends EntriesGroup {
             e.type = 'action'
             e.action = () => {
                 this.remove(o)
-                global.explorer.refreshNow()
+                global.menu.refreshNow()
             }
             e.fa = 'fas fa-trash'
             delete e.url
@@ -227,9 +184,9 @@ class EPGHistory extends EntriesGroup {
         return es
     }
     async historyEntries(e){
-        let es = this.get()
-        es = es.map(e => {
-            e.details = global.moment(e.watched.start * 1000).fromNow()
+        const moment = require('moment-timezone')
+        let es = this.get().map(e => {
+            e.details = moment(e.watched.start * 1000).fromNow()
             e = global.channels.toMetaEntry(e, false)
             if(e.watched.icon){
                 e.icon = e.watched.icon
@@ -246,67 +203,6 @@ class EPGHistory extends EntriesGroup {
         })
         if(es.length){
             es.push({name: global.lang.REMOVE, fa: 'fas fa-trash', type: 'group', renderer: this.historyRemovalEntries.bind(this)})
-        }
-        return es
-    }
-    async entries(){
-        let es = await this.suggestions.get().catch(console.error)
-        if(!Array.isArray(es)){
-            es = []
-        }
-        if(!es.length){
-            if(global.activeEPG || global.config.get('epg-'+ global.lang.locale)) {
-                es.push({
-                    name: global.lang.NO_RECOMMENDATIONS_YET, 
-                    type: 'action', 
-                    fa: 'fas fa-info-circle', 
-                    class: 'entry-empty',
-                    action: async () => {                    
-                        const ret = await global.explorer.dialog([
-                            {template: 'question', text: global.lang.NO_RECOMMENDATIONS_YET, fa: 'fas fa-info-circle'},
-                            {template: 'message', text: global.lang.RECOMMENDATIONS_INITIAL_HINT},
-                            {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'},
-                            {template: 'option', text: global.lang.EPG, id: 'epg', fa: 'fas fa-th'}
-                        ])
-                        if(ret == 'epg') {
-                            explorer.open(global.lang.MY_LISTS +'/'+ global.lang.EPG).catch(console.error)
-                        }
-                    }
-                })
-            } else {
-                es.push({
-                    name: global.lang.EPG_DISABLED, 
-                    type: 'action', 
-                    fa: 'fas fa-times-circle', 
-                    class: 'entry-empty',
-                    action: async () => {
-                        const path = global.lang.MY_LISTS +'/'+ global.lang.EPG
-                        await global.explorer.open(path)
-                    }
-                })
-            }
-        } else if(this.get().length <= 5) {
-            es.push({
-                name: global.lang.IMPROVE_YOUR_RECOMMENDATIONS, 
-                type: 'action', 
-                fa: 'fas fa-info-circle', 
-                class: 'entry-empty',
-                action: async () => {                    
-                    await global.explorer.dialog([
-                        {template: 'question', text: global.lang.IMPROVE_YOUR_RECOMMENDATIONS, fa: 'fas fa-thumbs-up'},
-                        {template: 'message', text: global.lang.RECOMMENDATIONS_IMPROVE_HINT},
-                        {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
-                    ])
-                }
-            })
-        }
-        if(this.data.length){
-            es.push({
-                name: global.lang.WATCHED, 
-                fa: 'fas fa-history', 
-                type: 'group', 
-                renderer: this.historyEntries.bind(this)
-            })
         }
         return es
     }
@@ -329,4 +225,4 @@ class EPGHistory extends EntriesGroup {
     }
 }
 
-module.exports = EPGHistory
+module.exports = new EPGHistory()

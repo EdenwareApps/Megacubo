@@ -1,6 +1,6 @@
-const Events = require('events'), pLimit = require('p-limit')
+const { EventEmitter } = require('events')
 
-class ConnRacing extends Events {
+class ConnRacing extends EventEmitter {
     constructor(urls, opts={}){
         super()
         this.urls = urls.slice(0)
@@ -22,6 +22,7 @@ class ConnRacing extends Events {
         if(!this.urls.length){
             return this.end()
         }
+        const pLimit = require('p-limit')
         const limit = pLimit(20)
         const tasks = this.urls.map((url, i) => {
             return async () => {

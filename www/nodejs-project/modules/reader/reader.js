@@ -1,6 +1,5 @@
-// safe wrapper around fs.createReadStream to prevent fatal errors when file is deleted before opening
+// wrapper around fs.createReadStream to prevent fatal errors when file is deleted before opening
 
-const fs = require('fs'), path = require('path')
 const { Readable } = require('stream')
 
 class Reader extends Readable {
@@ -40,6 +39,7 @@ class Reader extends Readable {
 		}
 		const position = this.opts.start + this.bytesRead
 		this._isReading = true
+		const fs = require('fs')
 		fs.fstat(this.fd, (err, stat) => {
 			if (err) {
 				console.error('READER ERROR: '+ err)
@@ -85,6 +85,7 @@ class Reader extends Readable {
 	}
 	openFile() {
 		try {
+			const fs = require('fs')
 			fs.access(this.file, fs.constants.R_OK, (err) => {
 				if (err) {
 					console.error('Failed to access file:', err)
@@ -114,6 +115,7 @@ class Reader extends Readable {
 	}
 	close() {
 		if (this.fd !== null) {
+			const fs = require('fs')
 			fs.close(this.fd, (err) => {
 				if (err) {
 					console.error('Failed to close Reader file descriptor: '+err)

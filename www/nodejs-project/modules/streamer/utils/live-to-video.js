@@ -5,9 +5,9 @@ Experiment in progress trying to convert a live streaming to a video file that c
 const fs = require('fs'), path = require('path')
 const closed = require('../../on-closed')
 const StreamerFFmpeg = require('../utils/ffmpeg')
-const Events = require('events')
+const { EventEmitter } = require('events')
 
-class PersistentReader extends Events {
+class PersistentReader extends EventEmitter {
     constructor(file){
         super()
         this.file = file
@@ -79,6 +79,7 @@ class PersistentReader extends Events {
 class StreamerLiveToVideo extends StreamerFFmpeg {
 	constructor(url){
 		super('', {})
+        const streamer = require('../main')
         this.url = url
         this.uid = parseInt(Math.random() * 10000000)
         this.opts = {
@@ -87,7 +88,7 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
             audioCodec: 'aac',
             debug: true
         }
-        this.folder = global.streamer.opts.workDir + '/' + this.uid
+        this.folder = streamer.opts.workDir + '/' + this.uid
         this.basename = 'output.mp4'
         this.file = this.folder + '/'+ this.basename
 	}
@@ -117,7 +118,8 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
                     'expires': '-1',
                     'pragma': 'no-cache'
                 }
-                let ctype = this.contentTypeFromExt(global.streamer.ext(file))
+                const streamer = require('../main')
+                let ctype = this.contentTypeFromExt(streamer.ext(file))
                 if(ctype){
                     headers['content-type'] =  ctype
                 }
@@ -142,7 +144,8 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
 	start(){
 		return new Promise((resolve, reject) => {
             const startTime = global.time()
-            this.decoder = global.ffmpeg.create(this.url, { live: true }).
+            const ffmpeg = require('../../ffmpeg')
+            this.decoder = ffmpeg.create(this.url, { live: true }).
                 inputOptions('-g', 52).
                 outputOptions('-map', '0:a?').
                 outputOptions('-map', '0:v?').

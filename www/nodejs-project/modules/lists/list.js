@@ -1,6 +1,6 @@
-const Events = require('events'), ListIndex = require('./list-index'), ConnRacing = require('../conn-racing')
+const { EventEmitter } = require('events') 
 
-class List extends Events {
+class List extends EventEmitter {
 	constructor(url, masterOrKeywords){
 		super()
 		this.debug = false
@@ -53,6 +53,8 @@ class List extends Events {
                 if(!this.isReady) this.isReady = true  
             }
             this.once('destroy', destroyListener)
+
+            const ListIndex = require('./list-index')
             this.indexer = new ListIndex(this.file, this.url)
             this.indexer.on('error', err => {
                 reject(err)
@@ -142,6 +144,7 @@ class List extends Events {
         if(this.debug){
             console.log('validating list quality', this.url, tests, mtp, urls)
         }
+        const ConnRacing = require('../conn-racing')
         const racing = new ConnRacing(urls, {retries: 1, timeout: 8})
 		for(let i=0; i<urls.length; i++){
             const res = await racing.next().catch(console.error)
@@ -166,7 +169,7 @@ class List extends Events {
         // relevantKeywords (check user channels presence in these lists and list size by consequence)
         let rks = this.master ? await this.master.relevantKeywords() : this.relevantKeywords
 		if(!rks || !rks.length){
-			console.error('no parent keywords', rks, typeof(global.ui))
+			console.error('no parent keywords', rks, typeof(global.renderer))
 			values.relevantKeywords = 50
 		} else {
             let hits = 0, presence = 0

@@ -1,4 +1,4 @@
-const StreamerBaseIntent = require('./base.js'), StreamerAdapterAAC = require('../adapters/aac.js'), StreamerFFmpeg = require('../utils/ffmpeg'), fs = require('fs')
+const StreamerBaseIntent = require('./base.js')
 
 class StreamerAACIntent extends StreamerBaseIntent {    
     constructor(data, opts, info){
@@ -14,9 +14,11 @@ class StreamerAACIntent extends StreamerBaseIntent {
     }  
     _start(){ 
         return new Promise((resolve, reject) => {
+            const StreamerAdapterAAC = require('../adapters/aac.js')
             this.downloader = new StreamerAdapterAAC(this.info.url || this.data.url, this.opts)
             this.connectAdapter(this.downloader)
             this.downloader.start().then(() => {
+                const StreamerFFmpeg = require('../utils/ffmpeg')
                 this.decoder = new StreamerFFmpeg(this.downloader.source.endpoint, this.opts)
                 this.decoder.opts.audioCodec = this.opts.audioCodec
                 this.connectAdapter(this.decoder)

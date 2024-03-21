@@ -1,30 +1,28 @@
 function patch(scope) {
-	if(typeof(require) == 'function'){
-		if(typeof(scope.URL) != 'undefined'){ // node
-			scope.URL = require('url').URL
+	if(typeof(scope.URL) != 'undefined'){ // node
+		scope.URL = require('url').URL
+	}
+	if(typeof(scope.URLSearchParams) == 'undefined'){ // node
+		scope.URLSearchParams = require('url-search-params-polyfill')
+	}		
+	const sanitizeFilename = require('sanitize-filename')
+	scope.sanitize = (txt, keepAccents) => {
+		let ret = txt
+		if(keepAccents !== true) {
+			//ret = ret.replace(new RegExp('[^\x00-\x7F]+', 'g'), '')
+			ret = ret.normalize('NFD').replace(new RegExp('[\u0300-\u036f]', 'g'), '').replace(new RegExp('[^A-Za-z0-9\\._\\- ]', 'g'), '')
 		}
-		if(typeof(scope.URLSearchParams) == 'undefined'){ // node
-			scope.URLSearchParams = require('url-search-params-polyfill')
-		}		
-		const sanitizeFilename = require('sanitize-filename')
-		scope.sanitize = (txt, keepAccents) => {
-			let ret = txt
-			if(keepAccents !== true) {
-				//ret = ret.replace(new RegExp('[^\x00-\x7F]+', 'g'), '')
-				ret = ret.normalize('NFD').replace(new RegExp('[\u0300-\u036f]', 'g'), '').replace(new RegExp('[^A-Za-z0-9\\._\\- ]', 'g'), '')
+		return sanitizeFilename(ret)
+	}
+	const nodeMajorVersion = parseInt(process.versions.node.split('.').shift())
+	if(nodeMajorVersion < 16) {
+		const Mod = require('module')
+		const req = Mod.prototype.require
+		Mod.prototype.require = function () { // compat with 'node:*' modules for old Electron versions
+			if(arguments[0].startsWith('node:')) {
+				arguments[0] = arguments[0].substr(5)
 			}
-			return sanitizeFilename(ret)
-		}
-		const nodeMajorVersion = parseInt(process.versions.node.split('.').shift())
-		if(nodeMajorVersion < 16) {
-			const Mod = require('module')
-			const req = Mod.prototype.require
-			Mod.prototype.require = function () { // compat for 'openai' module with older Electron versions
-				if(arguments[0].startsWith('node:')) {
-					arguments[0] = arguments[0].substr(5)
-				}
-				return req.apply(this, arguments)
-			}
+			return req.apply(this, arguments)
 		}
 	}
 	scope.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS = 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Content-Range, Range, Vary, range, Authorization'
@@ -63,25 +61,7 @@ function patch(scope) {
 	}
 	scope.isWritable = stream => {
 		return (stream.writable || stream.writeable) && !stream.finished
-	}	
-    scope.checkDirWritePermission = async dir => {
-        const file = dir +'/temp.txt', fsp = scope.getFS().promises
-        await fsp.writeFile(file, '0')
-		await fsp.unlink(file)
-		return true
-    }
-    scope.checkDirWritePermissionSync = dir => {
-        let fine
-		const file = dir +'/temp.txt', fs = scope.getFS()
-        try {
-			fs.writeFileSync(file, '0')
-			fine = true
-			fs.unlinkSync(file)
-		} catch(e) {
-			console.error(e)
-		}
-		return fine
-    }
+	}
 	scope.rmdir = (folder, itself, cb) => {
 		const rimraf = require('rimraf')
 		let dir = folder
@@ -105,14 +85,8 @@ function patch(scope) {
 			}
 		}
 	}
-	scope.getFS = () => {
-		if(!scope.__fs){
-			scope.__fs = require('fs')
-		}
-		return scope.__fs
-	}
 	scope._moveFile = async (from, to) => {
-		const fs = scope.getFS()
+		const fs = require('fs')
 		const fstat = await fs.promises.stat(from).catch(console.error)
 		if(!fstat) throw '"from" file not found'
 		let err
@@ -130,7 +104,7 @@ function patch(scope) {
 		return true
 	}
 	scope.moveFile = (from, to, _cb, timeout=5, until=null, startedAt = null, fromSize=null) => {
-		const fs = scope.getFS(), now = scope.time(), cb = err => {
+		const fs = require('fs'), now = scope.time(), cb = err => {
 			if(_cb){
 				_cb(err)
 				_cb = null
@@ -184,91 +158,121 @@ function patch(scope) {
 			move()
 		}
 	}
-	scope.execSync = cmd => {
-		let stdout
-		try {
-			stdout = require('child_process').execSync(cmd)
-		} catch(e) {
-			stdout = String(e)
-		}
-		return String(stdout)
-	}
-    scope.isNetworkIP = addr => {
-        if(addr){
-			if(addr.startsWith('10.') || addr.startsWith('172.') || addr.startsWith('192.')){
-				return 'ipv4'
-			}
-		}
-    }
-	scope.androidSDKVer = () => {
-		if(!scope.androidSDKVerCache){
-			scope.androidSDKVerCache = parseInt(scope.execSync('getprop ro.build.version.sdk').trim())
-		}
-		return scope.androidSDKVerCache
-	}
-	scope.networkIpCache = false
-	scope.networkIpCacheTTL = 10
-	scope.networkDummyInterfaces = addr => {
-		return {
-			"Wi-Fi": [
-				{
-					"address": addr,
-					"netmask": "255.255.255.0",
-					"family": "IPv4",
-					"mac": "00:00:00:00:00:00",
-					"internal": false
-				}
-			],
-			"Loopback Pseudo-Interface 1": [
-				{
-					"address": "127.0.0.1",
-					"netmask": "255.0.0.0",
-					"family": "IPv4",
-					"mac": "00:00:00:00:00:00",
-					"internal": true,
-					"cidr": "127.0.0.1/8"
-				}
-			]
-		}
-	}
-	scope.androidIPCommand = () => {
-		return scope.execSync('ip route get 8.8.8.8')
-	}
 	scope.networkInterfaces = () => {
-		if(process.platform == 'android'){
-			let sdkVer = scope.androidSDKVer()
-			if(isNaN(sdkVer) || sdkVer < 20 || sdkVer >= 29){ // keep "sdkVer < x" check
-				// on most recent sdks, os.networkInterces() crashes nodejs-mobile-cordova with a uv_interface_addresses error
-				let addr, time = scope.time()
-				if(scope.networkIpCache && (scope.networkIpCache.time + scope.networkIpCacheTTL) > time){
-					addr = scope.networkIpCache.addr
-				} else {
-					addr = scope.androidIPCommand().match(new RegExp('src +([0-9\.]+)'))
-					if(addr){
-						addr = addr[1]
-						scope.networkIpCache = {addr, time}
-					} else {
-						addr = scope.networkIpCache ? scope.networkIpCache.addr : '127.0.0.1'
+		const np = require('../network-ip')
+		return np.networkInterfaces()
+	}
+	scope.decodeURIComponentSafe = uri => {
+		try {
+			return decodeURIComponent(uri)
+		} catch(e) {
+			return uri.replace(new RegExp('%[A-Z0-9]{0,2}', 'gi'), x => {
+				try {
+					return decodeURIComponent(x)
+				} catch(e) {
+					return x
+				}
+			})
+		}
+	}
+	scope.listNameFromURL = url => {
+		if(!url) return 'Untitled '+ parseInt(Math.random() * 9999)
+		let name, subName
+		if (url.indexOf('?') !== -1) {
+			url.split('?')[1].split('&').forEach(s => {
+				s = s.split('=')
+				if (s.length > 1) {
+					if (['name', 'dn', 'title'].includes(s[0])) {
+						if (!name || name.length < s[1].length) {
+							name = s[1]
+						}
+					}
+					if (['user', 'username'].includes(s[0])) {
+						if (!subName) {
+							subName = s[1]
+						}
 					}
 				}
-				return scope.networkDummyInterfaces(addr)
+			})
+		}
+		if(!name && url.indexOf('@') != -1) {
+			const m = url.match(new RegExp('//([^:]+):[^@]+@([^/#]+)'))
+			if(m) {
+				name = m[2] +' '+ m[1]
 			}
 		}
-		return require('os').networkInterfaces()
+		if (name) {
+			name = scope.decodeURIComponentSafe(name)
+			if (name.indexOf(' ') === -1 && name.indexOf('+') !== -1) {
+				name = name.replaceAll('+', ' ').replaceAll('<', '').replaceAll('>', '')
+			}
+			return scope.trimExt(name, ['m3u'])
+		}
+        if(url.indexOf('//') == -1){ // isLocal
+            return scope.trimExt(url.split('/').pop(), ['m3u'])
+        } else {
+            url = String(url).replace(new RegExp('^[a-z]*://', 'i'), '').split('/').filter(s => s.length)
+            if(!url.length){
+                return 'Untitled '+ parseInt(Math.random() * 9999)
+            } else if(url.length == 1) {
+                return scope.trimExt(url[0].split(':')[0], ['m3u'])
+            } else {
+                return scope.trimExt(url[0].split('.')[0] + ' ' + (subName || url[url.length - 1]), ['m3u'])
+            }
+        }
 	}
-    scope.networkIP = () => {
-		let interfaces = scope.networkInterfaces(), addr = '127.0.0.1', skipIfs = new RegExp('(vmware|virtualbox)', 'i')
-		for (let devName in interfaces) {
-			if(devName.match(skipIfs)) continue
-			let iface = interfaces[devName]
-			for (let i = 0; i < iface.length; i++) {
-				let alias = iface[i]
-				if (alias.family === 'IPv4' && !alias.internal && scope.isNetworkIP(alias.address)){
-					addr = alias.address
-				}
-			}
+	scope.forwardSlashes = path => {
+		if(path && path.indexOf('\\') != -1){
+			return path.replaceAll('\\', '/').replaceAll('//', '/')
 		}
-		return addr
+		return path
+	}
+    scope.parseJSON = json => { // prevent JSON related crashes
+		let ret
+		try {
+			let parsed = JSON.parse(json)
+			ret = parsed
+		} catch(e) { }
+		return ret
+	}
+	scope.kbfmt = (bytes, decimals = 2) => { // https://stackoverflow.com/questions/15900485/correct-way-to-convert-size-in-bytes-to-kb-mb-gb-in-javascript
+		if (isNaN(bytes) || typeof(bytes) != 'number') return 'N/A'
+		if (bytes === 0) return '0 Bytes'
+		const k = 1024, dm = decimals < 0 ? 0 : decimals, sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+		const i = Math.floor(Math.log(bytes) / Math.log(k))
+		return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
+	}
+	scope.kbsfmt = (bytes, decimals = 1) => { // https://stackoverflow.com/questions/15900485/correct-way-to-convert-size-in-bytes-to-kb-mb-gb-in-javascript
+		if (isNaN(bytes) || typeof(bytes) != 'number') return 'N/A'
+		if (bytes === 0) return '0 Bytes/ps'
+		const k = 1024, dm = decimals < 0 ? 0 : decimals, sizes = ['Bytes/ps', 'KBps', 'MBps', 'GBps', 'TBps', 'PBps', 'EBps', 'ZBps', 'YBps']
+		const i = Math.floor(Math.log(bytes) / Math.log(k))
+		return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
+	}
+	scope.absolutize = (path, url) => {
+		if(!path) return url
+		if(!url) return path
+		if(path.startsWith('//')){
+			path = 'http:'+ path
+		}
+        if(path.match(new RegExp('^[htps:]?//'))){
+            return path
+        }
+        let uri
+		try {
+			uri = new URL(path, url)
+			return uri.href
+		} catch(e) {
+			return scope.joinPath(url, path)
+		}
+    }
+    scope.ucWords = (str, force) => {
+		if(!force && str != str.toLowerCase()){
+			return str
+		}
+        return str.replace(new RegExp('(^|[ ])[A-zÀ-ú]', 'g'), letra => {
+            return letra.toUpperCase()
+        })
 	}
 }
 

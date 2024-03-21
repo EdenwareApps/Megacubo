@@ -1,6 +1,6 @@
-const Events = require('events'), pLimit = require('p-limit')
+const { EventEmitter } = require('events')
   
-class Xtr extends Events {
+class Xtr extends EventEmitter {
     constructor(addr, debug) { // addr = http://user:pass@server
         super()
         if(debug === true) this.debugInfo = []
@@ -106,6 +106,8 @@ class Xtr extends Events {
         this.emit('progress', 1)
         await this.prepare()
         this.emit('progress', firstStepWeight)
+
+        const pLimit = require('p-limit')
         const limit = pLimit(2)
         const tasksCount = 2 + this.cmap.series.length
         const taskWeight = (100 - firstStepWeight) / tasksCount

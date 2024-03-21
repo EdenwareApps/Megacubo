@@ -8,6 +8,7 @@ if(parentPort) {
 
 function loadGlobalVars() {
     Object.keys(workerData || {}).forEach(k => global[k] = workerData[k])
+    global.inWorker = workerData.cordova
 }
 
 module.exports = file => {
@@ -15,7 +16,7 @@ module.exports = file => {
     const emit = (type, content) => {
         postMessage({id: 0, file, type: 'event', data: type +':'+ JSON.stringify(content)})
     }    
-    const logErr = (data) => {
+    const logErr = data => {
         postMessage({id: 0, file, type: 'event', data: 'error:'+ JSON.stringify(data), file: global.file})
     }    
     return {logErr, postMessage, parentPort, emit, loadGlobalVars}

@@ -1,24 +1,25 @@
 /* Worker to update lists in background */
-const  Events = require('events'), path = require('path')
+const  { EventEmitter } = require('events')
 
 /*
 function wrapAsBase64(file){
 	// workaround, macos throws not found for local files when calling Worker
 	// TODO: maybe file:// could have solved that too
-	return 'data:application/x-javascript;base64,' + Buffer.from(fs.readFileSync(file)).toString('base64')
+	return 'data:application/x-javascript;base64,'+ Buffer.from(fs.readFileSync(file)).toString('base64')
 }
 */
 
 const setupConstructor = () => {
-	const workerData = {paths, APPDIR}
+	const paths = require('../paths')
+	const workerData = {paths}
+	workerData.paths.cordova = !!paths.cordova
 	if(typeof(global.lang) != 'undefined' && typeof(global.lang.getTexts) == 'function'){
 		workerData.lang = global.lang.getTexts()
 	} else {
 		workerData.lang = {}
 	}
 	workerData.bytenode = true
-	workerData.MANIFEST = global.MANIFEST
-	class WorkerDriver extends Events {
+	class WorkerDriver extends EventEmitter {
 		constructor(){
 			super()
 			this.iterator = 1
@@ -29,13 +30,15 @@ const setupConstructor = () => {
 			this.terminating = {}
 		}
 		proxy(file){
+			const path = require('path')
 			file = path.resolve(file)
 			if(this.instances[file]) {
 				return this.instances[file]
 			}
 			this.worker.postMessage({method: 'loadWorker', file})
+			const self = this
 			const instance = new Proxy(this, {
-				get: (self, method) => {
+				get: (_, method) => {
 					const terminating = ['destroy', 'terminate'].includes(method)
 					if(terminating) {
 						self.terminating[file] = true
@@ -47,8 +50,13 @@ const setupConstructor = () => {
 					return (...args) => {
 						return new Promise((resolve, reject) => {
 							if(self.finished){
-								if(self.terminating[file]) {
-									return resolve()
+								try{
+									if(self.terminating[file]) {
+										return resolve()
+									}
+								} catch(e) {
+									const crashlog = require('../crashlog')
+									console.error('WORKER_ERR: '+ crashlog.stringify(self))
 								}
 								return reject('worker already exited '+ file +' '+ method)
 							}
@@ -138,6 +146,8 @@ const setupConstructor = () => {
 	class ThreadWorkerDriver extends WorkerDriver {
 		constructor(){
 			super()
+
+			const path = require('path')
 			this.Worker = require('worker_threads').Worker
 			this.worker = new this.Worker(path.join(__dirname, 'worker.js'), {
 				workerData // leave stdout/stderr undefined
@@ -154,7 +164,8 @@ const setupConstructor = () => {
 				if(typeof(err.preventDefault) == 'function'){
 					err.preventDefault()
 				}
-				global.crashlog.save('Worker error: ', err)
+				const crashlog = require('../crashlog')
+				crashlog.save('Worker error: ', err)
 				this.rejectAll(null, 'worker exited out of memory')
 			}, true, true)
 			this.worker.on('exit', () => {
@@ -197,7 +208,7 @@ const setupConstructor = () => {
 			this.bindChangeListeners()
 		}
 	}
-	class DirectDriver extends Events {
+	class DirectDriver extends EventEmitter {
 		constructor(){
 			super()
 			this.err = null

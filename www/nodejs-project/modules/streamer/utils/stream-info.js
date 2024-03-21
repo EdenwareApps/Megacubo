@@ -1,11 +1,11 @@
-const fs = require('fs'), MediaURLInfo = require('./media-url-info')
-
 class StreamInfo {
     constructor(){
         this.opts = {
             debug: false,
             probeSampleSize: 1024
         }
+
+		const MediaURLInfo = require('./media-url-info')
         this.mi = new MediaURLInfo()
     }
 	takeMiddleValue(arr) {
@@ -139,6 +139,7 @@ class StreamInfo {
 		})
 	}
 	async readFilePartial(filePath, length) {
+		const fs = require('fs')
 		const fileHandle = await fs.promises.open(filePath, 'r')
 		const buffer = Buffer.alloc(length)
 		const { bytesRead } = await fileHandle.read(buffer, 0, length, 0)
@@ -232,6 +233,7 @@ class StreamInfo {
 			return ret
 		} else if(this.isLocalFile(url)) {
 			let err
+			const fs = require('fs')
 			const stat = await fs.promises.stat(url).catch(e => err = e)
 			if(stat && stat.size){
 				let ret = {}

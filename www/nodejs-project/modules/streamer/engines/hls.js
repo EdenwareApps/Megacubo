@@ -1,6 +1,4 @@
 const StreamerBaseIntent = require('./base.js')
-const StreamerProxy = require('../utils/proxy.js'), StreamerHLSProxy = require('../utils/proxy-hls.js')
-const StreamerFFmpeg = require('../utils/ffmpeg'), m3u8Parser = require('m3u8-parser')
 
 class HLSTrackSelector {
     constructor(){
@@ -16,6 +14,7 @@ class HLSTrackSelector {
             retries: 2,
             followRedirect: true
         })
+        const m3u8Parser = require('m3u8-parser')
         let results, parser = new m3u8Parser.Parser()
         parser.push(String(body))
         parser.end()
@@ -66,7 +65,8 @@ class HLSTrackSelector {
     async select(masterUrl){
         let tracks = await this.getPlaylistTracks(masterUrl)
         if(tracks.length != 1){
-            const track = await this.selectTrackQualityByBandwidth(tracks, global.streamer.downlink)
+            const streamer = require('../main')
+            const track = await this.selectTrackQualityByBandwidth(tracks, streamer.downlink)
             tracks = [track]
         }
         if(tracks.length) return tracks[0]
@@ -126,6 +126,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
         let opts = this.getTranscodingOpts()
         this.trackUrl = ret.url
         this.setActiveQualityTrack(ret.url, ret.bandwidth)
+        const StreamerProxy = require('../utils/proxy.js')
         this.prx = new StreamerProxy(Object.assign({
             authURL: this.data.authURL || this.data.source
         }, this.opts))
@@ -155,7 +156,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
         this.mimetype = this.mimeTypes[this.transcoder.opts.outputFormat]
         this.endpoint = this.transcoder.endpoint
         this.emit('transcode-started')           
-        if(ret.bandwidth){ // do it after resolve for right emit order on global.streamer
+        if(ret.bandwidth){ // do it after resolve for right emit order on streamer
             this.bitrate = ret.bandwidth
             this.emit('bitrate', ret.bandwidth)
         }
@@ -180,6 +181,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
             videoCodec: 'copy',
             audioCodec: 'copy'
         }
+        const StreamerFFmpeg = require('../utils/ffmpeg')
         this[type] = new StreamerFFmpeg(this.prx.proxify(url), transcodingOpts || defaultOpts)
         this.connectAdapter(this[type])
         await this[type].start()
@@ -188,6 +190,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
     }
     async _start(){ 
         const useff = await this.useFF()
+        const StreamerHLSProxy = require('../utils/proxy-hls.js')
         this.prx = new StreamerHLSProxy(Object.assign({
             authURL: this.data.authURL || this.data.source,
             discardContentLength: true
@@ -213,7 +216,7 @@ StreamerHLSIntent.mediaType = 'live'
 StreamerHLSIntent.supports = info => {
     if(info.sample){
         if(String(info.sample).match(new RegExp('#ext(m3u|inf)', 'i'))){
-            if(global.isVODM3U8(info.sample, info.contentLength, info.headers)){
+            if(StreamerBaseIntent.isVODM3U8(info.sample, info.contentLength, info.headers)){
                 return false // is vodhls
             } else {
                 return true

@@ -1,5 +1,3 @@
-const pLimit = require('p-limit')
-
 class Tools {
 	constructor(){
 		this.folderSizeLimitTolerance = 12
@@ -95,6 +93,7 @@ class Tools {
 			return list
 		} else {
 			let i = 0
+			const pLimit = require('p-limit')
             const limit = pLimit(4)
 			return await this.asyncMapRecursively(list, async slist => {
 				let key = 'offload-'+ i + '-' + url
@@ -124,7 +123,8 @@ class Tools {
 		return details.join(', ')
 	}
 	paginateList(sentries, minPageCount){
-		sentries = global.lists.sort(sentries)
+		const lists = require('../lists')
+		sentries = lists.sort(sentries)
 		const folderSizeLimit = global.config.get('folder-size-limit')
 		if(sentries.length > (folderSizeLimit + this.folderSizeLimitTolerance)){
 			if(!minPageCount) {
@@ -144,7 +144,7 @@ class Tools {
 				group.name = this.getRangeName(gentries, lastName, nextName)
                 if(group.name.indexOf('[') != -1){
                     group.rawname = group.name
-                    group.name = group.name.replace(global.lists.regexes['between-brackets'], '')
+                    group.name = group.name.replace(lists.regexes['between-brackets'], '')
                 }
 				if(gentries.length){
 					lastName = gentries[gentries.length - 1].name
@@ -163,7 +163,7 @@ class Tools {
 					type: 'action',
 					fa: 'fas fa-chevron-right',
 					action: () => {
-						explorer.open(explorer.dirname(explorer.path) +'/'+ nextGroup).catch(global.displayErr)
+						menu.open(menu.dirname(menu.path) +'/'+ nextGroup).catch(global.displayErr)
 					}
 				})
 				return group

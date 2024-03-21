@@ -1,9 +1,10 @@
 
-const Events = require('events'), fs = require('fs')
+const { EventEmitter } = require('events')
 
-class StreamerBaseIntent extends Events {
+class StreamerBaseIntent extends EventEmitter {
 	constructor(data, opts, info){
         super()
+        const streamer = require('../main')
         this.mimeTypes = {
             hls: 'application/x-mpegURL',
             dash: 'application/dash+xml',
@@ -11,7 +12,7 @@ class StreamerBaseIntent extends Events {
             video: 'video/mp4'
         }        
         this.opts = {
-            workDir: global.streamer.opts.workDir +'/ffmpeg/data',
+            workDir: streamer.opts.workDir +'/ffmpeg/data',
             videoCodec: 'copy',
             audioCodec: 'copy'
         }
@@ -33,11 +34,14 @@ class StreamerBaseIntent extends Events {
         this.subtitleTrack = null
         this.failListener = this.onFail.bind(this)
         if(!this.data.authURL && this.data.source) {
-            this.data.authURL = global.lists.getAuthURL(this.data.source)
+            const lists = require('../../lists')
+            this.data.authURL = lists.getAuthURL(this.data.source)
         }
         if(opts){
             this.setOpts(opts)
         }
+
+        const fs = require('fs')
 		fs.mkdir(this.opts.workDir, {recursive: true}, (err) => {
 			if (err){
 				console.error(err)
@@ -344,6 +348,42 @@ class StreamerBaseIntent extends Events {
             this.adapters = []
         }
     } 
+}
+
+StreamerBaseIntent.isVODM3U8 = (content, contentLength, headers) => {
+    let sample = String(content).toLowerCase()
+    if(sample.match(new RegExp('ext-x-playlist-type: *(vod|event)'))) return true
+    if(sample.indexOf('#ext-x-media-sequence') == -1) return false
+    if(headers) {
+        if(headers['last-modified']) {
+            let date = new Date(headers['last-modified'])
+            if (!isNaN(date.getTime())) {
+                const elapsed = global.time() - (date.getTime() / 1000)
+                if(elapsed > 180) {
+                    return true
+                }
+              }
+        }
+    }
+    let pe = sample.indexOf('#ext-x-endlist')
+    let px = sample.lastIndexOf('#extinf')
+    if(pe != -1){
+        return pe > px
+    }
+    if(sample.indexOf('#ext-x-program-date-time') == -1){
+        const pieces = sample.split('#extinf')
+        if(pieces.length > 30){
+            return true
+        }
+        if(typeof(contentLength) == 'number' && pieces.length > 2){ //  at least 3 pieces, to ensure that the first extinf is complete
+            let header = pieces.shift()
+            let pieceLen = pieces[0].length + 7
+            let totalEstimatedPieces = (contentLength - header.length) / pieceLen
+            if(totalEstimatedPieces > 30){
+                return true
+            }
+        }
+    }
 }
 
 module.exports = StreamerBaseIntent

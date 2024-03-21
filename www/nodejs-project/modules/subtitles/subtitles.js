@@ -1,6 +1,6 @@
-const Events = require('events')
+const { EventEmitter } = require('events')
 
-class Subtitles extends Events {
+class Subtitles extends EventEmitter {
     constructor() {
         super()
         const OpenSubtitles = require('opensubtitles.com')
@@ -55,7 +55,7 @@ class Subtitles extends Events {
         let extraOpts = []
         extraOpts.push({template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'})
         extraOpts.push({template: 'option', text: global.lang.REGISTER, id: 'register', fa: 'fas fa-plus'})
-        let username = await global.explorer.prompt({
+        let username = await global.menu.prompt({
             question: global.lang.OPENSUBTITLES_REGISTER.format(global.lang.REGISTER),
             fa: 'fas fa-user',
             text: 'text',
@@ -64,7 +64,7 @@ class Subtitles extends Events {
             placeholder: global.lang.USERNAME
         })
         if(!user) throw 'No username provided'
-        const password = await global.explorer.prompt({
+        const password = await global.menu.prompt({
             question: global.lang.PASSWORD,
             placeholder: global.lang.PASSWORD,
             fa: 'fas fa-key',
@@ -110,7 +110,7 @@ class Subtitles extends Events {
                         if(cached && typeof(cached) == 'string') return cached
                         const ret = await this.os.download({file_id}).catch(e => err = e)
                         if(err) return fail(err)
-                        const body = await global.Download.get({
+                        let body = await global.Download.get({
                             url: ret.link,
                             responseType: 'text',
                             headers: {

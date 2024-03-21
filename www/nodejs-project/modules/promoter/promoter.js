@@ -1,16 +1,18 @@
 class Promoter {
     constructor(){
 		if(!this.originalApplyFilters){
-			this.originalApplyFilters = global.explorer.applyFilters.bind(global.explorer)
-			global.explorer.applyFilters = this.applyFilters.bind(this)
+			this.originalApplyFilters = global.menu.applyFilters.bind(global.menu)
+			global.menu.applyFilters = this.applyFilters.bind(this)
 		}
 		this.startTime = global.time()
 		this.promoteDialogTime = 0
 		this.promoteDialogInterval = 1800
-		global.ui.on('video-error', () => this.promoteDialogSignal())
-		global.ui.on('streamer-is-slow', () => this.promoteDialogSignal())
-		global.streamer.on('hard-failure', () => this.promoteDialogSignal())
-		global.streamer.on('stop', () => this.promoteDialog())
+		global.renderer.on('video-error', () => this.promoteDialogSignal())
+		global.renderer.on('streamer-is-slow', () => this.promoteDialogSignal())
+		
+		const streamer = require('../streamer/main')
+		streamer.on('hard-failure', () => this.promoteDialogSignal())
+		streamer.on('stop', () => this.promoteDialog())
     }
 	async promoteDialog(){
 		const now = global.time()
@@ -19,7 +21,9 @@ class Promoter {
 		process.nextTick(() => {
 			if(this.promoteDialogPending !== true) return
 			if((now - this.promoteDialogTime) < this.promoteDialogInterval) return
-			if(global.streamer.active || global.streamer.isTuning()) return
+			
+            const streamer = require('../streamer/main')
+			if(streamer.active || streamer.isTuning()) return
 			const runningTime = now - this.startTime
 			if(runningTime < 30) return
 			this.promoteDialogTime = now
@@ -32,14 +36,16 @@ class Promoter {
 		this.promoteDialog().catch(console.error)
 	}
 	async offer(type, skipRequirements){
+		const options = require('../options')
 		const atts = {
 			communitary: global.config.get('communitary-mode-lists-amount') > 0,
-			premium: global.options.prm(true),
+			premium: options.prm(true),
 			country: global.lang.countryCode,
 			platform: process.platform,
-			version: global.MANIFEST.version
+			version: global.paths.manifest.version
 		}
-		const c = await global.cloud.get('promos')
+		const cloud = require('../cloud')
+		const c = await cloud.get('promos')
 		if(!Array.isArray(c)) return
 		const promos = c.filter(p => {
 			if(p.type != type) return
@@ -73,7 +79,7 @@ class Promoter {
 			callbacks[id] = async () => {
 				if(!o.url) return
 				if(o.url.indexOf('{email}') != -1) {
-					const email = await global.explorer.prompt({
+					const email = await global.menu.prompt({
 						question: o.emailPrompt || '',
 						placeholder: o.emailPlaceholder || '',
 						fa: o.fa
@@ -81,7 +87,7 @@ class Promoter {
 					o.url = o.url.replace('{email}', encodeURIComponent(email || ''))
 				}
 				if(o.url.indexOf('{name}') != -1) {
-					const name = await global.explorer.prompt({
+					const name = await global.menu.prompt({
 						question: o.namePrompt || '',
 						placeholder: o.namePlaceholder || '',
 						fa: o.fa
@@ -94,12 +100,12 @@ class Promoter {
 						url: o.url,
 						retries: 10
 					}).then(() => {
-						global.explorer.info(o.name, o.confirmation)
+						global.menu.info(o.name, o.confirmation)
 					}).catch(global.displayErr).finally(() => {
 						global.osd.hide('promoter')
 					})
 				} else {
-					global.ui.emit('open-external-url', o.url)
+					global.renderer.emit('open-external-url', o.url)
 				}
 			}
 			return {
@@ -110,7 +116,7 @@ class Promoter {
 				fa: o.fa
 			}
 		}))
-		const id = await global.explorer.dialog(opts)
+		const id = await global.menu.dialog(opts)
 		if(typeof(callbacks[id]) == 'function') await callbacks[id]()
     }
 	async applyFilters(entries, path){
@@ -119,7 +125,7 @@ class Promoter {
 			const chosen = entries[0].type == 'back' ? 1 : 0
 			entries = entries.filter(e => e.hookId != 'promoter')
 			entries.forEach((e, i) => { // clear
-				if(e.class && e.class.indexOf('entry-2x') != -1) {
+				if(!e.top && e.class && e.class.indexOf('entry-2x') != -1) {
 					entries[i].class = e.class.replace(new RegExp('(entry-2x|entry-cover|entry-force-cover)', 'g'), '')
 				}
 			})
@@ -128,20 +134,22 @@ class Promoter {
 				const hasProgrammeIcon = e => e.programme && e.programme.i
 				const hasProgramme = e => e.programme && e.programme.t
 				const hasIcon = e => e.icon && !e.icon.startsWith('http://127.0.0.1:')
-				const getScore = e => {
+				const getScore = e => {					
 					let score = 0
-					const p = hasProgramme(e), c = hasIcon(e)
-					if(hasProgrammeIcon(e)) score += 1000
-					else if(p && c) score += 100
-					else if(c) score += 10
-					const i = e.hookId ? orderHint.indexOf(e.hookId) : -1
-					if(i >= 0) score -= i // subtract instead of sum, sorting helper
+					if(!e.top) {
+						const p = hasProgramme(e), c = hasIcon(e)
+						if(hasProgrammeIcon(e)) score += 1000
+						else if(p && c) score += 100
+						else if(c) score += 10
+						const i = e.hookId ? orderHint.indexOf(e.hookId) : -1
+						if(i >= 0) score -= i // subtract instead of sum, sorting helper
+					}
 					return score
 				}
 				let max
 				const promo = await this.offer('stream')
 				entries.forEach((e, i) => {
-					if(promo && e.hookId == 'watching') return
+					if(e.top || (promo && e.hookId == 'watching')) return
 					const score = getScore(e)
 					if(score >= 7 && (!max || score > max.score)) {
 						max = {i, score}

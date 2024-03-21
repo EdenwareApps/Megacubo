@@ -1,12 +1,10 @@
-
-const Common = require('./common'), List = require('./list')
-const UpdateListIndex = require('./update-list-index')
+const Common = require('./common')
 const utils = require('../multi-worker/utils')(__filename)
 
 class ListsUpdater extends Common {
 	constructor(){
 		super()
-		this.debug = false
+		this.debug = true
 		this.relevantKeywords = []
 		this.info = {}
 	}
@@ -55,6 +53,7 @@ class ListsUpdater extends Common {
 			const updateMeta = {}
 			const key = global.LIST_DATA_KEY_MASK.format(url)
 			const file = global.storage.resolve(key)
+			const UpdateListIndex = require('./update-list-index')
 			const updater = new UpdateListIndex(url, url, file, this, Object.assign({}, updateMeta), params.force === true)
 			if(typeof(params.timeout) == 'number') {
 				updater.timeout = params.timeout
@@ -99,6 +98,7 @@ class ListsUpdater extends Common {
 		}
 	}
 	async validateIndex(url){
+		const List = require('./list')
 		const list = new List(url, this.relevantKeywords)
 		await list.start()
 		const validated = list.index.length > 0

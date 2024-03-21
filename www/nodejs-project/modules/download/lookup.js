@@ -1,4 +1,4 @@
-const async = require('async'), Events = require('events')
+const { EventEmitter } = require('events')
 
 const {
 	NOTFOUND,
@@ -10,7 +10,7 @@ const {
 
 // To bypass any DNS censorship, we'll use the local DNS plus external DNS resolvers
 // Returns the first response, but caches the more trustful results
-class UltimateLookup extends Events {
+class UltimateLookup extends EventEmitter {
 	constructor(servers){
 		super()
 		this.debug = false

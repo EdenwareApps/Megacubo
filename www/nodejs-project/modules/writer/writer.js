@@ -1,6 +1,6 @@
-const fs = require('fs'), path = require('path'), Events = require('events')
+const { EventEmitter } = require('events')
 
-class Writer extends Events {
+class Writer extends EventEmitter {
 	constructor(file, opts){
 		super()
 		this.setMaxListeners(20)
@@ -27,6 +27,7 @@ class Writer extends Events {
 	ready(cb){
 		const done = callback => {
 			if(this.fd){
+				const fs = require('fs')
 				fs.close(this.fd, callback)
 				this.fd = null
 			} else {
@@ -51,9 +52,11 @@ class Writer extends Events {
 	}
 	prepare(cb){
 		this.debug && console.log('writeat prepare', this.file)
+		const fs = require('fs')
 		fs.access(this.file, err => {
 			this.debug && console.log('writeat prepared', this.file, err)
 			if(err){
+				const path = require('path')
 				this.debug && console.log('writeat creating', this.file)
 				fs.mkdir(path.dirname(this.file), {recursive: true}, () => {
 					fs.writeFile(this.file, '', cb)
@@ -67,6 +70,7 @@ class Writer extends Events {
 		if(this.fd){
 			cb(null)
 		} else {
+			const fs = require('fs')
 			this.debug && console.log('writeat open', this.file)
 			fs.open(this.file, flags, (err, fd) => {
 				this.debug && console.log('writeat opened', this.file)
@@ -85,6 +89,7 @@ class Writer extends Events {
 				if(err) return this.fail(err)
 				this._write(this.fd).catch(console.error).finally(() => {
 					if(this.autoclose && this.fd){
+						const fs = require('fs')
 						fs.close(this.fd, () => {})
 						this.fd = null
 					}
@@ -96,6 +101,7 @@ class Writer extends Events {
 	}
 	fsWrite(fd, data, offset, length, position) {
 		return new Promise((resolve, reject) => {
+			const fs = require('fs')
 			fs.write(fd, data, offset, length, position, (err, writtenBytes) => {
 				if(err) return reject(err)
 				resolve(writtenBytes)
@@ -103,6 +109,7 @@ class Writer extends Events {
 		})
 	}
 	async _write(fd) {
+		const fs = require('fs')
 		while (this.writeQueue.length) {
 			let err
 			const current = this.writeQueue.shift()

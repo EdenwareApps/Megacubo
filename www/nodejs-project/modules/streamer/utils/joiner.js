@@ -1,4 +1,4 @@
-const path = require('path'), Downloader = require('./downloader.js')
+const Downloader = require('./downloader')
 	
 class Joiner extends Downloader {
 	constructor(url, opts={}){
@@ -18,6 +18,7 @@ class Joiner extends Downloader {
 			}
 		})
 		
+		const path = require('path')
 		this.usingWorker = global.config.get('mpegts-use-worker')
 		if(this.usingWorker) {
 			const workerPath = path.join(__dirname, './mpegts-processor-worker')

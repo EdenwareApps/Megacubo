@@ -1,12 +1,13 @@
-const pLimit = require('p-limit'), EntriesGroup = require('../entries-group')
+const EntriesGroup = require('../entries-group')
 
 class Watching extends EntriesGroup {
     constructor() {
         super('watching')
+        const { expires } = require('../cloud')
         this.timer = 0
         this.currentEntries = null
         this.currentRawEntries = null
-        this.updateIntervalSecs = global.cloud.expires['watching-country'] || 300
+        this.updateIntervalSecs = expires['watching-country'] || 300
         global.config.on('change', (keys, data) => {
             if (keys.includes('only-known-channels-in-trending') || keys.includes('popular-searches-in-trending') || keys.includes('parental-control') || keys.includes('parental-control-terms')) {
                 this.update().catch(console.error)
@@ -47,7 +48,8 @@ class Watching extends EntriesGroup {
         })
     }
     showChannelOnHome() {
-        return global.lists.manager.get().length || global.config.get('communitary-mode-lists-amount')
+        const { manager } = require('../lists')
+        return manager.get().length || global.config.get('communitary-mode-lists-amount')
     }
     async update(rawEntries = null) {
         this.updating = true
@@ -64,15 +66,15 @@ class Watching extends EntriesGroup {
         clearTimeout(this.timer) // clear again to be sure
         this.timer = setTimeout(() => this.update().catch(console.error), this.updateIntervalSecs * 1000)
         let nxt = this.entry()
-        if (this.showChannelOnHome() && global.explorer.path == '' && (prv.details != nxt.details || prv.name != nxt.name)) {
-            global.explorer.updateHomeFilters()
+        if (this.showChannelOnHome() && global.menu.path == '' && (prv.details != nxt.details || prv.name != nxt.name)) {
+            global.menu.updateHomeFilters()
         } else {
             this.updateView()
         }
     }
     updateView() {
-        if (global.explorer.path == this.title()) {
-            global.explorer.refresh()
+        if (global.menu.path == this.title()) {
+            global.menu.refresh()
         }
     }
     async hook(entries, path) {
@@ -99,8 +101,9 @@ class Watching extends EntriesGroup {
         return n && n.length ? parseInt(n[1]) : 0
     }
     async entries() {
-        if (!global.lists.loaded()) {
-            return [global.lists.manager.updatingListsEntry()]
+        const lists = require('../lists')
+        if (!lists.loaded()) {
+            return [lists.manager.updatingListsEntry()]
         }
         await this.ready()
         let list = this.currentEntries ? global.deepClone(this.currentEntries, true) : []
@@ -113,9 +116,9 @@ class Watching extends EntriesGroup {
         } else {
             const acpolicy = global.config.get('parental-control')
             if (['remove', 'block'].includes(acpolicy)) {
-                list = global.lists.parentalControl.filter(list)
+                list = lists.parentalControl.filter(list)
             } else if (acpolicy == 'only') {
-                list = global.lists.parentalControl.only(list)
+                list = lists.parentalControl.only(list)
             }
         }
         this.currentTopProgrammeEntry = false
@@ -129,8 +132,8 @@ class Watching extends EntriesGroup {
                 }
             })
         }
-        if(global.ALLOW_ADDING_LISTS && !global.lists.loaded(true)) {
-            es.unshift(global.lists.manager.noListsEntry())
+        if(global.ALLOW_ADDING_LISTS && !lists.loaded(true)) {
+            es.unshift(lists.manager.noListsEntry())
         }
         return es
     }
@@ -147,10 +150,12 @@ class Watching extends EntriesGroup {
         let data = []
         const countries = await global.lang.getActiveCountries()
         const validator = a => Array.isArray(a) && a.length
+        const pLimit = require('p-limit')
         const limit = pLimit(3)
+        const cloud = require('../cloud')
         const tasks = countries.map(country => {
             return async () => {
-                let es = await global.cloud.get('watching-country.' + country, false, validator).catch(console.error)
+                let es = await cloud.get('watching-country.' + country, false, validator).catch(console.error)
                 Array.isArray(es) && data.push(...es)
             }
         }).map(limit)
@@ -167,35 +172,39 @@ class Watching extends EntriesGroup {
         let data = Array.isArray(rawEntries) ? rawEntries : (await this.getRawEntries())
         let recoverNameFromMegaURL = true
         if (!Array.isArray(data) || !data.length) return []
-        data = global.lists.prepareEntries(data)
+
+        const mega = require('../mega')
+        const lists = require('../lists')
+        data = lists.prepareEntries(data)
         data = data.filter(e => (e && typeof (e) == 'object' && typeof (e.name) == 'string')).map(e => {
-            const isMega = global.mega.isMega(e.url)
+            const isMega = mega.isMega(e.url)
             if (isMega && recoverNameFromMegaURL) {
-                let n = global.mega.parse(e.url)
+                let n = mega.parse(e.url)
                 if (n && n.name) {
                     e.name = global.ucWords(n.name)
                 }
             }
-            e.name = global.lists.sanitizeName(e.name)
+            e.name = lists.sanitizeName(e.name)
             e.users = this.extractUsersCount(e)
             e.details = ''
             if (!isMega) {
-                e.url = global.mega.build(e.name)
+                e.url = mega.build(e.name)
             }
             return e
         })
-        data = global.lists.parentalControl.filter(data)
+        data = lists.parentalControl.filter(data)
         this.currentRawEntries = data.slice(0)
         let searchTerms = [], groups = {}, gcount = {},  gsearches = [], gentries = []
         const adultContentOnly = global.config.get('parental-control') == 'only'
         const onlyKnownChannels = !adultContentOnly && global.config.get('only-known-channels-in-trending')
         const popularSearches = global.config.get('popular-searches-in-trending')
         if(popularSearches) {
-            const sdata = {}, sentries = await global.search.searchSuggestionEntries()
-            sentries.map(s => s.search_term).filter(s => s.length >= 3).filter(s => !global.channels.isChannel(s)).filter(s => global.lists.parentalControl.allow(s)).forEach(name => {
-                sdata[name] = {name, terms: global.lists.terms(name)}
+            const search = require('../search')
+            const sdata = {}, sentries = await search.searchSuggestionEntries()
+            sentries.map(s => s.search_term).filter(s => s.length >= 3).filter(s => !global.channels.isChannel(s)).filter(s => lists.parentalControl.allow(s)).forEach(name => {
+                sdata[name] = {name, terms: lists.terms(name)}
             })
-            const filtered = await global.lists.has(Object.values(sdata))
+            const filtered = await lists.has(Object.values(sdata))
             Object.keys(filtered).forEach(name => {
                 if(!filtered[name]) return
                 searchTerms.push(sdata[name].terms)
@@ -205,7 +214,7 @@ class Watching extends EntriesGroup {
             let ch = global.channels.isChannel(entry.terms.name)
             if (popularSearches && !ch) {
                 searchTerms.some(terms => {
-                    if (global.lists.match(terms, entry.terms.name)) {
+                    if (lists.match(terms, entry.terms.name)) {
                         const name = terms.join(' ')
                         gsearches.includes(name) || gsearches.push(name)
                         ch = { name }
@@ -228,9 +237,9 @@ class Watching extends EntriesGroup {
                 if (onlyKnownChannels) {
                     delete data[i]
                 } else {
-                    if (!global.mega.isMega(entry.url)) {
-                        const mediaType = global.lists.mi.mediaType(entry)
-                        entry.url = global.mega.build(entry.name, { mediaType })
+                    if (!mega.isMega(entry.url)) {
+                        const mediaType = lists.mi.mediaType(entry)
+                        entry.url = mega.build(entry.name, { mediaType })
                     }
                     data[i] = global.channels.toMetaEntry(entry)
                 }
@@ -243,7 +252,7 @@ class Watching extends EntriesGroup {
                 type: 'group',
                 fa: 'fas fa-play-circle',
                 users: gcount[n],
-                url: global.mega.build(name, { terms: n.split(' '), mediaType: gsearches.includes(n) ? 'all' : 'live' })
+                url: mega.build(name, { terms: n.split(' '), mediaType: gsearches.includes(n) ? 'all' : 'live' })
             }))
         })
         data = data.filter(e => {
@@ -319,4 +328,4 @@ class Watching extends EntriesGroup {
     }
 }
 
-module.exports = Watching
+module.exports = new Watching()

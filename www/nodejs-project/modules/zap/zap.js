@@ -1,58 +1,60 @@
-const Events = require('events'), path = require('path')
+const { EventEmitter } = require('events')
 
-class Zap extends Events {
+class Zap extends EventEmitter {
     constructor(){
         super()
         this.isZapping = false
         this.skips = []
         this.icon = 'fas fa-random'
-        global.uiReady(() => this.init())
+        global.rendererReady(() => this.init())
     }
     init(){
+        const streamer = require('../streamer/main')
         this.title = global.lang.ZAP
-        global.explorer.addFilter(this.hook.bind(this))
-        global.streamer.on('stop', err => {
+        global.menu.addFilter(this.hook.bind(this))
+        streamer.on('stop', err => {
             if(this.isZapping){
                 this.go().catch(console.error)
             }
         })
-        global.streamer.on('stop-from-client', err => {
+        streamer.on('stop-from-client', err => {
             this.setZapping(false, true, true)
         })
-        global.streamer.on('commit', () => {
+        streamer.on('commit', () => {
             if(this.isZapping){
                 this.setZapping(true, true)
             }
         })
-        global.ui.on('zap', () => {
+        global.renderer.on('zap', () => {
             this.go().catch(console.error)
         })
-        global.ui.on('stop', () => {
+        global.renderer.on('stop', () => {
             this.setZapping(false)
         })
-        global.ui.on('streamer-ready', () => {
-            global.ui.emit('load-js', './modules/zap/client.js')
-            global.ui.emit('add-player-button', 'zap', 'ZAP', this.icon, 6, 'zap')
+        global.renderer.on('streamer-ready', () => {
+            global.renderer.emit('add-player-button', 'zap', 'ZAP', this.icon, 6, 'zap')
         })
     }
-    hook(entries, path){
-        return new Promise((resolve, reject) => {
-            if(path == global.lang.LIVE && global.lists.loaded() && global.lists.activeLists.length){
-                let pos, has = entries.some((e, i) => {
-                    if(e.name == this.title){
-                        pos = i
-                        return true
-                    }
-                })
-                if(!has){
-                    if(typeof(pos) == 'undefined'){
-                        pos = 0
-                    }
-                    entries.splice(pos, 0, this.entry())
+    async hook(entries, path){        
+        const lists = require('../lists')
+        if(path == global.lang.LIVE && lists.loaded() && lists.activeLists.length){
+            let pos, has = entries.some((e, i) => {
+                if(e.name == this.title){
+                    pos = i
+                    return true
                 }
+            })
+            if(!has){
+                if(typeof(pos) == 'undefined'){
+                    pos = 0
+                }
+                entries.splice(pos, 0, this.entry())
             }
-            resolve(entries)
-        })
+        } else if(path == '' && !global.ALLOW_ADDING_LISTS) {
+            const options = require('../options')
+            options.insertEntry(this.entry(), entries, -2, [global.lang.OPTIONS, global.lang.TOOLS])
+        }
+        return entries
     }
     async random(){
         let entries = await this.channelsList()
@@ -86,11 +88,17 @@ class Zap extends Events {
         this.connecting = true
         let entry = await this.random()
         if(entry){
-            entry.url = global.mega.build(entry.name, { mediaType: 'live' })
-            let succeeded = await global.streamer.play(entry, undefined, true).catch(console.error)
+            const mega = require('../mega')
+            entry.url = mega.build(entry.name, { mediaType: 'live' })
+
+            const streamer = require('../streamer/main')
+            let succeeded = await streamer.play(entry, undefined, true).catch(console.error)
             this.connecting = false
             this.setZapping(true, succeeded)
-            global.tuning && global.tuning.destroy()
+            if(global.tuning) {
+                global.tuning.destroy()
+                global.tuning = null
+            }
             if(!succeeded){
                 return this.go()
             }
@@ -102,22 +110,21 @@ class Zap extends Events {
             return
         }
         this.isZapping = state
-        global.ui.emit('is-zapping', this.isZapping, skipOSD)
+        global.renderer.emit('is-zapping', this.isZapping, skipOSD)
         if(!state && force){
             this.zappingLocked = true
             setTimeout(() => this.zappingLocked = false, 2000)
         }
     }
-    async entries(){
-        return await global.watching.entries()
-    }
     async channelsList(){
+        const lists = require('../lists')
+        const watching = require('../watching')
         let channels = [], wdata = {};
-        (await global.watching.entries()).forEach(e => {
+        (await watching.entries()).forEach(e => {
             wdata[e.name] = e.users
         });
         Object.keys(global.channels.channelList.channelsIndex).forEach(name => {
-            if(!global.lists.mi.isRadio(name)){
+            if(!lists.mi.isRadio(name)){
                 channels.push({
                     name,
                     weight: wdata[name] || 1,
@@ -128,14 +135,13 @@ class Zap extends Events {
         return channels
     }
     entry(){
-        const entry = {
+        return {
             name: this.title,
             details: global.lang.ZAP_DESCRIPTION,
             fa: this.icon,
             type: 'action',
             action: () => this.go()
-        }        
-        return entry
+        }
     }
 }
 

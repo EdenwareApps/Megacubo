@@ -1,7 +1,6 @@
+const { EventEmitter } = require('events')
 
-const path = require('path'), fs = require('fs'), Events = require('events'), pLimit = require('p-limit')
-
-class ChannelsList extends Events {
+class ChannelsList extends EventEmitter {
     constructor(type, countries) {
         super()
         this.type = type
@@ -53,33 +52,38 @@ class ChannelsList extends Events {
         await this.load(true)
     }
     async getAdultCategories(){
-        return await global.cloud.get('channels/adult')
+        const cloud = require('../cloud')
+        return await cloud.get('channels/adult')
     }
     async getEPGCategories() {
-        const data = await global.lists.epgLiveNowChannelsList()
+        const lists = require('../lists')
+        const data = await lists.epgLiveNowChannelsList()
         return data.categories
     }
     async getPublicListsCategories() {
         const ret = {}
-        const groups = await global.discovery.providers.find(p => p[1] == 'public')[0].entries(true)
+        const discovery = require('../discovery')
+        await discovery.ready()
+        const groups = await discovery.providers.find(p => p[1] == 'public')[0].entries(true)
         for(const group of groups) {
             if(!group.renderer) continue
             const entries = await group.renderer(group).catch(console.error)
             if(Array.isArray(entries)) {
-                ret[group.name] = entries.filter(e => e.type != 'action').map(e => e.name)
+                ret[group.name] = entries.filter(e => e.type != 'action').map(e => e.name).unique()
             }
         }
         return ret
     }
     async getListsCategories() {
         const ret = {}
-        const groups = await global.lists.groups(['live'], true)
+        const lists = require('../lists')
+        const groups = await lists.groups(['live'], true)
         for(const group of groups) {
-            const entries = await global.lists.group(group).catch(console.error)
+            const entries = await lists.group(group).catch(console.error)
             if(Array.isArray(entries)) {
                 let es = entries.map(e => {
                     return e.name.split(' ').filter(w => {
-                        return w && !global.lists.stopWords.includes(w.toLowerCase())
+                        return w && !lists.stopWords.includes(w.toLowerCase())
                     }).join(' ')
                 }).unique()
                 if(es.length) ret[group.name] = es
@@ -88,32 +92,18 @@ class ChannelsList extends Events {
         return ret
     }
     async getAppRecommendedCategories(amount=256) {
-        let data = {}, weighted = true
+        let data = {}
+        const cloud = require('../cloud')
         const completed = c => {
             return this.mapSize(data) >= amount
         }
-        const processCountry = async country => {
+        for(const country of this.countries) {
             let err
             const isMainCountry = this.countries[0] == country
-            if(!isMainCountry && completed()) throw 'completed'
-            const map = await global.cloud.get('channels/' + country).catch(e => err = e)
-            if(err) return
-            if(!isMainCountry && completed()) throw 'completed'
-            data = await this.applyMapCategories(map, data, amount, isMainCountry ? false : weighted)
-        }
-        const limit = pLimit(2)
-        const tasks = () => this.countries.map(country => {
-            return limit(async () => {
-                return await processCountry(country)
-            })
-        })
-        if(this.countries.length) {
-            await Promise.allSettled(tasks()).catch(console.error)
-            if(!completed()){
-                data = {}
-                weighted = false
-                await Promise.allSettled(tasks()).catch(console.error)
-            }
+            if(!isMainCountry && completed()) break
+            const map = await cloud.get('channels/'+ country).catch(e => err = e)
+            if(err) continue
+            data = await this.applyMapCategories(map, data, amount, !isMainCountry)
         }
         return data
     }
@@ -188,6 +178,7 @@ class ChannelsList extends Events {
         return name
     }
     expandName(name){
+        const lists = require('../lists')
         let terms
         if(name.indexOf(',') != -1){
             terms = name.split(',').map(s => s = s.trim())
@@ -200,7 +191,7 @@ class ChannelsList extends Events {
         } else {
             terms = name
         }
-        terms = global.lists.terms(terms)
+        terms = lists.terms(terms)
         return {name, terms: {name: terms, group: []}}
     }
     compact(data, withTerms){
@@ -250,7 +241,7 @@ class ChannelsList extends Events {
     }
 }
 
-class ChannelsData extends Events {
+class ChannelsData extends EventEmitter {
     constructor(){
         super()
         this.emptyEntry = {
@@ -266,7 +257,9 @@ class ChannelsData extends Events {
         })
         this.radioTerms = ['radio', 'fm', 'am']
         this.load().catch(console.error)
-        global.lists.manager.waitListsReady().then(() => this.load()).catch(console.error)
+
+        const lists = require('../lists')
+        lists.manager.waitListsReady().then(() => this.load()).catch(console.error)
     }
     ready(cb){
         if(this.loaded){
@@ -276,8 +269,9 @@ class ChannelsData extends Events {
         }
     }
     async load(refresh){
+        const lists = require('../lists')
         const hasOwnLists = global.config.get('lists').length
-        const publicMode = global.config.get('public-lists') && !global.lists.loaded(true) // no list available on index beyound public lists
+        const publicMode = global.config.get('public-lists') && !lists.loaded(true) // no list available on index beyound public lists
         const countries = await global.lang.getActiveCountries(0)
         const parentalControlActive = ['remove', 'block'].includes(global.config.get('parental-control'))
         let type = global.config.get('channel-grid')
@@ -305,27 +299,28 @@ class ChannelsEPG extends ChannelsData {
         this.epgIcon = 'fas fa-th'
         this.clockIcon = '<i class="fas fa-clock"></i> '
         const aboutInsertEPGTitle = async data => {
-            if(global.streamer.active.mediaType != 'live'){
+            const streamer = require('../streamer/main')
+            if(streamer.active.mediaType != 'live'){
                 throw 'local file'
             }
-            if(!this.isChannel(global.streamer.active.data.originalName || global.streamer.active.data.name)){
+            if(!this.isChannel(streamer.active.data.originalName || streamer.active.data.name)){
                 throw 'not a channel'
             }
-            const ret = await this.epgChannelLiveNowAndNext(global.streamer.active.data)
+            const ret = await this.epgChannelLiveNowAndNext(streamer.active.data)
             let ks = Object.keys(ret)
-            ret = ks.map((k, i) => {
+            return ks.map((k, i) => {
                 if(i == 0){
                     return {template: 'question', text: ret[k]}
                 } else {
                     return {template: 'message', text: k +': '+ ret[k]}
                 }
             })
-            return ret
         }
-        global.ui.once('streamer-ready', () => { 
-            global.streamer.aboutRegisterEntry('epg', aboutInsertEPGTitle, null, 1)
-            global.streamer.aboutRegisterEntry('epg', aboutInsertEPGTitle, null, 1, true)
-            global.streamer.aboutRegisterEntry('epg-more', () => {
+        global.renderer.once('streamer-ready', () => {
+            const streamer = require('../streamer/main')
+            streamer.aboutRegisterEntry('epg', aboutInsertEPGTitle, null, 1)
+            streamer.aboutRegisterEntry('epg', aboutInsertEPGTitle, null, 1, true)
+            streamer.aboutRegisterEntry('epg-more', () => {
                 if(streamer.active.mediaType == 'live'){
                     return {template: 'option', text: global.lang.EPG, id: 'epg-more', fa: this.epgIcon}
                 }
@@ -344,8 +339,8 @@ class ChannelsEPG extends ChannelsData {
                     })
                     if(!err) {
                         const entries = await this.epgChannelEntries({name}, null, true)
-                        global.explorer.render(entries, global.lang.EPG, 'fas fa-plus', '/')
-                        global.ui.emit('menu-playing')
+                        global.menu.render(entries, global.lang.EPG, 'fas fa-plus', '/')
+                        global.renderer.emit('menu-playing')
                     }
                 } else {
                     global.displayErr(global.lang.CHANNEL_EPG_NOT_FOUND)
@@ -373,10 +368,11 @@ class ChannelsEPG extends ChannelsData {
             action: (e, value) => {
                 if(value){
                     this.epgSearch(value).then(entries => {
+                        const search = require('../search')
+                        let path = global.menu.path.split('/').filter(s => s != global.lang.SEARCH).join('/')
                         entries.unshift(this.epgSearchEntry())
-                        let path = global.explorer.path.split('/').filter(s => s != global.lang.SEARCH).join('/')
-                        global.explorer.render(entries, path + '/' + global.lang.SEARCH, 'fas fa-search', path)
-                        global.search.history.add(value)
+                        global.menu.render(entries, path + '/' + global.lang.SEARCH, 'fas fa-search', path)
+                        search.history.add(value)
                     }).catch(global.displayErr)
                 }
             },
@@ -388,14 +384,15 @@ class ChannelsEPG extends ChannelsData {
     }
     epgSearch(terms, liveNow){
         return new Promise((resolve, reject) => {
+            const lists = require('../lists')
             if(typeof(terms) == 'string'){
-                terms = global.lists.terms(terms)
+                terms = lists.terms(terms)
             }
-            global.lists.epgSearch(terms, liveNow).then(epgData => {                                
+            lists.epgSearch(terms, liveNow).then(epgData => {                                
                 let entries = []
                 console.warn('epgSearch', epgData)
                 Object.keys(epgData).forEach(ch => {
-                    let terms = global.lists.terms(ch)
+                    let terms = lists.terms(ch)
                     entries.push(...this.epgDataToEntries(epgData[ch], ch, terms))
                 })
                 entries = entries.sort((a, b) => {
@@ -438,22 +435,24 @@ class ChannelsEPG extends ChannelsData {
         return ret
     }
     async epgChannel(e, limit){
+        const lists = require('../lists')
         if(typeof(limit) != 'number') limit = 72
         let data = this.epgPrepareSearch(e)
-        return await global.lists.epg(data, limit)
+        return await lists.epg(data, limit)
     }
     async epgChannelEntries(e, limit, detached){
+        const lists = require('../lists')
         if(typeof(limit) != 'number'){
             limit = 72
         }
         let data = this.epgPrepareSearch(e)
-        const epgData = await global.lists.epg(data, limit)
+        const epgData = await lists.epg(data, limit)
         let centries = []
         if(epgData){
             if(typeof(epgData[0]) != 'string'){
                 centries = this.epgDataToEntries(epgData, data.name, data.terms)
                 if(!centries.length){
-                    centries.push(global.explorer.emptyEntry(global.lang.NOT_FOUND))
+                    centries.push(global.menu.emptyEntry(global.lang.NOT_FOUND))
                 }
             }
         }
@@ -462,8 +461,9 @@ class ChannelsEPG extends ChannelsData {
     }
     async epgChannelLiveNow(entry){
         if(!global.activeEPG) throw 'epg not loaded'
+        const lists = require('../lists')
         let channel = this.epgPrepareSearch(entry)
-        let epgData = await global.lists.epg(channel, 1)
+        let epgData = await lists.epg(channel, 1)
         let ret = Object.values(epgData).shift()
         if(ret){
             return ret.t
@@ -478,8 +478,9 @@ class ChannelsEPG extends ChannelsData {
     }
     async epgChannelLiveNowAndNextInfo(entry){
         if(!global.activeEPG) throw 'epg not loaded'
+        const lists = require('../lists')
         let channel = this.epgPrepareSearch(entry)
-        let epgData = await global.lists.epg(channel, 2)
+        let epgData = await lists.epg(channel, 2)
         if(typeof(epgData) == 'string') {
             throw 'epg is loading'
         }
@@ -491,6 +492,7 @@ class ChannelsEPG extends ChannelsData {
             let ret = {now}
             let ks = Object.keys(epgData)
             if(ks.length > 1){
+                const moment = require('moment-timezone')
                 let start = ks.pop()
                 let next = epgData[start]
                 start = moment(start * 1000).fromNow()
@@ -504,8 +506,9 @@ class ChannelsEPG extends ChannelsData {
     }
     async epgChannelsLiveNow(entries){
         if(!global.activeEPG) throw 'epg not loaded'
+        const lists = require('../lists')
         let channels = entries.map(e => this.epgPrepareSearch(e))
-        let epgData = await global.lists.epg(channels, 1)
+        let epgData = await lists.epg(channels, 1)
         let ret = {}
         Object.keys(epgData).forEach(ch => {
             ret[ch] = epgData[ch] ? Object.values(epgData[ch]).shift() : false
@@ -545,8 +548,9 @@ class ChannelsEPG extends ChannelsData {
         }
     }
     async adjustEPGChannelEntryRenderer(e, detached){
+        const lists = require('../lists')
         const terms = this.entryTerms(e).filter(t => !t.startsWith('-'))
-        const options = [], results = await global.lists.epgSearchChannel(terms, 99)
+        const options = [], results = await lists.epgSearchChannel(terms, 99)
         //console.log('adjustEPGChannelEntryRenderer', e, terms, results)
         Object.keys(results).forEach(name => {
             let keys = Object.keys(results[name])
@@ -571,9 +575,10 @@ class ChannelsEPG extends ChannelsData {
                     }
                     global.config.set('epg-map', map)
                     if(detached) {
-                        global.streamer.aboutTrigger('epg-more').catch(console.error)
+                        const streamer = require('../streamer/main')
+                        streamer.aboutTrigger('epg-more').catch(console.error)
                     } else {
-                        global.explorer.back(null, true)
+                        global.menu.back(null, true)
                     }
                 }
             })
@@ -588,7 +593,7 @@ class ChannelsEPG extends ChannelsData {
                 let map = global.config.get('epg-map') || {}
                 map[e.name] = '-'
                 global.config.set('epg-map', map)
-                global.explorer.back(null, true)
+                global.menu.back(null, true)
             }
         })
         //console.log('adjustEPGChannelEntryRenderer', options)
@@ -597,18 +602,21 @@ class ChannelsEPG extends ChannelsData {
     epgProgramAction(start, ch, programme, terms, icon){
         const now = global.time()
         if(programme.e < now){ // missed
-            let text = global.lang.START_DATE +': '+ global.moment(start * 1000).format('L LT') +'<br />'+ global.lang.ENDED +': '+ global.moment(programme.e * 1000).format('L LT')
+            const moment = require('moment-timezone')
+            let text = global.lang.START_DATE +': '+ moment(start * 1000).format('L LT') +'<br />'+ global.lang.ENDED +': '+ moment(programme.e * 1000).format('L LT')
             if(programme.c && programme.c.length){
                 text += '<br />'+ global.lang.CATEGORIES +': '+ programme.c.join(', ')
             }
-            global.explorer.dialog([
+            global.menu.dialog([
                 {template: 'question', text: programme.t +' &middot; '+ ch, fa: 'fas fa-calendar-alt'},
                 {template: 'message', text},
                 {template: 'option', id: 'ok', fa: 'fas fa-check-circle', text: 'OK'}
             ], 'ok').catch(console.error)
         } else if(start <= (now + 300)){ // if it will start in less than 5 min, open it anyway
-            let url = global.mega.build(ch, {terms})
-            global.streamer.play({
+            const streamer = require('../streamer/main')
+            const mega = require('../mega')
+            let url = mega.build(ch, {terms})
+            streamer.play({
                 name: ch,
                 type: 'stream', 
                 fa: 'fas fa-play-circle',
@@ -616,12 +624,13 @@ class ChannelsEPG extends ChannelsData {
                 url,
                 terms: {name: terms, group: []}
             })
-        } else {
-            let text = global.lang.START_DATE +': '+ global.moment(start * 1000).format('L LT')
+        } else {            
+            const moment = require('moment-timezone')
+            let text = global.lang.START_DATE +': '+ moment(start * 1000).format('L LT')
             if(programme.c && programme.c.length){
                 text += '<br />'+ global.lang.CATEGORIES +': '+ programme.c.join(', ')
             }
-            global.explorer.dialog([
+            global.menu.dialog([
                 {template: 'question', text: programme.t +' &middot; '+ ch, fa: 'fas fa-calendar-alt'},
                 {template: 'message', text},
                 {template: 'option', id: 'ok', fa: 'fas fa-check-circle', text: 'OK'}
@@ -640,7 +649,7 @@ class ChannelsEditing extends ChannelsEPG {
             type: 'action',
             fa: 'fas fa-share-alt',
             action: () => {
-                global.ui.emit('share', global.MANIFEST.window.title, e.name, 'https://megacubo.tv/w/' + encodeURIComponent(e.name))
+                global.renderer.emit('share', global.paths.manifest.window.title, e.name, 'https://megacubo.tv/w/' + encodeURIComponent(e.name))
             }
         }
     }
@@ -656,8 +665,9 @@ class ChannelsEditing extends ChannelsEPG {
                     name: global.lang.SELECT_ICON, 
                     details: o.name, type: 'group', 
                     renderer: async () => {
+                        const icons = require('../icon-server')
                         let images = []
-                        const ms = await global.icons.search(terms).catch(console.error)
+                        const ms = await icons.search(terms).catch(console.error)
                         Array.isArray(ms) && images.push(...ms.map(m => m.icon))
                         let ret = images.map((image, i) => {
                             const e =  {
@@ -667,16 +677,16 @@ class ChannelsEditing extends ChannelsEPG {
                                 class: 'entry-icon-no-fallback',
                                 fa: 'fa-mega spin-x-alt',
                                 action: async () => {
-                                    global.explorer.setLoadingEntries([e], true, global.lang.PROCESSING)
+                                    global.menu.setLoadingEntries([e], true, global.lang.PROCESSING)
                                     let err
-                                    const r = await global.icons.fetchURL(image)
-                                    const ret = await global.icons.adjust(r.file, {shouldBeAlpha: false}).catch(global.displayErr)
-                                    const destFile = await global.icons.saveDefaultFile(terms, ret.file).catch(e => err = e)
+                                    const r = await icons.fetchURL(image)
+                                    const ret = await icons.adjust(r.file, {shouldBeAlpha: false}).catch(global.displayErr)
+                                    const destFile = await icons.saveDefaultFile(terms, ret.file).catch(e => err = e)
                                     this.emit('edited', 'icon', e, destFile)
-                                    global.explorer.setLoadingEntries([e], false)
+                                    global.menu.setLoadingEntries([e], false)
                                     if(err) throw err
                                     console.log('icon changed', terms, destFile)
-                                    global.explorer.refreshNow()
+                                    global.menu.refreshNow()
                                     global.osd.show(global.lang.ICON_CHANGED, 'fas fa-check-circle', 'channels', 'normal')
                                 }
                             }
@@ -684,19 +694,19 @@ class ChannelsEditing extends ChannelsEPG {
                         })
                         ret.push({name: global.lang.OPEN_URL, type: 'input', fa: 'fas fa-link', action: async (err, val) => {   
                             console.log('from-url', terms, '') 
-                            const fetched = await global.icons.fetchURL(val)
-                            const ret = await global.icons.adjust(fetched.file, {shouldBeAlpha: false})
-                            const destFile = await global.icons.saveDefaultFile(terms, ret.file)
+                            const fetched = await icons.fetchURL(val)
+                            const ret = await icons.adjust(fetched.file, {shouldBeAlpha: false})
+                            const destFile = await icons.saveDefaultFile(terms, ret.file)
                             this.emit('edited', 'icon', e, destFile)
                             console.log('icon changed', terms, destFile)
-                            global.explorer.refreshNow()
+                            global.menu.refreshNow()
                             global.osd.show(global.lang.ICON_CHANGED, 'fas fa-check-circle', 'channels', 'normal')
                         }})
                         ret.push({name: global.lang.NO_ICON, type: 'action', fa: 'fas fa-ban', action: async () => {
                             console.log('saveDefault', terms, '') 
-                            await global.icons.saveDefaultFile(terms, 'no-icon')
+                            await icons.saveDefaultFile(terms, 'no-icon')
                             this.emit('edited', 'icon', e, null)
-                            global.explorer.refreshNow()
+                            global.menu.refreshNow()
                             global.osd.show(global.lang.ICON_CHANGED, 'fas fa-check-circle', 'channels', 'normal')
                         }})
                         console.warn('icons ret', ret)
@@ -728,9 +738,9 @@ class ChannelsEditing extends ChannelsEPG {
                                 this.channelList.save().then(() => {
                                     const category = _category
                                     console.warn('RENAMED*', this.channelList.categories[category][i], category, i)
-                                    let destPath = global.explorer.path.replace(name, val).replace('/'+ global.lang.RENAME, '')
+                                    let destPath = global.menu.path.replace(name, val).replace('/'+ global.lang.RENAME, '')
                                     console.log('opening', destPath)
-                                    global.explorer.refresh(true, destPath)
+                                    global.menu.refresh(true, destPath)
                                     global.osd.show(global.lang.CHANNEL_RENAMED, 'fas fa-check-circle', 'channels', 'normal')
                                 }).catch(console.error)
                             } 
@@ -751,26 +761,27 @@ class ChannelsEditing extends ChannelsEPG {
                             }
                         })
                         if(i != -1){
+                            const lists = require('../lists')
                             this.channelList.channelsIndex = null
                             this.channelList.categories[category][i] = this.channelList.compactName(name, val)
                             this.emit('edited', 'searchTerms', e, val)
-                            e.terms = o.terms = {name: global.lists.terms(val), group: []}
+                            e.terms = o.terms = {name: lists.terms(val), group: []}
                             await this.channelList.save()
-                            global.explorer.refreshNow()
+                            global.menu.refreshNow()
                         }
                     }},
                     {name: global.lang.REMOVE, fa: 'fas fa-trash', type: 'action', details: o.name, action: async () => {
                         const category = _category
                         console.warn('REMOVE', name)
                         if(!this.channelList.categories[category]) {
-                            global.explorer.open(global.lang.LIVE).catch(displayErr)
+                            global.menu.open(global.lang.LIVE).catch(displayErr)
                             return
                         }
                         this.channelList.categories[category] = this.channelList.categories[category].filter(c => {
                             return c.split(',')[0] != name
                         })
                         await this.channelList.save()
-                        global.explorer.refresh(true, global.explorer.dirname(global.explorer.dirname(global.explorer.path)))
+                        global.menu.refresh(true, global.menu.dirname(global.menu.dirname(global.menu.path)))
                         global.osd.show(global.lang.CHANNEL_REMOVED, 'fas fa-check-circle', 'channels', 'normal')
                     }}
                 ])
@@ -788,8 +799,8 @@ class ChannelsEditing extends ChannelsEPG {
                 this.channelList.categories[val] = []
                 await this.channelList.save()
                 console.warn('saved', global.lang.LIVE +'/'+ val +'/'+ global.lang.EDIT_CATEGORY)
-                delete global.explorer.pages[global.lang.LIVE]
-                global.explorer.open(global.lang.LIVE +'/'+ val +'/'+ global.lang.EDIT_CATEGORY +'/'+ global.lang.EDIT_CHANNELS).catch(displayErr)
+                delete global.menu.pages[global.lang.LIVE]
+                global.menu.open(global.lang.LIVE +'/'+ val +'/'+ global.lang.EDIT_CATEGORY +'/'+ global.lang.EDIT_CHANNELS).catch(displayErr)
             }
         }}
     }
@@ -830,15 +841,15 @@ class ChannelsEditing extends ChannelsEPG {
                         delete this.channelList.categories[cat.name]
                         this.channelList.categories[val] = o
                         await this.channelList.save()
-                        let destPath = global.explorer.path.replace(cat.name, val).replace('/'+ global.lang.RENAME_CATEGORY, '')
-                        global.explorer.refresh(true, destPath)
+                        let destPath = global.menu.path.replace(cat.name, val).replace('/'+ global.lang.RENAME_CATEGORY, '')
+                        global.menu.refresh(true, destPath)
                         global.osd.show(global.lang.CATEGORY_RENAMED, 'fas fa-check-circle', 'channels', 'normal')
                     }
                 }},
                 {name: global.lang.REMOVE_CATEGORY, fa: 'fas fa-trash', type: 'action', details: cat.name, action: async () => {
                     delete this.channelList.categories[cat.name]
                     await this.channelList.save()
-                    global.explorer.open(global.lang.LIVE).catch(displayErr)
+                    global.menu.open(global.lang.LIVE).catch(displayErr)
                     global.osd.show(global.lang.CATEGORY_REMOVED, 'fas fa-check-circle', 'channels', 'normal')
                 }}
             ]
@@ -861,11 +872,11 @@ class ChannelsEditing extends ChannelsEPG {
                     if(this.channelList.categories[catName] && !this.channelList.categories[catName].includes(val)){
                         this.channelList.categories[catName].push(val)
                         await this.channelList.save()
-                        let targetPath = global.explorer.path
+                        let targetPath = global.menu.path
                         if(inline !== true){
-                            targetPath = global.explorer.dirname(targetPath)
+                            targetPath = global.menu.dirname(targetPath)
                         }
-                        global.explorer.refreshNow()
+                        global.menu.refreshNow()
                         global.osd.show(global.lang.CHANNEL_ADDED, 'fas fa-check-circle', 'channels', 'normal')
                     }
                 }
@@ -879,13 +890,14 @@ class ChannelsAutoWatchNow extends ChannelsEditing {
         super()
         this.watchNowAuto = false
         this.disableWatchNowAuto = false
-        global.uiReady(() => {
-            global.explorer.on('render', (entries, path) => {
+        global.rendererReady(() => {
+            global.menu.on('render', (entries, path) => {
                 if(path != this.watchNowAuto){
                     this.watchNowAuto = false
                 }
             })
-            global.streamer.on('stop-from-client', () => {
+            const streamer = require('../streamer/main')
+            streamer.on('stop-from-client', () => {
                 this.watchNowAuto = false
             })
         })
@@ -901,8 +913,8 @@ class ChannelsAutoWatchNow extends ChannelsEditing {
 class ChannelsKids extends ChannelsAutoWatchNow {
     constructor(){
         super()
-        global.uiReady(() => {
-            global.explorer.addFilter(async (entries, path) => { 
+        global.rendererReady(() => {
+            global.menu.addFilter(async (entries, path) => { 
                 const term = global.lang.CATEGORY_KIDS // lang can change in runtime, check the term here so
                 if(path.substr(term.length * -1) == term){
                     entries = entries.map(e => {
@@ -934,8 +946,9 @@ class Channels extends ChannelsKids {
     }
     async goChannelWebsite(name){
         if(!name){
-            if(global.streamer.active){
-                name = global.streamer.active.data.originalName || global.streamer.active.data.name
+            const streamer = require('../streamer/main')
+            if(streamer.active){
+                name = streamer.active.data.originalName || streamer.active.data.name
             } else {
                 return false
             }
@@ -946,7 +959,7 @@ class Channels extends ChannelsKids {
         if(matches && matches[1] && matches[1].indexOf('google.com') == -1){
             url = matches[1]
         }        
-        global.ui.emit('open-external-url', url)
+        global.renderer.emit('open-external-url', url)
     }
     getAllChannels(){
         let list = []
@@ -1043,6 +1056,7 @@ class Channels extends ChannelsKids {
 		return 0
 	}
     isChannel(terms){
+        const lists = require('../lists')
         let tms, tmsKey, chs = this.channelList.channelsIndex || {}
         if(Array.isArray(terms)){
             tms = terms
@@ -1054,12 +1068,12 @@ class Channels extends ChannelsKids {
             if(typeof(chs[terms]) != 'undefined'){
                 tms = chs[terms]
             } else {
-                tms = global.lists.terms(terms)
+                tms = lists.terms(terms)
             }
         }
         let chosen, chosenScore = -1
         Object.keys(chs).forEach(name => {
-            let score = global.lists.match(chs[name], tms, false)
+            let score = lists.match(chs[name], tms, false)
             if(score){
                 if(score > chosenScore){
                     chosen = name
@@ -1072,7 +1086,7 @@ class Channels extends ChannelsKids {
                 let alts = {}, excludes = [], chTerms = global.deepClone(chs[chosen])
                 Object.keys(chs).forEach(name => {
                     if(name == chosen) return
-                    let score = global.lists.match(chTerms, chs[name], false)
+                    let score = lists.match(chTerms, chs[name], false)
                     if(score){
                         alts[name] = chs[name]
                     }
@@ -1104,7 +1118,8 @@ class Channels extends ChannelsKids {
     }
     expandTerms(terms){
         if(typeof(terms) == 'string'){
-            terms = global.lists.terms(terms)
+            const lists = require('../lists')
+            terms = lists.terms(terms)
         }
         let ch = this.isChannel(terms)
         if(ch){
@@ -1113,23 +1128,26 @@ class Channels extends ChannelsKids {
         return terms
     }
     async get(terms){
+        const lists = require('../lists')
         if(typeof(terms) == 'string'){
-            terms = global.lists.terms(terms)
+            terms = lists.terms(terms)
         }
         console.warn('channels.get', terms)
-        let ret = await global.lists.search(terms, {
-            safe: !global.lists.parentalControl.lazyAuth(),
+        let ret = await lists.search(terms, {
+            safe: !lists.parentalControl.lazyAuth(),
             type: 'live',
             limit: 1024
         })
         let entries = ret.results
-        await global.watching.order(entries).then(es => entries = es).catch(console.error)
+        const watching = require('../watching')
+        await watching.order(entries).then(es => entries = es).catch(console.error)
         return entries
     }
     search(terms, partial){
         return new Promise((resolve, reject) => {
             if(typeof(terms) == 'string'){
-                terms = global.lists.terms(terms)
+                const lists = require('../lists')
+                terms = lists.terms(terms)
             }
             let epgEntries = [], entries = [], already = {}
             let matchAll = !terms.length || (terms.length == 1 && terms[0] == '*')
@@ -1170,20 +1188,21 @@ class Channels extends ChannelsKids {
         })
     }
     entryTerms(e){
+        const lists = require('../lists')
         let terms
         if(e.originalName) {
-            terms = global.lists.terms(e.originalName)
+            terms = lists.terms(e.originalName)
         } else if(Array.isArray(e.terms) && e.terms.length) {
             terms = e.terms
         } else if(typeof(e.terms) != 'undefined' && typeof(e.terms.name) != 'undefined' && Array.isArray(e.terms.name) && e.terms.name.length) {
             terms = e.terms.name
         } else {
-            terms = global.lists.terms(e.programme ? e.programme.ch : e.name)
+            terms = lists.terms(e.programme ? e.programme.ch : e.name)
         }
         return this.expandTerms(terms)
     }
     async toMetaEntryRenderer(e, _category, epgNow){
-        let category
+        let category, channelName = e.originalName || (e.programme ? e.programme.ch : e.name)
         if(_category === false){
             category = false
         } else if(_category && typeof(_category) == 'string') {
@@ -1191,22 +1210,24 @@ class Channels extends ChannelsKids {
         } else if(_category && typeof(_category) == 'object') {
             category = _category.name
         } else {
-            let c = this.getChannelCategory(e.name)
+            let c = this.getChannelCategory(e.originalName || e.name)
             if(c){
                 category = c
             } else {
                 category = false
             }
         }
+        console.error('CATEGORY=='+ JSON.stringify({category, channelName, _category}))
         let terms = this.entryTerms(e), streamsEntry, epgEntry, entries = [], moreOptions = [], url = e.url
         if(!url){
-            let name = e.programme ? e.programme.ch : e.name
+            let name = channelName
             let ch = this.isChannel(name)
             if(ch){
-                name = ch.name
+                channelName = name = ch.name
                 terms = ch.terms
             }
-            e.url = url = global.mega.build(name, {terms})
+            const mega = require('../mega')
+            e.url = url = mega.build(name, {terms})
         }
         const autoplay = this.autoplay(), streams = await this.get(terms)
         streams.forEach((e, i) => {
@@ -1216,14 +1237,16 @@ class Channels extends ChannelsKids {
         })
         if(autoplay){
             if(streams.length){
-                global.streamer.play(e, streams)
+                const streamer = require('../streamer/main')
+                streamer.play(e, streams)
                 return -1
             } else {
                 throw global.lang.NONE_STREAM_FOUND
             }
         } else {
+            const lists = require('../lists')
             if(streams.length) {
-                let call = global.lists.mi.isRadio(e.name +' '+ category) ? global.lang.LISTEN_NOW : global.lang.WATCH_NOW
+                let call = lists.mi.isRadio(channelName +' '+ category) ? global.lang.LISTEN_NOW : global.lang.WATCH_NOW
                 entries.push({
                     name: call, 
                     type: 'action',
@@ -1231,9 +1254,10 @@ class Channels extends ChannelsKids {
                     url,
                     group: category,
                     action: data => {
+                        const streamer = require('../streamer/main')
                         data.name = e.name
-                        global.streamer.play(data, streams)
-                        this.watchNowAuto = global.explorer.path
+                        streamer.play(data, streams)
+                        this.watchNowAuto = global.menu.path
                     }
                 })
                 streamsEntry = {
@@ -1251,25 +1275,26 @@ class Channels extends ChannelsKids {
                     }
                 }
             } else {
-                const name = global.lists.loaded(true) ? global.lang.NONE_STREAM_FOUND : global.lang.NO_LISTS_ADDED
+                const name = lists.loaded(true) ? global.lang.NONE_STREAM_FOUND : global.lang.NO_LISTS_ADDED
                 entries.push(Object.assign(this.emptyEntry, { name }))
-                if(global.lists.activeLists.my.length) {
-                    global.lists.manager.checkListExpiral(
-                        global.lists.activeLists.my.map(source => ({source}))
+                if(lists.activeLists.my.length) {
+                    lists.manager.checkListExpiral(
+                        lists.activeLists.my.map(source => ({source}))
                     ).catch(console.error)
                 }
             }
         }
         if(entries.length){
-            let bookmarkable = {name: e.name, type: 'stream', label: e.group || '', url}
-            if(global.bookmarks.has(bookmarkable)){
+            const bookmarks = require('../bookmarks')
+            let bookmarkable = {name: channelName, type: 'stream', label: e.group || '', url}
+            if(bookmarks.has(bookmarkable)){
                 entries.push({
                     type: 'action',
                     fa: 'fas fa-star-half',
                     name: global.lang.REMOVE_FROM.format(global.lang.BOOKMARKS),
                     action: () => {
-                        global.bookmarks.remove(bookmarkable)
-                        global.explorer.refreshNow()
+                        bookmarks.remove(bookmarkable)
+                        global.menu.refreshNow()
                         global.osd.show(global.lang.BOOKMARK_REMOVED.format(bookmarkable.name), 'fas fa-star-half', 'bookmarks', 'normal')
                     }
                 })
@@ -1279,8 +1304,8 @@ class Channels extends ChannelsKids {
                     fa: 'fas fa-star',
                     name: global.lang.ADD_TO.format(global.lang.BOOKMARKS),
                     action: () => {
-                        global.bookmarks.add(bookmarkable)
-                        global.explorer.refreshNow()
+                        bookmarks.add(bookmarkable)
+                        global.menu.refreshNow()
                         global.osd.show(global.lang.BOOKMARK_ADDED.format(bookmarkable.name), 'fas fa-star', 'bookmarks', 'normal')
                     }
                 })
@@ -1302,7 +1327,7 @@ class Channels extends ChannelsKids {
             fa: 'fas fa-globe',
             name: global.lang.CHANNEL_WEBSITE,
             action: () => {
-                this.goChannelWebsite(e.name).catch(global.displayErr)
+                this.goChannelWebsite(channelName).catch(global.displayErr)
             }
         })
         entries.push({name: global.lang.MORE_OPTIONS, type: 'select', fa: 'fas fa-ellipsis-v', entries: moreOptions})
@@ -1333,6 +1358,7 @@ class Channels extends ChannelsKids {
         })
     }
     toMetaEntry(e, category, details){
+        const mega = require('../mega')
         let meta = Object.assign({}, e), terms = this.entryTerms(e)        
         if(typeof(meta.url) == 'undefined'){
             let name = e.name
@@ -1344,10 +1370,10 @@ class Channels extends ChannelsKids {
                 name = ch.name
                 terms = ch.terms
             }
-            meta.url = global.mega.build(name, {terms})
+            meta.url = mega.build(name, {terms})
         }
-        if(global.mega.isMega(meta.url)){
-            let atts = Object.assign({}, global.mega.parse(meta.url))
+        if(mega.isMega(meta.url)){
+            let atts = Object.assign({}, mega.parse(meta.url))
             Object.assign(atts, meta)
             if(['all', 'video'].includes(atts.mediaType)){
                 Object.assign(meta, {
@@ -1355,14 +1381,15 @@ class Channels extends ChannelsKids {
                     class: 'entry-meta-stream',
                     fa: 'fas fa-play-circle' ,
                     renderer: async () => {
-                        let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.terms(atts.name)
-                        let es = await global.lists.search(terms, {
+                        const lists = require('../lists')
+                        let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : lists.terms(atts.name)
+                        let es = await lists.search(terms, {
                             type: atts.mediaType,
                             group: true,
-                            safe: !global.lists.parentalControl.lazyAuth(),
+                            safe: !lists.parentalControl.lazyAuth(),
                             limit: 1024
                         })
-                        return global.lists.tools.paginateList(es.results)
+                        return lists.tools.paginateList(es.results)
                     }
                 })
             } else {
@@ -1395,42 +1422,52 @@ class Channels extends ChannelsKids {
         await this.load(true).catch(e => err = e)
         if(err) return global.osd.show(err, 'fas fa-exclamation-triangle faclr-red', 'channel-grid', 'normal')
         this.emit('channel-grid-updated')
-        global.explorer.once('render', () => {
+        global.menu.once('render', () => {
             global.osd.show('OK', 'fas fa-check-circle faclr-green', 'channel-grid', 'normal')
         })
-        global.explorer.refreshNow()
+        global.menu.refreshNow()
     }
     async entries(){
-        if(!global.lists.loaded()) {
-            return [global.lists.manager.updatingListsEntry()]
+        const lists = require('../lists')
+        if(!lists.loaded()) {
+            return [lists.manager.updatingListsEntry()]
         }
         let list
-        const publicMode = global.config.get('public-lists') && !global.lists.loaded(true) // no list available on index beyound public lists
+        const publicMode = global.config.get('public-lists') && !(global.ALLOW_ADDING_LISTS && lists.loaded(true)) // no list available on index beyound public lists
         const type = publicMode ? 'public' : global.config.get('channel-grid')
         const editable = !type && global.config.get('allow-edit-channel-list')
         const categories = await this.channelList.getCategories()
-        list = categories.map(category => {
-            category.renderer = async (c, e) => {
-                let times = {}, startTime = global.time()
-                let channels = category.entries.map(e => this.isChannel(e.name)).filter(e => !!e)
-                const ret = await global.lists.has(channels, {partial: false})
-                times['has'] = global.time() - startTime
-                let entries = category.entries.filter(e => ret[e.name])
-                entries = entries.map(e => this.toMetaEntry(e, category))
-                times['meta'] = global.time() - startTime - times['has']
+        if(publicMode) {
+            list = []
+            for(const category of Object.keys(categories)) {
+                let channels = categories[category].entries.map(e => this.isChannel(e.name)).filter(e => !!e)
+                const ret = await lists.has(channels, {partial: false})
+                let entries = categories[category].entries.filter(e => ret[e.name])
+                entries = entries.map(e => this.toMetaEntry(e, categories[category]))
                 entries = await this.epgChannelsAddLiveNow(entries, true)
-                entries = this.sortCategoryEntries(entries)
-                editable && entries.push(this.editCategoryEntry(c))
-                times['epg'] = global.time() - startTime - times['has'] - times['meta']
-                return entries
+                list.push(...entries)
             }
-            return category
-        })
-        list = global.lists.sort(list)
-        list.push(this.allCategoriesEntry())
-        editable && list.push(this.getCategoryEntry())
-        list.unshift(this.chooseChannelGridOption())
-        publicMode && global.ALLOW_ADDING_LISTS && list.unshift(global.lists.manager.noListsEntry())
+            list = lists.sort(list)
+        } else {
+            list = categories.map(category => {
+                category.renderer = async (c, e) => {
+                    let channels = category.entries.map(e => this.isChannel(e.name)).filter(e => !!e)
+                    const ret = await lists.has(channels, {partial: false})
+                    let entries = category.entries.filter(e => ret[e.name])
+                    entries = entries.map(e => this.toMetaEntry(e, category))
+                    entries = await this.epgChannelsAddLiveNow(entries, true)
+                    entries = this.sortCategoryEntries(entries)
+                    editable && entries.push(this.editCategoryEntry(c))
+                    return entries
+                }
+                return category
+            })
+            list = lists.sort(list)
+            list.push(this.allCategoriesEntry())
+        }
+        editable && !publicMode && list.push(this.getCategoryEntry())
+        publicMode || list.unshift(this.chooseChannelGridOption())
+        publicMode && global.ALLOW_ADDING_LISTS && list.unshift(lists.manager.noListsEntry())
         return list
     }
     allCategoriesEntry() {
@@ -1438,6 +1475,7 @@ class Channels extends ChannelsKids {
             name: global.lang.ALL_CHANNELS,
             type: 'group',
             renderer: async () => {
+                const lists = require('../lists')
                 let entries = [], already = {}
                 for(const category of this.channelList.getCategories()) {
                     category.entries.map(e => this.isChannel(e.name)).filter(e => {
@@ -1450,8 +1488,8 @@ class Channels extends ChannelsKids {
                     })
                 }
                 entries = await this.epgChannelsAddLiveNow(entries, true)
-                entries = global.lists.sort(entries)
-                return global.lists.tools.paginateList(global.lists.sort(entries))
+                entries = lists.sort(entries)
+                return lists.tools.paginateList(lists.sort(entries))
             }
         }
     }
@@ -1494,7 +1532,8 @@ class Channels extends ChannelsKids {
         }
     }
     sortCategoryEntries(entries){
-        entries = global.lists.sort(entries)                                
+        const lists = require('../lists')
+        entries = lists.sort(entries)                                
         const policy = global.config.get('channels-list-smart-sorting')
         /*
         0 = Focus on EPG data.
@@ -1512,7 +1551,8 @@ class Channels extends ChannelsKids {
                 break
             default: // 0
                 const adjust = es => {
-                    return global.lists.sort(es.map(e => {
+                    const lists = require('../lists')
+                    return lists.sort(es.map(e => {
                         e.details = e.name
                         e.name = e.programme.t
                         return e
@@ -1557,10 +1597,12 @@ class Channels extends ChannelsKids {
                     type: 'action',
                     fa: 'fas fa-file-export', 
                     action: () => {
-                        const filename = 'categories.json', file = global.downloads.folder + path.sep + filename
+                        const fs = require('fs')
+                        const downloads = require('../downloads')
+                        const filename = 'categories.json', file = downloads.folder +'/'+ filename
                         fs.writeFile(file, JSON.stringify(this.channelList.getCategories(true), null, 3), {encoding: 'utf-8'}, err => {
                             if(err) return global.displayErr(err)
-                            global.downloads.serve(file, true, false).catch(global.displayErr)
+                            downloads.serve(file, true, false).catch(global.displayErr)
                         })
                     }
                 },
@@ -1570,7 +1612,8 @@ class Channels extends ChannelsKids {
                     fa: 'fas fa-file-import', 
                     action: async () => {
                         global.config.set('channel-grid', '')
-                        const file = await global.explorer.chooseFile('application/json')
+                        const fs = require('fs')
+                        const file = await global.menu.chooseFile('application/json')
                         this.importFile(await fs.promises.readFile(file))
                     }
                 },
@@ -1590,19 +1633,20 @@ class Channels extends ChannelsKids {
     }
     options(){
         return new Promise((resolve, reject) => {
+            const lists = require('../lists')
             let entries = []
             if(!global.config.get('channel-grid') && global.config.get('allow-edit-channel-list')){
                 entries.push(this.editCategoriesEntry())
             }
             entries.push(this.exportImportOption())
-            global.ALLOW_ADDING_LISTS && entries.push(global.lists.manager.listsEntry(true))
+            global.ALLOW_ADDING_LISTS && entries.push(lists.manager.listsEntry(true))
             entries.push(...[
                 {
                     name: global.lang.ALLOW_EDIT_CHANNEL_LIST,
                     type: 'check',
                     action: (e, checked) => {
                         global.config.set('allow-edit-channel-list', checked)
-                        global.explorer.refreshNow()
+                        global.menu.refreshNow()
                     }, 
                     checked: () => {
                         return global.config.get('allow-edit-channel-list')
@@ -1612,8 +1656,9 @@ class Channels extends ChannelsKids {
                     name: global.lang.ONLY_KNOWN_CHANNELS_IN_X.format(global.lang.TRENDING),
                     type: 'check',
                     action: (e, checked) => {
+                        const watching = require('../watching')
                         global.config.set('only-known-channels-in-trending', checked)
-                        global.watching.update().catch(console.error)
+                        watching.update().catch(console.error)
                     }, 
                     checked: () => {
                         return global.config.get('only-known-channels-in-trending')
@@ -1623,8 +1668,9 @@ class Channels extends ChannelsKids {
                     name: global.lang.SHOW_POPULAR_SEARCHES.format(global.lang.TRENDING),
                     type: 'check',
                     action: (e, checked) => {
+                        const watching = require('../watching')
                         global.config.set('popular-searches-in-trending', checked)
-                        global.watching.update().catch(console.error)
+                        watching.update().catch(console.error)
                     }, 
                     checked: () => {
                         return global.config.get('popular-searches-in-trending')
@@ -1677,14 +1723,15 @@ class Channels extends ChannelsKids {
         })
     }
     async groupsRenderer(type, opts={}){
-        if(!global.lists.loaded()){
-            return [global.lists.manager.updatingListsEntry()]
+        const lists = require('../lists')
+        if(!lists.loaded()){
+            return [lists.manager.updatingListsEntry()]
         }
         const isSeries = type == 'series'
-        let groups = await global.lists.groups(type ? [type] : ['series', 'vod'], opts.myListsOnly)
-        if(!groups.length && !global.lists.loaded(true)){
+        let groups = await lists.groups(type ? [type] : ['series', 'vod'], opts.myListsOnly)
+        if(!groups.length && !lists.loaded(true)){
             if(global.ALLOW_ADDING_LISTS) {
-                return [global.lists.manager.noListsEntry()]
+                return [lists.manager.noListsEntry()]
             }
             return []
         }
@@ -1707,16 +1754,16 @@ class Channels extends ChannelsKids {
         }
         const parentalFilter = entries => {
             if(acpolicy == 'block'){
-                entries = global.lists.parentalControl.filter(entries)
+                entries = lists.parentalControl.filter(entries)
             } else if(acpolicy == 'remove'){
-                entries = global.lists.parentalControl.filter(entries)		
+                entries = lists.parentalControl.filter(entries)		
             } else if(acpolicy == 'only') {
-                entries = global.lists.parentalControl.only(entries)
+                entries = lists.parentalControl.only(entries)
             }
             return entries
         }        
         const renderer = async group => {
-            let entries = await global.lists.group(group).catch(global.displayErr)
+            let entries = await lists.group(group).catch(global.displayErr)
             if(Array.isArray(entries)) {
                 let gentries = (group.entries || []).map(g => groupToEntry(g))
                 while(entries.length == 1){
@@ -1733,7 +1780,7 @@ class Channels extends ChannelsKids {
                 }
                 gentries.push(...entries)
                 gentries = parentalFilter(gentries).sortByProp('name')
-                const deepEntries = await global.lists.tools.deepify(gentries, {source: group.url}).catch(console.error)
+                const deepEntries = await lists.tools.deepify(gentries, {source: group.url}).catch(console.error)
                 if(Array.isArray(deepEntries)) {
                     gentries = deepEntries
                 }
@@ -1744,7 +1791,7 @@ class Channels extends ChannelsKids {
         }
         let pentries = parentalFilter(groups).map(group => groupToEntry(group))
         if(opts.deepify !== false) {
-            const deepEntries = await global.lists.tools.deepify(pentries).catch(console.error)
+            const deepEntries = await lists.tools.deepify(pentries).catch(console.error)
             if(Array.isArray(deepEntries)) {
                 pentries = deepEntries
             }
@@ -1753,11 +1800,16 @@ class Channels extends ChannelsKids {
     }
     async hook(entries, path){
         if(!path) {
+            const options = require('../options')
             const liveEntry = {name: global.lang.LIVE, fa: 'fas fa-tv', details: '<i class="fas fa-th"></i>&nbsp; '+ global.lang.ALL_CHANNELS, type: 'group', renderer: this.entries.bind(this)}
-            global.options.insertEntry(liveEntry, entries, 1, global.lang.MY_LISTS)
+            options.insertEntry(liveEntry, entries, 1, global.lang.MY_LISTS)
             if(global.ALLOW_ADDING_LISTS) {
-                const moviesEntry = {name: global.lang.CATEGORY_MOVIES_SERIES,  fa: 'fas fa-th', details: '', type: 'group', renderer: () => this.groupsRenderer('')}
-                global.options.insertEntry(moviesEntry, entries, -1, [global.lang.OPTIONS, global.lang.TOOLS])
+                const moviesEntry = {
+                    name: global.lang.CATEGORY_MOVIES_SERIES,
+                    fa: 'fas fa-th', details: '', type: 'group',
+                    renderer: () => this.groupsRenderer('')
+                }
+                options.insertEntry(moviesEntry, entries, -1, [global.lang.OPTIONS, global.lang.TOOLS], [global.lang.LIVE])
             }
         }
         return entries

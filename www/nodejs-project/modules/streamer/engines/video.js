@@ -1,4 +1,4 @@
-const fs = require('fs'), StreamerBaseIntent = require('./base.js'), StreamerProxy = require('../utils/proxy.js')
+const StreamerBaseIntent = require('./base.js')
 
 class StreamerVideoIntent extends StreamerBaseIntent {    
     constructor(data, opts, info){
@@ -27,7 +27,8 @@ class StreamerVideoIntent extends StreamerBaseIntent {
             if(isLocalFile || isLocalHost) {
                 this.endpoint = this.data.url
                 if(isLocalFile){
-                    global.downloads.serve(this.data.url, false, false).then(url => {
+                    const downloads = require('../../downloads')
+                    downloads.serve(this.data.url, false, false).then(url => {
                         this.endpoint = url
                         resolve()
                     }).catch(reject)
@@ -35,6 +36,7 @@ class StreamerVideoIntent extends StreamerBaseIntent {
                     resolve()
                 }
             } else {
+                const StreamerProxy = require('../utils/proxy.js')
                 const adapter = new StreamerProxy(Object.assign({
                     authURL: this.data.authURL || this.data.source,
                     timeout: global.config.get('read-timeout')
@@ -57,7 +59,8 @@ class StreamerVideoIntent extends StreamerBaseIntent {
 StreamerVideoIntent.mediaType = 'video'
 StreamerVideoIntent.supports = info => {
     if(info.ext){
-        if(info.sample && global.streamer.isPacketized(info.sample)) {
+        const streamer = require('../main')
+        if(info.sample && streamer.isPacketized(info.sample)) {
             return false // is vod-ts
         }
         if(['mp4', 'mkv', 'm4v', 'mov', 'mpeg', 'webm', 'ogv', 'hevc', 'wmv', 'divx', 'avi', 'asf'].includes(info.ext)){

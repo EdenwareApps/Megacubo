@@ -1,7 +1,6 @@
-const path = require('path'), Events = require('events')
-const { default: PQueue } = require('p-queue'), ConnRacing = require('../conn-racing')
+const { EventEmitter } = require('events')
 
-class ListsLoader extends Events {
+class ListsLoader extends EventEmitter {
     constructor(master, opts) {
         super()
         const concurrency = global.config.get('lists-loader-concurrency') || 3 // avoid too many concurrency on mobiles
@@ -9,6 +8,8 @@ class ListsLoader extends Events {
         this.master = master
         this.opts = opts || {}
         this.progresses = {}
+
+        const { default: PQueue } = require('p-queue')
         this.queue = new PQueue({ concurrency })
         this.osdID = 'lists-loader'
         this.tried = 0
@@ -19,12 +20,14 @@ class ListsLoader extends Events {
         this.publicListsActive = global.config.get('public-lists')
         this.communityListsAmount = global.config.get('communitary-mode-lists-amount')
         this.enqueue(this.myCurrentLists, 1)
-        global.uiReady(async () => {
-            global.discovery.on('found', () => this.resetLowPriorityUpdates())
-            global.streamer.on('commit', () => this.pause())
-            global.streamer.on('stop', () => {
+        global.rendererReady(async () => {
+            const streamer = require('../streamer/main')
+            const discovery = require('../discovery')
+            discovery.on('found', () => this.resetLowPriorityUpdates())
+            streamer.on('commit', () => this.pause())
+            streamer.on('stop', () => {
                 setTimeout(() => {
-                    global.streamer.active || this.resume()
+                    streamer.active || this.resume()
                 }, 2000) // wait 2 seconds, maybe user was just switching channels
             })
             this.resetLowPriorityUpdates()
@@ -106,7 +109,8 @@ class ListsLoader extends Events {
         this.master.updaterFinished(false)
 
         this.debug && console.error('[listsLoader] resetLowPriorityUpdates(1)')
-        const lists = await global.discovery.get(maxListsToTry)
+        const discovery = require('../discovery')
+        const lists = await discovery.get(maxListsToTry)
         const loadingLists = []
         lists.some(({url, type}) => {
             if( !this.myCurrentLists.includes(url) && 
@@ -134,9 +138,9 @@ class ListsLoader extends Events {
     async prepareUpdater(){
         if(!this.updater || this.updater.finished === true) {
             this.debug && console.error('[listsLoader] Creating updater worker')
-            const MultiWorker = require('../multi-worker')
-            this.worker = new MultiWorker()
-            const updater = this.updater = this.worker.load(path.join(__dirname, 'updater-worker'))
+            const workers = require('../multi-worker/main')
+            const path = require('path')
+            const updater = this.updater = workers.load(path.join(__dirname, 'updater-worker'))
             this.once('destroy', () => updater.terminate())
             this.updaterClients = 1
             this.updater.on('progress', p => {
@@ -194,7 +198,9 @@ class ListsLoader extends Events {
         })
         urls.forEach(u => this.pings[u] = 0)
         already.sortByProp('time').map(u => u.url).forEach(url => this.schedule(url, priority))
+        
         const start = global.time()
+        const ConnRacing = require('../conn-racing')
         const racing = new ConnRacing(urls, {retries: 1, timeout: 8})
         this.debug && console.error('[listsLoader] enqueue conn racing: '+ urls.join("\n"))
 		for(let i=0; i<urls.length; i++) {

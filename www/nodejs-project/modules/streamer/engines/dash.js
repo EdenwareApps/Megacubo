@@ -1,4 +1,4 @@
-const StreamerBaseIntent = require('./base.js'), StreamerProxy = require('../utils/proxy')
+const StreamerBaseIntent = require('./base.js')
 
 class StreamerDashIntent extends StreamerBaseIntent {    
     constructor(data, opts, info){
@@ -15,6 +15,7 @@ class StreamerDashIntent extends StreamerBaseIntent {
         })
     }  
     async _start(){
+        const StreamerProxy = require('../utils/proxy')
         this.prx = new StreamerProxy(Object.assign({
             authURL: this.data.authURL || this.data.source,
             discardContentLength: true

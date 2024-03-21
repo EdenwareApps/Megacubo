@@ -1,11 +1,8 @@
-const pLimit = require('p-limit')
-
 class CloudConfiguration {
     constructor(opts){
         this.debug = false
         this.defaultServer = 'http://app.megacubo.net'
         this.server = global.config.get('config-server') || this.defaultServer
-        this.locale = global.lang.locale
         this.expires = {
             'searching': 6 * 3600,
             'channels': 6 * 3600,
@@ -17,11 +14,10 @@ class CloudConfiguration {
         this.notFound = []
 		if(opts){
 			Object.keys(opts).forEach(k => this[k] = opts[k])
-        }
-        if(this.locale.length > 2){
-            this.locale = this.locale.substr(0, 2)
-        }
-        this.cachingDomain = 'cloud-' + this.locale + '-'
+        }        
+    }
+    cachingDomain() {
+        return 'cloud-' + global.lang.locale + '-'
     }
     getCountry(ip){
         return new Promise((resolve, reject) => {
@@ -71,7 +67,7 @@ class CloudConfiguration {
         } else if(key.indexOf('/') != -1 || key.indexOf('.') != -1) {
             return this.server + '/stats/data/' + key + '.json'
         } else {
-            return this.server + '/stats/data/' + key + '.' + this.locale +'.json'
+            return this.server + '/stats/data/' + key + '.' + global.lang.locale +'.json'
         }
     }
     async get(key, raw, validator){
@@ -83,7 +79,8 @@ class CloudConfiguration {
         }
         const expiralKey = key.split('/')[0].split('.')[0]
         const permanent = 'configure' == expiralKey
-        let data = await global.storage.get(this.cachingDomain + key).catch(console.error)
+        const cachingDomain = this.cachingDomain()
+        let data = await global.storage.get(cachingDomain + key).catch(console.error)
         if(data){
             if(this.debug){
                 console.log('cloud: got cache', key)
@@ -115,8 +112,8 @@ class CloudConfiguration {
                 console.log('cloud: got', key, body, this.expires[expiralKey])
             }
             if(typeof(this.expires[expiralKey]) != 'undefined'){
-                global.storage.set(this.cachingDomain + key, body, {ttl: this.expires[expiralKey], permanent})
-                global.storage.set(this.cachingDomain + key + '-fallback', body, {expiration: true, permanent})
+                global.storage.set(cachingDomain + key, body, {ttl: this.expires[expiralKey], permanent})
+                global.storage.set(cachingDomain + key + '-fallback', body, {expiration: true, permanent})
             } else {
                 console.error('"'+ key +'" is not cacheable (no expires set)')
             }
@@ -128,7 +125,7 @@ class CloudConfiguration {
         if(this.debug){
             console.log('cloud: get fallback '+ JSON.stringify({key}))
         }
-        data = await global.storage.get(this.cachingDomain + key + '-fallback').catch(e => err2 = e)
+        data = await global.storage.get(cachingDomain + key + '-fallback').catch(e => err2 = e)
         if(this.debug){
             console.log('cloud: get fallback* '+ JSON.stringify({key, data, err2}))
         }
@@ -146,4 +143,4 @@ class CloudConfiguration {
     }
 }
 
-module.exports = CloudConfiguration
+module.exports = new CloudConfiguration()

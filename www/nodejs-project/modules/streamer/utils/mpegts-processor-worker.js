@@ -1,12 +1,12 @@
-const utils = require('../../multi-worker/utils')(__filename)
 const MPEGTSProcessor = require('./mpegts-processor')
 
 class MPEGTSProcessorWorker {
 	constructor() {
+		const utils = require('../../multi-worker/utils')(__filename)
 		this.processor = new MPEGTSProcessor()
 		this.processor.on('data', chunk => utils.emit('data', chunk))
 		this.processor.on('fail', err => {
-			console.error("WORKER FAILED", err, global.traceback())
+			console.error('WORKER FAILED', err, global.traceback())
 			utils.emit('fail', err)
 		})
 		return true

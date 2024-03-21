@@ -1,11 +1,9 @@
-const fs = require('fs'), http = require('http'), path = require('path')
-const Events = require('events'), stoppable = require('stoppable')
-const Downloader = require('./downloader'), Reader = require('../../reader')
-const closed = require('../../on-closed'), decodeEntities = require('decode-entities')
+const { EventEmitter } = require('events')
 
-class StreamerFFmpeg extends Events {
+class StreamerFFmpeg extends EventEmitter {
     constructor(source, opts){
         super()
+        const streamer = require('../main')
         let outputFormat = global.config.get('preferred-livestream-fmt')
         if(!['mpegts', 'hls'].includes(outputFormat)){
             outputFormat = 'hls' // compat
@@ -16,11 +14,11 @@ class StreamerFFmpeg extends Events {
         this.type = 'ffmpeg'
         this.opts = {
             debug: false,
-            workDir: global.streamer.opts.workDir,
+            workDir: streamer.opts.workDir,
             addr: '127.0.0.1',
             port: 0,
             videoCodec: 'copy',
-            audioCodec: global.cordova ? 'copy' : 'aac', // force aac transcode for HTML
+            audioCodec: global.paths.cordova ? 'copy' : 'aac', // force aac transcode for HTML
             outputFormat,
             isLive: true,
             vprofile: 'baseline',
@@ -47,6 +45,7 @@ class StreamerFFmpeg extends Events {
         if(!this.uid){
             this.uid = parseInt(Math.random() * 10000000)
             let err
+            const fs = require('fs'), path = require('path')
             await fs.promises.mkdir(path.dirname(this.opts.workDir), {recursive: true}).catch(() => {})
             const files = await fs.promises.readdir(this.opts.workDir).catch(e => err = e)
             if(err){
@@ -80,6 +79,7 @@ class StreamerFFmpeg extends Events {
             }
             let finished, watcher, timer = 0
             const s = global.time()
+            const fs = require('fs'), path = require('path')
             const dir = path.dirname(file), basename = path.basename(file)
             const finish = oerr => {
                 clearTimeout(timer)
@@ -186,11 +186,13 @@ class StreamerFFmpeg extends Events {
     }
     unproxify(url){
         if(typeof(url)=='string'){
+            const path = require('path')
             if(url.startsWith('/')){
                 url = url.slice(1)
             }
             url = url.replace(new RegExp('^.*:[0-9]+/+'), '')
             if(url.indexOf('&') != -1 && url.indexOf(';') != -1){
+                const decodeEntities = require('decode-entities')
                 url = decodeEntities(url)
             }
             url = url.split('?')[0].split('#')[0]
@@ -200,6 +202,7 @@ class StreamerFFmpeg extends Events {
     }
     prepareFile(file){ // not outdated
         return new Promise((resolve, reject) => {
+            const fs = require('fs'), path = require('path')
             fs.stat(file, (err, stat) => {
                 if(stat && stat.size){
                     resolve(stat)
@@ -256,6 +259,8 @@ class StreamerFFmpeg extends Events {
             if(this.server){
                 return resolve()
             }
+            const http = require('http')
+            const stoppable = require('stoppable')
             this.server = http.createServer(this.handleRequest.bind(this))
             this.serverStopper = stoppable(this.server)
             this.server.listen(0, this.opts.addr, (err) => {
@@ -297,6 +302,8 @@ class StreamerFFmpeg extends Events {
             fail('destroyed')
         } else {
             this.prepareFile(file).then(stat => {
+                const streamer = require('../main')
+                const Reader = require('../../reader')
                 let headers = global.prepareCORS({
                     'content-length': stat.size,
                     'connection': 'close',
@@ -304,7 +311,7 @@ class StreamerFFmpeg extends Events {
                     'expires': '-1',
                     'pragma': 'no-cache'
                 }, req)
-                let ctype = this.contentTypeFromExt(global.streamer.ext(file))
+                let ctype = this.contentTypeFromExt(streamer.ext(file))
                 if(ctype){
                     headers['content-type'] =  ctype
                 }
@@ -317,6 +324,8 @@ class StreamerFFmpeg extends Events {
                         stream && stream.destroy()
                     }
                 }
+                
+                const closed = require('../../on-closed')
                 closed(req, response, stream, () => (ended||end()))
                 stream.on('data', chunk => response.write(chunk))
             }).catch(fail)
@@ -355,7 +364,9 @@ class StreamerFFmpeg extends Events {
         }
         // cores = Math.min(require('os').cpus().length, 2), 
         this.emit('wait') // If the intent took a while to start another component, make sure to allow time for FFmpeg to start.
-        this.decoder = global.ffmpeg.create(this.source, { live: this.opts.isLive }).
+        
+        const ffmpeg = require('../../ffmpeg')
+        this.decoder = ffmpeg.create(this.source, { live: this.opts.isLive }).
             
             /* cast fix try
             inputOptions('-use_wallclock_as_timestamps', 1). // using it the hls fragments on a hls got #EXT-X-TARGETDURATION:0 and the m3u8 wont load
@@ -528,9 +539,10 @@ class StreamerFFmpeg extends Events {
                 }).
                 on('start', (commandLine) => {
                     if(this.destroyed) return // already destroyed
-                    console.log('Spawned FFmpeg with command: ' + commandLine, 'file:', this.decoder.file, 'workDir:', this.opts.workDir, 'cwd:', process.cwd(), 'PATHs', global.paths, 'cordova:', !!global.cordova)
+                    console.log('Spawned FFmpeg with command: ' + commandLine, 'file:', this.decoder.file, 'workDir:', this.opts.workDir, 'cwd:', process.cwd(), 'cordova:', !!global.paths.cordova)
                     if(this.opts.outputFormat == 'mpegts'){
                         this.resetTimeout()
+                        const Downloader = require('./downloader')
                         this.wrapper = new Downloader(this.decoder.target, Object.assign(this.opts, {
                             debug: false,
                             debugHTTP: false,
@@ -561,7 +573,7 @@ class StreamerFFmpeg extends Events {
                     this.addCodecData(codecData)
                     let transcode
                     console.log('RECEIVED TRANSCODE DATA', codecData)
-                    if(!global.cordova){
+                    if(!global.paths.cordova){
                         if(this.codecData.video && this.codecData.video.match(new RegExp('(mpeg2video|mpeg4)')) && this.opts.videoCodec != 'libx264'){
                             transcode = true
                             this.opts.videoCodec = 'libx264'
@@ -606,6 +618,7 @@ class StreamerFFmpeg extends Events {
                 }).
                 on('dimensions', dimensions => this.emit('dimensions', dimensions))
                 if(this.opts.outputFormat == 'hls'){
+                    const fs = require('fs'), path = require('path')
                     this.decoder.file = path.resolve(this.opts.workDir + path.sep + this.uid + path.sep + 'master.m3u8')
                     this.decoder.playlist = path.resolve(this.opts.workDir + path.sep + this.uid + path.sep + 'output.m3u8')
                     fs.mkdir(path.dirname(this.decoder.file), {
@@ -651,6 +664,7 @@ class StreamerFFmpeg extends Events {
             this.decoder.abort()
             this.decoder = null
             if(file){
+                const path = require('path')
                 global.rmdir(path.dirname(file), true)
             }
         }

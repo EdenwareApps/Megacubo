@@ -1,8 +1,8 @@
-const Events = require('events'), fs = require('fs'), path = require('path')
+const { EventEmitter } = require('events')
 
 let FFmpegControllerUIDIterator = 1
 
-class FFmpegController extends Events {
+class FFmpegController extends EventEmitter {
 	constructor(input, master){
 		super()
 		this.master = master
@@ -138,16 +138,16 @@ class FFmpegController extends Events {
 	}
 	run(){
 		let cmdArr = this.cmdArr()
-		global.ui.on('ffmpeg-callback-'+ this.uid, this.callback.bind(this))
-		global.ui.on('ffmpeg-metadata-'+ this.uid, this.metadataCallback.bind(this))
-		global.ui.emit('ffmpeg-exec', this.uid, cmdArr)
+		global.renderer.on('ffmpeg-callback-'+ this.uid, this.callback.bind(this))
+		global.renderer.on('ffmpeg-metadata-'+ this.uid, this.metadataCallback.bind(this))
+		global.renderer.emit('ffmpeg-exec', this.uid, cmdArr)
 		this.emit('start', cmdArr.join(' '))
 	}
 	abort(){
-		global.ui.emit('ffmpeg-abort', this.uid)
+		global.renderer.emit('ffmpeg-abort', this.uid)
 		this.options.input = this.options.output = []
-		global.ui.removeAllListeners('ffmpeg-callback-'+ this.uid)
-		global.ui.removeAllListeners('ffmpeg-metadata-'+ this.uid)
+		global.renderer.removeAllListeners('ffmpeg-callback-'+ this.uid)
+		global.renderer.removeAllListeners('ffmpeg-metadata-'+ this.uid)
 		this.emit('abort')
 	}
 	metadataCallback(nfo){
@@ -167,7 +167,7 @@ class FFmpegController extends Events {
 	}
 }
 
-class FFMPEGHelper extends Events {
+class FFMPEGHelper extends EventEmitter {
 	constructor(){
 		super()
 		this.debug = false
@@ -265,6 +265,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 				}
 			})
 		}
+		const fs = require('fs')
 		fs.access(file, err => {
 			if(err) { 
 				cb('File not found or empty.', 0)
@@ -304,6 +305,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 		if(length || !this.isLocal(file)){
 			next()
 		} else {
+			const fs = require('fs')
 			fs.stat(file, (err, stat) => {
 				if(err) { 
 					cb('File not found or empty.', 0, false)
@@ -334,6 +336,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 	info(path, durationWanted, cb){
 		if(path.indexOf('://') == -1){
 			this.exec(path, [], (error, output) => {
+				const fs = require('fs')
 				fs.stat(path, (err, stat) => {
 					cb({error, output, size: stat ? stat.size: null})
 				})
@@ -341,7 +344,8 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 		} else {
 			const seconds = 4 // should be less than 10
 			const ext = this.ext(path) || 'ts'
-			const tempFile = global.paths.temp +'/'+ Math.random() +'.'+ ext
+			const { temp } = require('../paths')
+			const tempFile = temp +'/'+ Math.random() +'.'+ ext
 			if(path.toLowerCase().indexOf('.m3u8') != -1) path = 'hls+'+ path
 			const inputOptions = [
 				'-timeout', 30000,
@@ -358,6 +362,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 				])
 			}
 			this.exec(path, [...outputOptions, tempFile], (error, output) => {
+				const fs = require('fs')
 				fs.stat(tempFile, (err, stat) => {
 					cb({error, output, size: stat ? stat.size: null, duration: seconds})
 					err || fs.unlink(tempFile, () => {})
@@ -383,10 +388,12 @@ class FFMPEGDiagnostic extends FFMPEGMediaInfo {
 		}).catch(err => {
 			text = String(err)
 		}).finally(() => {
-			const filename = 'megacubo-ffmpeg-log.txt', file = global.downloads.folder + path.sep + filename
+			const fs = require('fs')
+			const downloads = require('../downloads')
+			const filename = 'megacubo-ffmpeg-log.txt', file = downloads.folder +'/'+ filename
 			fs.writeFile(file, text, {encoding: 'utf-8'}, err => {
 				if(err) return global.displayErr(err)
-				global.downloads.serve(file, true, false).catch(global.displayErr)
+				downloads.serve(file, true, false).catch(global.displayErr)
 			})
 		})	
 	}
@@ -399,7 +406,7 @@ class FFMPEGDiagnostic extends FFMPEGMediaInfo {
 			fa = 'fas fa-exclamation-triangle faclr-red'
 			text = String(err)
 		}).finally(async () => {
-			let ret = await global.explorer.dialog([
+			let ret = await global.menu.dialog([
 				{template: 'question', text: global.lang.ABOUT +': FFmpeg', fa},
 				{template: 'message', text: this.encodeHTMLEntities(text)},
 				{template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle'},
@@ -451,7 +458,8 @@ class FFMPEGDiagnostic extends FFMPEGMediaInfo {
 	}
 	arch(cb){
 		if(process.platform == 'android'){
-			let archHintFile = global.APPDIR + '/arch.dat'
+			const fs = require('fs')
+			let archHintFile = global.paths.cwd + '/arch.dat'
 			fs.stat(archHintFile, (err, stat) => {
 				if(stat && stat.size){
 					fs.readFile(archHintFile, (err, ret) => {
@@ -474,13 +482,14 @@ class FFMPEGDiagnostic extends FFMPEGMediaInfo {
 class FFMPEG extends FFMPEGDiagnostic {
 	constructor(){
 		super()
-		if(!global.cordova){
-			global.ui.on('ffmpeg-download', state => {
+		if(!global.paths.cordova){
+			global.renderer.on('ffmpeg-download', state => {
 				this.downloading = state
 				state || this.emit('downloaded')
 			})
-			global.uiReady(() => {
-				global.ui.emit('ffmpeg-check', global.lang.INSTALLING_FFMPEG, global.paths.data)
+			global.rendererReady(() => {
+				const { data } = require('../paths')
+				global.renderer.emit('ffmpeg-check', global.lang.INSTALLING_FFMPEG, data)
 			})
 		}
 	}
@@ -539,4 +548,4 @@ class FFMPEG extends FFMPEGDiagnostic {
     }
 }
 
-module.exports = FFMPEG
+module.exports = new FFMPEG()

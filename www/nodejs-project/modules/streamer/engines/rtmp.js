@@ -1,10 +1,10 @@
-const StreamerBaseIntent = require('./base.js'), StreamerFFmpeg = require('../utils/ffmpeg')
+const StreamerBaseIntent = require('./base.js')
 
 class StreamerRTMPIntent extends StreamerBaseIntent {    
     constructor(data, opts, info){
         console.log('RTMPOPTS', opts)
         let audioCodec = 'copy'
-        let videoCodec = global.cordova ? 
+        let videoCodec = global.paths.cordova ? 
             'copy' :
             'libx264' // rtmp can get flickering on HTML5 without transcode
         Object.assign(opts, {audioCodec, videoCodec})
@@ -15,6 +15,7 @@ class StreamerRTMPIntent extends StreamerBaseIntent {
     }  
     _start(){ 
         return new Promise((resolve, reject) => {
+            const StreamerFFmpeg = require('../utils/ffmpeg')
             this.rtmp2hls = new StreamerFFmpeg(this.info.url || this.data.url, this.opts)
             this.mimetype = this.mimeTypes[this.rtmp2hls.opts.outputFormat]
             this.connectAdapter(this.rtmp2hls)

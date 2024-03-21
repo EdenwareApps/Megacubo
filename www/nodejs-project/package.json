@@ -30,8 +30,8 @@
     "jimp": "^0.22.7",
     "jquery": "^3.6.4",
     "m3u8-parser": "^6.0.0",
-    "moment": "^2.29.4",
-    "moment-timezone": "^0.5.42",
+    "moment": "^2.30.1",
+    "moment-timezone": "^0.5.45",
     "mpegts.js": "^1.7.3",
     "node-cleanup": "^2.1.2",
     "opensubtitles.com": "^1.0.0",
@@ -58,7 +58,7 @@
     "url": "https://megacubo.tv"
   },
   "icon": "./default_icon.png",
-  "version": "17.4.5",
+  "version": "17.4.6",
   "theme": {
     "fullScreen": true
   },
@@ -80,6 +80,23 @@
   "scripts": {
     "start": "electron .",
     "debug": "electron  --inspect --enable-logging=stderr --trace-warnings --remote-debugging-port=9222 .",
-    "lint": "echo \"No linting configured\""
+    "lint": "echo \"No linting configured\"",
+    "build": "rollup -c"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-inject": "^5.0.5",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "eslint": "^8.57.0",
+    "rollup": "^4.12.0",
+    "rollup-plugin-import-css": "^3.5.0",
+    "rollup-plugin-node-builtins": "^2.1.2",
+    "rollup-plugin-node-globals": "^1.4.0",
+    "rollup-plugin-svelte": "^7.1.6",
+    "sass": "^1.71.1",
+    "svelte": "^4.2.12",
+    "svelte-preprocess": "^5.1.3"
   }
 }

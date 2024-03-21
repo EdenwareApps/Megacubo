@@ -1,4 +1,4 @@
-const pLimit = require('p-limit'), Common = require('../lists/common.js')
+const Common = require('../lists/common.js')
 
 class Index extends Common {
     constructor(opts){
@@ -265,6 +265,7 @@ class Index extends Common {
 				}
 				smap[listUrl] = ls
 			})
+			const pLimit = require('p-limit')
 			const limiter = pLimit(4)
 			const alreadyMap = {}
 			const tasks = ks.map(listUrl => {
@@ -511,7 +512,7 @@ class Index extends Common {
 		return ret
 	}
     sort(entries, key='name'){
-        if(typeof(Intl) != 'undefined'){
+        if(typeof(Intl) != 'undefined' && global.lang.locale){
             if(typeof(this.collator) == 'undefined'){
                 this.collator = new Intl.Collator(global.lang.locale, {numeric: true, sensitivity: 'base'})
             }

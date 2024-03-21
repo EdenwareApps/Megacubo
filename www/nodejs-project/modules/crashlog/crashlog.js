@@ -1,9 +1,8 @@
-const fs = require('fs')
-
 class Crashlog {
     constructor(){
-        this.crashFile = global.paths.data + '/crash.txt' // unreported crashes
-        this.crashLogFile = global.paths.data + '/crashlog.txt' // reported crashes
+		const { data: folder } = require('../paths')
+        this.crashFile = folder + '/crash.txt' // unreported crashes
+        this.crashLogFile = folder + '/crashlog.txt' // reported crashes
     }
     replaceCircular(val, cache) {
         cache = cache || new WeakSet()
@@ -23,9 +22,9 @@ class Crashlog {
         return val
     }
     save(...args){
-        const os = require('os')
+        const os = require('os'), fs = require('fs')
         fs.appendFileSync(this.crashFile, this.stringify(Array.from(args)).replaceAll("\\n", "\n") +"\r\n"+ JSON.stringify({
-            version: global.MANIFEST ? global.MANIFEST.version : '',
+            version: global.paths.manifest ? global.paths.manifest.version : '',
             platform: process.platform,
             release: os.release(),
             arch: os.arch(),
@@ -46,6 +45,7 @@ class Crashlog {
         }, 3)
     }
     async read(){
+        const fs = require('fs')
         let content = ''
         for(let file of [this.crashFile, this.crashLogFile]) {
             let text = await fs.promises.readFile(file).catch(console.error)
@@ -59,9 +59,10 @@ class Crashlog {
         return new Promise((resolve, reject) => {
             const FormData = require('form-data'), form = new FormData(), http = require('http')
             form.append('log', String(content))
+            const { server } = require('../cloud')
             const options = {
                 method: 'post',
-                host: global.cloud.server.split('/').pop(),
+                host: server.split('/').pop(),
                 path: '/report/index.php',
                 headers: form.getHeaders()
             }
@@ -73,6 +74,7 @@ class Crashlog {
                 })
                 res.once('end', () => {
                     if(data.indexOf('OK') != -1){
+                        const fs = require('fs')
                         fs.stat(this.crashLogFile, (err, stat) => {
                             if(stat && stat.file){
                                 fs.appendFile(this.crashLogFile, content, () => {
@@ -106,6 +108,7 @@ class Crashlog {
         })
     }
     async send(){
+        const fs = require('fs')
         const stat = await fs.promises.stat(this.crashFile).catch(() => {})
         if(stat && stat.size){
             const content = await fs.promises.readFile(this.crashFile)

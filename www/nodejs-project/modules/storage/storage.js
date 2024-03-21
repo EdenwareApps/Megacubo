@@ -1,15 +1,15 @@
+const { EventEmitter } = require('events')
 
-const path = require('path'), fs = require('fs'), Events = require('events')
-const Limiter = require('../limiter'), zlib = require('zlib')
-
-class StorageTools extends Events {
+class StorageTools extends EventEmitter {
 	constructor(opts){
 		super()
+
+		const { data } = require('../paths')
 		this.opts = {
 			main: false,
 			debug: false,
 			minIdleTime: 20,
-			folder: global.paths.data +'/storage',
+			folder: data +'/storage',
 			maxExpiration: 100 * (365 * (24 * 3600)),
 			maxDiskUsage: global.config.get('in-disk-caching-size') * (1024 * 1024)
 		}
@@ -20,13 +20,17 @@ class StorageTools extends Events {
 		this.load()
 		if(!this.opts.main) return
 		this.lastSaveTime = global.time()
-        this.saveLimiter = new Limiter(() => this.save().catch(console.error), 5000)
+        
+		const Limiter = require('../limiter')
+		this.saveLimiter = new Limiter(() => this.save().catch(console.error), 5000)
         this.alignLimiter = new Limiter(() => this.align().catch(console.error), 2000)
 		process.nextTick(() => {
-			global.onexit(() => this.saveSync())
+			const onexit = require('node-cleanup')
+			onexit(() => this.saveSync())
 		})
 	}
 	async cleanup(){
+		const fs = require('fs')
 		const now = global.time()
 		const files = await fs.promises.readdir(this.opts.folder).catch(() => {})
 		if(Array.isArray(files) && files.length) {
@@ -61,6 +65,7 @@ class StorageTools extends Events {
 		}
 	}
 	async clear(force){
+		const fs = require('fs')
 		for(const k of Object.keys(this.index)) {
 			if(force || !this.index[k].permanent) {
 				await fs.promises.unlink(this.resolve(k)).catch(() => {})
@@ -71,6 +76,7 @@ class StorageTools extends Events {
 	}
 	async compress(data) {
 		return await new Promise((resolve, reject) => {
+			const zlib = require('zlib')
 			zlib.gzip(data, (err, result) => {
 				if(err) return reject(err)
 				resolve(result)
@@ -79,6 +85,7 @@ class StorageTools extends Events {
 	}
 	async decompress(data) {
 		return await new Promise((resolve, reject) => {
+			const zlib = require('zlib')
 			zlib.gunzip(data, (err, result) => {
 				if(err) return reject(err)
 				resolve(result)
@@ -87,6 +94,7 @@ class StorageTools extends Events {
 	}
 	async upgrade(ofile) { // compat with older versions
 		let reason = 'unknown'
+		const fs = require('fs')
 		const file = ofile.endsWith('.expires.json') ? ofile.replace('.expires.json', '.json') : ofile
 		const efile = file.replace('.json', '.expires.json')
 		const tfile = file.replace('.json', '.dat')
@@ -144,6 +152,7 @@ class StorageIndex extends StorageTools {
 	}
 	load() {
 		let index
+		const fs = require('fs')
 		try {
 			index = fs.readFileSync(this.opts.folder +'/'+ this.indexFile, {encoding: 'utf8'})
 		} catch(e) { }
@@ -167,8 +176,9 @@ class StorageIndex extends StorageTools {
 	}
 	async save() {
 		if(this.mtime() < this.lastSaveTime) return
-		this.lastSaveTime = global.time()
+		const fs = require('fs')
 		const tmp = this.opts.folder +'/'+ parseInt(Math.random() * 100000) +'.commit'
+		this.lastSaveTime = global.time()
 		await fs.promises.writeFile(tmp, JSON.stringify(this.index), 'utf8').catch(console.error)
 		try {
 			await fs.promises.unlink(this.opts.folder +'/'+ this.indexFile).catch(console.error)
@@ -181,6 +191,7 @@ class StorageIndex extends StorageTools {
 	saveSync() {
 		if(this.mtime() < this.lastSaveTime) return
 		this.lastSaveTime = global.time()
+		const fs = require('fs')
 		const tmp = this.opts.folder +'/'+ parseInt(Math.random() * 100000) +'.commit'
 		fs.writeFileSync(tmp, JSON.stringify(this.index), 'utf8')
 		try {
@@ -225,7 +236,7 @@ class StorageIndex extends StorageTools {
 			const size = this.index[key].size
 			const elapsed = now - this.index[key].time
 			const expired = this.index[key].expired ? ', expired' : ''
-			console.error('LRU cache eviction '+ key +' ('+ global.kbfmt(size) + expired +') after '+ elapsed +'s idle')
+			//console.log('LRU cache eviction '+ key +' ('+ global.kbfmt(size) + expired +') after '+ elapsed +'s idle')
 			this.delete(key, file)
 		}
 		this.saveLimiter.call() // always
@@ -246,7 +257,8 @@ class StorageIndex extends StorageTools {
 		const entry = this.index[key]
 		if(!atts) atts = {}
 		entry.time = time
-		if(atts.size === 'auto' || typeof(entry.size) == 'undefined') {
+		if(atts.size === 'auto' || typeof(entry.size) == 'undefined') {			
+			const fs = require('fs')
 			const stat = await fs.promises.stat(this.resolve(key)).catch(() => {})
 			if(stat && stat.size) {
 				atts.size = stat.size
@@ -275,8 +287,10 @@ class StorageIO extends StorageIndex {
 	async get(key, encoding) {
 		key = this.prepareKey(key)
 		if(!this.index[key]) return null
-		if(encoding !== null && typeof(encoding) != 'string'){
-			if(this.index[key].compress) {
+		const row = this.index[key]
+		// grab this row to mem to avoid losing it due to its deletion in meanwhile, maybe using a lock() would be better
+		if(encoding !== null && typeof(encoding) != 'string') {
+			if(row.compress) {
 				encoding = null
 			} else {
 				encoding = 'utf-8'
@@ -285,7 +299,9 @@ class StorageIO extends StorageIndex {
 		this.touch(key, false) // wait writing on file to finish
 		await this.lock(key, false)
 		const now = global.time()
-		if(this.index[key].expiration < now) return null
+		if(row.expiration < now) return null
+		
+		const fs = require('fs')
 		const file = this.resolve(key)
 		const stat = await fs.promises.stat(file).catch(() => {})
 		const exists = stat && typeof(stat.size) == 'number'
@@ -293,11 +309,11 @@ class StorageIO extends StorageIndex {
 			let err
 			this.touch(key, {size: stat.size})
 			let content = await fs.promises.readFile(file, {encoding}).catch(e => err = e)
-			if(!err) {			
-				if(this.index[key].compress) {
+			if(!err) {
+				if(row.compress) {
 					content = await this.decompress(content)
 				}
-				if(this.index[key].raw) {
+				if(row.raw) {
 					return content
 				} else {
 					if(Buffer.isBuffer(content)) { // is buffer
@@ -374,7 +390,8 @@ class StorageIO extends StorageIndex {
 	}
 	async exists(key){
 		key = this.prepareKey(key)
-		if(this.has(key)){
+		if(this.has(key)) {			
+			const fs = require('fs')
 			const file = this.resolve(key)
 			const stat = await fs.promises.stat(file).catch(() => {})
 			if(stat && typeof(stat.size) == 'number'){
@@ -393,6 +410,8 @@ class StorageIO extends StorageIndex {
 		if(typeof(content) == 'number') {
 			content = String(content)
 		}
+		const fs = require('fs')
+		const path = require('path')
 		const tmpFile = path.join(path.dirname(file), String(parseInt(Math.random() * 1000000))) +'.commit'	
 		await fs.promises.writeFile(tmpFile, content, enc)
 		await new Promise((resolve, reject) => {
@@ -408,7 +427,8 @@ class StorageIO extends StorageIndex {
 		})
 	}
 	async delete(key, removeFile){
-		key = this.prepareKey(key)
+		key = this.prepareKey(key)		
+		const fs = require('fs')
 		const file = this.resolve(key) // before deleting from index
 		if(this.index[key]) delete this.index[key]
 		this.emit('touch', key, {delete: true}) // IPC notify
@@ -419,7 +439,8 @@ class StorageIO extends StorageIndex {
 
 class Storage extends StorageIO {
 	constructor(opts){
-		super(opts)
+		super(opts)		
+		const fs = require('fs')
 		fs.access(this.opts.folder, err => {
 			if(err) {
 				fs.mkdir(this.opts.folder, {recursive: true}, (err) => {
@@ -440,6 +461,7 @@ class Storage extends StorageIO {
 		return this.opts.folder +'/'+ key +'.dat'
 	}
 	unresolve(file){ // file to key
+		const path = require('path')
 		const key = this.prepareKey(path.basename(file).replace(new RegExp('\\.(json|dat)$'), ''))
 		this.touch(key, false)
 		return key

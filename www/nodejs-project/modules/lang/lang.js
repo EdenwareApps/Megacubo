@@ -1,8 +1,8 @@
 
 
-const debug = false, path = require('path'), fs = require('fs'), async = require('async'), Events = require('events'), Countries = require('../countries')
+const debug = false, { EventEmitter } = require('events')
 
-class Language extends Events {
+class Language extends EventEmitter {
     constructor(languageHint, explicitLanguage, folder, timezone){
         super()
         this.folder = folder
@@ -10,6 +10,8 @@ class Language extends Events {
             languageHint = explicitLanguage +', '+ languageHint
         }
         this.languageHint = languageHint
+
+        const Countries = require('../countries')
         this.countries = new Countries()
         this.isReady = false
         this.timezone = timezone
@@ -24,6 +26,7 @@ class Language extends Events {
         })
     }
     async findLanguages(){
+        const fs = require('fs')
         let files = await fs.promises.readdir(this.folder).catch(global.displayErr)
         this.availableLocales = files.filter(f => f.substr(-5).toLowerCase() == '.json').map(f => f.split('.').shift())
         this.hints = this.parseLanguageHint(this.languageHint)
@@ -82,21 +85,15 @@ class Language extends Events {
             return this.countries.getCountriesFromLanguage(loc)
         }).flat().unique()
     }
-    async getActiveCountries(limit=8){
+    async getActiveCountries(limit=20){
         await this.ready()
         let actives = global.config.get('countries')
         if(!Array.isArray(actives) || !actives.length){
-            await this.ready()
             let languages = this.countries.getCountryLanguages(this.countryCode)
             actives = await this.getCountries(languages)
-            const hintedActives = actives.filter(a => !this.hints.countries.includes(a))
-            if(hintedActives.length) {
-                const unhintedActives = actives.filter(a => !hintedActives.includes(a))
-                actives = hintedActives.concat(unhintedActives)
-            }
         }
-        actives = this.countries.getNearest(this.countryCode, actives, limit || 999)
-        return actives
+        actives = this.countries.getNearestPopulous(this.countryCode, actives.filter(c => c != this.countryCode), (limit - 1) || 999)
+        return [this.countryCode, ...actives]
     }
     async getCountriesMap(locale, additionalCountries){ // return countries of same ui language
         const codes = await this.getCountries(locale)
@@ -169,6 +166,7 @@ class Language extends Events {
         return this._availableLocalesMap
     }
     async loadLanguage(locale){
+        const path = require('path'), fs = require('fs')
         let file = path.join(this.folder, locale +'.json')
         let stat = await fs.promises.stat(file).catch(console.error)
         if(stat && stat.size){

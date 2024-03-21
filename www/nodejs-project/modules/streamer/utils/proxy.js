@@ -1,6 +1,4 @@
-
-const http = require('http'), path = require('path'), Writer = require('../../writer'), closed = require('../../on-closed')
-const StreamerProxyBase = require('./proxy-base'), decodeEntities = require('decode-entities'), m3u8Parser = require('m3u8-parser'), stoppable = require('stoppable')
+const StreamerProxyBase = require('./proxy-base')
 
 class StreamerProxy extends StreamerProxyBase {
 	constructor(opts){
@@ -85,6 +83,7 @@ class StreamerProxy extends StreamerProxyBase {
                 } 
             }                      
             if(url.indexOf('&') != -1 && url.indexOf(';') != -1){
+				const decodeEntities = require('decode-entities')
                 url = decodeEntities(url)
             }
         }
@@ -94,6 +93,8 @@ class StreamerProxy extends StreamerProxyBase {
 		if(!this.isM3U8Content(body)) return body
 		body = body.replace(new RegExp('^ +', 'gm'), '')
 		body = body.replace(new RegExp(' +$', 'gm'), '')
+
+		const m3u8Parser = require('m3u8-parser')
 		let parser = new m3u8Parser.Parser(), replaces = {}, u
 		parser.push(body)
 		try{
@@ -189,6 +190,8 @@ class StreamerProxy extends StreamerProxyBase {
     }
 	start(){
 		return new Promise((resolve, reject) => {
+			const http = require('http')
+			const stoppable = require('stoppable')
 			this.server = http.createServer(this.handleRequest.bind(this))
             this.serverStopper = stoppable(this.server)
 			this.server.listen(0, this.opts.addr, (err) => {
@@ -218,6 +221,16 @@ class StreamerProxy extends StreamerProxyBase {
 		if(this.disabled) {
 			delete this.disabled
 		}
+	}
+	fileNameFromURL(url, defaultExt = 'mp4') {
+		let filename = url.split('?')[0].split('/').filter(s => s).pop()
+		if(!filename || filename.indexOf('=') != -1){
+			filename = 'video'
+		}
+		if(filename.indexOf('.') == -1){
+			filename += '.' + defaultExt
+		}
+		return global.sanitize(filename)
 	}
 	handleRequest(req, response){
 		if(this.disabled && this.disabled != 'hls'){
@@ -266,7 +279,7 @@ class StreamerProxy extends StreamerProxyBase {
 		}
 		reqHeaders = this.getDefaultRequestHeaders(reqHeaders)
 		if(this.opts.debug){
-			console.log('serving', url, req, path.basename(url), url, reqHeaders, uid)
+			console.log('serving', url, req, url, reqHeaders, uid)
 		}
 		if(this.type == 'network-proxy' && this.opts.debug) {
 			console.log('network serving', url, reqHeaders)
@@ -286,6 +299,7 @@ class StreamerProxy extends StreamerProxyBase {
 			debug: this.opts.debug
 		})
 		this.connections[uid] = {response, download}
+		const closed = require('../../on-closed')
 		const end = data => {
 			if(!ended){
 				ended = true
@@ -337,7 +351,7 @@ class StreamerProxy extends StreamerProxyBase {
 				if(!headers['content-disposition'] || headers['content-disposition'].indexOf('attachment') == -1 || headers['content-disposition'].indexOf('filename=') == -1){
 					// setting filename to allow future file download feature
 					// will use sanitize to prevent net::ERR_RESPONSE_HEADERS_MULTIPLE_CONTENT_DISPOSITION on bad filename
-					headers['content-disposition'] = 'attachment; filename="' + global.fileNameFromURL(url) + '"'
+					headers['content-disposition'] = 'attachment; filename="' + this.fileNameFromURL(url) + '"'
 				}
 				let len = parseInt(headers['content-length'])
 				if(len && typeof(headers['content-range']) == 'undefined'){
@@ -464,9 +478,10 @@ class StreamerProxy extends StreamerProxyBase {
 				console.log('network serving response', url, headers)
 			}
 		}
+		const { temp } = require('../../paths')
 		let initialOffset = download.requestingRange ? download.requestingRange.start : 0, offset = initialOffset
 		let sampleCollected, doBitrateCheck = this.committed && this.type != 'network-proxy' && this.bitrateChecker.acceptingSamples()
-		let sampleWriter, sampleFile = doBitrateCheck ? global.paths.temp +'/'+ parseInt(Math.random() * 100000) +'.ts' : ''
+		let sampleWriter, sampleFile = doBitrateCheck ? temp +'/'+ parseInt(Math.random() * 100000) +'.ts' : ''
 		const onend = () => {
 			if(doBitrateCheck){
 				if(this.opts.debug){
@@ -494,6 +509,7 @@ class StreamerProxy extends StreamerProxyBase {
 			this.downloadLog(len)
 			if(sampleFile && !sampleCollected){
 				//console.warn('forceFirstBitrateDetection data', this.bitrateChecker.checkingBuffers[uid], offset, chunk)
+				const Writer = require('../../writer')
 				if(!sampleWriter) sampleWriter = new Writer(sampleFile)
 				sampleWriter.write(chunk)
 				if(sampleWriter.position > this.bitrateChecker.opts.maxCheckingSize) {

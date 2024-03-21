@@ -1,11 +1,7 @@
 
-const Events = require('events'), Limiter = require('../limiter')
+const { EventEmitter } = require('events')
 
-const PublicListsProvider = require('./providers/public-lists')
-const CommunityListsProvider = require('./providers/community-lists')
-const CommunityListsIPTVOrgProvider = require('./providers/community-lists-iptv-org')
-
-class ListsDiscovery extends Events {
+class ListsDiscovery extends EventEmitter {
     constructor(opts = {}) {
         super()
         this.factor = 0.1
@@ -29,6 +25,7 @@ class ListsDiscovery extends Events {
             })
         })
         this.on('found', () => this.save().catch(console.error))
+        const Limiter = require('../limiter')
         this.saver = new Limiter(() => {
             global.storage.set(this.key, this.knownLists, {
                 permanent: true,
@@ -36,16 +33,27 @@ class ListsDiscovery extends Events {
             })
         }, 10000)
         this.restore().catch(console.error);
-        [
-            [new PublicListsProvider(), 'public'],
-            [new CommunityListsProvider(), 'community'],
-            [new CommunityListsIPTVOrgProvider(), 'community']
-        ].forEach(row => this.register(...row))
-        global.uiReady(() => global.explorer.addFilter(this.hook.bind(this)))
+        global.rendererReady(() => {
+            const PublicListsProvider = require('./providers/public-lists')
+            const CommunityListsProvider = require('./providers/community-lists')
+            const CommunityListsIPTVOrgProvider = require('./providers/community-lists-iptv-org');
+            [
+                [new PublicListsProvider(), 'public'],
+                [new CommunityListsProvider(), 'community'],
+                [new CommunityListsIPTVOrgProvider(), 'community']
+            ].forEach(row => this.register(...row))
+            global.menu.addFilter(this.hook.bind(this))
+        })
     }
     async restore(){
         const data = await global.storage.get(this.key).catch(console.error)
         Array.isArray(data) && this.add(data)
+    }
+    async reset(){
+        this.knownLists = []
+        await this.save()
+        await this.update()
+        await this.save()
     }
     async save(){
         this.saver.call()
@@ -59,6 +67,15 @@ class ListsDiscovery extends Events {
             this.emit('registered')
         })
     }
+    async update(provider, type){
+        for(const provider of this.providers) {
+            provider[0]._isLoaded = false
+            await provider[0].discovery(lists => this.add(lists)).catch(console.error).finally(() => {
+                provider[0]._isLoaded = true
+                this.emit('registered')
+            })
+        }
+    }
     ready(){
         return new Promise(resolve => {
             if(this.isReady){
@@ -67,7 +84,7 @@ class ListsDiscovery extends Events {
             this.once('ready', resolve)
         })
     }
-    async get(amount=8) {
+    async get(amount=20) {
         await this.ready()
         this.sort()
         const active = {
@@ -87,7 +104,7 @@ class ListsDiscovery extends Events {
 	}
     domainCap(lists, limit){
         let currentLists = lists.slice(0)
-        const ret = [], domains = {}, quota = Math.ceil(limit / 5) // limit each domain up to 20% of selected links, except if there are no other domains enough
+        const ret = [], domains = {}, quota = 1 // limit each domain up to 20% of selected links, except if there are no other domains enough
         while(currentLists.length && ret.length < limit) {
             currentLists = currentLists.filter(l => {
                 const dn = this.domain(l.url)
@@ -225,7 +242,7 @@ class ListsDiscovery extends Events {
                 action: (e, v) => {
                     if(v !== false && v != global.config.get('interests')){
                         global.config.set('interests', v)
-                        global.ui.emit('ask-restart')
+                        global.renderer.emit('ask-restart')
                     }
                 },
                 value: () => {
@@ -240,6 +257,9 @@ class ListsDiscovery extends Events {
     }
     async interests() {
         const badTerms = ['m3u8', 'ts', 'mp4', 'tv', 'channel']
+        const bookmarks = require('../bookmarks')
+        const search = require('../search')
+        const history = require('../history')
         let terms = [], addTerms = (tms, score) => {
             if(typeof(score) != 'number'){
                 score = 1
@@ -259,19 +279,19 @@ class ListsDiscovery extends Events {
                 }
             })
         }
-        let bterms = global.bookmarks.get()
+        let bterms = bookmarks.get()
         if(bterms.length){ // bookmarks terms
             bterms = bterms.slice(-24)
             bterms = bterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-')
             addTerms(bterms)
         }
-        let sterms = await global.search.history.terms()
+        let sterms = await search.history.terms()
         if(sterms.length){ // searching terms history
             sterms = sterms.slice(-24)
             sterms = sterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-')
             addTerms(sterms)
         }
-        let hterms = global.histo.get()
+        let hterms = history.get()
         if(hterms.length){ // user history terms
             hterms = hterms.slice(-24)
             hterms = hterms.map(e => channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-')
@@ -281,7 +301,8 @@ class ListsDiscovery extends Events {
         const max = Math.max(...terms.map(t => t.score))
         let cterms = global.config.get('interests')
         if(cterms){ // user specified interests
-            cterms = global.lists.terms(cterms, true).filter(c => c[0] != '-')
+            const lists = require('../lists')
+            cterms = lists.terms(cterms, true).filter(c => c[0] != '-')
             if(cterms.length){
                 addTerms(cterms, max)
             }
@@ -294,4 +315,4 @@ class ListsDiscovery extends Events {
     }
 }
 
-module.exports = ListsDiscovery
+module.exports = new ListsDiscovery()

@@ -1,7 +1,6 @@
-const Events = require('events'), fs = require('fs'), path = require('path')
-const decodeEntities = require('decode-entities'), async = require('async')
+const { EventEmitter } = require('events')
 
-class Timer extends Events {
+class Timer extends EventEmitter {
     constructor(){
         super()
         this.timerTimer = 0
@@ -21,7 +20,8 @@ class Timer extends Events {
     timerEntry(){
         let details = ''
         if(this.timerData){
-            details = this.timerData.action +': '+ global.moment(this.timerData.end * 1000).fromNow()
+            const moment = require('moment-timezone')
+            details = this.timerData.action +': '+ moment(this.timerData.end * 1000).fromNow()
             return {
                 name: global.lang.TIMER, 
                 fa: 'fas fa-stopwatch',
@@ -30,7 +30,7 @@ class Timer extends Events {
                 action: () => {
                     clearTimeout(this.timerData['timer'])
                     this.timerData = 0
-                    global.explorer.refreshNow()
+                    global.menu.refreshNow()
                 }
             }
         } else {
@@ -47,7 +47,7 @@ class Timer extends Events {
             {name: global.lang.STOP, type: 'action', fa: 'fas fa-stop', action: () => this.timerChosen(minutes, global.lang.STOP)},
             {name: global.lang.CLOSE, type: 'action', fa: 'fas fa-times-circle', action: () => this.timerChosen(minutes, global.lang.CLOSE)}
         ]
-        if(!global.cordova){
+        if(!global.paths.cordova){
             opts.push({name: global.lang.SHUTDOWN, type: 'action', fa: 'fas fa-power-off', action: () => this.timerChosen(minutes, global.lang.SHUTDOWN)})
         }
         return opts
@@ -57,20 +57,23 @@ class Timer extends Events {
         this.timerData = {minutes, action, start: t, end: t + (minutes * 60)}
         this.timerData['timer'] = setTimeout(() => {
             console.warn('TIMER ACTION', this.timerData)
+            const streamer = require('../streamer/main')
             let action = this.timerData.action
-            if(global.streamer.active){
+            if(streamer.active){
                 if(global.tuning){
                     global.tuning.destroy()
+                    global.tuning = null
                 }
-                global.streamer.stop()
+                streamer.stop()
             }
             if(action != global.lang.STOP){
                 let recording = global.recorder && global.recorder.active() ? global.recorder.capture : false, next = () => {
+                    const energy = require('../energy')
                     if(action == global.lang.CLOSE){
-                        global.energy.exit()
+                        energy.exit()
                     } else if(action == global.lang.SHUTDOWN){
                         this.timerActionShutdown()
-                        global.energy.exit()
+                        energy.exit()
                     }
                 }
                 if(recording){
@@ -81,7 +84,7 @@ class Timer extends Events {
             }
             this.timerData = 0
         }, this.timerData.minutes * 60000)
-        global.explorer.open(global.lang.TOOLS).catch(global.displayErr)
+        global.menu.open(global.lang.TOOLS).catch(global.displayErr)
     }
     timerActionShutdown(){
         var cmd, secs = 7, exec = require("child_process").exec;
@@ -145,9 +148,6 @@ class PerformanceProfiles extends Timer {
             }
         }
         this.profiles.high['epg-'+ global.lang.locale] = ''
-        global.ui.on('about-dialog', ret => {
-            this.about().catch(global.displayErr)
-        })
     }
     detectPerformanceMode(){
         let scores = {low: 0, high: 0}
@@ -168,7 +168,7 @@ class PerformanceProfiles extends Timer {
         if(setup){
             txt += '<br /><br />'+ global.lang.OPTION_CHANGE_AT_ANYTIME.format(global.lang.OPTIONS)
         }
-        let ret = await global.explorer.dialog([
+        let ret = await global.menu.dialog([
             {template: 'question', text: global.lang.PERFORMANCE_MODE, fa: 'fas fa-tachometer-alt'},
             {template: 'message', text: txt},
             {template: 'option', id: 'high', fa: cur == 'high' ? 'fas fa-check-circle' : '', text: global.lang.COMPLETE},
@@ -243,7 +243,7 @@ class OptionsGPU extends PerformanceProfiles {
             type: 'action',
             action: () => {
                 this.resetGPUFlags()
-                global.explorer.refreshNow()
+                global.menu.refreshNow()
             }
         })
         return opts
@@ -261,7 +261,8 @@ class OptionsGPU extends PerformanceProfiles {
             const current = JSON.stringify(global.config.get('gpu-flags'))
             if(this.lastGPUChangeAsked != current) {
                 this.lastGPUChangeAsked = current
-                global.energy.askRestart()
+                const energy = require('../energy')
+                energy.askRestart()
             }
         }
         return {
@@ -278,7 +279,7 @@ class OptionsGPU extends PerformanceProfiles {
                 action: (data, checked) => {
                     global.config.set('gpu', checked)
                     this.resetGPUFlags()
-                    global.explorer.refreshNow()
+                    global.menu.refreshNow()
                 },
                 checked: () => {
                     return global.config.get('gpu')
@@ -305,8 +306,10 @@ class OptionsGPU extends PerformanceProfiles {
     }
     async saveGPUReport(){
         let err
+        const fs = require('fs')
         const { app } = require('electron')
-        const file = global.downloads.folder +'/gpu-report.txt'
+        const downloads = require('../downloads')
+        const file = downloads.folder +'/gpu-report.txt'
         const report = {
             featureStatus: app.getGPUFeatureStatus(),
             info: await app.getGPUInfo('complete').catch(e => err = e)
@@ -315,7 +318,7 @@ class OptionsGPU extends PerformanceProfiles {
             report.info = String(err)
         }
         await fs.promises.writeFile(file, JSON.stringify(report, null, 3), {encoding: 'utf8'})
-        global.downloads.serve(file, true, false).catch(global.displayErr)
+        downloads.serve(file, true, false).catch(global.displayErr)
     }
 }
 
@@ -349,6 +352,7 @@ class OptionsExportImport extends OptionsGPU {
                 natts[k] = atts[k]
             }
         })
+        const fs = require('fs')
         if(natts['custom-background-image']){
             const buf = Buffer.from(natts['custom-background-image'], 'base64')
             fs.writeFileSync(global.theme.customBackgroundImagePath, buf)
@@ -366,6 +370,7 @@ class OptionsExportImport extends OptionsGPU {
     }
     prepareExportConfig(atts, keysToExport){
         let natts = {}
+        const fs = require('fs')
         if(!atts){
             atts = global.config.data
         }
@@ -395,12 +400,14 @@ class OptionsExportImport extends OptionsGPU {
         return natts
     }
     prepareExportConfigFile(file, atts, keysToExport, cb){
+        const fs = require('fs')
         fs.writeFile(file, JSON.stringify(this.prepareExportConfig(atts, keysToExport), null, 3), {encoding: 'utf-8'}, err => {
             cb(err, file)
         })
     }
     async import(file){
         if(file.endsWith('.json')){ // is json?
+            const fs = require('fs')
             this.importConfigFile(await fs.promises.readFile(file))            
             global.osd.show(global.lang.IMPORTED_FILE, 'fas fa-check-circle', 'options', 'normal')
         } else {
@@ -408,6 +415,8 @@ class OptionsExportImport extends OptionsGPU {
             try {
                 const AdmZip = require('adm-zip')
                 const zip = new AdmZip(file), imported = {}
+                const icons = require('../icon-server')
+                const path = require('path')
                 for(const entry of zip.getEntries()) {
                     if(entry.entryName.startsWith('config')) {
                         zip.extractEntryTo(entry, path.dirname(global.config.file), false, true)
@@ -422,7 +431,7 @@ class OptionsExportImport extends OptionsGPU {
                     }
                     if(entry.entryName.startsWith('icons')) {
                         try {
-                            zip.extractEntryTo(entry, path.dirname(global.icons.opts.folder), true, true) // Error: ENOENT: no such file or directory, chmod 'C:\\Users\\samsung\\AppData\\Local\\Megacubo\\Data\\icons\\a&e-|-a-&-e.png'
+                            zip.extractEntryTo(entry, path.dirname(icons.opts.folder), true, true) // Error: ENOENT: no such file or directory, chmod 'C:\\Users\\samsung\\AppData\\Local\\Megacubo\\Data\\icons\\a&e-|-a-&-e.png'
                         } catch(e) {}
                     }
                     if(entry.entryName.startsWith('Themes')) {
@@ -441,7 +450,11 @@ class OptionsExportImport extends OptionsGPU {
         }
     }
     export(cb){
+        const fs = require('fs')
         const AdmZip = require('adm-zip')
+        const icons = require('../icon-server')
+        const bookmarks = require('../bookmarks')
+        const history = require('../history')
         const zip = new AdmZip(), files = []
         const add = (path, subDir) => {
             if(fs.existsSync(path)){
@@ -453,32 +466,36 @@ class OptionsExportImport extends OptionsGPU {
             }
         }
         add(global.config.file);
-        [global.bookmarks.key, global.histo.key, global.channels.channelList.key].forEach(key => {
+        [bookmarks.key, history.key, global.channels.channelList.key].forEach(key => {
             files.push(global.storage.resolve(key, false))
             files.push(global.storage.resolve(key, true))
         })
         files.forEach(add)
         add(global.theme.folder, 'Themes')
-        add(global.icons.opts.folder, 'icons')
-        zip.writeZip(global.paths.temp +'/megacubo.export.zip')
-        cb(global.paths.temp +'/megacubo.export.zip')
+        add(icons.opts.folder, 'icons')
+
+        const { temp } = require('../paths')
+        zip.writeZip(temp +'/megacubo.export.zip')
+        cb(temp +'/megacubo.export.zip')
     }
 }
 
 class Options extends OptionsExportImport {
     constructor(){
         super()
-        global.ui.on('devtools', () => this.devtools())
+        global.renderer.on('devtools', () => this.devtools())
     }
     async updateEPGConfig(c){
         let activeEPG = global.config.get('epg-'+ global.lang.locale)
+        const { manager } = require('../lists')
         if(activeEPG == 'disabled'){
             activeEPG = false
-            await global.lists.manager.setEPG('', false).catch(console.error)
+            await manager.setEPG('', false).catch(console.error)
         } else {
             if(!activeEPG || activeEPG == 'auto'){
                 if(!c){
-                    c = await global.cloud.get('configure').catch(console.error)
+                    const cloud = require('../cloud')
+                    c = await cloud.get('configure').catch(console.error)
                 }
                 if(c && c.epg){
                     activeEPG = c.epg[global.lang.countryCode] || c.epg[global.lang.locale] || false
@@ -486,15 +503,10 @@ class Options extends OptionsExportImport {
                     activeEPG = false
                 }
             }
-            await global.lists.manager.setEPG(activeEPG || '', false).catch(console.error)
+            await manager.setEPG(activeEPG || '', false).catch(console.error)
         }
     }
     async tools(){
-        let err, defaultURL = ''
-        const url = global.config.get('open-url')
-        if(!err && url){
-            defaultURL = url
-        }
         let entries = [
             this.openURLEntry(),
             this.timerEntry()
@@ -519,14 +531,14 @@ class Options extends OptionsExportImport {
             fa: 'fas fa-question-circle',
             id: 'improve'
         })
-        let locale = await global.explorer.dialog([
+        let locale = await global.menu.dialog([
             {template: 'question', text: global.lang.SELECT_LANGUAGE, fa: 'fas fa-language'}
         ].concat(options), def)
         if(locale == 'improve') {
-            global.ui.emit('open-external-url', 'https://github.com/efoxbr/megacubo/tree/master/www/nodejs-project/lang')
+            global.renderer.emit('open-external-url', 'https://github.com/efoxbr/megacubo/tree/master/www/nodejs-project/lang')
             return await this.showLanguageEntriesDialog()
         }
-        let _def = global.config.get('locale') || global.lang.locale
+        const _def = global.config.get('locale') || global.lang.locale
         if(locale) {
             if (locale != _def) {
                 global.osd.show(global.lang.PROCESSING, 'fa-mega spin-x-alt', 'countries', 'persistent')
@@ -536,19 +548,17 @@ class Options extends OptionsExportImport {
                 if(texts){
                     global.lang.locale = locale
                     global.lang.applyTexts(texts)
-                    global.ui.emit('lang', texts)
-                    global.explorer.pages = {'': []}
-                    global.explorer.refreshNow()
+                    global.renderer.emit('lang', texts)
+                    global.menu.pages = {'': []}
+                    global.menu.refreshNow()
                 }
                 global.osd.hide('countries')
             }
-            let countries = global.lang.countries.getCountriesFromLanguage(locale)
-            countries = global.lang.countries.orderCodesBy(countries, 'population', true)
-            await this.country(
-                countries,
-                true
-            ).catch(console.error)
-            restart && global.energy.restart()
+            const countries = global.lang.countries.getCountriesFromLanguage(locale)
+            const pcountries = global.lang.countries.orderCodesBy(countries, 'population', true).slice(0, 4)
+            const energy = require('../energy')
+            await this.country([...pcountries, ...countries.filter(c => !pcountries.includes(c))], true).catch(console.error)
+            restart && energy.restart()
         }
     }
     async country(suggestedCountries, force){
@@ -561,40 +571,44 @@ class Options extends OptionsExportImport {
                 {template: 'question', fa: 'fas fa-info-circle', text: global.lang.SELECT_COUNTRY}
             ].concat(suggestedCountries.map(id => {
                 const text = global.lang.countries.getCountryName(id, to)
-                return {template: 'option', text, fa: 'fas fa-globe', id}
+                return {template: 'option', fa: 'fas fa-globe', text, id}
             }))
             opts.push({template: 'option', text: global.lang.OTHER_COUNTRIES, details: global.lang.ALL, fa: 'fas fa-globe', id: 'countries'})
-            let ret = suggestedCountries.length == 1 ? suggestedCountries[0] : (await global.explorer.dialog(opts))
+            let ret = suggestedCountries.length == 1 ? suggestedCountries[0] : (await global.menu.dialog(opts))
             if(ret == 'countries') {
                 const nopts = opts.slice(0, 1).concat(
                     global.lang.countries.getCountries().map(id => {
                         const text = global.lang.countries.getCountryName(id, to)
-                        return {template: 'option', text, fa: 'fas fa-globe', id}
+                        return {template: 'option', fa: 'fas fa-globe', text, id}
                     })
                 )
-                ret = await global.explorer.dialog(nopts)
+                ret = await global.menu.dialog(nopts)
             }
             global.osd.show(global.lang.PROCESSING, 'fa-mega spin-x-alt', 'countries', 'persistent') // update language of message
             if(!ret && force) {
                 ret = suggestedCountries[0]
             }
             if(ret && global.lang.countries.countryCodeExists(ret)){
+                const discovery = require('../discovery')
                 global.lang.countryCode = ret // reference for upcoming lang.getActiveCountries()
                 global.config.set('country', ret)
                 global.config.set('countries', []) // reset
                 let countries = await global.lang.getActiveCountries()
                 global.config.set('countries', countries)
-                global.explorer.pages = {'': []}
-                global.explorer.refreshNow()
+                global.menu.pages = {'': []}
+                global.menu.refreshNow()
                 await global.channels.load()
-                await global.watching.update()
+                await discovery.reset()
+
+                const watching = require('../watching')
+                await watching.update()
             }
             global.osd.hide('countries')
         }
     }
     async countriesEntries(chosenLocale, path){
         if(!path){
-            path = global.explorer.path
+            path = global.menu.path
         }
         const entries = [], locale = chosenLocale === true ? null : (
             chosenLocale || global.lang.countryCode
@@ -616,7 +630,7 @@ class Options extends OptionsExportImport {
         entries.push({
             name: global.lang.BACK,
             type: 'back',
-            fa: global.explorer.backIcon,
+            fa: global.menu.backIcon,
             path: global.lang.OPTIONS,
             tabindex: 0,
             action: async () => {
@@ -625,10 +639,13 @@ class Options extends OptionsExportImport {
                 if(!actives.length) {
                     actives = await global.lang.getActiveCountries()
                 }
-                if(this.countriesEntriesOriginalActives.sort().join(',') != actives.sort().join(',')){
-                    global.energy.askRestart()
+                if(this.countriesEntriesOriginalActives.sort().join(',') != actives.sort().join(',')) {
+                    const discovery = require('../discovery')
+                    const energy = require('../energy')
+                    await discovery.reset()
+                    energy.askRestart()
                 }
-                global.explorer.open(global.lang.OPTIONS).catch(displayErr)
+                global.menu.open(global.lang.OPTIONS).catch(displayErr)
             }
         })
         if(map.some(row => !actives.includes(row.code))){
@@ -638,7 +655,7 @@ class Options extends OptionsExportImport {
                 fa: 'fas fa-check-circle',
                 action: () => {
                     global.config.set('countries', map.map(row => row.code))
-                    global.explorer.refreshNow()
+                    global.menu.refreshNow()
                 }
             })
         } else {
@@ -654,11 +671,12 @@ class Options extends OptionsExportImport {
                         countries = countries.slice(0, 1) // at least one country should be enabled
                     }
                     global.config.set('countries', countries)
-                    global.explorer.refreshNow()
+                    global.menu.refreshNow()
                 }
             })
         }
-        entries.push(...global.lists.sort(map).map(row => {
+        const lists = require('../lists')
+        entries.push(...lists.sort(map).map(row => {
             return {
                 name : row.name,
                 type: 'check',
@@ -709,18 +727,19 @@ class Options extends OptionsExportImport {
         return entries
     }
     tos(){
-        global.ui.emit('open-external-url', 'https://megacubo.net/tos')
+        global.renderer.emit('open-external-url', 'https://megacubo.net/tos')
     }
     privacy(){
-        global.ui.emit('open-external-url', 'https://megacubo.net/privacy')
+        global.renderer.emit('open-external-url', 'https://megacubo.net/privacy')
     }
     uninstall(){
-        global.ui.emit('open-external-url', 'https://megacubo.net/uninstall-info')
+        global.renderer.emit('open-external-url', 'https://megacubo.net/uninstall-info')
     }
     help(){
-        global.cloud.get('configure').then(c => {
-            const url = (c && typeof(c.help) == 'string') ? c.help : global.MANIFEST.bugs
-            global.ui.emit('open-external-url', url)
+        const cloud = require('../cloud')
+        cloud.get('configure').then(c => {
+            const url = (c && typeof(c.help) == 'string') ? c.help : global.paths.manifest.bugs
+            global.renderer.emit('open-external-url', url)
         }).catch(global.displayErr)
     }
 	share(){
@@ -728,23 +747,24 @@ class Options extends OptionsExportImport {
         if(!['en', 'es', 'pt'].includes(locale)) { // Megacubo website languages
             locale = 'en'
         }
-		global.ui.emit('share', global.ucWords(global.MANIFEST.name), global.ucWords(global.MANIFEST.name), 'https://megacubo.net/'+ locale +'/')
+		global.renderer.emit('share', global.ucWords(global.paths.manifest.name), global.ucWords(global.paths.manifest.name), 'https://megacubo.net/'+ locale +'/')
 	}
     async about(){
+        const cloud = require('../cloud')
         let outdated, c = await cloud.get('configure').catch(console.error)
         if(c){
             this.updateEPGConfig(c)
             console.log('checking update...')
             let vkey = 'version'
-            outdated = c[vkey] > global.MANIFEST.version
+            outdated = c[vkey] > global.paths.manifest.version
         }
         const os = require('os')
         const notice = global.ALLOW_ADDING_LISTS ? lang.ABOUT_LEGAL_NOTICE_LISTS : lang.ABOUT_LEGAL_NOTICE
         let text = lang.LEGAL_NOTICE +': '+ notice
-        let title = global.ucWords(global.MANIFEST.name) +' v'+ global.MANIFEST.version
+        let title = global.ucWords(global.paths.manifest.name) +' v'+ global.paths.manifest.version
         let versionStatus = outdated ? global.lang.OUTDATED.toUpperCase() : global.lang.CURRENT_VERSION
         title += ' ('+ versionStatus +', ' + process.platform +' '+ os.arch() +')'
-        let ret = await global.explorer.dialog([
+        let ret = await global.menu.dialog([
             {template: 'question', fa: 'fas fa-mega', text: title},
             {template: 'message', text},
             {template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'ok'},
@@ -774,42 +794,50 @@ class Options extends OptionsExportImport {
         }
     }
     aboutNetwork(){
-        global.explorer.info('Network IP', data, 'fas fa-globe')
+        global.menu.info('Network IP', data, 'fas fa-globe')
     }
     aboutResources(){
+        const diag = require('../diagnostics')
+        const async = require('async')
         let txt = []
         async.parallel([done => {
-            global.diag.checkDisk().then(data => {
+            diag.checkDisk().then(data => {
                 txt[1] = 'Free disk space: '+ global.kbfmt(data.free) +'<br />'
             }).catch(console.error).finally(() => done())
         }, done => {
-            global.diag.checkMemory().then(freeMem => {
+            diag.checkMemory().then(freeMem => {
                 const used = process.memoryUsage().rss
                 txt[0] = 'App memory usage: '+ global.kbfmt(used) +'<br />Free memory: '+ global.kbfmt(freeMem) +'<br />'
             }).catch(console.error).finally(() => done())
         }], () => {
-            txt[2] = 'Connection speed: '+ global.kbsfmt(global.streamer.downlink || 0) +'<br />'
+            const np = require('../network-ip')
+            const streamer = require('../streamer/main')
+            txt[2] = 'Connection speed: '+ global.kbsfmt(streamer.downlink || 0) +'<br />'
             txt[3] = 'User agent: '+ (global.config.get('user-agent') || global.config.get('default-user-agent')) +'<br />'
-            txt[4] = 'Network IP: '+ global.networkIP() +'<br />'
+            txt[4] = 'Network IP: '+ np.networkIP() +'<br />'
             txt[5] = 'Language: '+ global.lang.languageHint +' ('+ global.lang.countryCode +')<br />'
             if(process.platform == 'android'){
-                txt[4] = 'Network IP: '+ global.androidIPCommand() +'<br />'
+                txt[4] = 'Network IP: '+ np.androidIPCommand() +'<br />'
             } 
-            global.explorer.info('System info', txt.join(''), 'fas fa-memory')
+            global.menu.info('System info', txt.join(''), 'fas fa-memory')
         })
     }
     async resetConfig(){
         let text = global.lang.RESET_CONFIRM
-        let ret = await global.explorer.dialog([
-            {template: 'question', text: global.ucWords(global.MANIFEST.name)},
+        let ret = await global.menu.dialog([
+            {template: 'question', text: global.ucWords(global.paths.manifest.name)},
             {template: 'message', text},
             {template: 'option', text: global.lang.YES, fa: 'fas fa-check-circle', id: 'yes'},            {template: 'option', text: global.lang.NO, fa: 'fas fa-times-circle', id: 'no'}
         ], 'no')
         if(ret == 'yes'){
             await global.storage.clear(true)
-            global.rmdir(global.paths.data, false, true)
-            global.rmdir(global.paths.temp, false, true)
-            global.energy.restart()
+
+            const paths = require('../paths')
+            global.rmdir(paths.data, false, true)
+            global.rmdir(paths.temp, false, true)
+
+            const energy = require('../energy')
+            energy.restart()
         }
     }
     async transcodingEntries(){
@@ -857,11 +885,11 @@ class Options extends OptionsExportImport {
     async chooseExternalPlayer() {
         if(!this.availableExternalPlayers) {
             return await new Promise((resolve, reject) => {
-                global.ui.once('external-players', players => {
+                global.renderer.once('external-players', players => {
                     this.availableExternalPlayers = players
                     this.chooseExternalPlayer().then(resolve).catch(reject)
                 })
-                global.ui.emit('get-external-players')
+                global.renderer.emit('get-external-players')
             })
         }
         const keys = Object.keys(this.availableExternalPlayers)
@@ -871,15 +899,16 @@ class Options extends OptionsExportImport {
         })
         opts.unshift({template: 'question', fa: 'fas fa-window-restore', text: global.lang.OPEN_EXTERNAL_PLAYER})
         opts.push({template: 'option', fa: 'fas fa-folder-open', id: 'custom', text: global.lang.CUSTOMIZE})
-        const chosen = await global.explorer.dialog(opts, null, true)
+        const chosen = await global.menu.dialog(opts, null, true)
         if(chosen == 'custom') return await this.chooseExternalPlayerFile()
         if(chosen && this.availableExternalPlayers[chosen]) global.config.set('external-player', chosen)
         global.osd.show('OK', 'fas fa-check-circle faclr-green', 'external-player', 'normal')
         return chosen
     }
     async chooseExternalPlayerFile() {
-        const file = await global.explorer.chooseFile('*')
+        const file = await global.menu.chooseFile('*')
         if(file) {
+            const path = require('path')
             const name = global.ucWords(path.basename(file).replace(new RegExp('\.[a-z]{2,4}$'), '').replaceAll('-', ' ').replaceAll('_', ' '))
             global.config.set('external-player', [file, name])
             global.osd.show('OK', 'fas fa-check-circle faclr-green', 'external-player', 'normal')
@@ -927,8 +956,9 @@ class Options extends OptionsExportImport {
                 renderer: async () => {
                     const go = type => {
                         let changed
+                        const { mi } = require('../lists')
                         const lists = global.config.get('lists').map(l => {
-                            const newUrl = global.lists.mi.setM3UStreamFmt(l[1], type || 'hls') // hls as default, since it is adaptative and more compatible
+                            const newUrl = mi.setM3UStreamFmt(l[1], type || 'hls') // hls as default, since it is adaptative and more compatible
                             if(newUrl) {
                                 changed = true
                                 l[1] = newUrl
@@ -984,8 +1014,9 @@ class Options extends OptionsExportImport {
                 range: {start: 30, end: 7200},
                 action: (data, value) => {
                     console.warn('ELAPSED_TIME_TO_KEEP_CACHED', data, value)
+                    const streamer = require('../streamer/main')
                     global.config.set('live-window-time', value)
-                    global.streamer.active && global.streamer.reload()
+                    streamer.active && streamer.reload()
                 }, 
                 value: () => {
                     return global.config.get('live-window-time')
@@ -995,7 +1026,7 @@ class Options extends OptionsExportImport {
                 name: global.lang.TRANSCODE, type: 'group', fa: 'fas fa-film', renderer: this.transcodingEntries.bind(this)
             }
         ]
-        if(!global.cordova) {
+        if(!global.paths.cordova) {
             opts.unshift({
                 name: global.lang.SET_DEFAULT_EXTERNAL_PLAYER,
                 fa: 'fas fa-window-restore', 
@@ -1070,12 +1101,13 @@ class Options extends OptionsExportImport {
                 }
             }
         ]
-        if(!global.cordova) {
+        if(!global.paths.cordova) {
             opts.splice(1, 0, {
                 name: 'TCP Fast Open', type: 'check',
                 action: (data, checked) => {
+                    const energy = require('../energy')
                     global.config.set('tcp-fast-open', checked)
-                    global.energy.askRestart()
+                    energy.askRestart()
                 },
                 checked: () => global.config.get('tcp-fast-open')
             })
@@ -1172,7 +1204,7 @@ class Options extends OptionsExportImport {
                             selected: def == n.value,
                             action: async () => {
                                 if(n.value == 'custom') {
-                                    n.value = await global.explorer.prompt({
+                                    n.value = await global.menu.prompt({
                                         question: 'User agent',
                                         placeholder: global.lang.CUSTOMIZE,
                                         defaultValue: n.details,
@@ -1181,7 +1213,7 @@ class Options extends OptionsExportImport {
                                 }
                                 if(n.value) {
                                     global.config.set('user-agent', n.value)
-                                    global.explorer.refresh()
+                                    global.menu.refresh()
                                 }
                             }
                         }
@@ -1196,7 +1228,7 @@ class Options extends OptionsExportImport {
         const usage = global.storage.size()
         const highUsage = usage > (512 * (1024 * 1024))
         const size = '<font class="faclr-' + (highUsage ? 'red' : 'green') + '">' + global.kbfmt(usage) + '</font>'
-        global.explorer.dialog([
+        global.menu.dialog([
             {template: 'question', text: global.lang.CLEAR_CACHE, fa: 'fas fa-broom'},
             {template: 'message', text: global.lang.CLEAR_CACHE_WARNING.format(size)},
             {template: 'option', text: global.lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
@@ -1206,6 +1238,7 @@ class Options extends OptionsExportImport {
         }).catch(console.error)
     }
     async developerEntries() {
+        const cloud = require('../cloud')
         const opts = [
             {
                 name: global.lang.ENABLE_DISK_CACHE,
@@ -1227,7 +1260,10 @@ class Options extends OptionsExportImport {
                 name: global.lang.FFMPEG_VERSION, 
                 fa: 'fas fa-info-circle', 
                 type: 'action', 
-                action: global.ffmpeg.diagnosticDialog.bind(global.ffmpeg)
+                action: () => {
+                    const ffmpeg = require('../ffmpeg')
+                    ffmpeg.diagnosticDialog()
+                }
             },
             {
                 name: 'Enable console logging', type: 'check', action: (data, checked) => {
@@ -1255,7 +1291,8 @@ class Options extends OptionsExportImport {
             },
             {
                 name: 'Debug credentials', fa: 'fas fa-key', type: 'action', action: () => {
-                    global.lists.manager.debugCredentials().catch(global.displayErr)
+                    const { manager } = require('../lists')
+                    manager.debugCredentials().catch(global.displayErr)
                 }
             },
             {
@@ -1319,7 +1356,8 @@ class Options extends OptionsExportImport {
                 fa: 'fas fa-info-circle', 
                 type: 'action', 
                 action: async () => {
-                    global.diag.saveReport().catch(console.error)
+                    const diag = require('../diagnostics')
+                    diag.saveReport().catch(console.error)
                 }
             },
             {
@@ -1327,8 +1365,9 @@ class Options extends OptionsExportImport {
                 fa: global.ALLOW_ADDING_LISTS ? 'fas fa-toggle-on' : 'fas fa-toggle-off', 
                 type: 'select', 
                 renderer: async () => {
-                    const privateFile = global.APPDIR +'/ALLOW_ADDING_LISTS.md'
-                    const communityFile = global.APPDIR +'/ALLOW_COMMUNITY.md'
+                    const fs = require('fs')
+                    const privateFile = global.paths.cwd +'/ALLOW_ADDING_LISTS.md'
+                    const communityFile = global.paths.cwd +'/ALLOW_COMMUNITY.md'
                     const def = global.ALLOW_COMMUNITY_LISTS ? 2 : (global.ALLOW_ADDING_LISTS ? 1 : 0), opts = [
                         {
                             name: global.lang.DO_NOT_ALLOW,
@@ -1339,8 +1378,10 @@ class Options extends OptionsExportImport {
                                 await fs.promises.unlink(privateFile).catch(console.error)
                                 await fs.promises.unlink(communityFile).catch(console.error)
                                 global.config.set('communitary-mode-lists-amount', 0)
-                                global.explorer.refreshNow()
-                                global.energy.askRestart()
+                                global.menu.refreshNow()
+
+                                const energy = require('../energy')
+                                energy.askRestart()
                             }
                         },
                         {
@@ -1351,9 +1392,11 @@ class Options extends OptionsExportImport {
                                 await fs.promises.writeFile(privateFile, 'OK').catch(console.error)
                                 await fs.promises.unlink(communityFile).catch(console.error)
                                 global.config.set('communitary-mode-lists-amount', 0)
-                                global.explorer.refreshNow()
-                                await global.explorer.info(global.lang.LEGAL_NOTICE, global.lang.TOS_CONTENT)
-                                global.energy.askRestart()
+                                global.menu.refreshNow()
+                                await global.menu.info(global.lang.LEGAL_NOTICE, global.lang.TOS_CONTENT)
+
+                                const energy = require('../energy')
+                                energy.askRestart()
                             }
                         },
                         {
@@ -1361,12 +1404,15 @@ class Options extends OptionsExportImport {
                             type: 'action', selected: (def == 2),
                             action: async (data) => {
                                 if(def == 2) return
+                                const { opts: { defaultCommunityModeReach } } = require('../lists')
                                 await fs.promises.writeFile(privateFile, 'OK').catch(console.error)
                                 await fs.promises.writeFile(communityFile, 'OK').catch(console.error)
-                                global.config.set('communitary-mode-lists-amount', global.lists.opts.defaultCommunityModeReach)
-                                global.explorer.refreshNow()
-                                await global.explorer.info(global.lang.LEGAL_NOTICE, global.lang.TOS_CONTENT)
-                                global.energy.askRestart() 
+                                global.config.set('communitary-mode-lists-amount', defaultCommunityModeReach)
+                                global.menu.refreshNow()
+                                await global.menu.info(global.lang.LEGAL_NOTICE, global.lang.TOS_CONTENT)
+
+                                const energy = require('../energy')
+                                energy.askRestart() 
                             }
                         }
                     ]
@@ -1379,10 +1425,10 @@ class Options extends OptionsExportImport {
                 type: 'input', 
                 action: (e, value) => {
                     if(!value){
-                        value = global.cloud.defaultServer // allow reset by leaving field empty
+                        value = cloud.defaultServer // allow reset by leaving field empty
                     }
-                    if(value != global.cloud.server){
-                        global.cloud.testConfigServer(value).then(() => {
+                    if(value != cloud.server){
+                        cloud.testConfigServer(value).then(() => {
                             global.osd.show('OK', 'fas fa-check-circle faclr-green', 'config-server', 'persistent')
                             global.config.set('config-server', value)
                             setTimeout(() => this.clearCache().catch(console.error), 2000) // allow user to see OK message
@@ -1392,10 +1438,10 @@ class Options extends OptionsExportImport {
                 value: () => {
                     return global.config.get('config-server')
                 },
-                placeholder: global.cloud.defaultServer
+                placeholder: cloud.defaultServer
             }                          
         ]
-        if(!global.cordova){
+        if(!global.paths.cordova){
             opts.push({
                 name: 'DevTools',
                 type: 'action',
@@ -1406,16 +1452,22 @@ class Options extends OptionsExportImport {
         return opts
     }
     async clearCache(){
+        const streamer = require('../streamer/main')
         global.osd.show(global.lang.CLEANING_CACHE, 'fa-mega spin-x-alt', 'clear-cache', 'persistent')
-        global.streamer.stop()
+        streamer.stop()
         global.tuning && global.tuning.destroy()
         await global.storage.clear()
         global.osd.show('OK', 'fas fa-check-circle faclr-green', 'clear-cache', 'normal')
         global.config.save()
-        global.energy.restart()
+
+        const energy = require('../energy')
+        energy.restart()
     }
     entries(){
-        let secOpt = global.lists.parentalControl.entry()
+        const { parentalControl } = require('../lists')
+        const decodeEntities = require('decode-entities')
+        const downloads = require('../downloads')
+        let secOpt = parentalControl.entry()
         let opts = [
             {name: global.lang.BEHAVIOUR, type: 'group', fa: 'fas fa-window-restore', renderer: async () => {
                 let opts = [
@@ -1479,7 +1531,7 @@ class Options extends OptionsExportImport {
                         type: 'check', 
                         action: (data, value) => {
                             global.config.set('hide-back-button', value)
-                            global.explorer.refreshNow()
+                            global.menu.refreshNow()
                         }, 
                         checked: () => {
                             return global.config.get('hide-back-button')
@@ -1490,7 +1542,7 @@ class Options extends OptionsExportImport {
                         type: 'check',
                         action: (e, checked) => {
                             global.config.set('search-youtube', checked)
-                            global.explorer.refreshNow()
+                            global.menu.refreshNow()
                         }, 
                         checked: () => {
                             return global.config.get('search-youtube')
@@ -1527,7 +1579,7 @@ class Options extends OptionsExportImport {
                         type: 'check',
                         action: (e, checked) => {
                             global.config.set('kids-fun-titles', checked)
-                            global.explorer.refreshNow()
+                            global.menu.refreshNow()
                         }, 
                         checked: () => {
                             return global.config.get('kids-fun-titles')
@@ -1556,7 +1608,7 @@ class Options extends OptionsExportImport {
                         checked: () => global.config.get('search-mode') !== 1
                     }
                 ]
-                if(!global.cordova){
+                if(!global.paths.cordova){
                     opts.push({
                         name: global.lang.SPEAK_NOTIFICATIONS, 
                         type: 'check', 
@@ -1591,7 +1643,7 @@ class Options extends OptionsExportImport {
                                 global.config.set('startup-window', 'fullscreen')
                             }}
                         ]
-                        if(!global.cordova){
+                        if(!global.paths.cordova){
                             opts.push({name: 'Miniplayer', fa: 'fas fa-level-down-alt', type: 'action', selected: (def == 'miniplayer'), action: data => {
                                 global.config.set('startup-window', 'miniplayer')
                             }})
@@ -1640,7 +1692,8 @@ class Options extends OptionsExportImport {
                         fa: 'fas fa-file-export', 
                         action: () => {
                             this.export(file => {
-                                global.downloads.serve(file, true, false).catch(global.displayErr)
+                                const downloads = require('../downloads')
+                                downloads.serve(file, true, false).catch(global.displayErr)
                             })
                         }
                     },
@@ -1649,7 +1702,7 @@ class Options extends OptionsExportImport {
                         type: 'action',
                         fa: 'fas fa-file-import', 
                         action: async () => {
-                            const ret = await global.explorer.chooseFile('application/json, application/zip, application/octet-stream, application/x-zip-compressed, multipart/x-zip')
+                            const ret = await global.menu.chooseFile('application/json, application/zip, application/octet-stream, application/x-zip-compressed, multipart/x-zip')
                             await this.import(ret)
                         }
                     },
@@ -1684,7 +1737,8 @@ class Options extends OptionsExportImport {
             return e.name == term || e.hookId == term
         }            
     }
-    insertEntry(entry, entries, preferredPosition=-1, before, after, prop='name'){
+    insertEntry(entry, entries, preferredPosition=-1, before, after){
+        const prop = 'name'
         const i = entries.findIndex(e => e[prop] == entry[prop])
         if(i >= 0) entries.splice(i, 1) // is already present
         if(preferredPosition < 0) preferredPosition = Math.max(0, entries.length - preferredPosition)
@@ -1702,7 +1756,12 @@ class Options extends OptionsExportImport {
         return {
             name: global.lang.OPEN_URL, fa: 'fas fa-link', details: global.lang.STREAMS, type: 'action',
             action: async () => {
-                await global.explorer.prompt({
+                let err, defaultURL = ''
+                const url = global.config.get('open-url')
+                if(!err && url){
+                    defaultURL = url
+                }
+                await global.menu.prompt({
                     question: global.lang.OPEN_URL,
                     placeholder: 'http://.../example.m3u8',
                     defaultValue: defaultURL,
@@ -1716,12 +1775,23 @@ class Options extends OptionsExportImport {
         if(!path) {
             const sopts = this.prm() ? [global.lang.RECORDINGS, global.lang.TIMER] :  [global.lang.TIMER, global.lang.THEMES]
             const details = sopts.join(', ')
-            this.insertEntry({name: global.lang.TOOLS, fa: 'fas fa-box-open', type: 'group', details, renderer: this.tools.bind(this)}, entries, -2)
-            this.insertEntry({name: global.lang.OPTIONS, fa: 'fas fa-cog', type: 'group', details: global.lang.CONFIGURE, renderer: this.entries.bind(this)}, entries, -1)
-            global.ALLOW_ADDING_LISTS || this.insertEntry(this.openURLEntry(), entries, -2, [global.lang.OPTIONS, global.lang.TOOLS])
+            this.insertEntry({name: global.lang.TOOLS, fa: 'fas fa-box-open', type: 'group', details, renderer: this.tools.bind(this)}, entries, -1)
+
+            const headerOptions = [
+                {name: global.lang.OPTIONS, top: true, fa: 'fas fa-cog', type: 'group', details: global.lang.CONFIGURE, renderer: this.entries.bind(this)},
+                {name: global.lang.ABOUT, top: true, fa: 'fas fa-info-circle', type: 'action', action: () => {
+                    this.about().catch(global.displayErr)
+                }},
+                {name: global.lang.SHUTDOWN, top: true, fa: 'fas fa-power-off', type: 'action', action: () => {
+                    global.renderer.emit('ask-exit')
+                }}
+            ]
+            headerOptions.forEach(opt => {
+                if(!entries.some(e => e.top && e.name == opt.name)) entries.push(opt)
+            })
         }
         return entries
     }
 }
 
-module.exports = Options
+module.exports = new Options()

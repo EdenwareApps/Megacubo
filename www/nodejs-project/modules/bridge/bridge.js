@@ -1,8 +1,6 @@
-const path = require('path'), http = require('http'), Events = require('events')
-const fs = require('fs'), url = require('url')
-const formidable = require('formidable'), closed = require('../on-closed')
+const { EventEmitter } = require('events')
 
-class BaseChannel extends Events {
+class BaseChannel extends EventEmitter {
     constructor (){
         super()
         this.originalEmit = this.emit
@@ -35,11 +33,15 @@ class CordovaChannel extends BaseChannel {
     }
     customEmit(...args){
         this.attach()
-        global.cordova.channel.post('message', args)
+        try {
+        this.channel.post('message', args)
+        } catch(err) {
+            console.error('CANNOT SEND MESSAGE '+ JSON.stringify(args))
+        }
     }
     attach(){
-        if(!this.channel && global.cordova.channel){
-            this.channel = global.cordova.channel
+        if(!this.channel && global.paths.cordova.channel){
+            this.channel = global.paths.cordova.channel
             this.channel.on('message', args => this.onMessage(args))
         }
     }
@@ -56,11 +58,11 @@ class ElectronChannel extends BaseChannel {
     }    
 }
 
-class BridgeServer extends Events {
+class BridgeServer extends EventEmitter {
     constructor(opts){
         super()
-        this.ua = 'Megacubo '+ global.MANIFEST.version
-        if(!global.cordova) {
+        this.ua = 'Megacubo '+ global.paths.manifest.version
+        if(!global.paths.cordova) {
             this.ua += ' '+ this.secret(8)
         }
         this.map = {}
@@ -74,6 +76,7 @@ class BridgeServer extends Events {
             })
         }
         this.closed = false
+        const http = require('http')
         const mimes = {
           '.ico': 'image/x-icon',
           '.html': 'text/html',
@@ -92,11 +95,13 @@ class BridgeServer extends Events {
             if(!this.checkUA(req.headers)) {
                 return response.end()
             }
+            const url = require('url')
             const parsedUrl = url.parse(req.url, false)
             global.prepareCORS(response, req)
             response.setHeader('Connection', 'close')
             response.setHeader('Feature-Policy', 'clipboard-read; clipboard-write; fullscreen; autoplay;')
             if(parsedUrl.pathname == '/upload') {
+                const formidable = require('formidable')
                 const form = formidable({ multiples: true })
                 form.parse(req, (err, fields, files) => {
                     response.writeHead(200, { 'content-type': 'text/plain' })
@@ -108,6 +113,7 @@ class BridgeServer extends Events {
                     }
                 })
             } else {
+                const path = require('path')
                 let pathname = `.${parsedUrl.pathname}`
                 if(pathname == './'){
                     pathname = './index.html'
@@ -115,9 +121,10 @@ class BridgeServer extends Events {
                 if(typeof(this.map[pathname]) != 'undefined'){
                     pathname = this.map[pathname]
                 } else {
-                    pathname = path.join(global.APPDIR, pathname)
+                    pathname = path.join(global.paths.cwd, pathname)
                 }
                 const ext = path.parse(pathname).ext
+                const fs = require('fs')
                 fs.access(pathname, err => {
                     if(err) { 
                         response.statusCode = 404
@@ -127,6 +134,7 @@ class BridgeServer extends Events {
                     response.setHeader('Content-type', mimes[ext] || 'text/plain' )
                     response.setHeader('Cache-Control', 'max-age=0, no-cache, no-store')
                     let stream = fs.createReadStream(pathname)
+                    const closed = require('../on-closed')
                     closed(req, response, stream, () => {
                         console.log(`${req.method} ${req.url} CLOSED`)
                         if(stream){
@@ -146,10 +154,10 @@ class BridgeServer extends Events {
             console.log('Bridge server started', err)
             this.uploadURL = 'http://' + this.opts.addr + ':' + this.opts.port + '/upload'
         })
-        if(!global.cordova) {
-            global.uiReady(() => {
+        if(!global.paths.cordova) {
+            global.rendererReady(() => {
                 const listener = () => this.updateExitPage()
-                global.ui.on('premium-state', listener) // locally emitted
+                global.renderer.on('premium-state', listener) // locally emitted
                 listener()
             })
         }
@@ -167,6 +175,7 @@ class BridgeServer extends Events {
         return headers && headers['user-agent'] && headers['user-agent'] == this.ua
     }
     serve(file){
+        const fs = require('fs')
         if(fs.existsSync(file)){
             let ext = file.match(new RegExp('\.[A-Za-z0-9]{0,5}$'))
             let stat = fs.statSync(file)
@@ -181,9 +190,11 @@ class BridgeServer extends Events {
         }
     }
     updateExitPage() {
-        const prm = global.options.prm() ? 'prm' : ''
-        const url = global.cloud.server +'/out.php?ver='+ global.MANIFEST.version +'&inf='+ prm
-        global.ui.emit('exit-page', url)
+        const cloud = require('../cloud')
+        const options = require('../options')
+        const prm = options.prm() ? 'prm' : ''
+        const url = cloud.server +'/out.php?ver='+ global.paths.manifest.version +'&inf='+ prm
+        global.renderer.emit('exit-page', url)
     }
     destroy(){
         if(this.opts.debug){
@@ -200,6 +211,7 @@ class BridgeUtils extends BridgeServer {
     }
     async resolveFileFromClient(data) {
         const check = async file => {
+            const fs = require('fs')
             await fs.promises.access(file, fs.constants.R_OK)
             return file
         }
@@ -220,6 +232,7 @@ class BridgeUtils extends BridgeServer {
     }
     async importFileFromClient(data, target) {
         console.warn('!!! IMPORT FILE !!!'+ target +' | '+ JSON.stringify(data))
+        const fs = require('fs')
         const resolveFile = await this.resolveFileFromClient(data).catch(err => {
             console.error('DATA='+ JSON.stringify(data) +' '+ err)
         })
@@ -239,7 +252,7 @@ class BridgeUtils extends BridgeServer {
 class Bridge extends BridgeUtils {
     constructor(opts){
         super(opts)
-        if(global.cordova){
+        if(global.paths.cordova){
             this.channel = new CordovaChannel()
         } else {
             this.channel = new ElectronChannel()

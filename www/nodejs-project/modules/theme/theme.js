@@ -1,12 +1,13 @@
+const { EventEmitter } = require('events')
 
-const Events = require('events'), fs = require('fs'), path = require('path'), async = require('async')
-
-class Theme extends Events {
+class Theme extends EventEmitter {
     constructor(){
         super()
+
+        const { data } = require('../paths')
         this.backgroundVideoSizeLimit = 40 * (1024 * 1024)
-        this.customBackgroundImagePath = global.paths.data +'/background.png'
-        this.customBackgroundVideoPath = global.paths.data +'/background'
+        this.customBackgroundImagePath = data +'/background.png'
+        this.customBackgroundVideoPath = data +'/background'
         this.keys = [
             'theme-name', 'animate-background', 'background-color', 
             'background-color-transparency', 'custom-background-image', 
@@ -14,16 +15,16 @@ class Theme extends Events {
             'font-size', 'uppercase-menu', 'view-size-x', 'view-size-y', 
             'view-size-portrait-x', 'view-size-portrait-y', 'fx-nav-intensity'
         ]
-        this.folder = global.paths.data +'/Themes'
-        global.uiReady(() => {
+        this.folder = data +'/Themes'
+        global.rendererReady(() => {
             this.refresh()
-            global.explorer.on('render', (entries, path) => {
+            global.menu.on('render', (entries, path) => {
                 if(path == [global.lang.TOOLS, global.lang.THEMES].join('/')){
                     delete this.creatingThemeName
                 }
             })
         })
-        global.ui.on('theme-creating-name', name => {
+        global.renderer.on('theme-creating-name', name => {
             if(name && name != global.lang.DEFAULT){
                 this.creatingThemeName = name
             } else if(!this.creatingThemeName) {
@@ -33,21 +34,23 @@ class Theme extends Events {
             if(this.creatingThemeName != prevName){
                 global.config.set('theme-name', this.creatingThemeName)
                 this.save(() => {
+                    const fs = require('fs')
                     const ffile = this.folder +'/'+ global.sanitize(prevName) + '.theme.json'
                     fs.unlink(ffile, () => {})
                 })
-                if(prevName && global.explorer.path.indexOf(prevName) != -1 && global.explorer.path.indexOf(global.lang.CREATE_THEME) == -1){
-                    global.explorer.open(global.explorer.path.replace(prevName, this.creatingThemeName)).catch(displayErr)
+                if(prevName && global.menu.path.indexOf(prevName) != -1 && global.menu.path.indexOf(global.lang.CREATE_THEME) == -1){
+                    global.menu.open(global.menu.path.replace(prevName, this.creatingThemeName)).catch(displayErr)
                 }
             }
         })
     }
     colors(file, filter, limit){
         return new Promise((resolve, reject) => {
+            const fs = require('fs')
             global.osd.show(global.lang.PROCESSING, 'fa-mega spin-x-alt', 'theme-processing-colors', 'persistent')
             fs.stat(file, (err, stat) => {
                 if(stat && stat.size){
-                    const key = 'colors-' + global.explorer.basename(file) + '-' + stat.size, next = colors => {
+                    const key = 'colors-' + global.menu.basename(file) + '-' + stat.size, next = colors => {
                         global.osd.hide('theme-processing-colors')
                         if(typeof(filter) == 'function'){
                             colors = colors.filter(filter)
@@ -61,7 +64,8 @@ class Theme extends Events {
                         if(Array.isArray(content)){
                             next(content)
                         } else {
-                            global.jimp.colors(file).then(colors => {
+                            const jimp = require('../jimp-worker/main')
+                            jimp.colors(file).then(colors => {
                                 global.storage.set(key, colors, {expiration: true})
                                 next(colors)
                             }).catch(err => {
@@ -83,7 +87,7 @@ class Theme extends Events {
     }
     colorsAddDefaults(colors, light){
         if(light){
-            const white = {r: 255, g: 255, b: 255}, f = global.hexToRgb(config.defaults['font-color'])
+            const white = {r: 255, g: 255, b: 255}, f = this.hexToRgb(config.defaults['font-color'])
             if(!this.colorsIncludes(colors, f)){
                 colors.unshift(f)
             }
@@ -91,7 +95,7 @@ class Theme extends Events {
                 colors.unshift(white)
             }
         } else {
-            const black = {r: 0, g: 0, b: 0}, b = global.hexToRgb(config.defaults['background-color'])
+            const black = {r: 0, g: 0, b: 0}, b = this.hexToRgb(config.defaults['background-color'])
             if(!this.colorsIncludes(colors, b)){
                 colors.unshift(b)
             }
@@ -109,31 +113,33 @@ class Theme extends Events {
         return (n / (255 * 3)) * 100
     }
     async importBackgroundImage(file){
-        global.ui.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_IMAGE}, true, global.lang.PROCESSING)
+        global.renderer.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_IMAGE}, true, global.lang.PROCESSING)
         global.osd.show(global.lang.PROCESSING, 'fas fa-cog fa-spin', 'theme-upload', 'persistent')
         try {
+            const fs = require('fs')
             await fs.promises.copyFile(file, this.customBackgroundImagePath)
-            console.warn('!!! IMPORT CUSTOM BACKGROUND FILE !!!', explorer.path, file, this.customBackgroundImagePath)
+            console.warn('!!! IMPORT CUSTOM BACKGROUND FILE !!!', menu.path, file, this.customBackgroundImagePath)
             global.config.set('custom-background-image', this.customBackgroundImagePath)
             global.config.set('custom-background-video', '')
             this.update()
-            global.explorer.open([global.lang.TOOLS, global.lang.THEMES, global.lang.CREATE_THEME, global.lang.BACKGROUND, global.lang.BACKGROUND_COLOR].join('/')).catch(displayErr)
+            global.menu.open([global.lang.TOOLS, global.lang.THEMES, global.lang.CREATE_THEME, global.lang.BACKGROUND, global.lang.BACKGROUND_COLOR].join('/')).catch(displayErr)
         } catch(err) {
             global.displayErr(err)
         }
-        global.ui.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_IMAGE}, false)
+        global.renderer.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_IMAGE}, false)
         global.osd.hide('theme-upload')
     }
     async importBackgroundVideo(file){
-        global.ui.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_VIDEO}, true, global.lang.PROCESSING)
+        global.renderer.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_VIDEO}, true, global.lang.PROCESSING)
         global.osd.show(global.lang.PROCESSING, 'fas fa-cog fa-spin', 'theme-upload', 'persistent')
         try {
+            const fs = require('fs')
             const targetFile = this.customBackgroundVideoPath +'-'+ uid + '.mp4'
             const stat = await fs.promises.stat(file)
             const tooBig = stat && stat.size >= this.backgroundVideoSizeLimit
             if(tooBig) throw 'This video file is too big. Limit it to 40MB at least.'
             await fs.promises.copyFile(file, targetFile)
-            console.warn('!!! IMPORT CUSTOM BACKGROUND FILE !!!', explorer.path, file, targetFile)
+            console.warn('!!! IMPORT CUSTOM BACKGROUND FILE !!!', menu.path, file, targetFile)
             global.config.set('custom-background-video', targetFile)
             global.config.set('custom-background-image', '')
             if(global.config.get('background-color') == global.config.defaults['background-color']){
@@ -142,14 +148,16 @@ class Theme extends Events {
             this.update()
             this.cleanVideoBackgrounds(targetFile)
             global.osd.show(global.lang.BACKGROUND_VIDEO_BLACK_SCREEN_HINT, 'fas fa-info-circle', 'theme-upload-hint', 'long')
-            global.explorer.open([global.lang.TOOLS, global.lang.THEMES, global.lang.CREATE_THEME, global.lang.BACKGROUND, global.lang.BACKGROUND_COLOR].join('/')).catch(displayErr)
+            global.menu.open([global.lang.TOOLS, global.lang.THEMES, global.lang.CREATE_THEME, global.lang.BACKGROUND, global.lang.BACKGROUND_COLOR].join('/')).catch(displayErr)
         } catch(err) {
             global.displayErr(err)
         }
-        global.ui.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_VIDEO}, false)
+        global.renderer.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_VIDEO}, false)
         global.osd.hide('theme-upload')
     }
     cleanVideoBackgrounds(currentFile){
+        const fs = require('fs')
+        const path = require('path')
         const dir = path.dirname(currentFile), name = path.basename(currentFile)
         fs.readdir(dir, (err, files) => {
             if(files){
@@ -179,7 +187,7 @@ class Theme extends Events {
                             fa: 'fas fa-check-circle',
                             action: () => {
                                 this.load(ffile, () => {
-                                    global.explorer.refreshNow()
+                                    global.menu.refreshNow()
                                 })
                             }
                         },
@@ -190,7 +198,7 @@ class Theme extends Events {
                             action: () => {
                                 this.load(ffile, () => {
                                     this.creatingThemeName = themes[ffile]['theme-name']
-                                    global.explorer.open([global.lang.TOOLS, global.lang.THEMES, global.lang.CREATE_THEME].join('/')).catch(displayErr)                                
+                                    global.menu.open([global.lang.TOOLS, global.lang.THEMES, global.lang.CREATE_THEME].join('/')).catch(displayErr)                                
                                 })
                             }
                         },
@@ -199,7 +207,8 @@ class Theme extends Events {
                             type: 'action',
                             fa: 'fas fa-file-export',
                             action: () => {
-                                global.downloads.serve(ffile, true, false).catch(global.displayErr)
+                                const downloads = require('../downloads')
+                                downloads.serve(ffile, true, false).catch(global.displayErr)
                             }
                         },
                         {
@@ -210,8 +219,10 @@ class Theme extends Events {
                                 if(themes[ffile]['theme-name'] == global.config.get('theme-name')){
                                     this.reset()
                                 }
+                                
+                                const fs = require('fs')
                                 fs.unlink(ffile, () => {
-                                    global.explorer.refreshNow()
+                                    global.menu.refreshNow()
                                 })
                             }
                         }
@@ -227,16 +238,18 @@ class Theme extends Events {
                 type: 'action',
                 action: () => {
                     this.reset()
-                    global.explorer.refreshNow()
+                    global.menu.refreshNow()
                 }
             })
             cb(entries)
         }
+        const fs = require('fs')
         fs.readdir(this.folder, (err, files) => {
             if(err){
                 fs.mkdir(this.folder, {recursive: true}, () => {})                
                 next()
             } else {
+                const async = require('async')
                 async.eachOfLimit(files, 8, (file, i, done) => {
                     if(file.substr(-4) == '.tmp') return done()
                     let ffile = this.folder +'/'+ file
@@ -264,8 +277,26 @@ class Theme extends Events {
             }
         })
     }
+	componentToHex(c) {
+		const hex = c.toString(16);
+		return hex.length == 1 ? '0' + hex : hex
+	}
+	hexToRgb(ohex) {
+		const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i, hex = ohex.replace(shorthandRegex, (m, r, g, b) => {
+			return r + r + g + g + b + b
+		})
+		const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+		return result ? {
+			r: parseInt(result[1], 16),
+			g: parseInt(result[2], 16),
+			b: parseInt(result[3], 16)
+		} : ohex
+	}
+    rgbToHex(r, g, b) {
+		return '#'+ this.componentToHex(r) + this.componentToHex(g) + this.componentToHex(b)
+	}
     async rename(name){
-        await global.explorer.prompt({
+        await global.menu.prompt({
             question: global.lang.THEME_NAME,
             placeholder: '',
             defaultValue: name || '',
@@ -302,7 +333,7 @@ class Theme extends Events {
                                                 return new Promise((resolve, reject) => {
                                                     let def = global.config.get('animate-background')                                    
                                                     if(def.indexOf('-desktop') != -1){
-                                                        if(global.cordova){
+                                                        if(global.paths.cordova){
                                                             def = 'none'
                                                         } else {
                                                             def = def.replace('-desktop', '')
@@ -345,7 +376,7 @@ class Theme extends Events {
                                             type: 'action',
                                             fa: 'fas fa-image', 
                                             action: async () => {
-                                                const file = await global.explorer.chooseFile('image/jpeg,image/png')
+                                                const file = await global.menu.chooseFile('image/jpeg,image/png')
                                                 await this.importBackgroundImage(file)
                                             }
                                         },
@@ -355,7 +386,7 @@ class Theme extends Events {
                                             type: 'action',
                                             fa: 'fas fa-film', 
                                             action: async () => {
-                                                const file = await global.explorer.chooseFile('video/mp4,video/webm,video/ogg')
+                                                const file = await global.menu.chooseFile('video/mp4,video/webm,video/ogg')
                                                 await this.importBackgroundVideo(file)
                                             }
                                         },
@@ -366,10 +397,10 @@ class Theme extends Events {
                                             renderer: async () => {
                                                 let hasErr, colors = await this.colors(this.customBackgroundImagePath, c => this.colorLightLevel(c) < 40, 52).catch(err => hasErr = err)
                                                 global.osd.hide('theme-upload')
-                                                global.ui.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_IMAGE}, false)
+                                                global.renderer.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_IMAGE}, false)
                                                 if(!Array.isArray(colors)) colors = []
                                                 colors = this.colorsAddDefaults(colors, false).map(c => {
-                                                    return global.rgbToHex.apply(null, Object.values(c))
+                                                    return this.rgbToHex.apply(null, Object.values(c))
                                                 })
                                                 colors = [... new Set(colors)].slice(0, 32).map((hex, i) => {
                                                     return {
@@ -383,7 +414,7 @@ class Theme extends Events {
                                                                 global.config.set('background-color', hex)
                                                                 this.update()
                                                             } else {    
-                                                                global.explorer.back()
+                                                                global.menu.back()
                                                             }
                                                         }
                                                     }
@@ -400,7 +431,7 @@ class Theme extends Events {
                                                             }
                                                             global.config.set('background-color', value)     
                                                             this.update() 
-                                                            global.explorer.back()                                  
+                                                            global.menu.back()                                  
                                                         } else {
                                                             global.displayErr(global.lang.INCORRECT_FORMAT)
                                                         }
@@ -442,7 +473,7 @@ class Theme extends Events {
                                                 return new Promise((resolve, reject) => {
                                                     this.colors(this.customBackgroundImagePath, c => this.colorLightLevel(c) > 70, 32).then(colors => {
                                                         colors = this.colorsAddDefaults(colors, true).map((c, i) => {
-                                                            let hex = global.rgbToHex.apply(null, Object.values(c))
+                                                            let hex = this.rgbToHex.apply(null, Object.values(c))
                                                             return {
                                                                 name: global.lang.FONT_COLOR + ' ' +  (i + 1),
                                                                 type: 'action',
@@ -454,7 +485,7 @@ class Theme extends Events {
                                                                         global.config.set('font-color', cc)
                                                                         this.update()
                                                                     } else {    
-                                                                        global.explorer.back()
+                                                                        global.menu.back()
                                                                     }
                                                                 }
                                                             }
@@ -471,7 +502,7 @@ class Theme extends Events {
                                                                     }
                                                                     global.config.set('font-color', value)     
                                                                     this.update() 
-                                                                    global.explorer.back()                                  
+                                                                    global.menu.back()                                  
                                                                 } else {
                                                                     global.displayErr(global.lang.INCORRECT_FORMAT)
                                                                 }
@@ -481,10 +512,10 @@ class Theme extends Events {
                                                     }).catch(err => {
                                                         console.error(err)
                                                         reject(err)
-                                                        global.explorer.back()
+                                                        global.menu.back()
                                                     }).finally(() => {
                                                         global.osd.hide('theme-upload')
-                                                        global.ui.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_IMAGE}, false)
+                                                        global.renderer.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_IMAGE}, false)
                                                     })
                                                 })
                                             },
@@ -499,8 +530,8 @@ class Theme extends Events {
                                             fa: 'fas fa-font',            
                                             renderer: () => {
                                                 return new Promise((resolve, reject) => {
-                                                    global.ui.on('fontlist', list => {
-                                                        global.ui.removeAllListeners('fontlist')
+                                                    global.renderer.on('fontlist', list => {
+                                                        global.renderer.removeAllListeners('fontlist')
                                                         resolve(list.map(name => {
                                                             return {name, type: 'action', action: () => {
                                                                 console.warn('CHOSEN FONT', name)
@@ -509,7 +540,7 @@ class Theme extends Events {
                                                             }}
                                                         }))
                                                     })
-                                                    global.ui.emit('fontlist')
+                                                    global.renderer.emit('fontlist')
                                                 })
                                             }
                                         },
@@ -541,7 +572,7 @@ class Theme extends Events {
                                     ]
                                 },
                                 {name: global.lang.RENAME, fa: 'fas fa-edit', type: 'action', action: () => this.rename(global.config.get('theme-name')).catch(console.error)},
-                                {name: global.lang.LAYOUT_GRID_SIZE, fa: 'fas fa-th', type: 'group', renderer: this.viewSizeEntries.bind(this)},
+                                {name: global.lang.LAYOUT_GRID_SIZE, fa: 'fas fa-th', type: 'group', renderer: this.gridLayoutEntries.bind(this)},
                                 {
                                     name: 'FX Navigation Intensity',
                                     fa: 'fas fa-film',
@@ -565,9 +596,11 @@ class Theme extends Events {
                     type: 'action',
                     fa: 'fas fa-file-import', 
                     action: async () => {
-                        const file = await global.explorer.chooseFile('application/json')
-                        global.options.importConfigFile(await fs.promises.readFile(file), this.keys, () => {
-                            global.explorer.refreshNow()
+                        const fs = require('fs')
+                        const file = await global.menu.chooseFile('application/json')
+                        const options = require('../options')
+                        options.importConfigFile(await fs.promises.readFile(file), this.keys, () => {
+                            global.menu.refreshNow()
                         })
                     }
                 })
@@ -582,6 +615,7 @@ class Theme extends Events {
         })
     }
     applyRemoteTheme(url, name='Untitled'){
+        const fs = require('fs')
         const file = this.folder +'/'+ global.sanitize(name) + '.theme.json'
         fs.stat(file, (err, stat) => {
             const next = () => {
@@ -597,7 +631,7 @@ class Theme extends Events {
                 }).then(file => {
                     global.osd.hide('theme')
                     this.load(file, err => err && fs.unlink(file, () => {}))
-                    global.explorer.refreshNow()
+                    global.menu.refreshNow()
                 }).catch(global.displayErr)
             }
             if(stat && stat.size){
@@ -608,7 +642,8 @@ class Theme extends Events {
         })
     }
     async remoteThemes(){
-        let themes = await global.Download.get({url: global.cloud.server +'/themes/feed.json', responseType: 'json'})
+        const { server } = require('../cloud')
+        let themes = await global.Download.get({url: server +'/themes/feed.json', responseType: 'json'})
         if(Array.isArray(themes)){
             return themes.map(t => {
                 return {
@@ -626,7 +661,7 @@ class Theme extends Events {
         }
         return []
     }
-    async viewSizeEntries(){
+    async gridLayoutEntries(){
         return [
             {
                 name: global.lang.LANDSCAPE_MODE, 
@@ -642,7 +677,7 @@ class Theme extends Events {
                         }, 
                         range: {start: 1, end: 10},
                         action: (data, value) => {
-                            console.log('viewSizeX', data, value)
+                            console.log('gridLayoutX', data, value)
                             if(value != global.config.get('view-size-x')){
                                 global.config.set('view-size-x', value)
                                 this.update()
@@ -658,7 +693,7 @@ class Theme extends Events {
                         }, 
                         range: {start: 1, end: 8}, 
                         action: (data, value) => {
-                            console.log('viewSizeY', data, value)
+                            console.log('gridLayoutY', data, value)
                             if(value != global.config.get('view-size-y')){
                                 global.config.set('view-size-y', value)
                                 this.update()
@@ -681,7 +716,7 @@ class Theme extends Events {
                             return global.config.get('view-size-portrait-x')
                         }, 
                         action: (data, value) => {
-                            console.log('viewSizeX', data, value)
+                            console.log('gridLayoutX', data, value)
                             if(value != global.config.get('view-size-portrait-x')){
                                 global.config.set('view-size-portrait-x', value)
                                 this.update()
@@ -697,7 +732,7 @@ class Theme extends Events {
                             return global.config.get('view-size-portrait-y')
                         }, 
                         action: (data, value) => {
-                            console.log('viewSizeY', data, value)
+                            console.log('gridLayoutY', data, value)
                             if(value != global.config.get('view-size-portrait-y')){
                                 global.config.set('view-size-portrait-y', value)
                                 this.update()
@@ -708,19 +743,18 @@ class Theme extends Events {
             }
         ]
     }
-    refreshCallback(bgi, bgv){
-        global.ui.emit('theme-background', bgi, bgv, global.config.get('background-color'), global.config.get('font-color'), global.config.get('animate-background'))
-    }
     refresh(){
-        let bgi = global.config.get('custom-background-image'), bgv = global.config.get('custom-background-video'), file = './modules/theme/client.js?_='+ Math.random()
-        global.ui.emit('load-js', file)
+        let bgi = global.config.get('custom-background-image'), bgv = global.config.get('custom-background-video')
         if(bgv) {
-            this.refreshCallback('', global.ui.serve(bgv) || '')
+            bgi = ''
+            bgv = global.renderer.serve(bgv)
         } else if(bgi){
-            this.refreshCallback(global.ui.serve(bgi) || '', '')
+            bgi = global.renderer.serve(bgi)
+            bgv = ''
         } else {
-            this.refreshCallback('', '')
+            bgi = bgv = ''
         }
+        global.renderer.emit('theme-update', bgi, bgv, global.config.get('background-color'), global.config.get('font-color'), global.config.get('animate-background'))
     }
     reset(){
         let natts = {}
@@ -731,6 +765,7 @@ class Theme extends Events {
         this.refresh()
     }
     load(file, cb){
+        const fs = require('fs')
         fs.readFile(file, (err, data) => {
             const next = err => typeof(cb) == 'function' && cb(err)
             if(err){
@@ -739,7 +774,9 @@ class Theme extends Events {
             } else {
                 global.config.set('custom-background-image', '')
                 global.config.set('custom-background-video', '')
-                global.options.importConfigFile(data, this.keys, next)
+
+                const options = require('../options')
+                options.importConfigFile(data, this.keys, next)
             }
         })
     }
@@ -751,7 +788,8 @@ class Theme extends Events {
         const current = global.config.get('theme-name')
         if(current){
             const filename = global.sanitize(current) + '.theme.json', file = this.folder +'/'+ filename
-            global.options.prepareExportConfigFile(file +'.tmp', null, this.keys, err => {
+            const options = require('../options')
+            options.prepareExportConfigFile(file +'.tmp', null, this.keys, err => {
                 if(err){
                     global.displayErr(err)
                     if(typeof(cb) == 'function'){

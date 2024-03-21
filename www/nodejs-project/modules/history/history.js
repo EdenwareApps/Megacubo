@@ -1,5 +1,5 @@
 
-const EntriesGroup = require('../entries-group'), EPGHistory = require('./epg-history')
+const EntriesGroup = require('../entries-group')
 
 class History extends EntriesGroup {
     constructor(){
@@ -8,15 +8,16 @@ class History extends EntriesGroup {
         this.resumed = false
         this.storeInConfig = true
         this.uiReady(() => {
-            global.streamer.on('commit', () => {
+            const streamer = require('../streamer/main')
+            streamer.on('commit', () => {
                 if(!streamer.active.info.isLocalFile){
                     let time = global.time()
                     if(this.timer){
                         clearTimeout(this.timer)
                     }
                     this.timer = setTimeout(() => {
-                        if(global.streamer.active){
-                            let entry = global.streamer.active.data
+                        if(streamer.active){
+                            let entry = streamer.active.data
                             entry.historyTime = time
                             this.remove(entry)
                             this.add(entry)
@@ -25,7 +26,7 @@ class History extends EntriesGroup {
                     }, 90000)
                 }
             })
-            global.streamer.on('uncommit', () => {
+            streamer.on('uncommit', () => {
                 if(this.timer){
                     clearTimeout(this.timer)
                 }
@@ -33,16 +34,16 @@ class History extends EntriesGroup {
         })
         this.on('load', () => {
             this.uiReady(() => {
-                if(explorer.path == ''){
-                    explorer.updateHomeFilters()
+                if(menu.path == ''){
+                    menu.updateHomeFilters()
                 }
             })
         })
-        this.epg = new EPGHistory()
+        this.epg = require('./epg-history')
     }
     get(...args){
-        let ret = super.get(...args)        
-        const port = global.icons ? global.icons.opts.port : 0
+        let ret = super.get(...args)
+        const { opts: { port } } = require('../icon-server')
         if(ret && port) {
             const fixIcon = e => {
                 if(e.icon && e.icon.startsWith('http://127.0.0.1:') && e.icon.match(rgx)) {
@@ -57,11 +58,12 @@ class History extends EntriesGroup {
                 ret = fixIcon(ret)
             }
         }
+        const mega = require('../mega')
         for(let i=0; i<ret.length; i++) {
             if(!ret[i].originalUrl) {
                 const ch = global.channels.isChannel(ret[i].name)
                 if(ch) {
-                    ret[i].originalUrl = global.mega.build(ch.name, {terms: ch.terms})
+                    ret[i].originalUrl = mega.build(ch.name, {terms: ch.terms})
                 }
             }
         }
@@ -69,13 +71,14 @@ class History extends EntriesGroup {
     }
     resume(){
         this.ready(() => {
-            if(!this.resumed && global.streamer){
+            const streamer = require('../streamer/main')
+            if(!this.resumed){
                 this.resumed = true
                 let es = this.get()
                 console.log('resuming', es)
                 if(es.length){
                     console.log('resuming', es[0], es)
-                    global.streamer.play(es[0])
+                    streamer.play(es[0])
                 }
             }
         })
@@ -105,26 +108,28 @@ class History extends EntriesGroup {
                 entries.splice(pos > 0 ? pos : entries.length - 3, 0, this.entry())
             }
         }
-        entries = await this.epg.hook(entries, path)
         return entries
     }
     async entries(e){
+        const moment = require('moment-timezone')
+        const mega = require('../mega')
         const epgAddLiveNowMap = {}
         let gentries = this.get().map((e, i) => {
-            e.details = global.ucFirst(global.moment(e.historyTime * 1000).fromNow(), true)
-            const isMega = e.url && global.mega.isMega(e.url)
+            e.details = global.ucFirst(moment(e.historyTime * 1000).fromNow(), true)
+            const isMega = e.url && mega.isMega(e.url)
             if(isMega){
-                let atts = global.mega.parse(e.url)
+                let atts = mega.parse(e.url)
                 if(atts.mediaType == 'live'){
                     return (epgAddLiveNowMap[i] = global.channels.toMetaEntry(e, false))
                 } else {
                     e.type = 'group'
                     e.renderer = async () => {
-                        let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.terms(atts.name)
-                        const es = await global.lists.search(terms, {
+                        const lists = require('../lists')
+                        let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : lists.terms(atts.name)
+                        const es = await lists.search(terms, {
                             type: 'video',
                             group: true,
-                            safe: !global.lists.parentalControl.lazyAuth()
+                            safe: !lists.parentalControl.lazyAuth()
                         })
                         return es.results
                     }
@@ -146,4 +151,4 @@ class History extends EntriesGroup {
     }
 }
 
-module.exports = History
+module.exports = new History()

@@ -3,8 +3,9 @@ const path = require('path')
 
 class Profiles {
     constructor(){
+		const { data } = require('../paths')
 		this.logged = null
-		this.folder = path.join(global.paths.data, 'Users')
+		this.folder = path.join(data, 'Users')
 		this.load()
     }
     getSystemUser(){
@@ -31,8 +32,9 @@ class Profiles {
 	}
 	logon(name){
 		if(this.list.indexOf(name) != -1){
+			const energy = require('../energy')
 			localStorage.setItem('logged-user', name)
-			global.energy.restart()
+			energy.restart()
 		}
 	}
 }
