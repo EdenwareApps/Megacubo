@@ -807,12 +807,14 @@ span.modal-template-question img {
 }
 .modal-template-slider, .modal-template-option, .modal-template-option-detailed, .modal-template-question {
     box-sizing: border-box;
-    padding: 1.5vmax 0;
     max-width: var(--menu-modal-option-min-width);
     width: 100%;
     font-size: var(--menu-entry-name-font-size);
     display: flex;
     align-items: center;
+}
+.modal-template-slider, .modal-template-question {
+    padding: 1.5vmax 0;
 }
 a.modal-template-option, a.modal-template-option-detailed {
     border-bottom: 2px solid rgba(0,0,0,0.02);

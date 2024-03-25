@@ -376,7 +376,7 @@ class Recommendations {
         return es.slice(0, amount)
     }
     async hook(entries, path){
-        if(path == global.lang.LIVE){
+        if(path == global.lang.LIVE) {
             const entry = await this.entry()
             if(entries.some(e => e.hookId == entry.hookId)){
                 entries = entries.filter(e => e.hookId != entry.hookId)

@@ -367,7 +367,7 @@ class Menu extends EventEmitter {
         } else {
             let inSelect = this.pages[dir].some(e => typeof(e.selected) != 'undefined')
             if(!this.pages[dir].some((e, k) => {
-                if(e.name == name && (typeof(tabindex) != 'number' || k == tabindex)){
+                if(e.name == name && (typeof(tabindex) != 'number' || k == tabindex || e.tabindex == tabindex)){
                     if(inSelect){
                         this.pages[dir][k].selected = true
                     }
@@ -382,7 +382,7 @@ class Menu extends EventEmitter {
                     }
                 }
             })){
-                console.warn('ACTION '+ name +' ('+ tabindex +') NOT FOUND IN ', dir, this.pages)
+                console.warn('ACTION '+ name +' ('+ tabindex +') NOT FOUND IN ', {dir}, this.pages[dir])
             }
         }
     }

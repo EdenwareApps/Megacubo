@@ -980,6 +980,7 @@ class MenuDialog extends MenuDialogQueue {
 		this.lastSelectTriggerer = false
 		this.modalTemplates['option'] = `
 			<a href="javascript:;" class="modal-template-option" id="modal-template-option-{id}" title="{plainText}" aria-label="{plainText}">
+				{aside}
 				{tag-icon}
 				<div>
 					<div>
@@ -990,6 +991,7 @@ class MenuDialog extends MenuDialogQueue {
 		`
 		this.modalTemplates['option-detailed'] = `
 			<a href="javascript:;" class="modal-template-option-detailed" id="modal-template-option-detailed-{id}" title="{plainText}" aria-label="{plainText}">
+				{aside}
 				<div>
 					<div class="modal-template-option-detailed-name">
 						{tag-icon} {text}
@@ -1035,9 +1037,6 @@ class MenuDialog extends MenuDialogQueue {
 			<span class="modal-template-question" aria-label="{plainText}">
 				{tag-icon}{text}
 			</span>
-		`
-		this.modalTemplates['spacer'] = `
-			<span class="modal-template-spacer">&nbsp;</span>
 		`
 	}
 	inputPaste(input) {
@@ -1980,9 +1979,6 @@ export class Menu extends MenuLoading {
 	open(element){
 		this.focus(element, true)
 		let timeToLock = 3, path = element.getAttribute('data-path'), type = element.getAttribute('data-type'), tabindex = element.tabIndex || 0
-		if(type == 'spacer'){
-			type = this.currentEntries[tabindex].type
-		}
 		if(this.lastOpenedElement == element && ['back', 'stream', 'group'].includes(type) && ((this.lastOpenedElementTime + timeToLock) > time())){
 			if(this.debug){
 				console.log('multi-click prevented')
