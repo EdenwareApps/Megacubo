@@ -44,6 +44,7 @@ class ChannelsList extends EventEmitter {
         }
         this.loaded = true
         this.emit('loaded')
+        global.rendererReady(() => global.menu.updateHomeFilters())
     }
     async reset() {        
         delete this.categories

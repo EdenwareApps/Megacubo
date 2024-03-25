@@ -559,9 +559,10 @@ controls button i.fab {
     color: var(--font-color);
     height: 100% !important;
     max-height: var(--controls-button-height);
-    font-size: calc(var(--controls-button-height) - 4vmin);
+    font-size: calc(var(--controls-button-height) * 0.5);
     line-height: 100%;
     display: inline-flex;
+    align-items: center;
 }
 
 controls button span.button-label {
@@ -579,7 +580,7 @@ controls button span.button-label > span {
     justify-content: center;
     pointer-events: none;
 }
-body.menu-vertical controls button span.button-label > span {
+body.portrait controls button span.button-label > span {
     margin-top: calc(-1.25 * (var(--seekbar-height) + var(--controls-height)));
 }
 controls button span.button-label > span > span {
@@ -594,10 +595,6 @@ controls button span.button-label > span > span {
 
 controls button.selected span.button-label > span, controls button:hover span.button-label > span {
     display: flex;
-}
-
-#stream-info i.fas {
-    display: inline-block;
 }
 
 #stream-info.faclr-green i.fas {

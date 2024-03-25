@@ -234,16 +234,16 @@ class StreamerState extends StreamerCasting {
                 console.log('STREAMER-STATE', this.state)
                 switch(this.state){
                     case 'paused':
-                        this.controls.querySelector('.play-button').style.display = 'block'
+                        this.controls.querySelector('.play-button').style.display = 'inline-flex'
                         this.controls.querySelector('.pause-button').style.display = 'none'
                         break
                     case 'loading':
                     case 'playing':
                         this.controls.querySelector('.play-button').style.display = 'none'
-                        this.controls.querySelector('.pause-button').style.display = 'block'
+                        this.controls.querySelector('.pause-button').style.display = 'inline-flex'
                         break
                     case 'ended':                    
-                        this.controls.querySelector('.play-button').style.display = 'block'
+                        this.controls.querySelector('.play-button').style.display = 'inline-flex'
                         this.controls.querySelector('.pause-button').style.display = 'none'
                         main.emit('video-ended')
                         break
@@ -412,7 +412,7 @@ class StreamerClientVideoAspectRatio extends StreamerState {
             {h: 21, v: 9}
         ]
         this.activeAspectRatio = this.aspectRatioList[0]
-        this.lanscape = window.innerWidth > window.innerHeight
+        this.landscape = window.innerWidth > window.innerHeight
         window.addEventListener('resize', () => this.resize(), {passive: true})
         player.on('setup-ratio', r => {
             console.log('SETUP-RATIO', r)

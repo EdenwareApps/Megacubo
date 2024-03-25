@@ -30,19 +30,6 @@ function openExternalFile(file, mimetype) {
 	}
 }
 
-function openExternalURL(url) {
-	if (navigator.app) {
-		if (url.match(new RegExp('https://megacubo.tv', 'i'))) {
-			url = url.replace('https:', 'http:'); // bypass Ionic Deeplink
-		}
-		navigator.app.loadUrl(url, { openExternal: true })
-	} else if (parent.api) { // electron
-		parent.api.openExternal(url)
-	} else {
-		window.open(url);
-	}
-}
-
 function handleOpenURL(url) { 
 	setTimeout(function() {
 		if (url && url.match('^[a-z]*:?//')) {
@@ -236,7 +223,7 @@ export const initApp = () => {
             main.osd.show(String(err.message || err), 'fas fa-exclamation-triangle faclr-red', 'clipboard', 'normal')
         })
     })
-    main.on('open-external-url', url => openExternalURL(url))
+    main.on('open-external-url', url => winActions.openExternalURL(url))
     main.on('open-external-file', (url, mimetype) => openExternalFile(url, mimetype))
     main.on('load-js', src => {
         console.warn('LOADJS ' + src)
@@ -279,11 +266,12 @@ export const initApp = () => {
     })
     main.on('config', configUpdated)
     main.on('fontlist', () => main.emit('fontlist', getFontList()))
-    main.on('sound', (n, v) => menu.sounds.play(n, v))
+    main.on('css', (css, id) => main.css(css, id))
     console.log('load app')
     menu = new Menu(document.querySelector('#menu'))
     main.menu = menu
     console.log('load app')
+    main.on('sound', (n, v) => menu.sounds.play(n, v))
     menu.on('render', path => {
         if (path) {
             if (document.body.classList.contains('home')) {
@@ -318,18 +306,18 @@ export const initApp = () => {
             overScrollAction: (direction, e) => {
                 if (direction == 'up') {
                     let playing = menu.inPlayer()
-                    console.log('OVERSCROLLACTION!!!!!!!', playing)
+                    console.log('OVERSCROLLACTION', playing)
                     if (!playing) {
                         let n
                         if (e) {
                             let entries = menu.entries(true), i = entries.indexOf(e)
                             i++
                             if (menu.gridLayoutX == i) {
-                                n = menu.container.find('.header-entry:eq(0)')
+                                n = menu.container.querySelector('.header-entry:eq(0)')
                             }
                         }
                         if (!n) {
-                            n = menu.container.find('.menu-omni span')
+                            n = menu.container.querySelector('.menu-omni span')
                         }
                         menu.focus(n, true)
                         return true
@@ -388,16 +376,6 @@ export const initApp = () => {
     console.log('load app')
     menu.on('prompt-start', menu.reset.bind(menu))
     menu.on('ask-start', menu.reset.bind(menu))
-
-    window.addEventListener('message', e => {
-        if (e.data.action) {
-            switch (e.data.action) {
-                case 'backbutton':
-                    main.hotkeys.escapePressed()
-                    break
-            }
-        }
-    }, { passive: true })
 
     console.log('load app')
     main.on('streamer-ready', () => {
@@ -528,8 +506,18 @@ export const initApp = () => {
         }
     }
     const elpListener = () => {
-        let offset = menu.path ? 0 : 1
-        elpShow(' ' + (menu.selectedIndex + offset + 1) + '/' + (menu.currentEntries.length + offset))
+        if(menu.currentEntries[menu.selectedIndex] && menu.currentEntries[menu.selectedIndex].top) return
+        let offset = menu.path ? -1 : 0
+        let total = 0
+        let selected = -1
+        menu.currentEntries.forEach(e => {
+            if(selected == -1 && menu.selectedIndex == e.tabindex) {
+                selected = total
+            }
+            if(e.top) return
+            total++
+        })
+        elpShow(' ' + (selected + offset + 1) + '/' + (total + offset))
     }
     menu.on('arrow', elpListener)
     menu.on('focus', elpListener)
@@ -632,7 +620,7 @@ export const initApp = () => {
                 console.error('Share error', err)
             })
         } else {
-            openExternalURL('https://megacubo.tv/share/?url=' + encodeURIComponent(url) + '&title=' + encodeURIComponent(title) + '&text=' + encodeURIComponent(text))
+            winActions.openExternalURL('https://megacubo.tv/share/?url=' + encodeURIComponent(url) + '&title=' + encodeURIComponent(title) + '&text=' + encodeURIComponent(text))
         }
     })
 
@@ -680,8 +668,8 @@ document.addEventListener('resume', function () {
 
 document.addEventListener('backbutton', function (e) {
 	if (window.main) {
-		e.preventDefault();
-		main.postMessage({ action: 'backbutton' }, location.origin);
+		e.preventDefault();		
+        main.hotkeys.escapePressed()
 	}
 }, {capture: true});
 

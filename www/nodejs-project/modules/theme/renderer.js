@@ -204,11 +204,11 @@ class Theme {
         } else if(family.indexOf(systemFont) == -1) {
             family += ','+ systemFont
         }
-        let sbg = colorMixer(Object.values(hexToRgb(main.config['background-color'])), [0, 0, 0], 0.5)
-        let mbg = hexToRGBA(main.config['background-color'], main.config['background-color-transparency'] / 100)
-        let sfg = hexToRGBA(main.config['font-color'], 0.6)
-        let fxNavIntensityStep = parseFloat(window.getComputedStyle(document.documentElement).getPropertyValue('--menu-fx-nav-intensity-step').trim())
-        let fxNavIntensity = main.config['fx-nav-intensity'] * fxNavIntensityStep
+        const sbg = colorMixer(Object.values(hexToRgb(main.config['background-color'])), [0, 0, 0], 0.5)
+        const mbg = hexToRGBA(main.config['background-color'], main.config['background-color-transparency'] / 100)
+        const sfg = hexToRGBA(main.config['font-color'], 0.6)
+        const fxNavIntensityStep = parseFloat(window.getComputedStyle(document.documentElement).getPropertyValue('--menu-fx-nav-intensity-step').trim())
+        const fxNavIntensity = main.config['fx-nav-intensity'] * fxNavIntensityStep
         let fxNavDuration
         if(!main.config['fx-nav-intensity']){
             fxNavDuration = 0
@@ -216,8 +216,9 @@ class Theme {
             let min = 0.175, max = 1
             fxNavDuration = min + (main.config['fx-nav-intensity'] * ((max - min) / 10))
         }
-        let radius = window.cordova ? '1vmax' : '9px'
-        let cssCode = `
+        const radius = window.cordova ? '1vmax' : '9px'
+        const ucase = main.config['uppercase-menu'] ? 'uppercase' : 'none'
+        const cssCode = `
     :root {
         --menu-fx-nav-duration: ${fxNavDuration}s;
         --font-color: ${main.config['font-color']};
@@ -241,16 +242,16 @@ class Theme {
             --entries-per-row: ${main.config['view-size-portrait-x']} !important;
             --entries-per-col: ${main.config['view-size-portrait-y']} !important;
         }
-        .entry-name, controls {
-            --menu-entry-name-font-size: calc(((100vmin + 100vmax) * 0.333) * ${nfs});
-        }
     }
     body {
         font-family: ${family};
     }
-    `
-        let ucase = main.config['uppercase-menu'] ? 'uppercase' : 'none'
-        cssCode += `
+    body.portrait .entry-name span {
+        font-size: calc(((100vmin + 100vmax) * 0.333) * ${nfs * 0.95});
+    }
+    body.portrait .entry-details {
+        font-size: calc(((100vmin + 100vmax) * 0.333) * ${nfs * 0.9});
+    }
     *:not(input):not(textarea) {
         text-transform: ${ucase};
     }

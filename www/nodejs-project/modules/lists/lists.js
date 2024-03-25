@@ -32,8 +32,7 @@ class ListsEPGTools extends Index {
 		console.error('will load epg '+ JSON.stringify(url))
 		if(url) {
 			// give EPG his own worker, otherwise it may slow down app navigation
-			const path = require('path')
-			const MultiWorker = require('../multi-worker')
+			const path = require('path'), MultiWorker = require('../multi-worker')
 			this._epgWorker = new MultiWorker()
 			this._epg = this._epgWorker.load(path.join(__dirname, 'epg-worker'))
 			this._epg.setURL(url)

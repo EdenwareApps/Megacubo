@@ -58,6 +58,7 @@ class MenuBase extends EventEmitter {
 		this.sounds = new Sounds()
 		this.debug = false
 		this.path = ''
+		this.container = container
 		this.wrap = container.querySelector('wrap')
 		console.log('Menu base')
 		container.addEventListener('click', event => {
@@ -102,12 +103,16 @@ class MenuIcons extends MenuBase {
 		}
 		main.on('icon', data => {
 			if(data.tabIndex == -1) return
+			
 			const fullPath = [data.path, data.name].filter(v => v).join('/')
 			if(typeof(this.icons[fullPath]) == 'undefined') {
 				this.icons[fullPath] = {}
 			}
 			this.icons[fullPath].cover = !data.alpha
 			this.icons[fullPath].url = data.url
+			
+			let entries = this.currentEntries.map(e => this.prepareEntry(e))
+			this.applyCurrentEntries(entries)
 			this.emit('updated')
 		})
 	}
@@ -280,7 +285,7 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
 		const wide = main.config[portrait ? 'view-size-portrait-x' : 'view-size-x'] >= 3
         const verticalLayout = main.config[portrait ? 'view-size-portrait-x' : 'view-size-x'] == 1
         document.body.classList[wide ? 'add' : 'remove']('menu-wide')
-		document.body.classList[verticalLayout ? 'add' : 'remove']('menu-vertical')
+		document.body.classList[verticalLayout ? 'add' : 'remove']('portrait')
 		if(window.cordova) this.wrap.style.display = 'inline-block'
 		this.iconSizeDetect()
     }
@@ -817,16 +822,16 @@ class MenuModal extends MenuBBCode {
 			setTimeout(() => this.emit('pos-modal-end'), 100)
 		}
 	}
-	replaceTags(text, replaces, noSlashes) {
+	replaceTags(text, replaces) {
 		if(replaces['name'] && !replaces['rawname']){
 			replaces['rawname'] = replaces['name']
 		}
 		Object.keys(replaces).forEach(before => {
 			let t = typeof(replaces[before])
 			if(['string', 'number', 'boolean'].includes(t)) {
-				let addSlashes = before == 'details' || (typeof(noSlashes) == 'boolean' ? 
-					!noSlashes : (t == 'string' && replaces[before].indexOf('<') == -1))
-				let to = addSlashes ? this.addSlashes(replaces[before]) : String(replaces[before])
+				let fixQuotes = (typeof(replaces.raw) == 'boolean' ? 
+					!replaces.raw : (t == 'string' && replaces[before].indexOf('<') == -1))
+				let to = fixQuotes ? this.fixQuotes(replaces[before]) : String(replaces[before])
 				if(to.indexOf('[') != -1){
 					if(before == 'name'){
 						to = this.removeBBCode(to)
@@ -844,7 +849,7 @@ class MenuModal extends MenuBBCode {
 		replaces.details && replaces.details.indexOf('<') != -1 && console.log('TEMPLATE', text)
 		return text
 	}  
-	addSlashes(text){
+	fixQuotes(text){
 		return String(text || '').replace(new RegExp('"', 'g'), '&quot;')
 	}
 }
@@ -1127,7 +1132,7 @@ class MenuDialog extends MenuDialogQueue {
 				}
 				e.text = String(e.text).replaceAll('"', '&quot;')
 				e.plainText = String(e.plainText).replaceAll('"', '')
-				tpl = this.replaceTags(tpl, e, true)
+				tpl = this.replaceTags(tpl, e)
 				if(this.debug){
 					console.log(tpl, e)
 				}
@@ -1150,7 +1155,7 @@ class MenuDialog extends MenuDialogQueue {
 				}
 			})
 			if(opts){
-				html += this.replaceTags(this.modalTemplates['options-group'], {opts}, true)
+				html += this.replaceTags(this.modalTemplates['options-group'], {opts})
 			}
 			console.log('MODALFOCUS', defaultIndex, validatedDefaultIndex, allowTwoColumnsOptionsGroup)
 			this.startModal('<div class="modal-wrap"><div>' + html + '</div></div>', mandatory)
@@ -1735,7 +1740,8 @@ export class Menu extends MenuLoading {
 		if(navigated) {
 			prevEntries = this.currentEntries
 		}
-		this.currentEntries = entries.map(e => this.prepareEntry(e))
+		entries = entries.map(e => this.prepareEntry(e))
+		this.applyCurrentEntries(entries)
 		entries = this.getRange(targetScrollTop)
 		this.emit('pre-render', path, this.path)
 		this.path = path
@@ -1762,6 +1768,27 @@ export class Menu extends MenuLoading {
 			}
 			this.restoreSelection() // redundant, but needed
 		}, 0)
+	}
+	applyCurrentEntries(entries) {
+		if(this.currentEntries.length > entries.length) {
+			this.currentEntries.splice(entries.length, this.currentEntries.length - entries.length)
+		}
+		entries.forEach((e, i) => {
+			if(this.currentEntries[i]) {
+				const ek = Object.keys(e), ck = Object.keys(this.currentEntries[i])	
+				const excludes = ck.filter(k => !ek.includes(k))
+				for(const k of excludes) {
+					delete this.currentEntries[i][k]
+				}
+				for(const k of ek) {
+					if(!this.currentEntries[i].hasOwnProperty(k) || this.currentEntries[i][k] !== entries[i][k]) {
+						this.currentEntries[i][k] = entries[i][k]
+					}
+				}
+			} else {
+				this.currentEntries[i] = entries[i]
+			}
+		})
 	}
 	viewportRange(scrollTop, entriesCount){
 		let limit = (this.gridLayoutX * this.gridLayoutY)
@@ -1940,7 +1967,7 @@ export class Menu extends MenuLoading {
 				main.emit('menu-input', path, value)
 				if(this.currentEntries[i]) {
 					this.currentEntries[i].value = value
-					this.currentEntries[i] = this.prepareEntry(this.currentEntries[i])
+					this.prepareEntry(this.currentEntries[i], i)
 				}				
 				this.emit('updated')		
 			}
@@ -2076,7 +2103,7 @@ export class Menu extends MenuLoading {
 			this.icons[e.path] = {url: e.fa}
 		}
 		if(!e.path){
-			e.path = path
+			e.path = this.path
 			if(e.path){
 				e.path +=  '/'
 			}
@@ -2100,98 +2127,20 @@ export class Menu extends MenuLoading {
 			e.rawname = this.parseBBCode(e.rawname)
 		}
 		e.wrapperClass = 'entry-wrapper'
-		if(main.config['stretch-logos'] || (e.class && e.class.indexOf('entry-force-cover') != -1)) {
+		if(!e.top &&  this.icons[e.path] && this.icons[e.path].cover && (main.config['stretch-logos'] || (e.class && e.class.indexOf('entry-force-cover') != -1))) {
 			e.cover = true
 			e.wrapperClass += ' entry-cover-active'
+		} else {
+			if(e.cover) {
+				e.cover = false
+			}
+			if(e.wrapperClass.indexOf('entry-cover-active') != -1) {
+				e.wrapperClass = e.wrapperClass.replace(new RegExp(' *entry\-cover\-active *', 'g'), ' ')
+			}
 		}
 		if(typeof(e.prepend) != 'string') {
 			e.prepend = ''
 		}
-		/*
-		let value = data[key]
-		if(typeof(value) === 'string' && value.indexOf("\n") != -1){
-			value = value.replace(new RegExp('\r?\n', 'g'), '<br />')
-		}
-		element.setAttribute('data-' + key, value)
-		*/
 		return e
-	}
-	renderElement(data, path, element, previousData={}) {
-		let append  = !element
-		if (append) {
-			element = document.createElement('a')
-			element.innerHTML = `
-				<span>
-					<span class="entry-data-in">
-						<span class="entry-name" aria-hidden="true">
-							<span class="entry-status-flags"></span>
-							<label></label>
-						</span>
-						<span class="entry-details"></span>
-					</span>
-					<span class="entry-icon-image">
-						<i aria-hidden="true"></i>
-					</span>
-				</span>
-`
-		}
-		data = this.prepareEntry(data, path)
-		element.querySelector('.entry-status-flags').innerText = ''
-		if(!data.url) element.href = 'javascript:;'
-		element.className = data.class || ''
-		element.firstElementChild.className = 'entry-wrapper'
-		Object.keys(data).forEach(key => {
-			if(previousData[key] == data[key]) return
-			if (key === 'range' && typeof data[key] === 'object') {
-				if (data[key].start !== undefined) {
-					element.setAttribute('data-range-start', data[key].start)
-				}
-				if (data[key].end !== undefined) {
-					element.setAttribute('data-range-end', data[key].end)
-				}
-			} else if (key === 'value' && typeof data['mask'] === 'string') {
-				if (data['mask'] === 'time') {
-					element.querySelector('.entry-details').innerHTML = main.clock.humanize(data[key], true)
-				} else {
-					element.querySelector('.entry-details').innerHTML = data['mask'].replace('{0}', data[key])
-				}
-			} else if(key === 'tabindex') {
-				element.setAttribute(key, data[key])
-			} else if(key === 'url') {
-				element.href = data[key]
-			} else if(key === 'name') {
-				let name = data[key], rawName = data.rawname || data[key]
-				if(data.rawname && rawName.indexOf('[') != -1) {
-					rawName = this.parseBBCode(rawName)
-				}
-				element.setAttribute('title', name)
-				element.setAttribute('aria-label', name)
-				element.querySelector('label').innerHTML = [data.prepend, rawName || name].filter(k => k).join(' ')
-			} else if(key === 'details') {
-				element.querySelector('.entry-details').innerHTML = [data[key], data.value].filter(k => k).join(' ')
-			} else if(key === 'fa') {
-				let iconContainer = element.querySelector('.entry-icon-image')
-				let ie = iconContainer.querySelector('i')
-				if(!ie) {
-					const image = iconContainer.querySelector('img')
-					const cover = element.querySelector('.entry-cover-container')
-					image && image.parentNode.removeChild(image)
-					cover && cover.parentNode.removeChild(cover)
-					ie = document.createElement('i')
-					ie.setAttribute('aria-hidden', true)
-					iconContainer.appendChild(ie)
-				}
-				ie.className = data.fa
-			} else if(key === 'prepend' || key === 'value' || key === 'rawname' || key === 'class') {
-				//
-			} else {
-				let value = data[key]
-				if(typeof(value) === 'string' && value.indexOf("\n") != -1){
-					value = value.replace(new RegExp('\r?\n', 'g'), '<br />')
-				}
-				element.setAttribute('data-' + key, value)
-			}
-		})
-		append && this.wrap.appendChild(element)
 	}
 }

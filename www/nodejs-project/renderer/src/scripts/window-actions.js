@@ -6,6 +6,18 @@ class WindowActions extends EventEmitter {
 		super()
 		this.backgroundModeLocks = []
 	}
+	openExternalURL(url) {
+		if (navigator.app) {
+			if (url.match(new RegExp('https://megacubo.tv', 'i'))) {
+				url = url.replace('https:', 'http:'); // bypass Ionic Deeplink
+			}
+			navigator.app.loadUrl(url, { openExternal: true })
+		} else if (parent.api) { // electron
+			parent.api.openExternal(url)
+		} else {
+			window.open(url, '_system')
+		}
+	}
 	backgroundModeLock(name){
 		if(!this.backgroundModeLocks.includes(name)){
 			this.backgroundModeLocks.push(name)

@@ -354,7 +354,7 @@ class Recommendations {
     async featuredEntries(amount=5, excludes=[]){
         const key = 'epg-suggestions-featured-0'
         let es = await global.storage.get(key).catch(console.error)
-        if(!es || !es.length){
+        if(!es || !es.length) {
             es = await this.get().catch(console.error)
             if(Array.isArray(es) && es.length) {
                 if(es.some(n => n.programme.i)) { // prefer entries with icons

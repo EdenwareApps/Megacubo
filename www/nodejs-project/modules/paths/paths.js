@@ -17,7 +17,7 @@ if(!global.paths) {
 	}
 
 	paths.cwd = String(path.join(__dirname, '../../') || process.cwd()).replace(new RegExp('\\\\', 'g'), '/')
-	paths.manifest = JSON.parse(fs.readFileSync(paths.cwd + '/package.json'))
+	paths.manifest = require(paths.cwd + '/package.json')
 
 	try {
 		paths.cordova = require.resolve('cordova-bridge') ? require('cordova-bridge') : false
@@ -40,6 +40,9 @@ if(!global.paths) {
 	Object.keys(paths).forEach(type => {
 		if(typeof(paths[type]) != 'string') return
 		paths[type] = forwardSlashes(paths[type])
+		if(paths[type].endsWith('/')) {
+			paths[type] = paths[type].substr(0, paths[type].length - 1)
+		}
 		console.log('DEFAULT PATH ' + type + '=' + paths[type] +' '+ global.inWorker +' :: '+ !!paths.cordova)
 		if(!fs.existsSync(paths[type])) {
 			try {

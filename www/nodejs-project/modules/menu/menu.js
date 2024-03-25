@@ -774,12 +774,12 @@ class Menu extends EventEmitter {
             this.pages[path] = this.currentEntries.slice(0)
             this.currentEntries = this.cleanEntries(this.currentEntries, 'renderer,entries,action')
             if(path && this.path != path) this.path = path
-            this.syncPages()
         }
         if(this.rendering){
             const icon = typeof(parentEntryOrIcon) == 'string' ? parentEntryOrIcon : (parentEntryOrIcon ? parentEntryOrIcon.fa : 'fas fa-home')
             global.renderer.emit('render', this.cleanEntries(this.checkFlags(this.currentEntries), 'checked,users,terms'), path, icon)
             this.emit('render', this.currentEntries, path, parentEntryOrIcon, backTo)
+            this.syncPages()
         }
     }
     suspendRendering(){

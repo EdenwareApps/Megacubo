@@ -818,10 +818,10 @@ class Manager extends ManagerEPG {
             }
         }
     }
-    async addListDialog(offerCommunityMode){        
-        let extraOpts = []
+    async addListDialog(offerCommunityMode){
+        let extraOpts = [], openM3UText = global.ALLOW_ADDING_LISTS ? global.lang.OPEN_M3U_FILE : global.lang.OPEN_FILE
         extraOpts.push({template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'})
-        extraOpts.push({template: 'option', text: global.lang.OPEN_M3U_FILE, id: 'file', fa: 'fas fa-folder-open'})
+        extraOpts.push({template: 'option', text: openM3UText, id: 'file', fa: 'fas fa-folder-open'})
         extraOpts.push({template: 'option', text: global.lang.ADD_USER_PASS, id: 'code', fa: 'fas fa-key'})
         if(offerCommunityMode){
             extraOpts.push({template: 'option', text: global.lang.COMMUNITY_LISTS, fa: 'fas fa-users', id: 'sh'})

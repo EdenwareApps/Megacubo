@@ -7,7 +7,7 @@ class History extends EntriesGroup {
         this.limit = 36
         this.resumed = false
         this.storeInConfig = true
-        this.uiReady(() => {
+        this.rendererReady(() => {
             const streamer = require('../streamer/main')
             streamer.on('commit', () => {
                 if(!streamer.active.info.isLocalFile){
@@ -33,11 +33,7 @@ class History extends EntriesGroup {
             })
         })
         this.on('load', () => {
-            this.uiReady(() => {
-                if(menu.path == ''){
-                    menu.updateHomeFilters()
-                }
-            })
+            this.rendererReady(() => global.menu.updateHomeFilters())
         })
         this.epg = require('./epg-history')
     }

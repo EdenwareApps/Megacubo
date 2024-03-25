@@ -48,12 +48,12 @@ class BridgeClient extends EventEmitter {
 			plugins.insomnia.keepAwake()
 			document.addEventListener('pause', () => {
 				cordova.plugins.backgroundMode.isScreenOff(function (ret) {
-					player && player.emit('app-pause', ret)
+					window.player && player.emit('app-pause', ret)
 				})
 				plugins.insomnia.allowSleepAgain()   
 			}, {passive: true})
 			document.addEventListener('resume', () => {
-				player && player.emit('app-resume')
+				window.player && player.emit('app-resume')
 				plugins.insomnia.keepAwake()
 			}, {passive: true})
 			window.nodejs.start('main.js', err => {

@@ -24,7 +24,7 @@ class EntriesGroup extends EventEmitter {
 			this.once('ready', fn)
 		}
 	}
-	uiReady(fn){
+	rendererReady(fn){
 		if(this.isUIReady){
 			fn()
 		} else {

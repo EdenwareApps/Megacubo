@@ -10,14 +10,14 @@ class Watching extends EntriesGroup {
         this.updateIntervalSecs = expires['watching-country'] || 300
         global.config.on('change', (keys, data) => {
             if (keys.includes('only-known-channels-in-trending') || keys.includes('popular-searches-in-trending') || keys.includes('parental-control') || keys.includes('parental-control-terms')) {
-                this.update().catch(console.error)
+                this.updating || this.update().catch(console.error)
             }
         })
         global.storage.get('watching-current').then(data => {
             global.channels.ready(() => {
                 if (!this.currentRawEntries || !this.currentRawEntries.length) {
                     this.currentRawEntries = data
-                    this.update(data).catch(console.error)
+                    this.updating || this.update(data).catch(console.error)
                 } else if (Array.isArray(data)) {
                     this.currentEntries && this.currentEntries.forEach((c, i) => {
                         data.forEach(e => {
@@ -28,7 +28,9 @@ class Watching extends EntriesGroup {
                         })
                     })
                 }
-                global.channels.on('loaded', () => this.update().catch(console.error)) // on each "loaded"
+                global.channels.on('loaded', () => {
+                    this.updating || this.update().catch(console.error)
+                }) // on each "loaded"
             })
         }).catch(err => {
             console.error(err)
@@ -43,7 +45,7 @@ class Watching extends EntriesGroup {
                 resolve()
             } else {
                 this.once('update', resolve)
-                if (!this.updating) this.update().catch(reject)
+                this.updating || this.update().catch(reject)
             }
         })
     }

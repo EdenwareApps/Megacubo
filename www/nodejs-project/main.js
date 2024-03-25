@@ -50,19 +50,19 @@ onexit(() => {
     }
 })
 
-let uiReadyCallbacks = []
+let rendererReadyCallbacks = []
 global.rendererReady = (f, done) => {
-    const ready = !Array.isArray(uiReadyCallbacks)
+    const ready = !Array.isArray(rendererReadyCallbacks)
     if(typeof(f) == 'function'){
         if(ready){
             f()
         } else {
-            uiReadyCallbacks.push(f)
+            rendererReadyCallbacks.push(f)
         }
     }
     if(!ready && done === true){
-        const callbacks = uiReadyCallbacks
-        uiReadyCallbacks = null
+        const callbacks = rendererReadyCallbacks
+        rendererReadyCallbacks = null
         callbacks.map(f => {
             try {
                 const p = f()
@@ -574,7 +574,7 @@ const init = (language, timezone) => {
             const icons = require('./modules/icon-server')
             icons.refresh()
         })
-        renderer.on('streamer-ready', () => {        
+        renderer.once('streamer-ready', () => {        
             isStreamerReady = true
             streamState.sync()
             rendererReady() || rendererReady(null, true)
@@ -590,7 +590,7 @@ const init = (language, timezone) => {
                             history.resume()
                         }
                     }
-                    menu.path || menu.updateHomeFilters()
+                    menu.updateHomeFilters()
                 }).catch(console.error)
             }
         })
@@ -679,7 +679,7 @@ const init = (language, timezone) => {
     })
 }
 
-renderer.on('get-lang-callback', (locale, timezone, ua, online) => {
+renderer.once('get-lang-callback', (locale, timezone, ua, online) => {
     console.log('get-lang-callback', timezone, ua, online)
     if(timezone){
         const moment = require('moment-timezone')
@@ -714,7 +714,7 @@ if(paths.cordova) {
     Menu.setApplicationMenu(null)
     onexit(() => app.quit())
     if(contextIsolation){
-        app.on('browser-window-created', (_, window) => {
+        app.once('browser-window-created', (_, window) => {
             require('@electron/remote/main').enable(window.webContents)
         })
     }
@@ -791,7 +791,7 @@ if(paths.cordova) {
                 renderer.emit('arguments', commandLine)
             }
         })
-        window.on('closed', () => window.closed = true) // prevent bridge IPC error
+        window.once('closed', () => window.closed = true) // prevent bridge IPC error
         renderer.setElectronWindow(window)
     }
 

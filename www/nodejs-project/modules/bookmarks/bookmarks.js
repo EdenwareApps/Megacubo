@@ -10,7 +10,7 @@ class Bookmarks extends EntriesGroup {
             live: true,
             icon: ''
         }
-        this.uiReady(() => {
+        this.rendererReady(() => {
             global.renderer.on('toggle-fav', () => {
                 if(this.current()){
                     this.toggle()

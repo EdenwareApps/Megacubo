@@ -89,14 +89,12 @@ class Reader extends Readable {
 			fs.access(this.file, fs.constants.R_OK, (err) => {
 				if (err) {
 					console.error('Failed to access file:', err)
-					this.emit('error', err)
-					this.close()
+					this.emitError(err)
 				} else {
 					fs.open(this.file, 'r', (err, fd) => {
 						if (err) {
 							console.error('Failed to open file:', err)
-							this.emit('error', err)
-							this.close()
+							this.emitError(err)
 						} else {
 							this.fd = fd
 							this.emit('open')
@@ -106,9 +104,12 @@ class Reader extends Readable {
 			})
 		} catch (err) {
 			console.error('Error opening file:', err)
-			this.emit('error', err)
-			this.close()
+			this.emitError(err)
 		}
+	}
+	emitError(err) {
+		this.listenerCount('error') && this.emit('error', err)
+		this.close()
 	}
 	endPersistence() {
 		this.opts.persistent = false

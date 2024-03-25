@@ -57,7 +57,7 @@
                     <i class="fas fa-search" aria-hidden="true"></i>
                 </a>
                 {#each headerActions as e}
-                    <a href="{e.url}" tabindex="{e.tabindex}" class="header-entry" title="{e.name}" aria-label="{e.name}" 
+                    <a href="{e.url}" tabindex="{e.tabindex}" class="header-entry header-entry-{e.fa.split('fa-').pop()}" title="{e.name}" aria-label="{e.name}" 
                         data-type="{e.type}" data-path="{e.path}">
                         <i class="{e.fa}" aria-hidden="true"></i>
                     </a>
@@ -80,6 +80,11 @@
                     <a href="{e.url}" tabindex="{e.tabindex}" class="{e.class}" title="{e.name}" aria-label="{e.name}" 
                         data-type="{e.type}" data-path="{e.path}">
                         <span class="{e.wrapperClass}">
+                            {#if e.cover}
+                                <div class="entry-cover-container" aria-hidden="true">
+                                    <img src="{icons[e.path].url}" alt="" />
+                                </div>
+                            {/if}
                             <span class="entry-data-in">
                                 <span class="entry-name">
                                     <span class="entry-status-flags">{@html e.statusFlags}</span>
@@ -94,11 +99,7 @@
                                 {#if (!icons[e.path] || icons[e.path].url.startsWith('fa'))}
                                     <i class="{e.fa}" aria-hidden="true"></i>
                                 {:else}
-                                    {#if icons[e.path].cover && e.cover}
-                                        <div class="entry-cover-container" aria-hidden="true">
-                                            <img src="{icons[e.path].url}" alt="" />
-                                        </div>
-                                    {:else}
+                                    {#if !e.cover}
                                         <img src="{transparentImage}" alt="" style="background-image: url({icons[e.path].url})" aria-hidden="true" />
                                     {/if}
                                 {/if}
@@ -202,10 +203,10 @@ body.home #menu content a.entry-2x, body.menu-wide #menu content a.entry-2x {
     width: calc(200% / var(--entries-per-row));
     max-width: 100%;
 }
-body.menu-vertical #menu content a.entry-2x {
+body.portrait #menu content a.entry-2x {
     height: calc(200% / var(--entries-per-col));
 }
-body.menu-vertical span.entry-icon-image {
+body.portrait span.entry-icon-image {
     height: 100% !important;
     left: 0 !important;
     justify-content: left !important;
@@ -213,11 +214,10 @@ body.menu-vertical span.entry-icon-image {
     max-width: calc(1.25 * var(--menu-entry-height));
     justify-content: center !important;
 }
-body.menu-vertical span.entry-icon-image img {
+body.portrait span.entry-icon-image img {
     max-width: calc(var(--menu-entry-height) * 0.94);
 }
-body.menu-vertical #menu content a span.entry-data-in {
-    --menu-entry-details-font-size: calc(var(--menu-entry-name-font-size) * 0.8);
+body.portrait #menu content a span.entry-data-in {
     height: -webkit-fill-available;
     display: flex;
     align-items: start;
@@ -228,48 +228,57 @@ body.menu-vertical #menu content a span.entry-data-in {
     padding-bottom: 0;
     top: 0;
 }
-body.menu-vertical #menu content a .entry-name, body.menu-vertical #menu content a .entry-details {
+body.portrait #menu content a .entry-name, body.portrait #menu content a .entry-details {
     text-align: left !important;
 }
-.header-entry.portrait-only {
-    display: none;
-}
-body.menu-vertical:not(.portrait-search) #menu header .menu-omni {
-    display: none;
-}
-body.menu-vertical.portrait-search .header-entry {
-    display: none;
-}
-body.menu-vertical.portrait-search #menu header .menu-location {
-    display: none;
-}
-body.menu-vertical.portrait-search #menu header .menu-omni > span {
-    width: 100%;
-}
-body.menu-vertical #menu header .menu-omni > span {
-    min-width: 0;
-}
-body.menu-vertical .header-entry {
-    padding: var(--padding-half) var(--padding-2x) !important;
-}
-body.menu-vertical .header-entry.portrait-only {
-    display: block;
-}
-body.menu-vertical .menu-time time {
+body:not(.portrait) .portrait-only {
     display: none !important;
 }
-body.menu-vertical #menu header .menu-omni>span {
+body.portrait:not(.portrait-search) .portrait-only {
+    display: block;
+}
+body:not(.portrait) .landscape-only {
+    display: block;
+}
+body.portrait:not(.portrait-search) .landscape-only {
+    display: none;
+}
+body.portrait:not(.portrait-search) #menu header .menu-omni {
+    display: none;
+}
+body.portrait.portrait-search .header-entry {
+    display: none;
+}
+body.portrait.portrait-search #menu header .menu-location {
+    display: none;
+}
+body.portrait:not(.home) .header-entry-info-circle, body.portrait:not(.home) .header-entry-power-off {
+    display: none;
+}
+body.portrait.portrait-search #menu header .menu-omni > span {
+    width: 100%;
+}
+body.portrait .menu-omni > span {
+    min-width: 0;
+}
+body.portrait .header-entry {
+    padding: var(--padding-half) var(--padding-2x) !important;
+}
+body.portrait .menu-time time {
+    display: none !important;
+}
+body.portrait .menu-omni > span {
     background: transparent;
 }
-body:not(.menu-vertical) #menu content a.entry-2x {
+body:not(.portrait) #menu content a.entry-2x {
     width: calc(200% / var(--entries-per-row));
-}
-#menu header .menu-omni > span.selected {
-    background: linear-gradient(to bottom, var(--font-color) 0%, var(--secondary-font-color) 100%);
 }
 #menu header .menu-omni input, #menu header .menu-omni i, #menu header .menu-omni input::-webkit-input-placeholder {
     color: var(--secondary-font-color);
     text-shadow: none;
+}
+#menu header .menu-omni > span.selected {
+    background: linear-gradient(to bottom, var(--font-color) 0%, var(--secondary-font-color) 100%);
 }
 #menu header .menu-omni > span.selected input, #menu header .menu-omni > span.selected i, #menu header .menu-omni > span.selected input::-webkit-input-placeholder {
     color: var(--background-color);
@@ -435,13 +444,18 @@ div#home-arrows > div > * {
     height: auto !important;
     font-size: calc(var(--menu-entry-icon-height) * 0.9);
 }
-#menu content a .entry-icon-image img {    
+#menu content a .entry-icon-image img {
     height: auto !important;
     max-height: 100%;
     width: 100%;
     background-repeat: no-repeat;
     background-position: center center;
     background-size: contain;
+    object-fit: contain;
+}
+#menu content a .entry-icon-image .entry-cover-container img {
+    background-size: cover;
+    object-fit: cover;
 }
 #menu content .entry-icon-image .fas:before {
     display: flex;
@@ -543,7 +557,7 @@ span.entry-status-flag i.fas.fa-play {
     margin: calc(var(--padding-quarter) * 0.5) 0 0 calc(var(--padding-quarter) * 0.75);
     font-size: calc(var(--menu-entry-name-font-size) - (2 * var(--padding-quarter)));
 }
-body.menu-vertical span.entry-status-flag i.fas.fa-play {
+body.portrait span.entry-status-flag i.fas.fa-play {
     margin: calc(var(--padding-quarter) * 0.5) 0 0 calc(var(--padding-quarter) * 1.25);
     font-size: calc(var(--menu-entry-name-font-size) - (4 * var(--padding-quarter)));
 }
@@ -707,6 +721,9 @@ body.modal wrap {
 body.modal #modal {
     opacity: 1;
 }
+body.modal header {
+    visibility: hidden !important;
+}
 span.modal-template-message {
     font-size: var(--menu-entry-name-font-size);
     margin-bottom: var(--padding);
@@ -801,9 +818,11 @@ a.modal-template-option, a.modal-template-option-detailed {
     border-bottom: 2px solid rgba(0,0,0,0.02);
     box-shadow: 0 -0.5vmin 1vmin 0.5vmin rgba(0, 0, 0, 0.01);
     justify-content: center;
-    padding: 2.5vmax 0 ;
     background: linear-gradient(to bottom, rgba(0,0,0, 0.05) 0%, transparent 150%);
     color: black;
+}
+a.modal-template-option > div, a.modal-template-option-detailed > div {
+    padding: 2.5vmax 0;
 }
 a.modal-template-option.selected, a.modal-template-option-detailed.selected .modal-template-option-detailed-name {
     font-weight: bold;
@@ -827,7 +846,7 @@ div.modal-template-option-detailed-details {
     display: block;
     width: 100%;
     font-size: var(--menu-entry-details-font-size);
-    opacity: var(--opacity-level-3);
+    opacity: var(--opacity-level-4);
     height: auto;
 }
 span.modal-template-text.selected-parent i, span.modal-template-text.selected-parent input, 

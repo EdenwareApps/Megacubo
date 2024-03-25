@@ -27,7 +27,7 @@ class DownloadCacheFileReader extends EventEmitter {
         ['data', 'end', 'error', 'finish', 'close'].forEach(n => this.forward(n))
     }
     forward(name){
-        this.stream.on(name, (...args) => this.emit(name, ...args))
+        this.stream.on(name, (...args) => this.listenerCount(name) && this.emit(name, ...args))
     }
     destroy(){
         if(this.destroyed) return
