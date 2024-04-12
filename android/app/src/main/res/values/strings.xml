@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<resources>
+    <string name="app_name">Megacubo</string>
+    <string name="title_activity_main">Megacubo</string>
+    <string name="package_name">tv.megacubo.app</string>
+    <string name="custom_url_scheme">tv.megacubo.app</string>
+</resources>

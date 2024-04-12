@@ -1,0 +1,31 @@
+{
+  "android": {
+    "backgroundColor": "#100927"
+  },
+  "appId": "tv.megacubo.app",
+  "appName": "Megacubo",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "http"
+  },
+  "plugins": {
+    "CapacitorNodeJS": {
+      "nodeDir": "nodejs"
+    },
+    "SplashScreen": {
+      "showSpinner": false,
+      "launchAutoHide": true,
+      "launchShowDuration": 500,
+      "backgroundColor": "#100927",
+      "androidScaleType": "CENTER_INSIDE"
+    }
+  },
+  "cordova": {
+    "preferences": {
+      "URL_SCHEME": "mega",
+      "DEEPLINK_SCHEME": "https",
+      "DEEPLINK_HOST": "megacubo.tv",
+      "ANDROID_PATH_PREFIX": "/assistir/"
+    }
+  }
+}

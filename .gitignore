@@ -1,46 +1,10 @@
-# Cordova Global
-plugins/
-
-# iOS Platform
-platforms/ios/build/
-platforms/ios/www/
-platforms/ios/cordova/console.log
-*.xcuserdatad
-
-# Android Platform
-platforms/android/.gradle
-platforms/android/build
-platforms/android/assets/www
-platforms/android/local.properties
-platforms/android/CordovaLib/build
-platforms/android/CordovaLib/gen
-platforms/android/CordovaLib/local.properties
-
-# wp8
-platforms/wp8/bin
-platforms/wp8/obj
-platforms/wp8/www
-platforms/wp8/.staging
-platforms/wp8/*.suo
-platforms/wp8/*.csproj.user
-
-# Windows Universal App (Windows Platform)
-platforms/windows/build
-platforms/windows/www
-platforms/windows/AppPackages
-
-# Electron
-platforms/electron/build
-platforms/electron/build-res
-platforms/electron/www
-platforms/electron/config.xml
-platforms/electron/electron.json
-
-# Browser
-platforms/browser/www
-
-# res
-resources/signing
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
 
 # Node JS + TS
 logs
@@ -108,13 +72,43 @@ $RECYCLE.BIN/
 .AppleDesktop
 .apdisk
 
+# Gradle files
+.gradle/
+build/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Log/OS Files
+*.log
+
+# Android Studio generated files and folders
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+output.json
+
+# IntelliJ
+*.iml
+.idea/
+
+# Keystore files
+*.jks
+*.keystore
+
+# Google Services (e.g. APIs or Firebase)
+google-services.json
+
+# Android Profiling
+*.hprof
+
 # Custom
 www/.vscode
-www/nodejs-project/modules/premium/
-www/nodejs-project/node_modules/
-www/nodejs-project/ffmpeg/*
-www/nodejs-project/.arch
-build-extras.gradle
-www/nodejs-project/arch.dat
-www/nodejs-project/run-node.cmd
-www/nodejs-project/tool.html
+www/nodejs/modules/premium/
+www/nodejs/node_modules/
+www/nodejs/ffmpeg/*
+www/nodejs/.arch
+www/nodejs/arch.dat
+www/nodejs/tool.html
+android/app/release/output-metadata.json

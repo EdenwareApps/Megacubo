@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=contain" name="viewport" />
+        <meta name="color-scheme" content="light" />
+        <meta name="theme-color" content="#100927" />
+        <title>Megacubo</title>
+        <style type="text/css">
+            html, body {
+                overflow: hidden;
+                width: 100vw;
+                height: 100vh;
+            }
+            div#splash {
+                width: 100vw;
+                height: 100vh;
+                display: flex;
+                z-index: 99999;
+                overflow: hidden;
+                position: absolute;
+                align-items: center;
+                justify-content: center;
+                background-color: #100927;
+                background-image: url(./assets/images/default_icon_white.png);
+                background-position: center center;
+                background-repeat: no-repeat;
+                background-size: 25vmin 25vmin;
+                transition: background-color 1.5s ease-in 0s;
+                top: 0;
+            }            
+			div#splash-progress {
+				position: absolute;
+				width: 100vw;
+				height: 1vh;
+				background: rgba(255, 255, 255, 0.075);
+				bottom: 0;
+			}
+			div#splash-progress > div {
+				width: 0%;
+				background: rgba(255, 255, 255, 0.33);
+				display: inline-block;
+				height: 100%;
+				position: inherit;
+				transition: width 0.2s ease-in-out 0s;
+				overflow: hidden;
+			}
+			div#splash-progress > div > div {
+				background: linear-gradient(to right, transparent, white, transparent);
+				height: 100%;
+				width: 10vw;
+				animation-name: splash-progress-spinner;
+				animation-duration: 14s;
+				animation-timing-function: ease-in-out;
+				animation-iteration-count: infinite;
+			}
+			@keyframes splash-progress-spinner {
+				0% {
+					transform: translateX(-10vw) scaleX(0.1);
+				}
+				49.99% {
+					transform: translateX(100vw) scaleX(3);
+				}
+				50% {
+					transform: translateX(-10vw) scaleX(3);
+				}
+				100% {
+					transform: translateX(100vw) scaleX(0.1);
+				}
+			}
+        </style>
+    </head>
+    <body>
+        <div id="splash">
+			<div id="splash-progress">
+				<div>
+					<div></div>
+				</div>
+			</div>
+        </div>    
+        <App></App>
+        <script type="text/javascript">
+            var frm, q, ptr, config, lang, menu
+            function isES6(){
+                try{
+                    new Function('class ES6Test { constructor() { const a = 1 } }; return new ES6Test()');
+                    return true;
+                } catch(exception) {
+                    return false;
+                }
+            }
+            function updateWebView(){
+                var msg, playStoreUrl = 'market://details?id=com.google.android.webview';
+                switch(navigator.language.substr(0, 2)){
+                    case 'pt':
+                        msg = 'Voce precisa atualizar o WebView de seu sistema para rodar este aplicativo.';
+                        break;
+                    case 'es':
+                        msg = 'Debe actualizar el WebView de su sistema para ejecutar esta aplicacion.';
+                        break;
+                    default:
+                        msg = 'You need to update your system\'s WebView in order to run this application.';
+                        break;
+                }
+                alert(msg);
+                window.open(playStoreUrl, '_system');
+                setTimeout(() => window.close(), 5000);
+            }
+			if (!isES6()) {
+			    updateWebView();
+		    }
+        </script>
+        <script type="text/javascript" src="assets/js/moment.min.js"></script>          
+        <script type="text/javascript" src="assets/js/moment-timezone-with-data.min.js"></script>
+		<script type="text/javascript">
+			if(document.URL.endsWith('android')){
+				document.write('<scr'+'ipt type="text/javascript" src="./dist/capacitor.js"></scr'+'ipt>')
+			}
+		</script>
+        <script src="./dist/renderer.js"></script>
+        <script>
+            if(window.capacitor) {
+                let splashProgress = 0
+                const splashEstimatedTime = parseInt(localStorage.getItem('splash-time-hint')) || 36000
+                const splashProgressBar = document.querySelector('#splash-progress > div')
+                const splashTimer = setInterval(() => {
+                    splashProgress++
+                    splashProgressBar.style.width = splashProgress +'%'
+                    if(splashProgress >= 100) clearInterval(splashTimer)
+                }, splashEstimatedTime / 100)
+            }
+            new App({target: document.querySelector('App')})
+        </script>
+    </body>
+</html>

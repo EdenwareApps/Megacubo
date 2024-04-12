@@ -1,0 +1,83 @@
+{
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EdenwareApps/Megacubo.git"
+  },
+  "bugs": "https://github.com/EdenwareApps/Megacubo/issues",
+  "dependencies": {
+    "@electron/remote": "^2.1.1",
+    "adm-zip": "github:EdenwareApps/adm-zip",
+    "agentkeepalive": "^4.3.0",
+    "async": "^3.2.5",
+    "bl": "^6.0.1",
+    "buzz": "^1.2.1",
+    "bytenode": "github:EdenwareApps/bytenode",
+    "check-disk-space": "^3.3.1",
+    "color-thief-jimp": "^2.0.2",
+    "create-desktop-shortcuts": "^1.10.1",
+    "dashjs": "^4.7.2",
+    "decode-entities": "^1.0.7",
+    "electron": "^28.1.3",
+    "env-paths": "^2.2.1",
+    "exec-finder": "^0.0.2",
+    "formidable": "^2.1.1",
+    "fs-chmod": "^1.0.6",
+    "get-folder-size": "^2.0.1",
+    "hls.js": "^1.5.6",
+    "http-cookie-agent": "^5.0.2",
+    "jimp": "^0.22.7",
+    "jquery": "^3.6.4",
+    "m3u8-parser": "^6.0.0",
+    "moment": "^2.30.1",
+    "moment-timezone": "^0.5.45",
+    "mpegts.js": "^1.7.3",
+    "node-cleanup": "^2.1.2",
+    "opensubtitles.com": "^1.0.0",
+    "p-queue": "^6.6.2",
+    "png-to-ico": "^2.1.8",
+    "range-parser": "^1.2.1",
+    "read-last-lines": "^1.8.0",
+    "resize-observer": "^1.0.4",
+    "rimraf": "^3.0.2",
+    "sanitize-filename": "^1.6.3",
+    "stoppable": "^1.1.0",
+    "swipey.js": "^1.0.3",
+    "tough-cookie": "^4.1.3",
+    "url-search-params-polyfill": "^8.1.1",
+    "xmltv": "github:EdenwareApps/node-xmltv",
+    "ytdl-core": "^4.11.5",
+    "ytsr": "^3.8.4"
+  },
+  "description": "A intuitive, multi-language and cross-platform IPTV player.",
+  "name": "megacubo",
+  "author": {
+    "name": "megacubo.tv",
+    "email": "contact@megacubo.tv",
+    "url": "https://megacubo.tv"
+  },
+  "icon": "./default_icon.png",
+  "version": "17.5.0",
+  "theme": {
+    "fullScreen": true
+  },
+  "permission": [
+    "<all_urls>",
+    "alwaysOnTopWindows",
+    "http://*/",
+    "https://*/"
+  ],
+  "main": "main.js",
+  "window": {
+    "icon": "default_icon.png",
+    "title": "Megacubo"
+  },
+  "bin": {
+    "megacubo": "./bin.js",
+    "megacubo-debug": "./bin-debug.js"
+  },
+  "scripts": {
+    "start": "electron .",
+    "debug": "electron  --inspect --enable-logging=stderr --trace-warnings --remote-debugging-port=9222 .",
+    "lint": "echo \"No linting configured\""
+  }
+}
