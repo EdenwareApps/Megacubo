@@ -18,8 +18,9 @@
     "cordova-plugin-fullscreen": "^1.3.0",
     "ionic-plugin-deeplinks": "^1.0.24",
     "megacubo-electron": "file:./www/nodejs",
-    "tv.megacubo.ffmpeg": "github:efoxbr/tv.megacubo.ffmpeg",
-    "tv.megacubo.pip": "github:efoxbr/tv.megacubo.pip"
+    "tv.megacubo.ffmpeg": "github:EdenwareApps/tv.megacubo.ffmpeg",
+    "tv.megacubo.pip": "github:EdenwareApps/tv.megacubo.pip",
+    "tv.megacubo.player": "github:EdenwareApps/tv.megacubo.player"
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
