@@ -1,11 +1,19 @@
+import jimp from 'jimp'
+import jimpCustomAutocrop from '../jimp-autocrop-custom/jimp-autocrop-custom.js'
+import fs from 'fs'
+import path from 'path'
+import ColorThief from 'color-thief-jimp'
+import { temp } from '../paths/paths.js'
+import pngToIco from 'png-to-ico'
+
 class JimpWorker {
 	constructor(){}	
     load(){
         if(typeof(this.jimp) == 'undefined'){
-            this.jimp = require('jimp')
+            this.jimp = jimp
             const jdecoder = this.jimp.decoders['image/jpeg']
             this.jimp.decoders['image/jpeg'] = data => jdecoder(data, {maxMemoryUsageInMB: 256})
-            this.jimpCustomAutocrop = require('../jimp-autocrop-custom')
+            this.jimpCustomAutocrop = jimpCustomAutocrop
         }
     }
     isAlpha(image){
@@ -83,11 +91,15 @@ class JimpWorker {
     }
     colors(file){
         return new Promise((resolve, reject) => {
+            console.log('jimp.colors')
             this.load()
+            console.log('jimp.colors1')
             this.jimp.read(file).then(image => {
+                console.log('jimp.colors2')
                 try {
                     image = image.resize(36, 36)
-                    const ColorThief = require('color-thief-jimp'), palette = ColorThief.getPalette(image, 24)
+                    const palette = ColorThief.getPalette(image, 24)
+                    console.log('jimp.colors3')
                     const colors = Array.isArray(palette) ? palette.map(px => {
                         return {r: px[0], g: px[1], b: px[2]}
                     }) : []
@@ -96,14 +108,18 @@ class JimpWorker {
                     reject(e)
                 }
             }).catch(err => {
+                console.log('jimp.colors4')
                 reject(err)
             })
         })
     }
+    test(file){
+        return new Promise((resolve, reject) => {
+            resolve('OK')
+        })
+    }
     async iconize(file, outputFolder){
-        const { temp } = require('../paths')
         if(!outputFolder) outputFolder = temp
-        const fs = require('fs'), path = require('path')
         const ext = process.platform == 'win32' ? 'ico' : 'png'
         const pngOutputFile = temp +'/temp.png'
         const outputFile = outputFolder +'/'+ path.basename(file) +'.'+ ext
@@ -114,7 +130,6 @@ class JimpWorker {
         imagerd.composite(image, 0, 0)
         await imagerd.writeAsync(pngOutputFile, this.jimp.MIME_PNG)
         if(process.platform == 'win32') {
-            const pngToIco = require('png-to-ico')
             await fs.promises.writeFile(outputFile, await pngToIco(pngOutputFile))
         } else {
             await fs.promises.copyFile(pngOutputFile, outputFile)
@@ -124,4 +139,4 @@ class JimpWorker {
     async terminate(){}
 }
 
-module.exports = JimpWorker
+export default JimpWorker

@@ -1,5 +1,6 @@
 {
     "name": "download",
-    "main": "download.js"
+    "type": "module",
+"exports": "./download.js"
   }
   

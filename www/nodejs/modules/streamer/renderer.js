@@ -399,6 +399,7 @@ class StreamerState extends StreamerCasting {
         }
     }
     isTuning(){
+        if(!main.osd) return ''
         let txt = main.osd.textContent()
         return txt.indexOf(main.lang.TUNING) != -1 || txt.indexOf(main.lang.CONNECTING) != -1
     }
@@ -1594,7 +1595,7 @@ class StreamerClientControls extends StreamerAudioUI {
         let button = this.getPlayerButton(id)
         if(!button) return console.error('Button #'+ id +' not found')
         if(name){
-            button.querySelector('label span').innerText = name
+            button.querySelector('.button-label > span > span').innerText = name
             button.setAttribute('title', name)
             button.setAttribute('aria-label', name)
         }

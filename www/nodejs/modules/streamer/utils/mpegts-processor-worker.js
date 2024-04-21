@@ -1,12 +1,15 @@
-const MPEGTSProcessor = require('./mpegts-processor')
+import MPEGTSProcessor from './mpegts-processor.js'
+import setupUtils from '../../multi-worker/utils.js'
+import { getFilename } from 'cross-dirname'           
+
+const utils = setupUtils(getFilename())
 
 class MPEGTSProcessorWorker {
 	constructor() {
-		const utils = require('../../multi-worker/utils')(__filename)
 		this.processor = new MPEGTSProcessor()
 		this.processor.on('data', chunk => utils.emit('data', chunk))
 		this.processor.on('fail', err => {
-			console.error('WORKER FAILED', err, global.traceback())
+			console.error('WORKER FAILED', err)
 			utils.emit('fail', err)
 		})
 		return true
@@ -33,4 +36,4 @@ class MPEGTSProcessorWorker {
 	}
 }
 	
-module.exports = MPEGTSProcessorWorker
+export default MPEGTSProcessorWorker

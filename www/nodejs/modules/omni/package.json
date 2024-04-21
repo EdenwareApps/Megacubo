@@ -1,5 +1,6 @@
 {
-    "main": "omni.js",
+    "type": "module",
+"exports": "./omni.js",
     "name": "omni"
  }
  

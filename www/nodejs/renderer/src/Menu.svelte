@@ -12,9 +12,14 @@
         })
         main.waitMain(() => {
             initApp()
+            const wrap = document.querySelector('wrap')
             main.menu.on('updated', () => {
                 path = main.menu.path
-                icons = main.menu.icons
+                icons = main.menu.icons                
+                const activeKeys = main.menu.currentEntries.map(e => e.key)
+                Array.from(wrap.getElementsByTagName('a')).forEach(e => {
+                    activeKeys.includes(e.getAttribute('key')) || wrap.removeChild(e)
+                })
                 entries = main.menu.currentEntries.filter(e => !e.top)
                 if(!main.menu.path) {
                     headerActions = main.menu.currentEntries.filter(e => e.top)
@@ -87,7 +92,7 @@
                             {/if}
                             <span class="entry-data-in">
                                 <span class="entry-name">
-                                    <span class="entry-status-flags">{@html e.statusFlags}</span>
+                                    {@html e.statusFlags}
                                     <span class="entry-name-label">
                                         {@html e.prepend}
                                         {@html e.rawname||e.name}
@@ -97,7 +102,7 @@
                             </span>
                             <span class="entry-icon-image">
                                 {#if (!icons[e.path] || icons[e.path].url.startsWith('fa'))}
-                                    <i class="{e.fa}" aria-hidden="true"></i>
+                                    <i class="{e.fa}" style="{e.faStyle||''}" aria-hidden="true"></i>
                                 {:else}
                                     {#if !e.cover}
                                         <img src="{transparentImage}" alt="" style="background-image: url({icons[e.path].url})" aria-hidden="true" />

@@ -1,5 +1,6 @@
 {
-   "main": "reader.js",
+   "type": "module",
+   "exports": "./reader.js",
    "name": "reader",
    "version": "0.0.1"
 }

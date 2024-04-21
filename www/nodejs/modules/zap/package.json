@@ -1,5 +1,6 @@
 {
-    "main": "zap.js",
+    "type": "module",
+"exports": "./zap.js",
     "name": "zap"
  }
  

@@ -1,5 +1,6 @@
 {
-    "main": "search.js",
+    "type": "module",
+"exports": "./search.js",
     "name": "search"
  }
  

@@ -1,4 +1,5 @@
 {
   "name": "utils",
-  "main": "utils.js"
+  "type": "module",
+"exports": "./utils.js"
 }

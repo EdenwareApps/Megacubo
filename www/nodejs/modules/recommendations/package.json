@@ -1,5 +1,6 @@
 {
-    "main": "recommendations.js",
+    "type": "module",
+"exports": "./recommendations.js",
     "name": "recommendations"
  }
  

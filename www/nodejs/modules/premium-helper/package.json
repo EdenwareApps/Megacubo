@@ -1,5 +1,6 @@
 {
     "name": "premium-helper",
-    "main": "premium-helper.js"
+    "type": "module",
+    "exports": "./premium-helper.js"
   }
   

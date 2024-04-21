@@ -1,4 +1,13 @@
-const ListIndexUtils = require('./list-index-utils')
+import { dirname, joinPath, moveFile } from "../utils/utils.js";
+import Download from '../download/download.js'
+import ListIndexUtils from './list-index-utils.js'
+import { temp } from '../paths/paths.js'
+import fs from 'fs'
+import MediaURLInfo from '../streamer/utils/media-url-info.js'
+import Xtr from './xtr.js'
+import Mag from './mag.js'
+import Parser from './parser.js'
+import config from "../config/config.js"
 
 class UpdateListIndex extends ListIndexUtils { 
 	constructor(url, directURL, file, master, updateMeta, forceDownload){
@@ -12,10 +21,8 @@ class UpdateListIndex extends ListIndexUtils {
         this.updateMeta = updateMeta
         this.forceDownload = forceDownload === true
         this.uid = parseInt(Math.random() * 100000000000)
-
-        const { temp } = require('../paths')
         this.tmpOutputFile = temp +'/'+ this.uid +'.out.tmp'
-        this.timeout = global.config.get('read-timeout')
+        this.timeout = config.get('read-timeout')
         this.linesMapPtr = 0
         this.linesMap = []
         this.debug = false
@@ -94,7 +101,7 @@ class UpdateListIndex extends ListIndexUtils {
                     downloadLimit: 200 * (1024 * 1024), // 200Mb
                     encoding: 'utf8'
                 }
-                this.stream = new global.Download(opts)
+                this.stream = new Download(opts)
                 this.stream.on('redirect', (url, headers) => this.parseHeadersMeta(headers))
                 this.stream.on('response', (statusCode, headers) => {
                     if(this.debug) {
@@ -138,7 +145,6 @@ class UpdateListIndex extends ListIndexUtils {
                 this.stream.start()
             } else {
                 const file = path
-                const fs = require('fs')
                 fs.stat(file, (err, stat) => {
                     if(stat && stat.size){
                         this.contentLength = stat.size
@@ -159,11 +165,9 @@ class UpdateListIndex extends ListIndexUtils {
         })
 	}
 	async start(){
-        const fs = require('fs')
-        let alturl, urls = [this.directURL], fmt = global.config.get('live-stream-fmt')
+        let alturl, urls = [this.directURL], fmt = config.get('live-stream-fmt')
         if(['hls', 'mpegts'].includes(fmt)) {
             if(!this.mi) {
-                const MediaURLInfo = require('../streamer/utils/media-url-info')
                 this.mi = new MediaURLInfo()
             }
             alturl = this.mi.setURLFmt(this.directURL, fmt)
@@ -171,7 +175,7 @@ class UpdateListIndex extends ListIndexUtils {
                 urls.unshift(alturl)
             }
         }
-        await fs.promises.mkdir(global.dirname(this.tmpOutputFile), {recursive: true}).catch(console.error)
+        await fs.promises.mkdir(dirname(this.tmpOutputFile), {recursive: true}).catch(console.error)
         const writer = fs.createWriteStream(this.tmpOutputFile)
         writer.once('finish', () => this.writerClosed = true)
         for(let url of urls){
@@ -208,7 +212,6 @@ class UpdateListIndex extends ListIndexUtils {
 	}
     async xparse(url, writer){
         let err, count = 0
-        const Xtr = require('./xtr')
         const xtr = new Xtr(url)
         xtr.on('progress', p => this.emit('progress', p, this.url))
         xtr.on('meta', meta => {
@@ -246,7 +249,6 @@ class UpdateListIndex extends ListIndexUtils {
     }
     async mparse(url, writer){
         let err, count = 0
-        const Mag = require('./mag')
         const mag = new Mag(url)
         mag.on('progress', p => this.emit('progress', p, this.url))
         mag.on('meta', meta => {
@@ -295,8 +297,6 @@ class UpdateListIndex extends ListIndexUtils {
                 this.parser && this.parser.end()
             }
             this.parser && this.parser.destroy()
-
-            const Parser = require('./parser')
             this.parser = new Parser(opts)
 			this.parser.on('meta', meta => Object.assign(this.index.meta, meta))
 			this.parser.on('playlist', e => this.playlists.push(e))
@@ -310,7 +310,7 @@ class UpdateListIndex extends ListIndexUtils {
                     return
 				}
                 if(playlist){
-                    entry.group = global.joinPath(global.joinPath(playlist.group, playlist.name), entry.group)
+                    entry.group = joinPath(joinPath(playlist.group, playlist.name), entry.group)
                 }
                 if(entry.group) { // collect some data to sniff after if each group seems live, serie or movie
                     if(typeof(this.groups[entry.group]) == 'undefined') {
@@ -380,7 +380,6 @@ class UpdateListIndex extends ListIndexUtils {
 	}
     writeIndex(writer){
         return new Promise((resolve, reject) => {
-            const fs = require('fs')
             fs.stat(this.file, (err, stat) => {
                 let resolved
                 const exists = !err && stat && stat.size
@@ -392,7 +391,7 @@ class UpdateListIndex extends ListIndexUtils {
                         if(resolved) return
                         resolved = true
                         if(err) console.error(err)
-                        global.moveFile(this.tmpOutputFile, this.file, err => {
+                        moveFile(this.tmpOutputFile, this.file, err => {
                             if(err){
                                 reject(err)
                             } else if(this.index.length) {
@@ -464,12 +463,6 @@ class UpdateListIndex extends ListIndexUtils {
         }
         return maxNum
     }
-    rdomain(u){
-        if(u && u.indexOf('//') != -1){
-            return u.split('//')[1].split('/')[0].split(':')[0].split('.').slice(-2)
-        }
-        return ''
-    }
 	reset(){	
         this.groups = {}
 		this.index = {
@@ -505,4 +498,4 @@ class UpdateListIndex extends ListIndexUtils {
 	}
 }
 
-module.exports = UpdateListIndex
+export default UpdateListIndex

@@ -1,5 +1,6 @@
 {
     "name": "jimp-worker",
-    "main": "jimp-worker.js"
+    "type": "module",
+"exports": "./jimp-worker.js"
   }
   

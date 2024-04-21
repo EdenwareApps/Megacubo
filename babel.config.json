@@ -1,0 +1,26 @@
+{
+    "presets": [
+        [
+            "@babel/preset-env",
+            {
+                "targets": {
+                    "node": 9.1
+                },
+                "modules": "cjs"
+            }
+        ]
+    ],
+    "plugins": [
+        [
+            "@babel/plugin-syntax-import-attributes",
+            {
+                "deprecatedAssertSyntax": true
+            }
+        ]
+    ],
+    "env": {
+        "development": {
+            "compact": false
+        }
+    }
+}

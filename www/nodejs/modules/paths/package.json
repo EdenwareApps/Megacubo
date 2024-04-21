@@ -1,5 +1,6 @@
 {
-    "main": "paths.js",
+    "type": "module",
+    "exports": "./paths.js",
     "name": "paths"
  }
  

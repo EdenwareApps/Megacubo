@@ -1,4 +1,16 @@
-const { EventEmitter } = require('events')
+import { ucWords } from '../utils/utils.js'
+import Download from '../download/download.js'
+import lang from "../lang/lang.js";
+import storage from '../storage/storage.js'
+import { EventEmitter } from 'events'
+import listsTools from '../lists/tools.js'
+import setupUtils from '../multi-worker/utils.js'
+import Mag from './mag.js'
+import xmltv from 'xmltv'
+import config from "../config/config.js"
+import { getFilename } from 'cross-dirname'           
+
+const utils = setupUtils(getFilename())
 
 class EPGPaginateChannelsList extends EventEmitter {
     constructor(){
@@ -17,7 +29,7 @@ class EPGPaginateChannelsList extends EventEmitter {
         ])
     }
     prepareChannelName(name){
-        return global.ucWords(name.split('[')[0].split(' ').filter(s => s && !this.badTerms.has(s.toUpperCase())).join(' '))
+        return ucWords(name.split('[')[0].split(' ').filter(s => s && !this.badTerms.has(s.toUpperCase())).join(' '))
     }
     isASCIIChar(chr){
         let c = chr.charCodeAt(0)
@@ -64,10 +76,10 @@ class EPGPaginateChannelsList extends EventEmitter {
                 break
             }
         }
-        return start == end ? global.ucWords(start) : lang.X_TO_Y.format(start.toUpperCase(), end.toUpperCase())
+        return start == end ? ucWords(start) : lang.X_TO_Y.format(start.toUpperCase(), end.toUpperCase())
     }	
     paginateChannelList(snames){
-        let ret = {}, folderSizeLimit = global.config.get('folder-size-limit')
+        let ret = {}, folderSizeLimit = config.get('folder-size-limit')
         snames = snames.map(s => this.prepareChannelName(s)).sort().unique()
         folderSizeLimit = Math.min(folderSizeLimit, snames.length / 8) // generate at least 8 pages to ease navigation
         let nextName, lastName
@@ -88,9 +100,6 @@ class EPGPaginateChannelsList extends EventEmitter {
 class EPG extends EPGPaginateChannelsList {
     constructor(){
         super()
-
-        const ListsCommon = require('../lists/common')
-        this.listsCommon = new ListsCommon()
         this.debug = false
         this.metaCache = {icons:{}, categories: {}}
         this.data = {}
@@ -159,7 +168,7 @@ class EPG extends EPGPaginateChannelsList {
                     this.state = 'error'                    
                 }
                 if(!this.error) {
-                    this.error = global.lang.EPG_BAD_FORMAT
+                    this.error = lang.EPG_BAD_FORMAT
                 }
                 if(this.listenerCount('error')) {
                     this.emit('error', this.error)
@@ -171,8 +180,8 @@ class EPG extends EPGPaginateChannelsList {
         }
     }
     async update(){
-        let lastFetchedAt = await global.storage.get(this.fetchCtrlKey)
-        let lastModifiedAt = await global.storage.get(this.lastmCtrlKey)
+        let lastFetchedAt = await storage.get(this.fetchCtrlKey)
+        let lastModifiedAt = await storage.get(this.lastmCtrlKey)
         const now = this.time()
         if(Object.keys(this.data).length < this.minExpectedEntries || !lastFetchedAt || lastFetchedAt < (this.time() - (this.ttl / 2))){
             if(this.request || this.parser){
@@ -183,7 +192,7 @@ class EPG extends EPGPaginateChannelsList {
                 this.state = 'connecting'
             }
             let validEPG, failed, hasErr, newLastModified, received = 0, errorCount = 0, initialBuffer = []
-            const utils = require('../multi-worker/utils')(__filename)
+            
             this.error = null
             console.log('epg updating...')
             const onErr = err => {
@@ -206,16 +215,15 @@ class EPG extends EPGPaginateChannelsList {
                         this.parser = null    
                     }
                     this.state = 'error'
-                    this.error = global.lang.EPG_BAD_FORMAT
+                    this.error = lang.EPG_BAD_FORMAT
                     if(this.listenerCount('error')){
-                        this.emit('error', global.lang.EPG_BAD_FORMAT)
+                        this.emit('error', lang.EPG_BAD_FORMAT)
                     }
                     this.scheduleNextUpdate(30)
                 }
                 return true
             }
             if(this.url.endsWith('#mag')) {
-                const Mag = require('./mag')
                 this.parser = new Mag.EPG(this.url)
             } else {
                 const req = {
@@ -233,10 +241,8 @@ class EPG extends EPGPaginateChannelsList {
                     responseType: 'text',
                     progress: p => utils.emit('progress', p)
                 }
-
-                const xmltv = require('xmltv')
                 this.parser = new xmltv.Parser()
-                this.request = new global.Download(req)
+                this.request = new Download(req)
                 this.request.on('error', err => {
                     console.warn(err)
                     return true
@@ -287,9 +293,9 @@ class EPG extends EPGPaginateChannelsList {
                     this.scheduleNextUpdate()
                     if(Object.keys(this.data).length){
                         if(newLastModified){
-                            global.storage.set(this.lastmCtrlKey, newLastModified, {ttl: this.ttl})
+                            storage.set(this.lastmCtrlKey, newLastModified, {ttl: this.ttl})
                         }
-                        global.storage.set(this.fetchCtrlKey, now, {ttl: this.ttl})
+                        storage.set(this.fetchCtrlKey, now, {ttl: this.ttl})
                         this.state = 'loaded'
                         this.loaded = true
                         this.error = null
@@ -297,7 +303,7 @@ class EPG extends EPGPaginateChannelsList {
                         utils.emit('updated')
                     } else {
                         this.state = 'error'
-                        this.error = validEPG ? global.lang.EPG_OUTDATED : global.lang.EPG_BAD_FORMAT
+                        this.error = validEPG ? lang.EPG_OUTDATED : lang.EPG_BAD_FORMAT
                         if(this.listenerCount('error')){
                             this.emit('error', this.error)
                         }
@@ -422,7 +428,7 @@ class EPG extends EPGPaginateChannelsList {
                 if(this.data[channel][start].e > now && parseInt(start) <= now){
                     if(Array.isArray(this.data[channel][start].c)){
                         this.liveNowChannelsListFilterCategories(this.data[channel][start].c).forEach(category => {
-                            category = global.ucWords(category)
+                            category = ucWords(category)
                             if(category.indexOf('/') != -1){
                                 category = category.replaceAll('/', ' ')
                             }
@@ -542,7 +548,7 @@ class EPG extends EPGPaginateChannelsList {
             this.data[channel][start] = data
         }
         if(!this.terms[channel] || !Array.isArray(this.terms[channel])){
-            this.terms[channel] = this.listsCommon.terms(channel)
+            this.terms[channel] = listsTools.terms(channel)
         }
         if(data.i){
             let t = data.t.toLowerCase()
@@ -651,7 +657,7 @@ class EPG extends EPGPaginateChannelsList {
                 delete this.terms[name] // clean incorrect format
                 return
             }
-            const score = this.listsCommon.match(terms, this.terms[name], true)
+            const score = listsTools.match(terms, this.terms[name], true)
             data.push({name, score})
         })
         data = data.filter(r => r.score).sortByProp('score', true).slice(0, 24)
@@ -666,7 +672,7 @@ class EPG extends EPGPaginateChannelsList {
         let score, results = []
         Object.keys(this.terms).forEach(name => {
             if(typeof(this.channels[name]) != 'undefined' && this.channels[name].icon){
-                score = this.listsCommon.match(terms, this.terms[name], true)
+                score = listsTools.match(terms, this.terms[name], true)
                 if(score){
                     results.push(this.channels[name].icon)       
                 }
@@ -682,7 +688,7 @@ class EPG extends EPGPaginateChannelsList {
         }
         let score, candidates = [], maxScore = 0, terms = data.terms || data
         Object.keys(this.terms).forEach(name => {
-            score = this.listsCommon.match(terms, this.terms[name], false)
+            score = listsTools.match(terms, this.terms[name], false)
             if(score && score >= maxScore){
                 maxScore = score
                 candidates.push({name, score})
@@ -691,7 +697,7 @@ class EPG extends EPGPaginateChannelsList {
         if(!candidates.length){
             Object.keys(this.terms).forEach(name => {
                 if(Array.isArray(this.terms[name])){
-                    score = this.listsCommon.match(this.terms[name], terms, false)
+                    score = listsTools.match(this.terms[name], terms, false)
                     if(score && score >= maxScore){
                         maxScore = score
                         candidates.push({name, score})
@@ -761,8 +767,8 @@ class EPG extends EPGPaginateChannelsList {
                 if(this.data[channel][start].c.length){
                     t += ' '+ this.data[channel][start].c.join(' ')
                 }
-                let pterms = this.listsCommon.terms(t)
-                if(this.listsCommon.match(terms, pterms, true)){
+                let pterms = listsTools.terms(t)
+                if(listsTools.match(terms, pterms, true)){
                     if(typeof(epgData[channel]) == 'undefined'){
                         epgData[channel] = {}
                     }
@@ -773,7 +779,7 @@ class EPG extends EPGPaginateChannelsList {
         return epgData
     }
     async load(){
-        let data = await global.storage.get(this.key)
+        let data = await storage.get(this.key)
         let loaded
         if(data){
             const now = this.time()
@@ -791,7 +797,7 @@ class EPG extends EPGPaginateChannelsList {
             })
         }
         if(loaded){
-            let cdata = await global.storage.get(this.channelsKey)
+            let cdata = await storage.get(this.channelsKey)
             if(cdata){
                 Object.keys(cdata).forEach(name => {
                     if(typeof(this.channels[name]) == 'undefined'){
@@ -799,7 +805,7 @@ class EPG extends EPGPaginateChannelsList {
                     }
                 })
             }
-            let tdata = await global.storage.get(this.termsKey)
+            let tdata = await storage.get(this.termsKey)
             if(tdata){
                 Object.keys(data).forEach(name => {
                     if(typeof(this.terms[name]) == 'undefined'){
@@ -848,9 +854,9 @@ class EPG extends EPGPaginateChannelsList {
         Object.keys(this.data).forEach(c => {
             this.data[c] = this.normalizeChannelClock(this.data[c])
         })
-        global.storage.set(this.key, this.data, {compress: true, ttl: 3 * this.ttl})
-        global.storage.set(this.termsKey, this.terms, {compress: true, ttl: 3 * this.ttl})
-        global.storage.set(this.channelsKey, this.channels, {compress: true, ttl: 3 * this.ttl})
+        storage.set(this.key, this.data, {compress: true, ttl: 3 * this.ttl})
+        storage.set(this.termsKey, this.terms, {compress: true, ttl: 3 * this.ttl})
+        storage.set(this.channelsKey, this.channels, {compress: true, ttl: 3 * this.ttl})
     }
     clean(){
         Object.keys(this.terms).forEach(e => {
@@ -883,4 +889,4 @@ class EPG extends EPGPaginateChannelsList {
     }
 }
 
-module.exports = EPG
+export default EPG

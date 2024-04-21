@@ -1,5 +1,6 @@
 {
-    "main": "limiter.js",
+    "type": "module",
+"exports": "./limiter.js",
     "name": "limiter"
  }
  

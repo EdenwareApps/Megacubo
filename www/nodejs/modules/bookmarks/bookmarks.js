@@ -1,371 +1,389 @@
-
-const EntriesGroup = require('../entries-group')
+import { insertEntry, ucWords } from '../utils/utils.js'
+import Download from '../download/download.js'
+import osd from '../osd/osd.js'
+import menu from '../menu/menu.js'
+import lang from "../lang/lang.js";
+import EntriesGroup from "../entries-group/entries-group.js";
+import listsTools from '../lists/tools.js'
+import mega from "../mega/mega.js";
+import fs from "fs";
+import * as iconv from "iconv-lite";
+import { exec } from "child_process";
+import icons from "../icon-server/icon-server.js";
+import jimp from "../jimp-worker/main.js";
+import createShortcut from 'create-desktop-shortcuts';
+import config from "../config/config.js"
+import renderer from '../bridge/bridge.js'
+import paths from '../paths/paths.js'
 
 class Bookmarks extends EntriesGroup {
-    constructor(){
-        super('bookmarks')
-        this.storeInConfig = true
+    constructor(channels) {
+        super('bookmarks', channels)
+        this.storeInConfig = true;
         this.currentBookmarkAddingByName = {
             name: '',
             live: true,
             icon: ''
-        }
-        this.rendererReady(() => {
-            global.renderer.on('toggle-fav', () => {
-                if(this.current()){
-                    this.toggle()
-                } else {
-                    global.menu.open(global.lang.BOOKMARKS).catch(displayErr)
+        };
+        renderer.ready(() => {
+            renderer.get().on('toggle-fav', () => {
+                if (this.current()) {
+                    this.toggle();
+                }
+                else {
+                    menu.open(lang.BOOKMARKS).catch(e => menu.displayErr(e));
                 }
             })
-            const streamer = require('../streamer/main')
+        })
+        channels.once('streamer', streamer => {
             streamer.aboutRegisterEntry('fav', data => {
-                if(!data.isLocal){
-                    if(this.has(this.simplify(data))){
-                        return {template: 'option', fa: 'fas fa-star-half', text: global.lang.REMOVE_FROM.format(global.lang.BOOKMARKS), id: 'fav'}
-                    } else {
-                        return {template: 'option', fa: 'fas fa-star', text: global.lang.ADD_TO.format(global.lang.BOOKMARKS), id: 'fav'}
+                if (!data.isLocal) {
+                    if (this.has(this.simplify(data))) {
+                        return { template: 'option', fa: 'fas fa-star-half', text: lang.REMOVE_FROM.format(lang.BOOKMARKS), id: 'fav' };
+                    }
+                    else {
+                        return { template: 'option', fa: 'fas fa-star', text: lang.ADD_TO.format(lang.BOOKMARKS), id: 'fav' };
                     }
                 }
             }, this.toggle.bind(this), 3)
         })
     }
-    streamFilter(e){
-        return e.url && (!e.type || e.type == 'stream')
+    streamFilter(e) {
+        return e.url && (!e.type || e.type == 'stream');
     }
-    groupFilter(e){
-        return e.type && e.type == 'group'
+    groupFilter(e) {
+        return e.type && e.type == 'group';
     }
-    hook(entries, path){
-        if(!path) {
-            const options = require('../options')
-            const bmEntry = {name: global.lang.BOOKMARKS, fa: 'fas fa-star', top: true, type: 'group', renderer: this.entries.bind(this)}
-            if(this.data.length) bmEntry.details = this.data.map(e => e.name).unique().slice(0, 3).join(', ') +'...'
-            options.insertEntry(bmEntry, entries, -3, global.lang.OPTIONS, global.lang.OPEN_URL)
-            return entries
+    hook(entries, path) {
+        if (!path) {
+            const bmEntry = { name: lang.BOOKMARKS, fa: 'fas fa-star', top: true, type: 'group', renderer: this.entries.bind(this) };
+            if (this.data.length)
+                bmEntry.details = this.data.map(e => e.name).unique().slice(0, 3).join(', ') + '...';
+            insertEntry(bmEntry, entries, -3, lang.OPTIONS, lang.OPEN_URL);
+            return entries;
         }
-        let isBookmarkable = path.startsWith(global.lang.CATEGORY_MOVIES_SERIES) || path.startsWith(global.lang.SEARCH) || path.startsWith(global.lang.LIVE +'/'+ global.lang.MORE) || path.startsWith(global.lang.BOOKMARKS)
-        if(!isBookmarkable && path.startsWith(global.lang.MY_LISTS) && !entries.some(this.groupFilter)){
-            isBookmarkable = true
+        let isBookmarkable = path.startsWith(lang.CATEGORY_MOVIES_SERIES) || path.startsWith(lang.SEARCH) || path.startsWith(lang.LIVE + '/' + lang.MORE) || path.startsWith(lang.BOOKMARKS);
+        if (!isBookmarkable && path.startsWith(lang.MY_LISTS) && !entries.some(this.groupFilter)) {
+            isBookmarkable = true;
         }
-        if(isBookmarkable && entries.some(this.streamFilter)){
-            let name = path.split('/').pop(), ges = entries.filter(e => e.url)
-            if(ges.length){
-                let gs = ges.map(e => e.groupName).unique()
-                if(gs.length == 1 && gs[0]){
-                    name = gs[0]
+        if (isBookmarkable && entries.some(this.streamFilter)) {
+            let name = path.split('/').pop(), ges = entries.filter(e => e.url);
+            if (ges.length) {
+                let gs = ges.map(e => e.groupName).unique();
+                if (gs.length == 1 && gs[0]) {
+                    name = gs[0];
                 }
             }
-            ges = null
-            let bookmarker, bookmarkable = {name, type: 'group', entries: entries.filter(this.streamFilter)}
-            if(this.has(bookmarkable)){
+            ges = null;
+            let bookmarker, bookmarkable = { name, type: 'group', entries: entries.filter(this.streamFilter) };
+            if (this.has(bookmarkable)) {
                 bookmarker = {
                     type: 'action',
                     fa: 'fas fa-star-half',
-                    name: global.lang.REMOVE_FROM.format(global.lang.BOOKMARKS),
+                    name: lang.REMOVE_FROM.format(lang.BOOKMARKS),
                     action: () => {
-                        this.remove(bookmarkable)
-                        global.menu.refreshNow()
-                        global.osd.show(global.lang.BOOKMARK_REMOVED.format(bookmarkable.name), 'fas fa-star-half', 'bookmarks', 'normal')
+                        this.remove(bookmarkable);
+                        menu.refreshNow();
+                        osd.show(lang.BOOKMARK_REMOVED.format(bookmarkable.name), 'fas fa-star-half', 'bookmarks', 'normal');
                     }
-                }
-            } else if(path.indexOf(global.lang.BOOKMARKS) == -1) {
+                };
+            }
+            else if (path.indexOf(lang.BOOKMARKS) == -1) {
                 bookmarker = {
                     type: 'action',
                     fa: 'fas fa-star',
-                    name: global.lang.ADD_TO.format(global.lang.BOOKMARKS),
+                    name: lang.ADD_TO.format(lang.BOOKMARKS),
                     action: () => {
-                        this.add(bookmarkable)
-                        global.menu.refreshNow()
-                        global.osd.show(global.lang.BOOKMARK_ADDED.format(bookmarkable.name), 'fas fa-star', 'bookmarks', 'normal')
+                        this.add(bookmarkable);
+                        menu.refreshNow();
+                        osd.show(lang.BOOKMARK_ADDED.format(bookmarkable.name), 'fas fa-star', 'bookmarks', 'normal');
                     }
-                }
-            } 
-            if(bookmarker) entries.unshift(bookmarker)
-        }
-        return entries
-    }
-    toggle(){
-        let data = this.current()
-        if(data){
-            if(this.has(data)){
-                this.remove(data)
-                global.osd.show(global.lang.BOOKMARK_REMOVED.format(data.name), 'fas fa-star-half', 'bookmarks', 'normal')
-            } else {
-                this.add(data)
-                global.osd.show(global.lang.BOOKMARK_ADDED.format(data.name), 'fas fa-star', 'bookmarks', 'normal')
+                };
             }
-            global.menu.refreshNow()
+            if (bookmarker)
+                entries.unshift(bookmarker);
+        }
+        return entries;
+    }
+    toggle() {
+        let data = this.current();
+        if (data) {
+            if (this.has(data)) {
+                this.remove(data);
+                osd.show(lang.BOOKMARK_REMOVED.format(data.name), 'fas fa-star-half', 'bookmarks', 'normal');
+            }
+            else {
+                this.add(data);
+                osd.show(lang.BOOKMARK_ADDED.format(data.name), 'fas fa-star', 'bookmarks', 'normal');
+            }
+            menu.refreshNow();
         }
     }
-    current(){
-        const streamer = require('../streamer/main')
-        if(streamer.active){
-            return this.simplify(streamer.active.data)
-        } else {
-            let streams = global.menu.currentEntries.filter(e => e.url)
-            if(streams.length){
-                return this.simplify(streams[0])
+    current() {        
+        if (this.channels.streamer.active) {
+            return this.simplify(this.channels.streamer.active.data);
+        }
+        else {
+            let streams = menu.currentEntries.filter(e => e.url);
+            if (streams.length) {
+                return this.simplify(streams[0]);
             }
         }
     }
-    simplify(e){
-        if(e.type == 'group'){
-            return this.cleanAtts(e)
+    simplify(e) {
+        if (e.type == 'group') {
+            return this.cleanAtts(e);
         }
-        return {name: e.originalName || e.name, type: 'stream', details: e.group || '', icon: e.originalIcon || e.icon || '', terms: {'name': global.channels.entryTerms(e)}, url: e.originalUrl || e.url}
+        return { name: e.originalName || e.name, type: 'stream', details: e.group || '', icon: e.originalIcon || e.icon || '', terms: { 'name': this.channels.entryTerms(e) }, url: e.originalUrl || e.url };
     }
-    search(terms){
+    search(terms) {
         return new Promise((resolve, reject) => {
-            if(typeof(terms) == 'string'){
-                const lists = require('../lists')
-                terms = lists.terms(terms)
+            if (typeof (terms) == 'string') {
+                terms = listsTools.terms(terms);
             }
             this.get().forEach(e => {
-                
-            })
-        })
+            });
+        });
     }
-    async entries(){
-        const streamer = require('../streamer/main')
-        let es = [], current
-        if(streamer && streamer.active){
-            current = streamer.active.data
+    async entries() {        
+        let es = [], current;
+        if (streamer && this.channels.streamer.active) {
+            current = this.channels.streamer.active.data
         }
-        if(!current){
-            const history = require('../history')
+        if (!current) {
             let cs = history.get().filter(c => {
                 return !this.has(c)
-            })
-            if(cs.length){
+            });
+            if (cs.length) {
                 current = cs.shift()
             }
         }
-        if(current && !this.has(current)){
-            es.push({name: global.lang.ADD + ': ' + current.name, fa: 'fas fa-star', icon: current.icon, type: 'action', action: () => {
-                this.add(current)
-                global.menu.refreshNow()
-            }})
+        if (current && !this.has(current)) {
+            es.push({ name: lang.ADD + ': ' + current.name, fa: 'fas fa-star', icon: current.icon, type: 'action', action: () => {
+                    this.add(current)
+                    menu.refreshNow()
+                }
+            })
         }
-        es.push({name: global.lang.ADD_BY_NAME, fa: 'fas fa-star', type: 'group', renderer: this.addByNameEntries.bind(this)})
-        const epgAddLiveNowMap = {}
+        es.push({ name: lang.ADD_BY_NAME, fa: 'fas fa-star', type: 'group', renderer: this.addByNameEntries.bind(this) });
+        const epgAddLiveNowMap = {};
         let gentries = this.get().map((e, i) => {
-            const mega = require('../mega')
-            const isMega = e.url && mega.isMega(e.url)
-            e.fa = 'fas fa-star'
-            e.details = '<i class="fas fa-star"></i> ' + e.bookmarkId
-            if(isMega){
-                let atts = mega.parse(e.url)
-                if(atts.mediaType == 'live'){
-                    return (epgAddLiveNowMap[i] = global.channels.toMetaEntry(e, false))
-                } else {
-                    const lists = require('../lists')
-                    let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : lists.terms(atts.name)
-                    e.url = mega.build(global.ucWords(terms.join(' ')), {terms, mediaType: 'video'})
-                    e = global.channels.toMetaEntry(e)
+            const isMega = e.url && mega.isMega(e.url);
+            e.fa = 'fas fa-star';
+            e.details = '<i class="fas fa-star"></i> ' + e.bookmarkId;
+            if (isMega) {
+                let atts = mega.parse(e.url);
+                if (atts.mediaType == 'live') {
+                    return (epgAddLiveNowMap[i] = this.channels.toMetaEntry(e, false));
                 }
-            } else if(e.type != 'group'){
-                e.type = 'stream'
+                else {
+                    
+                    let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : listsTools.terms(atts.name);
+                    e.url = mega.build(ucWords(terms.join(' ')), { terms, mediaType: 'video' });
+                    e = this.channels.toMetaEntry(e);
+                }
             }
-            return e
-        })
-        let err
-        const entries = await global.channels.epgChannelsAddLiveNow(Object.values(epgAddLiveNowMap), false).catch(e => err = e)
-        if(!err) {
-            const ks = Object.keys(epgAddLiveNowMap)
+            else if (e.type != 'group') {
+                e.type = 'stream';
+            }
+            return e;
+        });
+        let err;
+        const entries = await this.channels.epgChannelsAddLiveNow(Object.values(epgAddLiveNowMap), false).catch(e => err = e);
+        if (!err) {
+            const ks = Object.keys(epgAddLiveNowMap);
             entries.forEach((e, i) => {
-                gentries[ks[i]] = e
-            })
+                gentries[ks[i]] = e;
+            });
         }
-        es.push(...gentries)
-        if(gentries.length){
-            if(!global.paths.android && global.config.get('bookmarks-desktop-icons')) {
-                es.push({name: global.lang.BOOKMARK_ICONS_SYNC, fa: 'fas fa-sync-alt', type: 'action', action: () => this.desktopIconsSync().catch(console.error)})
+        es.push(...gentries);
+        if (gentries.length) {
+            if (!paths.android && config.get('bookmarks-desktop-icons')) {
+                es.push({ name: lang.BOOKMARK_ICONS_SYNC, fa: 'fas fa-sync-alt', type: 'action', action: () => this.desktopIconsSync().catch(console.error) });
             }
-            es.push({name: global.lang.REMOVE, fa: 'fas fa-trash', type: 'group', renderer: this.removalEntries.bind(this)})
+            es.push({ name: lang.REMOVE, fa: 'fas fa-trash', type: 'group', renderer: this.removalEntries.bind(this) });
         }
-        return es
+        return es;
     }
-    async addByNameEntries(){
+    async addByNameEntries() {
         return [
-            {name: global.lang.CHANNEL_OR_CONTENT_NAME, type: 'input', value: this.currentBookmarkAddingByName.name, action: (data, value) => {
-                this.currentBookmarkAddingByName.name = value
-            }},
-            {name: global.lang.ADVANCED, type: 'select', fa: 'fas fa-cog', entries: [
-                {name: global.lang.STREAM_URL, type: 'input', value: this.currentBookmarkAddingByName.url, details: global.lang.LEAVE_EMPTY, placeholder: global.lang.LEAVE_EMPTY, action: (data, value) => {
-                    this.currentBookmarkAddingByName.url = value
-                }},
-                {name: global.lang.ICON_URL, type: 'input', value: this.currentBookmarkAddingByName.icon, details: global.lang.LEAVE_EMPTY, placeholder: global.lang.LEAVE_EMPTY, action: (data, value) => {
-                    this.currentBookmarkAddingByName.icon = value
-                }}
-            ]},
-            {name: global.lang.LIVE, type: 'check', checked: () => {
-                return this.currentBookmarkAddingByName.live
-            }, action: (e, value) => {
-                this.currentBookmarkAddingByName.live = value
-            }},
-            {name: global.lang.SAVE, fa: 'fas fa-check-circle', type: 'group', renderer: this.addByNameEntries2.bind(this)}
-        ]
+            { name: lang.CHANNEL_OR_CONTENT_NAME, type: 'input', value: this.currentBookmarkAddingByName.name, action: (data, value) => {
+                    this.currentBookmarkAddingByName.name = value;
+                } },
+            { name: lang.ADVANCED, type: 'select', fa: 'fas fa-cog', entries: [
+                    { name: lang.STREAM_URL, type: 'input', value: this.currentBookmarkAddingByName.url, details: lang.LEAVE_EMPTY, placeholder: lang.LEAVE_EMPTY, action: (data, value) => {
+                            this.currentBookmarkAddingByName.url = value;
+                        } },
+                    { name: lang.ICON_URL, type: 'input', value: this.currentBookmarkAddingByName.icon, details: lang.LEAVE_EMPTY, placeholder: lang.LEAVE_EMPTY, action: (data, value) => {
+                            this.currentBookmarkAddingByName.icon = value;
+                        } }
+                ] },
+            { name: lang.LIVE, type: 'check', checked: () => {
+                    return this.currentBookmarkAddingByName.live;
+                }, action: (e, value) => {
+                    this.currentBookmarkAddingByName.live = value;
+                } },
+            { name: lang.SAVE, fa: 'fas fa-check-circle', type: 'group', renderer: this.addByNameEntries2.bind(this) }
+        ];
     }
-    addByNameEntries2(){
-        return new Promise((resolve, reject) => {
-            if(!this.currentBookmarkAddingByName.name){
-                resolve([])
-                return setTimeout(() => {
-                    global.menu.back(2)
-                }, 50)
-            }
-            const lists = require('../lists')
-            lists.search(this.currentBookmarkAddingByName.name, {
-                partial: true,
-                group: !this.currentBookmarkAddingByName.live,
-                safe: !lists.parentalControl.lazyAuth(),
-                limit: 1024
-            }).then(results => {                
-                if(!this.currentBookmarkAddingByName.url || this.currentBookmarkAddingByName.url.indexOf('/') == -1){
-                    let mediaType = 'all', entries = []
-                    if(this.currentBookmarkAddingByName.live){
-                        mediaType = 'live'
-                    } else {
-                        mediaType = 'video'
-                    }
-                    this.currentBookmarkAddingByName.url = mega.build(this.currentBookmarkAddingByName.name, {mediaType})
-                }
-                if(global.config.get('show-logos') && (!this.currentBookmarkAddingByName.icon || this.currentBookmarkAddingByName.icon.indexOf('/') == -1)){
-                    let entries = []
-                    Array.from(new Set(results.results.map(entry => { return entry.icon }))).slice(0, 96).forEach((logoUrl) => {
-                        entries.push({
-                            name: global.lang.SELECT_ICON,
-                            fa: 'fa-mega spin-x-alt',
-                            icon: logoUrl,
-                            url: logoUrl,
-                            value: logoUrl,
-                            type: 'action',
-                            action: this.addByNameEntries3.bind(this)
-                        })
-                    })
-                    if(entries.length){
-                        entries.push({
-                            name: global.lang.NO_ICON,
-                            type: 'action',
-                            fa: 'fas fa-ban',
-                            url: '',
-                            action: () => {
-                                this.addByNameEntries3({value: ''})
-                            }
-                        })
-                        resolve(entries)
-                    } else {
-                        resolve([])
-                        this.addByNameEntries3({value: this.currentBookmarkAddingByName.icon}, 1)
-                    }
-                } else {
-                    resolve([])
-                    this.addByNameEntries3({value: this.currentBookmarkAddingByName.icon}, 1)
-                }
-            })
+    async addByNameEntries2() {
+        if (!this.currentBookmarkAddingByName.name) {
+            setTimeout(() => {
+                menu.back(2);
+            }, 50)
+            return []
+        }
+        const {default: lists} = await import('../lists/lists.js')
+        let err, results = lists.search(this.currentBookmarkAddingByName.name, {
+            partial: true,
+            group: !this.currentBookmarkAddingByName.live,
+            safe: !lists.parentalControl.lazyAuth(),
+            limit: 1024
         })
+        if(err) {
+            this.addByNameEntries3({ value: this.currentBookmarkAddingByName.icon }, 1)
+            return []
+        }
+        if (!this.currentBookmarkAddingByName.url || this.currentBookmarkAddingByName.url.indexOf('/') == -1) {
+            let mediaType = 'all', entries = [];
+            if (this.currentBookmarkAddingByName.live) {
+                mediaType = 'live';
+            }
+            else {
+                mediaType = 'video';
+            }
+            this.currentBookmarkAddingByName.url = mega.build(this.currentBookmarkAddingByName.name, { mediaType });
+        }
+        if (config.get('show-logos') && (!this.currentBookmarkAddingByName.icon || this.currentBookmarkAddingByName.icon.indexOf('/') == -1)) {
+            let entries = [];
+            Array.from(new Set(results.results.map(entry => { return entry.icon; }))).slice(0, 96).forEach((logoUrl) => {
+                entries.push({
+                    name: lang.SELECT_ICON,
+                    fa: 'fa-mega spin-x-alt',
+                    icon: logoUrl,
+                    url: logoUrl,
+                    value: logoUrl,
+                    type: 'action',
+                    action: this.addByNameEntries3.bind(this)
+                });
+            });
+            if (entries.length) {
+                entries.push({
+                    name: lang.NO_ICON,
+                    type: 'action',
+                    fa: 'fas fa-ban',
+                    url: '',
+                    action: () => {
+                        this.addByNameEntries3({ value: '' });
+                    }
+                });
+                return entries
+            }
+            else {
+                this.addByNameEntries3({ value: this.currentBookmarkAddingByName.icon }, 1);
+            }
+        }
+        return []            
     }
-    addByNameEntries3(e, n){
-        let backLvl = typeof(n) == 'number' ? n : 2
-        this.currentBookmarkAddingByName.icon = e.value
+    addByNameEntries3(e, n) {
+        let backLvl = typeof (n) == 'number' ? n : 2;
+        this.currentBookmarkAddingByName.icon = e.value;
         this.add({
             name: this.currentBookmarkAddingByName.name,
             icon: this.currentBookmarkAddingByName.icon,
             url: this.currentBookmarkAddingByName.url
-        })
+        });
         this.currentBookmarkAddingByName = {
             name: '',
             live: true,
             icon: ''
-        }
-        global.menu.back(backLvl)
+        };
+        menu.back(backLvl);
     }
-    prepare(_entries){
-        var knownBMIDs = [], entries = _entries.slice(0)
+    prepare(_entries) {
+        var knownBMIDs = [], entries = _entries.slice(0);
         entries.forEach((bm, i) => {
-            if(typeof(bm.bookmarkId) == 'string'){
-                bm.bookmarkId = parseInt(bm.bookmarkId)
+            if (typeof (bm.bookmarkId) == 'string') {
+                bm.bookmarkId = parseInt(bm.bookmarkId);
             }
-            if(typeof(bm.bookmarkId) != 'undefined'){
-                knownBMIDs.push(bm.bookmarkId)
+            if (typeof (bm.bookmarkId) != 'undefined') {
+                knownBMIDs.push(bm.bookmarkId);
             }
-        })
+        });
         entries.forEach((bm, i) => {
-            if(typeof(bm.bookmarkId) == 'undefined'){
-                var j = 1
-                while(knownBMIDs.indexOf(j) != -1){
+            if (typeof (bm.bookmarkId) == 'undefined') {
+                var j = 1;
+                while (knownBMIDs.indexOf(j) != -1) {
                     j++;
                 }
-                knownBMIDs.push(j)
-                entries[i].bookmarkId = j
+                knownBMIDs.push(j);
+                entries[i].bookmarkId = j;
             }
-        })
-        return entries.slice(0).sortByProp('bookmarkId')
+        });
+        return entries.slice(0).sortByProp('bookmarkId');
     }
     async desktopIconsSync() {
-        global.osd.show(global.lang.PROCESSING, 'fas fa-circle-notch fa-spin', 'bookmarks-desktop-icons', 'persistent')
-        for(const e of this.get()) {
-            await this.createDesktopShortcut(e).catch(console.error)
+        osd.show(lang.PROCESSING, 'fas fa-circle-notch fa-spin', 'bookmarks-desktop-icons', 'persistent');
+        for (const e of this.get()) {
+            await this.createDesktopShortcut(e).catch(console.error);
         }
-        global.osd.show('OK', 'fas fa-check-circle faclr-green', 'bookmarks-desktop-icons', 'normal')
+        osd.show('OK', 'fas fa-check-circle faclr-green', 'bookmarks-desktop-icons', 'normal');
     }
     getWindowsDesktop() {
         return new Promise((resolve, reject) => {
-            const fs = require('fs'), iconv = require('iconv-lite')
-            const { exec } = require('child_process')
-
-            const command = 'REG QUERY "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders" /v Desktop'
+            const command = 'REG QUERY "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders" /v Desktop';
             const child = exec(command, { encoding: 'buffer' }, (error, stdout, stderr) => {
                 if (error) {
-                    return reject('Error querying registry:' + error)
+                    return reject('Error querying registry:' + error);
                 }
-                const output = iconv.decode(stdout, 'cp850') // 'cp850' is the default command prompt encoding
-                const outputLines = output.split('\n')
-                const desktopDirLine = outputLines.find(line => line.includes('REG_SZ'))
-                if (!desktopDirLine) return reject('Folder not found')
-
-                const desktopDir = desktopDirLine.match(new RegExp('REG_SZ +(.*)'))
-                const desktopPath = desktopDir ? desktopDir[1] : null
-                if (!desktopPath) return reject('Folder not found')
-                if (!fs.existsSync(desktopPath)) return reject('Folder not exists: ' + desktopPath)
-                resolve(desktopPath)
-            })
-            child.stdout.setEncoding('binary')
-            child.stderr.setEncoding('binary')
-        })
+                const output = iconv.decode(stdout, 'cp850'); // 'cp850' is the default command prompt encoding
+                const outputLines = output.split('\n');
+                const desktopDirLine = outputLines.find(line => line.includes('REG_SZ'));
+                if (!desktopDirLine)
+                    return reject('Folder not found');
+                const desktopDir = desktopDirLine.match(new RegExp('REG_SZ +(.*)'));
+                const desktopPath = desktopDir ? desktopDir[1] : null;
+                if (!desktopPath)
+                    return reject('Folder not found');
+                if (!fs.existsSync(desktopPath))
+                    return reject('Folder not exists: ' + desktopPath);
+                resolve(desktopPath);
+            });
+            child.stdout.setEncoding('binary');
+            child.stderr.setEncoding('binary');
+        });
     }
     async createDesktopShortcut(entry) {
-        if(global.paths.android || !global.config.get('bookmarks-desktop-icons')) return
-        let outputPath, icon = global.paths.cwd +'/default_icon.png'
-        if(process.platform == 'win32') {
-            const folder = await this.getWindowsDesktop().catch(console.error)
-            if(typeof(folder) == 'string') {
-                outputPath = folder
+        if (paths.android || !config.get('bookmarks-desktop-icons'))
+            return;
+        let outputPath, icon = paths.cwd + '/default_icon.png';
+        if (process.platform == 'win32') {
+            const folder = await this.getWindowsDesktop().catch(console.error);
+            if (typeof (folder) == 'string') {
+                outputPath = folder;
             }
-            icon = global.paths.cwd +'/default_icon.ico'
+            icon = paths.cwd + '/default_icon.ico';
         }
-        let err, noEPGEntry = entry
-        if(noEPGEntry.programme) delete noEPGEntry.programme
-        const icons = require('../icon-server')
-        const nicon = await icons.get(noEPGEntry).catch(e => err = e)
-        if(!err) {
-            if(!nicon.file) {
-                const fs = require('fs')
-                const file = await global.Download.file({url: nicon.url})
-                const stat = await fs.promises.stat(file).catch(e => err = e)
-                if(!err && stat.size >= 512) {
-                    nicon.file = file
+        let err, noEPGEntry = entry;
+        if (noEPGEntry.programme)
+            delete noEPGEntry.programme;
+        const nicon = await icons.get(noEPGEntry).catch(e => err = e);
+        if (!err) {
+            if (!nicon.file) {
+                
+                const file = await Download.file({ url: nicon.url });
+                const stat = await fs.promises.stat(file).catch(e => err = e);
+                if (!err && stat.size >= 512) {
+                    nicon.file = file;
                 }
             }
-            if(nicon.file) {
-                const jimp = require('../jimp-worker/main')
-                const file = await jimp.iconize(nicon.file).catch(e => err = e)
-                if(!err) {
-                    icon = file
-                    const cachedFile = await icons.saveDefaultIcon(entry.name, file).catch(e => err = e)
-                    if(!err && cachedFile) {
-                        icon = cachedFile
+            if (nicon.file) {
+                const file = await jimp.iconize(nicon.file).catch(e => err = e);
+                if (!err) {
+                    icon = file;
+                    const cachedFile = await icons.saveDefaultIcon(entry.name, file).catch(e => err = e);
+                    if (!err && cachedFile) {
+                        icon = cachedFile;
                     }
                 }
             }
@@ -373,25 +391,21 @@ class Bookmarks extends EntriesGroup {
         const values = {
             name: entry.name,
             filePath: process.execPath,
-            arguments: '"'+ entry.url +'"',
+            arguments: '"' + entry.url + '"',
             icon,
             outputPath
-        }
+        };
         const options = {
             windows: values,
             linux: values,
             osx: values
-        }
-        if(!this.createShortcut) {
-            this.createShortcut = require('create-desktop-shortcuts')
-        }
-        this.createShortcut(options)
+        };
+        createShortcut(options);
     }
     add(entry) {
-        super.add(entry)
-        this.createDesktopShortcut(entry).catch(console.error)
-        global.updateUserTasks().catch(console.error)
+        super.add(entry);
+        this.createDesktopShortcut(entry).catch(console.error);
+        global.updateUserTasks().catch(console.error);
     }
 }
-
-module.exports = new Bookmarks()
+export default Bookmarks;

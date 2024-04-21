@@ -1,5 +1,6 @@
 {
-    "main": "profiles.js",
+    "type": "module",
+"exports": "./profiles.js",
     "name": "profiles"
  }
  

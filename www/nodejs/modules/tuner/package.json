@@ -1,5 +1,6 @@
 {
     "name": "tuner",
-    "main": "tuner.js"
+    "type": "module",
+"exports": "./tuner.js"
   }
   

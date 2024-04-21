@@ -1,5 +1,6 @@
 {
     "name": "menu",
-    "main": "menu.js"
+    "type": "module",
+"exports": "./menu.js"
   }
   

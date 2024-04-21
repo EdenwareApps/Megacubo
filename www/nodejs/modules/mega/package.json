@@ -1,5 +1,6 @@
 {
-    "main": "mega.js",
+    "type": "module",
+"exports": "./mega.js",
     "name": "mega",
     "version": "0.0.1",
     "dependencies": {

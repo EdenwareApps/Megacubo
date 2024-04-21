@@ -1,5 +1,6 @@
 {
-    "main": "bookmarks.js",
+    "type": "module",
+"exports": "./bookmarks.js",
     "name": "bookmarks"
  }
  

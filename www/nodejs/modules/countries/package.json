@@ -1,4 +1,5 @@
 {
   "name": "countries",
-  "main": "countries.js"
+  "type": "module",
+"exports": "./countries.js"
 }

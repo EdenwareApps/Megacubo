@@ -24,4 +24,4 @@ class WriteQueue {
 	}
 }
 
-module.exports = new WriteQueue()
+export default new WriteQueue()

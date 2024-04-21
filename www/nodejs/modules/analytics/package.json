@@ -1,5 +1,6 @@
 {
-    "main": "analytics.js",
+    "type": "module",
+"exports": "./analytics.js",
     "name": "analytics"
  }
  

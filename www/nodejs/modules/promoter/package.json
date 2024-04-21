@@ -1,5 +1,6 @@
 {
-    "main": "promoter.js",
+    "type": "module",
+"exports": "./promoter.js",
     "name": "promoter"
  }
  

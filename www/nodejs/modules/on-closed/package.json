@@ -1,6 +1,7 @@
 {
   "dependencies": {},
   "name": "on-closed",
-  "main": "on-closed.js",
+  "type": "module",
+"exports": "./on-closed.js",
   "version": "0.0.1"
 }

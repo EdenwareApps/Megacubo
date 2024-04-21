@@ -1,5 +1,6 @@
 {
-   "main": "line-reader.js",
+   "type": "module",
+"exports": "./line-reader.js",
    "name": "line-reader",
    "version": "0.0.1"
 }

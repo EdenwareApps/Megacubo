@@ -1,11 +1,15 @@
+import fs from 'fs'
+import path from 'path'
+import closed from '../../on-closed/on-closed.js'
+import StreamerFFmpeg from '../utils/ffmpeg.js'
+import { EventEmitter } from 'events'
+import ffmpeg from '../../ffmpeg/ffmpeg.js'
+import config from "../../config/config.js"
+import { ext, rmdir } from '../utils/utils.js'
+
 /*
 Experiment in progress trying to convert a live streaming to a video file that can be served in realtime. By now, FFmpeg don't flush the video to disk in time.
 */
-
-const fs = require('fs'), path = require('path')
-const closed = require('../../on-closed')
-const StreamerFFmpeg = require('../utils/ffmpeg')
-const { EventEmitter } = require('events')
 
 class PersistentReader extends EventEmitter {
     constructor(file){
@@ -79,7 +83,6 @@ class PersistentReader extends EventEmitter {
 class StreamerLiveToVideo extends StreamerFFmpeg {
 	constructor(url){
 		super('', {})
-        const streamer = require('../main')
         this.url = url
         this.uid = parseInt(Math.random() * 10000000)
         this.opts = {
@@ -88,7 +91,7 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
             audioCodec: 'aac',
             debug: true
         }
-        this.folder = streamer.opts.workDir + '/' + this.uid
+        this.folder = paths.temp + '/streamer/' + this.uid
         this.basename = 'output.mp4'
         this.file = this.folder + '/'+ this.basename
 	}
@@ -96,7 +99,7 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
         fs.access(file, err => cb(!err))
     }
     handleRequest(req, response){
-        const keepalive = this.committed && global.config.get('use-keepalive')
+        const keepalive = this.committed && config.get('use-keepalive')
         const file = this.unproxify(req.url.split('#')[0]), fail = err => {
             const headers = { 
                 'access-control-allow-origin': '*',
@@ -118,8 +121,7 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
                     'expires': '-1',
                     'pragma': 'no-cache'
                 }
-                const streamer = require('../main')
-                let ctype = this.contentTypeFromExt(streamer.ext(file))
+                let ctype = this.contentTypeFromExt(ext(file))
                 if(ctype){
                     headers['content-type'] =  ctype
                 }
@@ -143,8 +145,7 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
     }
 	start(){
 		return new Promise((resolve, reject) => {
-            const startTime = global.time()
-            const ffmpeg = require('../../ffmpeg')
+            const startTime = (Date.now() / 1000)
             this.decoder = ffmpeg.create(this.url, { live: true }).
                 inputOptions('-g', 52).
                 outputOptions('-map', '0:a?').
@@ -168,7 +169,7 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
             if(this.opts.videoCodec == 'libx264') {
                 this.decoder.
                 outputOptions('-profile:v', this.opts.vprofile || 'baseline').
-                outputOptions('-crf', global.config.get('ffmpeg-crf')) // we are encoding for watching, so avoid to waste too much time and cpu with encoding, at cost of bigger disk space usage
+                outputOptions('-crf', config.get('ffmpeg-crf')) // we are encoding for watching, so avoid to waste too much time and cpu with encoding, at cost of bigger disk space usage
             }
             if (this.url.indexOf('http') == 0) { // skip other protocols
                 this.decoder.
@@ -191,14 +192,14 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
             this.decoder.
             once('end', data => {
                 if(!this.destroyed){
-                    console.warn('file ended '+ data, traceback())
+                    console.warn('file ended '+ data)
                     this.destroy()
                 }
             }).
             on('error', err => {
                 if(!this.destroyed && this.decoder){
                     err = err.message || err || 'ffmpeg fail'
-                    console.error('an error happened after '+ (global.time() - startTime) +'s'+ (this.committed ? ' (committed)':'') +': ' + err)
+                    console.error('an error happened after '+ ((Date.now() / 1000) - startTime) +'s'+ (this.committed ? ' (committed)':'') +': ' + err)
                     let m = err.match(new RegExp('Server returned ([0-9]+)'))
                     if(m && m.length > 1){
                         err = parseInt(m[1])
@@ -249,7 +250,7 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
         })
     }
     handleRequest(req, response){
-        const keepalive = this.committed && global.config.get('use-keepalive')
+        const keepalive = this.committed && config.get('use-keepalive')
         const file = this.file, fail = err => {
             console.log('FFMPEG SERVE', err, file, this.destroyed)
             let headers = { 
@@ -325,10 +326,10 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
                 this.server.close()
                 delete this.server
             }
-            global.rmdir(this.folder)
+            rmdir(this.folder)
             this.removeAllListeners()
         }
     }
 }
 
-module.exports = StreamerLiveToVideo
+export default StreamerLiveToVideo

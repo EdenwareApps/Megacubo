@@ -1,5 +1,6 @@
 {
     "name": "cloud",
-    "main": "cloud.js"
+    "type": "module",
+"exports": "./cloud.js"
   }
   

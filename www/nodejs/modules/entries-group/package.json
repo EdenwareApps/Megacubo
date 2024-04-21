@@ -1,5 +1,6 @@
 {
     "name": "entries-group",
-    "main": "entries-group.js"
+    "type": "module",
+"exports": "./entries-group.js"
   }
   

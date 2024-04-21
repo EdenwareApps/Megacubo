@@ -1,5 +1,6 @@
 {
-   "main": "writer.js",
+   "type": "module",
+"exports": "./writer.js",
    "name": "writer",
    "version": "0.0.1",
    "dependencies": {}

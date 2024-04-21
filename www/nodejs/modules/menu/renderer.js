@@ -417,7 +417,7 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
     focus(a, avoidScroll){
         let ret = null        
         if(this.debug){
-            console.log('focus', a, avoidScroll, traceback())
+            console.log('focus', a, avoidScroll)
         }
         if(!a) {
             a = this.entries().shift()
@@ -459,7 +459,7 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
                     console.log('pointer selectedIndex =', a.tabIndex, a)
                 }
 				if(avoidScroll && (a.offsetTop < this.wrap.scrollTop || a.offsetTop >= (this.wrap.scrollTop + this.wrap.offsetHeight - 4))){
-					console.log('AVOID SCROLL IGNORED', a.offsetTop, [this.wrap.scrollTop, this.wrap.offsetHeight], traceback())
+					console.log('AVOID SCROLL IGNORED', a.offsetTop, [this.wrap.scrollTop, this.wrap.offsetHeight])
 					avoidScroll = false
 				}
                 if(!avoidScroll) {
@@ -493,7 +493,7 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
     }
     reset(){        
         if(this.debug){
-            console.log('reset', traceback())
+            console.log('reset')
         }
         let elements, layout = this.activeSpatialNavigationLayout()
         if(typeof(layout.resetSelector) == 'function'){
@@ -658,7 +658,7 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
 							const df = this.angleDiff(angle, directionAngleStart, directionAngleEnd)
 							const dist = this.distance(exy, nxy, df)
 							if(this.debug){
-								console.warn('POINTER', dist, {df, angle, directionAngleStart, directionAngleEnd}, direction, e, n, exy, nxy, traceback())
+								console.warn('POINTER', dist, {df, angle, directionAngleStart, directionAngleEnd}, direction, e, n, exy, nxy)
 							}
 							if(!closer || dist < closerDist || 
 								(n.parentNode == e.parentNode && closer.parentNode != e.parentNode)
@@ -819,7 +819,7 @@ class MenuModal extends MenuBBCode {
 	endModal(cancel){
 		if(this.inModal()){
 			if(this.debug){
-				console.log('ENDMODAL', traceback())
+				console.log('ENDMODAL')
 			}
 			this.inputHelper.stop()
 			document.body.classList.remove('modal')
@@ -1066,12 +1066,12 @@ class MenuDialog extends MenuDialogQueue {
 	dialog(entries, cb, defaultIndex, mandatory){
 		this.queueDialog(() => {
 			if(this.debug){
-				console.log('DIALOG', entries, cb, defaultIndex, mandatory, traceback())
+				console.log('DIALOG', entries, cb, defaultIndex, mandatory)
 			}
 			let html = '', opts = '', complete, callback = (k, cancel) => {
 				if(complete) return
 				if(this.debug){
-					console.log('DIALOG CALLBACK', k, parseInt(k), cancel, complete, traceback())
+					console.log('DIALOG CALLBACK', k, parseInt(k), cancel, complete)
 				}
 				// k = parseInt(k)
 				complete = true
@@ -1411,7 +1411,7 @@ class MenuSlider extends MenuPrompt {
 	sliderSetValue(element, value, range, mask){
 		const n = element.querySelector('.modal-template-slider-track')
 		if(this.debug){
-			console.warn('BROOW', n.value, value, traceback())
+			console.warn('BROOW', n.value, value)
 		}
 		n.value = value
 		this.sliderSync(element, range, mask)
@@ -1555,7 +1555,7 @@ class MenuStatusFlags extends MenuSlider {
 			if(this.debug){
 				console.warn('SETFLAGEVT', url, flag)
 			}
-			flag && this.setStatusFlag(url, flag)
+			flag && this.setStatusFlag(url, flag, false)
 		})
 		main.on('stream-state-sync', data => {
 			if(this.debug){
@@ -1577,52 +1577,53 @@ class MenuStatusFlags extends MenuSlider {
 			}
 		}
 	}
-	processStatusFlags(){
-		let updated
-		this.currentEntries.forEach((e, i) => {
-			if(e.url && typeof(this.statusFlags[e.url]) != 'undefined'){
-				let status = this.statusFlags[e.url], type = e.type, cls = e.class || ''
-				if(status && cls.indexOf('skip-testing') == -1 && (cls.match(new RegExp('(allow-stream-state|entry-meta-stream)')) || type == 'stream')){
-					updated = true
-					let content = ''
-					if(status == 'tune'){
-						content = '<i class="fas fa-layer-group"></i>'
-					} else if(status == 'folder') {
-						content = '<i class="fas fa-box-open"></i>'
-					} else if(status == 'waiting') {
-						content = '<i class="fas fa-clock"></i>'
-					} else {
-						let watched
-						if(status.endsWith(',watched')) {
-							watched = true
-							status = status.substr(0, status.length - 8)
-						}
-						let cls = '', txt = '', icon = watched ? 'fas fa-check' : ''
-						if(status == 'offline') {
-							if(!watched) icon = 'fas fa-times'
-							cls = 'entry-status-flag-failure'
-						} else {
-							if(!watched) icon = 'fas fa-play'
-							cls = 'entry-status-flag-success'
-							if(main.config['status-flags-type']) txt = ' '+ status
-						}
-						content = '<i class="'+ icon +'" aria-hidden="true"></i>'+ txt
-						if(main.config['status-flags-type']) content = '&nbsp;'+ content +'&nbsp;'
-						content = '<span class="entry-status-flag '+ cls +'">'+ content +'</span>'
+	statusAddHTML(e) {
+		if(e.url && typeof(this.statusFlags[e.url]) != 'undefined'){
+			let status = this.statusFlags[e.url], type = e.type || 'stream', cls = e.class || ''
+			if(status && cls.indexOf('skip-testing') == -1 && (cls.match(new RegExp('(allow-stream-state|entry-meta-stream)')) || type == 'stream')){
+				let content = ''
+				if(status == 'tune'){
+					content = '<i class="fas fa-layer-group"></i>'
+				} else if(status == 'folder') {
+					content = '<i class="fas fa-box-open"></i>'
+				} else if(status == 'waiting') {
+					content = '<i class="fas fa-clock"></i>'
+				} else {
+					let watched
+					if(status.endsWith(',watched')) {
+						watched = true
+						status = status.substr(0, status.length - 8)
 					}
-					this.currentEntries[i].statusFlags = content
-					const offline = status == 'offline'
-					if(e !== offline) {
-						if(offline) {
-							this.currentEntries[i].class = (e.class || '') +' entry-disabled'
-						} else if(e.class && e.class.indexOf('entry-disabled') != -1) {
-							this.currentEntries[i].class = e.class.replace(new RegExp('( |^)entry-disabled', 'g'), '')
-						}
+					let cls = '', txt = '', icon = watched ? 'fas fa-check' : ''
+					if(status == 'offline') {
+						if(!watched) icon = 'fas fa-times'
+						cls = 'entry-status-flag-failure'
+					} else {
+						if(!watched) icon = 'fas fa-play'
+						cls = 'entry-status-flag-success'
+						if(main.config['status-flags-type']) txt = ' '+ status
+					}
+					content = '<i class="'+ icon +'" aria-hidden="true"></i>'+ txt
+					if(main.config['status-flags-type']) content = '&nbsp;'+ content +'&nbsp;'
+					content = '<span class="entry-status-flag '+ cls +'">'+ content +'</span>'
+				}
+				e.statusFlags = content
+				const offline = status == 'offline'
+				if(e !== offline) {
+					if(offline) {
+						e.class = (e.class || '') +' entry-disabled'
+					} else if(e.class && e.class.indexOf('entry-disabled') != -1) {
+						e.class = e.class.replace(new RegExp('( |^)entry-disabled', 'g'), '')
 					}
 				}
 			}
-		})
-		updated && this.emit('updated')
+		}
+		return e
+	}
+	processStatusFlags(){
+		let updated
+		this.currentEntries = this.currentEntries.map(e => this.statusAddHTML(e))
+		this.emit('updated')
 	}
 }
 
@@ -1649,6 +1650,7 @@ class MenuLoading extends MenuStatusFlags {
 	}
 	setLoading(element, active){
 		console.log('setLoading', element, active)
+		if(!element) return
 		if(active){
 			if(!element.classList.contains('entry-loading')){
 				element.classList.add('entry-loading')
@@ -1874,7 +1876,7 @@ export class Menu extends MenuLoading {
 				const currentScrolltop = this.wrap.scrollTop, entries = this.getRange(y)
 				//console.log('selectionMemory upadeteRange', entries)
 				if(this.debug){
-					console.warn("UPDATING RANGE", y, currentScrolltop, entries, traceback())
+					console.warn("UPDATING RANGE", y, currentScrolltop, entries)
 				}
 				entries.forEach((e, i) => {
 					if(!elements[e.tabindex]) return
@@ -2126,8 +2128,7 @@ export class Menu extends MenuLoading {
 		if(e.type == 'check') {
 			e.fa = 'fas fa-toggle-'+ (e.value ? 'on' : 'off')
 		}
-
-		e.statusFlags = ''
+		if(typeof(e.statusFlags) != 'string') e.statusFlags = ''
 		e.maskText = ''
 		if(e.mask && typeof(e.value) != 'undefined') {
 			if(e.mask === 'time') {
@@ -2136,7 +2137,6 @@ export class Menu extends MenuLoading {
 				e.maskText = e.mask.replace('{0}', e.value)
 			}
 		}
-
 		if(e.rawname && e.rawname.indexOf('[') != -1) {
 			e.rawname = this.parseBBCode(e.rawname)
 		}

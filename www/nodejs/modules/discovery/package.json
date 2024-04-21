@@ -1,4 +1,5 @@
 {
-    "main": "discovery.js",
+    "type": "module",
+"exports": "./discovery.js",
     "name": "discovery"
 } 

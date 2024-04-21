@@ -1,5 +1,6 @@
 {
     "name": "jimp-autocrop-custom",
-    "main": "jimp-autocrop-custom.js"
+    "type": "module",
+"exports": "./jimp-autocrop-custom.js"
   }
   

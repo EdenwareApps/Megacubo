@@ -1,4 +1,5 @@
 {
-    "main": "wizard.js",
+    "type": "module",
+"exports": "./wizard.js",
     "name": "wizard"
 } 

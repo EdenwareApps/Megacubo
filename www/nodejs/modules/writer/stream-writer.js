@@ -30,4 +30,4 @@ class StreamWriter {
 	}
 }
 
-module.exports = StreamWriter
+export default StreamWriter

@@ -23,12 +23,17 @@
     "tv.megacubo.player": "github:EdenwareApps/tv.megacubo.player"
   },
   "devDependencies": {
+    "@babel/plugin-syntax-import-attributes": "^7.24.1",
+    "@babel/preset-env": "^7.24.4",
     "@capacitor/assets": "^3.0.5",
+    "@rollup/plugin-babel": "^6.0.4",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-replace": "^5.0.5",
     "@rollup/plugin-terser": "^0.4.4",
     "postcss": "^8.4.38",
+    "protobufjs": "^7.2.6",
     "rimraf": "^5.0.5",
     "rollup": "^4.13.2",
     "rollup-plugin-import-css": "^3.5.0",

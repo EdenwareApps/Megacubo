@@ -1,5 +1,8 @@
 
-const StreamerProxy = require('./proxy')
+import StreamerProxy from './proxy.js'
+import np from '../../network-ip/network-ip.js'
+import http from 'http'
+import stoppable from 'stoppable'
 
 class StreamerNetworkProxy extends StreamerProxy {
 	constructor(port){
@@ -32,14 +35,10 @@ class StreamerNetworkProxy extends StreamerProxy {
     }
 	start(){
 		return new Promise((resolve, reject) => {
-            const np = require('../../network-ip')
             this.addr = np.networkIP()
             if(!this.addr || this.addr == '127.0.0.1'){
                 return reject('no network: '+ this.addr)
             }
-
-            const http = require('http')
-            const stoppable = require('stoppable')
             this.server = http.createServer(this.handleRequest.bind(this))
             this.serverStopper = stoppable(this.server)
             this.listen().then(() => {
@@ -74,4 +73,4 @@ class StreamerNetworkProxy extends StreamerProxy {
     }
 }
 
-module.exports = StreamerNetworkProxy
+export default StreamerNetworkProxy

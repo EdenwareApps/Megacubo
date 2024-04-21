@@ -1,4 +1,5 @@
 {
   "name": "bridge",
-  "main": "bridge.js"
+  "type": "module",
+"exports": "./bridge.js"
 }

@@ -1,5 +1,6 @@
 {
-    "main": "theme.js",
+    "type": "module",
+"exports": "./theme.js",
     "name": "theme",
     "version": "0.0.1"
  }

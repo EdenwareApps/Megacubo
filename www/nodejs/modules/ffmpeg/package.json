@@ -1,5 +1,6 @@
 {
     "name": "ffmpeg",
-    "main": "ffmpeg.js"
+    "type": "module",
+"exports": "./ffmpeg.js"
   }
   

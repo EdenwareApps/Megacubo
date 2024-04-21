@@ -158,6 +158,77 @@ window.handleOpenURL = url => { // avoid local scoping
 	}, 0);
 }
 
+const setupFontDetector = () => {
+    if(typeof(window.isFontAvailable) != 'function'){
+        var width, body = document.body || document.querySelector('body')  
+        var container = document.createElement('span')
+        container.innerHTML = Array(100).join('wi')
+        container.style.cssText = [
+            'position:absolute',
+            'width:auto',
+            'font-size:128px',
+            'left:-99999px'
+        ].join(' !important;')
+        var getWidth = fontFamily => {
+            container.style.fontFamily = fontFamily.split(',').map(f => "'"+ f.trim() +"'").join(',')
+            body.appendChild(container)
+            width = container.clientWidth
+            body.removeChild(container)        
+            return width
+        }
+        // Pre compute the widths of monospace, serif & sans-serif
+        // to improve performance.
+        var monoWidth  = getWidth('monospace')
+        var serifWidth = getWidth('serif')
+        var sansWidth  = getWidth('sans-serif')  
+        window.isFontAvailable = font => {
+          return monoWidth !== getWidth(font + ',monospace') ||
+            sansWidth !== getWidth(font + ',sans-serif') ||
+            serifWidth !== getWidth(font + ',serif');
+        }
+    }
+}
+
+const getFontList = () => {
+    setupFontDetector()
+    return [
+        '-apple-system',
+        'Arial',
+        'BlinkMacSystemFont', 
+        'Calibri',
+        'Cantarell', 
+        'Century Gothic',
+        'Comic Sans',
+        'Consolas',
+        'Courier',
+        'Dejavu Sans',
+        'Dejavu Serif',
+        'Futura',
+        'Georgia',
+        'Gill Sans',
+        'Gotham',
+        'Helvetica',
+        'Helvetica Neue', 
+        'Impact',
+        'Lato',
+        'Lucida Sans',
+        'Myriad Pro',
+        'Netflix Sans',
+        'Open Sans',
+        'Oxygen-Sans', 
+        'Palatino',
+        'Roboto',
+        'Segoe UI', 
+        'sans-serif',
+        'Tahoma',
+        'Times New Roman',
+        'Trebuchet',
+        'Ubuntu', 
+        'Verdana',
+        'Zapfino'
+    ].filter(isFontAvailable)
+}
+
 export const initApp = () => {
     console.warn('INITAPP')
     main.css = css
@@ -177,7 +248,7 @@ export const initApp = () => {
     }
     main.on('clipboard-write', (text, successMessage) => {
         if (!top.navigator.clipboard) {
-            main.osd.show('This webview doesn\'t supports copying to clipboard.', 'fas fa-exclamation-triangle faclr-red', 'clipboard', 'normal')
+            main.osd.show('Your webview doesn\'t supports copying to clipboard.', 'fas fa-exclamation-triangle faclr-red', 'clipboard', 'normal')
             return
         }
         top.navigator.clipboard.writeText(text).then(() => {

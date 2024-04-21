@@ -1,192 +1,204 @@
-const { EventEmitter } = require('events')
+import { EventEmitter } from "events";
+import fs from "fs";
+import pLimit from "p-limit";
+import readline from "readline";
+import { parseJSON } from '../utils/utils.js'
 
 class ListIndexUtils extends EventEmitter {
-	constructor(){
-		super()
-        this.seriesRegex = new RegExp('(\\b|^)[st]?[0-9]+ ?[epx]{1,2}[0-9]+($|\\b)', 'i')
-        this.vodRegex = new RegExp('[\\.=](mp4|mkv|mpeg|mov|m4v|webm|ogv|hevc|divx)($|\\?|&)', 'i')
-        this.liveRegex = new RegExp('([0-9]+/[0-9]+|[\\.=](m3u8|ts))($|\\?|&)', 'i')
+    constructor() {
+        super();
+        this.seriesRegex = new RegExp('(\\b|^)[st]?[0-9]+ ?[epx]{1,2}[0-9]+($|\\b)', 'i');
+        this.vodRegex = new RegExp('[\\.=](mp4|mkv|mpeg|mov|m4v|webm|ogv|hevc|divx)($|\\?|&)', 'i');
+        this.liveRegex = new RegExp('([0-9]+/[0-9]+|[\\.=](m3u8|ts))($|\\?|&)', 'i');
         this.indexTemplate = {
             groups: {},
             terms: {},
             meta: {}
-        }
+        };
     }
-    sniffStreamType(e){
-        if(e.name && e.name.match(this.seriesRegex)) {
-            return 'series'
-        } else if(e.url.match(this.vodRegex)) {
-            return 'vod'
-        } else if(e.url.match(this.liveRegex)) {
-            return 'live'
+    sniffStreamType(e) {
+        if (e.name && e.name.match(this.seriesRegex)) {
+            return 'series';
+        }
+        else if (e.url.match(this.vodRegex)) {
+            return 'vod';
+        }
+        else if (e.url.match(this.liveRegex)) {
+            return 'live';
         }
     }
     getRangesFromMap(map) {
-        const ranges = []
-        map.forEach(n => ranges.push({start: this.linesMap[n], end: this.linesMap[n + 1] - 1}))
-        return ranges
+        const ranges = [];
+        map.forEach(n => ranges.push({ start: this.linesMap[n], end: this.linesMap[n + 1] - 1 }));
+        return ranges;
     }
     async readLinesByMap(map) {
-        const ranges = this.getRangesFromMap(map)
-        const lines = {}
-        let fd = null
+        const ranges = this.getRangesFromMap(map);
+        const lines = {};
+        let fd = null;
         try {
-            const fs = require('fs')
-           fd = await fs.promises.open(this.file, 'r')
-           const pLimit = require('p-limit')
-           const limit = pLimit(4)
-           const tasks = ranges.map((r, i) => {
+            fd = await fs.promises.open(this.file, 'r');
+            const limit = pLimit(4);
+            const tasks = ranges.map((r, i) => {
                 return async () => {
-                    const length = r.end - r.start
-                    const buffer = Buffer.alloc(length)
-                    const { bytesRead } = await fd.read(buffer, 0, length, r.start)                
-                    if(bytesRead < buffer.length) {
-                        buffer = buffer.slice(0, bytesRead)
+                    const length = r.end - r.start;
+                    const buffer = Buffer.alloc(length);
+                    const { bytesRead } = await fd.read(buffer, 0, length, r.start);
+                    if (bytesRead < buffer.length) {
+                        buffer = buffer.slice(0, bytesRead);
                     }
-                    lines[map[i]] = buffer.toString()
-                }
-            }).map(limit)
-            await Promise.allSettled(tasks)
-        } catch (error) {
-            console.error(error)
-        } finally {
+                    lines[map[i]] = buffer.toString();
+                };
+            }).map(limit);
+            await Promise.allSettled(tasks);
+        }
+        catch (error) {
+            console.error(error);
+        }
+        finally {
             if (fd !== null) {
                 try {
-                    await fd.close().catch(console.error)
-                } catch (error) {
-                    console.error("Error closing file descriptor:", error)
+                    await fd.close().catch(console.error);
+                }
+                catch (error) {
+                    console.error("Error closing file descriptor:", error);
                 }
             }
         }
-        return lines
+        return lines;
     }
-    readLines(map){
+    readLines(map) {
         return new Promise((resolve, reject) => {
-            if(map){
-                if(!map.length){
-                    return reject('empty map requested')
+            if (map) {
+                if (!map.length) {
+                    return reject('empty map requested');
                 }
-                map.sort()
-                if(Array.isArray(this.linesMap)) {
-                    return this.readLinesByMap(map).then(resolve).catch(reject)
+                map.sort();
+                if (Array.isArray(this.linesMap)) {
+                    return this.readLinesByMap(map).then(resolve).catch(reject);
                 }
             }
-            const fs = require('fs')
+            
             fs.stat(this.file, (err, stat) => {
-                if(err || !stat){
-                    return reject(err || 'stat failed with no error')
+                if (err || !stat) {
+                    return reject(err || 'stat failed with no error');
                 }
-                if(stat.size){
-                    const readline = require('readline')
+                if (stat.size) {
                     let max, i = 0, lines = {}, rl = readline.createInterface({
                         input: fs.createReadStream(this.file),
                         crlfDelay: Infinity
-                    })
-                    if(map){
-                        max = Math.max(...map)
-                    } else {
-                        max = -1
+                    });
+                    if (map) {
+                        max = Math.max(...map);
+                    }
+                    else {
+                        max = -1;
                     }
                     rl.on('line', line => {
-                        if(this.destroyed){
-                            if(rl){
-                                rl.close()
-                                rl = null
+                        if (this.destroyed) {
+                            if (rl) {
+                                rl.close();
+                                rl = null;
                             }
-                            reject('list destroyed')
-                        } else {
-                            if(!map || map.includes(i)) {
-                                if(!line || !line.startsWith('{')) {
-                                    if(map || !line.startsWith('[')) {
-                                        console.error('Bad line readen', this.file, i, line)
+                            reject('list destroyed');
+                        }
+                        else {
+                            if (!map || map.includes(i)) {
+                                if (!line || !line.startsWith('{')) {
+                                    if (map || !line.startsWith('[')) {
+                                        console.error('Bad line readen', this.file, i, line);
                                     }
-                                } else {
-                                    lines[i] = line
+                                }
+                                else {
+                                    lines[i] = line;
                                 }
                             }
-                            if(max > 0 && i == max){
-                                if(rl){
-                                    rl.close()
-                                    rl = null
+                            if (max > 0 && i == max) {
+                                if (rl) {
+                                    rl.close();
+                                    rl = null;
                                 }
                             }
-                            i++
+                            i++;
                         }
-                    })
+                    });
                     rl.once('close', () => {
-                        if(!map){
-                            let last = Object.keys(lines).pop() // remove index from entries
-                            delete lines[last]
+                        if (!map) {
+                            let last = Object.keys(lines).pop(); // remove index from entries
+                            delete lines[last];
                         }
-                        resolve(lines)
-                        rl = null
-                    })
-                } else {
-                    return reject('empty file '+ stat.size)
+                        resolve(lines);
+                        rl = null;
+                    });
                 }
-            })
-        })
+                else {
+                    return reject('empty file ' + stat.size);
+                }
+            });
+        });
     }
     async readLastLine() {
-        const bufferSize = 16834
-        const fs = require('fs')
-        const { size } = await fs.promises.stat(this.file)
-        const fd = await fs.promises.open(this.file, 'r')
-        let line = ''
-        let readPosition = Math.max(size - bufferSize, 0)
-        while(readPosition >= 0){
-            const readSize = Math.min(bufferSize, size - readPosition)
-            const { buffer, bytesRead } = await fd.read(Buffer.alloc(readSize), 0, readSize, readPosition)
-            const content = String(buffer)
-            line = content + line
-            const pos = content.lastIndexOf("\n")
+        const bufferSize = 16834;
+        
+        const { size } = await fs.promises.stat(this.file);
+        const fd = await fs.promises.open(this.file, 'r');
+        let line = '';
+        let readPosition = Math.max(size - bufferSize, 0);
+        while (readPosition >= 0) {
+            const readSize = Math.min(bufferSize, size - readPosition);
+            const { buffer, bytesRead } = await fd.read(Buffer.alloc(readSize), 0, readSize, readPosition);
+            const content = String(buffer);
+            line = content + line;
+            const pos = content.lastIndexOf("\n");
             if (pos != -1) {
-                line = line.substring(pos + 1)
-                break
+                line = line.substring(pos + 1);
+                break;
             }
-            if(!bytesRead) {
-                break
+            if (!bytesRead) {
+                break;
             }
-            readPosition -= bytesRead
+            readPosition -= bytesRead;
         }
-        await fd.close().catch(console.error)
-        return line
+        await fd.close().catch(console.error);
+        return line;
     }
-    async readIndex(){
-        let line = await this.readLastLine()
-        let index = false
-        if(line){
+    async readIndex() {
+        let line = await this.readLastLine();
+        let index = false;
+        if (line) {
             try {
-                let parsed = global.parseJSON(line)
-                if(Array.isArray(parsed)) {
-                    this.linesMap = parsed
-                    const fs = require('fs')
-                    const fd = await fs.promises.open(this.file, 'r')
-                    const from = parsed[parsed.length - 2]
-                    const length = parsed[parsed.length - 1] - from
-                    const buffer = Buffer.alloc(length)
-                    const { bytesRead } = await fd.read(buffer, 0, length, from)
-                    await fd.close().catch(console.error)
-                    line = String(buffer).substr(0, bytesRead)
-                    index = JSON.parse(line)
-                } else {
-                    index = parsed // old style compat
+                let parsed = parseJSON(line);
+                if (Array.isArray(parsed)) {
+                    this.linesMap = parsed;
+                    
+                    const fd = await fs.promises.open(this.file, 'r');
+                    const from = parsed[parsed.length - 2];
+                    const length = parsed[parsed.length - 1] - from;
+                    const buffer = Buffer.alloc(length);
+                    const { bytesRead } = await fd.read(buffer, 0, length, from);
+                    await fd.close().catch(console.error);
+                    line = String(buffer).substr(0, bytesRead);
+                    index = JSON.parse(line);
                 }
-            } catch(e) {
-                console.error('Index parsing failure', e, this.file)
+                else {
+                    index = parsed; // old style compat
+                }
+            }
+            catch (e) {
+                console.error('Index parsing failure', e, this.file);
             }
         }
-        if(index && typeof(index.length) != 'undefined'){
-            if(index.linesMap) {
-                this.linesMap = index.linesMap
-                delete index.linesMap
+        if (index && typeof (index.length) != 'undefined') {
+            if (index.linesMap) {
+                this.linesMap = index.linesMap;
+                delete index.linesMap;
             }
-            return index
-        } else {
-            console.error('Bad index on '+ this.file, String(line).substr(0, 256), this.file)
-            return this.indexTemplate
+            return index;
+        }
+        else {
+            console.error('Bad index on ' + this.file, String(line).substr(0, 256), this.file);
+            return this.indexTemplate;
         }
     }
 }
-
-module.exports = ListIndexUtils
+export default ListIndexUtils;

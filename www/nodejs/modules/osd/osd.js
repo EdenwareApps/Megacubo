@@ -1,14 +1,12 @@
-
-class OSDSrv {
-    constructor(){
+import renderer from '../bridge/bridge.js'
+class OSD {
+    constructor() {}
+    show(text, icon, name, time) {
+        console.log('osd-show', text);
+        renderer.get().emit('osd-show', text, icon, name, time);
     }
-    show(text, icon, name, time){
-        console.log('osd-show', text)
-        global.renderer.emit('osd-show', text, icon, name, time)
-    }
-    hide(name){
-        global.renderer.emit('osd-hide', name)
+    hide(name) {
+        renderer.get().emit('osd-hide', name);
     }
 }
-
-module.exports = OSDSrv
+export default new OSD()

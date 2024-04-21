@@ -1,22 +1,22 @@
-const { EventEmitter } = require('events')
+import { EventEmitter } from 'events';
+import renderer from '../bridge/bridge.js'
 
 class Energy extends EventEmitter {
-    constructor(){
-		super()
+    constructor() {
+        super();
     }
-    restart(){
-		global.renderer.emit('restart')
-	}
-    exit(){
-		console.error('ENERGY_EXIT='+ global.traceback())
-		global.renderer.emit('exit', false)
-	}
-	askRestart(){
-		global.renderer.emit('ask-restart')
-	}
-	askExit(){
-		global.renderer.emit('ask-exit')
-	}
+    restart() {
+        renderer.get().emit('restart');
+    }
+    exit() {
+        console.error('ENERGY_EXIT')
+        renderer.get().emit('exit', false)
+    }
+    askRestart() {
+        renderer.get().emit('ask-restart')
+    }
+    askExit() {
+        renderer.get().emit('ask-exit')
+    }
 }
-
-module.exports = new Energy()
+export default new Energy()

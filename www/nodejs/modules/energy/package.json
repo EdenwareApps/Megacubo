@@ -1,5 +1,6 @@
 {
-    "main": "energy.js",
+    "type": "module",
+"exports": "./energy.js",
     "name": "energy"
  }
  

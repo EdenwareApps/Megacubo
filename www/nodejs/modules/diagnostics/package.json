@@ -1,5 +1,6 @@
 {
-    "main": "diagnostics.js",
+    "type": "module",
+"exports": "./diagnostics.js",
     "name": "diagnostics"
  }
  

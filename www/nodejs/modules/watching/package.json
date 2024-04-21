@@ -1,5 +1,6 @@
 {
-    "main": "watching.js",
+    "type": "module",
+"exports": "./watching.js",
     "name": "watching"
  }
  

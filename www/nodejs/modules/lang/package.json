@@ -1,5 +1,6 @@
 {
     "name": "lang",
-    "main": "lang.js"
+    "type": "module",
+"exports": "./lang.js"
   }
   

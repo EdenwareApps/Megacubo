@@ -1,9 +1,10 @@
 
-const path = require('path')
+import path from 'path'
+import { data } from '../paths/paths.js'
+import energy from '../energy/energy.js'
 
 class Profiles {
     constructor(){
-		const { data } = require('../paths')
 		this.logged = null
 		this.folder = path.join(data, 'Users')
 		this.load()
@@ -32,11 +33,10 @@ class Profiles {
 	}
 	logon(name){
 		if(this.list.indexOf(name) != -1){
-			const energy = require('../energy')
 			localStorage.setItem('logged-user', name)
 			energy.restart()
 		}
 	}
 }
 
-module.exports = Profiles
+export default Profiles

@@ -1,5 +1,6 @@
 {
-    "main": "multi-worker.js",
+    "type": "module",
+"exports": "./multi-worker.js",
     "name": "multi-worker"
  }
  

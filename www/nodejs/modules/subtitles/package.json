@@ -1,5 +1,6 @@
 {
-    "main": "subtitles.js",
+    "type": "module",
+"exports": "./subtitles.js",
     "name": "subtitles",
     "version": "0.0.1",
     "dependencies": {

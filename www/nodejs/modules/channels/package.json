@@ -1,5 +1,6 @@
 {
     "name": "channels",
-    "main": "channels.js"
+    "type": "module",
+"exports": "./channels.js"
   }
   

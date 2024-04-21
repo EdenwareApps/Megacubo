@@ -1,408 +1,417 @@
-const { EventEmitter } = require('events')
+import { EventEmitter } from "events";
+import Tuner from "./tuner.js";
+import lists from "../lists/lists.js";
+import config from "../config/config.js"
 
 class AutoTuner extends EventEmitter {
-    constructor(entries, opts){
-        super()
-        this.paused = false
-        this.headless = false
-        this.minProgress = 0
-        this.resultsBuffer = 2
-        this.results = {}
-        this.commitResults = {}
-        this.intents = []
-        this.succeededs = {} // -1 = bad mediatype, 0 = initialized, 1 = intenting, 2 = committed, 3 = starting failed
-        opts.mediaType = opts.mediaType == 'audio' ? 'all' : opts.mediaType // is we're searching a radio, no problem to return a radio studio webcam
-        if(!opts.allowedTypes || !Array.isArray(opts.allowedTypes)) {
-            opts.allowedTypes = []
-            const streamer = require('../streamer/main')
-            Object.keys(streamer.engines).forEach(n => {
-                if(streamer.engines[n].mediaType == opts.mediaType){
-                    opts.allowedTypes.push(n)
-                }
-            })
-        }
-        this.opts = opts
-        this.entries = entries
-        this.ffmpegBasedTypes = ['ts', 'rtmp', 'dash', 'aac']
+    constructor(entries, opts) {
+        super();
+        opts.mediaType = opts.mediaType == 'audio' ? 'all' : opts.mediaType; // is we're searching a radio, no problem to return a radio studio webcam
+        this.opts = opts;
+        this.paused = false;
+        this.headless = false;
+        this.minProgress = 0;
+        this.resultsBuffer = 2;
+        this.results = {};
+        this.commitResults = {};
+        this.intents = [];
+        this.succeededs = {}; // -1 = bad mediatype, 0 = initialized, 1 = intenting, 2 = committed, 3 = starting failed
+        this.entries = entries;
+        this.ffmpegBasedTypes = ['ts', 'rtmp', 'dash', 'aac'];
+        this.streamer = opts.streamer
     }
-    async start(){
-        if(!this.tuner){
-            this.entries = await this.ceilPreferredStreams(this.entries, this.preferredStreamServers(), this.opts.preferredStreamURL)
-            this.entries = await this.ceilMyListsStreams(this.entries, this.preferredStreamServers(), this.opts.preferredStreamURL)
-
-            const Tuner = require('./tuner')
+    async start() {
+        const {default: channels} = await import('../channels/channels.js')
+        this.history = channels.history
+        if (!this.opts.allowedTypes || !Array.isArray(this.opts.allowedTypes)) {
+            this.opts.allowedTypes = [];
+            Object.keys(this.streamer.engines).forEach(n => {
+                if (this.streamer.engines[n].mediaType == this.opts.mediaType) {
+                    this.opts.allowedTypes.push(n);
+                }
+            });
+        }
+        if (!this.tuner) {
+            this.entries = await this.ceilPreferredStreams(this.entries, this.preferredStreamServers(), this.opts.preferredStreamURL);
+            this.entries = await this.ceilMyListsStreams(this.entries, this.preferredStreamServers(), this.opts.preferredStreamURL);
             this.tuner = new Tuner(this.entries, this.opts, this.opts.megaURL)
             this.tuner.on('success', (e, nfo, n) => {
-                if(typeof(this.succeededs[n]) == 'undefined'){
-                    this.succeededs[n] = 0
-                    if(!this.paused){
-                        this.pump()
+                if (typeof (this.succeededs[n]) == 'undefined') {
+                    this.succeededs[n] = 0;
+                    if (!this.paused) {
+                        this.pump();
                     }
                 }
-            })
-            if(this.listenerCount('progress')){
-                this.tuner.on('progress', () => this.progress())
+            });
+            if (this.listenerCount('progress')) {
+                this.tuner.on('progress', () => this.progress());
             }
             this.tuner.on('finish', () => {
-                if(!this.paused){
-                    this.pump()
+                if (!this.paused) {
+                    this.pump();
                 }
-            })
+            });
         }
     }
-    active(){
-        return !this.paused && !this.destroyed
+    active() {
+        return !this.paused && !this.destroyed;
     }
-    ext(file){
-        return String(file).split('?')[0].split('#')[0].split('.').pop().toLowerCase()
+    ext(file) {
+        return String(file).split('?')[0].split('#')[0].split('.').pop().toLowerCase();
     }
-    preferredStreamServers(){
-        const history = require('../history')
-        return history.get().map(e => e.preferredStreamURL || e.url).map(u => this.domain(u)).unique()
+    preferredStreamServers() {
+        return this.history.get().map(e => e.preferredStreamURL || e.url).map(u => this.getDomain(u)).unique();
     }
-	domain(u){
-		if(u && u.indexOf('//') != -1){
-			let d = u.split('//')[1].split('/')[0].split(':')[0]
-			if(d == 'localhost' || d.indexOf('.') != -1){
-				return d
-			}
-		}
-		return ''
-	}
-    async ceilPreferredStreams(entries, preferredStreamServers, preferredStreamURL){
-        let preferredStreamEntry
-        const fmt = global.config.get('live-stream-fmt'), validfmt = ['hls', 'mpegts'].includes(fmt)
-        const streams = [], deferredStreams = []
-        const preferredStreamServersLeveledEntries = {}
+    getDomain(u) {
+        if (u && u.indexOf('//') != -1) {
+            let d = u.split('//')[1].split('/')[0].split(':')[0];
+            if (d == 'localhost' || d.indexOf('.') != -1) {
+                return d;
+            }
+        }
+        return '';
+    }
+    async ceilPreferredStreams(entries, preferredStreamServers, preferredStreamURL) {
+        let preferredStreamEntry;
+        const fmt = config.get('live-stream-fmt'), validfmt = ['hls', 'mpegts'].includes(fmt);
+        const streams = [], deferredStreams = [];
+        const preferredStreamServersLeveledEntries = {};
         entries.forEach(entry => {
-            if(entry.url == preferredStreamURL){
-                preferredStreamEntry = entry
-                return
+            if (entry.url == preferredStreamURL) {
+                preferredStreamEntry = entry;
+                return;
             }
-            if(preferredStreamServers.length){
-                let i = preferredStreamServers.indexOf(this.domain(entry.url))
-                if(i != -1){
-                    if(typeof(preferredStreamServersLeveledEntries[i]) == 'undefined'){
-                        preferredStreamServersLeveledEntries[i] = []
+            if (preferredStreamServers.length) {
+                let i = preferredStreamServers.indexOf(this.getDomain(entry.url));
+                if (i != -1) {
+                    if (typeof (preferredStreamServersLeveledEntries[i]) == 'undefined') {
+                        preferredStreamServersLeveledEntries[i] = [];
                     }
-                    preferredStreamServersLeveledEntries[i].push(entry)
-                    return
+                    preferredStreamServersLeveledEntries[i].push(entry);
+                    return;
                 }
             }
-            if(validfmt){
-                const isHLS = this.ext(entry.url) == 'm3u8'
-                if(isHLS == (fmt == 'hls')){
-                    streams.push(entry)
-                } else {
-                    deferredStreams.push(entry)
+            if (validfmt) {
+                const isHLS = this.ext(entry.url) == 'm3u8';
+                if (isHLS == (fmt == 'hls')) {
+                    streams.push(entry);
                 }
-            } else {
-                streams.push(entry)
+                else {
+                    deferredStreams.push(entry);
+                }
             }
-        })
-        entries = []
-        if(preferredStreamEntry){
-            entries.push(preferredStreamEntry)
+            else {
+                streams.push(entry);
+            }
+        });
+        entries = [];
+        if (preferredStreamEntry) {
+            entries.push(preferredStreamEntry);
         }
         Object.keys(preferredStreamServersLeveledEntries).sort().forEach(k => {
-            entries.push(...preferredStreamServersLeveledEntries[k])
-        })
-        entries.push(...streams)
-        entries.push(...deferredStreams)
-
-        const watching = require('../watching')
-        return await watching.order(entries)
-    }
-    async ceilMyListsStreams(entries){
-        const deferredEntries = []
-        const lists = require('../lists')
-        const listsInfo = lists.info(true)
-        entries = entries.filter(entry => {
-            const isMine = listsInfo[entry.source] && listsInfo[entry.source].owned
-            if(isMine){
-                return true
-            } else {
-                deferredEntries.push(entry)
-            }
-        })
-        entries.push(...deferredEntries)
+            entries.push(...preferredStreamServersLeveledEntries[k]);
+        });
+        entries.push(...streams);
+        entries.push(...deferredStreams);
         return entries
     }
-    pause(){
-        if(this.opts.debug){
-            console.log('autotuner PAUSE', traceback())
+    async ceilMyListsStreams(entries) {
+        const deferredEntries = [];
+        const listsInfo = lists.info(true);
+        entries = entries.filter(entry => {
+            const isMine = listsInfo[entry.source] && listsInfo[entry.source].owned;
+            if (isMine) {
+                return true;
+            }
+            else {
+                deferredEntries.push(entry);
+            }
+        });
+        entries.push(...deferredEntries);
+        return entries;
+    }
+    pause() {
+        if (this.opts.debug) {
+            console.log('autotuner PAUSE');
         }
-        this.paused = true
-        if(!this.tuner.finished){
-            this.tuner.pause()
+        this.paused = true;
+        if (!this.tuner.finished) {
+            this.tuner.pause();
         }
-        if(this.timer){
-            clearInterval(this.timer)
+        if (this.timer) {
+            clearInterval(this.timer);
         }
     }
-    resume(){
-        if(!this.destroyed){
-            if(this.opts.debug){
-				console.log('autotuner RESUME', traceback())
+    resume() {
+        if (!this.destroyed) {
+            if (this.opts.debug) {
+                console.log('autotuner RESUME');
             }
-            this.paused = false
-            if(this.tuner.finished){
-                this.pump()
-            } else {
-                this.tuner.resume()
+            this.paused = false;
+            if (this.tuner.finished) {
+                this.pump();
             }
-            if(this.listenerCount('progress')){
-                clearInterval(this.timer)
-                this.timer = setInterval(() => this.progress(), 2000)
+            else {
+                this.tuner.resume();
             }
-            return true
+            if (this.listenerCount('progress')) {
+                clearInterval(this.timer);
+                this.timer = setInterval(() => this.progress(), 2000);
+            }
+            return true;
         }
     }
-    progress(){
-        const stats = this.tuner.getStats()
-        let pending = Object.values(this.succeededs).filter(i => i == 0 || i == 1)
-        stats.successes -= pending.length
-		this.intents.filter(n => !n.destroyed).map(n => n.timeoutStatus() / 100).forEach(s => stats.successes += s)
-        stats.processed = stats.successes + stats.failures
-		stats.progress = parseInt(stats.processed / (stats.total / 100))
-		if(stats.progress > 99){
-			stats.progress = 99
-		}
-        if(this.lastProgress != stats.progress){
-            this.lastProgress = stats.progress
-            this.emit('progress', stats)
+    progress() {
+        const stats = this.tuner.getStats();
+        let pending = Object.values(this.succeededs).filter(i => i == 0 || i == 1);
+        stats.successes -= pending.length;
+        this.intents.filter(n => !n.destroyed).map(n => n.timeoutStatus() / 100).forEach(s => stats.successes += s);
+        stats.processed = stats.successes + stats.failures;
+        stats.progress = parseInt(stats.processed / (stats.total / 100));
+        if (stats.progress > 99) {
+            stats.progress = 99;
+        }
+        if (this.lastProgress != stats.progress) {
+            this.lastProgress = stats.progress;
+            this.emit('progress', stats);
         }
     }
-    tune(){
-        if(this.opts.debug){
-            console.log('auto-tuner tune')
+    tune() {
+        if (this.opts.debug) {
+            console.log('auto-tuner tune');
         }
         return new Promise((resolve, reject) => {
-            if(this.destroyed){
-                return reject('destroyed')
+            if (this.destroyed) {
+                return reject('destroyed');
             }
             this.start().then(() => {
-                let resolved
-                this.progress()
+                let resolved;
+                this.progress();
                 const removeListeners = () => {
-                    this.removeListener('success', successListener)
-                    this.removeListener('finish', finishListener)
-                }
-                const successListener = async n => {
-                    removeListeners()
+                    this.removeListener('success', successListener);
+                    this.removeListener('finish', finishListener);
+                };
+                const successListener = async (n) => {
+                    removeListeners();
                     //console.log('auto-tuner tune commit', n)
-                    this.pause()
-                    if(resolved){
-                        console.error('Tuner success after finish, verify it')
-                    } else {
-                        resolved = true
-                        if(n.nid){
-                            n = this.prepareIntentToEmit(n)
-                            if(!this.headless){
-                                const streamer = require('../streamer/main')
-                                let ret = await streamer.commit(n)
-                                if(global.debugTuning){
-                                    global.displayErr('TUNER COMMITING '+ ret +' - '+ n.data.name)
-                                }
+                    this.pause();
+                    if (resolved) {
+                        console.error('Tuner success after finish, verify it');
+                    }
+                    else {
+                        resolved = true;
+                        if (n.nid) {
+                            n = this.prepareIntentToEmit(n);
+                            if (!this.headless) {
+                                
+                                let ret = await this.streamer.commit(n)
                                 this.commitResults[n.nid] = ret
-                                if(ret !== true) {
-                                    global.displayErr('TUNER COMMIT ERROR '+ ret +' - '+ n.data.name)
-                                    this.once('success', successListener)
-                                    this.succeededs[n.nid] = 3
-                                    return // don't resolve on commit error
+                                if (ret !== true) {
+                                    menu.displayErr('TUNER COMMIT ERROR ' + ret + ' - ' + n.data.name);
+                                    this.once('success', successListener);
+                                    this.succeededs[n.nid] = 3;
+                                    return; // don't resolve on commit error
                                 }
                             }
-                            resolve(n)
-                        } else {
-                            reject('cancelled by user') // maybe it's not a intent from the AutoTuner instance, but one else started by the user, resolve anyway
+                            resolve(n);
+                        }
+                        else {
+                            reject('cancelled by user'); // maybe it's not a intent from the AutoTuner instance, but one else started by the user, resolve anyway
                         }
                     }
-                }
+                };
                 const finishListener = () => {
-                    removeListeners()
-                    if(this.opts.debug){
-                        console.log('auto-tuner tune finish')
+                    removeListeners();
+                    if (this.opts.debug) {
+                        console.log('auto-tuner tune finish');
                     }
-                    this.pause()
-                    if(!resolved){
-                        resolved = true
-                        reject('finished')
+                    this.pause();
+                    if (!resolved) {
+                        resolved = true;
+                        reject('finished');
                     }
-                }
-                this.once('success', n => successListener(n).catch(reject))
-                this.once('finish', finishListener)
-                this.resume()
-                this.pump()
-            }).catch(reject)
-        })
+                };
+                this.once('success', n => successListener(n).catch(reject));
+                this.once('finish', finishListener);
+                this.resume();
+                this.pump();
+            }).catch(reject);
+        });
     }
-    prepareIntentToEmit(e){
-        if(this.opts.mediaType == 'live' && this.opts.megaURL && this.opts.name){
+    prepareIntentToEmit(e) {
+        if (this.opts.mediaType == 'live' && this.opts.megaURL && this.opts.name) {
             e.data = Object.assign({
                 originalUrl: this.opts.megaURL,
                 originalName: this.opts.name
-            }, e.data)
-            if(this.opts.terms){
-                e.data.terms = this.opts.terms
+            }, e.data);
+            if (this.opts.terms) {
+                e.data.terms = this.opts.terms;
             }
-            if(e.data.originalIcon){
-                delete e.data.originalIcon
+            if (e.data.originalIcon) {
+                delete e.data.originalIcon;
             }
-            if(e.data.icon){
-                delete e.data.icon
-            }            
+            if (e.data.icon) {
+                delete e.data.icon;
+            }
         }
-        return e
+        return e;
     }
-    getQueue(){
-        const busyDomains = [] // don't lock here considering Tuner busy domains
-        let slotCount = global.config.get('tune-concurrency')
-        let ffmpegBasedSlotCount = global.config.get('tune-ffmpeg-concurrency')
+    getQueue() {
+        const busyDomains = []; // don't lock here considering Tuner busy domains
+        let slotCount = config.get('tune-concurrency');
+        let ffmpegBasedSlotCount = config.get('tune-ffmpeg-concurrency');
         let ks = Object.keys(this.succeededs).filter(i => {
-            return this.tuner.info[i]
-        }), index = ks.filter(i => this.succeededs[i] == 0), processingIndex = ks.filter(i => this.succeededs[i] == 1)
+            return this.tuner.info[i];
+        }), index = ks.filter(i => this.succeededs[i] == 0), processingIndex = ks.filter(i => this.succeededs[i] == 1);
         processingIndex.forEach(i => {
-            slotCount--
-            if(this.ffmpegBasedTypes.includes(this.tuner.info[i].type)){
-                ffmpegBasedSlotCount--
+            slotCount--;
+            if (this.ffmpegBasedTypes.includes(this.tuner.info[i].type)) {
+                ffmpegBasedSlotCount--;
             }
-            busyDomains.push(this.tuner.domainAt(i))
-        })
+            busyDomains.push(this.tuner.domainAt(i));
+        });
         index = index.filter(nid => {
-            if(slotCount <= 0){
-                return
+            if (slotCount <= 0) {
+                return;
             }
-            const domain = this.tuner.domainAt(nid)
-            if(busyDomains.includes(domain)){
-                return
+            const domain = this.tuner.domainAt(nid);
+            if (busyDomains.includes(domain)) {
+                return;
             }
-            return true
-        })
-        if(this.tuner.finished){
-            if(!index.length && !processingIndex.length){
-                this.finish()
-                index.length = 0
-            }
-        } else {
-            if(slotCount > 0){
-                this.tuner.paused && this.tuner.resume()
-            } else {
-                !this.tuner.paused && this.tuner.pause()
+            return true;
+        });
+        if (this.tuner.finished) {
+            if (!index.length && !processingIndex.length) {
+                this.finish();
+                index.length = 0;
             }
         }
-        return {index, busyDomains, slotCount, ffmpegBasedSlotCount}
+        else {
+            if (slotCount > 0) {
+                this.tuner.paused && this.tuner.resume();
+            }
+            else {
+                !this.tuner.paused && this.tuner.pause();
+            }
+        }
+        return { index, busyDomains, slotCount, ffmpegBasedSlotCount };
     }
-    pump(){
-        if(this.paused || this.destroyed) {
-            return
+    pump() {
+        if (this.paused || this.destroyed) {
+            return;
         }
-        let {index, busyDomains, slotCount, ffmpegBasedSlotCount} = this.getQueue()
+        let { index, busyDomains, slotCount, ffmpegBasedSlotCount } = this.getQueue();
         index.forEach(nid => {
-            if(slotCount <= 0){
-                return
+            if (slotCount <= 0) {
+                return;
             }
-            const domain = this.tuner.domainAt(nid)
-            if(busyDomains.includes(domain)){
-                return
+            const domain = this.tuner.domainAt(nid);
+            if (busyDomains.includes(domain)) {
+                return;
             }
-            const nidType = this.tuner.info[nid].type
-            const nidFFmpeg = this.ffmpegBasedTypes.includes(nidType)
-            if(nidFFmpeg){
-                if(ffmpegBasedSlotCount <= 0){
-                    return
+            const nidType = this.tuner.info[nid].type;
+            const nidFFmpeg = this.ffmpegBasedTypes.includes(nidType);
+            if (nidFFmpeg) {
+                if (ffmpegBasedSlotCount <= 0) {
+                    return;
                 }
             }
-            const streamer = require('../streamer/main')
-            let intent = new streamer.engines[this.tuner.info[nid].type](this.tuner.entries[nid], {}, this.tuner.info[nid])
-            if(this.opts.mediaType && this.opts.mediaType != 'all' && intent.mediaType != this.opts.mediaType){
-                console.warn('bad mediaType, skipping', intent.data.url, intent.mediaType, this.opts.mediaType)
-                this.succeededs[n] = -1
-                intent.destroy()
-                return
+            
+            let intent = new this.streamer.engines[this.tuner.info[nid].type](this.tuner.entries[nid], {}, this.tuner.info[nid]);
+            if (this.opts.mediaType && this.opts.mediaType != 'all' && intent.mediaType != this.opts.mediaType) {
+                console.warn('bad mediaType, skipping', intent.data.url, intent.mediaType, this.opts.mediaType);
+                this.succeededs[n] = -1;
+                intent.destroy();
+                return;
             }
-            this.intents.push(intent)
-            intent.nid = nid            
-            slotCount--
-            if(nidFFmpeg){
-                ffmpegBasedSlotCount--
+            this.intents.push(intent);
+            intent.nid = nid;
+            slotCount--;
+            if (nidFFmpeg) {
+                ffmpegBasedSlotCount--;
             }
-            busyDomains.push(domain)
-            this.succeededs[nid] = 1
+            busyDomains.push(domain);
+            this.succeededs[nid] = 1;
             intent.once('destroy', () => {
-                setTimeout(() => { // allow catch to process before
-                    if(intent){
-                        this.succeededs[nid] = 3
-                        this.intents = this.intents.filter(n => n.nid != nid)
-                        intent = null
-                        this.pump()
+                setTimeout(() => {
+                    if (intent) {
+                        this.succeededs[nid] = 3;
+                        this.intents = this.intents.filter(n => n.nid != nid);
+                        intent = null;
+                        this.pump();
                     }
-                }, 400)
-            })
+                }, 400);
+            });
             intent.start().then(() => {
-                if(this.paused){
-                    this.succeededs[nid] = 0
-                    intent.destroy()
-                    return
+                if (this.paused) {
+                    this.succeededs[nid] = 0;
+                    intent.destroy();
+                    return;
                 }
-                this.pause()
-                this.results[nid] = [true, intent.type]
-                this.succeededs[nid] = 2
-                this.emit('success', intent)
-                console.error('DESTROYING OTHER INTENTS', nid)
+                this.pause();
+                this.results[nid] = [true, intent.type];
+                this.succeededs[nid] = 2;
+                this.emit('success', intent);
+                console.error('DESTROYING OTHER INTENTS', nid);
                 this.intents.filter(nt => nt && nt.nid != nid).forEach(nt => {
-                    if(nt.committed) {
-                        global.displayErr('DESTROYING COMMITTED INTENT?')
-                    } else if(nt.destroyed) {
-                        global.displayErr('DESTROYING ALREADY DESTROYED INTENT?')
-                    } else {
-                        console.error('DESTROYING INTENT OTHER', nt.nid)
+                    if (nt.committed) {
+                        menu.displayErr('DESTROYING COMMITTED INTENT?');
                     }
-                    this.succeededs[nt.nid] = 0
-                    nt.destroy()
-                })
-                this.intents = []
-                intent = null
+                    else if (nt.destroyed) {
+                        menu.displayErr('DESTROYING ALREADY DESTROYED INTENT?');
+                    }
+                    else {
+                        console.error('DESTROYING INTENT OTHER', nt.nid);
+                    }
+                    this.succeededs[nt.nid] = 0;
+                    nt.destroy();
+                });
+                this.intents = [];
+                intent = null;
             }).catch(err => {
-                if(intent){
-                    if(this.succeededs[nid] != 0){ // not destroyed by other intent commit
-                        console.error('INTENT FAILED', err, traceback())
-                        this.results[nid] = [false, String(err)]
-                        this.succeededs[nid] = 3
+                if (intent) {
+                    if (this.succeededs[nid] != 0) { // not destroyed by other intent commit
+                        console.error('INTENT FAILED', err);
+                        this.results[nid] = [false, String(err)];
+                        this.succeededs[nid] = 3;
                     }
-                    this.intents = this.intents.filter(n => n.nid != nid)
-                    if(!intent.destroyed){
-                        intent.destroy()
+                    this.intents = this.intents.filter(n => n.nid != nid);
+                    if (!intent.destroyed) {
+                        intent.destroy();
                     }
-                    intent = null
-                    this.pump()
+                    intent = null;
+                    this.pump();
                 }
-            })
-        })
+            });
+        });
     }
-    log(){
-        let ret = {}
-        if(this.tuner){
+    log() {
+        let ret = {};
+        if (this.tuner) {
             this.tuner.entries.forEach((e, i) => {
-                let v
-                if(typeof(this.tuner.errors[i]) == 'undefined') {
-                    v = 'untested'
-                } else {
-                    if(this.tuner.errors[i] === 0) {
-                        v = 'timeout'
-                    } else if(this.tuner.errors[i] === -1) {
-                        v = 'unreachable'
-                    } else {
-                        v = this.tuner.errors[i]
+                let v;
+                if (typeof (this.tuner.errors[i]) == 'undefined') {
+                    v = 'untested';
+                }
+                else {
+                    if (this.tuner.errors[i] === 0) {
+                        v = 'timeout';
+                    }
+                    else if (this.tuner.errors[i] === -1) {
+                        v = 'unreachable';
+                    }
+                    else {
+                        v = this.tuner.errors[i];
                     }
                 }
-                const url = e.url
-                let state = v == 'success', info = state ? this.succeededs[i] : v
-                if(this.results[i]){
-                    state = this.results[i][0]
-                    info = [this.succeededs[i], this.results[i][1]].join(' - ')
+                const url = e.url;
+                let state = v == 'success', info = state ? this.succeededs[i] : v;
+                if (this.results[i]) {
+                    state = this.results[i][0];
+                    info = [this.succeededs[i], this.results[i][1]].join(' - ');
                 }
-                if(typeof(this.commitResults[i]) != 'undefined'){
-                    info = String(this.commitResults[i])
+                if (typeof (this.commitResults[i]) != 'undefined') {
+                    info = String(this.commitResults[i]);
                 }
                 ret[i] = {
                     name: e.name,
@@ -411,50 +420,50 @@ class AutoTuner extends EventEmitter {
                     type: this.tuner.info[i] ? this.tuner.info[i].type : null,
                     state,
                     info
-                }
-            })
+                };
+            });
         }
-        return ret
+        return ret;
     }
-    logText(showStreams){
-        let ret = [], info = Object.values(this.log())
-        ret.push(this.tuner.entries.length +' streams')
+    logText(showStreams) {
+        let ret = [], info = Object.values(this.log());
+        ret.push(this.tuner.entries.length + ' streams');
         ret.push(...info.map(e => {
-            let row = (showStreams === true ? e.url : e.name) +' => '
-            if(e.info == 'untested'){
-                row += 'untested'
-            } else {
-                row += (e.state ? 'success' : 'failed') + (e.info === null ? '' : ', '+ e.info)
+            let row = (showStreams === true ? e.url : e.name) + ' => ';
+            if (e.info == 'untested') {
+                row += 'untested';
             }
-            return row
-        }))
-        return ret.join("\r\n")
+            else {
+                row += (e.state ? 'success' : 'failed') + (e.info === null ? '' : ', ' + e.info);
+            }
+            return row;
+        }));
+        return ret.join("\r\n");
     }
-    has(url){
-        return this.tuner.entries.some(e => e.url == url)
+    has(url) {
+        return this.tuner.entries.some(e => e.url == url);
     }
-    finish(){
-        console.warn('AUTOTUNER FINISH', traceback())
-        this.finished = true
-        this.emit('finish')
-        this.timer && clearInterval(this.timer)
-        this.intents.forEach(n => n.destroy())                
-        this.intents = []
-        this.destroy()
+    finish() {
+        console.warn('AUTOTUNER FINISH');
+        this.finished = true;
+        this.emit('finish');
+        this.timer && clearInterval(this.timer);
+        this.intents.forEach(n => n.destroy());
+        this.intents = [];
+        this.destroy();
     }
-    destroy(){
-        if(this.opts.debug){
-            console.log('auto-tuner destroy')
+    destroy() {
+        if (this.opts.debug) {
+            console.log('auto-tuner destroy');
         }
-        this.paused = true
-        this.destroyed = true
-        this.emit('destroy')
-        this.intents.forEach(n => n.destroy())                
-        this.intents = []
-        this.tuner && this.tuner.destroy()
-        this.removeAllListeners()
-        this.timer && clearInterval(this.timer)
+        this.paused = true;
+        this.destroyed = true;
+        this.emit('destroy');
+        this.intents.forEach(n => n.destroy());
+        this.intents = [];
+        this.tuner && this.tuner.destroy();
+        this.removeAllListeners();
+        this.timer && clearInterval(this.timer);
     }
 }
-
-module.exports = AutoTuner
+export default AutoTuner;

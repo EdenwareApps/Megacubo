@@ -1,2 +1,2 @@
-const Streamer = require('./streamer')
-module.exports = new Streamer()
+import Streamer from "./streamer.js"
+export default new Streamer()

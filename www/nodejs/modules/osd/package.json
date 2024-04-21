@@ -1,5 +1,6 @@
 {
     "name": "osd",
-    "main": "osd.js"
+    "type": "module",
+"exports": "./osd.js"
   }
   

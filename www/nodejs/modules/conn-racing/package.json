@@ -1,5 +1,6 @@
 {
     "name": "conn-racing",
-    "main": "conn-racing.js"
+    "type": "module",
+"exports": "./conn-racing.js"
   }
   

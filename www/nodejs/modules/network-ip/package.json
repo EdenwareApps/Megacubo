@@ -1,4 +1,5 @@
 {
   "name": "network-ip",
-  "main": "network-ip.js"
+  "type": "module",
+"exports": "./network-ip.js"
 }

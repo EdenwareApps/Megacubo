@@ -12,22 +12,23 @@
       main.osd && main.osd.show(txt, 'fas fa-exclamation-triangle faclr-red', 'error', 'normal')
     })
     main.on('menu-ready', () => {
-        main.osd = new OSD(document.getElementById('osd-root'))
-        main.osd.on('updated', () => {
-          messages = main.osd.messages
-        })
-        const internetConnStateOsdID = 'network-state', updateInternetConnState = () => {
-          if (navigator.onLine) {
-            main.emit('network-state-up')
-            main.osd.hide(internetConnStateOsdID)
-          } else {
-            main.emit('network-state-down')
-            main.osd.show(main.lang.NO_INTERNET_CONNECTION, 'fas fa-exclamation-triangle faclr-red', internetConnStateOsdID, 'persistent')
-          }
+      console.warn('OSD STEP3')
+      main.osd = new OSD(document.getElementById('osd-root'))
+      main.osd.on('updated', () => {
+        messages = main.osd.messages
+      })
+      const internetConnStateOsdID = 'network-state', updateInternetConnState = () => {
+        if (navigator.onLine) {
+          main.emit('network-state-up')
+          main.osd.hide(internetConnStateOsdID)
+        } else {
+          main.emit('network-state-down')
+          main.osd.show(main.lang.NO_INTERNET_CONNECTION, 'fas fa-exclamation-triangle faclr-red', internetConnStateOsdID, 'persistent')
         }
-        window.addEventListener('online', updateInternetConnState)
-        window.addEventListener('offline', updateInternetConnState)
-        navigator.onLine || updateInternetConnState()
+      }
+      window.addEventListener('online', updateInternetConnState)
+      window.addEventListener('offline', updateInternetConnState)
+      navigator.onLine || updateInternetConnState()
     })
   })
 </script>
@@ -42,7 +43,7 @@
 <style global>
 #osd-root {
   position: absolute;
-  padding: 1vmin 0.5vmin;
+  padding: 2vmin 0.5vmin 1vmin 0.5vmin;
   z-index: 10;
   box-sizing: border-box;
   pointer-events: none;

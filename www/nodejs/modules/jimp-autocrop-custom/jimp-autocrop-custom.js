@@ -99,7 +99,7 @@ function findLimits(scope, w, h, c){
 	let b = findBottom(scope, w, h, c)
 	return {t, l, r, b}
 }
-module.exports = function autocrop() {
+export default function autocrop() {
 	//const start = (new Date()).getTime(), benchmarks = {}
 	const w = this.bitmap.width
 	const h = this.bitmap.height
