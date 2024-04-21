@@ -7,16 +7,16 @@ Easier and recommended way.
 git clone https://github.com/EdenwareApps/Megacubo.git
 cd Megacubo
 npm i
-npm run build
 npm run debug
 ```
 
-### With Cordova (Android):
+### With Capacitor (Android):
 ```
 git clone https://github.com/EdenwareApps/Megacubo.git
 cd Megacubo
 npm i
-cordova prepare
+npx cap sync
+npx cap open android
 ```
 
 ### With NPM (install globally):
