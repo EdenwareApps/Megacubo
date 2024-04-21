@@ -204,18 +204,5 @@ export default [
     external: [
       /(@?electron\/?)/
     ]
-  },
-  {
-    input: 'www/nodejs/modules/premium/helpers/bright-data/bright-data-worker.js',
-    output: {
-      format: 'cjs',
-      file: 'www/nodejs/dist/bright-data-worker.js',
-      inlineDynamicImports: true
-    },
-    plugins,
-    external: [
-      /(@?electron\/?)/,
-      /node\-bright\-sdk.node_modules/
-    ]
   }
 ]
