@@ -990,12 +990,12 @@ class Download extends EventEmitter {
                     case 'json':
                         try {
                             data = JSON.parse(String(data)); // use JSON.parse instead of parseJSON to catch any error
-                        }
-                        catch (e) {
-                            Download.cache.remove(this.opts.url);
-                            Download.cache.remove(this.currentURL);
-                            this.listenerCount('error') && this.emit('error', e);
-                            this.endWithError(e, 415);
+                        } catch (e) {
+                            Download.cache.remove(this.opts.url)
+                            Download.cache.remove(this.currentURL)
+                            e = 'JSON error on '+ this.opts.url +' '+ e
+                            this.listenerCount('error') && this.emit('error', e)
+                            this.endWithError(e, 415)
                         }
                         break;
                 }

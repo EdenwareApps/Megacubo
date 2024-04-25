@@ -126,7 +126,6 @@ const setupConstructor = () => {
                     file = distFile +'c'
                 }
                 file = path.relative(dirname, file)
-                console.error({distFile, file})
                 return this.proxy(file)
             } else {
                 throw 'Worker already terminated: ' + file;
@@ -183,7 +182,6 @@ const setupConstructor = () => {
             if(fs.existsSync(distFile)) {
                 file = distFile
             }
-            console.error({distFile, file})
             this.worker = new Worker(file, {
                 type: (file == distFile ? 'commonjs' : 'module'),
                 workerData // leave stdout/stderr undefined

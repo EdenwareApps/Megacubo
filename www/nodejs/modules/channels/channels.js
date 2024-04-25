@@ -39,40 +39,40 @@ class ChannelsList extends EventEmitter {
         });
     }
     async load(refresh) {
-        let fine, data = await storage.get(this.key).catch(console.error);
+        let fine, changed, data = await storage.get(this.key).catch(console.error)
         if (data) {
             this.categories = data;
             fine = true;
         }
         if (!fine || refresh) {
-            let err;
-            data = await this.getDefaultCategories().catch(e => err = e);
+            let err
+            data = await this.getDefaultCategories().catch(e => err = e)
             if (err) {
-                console.error('channel.getDefaultCategories error: ' + err);
-            }
-            else {
+                console.error('channel.getDefaultCategories error: ' + err)
+            } else {
                 if (!Object.keys(data).length) {
-                    console.log('channel.load', data);
+                    console.log('channel.load', data)
                 }
-                this.channelsIndex = null;
-                this.categories = data;
-                await this.save(this.key);
-                fine = true;
+                this.channelsIndex = null
+                this.categories = data
+                await this.save(this.key)
+                fine = true
+                changed = true
             }
         }
-        this.updateChannelsIndex(false);
+        this.updateChannelsIndex(false)
         if (!this.categories || typeof (this.categories) != 'object') {
-            this.categories = {};
+            this.categories = {}
         }
-        this.loaded = true;
-        this.emit('loaded');
-        renderer.ready(() => menu.updateHomeFilters());
+        this.loaded = true
+        this.emit('loaded', changed)
+        renderer.ready(() => menu.updateHomeFilters())
     }
     async reset() {
         delete this.categories;
         await storage.delete(this.key).catch(console.error);
         config.set('channel-grid', '');
-        await this.load(true);
+        await this.load(true)
     }
     async getAdultCategories() {
         return await cloud.get('channels/adult');
@@ -280,10 +280,10 @@ class ChannelsData extends EventEmitter {
             if (['parental-control', 'parental-control-terms', 'lists'].some(k => keys.includes(k))) {
                 await this.load(true);
             }
-        });
+        })
         this.radioTerms = ['radio', 'fm', 'am'];
-        this.load().catch(console.error)        
-        lists.manager.waitListsReady().then(() => this.load()).catch(console.error)
+        this.load().catch(console.error)
+        lists.on('list-loaded', () => this.load().catch(console.error))
         renderer.ready(async () => {
             const {default: streamer} = await import('../streamer/main.js')
             this.streamer = streamer
@@ -292,30 +292,31 @@ class ChannelsData extends EventEmitter {
     }
     ready(cb) {
         if (this.loaded) {
-            cb();
-        }
-        else {
+            cb()
+        } else {
             this.once('loaded', cb);
         }
     }
     async load(refresh) {
-        const hasOwnLists = config.get('lists').length;
-        const publicMode = config.get('public-lists') && !lists.loaded(true); // no list available on index beyound public lists
-        const countries = await lang.getActiveCountries(0);
-        const parentalControlActive = ['remove', 'block'].includes(config.get('parental-control'));
-        let type = config.get('channel-grid');
+        const hasOwnLists = config.get('lists').length
+        const publicMode = config.get('public-lists') && !lists.loaded(true) // no list available on index beyound public lists
+        const countries = await lang.getActiveCountries(0)
+        const parentalControlActive = ['remove', 'block'].includes(config.get('parental-control'))
+        let type = config.get('channel-grid'), typeChanged
         if (!type || (type == 'lists' && !hasOwnLists) || (type == 'xxx' && parentalControlActive)) {
-            type = hasOwnLists ? 'lists' : (publicMode ? 'public' : 'app');
+            type = hasOwnLists ? 'lists' : (publicMode ? 'public' : 'app')
         }
         if (!this.channelList ||
             this.channelList.type != type ||
             JSON.stringify(this.channelList.countries) != JSON.stringify(countries)) {
-            this.channelList && this.channelList.destroy();
-            this.channelList = new ChannelsList(type, countries);
+            typeChanged = true
+            this.channelList && this.channelList.destroy()
+            this.channelList = new ChannelsList(type, countries)
         }
-        await this.channelList.load(refresh);
-        this.loaded = true;
-        this.emit('loaded');
+        const changed = await this.channelList.load(refresh)
+        this.loaded = true
+        this.emit('loaded', changed)
+        typeChanged && await this.watching.update()
     }
 }
 class ChannelsEPG extends ChannelsData {

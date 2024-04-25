@@ -95,10 +95,10 @@ class StorageTools extends EventEmitter {
         return await new Promise((resolve, reject) => {
             zlib.gunzip(data, (err, result) => {
                 if (err)
-                    return reject(err);
-                resolve(result);
-            });
-        });
+                    return reject(err)
+                resolve(result)
+            })
+        })
     }
     async upgrade(ofile) {
         let reason = 'unknown';
@@ -335,7 +335,7 @@ class StorageIO extends StorageIndex {
             let content = await fs.promises.readFile(file, { encoding }).catch(e => err = e);
             if (!err) {
                 if (row.compress) {
-                    content = await this.decompress(content);
+                    content = await this.decompress(content)
                 }
                 if (row.raw) {
                     return content;

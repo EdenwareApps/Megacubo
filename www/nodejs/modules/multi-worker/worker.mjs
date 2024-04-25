@@ -45,7 +45,6 @@ parentPort.on('message', msg => {
         storage.touch(msg.key, msg.entry, true)
     } else if(msg.method == 'loadWorker') {
         const distFile = paths.cwd +'/dist/'+ path.basename(msg.file).replace(new RegExp('\\.m?js$'), '.js')
-        console.error({distFile, file: msg.file})
         if(fs.existsSync(distFile)) {
             const require = createRequire(getFilename())
             const Driver = require(distFile)

@@ -566,4 +566,4 @@ class FFMPEG extends FFMPEGDiagnostic {
         });
     }
 }
-export default new FFMPEG();
+export default new FFMPEG()

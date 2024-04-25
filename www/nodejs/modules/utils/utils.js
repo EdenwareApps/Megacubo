@@ -248,15 +248,13 @@ export const moveFile = (from, to, _cb, timeout = 5, until = null, startedAt = n
             fs.stat(to, (ferr, stat) => {
                 if (stat && stat.size == fromSize) {
                     cb();
-                }
-                else {
+                } else {
                     fs.stat(from, (err, stat) => {
                         if (stat && stat.size == fromSize) {
                             setTimeout(() => {
                                 moveFile(from, to, cb, timeout, until, startedAt, fromSize);
                             }, 500);
-                        }
-                        else {
+                        } else {
                             console.error('MOVERETRY FROM FILE WHICH DOESNT EXISTS ANYMORE', err, stat);
                             console.error(ferr, err);
                             cb(err || '"from" file changed');
@@ -491,27 +489,29 @@ export const ucWords = (str, force) => {
     });
 }
 export const rmdir = (folder, itself, cb) => {
-    let dir = folder;
+    let dir = forwardSlashes(folder)
     if (dir.charAt(dir.length - 1) == '/') {
-        dir = dir.substr(0, dir.length - 1);
-    }
-    if (!itself) {
-        dir += '/*';
+        dir = dir.substr(0, dir.length - 1)
     }
     if (cb === true) { // sync
         try {
-            rimraf.sync(dir);
-        }
-        catch (e) { }
-    }
-    else {
-        try {
-            rimraf(dir, cb || (() => { }));
-        }
-        catch (e) {
-            if (typeof (cb) == 'function') {
-                cb();
+            rimraf.sync(dir)
+        } catch (e) { }
+        itself || fs.mkdirSync(dir)
+    } else {
+        const callback = () => {
+            if (!itself) {
+                fs.mkdir(dir, () => {
+                    typeof(cb) == 'function' && cb()
+                })
+            } else {
+                typeof(cb) == 'function' && cb()
             }
+        }
+        try {
+            rimraf(dir, cb)
+        } catch (e) {
+            cb()
         }
     }
 }

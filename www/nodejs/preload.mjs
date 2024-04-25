@@ -329,7 +329,7 @@ class WindowProxy extends EventEmitter {
         super();
         this.localEmit = super.emit.bind(this);
         this.on = super.on.bind(this);
-        this.ipc = getGlobal('renderer');
+        this.ipc = getGlobal('ui');
         this.port = this.ipc.opts.port;
         this.removeAllListeners = super.removeAllListeners.bind(this);
         this.emit = (...args) => {

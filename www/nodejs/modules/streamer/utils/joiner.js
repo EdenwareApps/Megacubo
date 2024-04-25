@@ -21,7 +21,7 @@ class Joiner extends Downloader {
             }
         });
         this.usingWorker = config.get('mpegts-use-worker');
-        if (0 && this.usingWorker) {
+        if (this.usingWorker) {
             const workerPath = path.join(paths.cwd + '/modules/streamer/utils/mpegts-processor-worker.js');
             this.worker = new MultiWorker();
             this.processor = this.worker.load(workerPath);
@@ -39,7 +39,7 @@ class Joiner extends Downloader {
             this.processor = new MPEGTSProcessor();
             this.once('destroy', () => this.processor && this.processor.terminate().catch(console.error));
         }
-        this.processor.on('data', data => this.output(data));
+        this.processor.on('data', data => (data && this.output(data)));
         this.processor.on('fail', () => this.emit('fail'));
         // this.opts.debug = this.processor.debug  = true
         this.once('destroy', () => {
@@ -77,8 +77,11 @@ class Joiner extends Downloader {
         if (this.destroyed || this.joinerDestroyed) {
             return;
         }
+        if(typeof(data) == 'object') {
+            data = Buffer.from(data)
+        }
         if (typeof (len) != 'number') {
-            len = this.len(data);
+            len = this.len(data)
         }
         if (len) {
             if (this.bitrate) {

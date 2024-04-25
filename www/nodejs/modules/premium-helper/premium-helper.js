@@ -4,6 +4,8 @@ import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
 import lang from "../lang/lang.js";
 import menu from '../menu/menu.js'
+import { getFilename } from 'cross-dirname'
+import { createRequire } from 'module'
 
 class PremiumHelper {
     constructor() {
@@ -34,4 +36,20 @@ class PremiumHelper {
         return entries;
     }
 }
+
+try {
+    let Premium
+    const file = paths.cwd +'/dist/premium'
+    if(fs.existsSync(file +'.js')) {
+        const require = createRequire(getFilename())
+        Premium = require(file +'.js')        
+    } else if(fs.existsSync(file +'.jsc')) {
+        const require = createRequire(getFilename())
+        Premium = require(file +'.jsc')
+    }
+    if(Premium) PremiumHelper = Premium
+} catch(e) {
+    console.error('Premium not loaded: '+ e, e)
+}
+
 export default PremiumHelper;

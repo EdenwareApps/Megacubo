@@ -78,25 +78,24 @@ class NetworkIP {
             }
             return this.networkDummyInterfaces(addr);
         }
-        return { networkInterfaces }.networkInterfaces();
+        return networkInterfaces() // from 'os'
     }
     networkIP() {
-        const interfaces = this.networkInterfaces();
-        let addr = '127.0.0.1';
-        const skipIfs = /^(vmware|virtualbox)$/i;
+        const interfaces = this.networkInterfaces()
+        let addr = '127.0.0.1'
+        const skipIfs = /^(vmware|virtualbox)$/i
         for (const devName in interfaces) {
-            if (devName.match(skipIfs))
-                continue;
-            const iface = interfaces[devName];
+            if (devName.match(skipIfs)) continue
+            const iface = interfaces[devName]
             for (let i = 0; i < iface.length; i++) {
                 const alias = iface[i];
                 if (alias.family === 'IPv4' && !alias.internal && this.isNetworkIP(alias.address)) {
-                    addr = alias.address;
-                    break;
+                    addr = alias.address
+                    break
                 }
             }
         }
-        return addr;
+        return addr
     }
 }
 export default new NetworkIP()

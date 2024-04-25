@@ -110,15 +110,19 @@ class Downloader extends StreamerAdapterBase {
                     let finished;
                     const uid = parseInt(Math.random() * 1000000);
                     if (this.warmCache && this.warmCache.length) {
-                        response.write(this.warmCache.slice());
-                        console.warn('SENT WARMCACHE', this.warmCache.length);
+                        let buf = this.warmCache.slice()
+                        if(typeof(buf) == 'object') {
+                            buf = Buffer.from(buf)
+                        }
+                        buf && buf.length && response.write(buf)
+                        console.warn('SENT WARMCACHE', this.warmCache.length)
                     }
                     if (this.connected === false) {
                         this.connected = {};
                     }
                     this.connected[uid] = true;
                     const listener = (url, chunk) => {
-                        finished || response.write(chunk);
+                        finished || (chunk && response.write(chunk))
                     }, finish = () => {
                         if (!finished) {
                             finished = true;
@@ -229,6 +233,9 @@ class Downloader extends StreamerAdapterBase {
     output(data, len) {
         if (this.destroyed || this._destroyed)
             return;
+        if(typeof(data) == 'object') {
+            data = Buffer.from(data)
+        }
         if (typeof (len) != 'number')
             len = this.len(data);
         if (!len)

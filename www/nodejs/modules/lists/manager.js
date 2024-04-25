@@ -1285,7 +1285,7 @@ class Manager extends ManagerEPG {
             progress: p => {
                 opts.silent || osd.show(lang.OPENING_LIST + ' ' + parseInt(p) + '%', 'fa-mega spin-x-alt', 'list-open', 'persistent');
             }
-        }).catch(e => menu.displayErr(e));
+        }).catch(e => console.error(e));
         if (!Array.isArray(list)) {
             list = [];
         }

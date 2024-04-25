@@ -38,8 +38,8 @@ class Watching extends EntriesGroup {
                         });
                     });
                 }
-                this.channels.on('loaded', () => {
-                    this.updating || this.update().catch(console.error);
+                this.channels.on('loaded', changed => {
+                    changed && !this.updating && this.update().catch(console.error);
                 }); // on each "loaded"
             });
         }).catch(err => {

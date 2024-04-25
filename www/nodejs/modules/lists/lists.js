@@ -392,8 +392,7 @@ class Lists extends ListsEPGTools {
         }
         if (isUpdatingFinished || !satisfyAmount) {
             progress = 100;
-        }
-        else {
+        } else {
             const communityListsQuota = communityListsAmount - this.myLists.length;
             if (communityListsQuota) {
                 let ls;
@@ -447,8 +446,8 @@ class Lists extends ListsEPGTools {
                 return false;
             }
         }
-        const stat = this.status(), ret = stat.progress > 99;
-        return ret;
+        const stat = this.status(), ret = stat.progress > 99
+        return ret
     }
     addList(url, priority = 9) {
         let cancel, started, done;
@@ -469,7 +468,7 @@ class Lists extends ListsEPGTools {
                         return;
                     if (typeof (contentLength) == 'number') {
                         console.log('List got updated, reload it. ' + this.lists[url].contentLength + ' => ' + contentLength);
-                        await this.loadList(url, contentLength).catch(e => err = e);
+                        await this.loadList(url, contentLength).catch(e => err = e)
                     }
                     else {
                         err = 'no need to update';
@@ -569,8 +568,7 @@ class Lists extends ListsEPGTools {
                     }
                 }
                 throw 'list discarded';
-            }
-            else {
+            } else {
                 if (this.debug) {
                     console.log('loadList else', url);
                 }
@@ -594,8 +592,7 @@ class Lists extends ListsEPGTools {
                         console.log('loadList end: already loaded');
                     }
                     throw 'content already loaded';
-                }
-                else {
+                } else {
                     let replace;
                     this.requesting[url] = 'added';
                     if (!isMine && this.loadedListsCount('community') > (this.myLists.length + config.get('communitary-mode-lists-amount'))) {
@@ -616,11 +613,11 @@ class Lists extends ListsEPGTools {
                     if (!replace) {
                         this.delimitActiveLists();
                     }
-                    this.searchMapCacheInvalidate();
+                    this.searchMapCacheInvalidate()
+                    this.emit('list-loaded', url)
                 }
             }
         }
-        this.delimitActiveLists();
         this.updateActiveLists();
         this.status(url);
         return true;
@@ -783,20 +780,21 @@ class Lists extends ListsEPGTools {
             if (info[url] || (!includeNotReady && !this.lists[url].isReady))
                 return;
             info[url] = { url, owned: false };
-            info[url].score = this.lists[url].relevance.total;
-            info[url].length = this.lists[url].index.length;
+            info[url].score = this.lists[url].relevance.total
+            info[url].length = this.lists[url].index.length
+            info[url].origin = this.lists[url].origin
             if (this.lists[url].index.meta) {
-                info[url].name = this.lists[url].index.meta.name;
-                info[url].icon = this.lists[url].index.meta.icon;
-                info[url].epg = this.lists[url].index.meta.epg;
+                info[url].name = this.lists[url].index.meta.name
+                info[url].icon = this.lists[url].index.meta.icon
+                info[url].epg = this.lists[url].index.meta.epg
             }
-            info[url].private = false; // communitary list
+            info[url].private = false // communitary list
         });
         this.getMyLists().forEach(l => {
             if (!info[l.url])
-                info[l.url] = l;
-            info[l.url].owned = true;
-            info[l.url].private = l.private;
+                info[l.url] = l
+            info[l.url].owned = true
+            info[l.url].private = l.private
         });
         return info;
     }

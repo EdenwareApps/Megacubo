@@ -39,28 +39,27 @@ class BaseChannel extends EventEmitter {
 }
 class AndroidChannel extends BaseChannel {
     constructor() {
-        super();
-        this.attach();
+        super()
+        this.attach()
     }
     customEmit(...args) {
-        this.attach();
+        this.attach()
         try {
-            this.channel.send('message', ...args);
-        }
-        catch (err) {
-            console.error('CANNOT SEND MESSAGE ' + JSON.stringify(args));
+            this.channel.send('message', ...args)
+        } catch (err) {
+            console.error('CANNOT SEND MESSAGE ' + JSON.stringify(args) +' '+ err, err)
         }
     }
     attach() {
         if (!this.channel && paths.android.channel) {
-            this.channel = paths.android.channel;
-            this.channel.addListener('message', (...args) => this.onMessage(args));
+            this.channel = paths.android.channel
+            this.channel.addListener('message', (...args) => this.onMessage(args))
         }
     }
 }
 class ElectronChannel extends BaseChannel {
     constructor() {
-        super();
+        super()
     }
     customEmit(...args) {
         this.window && !this.window.closed && this.window.webContents.send('message', this.prepareSerialization(args));
@@ -179,9 +178,9 @@ class BridgeServer extends EventEmitter {
     }
     serve(file) {
         if (fs.existsSync(file)) {
-            let ext = file.match(new RegExp('\.[A-Za-z0-9]{0,5}$'));
             let stat = fs.statSync(file);
             if (stat) {
+                let ext = file.match(new RegExp('\.[A-Za-z0-9]{0,5}$'));
                 let path = './' + (stat ? stat.size : file.split('/').pop());
                 if (ext) {
                     path += ext[0];

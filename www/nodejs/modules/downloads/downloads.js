@@ -103,8 +103,7 @@ class Downloads extends EventEmitter {
                     console.log('serve ' + pathname);
                     pathname = this.map[pathname];
                     console.log('serve ' + pathname);
-                }
-                else {
+                } else {
                     console.log('serve ' + pathname);
                     pathname = path.join(this.folder, pathname);
                     console.log('serve ' + pathname, fs.readdirSync(this.folder));
@@ -121,7 +120,7 @@ class Downloads extends EventEmitter {
                         'content-encoding': 'identity'
                     };
                     if (req.headers.range) {
-                        reqHeaders['range'] = req.headers.range;
+                        reqHeaders['range'] = req.headers.range
                     }
                     const download = new Download({
                         url: pathname,
@@ -186,18 +185,18 @@ class Downloads extends EventEmitter {
                             }
                         }
                         if (start >= stat.size) { // dont use len here, may be altered
-                            res.writeHead(416, {
+                            res.writeHead(416, prepareCORS({
                                 'content-length': 0,
                                 'content-range': 'bytes */' + len,
                                 'x-debug': 2
-                            });
-                            return res.end();
+                            }, req))
+                            return res.end()
                         }
                         if (!resHeaders['content-length']) {
                             resHeaders['content-length'] = end - start + 1;
                         }
                         resHeaders['x-debug'] = start + '-' + end + '/' + stat.size;
-                        res.writeHead(status, resHeaders);
+                        res.writeHead(status, prepareCORS(resHeaders))
                         if (req.method === 'HEAD' || len == 0)
                             return res.end();
                         let stream = fs.createReadStream(pathname, { start, end });
@@ -274,6 +273,15 @@ class Downloads extends EventEmitter {
             }
             return url;
         }
+    }
+    async serveContent(filename, content) {
+        await this.prepare()
+        const url = 'http://' + this.opts.addr + ':' + this.opts.port + '/' + encodeURIComponent(filename)
+        const file = global.paths.temp +'/'+ filename
+        await fs.promises.writeFile(file, content)
+        this.map['./' + filename] = file
+        console.log('serve serve', file, url)
+        return url
     }
     clear() {
         console.log('serve clear');

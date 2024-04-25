@@ -134,7 +134,7 @@ class MPEGTSProcessor extends EventEmitter {
             if (this.debug) {
                 console.log('PCR DATA EMIT = ' + kbfmt(chunk.length));
             }
-            this.emit('data', chunk);
+            chunk && this.emit('data', chunk);
         }
     }
     handlePCR(pcr) {

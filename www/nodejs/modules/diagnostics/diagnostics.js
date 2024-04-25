@@ -7,7 +7,6 @@ import menu from '../menu/menu.js'
 import lang from "../lang/lang.js";
 import lists from "../lists/lists.js";
 import crashlog from "../crashlog/crashlog.js";
-import electron from "electron";
 import fs from "fs";
 import downloads from "../downloads/downloads.js";
 import options from "../options/options.js";
@@ -33,49 +32,37 @@ class Diagnostics extends EventEmitter {
         const myLists = configs.lists.map(a => a[1]);
         const listsRequesting = lists.requesting;
         const {default: streamer} = await import('../streamer/main.js')
-        const tuning = streamer.tuning ? streamer.tuning.logText(false) : '';
-        const processedLists = lists.processedLists.keys();
+        const {default: channels} = await import('../channels/channels.js')
+        const tuning = streamer.tuning ? streamer.tuning.logText(false) : ''
+        const processedLists = lists.processedLists.keys()
+        const loaded = lists.loaded(true)
+        const channelListType = channels.channelList ? channels.channelList.type : 'no channelList loaded'
         const processing = lists.loader.processes.filter(p => p.started() && !p.done()).map(p => {
             return {
                 url: p.url,
                 priority: p.priority
             };
-        });
-        let err, crashlogContent = await crashlog.read().catch(e => err = e);
-        const crashLog = crashlogContent || err || 'Empty';
-        const gpu = await this.gpuReport();
+        })
+        let err, crashlogContent = await crashlog.read().catch(e => err = e)
+        const crashLog = crashlogContent || err || 'Empty'
         const updaterResults = lists.loader.results, privateLists = [];
         ['lists', 'parental-control-terms', 'parental-control-pw', 'premium-license'].forEach(k => delete configs[k]);
         Object.keys(listsInfo).forEach(url => {
             listsInfo[url].owned = myLists.includes(url);
             if (listsInfo[url].private) {
-                privateLists.push(url);
+                privateLists.push(url)
             }
         });
         if (diskSpace && diskSpace.size) {
-            diskSpace.free = kbfmt(diskSpace.free);
-            diskSpace.size = kbfmt(diskSpace.size);
+            diskSpace.free = kbfmt(diskSpace.free)
+            diskSpace.size = kbfmt(diskSpace.size)
         }
-        let report = { version, diskSpace, freeMem, configs, listsInfo, listsRequesting, updaterResults, processedLists, processing, tuning, gpu, crashLog };
+        let report = { version, diskSpace, freeMem, configs, channelListType, loaded, listsInfo, listsRequesting, updaterResults, processedLists, processing, tuning, crashLog };
         report = JSON.stringify(report, null, 3);
         privateLists.forEach(url => {
-            report = report.replace(url, 'http://***');
+            report = report.replace(url, 'http://***')
         });
-        return report;
-    }
-    async gpuReport() {
-        if (paths.android)
-            return {};
-        let err;
-        const { app } = electron;
-        const report = {
-            featureStatus: app.getGPUFeatureStatus(),
-            info: await app.getGPUInfo('complete').catch(e => err = e)
-        };
-        if (err) {
-            report.info = String(err);
-        }
-        return report;
+        return report
     }
     async saveReport() {
         const file = downloads.folder + '/megacubo-report.txt';

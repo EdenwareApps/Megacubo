@@ -260,8 +260,7 @@ class Recommendations {
             }
         }
         if (results.length < amount) {
-            const index = this.channels.channelList.channelsIndex;
-            for (const name of this.shuffle(Object.keys(index))) {
+            for (const name of this.shuffledIndex()) {
                 const e = this.channels.isChannel(name);
                 if (!e)
                     continue;
@@ -284,6 +283,14 @@ class Recommendations {
         return arr.map(value => ({ value, sort: Math.random() }))
             .sort((a, b) => a.sort - b.sort)
             .map(({ value }) => value);
+    }
+    shuffledIndex() {
+        const index = this.channels.channelList.channelsIndex
+        const hash = Object.keys(this.channels.channelList.channelsIndex).join('|')
+        if(!this._shuffledIndex || this._shuffledIndex.hash != hash) { // shuffle once per run on each channelList
+            this._shuffledIndex = {hash, index: this.shuffle(Object.keys(index))}
+        }
+        return this._shuffledIndex.index
     }
     async entry() {
         return {

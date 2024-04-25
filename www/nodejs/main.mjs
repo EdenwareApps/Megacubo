@@ -21,7 +21,6 @@ import "./modules/analytics/analytics.js";
 import "./modules/omni/omni.js";
 import config from './modules/config/config.js'
 import Download from './modules/download/download.js'
-import Premium from './modules/premium-helper/premium-helper.js';
 import renderer from './modules/bridge/bridge.js'
 import storage from './modules/storage/storage.js'
 import channels from './modules/channels/channels.js'
@@ -30,18 +29,27 @@ import { createRequire } from 'module';
 import menu from './modules/menu/menu.js'
 import { listNameFromURL, rmdir } from './modules/utils/utils.js'
 import osd from "./modules/osd/osd.js";
+import ffmpeg from './modules/ffmpeg/ffmpeg.js'
 
 /* Preload script variables */
-global.Download = Download
-global.osd = osd
-global.paths = paths
-global.config = config
-global.lang = lang
-global.options = options
-global.lists = lists
-global.channels = channels
-global.menu = menu
-global.osd = osd
+Object.assign(global, {
+    channels,
+    cloud,
+    config,
+    Download,
+    downloads,
+    energy,
+    ffmpeg,
+    lang,
+    lists,
+    menu,
+    options,
+    osd,
+    paths,
+    renderer,
+    storage,
+    streamer
+})
 
 console.log('[main] Initializing node...');
 process.env.UV_THREADPOOL_SIZE = 16;
@@ -78,8 +86,9 @@ onexit(() => {
     }
     rmdir(paths.temp, false, true);
     if (typeof (renderer) != 'undefined' && renderer) {
-        renderer.get().emit('exit', true);
-        renderer.get().destroy();
+        const ui = renderer.get()
+        ui.emit('exit', true);
+        ui.destroy();
     }
 })
 
@@ -203,15 +212,16 @@ const init = async (language, timezone) => {
     
     rmdir(streamer.opts.workDir, false, true);
     console.log('Initializing premium...');
-    if (typeof (Premium) != 'undefined') {
-        global.premium = new Premium();
-    }
+    const Premium = await import('./modules/premium-helper/premium-helper.js')
+    global.premium = new Premium.default()
+
     await import('./modules/promoter/promoter.js') // init it up
     streamer.state.on('state', (url, state, source) => {
         if (source) {
             lists.discovery.reportHealth(source, state != 'offline');
         }
     });
+    const ui = renderer.get()
     menu.addFilter(channels.hook.bind(channels));
     menu.addFilter(channels.bookmarks.hook.bind(channels.bookmarks));
     menu.addFilter(channels.history.hook.bind(channels.history));
@@ -221,7 +231,7 @@ const init = async (language, timezone) => {
     menu.addFilter(theme.hook.bind(theme));
     menu.addFilter(channels.search.hook.bind(channels.search));
     menu.addFilter(recommendations.hook.bind(recommendations));
-    renderer.get().on('menu-update-range', icons.renderRange.bind(icons));
+    ui.on('menu-update-range', icons.renderRange.bind(icons));
     menu.on('render', icons.render.bind(icons));
     menu.on('action', async (e) => {
         console.warn('ACTION', e, typeof (e.action));
@@ -277,13 +287,13 @@ const init = async (language, timezone) => {
                 break
         }
     });
-    renderer.get().on('config-set', (k, v) => config.set(k, v));
-    renderer.get().on('crash', (...args) => crashlog.save(...args));
-    renderer.get().on('lists-manager', ret => {
+    ui.on('config-set', (k, v) => config.set(k, v));
+    ui.on('crash', (...args) => crashlog.save(...args));
+    ui.on('lists-manager', ret => {
         console.log('lists-manager', ret);
         switch (ret) {
             case 'agree':
-                renderer.get().emit('menu-reset-selection');
+                ui.emit('menu-reset-selection');
                 menu.open('', 0).catch(e => menu.displayErr(e));
                 config.set('communitary-mode-lists-amount', lists.opts.defaultCommunityModeReach);
                 menu.info(lang.LEGAL_NOTICE, lang.TOS_CONTENT);
@@ -309,7 +319,7 @@ const init = async (language, timezone) => {
                 break;
         }
     });
-    renderer.get().on('reload', ret => {
+    ui.on('reload', ret => {
         console.log('reload', ret);
         switch (ret) {
             case 'agree':
@@ -319,7 +329,7 @@ const init = async (language, timezone) => {
                 break;
         }
     });
-    renderer.get().on('reload-dialog', async () => {
+    ui.on('reload-dialog', async () => {
         console.log('reload-dialog');
         if (!streamer.active)
             return;
@@ -347,15 +357,15 @@ const init = async (language, timezone) => {
             streamer.reload();
         }
     });
-    renderer.get().on('testing-stop', () => {
+    ui.on('testing-stop', () => {
         console.warn('TESTING STOP');
         streamer.state.cancelTests();
     });
-    renderer.get().on('tuning-stop', () => {
+    ui.on('tuning-stop', () => {
         console.warn('TUNING ABORT');
         streamer.tuning && streamer.tuning.destroy();
     });
-    renderer.get().on('tune', () => {
+    ui.on('tune', () => {
         let data = streamer.active ? streamer.active.data : streamer.lastActiveData;
         console.warn('RETUNNING', data);
         if (data) {
@@ -365,11 +375,11 @@ const init = async (language, timezone) => {
             streamer.zap.go().catch(e => menu.displayErr(e));
         }
     });
-    renderer.get().on('retry', () => {
+    ui.on('retry', () => {
         console.warn('RETRYING');
         streamer.reload();
     });
-    renderer.get().on('video-error', async (type, errData) => {
+    ui.on('video-error', async (type, errData) => {
         console.error('VIDEO ERROR', { type, errData });
         if (streamer.zap.isZapping) {
             await streamer.zap.go();
@@ -426,8 +436,8 @@ const init = async (language, timezone) => {
             }
         }
     });
-    renderer.get().on('share', () => streamer.share());
-    renderer.get().on('stop', () => {
+    ui.on('share', () => streamer.share());
+    ui.on('stop', () => {
         if (streamer.active) {
             console.warn('STREAMER STOP FROM CLIENT');
             streamer.emit('stop-from-client');
@@ -439,7 +449,7 @@ const init = async (language, timezone) => {
             menu.refresh();
         }
     });
-    renderer.get().on('open-url', url => {
+    ui.on('open-url', url => {
         console.log('OPENURL', url);
         if (url) {
             const isM3U = url.match(new RegExp('(get.php\\?username=|\\.m3u($|[^A-Za-z0-9])|\/supratv\\.)'));
@@ -467,7 +477,7 @@ const init = async (language, timezone) => {
             }
         }
     });
-    renderer.get().on('open-name', name => {
+    ui.on('open-name', name => {
         console.log('OPEN STREAM BY NAME', name);
         if (name) {
             
@@ -480,7 +490,7 @@ const init = async (language, timezone) => {
             }
         }
     });
-    renderer.get().on('about', async () => {
+    ui.on('about', async () => {
         if (streamer.active) {
             await streamer.about();
         }
@@ -488,13 +498,17 @@ const init = async (language, timezone) => {
             options.about();
         }
     });
-    renderer.get().on('network-state-up', () => setNetworkConnectionState(true));
-    renderer.get().on('network-state-down', () => setNetworkConnectionState(false));
-    renderer.get().on('network-ip', ip => {
+    ui.on('network-state-up', () => setNetworkConnectionState(true));
+    ui.on('network-state-down', () => setNetworkConnectionState(false));
+    ui.on('network-ip', ip => {
         if (ip && np.isNetworkIP(ip)) {
             np.networkIP = () => ip;
         }
     });
+    options.on('devtools-open', () => {
+        const { BrowserWindow } = electron
+        BrowserWindow.getAllWindows().shift().openDevTools()
+    })
     streamer.on('streamer-connect', async (src, codecs, info) => {
         if (!streamer.active)
             return;
@@ -510,38 +524,38 @@ const init = async (language, timezone) => {
                 cantune = true;
             }
         }
-        renderer.get().emit('streamer-connect', src, codecs, '', streamer.active.mediaType, info, cantune);
+        ui.emit('streamer-connect', src, codecs, '', streamer.active.mediaType, info, cantune);
         if (cantune) {
             if (!tuningHintShown && channels.history.get().length) {
                 tuningHintShown = true;
             }
             if (!tuningHintShown) {
                 tuningHintShown = true;
-                renderer.get().emit('streamer-show-tune-hint');
+                ui.emit('streamer-show-tune-hint');
             }
         }
     });
     streamer.on('streamer-disconnect', err => {
         console.warn('DISCONNECT', err, streamer.tuning !== false);
-        renderer.get().emit('streamer-disconnect', err, streamer.tuning !== false);
+        ui.emit('streamer-disconnect', err, streamer.tuning !== false);
     });
     streamer.on('stop', (err, data) => {
-        renderer.get().emit('remove-status-flag-from-all', 'fas fa-play-circle faclr-green');
-        renderer.get().emit('set-loading', data, false);
-        renderer.get().emit('streamer-stop');
+        ui.emit('remove-status-flag-from-all', 'fas fa-play-circle faclr-green');
+        ui.emit('set-loading', data, false);
+        ui.emit('streamer-stop');
     });
     config.on('change', (keys, data) => {
-        renderer.get().emit('config', keys, data);
+        ui.emit('config', keys, data);
         if (['lists', 'communitary-mode-lists-amount', 'interests'].some(k => keys.includes(k))) {
             menu.refresh();
             lists.manager.update();
         }
     });
-    renderer.get().once('menu-ready', () => {
+    ui.once('menu-ready', () => {
         menu.start();
         icons.refresh();
     });
-    renderer.get().once('streamer-ready', async () => {
+    ui.once('streamer-ready', async () => {
         isStreamerReady = true;
         streamer.state.sync();
         renderer.ready() || renderer.ready(null, true);
@@ -563,15 +577,15 @@ const init = async (language, timezone) => {
             }).catch(console.error);
         }
     });
-    renderer.get().once('close', () => {
+    ui.once('close', () => {
         console.warn('Client closed!');
         energy.exit();
     });
-    renderer.get().once('exit', () => {
+    ui.once('exit', () => {
         console.error('Immediate exit called from client.');
         process.exit(0);
     });
-    renderer.get().on('suspend', () => {
+    ui.on('suspend', () => {
         streamer.tuning && streamer.tuning.destroy();
         streamer.state && streamer.state.cancelTests();
     });
@@ -587,7 +601,7 @@ const init = async (language, timezone) => {
             ], 'yes');
             console.log('update callback', chosen);
             if (chosen == 'yes') {
-                renderer.get().emit('open-external-url', 'https://megacubo.net/update?ver=' + paths.manifest.version);
+                ui.emit('open-external-url', 'https://megacubo.net/update?ver=' + paths.manifest.version);
             }
             else if (chosen == 'how') {
                 await menu.dialog([
@@ -598,7 +612,7 @@ const init = async (language, timezone) => {
                 await updatePrompt(c);
             }
             else if (chosen == 'changelog') {
-                renderer.get().emit('open-external-url', 'https://github.com/EdenwareApps/Megacubo/releases/latest');
+                ui.emit('open-external-url', 'https://github.com/EdenwareApps/Megacubo/releases/latest');
                 await updatePrompt(c);
             }
         };
@@ -628,10 +642,10 @@ const init = async (language, timezone) => {
                 console.log('updated');
             }
         }
-        renderer.get().emit('arguments', process.argv);
+        ui.emit('arguments', process.argv);
     });
     console.warn('Prepared to connect...')
-    renderer.get().emit('main-ready', config.all(), lang.getTexts())
+    ui.emit('main-ready', config.all(), lang.getTexts())
 };
 renderer.get().once('get-lang-callback', (locale, timezone, ua, online) => {
     console.log('[main] get-lang-callback', timezone, ua, online);
@@ -681,6 +695,7 @@ if (paths.android) {
         });
     }
     const initAppWindow = async () => {
+        global.ui = renderer.get()
         console.log('[main] Initializing window... 3');
         const isLinux = process.platform == 'linux';
         await updateUserTasks(app).catch(console.error);
@@ -714,7 +729,6 @@ if (paths.android) {
         app.commandLine.appendSwitch('disable-web-security');
         await app.whenReady();
         console.log('[main] Initializing window... 5');
-        global.renderer = renderer.get() // globals for preload script
         global.window = new BrowserWindow({
             width: 320,
             height: 240,
@@ -738,7 +752,7 @@ if (paths.android) {
                 webSecurity: false // desabilita o webSecurity
             }
         });
-        window.loadURL('http://127.0.0.1:' + renderer.get().opts.port + '/renderer/electron.html', { userAgent: renderer.get().ua }); // file:// is required on Linux to prevent blank window on Electron 9.1.2
+        window.loadURL('http://127.0.0.1:' + ui.opts.port + '/renderer/electron.html', { userAgent: ui.ua }); // file:// is required on Linux to prevent blank window on Electron 9.1.2
         app.on('browser-window-focus', () => {
             // We'll use Ctrl+M to enable Miniplayer instead of minimizing
             globalShortcut.registerAll(['CommandOrControl+M'], () => { return; });
@@ -751,11 +765,11 @@ if (paths.android) {
             if (window) {
                 window.isMinimized() || window.restore();
                 window.focus();
-                renderer.get().emit('arguments', commandLine);
+                ui.emit('arguments', commandLine);
             }
         });
         window.once('closed', () => window.closed = true); // prevent bridge IPC error
-        renderer.get().setElectronWindow(window)
+        ui.setElectronWindow(window)
         console.log('[main] Initializing window... 6')    
     };
     initAppWindow().catch(console.error);

@@ -6,7 +6,6 @@ import { EventEmitter } from "events";
 import moment from "moment-timezone";
 import energy from "../energy/energy.js";
 import fs from "fs";
-import electron from "electron";
 import downloads from "../downloads/downloads.js";
 import AdmZip from "adm-zip";
 import icons from "../icon-server/icon-server.js";
@@ -1701,8 +1700,7 @@ class Options extends OptionsExportImport {
         return opts;
     }
     devtools() {
-        const { BrowserWindow } = electron;
-        BrowserWindow.getAllWindows().shift().openDevTools();
+        this.emit('devtools-open')
     }
     prm(strict) {
         const p = global.premium;

@@ -1,4 +1,5 @@
 import { EventEmitter } from "events";
+import { traceback } from "../utils/utils.js";
 import lang from "../lang/lang.js";
 import storage from '../storage/storage.js'
 import Limiter from "../limiter/limiter.js";
@@ -83,7 +84,7 @@ class Menu extends EventEmitter {
             if (this.opts.debug) {
                 console.log('menu-open', path, tabindex);
             }
-            this.open(path, tabindex).catch(e => menu.displayErr(e));
+            this.open(path, tabindex).catch(e => this.displayErr(e));
         });
         renderer.get().on('menu-action', (path, tabindex) => this.action(path, tabindex));
         renderer.get().on('menu-back', () => this.back());
@@ -95,7 +96,7 @@ class Menu extends EventEmitter {
             this.input(path, val);
         });
         renderer.get().on('menu-select', (path, tabindex) => {
-            this.select(path, tabindex).catch(e => menu.displayErr(e));
+            this.select(path, tabindex).catch(e => this.displayErr(e));
         });
         this.applyFilters(this.pages[this.path], this.path).then(es => {
             this.pages[this.path] = es;
@@ -103,7 +104,7 @@ class Menu extends EventEmitter {
                 this.waitingRender = false;
                 this.render(this.pages[this.path], this.path, 'fas fa-home');
             }
-        }).catch(e => menu.displayErr(e));
+        }).catch(e => this.displayErr(e));
     }
     async updateHomeFilters() {
         this.pages[''] = await this.applyFilters([], '');
@@ -204,7 +205,7 @@ class Menu extends EventEmitter {
             if (this.path && typeof (this.pages[this.path]) != 'undefined') {
                 delete this.pages[this.path];
             }
-            this.open(this.path).catch(e => menu.displayErr(e));
+            this.open(this.path).catch(e => this.displayErr(e));
         }
     }
     deepRefresh(p, force) {
@@ -218,7 +219,7 @@ class Menu extends EventEmitter {
             }
             this.deepRead(p).then(ret => {
                 this.render(ret.entries, p, (ret.parent ? ret.fa : '') || 'fas fa-box-open');
-            }).catch(e => menu.displayErr(e));
+            }).catch(e => this.displayErr(e));
         }
     }
     inSelect() {
@@ -243,7 +244,7 @@ class Menu extends EventEmitter {
             if (e && e.action) {
                 let ret = e.action();
                 if (ret && ret.catch)
-                    ret.catch(e => menu.displayErr(e));
+                    ret.catch(e => this.displayErr(e));
                 return;
             }
             if (typeof (level) != 'number') {
@@ -256,7 +257,7 @@ class Menu extends EventEmitter {
             if (this.opts.debug) {
                 console.log('back', p, deep);
             }
-            this.open(p, undefined, deep, true, true, true).catch(e => menu.displayErr(e));
+            this.open(p, undefined, deep, true, true, true).catch(e => this.displayErr(e));
         }
         else {
             this.refresh();
@@ -848,7 +849,8 @@ class Menu extends EventEmitter {
         });
     }
     displayErr(...args) {
-        console.error.apply(null, args);
+        console.error(...args)
+        console.error('TRACEBACK = '+traceback())
         renderer.get().emit('display-error', args.map(v => String(v)).join(', '));
     }
 }
