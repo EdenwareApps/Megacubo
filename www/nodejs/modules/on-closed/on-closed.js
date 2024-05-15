@@ -31,15 +31,13 @@ export default (function closed(req, response, source, cb, opts) {
     /* Prevent never-ending responses bug on v10.5.0. Is it needed yet? */
     if (response.socket) {
         onSocket();
-    }
-    else {
+    } else {
         response.once('socket', onSocket);
     }
     req.once('close', callback); // req disconnected
     if (response.ended) {
         callback();
-    }
-    else {
+    } else {
         response.once('end', callback); // req disconnected
     }
     if (source) {

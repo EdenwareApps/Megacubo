@@ -82,8 +82,7 @@ class StreamInfo {
                                 console.error('HLSTRACKERR*', err, url, trackUrl);
                                 reject(err);
                             });
-                        }
-                        else if (strSample.toLowerCase().indexOf('#extinf') != -1) {
+                        } else if (strSample.toLowerCase().indexOf('#extinf') != -1) {
                             let segmentUrls = strSample.split("\n").map(s => s.trim()).filter(line => line.length > 3 && !line.startsWith('#'));
                             let segmentUrl = this.takeMiddleValue(segmentUrls); // get a middle segment to try to prevent possibly expiring segments in m3u8
                             segmentUrl = absolutize(segmentUrl, download.currentURL);
@@ -94,16 +93,14 @@ class StreamInfo {
                             return this._probe(segmentUrl, timeoutSecs, retries, opts, recursion).then(ret => {
                                 if (ret && ret.status && ret.status >= 200 && ret.status < 300) {
                                     done(); // send data from m3u8
-                                }
-                                else {
+                                } else {
                                     resolve(ret); // send bad data from ts
                                 }
                             }).catch(err => {
                                 console.error('HLSTRACKERR', err, url, segmentUrl);
                                 reject(err);
                             });
-                        }
-                        else {
+                        } else {
                             done();
                         }
                     }
@@ -141,8 +138,7 @@ class StreamInfo {
                     console.log(url, timeoutSecs);
                 }
                 timer = setTimeout(() => finish(), timeoutSecs * 1000);
-            }
-            else {
+            } else {
                 reject('invalid url');
             }
         });
@@ -170,15 +166,12 @@ class StreamInfo {
                             if (this.mi.isVideo(url, ext)) {
                                 contentType = 'video/mp4';
                             }
-                        }
-                        else {
+                        } else {
                             if (ext == 'm3u8') {
                                 contentType = 'application/x-mpegurl';
-                            }
-                            else if (ext == 'ts') {
+                            } else if (ext == 'ts') {
                                 contentType = 'video/mp2t';
-                            }
-                            else if (ext == 'mpd') {
+                            } else if (ext == 'mpd') {
                                 contentType = 'application/dash+xml';
                             }
                         }
@@ -208,19 +201,16 @@ class StreamInfo {
             }
             if (ct) {
                 ct = ct.split(',')[0].split(';')[0];
-            }
-            else {
+            } else {
                 ct = '';
             }
             if ((!ct || ct.substr(0, 5) == 'text/') && ret.sample) { // sniffing						
                 if (String(ret.sample).match(new RegExp('#EXT(M3U|INF)', 'i'))) {
                     ct = 'application/x-mpegURL';
-                }
-                else if (this.isBin(ret.sample) && ret.sample.length >= this.opts.probeSampleSize) { // check length too to skip plain text error messages
+                } else if (this.isBin(ret.sample) && ret.sample.length >= this.opts.probeSampleSize) { // check length too to skip plain text error messages
                     if (this.mi.isVideo(url)) {
                         ct = 'video/mp4';
-                    }
-                    else {
+                    } else {
                         ct = 'video/MP2T';
                     }
                 }
@@ -237,8 +227,7 @@ class StreamInfo {
             }
             ret.ext = this.mi.ext(ret.directURL) || this.mi.ext(url);
             return ret;
-        }
-        else if (this.validate(url)) { // maybe rtmp
+        } else if (this.validate(url)) { // maybe rtmp
             let ret = {};
             ret.status = 200;
             ret.contentType = '';
@@ -247,8 +236,7 @@ class StreamInfo {
             ret.directURL = url;
             ret.ext = this.mi.ext(url);
             return ret;
-        }
-        else if (this.isLocalFile(url)) {
+        } else if (this.isLocalFile(url)) {
             let err;
             
             const stat = await fs.promises.stat(url).catch(e => err = e);
@@ -267,8 +255,7 @@ class StreamInfo {
                 return ret;
             }
             throw lang.NOT_FOUND;
-        }
-        else {
+        } else {
             throw lang.INVALID_URL;
         }
     }
@@ -276,8 +263,7 @@ class StreamInfo {
         var ret = '', res = url.split(':');
         if (res.length > 1 && res[0].length >= 3 && res[0].length <= 6) {
             ret = res[0];
-        }
-        else if (url.match(new RegExp('^//[^/]+\\.'))) {
+        } else if (url.match(new RegExp('^//[^/]+\\.'))) {
             ret = 'http';
         }
         if (ret && typeof (len) == 'number') {
@@ -349,8 +335,7 @@ class StreamInfo {
         let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'));
         if (m && m.length > 1 && (m[1].length == 1 || m[1].toLowerCase() == 'file')) { // drive letter or file protocol
             return true;
-        }
-        else {
+        } else {
             if (file.length >= 2 && file.startsWith('/') && file.charAt(1) != '/') { // unix path
                 return true;
             }

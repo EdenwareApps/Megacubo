@@ -11,11 +11,10 @@ import downloads from "../downloads/downloads.js";
 import Mag from "./mag.js";
 import { EventEmitter } from "events";
 import { promises as fsp } from "fs";
-import { deepClone, forwardSlashes, insertEntry, kfmt, LIST_DATA_KEY_MASK, listNameFromURL, validateURL } from "../utils/utils.js";
+import { basename, deepClone, forwardSlashes, insertEntry, kfmt, LIST_DATA_KEY_MASK, listNameFromURL, validateURL } from "../utils/utils.js";
 import config from "../config/config.js"
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
-import { info } from 'console';
 
 class ManagerEPG extends EventEmitter {
     constructor() {
@@ -27,8 +26,7 @@ class ManagerEPG extends EventEmitter {
                     if (!this.epgStatusTimer) {
                         this.epgStatusTimer = setInterval(() => this.updateEPGStatus().catch(console.error), 1000);
                     }
-                }
-                else {
+                } else {
                     if (this.epgStatusTimer) {
                         clearInterval(this.epgStatusTimer);
                         this.epgStatusTimer = 0;
@@ -71,7 +69,7 @@ class ManagerEPG extends EventEmitter {
                 }
             });
         }
-        this.channels && epgs.push(...this.channels.watching.currentRawEntries.map(e => e.epg))
+        global.channels && epgs.push(...global.channels.watching.currentRawEntries.map(e => e.epg))
         epgs = epgs.filter(e => !!e).map(u => this.parseEPGURL(u, true)).flat().sort().unique()
         return epgs
     }
@@ -122,11 +120,10 @@ class ManagerEPG extends EventEmitter {
                         }
                         return e;
                     });
-                    menu.render(es, this.epgSelectionPath(), this.channels ? this.channels.epgIcon : '');
+                    menu.render(es, this.epgSelectionPath(), global.channels ? global.channels.epgIcon : '');
                 }
             }
-        }
-        else {
+        } else {
             this.lastDetailedEPGDetails = undefined;
         }
     }
@@ -152,12 +149,10 @@ class ManagerEPG extends EventEmitter {
             if (url == activeEPG) {
                 if (this.lastActiveEPGDetails) {
                     details = this.lastActiveEPGDetails;
-                }
-                else {
-                    if (this.channels && this.channels.loadedEPG == url) {
+                } else {
+                    if (global.channels && global.channels.loadedEPG == url) {
                         details = lang.EPG_LOAD_SUCCESS;
-                    }
-                    else {
+                    } else {
                         details = lang.PROCESSING;
                     }
                 }
@@ -172,10 +167,9 @@ class ManagerEPG extends EventEmitter {
                 action: () => {
                     if (url == config.get('epg-' + lang.locale)) {
                         config.set('epg-' + lang.locale, 'disabled');
-                        this.channels && this.channels.load();
+                        global.channels && global.channels.load();
                         this.setEPG('', true);
-                    }
-                    else {
+                    } else {
                         config.set('epg-' + lang.locale, url);
                         this.setEPG(url, true);
                     }
@@ -193,10 +187,11 @@ class ManagerEPG extends EventEmitter {
                 const url = await menu.prompt({
                     question: lang.EPG,
                     placeholder: 'http://.../epg.xml',
-                    defaultValue: global.activeEPG || '',
-                    fa: this.channels ? this.channels.epgIcon : ''
+                    defaultValue: this.lastEPGURLInput || global.activeEPG || '',
+                    fa: global.channels ? global.channels.epgIcon : ''
                 });
                 if (url && url.length > 6) {
+                    this.lastEPGURLInput = url
                     console.log('SET-EPG', url, global.activeEPG);
                     const { manager } = lists;
                     config.set('epg-' + lang.locale, url || 'disabled');
@@ -216,7 +211,7 @@ class ManagerEPG extends EventEmitter {
                 return;
             if (!url || validateURL(url)) {
                 global.activeEPG = url;
-                this.channels.loadedEPG = '';
+                global.channels.loadedEPG = '';
                 await this.loadEPG(url, ui);
                 let refresh = () => {
                     if (menu.path.indexOf(lang.EPG) != -1 || menu.path.indexOf(lang.LIVE) != -1) {
@@ -224,12 +219,11 @@ class ManagerEPG extends EventEmitter {
                     }
                 };
                 if (!url) {
-                    this.channels.load();
+                    global.channels.load();
                     ui && osd.show(lang.EPG_DISABLED, 'fas fa-times-circle', 'epg', 'normal');
                 }
                 refresh();
-            }
-            else {
+            } else {
                 if (ui) {
                     osd.show(lang.INVALID_URL, 'fas fa-exclamation-triangle faclr-red', 'epg', 'normal');
                 }
@@ -239,7 +233,7 @@ class ManagerEPG extends EventEmitter {
     }
     async loadEPG(url, ui) {
         await renderer.ready(true)
-        this.channels.loadedEPG = '';
+        global.channels.loadedEPG = '';
         if (!url && config.get('epg-' + lang.locale) != 'disabled') {
             url = config.get('epg-' + lang.locale);
         }
@@ -260,8 +254,8 @@ class ManagerEPG extends EventEmitter {
             osd.show(lang.EPG_LOAD_FAILURE + ': ' + String(err), 'fas fa-times-circle', 'epg-add', 'normal');
             throw err;
         }
-        this.channels.loadedEPG = url;
-        this.channels.emit('epg-loaded', url);
+        global.channels.loadedEPG = url;
+        global.channels.emit('epg-loaded', url);
         if (ui) {
             osd.show(lang.EPG_LOAD_SUCCESS, 'fas fa-check-circle', 'epg-add', 'normal');
         }
@@ -273,7 +267,7 @@ class ManagerEPG extends EventEmitter {
     epgEntry() {
         return {
             name: lang.EPG,
-            fa: this.channels ? this.channels.epgIcon : '',
+            fa: global.channels ? global.channels.epgIcon : '',
             type: 'group', details: 'EPG',
             renderer: async () => {
                 await renderer.ready(true)
@@ -289,11 +283,11 @@ class ManagerEPG extends EventEmitter {
                         }
                     }
                 ];
-                if (this.channels.loadedEPG) {
+                if (global.channels.loadedEPG) {
                     entries.push(...[
-                        this.channels.epgSearchEntry(),
-                        this.channels.chooseChannelGridOption(true),
-                        ...this.channels.channelList.getCategories().map(category => {
+                        global.channels.epgSearchEntry(),
+                        global.channels.chooseChannelGridOption(true),
+                        ...global.channels.channelList.getCategories().map(category => {
                             const rawname = lang.CATEGORY_KIDS == category.name ? '[fun]' + category.name + '[|fun]' : category.name;
                             return {
                                 name: category.name,
@@ -303,10 +297,9 @@ class ManagerEPG extends EventEmitter {
                             };
                         })
                     ]);
-                }
-                else {
+                } else {
                     entries.push({
-                        name: this.channels.loadedEPG ? lang.EMPTY : lang.EPG_DISABLED,
+                        name: global.channels.loadedEPG ? lang.EMPTY : lang.EPG_DISABLED,
                         details: this.lastActiveEPGDetails,
                         fa: 'fas fa-info-circle',
                         type: 'action',
@@ -323,7 +316,7 @@ class ManagerEPG extends EventEmitter {
     async epgCategoryEntries(category) {
         await renderer.ready(true)
         let terms = {}, chs = category.entries.map(e => {
-            let data = this.channels.isChannel(e.name);
+            let data = global.channels.isChannel(e.name);
             if (data) {
                 e.terms.name = terms[e.name] = data.terms;
                 return e;
@@ -334,7 +327,7 @@ class ManagerEPG extends EventEmitter {
                 name: c.name,
                 type: 'group',
                 renderer: async () => {
-                    return await this.channels.epgChannelEntries(c);
+                    return await global.channels.epgChannelEntries(c);
                 }
             };
         });
@@ -348,12 +341,9 @@ class Manager extends ManagerEPG {
         this.key = 'lists';
         this.lastProgress = 0;
         this.openingList = false;
+        this.inputMemory = {}
         renderer.ready(async () => {
-            const {default: streamer} = await import('../streamer/main.js')
-            const {default: channels} = await import('../channels/channels.js')
-            this.channels = channels
-            this.streamer = streamer
-            this.streamer.on('hard-failure', es => this.checkListExpiral(es).catch(console.error));
+            global.streamer.on('hard-failure', es => this.checkListExpiral(es).catch(console.error));
             menu.prependFilter(async (es, path) => {
                 es = await this.expandEntries(es, path);
                 return this.labelify(es);
@@ -376,16 +366,15 @@ class Manager extends ManagerEPG {
                     source = e.source;
                     return true;
                 }
-            });
+            })
             if (source) {
-                const { lists } = lists;
-                let list = lists[source];
+                let list = this.master.lists[source]
                 if (!list) {
-                    const fetch = new this.master.Fetcher(source, {}, this.master);
+                    const fetch = new this.master.Fetcher(source, {}, this.master)
                     await fetch.ready();
                     list = fetch.list;
                 }
-                entries = await list.indexer.expandMap(entries);
+                entries = await list.indexer.expandMap(entries)
             }
         }
         return entries;
@@ -393,22 +382,10 @@ class Manager extends ManagerEPG {
     labelify(list) {
         for (let i = 0; i < list.length; i++) {
             if (list[i] && (typeof (list[i].type) == 'undefined' || list[i].type == 'stream')) {
-                list[i].details = list[i].groupName || this.basename(list[i].path || list[i].group || '');
+                list[i].details = list[i].groupName || basename(list[i].path || list[i].group || '');
             }
         }
         return list;
-    }
-    basename(path) {
-        let i = path.lastIndexOf('/');
-        if (i == 0) {
-            return path.substr(1);
-        }
-        else if (i == -1) {
-            return path;
-        }
-        else {
-            return path.substr(i + 1);
-        }
     }
     waitListsReady(timeoutSecs) {
         return new Promise(resolve => {
@@ -421,14 +398,14 @@ class Manager extends ManagerEPG {
             };
             this.master.on('satisfied', listener);
             typeof (timeoutSecs) == 'number' && setTimeout(() => resolve(false), timeoutSecs * 1000);
-            listener(this.master.status());
+            listener(this.master.status())
         });
     }
     inChannelPage() {
         return menu.currentEntries.some(e => lang.SHARE == e.name);
     }
     maybeRefreshChannelPage() {
-        if (this.streamer && this.streamer.tuning && !this.streamer.tuning.destroyed)
+        if (global.streamer && global.streamer.tuning && !global.streamer.tuning.destroyed)
             return;
         let isMega, streamsCount = 0;
         menu.currentEntries.some(e => {
@@ -515,17 +492,15 @@ class Manager extends ManagerEPG {
                 let meta = await fetch.meta();
                 if (meta.name) {
                     name = meta.name;
-                }
-                else {
-                    await this.name(url).then(n => name = n).catch(() => { });
+                } else {
+                    await this.name(url).then(n => name = n).catch(() => {});
                 }
             }
             let lists = this.get();
             lists.push([name, url]);
             config.set(this.key, lists);
             return true;
-        }
-        else {
+        } else {
             throw lang.INVALID_URL_MSG + ' - ' + (err || fetch.error || 'No M3U entries were found');
         }
     }
@@ -540,8 +515,7 @@ class Manager extends ManagerEPG {
         renderer.get().emit('background-mode-unlock', 'add-list');
         if (typeof (err) != 'undefined') {
             throw err;
-        }
-        else {
+        } else {
             if (!paths.ALLOW_ADDING_LISTS) {                
                 paths.ALLOW_ADDING_LISTS = true;
                 await fs.promises.writeFile(paths.cwd + '/ALLOW_ADDING_LISTS.md', 'ok').catch(console.error);
@@ -553,12 +527,10 @@ class Manager extends ManagerEPG {
             let makePrivate;
             if (fromCommunity) {
                 makePrivate = false;
-            }
-            else if (!isURL || sensible) {
+            } else if (!isURL || sensible) {
                 makePrivate = true;
                 config.set('communitary-mode-lists-amount', 0); // disable community lists to focus on user list
-            }
-            else if (paths.ALLOW_COMMUNITY_LISTS) {
+            } else if (paths.ALLOW_COMMUNITY_LISTS) {
                 const chosen = await menu.dialog([
                     { template: 'question', text: lang.COMMUNITY_LISTS, fa: 'fas fa-users' },
                     { template: 'message', text: lang.WANT_SHARE_COMMUNITY },
@@ -568,8 +540,7 @@ class Manager extends ManagerEPG {
                 if (chosen == 'yes') {
                     makePrivate = false;
                     osd.show(lang.COMMUNITY_THANKS_YOU, 'fas fa-heart faclr-purple', 'communitary-lists-thanks', 'normal');
-                }
-                else {
+                } else {
                     makePrivate = true;
                     config.set('communitary-mode-lists-amount', 0); // disable community lists to focus on user lists
                 }
@@ -667,8 +638,7 @@ class Manager extends ManagerEPG {
         let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'));
         if (m && m.length && (m[1].length == 1 || m[1].toLowerCase() == 'file')) { // drive letter or file protocol
             return true;
-        }
-        else {
+        } else {
             if (file.length >= 2 && file.startsWith('/') && file.charAt(1) != '/') { // unix path
                 return true;
             }
@@ -702,8 +672,7 @@ class Manager extends ManagerEPG {
             if (lists[i][1] == url) {
                 if (key == 'name') {
                     lists[i][0] = val;
-                }
-                else {
+                } else {
                     let obj = lists[i][2] || {};
                     obj[key] = val;
                     lists[i][2] = obj;
@@ -741,7 +710,7 @@ class Manager extends ManagerEPG {
         const m = p.progress ? (lang[p.firstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] + ' ' + p.progress + '%') : (c ? lang.SEARCH_COMMUNITY_LISTS : lang.STARTING_LISTS);
         if (!this.receivedCommunityListsListener) {
             this.receivedCommunityListsListener = () => {
-                if (menu.path && menu.basename(menu.path) == lang.RECEIVED_LISTS) {
+                if (menu.path && basename(menu.path) == lang.RECEIVED_LISTS) {
                     menu.refresh();
                 }
             };
@@ -769,15 +738,13 @@ class Manager extends ManagerEPG {
                     this.master.off('unsatisfied', listener);
                     m = lang.LISTS_UPDATED;
                     this.master.isFirstRun = false;
-                }
-                else {
+                } else {
                     m = -1; // do not show 'lists updated' message yet
                 }
                 fa = 'fas fa-check-circle';
                 duration = 'normal';
                 this.master.removeListener('status', listener);
-            }
-            else {
+            } else {
                 m = lang[p.firstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] + ' ' + p.progress + '%';
             }
             if (m != -1) { // if == -1 it's not complete yet, no lists
@@ -786,16 +753,14 @@ class Manager extends ManagerEPG {
             if (menu && menu.currentEntries) {
                 const updateEntryNames = [lang.PROCESSING, lang.UPDATING_LISTS, lang.STARTING_LISTS];
                 const updateBaseNames = [lang.TRENDING, lang.COMMUNITY_LISTS];
-                if (updateBaseNames.includes(menu.basename(menu.path)) ||
+                if (updateBaseNames.includes(basename(menu.path)) ||
                     menu.currentEntries.some(e => updateEntryNames.includes(e.name))) {
                     if (m == -1) {
                         menu.refreshNow();
-                    }
-                    else {
+                    } else {
                         menu.refresh();
                     }
-                }
-                else if (this.inChannelPage()) {
+                } else if (this.inChannelPage()) {
                     this.maybeRefreshChannelPage();
                 }
             }
@@ -812,12 +777,10 @@ class Manager extends ManagerEPG {
     noListsEntry() {
         if (config.get('communitary-mode-lists-amount') > 0) {
             return this.noListsRetryEntry();
-        }
-        else {
+        } else {
             if (this.addingList) {
                 return this.updatingListsEntry();
-            }
-            else {
+            } else {
                 return {
                     name: lang.NO_LISTS_ADDED,
                     fa: 'fas fa-plus-square',
@@ -872,38 +835,34 @@ class Manager extends ManagerEPG {
             question: lang[paths.ALLOW_ADDING_LISTS ? 'ASK_IPTV_LIST' : 'OPEN_URL'],
             placeholder: 'http://',
             fa: 'fas fa-plus-square',
+            defaultValue: this.inputMemory['url'] || '',
             extraOpts
         });
         console.log('lists.manager ' + id);
         if (!id) {
             return;
-        }
-        else if (id == 'file') {
-            return await this.addListDialogFile();
-        }
-        else if (id == 'code') {
-            return await this.addListCredentialsDialog();
-        }
-        else if (id == 'sh') {
-            let active = await this.communityModeDialog();
+        } else if (id == 'file') {
+            return await this.addListDialogFile()
+        } else if (id == 'code') {
+            return await this.addListCredentialsDialog()
+        } else if (id == 'sh') {
+            let active = await this.communityModeDialog()
             if (active) {
                 return true;
+            } else {
+                return await this.addListDialog(offerCommunityMode)
             }
-            else {
-                return await this.addListDialog(offerCommunityMode);
-            }
-        }
-        else if (id == 'mac') {
-            return await this.addListMacDialog();
-        }
-        else {
-            console.log('lists.manager.addList(' + id + ')');
-            return await this.addList(id);
+        } else if (id == 'mac') {
+            return await this.addListMacDialog()
+        } else {
+            console.log('lists.manager.addList(' + id + ')')
+            this.inputMemory['url'] = id
+            return await this.addList(id)
         }
     }
     async addListDialogFile() {
-        const file = await menu.chooseFile('audio/x-mpegurl');
-        return await this.addList(file);
+        const file = await menu.chooseFile('audio/x-mpegurl')
+        return await this.addList(file)
     }
     async communityModeDialog() {
         let choose = await menu.dialog([
@@ -925,6 +884,7 @@ class Manager extends ManagerEPG {
         let server = await menu.prompt({
             question: lang.PASTE_SERVER_ADDRESS,
             placeholder: 'http://host:port',
+            defaultValue: this.inputMemory['server'] || '',
             fa: 'fas fa-globe'
         });
         if (!server)
@@ -938,21 +898,24 @@ class Manager extends ManagerEPG {
         if (server.indexOf('username=') != -1) {
             return server;
         }
+        this.inputMemory['server'] = server
         const user = await menu.prompt({
             question: lang.USERNAME,
             placeholder: lang.USERNAME,
+            defaultValue: this.inputMemory['user'] || '',
             fa: 'fas fa-user'
         });
-        if (!user)
-            throw 'no user provided';
+        if (!user) throw 'no user provided'
+        this.inputMemory['user'] = user
         const pass = await menu.prompt({
             question: lang.PASSWORD,
             placeholder: lang.PASSWORD,
+            defaultValue: this.inputMemory['pass'] || '',
             fa: 'fas fa-key',
             isPassword: true
         });
-        if (!pass)
-            throw 'no pass provided';
+        if (!pass) throw 'no pass provided'
+        this.inputMemory['pass'] = pass
         osd.show(lang.PROCESSING, 'fa-mega spin-x-alt', 'add-list-pre', 'persistent');
         let url = await this.getM3UFromCredentials(server, user, pass).catch(console.error);
         if (typeof (url) != 'string') {
@@ -977,8 +940,7 @@ class Manager extends ManagerEPG {
         const url = await this.askListCredentials().catch(e => err = e);
         if (err) {
             data.askListCredentials = String(err);
-        }
-        else {
+        } else {
             data.askListCredentials = url;
             if (url.indexOf('#xtream') != -1) {
                 const xtr = new Xtr(url, true);
@@ -1007,7 +969,7 @@ class Manager extends ManagerEPG {
         }
         for (const mask of masks) {
             const url = mask.format(server, user, pass);
-            const ret = await Download.head({ url }).catch(() => { });
+            const ret = await Download.head({ url }).catch(() => {});
             if (ret && ret.statusCode == 200)
                 return url;
         }
@@ -1017,20 +979,24 @@ class Manager extends ManagerEPG {
         const macAddress = this.formatMacAddress(await menu.prompt({
             question: lang.MAC_ADDRESS,
             placeholder: '00:00:00:00:00:00',
-            fa: 'fas fa-hdd'
+            fa: 'fas fa-hdd',
+            defaultValue: this.inputMemory['mac'] || ''
         }));
         if (!macAddress || macAddress.length != 17)
             throw 'Invalid MAC address';
+        this.inputMemory['mac'] = macAddress
         let server = await menu.prompt({
             question: lang.PASTE_SERVER_ADDRESS,
             placeholder: 'http://host:port',
-            fa: 'fas fa-globe'
+            fa: 'fas fa-globe',
+            defaultValue: this.inputMemory['server'] || ''
         });
         if (!server)
             throw 'Invalid server provided';
         if (server.charAt(server.length - 1) == '/') {
             server = server.substr(0, server.length - 1);
         }
+        this.inputMemory['server'] = server
         let err;
         osd.show(lang.PROCESSING, 'fas fa-circle-notch fa-spin', 'add-list-mac', 'persistent');
         const url = await this.getM3UPlaylistForMac(macAddress, server).catch(e => err = e);
@@ -1065,7 +1031,7 @@ class Manager extends ManagerEPG {
         const res = ret.cmd.split('/');
         if (res.length >= 6) {
             const user = res[4], pass = res[5];
-            const list = await this.getM3UFromCredentials(server, user, pass).catch(() => { });
+            const list = await this.getM3UFromCredentials(server, user, pass).catch(() => {});
             if (typeof (list) == 'string' && list) {
                 return list;
             }
@@ -1106,12 +1072,10 @@ class Manager extends ManagerEPG {
                             if (meta.site) {
                                 contactUrl = meta.site;
                                 contactFa = 'fas fa-globe';
-                            }
-                            else if (meta.email) {
+                            } else if (meta.email) {
                                 contactUrl = 'mailto:' + meta.email;
                                 contactFa = 'fas fa-envelope';
-                            }
-                            else if (meta.phone) {
+                            } else if (meta.phone) {
                                 contactUrl = 'tel:+' + meta.phone.replace(new RegExp('[^0-9]+'), '');
                                 contactFa = 'fas fa-phone';
                             }
@@ -1126,8 +1090,7 @@ class Manager extends ManagerEPG {
                                             let path = menu.path, parentPath = menu.dirname(path);
                                             if (path.indexOf(name) != -1) {
                                                 path = path.replace('/' + name, '/' + v);
-                                            }
-                                            else {
+                                            } else {
                                                 path = false;
                                             }
                                             name = v;
@@ -1136,8 +1099,7 @@ class Manager extends ManagerEPG {
                                                 if (parentPath)
                                                     delete menu.pages[parentPath];
                                                 menu.open(path).catch(e => menu.displayErr(e));
-                                            }
-                                            else {
+                                            } else {
                                                 menu.back(null, true);
                                             }
                                         }
@@ -1180,8 +1142,7 @@ class Manager extends ManagerEPG {
                             }).catch(err => menu.displayErr(err));
                             if (!Array.isArray(es)) {
                                 es = [];
-                            }
-                            else if (es.length) {
+                            } else if (es.length) {
                                 es = this.master.parentalControl.filter(es);
                                 es = await this.master.tools.deepify(es, { source: url });
                             }
@@ -1210,8 +1171,8 @@ class Manager extends ManagerEPG {
         };
     }
     async refreshList(data) {
-        let updateErr;
-        await this.master.loader.reload(data.url).catch(e => updateErr = e);
+        let updateErr
+        await this.master.loader.reload(data.url).catch(e => updateErr = e)
         if (updateErr) {
             if (updateErr == 'empty list' || updateErr == 'empty index') {
                 let haserr, msg = updateErr;
@@ -1240,22 +1201,19 @@ class Manager extends ManagerEPG {
                             msg = 'Server temporary error: ' + ret.statusCode;
                             break;
                     }
-                }
-                else {
+                } else {
                     msg = haserr || 'Server offline error';
                 }
                 updateErr = msg;
             }
             menu.refreshNow();
             menu.displayErr(updateErr);
-        }
-        else {            
+        } else {            
             await this.master.loadList(data.url).catch(err => updateErr = err);
             menu.refreshNow();
             if (updateErr) {
                 menu.displayErr(updateErr);
-            }
-            else {
+            } else {
                 osd.show('OK', 'fas fa-check-circle faclr-green', 'refresh-list', 'normal');
                 return true; // return here, so osd will not hide
             }
@@ -1271,7 +1229,7 @@ class Manager extends ManagerEPG {
         try { // Ensure that we'll resume rendering
             this.remove(data.url);
         }
-        catch (e) { }
+        catch (e) {}
         osd.show(lang.LIST_REMOVED, 'fas fa-info-circle', 'list-open', 'normal');
         menu.resumeRendering();
         menu.back(null, true);
@@ -1314,8 +1272,7 @@ class Manager extends ManagerEPG {
                         menu.refreshNow(); // epg options path
                     }
                 });
-            }
-            else {
+            } else {
                 list.unshift({
                     type: 'action',
                     fa: 'fas fa-plus-square',
@@ -1362,12 +1319,10 @@ class Manager extends ManagerEPG {
                 if (meta.site) {
                     contactUrl = meta.site;
                     contactFa = 'fas fa-globe';
-                }
-                else if (meta.email) {
+                } else if (meta.email) {
                     contactUrl = 'mailto:' + meta.email;
                     contactFa = 'fas fa-envelope';
-                }
-                else if (meta.phone) {
+                } else if (meta.phone) {
                     contactUrl = 'tel:+' + meta.phone.replace(new RegExp('[^0-9]+'), '');
                     contactFa = 'fas fa-phone';
                 }
@@ -1379,10 +1334,8 @@ class Manager extends ManagerEPG {
                         id: 'contact',
                         fa: contactFa
                     });
-                }
-                else {
-                    const {default: promo} = await import('../promoter/promoter.js')
-                    offer = await promo.offer('dialog', ['communitary']).catch(console.error);
+                } else {
+                    offer = await global.promo.offer('dialog', ['communitary']).catch(console.error);
                     if (offer && offer.type == 'dialog') {
                         opts.push({
                             template: 'option',
@@ -1396,8 +1349,7 @@ class Manager extends ManagerEPG {
                 if (ret == 'contact') {
                     renderer.get().emit('open-external-url', contactUrl);
                 } else if (ret == 'offer') {
-                    const {default: promo} = await import('../promoter/promoter.js')
-                    await promo.dialogOffer(offer)
+                    await global.promo.dialogOffer(offer)
                 }
             }
         }
@@ -1412,8 +1364,7 @@ class Manager extends ManagerEPG {
                     lang.RECOMMENDED_FOR_YOU,
                     lang.CATEGORY_MOVIES_SERIES
                 ]);
-            }
-            else {
+            } else {
                 if (!entries.some(e => e.name == lang.OPEN_URL)) {
                     const entry = this.addListEntry();
                     entry.name = lang.OPEN_URL;
@@ -1422,11 +1373,9 @@ class Manager extends ManagerEPG {
                     entries.unshift(entry);
                 }
             }
-        }
-        else if (path == lang.TOOLS) {
+        } else if (path == lang.TOOLS) {
             entries.push(this.epgEntry());
-        }
-        else if (path.endsWith(lang.MANAGE_CHANNEL_LIST)) {
+        } else if (path.endsWith(lang.MANAGE_CHANNEL_LIST)) {
             const entry = this.addEPGEntry();
             entry.name = lang.EPG;
             entry.details = lang.ADD;

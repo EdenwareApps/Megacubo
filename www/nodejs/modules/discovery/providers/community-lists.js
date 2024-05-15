@@ -15,25 +15,27 @@ class CommunityLists extends EventEmitter {
     }
     async discovery(adder) {
         if (paths.ALLOW_COMMUNITY_LISTS) {
-            const timeoutMs = 30000;
-            const limit = pLimit(2);
+            const timeoutMs = 30000
+            const limit = pLimit(2)
             const parseUsersCount = s => parseInt(s.split(' ').shift().replace('.', ''));
             const solved = [], locs = await lang.getActiveCountries();
             await Promise.allSettled(locs.map((loc, i) => {
                 return async () => {
                     const scoreLimit = 1 - (i * (1 / locs.length));
-                    let maxUsersCount = -1, lists = await cloud.get('country-sources.' + loc, false, timeoutMs).catch(console.error);
-                    solved.push(loc);
-                    lists = lists.map(list => {
-                        const usersCount = parseUsersCount(list.label);
-                        if (maxUsersCount == -1) {
-                            maxUsersCount = usersCount;
-                        }
-                        list.type = 'community';
-                        list.health = scoreLimit * (usersCount / maxUsersCount);
-                        return list;
-                    });
-                    Array.isArray(lists) && adder(lists);
+                    let maxUsersCount = -1, lists = await cloud.get('country-sources.' + loc, {timeoutMs}).catch(console.error);
+                    solved.push(loc)
+                    if(Array.isArray(lists)) {
+                        lists = lists.map(list => {
+                            const usersCount = parseUsersCount(list.label);
+                            if (maxUsersCount == -1) {
+                                maxUsersCount = usersCount;
+                            }
+                            list.type = 'community';
+                            list.health = scoreLimit * (usersCount / maxUsersCount);
+                            return list;
+                        })
+                        adder(lists)
+                    }
                 };
             }).map(limit));
         }
@@ -87,8 +89,7 @@ class CommunityLists extends EventEmitter {
         if (!entries.length) {
             if (!this.master.lists.loaded()) {
                 entries = [this.master.lists.manager.updatingListsEntry()];
-            }
-            else {
+            } else {
                 entries = [this.master.lists.manager.noListsRetryEntry()];
             }
         }
@@ -113,8 +114,7 @@ class CommunityLists extends EventEmitter {
                                     { template: 'option', id: 'back', fa: 'fas fa-times-circle', text: lang.BACK },
                                     { template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: lang.I_AGREE }
                                 ], 'lists-manager', 'back', true);
-                            }
-                            else {
+                            } else {
                                 config.set('communitary-mode-lists-amount', 0);
                                 menu.refreshNow(); // epg options path
                             }

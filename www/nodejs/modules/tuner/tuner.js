@@ -1,16 +1,17 @@
 import { ucWords } from '../utils/utils.js'
 import { EventEmitter } from "events";
-import Streamer from "../streamer/streamer.js";
+import Streamer from "../streamer/base.js";
 import pLimit from "p-limit";
 import config from "../config/config.js"
 
-let sharedStreamerObject;
+let sharedStreamerShadowObject
 const streamer = () => {
-    if (!sharedStreamerObject) {
-        sharedStreamerObject = new Streamer({ shadow: true })
+    if (!sharedStreamerShadowObject) {
+        sharedStreamerShadowObject = new Streamer({ shadow: true })
     }
-    return sharedStreamerObject;
-};
+    return sharedStreamerShadowObject
+}
+
 class TunerUtils extends EventEmitter {
     constructor(entries, opts, name) {
         super();
@@ -30,8 +31,7 @@ class TunerUtils extends EventEmitter {
             Object.keys(opts).forEach((k) => {
                 if (['debug'].indexOf(k) == -1 && typeof (opts[k]) == 'function') {
                     this.on(k, opts[k]);
-                }
-                else {
+                } else {
                     this.opts[k] = opts[k];
                 }
             });
@@ -89,13 +89,11 @@ class TunerTask extends TunerUtils {
             this.states[i] = -1;
             console.error('Tuner err', err, i);
             throw err;
-        }
-        else {
+        } else {
             if (!Array.isArray(this.opts.allowedTypes) || this.opts.allowedTypes.includes(info.type)) {
                 this.states[i] = 2;
                 return info;
-            }
-            else {
+            } else {
                 let err = 'Tuner bad intent type: ' + info.type;
                 console.error(err, info, e);
                 this.states[i] = -1;
@@ -120,8 +118,7 @@ class TunerTask extends TunerUtils {
                 if (!busy.includes(d)) {
                     busy.push(d);
                 }
-            }
-            else {
+            } else {
                 if (this.domainDelay[d] && this.domainDelay[d] > (Date.now() / 1000) && !busy.includes(d)) {
                     busy.push(d);
                 }
@@ -152,8 +149,7 @@ class TunerTask extends TunerUtils {
                     this.removeListener('destroy', updateListener);
                     this.results[ret] = 0; // ticket taken
                     resolve(ret);
-                }
-                else {
+                } else {
                     timer = setTimeout(updateListener, 5000); // busyDomains logic makes timer required yet
                 }
             };
@@ -186,8 +182,7 @@ class TunerTask extends TunerUtils {
             }
             this.errors[i] = err;
             this.results[i] = -1;
-        }
-        else {
+        } else {
             if (this.opts.debug) {
                 console.log('Tuner suc', i, ret);
             }
@@ -229,12 +224,10 @@ class TunerTask extends TunerUtils {
                 this.started = false;
                 this.finished = false;
                 this.start();
-            }
-            else {
+            } else {
                 if (this.started) {
                     this.emit('resume');
-                }
-                else {
+                } else {
                     this.start();
                 }
             }

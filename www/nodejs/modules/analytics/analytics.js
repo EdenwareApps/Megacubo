@@ -79,8 +79,7 @@ class AnalyticsBase extends EventEmitter {
     prepareEntry(entry) {
         if (!entry || typeof (entry) != 'object') {
             return {};
-        }
-        else {
+        } else {
             return Object.assign({}, entry);
         }
     }

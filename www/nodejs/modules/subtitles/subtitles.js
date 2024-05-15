@@ -1,6 +1,5 @@
 import Download from '../download/download.js'
 import { prepareCORS } from "../utils/utils.js";
-import menu from '../menu/menu.js'
 import lang from "../lang/lang.js";
 import storage from '../storage/storage.js'
 import { EventEmitter } from "events";
@@ -27,8 +26,7 @@ class Subtitles extends EventEmitter {
                 return this.once('ready', () => {
                     if (this.token) {
                         resolve();
-                    }
-                    else {
+                    } else {
                         reject('Could not get Opensubtitles token.');
                     }
                 });
@@ -65,7 +63,7 @@ class Subtitles extends EventEmitter {
         let extraOpts = [];
         extraOpts.push({ template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle' });
         extraOpts.push({ template: 'option', text: lang.REGISTER, id: 'register', fa: 'fas fa-plus' });
-        let username = await menu.prompt({
+        let username = await global.menu.prompt({
             question: lang.OPENSUBTITLES_REGISTER.format(lang.REGISTER),
             fa: 'fas fa-user',
             text: 'text',
@@ -75,7 +73,7 @@ class Subtitles extends EventEmitter {
         });
         if (!user)
             throw 'No username provided';
-        const password = await menu.prompt({
+        const password = await global.menu.prompt({
             question: lang.PASSWORD,
             placeholder: lang.PASSWORD,
             fa: 'fas fa-key',
@@ -87,7 +85,7 @@ class Subtitles extends EventEmitter {
         let err;
         await this.login(username, password).catch(e => err = e);
         if (err) {
-            menu.displayErr(err);
+            global.menu.displayErr(err);
             return await this.askCredentials(username, password);
         }
         config.set('os-username', username);
@@ -160,8 +158,7 @@ class Subtitles extends EventEmitter {
         const matched = lang.languageHint.match(new RegExp(lang.locale + '\-[A-Z]{2}'));
         if (matched && matched.length) {
             langCode = matched[0];
-        }
-        else {
+        } else {
             langCode = lang.locale + '-' + lang.countryCode;
         }
         return langCode.toLowerCase() + ',' + lang.locale;

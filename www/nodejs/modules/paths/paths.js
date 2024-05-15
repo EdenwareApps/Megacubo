@@ -6,7 +6,6 @@ import { getDirname, getFilename } from 'cross-dirname'
 import { workerData } from 'worker_threads'
 import { createRequire } from 'module';
 
-
 const paths = {}
 paths.inWorker = workerData && Object.keys(workerData).length
 if(paths.inWorker) {
@@ -18,7 +17,6 @@ if(paths.inWorker) {
     } else {
         paths.android = false
     }
-
     const forwardSlashes = path => path.replace(new RegExp('\\\\', 'g'), '/');
     const checkDirWritePermissionSync = dir => {
         let fine;
@@ -50,31 +48,27 @@ if(paths.inWorker) {
         const data = paths.android.getDataPath();
         const temp = data.indexOf('files') != -1 ? data.replace('files', 'cache') : { tmpdir }.tmpdir();
         Object.assign(paths, { data, temp });
-    }
-    else {
+    } else {
         if (fs.existsSync(paths.cwd + '/.portable') && checkDirWritePermissionSync(paths.cwd + '/.portable')) {
             Object.assign(paths, { data: paths.cwd + '/.portable/Data', temp: paths.cwd + '/.portable/temp' });
-        }
-        else {
+        } else {
             Object.assign(paths, envPaths(paths.manifest.window.title, { suffix: '' }));
         }
     }
     Object.keys(paths).forEach(type => {
         if (typeof (paths[type]) != 'string')
-            return;
-        paths[type] = forwardSlashes(paths[type]);
+            return
+        paths[type] = forwardSlashes(paths[type])
         if (paths[type].endsWith('/')) {
-            paths[type] = paths[type].substr(0, paths[type].length - 1);
+            paths[type] = paths[type].substr(0, paths[type].length - 1)
         }
         console.log('DEFAULT PATH ' + type + '=' + paths[type] + ' ' + paths.inWorker + ' :: ' + !!paths.android);
         if (!fs.existsSync(paths[type])) {
             try {
-                fs.mkdirSync(paths[type], { recursive: true });
-            }
-            catch (e) { }
+                fs.mkdirSync(paths[type], { recursive: true })
+            } catch (e) {}
         }
     })
-
     paths.ALLOW_ADDING_LISTS = fs.existsSync(paths.cwd + '/ALLOW_ADDING_LISTS.md')
     paths.ALLOW_COMMUNITY_LISTS = paths.ALLOW_ADDING_LISTS && fs.existsSync(paths.cwd + '/ALLOW_COMMUNITY.md')
 }

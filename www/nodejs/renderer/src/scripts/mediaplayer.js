@@ -228,7 +228,7 @@ class MediaPlayer extends EventEmitter {
 					try { // a.disconnect() is not a function
 						a.disconnect()
 						a.unload()
-					} catch(e) { }
+					} catch(e) {}
 					return
 				}
 				if(this.clearErrTimer){

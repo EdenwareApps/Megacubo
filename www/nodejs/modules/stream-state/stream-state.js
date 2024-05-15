@@ -7,7 +7,6 @@ import Tuner from "../tuner/tuner.js";
 import config from "../config/config.js"
 import renderer from '../bridge/bridge.js'
 import storage from '../storage/storage.js'
-import menu from '../menu/menu.js'
 
 class StreamState extends EventEmitter {
     constructor(master) {
@@ -26,12 +25,12 @@ class StreamState extends EventEmitter {
                 Object.assign(this.data, data);
                 this.sync();
             }
-        }).catch(e => menu.displayErr(e))
+        }).catch(e => global.menu.displayErr(e))
         renderer.ready(() => {
             this.streamer.on('connecting', () => this.cancelTests());
             this.streamer.on('connecting-failure', data => {
                 data && this.set(data.url, 'offline', true, { source: data.source });
-                this.test(menu.currentStreamEntries()).catch(console.error);
+                this.test(global.menu.currentStreamEntries()).catch(console.error);
             });
             this.streamer.on('commit', intent => {
                 const url = intent.data.url;
@@ -52,12 +51,12 @@ class StreamState extends EventEmitter {
             this.streamer.on('stop', (err, e) => {
                 setTimeout(() => {
                     if (!this.streamer.active) {
-                        this.test(menu.currentStreamEntries()).catch(console.error);
+                        this.test(global.menu.currentStreamEntries()).catch(console.error);
                     }
                 }, 500);
             });
-            menu.on('open', () => this.cancelTests());
-            menu.on('render', entries => {
+            global.menu.on('open', () => this.cancelTests());
+            global.menu.on('render', entries => {
                 this.cancelTests();
                 if (entries.some(e => this.supports(e))) {
                     this.test(entries).catch(console.error);
@@ -67,8 +66,7 @@ class StreamState extends EventEmitter {
                 let state;
                 if (this.streamer.active && url == this.streamer.active.data.url) {
                     state = this.streamer.active.type;
-                }
-                else if (typeof (this.data[url]) != 'undefined') {
+                } else if (typeof (this.data[url]) != 'undefined') {
                     state = this.data[url].state;
                 }
                 if (typeof (state) != 'undefined') {
@@ -95,12 +93,12 @@ class StreamState extends EventEmitter {
     }
     get(url) {
         if (typeof (this.clientFailures[url]) != 'undefined' && this.clientFailures[url] === true) {
-            return false;
+            return false
         }
         if (typeof (this.data) == 'object' && typeof (this.data[url]) == 'object' && this.data[url] && typeof (this.data[url].time) != 'undefined' && (Date.now() / 1000) < (this.data[url].time + this.ttl)) {
-            return this.data[url].state;
+            return this.data[url].state
         }
-        return null;
+        return null
     }
     set(url, state, isTrusted, atts) {
         if (typeof (this.data) == 'object') {
@@ -129,8 +127,7 @@ class StreamState extends EventEmitter {
                             this.data[url][k] = atts[k];
                             changed = true;
                         }
-                    }
-                    else if (atts[k] != this.data[url][k]) {
+                    } else if (atts[k] != this.data[url][k]) {
                         this.data[url][k] = atts[k];
                         changed = true;
                     }
@@ -141,8 +138,7 @@ class StreamState extends EventEmitter {
                             this.clientFailures[url] = true;
                             changed = true;
                         }
-                    }
-                    else {
+                    } else {
                         if (typeof (this.clientFailures[url]) != 'undefined') {
                             delete this.clientFailures[url];
                             changed = true;
@@ -191,8 +187,7 @@ class StreamState extends EventEmitter {
                 clearTimeout(this.saveTimer);
             }
             this.saveTimer = setTimeout(() => this.saveAsync(), delay);
-        }
-        else { // save now
+        } else { // save now
             const now = (Date.now() / 1000);
             this.lastSaveTime = now;
             this.trim();
@@ -205,12 +200,10 @@ class StreamState extends EventEmitter {
             const now = (Date.now() / 1000);
             if (!this.lastSaveTime || (this.lastSaveTime + this.minSaveIntervalSecs) <= now) {
                 return 0;
-            }
-            else {
+            } else {
                 return (this.lastSaveTime + this.minSaveIntervalSecs) - now;
             }
-        }
-        else {
+        } else {
             return this.minSaveIntervalSecs;
         }
     }
@@ -221,8 +214,7 @@ class StreamState extends EventEmitter {
         let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'));
         if (m && m.length > 1 && (m[1].length == 1 || m[1].toLowerCase() == 'file')) { // drive letter or file protocol
             return true;
-        }
-        else {
+        } else {
             if (file.length >= 2 && file.startsWith('/') && file.charAt(1) != '/') { // unix path
                 return true;
             }
@@ -260,8 +252,7 @@ class StreamState extends EventEmitter {
                             s = 'folder';
                         }
                         syncData[e.url] = s;
-                    }
-                    else {
+                    } else {
                         let state = this.get(e.url);
                         if (typeof (this.clientFailures[e.url]) != 'undefined') {
                             state = 'offline';
@@ -273,14 +264,12 @@ class StreamState extends EventEmitter {
                                 if (data && this.isWatched(data)) {
                                     syncData[e.url] += ',watched';
                                 }
-                            }
-                            else {
+                            } else {
                                 if (manuallyTesting || autoTesting) { // if did it failed previously, move to end of queue to try again after the untested ones
                                     syncData[e.url] = 'waiting';
                                     this.waiting[e.url] = true;
                                     retest.push(e);
-                                }
-                                else {
+                                } else {
                                     syncData[e.url] = state || '';
                                     this.waiting[e.url] = false;
                                 }
@@ -364,8 +353,7 @@ class StreamState extends EventEmitter {
                 data = this.data[data.url];
                 if (!data || !data.position || !data.duration)
                     return;
-            }
-            else {
+            } else {
                 return;
             }
         }

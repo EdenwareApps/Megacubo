@@ -13,7 +13,6 @@ import Bookmarks from "../bookmarks/bookmarks.js";
 import fs from "fs";
 import downloads from "../downloads/downloads.js";
 import icons from '../icon-server/icon-server.js';
-import lists from '../lists/lists.js';
 import config from "../config/config.js"
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
@@ -66,25 +65,24 @@ class ChannelsList extends EventEmitter {
         }
         this.loaded = true
         this.emit('loaded', changed)
-        renderer.ready(() => menu.updateHomeFilters())
     }
     async reset() {
-        delete this.categories;
-        await storage.delete(this.key).catch(console.error);
-        config.set('channel-grid', '');
+        delete this.categories
+        await storage.delete(this.key).catch(console.error)
+        config.set('channel-grid', '')
         await this.load(true)
     }
     async getAdultCategories() {
-        return await cloud.get('channels/adult');
+        return await cloud.get('channels/adult')
     }
     async getEPGCategories() {
-        const data = await lists.epgLiveNowChannelsList();
-        return data.categories;
+        const data = await global.lists.epgLiveNowChannelsList()
+        return data.categories
     }
     async getPublicListsCategories() {
         const ret = {};
-        await lists.discovery.ready();
-        const groups = await lists.discovery.providers.find(p => p[1] == 'public')[0].entries(true, true);
+        await global.lists.discovery.ready();
+        const groups = await global.lists.discovery.providers.find(p => p[1] == 'public')[0].entries(true, true);
         for (const group of groups) {
             if (!group.renderer)
                 continue;
@@ -96,16 +94,15 @@ class ChannelsList extends EventEmitter {
         return ret;
     }
     async getListsCategories() {
-        const ret = {};
-        
-        const groups = await lists.groups(['live'], true);
+        const ret = {}        
+        const groups = await global.lists.groups(['live'], true);
         for (const group of groups) {
-            const entries = await lists.group(group).catch(console.error);
+            const entries = await global.lists.group(group).catch(console.error);
             if (Array.isArray(entries)) {
                 let es = entries.map(e => {
                     return e.name.split(' ').filter(w => {
-                        return w && !lists.stopWords.includes(w.toLowerCase());
-                    }).join(' ');
+                        return w && !global.lists.tools.stopWords.includes(w.toLowerCase());
+                    }).join(' ')
                 }).unique();
                 if (es.length)
                     ret[group.name] = es;
@@ -114,11 +111,10 @@ class ChannelsList extends EventEmitter {
         return ret;
     }
     async getAppRecommendedCategories(amount = 256) {
-        let data = {};
-        
+        let data = {}        
         const completed = c => {
             return this.mapSize(data) >= amount;
-        };
+        }
         for (const country of this.countries) {
             let err;
             const isMainCountry = this.countries[0] == country;
@@ -129,7 +125,7 @@ class ChannelsList extends EventEmitter {
                 continue;
             data = await this.applyMapCategories(map, data, amount, !isMainCountry);
         }
-        return data;
+        return data
     }
     updateChannelsIndex(refresh) {
         if (refresh === true || !this.channelsIndex || !Object.keys(this.channelsIndex).length) {
@@ -201,23 +197,20 @@ class ChannelsList extends EventEmitter {
         }
         return name;
     }
-    expandName(name) {
-        
-        let terms;
+    expandName(name) {        
+        let terms
         if (name.indexOf(',') != -1) {
             terms = name.split(',').map(s => s = s.trim());
             name = terms.shift();
             if (!terms.length) {
                 terms = name;
-            }
-            else {
+            } else {
                 terms = terms.join(' ');
             }
-        }
-        else {
+        } else {
             terms = name;
         }
-        terms = lists.tools.terms(terms);
+        terms = global.lists.tools.terms(terms);
         return { name, terms: { name: terms, group: [] } };
     }
     compact(data, withTerms) {
@@ -275,19 +268,18 @@ class ChannelsData extends EventEmitter {
             type: 'action',
             fa: 'fas fa-info-circle',
             class: 'entry-empty'
-        };
-        config.on('change', async (keys, data) => {
-            if (['parental-control', 'parental-control-terms', 'lists'].some(k => keys.includes(k))) {
-                await this.load(true);
-            }
-        })
-        this.radioTerms = ['radio', 'fm', 'am'];
-        this.load().catch(console.error)
-        lists.on('list-loaded', () => this.load().catch(console.error))
+        }
+        this.radioTerms = ['radio', 'fm', 'am']
         renderer.ready(async () => {
-            const {default: streamer} = await import('../streamer/main.js')
-            this.streamer = streamer
-            this.emit('streamer', streamer)
+            this.load().catch(console.error)
+            config.on('change', async (keys, data) => {
+                if (['parental-control', 'parental-control-terms', 'lists'].some(k => keys.includes(k))) {
+                    await this.load(true);
+                }
+            })
+            global.lists.on('list-loaded', () => this.load().catch(console.error))
+            global.lists.on('satisfied', () => this.load().catch(console.error))
+            this.emit('streamer', global.streamer)
         })
     }
     ready(cb) {
@@ -299,7 +291,7 @@ class ChannelsData extends EventEmitter {
     }
     async load(refresh) {
         const hasOwnLists = config.get('lists').length
-        const publicMode = config.get('public-lists') && !lists.loaded(true) // no list available on index beyound public lists
+        const publicMode = config.get('public-lists') && !global.lists.loaded(true) // no list available on index beyound public lists
         const countries = await lang.getActiveCountries(0)
         const parentalControlActive = ['remove', 'block'].includes(config.get('parental-control'))
         let type = config.get('channel-grid'), typeChanged
@@ -316,7 +308,8 @@ class ChannelsData extends EventEmitter {
         const changed = await this.channelList.load(refresh)
         this.loaded = true
         this.emit('loaded', changed)
-        typeChanged && await this.watching.update()
+        typeChanged && await this.watching.update().catch(console.error)
+        (typeChanged || changed) && renderer.ready(() => menu.updateHomeFilters())
     }
 }
 class ChannelsEPG extends ChannelsData {
@@ -338,8 +331,7 @@ class ChannelsEPG extends ChannelsData {
                 return ks.map((k, i) => {
                     if (i == 0) {
                         return { template: 'question', text: ret[k] };
-                    }
-                    else {
+                    } else {
                         return { template: 'message', text: k + ': ' + ret[k] };
                     }
                 });
@@ -355,11 +347,9 @@ class ChannelsEPG extends ChannelsData {
                 const category = this.getChannelCategory(name);
                 if (!global.activeEPG) {
                     menu.displayErr(lang.EPG_DISABLED);
-                }
-                else if (!this.loadedEPG) {
+                } else if (!this.loadedEPG) {
                     menu.displayErr(lang.EPG_AVAILABLE_SOON);
-                }
-                else if (category) {
+                } else if (category) {
                     let err;
                     await this.epgChannelLiveNow(data).catch(e => {
                         err = e;
@@ -370,8 +360,7 @@ class ChannelsEPG extends ChannelsData {
                         menu.render(entries, lang.EPG, 'fas fa-plus', '/');
                         renderer.get().emit('menu-playing');
                     }
-                }
-                else {
+                } else {
                     menu.displayErr(lang.CHANNEL_EPG_NOT_FOUND);
                 }
             }, null, true)
@@ -414,13 +403,13 @@ class ChannelsEPG extends ChannelsData {
         return new Promise((resolve, reject) => {
             
             if (typeof (terms) == 'string') {
-                terms = lists.tools.terms(terms);
+                terms = global.lists.tools.terms(terms);
             }
-            lists.epgSearch(terms, liveNow).then(epgData => {
+            global.lists.epgSearch(terms, liveNow).then(epgData => {
                 let entries = [];
                 console.warn('epgSearch', epgData);
                 Object.keys(epgData).forEach(ch => {
-                    let terms = lists.tools.terms(ch);
+                    let terms = global.lists.tools.terms(ch);
                     entries.push(...this.epgDataToEntries(epgData[ch], ch, terms));
                 });
                 entries = entries.sort((a, b) => {
@@ -467,7 +456,7 @@ class ChannelsEPG extends ChannelsData {
         if (typeof (limit) != 'number')
             limit = 72;
         let data = this.epgPrepareSearch(e);
-        return await lists.epg(data, limit);
+        return await global.lists.epg(data, limit);
     }
     async epgChannelEntries(e, limit, detached) {
         
@@ -475,7 +464,7 @@ class ChannelsEPG extends ChannelsData {
             limit = 72;
         }
         let data = this.epgPrepareSearch(e);
-        const epgData = await lists.epg(data, limit);
+        const epgData = await global.lists.epg(data, limit);
         let centries = [];
         if (epgData) {
             if (typeof (epgData[0]) != 'string') {
@@ -493,12 +482,11 @@ class ChannelsEPG extends ChannelsData {
             throw 'epg not loaded';
         
         let channel = this.epgPrepareSearch(entry);
-        let epgData = await lists.epg(channel, 1);
+        let epgData = await global.lists.epg(channel, 1);
         let ret = Object.values(epgData).shift();
         if (ret) {
             return ret.t;
-        }
-        else {
+        } else {
             throw 'not found 2';
         }
     }
@@ -512,7 +500,7 @@ class ChannelsEPG extends ChannelsData {
             throw 'epg not loaded';
         
         let channel = this.epgPrepareSearch(entry);
-        let epgData = await lists.epg(channel, 2);
+        let epgData = await global.lists.epg(channel, 2);
         if (typeof (epgData) == 'string') {
             throw 'epg is loading';
         }
@@ -531,8 +519,7 @@ class ChannelsEPG extends ChannelsData {
                 ret[start] = next;
             }
             return ret;
-        }
-        else {
+        } else {
             throw 'not found 2';
         }
     }
@@ -541,7 +528,7 @@ class ChannelsEPG extends ChannelsData {
             throw 'epg not loaded';
         
         let chs = entries.map(e => this.epgPrepareSearch(e));
-        let epgData = await lists.epg(chs, 1);
+        let epgData = await global.lists.epg(chs, 1);
         let ret = {};
         Object.keys(epgData).forEach(ch => {
             ret[ch] = epgData[ch] ? Object.values(epgData[ch]).shift() : false;
@@ -561,8 +548,7 @@ class ChannelsEPG extends ChannelsData {
                     if (typeof (epg[e.name]) != 'undefined' && epg[e.name].t) {
                         if (entries[i].details) {
                             entries[i].details += ' &middot; ' + epg[e.name].t;
-                        }
-                        else {
+                        } else {
                             entries[i].details = epg[e.name].t;
                         }
                         entries[i].programme = epg[e.name];
@@ -584,7 +570,7 @@ class ChannelsEPG extends ChannelsData {
     }
     async adjustEPGChannelEntryRenderer(e, detached) {        
         const terms = this.entryTerms(e).filter(t => !t.startsWith('-'));
-        const options = [], results = await lists.epgSearchChannel(terms, 99);
+        const options = [], results = await global.lists.epgSearchChannel(terms, 99);
         //console.log('adjustEPGChannelEntryRenderer', e, terms, results)
         Object.keys(results).forEach(name => {
             let keys = Object.keys(results[name]);
@@ -605,15 +591,13 @@ class ChannelsEPG extends ChannelsData {
                     let map = config.get('epg-map') || {};
                     if (e.name != name) {
                         map[e.name] = name;
-                    }
-                    else if (map[e.name]) {
+                    } else if (map[e.name]) {
                         delete map[e.name];
                     }
                     config.set('epg-map', map);
                     if (detached) {                        
-                        this.streamer.aboutTrigger('epg-more').catch(console.error);
-                    }
-                    else {
+                        global.streamer.aboutTrigger('epg-more').catch(console.error);
+                    } else {
                         menu.back(null, true);
                     }
                 }
@@ -647,10 +631,9 @@ class ChannelsEPG extends ChannelsData {
                 { template: 'message', text },
                 { template: 'option', id: 'ok', fa: 'fas fa-check-circle', text: 'OK' }
             ], 'ok').catch(console.error);
-        }
-        else if (start <= (now + 300)) { // if it will start in less than 5 min, open it anyway            
+        } else if (start <= (now + 300)) { // if it will start in less than 5 min, open it anyway            
             let url = mega.build(ch, { terms });
-            this.streamer.play({
+            global.streamer.play({
                 name: ch,
                 type: 'stream',
                 fa: 'fas fa-play-circle',
@@ -658,8 +641,7 @@ class ChannelsEPG extends ChannelsData {
                 url,
                 terms: { name: terms, group: [] }
             });
-        }
-        else {
+        } else {
             let text = lang.START_DATE + ': ' + moment(start * 1000).format('L LT');
             if (programme.c && programme.c.length) {
                 text += '<br />' + lang.CATEGORIES + ': ' + programme.c.join(', ');
@@ -798,7 +780,7 @@ class ChannelsEditing extends ChannelsEPG {
                                 this.channelList.channelsIndex = null;
                                 this.channelList.categories[category][i] = this.channelList.compactName(name, val);
                                 this.emit('edited', 'searchTerms', e, val);
-                                e.terms = o.terms = { name: lists.tools.terms(val), group: [] };
+                                e.terms = o.terms = { name: global.lists.tools.terms(val), group: [] };
                                 await this.channelList.save();
                                 menu.refreshNow();
                             }
@@ -949,7 +931,7 @@ class ChannelsAutoWatchNow extends ChannelsEditing {
 }
 class ChannelsKids extends ChannelsAutoWatchNow {
     constructor() {
-        super();
+        super()
         renderer.ready(() => {
             menu.addFilter(async (entries, path) => {
                 const term = lang.CATEGORY_KIDS; // lang can change in runtime, check the term here so
@@ -961,8 +943,7 @@ class ChannelsKids extends ChannelsAutoWatchNow {
                         }
                         return e;
                     });
-                }
-                else if ([lang.LIVE, lang.CATEGORY_MOVIES_SERIES].includes(path)) {
+                } else if ([lang.LIVE, lang.CATEGORY_MOVIES_SERIES].includes(path)) {
                     entries = entries.map(e => {
                         if ((e.rawname || e.name).indexOf('[') == -1 && e.name == term) {
                             e.rawname = '[fun]' + e.name + '[|fun]';
@@ -985,8 +966,8 @@ class Channels extends ChannelsKids {
     }
     async goChannelWebsite(name) {
         if (!name) {            
-            if (this.streamer.active) {
-                name = this.streamer.active.data.originalName || this.streamer.active.data.name
+            if (global.streamer.active) {
+                name = global.streamer.active.data.originalName || global.streamer.active.data.name
             } else {
                 return false
             }
@@ -1019,8 +1000,7 @@ class Channels extends ChannelsKids {
                 if (n == name) {
                     ct = c;
                     sure = true;
-                }
-                else if (n.substr(0, name.length) == name) {
+                } else if (n.substr(0, name.length) == name) {
                     ct = c;
                 }
                 return sure;
@@ -1030,7 +1010,7 @@ class Channels extends ChannelsKids {
     }
     cmatch(needleTerms, stackTerms) {
         // partial=true will match "starts with" terms too
-        // the difference from lists.tools.match() is that cmatch will check partials from stackTerms instead
+        // the difference from global.lists.tools.match() is that cmatch will check partials from stackTerms instead
         //console.log(needleTerms, stackTerms)
         if (needleTerms.includes('|')) {
             let needles = needleTerms.join(' ').split('|').map(s => s.trim()).filter(s => s).map(s => s.split(' '));
@@ -1050,8 +1030,7 @@ class Channels extends ChannelsKids {
                     if (stackTerms.includes(t.substr(1))) {
                         return true;
                     }
-                }
-                else {
+                } else {
                     nTerms.push(t);
                 }
             }) || stackTerms.some(t => {
@@ -1059,8 +1038,7 @@ class Channels extends ChannelsKids {
                     if (needleTerms.includes(t.substr(1))) {
                         return true;
                     }
-                }
-                else {
+                } else {
                     sTerms.push(t);
                 }
             });
@@ -1076,8 +1054,7 @@ class Channels extends ChannelsKids {
                             score++;
                             return true;
                         }
-                    }
-                    else if (term.length > strm.length && strm == term.substr(0, strm.length)) {
+                    } else if (term.length > strm.length && strm == term.substr(0, strm.length)) {
                         score++;
                         return true;
                     }
@@ -1087,41 +1064,36 @@ class Channels extends ChannelsKids {
                 if (score == sTerms.length) { // all search terms are present
                     if (score == nTerms.length) { // terms are equal
                         return 3;
-                    }
-                    else {
+                    } else {
                         return 2;
                     }
-                }
-                else if (sTerms.length >= 3 && score == (sTerms.length - 1)) {
+                } else if (sTerms.length >= 3 && score == (sTerms.length - 1)) {
                     return 1;
                 }
             }
         }
         return 0;
     }
-    isChannel(terms) {
-        
+    isChannel(terms) {        
         let tms, tmsKey, chs = this.channelList.channelsIndex || {};
         if (Array.isArray(terms)) {
             tms = terms;
             tmsKey = tms.join(' ');
             if (this.channelList.isChannelCache[tmsKey])
                 return this.channelList.isChannelCache[tmsKey];
-        }
-        else {
+        } else {
             tmsKey = terms;
             if (this.channelList.isChannelCache[tmsKey])
                 return this.channelList.isChannelCache[tmsKey]; // before terms()
             if (typeof (chs[terms]) != 'undefined') {
                 tms = chs[terms];
-            }
-            else {
-                tms = lists.tools.terms(terms);
+            } else {
+                tms = global.lists.tools.terms(terms);
             }
         }
         let chosen, chosenScore = -1;
         Object.keys(chs).forEach(name => {
-            let score = lists.tools.match(chs[name], tms, false);
+            let score = global.lists.tools.match(chs[name], tms, false);
             if (score) {
                 if (score > chosenScore) {
                     chosen = name;
@@ -1135,7 +1107,7 @@ class Channels extends ChannelsKids {
                 Object.keys(chs).forEach(name => {
                     if (name == chosen)
                         return;
-                    let score = lists.tools.match(chTerms, chs[name], false);
+                    let score = global.lists.tools.match(chTerms, chs[name], false);
                     if (score) {
                         alts[name] = chs[name];
                     }
@@ -1169,7 +1141,7 @@ class Channels extends ChannelsKids {
     expandTerms(terms) {
         if (typeof (terms) == 'string') {
             
-            terms = lists.tools.terms(terms);
+            terms = global.lists.tools.terms(terms);
         }
         let ch = this.isChannel(terms);
         if (ch) {
@@ -1180,11 +1152,11 @@ class Channels extends ChannelsKids {
     async get(terms) {
         
         if (typeof (terms) == 'string') {
-            terms = lists.tools.terms(terms);
+            terms = global.lists.tools.terms(terms);
         }
         console.warn('channels.get', terms);
-        let ret = await lists.search(terms, {
-            safe: !lists.parentalControl.lazyAuth(),
+        let ret = await global.lists.search(terms, {
+            safe: !global.lists.parentalControl.lazyAuth(),
             type: 'live',
             limit: 1024
         });
@@ -1194,12 +1166,11 @@ class Channels extends ChannelsKids {
     }
     searchChannels(terms, partial) {
         return new Promise((resolve, reject) => {
-            if (typeof (terms) == 'string') {
-                
-                terms = lists.tools.terms(terms);
+            if (typeof (terms) == 'string') {                
+                terms = global.lists.tools.terms(terms)
             }
             let epgEntries = [], entries = [], already = {};
-            let matchAll = !terms.length || (terms.length == 1 && terms[0] == '*');
+            let matchAll = !terms.length || (terms.length == 1 && terms[0] == '*')
             Object.keys(this.channelList.channelsIndex).sort().forEach(name => {
                 if (typeof (already[name]) == 'undefined') {
                     let score = matchAll ? 1 : this.cmatch(this.channelList.channelsIndex[name], terms, partial);
@@ -1239,16 +1210,13 @@ class Channels extends ChannelsKids {
         
         let terms;
         if (e.originalName) {
-            terms = lists.tools.terms(e.originalName);
-        }
-        else if (Array.isArray(e.terms) && e.terms.length) {
+            terms = global.lists.tools.terms(e.originalName);
+        } else if (Array.isArray(e.terms) && e.terms.length) {
             terms = e.terms;
-        }
-        else if (typeof (e.terms) != 'undefined' && typeof (e.terms.name) != 'undefined' && Array.isArray(e.terms.name) && e.terms.name.length) {
+        } else if (typeof (e.terms) != 'undefined' && typeof (e.terms.name) != 'undefined' && Array.isArray(e.terms.name) && e.terms.name.length) {
             terms = e.terms.name;
-        }
-        else {
-            terms = lists.tools.terms(e.programme ? e.programme.ch : e.name);
+        } else {
+            terms = global.lists.tools.terms(e.programme ? e.programme.ch : e.name);
         }
         return this.expandTerms(terms);
     }
@@ -1256,19 +1224,15 @@ class Channels extends ChannelsKids {
         let category, channelName = e.originalName || (e.programme ? e.programme.ch : e.name);
         if (_category === false) {
             category = false;
-        }
-        else if (_category && typeof (_category) == 'string') {
+        } else if (_category && typeof (_category) == 'string') {
             category = _category;
-        }
-        else if (_category && typeof (_category) == 'object') {
+        } else if (_category && typeof (_category) == 'object') {
             category = _category.name;
-        }
-        else {
+        } else {
             let c = this.getChannelCategory(e.originalName || e.name);
             if (c) {
                 category = c;
-            }
-            else {
+            } else {
                 category = false;
             }
         }
@@ -1292,17 +1256,15 @@ class Channels extends ChannelsKids {
         });
         if (autoplay) {
             if (streams.length) {                
-                this.streamer.play(e, streams);
+                global.streamer.play(e, streams);
                 return -1;
-            }
-            else {
+            } else {
                 throw lang.NONE_STREAM_FOUND;
             }
-        }
-        else {
+        } else {
             
             if (streams.length) {
-                let call = lists.mi.isRadio(channelName + ' ' + category) ? lang.LISTEN_NOW : lang.WATCH_NOW;
+                let call = global.lists.mi.isRadio(channelName + ' ' + category) ? lang.LISTEN_NOW : lang.WATCH_NOW;
                 entries.push({
                     name: call,
                     type: 'action',
@@ -1311,7 +1273,7 @@ class Channels extends ChannelsKids {
                     group: category,
                     action: data => {                        
                         data.name = e.name;
-                        this.streamer.play(data, streams);
+                        global.streamer.play(data, streams);
                         this.watchNowAuto = menu.path;
                     }
                 });
@@ -1329,12 +1291,11 @@ class Channels extends ChannelsKids {
                         renderer: this.epgChannelEntries.bind(this, e)
                     };
                 }
-            }
-            else {
-                const name = lists.loaded(true) ? lang.NONE_STREAM_FOUND : lang.NO_LISTS_ADDED;
+            } else {
+                const name = global.lists.loaded(true) ? lang.NONE_STREAM_FOUND : lang.NO_LISTS_ADDED;
                 entries.push(Object.assign(this.emptyEntry, { name }));
-                if (lists.activeLists.my.length) {
-                    lists.manager.checkListExpiral(lists.activeLists.my.map(source => ({ source }))).catch(console.error);
+                if (global.lists.activeLists.my.length) {
+                    global.lists.manager.checkListExpiral(global.lists.activeLists.my.map(source => ({ source }))).catch(console.error);
                 }
             }
         }
@@ -1351,8 +1312,7 @@ class Channels extends ChannelsKids {
                         osd.show(lang.BOOKMARK_REMOVED.format(bookmarkable.name), 'fas fa-star-half', 'bookmarks', 'normal');
                     }
                 });
-            }
-            else {
+            } else {
                 entries.push({
                     type: 'action',
                     fa: 'fas fa-star',
@@ -1394,8 +1354,7 @@ class Channels extends ChannelsKids {
                     }
                     if (Array.isArray(originalRenderer)) {
                         return new Promise(resolve => resolve(originalRenderer));
-                    }
-                    else {
+                    } else {
                         return originalRenderer(data);
                     }
                 };
@@ -1435,18 +1394,17 @@ class Channels extends ChannelsKids {
                     class: 'entry-meta-stream',
                     fa: 'fas fa-play-circle',
                     renderer: async () => {                        
-                        let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : lists.tools.terms(atts.name);
-                        let es = await lists.search(terms, {
+                        let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.tools.terms(atts.name);
+                        let es = await global.lists.search(terms, {
                             type: atts.mediaType,
                             group: true,
-                            safe: !lists.parentalControl.lazyAuth(),
+                            safe: !global.lists.parentalControl.lazyAuth(),
                             limit: 1024
                         });
-                        return lists.tools.paginateList(es.results);
+                        return global.lists.tools.paginateList(es.results);
                     }
                 });
-            }
-            else {
+            } else {
                 Object.assign(meta, {
                     type: 'select',
                     class: 'entry-meta-stream',
@@ -1484,11 +1442,11 @@ class Channels extends ChannelsKids {
     }
     async entries() {
         
-        if (!lists.loaded()) {
-            return [lists.manager.updatingListsEntry()];
+        if (!global.lists.loaded()) {
+            return [global.lists.manager.updatingListsEntry()];
         }
         let list;
-        const publicMode = config.get('public-lists') && !(paths.ALLOW_ADDING_LISTS && lists.loaded(true)); // no list available on index beyound public lists
+        const publicMode = config.get('public-lists') && !(paths.ALLOW_ADDING_LISTS && global.lists.loaded(true)); // no list available on index beyound public lists
         const type = publicMode ? 'public' : config.get('channel-grid');
         const editable = !type && config.get('allow-edit-channel-list');
         const categories = await this.channelList.getCategories();
@@ -1496,19 +1454,18 @@ class Channels extends ChannelsKids {
             list = [];
             for (const category of Object.keys(categories)) {
                 let chs = categories[category].entries.map(e => this.isChannel(e.name)).filter(e => !!e);
-                const ret = await lists.has(chs, { partial: false });
+                const ret = await global.lists.has(chs, { partial: false });
                 let entries = categories[category].entries.filter(e => ret[e.name]);
                 entries = entries.map(e => this.toMetaEntry(e, categories[category]));
                 entries = await this.epgChannelsAddLiveNow(entries, true);
                 list.push(...entries);
             }
-            list = lists.tools.sort(list);
-        }
-        else {
+            list = global.lists.tools.sort(list);
+        } else {
             list = categories.map(category => {
                 category.renderer = async (c, e) => {
                     let chs = category.entries.map(e => this.isChannel(e.name)).filter(e => !!e);
-                    const ret = await lists.has(chs, { partial: false });
+                    const ret = await global.lists.has(chs, { partial: false });
                     let entries = category.entries.filter(e => ret[e.name]);
                     entries = entries.map(e => this.toMetaEntry(e, category));
                     entries = await this.epgChannelsAddLiveNow(entries, true);
@@ -1518,12 +1475,12 @@ class Channels extends ChannelsKids {
                 };
                 return category;
             });
-            list = lists.tools.sort(list);
+            list = global.lists.tools.sort(list);
             list.push(this.allCategoriesEntry());
         }
         editable && !publicMode && list.push(this.getCategoryEntry());
         publicMode || list.unshift(this.chooseChannelGridOption());
-        publicMode && paths.ALLOW_ADDING_LISTS && list.unshift(lists.manager.noListsEntry());
+        publicMode && paths.ALLOW_ADDING_LISTS && list.unshift(global.lists.manager.noListsEntry());
         return list;
     }
     allCategoriesEntry() {
@@ -1544,8 +1501,8 @@ class Channels extends ChannelsKids {
                     });
                 }
                 entries = await this.epgChannelsAddLiveNow(entries, true);
-                entries = lists.tools.sort(entries);
-                return lists.tools.paginateList(lists.tools.sort(entries));
+                entries = global.lists.tools.sort(entries);
+                return global.lists.tools.paginateList(global.lists.tools.sort(entries));
             }
         };
     }
@@ -1589,7 +1546,7 @@ class Channels extends ChannelsKids {
     }
     sortCategoryEntries(entries) {
         
-        entries = lists.tools.sort(entries);
+        entries = global.lists.tools.sort(entries);
         const policy = config.get('channels-list-smart-sorting');
         /*
         0 = Focus on EPG data.
@@ -1608,7 +1565,7 @@ class Channels extends ChannelsKids {
             default: // 0
                 const adjust = es => {
                     
-                    return lists.tools.sort(es.map(e => {
+                    return global.lists.tools.sort(es.map(e => {
                         e.details = e.name;
                         e.name = e.programme.t;
                         return e;
@@ -1635,8 +1592,7 @@ class Channels extends ChannelsKids {
             if (typeof (data) == 'object') {
                 this.channelList.setCategories(data);
                 osd.show('OK', 'fas fa-check-circle faclr-green', 'options', 'normal');
-            }
-            else {
+            } else {
                 throw new Error('Not a JSON file.');
             }
         }
@@ -1696,7 +1652,7 @@ class Channels extends ChannelsKids {
                 entries.push(this.editCategoriesEntry());
             }
             entries.push(this.exportImportOption());
-            paths.ALLOW_ADDING_LISTS && entries.push(lists.manager.listsEntry(true));
+            paths.ALLOW_ADDING_LISTS && entries.push(global.lists.manager.listsEntry(true));
             entries.push(...[
                 {
                     name: lang.ALLOW_EDIT_CHANNEL_LIST,
@@ -1779,14 +1735,14 @@ class Channels extends ChannelsKids {
     }
     async groupsRenderer(type, opts = {}) {
         
-        if (!lists.loaded()) {
-            return [lists.manager.updatingListsEntry()];
+        if (!global.lists.loaded()) {
+            return [global.lists.manager.updatingListsEntry()];
         }
         const isSeries = type == 'series';
-        let groups = await lists.groups(type ? [type] : ['series', 'vod'], opts.myListsOnly);
-        if (!groups.length && !lists.loaded(true)) {
+        let groups = await global.lists.groups(type ? [type] : ['series', 'vod'], opts.myListsOnly);
+        if (!groups.length && !global.lists.loaded(true)) {
             if (paths.ALLOW_ADDING_LISTS) {
-                return [lists.manager.noListsEntry()];
+                return [global.lists.manager.noListsEntry()];
             }
             return [];
         }
@@ -1809,50 +1765,44 @@ class Channels extends ChannelsKids {
         };
         const parentalFilter = entries => {
             if (acpolicy == 'block') {
-                entries = lists.parentalControl.filter(entries);
-            }
-            else if (acpolicy == 'remove') {
-                entries = lists.parentalControl.filter(entries);
-            }
-            else if (acpolicy == 'only') {
-                entries = lists.parentalControl.only(entries);
+                entries = global.lists.parentalControl.filter(entries);
+            } else if (acpolicy == 'remove') {
+                entries = global.lists.parentalControl.filter(entries);
+            } else if (acpolicy == 'only') {
+                entries = global.lists.parentalControl.only(entries);
             }
             return entries;
         };
         const renderer = async (group) => {
-            let entries = await lists.group(group).catch(e => menu.displayErr(e));
+            let entries = await global.lists.group(group).catch(e => menu.displayErr(e));
             if (Array.isArray(entries)) {
                 let gentries = (group.entries || []).map(g => groupToEntry(g));
                 while (entries.length == 1) {
                     const entry = entries[0];
                     if (entry.entries) {
                         entries = entry.entries;
-                    }
-                    else if (typeof (entry.renderer) == 'function') {
+                    } else if (typeof (entry.renderer) == 'function') {
                         entries = await entry.renderer(entry);
-                    }
-                    else if (typeof (entry.renderer) == 'string') {
+                    } else if (typeof (entry.renderer) == 'string') {
                         entries = await storage.get(entry.renderer);
-                    }
-                    else {
+                    } else {
                         break;
                     }
                 }
                 gentries.push(...entries);
                 gentries = parentalFilter(gentries).sortByProp('name');
-                const deepEntries = await lists.tools.deepify(gentries, { source: group.url }).catch(console.error);
+                const deepEntries = await global.lists.tools.deepify(gentries, { source: group.url }).catch(console.error);
                 if (Array.isArray(deepEntries)) {
                     gentries = deepEntries;
                 }
                 return gentries;
-            }
-            else {
+            } else {
                 return [];
             }
         };
         let pentries = parentalFilter(groups).map(group => groupToEntry(group));
         if (opts.deepify !== false) {
-            const deepEntries = await lists.tools.deepify(pentries).catch(console.error);
+            const deepEntries = await global.lists.tools.deepify(pentries).catch(console.error);
             if (Array.isArray(deepEntries)) {
                 pentries = deepEntries;
             }
@@ -1876,4 +1826,4 @@ class Channels extends ChannelsKids {
     }
 }
 
-export default new Channels()
+export default (global.channels || (global.channels = new Channels()))

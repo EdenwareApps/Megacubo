@@ -10,7 +10,7 @@ import fs from "fs";
 import List from "./list.js";
 import Discovery from "../discovery/discovery.js";
 import config from "../config/config.js"
-import renderer from '../bridge/bridge.js'
+import { ready } from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
 import { forwardSlashes, LIST_DATA_KEY_MASK } from "../utils/utils.js";
 
@@ -37,24 +37,24 @@ class ListsEPGTools extends Index {
             try {
                 await this._epg.terminate();
             }
-            catch (e) { }
+            catch (e) {}
             try {
                 await this._epgWorker.terminate();
             }
-            catch (e) { }
+            catch (e) {}
             delete this._epg;
             delete this._epgWorker;
         }
         console.error('will load epg ' + JSON.stringify(url));
         if (url) {
-            this._epgWorker = new MultiWorker();
-            this._epg = this._epgWorker.load(paths.cwd + '/modules/lists/epg-worker.js');
-            this._epg.setURL(url);
+            this._epgWorker = new MultiWorker()
+            this._epg = this._epgWorker.load(paths.cwd + '/modules/lists/epg-worker.js', true)
+            this._epg.setURL(url)
             this._epg.on('updated', () => {
                 console.error('EPG UPDATED! FINE ' + (new Date()).getUTCMinutes());
                 this.emit('epg-update');
-            });
-            await this._epg.ready();
+            })
+            await this._epg.ready()
             return true;
         }
     }
@@ -76,20 +76,16 @@ class ListsEPGTools extends Index {
             data = [state];
             if (state == 'error') {
                 data.push(error);
-            }
-            else {
+            } else {
                 data.push(progress);
             }
-        }
-        else if (!this._epg) { // unset in the meantime
+        } else if (!this._epg) { // unset in the meantime
             data = [];
-        }
-        else {
+        } else {
             if (Array.isArray(channelsList)) {
                 channelsList = channelsList.map(c => this.tools.applySearchRedirectsOnObject(c));
                 data = await this._epg.getMulti(channelsList, limit);
-            }
-            else {
+            } else {
                 channelsList = this.tools.applySearchRedirectsOnObject(channelsList);
                 data = await this._epg.get(channelsList, limit);
             }
@@ -159,8 +155,7 @@ class ListsEPGTools extends Index {
             }).map(limit);
             await Promise.allSettled(tasks);
             return data;
-        }
-        else {
+        } else {
             console.error('epgLiveNowChannelsList FAILED', JSON.stringify(data));
             throw 'failed';
         }
@@ -172,17 +167,17 @@ class ListsEPGTools extends Index {
         let data = await this._epg.getTerms();
         if (data && Object.keys(data).length) {
             return data;
-        }
-        else {
+        } else {
             throw 'failed';
         }
     }
 }
 class Lists extends ListsEPGTools {
     constructor(opts) {
-        super(opts);
-        this.debug = false;
-        this.lists = {};
+        super(opts)
+        this.setMaxListeners(256)
+        this.debug = false
+        this.lists = {}
         this.activeLists = {
             my: [],
             community: [],
@@ -201,11 +196,10 @@ class Lists extends ListsEPGTools {
         config.on('change', keys => {
             keys.includes('lists') && this.configChanged();
         });
-        renderer.ready(async () => {
-            this.channels = (await import('../channels/channels.js')).default
-            this.channels.on('channel-grid-updated', keys => {
-                this._relevantKeywords = null;
-            });
+        ready(async () => {
+            global.channels.on('channel-grid-updated', keys => {
+                this._relevantKeywords = null
+            })
         });
         this.on('satisfied', () => {
             if (this.activeLists.length) {
@@ -216,6 +210,15 @@ class Lists extends ListsEPGTools {
         this.loader = new Loader(this)
         this.manager = new Manager(this)
         this.configChanged()
+    }
+    ready() {
+        return new Promise(resolve => {
+            if(this.isReady) {
+                resolve()
+            } else {
+                this.once('ready', resolve)
+            }
+        })
     }
     getAuthURL(listUrl) {
         if (listUrl && this.lists[listUrl] && this.lists[listUrl].index && this.lists[listUrl].index.meta && this.lists[listUrl].index.meta['auth-url']) {
@@ -258,8 +261,7 @@ class Lists extends ListsEPGTools {
                         if (!this.requesting[url]) {
                             this.requesting[url] = 'cached, not added';
                         }
-                    }
-                    else {
+                    } else {
                         if (!this.requesting[url]) {
                             this.requesting[url] = err || 'not cached';
                         }
@@ -296,29 +298,29 @@ class Lists extends ListsEPGTools {
                     }
                 });
                 if (!has) {
-                    terms.push({ term, score });
+                    terms.push({ term, score })
                 }
             });
         }
-        const searchHistoryPromise = this.channels.search.history.terms().then(sterms => {
+        await ready(true)
+        const searchHistoryPromise = global.channels.search.history.terms().then(sterms => {
             if (sterms.length) { // searching terms history
                 sterms = sterms.slice(-24);
-                sterms = sterms.map(e => this.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-');
+                sterms = sterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-');
                 addTerms(sterms);
             }
         });
-        this.channels || await renderer.ready(true);
-        const channelsPromise = this.channels.keywords().then(addTerms);
-        let bterms = this.channels.bookmarks.get();
+        const channelsPromise = global.channels.keywords().then(addTerms);
+        let bterms = global.channels.bookmarks.get();
         if (bterms.length) { // bookmarks terms
             bterms = bterms.slice(-24);
-            bterms = bterms.map(e => this.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-');
+            bterms = bterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-');
             addTerms(bterms);
         }
-        let hterms = this.channels.history.get();
+        let hterms = global.channels.history.get();
         if (hterms.length) { // user history terms
             hterms = hterms.slice(-24);
-            hterms = hterms.map(e => this.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-');
+            hterms = hterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-');
             addTerms(hterms);
         }
         const max = Math.max(...terms.map(t => t.score));
@@ -398,8 +400,7 @@ class Lists extends ListsEPGTools {
                 let ls;
                 if (config.get('public-lists') != 'only') {
                     ls = lks.filter(l => l.origin != 'public');
-                }
-                else {
+                } else {
                     ls = lks.slice(0);
                 }
                 progresses.push(...ls.map(l => l.progress() || 0).sort((a, b) => b - a).slice(0, communityListsQuota));
@@ -427,14 +428,13 @@ class Lists extends ListsEPGTools {
         };
         if (progress > 99) {
             if (!this.satisfied) {
-                this.satisfied = true;
-                this.emit('satisfied', ret);
+                this.satisfied = true
+                this.emit('satisfied', ret)
             }
-        }
-        else {
+        } else {
             if (this.satisfied) {
-                this.satisfied = false;
-                this.emit('unsatisfied', ret);
+                this.satisfied = false
+                this.emit('unsatisfied', ret)
             }
         }
         this.emit('status', ret);
@@ -461,16 +461,14 @@ class Lists extends ListsEPGTools {
                     if (cancel)
                         return;
                     await this.loadList(url, contentLength).catch(e => err = e);
-                }
-                else {
+                } else {
                     let contentLength = await this.shouldReloadList(url);
                     if (cancel)
                         return;
                     if (typeof (contentLength) == 'number') {
                         console.log('List got updated, reload it. ' + this.lists[url].contentLength + ' => ' + contentLength);
                         await this.loadList(url, contentLength).catch(e => err = e)
-                    }
-                    else {
+                    } else {
                         err = 'no need to update';
                     }
                 }
@@ -492,8 +490,7 @@ class Lists extends ListsEPGTools {
             if (err) {
                 console.error(err);
                 contentLength = 0; // ok, give up and load list anyway
-            }
-            else {
+            } else {
                 contentLength = meta.contentLength;
                 if (typeof (contentLength) != 'number') {
                     contentLength = 0; // ok, give up and load list anyway
@@ -506,8 +503,7 @@ class Lists extends ListsEPGTools {
         }
         if (!this.loadTimes[url]) {
             this.loadTimes[url] = {};
-        }
-        else {
+        } else {
             if (this.lists[url]) {
                 defaultOrigin = this.lists[url].origin;
             }
@@ -520,8 +516,7 @@ class Lists extends ListsEPGTools {
         list.contentLength = contentLength;
         if (isMine) {
             list.origin = 'own';
-        }
-        else {
+        } else {
             list.origin = this.discovery.details(url, 'type') || defaultOrigin || '';
         }
         list.once('destroy', () => {
@@ -547,8 +542,7 @@ class Lists extends ListsEPGTools {
             }
             this.updateActiveLists();
             throw err;
-        }
-        else {
+        } else {
             this.loadTimes[url].synced = (Date.now() / 1000);
             if (this.debug) {
                 console.log('loadList started', url);
@@ -562,8 +556,7 @@ class Lists extends ListsEPGTools {
                 if (this.debug) {
                     if (repeated) {
                         console.log('List ' + url + ' repeated, discarding.');
-                    }
-                    else {
+                    } else {
                         console.log('List ' + url + ' already discarded.');
                     }
                 }
@@ -631,8 +624,7 @@ class Lists extends ListsEPGTools {
         const updatedContentLength = await this.getListContentLength(url);
         if (updatedContentLength > 0 && updatedContentLength == loadedContentLength) {
             return false;
-        }
-        else {
+        } else {
             return updatedContentLength;
         }
     }
@@ -706,8 +698,7 @@ class Lists extends ListsEPGTools {
         const stat = await fs.promises.stat(listDataFile).catch(e => err = e);
         if (err || stat.size == 0) {
             return true; // force this list discarding
-        }
-        else {
+        } else {
             const size = stat.size;
             const limit = pLimit(3);
             const tasks = Object.keys(this.lists).map(url => {
@@ -870,25 +861,21 @@ class Lists extends ListsEPGTools {
             let entries;
             if (opts.expand) {
                 entries = await this.lists[v.url].fetchAll();
-            }
-            else {
+            } else {
                 entries = await this.lists[v.url].getMap();
             }
             return this.directListRendererPrepare(entries, v.url);
-        }
-        else if (opts.fetch) {
+        } else if (opts.fetch) {
             let entries, fetcher = new this.Fetcher(v.url, {
                 progress: opts.progress
             }, this);
             if (opts.expand) {
                 entries = await fetcher.fetch();
-            }
-            else {
+            } else {
                 entries = await fetcher.getMap();
             }
             return await this.directListRendererPrepare(entries, v.url);
-        }
-        else {
+        } else {
             throw 'List not loaded';
         }
     }
@@ -909,24 +896,6 @@ class Lists extends ListsEPGTools {
             this.directListRendererPrepareCache[url] = { list, time: now, size: olen };
         }
         return list.slice(0); // clone it to not alter cache
-    }
-    isLocal(file) {
-        if (typeof (file) != 'string') {
-            return;
-        }
-        let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'));
-        if (m && m.length && (m[1].length == 1 || m[1].toLowerCase() == 'file')) { // drive letter or file protocol
-            return true;
-        }
-        else {
-            if (file.length >= 2 && file.startsWith('/') && file.charAt(1) != '/') { // unix path
-                return true;
-            }
-        }
-    }
-    async setNetworkConnectionState(state) {
-        Download.setNetworkConnectionState(state);
-        return true;
     }
 }
 export default new Lists();

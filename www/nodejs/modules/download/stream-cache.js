@@ -43,8 +43,7 @@ class DownloadStreamCache extends DownloadStreamBase {
         let stream, bytesRead = 0;
         if (row.chunks) {
             stream = row.chunks.createReadStream(range);
-        }
-        else {
+        } else {
             try {
                 stream = new Reader(row.file, range);
             }

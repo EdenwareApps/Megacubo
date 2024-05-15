@@ -66,7 +66,6 @@ class BridgeClient extends EventEmitter {
 			}
 		}
 		this.channel = new CapacitorChannel()
-		capacitor.KeepAwake.keepAwake()
 		window.plugins.megacubo.on('suspend', isScreenOn => {
 			window.player && player.emit('app-pause', !isScreenOn)
 			main.emit('suspend')
@@ -78,7 +77,8 @@ class BridgeClient extends EventEmitter {
 				main.emit('resume')
 				capacitor.KeepAwake.keepAwake()
 			}
-		});
+		})
+		capacitor.KeepAwake.keepAwake()
 	}
 	configureElectronChannel() {
 		const bridge = this

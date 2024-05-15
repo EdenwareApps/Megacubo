@@ -53,8 +53,7 @@ class StreamerAdapterBase extends EventEmitter {
             Object.keys(opts).forEach((k) => {
                 if (['debug'].indexOf(k) == -1 && typeof (opts[k]) == 'function') {
                     this.on(k, opts[k]);
-                }
-                else {
+                } else {
                     this.opts[k] = opts[k];
                     if (typeof (this.defaults[k]) == 'undefined') {
                         this.defaults[k] = opts[k];
@@ -168,8 +167,7 @@ class StreamerAdapterBase extends EventEmitter {
         var ret = '', res = url.match(new RegExp('^([A-Za-z0-9]{2,6}):'));
         if (res) {
             ret = res[1];
-        }
-        else if (url.match(new RegExp('^//[^/]+\\.'))) {
+        } else if (url.match(new RegExp('^//[^/]+\\.'))) {
             ret = 'http';
         }
         if (ret && typeof (len) == 'number') {
@@ -185,12 +183,10 @@ class StreamerAdapterBase extends EventEmitter {
         bufArr.forEach((chunk, i) => {
             if (len >= limit) {
                 bufArr[i] = null;
-            }
-            else if ((len + chunk.length) > limit) {
+            } else if ((len + chunk.length) > limit) {
                 let exceeds = (len + chunk.length) - limit;
                 bufArr[i] = bufArr[i].slice(0, chunk.length - exceeds);
-            }
-            else {
+            } else {
                 len += chunk.length;
             }
         });
@@ -203,16 +199,14 @@ class StreamerAdapterBase extends EventEmitter {
         let nowMs = (Date.now() / 1000), now = parseInt(nowMs);
         if (typeof (this.downloadLogging[now]) == 'undefined') {
             this.downloadLogging[now] = bytes;
-        }
-        else {
+        } else {
             this.downloadLogging[now] += bytes;
         }
         let downloadLogCalcMinInterval = 1; // 1s
         if (!this.downloadLogCalcLastTime || this.downloadLogCalcLastTime < (nowMs - downloadLogCalcMinInterval)) {
             this.downloadLogCalcLastTime = nowMs;
             this.downloadLogCalc();
-        }
-        else {
+        } else {
             let delay = (this.downloadLogCalcLastTime + downloadLogCalcMinInterval) - nowMs;
             this.downloadLogCalcTimer = setTimeout(() => this.downloadLogCalc(), delay * 1000);
         }
@@ -230,8 +224,7 @@ class StreamerAdapterBase extends EventEmitter {
                             ftime = rtime;
                         }
                         downloaded += this.downloadLogging[time];
-                    }
-                    else {
+                    } else {
                         delete this.downloadLogging[time];
                     }
                 }
@@ -252,8 +245,7 @@ class StreamerAdapterBase extends EventEmitter {
         keys.forEach(key => {
             if (['accept-encoding', 'content-encoding'].includes(key)) {
                 headers[key] = 'identity';
-            }
-            else {
+            } else {
                 delete headers[key];
             }
         });
@@ -319,7 +311,7 @@ class StreamerAdapterBase extends EventEmitter {
                 this.server.close();
             }
             this.removeAllListeners();
-            this.on = this.emit = () => { };
+            this.on = this.emit = () => {};
         }
     }
 }

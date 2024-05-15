@@ -1,26 +1,26 @@
 import osd from '../osd/osd.js'
 import menu from '../menu/menu.js'
-import lang from "../lang/lang.js";
+import lang from '../lang/lang.js';
 import storage from '../storage/storage.js'
-import { EventEmitter } from "events";
-import moment from "moment-timezone";
-import energy from "../energy/energy.js";
-import fs from "fs";
-import downloads from "../downloads/downloads.js";
-import AdmZip from "adm-zip";
-import icons from "../icon-server/icon-server.js";
-import path from "path";
-import lists from "../lists/lists.js";
-import cloud from "../cloud/cloud.js";
-import os from "os";
-import diag from "../diagnostics/diagnostics.js";
-import np from "../network-ip/network-ip.js";
-import ffmpeg from "../ffmpeg/ffmpeg.js";
-import decodeEntities from "decode-entities";
-import config from "../config/config.js"
+import { EventEmitter } from 'events';
+import moment from 'moment-timezone';
+import energy from '../energy/energy.js';
+import fs from 'fs';
+import downloads from '../downloads/downloads.js';
+import AdmZip from 'adm-zip';
+import icons from '../icon-server/icon-server.js';
+import path from 'path';
+import lists from '../lists/lists.js';
+import cloud from '../cloud/cloud.js';
+import os from 'os';
+import diag from '../diagnostics/diagnostics.js';
+import np from '../network-ip/network-ip.js';
+import ffmpeg from '../ffmpeg/ffmpeg.js';
+import decodeEntities from 'decode-entities';
+import config from '../config/config.js'
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
-import { insertEntry, kbfmt, kbsfmt, parseJSON, rmdir, ucFirst, ucWords } from '../utils/utils.js'
+import { insertEntry, kbfmt, kbsfmt, parseJSON, rmdirSync, ucFirst, ucWords } from '../utils/utils.js'
 
 class Timer extends EventEmitter {
     constructor() {
@@ -54,8 +54,7 @@ class Timer extends EventEmitter {
                     menu.refreshNow();
                 }
             };
-        }
-        else {
+        } else {
             return {
                 name: lang.TIMER,
                 fa: 'fas fa-stopwatch',
@@ -80,28 +79,25 @@ class Timer extends EventEmitter {
         this.timerData['timer'] = setTimeout(async () => {
             console.warn('TIMER ACTION', this.timerData);
             let action = this.timerData.action
-            const streamer = import('../streamer/main.js')
-            if (streamer.active) {
-                if (streamer.tuning) {
-                    streamer.tuning.destroy();
-                    streamer.tuning = null;
+            if (global.streamer.active) {
+                if (global.streamer.tuning) {
+                    global.streamer.tuning.destroy();
+                    global.streamer.tuning = null;
                 }
-                streamer.stop();
+                global.streamer.stop();
             }
             if (action != lang.STOP) {
                 let recording = global.premium.recorder && global.premium.recorder.active() ? global.premium.recorder.capture : false, next = () => {
                     if (action == lang.CLOSE) {
                         energy.exit();
-                    }
-                    else if (action == lang.SHUTDOWN) {
+                    } else if (action == lang.SHUTDOWN) {
                         this.timerActionShutdown();
                         energy.exit();
                     }
                 };
                 if (recording) {
                     recording.once('destroy', next);
-                }
-                else {
+                } else {
                     next();
                 }
             }
@@ -113,8 +109,7 @@ class Timer extends EventEmitter {
         var cmd, secs = 7, exec = { exec }.exec;
         if (process.platform === 'win32') {
             cmd = 'shutdown -s -f -t ' + secs + ' -c "Shutdown system in ' + secs + 's"';
-        }
-        else {
+        } else {
             cmd = 'shutdown -h +' + secs + ' "Shutdown system in ' + secs + 's"';
         }
         return exec(cmd);
@@ -248,8 +243,7 @@ class OptionsGPU extends PerformanceProfiles {
                                 return availableFlags.indexOf(b) - availableFlags.indexOf(a);
                             });
                         }
-                    }
-                    else {
+                    } else {
                         flags = flags.filter(f => f != flag);
                     }
                     config.set('gpu-flags', flags);
@@ -383,8 +377,7 @@ class OptionsExportImport extends OptionsGPU {
             let buf = fs.readFileSync(natts['custom-background-image']);
             if (buf) {
                 natts['custom-background-image'] = buf.toString('base64');
-            }
-            else {
+            } else {
                 delete natts['custom-background-image'];
             }
         }
@@ -392,8 +385,7 @@ class OptionsExportImport extends OptionsGPU {
             let buf = fs.readFileSync(natts['custom-background-video']);
             if (buf) {
                 natts['custom-background-video'] = buf.toString('base64');
-            }
-            else {
+            } else {
                 delete natts['custom-background-video'];
             }
         }
@@ -409,8 +401,7 @@ class OptionsExportImport extends OptionsGPU {
         if (file.endsWith('.json')) { // is json?            
             await this.importConfigFile(await fs.promises.readFile(file))
             osd.show(lang.IMPORTED_FILE, 'fas fa-check-circle', 'options', 'normal');
-        }
-        else {
+        } else {
             let err;
             try {
                 const zip = new AdmZip(file), imported = {};
@@ -423,14 +414,14 @@ class OptionsExportImport extends OptionsGPU {
                         zip.extractEntryTo(entry, storage.opts.folder, false, true);
                     }
                     if (entry.entryName.startsWith('categories')) {
-                        zip.extractEntryTo(entry, storage.opts.folder, false, true, path.basename(storage.resolve(this.channels.channelList.key)));
-                        this.channels.load();
+                        zip.extractEntryTo(entry, storage.opts.folder, false, true, path.basename(storage.resolve(global.channels.channelList.key)));
+                        global.channels.load();
                     }
                     if (entry.entryName.startsWith('icons')) {
                         try {
                             zip.extractEntryTo(entry, path.dirname(icons.opts.folder), true, true); // Error: ENOENT: no such file or directory, chmod 'C:\\Users\\samsung\\AppData\\Local\\Megacubo\\Data\\icons\\a&e-|-a-&-e.png'
                         }
-                        catch (e) { }
+                        catch (e) {}
                     }
                     if (entry.entryName.startsWith('Themes')) {
                         zip.extractEntryTo(entry, path.dirname(global.theme.folder), true, true);
@@ -454,14 +445,13 @@ class OptionsExportImport extends OptionsGPU {
             if (fs.existsSync(path)) {
                 if (typeof (subDir) == 'string') {
                     zip.addLocalFolder(path, subDir);
-                }
-                else {
+                } else {
                     zip.addLocalFile(path);
                 }
             }
         };
         add(config.file);
-        [this.channels.bookmarks.key, this.channels.history.key, this.channels.channelList.key].forEach(key => {
+        [global.channels.bookmarks.key, global.channels.history.key, global.channels.channelList.key].forEach(key => {
             files.push(storage.resolve(key, false));
             files.push(storage.resolve(key, true));
         });
@@ -476,9 +466,6 @@ class OptionsExportImport extends OptionsGPU {
 class Options extends OptionsExportImport {
     constructor() {
         super()
-        renderer.ready(async () => {
-            this.channels = (await import('../channels/channels.js')).default
-        })
         renderer.get().on('devtools', () => this.devtools());
     }
     async updateEPGConfig(c) {
@@ -487,16 +474,14 @@ class Options extends OptionsExportImport {
         if (activeEPG == 'disabled') {
             activeEPG = false;
             await manager.setEPG('', false).catch(console.error);
-        }
-        else {
+        } else {
             if (!activeEPG || activeEPG == 'auto') {
                 if (!c) {
                     c = await cloud.get('configure').catch(console.error);
                 }
                 if (c && c.epg) {
                     activeEPG = c.epg[lang.countryCode] || c.epg[lang.locale] || false;
-                }
-                else {
+                } else {
                     activeEPG = false;
                 }
             }
@@ -590,9 +575,9 @@ class Options extends OptionsExportImport {
                 config.set('countries', countries);
                 menu.pages = { '': [] };
                 menu.refreshNow();
-                await this.channels.load();
+                await global.channels.load();
                 await lists.discovery.reset();
-                await this.channels.watching.update();
+                await global.channels.watching.update();
             }
             osd.hide('countries');
         }
@@ -642,8 +627,7 @@ class Options extends OptionsExportImport {
                     menu.refreshNow();
                 }
             });
-        }
-        else {
+        } else {
             entries.push({
                 name: lang.DESELECT_ALL,
                 type: 'action',
@@ -652,8 +636,7 @@ class Options extends OptionsExportImport {
                     let countries = map.map(row => row.code);
                     if (countries.includes(lang.countryCode)) {
                         countries = [lang.countryCode];
-                    }
-                    else {
+                    } else {
                         countries = countries.slice(0, 1); // at least one country should be enabled
                     }
                     config.set('countries', countries);
@@ -671,8 +654,7 @@ class Options extends OptionsExportImport {
                         if (!actives.includes(row.code)) {
                             actives.push(row.code);
                         }
-                    }
-                    else {
+                    } else {
                         let pos = actives.indexOf(row.code);
                         if (pos != -1) {
                             actives.splice(pos, 1);
@@ -792,9 +774,8 @@ class Options extends OptionsExportImport {
                 const used = process.memoryUsage().rss;
                 txt[0] = 'App memory usage: ' + kbfmt(used) + '<br />Free memory: ' + kbfmt(freeMem) + '<br />';
             })
-        ]);
-        const streamer = import('../streamer/main.js')            
-        txt[2] = 'Connection speed: ' + kbsfmt(streamer.downlink || 0) + '<br />';
+        ]);          
+        txt[2] = 'Connection speed: ' + kbsfmt(global.streamer.downlink || 0) + '<br />';
         txt[3] = 'User agent: ' + (config.get('user-agent') || config.get('default-user-agent')) + '<br />';
         txt[4] = 'Network IP: ' + np.networkIP() + '<br />';
         txt[5] = 'Language: ' + lang.languageHint + ' (' + lang.countryCode + ')<br />';
@@ -811,8 +792,12 @@ class Options extends OptionsExportImport {
             { template: 'option', text: lang.YES, fa: 'fas fa-check-circle', id: 'yes' }, { template: 'option', text: lang.NO, fa: 'fas fa-times-circle', id: 'no' }
         ], 'no');
         if (ret == 'yes') {
-            rmdir(paths.data, false, true)
-            rmdir(paths.temp, false, true)
+            try {
+                rmdirSync(paths.data, false)
+                rmdirSync(paths.temp, false)
+            } catch(e) {
+                console.error(e)
+            }
             await storage.clear(true)
             await fs.promises.unlink(config.file).catch(console.error)
             energy.restart();
@@ -996,9 +981,8 @@ class Options extends OptionsExportImport {
                 range: { start: 30, end: 7200 },
                 action: async (data, value) => {
                     console.warn('ELAPSED_TIME_TO_KEEP_CACHED', data, value)
-                    const streamer = import('../streamer/main.js')            
                     config.set('live-window-time', value)
-                    streamer.active && streamer.reload()
+                    global.streamer.active && global.streamer.reload()
                 },
                 value: () => {
                     return config.get('live-window-time');
@@ -1437,10 +1421,9 @@ class Options extends OptionsExportImport {
         return opts;
     }
     async clearCache() {
-        const streamer = import('../streamer/main.js')
         osd.show(lang.CLEANING_CACHE, 'fa-mega spin-x-alt', 'clear-cache', 'persistent');
-        streamer.stop();
-        streamer.tuning && streamer.tuning.destroy();
+        global.streamer.stop();
+        global.streamer.tuning && global.streamer.tuning.destroy();
         await storage.clear();
         osd.show('OK', 'fas fa-check-circle faclr-green', 'clear-cache', 'normal');
         config.save();
@@ -1638,7 +1621,7 @@ class Options extends OptionsExportImport {
             { name: lang.LANGUAGE, details: lang.SELECT_LANGUAGE, fa: 'fas fa-language', type: 'action', action: () => this.showLanguageEntriesDialog() },
             { name: lang.COUNTRIES, details: lang.COUNTRIES_HINT, fa: 'fas fa-globe', type: 'group', renderer: () => this.countriesEntries() },
             secOpt,
-            { name: lang.MANAGE_CHANNEL_LIST, fa: 'fas fa-list', type: 'group', details: lang.LIVE, renderer: this.channels.options.bind(this.channels) },
+            { name: lang.MANAGE_CHANNEL_LIST, fa: 'fas fa-list', type: 'group', details: lang.LIVE, renderer: global.channels.options.bind(global.channels) },
             { name: lang.ADVANCED, fa: 'fas fa-cogs', type: 'group', renderer: async () => {
                     const opts = [
                         { name: lang.TUNE, fa: 'fas fa-satellite-dish', type: 'group', renderer: this.tuneEntries.bind(this) },
@@ -1754,4 +1737,5 @@ class Options extends OptionsExportImport {
         return entries;
     }
 }
-export default new Options();
+
+export default new Options()

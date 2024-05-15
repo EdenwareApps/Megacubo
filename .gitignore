@@ -112,3 +112,4 @@ www/nodejs/.arch
 www/nodejs/arch.dat
 www/nodejs/tool.html
 android/app/release/output-metadata.json
+android/app/src/main/assets/public/nodejs/

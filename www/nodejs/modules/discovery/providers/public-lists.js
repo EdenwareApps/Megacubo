@@ -95,8 +95,7 @@ class PublicLists extends EventEmitter {
         this.countries = new Countries();
         this.load().catch(console.error);
         renderer.ready(async () => {
-            const {default: menu} = await import('../../menu/menu.js')
-            menu.addFilter(this.hook.bind(this));
+            global.menu.addFilter(this.hook.bind(this));
         });
     }
     async load() {
@@ -123,8 +122,7 @@ class PublicLists extends EventEmitter {
         await new Promise((resolve, reject) => {
             if (this.isReady) {
                 resolve();
-            }
-            else {
+            } else {
                 this.once('ready', resolve);
             }
         });
@@ -215,8 +213,7 @@ class PublicLists extends EventEmitter {
                                     selected: def == n.value,
                                     action: async () => {
                                         config.set('public-lists', n.value)
-                                        const {default: menu} = await import('../../menu/menu.js')
-                                        menu.refreshNow()
+                                        global.menu.refreshNow()
                                     }
                                 };
                             });
@@ -248,8 +245,7 @@ class PublicLists extends EventEmitter {
     async hook(entries, path) {
         if (path.split('/').pop() == lang.MY_LISTS) {
             insertEntry(this.entry(), entries, 1, [], lang.ADD_LIST);
-        }
-        else if (path == '') {
+        } else if (path == '') {
             if (!paths.ALLOW_ADDING_LISTS) {
                 insertEntry(this.countriesEntry(), entries, 6, [lang.TOOLS], [lang.TREENDING]);
             }
@@ -257,8 +253,7 @@ class PublicLists extends EventEmitter {
         return entries;
     }
     async showInfo() {
-        const {default: menu} = await import('../../menu/menu.js')
-        menu.dialog([
+        global.menu.dialog([
             { template: 'question', text: lang.PUBLIC_LISTS, fa: 'fas fa-users' },
             { template: 'message', text: lang.PUBLIC_LISTS_INFO },
             { template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle' },

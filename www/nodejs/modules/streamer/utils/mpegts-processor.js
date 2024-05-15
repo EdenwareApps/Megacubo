@@ -32,11 +32,9 @@ class MPEGTSProcessor extends EventEmitter {
             const pos = this.packetBuffer.indexOf(SYNC_BYTE, offset);
             if (pos == -1) {
                 return -1;
-            }
-            else if (this.checkSyncByte(pos)) {
+            } else if (this.checkSyncByte(pos)) {
                 return pos;
-            }
-            else { // not a valid sync byte
+            } else { // not a valid sync byte
                 offset = pos + 1;
             }
         }
@@ -51,8 +49,7 @@ class MPEGTSProcessor extends EventEmitter {
                 console.log('no next sync byte after ' + pointer + ' bytes');
             }
             return;
-        }
-        else if (pointer) {
+        } else if (pointer) {
             if (this.debug) {
                 console.log('skipping first ' + pointer + ' bytes');
             }
@@ -71,8 +68,7 @@ class MPEGTSProcessor extends EventEmitter {
             let size = offset == -1 ? PACKET_SIZE : (offset - pointer);
             if (size == PACKET_SIZE) {
                 errorCount = 0;
-            }
-            else {
+            } else {
                 errorCount++;
                 if (errorCount > 10) { // seems not mpegts, discard all
                     this.direction = 0;
@@ -85,8 +81,7 @@ class MPEGTSProcessor extends EventEmitter {
                             console.log('bad packet size: ' + size + ', removing it');
                             this.packetBuffer.remove(pointer, pointer + size);
                             size = 0;
-                        }
-                        else {
+                        } else {
                             console.log('bad packet size: ' + size + ', trimming it');
                             this.packetBuffer.remove(pointer + PACKET_SIZE, pointer + size);
                             size = PACKET_SIZE;

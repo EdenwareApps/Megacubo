@@ -32,7 +32,7 @@ function openExternalFile(file, mimetype) {
 
 function importMomentLocale(locale, cbk) {
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', '../node_modules/moment/locale/'+ locale +'.js', true)
+    xhr.open('GET', './assets/js/moment-locale/'+ locale +'.js', true)
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4) {
             if (xhr.status === 200) {

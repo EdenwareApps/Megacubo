@@ -29,8 +29,7 @@ class CommunityListsIPTVORG extends EventEmitter {
         await new Promise((resolve, reject) => {
             if (this.isReady) {
                 resolve();
-            }
-            else {
+            } else {
                 this.once('ready', resolve);
             }
         });
@@ -52,8 +51,7 @@ class CommunityListsIPTVORG extends EventEmitter {
                     list = { type: 'community', url: list, health: factor * (1 - (i * (1 / lists.length))) };
                     return list;
                 }));
-            }
-            else {
+            } else {
                 console.error('[CommunityListsIPTVORG] no list found for this language or country.');
             }
         }

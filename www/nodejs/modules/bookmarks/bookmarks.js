@@ -2,17 +2,17 @@ import { insertEntry, ucWords } from '../utils/utils.js'
 import Download from '../download/download.js'
 import osd from '../osd/osd.js'
 import menu from '../menu/menu.js'
-import lang from "../lang/lang.js";
-import EntriesGroup from "../entries-group/entries-group.js";
+import lang from '../lang/lang.js'
+import EntriesGroup from '../entries-group/entries-group.js'
 import listsTools from '../lists/tools.js'
-import mega from "../mega/mega.js";
-import fs from "fs";
-import * as iconv from "iconv-lite";
-import { exec } from "child_process";
-import icons from "../icon-server/icon-server.js";
-import jimp from "../jimp-worker/main.js";
-import createShortcut from 'create-desktop-shortcuts';
-import config from "../config/config.js"
+import mega from '../mega/mega.js'
+import fs from 'fs'
+import * as iconv from 'iconv-lite'
+import { exec } from 'child_process'
+import icons from '../icon-server/icon-server.js'
+import jimp from '../jimp-worker/main.js'
+import createShortcut from 'create-desktop-shortcuts'
+import config from '../config/config.js'
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
 
@@ -29,8 +29,7 @@ class Bookmarks extends EntriesGroup {
             renderer.get().on('toggle-fav', () => {
                 if (this.current()) {
                     this.toggle();
-                }
-                else {
+                } else {
                     menu.open(lang.BOOKMARKS).catch(e => menu.displayErr(e));
                 }
             })
@@ -40,8 +39,7 @@ class Bookmarks extends EntriesGroup {
                 if (!data.isLocal) {
                     if (this.has(this.simplify(data))) {
                         return { template: 'option', fa: 'fas fa-star-half', text: lang.REMOVE_FROM.format(lang.BOOKMARKS), id: 'fav' };
-                    }
-                    else {
+                    } else {
                         return { template: 'option', fa: 'fas fa-star', text: lang.ADD_TO.format(lang.BOOKMARKS), id: 'fav' };
                     }
                 }
@@ -54,7 +52,7 @@ class Bookmarks extends EntriesGroup {
     groupFilter(e) {
         return e.type && e.type == 'group';
     }
-    hook(entries, path) {
+    async hook(entries, path) {
         if (!path) {
             const bmEntry = { name: lang.BOOKMARKS, fa: 'fas fa-star', top: true, type: 'group', renderer: this.entries.bind(this) };
             if (this.data.length)
@@ -87,8 +85,7 @@ class Bookmarks extends EntriesGroup {
                         osd.show(lang.BOOKMARK_REMOVED.format(bookmarkable.name), 'fas fa-star-half', 'bookmarks', 'normal');
                     }
                 };
-            }
-            else if (path.indexOf(lang.BOOKMARKS) == -1) {
+            } else if (path.indexOf(lang.BOOKMARKS) == -1) {
                 bookmarker = {
                     type: 'action',
                     fa: 'fas fa-star',
@@ -111,8 +108,7 @@ class Bookmarks extends EntriesGroup {
             if (this.has(data)) {
                 this.remove(data);
                 osd.show(lang.BOOKMARK_REMOVED.format(data.name), 'fas fa-star-half', 'bookmarks', 'normal');
-            }
-            else {
+            } else {
                 this.add(data);
                 osd.show(lang.BOOKMARK_ADDED.format(data.name), 'fas fa-star', 'bookmarks', 'normal');
             }
@@ -122,8 +118,7 @@ class Bookmarks extends EntriesGroup {
     current() {        
         if (this.channels.streamer.active) {
             return this.simplify(this.channels.streamer.active.data);
-        }
-        else {
+        } else {
             let streams = menu.currentEntries.filter(e => e.url);
             if (streams.length) {
                 return this.simplify(streams[0]);
@@ -134,7 +129,12 @@ class Bookmarks extends EntriesGroup {
         if (e.type == 'group') {
             return this.cleanAtts(e);
         }
-        return { name: e.originalName || e.name, type: 'stream', details: e.group || '', icon: e.originalIcon || e.icon || '', terms: { 'name': this.channels.entryTerms(e) }, url: e.originalUrl || e.url };
+        return {
+            name: e.originalName || e.name,
+            type: 'stream', details: e.group || '', icon: e.originalIcon || e.icon || '',
+            terms: { 'name': this.channels.entryTerms(e) },
+            url: e.originalUrl || e.url
+        }
     }
     search(terms) {
         return new Promise((resolve, reject) => {
@@ -151,7 +151,7 @@ class Bookmarks extends EntriesGroup {
             current = this.channels.streamer.active.data
         }
         if (!current) {
-            let cs = history.get().filter(c => {
+            let cs = this.channels.history.get().filter(c => {
                 return !this.has(c)
             });
             if (cs.length) {
@@ -159,7 +159,10 @@ class Bookmarks extends EntriesGroup {
             }
         }
         if (current && !this.has(current)) {
-            es.push({ name: lang.ADD + ': ' + current.name, fa: 'fas fa-star', icon: current.icon, type: 'action', action: () => {
+            es.push({
+                name: lang.ADD + ': ' + current.name,
+                fa: 'fas fa-star', icon: current.icon, type: 'action',
+                action: () => {
                     this.add(current)
                     menu.refreshNow()
                 }
@@ -175,15 +178,13 @@ class Bookmarks extends EntriesGroup {
                 let atts = mega.parse(e.url);
                 if (atts.mediaType == 'live') {
                     return (epgAddLiveNowMap[i] = this.channels.toMetaEntry(e, false));
-                }
-                else {
+                } else {
                     
                     let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : listsTools.terms(atts.name);
                     e.url = mega.build(ucWords(terms.join(' ')), { terms, mediaType: 'video' });
                     e = this.channels.toMetaEntry(e);
                 }
-            }
-            else if (e.type != 'group') {
+            } else if (e.type != 'group') {
                 e.type = 'stream';
             }
             return e;
@@ -233,11 +234,10 @@ class Bookmarks extends EntriesGroup {
             }, 50)
             return []
         }
-        const {default: lists} = await import('../lists/lists.js')
-        let err, results = lists.search(this.currentBookmarkAddingByName.name, {
+        let err, results = global.lists.search(this.currentBookmarkAddingByName.name, {
             partial: true,
             group: !this.currentBookmarkAddingByName.live,
-            safe: !lists.parentalControl.lazyAuth(),
+            safe: !global.lists.parentalControl.lazyAuth(),
             limit: 1024
         })
         if(err) {
@@ -248,8 +248,7 @@ class Bookmarks extends EntriesGroup {
             let mediaType = 'all', entries = [];
             if (this.currentBookmarkAddingByName.live) {
                 mediaType = 'live';
-            }
-            else {
+            } else {
                 mediaType = 'video';
             }
             this.currentBookmarkAddingByName.url = mega.build(this.currentBookmarkAddingByName.name, { mediaType });
@@ -278,8 +277,7 @@ class Bookmarks extends EntriesGroup {
                     }
                 });
                 return entries
-            }
-            else {
+            } else {
                 this.addByNameEntries3({ value: this.currentBookmarkAddingByName.icon }, 1);
             }
         }

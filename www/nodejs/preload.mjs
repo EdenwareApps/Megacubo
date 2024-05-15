@@ -63,7 +63,7 @@ function download(opts) {
 }
 const window = getGlobal('window');
 class FFmpegDownloader {
-    constructor() { }
+    constructor() {}
     async download(osd, target, mask) {
         const tmpZipFile = path.join(target, 'ffmpeg.zip');
         const arch = process.arch == 'x64' ? 64 : 32;
@@ -93,7 +93,7 @@ class FFmpegDownloader {
         const entryName = process.platform == 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
         const targetFile = path.join(target, entryName);
         zip.extractEntryTo(entryName, target, false, true);
-        fs.unlink(tmpZipFile, () => { });
+        fs.unlink(tmpZipFile, () => {});
         return targetFile;
     }
     async check(mask, folder) {
@@ -113,8 +113,7 @@ class FFmpegDownloader {
                 const file = await this.download(osd, folder, mask).catch(e => err = e);
                 if (err) {
                     osd.show(String(err), 'fas fa-exclamation-triangle faclr-red', 'ffmpeg-dl', 'normal');
-                }
-                else {
+                } else {
                     osd.show(mask.replace('{0}', '100%'), 'fas fa-circle-notch fa-spin', 'ffmpeg-dl', 'normal');
                     this.executableDir = path.dirname(file);
                     this.executable = path.basename(file);
@@ -160,8 +159,7 @@ class FFMpeg extends FFmpegDownloader {
         let exe, gotMetadata, output = '';
         if (process.platform == 'linux' || process.platform == 'darwin') { // cwd was not being honored on Linux/macOS
             exe = this.executableDir + '/' + this.executable;
-        }
-        else {
+        } else {
             exe = this.executable;
         }
         const child = spawn(exe, cmd, {
@@ -201,8 +199,7 @@ class FFMpeg extends FFmpegDownloader {
             const child = this.childs[pid];
             delete this.childs[pid];
             child.kill('SIGINT');
-        }
-        else {
+        } else {
             console.log('CANTKILL', pid);
         }
     }
@@ -210,8 +207,7 @@ class FFMpeg extends FFmpegDownloader {
         Object.keys(this.childs).forEach(pid => {
             if (keepIds.includes(pid)) {
                 console.log("Cleanup keeping " + pid);
-            }
-            else {
+            } else {
                 console.log("Cleanup kill " + pid);
                 this.abort(pid);
             }
@@ -318,8 +314,7 @@ class TrayProxy {
     setShowInTaskbar(enable) {
         if (enable) {
             window.setAlwaysOnTop(false);
-        }
-        else {
+        } else {
             window.setAlwaysOnTop(true, 'screen-saver');
         }
     }
@@ -385,8 +380,7 @@ if (parseFloat(process.versions.electron) < 22) {
         screenScaleFactor, externalPlayer, getScreen,
         download, restart, ffmpeg, paths, tray
     };
-}
-else {
+} else {
     // On older Electron version (9.1.1) exposing 'require' doesn't works as expected.
     contextBridge.exposeInMainWorld('api', {
         platform: process.platform,

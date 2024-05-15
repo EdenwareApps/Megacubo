@@ -55,8 +55,7 @@ class Reader extends Readable {
                         if (this.fd)
                             this._read();
                     }, 1000);
-                }
-                else {
+                } else {
                     this.close();
                     this.push(null);
                 }
@@ -65,8 +64,7 @@ class Reader extends Readable {
                 err = 'Readen more than the file size';
                 console.error('READER ERROR: ' + err);
                 return this.close();
-            }
-            else if (readSize == 0 || this.fd === null) {
+            } else if (readSize == 0 || this.fd === null) {
                 return done();
             }
             const buffer = Buffer.alloc(readSize);
@@ -81,8 +79,7 @@ class Reader extends Readable {
                     console.error('READER ERROR: ' + err);
                     this.emit('error', err);
                     this.close();
-                }
-                else if (!readen) {
+                } else if (!readen) {
                     done();
                 }
             });
@@ -95,14 +92,12 @@ class Reader extends Readable {
                 if (err) {
                     console.error('Failed to access file:', err);
                     this.emitError(err);
-                }
-                else {
+                } else {
                     fs.open(this.file, 'r', (err, fd) => {
                         if (err) {
                             console.error('Failed to open file:', err);
                             this.emitError(err);
-                        }
-                        else {
+                        } else {
                             this.fd = fd;
                             this.emit('open');
                         }

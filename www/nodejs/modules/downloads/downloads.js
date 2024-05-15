@@ -1,7 +1,6 @@
 import Download from '../download/download.js'
-import { decodeURIComponentSafe, prepareCORS } from "../utils/utils.js";
+import { basename, decodeURIComponentSafe, prepareCORS } from "../utils/utils.js";
 import osd from '../osd/osd.js'
-import menu from '../menu/menu.js'
 import lang from "../lang/lang.js";
 import { EventEmitter } from 'events';
 import fs from "fs";
@@ -46,18 +45,16 @@ class Downloads extends EventEmitter {
             '.doc': 'application/msword',
             '.mp4': 'video/mp4',
             '.ts': 'video/MP2T'
-        };
-        this.clear();
-        this.activeDownloads = {};
-        renderer.get().on('download-in-background', this.download.bind(this));
+        }
+        this.activeDownloads = {}
+        renderer.get().on('download-in-background', this.download.bind(this))
     }
     dialogCallback(ret) {
         if (ret == 'downloads-start') {
             if (this.askingDownloadStart) {
                 this.download(this.askingDownloadStart.url, this.askingDownloadStart.name, this.askingDownloadStart.target);
             }
-        }
-        else {
+        } else {
             const cancelPrefix = 'downloads-cancel-';
             if (String(ret).startsWith(cancelPrefix)) {
                 const uid = ret.substr(cancelPrefix.length);
@@ -65,11 +62,11 @@ class Downloads extends EventEmitter {
                     if (this.activeDownloads[url].uid == uid) {
                         this.activeDownloads[url].cancelled = true;
                         this.activeDownloads[url].destroy();
-                        fs.unlink(this.activeDownloads[url].file, () => { });
+                        fs.unlink(this.activeDownloads[url].file, () => {});
                         renderer.get().emit('background-mode-unlock', 'saving-file-' + uid);
                         osd.hide(uid);
                         delete this.activeDownloads[url];
-                        menu.refreshNow();
+                        global.menu && global.menu.refreshNow();
                         return true;
                     }
                 });
@@ -151,8 +148,7 @@ class Downloads extends EventEmitter {
                         res.end();
                     });
                     download.start();
-                }
-                else {
+                } else {
                     fs.stat(pathname, (err, stat) => {
                         if (err) {
                             res.statusCode = 404;
@@ -237,14 +233,12 @@ class Downloads extends EventEmitter {
             this.served.push(dest);
             if (file == dest) {
                 resolve('http://' + this.opts.addr + ':' + this.opts.port + '/' + encodeURIComponent(name));
-            }
-            else {
+            } else {
                 
                 fs.copyFile(file, dest, err => {
                     if (err) {
                         reject(err);
-                    }
-                    else {
+                    } else {
                         resolve('http://' + this.opts.addr + ':' + this.opts.port + '/' + encodeURIComponent(name));
                     }
                 });
@@ -263,8 +257,7 @@ class Downloads extends EventEmitter {
                 renderer.get().emit('download', url, name);
             }
             return url;
-        }
-        else {
+        } else {
             let url = 'http://' + this.opts.addr + ':' + this.opts.port + '/' + encodeURIComponent(name);
             this.map['./' + name] = file;
             console.log('serve serve', file, url);
@@ -287,17 +280,17 @@ class Downloads extends EventEmitter {
         console.log('serve clear');
         fs.access(this.folder, error => {
             if (error) {
-                fs.mkdir(this.folder, { recursive: true }, () => { });
-            }
-            else {
-                this.served.forEach(f => fs.unlink(f, () => { }));
+                fs.mkdir(this.folder, { recursive: true }, () => {});
+            } else {
+                this.served.forEach(f => fs.unlink(f, () => {}));
                 this.served = [];
             }
         });
     }
     async askDownload(url, name, target) {
+        if(!global.menu) return
         this.askingDownloadStart = { url, name, target };
-        let ret = await menu.dialog([
+        let ret = await global.menu.dialog([
             { template: 'question', text: paths.manifest.window.title, fa: this.icon },
             { template: 'message', text: lang.DOWNLOAD_START_CONFIRM.format(name) + "\r\n\r\n" + lang.DOWNLOAD_START_HINT.format([lang.TOOLS, lang.ACTIVE_DOWNLOADS].join('/')) },
             { template: 'option', text: lang.YES, id: 'downloads-start', fa: 'fas fa-check-circle' },
@@ -309,8 +302,7 @@ class Downloads extends EventEmitter {
         let pos = name.lastIndexOf('.');
         if (pos == -1) {
             return name + '-' + i;
-        }
-        else {
+        } else {
             return name.substr(0, pos) + '-' + i + name.substr(pos);
         }
     }
@@ -333,8 +325,7 @@ class Downloads extends EventEmitter {
             if (Array.isArray(files)) {
                 name = this.getUniqueFilename(files, name);
                 console.log('UNIQUE FILENAME ' + name + ' IN ' + files.join(','));
-            }
-            else {
+            } else {
                 console.log('READDIR ERR ' + String(err));
             }
             const uid = 'download-' + name.replace(new RegExp('[^A-Za-z0-9]+', 'g'), '');
@@ -352,13 +343,13 @@ class Downloads extends EventEmitter {
             download.file = file;
             download.filename = name;
             this.activeDownloads[url] = download;
-            if (menu.path == lang.TOOLS) {
-                menu.refresh();
+            if (global.menu && global.menu.path == lang.TOOLS) {
+                global.menu.refresh()
             }
             download.on('progress', progress => {
                 osd.show(lang.SAVING_FILE_X.format(name) + '  ' + parseInt(progress) + '%', 'fa-mega spin-x-alt', uid, 'persistent');
-                if (menu.path.indexOf(lang.ACTIVE_DOWNLOADS) != -1) {
-                    menu.refresh();
+                if (global.menu && global.menu.path.indexOf(lang.ACTIVE_DOWNLOADS) != -1) {
+                    global.menu.refresh()
                 }
             });
             download.on('error', console.error);
@@ -369,15 +360,14 @@ class Downloads extends EventEmitter {
                     const done = () => {
                         renderer.get().emit('background-mode-unlock', 'saving-file-' + uid);
                         delete this.activeDownloads[url];
-                        if (menu.path.indexOf(lang.ACTIVE_DOWNLOADS) != -1) {
-                            menu.refreshNow();
+                        if (global.menu && global.menu.path.indexOf(lang.ACTIVE_DOWNLOADS) != -1) {
+                            global.menu.refreshNow()
                         }
                     };
                     if (download.cancelled) {
                         done();
-                    }
-                    else {
-                        osd.show(lang.FILE_SAVED_ON.format(menu.basename(target) || target, name), 'fas fa-check-circle', uid, 'normal');
+                    } else {
+                        osd.show(lang.FILE_SAVED_ON.format(basename(target) || target, name), 'fas fa-check-circle', uid, 'normal');
                         fs.chmod(file, 0o777, err => {
                             console.log('Updated file permissions', err);
                             done();
@@ -409,7 +399,8 @@ class Downloads extends EventEmitter {
                     type: 'action',
                     fa: this.icon,
                     action: async () => {
-                        let ret = await menu.dialog([
+                        if(!global.menu) return
+                        let ret = await global.menu.dialog([
                             { template: 'question', text: paths.manifest.window.title, fa: this.icon },
                             { template: 'message', text: lang.DOWNLOAD_CANCEL_CONFIRM.format(name) },
                             { template: 'option', text: lang.YES, id: 'downloads-cancel-' + download.uid, fa: 'fas fa-check-circle' },
@@ -422,13 +413,11 @@ class Downloads extends EventEmitter {
             resolve(entries);
         });
     }
-    hook(entries, path) {
-        return new Promise((resolve, reject) => {
-            if (path == lang.TOOLS && !entries.some(e => e.name == lang.ACTIVE_DOWNLOADS) && Object.keys(this.activeDownloads).length) {
-                entries.push(this.entry());
-            }
-            resolve(entries);
-        });
+    async hook(entries, path) {
+        if (path == lang.TOOLS && !entries.some(e => e.name == lang.ACTIVE_DOWNLOADS) && Object.keys(this.activeDownloads).length) {
+            entries.push(this.entry())
+        }
+        return entries
     }
 }
-export default new Downloads();
+export default new Downloads()

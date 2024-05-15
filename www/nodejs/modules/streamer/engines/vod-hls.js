@@ -15,8 +15,7 @@ StreamerVODHLSIntent.supports = info => {
         if (String(info.sample).match(new RegExp('#ext(m3u|inf)', 'i'))) {
             if (StreamerBaseIntent.isVODM3U8(info.sample, info.contentLength, info.headers)) {
                 return true;
-            }
-            else {
+            } else {
                 return false; // is live hls
             }
         }

@@ -69,8 +69,7 @@ class DownloadCacheChunks extends EventEmitter {
     finish() {
         if (!this.ended) {
             this.end();
-        }
-        else if (!this.finished) {
+        } else if (!this.finished) {
             this.finished = true;
             this.emit('finish');
             this.destroy();
@@ -80,7 +79,7 @@ class DownloadCacheChunks extends EventEmitter {
         this.error = err;
         this.emit('error', err);
         this.finish();
-        fs.unlink(this.file, () => { });
+        fs.unlink(this.file, () => {});
     }
     end() {
         this.ended = true;
@@ -110,12 +109,12 @@ class DownloadCacheMap extends EventEmitter {
         if (!storage.index[key] || !storage.index[hkey]) {
             return null;
         }
-        const info = await storage.get(hkey).catch(() => { });
+        const info = await storage.get(hkey).catch(() => {});
         if (!info || !info.headers)
             return null;
         
         const file = storage.resolve(key);
-        const stat = await fs.promises.stat(file).catch(() => { });
+        const stat = await fs.promises.stat(file).catch(() => {});
         if (!stat || typeof (stat.size) != 'number')
             return null;
         return {
@@ -189,20 +188,17 @@ class DownloadCacheMap extends EventEmitter {
                         console.warn(chunks.error);
                         chunks.fail(chunks.error);
                         delete this.saving[url];
-                    }
-                    else if ((this.saving[url].size === false && !expectedLength) || (expectedLength > chunks.size)) {
+                    } else if ((this.saving[url].size === false && !expectedLength) || (expectedLength > chunks.size)) {
                         const err = 'Bad file size. Expected: ' + this.saving[url].size + ', expected*: ' + expectedLength + ', received: ' + chunks.size + ', discarding http cache.';
                         console.warn(err);
                         chunks.fail(err);
                         delete this.saving[url];
-                    }
-                    else if (downloader.statusCode < 200 || downloader.statusCode > 400 || (downloader.errors.length && !downloader.received)) {
+                    } else if (downloader.statusCode < 200 || downloader.statusCode > 400 || (downloader.errors.length && !downloader.received)) {
                         const err = 'Bad download. Status: ' + downloader.statusCode + ', received: ' + chunks.size;
                         console.warn(err);
                         chunks.fail(err);
                         delete this.saving[url];
-                    }
-                    else {
+                    } else {
                         const done = () => {
                             const size = chunks.size;
                             const ttl = this.saving[url].ttl;
@@ -223,8 +219,7 @@ class DownloadCacheMap extends EventEmitter {
                         };
                         if (chunks.finished) {
                             done();
-                        }
-                        else {
+                        } else {
                             chunks.once('finish', done);
                             chunks.end();
                         }
@@ -232,8 +227,7 @@ class DownloadCacheMap extends EventEmitter {
                 };
                 if (chunks.finished) {
                     finish();
-                }
-                else {
+                } else {
                     chunks.on('finish', finish);
                 }
                 chunks.end();

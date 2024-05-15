@@ -31,8 +31,7 @@ class HLSTrackSelector {
                 if (playlist.attributes) {
                     if (playlist.attributes['AVERAGE-BANDWIDTH'] && parseInt(playlist.attributes['AVERAGE-BANDWIDTH']) > 128) {
                         bandwidth = parseInt(playlist.attributes['AVERAGE-BANDWIDTH']);
-                    }
-                    else if (playlist.attributes['BANDWIDTH'] && parseInt(playlist.attributes['BANDWIDTH']) > 128) {
+                    } else if (playlist.attributes['BANDWIDTH'] && parseInt(playlist.attributes['BANDWIDTH']) > 128) {
                         bandwidth = parseInt(playlist.attributes['BANDWIDTH']);
                     }
                     if (playlist.attributes['RESOLUTION']) {
@@ -41,8 +40,7 @@ class HLSTrackSelector {
                 }
                 return { url, bandwidth, resolution };
             });
-        }
-        else {
+        } else {
             results = [{ url: masterUrl, bandwidth: 0, resolution: '' }];
         }
         this.tracks[masterUrl] = results;
@@ -56,16 +54,14 @@ class HLSTrackSelector {
             if (!chosen) {
                 chosen = track.url;
                 chosenBandwidth = track.bandwidth;
-            }
-            else {
+            } else {
                 if (!bandwidth || track.bandwidth <= bandwidth) {
                     chosen = track.url;
                     chosenBandwidth = track.bandwidth;
                     if (!bandwidth && i == 1) { // if we don't know the connection speed yet, use the #1 to skip a possible audio track
                         return true;
                     }
-                }
-                else {
+                } else {
                     return true; // to break
                 }
             }
@@ -75,12 +71,11 @@ class HLSTrackSelector {
     async select(masterUrl) {
         let tracks = await this.getPlaylistTracks(masterUrl);
         if (tracks.length != 1) {
-            const {default: streamer} = await import('../main.js')
-            const track = await this.selectTrackQualityByBandwidth(tracks, streamer.downlink);
-            tracks = [track];
+            const track = await this.selectTrackQualityByBandwidth(tracks, global.streamer ? global.streamer.downlink : undefined)
+            tracks = [track]
         }
         if (tracks.length)
-            return tracks[0];
+            return tracks[0]
     }
 }
 class StreamerHLSIntent extends StreamerBaseIntent {
@@ -224,8 +219,7 @@ StreamerHLSIntent.supports = info => {
         if (String(info.sample).match(new RegExp('#ext(m3u|inf)', 'i'))) {
             if (StreamerBaseIntent.isVODM3U8(info.sample, info.contentLength, info.headers)) {
                 return false; // is vodhls
-            }
-            else {
+            } else {
                 return true;
             }
         }
@@ -233,8 +227,7 @@ StreamerHLSIntent.supports = info => {
     if (info.contentType) {
         if (info.contentType.indexOf('mpegurl') != -1) {
             return true;
-        }
-        else {
+        } else {
             return false; // other video content type
         }
     }

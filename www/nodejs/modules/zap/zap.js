@@ -14,13 +14,9 @@ class Zap extends EventEmitter {
         renderer.ready(() => this.init())
     }
     async init() {
-        const {default: menu} = await import('../menu/menu.js')
-        const {default: lists} = await import('../lists/lists.js')
-        const {default: channels} = await import('../channels/channels.js')
         this.title = lang.ZAP
         this.lists = lists
-        this.channels = channels
-        menu.addFilter(this.hook.bind(this));
+        global.menu.addFilter(this.hook.bind(this));
         this.streamer.on('stop', err => {
             if (this.isZapping) {
                 this.go().catch(console.error);
@@ -45,7 +41,7 @@ class Zap extends EventEmitter {
         });
     }
     async hook(entries, path) {
-        if (this.lists && path == lang.LIVE && this.lists.loaded() && this.lists.activeLists.length) {
+        if (this.lists && path == lang.LIVE && global.lists.loaded() && global.lists.activeLists.length) {
             let pos, has = entries.some((e, i) => {
                 if (e.name == this.title) {
                     pos = i;
@@ -58,8 +54,7 @@ class Zap extends EventEmitter {
                 }
                 entries.splice(pos, 0, this.entry());
             }
-        }
-        else if (path == '' && !paths.ALLOW_ADDING_LISTS) {
+        } else if (path == '' && !paths.ALLOW_ADDING_LISTS) {
             insertEntry(this.entry(), entries, -2, [lang.OPTIONS, lang.TOOLS]);
         }
         return entries;
@@ -124,15 +119,15 @@ class Zap extends EventEmitter {
     }
     async channelsList() {        
         let chs = [], wdata = {};
-        (await this.channels.watching.entries()).forEach(e => {
+        (await global.channels.watching.entries()).forEach(e => {
             wdata[e.name] = e.users;
         });
-        Object.keys(this.channels.channelList.channelsIndex).forEach(name => {
-            if (!this.lists.mi.isRadio(name)) {
+        Object.keys(global.channels.channelList.channelsIndex).forEach(name => {
+            if (!global.lists.mi.isRadio(name)) {
                 chs.push({
                     name,
                     weight: 1,
-                    terms: this.channels.channelList.channelsIndex[name]
+                    terms: global.channels.channelList.channelsIndex[name]
                 });
             }
         });

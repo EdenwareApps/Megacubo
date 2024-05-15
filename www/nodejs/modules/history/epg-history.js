@@ -35,12 +35,10 @@ class EPGHistory extends EntriesGroup {
                     if (validate) {
                         console.warn('Session started');
                         this.startSession();
-                    }
-                    else {
+                    } else {
                         console.warn('Session not started, not a channel');
                     }
-                }
-                else {
+                } else {
                     console.warn('Session already started');
                 }
             })
@@ -103,8 +101,7 @@ class EPGHistory extends EntriesGroup {
                                 this.data[i] = this.cleanAtts(data);
                                 save = true;
                                 return true;
-                            }
-                            else {
+                            } else {
                                 let diff = data.watched.start - entry.watched.end;
                                 if (diff < 120) {
                                     data.watched.start = entry.watched.start;
@@ -163,11 +160,9 @@ class EPGHistory extends EntriesGroup {
         if (this.data.length && this.channels.loadedEPG) {
             if (path == lang.LIVE) {
                 return 3;
-            }
-            else if (path == lang.BOOKMARKS) {
+            } else if (path == lang.BOOKMARKS) {
                 return 2;
-            }
-            else if (path.indexOf(lang.RECOMMENDED_FOR_YOU) != -1) {
+            } else if (path.indexOf(lang.RECOMMENDED_FOR_YOU) != -1) {
                 return 1;
             }
         }
@@ -228,8 +223,7 @@ class EPGHistory extends EntriesGroup {
                 this.once('release', async () => {
                     this.check().catch(console.error).finally(resolve);
                 });
-            }
-            else {
+            } else {
                 this.check().catch(console.error).finally(resolve);
             }
         });

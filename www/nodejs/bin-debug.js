@@ -14,7 +14,7 @@ async function findElectronExecutable() {
             await fs.promises.access(executable, fs.constants.F_OK);
             return executable;
         }
-        catch (error) { }
+        catch (error) {}
     }
     // Check environment variable
     const environmentPath = process.env.ELECTRON_PATH;
@@ -68,8 +68,7 @@ findElectronExecutable().then(electronPath => {
             process.exit(code);
         });
         console.log(electronPath);
-    }
-    else {
+    } else {
         console.error('Electron executable not found. Use \'npm i electron@9.1.2\' to install it.');
         process.exit(0);
     }

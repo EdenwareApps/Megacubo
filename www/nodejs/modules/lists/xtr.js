@@ -65,8 +65,7 @@ class Xtr extends EventEmitter {
             const availables = this.info && this.info.user_info && this.info.user_info.allowed_output_formats ? this.info.user_info.allowed_output_formats : 'ts';
             if (pref == 'hls' && availables.includes('m3u8')) {
                 this._livefmt = 'm3u8';
-            }
-            else {
+            } else {
                 this._livefmt = 'ts';
             }
         }
@@ -83,8 +82,8 @@ class Xtr extends EventEmitter {
         const parents = { series: {} };
         const categories = [];
         for (const type of ['live', 'vod', 'series']) {
-            const cats = await this.execute('get_' + type + '_categories');
-            categories.push(...cats);
+            const cats = await this.execute('get_' + type + '_categories')
+            Array.isArray(cats) && categories.push(...cats)
             if (type == 'series') {
                 if (this.flags.endsWith('-all')) {
                     series = await this.execute('get_series');
@@ -97,7 +96,7 @@ class Xtr extends EventEmitter {
                 parents[c.category_id] = c.parent_id;
             }
         });
-        series.forEach(c => {
+        Array.isArray(series) && series.forEach(c => {
             if (c.category_id && c.series_id) {
                 parents.series[c.series_id] = c.category_id;
             }
@@ -126,8 +125,7 @@ class Xtr extends EventEmitter {
             return async () => {
                 if (typeof (s) == 'string') {
                     this.emitEntries(await this.execute('get_' + s + '_streams'), s);
-                }
-                else {
+                } else {
                     this.emitEntries(await this.getSeriesStreams(s.category_id), 'series');
                 }
                 progress();

@@ -1,4 +1,4 @@
-import { ucWords } from '../utils/utils.js'
+import { time, ucWords } from '../utils/utils.js'
 import Download from '../download/download.js'
 import lang from "../lang/lang.js";
 import storage from '../storage/storage.js'
@@ -182,8 +182,8 @@ class EPG extends EPGPaginateChannelsList {
     async update(){
         let lastFetchedAt = await storage.get(this.fetchCtrlKey)
         let lastModifiedAt = await storage.get(this.lastmCtrlKey)
-        const now = this.time()
-        if(Object.keys(this.data).length < this.minExpectedEntries || !lastFetchedAt || lastFetchedAt < (this.time() - (this.ttl / 2))){
+        const now = time()
+        if(Object.keys(this.data).length < this.minExpectedEntries || !lastFetchedAt || lastFetchedAt < (time() - (this.ttl / 2))){
             if(this.request || this.parser){
                 console.error('already updating')
                 return
@@ -321,7 +321,7 @@ class EPG extends EPGPaginateChannelsList {
     }
     prepareProgrammeData(programme, end){
         if(!end){
-            end = this.time(programme.end)
+            end = time(programme.end)
         }
         let t = programme.title.shift() || 'No title'
         if(t.indexOf('/') != -1) {
@@ -348,7 +348,7 @@ class EPG extends EPGPaginateChannelsList {
     }
     programme(programme){
         if(programme && programme.channel && programme.title.length){
-            const now = this.time(), start = this.time(programme.start), end = this.time(programme.end)
+            const now = time(), start = time(programme.start), end = time(programme.end)
             programme.channel = this.cidToDisplayName(programme.channel)
             if(end >= now && end <= (now + this.ttl)){
                 if(!this.hasProgramme(programme.channel, start)){
@@ -421,7 +421,7 @@ class EPG extends EPGPaginateChannelsList {
         return cs
     }
     async liveNowChannelsList(){
-        let categories = {}, now = this.time(), updateAfter = 600
+        let categories = {}, now = time(), updateAfter = 600
         Object.keys(this.data).forEach(channel => {
             const name = this.prepareChannelName(channel)
             Object.keys(this.data[channel]).some(start => {
@@ -479,7 +479,7 @@ class EPG extends EPGPaginateChannelsList {
         if(!Object.keys(categories).length){
             return {}
         }
-        const lcCategories = Object.keys(categories), now = this.time()
+        const lcCategories = Object.keys(categories), now = time()
         let results = []
         if(!until){
             until = now + (24 * 3600)
@@ -573,18 +573,6 @@ class EPG extends EPGPaginateChannelsList {
             })            
         }
     }
-    time(dt){
-        if(dt){
-            if(typeof(dt) == 'number') {
-                return dt
-            } else if(typeof(dt) == 'string') {
-                return parseInt(dt)
-            }
-        } else {
-            dt = new Date()
-        }
-        return parseInt(dt.getTime() / 1000)
-    }
     extractTerms(c){
         if(Array.isArray(c)){
             return c.slice(0)
@@ -638,7 +626,7 @@ class EPG extends EPGPaginateChannelsList {
         return results
     }
     order(data, limit){
-        const ndata = {}, now = this.time(), ks = Object.keys(data)
+        const ndata = {}, now = time(), ks = Object.keys(data)
         if(ks.length < 2){
             return data
         }
@@ -755,7 +743,7 @@ class EPG extends EPGPaginateChannelsList {
         return candidates.length ? candidates[0].name : false
     }
     async search(terms, nowLive){
-        let epgData = {}, now = this.time()
+        let epgData = {}, now = time()
         Object.keys(this.data).forEach(channel => {
             Object.keys(this.data[channel]).forEach(start => {
                 if(nowLive === true){
@@ -782,7 +770,7 @@ class EPG extends EPGPaginateChannelsList {
         let data = await storage.get(this.key)
         let loaded
         if(data){
-            const now = this.time()
+            const now = time()
             Object.keys(data).forEach(channel => {
                 Object.keys(data[channel]).forEach(start => {
                     if(data[channel][start].e < now || data[channel][start].e > (now + this.ttl)){

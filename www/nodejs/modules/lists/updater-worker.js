@@ -11,7 +11,7 @@ const utils = setupUtils(getFilename())
 class ListsUpdater extends Common {
 	constructor(){
 		super()
-		this.debug = true
+		this.debug = false
 		this.relevantKeywords = []
 		this.info = {}
 	}
@@ -60,10 +60,16 @@ class ListsUpdater extends Common {
 			const updateMeta = {}
 			const key = LIST_DATA_KEY_MASK.format(url)
 			const file = storage.resolve(key)
-			const updater = new UpdateListIndex(url, url, file, this, Object.assign({}, updateMeta), params.force === true)
-			if(typeof(params.timeout) == 'number') {
-				updater.timeout = params.timeout
-			}
+			const updater = new UpdateListIndex({
+				url,
+				directURL: url,
+				file,
+				master: this,
+				updateMeta: Object.assign({}, updateMeta),
+				forceDownload: params.force === true,
+				timeout: params.timeout,
+				debug: this.debug
+			})
 			updateMeta.updateAfter = now + 180
 			if(this.debug) {
 				console.log('updater - should 2', url, should)
@@ -112,12 +118,15 @@ class ListsUpdater extends Common {
 	}
 	async updaterShouldUpdate(url){
 		const updateMeta = await this.getListMeta(url)
-		if(this.debug){
-			console.log('updater shouldUpdate', JSON.stringify(updateMeta, null, 3), url)
-		}
 		let now = (Date.now() / 1000)
 		let should = url.indexOf('#xtream') == -1 && (!updateMeta || now >= updateMeta.updateAfter)
+		if(this.debug){
+			console.log('updater shouldUpdate', now, JSON.stringify(updateMeta, null, 3), url)
+		}
 		if(!should){
+			if(this.debug){
+				console.log('updater shouldUpdate validating index', url)
+			}
 			const start = (Date.now() / 1000)
 			const valid = await this.validateIndex(url).catch(console.error)
 			if(this.debug){

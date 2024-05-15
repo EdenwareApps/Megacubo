@@ -1,8 +1,7 @@
 import Download from '../../download/download.js'
-import { kbfmt, prepareCORS } from "../../utils/utils.js";
+import { basename, kbfmt, prepareCORS } from "../../utils/utils.js";
 import osd from '../../osd/osd.js'
 import lang from "../../lang/lang.js";
-import path from "path";
 import http from "http";
 import StreamerAdapterBase from "../adapters/base.js";
 import MultiBuffer from "./multibuffer.js";
@@ -59,7 +58,7 @@ class Downloader extends StreamerAdapterBase {
         this.ext = 'ts';
         this.currentDownloadUID = undefined;
         if (this.opts.warmCache) {
-            this.warmCache = new MultiBuffer();
+            this.warmCache = new MultiBuffer()
             this.on('bitrate', bitrate => {
                 const newMaxSize = Math.min(Math.max(this.opts.warmCacheMinSize, bitrate * this.opts.warmCacheSeconds), this.opts.warmCacheMaxMaxSize);
                 if (typeof (newMaxSize) == 'number' && !isNaN(newMaxSize)) {
@@ -88,8 +87,7 @@ class Downloader extends StreamerAdapterBase {
     getContentType() {
         if (this.opts.contentType) {
             return this.opts.contentType;
-        }
-        else {
+        } else {
             switch (this.ext) {
                 case 'aac':
                 case 'aacp':
@@ -103,7 +101,7 @@ class Downloader extends StreamerAdapterBase {
     start() {
         return new Promise((resolve, reject) => {
             this.server = http.createServer((req, response) => {
-                if (path.basename(req.url) == 'stream') {
+                if (basename(req.url) == 'stream') {
                     response.writeHead(200, prepareCORS({
                         'content-type': this.getContentType()
                     }, req));
@@ -134,8 +132,7 @@ class Downloader extends StreamerAdapterBase {
                             delete this.connected[uid];
                             if (Object.keys(this.connected).length) {
                                 this.pump();
-                            }
-                            else {
+                            } else {
                                 this.connected = false;
                             }
                         }
@@ -144,8 +141,7 @@ class Downloader extends StreamerAdapterBase {
                     this.on('data', listener);
                     this.once('destroy', finish);
                     this.pump();
-                }
-                else {
+                } else {
                     response.statusCode = 404;
                     response.end('File not found!');
                 }
@@ -165,8 +161,7 @@ class Downloader extends StreamerAdapterBase {
                 const getBitrate = () => this.bitrateChecker.addSample(this.endpoint);
                 if (this.warmCache && this.warmCache.length) {
                     getBitrate();
-                }
-                else {
+                } else {
                     this.once('data', getBitrate);
                 }
             });
@@ -187,8 +182,7 @@ class Downloader extends StreamerAdapterBase {
         if (syncBytePosition == -1) {
             menu.displayErr('!!! SYNC_BYTE não encontrado');
             this.warmCache.clear();
-        }
-        else {
+        } else {
             this.warmCache.consume(syncBytePosition);
         }
         return true;
@@ -253,12 +247,11 @@ class Downloader extends StreamerAdapterBase {
                 const file = temp + '/' + parseInt(Math.random() * 1000000) + '.ts';
                 fs.writeFile(file, this.warmCache.slice(), () => {
                     if (this.destroyed) {
-                        return fs.unlink(file, () => { }); // late for the party
+                        return fs.unlink(file, () => {}); // late for the party
                     }
                     this.bitrateChecker.addSample(file, this.warmCache.length, true);
                 });
-            }
-            else {
+            } else {
                 this.rotateWarmCache();
             }
         }
@@ -271,8 +264,7 @@ class Downloader extends StreamerAdapterBase {
         if (this.opts.debug) {
             if (err) {
                 console.log('[' + this.type + '] DOWNLOAD ERR', err, data);
-            }
-            else {
+            } else {
                 console.log('[' + this.type + '] after download', data);
             }
         }
@@ -355,8 +347,7 @@ class Downloader extends StreamerAdapterBase {
                         callback = null;
                     }
                 });
-            }
-            else {
+            } else {
                 download.end();
                 if (this.committed && (!statusCode || statusCode < 200 || statusCode >= 400)) { // skip redirects
                     osd.show(lang.CONNECTION_FAILURE + ' (' + (statusCode || 'timeout') + ')', 'fas fa-times-circle', 'debug-conn-err', 'normal');
@@ -364,8 +355,7 @@ class Downloader extends StreamerAdapterBase {
                 this.internalError(statusCode);
                 if (statusCode) {
                     setTimeout(() => this.afterDownload('bad response', callback, { contentType, statusCode, headers }), 1000); // delay to avoid abusing
-                }
-                else {
+                } else {
                     this.afterDownload('bad response', callback, { contentType, statusCode, headers }); // timeout, no delay so
                 }
             }

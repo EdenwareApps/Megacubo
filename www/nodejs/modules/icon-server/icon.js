@@ -17,16 +17,13 @@ class IconFetcher extends EventEmitter {
         const nextImage = images.filter(m => m.icon == next.icon)[0];
         if (prevImage.hits < nextImage.hits) {
             return true;
-        }
-        else if (prevImage.hits == nextImage.hits) {
+        } else if (prevImage.hits == nextImage.hits) {
             if (prevImage.watching < nextImage.watching) {
                 return true;
-            }
-            else if (prevImage.watching == nextImage.watching) {
+            } else if (prevImage.watching == nextImage.watching) {
                 if (!prevImage.epg && nextImage.epg) {
                     return true;
-                }
-                else {
+                } else {
                     if (!prevImage.live && nextImage.live) {
                         return true;
                     }
@@ -94,8 +91,7 @@ class IconFetcher extends EventEmitter {
         }
         if (done) {
             return done;
-        }
-        else {
+        } else {
             throw 'Couldn\'t find a logo for: ' + JSON.stringify(this.terms) + ' ' + JSON.stringify(images);
         }
     }
@@ -118,8 +114,7 @@ class IconFetcher extends EventEmitter {
             this.isChannel = channels.isChannel(this.terms);
             if (this.isChannel) {
                 this.terms = this.isChannel.terms;
-            }
-            else if (atts = mega.parse(this.entry.url)) {
+            } else if (atts = mega.parse(this.entry.url)) {
                 if (!atts.terms) {
                     atts.terms = this.entry.name;
                 }
@@ -143,8 +138,7 @@ class IconFetcher extends EventEmitter {
                 if (!err) {
                     if (stat.size == noIcon.length) {
                         throw 'icon not found';
-                    }
-                    else {
+                    } else {
                         return [this.terms.join(','), false, true];
                     }
                 }
@@ -180,8 +174,7 @@ class Icon extends IconFetcher {
             const force = ret[1];
             const alpha = ret[2];
             this.result = { key, url, force, alpha };
-        }
-        else {
+        } else {
             this.result = err;
         }
         this.emit('result', this.result);
@@ -190,12 +183,11 @@ class Icon extends IconFetcher {
         return new Promise((resolve, reject) => {
             let cb = () => {
                 (this.succeeded ? resolve : reject)(this.result);
-                cb = () => { };
+                cb = () => {};
             };
             if (typeof (this.result) != 'undefined') {
                 cb();
-            }
-            else {
+            } else {
                 this.once('result', cb);
             }
         });

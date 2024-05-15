@@ -46,8 +46,7 @@ class Index extends Common {
     searchMapCacheInvalidate(url) {
         if (!url) {
             this.searchMapCache = {};
-        }
-        else {
+        } else {
             Object.keys(this.searchMapCache).forEach(k => {
                 if (typeof (this.searchMapCache[k][url]) != 'undefined') {
                     delete this.searchMapCache[k][url];
@@ -64,8 +63,7 @@ class Index extends Common {
             terms.forEach(term => {
                 if (term.startsWith('-')) {
                     excludes.push(term.substr(1));
-                }
-                else {
+                } else {
                     aterms.push(term);
                 }
             });
@@ -76,8 +74,7 @@ class Index extends Common {
                     return this.parseQuery(nterms, opts).queries.shift();
                 })
             };
-        }
-        else {
+        } else {
             let aliases = {}, excludes = [];
             terms = terms.filter(term => {
                 if (term.startsWith('-')) {
@@ -95,8 +92,7 @@ class Index extends Common {
                             return true;
                         }
                     };
-                }
-                else {
+                } else {
                     filter = (term, t) => {
                         if (term.startsWith(t) && t != term) {
                             return true;
@@ -173,8 +169,7 @@ class Index extends Common {
                     console.log('joining map ' + term);
                 }
                 tmap = this.intersectMap(tmap, map);
-            }
-            else {
+            } else {
                 tmap = this.cloneMap(map);
             }
         });
@@ -207,12 +202,10 @@ class Index extends Common {
                         console.log('intersecting term map');
                     }
                     smap = this.intersectMap(smap, tmap);
-                }
-                else {
+                } else {
                     smap = tmap;
                 }
-            }
-            else {
+            } else {
                 smap = false;
                 return true;
             }
@@ -269,8 +262,7 @@ class Index extends Common {
                 let ls;
                 if (opts.groupsOnly) {
                     ls = smap[listUrl]['g'];
-                }
-                else {
+                } else {
                     ls = smap[listUrl]['n'];
                     if (opts.group) {
                         ls.push(...smap[listUrl]['g']);
@@ -299,8 +291,7 @@ class Index extends Common {
                                 if (bestResults.length == maxWorkingSetLimit)
                                     return BREAK;
                             }
-                        }
-                        else {
+                        } else {
                             e.source = listUrl;
                             bestResults.push(e);
                             if (bestResults.length == maxWorkingSetLimit)
@@ -328,16 +319,14 @@ class Index extends Common {
             results = this.adjustSearchResults(results, opts, limit);
             if (results.length < limit) {
                 maybe = this.adjustSearchResults(maybe, opts, limit - results.length);
-            }
-            else {
+            } else {
                 maybe = [];
             }
             if (this.debug) {
                 console.warn('lists.search() RESULTS*', ((Date.now() / 1000) - start) + 's (total time)', terms);
             }
             return { results, maybe };
-        }
-        else {
+        } else {
             return { results: [], maybe: [] };
         }
     }
@@ -370,8 +359,7 @@ class Index extends Common {
                 if (map[domain].length > i) {
                     keep = true;
                     nentries.push(map[domain][i]);
-                }
-                else {
+                } else {
                     delete map[domain];
                 }
             });
@@ -393,8 +381,7 @@ class Index extends Common {
         });
         if (elevate) {
             entries.push(...notHLS);
-        }
-        else {
+        } else {
             entries = notHLS.push(...entries);
         }
         return entries;
@@ -463,8 +450,7 @@ class Index extends Common {
                         const diffSet = new Set(b[listUrl][type]);
                         if (type === 'g') {
                             c[listUrl].g = [...gSet].filter(n => !diffSet.has(n));
-                        }
-                        else {
+                        } else {
                             c[listUrl].n = [...nSet].filter(n => !diffSet.has(n));
                         }
                     }
@@ -524,8 +510,7 @@ class Index extends Common {
                             groups[i].group = parentPath;
                             groups[i].entries = [ngroup];
                             ret = true;
-                        }
-                        else {
+                        } else {
                             groups[routerVar[parentPath]].entries.push(group);
                         }
                         return ret;

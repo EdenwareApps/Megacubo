@@ -137,7 +137,7 @@ export const hotkeysActions = {
             if(streamer.isZapping){
                 main.emit('zap')
             } else {
-                main.emit('tune')
+                main.emit('reload-dialog')
             }
         }, 'up', true
     ],

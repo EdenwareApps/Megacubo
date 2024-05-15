@@ -11,8 +11,7 @@ class StreamerVideoIntent extends StreamerBaseIntent {
         this.mediaType = 'video';
         if (this.info.contentType && this.info.contentType.indexOf('o/') != -1 && this.info.contentType.indexOf('mp2t') == -1) {
             this.mimetype = this.info.contentType;
-        }
-        else {
+        } else {
             this.mimetype = this.mimeTypes.video;
         }
     }
@@ -36,12 +35,10 @@ class StreamerVideoIntent extends StreamerBaseIntent {
                         this.endpoint = url;
                         resolve();
                     }).catch(reject);
-                }
-                else { //  if is localhost URL, don't proxify
+                } else { //  if is localhost URL, don't proxify
                     resolve();
                 }
-            }
-            else {
+            } else {
                 const adapter = new StreamerProxy(Object.assign({
                     authURL: this.data.authURL || this.data.source,
                     timeout: config.get('read-timeout')

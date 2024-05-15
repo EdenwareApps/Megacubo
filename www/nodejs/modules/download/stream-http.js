@@ -56,8 +56,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
         }
         if (opts.headers.connection == 'keep-alive') {
             opts.agent = this.parsed.protocol == 'http:' ? KHttpAgent : KHttpsAgent;
-        }
-        else {
+        } else {
             opts.agent = this.parsed.protocol == 'http:' ? HttpAgent : HttpsAgent;
         }
         return opts;
@@ -68,8 +67,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
         if (!Array.isArray(this.ips)) {
             if (net.isIPv4(host) || net.isIPv6(host)) {
                 this.ips = [{ address: host, family: net.isIPv6(host) ? 6 : 4 }];
-            }
-            else {
+            } else {
                 const ips = await lookup.lookup(host, { all: true, family: 0 });
                 this.ips = ips;
             }
@@ -120,8 +118,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
         if (this.responder) {
             this.responder.end();
             this.end();
-        }
-        else {
+        } else {
             const err = this.errors.map(s => String(s)).unique().join("\n") || 'Unknown error';
             this.emitError(err, true);
         }
@@ -145,8 +142,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
                         lookup.defer(options.realHost, options.ip); // if it failed with a IP, try some other at next time
                     }
                     reject(err);
-                }
-                else {
+                } else {
                     resolve();
                 }
                 if (req) {
@@ -166,8 +162,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
                 if (this.responder.headers['set-cookie']) {
                     if (this.responder.headers['set-cookie'] instanceof Array) {
                         this.responder.headers['set-cookie'].map(c => this.setCookies(c).catch(console.error));
-                    }
-                    else {
+                    } else {
                         this.setCookies(this.responder.headers['set-cookie']).catch(console.error);
                     }
                     delete this.responder.headers['set-cookie'];

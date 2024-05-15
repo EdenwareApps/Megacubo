@@ -10,22 +10,22 @@ import Parser from './parser.js'
 import config from "../config/config.js"
 
 class UpdateListIndex extends ListIndexUtils { 
-	constructor(url, directURL, file, master, updateMeta, forceDownload){
+	constructor(opts={}){
 		super()
-        this.url = url
-        this.file = file
+        this.url = opts.url
+        this.file = opts.file
 		this.playlists = []
-        this.master = master
+        this.master = opts.master
         this.lastProgress = -1
-        this.directURL = directURL
-        this.updateMeta = updateMeta
-        this.forceDownload = forceDownload === true
+        this.directURL = opts.directURL
+        this.updateMeta = opts.updateMeta
+        this.forceDownload = opts.forceDownload === true
         this.uid = parseInt(Math.random() * 100000000000)
         this.tmpOutputFile = temp +'/'+ this.uid +'.out.tmp'
-        this.timeout = config.get('read-timeout')
+        this.timeout = opts.timeout || config.get('read-timeout')
         this.linesMapPtr = 0
         this.linesMap = []
-        this.debug = false
+        this.debug = opts.debug
         this.reset()
     }
     ext(file){
@@ -89,7 +89,7 @@ class UpdateListIndex extends ListIndexUtils {
                 console.error('UpdateListIndex fetch '+ path +' ('+ this.timeout +')')
                 let resolved
                 const opts = {
-                    debug: this.debug,
+                    debug: false, // this.debug,
                     url: path,
                     retries: 3,
                     followRedirect: true,
@@ -280,7 +280,7 @@ class UpdateListIndex extends ListIndexUtils {
         await mag.run().catch(e => err = e)
         mag.destroy()
         if(err) {
-            console.error('XPARSE '+ err)
+            console.error('MPARSE '+ err)
             throw err
         }
     }
@@ -382,12 +382,15 @@ class UpdateListIndex extends ListIndexUtils {
         return new Promise((resolve, reject) => {
             fs.stat(this.file, (err, stat) => {
                 let resolved
+                console.log('writeIndex', err, stat)
                 const exists = !err && stat && stat.size
                 this.index.length = this.indexateIterator
                 this.index.uniqueStreamsLength = this.uniqueStreamsIndexateIterator
                 this.index.groupsTypes = this.sniffGroupsTypes(this.groups)
+                console.log('writeIndex', this.index.length, exists)
                 if(this.index.length || !exists) {
                     const finish = err => {
+                        console.log('writeIndex written', err)
                         if(resolved) return
                         resolved = true
                         if(err) console.error(err)
@@ -413,6 +416,7 @@ class UpdateListIndex extends ListIndexUtils {
                     const linesMapLine = JSON.stringify(this.linesMap)
                     writer.write(indexLine + linesMapLine)
                     writer.end()
+                    console.log('writeIndex writing', (indexLine + linesMapLine).length)
                 } else {
                     resolved = true
                     fs.unlink(this.tmpOutputFile, () => reject('empty list'))

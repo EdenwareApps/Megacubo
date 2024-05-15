@@ -22,8 +22,7 @@ class StreamerVODTSIntent extends StreamerBaseIntent {
                     this.endpoint = url;
                     resolve();
                 }).catch(reject);
-            }
-            else {
+            } else {
                 this.endpoint = this.info.url || this.data.url;
                 resolve();
             }

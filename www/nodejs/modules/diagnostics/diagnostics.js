@@ -1,17 +1,18 @@
 import { EventEmitter } from 'events';
-import { exec } from "child_process";
-import { deepClone, kbfmt } from "../utils/utils.js";
-import { default as cds } from "check-disk-space";
+import { exec } from 'child_process';
+import { deepClone, kbfmt } from '../utils/utils.js';
+import { default as cds } from 'check-disk-space';
 import osd from '../osd/osd.js'
 import menu from '../menu/menu.js'
-import lang from "../lang/lang.js";
-import lists from "../lists/lists.js";
-import crashlog from "../crashlog/crashlog.js";
-import fs from "fs";
-import downloads from "../downloads/downloads.js";
-import options from "../options/options.js";
-import config from "../config/config.js"
+import lang from '../lang/lang.js';
+import lists from '../lists/lists.js';
+import crashlog from '../crashlog/crashlog.js';
+import fs from 'fs';
+import downloads from '../downloads/downloads.js';
+import options from '../options/options.js';
+import config from '../config/config.js'
 import paths from '../paths/paths.js'
+import { ready } from '../bridge/bridge.js'
 
 class Diagnostics extends EventEmitter {
     constructor() {
@@ -21,7 +22,7 @@ class Diagnostics extends EventEmitter {
         this.minDiskSpaceRequired = 512 * (1024 * 1024); // 512MB
         this.minFreeMemoryRequired = 350 * (1024 * 1024); // 350MB
         this.lowDiskSpaceWarnInterval = 5 * 50; // 5min
-        this.checkDiskUI().catch(console.error);
+        ready(() => this.checkDiskUI().catch(console.error))
     }
     async report() {
         const version = paths.manifest.version;
@@ -31,12 +32,10 @@ class Diagnostics extends EventEmitter {
         const listsInfo = lists.info(true);
         const myLists = configs.lists.map(a => a[1]);
         const listsRequesting = lists.requesting;
-        const {default: streamer} = await import('../streamer/main.js')
-        const {default: channels} = await import('../channels/channels.js')
-        const tuning = streamer.tuning ? streamer.tuning.logText(false) : ''
+        const tuning = global.streamer.tuning ? global.streamer.tuning.logText(false) : ''
         const processedLists = lists.processedLists.keys()
         const loaded = lists.loaded(true)
-        const channelListType = channels.channelList ? channels.channelList.type : 'no channelList loaded'
+        const channelListType = global.channels.channelList ? global.channels.channelList.type : 'no channelList loaded'
         const processing = lists.loader.processes.filter(p => p.started() && !p.done()).map(p => {
             return {
                 url: p.url,
@@ -73,7 +72,7 @@ class Diagnostics extends EventEmitter {
         console.error('REPORT => ' + report);
     }
     async checkDisk() {
-        return cds(this.folder); // {diskPath: "C:", free: 12345678, size: 98756432}
+        return cds(this.folder); // {diskPath: 'C:', free: 12345678, size: 98756432}
     }
     checkDiskOSD() {
         this.checkDisk().then(data => {
@@ -84,8 +83,8 @@ class Diagnostics extends EventEmitter {
         }).catch(console.error);
     }
     async checkDiskUI(force) {
-        let data = await this.checkDisk();
-        let fine = data.free >= this.minDiskSpaceRequired;
+        let data = await this.checkDisk()
+        let fine = data.free >= this.minDiskSpaceRequired
         if (!fine || force) {
             menu.dialog([
                 { template: 'question', text: paths.manifest.window.title, fa: 'fas fa-exclamation-triangle faclr-red' },
@@ -97,7 +96,7 @@ class Diagnostics extends EventEmitter {
                     options.requestClearCache();
                 }
             }).catch(console.error); // dont wait
-            // {diskPath: "C:", free: 12345678, size: 98756432}
+            // {diskPath: 'C:', free: 12345678, size: 98756432}
         }
         return fine;
     }
@@ -111,13 +110,11 @@ class Diagnostics extends EventEmitter {
                     let data = stdout.split("\n");
                     if (data.length > 1) {
                         resolve(parseInt(data[1].trim()) * 1024);
-                    }
-                    else {
+                    } else {
                         reject('checkMemory err: bad data, ' + String(data));
                     }
                 });
-            }
-            else {
+            } else {
                 exec('free -b', (err, stdout) => {
                     if (err) {
                         return reject('checkMemory err:' + String(err));
@@ -125,8 +122,7 @@ class Diagnostics extends EventEmitter {
                     let data = stdout.match(new RegExp('Mem: +[0-9]+ +[0-9]+ +([0-9]+)'));
                     if (data && data.length > 1) {
                         resolve(parseInt(data[1].trim()));
-                    }
-                    else {
+                    } else {
                         reject('checkMemory err: bad data, ' + String(data));
                     }
                 });
@@ -142,7 +138,7 @@ class Diagnostics extends EventEmitter {
                 { template: 'message', text: lang.LOW_MEMORY_AVAILABLE.format(kbfmt(freeBytes)) },
                 { template: 'option', text: 'OK', id: 'ok' }
             ], 'ok').catch(console.error); // dont wait
-            // {diskPath: "C:", free: 12345678, size: 98756432}
+            // {diskPath: 'C:', free: 12345678, size: 98756432}
         }
         return fine;
     }

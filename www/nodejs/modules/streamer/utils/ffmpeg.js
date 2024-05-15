@@ -47,8 +47,7 @@ class StreamerFFmpeg extends EventEmitter {
             Object.keys(opts).forEach((k) => {
                 if (['debug'].indexOf(k) == -1 && typeof (opts[k]) == 'function') {
                     this.on(k, opts[k]);
-                }
-                else {
+                } else {
                     this.opts[k] = opts[k];
                 }
             });
@@ -58,16 +57,16 @@ class StreamerFFmpeg extends EventEmitter {
         if (!this.uid) {
             this.uid = parseInt(Math.random() * 10000000);
             let err;
-            await fs.promises.mkdir(path.dirname(this.opts.workDir), { recursive: true }).catch(() => { });
-            const files = await fs.promises.readdir(this.opts.workDir).catch(e => err = e);
+            await fs.promises.mkdir(this.opts.workDir, { recursive: true }).catch(() => {})
+            const files = await fs.promises.readdir(this.opts.workDir).catch(e => err = e)
             if (err) {
                 return this.uid;
             }
             while (files.includes(String(this.uid))) {
-                this.uid++;
+                this.uid++
             }
         }
-        return this.uid;
+        return this.uid
     }
     verify(file, cb) {
         if (!file)
@@ -76,13 +75,11 @@ class StreamerFFmpeg extends EventEmitter {
         fs.readFile(file, (err, content) => {
             if (err) {
                 cb(false);
-            }
-            else {
+            } else {
                 let sample = String(content);
                 if (sample.split('.ts').length < 4 && sample.split('.m3u8').length < 2) {
                     cb(false);
-                }
-                else {
+                } else {
                     cb(true);
                 }
             }
@@ -106,30 +103,25 @@ class StreamerFFmpeg extends EventEmitter {
                     finished = true;
                     if (this.destroyed) {
                         reject('destroyed');
-                    }
-                    else {
+                    } else {
                         const elapsed = (Date.now() / 1000) - s;
                         const timeouted = elapsed >= timeout;
                         const t = timeouted ? ', timeout' : ' after ' + elapsed + '/' + timeout + 's';
                         fs.access(dir, aerr => {
                             if (aerr) {
                                 reject('dir not exists anymore' + t);
-                            }
-                            else {
+                            } else {
                                 fs.stat(file, (err, stat) => {
                                     if (stat && stat.size) {
                                         resolve(stat);
-                                    }
-                                    else {
+                                    } else {
                                         if (timeouted) {
                                             if (err) {
                                                 reject('file not found' + t);
-                                            }
-                                            else {
+                                            } else {
                                                 reject('file empty' + t);
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             reject(oerr || aerr || '');
                                         }
                                     }
@@ -143,8 +135,7 @@ class StreamerFFmpeg extends EventEmitter {
                 watcher = fs.watch(dir, (type, filename) => {
                     if (this.destroyed) {
                         finish('destroyed');
-                    }
-                    else if (filename === basename) {
+                    } else if (filename === basename) {
                         fs.stat(file, (err, stat) => {
                             if (stat && stat.size) {
                                 this.verify(file, fine => fine && finish());
@@ -167,8 +158,7 @@ class StreamerFFmpeg extends EventEmitter {
                 if (!finished) {
                     if (this.destroyed) {
                         finish('destroyed');
-                    }
-                    else {
+                    } else {
                         fs.access(file, fs.constants.R_OK, err => {
                             if (this.destroyed) {
                                 return finish('destroyed');
@@ -226,8 +216,7 @@ class StreamerFFmpeg extends EventEmitter {
             fs.stat(file, (err, stat) => {
                 if (stat && stat.size) {
                     resolve(stat);
-                }
-                else {
+                } else {
                     // is outdated file?
                     fs.readdir(this.opts.workDir + path.sep + this.uid, (err, files) => {
                         if (Array.isArray(files)) {
@@ -236,8 +225,7 @@ class StreamerFFmpeg extends EventEmitter {
                             if (basename < firstFile) {
                                 console.warn('Outdated file', basename, firstFile, files);
                                 reject(this.OUTDATED);
-                            }
-                            else {
+                            } else {
                                 console.warn('File not ready??', basename, firstFile, files);
                                 this.waitFile(file, 10).then(() => {
                                     console.warn('File now ready', basename, firstFile, files);
@@ -247,8 +235,7 @@ class StreamerFFmpeg extends EventEmitter {
                                     reject(err);
                                 });
                             }
-                        }
-                        else {
+                        } else {
                             reject('readdir failed');
                         }
                     });
@@ -321,8 +308,7 @@ class StreamerFFmpeg extends EventEmitter {
         };
         if (this.destroyed) {
             fail('destroyed');
-        }
-        else {
+        } else {
             this.prepareFile(file).then(stat => {
                 
                 let headers = prepareCORS({
@@ -373,8 +359,7 @@ class StreamerFFmpeg extends EventEmitter {
             if (this.lastRestart && this.lastRestart >= ((Date.now() / 1000) - 10)) {
                 if (this.opts.isLive) {
                     this.fail(lang.PLAYBACK_CORRUPTED_STREAM);
-                }
-                else {
+                } else {
                     return;
                 }
             }
@@ -419,16 +404,14 @@ class StreamerFFmpeg extends EventEmitter {
             let fragTime = 2, lwt = config.get('live-window-time');
             if (typeof (lwt) != 'number') {
                 lwt = 120;
-            }
-            else if (lwt < 30) { // too low will cause isBehindLiveWindowError
+            } else if (lwt < 30) { // too low will cause isBehindLiveWindowError
                 lwt = 30;
             }
             let hlsListSize = Math.ceil(lwt / fragTime), hlsFlags = 'delete_segments';
             if (this.opts.isLive) {
                 hlsFlags += '+omit_endlist';
                 this.decoder.outputOptions('-hls_flags', -5);
-            }
-            else {
+            } else {
                 this.decoder.outputOptions('-hls_flags', 0);
             }
             if (restarting) {
@@ -440,8 +423,7 @@ class StreamerFFmpeg extends EventEmitter {
                 outputOptions('-hls_time', fragTime).
                 outputOptions('-hls_list_size', hlsListSize).
                 outputOptions('-master_pl_name', 'master.m3u8');
-        }
-        else if (this.opts.outputFormat == 'mpegts') { // mpegts
+        } else if (this.opts.outputFormat == 'mpegts') { // mpegts
             this.decoder.
                 outputOptions('-movflags', 'frag_keyframe+empty_moov').
                 outputOptions('-listen', 1); // 2 wont work
@@ -451,8 +433,7 @@ class StreamerFFmpeg extends EventEmitter {
         }
         if (this.opts.videoCodec === null) {
             this.decoder.outputOptions('-vn');
-        }
-        else if (this.opts.videoCodec) {
+        } else if (this.opts.videoCodec) {
             if (this.opts.videoCodec == 'h264') {
                 this.opts.videoCodec = 'libx264';
             }
@@ -533,8 +514,7 @@ class StreamerFFmpeg extends EventEmitter {
                         if (this.opts.isLive) {
                             if (this.committed) {
                                 this.start(true).catch(console.error);
-                            }
-                            else {
+                            } else {
                                 this.fail('media error');
                             }
                         }
@@ -553,8 +533,7 @@ class StreamerFFmpeg extends EventEmitter {
                         }
                         if ([404].includes(err) || !this.opts.isLive || !this.committed) {
                             this.fail(err);
-                        }
-                        else {
+                        } else {
                             this.start(true).then(resolve).catch(reject);
                         }
                     }
@@ -614,12 +593,10 @@ class StreamerFFmpeg extends EventEmitter {
                             this.decoder.abort();
                             if (config.get('transcoding')) {
                                 this.start().then(resolve).catch(reject);
-                            }
-                            else {
+                            } else {
                                 this.fail('transcoding disabled');
                             }
-                        }
-                        else {
+                        } else {
                             if (['hls', 'mp4'].includes(this.opts.outputFormat)) {
                                 this.waitFile(this.decoder.playlist || this.decoder.file, this.timeout, true).then(() => {
                                     this.serve().then(resolve).catch(err => {
@@ -635,8 +612,7 @@ class StreamerFFmpeg extends EventEmitter {
                                 });
                             }
                         }
-                    }
-                    else {
+                    } else {
                         reject('destroyed');
                         this.destroy();
                     }
@@ -656,22 +632,19 @@ class StreamerFFmpeg extends EventEmitter {
                             if (err) {
                                 console.error('FFMPEG cannot write', err);
                                 reject('playback');
-                            }
-                            else {
+                            } else {
                                 console.log('FFMPEG run: ' + this.source, this.decoder.file);
                                 this.decoder.output(this.decoder.playlist).run();
                             }
                         });
                     });
-                }
-                else if (this.opts.outputFormat == 'mpegts') { // mpegts
+                } else if (this.opts.outputFormat == 'mpegts') { // mpegts
                     const port = 10000 + parseInt(Math.random() * 50000);
                     this.decoder.target = 'http://127.0.0.1:' + port + '/';
                     console.log('FFMPEG run: ' + this.source, this.decoder.file);
                     this.decoder.output('http://127.0.0.1:' + port + '?listen').run();
                     // should be ip:port?listen without right slash before question mark
-                }
-                else { // mp4
+                } else { // mp4
                     this.decoder.file = this.opts.outputFile;
                     console.log('FFMPEG run: ' + this.source, this.decoder.file);
                     this.decoder.output(this.decoder.file).run();
@@ -692,9 +665,7 @@ class StreamerFFmpeg extends EventEmitter {
             console.log('ffmpeg destroy: ' + file);
             this.decoder.abort();
             this.decoder = null;
-            if (file) {
-                rmdir(path.dirname(file), true);
-            }
+            rmdir(this.opts.workDir, true).catch(console.error)
         }
         this.removeAllListeners();
     }

@@ -30,8 +30,7 @@ class BitrateChecker extends EventEmitter {
             values.forEach((m, j) => {
                 if (i == j) {
                     distances[i][j] = Number.MAX_SAFE_INTEGER;
-                }
-                else {
+                } else {
                     distances[i][j] = Math.abs(m - n);
                 }
             });
@@ -49,15 +48,13 @@ class BitrateChecker extends EventEmitter {
             this.bitrates = [bitrate];
             this.bitrate = bitrate;
             this.checkingCount = this.opts.checkingAmount;
-        }
-        else {
+        } else {
             this.bitrates.push(bitrate);
             this.checkingCount++;
             if (this.bitrates.length >= 3) {
                 this.bitrate = this.findTwoClosestValues(this.bitrates).reduce((a, b) => a + b, 0) / 2;
                 this.bitrates = this.bitrates.slice(-3);
-            }
-            else {
+            } else {
                 this.bitrate = this.bitrates.reduce((a, b) => a + b, 0) / this.bitrates.length;
             }
         }
@@ -119,8 +116,7 @@ class BitrateChecker extends EventEmitter {
             this.checking = false;
             this.queue = [];
             this.clearSamples();
-        }
-        else {
+        } else {
             console.log('getBitrate', file, this.url, isHTTP ? null : size, this.opts.minCheckSize);
             ffmpeg.bitrate(file, (err, bitrate, codecData, dimensions, nfo) => {
                 if (deleteFileAfterChecking) {
@@ -143,8 +139,7 @@ class BitrateChecker extends EventEmitter {
                         this.opts.minCheckSize += this.opts.minCheckSize * 0.5;
                         this.opts.maxCheckSize += this.opts.maxCheckSize * 0.5;
                         this.updateQueueSizeLimits();
-                    }
-                    else {
+                    } else {
                         if (this.opts.debug) {
                             console.log('gotBitrate*', err, bitrate, codecData, dimensions, this.url);
                         }
@@ -173,7 +168,7 @@ class BitrateChecker extends EventEmitter {
         Object.keys(this.checkingBuffers).forEach(id => {
             let file = this.checkingBuffers[id].file;
             this.checkingBuffers[id].destroy();
-            file && fs.unlink(file, () => { });
+            file && fs.unlink(file, () => {});
         });
         this.checkingBuffers = {};
     }

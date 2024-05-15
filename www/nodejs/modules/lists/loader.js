@@ -1,15 +1,16 @@
-import { LIST_DATA_KEY_MASK } from "../utils/utils.js";
+import { LIST_DATA_KEY_MASK } from '../utils/utils.js';
 import Download from '../download/download.js'
 import osd from '../osd/osd.js'
-import lang from "../lang/lang.js";
+import lang from '../lang/lang.js';
 import storage from '../storage/storage.js'
-import { EventEmitter } from "events";
-import PQueue from "p-queue";
-import workers from "../multi-worker/main.js";
-import ConnRacing from "../conn-racing/conn-racing.js";
-import { promises } from "fs";
-import config from "../config/config.js"
+import { EventEmitter } from 'events';
+import PQueue from 'p-queue';
+import workers from '../multi-worker/main.js';
+import ConnRacing from '../conn-racing/conn-racing.js';
+import { promises } from 'fs';
+import config from '../config/config.js'
 import renderer from '../bridge/bridge.js'
+//import UpdaterWorker from './updater-worker.js'
 
 class ListsLoader extends EventEmitter {
     constructor(master, opts) {
@@ -31,11 +32,10 @@ class ListsLoader extends EventEmitter {
         this.enqueue(this.myCurrentLists, 1);
         renderer.ready(async () => {
             this.master.discovery.on('found', () => this.resetLowPriorityUpdates())
-            const {default: streamer} = await import('../streamer/main.js')
-            streamer.on('commit', () => this.pause());
-            streamer.on('stop', () => {
+            global.streamer.on('commit', () => this.pause());
+            global.streamer.on('stop', () => {
                 setTimeout(() => {
-                    streamer.active || this.resume();
+                    global.streamer.active || this.resume();
                 }, 2000); // wait 2 seconds, maybe user was just switching channels
             });
             this.resetLowPriorityUpdates();
@@ -144,10 +144,13 @@ class ListsLoader extends EventEmitter {
     }
     async prepareUpdater() {
         if (!this.updater || this.updater.finished === true) {
-            this.debug && console.error('[listsLoader] Creating updater worker');
-            const updater = this.updater = workers.load(paths.cwd + '/modules/lists/updater-worker.js');
-            this.once('destroy', () => updater.terminate());
-            this.updaterClients = 1;
+            if(!this.uid) this.uid = parseInt(Math.random() * 1000000)
+            console.error('[listsLoader] Creating updater worker')
+            console.error('[listsLoader] ', this.updater, this.uid)
+            const updater = this.updater = workers.load(paths.cwd + '/modules/lists/updater-worker.js')
+            console.error('[listsLoader] ', this.updater)
+            this.once('destroy', () => updater.terminate())
+            this.updaterClients = 1
             this.updater.on('progress', p => {
                 if (!p || !p.url)
                     return;
@@ -169,8 +172,7 @@ class ListsLoader extends EventEmitter {
             const keywords = await this.master.relevantKeywords();
             updater.setRelevantKeywords(keywords).catch(console.error);
             this.debug && console.error('[listsLoader] Updater worker created, relevant keywords: ' + keywords.join(', '));
-        }
-        else {
+        } else {
             this.updaterClients++;
             if (this.updater.terminating) {
                 clearTimeout(this.updater.terminating);
@@ -181,8 +183,7 @@ class ListsLoader extends EventEmitter {
     async enqueue(urls, priority = 9) {
         if (priority == 1) { // priority=1 should be reprocessed, as it is in our lists            
             urls = urls.filter(url => this.myCurrentLists.includes(url)); // list still added
-        }
-        else {
+        } else {
             urls = urls.filter(url => {
                 return !this.processes.some(p => p.url == url); // already processing/processed
             });
@@ -224,26 +225,31 @@ class ListsLoader extends EventEmitter {
         urls.filter(u => this.pings[u] == 0).forEach(u => delete this.pings[u]);
     }
     async addListNow(url, atts = {}) {
-        const uid = parseInt(Math.random() * 1000000);
+        console.error('addListNow() 1')
+        const uid = parseInt(Math.random() * 1000000)
         const progressListener = p => {
             if (p.progressId == uid)
-                atts.progress(p.progress);
+                atts.progress(p.progress)
         };
-        await Download.waitNetworkConnection();
-        await this.prepareUpdater();
-        atts.progress && this.updater.on('progress', progressListener);
-        console.error('addListNow ' + JSON.stringify(atts));
+        console.error('addListNow() 2')
+        await Download.waitNetworkConnection()
+        console.error('addListNow() 3')
+        await this.prepareUpdater()
+        console.error('addListNow() 4')
+        atts.progress && this.updater.on('progress', progressListener)
+        console.error('addListNow ' + JSON.stringify(atts))
         await this.updater.update(url, {
             uid,
             timeout: atts.timeout
-        }).catch(console.error);
-        atts.progress && this.updater.removeListener('progress', progressListener);
-        this.updater && this.updater.close && this.updater.close();
-        this.master.addList(url, 1);
+        }).catch(console.error)
+        console.error('addListNow OK')
+        atts.progress && this.updater.removeListener('progress', progressListener)
+        this.updater && this.updater.close && this.updater.close()
+        this.master.addList(url, 1)
     }
     schedule(url, priority) {
-        let cancel, started, done;
-        this.debug && console.error('[listsLoader] schedule: ' + url);
+        let cancel, started, done
+        this.debug && console.error('[listsLoader] schedule: ' + url)
         this.processes.some(p => p.url == url) || this.processes.push({
             promise: this.queue.add(async () => {
                 this.debug && console.error('[listsLoader] schedule processing 0: ' + url + ' | ' + this.paused);
@@ -298,7 +304,7 @@ class ListsLoader extends EventEmitter {
                 osd.show(lang.RECEIVING_LIST + ' ' + p.progress + '%', 'fas fa-circle-notch fa-spin', 'progress-' + progressId, 'persistent');
             }
         };
-        await { promises }.promises.unlink(file).catch(() => { });
+        await { promises }.promises.unlink(file).catch(() => {});
         progressListener({ progressId, progress: 0 });
         await this.prepareUpdater();
         this.updater.on('progress', progressListener);

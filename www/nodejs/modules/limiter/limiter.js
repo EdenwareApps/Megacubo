@@ -25,8 +25,7 @@ class Limiter {
             this.timeoutId = null;
             await this.func(...args);
             this.fromNow();
-        }
-        else if (!this.timeoutId) {
+        } else if (!this.timeoutId) {
             // Otherwise, schedule a call for when the time interval has elapsed
             const timeToWait = this.intervalMs - timeSinceLastCall;
             this.timeoutId = setTimeout(() => {
@@ -59,8 +58,7 @@ class Limiter {
         const timeSinceLastCall = now - this.lastCalled;
         if (timeSinceLastCall >= this.intervalMs) {
             this.call().catch(console.error);
-        }
-        else {
+        } else {
             const timeToWait = this.intervalMs - timeSinceLastCall;
             this.timeoutId = setTimeout(async () => {
                 this.lastCalled = Date.now();

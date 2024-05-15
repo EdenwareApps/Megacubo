@@ -25,7 +25,7 @@
       "URL_SCHEME": "mega",
       "DEEPLINK_SCHEME": "https",
       "DEEPLINK_HOST": "megacubo.tv",
-      "ANDROID_PATH_PREFIX": "/assistir/"
+      "ANDROID_PATH_PREFIX": "/w/"
     }
   }
 }

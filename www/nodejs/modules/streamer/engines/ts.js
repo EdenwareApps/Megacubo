@@ -41,8 +41,7 @@ class StreamerTSIntent extends StreamerBaseIntent {
                 }).finally(() => {
                     this.transcoderStarting = false;
                 });
-            }
-            else {
+            } else {
                 resolve(); // already transcoding
             }
         });
@@ -88,8 +87,7 @@ StreamerTSIntent.supports = info => {
         }
         if (c.indexOf('mp2t') != -1) {
             return true;
-        }
-        else {
+        } else {
             return false; // other video content type
         }
     }

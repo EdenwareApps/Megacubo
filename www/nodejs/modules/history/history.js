@@ -36,8 +36,7 @@ class History extends EntriesGroup {
                     clearTimeout(this.timer)
                 }
             })
-            const {default: iconServer} = await import('../icon-server/icon-server.js')
-            this.iconsPort = iconServer.opts.port
+            this.iconsPort = global.icons.opts.port
         })
         this.on('load', () => {
             ready(() => menu.updateHomeFilters());
@@ -56,8 +55,7 @@ class History extends EntriesGroup {
             const rgx = new RegExp('^(http://127\.0\.0\.1:)[0-9]+(/[A-Za-z0-9,]+)$');
             if (Array.isArray(ret)) {
                 ret = ret.map(fixIcon);
-            }
-            else {
+            } else {
                 ret = fixIcon(ret);
             }
         }
@@ -79,8 +77,7 @@ class History extends EntriesGroup {
                 console.log('resuming', es);
                 if (es.length) {
                     console.log('resuming', es[0], es)
-                    const {default: streamer} = await import('../streamer/main.js')
-                    streamer.play(es[0])
+                    global.streamer.play(es[0])
                 }
             }
         });
@@ -91,8 +88,7 @@ class History extends EntriesGroup {
     async hook(entries, path) {
         if (path == lang.TOOLS) {
             entries.push(this.entry());
-        }
-        else if (path == '') {
+        } else if (path == '') {
             let pos = -1, es = this.get();
             entries = entries.filter(e => {
                 return e.hookId != this.key;
@@ -107,8 +103,7 @@ class History extends EntriesGroup {
                 pos = 0;
                 let defs = { hookId: this.key, fa: 'fas fa-redo-alt', class: 'entry-icon', details: '<i class="fas fa-play-circle"></i> ' + lang.KEEP_WATCHING };
                 entries.splice(pos, 0, Object.assign(Object.assign({}, es[0]), defs));
-            }
-            else {
+            } else {
                 entries.splice(pos > 0 ? pos : entries.length - 3, 0, this.entry());
             }
         }
@@ -123,22 +118,19 @@ class History extends EntriesGroup {
                 let atts = mega.parse(e.url);
                 if (atts.mediaType == 'live') {
                     return (epgAddLiveNowMap[i] = this.channels.toMetaEntry(e, false));
-                }
-                else {
+                } else {
                     e.type = 'group';
                     e.renderer = async () => {
-                        let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : lists.tools.terms(atts.name);
-                        const {default: lists} = await import('../lists/lists.js')
-                        const es = await lists.search(terms, {
+                        let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.tools.terms(atts.name);
+                        const es = await global.lists.search(terms, {
                             type: 'video',
                             group: true,
-                            safe: !lists.parentalControl.lazyAuth()
+                            safe: !global.lists.parentalControl.lazyAuth()
                         });
                         return es.results;
                     };
                 }
-            }
-            else if (e.type != 'group') {
+            } else if (e.type != 'group') {
                 e.type = 'stream';
             }
             return e;

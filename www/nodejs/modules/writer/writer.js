@@ -32,23 +32,20 @@ class Writer extends EventEmitter {
             if (this.fd) {
                 fs.close(this.fd, callback);
                 this.fd = null;
-            }
-            else {
+            } else {
                 callback();
             }
         };
         const run = callback => {
             if (this.writing || this.writeQueue.length) {
                 this.once('drain', () => done(callback));
-            }
-            else {
+            } else {
                 done(callback);
             }
         };
         if (cb) {
             run(cb);
-        }
-        else {
+        } else {
             return new Promise(resolve => run(resolve));
         }
     }
@@ -65,8 +62,7 @@ class Writer extends EventEmitter {
                 fs.mkdir(path.dirname(this.file), { recursive: true }, () => {
                     fs.writeFile(this.file, '', cb);
                 });
-            }
-            else {
+            } else {
                 cb();
             }
         });
@@ -74,8 +70,7 @@ class Writer extends EventEmitter {
     open(file = '', flags, cb) {
         if (this.fd) {
             cb(null);
-        }
-        else {
+        } else {
             
             this.debug && console.log('writeat open', this.file);
             fs.open(this.file, flags, (err, fd) => {
@@ -99,7 +94,7 @@ class Writer extends EventEmitter {
                 this._write(this.fd).catch(console.error).finally(() => {
                     if (this.autoclose && this.fd) {
                         
-                        fs.close(this.fd, () => { });
+                        fs.close(this.fd, () => {});
                         this.fd = null;
                     }
                     this.writing = false;

@@ -2,7 +2,7 @@ import lang from "../lang/lang.js";
 import storage from '../storage/storage.js'
 import pLimit from "p-limit";
 import config from "../config/config.js"
-import { forwardSlashes } from "../utils/utils.js";
+import { basename, forwardSlashes } from "../utils/utils.js";
 import parser from "./parser.js";
 import data from "./search-redirects.json" assert {type: 'json'};
 import countryCodes from '../countries/countries.json' assert {type: 'json'};
@@ -40,12 +40,10 @@ class TermsHandler {
     applySearchRedirectsOnObject(e) {
         if (Array.isArray(e)) {
             e = this.applySearchRedirects(e);
-        }
-        else if (e.terms) {
+        } else if (e.terms) {
             if (typeof (e.terms.name) != 'undefined' && Array.isArray(e.terms.name)) {
                 e.terms.name = this.applySearchRedirects(e.terms.name);
-            }
-            else if (Array.isArray(e.terms)) {
+            } else if (Array.isArray(e.terms)) {
                 e.terms = this.applySearchRedirects(e.terms);
             }
         }
@@ -81,13 +79,11 @@ class TermsHandler {
             if (s.startsWith('-')) {
                 if (noModifiers) {
                     return '';
-                }
-                else {
+                } else {
                     s = s.replace(this.regexes['hyphen-not-modifier'], '$1');
                     return s.length > 1 ? s : '';
                 }
-            }
-            else if (s == '|' && noModifiers) {
+            } else if (s == '|' && noModifiers) {
                 return '';
             }
             return s.replace(this.regexes['hyphen-not-modifier'], '$1');
@@ -114,14 +110,14 @@ class TermsHandler {
             return score;
         }
         if (needleTerms.length && stackTerms.length) {
-            let score = 0, sTerms = [], nTerms = [];
+            let score = 0, sTerms = [], nTerms = []
+            let weakTerms = ['tv', ...this.stopWords]
             let excludeMatch = needleTerms.some(t => {
                 if (t.startsWith('-')) {
                     if (stackTerms.includes(t.substr(1))) {
                         return true;
                     }
-                }
-                else {
+                } else {
                     nTerms.push(t);
                 }
             }) || stackTerms.some(t => {
@@ -129,46 +125,48 @@ class TermsHandler {
                     if (needleTerms.includes(t.substr(1))) {
                         return true;
                     }
-                }
-                else {
+                } else {
                     sTerms.push(t);
                 }
             });
             if (excludeMatch || !sTerms.length || !nTerms.length) {
                 return 0;
             }
+            let matchedTerms = []
             nTerms.forEach(term => {
                 if (partial === true) {
                     let len = term.length;
                     sTerms.some(strm => {
                         if (len == strm.length) {
                             if (strm == term) {
+                                matchedTerms.push(term)
                                 score++;
                                 return true;
                             }
-                        }
-                        else if (strm.length > term.length && term == strm.substr(0, len)) {
+                        } else if (strm.length > term.length && term == strm.substr(0, len)) {
+                            matchedTerms.push(term)
                             score++;
                             return true;
                         }
                     });
-                }
-                else {
+                } else {
                     if (sTerms.includes(term)) {
+                        matchedTerms.push(term)
                         score++;
                     }
                 }
-            });
+            })
+            if (matchedTerms.every(t => weakTerms.includes(t))) {
+                score = 0
+            }
             if (score) {
                 if (score == nTerms.length) { // all search terms are present
                     if (score == sTerms.length) { // terms are equal
                         return 3;
-                    }
-                    else {
+                    } else {
                         return 2;
                     }
-                }
-                else if (nTerms.length >= 3 && score == (nTerms.length - 1)) {
+                } else if (nTerms.length >= 3 && score == (nTerms.length - 1)) {
                     return 1;
                 }
             }
@@ -188,8 +186,7 @@ class Tools extends TermsHandler {
             if (!entries[i]) {
                 changed = true;
                 delete entries[i];
-            }
-            else if (entries[i].url &&
+            } else if (entries[i].url &&
                 !entries[i].prepend &&
                 (typeof (entries[i].type) == 'undefined' || entries[i].type == 'stream')) {
                 if (typeof (already[entries[i].url]) != 'undefined') {
@@ -197,8 +194,7 @@ class Tools extends TermsHandler {
                     var j = map[entries[i].url];
                     entries[j] = this.mergeEntries(entries[j], entries[i]);
                     delete entries[i];
-                }
-                else {
+                } else {
                     already[entries[i].url] = 1;
                     map[entries[i].url] = i;
                 }
@@ -206,23 +202,6 @@ class Tools extends TermsHandler {
         }
         already = map = null;
         return changed ? entries.filter(item => item !== undefined) : entries;
-    }
-    basename(str, rqs) {
-        str = String(str);
-        let qs = '', pos = str.indexOf('?');
-        if (pos != -1) {
-            qs = str.slice(pos + 1);
-            str = str.slice(0, pos);
-        }
-        str = forwardSlashes(str);
-        pos = str.lastIndexOf('/');
-        if (pos != -1) {
-            str = str.substring(pos + 1);
-        }
-        if (!rqs && qs) {
-            str += '?' + qs;
-        }
-        return str;
     }
     dirname(str) {
         let _str = new String(str), pos = forwardSlashes(_str).lastIndexOf('/');
@@ -238,8 +217,7 @@ class Tools extends TermsHandler {
                     let ret = this.mapRecursively(list[i].entries, cb, true);
                     if (Array.isArray(ret)) {
                         list[i].entries = ret;
-                    }
-                    else {
+                    } else {
                         list[i].renderer = ret;
                         delete list[i].entries;
                     }
@@ -258,8 +236,7 @@ class Tools extends TermsHandler {
                     let ret = await this.asyncMapRecursively(list[i].entries, cb, true);
                     if (Array.isArray(ret)) {
                         list[i].entries = ret;
-                    }
-                    else {
+                    } else {
                         list[i].renderer = ret;
                         delete list[i].entries;
                     }
@@ -274,8 +251,7 @@ class Tools extends TermsHandler {
     async offload(list, url) {
         if (list.length <= this.offloadThreshold) {
             return list;
-        }
-        else {
+        } else {
             let i = 0;
             const limit = pLimit(4);
             return await this.asyncMapRecursively(list, async (slist) => {
@@ -313,8 +289,7 @@ class Tools extends TermsHandler {
                 this.collator = new Intl.Collator(lang.locale, { numeric: true, sensitivity: 'base' });
             }
             return entries.sort((a, b) => this.collator.compare(a[key], b[key]));
-        }
-        else {
+        } else {
             return entries.sort((a, b) => (a[key] > b[key] ? 1 : (a[key] < b[key] ? -1 : 1)));
         }
     }
@@ -373,8 +348,7 @@ class Tools extends TermsHandler {
         for (let i = 0; i < a.length; i++) {
             if (a[i] && b && b[i] && a[i] == b[i]) {
                 c += a[i];
-            }
-            else {
+            } else {
                 c += a[i];
                 if (this.isASCIIChar(a[i])) {
                     break;
@@ -388,8 +362,7 @@ class Tools extends TermsHandler {
         for (var i = 0; i < entries.length; i++) {
             if (lastName) {
                 l = this.getNameDiff(entries[i].name, lastName);
-            }
-            else {
+            } else {
                 l = entries[i].name.charAt(0);
             }
             if (l.match(r)) {
@@ -400,8 +373,7 @@ class Tools extends TermsHandler {
         for (var i = (entries.length - 1); i >= 0; i--) {
             if (nextName) {
                 l = this.getNameDiff(entries[i].name, nextName);
-            }
-            else {
+            } else {
                 l = entries[i].name.charAt(0);
             }
             if (l.match(r)) {
@@ -453,23 +425,20 @@ class Tools extends TermsHandler {
         var la = a.toLowerCase();
         var lb = b.toLowerCase();
         if (la && la.indexOf(lb) != -1) {
-            return a;
+            return a
         }
         if (lb && lb.indexOf(la) != -1) {
-            return b;
+            return b
         }
-        return a + ' - ' + b;
+        return a + ' - ' + b
     }
     mergeEntries(a, b) {
-        if (a.name != b.name) {
-            const oaName = a.name;
-            a.name = this.mergeNames(a.name, b.name);
-            if ((a.rawname && a.rawname != a.name) ||
-                (b.rawname && b.rawname != b.name)) {
-                a.rawname = this.mergeNames(a.rawname || a.name, b.rawname || a.name);
-            }
-            else {
-                a.rawname = a.name;
+        if (a.name != b.name || a.rawname != b.rawname) {
+            const oaName = a.name
+            const hasRawName = (a.rawname && a.rawname != a.name)
+            a.name = this.mergeNames(a.name, b.name)
+            if (hasRawName) {
+                a.rawname = this.mergeNames(a.rawname || a.name, b.rawname || a.name)
             }
             if (a.path) {
                 const parts = a.path.split('/');
@@ -480,7 +449,7 @@ class Tools extends TermsHandler {
             }
         }
         if (b.icon && !a.icon) {
-            a.icon = b.icon;
+            a.icon = b.icon
         }
         return a;
     }
@@ -513,7 +482,7 @@ class Tools extends TermsHandler {
             }
         }
         for (let k in parsedGroups) {
-            groupedEntries.push({ name: this.basename(k), path: k, type: 'group', entries: parsedGroups[k] });
+            groupedEntries.push({ name: basename(k), path: k, type: 'group', entries: parsedGroups[k] });
         }
         entries = entries.filter(e => e);
         for (let i = 0; i < groupedEntries.length; i++) {

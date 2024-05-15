@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import defaults from './defaults.json' assert { type: 'json' }
 import paths from '../paths/paths.js'
-import { deepClone } from "../utils/utils.js";
+import { deepClone, parseJSON } from "../utils/utils.js";
 
 class Config extends EventEmitter {
     constructor() {
@@ -24,28 +24,28 @@ class Config extends EventEmitter {
         this.load();
     }
     reset() {
-        fs.unlink(this.file, () => { });
+        fs.unlink(this.file, () => {});
         this.data = Object.assign({}, this.defaults);
     }
     load(txt) {
         if (!this.loaded) {
             if (txt || fs.existsSync(this.file)) {
                 this.loaded = true;
-                var _data = typeof (txt) == 'string' ? txt : fs.readFileSync(this.file, 'utf8');
-                if (_data) {
-                    if (Buffer.isBuffer(_data)) { // is buffer
-                        _data = String(_data);
+                let data = typeof (txt) == 'string' ? txt : fs.readFileSync(this.file, 'utf8');
+                if (data) {
+                    if (Buffer.isBuffer(data)) { // is buffer
+                        data = String(data);
                     }
                     if (this.debug) {
-                        console.log('DATA', _data);
+                        console.log('DATA', data);
                     }
-                    if (typeof (_data) == 'string' && _data.length > 2) {
-                        _data = _data.replace(new RegExp("\n", "g"), '');
+                    if (typeof (data) == 'string' && data.length > 2) {
+                        data = data.replace(new RegExp("\n", "g"), '');
                         //data = stripBOM(data.replace(new RegExp("([\r\n\t]| +)", "g"), "")); // with \n the array returns empty (?!)
-                        _data = JSON.parse(_data);
-                        if (typeof (_data) == 'object') {
+                        data = parseJSON(data)
+                        if (typeof (data) == 'object' && data) {
                             this.data = Object.assign({}, this.defaults);
-                            this.data = Object.assign(this.data, _data);
+                            this.data = Object.assign(this.data, data);
                         }
                     }
                 }
@@ -83,8 +83,7 @@ class Config extends EventEmitter {
             if (JSON.stringify(a) != JSON.stringify(b)) {
                 return false;
             }
-        }
-        else if (a != b) {
+        } else if (a != b) {
             return false;
         }
         return true;
@@ -110,8 +109,7 @@ class Config extends EventEmitter {
         }
         if (t == 'undefined') {
             return null;
-        }
-        else if (t == 'object') { // avoid referencing
+        } else if (t == 'object') { // avoid referencing
             return deepClone(this.data[key]);
         }
         return this.data[key];
@@ -122,8 +120,7 @@ class Config extends EventEmitter {
         let nval;
         if (typeof (val) == 'object') {
             nval = deepClone(val);
-        }
-        else {
+        } else {
             nval = val;
         }
         const equals = this.equal(this.data[key], nval);

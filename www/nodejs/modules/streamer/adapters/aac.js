@@ -19,8 +19,7 @@ class StreamerAdapterAAC extends StreamerAdapterBase {
             this.setCallback(success => {
                 if (success) {
                     resolve();
-                }
-                else {
+                } else {
                     reject();
                 }
             });

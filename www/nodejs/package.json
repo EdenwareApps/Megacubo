@@ -68,7 +68,7 @@
     "http://*/",
     "https://*/"
   ],
-  "main": "index.js",
+  "main": "dist/main.js",
   "window": {
     "icon": "default_icon.png",
     "title": "Megacubo"

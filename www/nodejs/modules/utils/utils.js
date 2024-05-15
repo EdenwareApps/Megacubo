@@ -1,8 +1,7 @@
-import { rimraf } from "rimraf";
+import { rimraf, rimrafSync } from "rimraf";
 import sanitizeFilename from "sanitize-filename";
 import np from "../network-ip/network-ip.js";
 import os from "os";
-import Mod from "module"
 import { URL } from 'url'
 import fs from 'fs'
 import moment from 'moment-timezone';
@@ -156,11 +155,27 @@ export const trimExt = (text, exts) => {
     });
     return text;
 }
+export const basename = (str, rqs) => {
+    str = String(str);
+    let qs = '', pos = str.indexOf('?')
+    if (pos != -1) {
+        qs = str.slice(pos + 1)
+        str = str.slice(0, pos)
+    }
+    str = forwardSlashes(str)
+    pos = str.lastIndexOf('/')
+    if (pos != -1) {
+        str = str.substring(pos + 1)
+    }
+    if (!rqs && qs) {
+        str += '?' + qs
+    }
+    return str
+}
 export const ext = file => {
-    let basename = String(file).split('?')[0].split('#')[0].split('/').pop()
-    basename = basename.split('.')
-    if (basename.length > 1) {
-        return basename.pop().toLowerCase()
+    let parts = basename(file, true).split('.')
+    if (parts.length > 1) {
+        return parts.pop().toLowerCase()
     } else {
         return ''
     }
@@ -219,7 +234,7 @@ export const moveFileInternal = async (from, to) => {
         }
         if (err)
             throw err;
-        await fs.promises.unlink(from).catch(() => { });
+        await fs.promises.unlink(from).catch(() => {});
     }
     return true;
 }
@@ -269,22 +284,19 @@ export const moveFile = (from, to, _cb, timeout = 5, until = null, startedAt = n
             if (err) {
                 console.error('MOVERETRY FROM FILE WHICH NEVER EXISTED', err);
                 cb(err);
-            }
-            else {
+            } else {
                 fromSize = stat.size;
                 move();
             }
         });
-    }
-    else {
+    } else {
         move();
     }
 }
 const insertEntryLookup = (e, term) => {
     if (Array.isArray(term)) {
         return term.some(t => insertEntryLookup(e, t));
-    }
-    else {
+    } else {
         return e.name == term || e.hookId == term;
     }
 }
@@ -353,8 +365,7 @@ export const prepareCORS = (headers, url, forceOrigin) => {
         if (typeof (url) != 'string') { // is req object
             if (url.headers.origin) {
                 url = url.headers.origin;
-            }
-            else {
+            } else {
                 const scheme = url.connection.encrypted ? 'https' : 'http';
                 const host = url.headers.host;
                 url = scheme + '://' + host + url.url;
@@ -371,8 +382,7 @@ export const prepareCORS = (headers, url, forceOrigin) => {
         headers.setHeader('access-control-allow-headers', DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS);
         headers.setHeader('access-control-expose-headers', DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS);
         headers.setHeader('access-control-allow-credentials', true);
-    }
-    else {
+    } else {
         headers['access-control-allow-origin'] = origin;
         headers['access-control-allow-methods'] = 'GET,HEAD,OPTIONS';
         headers['access-control-allow-headers'] = DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS;
@@ -420,16 +430,13 @@ export const listNameFromURL = url => {
     }
     if (url.indexOf('//') == -1) { // isLocal
         return trimExt(url.split('/').pop(), ['m3u']);
-    }
-    else {
+    } else {
         url = String(url).replace(new RegExp('^[a-z]*://', 'i'), '').split('/').filter(s => s.length);
         if (!url.length) {
             return 'Untitled ' + parseInt(Math.random() * 9999);
-        }
-        else if (url.length == 1) {
+        } else if (url.length == 1) {
             return trimExt(url[0].split(':')[0], ['m3u']);
-        }
-        else {
+        } else {
             return trimExt(url[0].split('.')[0] + ' ' + (subName || url[url.length - 1]), ['m3u']);
         }
     }
@@ -440,7 +447,7 @@ export const parseJSON = json => {
         let parsed = JSON.parse(json);
         ret = parsed;
     }
-    catch (e) { }
+    catch (e) {}
     return ret;
 }
 export const kbfmt = (bytes, decimals = 2) => {
@@ -488,32 +495,50 @@ export const ucWords = (str, force) => {
         return letra.toUpperCase();
     });
 }
-export const rmdir = (folder, itself, cb) => {
+export const rmdir = async (folder, itself) => {
+    if(!folder) return
     let dir = forwardSlashes(folder)
     if (dir.charAt(dir.length - 1) == '/') {
         dir = dir.substr(0, dir.length - 1)
     }
-    if (cb === true) { // sync
-        try {
-            rimraf.sync(dir)
-        } catch (e) { }
-        itself || fs.mkdirSync(dir)
-    } else {
-        const callback = () => {
-            if (!itself) {
-                fs.mkdir(dir, () => {
-                    typeof(cb) == 'function' && cb()
-                })
-            } else {
-                typeof(cb) == 'function' && cb()
-            }
-        }
-        try {
-            rimraf(dir, cb)
-        } catch (e) {
-            cb()
-        }
+    let err
+    await fs.promises.access(dir).catch(e => err = e)
+    if(!err) {
+        console.log('rimraf', {dir})
+        await rimraf(dir, {}).catch(console.error)
     }
+    if (!itself) {
+        await fs.promises.mkdir(dir)
+    }
+}
+export const rmdirSync = (folder, itself) => {
+    if(!folder) return
+    let dir = forwardSlashes(folder)
+    if (dir.charAt(dir.length - 1) == '/') {
+        dir = dir.substr(0, dir.length - 1)
+    }
+    try {
+        fs.existsSync(dir) && rimrafSync(dir)
+    } catch (e) {
+        console.error(e)
+    }
+    if(!itself) {
+        try {
+            fs.mkdirSync(dir, {recursive: true})
+        } catch(e) {}
+    }
+}
+export const time = dt => {
+    if(dt){
+        if(typeof(dt) == 'number') {
+            return dt
+        } else if(typeof(dt) == 'string') {
+            return parseInt(dt)
+        }
+    } else {
+        dt = new Date()
+    }
+    return parseInt(dt.getTime() / 1000)
 }
 export const kfmt = (num, digits) => {
     var si = [
@@ -537,12 +562,12 @@ export const currentTime = () => {
     return Date.now() / 1000
 }
 export const traceback = () => {
-    try {
-        var a = {};
-        a.debug();
-    }
-    catch (ex) {
-        return ex.stack.replace('TypeError: a.debug is not a function', '').trim();
+    try { 
+        const a = {}
+        a.debug()
+    } catch(ex) {
+        const piece = 'is not a function'
+        return ex.stack.split(piece).slice(1).join(piece).trim()
     }
 }
 export const deepClone = (from, allowNonSerializable) => {

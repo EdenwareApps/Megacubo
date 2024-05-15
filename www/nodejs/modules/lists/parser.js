@@ -76,8 +76,7 @@ class Parser extends EventEmitter {
                         }
                     }
                 }
-            }
-            else if (isExtInf) {
+            } else if (isExtInf) {
                 inExtInf = true;
                 if (this.expectingHeader) {
                     this.expectingHeader = false;
@@ -121,8 +120,7 @@ class Parser extends EventEmitter {
                     }
                 }
                 e.name = Parser.sanitizeName(n);
-            }
-            else if (hashed) {
+            } else if (hashed) {
                 // parse here extra info like #EXTGRP and #EXTVLCOPT
                 if (sig == '#EXTGRP') {
                     let i = line.indexOf(':');
@@ -132,8 +130,7 @@ class Parser extends EventEmitter {
                             g = nwg;
                         }
                     }
-                }
-                else if (sig == '#EXTVLC') { // #EXTVLCOPT
+                } else if (sig == '#EXTVLC') { // #EXTVLCOPT
                     let i = line.indexOf(':');
                     if (i !== -1) {
                         let nwa = line.substr(i + 1).trim().split('=');
@@ -143,8 +140,7 @@ class Parser extends EventEmitter {
                         }
                     }
                 }
-            }
-            else { // not hashed so, length already checked
+            } else { // not hashed so, length already checked
                 inExtInf = false;
                 e.url = line;
                 if (e.url.indexOf('|') !== -1 && e.url.match(Parser.regexes['m3u-url-params'])) {
@@ -160,8 +156,7 @@ class Parser extends EventEmitter {
                 const pos = e.url.substr(0, 8).indexOf('//');
                 if (pos === 0) {
                     e.url = 'http:' + e.url;
-                }
-                else if (pos === -1) {
+                } else if (pos === -1) {
                     e.url = absolutize(e.url, this.opts.url);
                 }
                 // removed url validation for performance
@@ -170,8 +165,8 @@ class Parser extends EventEmitter {
                 }
                 const name = e.name.replace(Parser.regexes['between-brackets'], '');
                 if (name != e.name) {
-                    e.rawname = e.name;
-                    e.name = name;
+                    e.rawname = e.name
+                    e.name = name                    
                 }
                 if (Object.keys(a).length) {
                     Object.assign(e, a);
@@ -183,8 +178,7 @@ class Parser extends EventEmitter {
                 e.groupName = e.groups[e.groups.length - 1];
                 if (this.expectingPlaylist) {
                     this.emit('playlist', e);
-                }
-                else {
+                } else {
                     this.emit('entry', e);
                 }
                 e = { url: '', icon: '' };
@@ -300,8 +294,7 @@ Parser.regexes = {
 Parser.sanitizeName = s => {
     if (typeof (s) != 'string' || !s) {
         s = 'Untitled ' + parseInt(Math.random() * 10000);
-    }
-    else if (s.indexOf('/') !== -1) {
+    } else if (s.indexOf('/') !== -1) {
         if (s.indexOf('[/') !== -1) {
             s = s.split('[/').join('[|');
         }

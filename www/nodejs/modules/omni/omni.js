@@ -23,16 +23,14 @@ class OMNI extends EventEmitter {
                     if (entry.type == 'group') {
                         return menu.open([lang.BOOKMARKS, entry.name].join('/')).catch(e => menu.displayErr(e));
                     } else {                        
-                        const {default: streamer} = await import('../streamer/main.js')
-                        return streamer.play(entry);
+                        return global.streamer.play(entry);
                     }
                 }
             }
             channels.searchChannels(text, true).then(results => {
                 if (results.length) {
                     channels.search.go(text, 'live');
-                }
-                else {
+                } else {
                     throw new Error('no channel found, going to general search');
                 }
             }).catch(err => {

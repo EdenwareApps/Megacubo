@@ -326,7 +326,7 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
                 this.server.close()
                 delete this.server
             }
-            rmdir(this.folder)
+            rmdir(this.folder).catch(console.error)
             this.removeAllListeners()
         }
     }

@@ -8,7 +8,6 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:hardwareAccelerated="true"
-        android:extractNativeLibs="true"
         android:usesCleartextTraffic="true"
         android:banner="@drawable/banner"
         android:isGame="false">

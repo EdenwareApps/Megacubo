@@ -20,8 +20,10 @@ class Promoter {
         this.promoteDialogInterval = 1800;
         renderer.get().on('video-error', () => this.promoteDialogSignal());
         renderer.get().on('streamer-is-slow', () => this.promoteDialogSignal());
-        streamer.on('hard-failure', () => this.promoteDialogSignal());
-        streamer.on('stop', () => this.promoteDialog());
+        renderer.ready(() => {
+            global.streamer.on('hard-failure', () => this.promoteDialogSignal())
+            global.streamer.on('stop', () => this.promoteDialog())
+        })
     }
     async promoteDialog() {
         const now = (Date.now() / 1000);
@@ -32,9 +34,8 @@ class Promoter {
             if (this.promoteDialogPending !== true)
                 return;
             if ((now - this.promoteDialogTime) < this.promoteDialogInterval)
-                return;
-            
-            if (streamer.active || streamer.isTuning())
+                return;            
+            if (global.streamer.active || global.streamer.isTuning())
                 return;
             const runningTime = now - this.startTime;
             if (runningTime < 30)
@@ -56,32 +57,27 @@ class Promoter {
             platform: process.platform,
             version: paths.manifest.version
         };
-        const c = await cloud.get('promos');
-        if (!Array.isArray(c))
-            return;
+        const c = await cloud.get('promos', {timeoutMs: 5000}).catch(console.error)
+        if (!Array.isArray(c)) return
         const promos = c.filter(p => {
             if (p.type != type)
                 return;
             return Object.keys(atts).every(k => {
                 if (skipRequirements && skipRequirements.includes(k)) {
                     return true;
-                }
-                else if (k == 'country') {
+                } else if (k == 'country') {
                     return typeof (p.countries) == 'undefined' || p.countries.includes(atts[k]);
-                }
-                else if (k == 'platform') {
+                } else if (k == 'platform') {
                     return typeof (p.platforms) == 'undefined' || p.platforms.includes(atts[k]);
-                }
-                else if (k == 'version') {
+                } else if (k == 'version') {
                     return typeof (p.minVersion) == 'undefined' || atts.version >= p.minVersion;
-                }
-                else {
+                } else {
                     return typeof (p[k]) == 'undefined' || p[k] == atts[k];
                 }
-            });
-        });
+            })
+        })
         if (promos.length) {
-            return promos.shift();
+            return promos.shift()
         }
     }
     async dialogOffer(a) {
@@ -122,8 +118,7 @@ class Promoter {
                     }).catch(e => menu.displayErr(e)).finally(() => {
                         osd.hide('promoter');
                     });
-                }
-                else {
+                } else {
                     renderer.get().emit('open-external-url', o.url);
                 }
             };
@@ -184,8 +179,7 @@ class Promoter {
                     const n = entries[max.i];
                     entries.splice(max.i, 1);
                     entries.unshift(n);
-                }
-                else if (promo) {
+                } else if (promo) {
                     const a = entries.findIndex(e => e.name == promo.name);
                     const i = entries.findIndex(e => e.name == lang.KEEP_WATCHING);
                     if (promo && a == -1 && i != -1) {

@@ -166,8 +166,7 @@ var absolutize = (url, base) => {
             if('undefined'===typeof base.pop() || base.length===0){ 
                 return null; // wrong url accessing non-existing parent directories
             }
-        }
-        else{ // child directory
+        } else{ // child directory
             base.push(url[i]); 
         }
     }
@@ -648,7 +647,7 @@ export const urldecode = (t) => {
         if(nt) {
             t = nt;
         }
-    } catch(e) { }
+    } catch(e) {}
     return t;
 }   
 
@@ -700,10 +699,11 @@ export const closest = (num, arr) => {
 
 export const traceback = () => { 
     try { 
-        var a = {}
+        const a = {}
         a.debug()
     } catch(ex) {
-        return ex.stack.replace('TypeError: a.debug is not a function', '').trim()
+        const piece = 'is not a function'
+        return ex.stack.split(piece).slice(1).join(piece).trim()
     }
 }
 

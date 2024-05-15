@@ -84,11 +84,10 @@ class Crashlog {
                         fs.stat(this.crashLogFile, (err, stat) => {
                             if (stat && stat.file) {
                                 fs.appendFile(this.crashLogFile, content, () => {
-                                    fs.unlink(this.crashFile, () => { });
+                                    fs.unlink(this.crashFile, () => {});
                                 });
-                            }
-                            else {
-                                moveFile(this.crashFile, this.crashLogFile, () => { });
+                            } else {
+                                moveFile(this.crashFile, this.crashLogFile, () => {});
                             }
                         });
                         if (!resolved) {

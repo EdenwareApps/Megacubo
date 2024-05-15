@@ -1,5 +1,4 @@
 import { kbfmt } from '../utils/utils.js'
-import menu from '../menu/menu.js'
 import lang from "../lang/lang.js";
 import { EventEmitter } from 'events';
 import fs from "fs";
@@ -169,8 +168,7 @@ class FFmpegController extends EventEmitter {
         //console.log('ffmpeg.callback '+ this.uid +"\n::ERR:: "+ err +"\n::OUTPUT:: "+ output)
         if (err) {
             this.emit('error', err);
-        }
-        else {
+        } else {
             this.emit('end', output);
         }
     }
@@ -264,12 +262,10 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
                     if (isNaN(duration)) {
                         console.error('duration() failure', nfo, duration);
                         cb('duration check failure', 0);
-                    }
-                    else {
+                    } else {
                         cb(null, duration);
                     }
-                }
-                else {
+                } else {
                     cb('FFmpeg unable to process ' + file + ' ' + JSON.stringify(nfo), 0);
                 }
             });
@@ -277,8 +273,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
         fs.access(file, err => {
             if (err) {
                 cb('File not found or empty.', 0);
-            }
-            else {
+            } else {
                 next();
             }
         });
@@ -303,26 +298,22 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
                     if (isNaN(rate)) {
                         console.error('bitrate() failure', nfo, kbfmt(length));
                         cb('bitrate check failure', null, codecs, dimensions);
-                    }
-                    else {
+                    } else {
                         cb(null, rate, codecs, dimensions);
                     }
-                }
-                else {
+                } else {
                     cb('FFmpeg unable to process ' + file + ' ' + JSON.stringify(nfo), 0);
                 }
             });
         };
         if (length || !this.isLocal(file)) {
             next();
-        }
-        else {
+        } else {
             
             fs.stat(file, (err, stat) => {
                 if (err) {
                     cb('File not found or empty.', 0, false);
-                }
-                else {
+                } else {
                     length = stat.size;
                     next();
                 }
@@ -336,8 +327,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
         let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'));
         if (m && m.length && (m[1].length == 1 || m[1].toLowerCase() == 'file')) { // drive letter or file protocol
             return true;
-        }
-        else {
+        } else {
             if (file.length >= 2 && file.startsWith('/') && file.charAt(1) != '/') { // unix path
                 return true;
             }
@@ -355,8 +345,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
                     cb({ error, output, size: stat ? stat.size : null });
                 });
             });
-        }
-        else {
+        } else {
             const seconds = 4; // should be less than 10
             const ext = this.ext(path) || 'ts';
             const { temp } = paths;
@@ -377,11 +366,10 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
                     '-to', '00:00:30' //+ seconds
                 ]);
             }
-            this.exec(path, [...outputOptions, tempFile], (error, output) => {
-                
+            this.exec(path, [...outputOptions, tempFile], (error, output) => {                
                 fs.stat(tempFile, (err, stat) => {
                     cb({ error, output, size: stat ? stat.size : null, duration: seconds });
-                    err || fs.unlink(tempFile, () => { });
+                    err || fs.unlink(tempFile, () => {})
                 });
             }, inputOptions);
         }
@@ -402,13 +390,12 @@ class FFMPEGDiagnostic extends FFMPEGMediaInfo {
             text = txt;
         }).catch(err => {
             text = String(err);
-        }).finally(() => {
-            
+        }).finally(() => {            
             const filename = 'megacubo-ffmpeg-log.txt', file = downloads.folder + '/' + filename;
             fs.writeFile(file, text, { encoding: 'utf-8' }, err => {
                 if (err)
-                    return menu.displayErr(err);
-                downloads.serve(file, true, false).catch(e => menu.displayErr(e));
+                    return global.menu.displayErr(err);
+                downloads.serve(file, true, false).catch(e => global.menu.displayErr(e));
             });
         });
     }
@@ -421,7 +408,7 @@ class FFMPEGDiagnostic extends FFMPEGMediaInfo {
             fa = 'fas fa-exclamation-triangle faclr-red';
             text = String(err);
         }).finally(async () => {
-            let ret = await menu.dialog([
+            let ret = await global.menu.dialog([
                 { template: 'question', text: lang.ABOUT + ': FFmpeg', fa },
                 { template: 'message', text: this.encodeHTMLEntities(text) },
                 { template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle' },
@@ -453,8 +440,7 @@ class FFMPEGDiagnostic extends FFMPEGMediaInfo {
     _arch() {
         if (process.platform == 'win32') {
             return 'win' + (process.arch == 'x64' ? 64 : 32);
-        }
-        else {
+        } else {
             switch (process.arch) {
                 case 'arm64':
                     return 'arm64-v8a';
@@ -481,18 +467,15 @@ class FFMPEGDiagnostic extends FFMPEGMediaInfo {
                     fs.readFile(archHintFile, (err, ret) => {
                         if (ret) {
                             cb(String(ret).trim());
-                        }
-                        else {
+                        } else {
                             cb(this._arch());
                         }
                     });
-                }
-                else {
+                } else {
                     cb(this._arch());
                 }
             });
-        }
-        else {
+        } else {
             cb(this._arch());
         }
     }
@@ -559,8 +542,7 @@ class FFMPEG extends FFMPEGDiagnostic {
             let m = data.match(new RegExp('ffmpeg version ([^ ]*)'));
             if (m && m.length > 1) {
                 cb(m[1], data);
-            }
-            else {
+            } else {
                 cb(false, data);
             }
         });

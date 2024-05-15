@@ -1,4 +1,4 @@
-import { moveFile, parseJSON, sanitize } from "../utils/utils.js";
+import { basename, moveFile, parseJSON, sanitize } from "../utils/utils.js";
 import Download from '../download/download.js'
 import osd from '../osd/osd.js'
 import menu from '../menu/menu.js'
@@ -49,7 +49,7 @@ class Theme extends EventEmitter {
             osd.hide('theme-processing-colors')
             return []
         }
-        const key = 'colors-' + menu.basename(file) + '-' + stat.size
+        const key = 'colors-' + basename(file) + '-' + stat.size
         let colors = await storage.get(key)
         if (!Array.isArray(colors)) {
             colors = await jimp.colors(file)
@@ -80,8 +80,7 @@ class Theme extends EventEmitter {
             if (!this.colorsIncludes(colors, white)) {
                 colors.unshift(white);
             }
-        }
-        else {
+        } else {
             const black = { r: 0, g: 0, b: 0 }, b = this.hexToRgb(config.defaults['background-color']);
             if (!this.colorsIncludes(colors, b)) {
                 colors.unshift(b);
@@ -144,14 +143,13 @@ class Theme extends EventEmitter {
         renderer.get().emit('set-loading', { name: lang.CHOOSE_BACKGROUND_VIDEO }, false);
         osd.hide('theme-upload');
     }
-    cleanVideoBackgrounds(currentFile) {
-        
-        const dir = path.dirname(currentFile), name = path.basename(currentFile);
+    cleanVideoBackgrounds(currentFile) {        
+        const dir = path.dirname(currentFile), name = basename(currentFile);
         fs.readdir(dir, (err, files) => {
             if (files) {
                 files.forEach(file => {
                     if (file.startsWith('background') && file != name && file.substr(-4) == '.mp4') {
-                        fs.unlink(path.join(dir, file), () => { });
+                        fs.unlink(path.join(dir, file), () => {});
                     }
                 });
             }
@@ -161,8 +159,8 @@ class Theme extends EventEmitter {
         let err
         const themes = {}        
         const files = await fs.promises.readdir(this.folder).catch(e => err)
-        if (err) {
-            fs.mkdir(this.folder, { recursive: true }, () => { })
+        if (!Array.isArray(files)) {
+            fs.mkdir(this.folder, { recursive: true }, () => {})
             return []
         }
         console.log(files)
@@ -172,8 +170,7 @@ class Theme extends EventEmitter {
             let n = file.replace('.theme.json', '')
             if (err) {
                 menu.displayErr('Failed to open theme: ' + n)
-            }
-            else {
+            } else {
                 let e
                 try {
                     e = parseJSON(String(content))
@@ -288,8 +285,7 @@ class Theme extends EventEmitter {
         })
         if (name && name != lang.DEFAULT) {
             this.creatingThemeName = name;
-        }
-        else if (!this.creatingThemeName) {
+        } else if (!this.creatingThemeName) {
             this.creatingThemeName = 'Untitled';
         }
         const prevName = config.get('theme-name')
@@ -332,8 +328,7 @@ class Theme extends EventEmitter {
                                             if (def.indexOf('-desktop') != -1) {
                                                 if (paths.android) {
                                                     def = 'none';
-                                                }
-                                                else {
+                                                } else {
                                                     def = def.replace('-desktop', '');
                                                 }
                                             }
@@ -411,8 +406,7 @@ class Theme extends EventEmitter {
                                                     if (hex != config.get('background-color')) {
                                                         config.set('background-color', hex);
                                                         await this.update()
-                                                    }
-                                                    else {
+                                                    } else {
                                                         menu.back();
                                                     }
                                                 }
@@ -431,8 +425,7 @@ class Theme extends EventEmitter {
                                                     config.set('background-color', value);
                                                     await this.update()
                                                     menu.back()
-                                                }
-                                                else {
+                                                } else {
                                                     menu.displayErr(lang.INCORRECT_FORMAT);
                                                 }
                                             }
@@ -484,8 +477,7 @@ class Theme extends EventEmitter {
                                                             if (cc != config.get('font-color')) {
                                                                 config.set('font-color', cc);
                                                                 await this.update()
-                                                            }
-                                                            else {
+                                                            } else {
                                                                 menu.back();
                                                             }
                                                         }
@@ -504,8 +496,7 @@ class Theme extends EventEmitter {
                                                             config.set('font-color', value);
                                                             await this.update()
                                                             menu.back()
-                                                        }
-                                                        else {
+                                                        } else {
                                                             menu.displayErr(lang.INCORRECT_FORMAT);
                                                         }
                                                     }
@@ -633,14 +624,13 @@ class Theme extends EventEmitter {
                     menu.refreshNow()
                 }).catch(e => {                    
                     Download.cache.remove(url)
-                    fs.unlink(file, () => { })
+                    fs.unlink(file, () => {})
                     menu.displayErr(e)
                 })
             };
             if (stat && stat.size) {
                 fs.unlink(file, next);
-            }
-            else {
+            } else {
                 next();
             }
         });
@@ -752,12 +742,10 @@ class Theme extends EventEmitter {
         if (bgv) {
             bgi = '';
             bgv = renderer.get().serve(bgv);
-        }
-        else if (bgi) {
+        } else if (bgi) {
             bgi = renderer.get().serve(bgi);
             bgv = '';
-        }
-        else {
+        } else {
             bgi = bgv = '';
         }
         renderer.get().emit('theme-update', bgi, bgv, config.get('background-color'), config.get('font-color'), config.get('animate-background'));
@@ -798,19 +786,16 @@ class Theme extends EventEmitter {
                         resolve()
                     })
                 });
-            }
-            else {
+            } else {
                 resolve()
             }
         })
     }
-    hook(entries, path) {
-        return new Promise((resolve, reject) => {
-            if (path == lang.TOOLS) {
-                entries.splice(2, 0, { name: lang.THEMES, fa: 'fas fa-palette', type: 'group', renderer: this.entries.bind(this) });
-            }
-            resolve(entries);
-        });
+    async hook(entries, path) {
+        if (path == lang.TOOLS) {
+            entries.splice(2, 0, { name: lang.THEMES, fa: 'fas fa-palette', type: 'group', renderer: this.entries.bind(this) });
+        }
+        return entries
     }
 }
 export default Theme;

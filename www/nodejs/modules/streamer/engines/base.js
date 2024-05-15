@@ -51,10 +51,8 @@ class StreamerBaseIntent extends EventEmitter {
             }
         });
         this.on('error', () => this.unload())
-        if (!this.data.authURL && this.data.source) {
-            import('../../lists/lists.js').then(({default: lists}) => {
-                this.data.authURL = lists.getAuthURL(this.data.source)
-            }).catch(console.error)
+        if (!this.data.authURL && this.data.source && global.lists) {
+            this.data.authURL = global.lists.getAuthURL(this.data.source)
         }
     }
     isTranscoding() {
@@ -88,8 +86,7 @@ class StreamerBaseIntent extends EventEmitter {
             Object.keys(opts).forEach((k) => {
                 if (['debug'].indexOf(k) == -1 && typeof (opts[k]) == 'function') {
                     this.on(k, opts[k]);
-                }
-                else {
+                } else {
                     this.opts[k] = opts[k];
                 }
             });
@@ -214,8 +211,7 @@ class StreamerBaseIntent extends EventEmitter {
             for (let i = base.adapters.length - 1; i >= 0; i--) { // reverse lookup to find the higher level adapter, so it should be HTML5 compatible already
                 if (base.adapters[i].type && types.includes(base.adapters[i].type) && (!filter || filter(base.adapters[i]))) {
                     adapters.push(base.adapters[i]);
-                }
-                else {
+                } else {
                     adapters.push(...this.findAllAdapters(base.adapters[i], types, filter));
                 }
             }
@@ -229,14 +225,12 @@ class StreamerBaseIntent extends EventEmitter {
                     if (!a.destroyed) {
                         a.destroy();
                     }
-                }
-                else if (a.close) {
+                } else if (a.close) {
                     if (a.closed) {
                         a.close();
                         a.closed = true;
                     }
-                }
-                else {
+                } else {
                     console.error('No destroy method for', a);
                 }
             }
@@ -247,8 +241,7 @@ class StreamerBaseIntent extends EventEmitter {
         let dimensions = '';
         if (this._dimensions) {
             dimensions = this._dimensions;
-        }
-        else {
+        } else {
             this.adapters.some(a => {
                 if (a._dimensions) {
                     dimensions = a._dimensions;

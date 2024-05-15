@@ -11,12 +11,12 @@
       console.error(txt)
       main.osd && main.osd.show(txt, 'fas fa-exclamation-triangle faclr-red', 'error', 'normal')
     })
-    main.on('menu-ready', () => {
-      console.warn('OSD STEP3')
-      main.osd = new OSD(document.getElementById('osd-root'))
-      main.osd.on('updated', () => {
-        messages = main.osd.messages
-      })
+    console.warn('OSD STEP3')
+    main.osd = new OSD(document.getElementById('osd-root'))
+    main.osd.on('updated', () => {
+      messages = main.osd.messages
+    })
+    main.waitMain(() => {
       const internetConnStateOsdID = 'network-state', updateInternetConnState = () => {
         if (navigator.onLine) {
           main.emit('network-state-up')

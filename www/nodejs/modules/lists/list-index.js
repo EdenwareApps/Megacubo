@@ -23,7 +23,7 @@ class ListIndex extends ListIndexUtils {
         try {
             entries = parseJSON('[' + Object.values(lines).join(',') + ']'); // remove undefineds too
         }
-        catch (e) { }
+        catch (e) {}
         if (!Array.isArray(entries)) {
             console.error('Failed to get lines', this.file);
             throw 'failed to get lines';
@@ -92,8 +92,7 @@ class ListIndex extends ListIndexUtils {
                     this.emit('data', index);
                     this.emit('end');
                 }).catch(err => this.fail(err));
-            }
-            else {
+            } else {
                 this.fail('file not found or empty ' + this.file + ' ' + err);
             }
         });

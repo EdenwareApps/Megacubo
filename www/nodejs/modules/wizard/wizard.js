@@ -23,8 +23,7 @@ class WizardUtils extends EventEmitter {
             let m = u.match(new RegExp('^([a-z]{1,6}):', 'i'));
             if (m && m.length > 1 && (m[1].length == 1 || m[1].toLowerCase() == 'file')) { // drive letter or file protocol
                 return true;
-            }
-            else {
+            } else {
                 if (u.length >= 2 && u.startsWith('/') && u.charAt(1) != '/') { // unix path
                     return true;
                 }
@@ -69,18 +68,15 @@ class Wizard extends WizardUtils {
         ];
         if (paths.ALLOW_COMMUNITY_LISTS) {
             opts.push({ template: 'option', text: lang.DONT_HAVE_LIST, details: lang.LOAD_COMMUNITY_LISTS, fa: 'fas fa-times-circle', id: 'sh' });
-        }
-        else {
+        } else {
             opts.push({ template: 'option', text: lang.ADD_LATER, fa: 'fas fa-clock', id: 'no' });
         }
         let choose = await menu.dialog(opts, def, true);
         if (choose == 'no') {
             return true;
-        }
-        else if (choose == 'sh') {
+        } else if (choose == 'sh') {
             return await this.communityMode();
-        }
-        else {
+        } else {
             return await this.input();
         }
     }

@@ -72,6 +72,34 @@
 				}
 			}
         </style>
+        <script type="text/javascript">
+            var menu, config
+            function isUACompatible() {     
+                var raw = navigator.userAgent.match(new RegExp('Chrom(e|ium)\/([0-9]+)\.'))
+                return raw ? (parseInt(raw[2], 10) >= 60) : false
+            }
+            function updateWebView(){
+                var msg, playStoreUrl = 'market://details?id=com.google.android.webview';
+                switch(navigator.language.substr(0, 2)){
+                    case 'pt':
+                        msg = 'Voce precisa atualizar o Google Chrome de seu sistema para rodar este aplicativo.';
+                        break;
+                    case 'es':
+                        msg = 'Debe actualizar el Google Chrome de su sistema para ejecutar esta aplicacion.';
+                        break;
+                    default:
+                        msg = 'You need to update your system\'s Google Chrome in order to run this app.';
+                        break;
+                }
+                alert(msg);
+                window.open(playStoreUrl, '_system')
+                setTimeout(() => window.close(), 5000)
+            }
+			if (!window.top.api /* electron */ && !isUACompatible() /* capacitor */) {
+			    updateWebView()
+                document.documentElement.onclick = updateWebView
+		    }
+        </script>
     </head>
     <body>
         <div id="splash">
@@ -80,39 +108,8 @@
 					<div></div>
 				</div>
 			</div>
-        </div>    
+        </div>
         <App></App>
-        <script type="text/javascript">
-            var frm, q, ptr, config, lang, menu
-            function isES6(){
-                try{
-                    new Function('class ES6Test { constructor() { const a = 1 } }; return new ES6Test()');
-                    return true;
-                } catch(exception) {
-                    return false;
-                }
-            }
-            function updateWebView(){
-                var msg, playStoreUrl = 'market://details?id=com.google.android.webview';
-                switch(navigator.language.substr(0, 2)){
-                    case 'pt':
-                        msg = 'Voce precisa atualizar o WebView de seu sistema para rodar este aplicativo.';
-                        break;
-                    case 'es':
-                        msg = 'Debe actualizar el WebView de su sistema para ejecutar esta aplicacion.';
-                        break;
-                    default:
-                        msg = 'You need to update your system\'s WebView in order to run this application.';
-                        break;
-                }
-                alert(msg);
-                window.open(playStoreUrl, '_system');
-                setTimeout(() => window.close(), 5000);
-            }
-			if (!isES6()) {
-			    updateWebView();
-		    }
-        </script>
         <script type="text/javascript" src="assets/js/moment.min.js"></script>          
         <script type="text/javascript" src="assets/js/moment-timezone-with-data.min.js"></script>
 		<script type="text/javascript">

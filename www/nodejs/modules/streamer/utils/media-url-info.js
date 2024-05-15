@@ -27,8 +27,7 @@ class MediaStreamInfo {
             let res = url.match(this.protoRegexA);
             if (res) {
                 ret = res[1];
-            }
-            else if (url.match(this.protoRegexB)) {
+            } else if (url.match(this.protoRegexB)) {
                 ret = 'http';
             }
             if (ret && typeof (len) == 'number') {
@@ -51,8 +50,7 @@ class MediaStreamInfo {
         if (fmt == 'hls') {
             badfmt = new RegExp('(type|output)=(m3u|ts|mpegts)(&|$)', 'gi');
             type = 'hls';
-        }
-        else {
+        } else {
             badfmt = new RegExp('(type|output)=(m3u_plus|m3u8|hls)(&|$)', 'gi');
             type = 'ts';
         }
@@ -89,14 +87,11 @@ class MediaStreamInfo {
         }
         if (this.isVideo(entry.url, ext, proto) || this.isAudio(entry.url, ext) || this.isYT(entry.url)) {
             return 'video';
-        }
-        else if (entry.url.match(this.seemsLiveRegex)) {
+        } else if (entry.url.match(this.seemsLiveRegex)) {
             return 'live';
-        }
-        else if (entry.url.indexOf('video') != -1) {
+        } else if (entry.url.indexOf('video') != -1) {
             return 'video';
-        }
-        else {
+        } else {
             const name = entry.name + ' ' + (entry.group || '');
             if (this.isRadio(name)) {
                 return 'live';
@@ -155,8 +150,7 @@ class MediaStreamInfo {
                 proto = this.proto(url);
             }
             return this.isLocalTS(url, ext, proto);
-        }
-        else {
+        } else {
             return ['wmv', 'avi', 'mp4', 'mkv', 'm4v', 'mov', 'flv', 'webm', 'ogv'].indexOf(ext) != -1;
         }
     }
@@ -169,8 +163,7 @@ class MediaStreamInfo {
     isRadio(name) {
         if (name.match(this.radioRegexA) || name.match(this.radioRegexB)) {
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }

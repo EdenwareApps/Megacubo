@@ -174,7 +174,6 @@ export class Hotkeys {
                         return main.idle.reset()
                     }
                 }
-                // e.click()
             }
         }
     }

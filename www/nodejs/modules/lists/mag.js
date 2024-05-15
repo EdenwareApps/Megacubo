@@ -133,7 +133,7 @@ class Mag extends EventEmitter {
             if (secondToken)
                 headers.authorization = 'Bearer ' + secondToken;
         }
-        catch (e) { }
+        catch (e) {}
         this.meta.epg = this.url;
         this.emit('meta', this.meta);
     }

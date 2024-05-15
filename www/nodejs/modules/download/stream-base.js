@@ -55,8 +55,7 @@ class DownloadStream extends EventEmitter {
             let requestingRange = ranges[0];
             if (typeof (requestingRange.end) != 'number') { // remove dummy value
                 delete requestingRange.end;
-            }
-            else if (requestingRange.end >= (maxInt - 1)) { // remove dummy value
+            } else if (requestingRange.end >= (maxInt - 1)) { // remove dummy value
                 delete requestingRange.end;
             }
             return requestingRange;

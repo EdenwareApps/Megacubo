@@ -35,18 +35,15 @@ class Mega {
                 if (nparts[0] == 'link') {
                     type = 'link';
                     url = Buffer.from(nparts[1], 'base64').toString();
-                }
-                else {
+                } else {
                     name = nparts[1];
                 }
-            }
-            else {
+            } else {
                 name = nparts[0];
             }
             if (url && !name) {
                 name = paths.manifest.window.title + ' ' + getDomain(url)
-            }
-            else if (name.charAt(name.length - 1) == '/') {
+            } else if (name.charAt(name.length - 1) == '/') {
                 name = name.substr(0, name.length - 1);
             }
             let ret = { name, type, mediaType, url };
@@ -82,8 +79,7 @@ class Mega {
                 if (data.name.length > 2) {
                     return true;
                 }
-            }
-            else if (data.type == 'link') {
+            } else if (data.type == 'link') {
                 if (data.url.indexOf('/') != -1) {
                     return true;
                 }

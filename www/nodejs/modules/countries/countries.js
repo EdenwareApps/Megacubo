@@ -16,11 +16,9 @@ class Countries extends EventEmitter {
             const fine = Object.keys(where).every(by => {
                 if (typeof (where[by]) == 'function') {
                     return where[by](this.data[key][by]);
-                }
-                else if (Array.isArray(where[by])) {
+                } else if (Array.isArray(where[by])) {
                     return where[by].includes(this.data[key][by]);
-                }
-                else {
+                } else {
                     return where[by] == this.data[key][by];
                 }
             });
@@ -28,8 +26,7 @@ class Countries extends EventEmitter {
                 const result = {};
                 if (fields) {
                     fields.forEach(k => result[k] = this.data[key][k]);
-                }
-                else {
+                } else {
                     Object.assign(result, this.data[key]);
                 }
                 ret.push(result);
@@ -39,13 +36,11 @@ class Countries extends EventEmitter {
             let sorter;
             if (typeof (orderBy) == 'function') {
                 sorter = orderBy;
-            }
-            else if (desc) {
+            } else if (desc) {
                 sorter = (a, b) => {
                     return (a[orderBy] > b[orderBy]) ? -1 : ((a[orderBy] < b[orderBy]) ? 1 : 0);
                 };
-            }
-            else {
+            } else {
                 sorter = (a, b) => {
                     return (a[orderBy] > b[orderBy]) ? 1 : ((a[orderBy] < b[orderBy]) ? -1 : 0);
                 };

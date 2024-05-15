@@ -19,11 +19,9 @@ class ListIndexUtils extends EventEmitter {
     sniffStreamType(e) {
         if (e.name && e.name.match(this.seriesRegex)) {
             return 'series';
-        }
-        else if (e.url.match(this.vodRegex)) {
+        } else if (e.url.match(this.vodRegex)) {
             return 'vod';
-        }
-        else if (e.url.match(this.liveRegex)) {
+        } else if (e.url.match(this.liveRegex)) {
             return 'live';
         }
     }
@@ -77,8 +75,7 @@ class ListIndexUtils extends EventEmitter {
                 if (Array.isArray(this.linesMap)) {
                     return this.readLinesByMap(map).then(resolve).catch(reject);
                 }
-            }
-            
+            }            
             fs.stat(this.file, (err, stat) => {
                 if (err || !stat) {
                     return reject(err || 'stat failed with no error');
@@ -90,8 +87,7 @@ class ListIndexUtils extends EventEmitter {
                     });
                     if (map) {
                         max = Math.max(...map);
-                    }
-                    else {
+                    } else {
                         max = -1;
                     }
                     rl.on('line', line => {
@@ -101,15 +97,13 @@ class ListIndexUtils extends EventEmitter {
                                 rl = null;
                             }
                             reject('list destroyed');
-                        }
-                        else {
+                        } else {
                             if (!map || map.includes(i)) {
                                 if (!line || !line.startsWith('{')) {
                                     if (map || !line.startsWith('[')) {
                                         console.error('Bad line readen', this.file, i, line);
                                     }
-                                }
-                                else {
+                                } else {
                                     lines[i] = line;
                                 }
                             }
@@ -130,16 +124,14 @@ class ListIndexUtils extends EventEmitter {
                         resolve(lines);
                         rl = null;
                     });
-                }
-                else {
+                } else {
                     return reject('empty file ' + stat.size);
                 }
             });
         });
     }
     async readLastLine() {
-        const bufferSize = 16834;
-        
+        const bufferSize = 16834        
         const { size } = await fs.promises.stat(this.file);
         const fd = await fs.promises.open(this.file, 'r');
         let line = '';
@@ -179,8 +171,7 @@ class ListIndexUtils extends EventEmitter {
                     await fd.close().catch(console.error);
                     line = String(buffer).substr(0, bytesRead);
                     index = JSON.parse(line);
-                }
-                else {
+                } else {
                     index = parsed; // old style compat
                 }
             }
@@ -194,11 +185,10 @@ class ListIndexUtils extends EventEmitter {
                 delete index.linesMap;
             }
             return index;
-        }
-        else {
+        } else {
             console.error('Bad index on ' + this.file, String(line).substr(0, 256), this.file);
             return this.indexTemplate;
         }
     }
 }
-export default ListIndexUtils;
+export default ListIndexUtils

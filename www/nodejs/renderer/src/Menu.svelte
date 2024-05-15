@@ -20,7 +20,7 @@
                 Array.from(wrap.getElementsByTagName('a')).forEach(e => {
                     activeKeys.includes(e.getAttribute('key')) || wrap.removeChild(e)
                 })
-                entries = main.menu.currentEntries.filter(e => !e.top)
+                window.rendererEntries = entries = main.menu.currentEntries.filter(e => !e.top)
                 if(!main.menu.path) {
                     headerActions = main.menu.currentEntries.filter(e => e.top)
                 }
@@ -92,7 +92,7 @@
                             {/if}
                             <span class="entry-data-in">
                                 <span class="entry-name">
-                                    {@html e.statusFlags}
+                                    <span class="{e.statusFlagsClass}">{@html e.statusFlags}</span>
                                     <span class="entry-name-label">
                                         {@html e.prepend}
                                         {@html e.rawname||e.name}
@@ -816,12 +816,13 @@ span.modal-template-question img {
     background-repeat: no-repeat;
 }
 .modal-template-slider, .modal-template-option, .modal-template-option-detailed, .modal-template-question {
-    box-sizing: border-box;
-    max-width: var(--menu-modal-option-min-width);
     width: 100%;
-    font-size: var(--menu-entry-name-font-size);
     display: flex;
+    min-height: 7vh;
     align-items: center;
+    box-sizing: border-box;
+    font-size: var(--menu-entry-name-font-size);
+    max-width: var(--menu-modal-option-min-width);
 }
 .modal-template-slider, .modal-template-question {
     padding: 1.5vmax 0;

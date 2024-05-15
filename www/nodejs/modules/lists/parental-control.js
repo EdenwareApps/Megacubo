@@ -56,8 +56,7 @@ class ParentalControl extends EventEmitter {
                                 let name;
                                 if (n.key == 'block') {
                                     name = lang.ASK_PASSWORD;
-                                }
-                                else {
+                                } else {
                                     name = lang[n.key.replaceAll('-', '_').toUpperCase()];
                                 }
                                 return {
@@ -79,8 +78,7 @@ class ParentalControl extends EventEmitter {
                                                     delete this.authenticated;
                                                 }
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             config.set('parental-control-pw', '');
                                             config.set('parental-control', n.key);
                                             if (this.authenticated) {
@@ -128,16 +126,14 @@ class ParentalControl extends EventEmitter {
         this.terms = this.keywords(tms || config.get('parental-control-terms'));
         if (this.terms.length) {
             this.termsRegex = new RegExp(this.terms.join('|').replace(new RegExp('\\+', 'g'), '\\+'), 'i');
-        }
-        else {
+        } else {
             this.termsRegex = false;
         }
     }
     setTerms(terms) {
         if (typeof (terms) == 'string') {
             this.terms = this.keywords(terms);
-        }
-        else if (!Array.isArray(terms)) {
+        } else if (!Array.isArray(terms)) {
             console.error('Bad terms format', terms);
             return;
         }
@@ -208,8 +204,7 @@ class ParentalControl extends EventEmitter {
     lazyAuth() {
         if (this.authenticated) {
             return true;
-        }
-        else {
+        } else {
             return ['allow', 'only'].includes(config.get('parental-control'));
         }
     }
@@ -224,13 +219,11 @@ class ParentalControl extends EventEmitter {
             if (pass && this.md5(pass) == config.get('parental-control-pw')) {
                 this.authenticated = now + this.authTTL;
                 return true;
-            }
-            else {
+            } else {
                 menu.displayErr(lang.PASSWORD_NOT_MATCH);
                 throw lang.PASSWORD_NOT_MATCH;
             }
-        }
-        else {
+        } else {
             return true;
         }
     }

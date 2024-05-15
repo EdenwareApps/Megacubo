@@ -27,8 +27,7 @@ class Watching extends EntriesGroup {
                 if (!this.currentRawEntries || !this.currentRawEntries.length) {
                     this.currentRawEntries = data;
                     this.updating || this.update(data).catch(console.error);
-                }
-                else if (Array.isArray(data)) {
+                } else if (Array.isArray(data)) {
                     this.currentEntries && this.currentEntries.forEach((c, i) => {
                         data.forEach(e => {
                             if (typeof (c.trend) == 'undefined' && typeof (e.trend) != 'undefined') {
@@ -81,8 +80,7 @@ class Watching extends EntriesGroup {
         let nxt = this.entry();
         if (this.showChannelOnHome() && menu.path == '' && (prv.details != nxt.details || prv.name != nxt.name)) {
             menu.updateHomeFilters();
-        }
-        else {
+        } else {
             this.updateView();
         }
     }
@@ -126,13 +124,11 @@ class Watching extends EntriesGroup {
         });
         if (!list.length) {
             list = [{ name: lang.EMPTY, fa: 'fas fa-info-circle', type: 'action', class: 'entry-empty' }];
-        }
-        else {
+        } else {
             const acpolicy = config.get('parental-control');
             if (['remove', 'block'].includes(acpolicy)) {
                 list = lists.parentalControl.filter(list);
-            }
-            else if (acpolicy == 'only') {
+            } else if (acpolicy == 'only') {
                 list = lists.parentalControl.only(list);
             }
         }
@@ -168,7 +164,7 @@ class Watching extends EntriesGroup {
         const limit = pLimit(3)        
         const tasks = countries.map(country => {
             return async () => {
-                let es = await cloud.get('watching-country.' + country, false, validator).catch(console.error);
+                let es = await cloud.get('watching-country.' + country, {validator}).catch(console.error);
                 Array.isArray(es) && data.push(...es);
             };
         }).map(limit);
@@ -245,12 +241,10 @@ class Watching extends EntriesGroup {
                 }
                 gcount[term] += entry.users;
                 delete data[i];
-            }
-            else {
+            } else {
                 if (onlyKnownChannels) {
                     delete data[i];
-                }
-                else {
+                } else {
                     if (!mega.isMega(entry.url)) {
                         const mediaType = lists.mi.mediaType(entry);
                         entry.url = mega.build(entry.name, { mediaType });
@@ -292,11 +286,9 @@ class Watching extends EntriesGroup {
                     if (c.url == e.url) {
                         if (e[k] > c[k]) {
                             e.trend = 1;
-                        }
-                        else if (e[k] < c[k]) {
+                        } else if (e[k] < c[k]) {
                             e.trend = -1;
-                        }
-                        else if (typeof (c.trend) == 'number') {
+                        } else if (typeof (c.trend) == 'number') {
                             e.trend = c.trend;
                         }
                         return true;

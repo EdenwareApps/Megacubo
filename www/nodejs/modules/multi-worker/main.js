@@ -1,2 +1,2 @@
-import MultiWorker from "./multi-worker.js";
-export default new MultiWorker();
+import MultiWorker from './multi-worker.js'
+export default new MultiWorker()

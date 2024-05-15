@@ -22,16 +22,15 @@ class Joiner extends Downloader {
         });
         this.usingWorker = config.get('mpegts-use-worker');
         if (this.usingWorker) {
-            const workerPath = path.join(paths.cwd + '/modules/streamer/utils/mpegts-processor-worker.js');
-            this.worker = new MultiWorker();
-            this.processor = this.worker.load(workerPath);
-            this.worker.worker.on('exit', () => this.fail(-7));
+            const workerPath = path.join(paths.cwd + '/modules/streamer/utils/mpegts-processor-worker.js')
+            this.worker = new MultiWorker()
+            this.processor = this.worker.load(workerPath, true)
+            this.worker.worker.on('exit', () => this.fail(-7))
             this.once('destroy', () => {
-                const done = () => this.worker && this.worker.terminate();
+                const done = () => this.worker && this.worker.terminate()
                 if (this.processor) {
-                    this.processor.terminate().catch(console.error).finally(done);
-                }
-                else {
+                    this.processor.terminate().catch(console.error).finally(done)
+                } else {
                     done();
                 }
             });
@@ -68,8 +67,7 @@ class Joiner extends Downloader {
                 return; // discard so
             this.processor.push(data);
             this.processor.flush(force);
-        }
-        else {
+        } else {
             this.processor.flush(force);
         }
     }
@@ -86,8 +84,7 @@ class Joiner extends Downloader {
         if (len) {
             if (this.bitrate) {
                 this.delayUntil = this.lastConnectionEndTime + (len / this.bitrate) - this.connectTime;
-            }
-            else {
+            } else {
                 this.delayUntil = 0;
             }
             super.output(data, len);

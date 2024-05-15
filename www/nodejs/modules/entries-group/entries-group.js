@@ -60,8 +60,7 @@ class EntriesGroup extends EventEmitter {
                 }
                 return e.url && f.url && e.url == f.url;
             }
-        }
-        else {
+        } else {
             return e.url == f.url || (e.originalUrl && f.url == e.originalUrl) || (f.originalUrl && e.url == f.originalUrl);
         }
     }
@@ -155,8 +154,7 @@ class EntriesGroup extends EventEmitter {
     store(data) {
         if (this.storeInConfig) {
             config.set(this.key, data);
-        }
-        else {
+        } else {
             storage.set(this.key, data, {
                 permanent: true,
                 expiration: true
@@ -166,8 +164,7 @@ class EntriesGroup extends EventEmitter {
     async retrieve() {
         if (this.storeInConfig) {
             return config.get(this.key);
-        }
-        else {
+        } else {
             return await storage.get(this.key);
         }
     }

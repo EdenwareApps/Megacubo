@@ -29,8 +29,7 @@ class LineEmitter extends Writable {
         }
         if (final) {
             this.emit('line', this.buffer.substring(startIndex));
-        }
-        else {
+        } else {
             this.buffer = this.buffer.substring(startIndex);
         }
     }

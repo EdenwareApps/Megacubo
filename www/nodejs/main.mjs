@@ -1,24 +1,24 @@
-import paths from "./modules/paths/paths.js";
-import electron from "electron";
-import { spawn } from "child_process";
-import path from "path";
-import crashlog from "./modules/crashlog/crashlog.js";
-import onexit from "node-cleanup";
-import streamer from "./modules/streamer/main.js";
-import lang from "./modules/lang/lang.js";
-import lists from "./modules/lists/lists.js";
-import Theme from "./modules/theme/theme.js";
-import moment from "moment-timezone";
-import options from "./modules/options/options.js";
-import recommendations from "./modules/recommendations/recommendations.js";
-import icons from "./modules/icon-server/icon-server.js";
-import np from "./modules/network-ip/network-ip.js";
-import energy from "./modules/energy/energy.js";
-import Wizard from "./modules/wizard/wizard.js";
-import downloads from "./modules/downloads/downloads.js";
-import cloud from "./modules/cloud/cloud.js";
-import "./modules/analytics/analytics.js";
-import "./modules/omni/omni.js";
+import paths from './modules/paths/paths.js';
+import electron from 'electron';
+import { spawn } from 'child_process';
+import path from 'path';
+import crashlog from './modules/crashlog/crashlog.js';
+import onexit from 'node-cleanup';
+import streamer from './modules/streamer/main.js';
+import lang from './modules/lang/lang.js';
+import lists from './modules/lists/lists.js';
+import Theme from './modules/theme/theme.js';
+import moment from 'moment-timezone';
+import options from './modules/options/options.js';
+import recommendations from './modules/recommendations/recommendations.js';
+import icons from './modules/icon-server/icon-server.js';
+import np from './modules/network-ip/network-ip.js';
+import energy from './modules/energy/energy.js';
+import Wizard from './modules/wizard/wizard.js';
+import downloads from './modules/downloads/downloads.js';
+import cloud from './modules/cloud/cloud.js';
+import './modules/analytics/analytics.js';
+import './modules/omni/omni.js';
 import config from './modules/config/config.js'
 import Download from './modules/download/download.js'
 import renderer from './modules/bridge/bridge.js'
@@ -27,9 +27,10 @@ import channels from './modules/channels/channels.js'
 import { getFilename } from 'cross-dirname'
 import { createRequire } from 'module';
 import menu from './modules/menu/menu.js'
-import { listNameFromURL, rmdir } from './modules/utils/utils.js'
-import osd from "./modules/osd/osd.js";
+import { listNameFromURL, rmdirSync } from './modules/utils/utils.js'
+import osd from './modules/osd/osd.js';
 import ffmpeg from './modules/ffmpeg/ffmpeg.js'
+import promo from './modules/promoter/promoter.js'
 
 /* Preload script variables */
 Object.assign(global, {
@@ -40,12 +41,15 @@ Object.assign(global, {
     downloads,
     energy,
     ffmpeg,
+    icons,
     lang,
     lists,
     menu,
     options,
     osd,
     paths,
+    promo,
+    recommendations,
     renderer,
     storage,
     streamer
@@ -84,7 +88,7 @@ onexit(() => {
         streamer.tuning.destroy();
         streamer.tuning = null;
     }
-    rmdir(paths.temp, false, true);
+    rmdirSync(paths.temp, false)
     if (typeof (renderer) != 'undefined' && renderer) {
         const ui = renderer.get()
         ui.emit('exit', true);
@@ -104,9 +108,8 @@ function enableConsole(enable) {
     }
     if (enable) {
         fns.forEach(f => { console[f] = originalConsole[f]; });
-    }
-    else {
-        fns.forEach(f => { console[f] = () => { }; });
+    } else {
+        fns.forEach(f => { console[f] = () => {}; });
     }
 }
 enableConsole(1||config.get('enable-console') || process.argv.includes('--inspect'));
@@ -116,14 +119,14 @@ global.activeEPG = '';
 streamer.tuning = null;
 let isStreamerReady, playOnLoaded, tuningHintShown, showingSlowBroadcastDialog;
 global.updateUserTasks = async app => {
-    if (1||process.platform != 'win32') //TODO FIX
-        return;
+    if (process.platform != 'win32')
+        return
     if (app) { // set from cache, Electron won't set after window is opened
         const tasks = await storage.get('user-tasks');
         if (tasks && !app.setUserTasks(tasks)) {
             throw 'Failed to set user tasks. ' + JSON.stringify(tasks);
         }
-        return;
+        return
     }
     const limit = 12;
     const entries = [];
@@ -171,51 +174,41 @@ const setupCompleted = () => {
 };
 const setNetworkConnectionState = state => {
     Download.setNetworkConnectionState(state)
-    lists.setNetworkConnectionState(state).catch(console.error)
     if (state && isStreamerReady) {
         lists.manager.update()
     }
 };
 const videoErrorTimeoutCallback = ret => {
-    console.log('video-error-timeout-callback', ret);
-    
+    console.log('video-error-timeout-callback', ret)
     if (ret == 'try-other') {
-        streamer.handleFailure(null, 'timeout', true, true).catch(e => menu.displayErr(e));
-    }
-    else if (ret == 'retry') {
-        streamer.reload();
-    }
-    else if (ret == 'transcode') {
-        streamer.transcode();
-    }
-    else if (ret == 'external') {
-        renderer.get().emit('external-player');
-    }
-    else if (ret == 'stop') {
-        streamer.stop();
-    }
-    else {
-        renderer.get().emit('streamer-reset-timeout');
+        streamer.handleFailure(null, 'timeout', true, true).catch(e => menu.displayErr(e))
+    } else if (ret == 'retry') {
+        streamer.reload()
+    } else if (ret == 'transcode') {
+        streamer.transcode()
+    } else if (ret == 'external') {
+        renderer.get().emit('external-player')
+    } else if (ret == 'stop') {
+        streamer.stop()
+    } else {
+        renderer.get().emit('streamer-reset-timeout')
     }
 }
 let initialized
 const init = async (language, timezone) => {
     if (initialized) return
     initialized = true
-    let err
     await lang.load(language, config.get('locale'), paths.cwd + '/lang', timezone).catch(e => menu.displayErr(e))
     console.log('Language loaded.')
     moment.locale(lang.locale)
     
-    lists.setNetworkConnectionState(Download.isNetworkConnected).catch(console.error);
     global.theme = new Theme();
     
-    rmdir(streamer.opts.workDir, false, true);
+    rmdirSync(streamer.opts.workDir, false)
     console.log('Initializing premium...');
     const Premium = await import('./modules/premium-helper/premium-helper.js')
     global.premium = new Premium.default()
 
-    await import('./modules/promoter/promoter.js') // init it up
     streamer.state.on('state', (url, state, source) => {
         if (source) {
             lists.discovery.reportHealth(source, state != 'offline');
@@ -238,8 +231,7 @@ const init = async (language, timezone) => {
         if (typeof (e.type) == 'undefined') {
             if (typeof (e.url) == 'string') {
                 e.type = 'stream';
-            }
-            else if (typeof (e.action) == 'function') {
+            } else if (typeof (e.action) == 'function') {
                 e.type = 'action';
             }
         }
@@ -352,8 +344,7 @@ const init = async (language, timezone) => {
         if (opts.length > 2) {
             let ret = await menu.dialog(opts, def);
             videoErrorTimeoutCallback(ret);
-        }
-        else { // only reload action is available
+        } else { // only reload action is available
             streamer.reload();
         }
     });
@@ -370,8 +361,7 @@ const init = async (language, timezone) => {
         console.warn('RETUNNING', data);
         if (data) {
             streamer.tune(data).catch(e => menu.displayErr(e));
-        }
-        else {
+        } else {
             streamer.zap.go().catch(e => menu.displayErr(e));
         }
     });
@@ -383,8 +373,7 @@ const init = async (language, timezone) => {
         console.error('VIDEO ERROR', { type, errData });
         if (streamer.zap.isZapping) {
             await streamer.zap.go();
-        }
-        else if (streamer.active && !streamer.active.isTranscoding()) {
+        } else if (streamer.active && !streamer.active.isTranscoding()) {
             if (type == 'timeout') {
                 if (!showingSlowBroadcastDialog) {
                     let opts = [{ template: 'question', text: lang.SLOW_BROADCAST }], def = 'wait';
@@ -403,8 +392,7 @@ const init = async (language, timezone) => {
                     showingSlowBroadcastDialog = false;
                     videoErrorTimeoutCallback(ret);
                 }
-            }
-            else {
+            } else {
                 const active = streamer.active;
                 if (active) {
                     if (type == 'playback') {
@@ -455,8 +443,7 @@ const init = async (language, timezone) => {
             const isM3U = url.match(new RegExp('(get.php\\?username=|\\.m3u($|[^A-Za-z0-9])|\/supratv\\.)'));
             if (isM3U) {
                 lists.manager.addList(url).catch(e => menu.displayErr(e));
-            }
-            else {
+            } else {
                 const name = listNameFromURL(url), e = {
                     name,
                     url,
@@ -469,8 +456,7 @@ const init = async (language, timezone) => {
                 lists.manager.waitListsReady().then(() => {
                     if (isStreamerReady) {
                         streamer.play(e);
-                    }
-                    else {
+                    } else {
                         playOnLoaded = e;
                     }
                 }).catch(console.error);
@@ -484,8 +470,7 @@ const init = async (language, timezone) => {
             const e = { name, url: mega.build(name) };
             if (isStreamerReady) {
                 streamer.play(e);
-            }
-            else {
+            } else {
                 playOnLoaded = e;
             }
         }
@@ -493,16 +478,15 @@ const init = async (language, timezone) => {
     ui.on('about', async () => {
         if (streamer.active) {
             await streamer.about();
-        }
-        else {
+        } else {
             options.about();
         }
     });
-    ui.on('network-state-up', () => setNetworkConnectionState(true));
-    ui.on('network-state-down', () => setNetworkConnectionState(false));
+    ui.on('network-state-up', () => setNetworkConnectionState(true))
+    ui.on('network-state-down', () => setNetworkConnectionState(false))
     ui.on('network-ip', ip => {
         if (ip && np.isNetworkIP(ip)) {
-            np.networkIP = () => ip;
+            np.networkIP = () => ip
         }
     });
     options.on('devtools-open', () => {
@@ -519,8 +503,7 @@ const init = async (language, timezone) => {
                 if (streamer.tuning.tuner && streamer.tuning.tuner.entries.length > 1) {
                     cantune = true;
                 }
-            }
-            else if (channels.isChannel(info.name)) {
+            } else if (channels.isChannel(info.name)) {
                 cantune = true;
             }
         }
@@ -563,12 +546,10 @@ const init = async (language, timezone) => {
             lists.manager.waitListsReady().then(() => {
                 if (playOnLoaded) {
                     streamer.play(playOnLoaded);
-                }
-                else if (config.get('resume')) {
+                } else if (config.get('resume')) {
                     if (menu.path) {
                         console.log('resume skipped, user navigated away');
-                    }
-                    else {
+                    } else {
                         console.log('resuming', channels.history.resumed, streamer);
                         channels.history.resume();
                     }
@@ -602,16 +583,14 @@ const init = async (language, timezone) => {
             console.log('update callback', chosen);
             if (chosen == 'yes') {
                 ui.emit('open-external-url', 'https://megacubo.net/update?ver=' + paths.manifest.version);
-            }
-            else if (chosen == 'how') {
+            } else if (chosen == 'how') {
                 await menu.dialog([
                     { template: 'question', text: lang.HOW_TO_UPDATE, fa: 'fas fa-question-circle' },
                     { template: 'message', text: lang.UPDATE_APP_INFO },
                     { template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle' }
                 ], 'yes');
                 await updatePrompt(c);
-            }
-            else if (chosen == 'changelog') {
+            } else if (chosen == 'changelog') {
                 ui.emit('open-external-url', 'https://github.com/EdenwareApps/Megacubo/releases/latest');
                 await updatePrompt(c);
             }
@@ -637,14 +616,13 @@ const init = async (language, timezone) => {
             if (c.version > paths.manifest.version) {
                 console.log('new version found', c.version);
                 await updatePrompt(c);
-            }
-            else {
+            } else {
                 console.log('updated');
             }
         }
         ui.emit('arguments', process.argv);
     });
-    console.warn('Prepared to connect...')
+    console.warn('Prepared to connect.')
     ui.emit('main-ready', config.all(), lang.getTexts())
 };
 renderer.get().once('get-lang-callback', (locale, timezone, ua, online) => {
@@ -661,8 +639,7 @@ renderer.get().once('get-lang-callback', (locale, timezone, ua, online) => {
     if (!initialized) {
         console.log('get-lang-callback 1');
         init(locale, timezone);
-    }
-    else {
+    } else {
         console.log('get-lang-callback 2');
         lang.ready().catch(e => menu.displayErr(e)).finally(() => {
             renderer.get().emit('main-ready', config.all(), lang.getTexts());
@@ -709,8 +686,7 @@ if (paths.android) {
                 }
                 app.commandLine.appendSwitch(f);
             });
-        }
-        else {
+        } else {
             app.disableHardwareAcceleration();
         }
         app.commandLine.appendSwitch('no-zygote');
@@ -746,7 +722,7 @@ if (paths.android) {
                 nodeIntegration: false,
                 nodeIntegrationInWorker: false,
                 nodeIntegrationInSubFrames: false,
-                preload: path.join(paths.cwd, 'dist/preload.cjs'),
+                preload: path.join(paths.cwd, 'dist/preload.js'),
                 enableRemoteModule: true,
                 experimentalFeatures: true,
                 webSecurity: false // desabilita o webSecurity

@@ -1,6 +1,5 @@
 import { EventEmitter } from "events";
 import Tuner from "./tuner.js";
-import lists from "../lists/lists.js";
 import config from "../config/config.js"
 
 class AutoTuner extends EventEmitter {
@@ -17,23 +16,20 @@ class AutoTuner extends EventEmitter {
         this.intents = [];
         this.succeededs = {}; // -1 = bad mediatype, 0 = initialized, 1 = intenting, 2 = committed, 3 = starting failed
         this.entries = entries;
-        this.ffmpegBasedTypes = ['ts', 'rtmp', 'dash', 'aac'];
-        this.streamer = opts.streamer
+        this.ffmpegBasedTypes = ['ts', 'rtmp', 'dash', 'aac']
     }
     async start() {
-        const {default: channels} = await import('../channels/channels.js')
-        this.history = channels.history
         if (!this.opts.allowedTypes || !Array.isArray(this.opts.allowedTypes)) {
             this.opts.allowedTypes = [];
-            Object.keys(this.streamer.engines).forEach(n => {
-                if (this.streamer.engines[n].mediaType == this.opts.mediaType) {
+            Object.keys(global.streamer.engines).forEach(n => {
+                if (global.streamer.engines[n].mediaType == this.opts.mediaType) {
                     this.opts.allowedTypes.push(n);
                 }
             });
         }
         if (!this.tuner) {
-            this.entries = await this.ceilPreferredStreams(this.entries, this.preferredStreamServers(), this.opts.preferredStreamURL);
-            this.entries = await this.ceilMyListsStreams(this.entries, this.preferredStreamServers(), this.opts.preferredStreamURL);
+            const preferredStreamServers = this.preferredStreamServers()
+            this.entries = this.sort(this.entries, preferredStreamServers, this.opts.preferredStreamURL)
             this.tuner = new Tuner(this.entries, this.opts, this.opts.megaURL)
             this.tuner.on('success', (e, nfo, n) => {
                 if (typeof (this.succeededs[n]) == 'undefined') {
@@ -60,75 +56,72 @@ class AutoTuner extends EventEmitter {
         return String(file).split('?')[0].split('#')[0].split('.').pop().toLowerCase();
     }
     preferredStreamServers() {
-        return this.history.get().map(e => e.preferredStreamURL || e.url).map(u => this.getDomain(u)).unique();
+        if(global.channels && global.channels.history) {
+            return global.channels.history.get().map(e => e.preferredStreamURL || e.url).map(u => this.getDomain(u)).unique()
+        }
+        return []
     }
     getDomain(u) {
         if (u && u.indexOf('//') != -1) {
             let d = u.split('//')[1].split('/')[0].split(':')[0];
             if (d == 'localhost' || d.indexOf('.') != -1) {
-                return d;
+                return d
             }
         }
-        return '';
+        return ''
     }
-    async ceilPreferredStreams(entries, preferredStreamServers, preferredStreamURL) {
-        let preferredStreamEntry;
-        const fmt = config.get('live-stream-fmt'), validfmt = ['hls', 'mpegts'].includes(fmt);
-        const streams = [], deferredStreams = [];
-        const preferredStreamServersLeveledEntries = {};
-        entries.forEach(entry => {
-            if (entry.url == preferredStreamURL) {
-                preferredStreamEntry = entry;
-                return;
+    sort(entries, preferredStreamServers, preferredStreamURL) {
+        let preferredStreamEntry
+        const fmt = config.get('live-stream-fmt'), validfmt = ['hls', 'mpegts'].includes(fmt)
+        const streams = [], deferredStreams = [], goodStreams = [], badStreams = []
+        const preferredStreamServersLeveledEntries = {}
+        entries.forEach(e => {
+            const state = global.streamer.state.get(e.url)
+            if(state === false || state === 'offline') { // bad state streams go to the end of the queue
+                badStreams.push(e)
+                return
             }
-            if (preferredStreamServers.length) {
-                let i = preferredStreamServers.indexOf(this.getDomain(entry.url));
+            if (e.url == preferredStreamURL) { // last watching stream go to the top of queue
+                preferredStreamEntry = e
+                return
+            }
+            if (typeof(state) == 'string' && state) { // stream known to be online
+                goodStreams.push(e)
+                return
+            }
+            if (preferredStreamServers.length) { // streams from servers already known from the history gets some priority
+                let i = preferredStreamServers.indexOf(this.getDomain(e.url))
                 if (i != -1) {
                     if (typeof (preferredStreamServersLeveledEntries[i]) == 'undefined') {
-                        preferredStreamServersLeveledEntries[i] = [];
+                        preferredStreamServersLeveledEntries[i] = []
                     }
-                    preferredStreamServersLeveledEntries[i].push(entry);
-                    return;
+                    preferredStreamServersLeveledEntries[i].push(e)
+                    return
                 }
             }
-            if (validfmt) {
-                const isHLS = this.ext(entry.url) == 'm3u8';
+            if (validfmt) { // consider preferred stream format from options if any
+                const isHLS = this.ext(e.url) == 'm3u8'
                 if (isHLS == (fmt == 'hls')) {
-                    streams.push(entry);
+                    streams.push(e)
+                } else {
+                    deferredStreams.push(e)
                 }
-                else {
-                    deferredStreams.push(entry);
-                }
+            } else {
+                streams.push(e)
             }
-            else {
-                streams.push(entry);
-            }
-        });
-        entries = [];
+        })
+        entries = []
         if (preferredStreamEntry) {
-            entries.push(preferredStreamEntry);
+            entries.push(preferredStreamEntry)
         }
         Object.keys(preferredStreamServersLeveledEntries).sort().forEach(k => {
-            entries.push(...preferredStreamServersLeveledEntries[k]);
-        });
-        entries.push(...streams);
-        entries.push(...deferredStreams);
+            entries.push(...preferredStreamServersLeveledEntries[k])
+        })
+        entries.push(...goodStreams)
+        entries.push(...streams)
+        entries.push(...deferredStreams)
+        entries.push(...badStreams)
         return entries
-    }
-    async ceilMyListsStreams(entries) {
-        const deferredEntries = [];
-        const listsInfo = lists.info(true);
-        entries = entries.filter(entry => {
-            const isMine = listsInfo[entry.source] && listsInfo[entry.source].owned;
-            if (isMine) {
-                return true;
-            }
-            else {
-                deferredEntries.push(entry);
-            }
-        });
-        entries.push(...deferredEntries);
-        return entries;
     }
     pause() {
         if (this.opts.debug) {
@@ -150,8 +143,7 @@ class AutoTuner extends EventEmitter {
             this.paused = false;
             if (this.tuner.finished) {
                 this.pump();
-            }
-            else {
+            } else {
                 this.tuner.resume();
             }
             if (this.listenerCount('progress')) {
@@ -197,14 +189,13 @@ class AutoTuner extends EventEmitter {
                     this.pause();
                     if (resolved) {
                         console.error('Tuner success after finish, verify it');
-                    }
-                    else {
+                    } else {
                         resolved = true;
                         if (n.nid) {
                             n = this.prepareIntentToEmit(n);
                             if (!this.headless) {
                                 
-                                let ret = await this.streamer.commit(n)
+                                let ret = await global.streamer.commit(n)
                                 this.commitResults[n.nid] = ret
                                 if (ret !== true) {
                                     menu.displayErr('TUNER COMMIT ERROR ' + ret + ' - ' + n.data.name);
@@ -214,8 +205,7 @@ class AutoTuner extends EventEmitter {
                                 }
                             }
                             resolve(n);
-                        }
-                        else {
+                        } else {
                             reject('cancelled by user'); // maybe it's not a intent from the AutoTuner instance, but one else started by the user, resolve anyway
                         }
                     }
@@ -285,12 +275,10 @@ class AutoTuner extends EventEmitter {
                 this.finish();
                 index.length = 0;
             }
-        }
-        else {
+        } else {
             if (slotCount > 0) {
                 this.tuner.paused && this.tuner.resume();
-            }
-            else {
+            } else {
                 !this.tuner.paused && this.tuner.pause();
             }
         }
@@ -298,7 +286,7 @@ class AutoTuner extends EventEmitter {
     }
     pump() {
         if (this.paused || this.destroyed) {
-            return;
+            return
         }
         let { index, busyDomains, slotCount, ffmpegBasedSlotCount } = this.getQueue();
         index.forEach(nid => {
@@ -317,7 +305,7 @@ class AutoTuner extends EventEmitter {
                 }
             }
             
-            let intent = new this.streamer.engines[this.tuner.info[nid].type](this.tuner.entries[nid], {}, this.tuner.info[nid]);
+            let intent = new global.streamer.engines[this.tuner.info[nid].type](this.tuner.entries[nid], {}, this.tuner.info[nid]);
             if (this.opts.mediaType && this.opts.mediaType != 'all' && intent.mediaType != this.opts.mediaType) {
                 console.warn('bad mediaType, skipping', intent.data.url, intent.mediaType, this.opts.mediaType);
                 this.succeededs[n] = -1;
@@ -356,11 +344,9 @@ class AutoTuner extends EventEmitter {
                 this.intents.filter(nt => nt && nt.nid != nid).forEach(nt => {
                     if (nt.committed) {
                         menu.displayErr('DESTROYING COMMITTED INTENT?');
-                    }
-                    else if (nt.destroyed) {
+                    } else if (nt.destroyed) {
                         menu.displayErr('DESTROYING ALREADY DESTROYED INTENT?');
-                    }
-                    else {
+                    } else {
                         console.error('DESTROYING INTENT OTHER', nt.nid);
                     }
                     this.succeededs[nt.nid] = 0;
@@ -392,15 +378,12 @@ class AutoTuner extends EventEmitter {
                 let v;
                 if (typeof (this.tuner.errors[i]) == 'undefined') {
                     v = 'untested';
-                }
-                else {
+                } else {
                     if (this.tuner.errors[i] === 0) {
                         v = 'timeout';
-                    }
-                    else if (this.tuner.errors[i] === -1) {
+                    } else if (this.tuner.errors[i] === -1) {
                         v = 'unreachable';
-                    }
-                    else {
+                    } else {
                         v = this.tuner.errors[i];
                     }
                 }
@@ -432,8 +415,7 @@ class AutoTuner extends EventEmitter {
             let row = (showStreams === true ? e.url : e.name) + ' => ';
             if (e.info == 'untested') {
                 row += 'untested';
-            }
-            else {
+            } else {
                 row += (e.state ? 'success' : 'failed') + (e.info === null ? '' : ', ' + e.info);
             }
             return row;

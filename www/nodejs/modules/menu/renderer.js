@@ -738,11 +738,15 @@ class MenuBBCode extends MenuSpatialNavigation {
 	}
 	parseBBCode(text){
 		if(typeof(this.replaceBBCodeFnPtr) == 'undefined'){
+			this.replaceBBCodeRegex = new RegExp('\\[(fun|'+ Object.keys(this.bbCodeMap).join('|') +')')
 			this.replaceBBCodeFnPtr = this.replaceBBCode.bind(this)
 			this.replaceBBCodeFunnyTextFnPtr = this.replaceBBCodeFunnyText.bind(this)
 		}
-		text = text.replace(new RegExp('\\[fun\\]([^\\[]*)\\[\\|?fun\\]', 'gi'), this.replaceBBCodeFunnyTextFnPtr)
-		return text.replace(new RegExp('\\[\\|?([^\\]]*)\\]', 'g'), this.replaceBBCodeFnPtr)
+		if(text.match(this.replaceBBCodeRegex)) {
+			text = text.replace(new RegExp('\\[fun\\]([^\\[]*)\\[\\|?fun\\]', 'gi'), this.replaceBBCodeFunnyTextFnPtr)
+			return text.replace(new RegExp('\\[\\|?([^\\]]*)\\]', 'g'), this.replaceBBCodeFnPtr)
+		}
+		return text
 	}
 	replaceBBCode(fragment, name, i, text){
 		const tag = name.split(' ').shift().toLowerCase()
@@ -839,9 +843,7 @@ class MenuModal extends MenuBBCode {
 					!replaces.raw : (t == 'string' && replaces[before].indexOf('<') == -1))
 				let to = fixQuotes ? this.fixQuotes(replaces[before]) : String(replaces[before])
 				if(to.indexOf('[') != -1){
-					if(before == 'name'){
-						to = this.removeBBCode(to)
-					} else if(before == 'rawname') {
+					if(before == 'rawname') {
 						to = this.parseBBCode(to)
 					}
 				}
@@ -1580,8 +1582,8 @@ class MenuStatusFlags extends MenuSlider {
 	statusAddHTML(e) {
 		if(e.url && typeof(this.statusFlags[e.url]) != 'undefined'){
 			let status = this.statusFlags[e.url], type = e.type || 'stream', cls = e.class || ''
-			if(status && cls.indexOf('skip-testing') == -1 && (cls.match(new RegExp('(allow-stream-state|entry-meta-stream)')) || type == 'stream')){
-				let content = ''
+			if(status && cls.indexOf('skip-testing') == -1 && (type == 'stream' || cls.match(new RegExp('(allow-stream-state|entry-meta-stream)')))){
+				let content = '', cls = ''
 				if(status == 'tune'){
 					content = '<i class="fas fa-layer-group"></i>'
 				} else if(status == 'folder') {
@@ -1594,27 +1596,27 @@ class MenuStatusFlags extends MenuSlider {
 						watched = true
 						status = status.substr(0, status.length - 8)
 					}
-					let cls = '', txt = '', icon = watched ? 'fas fa-check' : ''
+					let txt = '', icon = watched ? 'fas fa-check' : ''
 					if(status == 'offline') {
 						if(!watched) icon = 'fas fa-times'
-						cls = 'entry-status-flag-failure'
+						cls = 'entry-status-flag entry-status-flag-failure'
 					} else {
 						if(!watched) icon = 'fas fa-play'
-						cls = 'entry-status-flag-success'
+						cls = 'entry-status-flag entry-status-flag-success'
 						if(main.config['status-flags-type']) txt = ' '+ status
 					}
 					content = '<i class="'+ icon +'" aria-hidden="true"></i>'+ txt
 					if(main.config['status-flags-type']) content = '&nbsp;'+ content +'&nbsp;'
-					content = '<span class="entry-status-flag '+ cls +'">'+ content +'</span>'
 				}
+				e.statusFlagsClass = cls
 				e.statusFlags = content
 				const offline = status == 'offline'
-				if(e !== offline) {
-					if(offline) {
+				if(offline) {
+					if(!e.class || e.class.indexOf('entry-disabled') == -1) {
 						e.class = (e.class || '') +' entry-disabled'
-					} else if(e.class && e.class.indexOf('entry-disabled') != -1) {
-						e.class = e.class.replace(new RegExp('( |^)entry-disabled', 'g'), '')
 					}
+				} else if(e.class && e.class.indexOf('entry-disabled') != -1) {
+					e.class = e.class.replace(new RegExp('( |^)entry-disabled', 'g'), '')
 				}
 			}
 		}
@@ -1766,8 +1768,8 @@ export class Menu extends MenuLoading {
 			css('span.entry-wrapper {visibility: hidden; }', 'menu-render-hack')
 			this.scrollTop(targetScrollTop)
 		}
-		this.currentElements = Array.from(this.wrap.getElementsByTagName('a'))
 		setTimeout(() => {
+			this.currentElements = Array.from(this.wrap.getElementsByTagName('a'))
 			this.restoreSelection() // keep it in this timer, or the hell gates will open up!
 			this.rendering = false
 			this.emit('render', this.path, icon)
@@ -2155,7 +2157,7 @@ export class Menu extends MenuLoading {
 		if(typeof(e.prepend) != 'string') {
 			e.prepend = ''
 		}
-		e.key = (e.path && e.path != ' ') ? e.path : String(Math.random()) // svelte id
+		e.key = ((e.path && e.path != ' ') ? e.path : String(Math.random())) + (e.url || '') // svelte id, added url to key to fix stream-state processing
 		return e
 	}
 }

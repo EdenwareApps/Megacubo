@@ -65,14 +65,12 @@ class NetworkIP {
             let addr, time = Date.now();
             if (this.networkIpCache && (this.networkIpCache.time + this.networkIpCacheTTL) > time) {
                 addr = this.networkIpCache.addr;
-            }
-            else {
+            } else {
                 const match = this.androidIPCommand().match(new RegExp('src +([0-9\.]+)'));
                 if (match) {
                     addr = match[1];
                     this.networkIpCache = { addr, time };
-                }
-                else {
+                } else {
                     addr = this.networkIpCache ? this.networkIpCache.addr : '127.0.0.1';
                 }
             }

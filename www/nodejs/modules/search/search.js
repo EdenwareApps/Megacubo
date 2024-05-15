@@ -117,8 +117,7 @@ class Search extends EventEmitter {
             const resultsCount = rs.length;
             menu.render(this.addFixedEntries(mediaType, rs), menu.path, 'fas fa-search', '/');
             osd.show(lang.X_RESULTS.format(resultsCount), 'fas fa-check-circle', 'search', 'normal');
-        }
-        else {
+        } else {
             menu.displayErr(err);
         }
         renderer.get().emit('set-loading', { name: lang.SEARCH }, false);
@@ -172,8 +171,7 @@ class Search extends EventEmitter {
                                 menu.render(entries, path + '/' + lang.SEARCH, 'fas fa-search', path);
                                 this.history.add(this.currentSearch.name);
                             }).catch(e => menu.displayErr(e));
-                        }
-                        else {
+                        } else {
                             this.go(this.currentSearch.name, 'all');
                         }
                     }
@@ -229,8 +227,7 @@ class Search extends EventEmitter {
                     }
                 }
             ];
-        }
-        else {
+        } else {
             this.currentResults = es.slice(0);
             let minResultsWanted = (config.get('view-size-x') * config.get('view-size-y')) - 3;
             if (config.get('search-youtube') && es.length < minResultsWanted) {
@@ -387,8 +384,7 @@ class Search extends EventEmitter {
             let nlc = (entry.originalName || entry.name).toLowerCase();
             if (Array.isArray(searchSugEntries)) {
                 resolve(this.matchTerms(nlc, precision, searchSugEntries));
-            }
-            else {
+            } else {
                 this.searchSuggestionEntries().then(es => {
                     resolve(this.matchTerms(nlc, precision, es));
                 }).catch(e => {
@@ -521,19 +517,15 @@ class Search extends EventEmitter {
             placeholder: lang.SEARCH_PLACEHOLDER
         };
     }
-    hook(entries, path) {
-        return new Promise((resolve, reject) => {
-            
-            if (lists.loaded() && lists.activeLists.length) {
-                if (path == lang.LIVE) {
-                    entries.unshift(this.entry('live'));
-                }
-                else if (lang.CATEGORY_MOVIES_SERIES == path) {
-                    entries.unshift(this.entry('all'));
-                }
+    async hook(entries, path) {
+        if (lists.loaded() && lists.activeLists.length) {
+            if (path == lang.LIVE) {
+                entries.unshift(this.entry('live'));
+            } else if (lang.CATEGORY_MOVIES_SERIES == path) {
+                entries.unshift(this.entry('all'));
             }
-            resolve(entries);
-        });
+        }
+        return entries
     }
 }
 export default Search;

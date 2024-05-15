@@ -17,8 +17,7 @@ class StreamerAdapterTS extends StreamerAdapterBase {
             const args = [this.url, this.opts];
             if (config.get('mpegts-packet-filter-policy') == -1) {
                 this.source = new Downloader(...args);
-            }
-            else {
+            } else {
                 this.source = new Joiner(...args);
             }
             this.server = false;
@@ -30,8 +29,7 @@ class StreamerAdapterTS extends StreamerAdapterBase {
             }).catch(err => {
                 if (this.source.terminate) {
                     this.source.terminate(); // using worker
-                }
-                else {
+                } else {
                     this.source.destroy();
                 }
                 reject(err);

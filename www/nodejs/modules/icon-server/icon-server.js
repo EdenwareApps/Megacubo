@@ -1,21 +1,21 @@
 import Download from '../download/download.js'
-import { decodeURIComponentSafe,prepareCORS, sanitize } from "../utils/utils.js";
+import { decodeURIComponentSafe,prepareCORS, sanitize } from '../utils/utils.js';
 import osd from '../osd/osd.js'
 import menu from '../menu/menu.js'
 import storage from '../storage/storage.js'
-import crypto from "crypto";
-import lists from "../lists/lists.js";
-import fs from "fs";
-import jimp from "../jimp-worker/main.js";
-import crashlog from "../crashlog/crashlog.js";
-import paths from "../paths/paths.js";
-import path from "path";
-import pLimit from "p-limit";
-import Icon from "./icon.js";
-import http from "http";
+import crypto from 'crypto';
+import lists from '../lists/lists.js';
+import fs from 'fs';
+import jimp from '../jimp-worker/main.js';
+import crashlog from '../crashlog/crashlog.js';
+import paths from '../paths/paths.js';
+import path from 'path';
+import pLimit from 'p-limit';
+import Icon from './icon.js';
+import http from 'http';
 import Reader from '../reader/reader.js';
 import closed from '../on-closed/on-closed.js';
-import config from "../config/config.js"
+import config from '../config/config.js'
 import renderer from '../bridge/bridge.js'
 
 class IconDefault {
@@ -40,13 +40,11 @@ class IconDefault {
                         if (err && !content) {
                             console.error(err);
                             resolve(false);
-                        }
-                        else {
+                        } else {
                             resolve(content);
                         }
                     });
-                }
-                else {
+                } else {
                     resolve(false);
                 }
             });
@@ -62,8 +60,7 @@ class IconDefault {
             fs.stat(file, (err, stat) => {
                 if (stat && stat.size >= 32) {
                     resolve(file);
-                }
-                else {
+                } else {
                     resolve(false);
                 }
             });
@@ -83,8 +80,7 @@ class IconDefault {
                     cb(file);
                 }
             });
-        }
-        else {
+        } else {
             if (cb) {
                 cb(false);
             }
@@ -116,8 +112,7 @@ class IconDefault {
             fs.stat(file, (err, stat) => {
                 if (stat && stat.size >= 32) {
                     resolve(file);
-                }
-                else {
+                } else {
                     resolve(false);
                 }
             });
@@ -196,8 +191,7 @@ class IconSearch extends IconDefault {
                                     watching: this.watchingIcons[e.icon] || 0,
                                     epg: 0
                                 };
-                            }
-                            else {
+                            } else {
                                 if (!alreadySources[e.icon].includes(e.source)) {
                                     alreadySources[e.icon].push(e.source);
                                     ret[already[e.icon]].hits++;
@@ -241,14 +235,12 @@ class IconServerStore extends IconSearch {
             const jsign = content.readUInt16BE(0);
             if (jsign === 0xFFD8) {
                 return 1; // is JPEG
-            }
-            else {
+            } else {
                 const gsign = content.toString('ascii', 0, 3);
                 if (gsign === 'GIF') {
                     if (content.length > (512 * 1024)) { // 512kb
                         return 0; // avoid huge GIFs
-                    }
-                    else {
+                    } else {
                         return 1;
                     }
                 }
@@ -264,8 +256,7 @@ class IconServerStore extends IconSearch {
                     }
                 }
                 return 1;
-            }
-            else {
+            } else {
                 console.error('BAD MAGIC', magic, content);
             }
         }
@@ -286,8 +277,7 @@ class IconServerStore extends IconSearch {
                         let v = this.validate(content);
                         if (v) {
                             resolve(v);
-                        }
-                        else {
+                        } else {
                             reject('file not validated');
                         }
                     });
@@ -314,7 +304,7 @@ class IconServerStore extends IconSearch {
     }
     async saveHTTPCache(key, data) {
         if (!cb)
-            cb = () => { };
+            cb = () => {};
         const ttl = data && data.length ? this.ttlHTTPCache : this.ttlBadHTTPCache;
         await storage.set('icons-cache-' + key, data, { raw: true, ttl });
     }
@@ -379,8 +369,7 @@ class IconServerStore extends IconSearch {
                 }
             }).catch(e => err = e);
         });
-        if (err) {
-            
+        if (err) {            
             await fs.promises.unlink(file).catch(console.error);
             throw err;
         }
@@ -408,7 +397,7 @@ class IconServer extends IconServerStore {
         
         fs.access(this.opts.folder, err => {
             if (err !== null) {
-                fs.mkdir(this.opts.folder, () => { });
+                fs.mkdir(this.opts.folder, () => {});
             }
         });
         this.closed = false;
@@ -505,13 +494,11 @@ class IconServer extends IconServerStore {
                             this.result(e, e.path, j, ret);
                         });
                         this.rendering[j].catch(console.error);
-                    }
-                    else {
+                    } else {
                         this.rendering[j] = null;
                     }
                 });
-            }
-            else {
+            } else {
                 Object.keys(this.rendering).forEach(i => {
                     if (i != -1 && this.rendering[i] && (i < range.start || i > range.end)) {
                         this.rendering[i].destroy();
@@ -565,8 +552,7 @@ class IconServer extends IconServerStore {
                             stream.destroy();
                             response.end();
                         });
-                    }
-                    else {
+                    } else {
                         if (this.opts.debug) {
                             console.log('BADDATA', file);
                         }
@@ -595,8 +581,7 @@ class IconServer extends IconServerStore {
                 };
                 if (this.isHashKey(key)) {
                     this.checkHTTPCache(key).then(send).catch(onerr);
-                }
-                else {
+                } else {
                     this.getDefaultFile(decodeURIComponentSafe(key).split(',')).then(send).catch(onerr);
                 }
             }).listen(this.opts.port, this.opts.addr, err => {

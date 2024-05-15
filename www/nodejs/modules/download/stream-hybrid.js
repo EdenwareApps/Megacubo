@@ -52,14 +52,12 @@ class DownloadStream extends DownloadStreamBase {
                     this.emit('response', response);
                     if (response.ended || response.destroyed) {
                         this.end();
-                    }
-                    else {
+                    } else {
                         response.once('end', () => {
                             this.end();
                         });
                     }
-                }
-                else {
+                } else {
                     if (via.type == 'http' || this.opts.cachedOnly) {
                         responseData = {
                             statusCode: response.statusCode,
@@ -79,8 +77,7 @@ class DownloadStream extends DownloadStreamBase {
                             this.emit('response', response);
                             response.end();
                             this.end();
-                        }
-                        else {
+                        } else {
                             const err = vias.filter(v => v.type == 'http').map(v => v.errors.length ? v.errors[0] : null).pop() || 'Failed to fetch.';
                             this.emitError(err);
                         }
@@ -88,7 +85,7 @@ class DownloadStream extends DownloadStreamBase {
                 });
             });
             return via;
-        });
+        })
     }
 }
 DownloadStream.lookup = DownloadStreamHttp.lookup;

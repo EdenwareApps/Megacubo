@@ -8,8 +8,10 @@ import config from "../config/config.js"
 import paths from '../paths/paths.js'
 import { EventEmitter } from "events";
 import { Worker } from 'worker_threads';
-import { parseJSON } from '../utils/utils.js'
+import { basename, parseJSON } from '../utils/utils.js'
 import { getDirname } from 'cross-dirname'           
+
+const dirname = getDirname()
 
 /* Worker to update lists in background
 function wrapAsBase64(file){
@@ -23,8 +25,7 @@ const setupConstructor = () => {
     workerData.paths.android = !!paths.android;
     if (typeof (lang) != 'undefined' && typeof (lang.getTexts) == 'function') {
         workerData.lang = lang.getTexts();
-    }
-    else {
+    } else {
         workerData.lang = {};
     }
     workerData.bytenode = true;
@@ -50,11 +51,9 @@ const setupConstructor = () => {
                     const terminating = ['destroy', 'terminate'].includes(method);
                     if (terminating) {
                         self.terminating[file] = true;
-                    }
-                    else if (method in self) {
+                    } else if (method in self) {
                         return self[method];
-                    }
-                    else if (method == 'toJSON') {
+                    } else if (method == 'toJSON') {
                         return () => JSON.stringify(null);
                     }
                     return (...args) => {
@@ -107,25 +106,21 @@ const setupConstructor = () => {
                     const terminating = ['destroy', 'terminate'].includes(this.promises[id].method);
                     if (terminating) {
                         this.promises[id].resolve();
-                    }
-                    else {
+                    } else {
                         const method = this.promises[id] ? this.promises[id].method : '';
                         this.promises[id].reject(err + ', while calling ' + method);
                     }
                     delete this.promises[id];
                 }
-            });
+            })
         }
-        load(file) {
+        load(file, exclusive) {
             if (this.worker) {
-                const dirname = getDirname()                
-                const distFile = paths.cwd +'/dist/'+ path.basename(file).replace(new RegExp('\\.m?js$'), '.js')
-                if(fs.existsSync(distFile)) {
-                    file = distFile
-                } else if(fs.existsSync(distFile +'c')) { // bytenode
-                    file = distFile +'c'
+                file = this.resolve(file)
+                console.error('WORKER LOAD: ', {file, exclusive, inWorker: !!paths.inWorker, exists: !!this.instances[file], instances: Object.keys(this.instances)})
+                if(exclusive !== true && this.instances[file]) {
+                    return this.instances[file]
                 }
-                file = path.relative(dirname, file)
                 return this.proxy(file)
             } else {
                 throw 'Worker already terminated: ' + file;
@@ -151,13 +146,20 @@ const setupConstructor = () => {
         resolve(file) {
             if(!file) return ''
             if(this.instances[file]) return file
-            const basename = path.basename(file).replace(new RegExp('\\.[a-z]*$'), '')
+            const b = basename(file).replace(new RegExp('\\.[a-z]*$'), '.')
             for(const iname of Object.keys(this.instances)) {
-                if(iname.indexOf(basename) != -1) {
+                if(iname.indexOf(b) != -1) {
                     return iname
                 }
             }
-            return ''
+            const distFile = paths.cwd +'/dist/'+ basename(file).replace(new RegExp('\\.m?js$'), '.js')
+            if(fs.existsSync(distFile)) {
+                file = distFile
+            } else if(fs.existsSync(distFile +'c')) { // bytenode
+                file = distFile +'c'
+            }
+            file = path.relative(dirname, file)
+            return file
         }
         terminate() {
             this.finished = true;
@@ -177,13 +179,10 @@ const setupConstructor = () => {
     class ThreadWorkerDriver extends WorkerDriver {
         constructor() {
             super()
-            let file = paths.cwd +'/modules/multi-worker/worker.mjs'
-            const distFile = paths.cwd +'/dist/'+ path.basename(file).replace(new RegExp('\\.m?js$'), '.js')
-            if(fs.existsSync(distFile)) {
-                file = distFile
-            }
+            //let file = paths.cwd +'/modules/multi-worker/worker.mjs'
+            const file = paths.cwd +'/dist/worker.js'
             this.worker = new Worker(file, {
-                type: (file == distFile ? 'commonjs' : 'module'),
+                type: 'commonjs', // (file == distFile ? 'commonjs' : 'module'),
                 workerData // leave stdout/stderr undefined
             })
             this.worker.on('error', err => {
@@ -204,7 +203,7 @@ const setupConstructor = () => {
             this.worker.on('exit', () => {
                 this.finished = true;
                 this.worker = null;
-                console.warn('Worker exited', this.err);
+                console.error('Worker exited', this.err);
                 this.rejectAll(null, this.err || 'worker exited');
             });
             this.worker.on('message', ret => {
@@ -212,12 +211,10 @@ const setupConstructor = () => {
                     if (ret.id && typeof (this.promises[ret.id]) != 'undefined') {
                         this.promises[ret.id][ret.type](ret.data);
                         delete this.promises[ret.id];
-                    }
-                    else {
+                    } else {
                         console.warn('Callback repeated', ret);
                     }
-                }
-                else {
+                } else {
                     let args = []
                     let pos = (ret.data.length > 32 ? ret.data.substr(0, 32) : ret.data).indexOf(':');
                     if (pos != -1) {
@@ -230,16 +227,14 @@ const setupConstructor = () => {
                             evtContent = Buffer.from(evtContent.data);
                         }
                         args = [evtType, evtContent];
-                    }
-                    else {
+                    } else {
                         args = [ret.data];
                     }
                     const name = this.resolve(ret.file)
-                    if (name) {
-                        this.instances[name].emit(...args);
-                    }
-                    else {
-                        this.emit(...args);
+                    if (name && this.instances[name]) {
+                        this.instances[name].emit(...args)
+                    } else {
+                        this.emit(...args)
                     }
                 }
             });

@@ -58,8 +58,7 @@ class ConnRacing extends EventEmitter {
                     this.results.push(result);
                     this.pump();
                     return status;
-                }
-                else {
+                } else {
                     return false;
                 }
             };
@@ -76,8 +75,7 @@ class ConnRacing extends EventEmitter {
             let cb = this.callbacks.shift(), res = this.results.shift();
             cb(res);
             this.pump();
-        }
-        else if (this.ended || (this.racingEnded && !this.results.length)) {
+        } else if (this.ended || (this.racingEnded && !this.results.length)) {
             this.ended = true;
             let cbs = this.callbacks.slice(0);
             this.callbacks = [];

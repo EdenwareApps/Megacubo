@@ -26,8 +26,7 @@ class ListsDiscovery extends EventEmitter {
                     this.isReady = true;
                     this.emit('ready');
                     this.save().catch(console.error);
-                }
-                else {
+                } else {
                     this.isReady = false;
                 }
             });
@@ -41,15 +40,13 @@ class ListsDiscovery extends EventEmitter {
         }, 10000);
         this.restore().catch(console.error);
         renderer.ready(async () => {
-            this.channels = (await import('../channels/channels.js')).default;
             [
                 [new PublicListsProvider(this), 'public'],
                 [new CommunityListsProvider(this), 'community'],
                 [new CommunityListsIPTVOrgProvider(this), 'community']
             ].forEach(row => this.register(...row));
-            const { default: menu } = await import('../menu/menu.js')
-            menu.addFilter(this.hook.bind(this))
-        });
+            global.menu.addFilter(this.hook.bind(this))
+        })
     }
     async restore() {
         const data = await storage.get(this.key).catch(console.error);
@@ -155,8 +152,7 @@ class ListsDiscovery extends EventEmitter {
                     lastModified: Math.max(oneYearAgo, list.lastModified || 0)
                 }));
                 newOnes.push(list.url);
-            }
-            else {
+            } else {
                 this.assimilate(existingListIndex, this.cleanAtts(list));
             }
         });
@@ -209,8 +205,7 @@ class ListsDiscovery extends EventEmitter {
                 }
                 if (typeof (list.perceivedHealth) == 'number' && list.perceivedHealthTestCount > 1) {
                     this.knownLists[i].perceivedHealth = ((list.perceivedHealth * (list.perceivedHealthTestCount - 1)) + value) / list.perceivedHealthTestCount;
-                }
-                else {
+                } else {
                     this.knownLists[i].perceivedHealth = value;
                 }
                 this.save().catch(console.error);
@@ -285,25 +280,25 @@ class ListsDiscovery extends EventEmitter {
                 }
             });
         };
-        let bterms = this.channels.bookmarks.get();
+        let bterms = global.channels.bookmarks.get();
         if (bterms.length) { // bookmarks terms
             bterms = bterms.slice(-24);
-            bterms = bterms.map(e => this.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-');
+            bterms = bterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-');
             addTerms(bterms);
         }
         let sterms = await channels.search.history.terms();
         if (sterms.length) { // searching terms history
             sterms = sterms.slice(-24);
-            sterms = sterms.map(e => this.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-');
+            sterms = sterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-');
             addTerms(sterms);
         }
-        let hterms = this.channels.history.get();
+        let hterms = global.channels.history.get();
         if (hterms.length) { // user history terms
             hterms = hterms.slice(-24);
-            hterms = hterms.map(e => this.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-');
+            hterms = hterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-');
             addTerms(hterms);
         }
-        addTerms(await this.channels.keywords());
+        addTerms(await global.channels.keywords());
         const max = Math.max(...terms.map(t => t.score));
         let cterms = config.get('interests');
         if (cterms) { // user specified interests

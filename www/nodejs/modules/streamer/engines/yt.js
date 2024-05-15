@@ -78,8 +78,7 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
                 resolved = true;
                 if (status >= 200 && status < 400) {
                     resolve(true);
-                }
-                else {
+                } else {
                     reject('bad status ' + status);
                 }
                 stream.destroy();
@@ -100,8 +99,7 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
                 chosen = track.url;
                 chosenMimeType = track.mimeType;
                 chosenBandwidth = track.bitrate;
-            }
-            else {
+            } else {
                 if (!bandwidth || track.bitrate <= bandwidth) {
                     chosen = track.url;
                     chosenMimeType = track.mimeType;
@@ -109,8 +107,7 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
                     if (!bandwidth && i == 1) { // if we don't know the connection speed yet, use the #1 to skip a possible audio track
                         return true;
                     }
-                }
-                else {
+                } else {
                     return true; // to break
                 }
             }
@@ -120,8 +117,7 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
             tracks = tracks.filter(t => t.url != chosen);
             if (tracks.length) {
                 return await this.selectTrackBW(tracks, bandwidth);
-            }
-            else {
+            } else {
                 throw 'no valid track';
             }
         }
@@ -134,8 +130,7 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
         info.formats = info.formats.filter(fmt => {
             return fmt.hasAudio && fmt.hasVideo && !fmt.isDashMPD;
         })
-        const {default: streamer} = await import('../main.js')
-        let ret = await this.selectTrackBW(info.formats, streamer.downlink);
+        let ret = await this.selectTrackBW(info.formats, global.streamer ? global.streamer.downlink : undefined);
         this.mimetype = ret.mimetype;
         this.prx = new StreamerProxy(Object.assign({}, this.opts));
         this.connectAdapter(this.prx);

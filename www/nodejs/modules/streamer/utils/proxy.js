@@ -43,8 +43,7 @@ class StreamerProxy extends StreamerProxyBase {
                         this.connections[uid].response.writeHead(500, prepareCORS(response, undefined, origin));
                     }
                     this.connections[uid].response.end(data);
-                }
-                else {
+                } else {
                     this.connections[uid].response.end();
                 }
             }
@@ -68,8 +67,7 @@ class StreamerProxy extends StreamerProxyBase {
             url = this.unproxify(url);
             if (url.substr(0, 7) == 'http://') {
                 url = 'http://' + this.opts.addr + ':' + this.opts.port + '/' + url.substr(7);
-            }
-            else if (url.substr(0, 8) == 'https://') {
+            } else if (url.substr(0, 8) == 'https://') {
                 url = 'http://' + this.opts.addr + ':' + this.opts.port + '/s/' + url.substr(8);
             }
         }
@@ -79,11 +77,9 @@ class StreamerProxy extends StreamerProxyBase {
         if (typeof (url) == 'string') {
             if (url.substr(0, 3) == '/s/') {
                 url = 'https://' + url.substr(3);
-            }
-            else if (url.startsWith('/') && url.charAt(1) != '/') {
+            } else if (url.startsWith('/') && url.charAt(1) != '/') {
                 url = 'http://' + url.substr(1);
-            }
-            else if (this.opts.addr && url.indexOf('//') != -1) {
+            } else if (this.opts.addr && url.indexOf('//') != -1) {
                 /*
                 if(!this.addrp){
                     this.addrp = this.opts.addr.split('.').slice(0, 3).join('.')
@@ -191,8 +187,7 @@ class StreamerProxy extends StreamerProxyBase {
                     lines[i] = to + line
                 }
                 */
-            }
-            else {
+            } else {
                 if (line.substr(0, from.length) == from) {
                     lines[i] = to + line.substr(from.length);
                 }
@@ -228,8 +223,8 @@ class StreamerProxy extends StreamerProxyBase {
         this.destroyAllConns();
     }
     disable(type) {
-        this.disabled = type || 'ts';
-        this.destroyAllConns();
+        this.disabled = type || 'ts'
+        this.destroyAllConns()
     }
     enable() {
         if (this.disabled) {
@@ -286,8 +281,7 @@ class StreamerProxy extends StreamerProxyBase {
         reqHeaders = this.removeHeaders(reqHeaders, ['cookie', 'referer', 'origin', 'user-agent']);
         if (this.type == 'network-proxy') {
             reqHeaders['x-from-network-proxy'] = '1';
-        }
-        else {
+        } else {
             if (reqHeaders['x-from-network-proxy']) {
                 delete reqHeaders['x-from-network-proxy'];
             }
@@ -383,8 +377,7 @@ class StreamerProxy extends StreamerProxyBase {
                     }
                     response.writeHead(statusCode, headers);
                     end();
-                }
-                else {
+                } else {
                     const mediaType = this.opts.agnostic ? '' : this.getMediaType(headers, url);
                     switch (mediaType) {
                         case 'meta':
@@ -397,8 +390,7 @@ class StreamerProxy extends StreamerProxyBase {
                             this.handleGenericResponse(download, statusCode, headers, response, end);
                     }
                 }
-            }
-            else {
+            } else {
                 if (this.committed && (!statusCode || statusCode < 200 || statusCode >= 400)) { // skip redirects
                     osd.show(lang.CONNECTION_FAILURE + ' (' + (statusCode || 'timeout') + ')', 'fas fa-times-circle', 'debug-conn-err', 'normal');
                 }
@@ -414,8 +406,7 @@ class StreamerProxy extends StreamerProxyBase {
                     if (this.opts.debug) {
                         console.log('download sent response headers', statusCode, headers);
                     }
-                }
-                else {
+                } else {
                     response.writeHead(statusCode, headers);
                     if (this.opts.debug) {
                         console.log('download sent response headers', statusCode, headers);
@@ -444,8 +435,7 @@ class StreamerProxy extends StreamerProxyBase {
                 const isSRT = this.isSRT(headers, url);
                 if (isSRT) {
                     data = this.srt2vtt(String(data));
-                }
-                else {
+                } else {
                     data = this.proxifyM3U8(String(data), download.currentURL);
                 }
                 if (this.disabled) {
@@ -461,8 +451,7 @@ class StreamerProxy extends StreamerProxyBase {
                 if (this.opts.debug) {
                     console.log('M3U8 ' + data, url);
                 }
-            }
-            else {
+            } else {
                 console.error('Invalid response from server', url, data);
                 if (!response.headersSent) {
                     response.writeHead(504, headers);
@@ -477,8 +466,7 @@ class StreamerProxy extends StreamerProxyBase {
     handleVideoResponse(download, statusCode, headers, response, end, url, uid) {
         if (this.opts.forceVideoContentType) {
             headers['content-type'] = this.opts.forceVideoContentType;
-        }
-        else if (!headers['content-type'] || !headers['content-type'].match(new RegExp('^(audio|video)'))) { // fix bad mimetypes
+        } else if (!headers['content-type'] || !headers['content-type'].match(new RegExp('^(audio|video)'))) { // fix bad mimetypes
             switch (this.ext(url)) {
                 case 'ts':
                 case 'mts':

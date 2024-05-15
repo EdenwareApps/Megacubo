@@ -17,8 +17,7 @@ class Language extends EventEmitter {
         await new Promise(resolve => {
             if (this.isReady) {
                 resolve();
-            }
-            else {
+            } else {
                 this.on('ready', resolve);
             }
         });
@@ -185,8 +184,7 @@ class Language extends EventEmitter {
             catch (err) {
                 throw err;
             }
-        }
-        else {
+        } else {
             throw 'Language file ' + file + ' unavailable';
         }
     }

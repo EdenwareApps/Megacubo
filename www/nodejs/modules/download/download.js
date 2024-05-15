@@ -93,7 +93,7 @@ class Download extends EventEmitter {
         this.currentRequestError = '';
         this.currentResponse = null;
         this.responseSource = '';
-        this.on('error', () => { }); // avoid uncaught exception, make error listening not mandatory
+        this.on('error', () => {}); // avoid uncaught exception, make error listening not mandatory
         if (typeof (this.opts.headers['range']) != 'undefined') {
             this.checkRequestingRange(this.opts.headers['range']);
         }
@@ -178,8 +178,7 @@ class Download extends EventEmitter {
             requestingRange = ranges[0];
             if (requestingRange.end == '*') { // remove dummy value
                 delete requestingRange.end;
-            }
-            else if (requestingRange.end >= (maxInt - 1)) { // remove dummy value
+            } else if (requestingRange.end >= (maxInt - 1)) { // remove dummy value
                 delete requestingRange.end;
             }
             return requestingRange;
@@ -198,8 +197,7 @@ class Download extends EventEmitter {
     defaultAcceptLanguage() {
         if (lang && lang.countryCode) {
             return lang.locale + '-' + lang.countryCode.toUpperCase() + ',' + lang.locale + ';q=1,*;q=0.7';
-        }
-        else {
+        } else {
             return '*';
         }
     }
@@ -242,8 +240,7 @@ class Download extends EventEmitter {
             };
             if (this.decompressEnded) {
                 continueWithoutCompression();
-            }
-            else {
+            } else {
                 this.once('decompressed', () => {
                     if (this.opts.debug) {
                         console.log('decompressor end');
@@ -296,13 +293,11 @@ class Download extends EventEmitter {
                     range += this.requestingRange.end;
                 }
                 requestHeaders.range = range; // we dont know yet if the server support ranges, so check again on parseResponse
-            }
-            else {
+            } else {
                 requestHeaders.range = 'bytes=' + this.receivedUncompressed + '-';
                 requestHeaders['accept-encoding'] = 'identity'; // do not resume with gzip
             }
-        }
-        else {
+        } else {
             if (this.received) { // here use received instead of receiveUncompressed
                 this.ignoreBytes = this.received; // ignore data already received on last connection so
             }
@@ -383,13 +378,11 @@ class Download extends EventEmitter {
     getTimeoutOptions() {
         if (this.opts.timeout && typeof (this.opts.timeout) == 'object' && this.opts.timeout.connect && this.opts.timeout.response) {
             return this.opts.timeout;
-        }
-        else {
+        } else {
             let ms;
             if (typeof (this.opts.timeout) == 'number' && this.opts.timeout > 0) {
                 ms = this.opts.timeout * 1000;
-            }
-            else {
+            } else {
                 ms = (config.get('connect-timeout-secs') || 10) * 1000;
             }
             return {
@@ -403,8 +396,7 @@ class Download extends EventEmitter {
         keys.forEach(key => {
             if (['accept-encoding', 'content-encoding'].includes(key)) {
                 headers[key] = 'identity';
-            }
-            else {
+            } else {
                 delete headers[key];
             }
         });
@@ -422,17 +414,13 @@ class Download extends EventEmitter {
         if (validate === true) {
             if (response.headers['content-type'] && response.headers['content-type'] == 'application/x-gzip') {
                 this.isResponseCompressed = 'gzip';
-            }
-            else if (this.ext(this.currentURL) == 'gz') {
+            } else if (this.ext(this.currentURL) == 'gz') {
                 this.isResponseCompressed = 'gzip';
-            }
-            else if (response.headers['content-encoding'] && response.headers['content-encoding'] != 'identity') {
+            } else if (response.headers['content-encoding'] && response.headers['content-encoding'] != 'identity') {
                 this.isResponseCompressed = response.headers['content-encoding'];
-            }
-            else if (response.headers['content-disposition'] && response.headers['content-disposition'].match(new RegExp('filename.?=[^;]+\\.gz($|;|")'))) {
+            } else if (response.headers['content-disposition'] && response.headers['content-disposition'].match(new RegExp('filename.?=[^;]+\\.gz($|;|")'))) {
                 this.isResponseCompressed = 'gzip';
-            }
-            else {
+            } else {
                 this.isResponseCompressed = false;
             }
             if (this.opts.acceptRanges) {
@@ -441,8 +429,7 @@ class Download extends EventEmitter {
                         this.opts.acceptRanges = false;
                     }
                 }
-            }
-            else {
+            } else {
                 if (typeof (response.headers['accept-ranges']) != 'undefined' && response.headers['accept-ranges'] != 'none') {
                     this.opts.acceptRanges = true;
                 }
@@ -486,14 +473,12 @@ class Download extends EventEmitter {
                         if (this.requestingRange) {
                             // if(this.requestingRange.end will be not available here, as contentLength == -1
                             this.contentLength = this.totalContentLength - this.requestingRange.start;
-                        }
-                        else {
+                        } else {
                             this.contentLength = this.received + (this.receivingRange.end - this.receivingRange.start) + 1;
                         }
                     }
                 }
-            }
-            else { // no range support, so skip received bytes + requestingRange.start
+            } else { // no range support, so skip received bytes + requestingRange.start
                 this.ignoreBytes = this.received;
                 if (this.requestingRange) {
                     this.ignoreBytes += this.requestingRange.start;
@@ -507,8 +492,7 @@ class Download extends EventEmitter {
                     this.emit('response', this.statusCode, {});
                 }
                 this.end();
-            }
-            else {
+            } else {
                 if (!this.headersSent) {
                     let headers = response.headers;
                     headers = this.removeHeaders(headers, ['content-range', 'content-length', 'content-encoding', 'transfer-encoding', 'cookie']); // cookies will be handled internally by DownloadStream
@@ -522,13 +506,11 @@ class Download extends EventEmitter {
                             headers['content-range'] += (this.requestingRange.start + this.contentLength - 1);
                             if (this.totalContentLength != -1) {
                                 headers['content-range'] += '/' + this.totalContentLength;
-                            }
-                            else {
+                            } else {
                                 headers['content-range'] += '/*';
                             }
                         }
-                    }
-                    else if (this.statusCode == 206) { // we are internally processing ranges, but the client requested the full content
+                    } else if (this.statusCode == 206) { // we are internally processing ranges, but the client requested the full content
                         this.statusCode = 200;
                     }
                     if (this.opts.debug) {
@@ -552,8 +534,7 @@ class Download extends EventEmitter {
                         if (this.ignoreBytes >= chunk.length) {
                             this.ignoreBytes -= chunk.length;
                             return;
-                        }
-                        else {
+                        } else {
                             chunk = chunk.slice(chunk.length - this.ignoreBytes);
                             this.ignoreBytes = 0;
                         }
@@ -597,8 +578,7 @@ class Download extends EventEmitter {
                                 console.log('server aborted, ended ' + this.contentLength);
                             }
                             this.end();
-                        }
-                        else {
+                        } else {
                             if (this.opts.debug) {
                                 console.warn('aborted');
                             }
@@ -609,8 +589,7 @@ class Download extends EventEmitter {
                                 let txt = this.opts.url.split('?')[0].split('/').pop() + ' (' + this.statusCode + '): ';
                                 if (this.contentLength) {
                                     txt += err; // 'aborted, missing '+ kbfmt(this.contentLength - this.received)
-                                }
-                                else {
+                                } else {
                                     txt += 'aborted, no response';
                                 }
                                 osd.show(txt, 'fas fa-download', 'down-' + this.opts.uid, 'persistent');
@@ -627,16 +606,14 @@ class Download extends EventEmitter {
                 };
                 if (response.ended) {
                     onend();
-                }
-                else {
+                } else {
                     response.once('end', onend);
                 }
                 if (this.opts.debug && !this.destroyed) {
                     console.log('>> Download receiving response', this.opts.url);
                 }
             }
-        }
-        else if (validate === false) {
+        } else if (validate === false) {
             this.continue();
         }
     }
@@ -649,8 +626,7 @@ class Download extends EventEmitter {
         if (this.opts.file) {
             if (isWritable(this.fileStream)) {
                 this.fileStream.write(chunk);
-            }
-            else {
+            } else {
                 return this.endWithError('File not writable', 112);
             }
         }
@@ -667,8 +643,7 @@ class Download extends EventEmitter {
                 this.buffer = [];
             }
             this.emit('data', chunk);
-        }
-        else if (!this.opts.file) {
+        } else if (!this.opts.file) {
             this.buffer.push(chunk);
         }
     }
@@ -696,8 +671,7 @@ class Download extends EventEmitter {
                     this.zlibErrors++;
                     if (this.zlibErrors >= this.opts.maxZlibErrors) {
                         this.endWithError(err, 422);
-                    }
-                    else {
+                    } else {
                         this.opts.cacheTTL = 0;
                         this.emit('decompressed');
                         this.destroyStream();
@@ -710,8 +684,7 @@ class Download extends EventEmitter {
                 });
             }
             this.decompressor.write(chunk);
-        }
-        else {
+        } else {
             this._emitData(chunk);
         }
     }
@@ -744,8 +717,7 @@ class Download extends EventEmitter {
                 this.authErrors++;
                 if (this.authErrors >= this.opts.maxAuthErrors) {
                     finalize = true;
-                }
-                else {
+                } else {
                     this.pingAuthURL();
                 }
             }
@@ -755,8 +727,7 @@ class Download extends EventEmitter {
             if (this.opts.acceptRanges && response.statusCode == 416) {
                 if (this.received) {
                     finalize = true; // reached end, abort it
-                }
-                else {
+                } else {
                     this.opts.acceptRanges = false; // url doesn't supports ranges
                 }
             }
@@ -788,14 +759,12 @@ class Download extends EventEmitter {
                     if (this.redirectCount < this.opts.redirectionLimit) {
                         this.redirectCount++;
                         this.connect();
-                    }
-                    else {
+                    } else {
                         this.statusCode = 500;
                         this.headers = {};
                         this.endWithError('Redirection limit reached', 508);
                     }
-                }
-                else {
+                } else {
                     if (!this.headersSent) {
                         this.headersSent = true;
                         this.statusCode = (response.statusCode >= 300 && response.statusCode < 400) ? response.statusCode : 307;
@@ -827,19 +796,15 @@ class Download extends EventEmitter {
         let retry;
         if (!Download.isNetworkConnected) {
             retry = false;
-        }
-        else if (this.destroyed || this.ended || (this.received && !this.opts.resume)) {
+        } else if (this.destroyed || this.ended || (this.received && !this.opts.resume)) {
             return this.destroy();
-        }
-        else if (this.opts.permanentErrorCodes.includes(this.statusCode) || this.retryCount >= this.opts.retries) { // no more retrying, permanent error
+        } else if (this.opts.permanentErrorCodes.includes(this.statusCode) || this.retryCount >= this.opts.retries) { // no more retrying, permanent error
             retry = false;
-        }
-        else if ((this.contentLength >= 0 && this.received >= this.contentLength) || // requested content already received
+        } else if ((this.contentLength >= 0 && this.received >= this.contentLength) || // requested content already received
             ((!this.opts.acceptRanges || this.statusCode == 416) && this.contentLength == -1 && (this.statusCode >= 200 && this.statusCode < 300)) // unknown content length + good response received = no more retrying
         ) {
             retry = false;
-        }
-        else { // keep trying
+        } else { // keep trying
             retry = true;
             if (this.received == this.lastReceived || !this.statusCode || (this.statusCode < 200 || this.statusCode >= 400)) {
                 this.retryCount++;
@@ -851,8 +816,7 @@ class Download extends EventEmitter {
             if (this.opts.debug) {
                 console.log('retrying', this.destroyed, this.statusCode, this.currentURL, 'content: ' + this.received + '/' + this.contentLength, 'retries: ' + this.retryCount + '/' + this.opts.retries);
             }
-        }
-        else {
+        } else {
             if (this.opts.debug) {
                 console.log('no retry', this.destroyed, this.statusCode, this.currentURL, 'content: ' + this.received + '/' + this.contentLength, 'retries: ' + this.retryCount + '/' + this.opts.retries);
             }
@@ -869,8 +833,7 @@ class Download extends EventEmitter {
         }
         if (this.isResponseComplete(this.lastStatusCodeReceived, this.lastHeadersReceived)) {
             this.end();
-        }
-        else {
+        } else {
             let delay, overloaded = [429, 503, 521, 522, 524].includes(this.lastStatusCodeReceived);
             if (overloaded) {
                 if (this.lastHeadersReceived && this.lastHeadersReceived['retry-after']) {
@@ -887,17 +850,14 @@ class Download extends EventEmitter {
             if (typeof (delay) != 'number') {
                 if (overloaded) {
                     delay = 3000;
-                }
-                else {
+                } else {
                     delay = this.retryDelay;
                 }
-            }
-            else {
+            } else {
                 delay *= 1000;
                 if (delay < this.retryDelay) {
                     delay = this.retryDelay;
-                }
-                else if (delay > 30000) {
+                } else if (delay > 30000) {
                     delay = 30000;
                 }
             }
@@ -908,15 +868,13 @@ class Download extends EventEmitter {
         let current = this.progress;
         if (this.ended) {
             this.progress = 100;
-        }
-        else {
+        } else {
             if (this.contentLength != -1) {
                 this.progress = parseInt(this.received / (this.contentLength / 100));
                 if (this.progress > 99) {
                     this.progress = 99;
                 }
-            }
-            else {
+            } else {
                 this.progress = 99;
             }
         }
@@ -971,8 +929,7 @@ class Download extends EventEmitter {
                 }
                 if (data.length && typeof (data[0]) == 'string' && this.len(data) < maxStringSize) {
                     data = data.join('');
-                }
-                else {
+                } else {
                     data = data.map(chunk => {
                         if (Buffer.isBuffer(chunk))
                             return chunk;
@@ -1000,8 +957,7 @@ class Download extends EventEmitter {
                         break;
                 }
             }
-        }
-        else {
+        } else {
             switch (this.opts.responseType) {
                 case 'text':
                     data = '';
@@ -1040,8 +996,7 @@ class Download extends EventEmitter {
                 this.checkStatusCode();
                 if (this.statusCode) {
                     this.emit('response', this.statusCode, {});
-                }
-                else if (this.listenerCount('error')) {
+                } else if (this.listenerCount('error')) {
                     this.emit('error', 'unknown error');
                 }
             }
@@ -1061,8 +1016,7 @@ class Download extends EventEmitter {
                     if (this.listenerCount('data')) {
                         this.emit('data', ret);
                         this.emit('end');
-                    }
-                    else {
+                    } else {
                         this.emit('end', ret);
                     }
                 }
@@ -1076,8 +1030,7 @@ class Download extends EventEmitter {
             }
             if (!this.isResponseCompressed || this.decompressEnded || !this.decompressor) {
                 flush();
-            }
-            else {
+            } else {
                 this.on('decompressed', flush);
                 this.decompressor.flush();
                 this.decompressor.end();
@@ -1092,8 +1045,7 @@ class Download extends EventEmitter {
             const errs = this.errors.join(' ');
             if (errs.match(this.opts.permanentErrorRegex)) {
                 this.statusCode = -1;
-            }
-            else {
+            } else {
                 let codes = this.errors.filter(c => {
                     c = Number(c);
                     return c && !isNaN(c);
@@ -1131,8 +1083,7 @@ class Download extends EventEmitter {
             if (this.fileStream) { // wait file writing before emit 'end'
                 this.fileStream.end();
                 this.fileStream.ready(finish);
-            }
-            else {
+            } else {
                 finish();
             }
             process.nextTick(() => {
@@ -1193,7 +1144,6 @@ Download.head = opts => {
             if (resolved)
                 return;
             resolved = true;
-            // console.log('Download', g, buf)
             resolve({ statusCode, headers, currentURL: g.currentURL });
             g.destroy();
         });
@@ -1201,7 +1151,6 @@ Download.head = opts => {
             if (resolved)
                 return;
             resolved = true;
-            // console.log('Download', g, buf)
             reject('no response');
             g.destroy();
         });
@@ -1230,11 +1179,9 @@ Download.get = opts => {
             if (resolved)
                 return;
             resolved = true;
-            // console.log('Download', g, buf)
             if (g.statusCode >= 200 && g.statusCode < 400) {
                 resolve(buf);
-            }
-            else {
+            } else {
                 reject('http error ' + g.statusCode);
             }
             g.destroy();
@@ -1283,7 +1230,7 @@ Download.file = (...args) => {
             g.destroy();
             fs.stat(file, (err, stat) => {
                 if (stat && stat.size) {
-                    fs.unlink(file, () => { });
+                    fs.unlink(file, () => {});
                 }
             });
         }
