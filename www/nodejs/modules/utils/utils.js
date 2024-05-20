@@ -336,10 +336,10 @@ export const ucFirst = (str, keepCase) => {
 export const ts2clock = time => {
     let locale = undefined, timezone = undefined;
     if (typeof (time) == 'string') {
-        time = parseInt(time);
+        time = parseInt(time)
     }
-    time = moment(time * 1000);
-    return time.format('LT');
+    time = moment(time * 1000)
+    return time.format('LT')
 }
 export const dirname = _path => {
     let parts = _path.replace(new RegExp('\\\\', 'g'), '/').split('/');

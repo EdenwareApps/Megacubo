@@ -49,15 +49,23 @@ class StreamerAbout extends StreamerBase {
                 if (this.active.getQualityTracks) {
                     const tracks = await this.active.getQualityTracks();
                     if (Object.keys(tracks).length > 1) {
-                        return { template: 'option', fa: 'fas fa-bars', text: global.lang.SELECT_QUALITY, id: 'tracks' };
+                        return { template: 'option', fa: 'fas fa-bars', text: global.lang.SELECT_QUALITY +': '+ tracks.length, id: 'tracks' };
                     }
                 }
             }, this.showQualityTrackSelector.bind(this), null, true);
-            this.aboutRegisterEntry('audiotracks', () => {
-                return { template: 'option', fa: 'fas fa-volume-up', text: global.lang.SELECT_AUDIO, id: 'audiotracks' };
+            this.aboutRegisterEntry('audiotracks', async () => {
+                let length = 0
+                if(this.active && this.active.getAudioTracks) {
+                    length = this.active.getAudioTracks().length
+                }
+                return { template: 'option', fa: 'fas fa-volume-up', text: global.lang.SELECT_AUDIO +': '+ length, id: 'audiotracks' };
             }, this.showAudioTrackSelector.bind(this), null, true);
-            this.aboutRegisterEntry('subtitletracks', () => {
-                return { template: 'option', fa: 'fas fa-comments', text: global.lang.SELECT_SUBTITLE, id: 'subtitletracks' };
+            this.aboutRegisterEntry('subtitletracks', async () => {
+                let length = 0
+                if(this.active && this.active.getSubtitleTracks) {
+                    length = this.active.getSubtitleTracks().length
+                }
+                return { template: 'option', fa: 'fas fa-comments', text: global.lang.SELECT_SUBTITLE +': '+ length, id: 'subtitletracks' };
             }, this.showSubtitleTrackSelector.bind(this), null, true);
             this.aboutRegisterEntry('streamInfo', () => {
                 if (this.active && this.active.data.url.indexOf('://') != -1) {

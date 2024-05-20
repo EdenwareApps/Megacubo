@@ -316,18 +316,18 @@ class ManagerEPG extends EventEmitter {
     async epgCategoryEntries(category) {
         await renderer.ready(true)
         let terms = {}, chs = category.entries.map(e => {
-            let data = global.channels.isChannel(e.name);
+            const data = global.channels.isChannel(e.name)
             if (data) {
-                e.terms.name = terms[e.name] = data.terms;
-                return e;
+                e.terms.name = terms[e.name] = data.terms
+                return e
             }
-        }).filter(e => e);
+        }).filter(e => e)
         return chs.map(c => {
             return {
                 name: c.name,
                 type: 'group',
                 renderer: async () => {
-                    return await global.channels.epgChannelEntries(c);
+                    return await global.channels.epgChannelEntries(c)
                 }
             };
         });

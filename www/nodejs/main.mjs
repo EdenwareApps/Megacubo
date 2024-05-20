@@ -45,6 +45,7 @@ Object.assign(global, {
     lang,
     lists,
     menu,
+    moment,
     options,
     osd,
     paths,
@@ -267,7 +268,7 @@ const init = async (language, timezone) => {
                 const {default: mega} = await import('./modules/mega/mega.js')
                 if(typeof(e.action) == 'function') {
                     let ret = e.action(e)
-                    if(ret && ret.catch) ret.catch(e => menu.displayErr())
+                    if(ret && ret.catch) ret.catch(e => menu.displayErr(e))
                 } else if(e.url && mega.isMega(e.url)) {
                     if(streamer.tuning){
                         streamer.tuning.destroy()

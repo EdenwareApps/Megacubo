@@ -32,26 +32,26 @@ function openExternalFile(file, mimetype) {
 
 function importMomentLocale(locale, cbk) {
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', './assets/js/moment-locale/'+ locale +'.js', true)
+    xhr.open('GET', '../dist/moment-locale/'+ locale +'.js', true)
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4) {
             if (xhr.status === 200) {
                 cbk && setTimeout(() => cbk(), 100)
-                var content = xhr.responseText;
-                window.global = window;
-                var script = document.createElement('script');
-                script.type = 'text/javascript';
+                window.global = window
+                var content = xhr.responseText.replace(new RegExp('module.export.*='), '')
+                var script = document.createElement('script')
+                script.type = 'text/javascript'
                 try {
-                    script.appendChild(document.createTextNode(content));
+                    script.appendChild(document.createTextNode(content))
                 } catch (e) {
-                    script.text = content;
+                    script.text = content
                 }
-                document.head.appendChild(script);
+                document.head.appendChild(script)
             } else {
-                console.error('Request failed: ' + xhr.statusText);
+                console.error('Request failed: ' + xhr.statusText)
             }
         }
-    };
+    }
     xhr.send(null)
 }
 

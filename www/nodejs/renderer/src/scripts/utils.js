@@ -153,7 +153,7 @@ var absolutize = (url, base) => {
     a.href=base;    
     if(url[0] == '/'){ 
         base = [] // rooted path
-    } else{ 
+    } else { 
         base = a.pathname.split('/') // relative path
         base.pop()
     }
@@ -163,10 +163,10 @@ var absolutize = (url, base) => {
             continue;
         }
         if(url[i]==='..'){ // parent directory
-            if('undefined'===typeof base.pop() || base.length===0){ 
+            if('undefined'===typeof(base.pop()) || base.length===0){ 
                 return null; // wrong url accessing non-existing parent directories
             }
-        } else{ // child directory
+        } else { // child directory
             base.push(url[i]); 
         }
     }

@@ -179,19 +179,19 @@ class StorageIndex extends StorageTools {
                     const stat = await fs.promises.stat(file).catch(() => {})
                     if (stat && typeof(stat.size) == 'number') {
                         const mtime = stat.mtimeMs / 1000
-                        if(this.index[k]) {
-                            if(!this.index[k].time || this.index[k].time < mtime) {
-                                this.index[k].time = mtime
+                        if(this.index[key]) {
+                            if(!this.index[key].time || this.index[key].time < mtime) {
+                                this.index[key].time = mtime
                             }
                         } else {
                             return mtime
                         }
                     }                
-                    return this.index[k].time || 0
+                    return this.index[key].time || 0
                 }
             )()
         } else {
-            const lastTouchTime = Math.max(...Object.keys(this.index).map(k => this.index[k].time)) || 0
+            const lastTouchTime = Math.max(...Object.keys(this.index).map(key => this.index[key].time)) || 0
             return Math.max(lastTouchTime, this.lastAlignTime || 0)
         }
     }
@@ -226,11 +226,13 @@ class StorageIndex extends StorageTools {
         const now = parseInt((Date.now() / 1000));
         this.lastAlignTime = now;
         for(const key of Object.keys(this.index)) {
+            if(!this.index[key]) return // bad value or deleted in mean time
             if(!this.index[key].time || (now - this.index[key].time) > this.opts.minIdleTime) {
                 await this.mtime(key) // update time for idle keys to ensure sync with workers
             }
         }
         const ordered = Object.keys(this.index).filter(a => {
+            if(!this.index[a]) return // bad value or deleted in mean time
             if (this.index[a].permanent || this.locked[a]) {
                 if (typeof (this.index[a].size) == 'number') {
                     left -= this.index[a].size
@@ -242,6 +244,7 @@ class StorageIndex extends StorageTools {
             return (this.index[a].time > this.index[b].time) ? -1 : ((this.index[a].time < this.index[b].time) ? 1 : 0);
         });
         const removals = ordered.filter(key => {
+            if(!this.index[key]) return // bad value or deleted in mean time
             if (this.index[key].expiration && (now > this.index[key].expiration)) {
                 this.index[key].expired = true;
                 return true // expired
@@ -257,6 +260,7 @@ class StorageIndex extends StorageTools {
             return false
         })
         for (const key of removals) {
+            if(!this.index[key]) return // bad value or deleted in mean time
             const file = this.resolve(key)
             const size = this.index[key].size
             const elapsed = now - this.index[key].time

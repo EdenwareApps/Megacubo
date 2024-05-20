@@ -83,7 +83,9 @@
             <wrap>
                 {#each entries as e (e.key)}
                     <a href="{e.url}" tabindex="{e.tabindex}" class="{e.class}" title="{e.name}" aria-label="{e.name}" 
-                        data-type="{e.type}" data-path="{e.path}" key="{e.key}">
+                        data-type="{e.type}" data-path="{e.path}" key="{e.key}" 
+                        data-range-start="{e.range ? e.range.start : 0}" data-range-end="{e.range ? e.range.end : 100}" 
+                        data-mask="{e.mask}" data-original-icon="{e.originalIcon}" data-question="{e.question}" data-dialog-details="{e.dialogDetails}">
                         <span class="{e.wrapperClass}">
                             {#if e.cover}
                                 <div class="entry-cover-container" aria-hidden="true">

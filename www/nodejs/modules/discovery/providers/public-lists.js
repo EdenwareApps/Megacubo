@@ -5,7 +5,7 @@ import Countries from "../../countries/countries.js";
 import cloud from "../../cloud/cloud.js";
 import config from "../../config/config.js"
 import renderer from '../../bridge/bridge.js'
-import { insertEntry } from '../../utils/utils.js';
+import { insertEntry, kfmt, listNameFromURL } from "../../utils/utils.js";
 
 const FreeTVMap = {
     "al": ["playlist_albania.m3u8"],
@@ -191,7 +191,8 @@ class PublicLists extends EventEmitter {
             renderer: async () => {
                 let toggle = config.get('public-lists') ? 'fas fa-toggle-on' : 'fas fa-toggle-off';
                 let options = [
-                    { name: lang.ACCEPT_LISTS, details: '', type: 'select', fa: toggle, renderer: async () => {
+                    {
+                        name: lang.ACCEPT_LISTS, details: '', type: 'select', fa: toggle, renderer: async () => {
                             let def = config.get('public-lists');
                             return [
                                 {
@@ -217,7 +218,15 @@ class PublicLists extends EventEmitter {
                                     }
                                 };
                             });
-                        } }
+                        }
+                    },
+                    {
+                        name: lang.RECEIVED_LISTS,
+                        details: lang.SHARED_AND_LOADED,
+                        fa: 'fas fa-users',
+                        type: 'group',
+                        renderer: this.receivedListsEntries.bind(this)
+                    }
                 ];
                 config.get('public-lists') && options.push(this.countriesEntry());
                 options.push(this.infoEntry());
@@ -241,6 +250,47 @@ class PublicLists extends EventEmitter {
             type: 'group',
             renderer: this.entries.bind(this)
         };
+    }
+    async receivedListsEntries() {
+        const info = await this.master.lists.info();
+        let entries = Object.keys(info).filter(u => info[u].origin == 'public').sort((a, b) => {
+            if ([a, b].some(a => typeof (info[a].score) == 'undefined'))
+                return 0
+            if (info[a].score == info[b].score)
+                return 0
+            return info[a].score > info[b].score ? -1 : 1
+        }).map(url => {
+            let data = this.master.details(url)
+            if (!data) {
+                console.error('LIST NOT FOUND ' + url)
+                return;
+            }
+            //let health = this.master.averageHealth(data) || -1
+            let name = data.name || listNameFromURL(url)
+            let author = data.author || undefined
+            let icon = data.icon || undefined
+            let length = data.length || info[url].length || 0
+            let details = []
+            author && details.push(author)
+            details.push(lang.RELEVANCE + ': ' + parseInt((info[url].score || 0) * 100) + '%')
+            details.push('<i class="fas fa-play-circle" aria-label="hidden"></i> ' + kfmt(length, 1))
+            details = details.join(' &middot; ')
+            return {
+                name, url, icon, details,
+                fa: 'fas fa-satellite-dish',
+                type: 'group',
+                class: 'skip-testing',
+                renderer: this.master.lists.manager.directListRenderer.bind(this.master.lists.manager)
+            };
+        }).filter(l => l)
+        if (!entries.length) {
+            if (!this.master.lists.loaded()) {
+                entries = [this.master.lists.manager.updatingListsEntry()];
+            } else {
+                entries = [this.master.lists.manager.noListsRetryEntry()];
+            }
+        }
+        return entries;
     }
     async hook(entries, path) {
         if (path.split('/').pop() == lang.MY_LISTS) {

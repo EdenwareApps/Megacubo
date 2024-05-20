@@ -361,8 +361,7 @@ class OptionsExportImport extends OptionsGPU {
         return natts;
     }
     prepareExportConfig(atts, keysToExport) {
-        let natts = {};
-        
+        let natts = {}        
         if (!atts) {
             atts = config.data;
         }

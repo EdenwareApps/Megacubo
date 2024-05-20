@@ -33,9 +33,7 @@ class Bookmarks extends EntriesGroup {
                     menu.open(lang.BOOKMARKS).catch(e => menu.displayErr(e));
                 }
             })
-        })
-        channels.once('streamer', streamer => {
-            streamer.aboutRegisterEntry('fav', data => {
+            global.streamer.aboutRegisterEntry('fav', data => {
                 if (!data.isLocal) {
                     if (this.has(this.simplify(data))) {
                         return { template: 'option', fa: 'fas fa-star-half', text: lang.REMOVE_FROM.format(lang.BOOKMARKS), id: 'fav' };
@@ -116,8 +114,8 @@ class Bookmarks extends EntriesGroup {
         }
     }
     current() {        
-        if (this.channels.streamer.active) {
-            return this.simplify(this.channels.streamer.active.data);
+        if (global.streamer.active) {
+            return this.simplify(global.streamer.active.data);
         } else {
             let streams = menu.currentEntries.filter(e => e.url);
             if (streams.length) {
@@ -147,8 +145,8 @@ class Bookmarks extends EntriesGroup {
     }
     async entries() {        
         let es = [], current;
-        if (streamer && this.channels.streamer.active) {
-            current = this.channels.streamer.active.data
+        if (streamer && global.streamer.active) {
+            current = global.streamer.active.data
         }
         if (!current) {
             let cs = this.channels.history.get().filter(c => {
@@ -188,7 +186,7 @@ class Bookmarks extends EntriesGroup {
                 e.type = 'stream';
             }
             return e;
-        });
+        }).sortByProp('bookmarkId')
         let err;
         const entries = await this.channels.epgChannelsAddLiveNow(Object.values(epgAddLiveNowMap), false).catch(e => err = e);
         if (!err) {
@@ -199,12 +197,57 @@ class Bookmarks extends EntriesGroup {
         }
         es.push(...gentries);
         if (gentries.length) {
+            let centries = []
             if (!paths.android && config.get('bookmarks-desktop-icons')) {
-                es.push({ name: lang.BOOKMARK_ICONS_SYNC, fa: 'fas fa-sync-alt', type: 'action', action: () => this.desktopIconsSync().catch(console.error) });
+                centries.push({ name: lang.BOOKMARK_ICONS_SYNC, fa: 'fas fa-sync-alt', type: 'action', action: () => this.desktopIconsSync().catch(console.error) });
             }
-            es.push({ name: lang.REMOVE, fa: 'fas fa-trash', type: 'group', renderer: this.removalEntries.bind(this) });
+            centries.push(...[
+                { name: lang.SET_SHORTCUT_NUMBERS, fa: 'fas fa-list-ol', type: 'group', renderer: this.shortcutNumberEntries.bind(this) },
+                { name: lang.REMOVE, fa: 'fas fa-trash', type: 'group', renderer: this.removalEntries.bind(this) }
+            ])
+            es.push({
+                name: lang.CONFIGURE,
+                fa: 'fas fa-cog',
+                type: 'group',
+                entries: centries
+            })
         }
-        return es;
+        return es
+    }
+    async shortcutNumberEntries() {
+        const entries = []
+        this.get().forEach(e => {
+            if (e.name) {
+                entries.push({
+                    name: e.name,
+                    details: lang.SHORTCUT_NUMBER +': '+ e.bookmarkId,
+                    fa: 'fas fa-star',
+                    type: 'action',
+                    action: async () => {
+                        let n = await global.menu.prompt({
+                            question: lang.SHORTCUT_NUMBER,
+                            placeholder: e.bookmarkId,
+                            defaultValue: e.bookmarkId,
+                            fa: 'fas fa-list-ol'
+                        })
+                        if(n) {
+                            n = parseInt(n)
+                            if(!isNaN(n) && n >= 0 && n != e.bookmarkId) {
+                                this.data = this.data.map(t => {
+                                    if(t.bookmarkId == e.bookmarkId && e.name == t.name) {
+                                        t.bookmarkId = n
+                                    }
+                                    return t
+                                })
+                                this.save()
+                                global.menu.refreshNow()
+                            }
+                        }
+                    }
+                });
+            }
+        });
+        return entries;
     }
     async addByNameEntries() {
         return [
@@ -234,7 +277,7 @@ class Bookmarks extends EntriesGroup {
             }, 50)
             return []
         }
-        let err, results = global.lists.search(this.currentBookmarkAddingByName.name, {
+        let err, results = await global.lists.search(this.currentBookmarkAddingByName.name, {
             partial: true,
             group: !this.currentBookmarkAddingByName.live,
             safe: !global.lists.parentalControl.lazyAuth(),
@@ -254,10 +297,10 @@ class Bookmarks extends EntriesGroup {
             this.currentBookmarkAddingByName.url = mega.build(this.currentBookmarkAddingByName.name, { mediaType });
         }
         if (config.get('show-logos') && (!this.currentBookmarkAddingByName.icon || this.currentBookmarkAddingByName.icon.indexOf('/') == -1)) {
-            let entries = [];
-            Array.from(new Set(results.results.map(entry => { return entry.icon; }))).slice(0, 96).forEach((logoUrl) => {
+            let entries = []
+            Array.from(new Set(results.results.map(entry => { return entry.icon; }))).slice(0, 96).forEach((logoUrl, i) => {
                 entries.push({
-                    name: lang.SELECT_ICON,
+                    name: lang.SELECT_ICON +' #'+ (i + 1),
                     fa: 'fa-mega spin-x-alt',
                     icon: logoUrl,
                     url: logoUrl,

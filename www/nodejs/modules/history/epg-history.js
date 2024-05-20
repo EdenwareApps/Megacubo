@@ -20,18 +20,19 @@ class EPGHistory extends EntriesGroup {
                 menu.refresh()
             }
         })
-        channels.once('streamer', streamer => {
-            streamer.on('commit', async () => {
+        ready(() => {
+            moment.locale(global.lang.locale)
+            global.streamer.on('commit', async () => {
                 await this.busy();
                 const data = this.currentStreamData();
                 const name = data.originalName || data.name;
                 if (this.session && this.session.name != name) {
                     await this.finishSession().catch(console.error);
                 }
-                if (!streamer.active)
+                if (!global.streamer.active)
                     return;
                 if (!this.session) {
-                    let validate = !streamer.active.info.isLocalFile && streamer.active.mediaType == 'live' && this.channels.isChannel(name);
+                    let validate = !global.streamer.active.info.isLocalFile && global.streamer.active.mediaType == 'live' && this.channels.isChannel(name);
                     if (validate) {
                         console.warn('Session started');
                         this.startSession();
@@ -42,14 +43,14 @@ class EPGHistory extends EntriesGroup {
                     console.warn('Session already started');
                 }
             })
-            streamer.on('uncommit', () => {
+            global.streamer.on('uncommit', () => {
                 console.warn('Session finished');
                 this.finishSession();
             })
         })
     }
     currentStreamData() {        
-        return Object.assign({}, this.channels.streamer.active ? this.channels.streamer.active.data : this.channels.streamer.lastActiveData);
+        return Object.assign({}, global.streamer.active ? global.streamer.active.data : global.streamer.lastActiveData);
     }
     startSession() {
         this.session = this.currentStreamData();

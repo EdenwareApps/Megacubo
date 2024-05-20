@@ -55,29 +55,28 @@ class CommunityLists extends EventEmitter {
     }
     async receivedListsEntries() {
         const info = await this.master.lists.info();
-        let entries = Object.keys(info).filter(u => !info[u].owned).sort((a, b) => {
+        let entries = Object.keys(info).filter(u => info[u].origin == 'community').sort((a, b) => {
             if ([a, b].some(a => typeof (info[a].score) == 'undefined'))
-                return 0;
+                return 0
             if (info[a].score == info[b].score)
-                return 0;
-            return info[a].score > info[b].score ? -1 : 1;
+                return 0
+            return info[a].score > info[b].score ? -1 : 1
         }).map(url => {
-            let data = this.master.details(url);
+            let data = this.master.details(url)
             if (!data) {
-                console.error('LIST NOT FOUND ' + url);
+                console.error('LIST NOT FOUND ' + url)
                 return;
             }
-            let health = this.master.averageHealth(data) || -1;
-            let name = data.name || listNameFromURL(url);
-            let author = data.author || undefined;
-            let icon = data.icon || undefined;
-            let length = data.length || info[url].length || 0;
-            let details = [];
-            if (author)
-                details.push(author);
-            details.push(lang.RELEVANCE + ': ' + parseInt((info[url].score || 0) * 100) + '%');
-            details.push('<i class="fas fa-play-circle" aria-label="hidden"></i> ' + kfmt(length, 1));
-            details = details.join(' &middot; ');
+            // let health = this.master.averageHealth(data) || -1
+            let name = data.name || listNameFromURL(url)
+            let author = data.author || undefined
+            let icon = data.icon || undefined
+            let length = data.length || info[url].length || 0
+            let details = []
+            author && details.push(author)
+            details.push(lang.RELEVANCE + ': ' + parseInt((info[url].score || 0) * 100) + '%')
+            details.push('<i class="fas fa-play-circle" aria-label="hidden"></i> ' + kfmt(length, 1))
+            details = details.join(' &middot; ')
             return {
                 name, url, icon, details,
                 fa: 'fas fa-satellite-dish',
@@ -85,7 +84,7 @@ class CommunityLists extends EventEmitter {
                 class: 'skip-testing',
                 renderer: this.master.lists.manager.directListRenderer.bind(this.master.lists.manager)
             };
-        }).filter(l => l);
+        }).filter(l => l)
         if (!entries.length) {
             if (!this.master.lists.loaded()) {
                 entries = [this.master.lists.manager.updatingListsEntry()];
@@ -129,7 +128,7 @@ class CommunityLists extends EventEmitter {
                         fa: 'fas fa-users',
                         type: 'group',
                         renderer: this.receivedListsEntries.bind(this)
-                    });
+                    })
                     options.push({
                         name: lang.AMOUNT_OF_LISTS,
                         'dialog-details': lang.AMOUNT_OF_LISTS_HINT,
@@ -143,15 +142,15 @@ class CommunityLists extends EventEmitter {
                         action: (data, value) => {
                             config.set('communitary-mode-lists-amount', value);
                         }
-                    });
+                    })
                     options.push({
                         name: lang.LEGAL_NOTICE,
                         fa: 'fas fa-info-circle',
                         type: 'action',
                         action: this.showInfo.bind(this)
-                    });
+                    })
                 }
-                return options;
+                return options
             }
         };
     }

@@ -96,11 +96,11 @@ class EntriesGroup extends EventEmitter {
                     delete this.data[i];
                 }
             }
-            this.data = this.data.filter(item => !!item);
+            this.data = this.data.filter(item => !!item)
         }
         this.data.unshift(entry);
         if (this.limit) {
-            this.data = this.data.slice(0, this.limit);
+            this.data = this.data.slice(0, this.limit)
         }
         //console.log('[entries-group-'+ this.key +'] ADDED', this.data)
         this.save(true);
@@ -121,12 +121,11 @@ class EntriesGroup extends EventEmitter {
                     fa: 'fas fa-trash',
                     type: 'action',
                     action: () => {
-                        const menu = import('../menu/menu.js')
                         this.remove(e)
                         if (this.get().length) {
-                            menu.refreshNow()
+                            global.menu.refreshNow()
                         } else {
-                            menu.back()
+                            global.menu.back()
                         }
                     }
                 });

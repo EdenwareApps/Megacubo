@@ -50,11 +50,10 @@ android {
             excludes += ['META-INF/NOTICE', 'META-INF/LICENSE']
         }
     }
-}
-
-repositories {
-    flatDir{
-        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['../capacitor-cordova-android-plugins/src/main/libs', 'libs']
+        }
     }
 }
 

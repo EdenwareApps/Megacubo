@@ -281,63 +281,61 @@ class Lists extends ListsEPGTools {
     }
     async relevantKeywords(refresh) {
         if (!refresh && Array.isArray(this._relevantKeywords) && this._relevantKeywords.length)
-            return this._relevantKeywords;
-        const badTerms = ['m3u8', 'ts', 'mp4', 'tv', 'channel'];
+            return this._relevantKeywords
+        const badTerms = ['m3u8', 'ts', 'mp4', 'tv', 'channel']
         let terms = [], addTerms = (tms, score) => {
             if (typeof (score) != 'number') {
-                score = 1;
+                score = 1
             }
             tms.forEach(term => {
                 if (badTerms.includes(term)) {
-                    return;
+                    return
                 }
                 const has = terms.some((r, i) => {
                     if (r.term == term) {
-                        terms[i].score += score;
-                        return true;
+                        terms[i].score += score
+                        return true
                     }
-                });
+                })
                 if (!has) {
                     terms.push({ term, score })
                 }
-            });
+            })
         }
         await ready(true)
         const searchHistoryPromise = global.channels.search.history.terms().then(sterms => {
             if (sterms.length) { // searching terms history
-                sterms = sterms.slice(-24);
-                sterms = sterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-');
-                addTerms(sterms);
+                sterms = sterms.slice(-24)
+                sterms = sterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-')
+                addTerms(sterms)
             }
-        });
-        const channelsPromise = global.channels.keywords().then(addTerms);
-        let bterms = global.channels.bookmarks.get();
+        })
+        const channelsPromise = global.channels.keywords().then(addTerms)
+        let bterms = global.channels.bookmarks.get()
         if (bterms.length) { // bookmarks terms
-            bterms = bterms.slice(-24);
-            bterms = bterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-');
-            addTerms(bterms);
+            bterms = bterms.slice(-24)
+            bterms = bterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-')
+            addTerms(bterms)
         }
-        let hterms = global.channels.history.get();
+        let hterms = global.channels.history.get()
         if (hterms.length) { // user history terms
-            hterms = hterms.slice(-24);
-            hterms = hterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-');
-            addTerms(hterms);
+            hterms = hterms.slice(-24)
+            hterms = hterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-')
+            addTerms(hterms)
         }
-        const max = Math.max(...terms.map(t => t.score));
-        let cterms = config.get('interests');
+        const max = Math.max(...terms.map(t => t.score))
+        let cterms = config.get('interests')
         if (cterms) { // user specified interests
-            cterms = this.tools.terms(cterms, true).filter(c => c[0] != '-');
-            if (cterms.length) {
-                addTerms(cterms, max);
-            }
+            cterms = this.tools.terms(cterms, true).filter(c => c[0] != '-')
+            cterms.length && addTerms(cterms, max)
         }
-        await Promise.allSettled([searchHistoryPromise, channelsPromise]);
-        terms = terms.sortByProp('score', true).map(t => t.term);
+        await Promise.allSettled([searchHistoryPromise, channelsPromise])
+        terms = terms.sortByProp('score', true).map(t => t.term)
         if (terms.length > 24) {
-            terms = terms.slice(0, 24);
+            terms = terms.slice(0, 24)
         }
-        this._relevantKeywords = terms;
-        return terms;
+        this._relevantKeywords = terms
+        return terms
     }
     setCommunityLists(communityLists) {
         // communityLists for reference (we'll use it to calc lists loading progress)
@@ -635,7 +633,7 @@ class Lists extends ListsEPGTools {
         }
         let weaker;
         Object.keys(this.lists).forEach(k => {
-            if (this.myLists.includes(k) || !this.lists[k].isReady)
+            if (this.myLists.includes(k) || !this.lists[k].isReady || this.lists[k].origin != 'community')
                 return;
             if (!weaker || (this.lists[k].relevance.total > -1 && this.lists[k].relevance.total < this.lists[weaker].relevance.total)) {
                 weaker = k;
@@ -804,28 +802,27 @@ class Lists extends ListsEPGTools {
         const communityListsAmount = config.get('communitary-mode-lists-amount');
         const communityListsQuota = Math.max(communityListsAmount - this.myLists.length, 0);
         if (this.loadedListsCount('community') > communityListsQuota) {
-            let results = {};
+            let results = {}
             if (this.debug) {
-                console.log('delimitActiveLists', Object.keys(this.lists), communityListsQuota);
+                console.log('delimitActiveLists', Object.keys(this.lists), communityListsQuota)
             }
             Object.keys(this.lists).forEach(url => {
                 if (!this.myLists.includes(url) && this.lists[url].origin == 'community') {
-                    results[url] = this.lists[url].relevance.total;
+                    results[url] = this.lists[url].relevance.total
                 }
-            });
-            let sorted = Object.keys(results).sort((a, b) => results[b] - results[a]);
+            })
+            let sorted = Object.keys(results).sort((a, b) => results[b] - results[a])
             sorted.slice(communityListsQuota).forEach(u => {
                 if (this.lists[u]) {
-                    this.requesting[u] = 'destroyed on delimiting (relevance: ' + this.lists[u].relevance.total + ')'
-                    this.remove(u);
+                    this.requesting[u] = 'destroyed on delimiting (relevance: '+ this.lists[u].relevance.total +')'
+                    this.remove(u)
                 }
-            });
+            })
             if (this.debug) {
                 console.log('delimitActiveLists', Object.keys(this.lists), communityListsQuota, results, sorted);
             }
         }
         if (!publicListsActive) {
-            let results = {};
             if (this.debug) {
                 console.log('delimitActiveLists', Object.keys(this.lists), publicListsActive);
             }

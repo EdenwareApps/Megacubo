@@ -7,23 +7,28 @@ import renderer from '../bridge/bridge.js'
 
 class OMNI extends EventEmitter {
     constructor() {
-        super();
-        renderer.get().on('omni-client-ready', () => {
+        super()
+        const ui = renderer.get()
+        ui.on('omni-client-ready', () => {
             if (this.enabled) {
-                renderer.get().emit('omni-enable'); // on linux, ui was loading after lists update, this way the search field was not showing up
+                ui.emit('omni-enable') // on linux, ui was loading after lists update, this way the search field was not showing up
             }
         });
-        renderer.get().on('omni', async (text, type) => {
+        ui.on('omni', async (text, type) => {
             if (type == 'numeric') {
                 let es = channels.bookmarks.get().filter(e => e.bookmarkId == parseInt(text));
                 if (es.length) {
-                    renderer.get().emit('omni-callback', text, !!es.length);
+                    ui.emit('omni-callback', text, !!es.length);
                     console.warn('omni-callback', text, !!es.length, es);
                     let entry = es.shift();
                     if (entry.type == 'group') {
-                        return menu.open([lang.BOOKMARKS, entry.name].join('/')).catch(e => menu.displayErr(e));
+                        ui.emit('menu-playing')
+                        menu.open([lang.BOOKMARKS, entry.name].join('/')).catch(e => menu.displayErr(e));
+                        return
                     } else {                        
-                        return global.streamer.play(entry);
+                        global.streamer.play(entry)
+                        ui.emit('menu-playing-close')
+                        return
                     }
                 }
             }
@@ -36,14 +41,14 @@ class OMNI extends EventEmitter {
             }).catch(err => {
                 channels.search.go(text, 'all');
             }).finally(() => {
-                renderer.get().emit('omni-callback', text, true);
+                ui.emit('omni-callback', text, true)
             });
         });
         lists.on('status', status => {
             const enabled = lists.satisfied && status.length;
             if (enabled != this.enabled) {
                 this.enabled = enabled;
-                renderer.get().emit(enabled ? 'omni-enable' : 'omni-disable');
+                ui.emit(enabled ? 'omni-enable' : 'omni-disable');
             }
         });
     }

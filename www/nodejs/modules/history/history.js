@@ -13,16 +13,16 @@ class History extends EntriesGroup {
         this.limit = 36;
         this.resumed = false;
         this.storeInConfig = true;
-        channels.once('streamer', async streamer => {
-            streamer.on('commit', () => {
-                if (!streamer.active.info.isLocalFile) {
+        ready(async () => {
+            global.streamer.on('commit', () => {
+                if (!global.streamer.active.info.isLocalFile) {
                     let time = (Date.now() / 1000);
                     if (this.timer) {
                         clearTimeout(this.timer);
                     }
                     this.timer = setTimeout(() => {
-                        if (streamer.active) {
-                            let entry = streamer.active.data;
+                        if (global.streamer.active) {
+                            let entry = global.streamer.active.data;
                             entry.historyTime = time;
                             this.remove(entry);
                             this.add(entry);
@@ -31,7 +31,7 @@ class History extends EntriesGroup {
                     }, 90000);
                 }
             })
-            streamer.on('uncommit', () => {
+            global.streamer.on('uncommit', () => {
                 if (this.timer) {
                     clearTimeout(this.timer)
                 }
@@ -110,7 +110,8 @@ class History extends EntriesGroup {
         return entries;
     }
     async entries(e) {        
-        const epgAddLiveNowMap = {};
+        const epgAddLiveNowMap = {}
+        moment.locale(global.lang.locale)
         let gentries = this.get().map((e, i) => {
             e.details = ucFirst(moment(e.historyTime * 1000).fromNow(), true);
             const isMega = e.url && mega.isMega(e.url);

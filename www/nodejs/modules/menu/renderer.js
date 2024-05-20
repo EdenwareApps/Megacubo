@@ -1281,6 +1281,7 @@ class MenuOpenFile extends MenuSelect {
 		if(!this.openFileDialogChooser){ // JIT
 			this.openFileDialogChooser = document.createElement('input')
 			this.openFileDialogChooser.type = 'file'
+			this.openFileDialogChooser.style.opacity = 0.05
 			document.body.appendChild(this.openFileDialogChooser)
 		}
 		this.openFileDialogChooser.value = ''
@@ -1685,7 +1686,13 @@ export class Menu extends MenuLoading {
 				main.emit('menu-menu-playing', true)
 				setTimeout(() => this.reset(), 100)
 			}
-		})	
+		})
+		main.on('menu-playing-close', () => {			
+			if(document.body.classList.contains('menu-playing')){
+				document.body.classList.remove('menu-playing')
+				main.emit('menu-menu-playing', false)
+			}
+		})
 		main.on('render', (entries, path, icon) => {
 			this.render(entries, path, icon)
 		})
@@ -2039,7 +2046,7 @@ export class Menu extends MenuLoading {
 			console.warn('menu-open', path, type, tabindex || false)
 		}
 		this.emit('open', type, path, element, tabindex || false)
-		if(type == 'action'){
+		if(type == 'action' || type == 'input'){
 			main.emit('menu-action', path, tabindex || false)
 		} else if(type == 'back'){
 			main.emit('menu-back')

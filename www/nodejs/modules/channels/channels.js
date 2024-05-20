@@ -145,7 +145,7 @@ class ChannelsList extends EventEmitter {
     mapSize(n) {
         return Object.values(n).map(k => Array.isArray(k) ? k.length : 0).reduce((s, v) => s + v, 0);
     }
-    applyMapCategories(map, target, amount, weighted = false) {
+    applyMapCategories(map, target, amount, weighted=false) {
         const categories = Object.keys(target).concat(Object.keys(map).map(k => this.translateKey(k)).filter(k => !(k in target)));
         const quota = amount / Math.max(categories.length, 5);
         for (const k of Object.keys(map)) {
@@ -153,13 +153,13 @@ class ChannelsList extends EventEmitter {
             target[cat] = target[cat] || [];
             const left = quota - target[cat].length;
             if (left > 0 && Array.isArray(map[k])) {
-                const slice = map[k].filter(s => !target[cat].includes(s)).slice(0, weighted ? left : map[k].length);
+                const slice = map[k].filter(s => !target[cat].includes(s)).slice(0, weighted ? left : undefined)
                 if (slice.length) {
-                    target[cat].push(...slice);
+                    target[cat].push(...slice)
                 }
             }
         }
-        return target;
+        return target
     }
     translateKey(k) {
         let lk = 'CATEGORY_' + k.replaceAll(' & ', ' ').replace(new RegExp(' +', 'g'), '_').toUpperCase();
@@ -279,7 +279,6 @@ class ChannelsData extends EventEmitter {
             })
             global.lists.on('list-loaded', () => this.load().catch(console.error))
             global.lists.on('satisfied', () => this.load().catch(console.error))
-            this.emit('streamer', global.streamer)
         })
     }
     ready(cb) {
@@ -308,7 +307,7 @@ class ChannelsData extends EventEmitter {
         const changed = await this.channelList.load(refresh)
         this.loaded = true
         this.emit('loaded', changed)
-        typeChanged && await this.watching.update().catch(console.error)
+        typeChanged && await this.watching.update().catch(console.error);
         (typeChanged || changed) && renderer.ready(() => menu.updateHomeFilters())
     }
 }
@@ -318,15 +317,15 @@ class ChannelsEPG extends ChannelsData {
         this.epgStatusTimer = false;
         this.epgIcon = 'fas fa-th';
         this.clockIcon = '<i class="fas fa-clock"></i> ';
-        this.once('streamer', streamer => {
+        renderer.ready(() => {
             const aboutInsertEPGTitle = async (data) => {
-                if (streamer.active.mediaType != 'live') {
+                if (global.streamer.active.mediaType != 'live') {
                     throw 'local file';
                 }
-                if (!this.isChannel(streamer.active.data.originalName || streamer.active.data.name)) {
+                if (!this.isChannel(global.streamer.active.data.originalName || global.streamer.active.data.name)) {
                     throw 'not a channel';
                 }
-                const ret = await this.epgChannelLiveNowAndNext(streamer.active.data);
+                const ret = await this.epgChannelLiveNowAndNext(global.streamer.active.data);
                 let ks = Object.keys(ret);
                 return ks.map((k, i) => {
                     if (i == 0) {
@@ -336,29 +335,29 @@ class ChannelsEPG extends ChannelsData {
                     }
                 });
             }
-            streamer.aboutRegisterEntry('epg', aboutInsertEPGTitle, null, 1)
-            streamer.aboutRegisterEntry('epg', aboutInsertEPGTitle, null, 1, true)
-            streamer.aboutRegisterEntry('epg-more', () => {
-                if (streamer.active.mediaType == 'live') {
+            global.streamer.aboutRegisterEntry('epg', aboutInsertEPGTitle, null, 1)
+            global.streamer.aboutRegisterEntry('epg', aboutInsertEPGTitle, null, 1, true)
+            global.streamer.aboutRegisterEntry('epg-more', () => {
+                if (global.streamer.active.mediaType == 'live') {
                     return { template: 'option', text: lang.EPG, id: 'epg-more', fa: this.epgIcon };
                 }
-            }, async (data) => {
+            }, async data => {
                 const name = data.originalName || data.name;
                 const category = this.getChannelCategory(name);
                 if (!global.activeEPG) {
-                    menu.displayErr(lang.EPG_DISABLED);
+                    menu.displayErr(lang.EPG_DISABLED)
                 } else if (!this.loadedEPG) {
-                    menu.displayErr(lang.EPG_AVAILABLE_SOON);
+                    menu.displayErr(lang.EPG_AVAILABLE_SOON)
                 } else if (category) {
                     let err;
                     await this.epgChannelLiveNow(data).catch(e => {
-                        err = e;
-                        menu.displayErr(lang.CHANNEL_EPG_NOT_FOUND + ' *');
+                        err = e
+                        menu.displayErr(lang.CHANNEL_EPG_NOT_FOUND + ' *')
                     });
                     if (!err) {
-                        const entries = await this.epgChannelEntries({ name }, null, true);
-                        menu.render(entries, lang.EPG, 'fas fa-plus', '/');
-                        renderer.get().emit('menu-playing');
+                        const entries = await this.epgChannelEntries({ name }, null, true)
+                        menu.render(entries, lang.EPG, 'fas fa-plus', '/')
+                        renderer.get().emit('menu-playing')
                     }
                 } else {
                     menu.displayErr(lang.CHANNEL_EPG_NOT_FOUND);
@@ -379,7 +378,7 @@ class ChannelsEPG extends ChannelsData {
     }
     epgSearchEntry() {
         return {
-            name: lang.SEARCH,
+            name: lang.NEW_SEARCH,
             type: 'input',
             fa: 'fas fa-search',
             details: lang.EPG,
@@ -389,19 +388,18 @@ class ChannelsEPG extends ChannelsData {
                         let path = menu.path.split('/').filter(s => s != lang.SEARCH).join('/');
                         entries.unshift(this.epgSearchEntry());
                         menu.render(entries, path + '/' + lang.SEARCH, 'fas fa-search', path);
-                        search.history.add(value);
+                        this.search.history.add(value);
                     }).catch(e => menu.displayErr(e));
                 }
             },
             value: () => {
-                return '';
+                return ''
             },
             placeholder: lang.SEARCH_PLACEHOLDER
-        };
+        }
     }
     epgSearch(terms, liveNow) {
-        return new Promise((resolve, reject) => {
-            
+        return new Promise((resolve, reject) => {            
             if (typeof (terms) == 'string') {
                 terms = global.lists.tools.terms(terms);
             }
@@ -451,43 +449,45 @@ class ChannelsEPG extends ChannelsData {
         ret.terms = this.expandTerms(ret.terms);
         return ret;
     }
-    async epgChannel(e, limit) {
-        
+    async epgChannel(e, limit) {        
         if (typeof (limit) != 'number')
             limit = 72;
         let data = this.epgPrepareSearch(e);
         return await global.lists.epg(data, limit);
     }
     async epgChannelEntries(e, limit, detached) {
-        
         if (typeof (limit) != 'number') {
-            limit = 72;
+            limit = 72
         }
-        let data = this.epgPrepareSearch(e);
-        const epgData = await global.lists.epg(data, limit);
-        let centries = [];
+        console.log('EPG', {e, limit, detached})
+        let data = this.epgPrepareSearch(e)
+        console.log('EPG', {data})
+        const epgData = await global.lists.epg(data, limit)
+        let centries = []
+        console.log('EPG', {epgData})
         if (epgData) {
             if (typeof (epgData[0]) != 'string') {
-                centries = this.epgDataToEntries(epgData, data.name, data.terms);
+                centries = this.epgDataToEntries(epgData, data.name, data.terms)
                 if (!centries.length) {
-                    centries.push(menu.emptyEntry(lang.NOT_FOUND));
+                    centries.push(menu.emptyEntry(lang.NOT_FOUND))
                 }
+                console.log('EPG', {centries})
             }
         }
-        centries.unshift(this.adjustEPGChannelEntry(e, detached));
-        return centries;
+        centries.unshift(this.adjustEPGChannelEntry(e, detached))
+        return centries
     }
     async epgChannelLiveNow(entry) {
         if (!global.activeEPG)
             throw 'epg not loaded';
         
-        let channel = this.epgPrepareSearch(entry);
-        let epgData = await global.lists.epg(channel, 1);
-        let ret = Object.values(epgData).shift();
+        let channel = this.epgPrepareSearch(entry)
+        let epgData = await global.lists.epg(channel, 1)
+        let ret = Object.values(epgData).shift()
         if (ret) {
-            return ret.t;
+            return ret.t
         } else {
-            throw 'not found 2';
+            throw 'not found 2'
         }
     }
     async epgChannelLiveNowAndNext(entry) {
@@ -497,8 +497,7 @@ class ChannelsEPG extends ChannelsData {
     }
     async epgChannelLiveNowAndNextInfo(entry) {
         if (!global.activeEPG)
-            throw 'epg not loaded';
-        
+            throw 'epg not loaded'        
         let channel = this.epgPrepareSearch(entry);
         let epgData = await global.lists.epg(channel, 2);
         if (typeof (epgData) == 'string') {
@@ -507,7 +506,7 @@ class ChannelsEPG extends ChannelsData {
         if (Array.isArray(epgData)) {
             throw 'not found 1';
         }
-        let now = Object.values(epgData).shift();
+        let now = Object.values(epgData).shift()
         if (now && now.t) {
             let ret = { now };
             let ks = Object.keys(epgData);
@@ -908,14 +907,13 @@ class ChannelsAutoWatchNow extends ChannelsEditing {
         this.watchNowAuto = false;
         this.disableWatchNowAuto = false;
         renderer.ready(() => {
-            menu.on('render', (entries, path) => {
+            moment.locale(lang.locale)
+            menu.on('render', (_, path) => {
                 if (path != this.watchNowAuto) {
                     this.watchNowAuto = false;
                 }
             })
-        })
-        this.once('streamer', streamer => {
-            streamer.on('stop-from-client', () => {
+            global.streamer.on('stop-from-client', () => {
                 this.watchNowAuto = false;
             })
         })
