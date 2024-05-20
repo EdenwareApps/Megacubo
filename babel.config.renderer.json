@@ -1,0 +1,28 @@
+{
+    "allowAllFormats": true,
+    "presets": [
+        [
+            "@babel/preset-env",
+            {
+                "targets": {
+                    "browsers": [
+                        "chrome >= 60"
+                    ]
+                },
+                "useBuiltIns": false,
+                "corejs": false,
+                "modules": false,
+                "exclude": [
+                    "transform-typeof-symbol"
+                ]
+            }
+        ]
+    ],
+    "plugins": [
+        [
+            "babel-plugin-transform-modules-iife", {
+                "exportNamespace": "App"
+            }
+        ]
+    ]
+}

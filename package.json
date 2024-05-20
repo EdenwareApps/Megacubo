@@ -48,6 +48,6 @@
     "build": "rollup -c",
     "cap": "node configure.mjs && cap sync",
     "capacitor:sync:after": "rimraf --glob android/app/src/main/assets/public/nodejs/node_modules/levelup/node_modules/semver/semver*.js.gz",
-    "postinstall": "npm run build"
+    "postinstall": "cd www/nodejs && npm i && cd ../.. && npm run build"
   }
 }

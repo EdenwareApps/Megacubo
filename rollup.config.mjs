@@ -1,3 +1,4 @@
+import fs from 'fs'
 import terser from '@rollup/plugin-terser'
 import svelte from 'rollup-plugin-svelte'
 import resolve from '@rollup/plugin-node-resolve'
@@ -8,43 +9,18 @@ import css from 'rollup-plugin-import-css'
 import sveltePreprocess from 'svelte-preprocess'
 import { getBabelOutputPlugin } from '@rollup/plugin-babel';
 import babelConfig from './babel.config.json' assert { type: 'json'};
+import babelRendererConfig from './babel.config.renderer.json' assert { type: 'json'};
 import replace from '@rollup/plugin-replace';
-import protobuf from 'protobufjs';
-
-const proto = {
-  name: 'proto-loader',
-  async resolveId(source, importer) {
-    if (source.endsWith('.proto')) {
-      return source;
-    }
-    return null;
-  },
-  async load(id) {
-    if (id.endsWith('.proto')) {
-      const protoFilePath = id.replace(/^\0/, '');
-      const protoDefinition = await protobuf.load(protoFilePath);
-      return `export default ${JSON.stringify(protoDefinition)};`;
-    }
-    return null;
-  }
-}
+// import { visualizer } from 'rollup-plugin-visualizer';
 
 const plugins = [
   resolve({
     browser: false,
-    preferBuiltins: true
+    preferBuiltins: false // form-data
   }),
   commonjs(),
-  proto,
   json(),
-  getBabelOutputPlugin(babelConfig),
-  terser({
-    keep_classnames: true,
-    keep_fnames: true,
-    output: {
-      comments: false
-    }
-  }),
+  getBabelOutputPlugin(babelConfig), // ensure node 12 compat
   replace({
     preventAssignment: false,
     delimiters: ['', ''],
@@ -55,51 +31,122 @@ const plugins = [
       '"node:': '"',
       'getFilename()': '__filename',
       'getDirname()': '__dirname',
+      'aliasedRequire(\'./locale': 'require(\'./moment-locale', // moment locales
       'require("electron")': 'process.platform=="android"?{}:require("electron")' // dummy value for Android
+    }
+  }),
+  terser({
+    ecma: 2018,
+    maxWorkers: 4,
+    keep_classnames: true,
+    keep_fnames: true,
+    output: {
+      comments: false
     }
   })
 ]
 
-export default [
-  {
-    input: 'www/nodejs/main.mjs',
+const pluginsMain = [
+  resolve({
+    browser: false,
+    preferBuiltins: false // form-data
+  }),
+  commonjs(),
+  json(),
+  getBabelOutputPlugin(babelConfig), // transform esm to cjs here
+  replace({
+    preventAssignment: false,
+    delimiters: ['', ''],
+    values: {
+      'fs/promises")': 'fs").promises',
+      'fs/promises\')': 'fs\').promises',
+      '\'node:': '\'',
+      '"node:': '"',
+      'getFilename()': '__filename',
+      'getDirname()': '__dirname',
+      'aliasedRequire(\'./locale': 'require(\'./moment-locale', // moment locales
+      'require("electron")': 'process.platform=="android"?{}:require("electron")' // dummy value for Android
+    }
+  }),
+  terser({
+    ecma: 2018,
+    maxWorkers: 4,
+    keep_classnames: true,
+    keep_fnames: true,
     output: {
-      format: 'esm',
-      file: 'www/nodejs/dist/main.cjs',
-      inlineDynamicImports: true
-    },
-    plugins,
-    external: [
-      /(@?electron\/?)/,
-      'node-bright-sdk'
-    ]
-  },
-  {
-    input: {
-      'capacitor': 'capacitor.mjs'
-    },
+      comments: false
+    }
+  })
+]
+
+const pluginsPremium = [
+  resolve({
+    browser: false,
+    preferBuiltins: false // form-data
+  }),
+  commonjs(),
+  json(),
+  getBabelOutputPlugin(babelConfig), // transform esm to cjs here
+  replace({
+    preventAssignment: false,
+    delimiters: ['', ''],
+    values: {
+      'fs/promises")': 'fs").promises',
+      'fs/promises\')': 'fs\').promises',
+      '\'node:': '\'',
+      '"node:': '"',
+      'getFilename()': '__filename',
+      'getDirname()': '__dirname',
+      'aliasedRequire(\'./locale': 'require(\'./moment-locale', // moment locales
+      'require("electron")': 'process.platform=="android"?{}:require("electron")' // dummy value for Android
+    }
+  }),
+  terser({
+    ecma: 2018,
+    maxWorkers: 4,
+    keep_classnames: true,
+    keep_fnames: true,
     output: {
-      dir: 'www/nodejs/renderer/dist',
-      format: 'iife',
-      name: 'capacitor',
-      inlineDynamicImports: true
-    },
-    plugins: [
-      resolve({
-        browser: true
-      }),
-      builtins(),
-      commonjs(),
-      json(),
-      terser({
-        keep_classnames: true,
-        keep_fnames: true,
-        output: {
-          comments: false
-        }
-      })
-    ]
-  },
+      comments: false
+    }
+  })
+  /*,
+  visualizer({
+    open: true,
+    template: 'network'
+  })
+  */
+]
+
+const pluginsRenderer = [
+  svelte({        
+    preprocess: sveltePreprocess()
+  }),
+  resolve({
+    browser: true,
+    exportConditions: ['svelte'],
+    extensions: ['.svelte'],
+    preferBuiltins: false
+  }),
+  builtins(),
+  commonjs(),
+  json(),
+  css({
+    output: 'renderer.css'
+  }),
+  getBabelOutputPlugin(babelRendererConfig),
+  terser({
+    ecma: 2015,
+    maxWorkers: 4,
+    keep_classnames: true,
+    keep_fnames: true,
+    output: {
+      comments: false
+    }
+  })
+]
+
+const outputs = [
   {
     input: {
       renderer: 'www/nodejs/renderer/src/App.svelte'
@@ -109,34 +156,38 @@ export default [
       format: 'iife',
       name: 'App'
     },
-    plugins: [
-      svelte({        
-        preprocess: sveltePreprocess()
-      }),
-      resolve({
-        browser: true,
-        exportConditions: ['svelte'],
-        extensions: ['.svelte']
-      }),
-      builtins(),
-      commonjs(),
-      json(),
-      css({
-        output: 'renderer.css'
-      }),
-      terser({
-        keep_fnames: true,
-        output: {
-          comments: false
-        }
-      })
+    plugins: pluginsRenderer
+  },
+  {
+    input: {
+      capacitor: 'capacitor.mjs'
+    },
+    output: {
+      dir: 'www/nodejs/renderer/dist',
+      format: 'iife',
+      name: 'capacitor',
+      inlineDynamicImports: true
+    },
+    plugins: pluginsRenderer
+  },
+  {
+    input: 'www/nodejs/main.mjs',
+    output: {
+      format: 'esm',
+      file: 'www/nodejs/dist/main.js',
+      inlineDynamicImports: true
+    },
+    plugins: pluginsMain,
+    external: [
+      /(@?electron\/?)/,
+      /premium\./
     ]
   },
   {
     input: 'www/nodejs/preload.mjs',
     output: {
       format: 'cjs',
-      file: 'www/nodejs/dist/preload.cjs',
+      file: 'www/nodejs/dist/preload.js',
       name: 'preload',
       inlineDynamicImports: true
     },
@@ -153,9 +204,7 @@ export default [
       inlineDynamicImports: true
     },
     plugins,
-    external: [
-      /(@?electron\/?)/
-    ]
+    external: []
   },
   {
     input: 'www/nodejs/modules/jimp-worker/jimp-worker.js',
@@ -165,9 +214,7 @@ export default [
       inlineDynamicImports: true
     },
     plugins,
-    external: [
-      /(@?electron\/?)/
-    ]
+    external: []
   },
   {
     input: 'www/nodejs/modules/lists/epg-worker.js',
@@ -177,9 +224,7 @@ export default [
       inlineDynamicImports: true
     },
     plugins,
-    external: [
-      /(@?electron\/?)/
-    ]
+    external: []
   },
   {
     input: 'www/nodejs/modules/streamer/utils/mpegts-processor-worker.js',
@@ -189,9 +234,7 @@ export default [
       inlineDynamicImports: true
     },
     plugins,
-    external: [
-      /(@?electron\/?)/
-    ]
+    external: []
   },
   {
     input: 'www/nodejs/modules/multi-worker/worker.mjs',
@@ -201,8 +244,42 @@ export default [
       inlineDynamicImports: true
     },
     plugins,
-    external: [
-      /(@?electron\/?)/
-    ]
+    external: []
   }
 ]
+
+if(fs.existsSync('www/nodejs/modules/premium/premium.js')) {
+  outputs.push({
+    input: 'www/nodejs/modules/premium/premium.js',
+    output: {
+      format: 'cjs',
+      file: 'www/nodejs/dist/premium.js',
+      inlineDynamicImports: true
+    },
+    plugins: pluginsPremium,
+    external: [
+      /node\-bright\-sdk.node_modules/
+    ]
+  })
+}
+
+async function copyFiles() {
+  await fs.promises.copyFile('www/nodejs/node_modules/create-desktop-shortcuts/src/windows.vbs', 'www/nodejs/dist/windows.vbs').catch(console.error)
+  await fs.promises.mkdir('www/nodejs/dist/moment-locale', {recursive: true}).catch(console.error)
+  for(const file of (await fs.promises.readdir('www/nodejs/node_modules/moment/dist/locale'))) {
+    let err
+    const content = await fs.promises.readFile('www/nodejs/node_modules/moment/dist/locale/'+ file).catch(e => err = e)
+    if(err) {
+      console.error(err)
+    } else {
+      await fs.promises.writeFile('www/nodejs/dist/moment-locale/'+ file, String(content).
+        replace('import moment from \'../moment\';', ''). // will use global moment
+        replace('export default', 'module.exports =')
+      ).catch(console.error)
+    }
+  }  
+}
+
+await copyFiles().catch(console.error)
+
+export default outputs
