@@ -110,20 +110,20 @@ class ChannelsList extends EventEmitter {
         }
         return ret;
     }
-    async getAppRecommendedCategories(amount = 256) {
+    async getAppRecommendedCategories(amount=256) {
         let data = {}        
         const completed = c => {
-            return this.mapSize(data) >= amount;
+            return this.mapSize(data) >= amount
         }
         for (const country of this.countries) {
-            let err;
-            const isMainCountry = this.countries[0] == country;
+            let err
+            const isMainCountry = this.countries[0] == country
             if (!isMainCountry && completed())
                 break;
-            const map = await cloud.get('channels/' + country).catch(e => err = e);
+            const map = await cloud.get('channels/' + country).catch(e => err = e)
             if (err)
-                continue;
-            data = await this.applyMapCategories(map, data, amount, !isMainCountry);
+                continue
+            data = await this.applyMapCategories(map, data, amount, !isMainCountry)
         }
         return data
     }
@@ -398,24 +398,20 @@ class ChannelsEPG extends ChannelsData {
             placeholder: lang.SEARCH_PLACEHOLDER
         }
     }
-    epgSearch(terms, liveNow) {
-        return new Promise((resolve, reject) => {            
-            if (typeof (terms) == 'string') {
-                terms = global.lists.tools.terms(terms);
-            }
-            global.lists.epgSearch(terms, liveNow).then(epgData => {
-                let entries = [];
-                console.warn('epgSearch', epgData);
-                Object.keys(epgData).forEach(ch => {
-                    let terms = global.lists.tools.terms(ch);
-                    entries.push(...this.epgDataToEntries(epgData[ch], ch, terms));
-                });
-                entries = entries.sort((a, b) => {
-                    return a.programme.start - b.programme.start;
-                });
-                resolve(entries);
-            }).catch(reject);
-        });
+    async epgSearch(terms, liveNow) {
+        if (typeof (terms) == 'string') {
+            terms = global.lists.tools.terms(terms)
+        }
+        const entries = []
+        const epgData = await global.lists.epgSearch(terms, liveNow)
+        console.warn('epgSearch', epgData);
+        Object.keys(epgData).forEach(ch => {
+            let terms = global.lists.tools.terms(ch)
+            entries.push(...this.epgDataToEntries(epgData[ch], ch, terms))
+        })
+        return entries.sort((a, b) => {
+            return a.programme.start - b.programme.start
+        })
     }
     epgDataToEntries(epgData, ch, terms) {
         let now = (Date.now() / 1000);
@@ -1073,6 +1069,7 @@ class Channels extends ChannelsKids {
         return 0;
     }
     isChannel(terms) {        
+        if(!this.channelList) return
         let tms, tmsKey, chs = this.channelList.channelsIndex || {};
         if (Array.isArray(terms)) {
             tms = terms;
@@ -1138,10 +1135,9 @@ class Channels extends ChannelsKids {
     }
     expandTerms(terms) {
         if (typeof (terms) == 'string') {
-            
-            terms = global.lists.tools.terms(terms);
+            terms = global.lists.tools.terms(terms)
         }
-        let ch = this.isChannel(terms);
+        let ch = this.isChannel(terms)
         if (ch) {
             return ch.terms;
         }
@@ -1417,13 +1413,15 @@ class Channels extends ChannelsKids {
         return meta;
     }
     async keywords() {
-        let err, keywords = [], badChrs = ['|', '-'];
-        const data = await this.channelList.getAppRecommendedCategories().catch(e => err = e);
-        if (!err) {
-            keywords.push(...Object.values(data).flat().map(n => this.channelList.expandName(n).terms.name).flat());
+        let err, keywords = [], badChrs = ['|', '-']
+        if(this.channelList) {
+            const data = await this.channelList.getAppRecommendedCategories().catch(e => err = e)
+            if (!err) {
+                keywords.push(...Object.values(data).flat().map(n => this.channelList.expandName(n).terms.name).flat())
+            }
+            keywords = keywords.unique().filter(w => !badChrs.includes(w.charAt(0)))
         }
-        keywords = keywords.unique().filter(w => !badChrs.includes(w.charAt(0)));
-        return keywords;
+        return keywords
     }
     async setGridType(type) {
         osd.show(lang.PROCESSING, 'fas fa-circle-notch fa-spin', 'channel-grid', 'persistent');

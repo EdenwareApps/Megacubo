@@ -23,66 +23,67 @@ class EPGHistory extends EntriesGroup {
         ready(() => {
             moment.locale(global.lang.locale)
             global.streamer.on('commit', async () => {
-                await this.busy();
-                const data = this.currentStreamData();
-                const name = data.originalName || data.name;
+                await this.busy()
+                const data = this.currentStreamData()
+                const name = data.originalName || data.name
                 if (this.session && this.session.name != name) {
-                    await this.finishSession().catch(console.error);
+                    await this.finishSession().catch(console.error)
                 }
                 if (!global.streamer.active)
-                    return;
+                    return
                 if (!this.session) {
-                    let validate = !global.streamer.active.info.isLocalFile && global.streamer.active.mediaType == 'live' && this.channels.isChannel(name);
+                    let validate = !global.streamer.active.info.isLocalFile && global.streamer.active.mediaType == 'live' && this.channels.isChannel(name)
                     if (validate) {
-                        console.warn('Session started');
-                        this.startSession();
+                        console.warn('Session started')
+                        this.startSession()
                     } else {
-                        console.warn('Session not started, not a channel');
+                        console.warn('Session not started, not a channel')
                     }
                 } else {
-                    console.warn('Session already started');
+                    console.warn('Session already started')
                 }
             })
             global.streamer.on('uncommit', () => {
-                console.warn('Session finished');
-                this.finishSession();
+                console.warn('Session finished')
+                this.finishSession()
             })
         })
     }
     currentStreamData() {        
-        return Object.assign({}, global.streamer.active ? global.streamer.active.data : global.streamer.lastActiveData);
+        if(!global.streamer) return {}
+        return Object.assign({}, global.streamer.active ? global.streamer.active.data : global.streamer.lastActiveData)
     }
     startSession() {
-        this.session = this.currentStreamData();
+        this.session = this.currentStreamData()
         if (this.session.originalName) {
-            this.session.name = this.session.originalName;
+            this.session.name = this.session.originalName
         }
-        this.session.startTime = (Date.now() / 1000);
-        this.startSessionTimer();
+        this.session.startTime = (Date.now() / 1000)
+        this.startSessionTimer()
     }
     async finishSession() {
         if (this.session) {
-            this.setBusy(true);
-            clearInterval(this.session.timer);
-            await this.check().catch(console.error);
-            this.session = null;
-            this.setBusy(false);
+            this.setBusy(true)
+            clearInterval(this.session.timer)
+            await this.check().catch(console.error)
+            this.session = null
+            this.setBusy(false)
         }
     }
     startSessionTimer() {
         clearInterval(this.session.timer);
         this.session.timer = setInterval(() => {
-            this.check().catch(console.error);
-        }, this.checkingInterval * 1000);
+            this.check().catch(console.error)
+        }, this.checkingInterval * 1000)
     }
     finishSessionTimer() {
-        clearInterval(this.session.timer);
+        clearInterval(this.session.timer)
     }
     async check() {
         if (!this.session)
-            return;
-        const now = (Date.now() / 1000), data = this.currentStreamData();
-        let nextRunTime = 0, info = await this.channels.epgChannelLiveNowAndNextInfo(data);
+            return
+        const now = (Date.now() / 1000), data = this.currentStreamData()
+        let nextRunTime = 0, info = await this.channels.epgChannelLiveNowAndNextInfo(data)
         if (info) {
             info = Object.values(info);
             if (this.session && this.session.lastInfo) {

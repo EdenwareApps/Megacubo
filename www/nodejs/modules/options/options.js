@@ -922,9 +922,8 @@ class Options extends OptionsExportImport {
                 renderer: async () => {
                     const go = type => {
                         let changed;
-                        const { mi } = lists;
                         const lists = config.get('lists').map(l => {
-                            const newUrl = mi.setM3UStreamFmt(l[1], type || 'hls'); // hls as default, since it is adaptative and more compatible
+                            const newUrl = global.lists.mi.setM3UStreamFmt(l[1], type || 'hls'); // hls as default, since it is adaptative and more compatible
                             if (newUrl) {
                                 changed = true;
                                 l[1] = newUrl;

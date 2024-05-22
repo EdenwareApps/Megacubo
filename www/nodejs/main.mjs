@@ -31,7 +31,8 @@ import { listNameFromURL, rmdirSync } from './modules/utils/utils.js'
 import osd from './modules/osd/osd.js';
 import ffmpeg from './modules/ffmpeg/ffmpeg.js'
 import promo from './modules/promoter/promoter.js'
-
+import mega from './modules/mega/mega.js'
+                
 /* Preload script variables */
 Object.assign(global, {
     channels,
@@ -265,7 +266,6 @@ const init = async (language, timezone) => {
                 }
                 break
             case 'action':
-                const {default: mega} = await import('./modules/mega/mega.js')
                 if(typeof(e.action) == 'function') {
                     let ret = e.action(e)
                     if(ret && ret.catch) ret.catch(e => menu.displayErr(e))
@@ -325,8 +325,7 @@ const init = async (language, timezone) => {
     ui.on('reload-dialog', async () => {
         console.log('reload-dialog');
         if (!streamer.active)
-            return;
-        
+            return
         let opts = [{ template: 'question', text: lang.RELOAD }], def = 'retry';
         let isCH = streamer.active.type != 'video' &&
             (channels.isChannel(streamer.active.data.terms ? streamer.active.data.terms.name : streamer.active.data.name)
@@ -466,13 +465,12 @@ const init = async (language, timezone) => {
     });
     ui.on('open-name', name => {
         console.log('OPEN STREAM BY NAME', name);
-        if (name) {
-            
-            const e = { name, url: mega.build(name) };
+        if (name) {            
+            const e = { name, url: mega.build(name) }
             if (isStreamerReady) {
-                streamer.play(e);
+                streamer.play(e)
             } else {
-                playOnLoaded = e;
+                playOnLoaded = e
             }
         }
     });
