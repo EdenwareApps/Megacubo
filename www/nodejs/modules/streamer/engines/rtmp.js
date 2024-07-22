@@ -30,7 +30,7 @@ class StreamerRTMPIntent extends StreamerBaseIntent {
 }
 StreamerRTMPIntent.mediaType = 'live';
 StreamerRTMPIntent.supports = info => {
-    if (info.url && info.url.match(new RegExp('^(rtsp|rtmp)[a-z]*://', 'i'))) {
+    if (info.url && info.url.match(new RegExp('^(udp|mmsh?|rt[sm]?p)[a-z]*://', 'i'))) {
         return true;
     }
     if (info.contentType) {
