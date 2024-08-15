@@ -18,7 +18,7 @@
     "cross-dirname": "^0.1.0",
     "dashjs": "^4.7.4",
     "decode-entities": "^1.0.7",
-    "electron": "^9.1.1",
+    "electron": "^30.0.1",
     "env-paths": "^3.0.0",
     "exec-finder": "^0.0.2",
     "form-data": "^4.0.0",
