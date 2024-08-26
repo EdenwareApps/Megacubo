@@ -80,7 +80,8 @@ class FFmpegDownloader {
                 break;
         }
         const variant = osName + '-' + arch;
-        const url = await this.getVariantURL(variant);
+        const url = await this.getVariantURL(variant)
+        if (!url) throw 'FFmpeg source binary URL not found'
         osd.show(mask.replace('{0}', '0%'), 'fas fa-circle-notch fa-spin', 'ffmpeg-dl', 'persistent');
         await download({
             url,
@@ -125,6 +126,7 @@ class FFmpegDownloader {
     }
     async getVariantURL(variant) {
         const data = await download({ url: 'https://ffbinaries.com/api/v1/versions', responseType: 'json' });
+        if(!data || !data.versions) return null
         for (const version of Object.keys(data.versions).sort().reverse()) {
             const versionInfo = await download({ url: data.versions[version], responseType: 'json' });
             if (versionInfo.bin && typeof (versionInfo.bin[variant]) != 'undefined') {

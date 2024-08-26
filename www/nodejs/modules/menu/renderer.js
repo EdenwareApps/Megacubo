@@ -244,7 +244,7 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
 				this.emit('scroll', this.wrap.scrollTop)
 			}
 			done()
-		}, 400)
+		}, 400) // 250 was causing scroll to be emitted before too soon causing focus confusion
 	}
     setGridLayout(x, y, px, py){
         this._gridLayoutX = x

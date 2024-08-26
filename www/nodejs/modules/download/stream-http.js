@@ -202,13 +202,17 @@ class DownloadStreamHttp extends DownloadStreamBase {
         });
     }
     getCookies() {
-        return new Promise((resolve, reject) => {
-            (this.parsed.protocol == 'http:' ? httpJar : httpsJar).getCookies(this.opts.url, (err, cookies) => {
-                if (err)
-                    return resolve('');
-                resolve(cookies.join('; '));
-            });
-        });
+        const h = this.parsed.protocol == 'http:' ? httpJar : httpsJar
+        return new Promise(resolve => {
+            try {
+                h.getCookies(this.opts.url, (err, cookies) => {
+                    if (err) return resolve('')
+                    resolve(cookies.join('; '))
+                })
+            } catch (e) {
+                resolve('')
+            }
+        })
     }
     setCookies(header) {
         return new Promise((resolve, reject) => {

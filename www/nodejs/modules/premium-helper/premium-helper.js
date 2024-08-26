@@ -48,14 +48,18 @@ class PremiumHelper {
 }
 
 try {
-    let Premium
+    let Premium, rq
     const file = paths.cwd +'/dist/premium'
+    const req = file => {
+        if(typeof(require) == 'undefined') {
+            return createRequire(getFilename())(file)
+        }
+        return require(file)
+    }
     if(fs.existsSync(file +'.js')) {
-        const require = createRequire(getFilename())
-        Premium = require(file +'.js')        
+        Premium = req(file +'.js')        
     } else if(fs.existsSync(file +'.jsc')) {
-        const require = createRequire(getFilename())
-        Premium = require(file +'.jsc')
+        Premium = req(file +'.jsc')
     }
     if(Premium) PremiumHelper = Premium
 } catch(e) {
