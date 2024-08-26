@@ -52,11 +52,11 @@ class Bookmarks extends EntriesGroup {
     }
     async hook(entries, path) {
         if (!path) {
-            const bmEntry = { name: lang.BOOKMARKS, fa: 'fas fa-star', top: true, type: 'group', renderer: this.entries.bind(this) };
+            const bmEntry = { name: lang.BOOKMARKS, fa: 'fas fa-star', side: true, type: 'group', renderer: this.entries.bind(this) };
             if (this.data.length)
-                bmEntry.details = this.data.map(e => e.name).unique().slice(0, 3).join(', ') + '...';
-            insertEntry(bmEntry, entries, -3, lang.OPTIONS, lang.OPEN_URL);
-            return entries;
+                bmEntry.details = this.data.map(e => e.name).unique().slice(0, 3).join(', ') +'...'
+            insertEntry(bmEntry, entries, -3, [lang.OPTIONS, lang.ABOUT], [lang.OPEN_URL, lang.CATEGORY_MOVIES_SERIES, lang.LIVE]);
+            return entries
         }
         let isBookmarkable = path.startsWith(lang.CATEGORY_MOVIES_SERIES) || path.startsWith(lang.SEARCH) || path.startsWith(lang.LIVE + '/' + lang.MORE) || path.startsWith(lang.BOOKMARKS);
         if (!isBookmarkable && path.startsWith(lang.MY_LISTS) && !entries.some(this.groupFilter)) {
@@ -129,8 +129,9 @@ class Bookmarks extends EntriesGroup {
         }
         return {
             name: e.originalName || e.name,
-            type: 'stream', details: e.group || '', icon: e.originalIcon || e.icon || '',
-            terms: { 'name': this.channels.entryTerms(e) },
+            type: 'stream', details: e.group || '',
+            icon: e.originalIcon || e.icon || '',
+            terms: { 'name': this.channels.entryTerms(e, true) },
             url: e.originalUrl || e.url
         }
     }
@@ -176,8 +177,7 @@ class Bookmarks extends EntriesGroup {
                 let atts = mega.parse(e.url);
                 if (atts.mediaType == 'live') {
                     return (epgAddLiveNowMap[i] = this.channels.toMetaEntry(e, false));
-                } else {
-                    
+                } else {                    
                     let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : listsTools.terms(atts.name);
                     e.url = mega.build(ucWords(terms.join(' ')), { terms, mediaType: 'video' });
                     e = this.channels.toMetaEntry(e);
@@ -203,6 +203,13 @@ class Bookmarks extends EntriesGroup {
             }
             centries.push(...[
                 { name: lang.SET_SHORTCUT_NUMBERS, fa: 'fas fa-list-ol', type: 'group', renderer: this.shortcutNumberEntries.bind(this) },
+                { name: lang.BOOKMARK_CREATE_DESKTOP_ICONS, type: 'check', action: (_, value) => {
+                        config.set('bookmarks-desktop-icons', value)
+                    },
+                    checked: () => {
+                        return config.get('bookmarks-desktop-icons')
+                    }
+                },
                 { name: lang.REMOVE, fa: 'fas fa-trash', type: 'group', renderer: this.removalEntries.bind(this) }
             ])
             es.push({
@@ -298,7 +305,7 @@ class Bookmarks extends EntriesGroup {
         }
         if (config.get('show-logos') && (!this.currentBookmarkAddingByName.icon || this.currentBookmarkAddingByName.icon.indexOf('/') == -1)) {
             let entries = []
-            Array.from(new Set(results.results.map(entry => { return entry.icon; }))).slice(0, 96).forEach((logoUrl, i) => {
+            Array.from(new Set(results.map(entry => { return entry.icon; }))).slice(0, 96).forEach((logoUrl, i) => {
                 entries.push({
                     name: lang.SELECT_ICON +' #'+ (i + 1),
                     fa: 'fa-mega spin-x-alt',
@@ -306,6 +313,7 @@ class Bookmarks extends EntriesGroup {
                     url: logoUrl,
                     value: logoUrl,
                     type: 'action',
+                    iconFallback: 'fas fa-exclamation-triangle',
                     action: this.addByNameEntries3.bind(this)
                 });
             });
@@ -410,8 +418,7 @@ class Bookmarks extends EntriesGroup {
             delete noEPGEntry.programme;
         const nicon = await icons.get(noEPGEntry).catch(e => err = e);
         if (!err) {
-            if (!nicon.file) {
-                
+            if (!nicon.file) {                
                 const file = await Download.file({ url: nicon.url });
                 const stat = await fs.promises.stat(file).catch(e => err = e);
                 if (!err && stat.size >= 512) {
@@ -422,7 +429,7 @@ class Bookmarks extends EntriesGroup {
                 const file = await jimp.iconize(nicon.file).catch(e => err = e);
                 if (!err) {
                     icon = file;
-                    const cachedFile = await icons.saveDefaultIcon(entry.name, file).catch(e => err = e);
+                    const cachedFile = await icons.saveDefaultIcon(global.channels.entryTerms(entry, true), file, true).catch(e => err = e);
                     if (!err && cachedFile) {
                         icon = cachedFile;
                     }

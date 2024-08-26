@@ -48,7 +48,7 @@ class List extends EventEmitter {
     async start() {
         if (this.started) return true
         await fs.promises.access(this.file)
-        this.indexer = new ListIndex(this.file, this.url);
+        this.indexer = new ListIndex(this.file, this.url)
         return await new Promise((resolve, reject) => {
             let resolved, destroyListener = () => {
                 if (!resolved) {
@@ -97,11 +97,22 @@ class List extends EventEmitter {
         this.started = false;
         return this.start();
     }
+    progress() {
+        let p = 0;
+        if (this.validator) {
+            p = this.validator.progress();
+        } else if (this.isReady || (this.indexer && this.indexer.hasFailed)) {
+            p = 100;
+        }
+        return p;
+    }
     async setIndex(index) {
-        this.index = index;
+        this.index = index
+    }
+    async verify() {
         let quality = 0, relevance = 0;
         const qualityPromise = this.verifyListQuality().then(q => quality = q).catch(console.error);
-        const relevancePromise = this.verifyListRelevance(index).then(r => relevance = r).catch(console.error);
+        const relevancePromise = this.verifyListRelevance(this.index).then(r => relevance = r).catch(console.error);
         await qualityPromise;
         if (quality) {
             await relevancePromise;
@@ -111,15 +122,7 @@ class List extends EventEmitter {
             this.quality = quality;
             this.relevance = { total: 0, err: 'list streams seems offline' };
         }
-    }
-    progress() {
-        let p = 0;
-        if (this.validator) {
-            p = this.validator.progress();
-        } else if (this.isReady || (this.indexer && this.indexer.hasFailed)) {
-            p = 100;
-        }
-        return p;
+        this.verified = true
     }
     async verifyListQuality() {
         const ttl = 120, cacheKey = 'list-quality-' + this.url;
@@ -134,8 +137,6 @@ class List extends EventEmitter {
                 throw cached.err;
             return cached.result;
         }
-        if (this.skipValidating)
-            return true;
         let len = this.index.length;
         if (!len) {
             const err = 'insufficient streams ' + len;

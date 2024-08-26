@@ -323,12 +323,13 @@ class OptionsGPU extends PerformanceProfiles {
 }
 class OptionsExportImport extends OptionsGPU {
     constructor() {
-        super();
+        super()
     }
     async importConfigFile(data, keysToImport, cb) {
         console.log('Config file', data)
+        global.tmpData = data
         data = parseJSON(String(data));
-        if (typeof (data) == 'object') {
+        if (typeof(data) == 'object') {
             data = this.prepareImportConfigFile(data, keysToImport)
             config.setMulti(data)
             osd.show('OK', 'fas fa-check-circle faclr-green', 'options', 'normal')
@@ -343,8 +344,7 @@ class OptionsExportImport extends OptionsGPU {
             if (!Array.isArray(keysToImport) || keysToImport.includes(k)) {
                 natts[k] = atts[k];
             }
-        });
-        
+        })
         if (natts['custom-background-image']) {
             const buf = Buffer.from(natts['custom-background-image'], 'base64');
             fs.writeFileSync(global.theme.customBackgroundImagePath, buf);
@@ -717,9 +717,8 @@ class Options extends OptionsExportImport {
         }
         renderer.get().emit('share', ucWords(paths.manifest.name), ucWords(paths.manifest.name), 'https://megacubo.net/' + locale + '/');
     }
-    async about() {
-        
-        let outdated, c = await cloud.get('configure').catch(console.error);
+    async about() {        
+        let outdated, c = await cloud.get('configure').catch(console.error)
         if (c) {
             this.updateEPGConfig(c);
             console.log('checking update...');
@@ -727,10 +726,14 @@ class Options extends OptionsExportImport {
             outdated = c[vkey] > paths.manifest.version;
         }
         const notice = paths.ALLOW_ADDING_LISTS ? lang.ABOUT_LEGAL_NOTICE_LISTS : lang.ABOUT_LEGAL_NOTICE;
-        let text = lang.LEGAL_NOTICE + ': ' + notice;
-        let title = ucWords(paths.manifest.name) + ' v' + paths.manifest.version;
-        let versionStatus = outdated ? lang.OUTDATED.toUpperCase() : lang.CURRENT_VERSION;
-        title += ' (' + versionStatus + ', ' + process.platform + ' ' + os.arch() + ')';
+        let text = lang.LEGAL_NOTICE + ': ' + notice
+        let title = ucWords(paths.manifest.name) + ' v' + paths.manifest.version
+        let versionStatus = outdated ? (lang.OUTDATED.toUpperCase() +', ') : ''
+        title += ' ('+ versionStatus + process.platform +' '+ os.arch()
+        if(paths.manifest.megacubo && paths.manifest.megacubo.revision) {
+            title += ', revision: '+ paths.manifest.megacubo.revision
+        }
+        title += ')';
         let ret = await menu.dialog([
             { template: 'question', fa: 'fas fa-mega', text: title },
             { template: 'message', text },
@@ -873,7 +876,6 @@ class Options extends OptionsExportImport {
     async chooseExternalPlayerFile() {
         const file = await menu.chooseFile('*');
         if (file) {
-            const path = path$0;
             const name = ucWords(path.basename(file).replace(new RegExp('\.[a-z]{2,4}$'), '').replaceAll('-', ' ').replaceAll('_', ' '));
             config.set('external-player', [file, name]);
             osd.show('OK', 'fas fa-check-circle faclr-green', 'external-player', 'normal');
@@ -1568,52 +1570,79 @@ class Options extends OptionsExportImport {
                             type: 'check',
                             action: (e, checked) => config.set('search-mode', checked ? 0 : 1),
                             checked: () => config.get('search-mode') !== 1
+                        },
+                        {
+                            name: lang.SHOW_RECOMMENDATIONS_HOME,
+                            fa: 'fas fa-th',
+                            type: 'select',
+                            renderer: async () => {
+                                const key = 'home-recommendations'
+                                const pagesize = config.get('view-size').landscape.x * config.get('view-size').landscape.y
+                                let def = config.get(key), opts = [
+                                    {
+                                        name: lang.NEVER, fa: 'fas fa-ban', type: 'action', selected: (def == 0), 
+                                        action: () => config.set(key, 0)
+                                    }
+                                ];
+                                [1, 2, 3, 4, 5].forEach(n => {
+                                    opts.push({
+                                        name: String(n + 1), fa: 'fas fa-th', type: 'action', selected: (def == n),
+                                        action: () => config.set(key, n)
+                                    })
+                                })
+                                return opts;
+                            }
                         }
-                    ];
+                    ]
                     if (!paths.android) {
-                        opts.push({
-                            name: lang.SPEAK_NOTIFICATIONS,
-                            type: 'check',
-                            action: (data, value) => {
-                                config.set('osd-speak', value);
+                        opts.push(...[
+                            {
+                                name: lang.SPEAK_NOTIFICATIONS,
+                                type: 'check',
+                                action: (_, value) => {
+                                    config.set('osd-speak', value);
+                                },
+                                checked: () => {
+                                    return config.get('osd-speak');
+                                }
                             },
-                            checked: () => {
-                                return config.get('osd-speak');
-                            }
-                        });
-                        opts.push({
-                            name: lang.BOOKMARK_CREATE_DESKTOP_ICONS,
-                            type: 'check',
-                            action: (data, value) => {
-                                config.set('bookmarks-desktop-icons', value);
+                            {
+                                name: lang.BOOKMARK_CREATE_DESKTOP_ICONS,
+                                type: 'check',
+                                action: (_, value) => {
+                                    config.set('bookmarks-desktop-icons', value);
+                                },
+                                checked: () => {
+                                    return config.get('bookmarks-desktop-icons');
+                                }
                             },
-                            checked: () => {
-                                return config.get('bookmarks-desktop-icons');
+                            {
+                                name: lang.WINDOW_MODE_TO_START,
+                                fa: 'fas fa-window-maximize',
+                                type: 'select',
+                                renderer: async () => {
+                                    let def = config.get('startup-window'), opts = [
+                                        { name: lang.NORMAL, fa: 'fas fa-ban', type: 'action', selected: (def == ''), action: data => {
+                                                config.set('startup-window', '');
+                                            } },
+                                        { name: lang.FULLSCREEN, fa: 'fas fa-window-maximize', type: 'action', selected: (def == 'fullscreen'), action: data => {
+                                                config.set('startup-window', 'fullscreen');
+                                            } }
+                                    ];
+                                    if (!paths.android) {
+                                        opts.push({ name: 'Miniplayer', fa: 'fas fa-level-down-alt', type: 'action', selected: (def == 'miniplayer'), action: data => {
+                                                config.set('startup-window', 'miniplayer');
+                                            } });
+                                    }
+                                    return opts;
+                                }
                             }
-                        });
+                        ])
                     }
-                    opts.push({
-                        name: lang.WINDOW_MODE_TO_START,
-                        fa: 'fas fa-window-maximize',
-                        type: 'select',
-                        renderer: async () => {
-                            let def = config.get('startup-window'), opts = [
-                                { name: lang.NORMAL, fa: 'fas fa-ban', type: 'action', selected: (def == ''), action: data => {
-                                        config.set('startup-window', '');
-                                    } },
-                                { name: lang.FULLSCREEN, fa: 'fas fa-window-maximize', type: 'action', selected: (def == 'fullscreen'), action: data => {
-                                        config.set('startup-window', 'fullscreen');
-                                    } }
-                            ];
-                            if (!paths.android) {
-                                opts.push({ name: 'Miniplayer', fa: 'fas fa-level-down-alt', type: 'action', selected: (def == 'miniplayer'), action: data => {
-                                        config.set('startup-window', 'miniplayer');
-                                    } });
-                            }
-                            return opts;
-                        }
-                    });
-                    return opts;
+                    opts.push({ name: lang.ADVANCED, fa: 'fas fa-cogs', type: 'action', action: () => {
+                        global.menu.open(lang.OPTIONS +'/'+ lang.ADVANCED).catch(console.error)
+                    }})
+                    return opts
                 } },
             { name: lang.PERFORMANCE_MODE, details: lang.SELECT, fa: 'fas fa-tachometer-alt', type: 'action', action: () => this.performance() },
             { name: lang.LANGUAGE, details: lang.SELECT_LANGUAGE, fa: 'fas fa-language', type: 'action', action: () => this.showLanguageEntriesDialog() },
@@ -1717,18 +1746,18 @@ class Options extends OptionsExportImport {
         if (!path) {
             const sopts = this.prm() ? [lang.RECORDINGS, lang.TIMER] : [lang.TIMER, lang.THEMES];
             const details = sopts.join(', ');
-            insertEntry({ name: lang.TOOLS, fa: 'fas fa-box-open', type: 'group', details, renderer: this.tools.bind(this) }, entries, -1);
             const headerOptions = [
-                { name: lang.OPTIONS, top: true, fa: 'fas fa-cog', type: 'group', details: lang.CONFIGURE, renderer: this.entries.bind(this) },
-                { name: lang.ABOUT, top: true, fa: 'fas fa-info-circle', type: 'action', action: () => {
+                { name: lang.TOOLS, side: true, fa: 'fas fa-box-open', type: 'group', details, renderer: this.tools.bind(this) },
+                { name: lang.OPTIONS, side: true, fa: 'fas fa-cog', type: 'group', details: lang.CONFIGURE, renderer: this.entries.bind(this) },
+                { name: lang.ABOUT, side: true, fa: 'fas fa-info-circle', type: 'action', action: () => {
                         this.about().catch(e => menu.displayErr(e));
                     } },
-                { name: lang.SHUTDOWN, top: true, fa: 'fas fa-power-off', type: 'action', action: () => {
+                { name: lang.SHUTDOWN, side: true, fa: 'fas fa-power-off', type: 'action', action: () => {
                         renderer.get().emit('ask-exit');
                     } }
             ];
             headerOptions.forEach(opt => {
-                if (!entries.some(e => e.top && e.name == opt.name))
+                if (!entries.some(e => e.side && e.name == opt.name))
                     entries.push(opt);
             });
         }

@@ -10,12 +10,13 @@ import parseRange from "range-parser";
 import { temp } from '../paths/paths.js';
 import fs from 'fs';
 import config from "../config/config.js"
-import { absolutize, getDomain, isWritable, kbfmt, parseJSON, validateURL } from '../utils/utils.js'
+import { absolutize, getDomain, isWritable, kbfmt, parseJSON,  time, traceback, validateURL } from '../utils/utils.js'
 
 class Download extends EventEmitter {
     constructor(opts) {
-        super();
-        this.startTime = (Date.now() / 1000);
+        super()
+        this.traceback = traceback()
+        this.startTime = time();
         this.opts = {
             cacheTTL: 0,
             uid: parseInt(Math.random() * 100000000000),
@@ -121,7 +122,7 @@ class Download extends EventEmitter {
         });
     }
     pingAuthURL() {
-        const now = (Date.now() / 1000);
+        const now = time();
         if (this.opts.authURL && (!Download.pingAuthDelay[this.opts.authURL] || now > Download.pingAuthDelay[this.opts.authURL])) {
             Download.pingAuthDelay[this.opts.authURL] = now + 1800;
             console.error('PINGAUTHURL: ' + this.opts.authURL + ' ' + now);
@@ -143,14 +144,12 @@ class Download extends EventEmitter {
             return;
         }
         if (!this.started && !this.ended && !this.destroyed) {
-            this.started = true;
-            if (this.opts.file) {
-                this.fileStream = new Writer(this.opts.file);
-            }
+            this.started = true
             if (osd && Download.debugConns) {
                 let txt = this.opts.url.split('?')[0].split('/').pop();
                 osd.show(txt, 'fas fa-download', 'down-' + this.opts.uid, 'persistent');
             }
+            Download.actives[this.opts.uid] = this
             this.connect();
         }
     }
@@ -200,6 +199,9 @@ class Download extends EventEmitter {
         } else {
             return '*';
         }
+    }
+    elapsed() {
+        return time() - this.startTime
     }
     parsePhases(timings) {
         let keys = Object.keys(timings).filter(k => typeof (timings[k]) == 'number').sort((a, b) => timings[a] - timings[b]);
@@ -321,7 +323,7 @@ class Download extends EventEmitter {
         this.connectCount++;
         let redirected;
         const stream = new DownloadStreamHybrid(opts, this.opts);
-        stream.startTime = (Date.now() / 1000) * 1000;
+        stream.startTime = time() * 1000;
         stream.once('response', response => {
             this.lastStatusCodeReceived = response.statusCode;
             this.lastHeadersReceived = response.headers;
@@ -624,6 +626,9 @@ class Download extends EventEmitter {
             }
         }
         if (this.opts.file) {
+            if (!this.fileStream) {
+                this.fileStream = new Writer(this.opts.file);
+            }
             if (isWritable(this.fileStream)) {
                 this.fileStream.write(chunk);
             } else {
@@ -842,7 +847,7 @@ class Download extends EventEmitter {
                         delay = Date.parse(this.lastHeadersReceived['retry-after']);
                         if (typeof (delay) == 'number') {
                             delay /= 1000;
-                            delay -= (Date.now() / 1000);
+                            delay -= time();
                         }
                     }
                 }
@@ -1069,28 +1074,30 @@ class Download extends EventEmitter {
                 this.ended = true;
             }
             if (this.opts.cacheTTL) {
-                Download.cache.save(this, null, true); // end it always despite of responseSource
+                Download.cache.save(this, null, true) // end it always despite of responseSource
             }
-            this.destroyed = true;
-            this.destroyStream();
-            this.buffer = []; // discard
+            this.destroyed = true
+            this.destroyStream()
+            this.buffer = [] // discard
             const finish = () => {
-                this.emit('end');
-                this.emit('close');
-                this.emit('destroy');
-                this.removeAllListeners();
-            };
+                this.emit('end')
+                this.emit('close')
+                this.emit('destroy')
+                this.removeAllListeners()
+                delete Download.actives[this.opts.uid]
+            }
             if (this.fileStream) { // wait file writing before emit 'end'
-                this.fileStream.end();
-                this.fileStream.ready(finish);
+                this.fileStream.end()
+                this.fileStream.ready(finish)        
+                this.fileStream = null
             } else {
-                finish();
+                finish()
             }
             process.nextTick(() => {
                 if (osd && Download.debugConns) {
                     let txt = this.opts.url.split('?')[0].split('/').pop() + ' (' + this.statusCode + ') - ';
                     this.timings.delay = this.retryCount * this.retryDelay;
-                    this.timings.ttotal = ((Date.now() / 1000) - this.startTime) * 1000;
+                    this.timings.ttotal = (time() - this.startTime) * 1000;
                     let ts = Object.keys(this.timings).filter(k => {
                         return this.timings[k] >= 1000;
                     });
@@ -1104,7 +1111,7 @@ class Download extends EventEmitter {
                     txt += kbfmt(this.received);
                     osd.show(txt, 'fas fa-download', 'down-' + this.opts.uid, 'long');
                 }
-            });
+            })
         }
     }
 }
@@ -1164,8 +1171,9 @@ Download.head = opts => {
     };
     return promise;
 };
+Download.actives = {}
 Download.get = opts => {
-    let _reject, g, resolved;
+    let _reject, g, resolved
     const promise = new Promise((resolve, reject) => {
         _reject = reject;
         g = new Download(opts);
@@ -1184,14 +1192,15 @@ Download.get = opts => {
             } else {
                 reject('http error ' + g.statusCode);
             }
-            g.destroy();
+            g.destroy()
         });
         g.start();
     });
     promise.cancel = () => {
-        if (g && !g.ended) {
-            _reject('Promise was cancelled');
-            g.destroy();
+        if (!resolved) {
+            resolved = true
+            _reject('Promise was cancelled')
+            g.destroy()
         }
     };
     promise.handle = () => g;

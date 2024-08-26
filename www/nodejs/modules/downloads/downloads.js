@@ -237,35 +237,33 @@ class Downloads extends EventEmitter {
                 
                 fs.copyFile(file, dest, err => {
                     if (err) {
-                        reject(err);
+                        reject(err)
                     } else {
-                        resolve('http://' + this.opts.addr + ':' + this.opts.port + '/' + encodeURIComponent(name));
+                        resolve('http://' + this.opts.addr + ':' + this.opts.port + '/' + encodeURIComponent(name))
                     }
-                });
+                })
             }
-        });
+        })
     }
     async serve(file, triggerDownload, doImport, name) {
         await this.prepare();
         if (!name) {
-            name = path.basename(file);
+            name = path.basename(file)
         }
+        let url
         if (doImport) {
-            const url = await this.import(file);
-            console.log('serve serve', file, url);
-            if (triggerDownload) {
-                renderer.get().emit('download', url, name);
-            }
-            return url;
+            url = await this.import(file)
         } else {
-            let url = 'http://' + this.opts.addr + ':' + this.opts.port + '/' + encodeURIComponent(name);
-            this.map['./' + name] = file;
-            console.log('serve serve', file, url);
-            if (triggerDownload) {
-                renderer.get().emit('download', url, name);
-            }
-            return url;
+            url = 'http://' + this.opts.addr + ':' + this.opts.port + '/' + encodeURIComponent(name);
+            this.map['./' + name] = file
         }
+        if (triggerDownload) {
+            renderer.get().emit('download', url, name)
+            if(paths.android) {
+                osd.show(lang.FILE_SAVED_ON.format('Download', name), 'fas fa-check-circle', 'downloads', 'normal')
+            }
+        }
+        return url
     }
     async serveContent(filename, content) {
         await this.prepare()

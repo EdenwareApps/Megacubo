@@ -86,8 +86,7 @@ class Reader extends Readable {
         });
     }
     openFile() {
-        try {
-            
+        try {            
             fs.access(this.file, fs.constants.R_OK, (err) => {
                 if (err) {
                     console.error('Failed to access file:', err);
@@ -118,20 +117,24 @@ class Reader extends Readable {
         this.opts.persistent = false;
     }
     close() {
-        if (this.fd !== null) {
-            
-            fs.close(this.fd, (err) => {
-                if (err) {
-                    console.error('Failed to close Reader file descriptor: ' + err);
-                }
-            });
-            this.fd = null;
-        }
-        if (!this.isClosed) { // Cannot set property closed of #<Readable> which has only a getter		
-            this.isClosed = true;
-            this.emit('finish');
-            this.emit('close');
-            this.destroy();
+        if (!this.isClosed || this.fd) { // Cannot set property closed of #<Readable> which has only a getter		
+            this.isClosed = true
+            const done = () => {
+                this.emit('finish')
+                this.emit('close')
+                this.destroy()
+            }
+            if (this.fd !== null) {            
+                fs.close(this.fd, err => {
+                    if (err) {
+                        console.error('Failed to close Reader file descriptor: ' + err)
+                    }
+                    done()
+                })
+                this.fd = null
+            } else {
+                done()
+            }
         }
     }
 }

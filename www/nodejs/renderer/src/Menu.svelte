@@ -20,76 +20,64 @@
                 Array.from(wrap.getElementsByTagName('a')).forEach(e => {
                     activeKeys.includes(e.getAttribute('key')) || wrap.removeChild(e)
                 })
-                window.rendererEntries = entries = main.menu.currentEntries.filter(e => !e.top)
+                window.rendererEntries = entries = main.menu.currentEntries
                 if(!main.menu.path) {
-                    headerActions = main.menu.currentEntries.filter(e => e.top)
+                    headerActions = main.menu.currentEntries.filter(e => e.side)
                 }
             })
         })
     })
 </script>
+<a href="#close-menu" title="{lang.CLOSE}" id="menu-playing-close">
+    <div>
+        <i class="fas fa-times-circle"></i>
+    </div>
+</a>
 <div id="menu">
-    <header>
-        <div>
-            <span class="menu-location" aria-hidden="true">
-                <span class="menu-location-icon">
-                    {#if icons[path]}
-                        {#if icons[path].url.startsWith('fa')}
-                            <i class="{icons[path].url}" aria-hidden="true"></i>
-                        {:else}
-                            <img src="{icons[path].url}" alt="" />
-                        {/if}
-                    {/if}
-                </span>
-                <span class="menu-location-text">{path.split('/').pop()}</span>
-                <span class="menu-location-pagination">
-                    <i class="fas fa-stream"></i>
-                    <span></span>
-                </span>
-            </span>
-            <span class="menu-omni">
-                <span id="menu-search">
-                    <input type="text" id="menu-omni-input" placeholder="{lang.WHAT_TO_WATCH}" />
-                    <div class="menu-omni-submit">
-                        <i class="fas fa-search"></i>
-                    </div>
-                </span>
-            </span>
-            <span class="menu-time" aria-hidden="true">
-                <time></time>
-                <a href="#search" class="header-entry entry-ignore portrait-only" title="{lang.SEARCH}" aria-label="{lang.SEARCH}" 
-                    onclick="main.omni.showPortrait()">
-                    <i class="fas fa-search" aria-hidden="true"></i>
+    <span class="menu-omni" style="flex: 1;">
+        <span id="menu-search">
+            <input type="text" id="menu-omni-input" placeholder="{lang.WHAT_TO_WATCH}" />
+            <div class="menu-omni-submit">
+                <i class="fas fa-search"></i>
+            </div>
+        </span>
+    </span>
+    <div class="side-menu-out">
+        <nav>
+            <div>
+                {#each headerActions as e (e.key)}
+                <a href="{e.url}" tabindex="{e.tabindex}" class="entry entry-nav"data-type="{e.type}" data-path="{e.path}" key="{e.key}" aria-label="{e.name}" data-original-icon="{e.originalIcon}" data-question="{e.question}" data-dialog-details="{e.dialogDetails}" draggable="false">
+                    <span class="entry-wrapper">
+                        <i class="{e.fa}"></i> 
+                        <span>
+                            {@html e.prepend}
+                            {@html e.rawname||e.name}
+                        </span>
+                    </span>
                 </a>
-                {#each headerActions as e}
-                    <a href="{e.url}" tabindex="{e.tabindex}" class="header-entry header-entry-{e.fa.split('fa-').pop()}" title="{e.name}" aria-label="{e.name}" 
-                        data-type="{e.type}" data-path="{e.path}">
-                        <i class="{e.fa}" aria-hidden="true"></i>
-                    </a>
                 {/each}
-                <svg class="logo" height="100%" width="100%" viewBox="0 0 100 100">
-                    <text x="0" y="94%" font-family="'megacubo'" font-size="100" textLength="100" lengthAdjust="spacingAndGlyphs" style="fill: var(--font-color);">&#xe900;</text>
-                </svg>
-            </span>
-        </div>
-    </header>
+            </div>
+            <div class="side-menu-toggle">
+                <div>
+                    <span>
+                        <img src="assets/images/default_icon_white.png" alt="" style="width: 5vmax;" />
+                    </span>
+                </div>
+            </div>
+        </nav>
+    </div>
     <div class="content-out">
         <content>
-            <a href="#close-menu" title="{lang.CLOSE}" id="menu-playing-close">
-                <div>
-                    <i class="fas fa-times-circle"></i>
-                </div>
-            </a>
             <wrap>
                 {#each entries as e (e.key)}
                     <a href="{e.url}" tabindex="{e.tabindex}" class="{e.class}" title="{e.name}" aria-label="{e.name}" 
-                        data-type="{e.type}" data-path="{e.path}" key="{e.key}" 
+                        data-type="{e.type}" data-path="{e.path}" key="{e.key}"  draggable="false" 
                         data-range-start="{e.range ? e.range.start : 0}" data-range-end="{e.range ? e.range.end : 100}" 
                         data-mask="{e.mask}" data-original-icon="{e.originalIcon}" data-question="{e.question}" data-dialog-details="{e.dialogDetails}">
                         <span class="{e.wrapperClass}">
                             {#if e.cover}
                                 <div class="entry-cover-container" aria-hidden="true">
-                                    <img src="{icons[e.path].url}" alt="" />
+                                    <img src="{icons[e.path].url}" alt="" draggable="false" />
                                 </div>
                             {/if}
                             <span class="entry-data-in">
@@ -107,7 +95,7 @@
                                     <i class="{e.fa}" style="{e.faStyle||''}" aria-hidden="true"></i>
                                 {:else}
                                     {#if !e.cover}
-                                        <img src="{transparentImage}" alt="" style="background-image: url({icons[e.path].url})" aria-hidden="true" />
+                                        <img src="{transparentImage}" draggable="false" alt="" style="background-image: url({icons[e.path].url})" aria-hidden="true" />
                                     {/if}
                                 {/if}
                             </span>
@@ -116,14 +104,38 @@
                 {/each}
             </wrap>
         </content>
-    </div>
-    <div id="home-arrows" aria-hidden="true">
-        <div>
-            <span id="home-arrows-top">
-                <i class="fas fa-chevron-up"></i>
+        <div id="home-arrows" aria-hidden="true">
+            <div>
+                <span id="home-arrows-top">
+                    <i class="fas fa-chevron-up"></i>
+                </span>
+                <span style="flex-grow: 1;"></span>
+                <span id="home-arrows-bottom">
+                    <i class="fas fa-chevron-down"></i>
+                </span>
+            </div>
+        </div>
+        <div id="menubar">
+            <span class="menu-location" aria-hidden="true">
+                <span class="menu-location-anchor">
+                    <span class="menu-location-icon">
+                        {#if icons[path]}
+                            {#if icons[path].url.startsWith('fa')}
+                                <i class="{icons[path].url}" aria-hidden="true"></i>
+                            {:else}
+                                <img src="{icons[path].url}" alt="" />
+                            {/if}
+                        {/if}
+                    </span>
+                    <span class="menu-location-text">{path.split('/').pop()}</span>
+                </span>
+                <span class="menu-location-pagination">
+                    <i class="fas fa-stream"></i>
+                    <span></span>
+                </span>
             </span>
-            <span id="home-arrows-bottom">
-                <i class="fas fa-chevron-down"></i>
+            <span class="menu-time" aria-hidden="true">
+                <time></time>
             </span>
         </div>
     </div>
@@ -136,8 +148,14 @@
     </div>
 </div>
 <style global>
+html {
+    --nav-width: 30vmax;
+}
+body.portrait {
+    --nav-width: 77vw;
+}
 #menu {
-    width: var(--menu-width);
+    width: 100vw;
     height: var(--menu-height);
     margin-top: var(--menu-padding-top);
     margin-bottom: var(--menu-padding-bottom);
@@ -148,51 +166,131 @@
     border-radius: var(--radius);
     transition: transform var(--menu-fx-nav-duration) ease-in-out 0s;
     transform: none;    
+    flex-direction: column;    
+    scroll-snap-type: x mandatory;
+    overflow: scroll hidden;
+    padding-bottom: calc((var(--menu-scrollbar-width) * 4) + var(--menu-padding-bottom));
 }
-#menu header, #menu content {
+#menu > * {
+    scroll-snap-align: start;
+}
+.side-menu-toggle, .side-menu-toggle > div {
+    width: 0 !important;
+    overflow: visible;
+}
+.side-menu-toggle > div {
+    height: var(--menu-height);
+    display: flex;
+    color: var(--font-color);
+    padding: var(--padding-2x) var(--padding);
+    box-sizing: border-box;
+    font-size: 4vmin;
+    align-items: center;
+    justify-content: center;
+    margin-left: var(--menu-scrollbar-width);
+}
+.side-menu-toggle > div > span {
+    flex-direction: row;
+    display: flex;
+    width: var(--padding);
+    justify-content: center;
+    border-radius: 100vw;
+    background: linear-gradient(to bottom, var(--background-color), var(--shadow-background-color));
+    padding: 0.75vmax 3vmax;
+    color: var(--secondary-font-color);
+    position: absolute;
+    z-index: 1;
+    align-self: center;
+    box-shadow: 0 0 1vmax rgba(255, 255, 255, 0.125);
+}
+body.idle .side-menu-toggle > div > span, body.side-menu-hint .side-menu-toggle > div > span {
+    background: black;
+}
+body.side-menu:not(.idle) .side-menu-toggle > div > span {
+    background: var(--background-color);
+}
+body:not(.side-menu) .side-menu-toggle > div > span {
+    animation: shake 5s infinite ease-out;
+}
+@keyframes shake {
+    0% { margin-left: 0vh; }
+    84% { margin-left: 0vh; }
+    88% { margin-left: 0.5vh; }
+    92% { margin-left: 0vh; }
+    96% { margin-left: 0.5vh; }
+    100% { margin-left: 0vh; }
+}
+#menubar {
+    position: absolute;
+    width: var(--menu-width);
+    background: linear-gradient(to top, var(--background-color), transparent);
+    color: var(--font-color);
+    display: flex;
+    flex-direction: row;
+    font-size: var(--menu-entry-name-font-size);
+    padding: var(--padding-2x) var(--padding-half) var(--padding-half) var(--padding-half);
+    box-sizing: border-box;
+}
+body.video #menubar  {
+    display: none;
+}
+body .side-menu-out {
+    transition: width 0.15s linear;
+    display: flex; 
+    width: var(--nav-width);
+    max-height: var(--menu-height);
+}
+body.modal .side-menu-toggle {
+    opacity: 0.25;
+}
+body.video:not(.menu-playing) .side-menu-out {
+    display: none;
+}
+.side-menu-toggle i.fa-chevron-down {
+    animation: fa-shake 5s 3 linear;
+    animation-iteration-count: infinite;
+    transform: inherit;
+}
+@keyframes fa-shake {
+    0%, 3%, 8% {
+        transform: translateX(0vmin);
+    }
+    7% {
+        transform: translateX(-0.5vmin);
+    }
+}
+#menu content {
     width: 100%;
     display: flex;
     flex-basis: 100%;
     clear: both;
 }
-#menu header {
-    height: var(--menu-header-height);
-    box-sizing: border-box;
-    justify-content: space-between;
-    padding: 0 var(--padding);
-    transition: opacity var(--menu-fx-nav-duration) ease-out 0s;
+.menu-location-pagination {
+    padding-left: var(--padding-2x);
 }
-#menu header div {
-    justify-content: space-between;
-    display: flex;
-    flex: 1;
-}
-#menu header time, #menu header .menu-location {
-    font-size: var(--menu-entry-name-font-size);
-    color: var(--font-color);
-    display: inline-flex;
-    align-items: center;
-    white-space: nowrap;
-}
-#menu header i {
-    font-size: calc(1.125 * var(--menu-entry-name-font-size));
-}
-body.portrait #menu header i {
-    font-size: calc(1.5 * var(--menu-entry-name-font-size));
-}
-#menu header .menu-location {
-    width: 100%; /* Android <9 compat */
-}
-#menu header .menu-omni {
+#menu .menu-omni {
+    position: fixed;
+    left: var(--nav-width);
+    top: 0;
+    background: linear-gradient(to bottom, var(--background-color) 70%, transparent 100%);
+    width: 100%;
+    z-index: 1;
+    justify-content: center;
     display: flex;
     align-self: center;
     flex-grow: inherit;
-    text-align: right;
+    padding: var(--padding-2x) 0;
+    align-items: center;
+    color: var(--font-color);
+    font-size: var(--menu-entry-name-font-size);
 }
-body.video.menu-playing #menu header .menu-omni {
+body.side-menu #menu .menu-omni {
+    left: 0;
+}
+body.video.menu-playing #menu .menu-omni {
     visibility: visible !important;
 }
-#menu header .menu-omni > span {
+#menu .menu-omni > span {
     background: linear-gradient(to bottom, rgba(255,255,255,0.0625) 0%, rgba(255, 255, 255, 0.09) 100%);
     border-radius: var(--padding-2x);
     min-width: calc(var(--menu-entry-name-font-size) * 14);
@@ -201,8 +299,10 @@ body.video.menu-playing #menu header .menu-omni {
     margin-right: calc(var( --padding) * 2);
     padding: var(--menu-padding) calc(2 * var(--menu-padding));
     vertical-align: middle;
+    display: flex;
+    flex-direction: row;
 }
-#menu header .menu-omni input {
+#menu .menu-omni input {
     border-width: 0;
     width: calc(100% - var(--menu-entry-name-font-size));    
     min-width: calc(13 * var(--menu-entry-name-font-size));
@@ -253,29 +353,14 @@ body:not(.portrait) .landscape-only {
 body.portrait:not(.portrait-search) .landscape-only {
     display: none !important;
 }
-body.portrait:not(.portrait-search) #menu header .menu-omni {
+body.portrait:not(.portrait-search) #menu .menu-omni {
     display: none;
 }
-body.portrait.portrait-search .header-entry {
-    display: none;
-}
-body.portrait.portrait-search #menu header .menu-location {
-    display: none;
-}
-body.portrait:not(.home) .header-entry-info-circle, body.portrait:not(.home) .header-entry-power-off, body.portrait:not(.home) .header-entry-plus {
-    display: none;
-}
-body.portrait.portrait-search #menu header .menu-omni > span {
+body.portrait.portrait-search #menu .menu-omni > span {
     width: 100%;
 }
 body.portrait .menu-omni > span {
     min-width: 0;
-}
-body.portrait .header-entry {
-    padding: var(--padding-half) var(--padding-2x) !important;
-}
-body.portrait .menu-time time {
-    display: none !important;
 }
 body.portrait .menu-omni > span {
     background: transparent;
@@ -283,17 +368,17 @@ body.portrait .menu-omni > span {
 body:not(.portrait) #menu content a.entry-2x {
     width: calc(200% / var(--entries-per-row));
 }
-#menu header .menu-omni input, #menu header .menu-omni i, #menu header .menu-omni input::-webkit-input-placeholder {
+#menu .menu-omni input, #menu .menu-omni i, #menu .menu-omni input::-webkit-input-placeholder {
     color: var(--secondary-font-color);
     text-shadow: none;
 }
-#menu header .menu-omni > span.selected {
+#menu .menu-omni.selected > span {
     background: linear-gradient(to bottom, rgba(255,255,255,0.625) 0%, rgba(255,255,255,0.825) 100%);
 }
-#menu header .menu-omni > span.selected input, #menu header .menu-omni > span.selected i, #menu header .menu-omni > span.selected input::-webkit-input-placeholder {
+#menu .menu-omni.selected > span input, #menu .menu-omni.selected > span i, #menu .menu-omni.selected > span input::-webkit-input-placeholder {
     color: var(--background-color);
 }
-#menu header .menu-omni i {
+#menu .menu-omni i {
     display: inline-block;
     box-sizing: border-box;
     cursor: pointer;
@@ -305,62 +390,103 @@ body:not(.portrait) #menu content a.entry-2x {
     height: calc(var(--menu-entry-name-font-size) + (2 * var(--menu-padding)));
     padding: 0 var(--padding);
 }
-#menu header .menu-location-text {
-    margin-top: calc(var(--padding) * -0.075);
-}
-#menu header .menu-location-icon {
-    display: flex;
-    align-items: center;    
-    margin-right: var(--padding);
-}
-#menu header .menu-location-icon img {
+#menu .menu-location-icon img {
+    max-width: var(--padding-2x);
+    max-height: var(--padding-2x);
+    object-fit: contain;
+    object-position: center;
+    transform: rotateZ(90deg);
+    transform-origin: center;
     height: var(--menu-entry-name-font-size);
     vertical-align: bottom;
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
 }
-#menu header .menu-location-pagination {
-    display: none;
-    margin-left: var(--padding-2x);
+#menu nav {
+    display: flex;
+    align-self: start;
+    padding-top: calc(var(--padding) * 0.625);
+    padding-left: var(--padding-half);
+    padding-right: var(--padding-half);
+    margin-left: var(--padding-half);
+    flex-basis: 100%;
+    background: rgba(0,0,0, 0.1);
+    border-top-left-radius: var(--radius);
+    border-bottom-left-radius: var(--radius);
+    max-height: var(--menu-height);
+    overflow: hidden auto;
 }
-#menu header .logo {
-    margin-left: var(--padding);
-    width: auto;
+body.side-menu #menu .content-out {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+body.side-menu wrap a:not(.selected) .entry-wrapper span {
+    opacity: 0.625;
+}
+#menu nav > div {
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+#menu nav a {
+    width: 100%;
+    display: flex;
+    margin-bottom: var(--padding);
+    min-height: calc((var(--menu-height) / 10) - var(--padding));
+    box-sizing: border-box;
+}
+#menu nav a .entry-wrapper {
+    display: block;
+    color: var(--font-color);
+    height: calc(var(--padding) * 4);
+    padding: calc(1.34 * var(--padding)) 0;
     font-size: var(--menu-entry-name-font-size);
-    height: var(--menu-entry-name-font-size);
+    align-items: center;
+    justify-content: center;
+    align-content: center;
+    display: flex;
+    line-height: 100%; 
+    box-sizing: border-box !important;
+    white-space: pre-wrap;
 }
-
+#menu nav a .entry-wrapper > span {
+    margin-left: var(--padding-half);
+    white-space: normal;
+}
+body.side-menu:not(.modal) #menu nav {
+    display: flex;    
+}
+body.side-menu .side-menu-toggle {
+    display: none;
+}
 #menu .menu-time {
     display: flex;
-    align-items: center;
+    flex-grow: 1;
+    align-items: flex-end;
     filter: drop-shadow(var(--drop-shadow));
+    flex-direction: column;
 }
 div#home-arrows {
     position: relative;
-    width: 100vw;
+    left: calc(var(--menu-width) * -1);
+    width: 100%;
     align-items: center;
     z-index: 1;
-}
-span#home-arrows-top {
-    transform: translateY(calc(-2 * var(--padding)));
-}
-span#home-arrows-bottom {
-    transform: translateY(var(--padding));
-    bottom: 0;
+    pointer-events: none;
 }
 div#home-arrows > div {
-    position: relative; 
-    width: 100vw;
-    height: var(--menu-content-height);  
+    width: var(--menu-width);
+    height: var(--menu-height);  
     z-index: 0;
     padding: 0;
-    top: calc((var(--menu-height) - var(--menu-header-height)) * -1);
-    left: calc(((100vw - var(--menu-width)) / 2) * -1);
     display: flex;
     box-sizing: border-box;
-    pointer-events: none;
+    pointer-events: none;    
     justify-content: center;
+    flex-direction: column;
+    align-items: center;
 }
 div#home-arrows > div > * {
     color: white;
@@ -369,12 +495,11 @@ div#home-arrows > div > * {
     height: 4vmin;
     cursor: pointer;
     opacity: 0;
-    position: absolute;
     display: flex;
     align-items: baseline;
 }
 #menu .content-out {    
-    height: var(--menu-content-height);
+    height: var(--menu-height);
     display: flex;
     align-items: flex-end;
     width: 100%;
@@ -385,7 +510,7 @@ div#home-arrows > div > * {
     height: inherit;
     display: flex;
     position: relative;
-    justify-content: center;
+    justify-content: left;
     transition: -webkit-mask-image 0.2s linear;
 }
 #menu content wrap {
@@ -471,29 +596,25 @@ div#home-arrows > div > * {
     display: flex;
     justify-content: center;
 }
-#menu content a span.entry-wrapper {
-    width: 100%;
-    height: 100%;
+#menu a span.entry-wrapper {
     overflow: hidden;
     position: relative;
-    display: inline-block;    
+    display: inline-flex;    
     border-radius: var(--radius);
-    border: 0px solid rgba(255, 255, 255, 0);
     box-sizing: content-box;
-    background: linear-gradient(to top, rgba(255, 255, 255, 0.025) 0%, rgba(255, 255, 255, 0) 75%, rgba(255, 255, 255, 0.025) 100%);
-}
-#menu content a:not(.selected) span.entry-wrapper {
+    background: linear-gradient(to top, rgba(75, 75, 75, 0.25) 0%, rgba(75, 75, 75, 0.5) 75%, rgba(75, 75, 75, 0.75) 100%);
     border: 1px solid rgba(255, 255, 255, 0.009);
     width: calc(100% - 2px);
     height: calc(100% - 2px);
 }
-#menu content a.entry-cover:not(.selected) span.entry-wrapper {
+#menu content a.entry-cover span.entry-wrapper {
     border: 1px solid rgba(255,255,255,0.03) !important;
     width: calc(100% - 2px);
     height: calc(100% - 2px);
 }
-#menu content a.selected span.entry-wrapper {
-    background: linear-gradient(to top, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 75%, rgba(255, 255, 255, 0.375) 100%);
+#menu a.selected span.entry-wrapper {
+    border-color: rgba(255, 255, 255, 0.009);
+    background: linear-gradient(to top, rgba(150, 150, 150, 0.5) 0%, rgba(150, 150, 150, 0.75) 75%, rgba(150, 150, 150, 1) 100%);
     box-shadow: 0 0 2px white;
 }
 #menu content a span.entry-name, #menu content a span.entry-details {
@@ -525,6 +646,7 @@ div#home-arrows > div > * {
     font-size: var(--menu-entry-details-font-size);
     min-height: var(--menu-entry-details-font-size);
     color: var(--secondary-font-color);
+    text-shadow: 1px 1px black, 0 0 4px black;
 }
 div#arrow-down-hint {
     justify-content: center;
@@ -585,30 +707,29 @@ body.menu-playing #menu content {
     border-bottom-right-radius: 0;
     border-top-right-radius: 0;
 }
-body.video #menu header > div > span {
-    visibility: hidden !important;
-}
 body.menu-playing #menu content {
     background: transparent;
 }
 body.menu-playing #menu {
     width: 100vw;
 }
-body.menu-playing #main {
+body.video.menu-playing #main {
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.75) 0, rgba(0, 0, 0, 0.75) calc(100vh - var(--controls-height)), #000 100vh);
 }
 #menu-playing-close {
     position: absolute;
-    right: 0;
     cursor: pointer;
     color: #ffffff;
+    right: calc(2.5 * var(--padding));
+    top: calc(2 * var(--padding));
+    z-index: 1;
 }
 #menu-playing-close > div {
     position: relative;
     height: var(--menu-header-height);
     font-size: calc(1.5 * var(--menu-entry-name-font-size));
     padding: 0;
-    top: calc(var(--menu-header-height) * -1);
+    top: 0;
     line-height: 100%;
     border-top-left-radius: 2vmin;
     border-top-right-radius: 2vmin;
@@ -619,14 +740,14 @@ body.menu-playing #main {
     color: #ffffff;
     font-size: calc(1.75 * var(--menu-entry-name-font-size)) !important;
 }
-#menu content a.selected span.entry-wrapper.entry-cover-active {
+#menu a.selected span.entry-wrapper.entry-cover-active {
     box-shadow: 0 1px 2px white;
 }
 .entry-cover-active > div {
     position: absolute;
     width: inherit;
     height: inherit;
-    z-index: -999;
+    z-index: 0;
     justify-content: center;
     align-items: center;
     display: flex;
@@ -685,7 +806,7 @@ div#modal {
     height: 100vh;
     left: 0;
     z-index: 9;
-    background: var(--modal-background-color);
+    background: var(--osd-background-color);
     position: absolute;
     top: 0;
     left: 0;
@@ -722,7 +843,7 @@ div#modal > div > div > div {
 }
 body.modal div#modal > div > div > div {
     transform: none;
-    pointer-events: all;
+    pointer-events: initial;
 }
 body.modal div#home-arrows {
     visibility: hidden;
@@ -732,9 +853,6 @@ body.modal wrap {
 }
 body.modal #modal {
     opacity: 1;
-}
-body.modal header {
-    visibility: hidden !important;
 }
 span.modal-template-message {
     font-size: var(--menu-entry-name-font-size);
@@ -767,6 +885,8 @@ span.modal-template-text, span.modal-template-textarea {
     font-size: var(--menu-entry-name-font-size);
     background: linear-gradient(to top, rgba(255, 255, 255, 0.5), white);
     border-radius: var(--radius);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
 }
 span.modal-template-text i, span.modal-template-textarea i {
     color: #000;
@@ -803,7 +923,6 @@ span.modal-template-textarea textarea {
     line-height: 150%;
 }
 span.modal-template-question {
-    color: #000;
     text-align: left;
 }
 span.modal-template-question i {
@@ -826,15 +945,16 @@ span.modal-template-question img {
     font-size: var(--menu-entry-name-font-size);
     max-width: var(--menu-modal-option-min-width);
 }
-.modal-template-slider, .modal-template-question {
+.modal-template-question {
+    padding: 0 0 1.5vmax 0;
+}
+.modal-template-slider {
     padding: 1.5vmax 0;
 }
 a.modal-template-option, a.modal-template-option-detailed {
-    border-bottom: 2px solid rgba(0,0,0,0.02);
-    box-shadow: 0 -0.5vmin 1vmin 0.5vmin rgba(0, 0, 0, 0.01);
     justify-content: center;
-    background: linear-gradient(to bottom, rgba(0,0,0, 0.05) 0%, transparent 150%);
-    color: black;
+    background: linear-gradient(to bottom, rgba(255,255,255, 0.2) 0%, transparent 150%);
+    color: var(--shadow-background-color);
 }
 a.modal-template-option > div, a.modal-template-option-detailed > div {
     padding: 2.5vmax 0;
@@ -846,8 +966,7 @@ a.modal-template-option i, a.modal-template-option-detailed i {
     margin-right: var(--padding);
 }
 a.modal-template-option.selected, a.modal-template-option-detailed.selected {
-    box-shadow: 0 0 2vh 0.5vh rgba(0, 0, 0, 0.125);
-    background: white;
+    background: linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(255,255,255,0.4) 100%);
     opacity: 1;
 }
 div.modal-template-option-detailed-name {
@@ -878,14 +997,14 @@ span.modal-template-text input:focus, span.modal-template-textarea textarea:focu
     overflow: hidden;
     max-height: var(--modal-height);
     padding: var(--padding);
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.95) 5%, rgba(255, 255, 255, 0.9) 20%, rgba(255, 255, 255, 0.8) 100%);
+    background: var(--secondary-font-color);
+    color: var(--shadow-background-color);
     border-radius: var(--radius);
     box-sizing: border-box;    
     flex-direction: column;
     display: flex;
 }
 .modal-template-options {
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.7) 100%);
     box-sizing: border-box;
     overflow: auto;
     max-height: inherit;

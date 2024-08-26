@@ -28,8 +28,8 @@ class StorageTools extends EventEmitter {
         if (!this.opts.main)
             return;
         this.lastSaveTime = (Date.now() / 1000)
-        this.saveLimiter = new Limiter(() => this.save().catch(console.error), 5000);
-        this.alignLimiter = new Limiter(() => this.align().catch(console.error), 5000);
+        this.saveLimiter = new Limiter(() => this.save(), 5000, true)
+        this.alignLimiter = new Limiter(() => this.align(), 5000, true)
         process.nextTick(() => {
             onexit(() => this.saveSync());
         });
@@ -187,7 +187,7 @@ class StorageIndex extends StorageTools {
                             return mtime
                         }
                     }                
-                    return this.index[key].time || 0
+                    return this.index[key] ? this.index[key].time : 0
                 }
             )()
         } else {
@@ -446,18 +446,7 @@ class StorageIO extends StorageIndex {
         }        
         const tmpFile = path.join(path.dirname(file), String(parseInt(Math.random() * 1000000))) + '.commit';
         await fs.promises.writeFile(tmpFile, content, enc);
-        await new Promise((resolve, reject) => {
-            moveFile(tmpFile, file, err => {
-                if (err) {
-                    return resolve(false);
-                }
-                fs.access(tmpFile, err => {
-                    if (!err)
-                        fs.unlink(tmpFile, () => {});
-                });
-                resolve(true);
-            }, 5);
-        });
+        await moveFile(tmpFile, file)
     }
     async delete(key, removeFile) {
         key = this.prepareKey(key)        

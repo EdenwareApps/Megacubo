@@ -46,7 +46,7 @@ if(paths.inWorker) {
     paths.manifest = JSON.parse(String(fs.readFileSync(paths.cwd + '/package.json')))
     if (paths.android && paths.android.getDataPath) {
         const data = paths.android.getDataPath();
-        const temp = data.indexOf('files') != -1 ? data.replace('files', 'cache') : { tmpdir }.tmpdir();
+        const temp = data.indexOf('files') != -1 ? data.replace('files', 'cache') : tmpdir()
         Object.assign(paths, { data, temp });
     } else {
         if (fs.existsSync(paths.cwd + '/.portable') && checkDirWritePermissionSync(paths.cwd + '/.portable')) {

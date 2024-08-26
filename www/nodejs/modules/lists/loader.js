@@ -7,15 +7,16 @@ import { EventEmitter } from 'events';
 import PQueue from 'p-queue';
 import workers from '../multi-worker/main.js';
 import ConnRacing from '../conn-racing/conn-racing.js';
-import { promises } from 'fs';
+import fs from 'fs';
 import config from '../config/config.js'
 import renderer from '../bridge/bridge.js'
+import paths from '../paths/paths.js'
 //import UpdaterWorker from './updater-worker.js'
 
 class ListsLoader extends EventEmitter {
     constructor(master, opts) {
         super();
-        const concurrency = config.get('lists-loader-concurrency') || 3; // avoid too many concurrency on mobiles
+        const concurrency = config.get('lists-loader-concurrency') || 8 // avoid too many concurrency on mobiles
         this.debug = master.debug;
         this.master = master;
         this.opts = opts || {};
@@ -42,15 +43,15 @@ class ListsLoader extends EventEmitter {
         });
         config.on('change', (keys, data) => {
             if (keys.includes('lists')) {
-                const newMyLists = data.lists.map(l => l[1]);
-                const added = newMyLists.filter(l => !this.myCurrentLists.includes(l));
-                const removed = this.myCurrentLists.filter(l => !newMyLists.includes(l));
-                removed.forEach(u => this.master.remove(u));
+                const newMyLists = data.lists.map(l => l[1])
+                const added = newMyLists.filter(l => !this.myCurrentLists.includes(l))
+                const removed = this.myCurrentLists.filter(l => !newMyLists.includes(l))
+                removed.forEach(u => this.master.remove(u))
                 newMyLists.forEach(u => {
-                    this.master.processedLists.has(u) && this.master.processedLists.delete(u); // allow reprocessing it
-                });
-                this.myCurrentLists = newMyLists;
-                this.enqueue(added, 1);
+                    this.master.processedLists.has(u) && this.master.processedLists.delete(u) // allow reprocessing it
+                })
+                this.myCurrentLists = newMyLists
+                this.enqueue(added, 1)
             }
             if (keys.includes('communitary-mode-lists-amount')) {
                 if (this.communityListsAmount != data['communitary-mode-lists-amount']) {
@@ -58,13 +59,7 @@ class ListsLoader extends EventEmitter {
                     this.master.processedLists.clear();
                     this.resetLowPriorityUpdates();
                     if (!data['communitary-mode-lists-amount']) { // unload community lists
-                        const myLists = data.lists.map(l => l[1]);
-                        const loadedLists = Object.keys(this.master.lists);
-                        this.master.processes.forEach(p => {
-                            if (!myLists.includes(p.url))
-                                p.cancel();
-                        });
-                        this.master.delimitActiveLists();
+                        this.cancelProcessesByType('community')
                     }
                 }
             }
@@ -74,13 +69,7 @@ class ListsLoader extends EventEmitter {
                     this.master.processedLists.clear();
                     this.resetLowPriorityUpdates();
                     if (!data['public-lists']) { // unload public lists
-                        const myLists = data.lists.map(l => l[1]);
-                        const loadedLists = Object.keys(this.master.lists);
-                        this.master.processes.forEach(p => {
-                            if (!myLists.includes(p.url))
-                                p.cancel();
-                        });
-                        this.master.delimitActiveLists();
+                        this.cancelProcessesByType('public')
                     }
                 }
             }
@@ -88,14 +77,24 @@ class ListsLoader extends EventEmitter {
         this.master.on('satisfied', () => {
             if (this.master.activeLists.length) {
                 this.queue._concurrency = 1; // try to change pqueue concurrency dinamically
-                this.resetLowPriorityUpdates();
+                this.resetLowPriorityUpdates()
             }
         });
         this.master.on('unsatisfied', () => {
             this.queue._concurrency = concurrency; // try to change pqueue concurrency dinamically
-            this.resetLowPriorityUpdates();
+            this.resetLowPriorityUpdates()
         });
-        this.resetLowPriorityUpdates();
+        this.resetLowPriorityUpdates()
+    }
+    async cancelProcessesByType(type) {
+        for(const p of this.master.processes) {
+            const t = this.master.discovery.details(p.url, type)
+            if (t == type) {
+                p.cancel()
+                this.master.processedLists.has(p.url) && this.master.processedLists.delete(p.url)
+            }
+        }
+        this.master.delimitActiveLists()
     }
     async resetLowPriorityUpdates() {
         this.debug && console.error('[listsLoader] resetLowPriorityUpdates()', this.communityListsAmount);
@@ -116,9 +115,9 @@ class ListsLoader extends EventEmitter {
         const taskId = Math.random();
         this.currentTaskId = taskId;
         this.master.updaterFinished(false);
-        this.debug && console.error('[listsLoader] resetLowPriorityUpdates(1)');
-        const lists = await this.master.discovery.get(maxListsToTry);
-        const loadingLists = [];
+        this.debug && console.error('[listsLoader] resetLowPriorityUpdates(1)')
+        const lists = await this.master.discovery.get(maxListsToTry)
+        const loadingLists = []
         lists.some(({ url, type }) => {
             if (!this.myCurrentLists.includes(url) &&
                 !this.processes.some(p => p.url == url) &&
@@ -130,11 +129,11 @@ class ListsLoader extends EventEmitter {
         this.debug && console.error('[listsLoader] resetLowPriorityUpdates(2)');
         const loadingListsCached = await this.master.filterCachedUrls(loadingLists);
         this.debug && console.error('[listsLoader] resetLowPriorityUpdates(3)');
-        this.enqueue(loadingLists.filter(u => !loadingListsCached.includes(u)).concat(loadingListsCached)); // update uncached lists first
-        this.master.loadCachedLists(loadingListsCached);
+        this.master.loadCachedLists(loadingListsCached).catch(console.error)
+        this.enqueue([...loadingLists.filter(u => !loadingListsCached.includes(u)), ...loadingListsCached]); // update uncached lists first
         this.queue.onIdle().catch(console.error).finally(() => {
             setTimeout(() => {
-                if (this.currentTaskId == taskId && !this.queue._pendingCount) {
+                if (this.currentTaskId == taskId && !this.queue.size) {
                     this.master.updaterFinished(true);
                 }
                 this.master.status();
@@ -256,8 +255,6 @@ class ListsLoader extends EventEmitter {
                 started = true;
                 this.paused && await this.wait();
                 this.debug && console.error('[listsLoader] schedule processing 1: ' + url);
-                await Download.waitNetworkConnection();
-                this.debug && console.error('[listsLoader] schedule processing 2: ' + url + ' | ' + cancel);
                 if (cancel)
                     return;
                 await this.prepareUpdater();
@@ -270,7 +267,7 @@ class ListsLoader extends EventEmitter {
                 const add = this.results[url] == 'updated' ||
                     (this.myCurrentLists.includes(url) && !this.master.lists[url]) ||
                     (this.results[url] == 'already updated' && !this.master.processedLists.has(url));
-                add && this.master.addList(url, priority);
+                add && this.master.addList(url, priority)
             }, { priority }),
             started: () => {
                 return started;
@@ -291,9 +288,9 @@ class ListsLoader extends EventEmitter {
     wait() {
         return new Promise(resolve => {
             if (!this.paused)
-                return resolve();
-            this.once('resume', resolve);
-        });
+                return resolve()
+            this.once('resume', resolve)
+        })
     }
     async reload(url) {
         let updateErr;
@@ -304,7 +301,7 @@ class ListsLoader extends EventEmitter {
                 osd.show(lang.RECEIVING_LIST + ' ' + p.progress + '%', 'fas fa-circle-notch fa-spin', 'progress-' + progressId, 'persistent');
             }
         };
-        await { promises }.promises.unlink(file).catch(() => {});
+        await fs.promises.unlink(file).catch(() => {});
         progressListener({ progressId, progress: 0 });
         await this.prepareUpdater();
         this.updater.on('progress', progressListener);

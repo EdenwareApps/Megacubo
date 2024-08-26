@@ -66,10 +66,6 @@ body.osd #osd-root {
   display: flex !important;
 }
 
-body.osd:not(.video) #menu header {
-  opacity: 0.5 !important;
-}
-
 body.video #osd-root {
   bottom: calc(var(--controls-height) + var(--padding) + var(--seekbar-height));
 }

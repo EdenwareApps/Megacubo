@@ -49,8 +49,7 @@
     --menu-header-height: 6vmax;
     --menu-content-border-size: calc(var(--menu-height) * 0.005);
     --menu-content-vertical-padding: calc((var(--menu-height) * 0.025) - (2 * var(--menu-content-border-size)));
-    --menu-content-height: calc(var(--menu-height) - var(--menu-header-height));
-    --menu-entry-height: calc((var(--menu-content-height) - 1px) / var(--entries-per-col));
+    --menu-entry-height: calc((var(--menu-height) - 1px) / var(--entries-per-col));
     --menu-entry-icon-width: calc(0.92 * (var(--menu-entry-width) - (2 * var(--menu-padding))));
     --menu-entry-icon-height: calc(var(--menu-entry-height) * 0.625);
     --font-color: #ffffff;
@@ -87,16 +86,12 @@
 * {
     outline: 0;
     text-decoration: none;
+    -webkit-overflow-scrolling: auto;
     -webkit-tap-highlight-color: transparent;
     -moz-tap-highlight-color: transparent;
 }
-
-html {						
-    width: 100vw;
-    height: 100vh;
-    margin: 0;
-    padding: 0;
-    background-color: #100927;
+html, body, body > *, app > *, #main > * {
+    overscroll-behavior: none;
 }
 html, body {
     margin: 0;
@@ -108,10 +103,25 @@ html, body {
     overflow: hidden;
     box-sizing: border-box;
 }
+html {
+    max-width: 100vw;
+    max-height: 100vh;
+    touch-action: manipulation;
+    background-color: transparent;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    background-color: #100927;
+}
 body {
     display: flex;
     align-items: flex-end;
     justify-content: left;
+    margin: 0;
+    overflow: hidden;
+    background-color: transparent;
+    overscroll-behavior-y: none; /* prevents scroll snap bug */
 }
 player {
     width: 100vw;
@@ -134,19 +144,6 @@ body:not(input):not(textarea) {
     -webkit-user-select: none; /* Chrome, Safari, and Opera */
     -webkit-touch-callout: none; /* Disable Android and iOS callouts*/
 }
-html {
-    max-width: 100vw;
-    max-height: 100vh;
-    touch-action: manipulation;
-    background-color: transparent;
-}
-body {
-    margin: 0;
-    overflow: hidden;
-    height: 100vh;
-    background-color: transparent;
-    overscroll-behavior-y: none; /* prevents scroll snap bug */
-}
 #menu, #menu header, #osd-root, controls, wrap {
     transform: translateZ(0);
     backface-visibility: hidden;
@@ -167,22 +164,6 @@ body:not(.video) #main {
 }
 input {
     font-family: inherit;
-}
-.header-entry {
-    margin-left: var(--padding);
-    border-radius: 5vmax;
-    padding: var(--padding-quarter) var(--padding-half);
-    color: white;
-    font-size: calc(1.125 * var(--menu-entry-name-font-size));
-}
-.header-entry.selected {
-    background: linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.4) 10%, rgba(255,255,255,0.2) 100%);
-}
-body.video #menu .header-entry {
-    display: none;
-}
-body:not(.video) #menu header .logo {
-    display: none;
 }
 .modal-template-message i.fa-circle.faclr-green {
     color: #0f0 !important;

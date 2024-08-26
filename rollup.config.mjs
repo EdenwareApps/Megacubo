@@ -18,8 +18,8 @@ const plugins = [
     browser: false,
     preferBuiltins: false // form-data
   }),
-  commonjs(),
-  json(),
+  commonjs({sourceMap: false}),
+  json({compact: true}),
   getBabelOutputPlugin(babelConfig), // ensure node 12 compat
   replace({
     preventAssignment: false,
@@ -51,8 +51,8 @@ const pluginsMain = [
     browser: false,
     preferBuiltins: false // form-data
   }),
-  commonjs(),
-  json(),
+  commonjs({sourceMap: false}),
+  json({compact: true}),
   getBabelOutputPlugin(babelConfig), // transform esm to cjs here
   replace({
     preventAssignment: false,
@@ -84,8 +84,8 @@ const pluginsPremium = [
     browser: false,
     preferBuiltins: false // form-data
   }),
-  commonjs(),
-  json(),
+  commonjs({sourceMap: false}),
+  json({compact: true}),
   getBabelOutputPlugin(babelConfig), // transform esm to cjs here
   replace({
     preventAssignment: false,
@@ -129,8 +129,8 @@ const pluginsRenderer = [
     preferBuiltins: false
   }),
   builtins(),
-  commonjs(),
-  json(),
+  commonjs({sourceMap: false}),
+  json({compact: true}),
   css({
     output: 'renderer.css'
   }),

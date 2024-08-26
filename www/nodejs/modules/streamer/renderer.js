@@ -262,7 +262,7 @@ class StreamerState extends StreamerCasting {
         this.on('start', () => {
             this.stateListener('loading')
             if(window.capacitor){
-                player.once('timeupdate', () => { // only on initial timeupdate of each stream to fix bad loading status on Exoplayer, bad behaviour with hls.js on PC
+                player.once('timeupdate', () => { // only on initial timeupdate of each stream to fix bad loading status on Exoplayer, bad behavior with hls.js on PC
                     if(this.state == 'loading'){
                         this.stateListener('playing')
                     }
@@ -278,11 +278,7 @@ class StreamerState extends StreamerCasting {
                     {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
                 ])
             }
-            if(this.animating){
-                this.once('animated', next)
-            } else {
-                next()
-            }
+            this.transitioning || next()
         })
         main.on('streamer-client-pause', () => {
             const should = !this.casting && player.state != 'paused'
@@ -305,7 +301,7 @@ class StreamerState extends StreamerCasting {
             this.lastPositionReported = 0
         })
         player.on('timeupdate', position => {
-            if(!this.inLiveStream && position >= 30){
+            if(!this.inLiveStream && position >= 20){
                 const now = time()
                 if(now > (this.lastPositionReportingTime + this.positionReportingInterval)){
                     this.lastPositionReportingTime = now
@@ -341,8 +337,8 @@ class StreamerState extends StreamerCasting {
                     next('resume')
                 }
             }
-            if(this.animating){
-                this.once('animated', next)
+            if(this.transitioning){
+                this.once('transitioned', next)
             } else {
                 next()
             }
@@ -416,9 +412,9 @@ class StreamerClientVideoAspectRatio extends StreamerState {
         ]
         this.activeAspectRatio = this.aspectRatioList[0]
         this.landscape = window.innerWidth > window.innerHeight
-        window.addEventListener('resize', () => this.resize(), {passive: true})
         player.on('setup-ratio', r => this.setupAspectRatio())
         main.on('ratio', () => this.switchAspectRatio())
+        main.menu.on('resize', () => this.resize())
         this.on('stop', () => {
             this.aspectRatioList = this.aspectRatioList.filter(m => typeof(m.custom) == 'undefined')
             this.activeAspectRatio = this.aspectRatioList[0]
@@ -481,21 +477,14 @@ class StreamerIdle extends StreamerClientVideoAspectRatio {
         const rgxIsIdle = new RegExp('(^| )idle', 'g')
         const rgxVideoState = new RegExp('(^| )video[\\-a-z]+', 'g') // should not include 'video' class
         this.on('state', s => {
-            const done = () => {
-                let c = document.body.className
-                if(s && s != 'error'){
-                    c = c.replace(rgxVideoState, ' ') +' video-'+ s
-                } else {
-                    c = c.replace(rgxVideoState, ' ')
-                }
-                // console.warn('VIDEOCLASS '+ document.body.className +' => '+ c.trim())
-                document.body.className = c.trim()
-            }
-            if(this.animating){
-                this.once('animated', done)
+            let c = document.body.className
+            if(s && s != 'error'){
+                c = c.replace(rgxVideoState, ' ') +' video-'+ s
             } else {
-                done()
+                c = c.replace(rgxVideoState, ' ')
             }
+            // console.warn('VIDEOCLASS '+ document.body.className +' => '+ c.trim())
+            document.body.className = c.trim()
         });
         main.idle.on('idle', () => {
             const c = document.body.className || ''
@@ -1156,34 +1145,19 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
     constructor(controls){
         super(controls)
         let b = this.controls.querySelector('button.fullscreen')
-        if(main.config['startup-window'] != 'fullscreen'){
+        if(main.config['startup-window'] == 'fullscreen'){
+            this.inFullScreen = true
+            document.body.classList.add('fullscreen')
+            if(b) b.style.display = 'none'
+            this.enterFullScreen()
+        } else {
             if(window.capacitor){
-                this.inFullScreen = true // bugfix for some devices
-                this.leaveFullScreen()
-                this.on('fullscreenchange', () => {
-                    this.updateAndroidAppMetrics()
-                    plugins.megacubo.getAppMetrics()
-                })
                 if(b){
                     b.style.display = 'none'
                 }
-                let timer = 0
-                this.on('start', () => {
-                    clearTimeout(timer)
-                    this.enterFullScreen() // start ASAP, no timer
-                    timer = setTimeout(() => { // ensure fullscreen on video
-                        this.active && this.enterFullScreen
-                    }, 200)
-                })
-                this.on('stop', () => {
-                    clearTimeout(timer)
-                    // wait a bit, maybe it will start again immediately, like when tuning
-                    timer = setTimeout(() => {
-                        this.active || this.leaveFullScreen()
-                    }, 500)
-                })
                 plugins.megacubo.on('appmetrics', this.updateAndroidAppMetrics.bind(this))
                 plugins.megacubo.on('nightmode', this.handleDarkModeInfoDialog.bind(this))
+                this.on('fullscreenchange', () => plugins.megacubo.getAppMetrics())
                 this.updateAndroidAppMetrics(plugins.megacubo.appMetrics)
             } else {
                 this.inFullScreen = false
@@ -1196,11 +1170,6 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
                     document.body.classList.remove('fullscreen')
                 }
             })
-        } else {
-            this.inFullScreen = true
-            document.body.classList.add('fullscreen')
-            if(b) b.style.display = 'none'
-            this.enterFullScreen()
         }
     }
     handleDarkModeInfoDialog(info){
@@ -1214,8 +1183,9 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
     }
     updateAndroidAppMetrics(metrics){
         if(this.inFullScreen){
-            css(' :root { --menu-padding-top: 0px; --menu-padding-bottom: 0.5vmin; --menu-padding-right: 0.5vmin; --menu-padding-left: 0.5vmin; } ', 'frameless-window')
+            css(' :root { --menu-padding-top: 0; --menu-padding-bottom: 0.5vmin; --menu-padding-right: 0.5vmin; --menu-padding-left: 0.5vmin; } ', 'frameless-window')
         } else {
+            if(!metrics) return
             if(metrics && metrics.top){
                 this.lastMetrics = metrics
             } else {
@@ -1239,7 +1209,7 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
                     this.updateAfterLeaveAndroidMiniPlayer()
                 }
             }
-            AndroidFullScreen.immersiveMode(() => {}, console.error)
+            plugins.megacubo.enterFullScreen()
             if(!winActions.listeners('leave').includes(this.pipLeaveListener)){
                 winActions.on('leave', this.pipLeaveListener)
             }
@@ -1256,15 +1226,7 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
                 if(this.pipLeaveListener){
                     winActions.removeListener('leave', this.pipLeaveListener)
                 }
-                AndroidFullScreen.immersiveMode(() => {
-                    setTimeout(() => { // bugfix for some devices
-                        AndroidFullScreen.immersiveMode(() => {
-                            AndroidFullScreen.showSystemUI(() => {
-                                AndroidFullScreen.showUnderSystemUI(() => {}, console.error)
-                            }, console.error)
-                        }, console.error);
-                    }, 10)
-                }, console.error)
+                plugins.megacubo.leaveFullScreen()
             } else {
                 parent.Manager.setFullScreen(false)
             }
@@ -1693,7 +1655,7 @@ export class StreamerClient extends StreamerClientController {
             if(this.debugTuning){
                 main.osd.show('CONNECT '+ data.name, 'fas fa-info-circle faclr-red', 'debug2', 'normal')
             }
-            this.animating = true
+            this.transitioning = true
             this.bindStateListener()
             if(this.isTryOtherDlgActive()){
                 main.menu.endModal()
@@ -1704,9 +1666,9 @@ export class StreamerClient extends StreamerClientController {
             this.start(src, mimetype, cookie, mediatype)
             main.osd.hide('streamer')
             setTimeout(() => {
-                this.animating = false
-                this.emit('animated')
-                this.emit('animated') // should call it twice
+                this.transitioning = false
+                this.emit('transitioned')
+                this.emit('transitioned') // should call it twice
             }, 150)  
         })
         main.on('transcode-starting', state => { // used to wait for transcoding setup when supported codec is found on stream

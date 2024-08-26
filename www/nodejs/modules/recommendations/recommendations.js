@@ -1,25 +1,236 @@
 import menu from '../menu/menu.js'
 import lang from "../lang/lang.js"
 import storage from '../storage/storage.js'
-import lists from "../lists/lists.js"
 import mega from "../mega/mega.js"
 import config from "../config/config.js"
 import { ts2clock, time } from "../utils/utils.js"
-import { ready } from '../bridge/bridge.js'
 import { EventEmitter } from 'events'
 import PQueue from 'p-queue'
+import renderer from '../bridge/bridge.js'
+import fs from 'fs'
+
+class Tags extends EventEmitter{
+    constructor() {
+        super()
+        this.caching = {programmes: {}, trending: {}}
+        this.defaultTagsCount = 1024
+        this.filterTagsRegex = new RegExp('[a-z]', 'i')
+        this.resetQueue = new PQueue({concurrency: 1})
+        global.channels.history.epg.on('change', () => this.historyUpdated())
+        global.channels.watching.on('update', () => this.trendingUpdated())
+        global.channels.ready().then(() => this.reset()).catch(console.error)
+    }
+    async reset() {
+        if(this.resetQueue.size) {
+            return await this.resetQueue.onIdle()
+        }
+        return await this.resetQueue.add(async () => {
+            await this.historyUpdated()
+            await this.trendingUpdated()
+        })
+    }
+    filterTag(tag) {
+        return tag && tag.length > 2 && (tag.length > 4 || tag.match(this.filterTagsRegex)) // not a integer
+    }
+    filterTags(tags) {
+        if(Array.isArray(tags)) {
+            return tags.filter(t => this.filterTag(t))
+        } else {
+            for(const k in tags) {
+                if(!this.filterTag(k)) {
+                    delete tags[k]
+                }
+            }
+            return tags
+        }
+    }
+    prepare(data, limit) {
+        const maxWords = 3
+        return Object.fromEntries(
+            Object.entries(data)
+                .filter(([key, value]) => key.split(' ').length <= maxWords)
+                .sort(([, valueA], [, valueB]) => valueB - valueA) 
+                .slice(0, limit)
+        )
+    }
+    async historyUpdated() {
+        const data = {}
+        global.channels.history.epg.data.slice(-6).forEach(row => {
+            const name = row.originalName || row.name
+            const category = global.channels.getChannelCategory(name)
+            if (category) {
+                if (typeof (data[category]) == 'undefined') {
+                    data[category] = 0
+                }
+                data[category] += row.watched.time
+            }
+        })
+        const pp = Math.max(...Object.values(data)) / 100
+        Object.keys(data).forEach(k => data[k] = data[k] / pp)
+        
+        const data0 = {}
+        for(const row of global.channels.history.epg.data.slice(-6)) {
+            const cs = row.watched ? row.watched.categories : []
+            const name = row.originalName || row.name
+            const cat = global.channels.getChannelCategory(name)
+            if (cat && !cs.includes(cat)) {
+                cs.push(cat)
+            }
+            if (row.groupName && !cs.includes(row.groupName)) {
+                cs.push(row.groupName)
+            }            
+            cs.length && [...new Set(cs)].forEach(category => {
+                if (category) {
+                    let lc = category.toLowerCase()
+                    if (typeof (data0[lc]) == 'undefined') {
+                        data0[lc] = 0
+                    }
+                    data0[lc] += row.watched ? row.watched.time : 180
+                }
+            })
+        }
+        const pp0 = Math.max(...Object.values(data0)) / 100
+        Object.keys(data0).forEach(k => data0[k] = data0[k] / pp0)
+        
+        for(const k in data) {
+            if(data0[k]) {
+                data0[k] = Math.max(data0[k], data[k])
+            } else {
+                data0[k] = data[k]
+            }
+        }
+        this.caching.programmes = await this.expand(this.filterTags(data0))
+    }
+    async trendingUpdated() {
+        let watchingPromise = true
+        if(!global.channels.watching.currentRawEntries) {
+            watchingPromise = global.channels.watching.getRawEntries()
+        }
+        let searchPromise = this.searchSuggestionEntries || global.channels.search.searchSuggestionEntries().then(data => this.searchSuggestionEntries = data)
+        await Promise.allSettled([watchingPromise, searchPromise]).catch(console.error)
+
+        const map = {}
+        if(Array.isArray(global.channels.watching.currentRawEntries)) {
+            const data = global.channels.watching.currentRawEntries
+            for(const e of data) {
+                const terms = global.channels.entryTerms(e)
+                terms.forEach(t => {
+                    if(t.startsWith('-')) return
+                    if(typeof(map[t]) == 'undefined') {
+                        map[t] = 0
+                    }
+                    if(typeof(map[t]) == 'number') { // do not mess object methods
+                        map[t] += e.users
+                    }
+                })
+            } 
+        }
+
+        if(Array.isArray(this.searchSuggestionEntries)) {
+            console.log('trendingUpdated() 1')
+            for(const e of this.searchSuggestionEntries) {
+                const t = e.search_term
+                if(t.startsWith('-')) continue
+                if(typeof(map[t]) == 'undefined') {
+                    map[t] = 0
+                }
+                if(typeof(map[t]) == 'number') { // do not mess object methods
+                    map[t] += e.cnt
+                }
+            }
+        }
+
+        console.log('trendingUpdated() 2')
+        const pp = Math.max(...Object.values(map)) / 100
+        Object.keys(map).forEach(k => map[k] = map[k] / pp)
+        this.caching.trending = await this.expand(this.filterTags(map))
+    }
+    async expand(tags) {
+        let additionalTags = {}            
+        const limit = this.defaultTagsCount
+        const additionalLimit = limit - Object.keys(tags).length
+        console.log('rec.tags() 1')
+        const expandedTags = await global.lists.epgExpandRecommendations(Object.keys(tags))
+        
+        console.log('rec.tags() 2')
+        if (expandedTags) {
+            Object.keys(expandedTags).forEach(term => {
+                const score = tags[term]
+                expandedTags[term].forEach(t => {
+                    if (tags[t])
+                        return
+                    if (typeof (additionalTags[t]) == 'undefined') {
+                        additionalTags[t] = 0
+                    }  
+                    additionalTags[t] += score / 2
+                })
+            })
+            additionalTags = this.prepare(this.filterTags(additionalTags), additionalLimit)
+            Object.assign(tags, additionalTags)
+        }
+        return tags
+    }
+    async get(limit) {
+        if(typeof(limit) != 'number') {
+            limit = this.defaultTagsCount
+        }
+        console.log('rec.tags() 0')
+        const programmeTags = this.prepare(this.caching.programmes, limit)
+        if (Object.keys(programmeTags).length < limit) {
+            console.log('rec.tags() 3')
+            Object.assign(programmeTags, this.caching.trending)
+        }
+        console.log('rec.tags() 4')
+        return this.prepare(programmeTags, limit)
+    }
+}
 
 class Recommendations extends EventEmitter {
     constructor() {
         super()
-        this.limit = 36
-        this.queue = new PQueue({concurrency: 1})
+        this.readyState = 0
+        this.updateIntervalMs = 300000 // 5min
+        this.tags = new Tags()
+        this.queue = new PQueue({concurrency: 4})
+        this.updaterQueue = new PQueue({concurrency: 1})
+        this.channelsLoaded = false
+        this.epgLoaded = false
+        this.someListLoaded = false
+        this.listsLoaded = false
+        this.cacheKey = 'epg-suggestions-featured-0'
+        renderer.ready(() => {
+            global.lists.on('list-loaded', () => {
+                if(!this.someListLoaded && this.readyState < 4) {
+                    this.someListLoaded = true
+                    this.scheduleUpdate()
+                }
+            })
+            global.lists.manager.waitListsReady().then(async () => {
+                this.listsLoaded = true
+                await this.tags.reset()
+                this.scheduleUpdate()
+            }).catch(console.error)
+            global.channels.on('epg-loaded', async () => {
+                this.epgLoaded || storage.delete(this.cacheKey)
+                this.epgLoaded = true
+                await this.tags.reset()
+                this.scheduleUpdate()
+            })
+            global.channels.ready().then(async () => {
+                this.channelsLoaded = true
+                await this.tags.reset()
+                this.scheduleUpdate()                
+            }).catch(console.error)
+        })
+        this.timer = setInterval(() => this.scheduleUpdate(), this.updateIntervalMs)
     }
-    async suggestions(categories, until) {
-        let data = await lists.epgRecommendations(categories, until, 512)
-        return await this.validateChannels(data)
+    async scheduleUpdate() {
+        return this.queue.size || this.updaterQueue.add(async () => {
+            await this.update().catch(console.error)
+        })
     }
-    async validateChannels(data) {        
+    /*
+    async validateChannels(data) {
         let chs = {}
         Object.keys(data).forEach(ch => {
             let channel = global.channels.isChannel(ch)
@@ -30,10 +241,12 @@ class Recommendations extends EventEmitter {
             }
         })
         let alloweds = []
-        await Promise.allSettled(Object.keys(chs).map(async (name) => {
-            const channelMappedTo = await lists.epgFindChannel(chs[name])
-            if (channelMappedTo)
-                alloweds.push(channelMappedTo)
+        await Promise.allSettled(Object.keys(chs).map(async name => {
+            return this.queue.add(async () => {
+                const channelMappedTo = await global.lists.epgFindChannel(chs[name])
+                if (channelMappedTo)
+                    alloweds.push(channelMappedTo)
+            })
         }))
         Object.keys(data).forEach(ch => {
             if (!alloweds.includes(ch)) {
@@ -42,142 +255,142 @@ class Recommendations extends EventEmitter {
         })
         return data
     }
-    mapDataToChannels(data) {
-        let results = []
+    */
+    processEPGRecommendations(data) {
+        const results = [], already = new Set()
         Object.keys(data).forEach(ch => {
             let channel = global.channels.isChannel(ch)
             if (channel) {
+                if(already.has(channel.name)) return
+                already.add(channel.name)
                 Object.keys(data[ch]).forEach(start => {
-                    const r = {
+                    results.push({
                         channel,
                         labels: data[ch][start].c,
                         programme: data[ch][start],
                         start: parseInt(start),
                         och: ch
-                    }
-                    results.push(r)
+                    })
                 })
             }
         })
         return results
     }
-    prepareCategories(data, limit) {
-        const maxWords = 3, ndata = {}
-        Object.keys(data).filter(k => {
-            return k.split(' ').length <= maxWords
-        }).sort((a, b) => {
-            return data[b] - data[a]
-        }).slice(0, limit).forEach(k => {
-            ndata[k] = data[k]
-        })
-        return ndata
-    }
-    async tags(limit) {
-        const programmeCategories = this.prepareCategories(this.programmeCategories(), limit)
-        if (Object.keys(programmeCategories).length < limit) {
-            let additionalCategories = {}            
-            const additionalLimit = limit - Object.keys(programmeCategories).length
-            const expandedCategories = await lists.epgExpandRecommendations(Object.keys(programmeCategories))
-            if (expandedCategories) {
-                Object.keys(expandedCategories).forEach(term => {
-                    const score = programmeCategories[term]
-                    expandedCategories[term].forEach(t => {
-                        if (programmeCategories[t])
-                            return
-                        if (typeof (additionalCategories[t]) == 'undefined') {
-                            additionalCategories[t] = 0
-                        }
-                        additionalCategories[t] += score / 2
-                    })
-                })
-                additionalCategories = this.prepareCategories(additionalCategories, additionalLimit)
-                Object.assign(programmeCategories, additionalCategories)
-            }
-        }
-        return this.prepareCategories(programmeCategories)
-    }
-    async get() {
+    async get(tags, amount=128) {
         const now = (Date.now() / 1000)
-        const timeRange = 24 * 3600
+        const timeRange = 3 * 3600
         const timeRangeP = timeRange / 100
         const until = now + timeRange
-        const amount = ((config.get('view-size-x') * config.get('view-size-y')) * 2) - 3
-        const tags = await this.tags(64)
-        let data = await this.suggestions(tags, until)
+        if(!tags) {
+            tags = await this.tags.get()
+        }
+        let data = await global.lists.epgRecommendations(tags, until, amount * 4)
+
+        const interests = new Set()
+        global.channels.history.get().some(e => {
+            const c = global.channels.isChannel(e)
+            if(c) {
+                interests.add(c.name)
+                return true
+            }
+        })
+        if(channels.watching.currentEntries && channels.watching.currentEntries.length) {
+            global.channels.watching.currentEntries.some(e => {
+                if(e.type != 'select') return
+                interests.add(e.originalName || e.name)
+                return true
+            })
+        }
+        
+        console.log(JSON.stringify({interests}))
+
         // console.log('suggestions.get', tags)
-        let results = this.mapDataToChannels(data)
+        let maxScore = 0, results = this.processEPGRecommendations(data)
         results = results.map(r => {
             let score = 0
+            
             // bump programmes by categories amount and relevance
             r.programme.c.forEach(l => {
                 if (tags[l]) {
                     score += tags[l]
                 }
             })
+            
             // bump programmes starting earlier
             let remainingTime = r.start - now
             if (remainingTime < 0) {
                 remainingTime = 0
             }
             score += 100 - (remainingTime / timeRangeP)
+
+            // bump+ last watched and most trending programme
+            if(interests.has(r.channel.name)) {
+                score += 500
+            }
+
             r.score = score
+            if (score > maxScore) maxScore = score
             return r
         })
+
         // remove repeated programmes
-        let already = {}
-        results = results.sortByProp('start').filter(r => {
-            if (typeof (already[r.programme.t]) != 'undefined')
-                return false
-            already[r.programme.t] = null
-            return true
-        }).sortByProp('score', true)
+        console.log('RGET RESULTS', results.length) 
+        let nresults = [], already = new Set()
+        results = results.sortByProp('score', true) // sort before equilibrating
+        
+        for(const r of results) {
+            if (already.has(r.programme.t)) continue
+            already.add(r.programme.t)
+            const c = global.channels.epgPrepareSearch(r.channel)
+            const valid = await global.lists.epgValidateChannelProgramme(c, r.start, r.programme.t).catch(console.error)
+            valid === true && nresults.push(r)
+        }
+        console.log('RGET RESULTS', results.length) 
+        results = nresults
+        nresults = []
+        
+        console.log('RGET RESULTS', results.length) 
+
         // equilibrate categories presence
         if (results.length > amount) {
-            const quotas = {}
             let total = 0
+            const quotas = {}
             Object.values(tags).forEach(v => total += v)
             Object.keys(tags).forEach(k => {
                 quotas[k] = Math.max(1, Math.ceil((tags[k] / total) * amount))
             })
-            let nresults = []
             while (nresults.length < amount) {
                 let added = 0
                 const lquotas = Object.assign({}, quotas)
                 nresults.push(...results.filter((r, i) => {
-                    if (!r)
-                        return
-                    if (r.programme.c.filter(cat => {
-                        if (lquotas[cat]) {
+                    if (!r) return
+                    for (const cat of r.programme.c) {
+                        if (lquotas[cat] > 0) {
                             added++
                             lquotas[cat]--
                             results[i] = null
                             return true
                         }
-                    }).length) {
-                        return true
                     }
                 }))
                 //console.log('added', added, nresults.length)
-                if (!added)
-                    break
+                if (!added) break
             }
             if (nresults.length < amount) {
                 nresults.push(...results.filter(r => r).slice(0, amount - nresults.length))
             }
             results = nresults
         }
+        console.log('RGET RESULTS', results.length) 
+
         // transform scores to percentages
-        let maxScore = 0
-        results.forEach(r => {
-            if (r.score > maxScore)
-                maxScore = r.score
-        })
         let ppScore = maxScore / 100
         results.forEach((r, i) => {
             results[i].st = Math.min(r.start < now ? now : r.start)
             results[i].score /= ppScore
         })
-        return results.slice(0, amount).sortByProp('score', true).sortByProp('st').map(r => {
+
+        return results.sortByProp('score', true).slice(0, amount).sortByProp('st').map(r => {
             const entry = global.channels.toMetaEntry(r.channel)
             entry.programme = r.programme
             entry.name = r.programme.t
@@ -202,71 +415,100 @@ class Recommendations extends EventEmitter {
             return entry
         })
     }
-    channelsCategories() {
-        const data = {}
-        global.channels.history.data.slice(-6).forEach(row => {
-            const name = row.originalName || row.name
-            const category = global.channels.getChannelCategory(name)
-            if (category) {
-                if (typeof (data[category]) == 'undefined') {
-                    data[category] = 0
-                }
-                data[category] += row.watched.time
-            }
-        })
-        const pp = Math.max(...Object.values(data)) / 100
-        Object.keys(data).forEach(k => data[k] = data[k] / pp)
-        return data
+    hasEPG() {
+        return global.activeEPG && global.channels.loadedEPG
     }
-    programmeCategories() {
-        const data = {}
-        global.channels.history.data.slice(-6).forEach(row => {
-            const cs = row.watched ? row.watched.categories : []
-            const name = row.originalName || row.name
-            const cat = global.channels.getChannelCategory(name)
-            if (cat && !cs.includes(cat)) {
-                cs.push(cat)
-            }
-            if (row.groupName && !cs.includes(row.groupName)) {
-                cs.push(row.groupName)
-            }            
-            cs.unique().forEach(category => {
-                if (category) {
-                    let lc = category.toLowerCase()
-                    if (typeof (data[lc]) == 'undefined') {
-                        data[lc] = 0
+    async hasEPGChannel(ch, withIcon) {     
+        const terms = global.channels.entryTerms(ch).filter(t => !t.startsWith('-'))
+        const results = await global.lists.epgSearchChannel(terms, 99)
+        return Object.keys(results).some(name => {
+            if(results[name]) {
+                const keys = Object.keys(results[name])
+                if(keys.length) {
+                    if(!withIcon || (results[name][keys[0]].i && results[name][keys[0]].i.length > 10)) {
+                        return true
                     }
-                    data[lc] += row.watched ? row.watched.time : 180
                 }
-            })
-        })
-        const pp = Math.max(...Object.values(data)) / 100
-        Object.keys(data).forEach(k => data[k] = data[k] / pp)
-        return data
-    }
-    async getChannels(amount = 5, excludes = []) {        
-        const results = []
-        const watchingIndex = (global.channels.watching.currentEntries || []).map(n => global.channels.isChannel(n.name)).filter(n => n)
-        for (const e of watchingIndex) {
-            const name = e.originalName || e.name
-            const result = await lists.has([e])
-            if (result[name] && !excludes.includes(name)) {
-                results.push(e)
-                if (results.length >= amount)
-                    break
             }
+        })
+    }
+    async getChannels(amount=5, _excludes=[]) {
+        const excludes = new Set(_excludes)
+        const results = [], epgAvailable = this.hasEPG()
+        const isChannelCache = {}, validateCache = {}, hasEPGCache = {}
+        const channel = e => {
+            const name = typeof(e) == 'string' ? e : (e.originalName || e.name)
+            if (typeof(isChannelCache[name]) == 'undefined') {
+                isChannelCache[name] = false
+                if (name && !excludes.has(name)) {
+                    const e = global.channels.isChannel(name)
+                    if (e) {
+                        isChannelCache[name] = e
+                    }
+                }
+            }
+            return isChannelCache[name]
         }
-        if (results.length < amount) {
-            for (const name of this.shuffledIndex()) {
-                const e = global.channels.isChannel(name)
-                if (!e)
-                    continue
-                const result = await lists.has([{ name: e.name, terms: e.terms }])
-                if (result[name] && !excludes.includes(name)) {
-                    results.push(e)
+        const validate = async e => {
+            const name = typeof(e) == 'string' ? e : (e.originalName || e.name)
+            if (typeof(validateCache[name]) == 'undefined') {
+                validateCache[name] = false
+                if (name && !excludes.has(name)) {
+                    const c = channel(e)
+                    if (c) {
+                        const result = await global.lists.has([{ name: c.name, terms: c.terms }])
+                        if(result[c.name]) {
+                            validateCache[name] = c
+                            if(name != c.name) {
+                                validateCache[c.name] = c
+                            }
+                            return c // return here to prevent name x c.name confusion
+                        }
+                    }
+                }
+            }
+            return validateCache[name]
+        }
+        const hasEPG = async (e, icon) => {
+            if(!epgAvailable) return true
+            const name = typeof(e) == 'string' ? e : (e.originalName || e.name)
+            const key = name + (icon ? '-icon' : '')
+            if (typeof(hasEPGCache[key]) == 'undefined') {
+                let err
+                hasEPGCache[key] = await this.hasEPGChannel(e, icon).catch(e => err = e)
+                if(err) {
+                    hasEPGCache[key] = false
+                }
+            }
+            return hasEPGCache[key]
+        }
+        const watchingIndex = (global.channels.watching.currentEntries || []).map(n => channel(n)).filter(n => n)
+        for (const e of watchingIndex) {
+            const valid = await validate(e).catch(console.error)
+            if (valid !== false) {
+                if(await hasEPG(valid, true)) {
+                    results.push(valid)
                     if (results.length >= amount)
                         break
                 }
+            }
+        }
+        if (results.length < amount) {
+            let maybes = []
+            for (const name of this.shuffledIndex()) {
+                const valid = await validate(name).catch(console.error)
+                if (valid !== false) {
+                    if(await hasEPG(valid, true)) {
+                        results.push(valid)
+                        if (results.length == amount)
+                            break
+                    } else {
+                        maybes.push(valid)
+                    }
+                }
+            }
+            if (results.length < amount) {
+                results.push(...maybes.slice(0, amount - results.length))
             }
         }
         return results.map(e => {
@@ -277,29 +519,31 @@ class Recommendations extends EventEmitter {
         })
     }
     shuffle(arr) {
-        return arr.map(value => ({ value, sort: Math.random() }))
-            .sort((a, b) => a.sort - b.sort)
-            .map(({ value }) => value)
+        const names = global.channels.history.get().map(e => (e.originalName || e.name))
+        if(global.channels.watching.currentRawEntries) {
+            names.push(...global.channels.watching.currentRawEntries.map(e => e.name))
+        }
+        const known = new Set(names)
+        return arr.map(value => {
+            const sort = known.has(value) ? 1 : (Math.random() * 0.9)
+            return {value, sort}
+        }).sortByProp('sort', true).map(({value}) => value)
     }
     shuffledIndex() {
         const index = global.channels.channelList.channelsIndex
-        const hash = Object.keys(global.channels.channelList.channelsIndex).join('|')
+        const hash = Object.keys(global.channels.channelList.channelsIndex).join('|') +':'+ typeof(global.channels.watching.currentRawEntries)
         if(!this._shuffledIndex || this._shuffledIndex.hash != hash) { // shuffle once per run on each channelList
             this._shuffledIndex = {hash, index: this.shuffle(Object.keys(index))}
         }
         return this._shuffledIndex.index
     }
-    async entry() {
-        return {
-            name: lang.RECOMMENDED_FOR_YOU,
-            fa: 'fas fa-solid fa-thumbs-up',
-            type: 'group',
-            hookId: 'recommendations',
-            renderer: this.entries.bind(this)
+    async entries(vod) {
+        let es
+        if(vod === true) {
+            es = await global.lists.multiSearch(await this.tags.get(), {limit: 256, type:'video', group: false, typeStrict: true})
+        } else {
+            es = await this.get(null, 256).catch(console.error)
         }
-    }
-    async entries() {
-        let es = await this.get().catch(console.error)
         if (!Array.isArray(es)) {
             es = []
         }
@@ -353,7 +597,7 @@ class Recommendations extends EventEmitter {
                 }
             })
         }
-        if (es.length) {
+        if (vod !== true && es.length) {
             es.push({
                 name: lang.WATCHED,
                 fa: 'fas fa-history',
@@ -363,71 +607,150 @@ class Recommendations extends EventEmitter {
         }
         return es
     }
-    async featuredEntries(amount = 5, excludes = []) {
-        const key = 'epg-suggestions-featured-0'
-        let es = [], tmpkey = key
+    async update() {
+        const time = () => Date.now() / 1000
+        const amount = 36, start = time()
+        const uid = parseInt(Math.random() * 10000)
+        let es = [], tmpkey = this.cacheKey
         if(global.channels && global.channels.channelList) {
             tmpkey += global.channels.channelList.key
         }
-        await this.queue.add(async () => { // avoid concurrency on processing
-            if(this.featuredEntriesCache && this.featuredEntriesCache.key == tmpkey && this.featuredEntriesCache.ttl >= time() && this.featuredEntriesCache.data.length >= amount) {
-                es = this.featuredEntriesCache.data
-                return
-            }
-            this.featuredEntriesCache = 'generating'
-            es = await storage.get(key).catch(console.error)
-            if (!es || !es.length) {
-                es = await this.get().catch(console.error)
-                if (Array.isArray(es) && es.length) {
-                    if (es.some(n => n.programme.i)) { // prefer entries with icons
-                        es = es.filter(n => n.programme.i)
-                    }
-                    storage.set(key, es, { ttl: 60 })
-                } else es = []
-            }
-            es = es.filter(e => {
-                const name = e.originalName || e.name
-                return !excludes.includes(name)
-            })
-            if (es.length < amount) {
-                let nwes = await this.getChannels(amount - es.length, excludes)
-                es.push(...nwes)
-            }
+        let tags, channels
+        console.log('recommentations.update() '+ uid +' 3 '+ (time() - start) +'s')
+        es = await storage.get(this.cacheKey).catch(console.error)
+        console.log('recommentations.update() '+ uid +' 4 '+ (time() - start) +'s')
+        if (es && es.length) {
             es = es.map(e => global.channels.toMetaEntry(e))
-            es = await global.channels.epgChannelsAddLiveNow(es, false)
-            this.featuredEntriesCache = {
-                data: es,
-                key: tmpkey,
-                ttl: time() + 120
+        } else {
+            channels = await this.getChannels(amount, []) // weak recommendations for now, as EPG may take some time to process
+            if(channels.length) {
+                channels = channels.map(e => global.channels.toMetaEntry(e))
+                this.featuredEntriesCache = {
+                    data: channels,
+                    key: tmpkey,
+                    ttl: time() + this.updateIntervalSecs
+                }
+                if(this.readyState < 1) {
+                    global.menu.updateHomeFilters()
+                    this.readyState = 1
+                }
+                this.featuredEntriesCache.data = channels = await global.channels.epgChannelsAddLiveNow(channels, false)
+                if(this.readyState < 2) {
+                    global.menu.updateHomeFilters()
+                    this.readyState = 2
+                }
             }
-        })
-        return es.slice(0, amount)
+
+            tags = await this.tags.get()
+            console.log('recommentations.update() '+ uid +' 4.5 '+ (time() - start) +'s')
+            es = await this.get(tags, 128).catch(console.error)
+            console.log('recommentations.update() '+ uid +' 4.6 '+ (time() - start) +'s')
+            if (Array.isArray(es) && es.length) {
+                if (es.some(n => n.programme.i)) { // prefer entries with icons
+                    es = es.filter(n => n.programme.i)
+                }
+                storage.set(this.cacheKey, es, {
+                    ttl: this.updateIntervalSecs
+                })
+            } else es = []
+        }
+        console.log('recommentations.update() '+ uid +' 5 '+ (time() - start) +'s')
+        if (es.length < amount) {
+            if(channels) {
+                channels = await global.channels.epgChannelsAddLiveNow(channels.slice(amount - es.length), false)
+                es.push(...channels)
+            } else {
+                channels = await this.getChannels(amount - es.length, es.map(e => (e.originalName || e.name)))
+                channels = channels.map(e => global.channels.toMetaEntry(e))
+                channels = await global.channels.epgChannelsAddLiveNow(channels, false)
+                es.push(...channels)
+            }
+        }
+
+        /*
+        console.log('recommentations.update() '+ uid +' 7 '+ (time() - start) +'s')
+        if (es.length < amount) {
+            if(tags) {
+                tags = this.tags.prepare(tags, 24)
+            } else {
+                console.log('recommentations.update() '+ uid +' 7.5 '+ (time() - start) +'s')
+                tags = await this.tags.get(24)
+            }
+            console.log('recommentations.update() '+ uid +' 8 '+ (time() - start) +'s, '+ Object.keys(tags).length +' tags') 
+            const nwes = await global.lists.multiSearch(tags, {
+                group: false,
+                limit: amount - es.length,
+                type: 'video',
+                typeStrict: true
+            })
+            es.push(...nwes)
+            console.log('recommentations.update() '+ uid +' 9 '+ (time() - start) +'s')
+        }
+        */
+
+        console.log('recommentations.update() '+ uid +' 10 '+ (time() - start) +'s')
+        this.featuredEntriesCache = {
+            data: es,
+            key: tmpkey,
+            ttl: time() + 120
+        }
+        
+        this.readyState = (this.channelsLoaded && this.epgLoaded && this.listsLoaded) ? 4 : 3
+        global.menu.updateHomeFilters()        
+    }
+    async featuredEntries(amount = 5) {
+        return (this.featuredEntriesCache && this.featuredEntriesCache.data) ? this.featuredEntriesCache.data.slice(0, amount) : []
     }
     async hook(entries, path) {
         if (path == lang.LIVE) {
-            const entry = await this.entry()
+            const entry = {
+                name: lang.RECOMMENDED_FOR_YOU,
+                fa: 'fas fa-solid fa-thumbs-up',
+                type: 'group',
+                details: lang.LIVE,
+                hookId: 'recommendations',
+                renderer: this.entries.bind(this, false)
+            }
+            if (entries.some(e => e.hookId == entry.hookId)) {
+                entries = entries.filter(e => e.hookId != entry.hookId)
+            }
+            entries.unshift(entry)
+        } else if (path == lang.CATEGORY_MOVIES_SERIES) {
+            const entry = {
+                name: lang.RECOMMENDED_FOR_YOU,
+                fa: 'fas fa-solid fa-thumbs-up',
+                type: 'group',
+                details: lang.CATEGORY_MOVIES_SERIES,
+                hookId: 'recommendations',
+                renderer: this.entries.bind(this, true)
+            }
             if (entries.some(e => e.hookId == entry.hookId)) {
                 entries = entries.filter(e => e.hookId != entry.hookId)
             }
             entries.unshift(entry)
         } else if (!path) {
-            const amount = 3, hookId = 'recommendations'
-            entries = entries.filter(e => e.hookId != hookId)
-            const excludes = entries.map(e => (e.originalName || e.name))
-            let recommendations = await this.featuredEntries(amount, excludes)
-            if (recommendations.length < amount) {
-                const e = { name: ' ', fa: 'fa-mega', class: 'entry-disabled landscape-only', type: 'action', action: () => {
-                        menu.open(lang.LIVE).catch(console.error)
-                    } }
-                while (recommendations.length < amount) {
-                    recommendations.push(Object.assign({}, e))
-                }
+            const viewSizeX = config.get('view-size').landscape.x
+            const viewSizeY = config.get('view-size').landscape.y
+            const hookId = 'recommendations'
+            const pageCount = config.get('home-recommendations') || 0
+            
+            entries = entries.filter(e => (e && e.hookId != hookId))
+            
+            let amount = (pageCount * (viewSizeX * viewSizeY)) - 1 // -1 due to 'entry-2x' size entry
+            let metaEntriesCount = entries.filter(e => e.side == true && e.name != lang.RECOMMENDED_FOR_YOU).length
+
+            let err, recommendations = await this.featuredEntries(amount - metaEntriesCount).catch(e => err = e)
+            if (err) {
+                console.error('Recommendations hook error', err)
+                recommendations = []
             }
+
             recommendations = recommendations.map(e => {
                 e.hookId = hookId
                 return e
-            })
-            entries.unshift(...recommendations)
+            }) // -1 due to 'entry-2x' size entry
+            entries = [...recommendations, ...entries]
+            //console.error('FEATURED ENTRIES ADDED='+ JSON.stringify({rLength: recommendations.length, amount, metaEntriesCount, rAmount, length: entries.length}, null, 3))
         }
         return entries
     }

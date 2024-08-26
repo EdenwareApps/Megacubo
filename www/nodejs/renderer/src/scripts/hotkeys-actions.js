@@ -38,7 +38,7 @@ export const hotkeysActions = {
         }, 'up', true
     ],
     'ESCAPE': [
-        () => {
+        () => {            
             main.hotkeys.escapePressed()
         }, 'up', true
     ],
@@ -99,6 +99,7 @@ export const hotkeysActions = {
     ],
     'SEARCH': [
         () => {
+            main.omni.show()
             main.omni.focus()
         }, 'up', true
     ],

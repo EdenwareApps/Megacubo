@@ -144,10 +144,12 @@ class StreamInfo {
         });
     }
     async readFilePartial(filePath, length) {
-        const fileHandle = await fs.promises.open(filePath, 'r');
+        let err
+        const fd = await fs.promises.open(filePath, 'r');
         const buffer = Buffer.alloc(length);
-        const { bytesRead } = await fileHandle.read(buffer, 0, length, 0);
-        fileHandle.close().catch(console.error);
+        const { bytesRead } = await fd.read(buffer, 0, length, 0).catch(e => err = e)
+        fd.close().catch(console.error)
+        if(err) throw err
         return buffer.slice(0, bytesRead);
     }
     async probe(url, retries = 2, opts = {}) {

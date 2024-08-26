@@ -197,8 +197,7 @@ class Search extends EventEmitter {
         });
         return lists.tools.sort(entries);
     }
-    async search(terms, atts = {}) {
-        
+    async search(terms, atts = {}) {        
         const policy = config.get('parental-control');
         const parentalControlActive = ['remove', 'block'].includes(policy);
         const isAdultQueryBlocked = policy == 'remove' && !lists.parentalControl.allow(terms);
@@ -212,7 +211,6 @@ class Search extends EventEmitter {
         Object.assign(opts, atts);
         console.log('will search', terms, opts);
         let es = await lists.search(terms, opts);
-        es = (es.results && es.results.length) ? es.results : ((es.maybe && es.maybe.length) ? es.maybe : []);
         console.log('has searched', terms, es.length, parentalControlActive, isAdultQueryBlocked);
         if (isAdultQueryBlocked) {
             es = [
@@ -228,13 +226,11 @@ class Search extends EventEmitter {
                 }
             ];
         } else {
-            this.currentResults = es.slice(0);
-            let minResultsWanted = (config.get('view-size-x') * config.get('view-size-y')) - 3;
+            this.currentResults = es.slice(0)
+            const minResultsWanted = 256
             if (config.get('search-youtube') && es.length < minResultsWanted) {
-                let ys = await this.ytResults(lists.tools.terms).catch(console.error);
-                if (Array.isArray(ys)) {
-                    es.push(...ys);
-                }
+                let ys = await this[this.searchMediaType == 'live' ? 'ytLiveResults' : 'ytResults'](terms).catch(console.error);
+                Array.isArray(ys) && es.push(...ys)
             }
             if (es.length) {
                 es = lists.parentalControl.filter(es);
@@ -283,7 +279,7 @@ class Search extends EventEmitter {
             }
         };
         const results = await ytsr(filter.url, options);
-        return results.items.filter(t => t && !t.isLive).map(t => {
+        return results.items.filter(t => t && !t.isLive && t.url).map(t => {
             let icon = t.thumbnails ? t.thumbnails.sortByProp('width').shift().url : undefined;
             return {
                 name: this.fixYTTitles(t.title),
@@ -293,13 +289,12 @@ class Search extends EventEmitter {
             };
         });
     }
-    async ytLiveResults(tms) {
-        
+    async ytLiveResults(tms) {        
         if (!Array.isArray(tms)) {
-            tms = lists.tools.terms(tms);
+            tms = lists.tools.terms(tms)
         }
         let terms = tms.join(' ');
-        terms += ' (' + lang.LIVE + ' OR 24h)';
+        terms += ' (' + lang.LIVE + ' OR 24h)'
         console.warn('YTSEARCH', terms);
         const filters = await ytsr.getFilters(terms);
         const filter = filters.get('Type').get('Video');
@@ -334,22 +329,25 @@ class Search extends EventEmitter {
             };
         });
     }
-    async channelsResults(terms) {
-        
-        let u = ucWords(terms);
+    async channelsResults(terms) {        
+        let u = ucWords(terms)
         this.currentSearch = {
             name: u,
             url: mega.build(u, { terms, mediaType: this.searchMediaType })
-        };
-        
+        }        
         if (!lists.loaded()) {
-            return [lists.manager.updatingListsEntry()];
+            return [
+                lists.manager.updatingListsEntry()
+            ]
         }
-        let es = await this.channels.searchChannels(terms, this.searchInaccurate);
-        es = es.map(e => this.channels.toMetaEntry(e));
-        const gs = await this.searchGroups(terms);
-        es.push(...gs.map(e => e));
-        let minResultsWanted = (config.get('view-size-x') * config.get('view-size-y')) - 3;
+
+        let es = await this.channels.searchChannels(terms, this.searchInaccurate)
+        es = es.map(e => this.channels.toMetaEntry(e))
+
+        const gs = await this.searchGroups(terms)
+        es.push(...gs.map(e => e))
+
+        const minResultsWanted = 256
         if (config.get('search-youtube') && es.length < minResultsWanted) {
             let ys = await this.ytLiveResults(terms).catch(console.error);
             if (Array.isArray(ys)) {
@@ -396,16 +394,16 @@ class Search extends EventEmitter {
     }
     async searchSuggestionEntries(removeAliases, countryOnly) {
         const limit = pLimit(3);
-        const ignoreKeywords = ['tv', 'hd', 'sd'];
-        let ret = {}, locs = await lang.getActiveCountries();
+        const ignoreKeywords = new Set(['tv', 'hd', 'sd'])
+        let ret = {}, locs = await lang.getActiveCountries()
         if (countryOnly && locs.includes(lang.countryCode)) {
             locs = [lang.countryCode];
         }
         const tasks = locs.map(loc => {
             return async () => {
-                const data = await cloud.get('searching.' + loc);
+                const data = await cloud.get('searches/' + loc)
                 data.forEach(row => {
-                    if (ignoreKeywords.includes(row.search_term))
+                    if (ignoreKeywords.has(row.search_term))
                         return;
                     let count = parseInt(row.cnt);
                     if (typeof (ret[row.search_term]) != 'undefined')
@@ -415,8 +413,13 @@ class Search extends EventEmitter {
             };
         }).map(limit);
         await Promise.allSettled(tasks);
-        ret = Object.keys(ret).map(search_term => {
-            return { search_term, cnt: ret[search_term] };
+        ret = Object.keys(ret).filter(search_term => {
+            return global.lists.parentalControl.allow(search_term)
+        }).map(search_term => {
+            return {
+                search_term,
+                cnt: ret[search_term]
+            }
         });
         if (countryOnly && !ret.length) {
             return this.searchSuggestionEntries(removeAliases, false);

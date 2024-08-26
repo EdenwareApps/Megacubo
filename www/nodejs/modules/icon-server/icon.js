@@ -33,22 +33,24 @@ class IconFetcher extends EventEmitter {
     }
     async fetchFromTerms() {
         if (!this.terms || !this.terms.length)
-            throw 'no terms, no url';
+            throw 'no terms, no url'
         let done;
         const images = await this.master.search(this.terms);
         if (this.master.opts.debug) {
             console.log('GOFETCH', images);
         }
-        const limit = pLimit(2);
+        const results = {}, limit = pLimit(2);
         const tasks = images.map(image => {
             return async () => {
                 if (image.icon.match(this.isNonAlphaRegex) && !image.icon.match(this.isAlphaRegex)) {
-                    return false; // non alpha url
+                    results[image.icon] = 'non alpha url'
+                    return false // non alpha url
                 }
                 if (done && !this.hasPriority(done.image, image, images)) {
                     if (this.master.opts.debug) {
                         console.log('ICON DOWNLOADING CANCELLED');
                     }
+                    results[image.icon] = 'already found and processed another image for this channel'
                     return false;
                 }
                 if (this.master.opts.debug) {
@@ -61,56 +63,58 @@ class IconFetcher extends EventEmitter {
                 }
                 const type = await this.master.validateFile(ret.file);
                 if (type != 2) {
+                    results[image.icon] = 'not an alpha png'
                     return false; // not an alpha png
                 }
                 if (done && !this.hasPriority(done.image, image, images)) {
                     if (this.master.opts.debug) {
                         console.warn('ICON ADJUSTING CANCELLED');
                     }
+                    results[image.icon] = '** already found and processed another image for this channel'
                     return false;
                 }
-                const ret2 = await this.master.adjust(ret.file, { shouldBeAlpha: true, minWidth: 100, minHeight: 100 });
+                const ret2 = await this.master.adjust(ret.file, { shouldBeAlpha: true, minWidth: 75, minHeight: 75 });
                 await this.master.saveHTTPCacheExpiration(key);
                 if (!done || this.hasPriority(done.image, image, images)) {
                     done = ret2;
-                    if (!done.key)
-                        done.key = key;
+                    if (!done.key) done.key = key
                     done.image = image;
                     done.url = this.master.url + done.key;
                     this.succeeded = true;
                     this.result = done;
+                    results[image.icon] = 'OK'
                     this.emit('result', done);
                 }
             };
         }).map(limit);
         await Promise.allSettled(tasks);
-        if (this.destroyed)
-            throw 'destroyed';
+        if (this.destroyed) throw 'destroyed'
         if (this.master.opts.debug) {
             console.log('GOFETCH', images, 'OK', done, this.destroyed);
         }
-        if (done) {
-            return done;
-        } else {
-            throw 'Couldn\'t find a logo for: ' + JSON.stringify(this.terms) + ' ' + JSON.stringify(images);
-        }
+        if (done) return done
+        throw 'Couldn\'t find a logo for: ' + JSON.stringify(this.terms) +"\r\n"+ JSON.stringify(results, null, 3)
     }
     async resolve() {
         if (this.entry.programme && this.entry.programme.i) {
             let err;
             const ret = await this.master.fetchURL(this.entry.programme.i).catch(e => err = e);
-            if (!err)
-                return [ret.key, true, ret.isAlpha];
+            if (!err) {
+                return [ret.key, true, ret.isAlpha]
+            }
         }
         if (this.entry.icon) {
             let err;
             const ret = await this.master.fetchURL(this.entry.icon).catch(e => err = e);
-            if (!err)
-                return [ret.key, true, ret.isAlpha];
+            if (!err) {
+                return [ret.key, true, ret.isAlpha]
+            } else if(this.entry.iconFallback) {
+                this.emit('failed')
+            }
         }
         if (!this.entry.class || this.entry.class.indexOf('entry-icon-no-fallback') == -1) {
             let atts;
-            this.terms = channels.entryTerms(this.entry);
+            this.terms = channels.entryTerms(this.entry, true)
             this.isChannel = channels.isChannel(this.terms);
             if (this.isChannel) {
                 this.terms = this.isChannel.terms;

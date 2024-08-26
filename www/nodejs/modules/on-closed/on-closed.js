@@ -1,28 +1,30 @@
 export default (function closed(req, response, source, cb, opts) {
-    let socket, timer = 0;
+    let socket, done, timer = 0;
     const delayedCallback = () => {
-        clearTimeout(timer);
-        timer = setTimeout(callback, 2000);
-    };
+        clearTimeout(timer)
+        timer = setTimeout(callback, 2000)
+    }
     const callback = () => {
         process.nextTick(() => {
-            clearTimeout(timer);
+            if (done) return
+            done = true
+            clearTimeout(timer)
             if (socket) {
-                socket.removeListener('close', delayedCallback);
-                socket = null;
-            }
-            req.removeListener('close', callback);
-            response.removeListener('socket', onSocket);
-            response.removeListener('end', callback);
-            if (source) {
                 source.removeListener('end', delayedCallback);
-                source.removeListener('close', callback);
+                socket.removeListener('close', delayedCallback)
+                source.close && source.close()
+                socket = null                
             }
+            req.removeListener('close', callback)
+            response.removeListener('socket', onSocket)
+            response.removeListener('end', callback)
+            response.end && response.end()
             if (cb) {
-                cb();
-                cb = null;
+                cb()
+                cb = null
             }
-        });
+            req.close && req.close()
+        })
     };
     const onSocket = () => {
         socket = response.socket;
@@ -30,18 +32,18 @@ export default (function closed(req, response, source, cb, opts) {
     };
     /* Prevent never-ending responses bug on v10.5.0. Is it needed yet? */
     if (response.socket) {
-        onSocket();
+        onSocket()
     } else {
-        response.once('socket', onSocket);
+        response.once('socket', onSocket)
     }
-    req.once('close', callback); // req disconnected
+    req.once('close', callback) // req disconnected
     if (response.ended) {
-        callback();
+        callback()
     } else {
-        response.once('end', callback); // req disconnected
+        response.once('end', callback) // req disconnected
     }
     if (source) {
-        source.once('end', delayedCallback);
-        source.once('close', callback);
+        source.once('end', delayedCallback)
+        source.once('close', callback)
     }
 });

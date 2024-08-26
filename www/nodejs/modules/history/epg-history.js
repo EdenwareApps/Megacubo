@@ -85,24 +85,24 @@ class EPGHistory extends EntriesGroup {
         const now = (Date.now() / 1000), data = this.currentStreamData()
         let nextRunTime = 0, info = await this.channels.epgChannelLiveNowAndNextInfo(data)
         if (info) {
-            info = Object.values(info);
+            info = Object.values(info)
             if (this.session && this.session.lastInfo) {
                 this.session.lastInfo.forEach(inf => {
                     if (!info.some(f => f.t == inf.t)) {
-                        info.unshift(inf);
+                        info.unshift(inf)
                     }
-                });
+                })
             }
-            let save;
+            let save
             info.forEach(f => {
-                data.watched = this.getWatchingTime(f);
+                data.watched = this.getWatchingTime(f)
                 if (data.watched && data.watched.time > this.minWatchingTime) {
                     const updated = this.data.some((entry, i) => {
                         if (entry.watched.name == data.watched.name) {
                             if (entry.watched.start == data.watched.start) {
-                                this.data[i] = this.cleanAtts(data);
-                                save = true;
-                                return true;
+                                this.data[i] = this.cleanAtts(data)
+                                save = true
+                                return true
                             } else {
                                 let diff = data.watched.start - entry.watched.end;
                                 if (diff < 120) {
@@ -118,23 +118,23 @@ class EPGHistory extends EntriesGroup {
                     if (!updated) {
                         save = false;
                         if (this.data.length >= this.limit) {
-                            this.data = this.data.slice(this.data.length - (this.limit - 1));
+                            this.data = this.data.slice(this.data.length - (this.limit - 1))
                         }
-                        this.add(data);
+                        this.add(data)
                         if (this.inSection() == 1) {
-                            menu.refreshNow();
+                            menu.refreshNow()
                         }
                     }
                 }
                 ;
                 [f.start, f.e].forEach(s => {
                     if (s > now && (!nextRunTime || s < nextRunTime)) {
-                        nextRunTime = s;
+                        nextRunTime = s
                     }
                 });
             });
             if (save) {
-                this.save(true);
+                this.save(true)
             }
         }
     }
@@ -144,7 +144,7 @@ class EPGHistory extends EntriesGroup {
             const end = Math.min((Date.now() / 1000), epgEntry.e);
             return {
                 start, end,
-                time: end - start,
+                time: Math.max(0, end - start),
                 name: epgEntry.t,
                 icon: epgEntry.i,
                 categories: epgEntry.c.unique()

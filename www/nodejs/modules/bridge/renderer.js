@@ -27,7 +27,7 @@ class BridgeClient extends EventEmitter {
 		this.once('main-ready', (config, lang) => {
 			this.isReady.main = true
 			this.config = config
-			this.lang = lang
+			this.localEmit('lang', lang)
 			this.localEmit('config', Object.keys(config), config)
 		})
 		if (window.capacitor) {

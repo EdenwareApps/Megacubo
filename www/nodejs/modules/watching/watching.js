@@ -7,7 +7,7 @@ import lists from "../lists/lists.js";
 import pLimit from "p-limit";
 import mega from "../mega/mega.js";
 import config from "../config/config.js"
-import { deepClone, ucWords } from "../utils/utils.js";
+import { deepClone, insertEntry, ucWords } from "../utils/utils.js";
 
 class Watching extends EntriesGroup {
     constructor(channels) {
@@ -16,34 +16,33 @@ class Watching extends EntriesGroup {
         this.timer = 0;
         this.currentEntries = null;
         this.currentRawEntries = null;
-        this.updateIntervalSecs = expires['watching-country'] || 300;
+        this.updateIntervalSecs = expires['watching'] || 300;
         config.on('change', (keys, data) => {
             if (keys.includes('only-known-channels-in-trending') || keys.includes('popular-searches-in-trending') || keys.includes('parental-control') || keys.includes('parental-control-terms')) {
-                this.updating || this.update().catch(console.error);
+                this.updating || this.update().catch(console.error)
             }
-        });
-        storage.get('watching-current').then(data => {
-            this.channels.ready(() => {
-                if (!this.currentRawEntries || !this.currentRawEntries.length) {
-                    this.currentRawEntries = data;
-                    this.updating || this.update(data).catch(console.error);
-                } else if (Array.isArray(data)) {
-                    this.currentEntries && this.currentEntries.forEach((c, i) => {
-                        data.forEach(e => {
-                            if (typeof (c.trend) == 'undefined' && typeof (e.trend) != 'undefined') {
-                                this.currentEntries[i].trend = e.trend;
-                                return true;
-                            }
-                        });
-                    });
-                }
-                this.channels.on('loaded', changed => {
-                    changed && !this.updating && this.update().catch(console.error);
-                }); // on each "loaded"
-            });
+        })
+        storage.get('watching-current').then(async data => {
+            await this.channels.ready()
+            if (!this.currentRawEntries || !this.currentRawEntries.length) {
+                this.currentRawEntries = data;
+                this.updating || this.update(data).catch(console.error)
+            } else if (Array.isArray(data)) {
+                this.currentEntries && this.currentEntries.forEach((c, i) => {
+                    data.forEach(e => {
+                        if (typeof (c.trend) == 'undefined' && typeof (e.trend) != 'undefined') {
+                            this.currentEntries[i].trend = e.trend
+                            return true
+                        }
+                    })
+                })
+            }
+            this.channels.on('loaded', changed => {
+                changed && !this.updating && this.update().catch(console.error)
+            }) // on each "loaded"
         }).catch(err => {
-            console.error(err);
-        });
+            console.error(err)
+        })
     }
     title() {
         return lang.TRENDING;
@@ -76,12 +75,12 @@ class Watching extends EntriesGroup {
         this.updating = false;
         this.emit('update');
         clearTimeout(this.timer); // clear again to be sure
-        this.timer = setTimeout(() => this.update().catch(console.error), this.updateIntervalSecs * 1000);
+        this.timer = setTimeout(() => this.update().catch(console.error), this.updateIntervalSecs * 1000)
         let nxt = this.entry();
         if (this.showChannelOnHome() && menu.path == '' && (prv.details != nxt.details || prv.name != nxt.name)) {
-            menu.updateHomeFilters();
+            menu.updateHomeFilters()
         } else {
-            this.updateView();
+            this.updateView()
         }
     }
     updateView() {
@@ -91,19 +90,10 @@ class Watching extends EntriesGroup {
     }
     async hook(entries, path) {
         if (path == '') {
-            let pos = 0, entry = this.entry();
-            if (!entry.originalName) {
-                entries.some((e, i) => {
-                    if (e.name == lang.TOOLS) {
-                        pos = i + 1;
-                        return true;
-                    }
-                });
-            }
-            entries = entries.filter(e => e.hookId != this.key);
-            entries.splice(pos, 0, entry);
+            let pos = 0, entry = this.entry()
+            insertEntry(entry, entries, pos, [lang.TOOLS, lang.SEARCH], [lang.BOOKMARKS])
         }
-        return entries;
+        return entries
     }
     extractUsersCount(e) {
         if (e.users) {
@@ -164,7 +154,7 @@ class Watching extends EntriesGroup {
         const limit = pLimit(3)        
         const tasks = countries.map(country => {
             return async () => {
-                let es = await cloud.get('watching-country.' + country, {validator}).catch(console.error);
+                let es = await cloud.get('watching/'+ country, {shadow: false, validator}).catch(console.error);
                 Array.isArray(es) && data.push(...es);
             };
         }).map(limit);
@@ -318,22 +308,7 @@ class Watching extends EntriesGroup {
         return entries;
     }
     entry() {
-        const entry = { name: this.title(), details: lang.BEEN_WATCHED, fa: 'fas fa-chart-bar', hookId: this.key, type: 'group', renderer: this.entries.bind(this) };
-        if (this.currentEntries && this.showChannelOnHome()) {
-            let top = this.currentTopProgrammeEntry;
-            if (top) {
-                let s = top.users == 1 ? 'user' : 'users';
-                entry.name = this.title();
-                entry.class = 'entry-icon';
-                entry.originalName = top.name;
-                if (entry.rawname)
-                    entry.rawname = top.name;
-                entry.prepend = '<i class="fas fa-chart-bar"></i> ';
-                entry.details = top.programme.t + ' &middot; <i class="fas fa-' + s + '"></i> ' + lang.X_WATCHING.format(top.users);
-                entry.programme = top.programme;
-            }
-        }
-        return entry;
+        return { name: this.title(), side: true, details: lang.BEEN_WATCHED, fa: 'fas fa-chart-bar', hookId: this.key, type: 'group', renderer: this.entries.bind(this) }
     }
 }
 export default Watching

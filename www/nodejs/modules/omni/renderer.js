@@ -30,7 +30,7 @@ export class OMNI extends OMNIUtils {
         this.type = ''
         this.typing = ''
         this.defaultValue = ''
-        this.element = document.querySelector('.menu-omni > span')
+        this.element = document.querySelector('.menu-omni')
         this.button = document.querySelector('.menu-omni .menu-omni-submit')
         this.input = document.querySelector('.menu-omni input')
         this.rinput = this.input
@@ -39,8 +39,8 @@ export class OMNI extends OMNIUtils {
         document.addEventListener('keyup', this.eventHandler.bind(this))
     }
     bind(){
-        main.on('omni-enable', () => this.show())
-        main.on('omni-disable', () => this.hide())
+        main.on('omni-show', () => this.show(true))
+        main.on('omni-hide', () => this.hide())
         main.on('omni-callback', (text, success) => {
             if(success){
                 this.save()
@@ -48,9 +48,12 @@ export class OMNI extends OMNIUtils {
                 this.updateIcon('fas fa-times-circle')
             }
         })
-        main.emit('omni-client-ready')
+    }
+    active() {
+        return this.element.offsetParent !== null
     }
     show(focus) {
+        main.menu.sideMenu(false, 'instant')
         this.element.style.display = 'inline-flex'
         focus && this.focus(true)
     }
@@ -75,6 +78,7 @@ export class OMNI extends OMNIUtils {
         }
     }
     setup(){
+        this.hide()
         this.button.addEventListener('click', event => {
             if(!this.element.classList.contains('selected') || !this.submit()){
                 this.focus(true)
@@ -91,6 +95,7 @@ export class OMNI extends OMNIUtils {
         })
     }
     focus(select){
+        this.show()
         this.input.value = this.defaultValue
         if(select){
             this.input.select()
@@ -99,7 +104,8 @@ export class OMNI extends OMNIUtils {
         this.input.focus()
         this.input.addEventListener('blur', () => {
             main.menu.focus(main.menu.currentElements[0])
-            this.save()				
+            this.save()
+            this.hide()			
         }, { once: true })
         if(!select) { // as last, move to the end
             this.rinput.selectionStart = this.rinput.selectionEnd = this.rinput.value.length

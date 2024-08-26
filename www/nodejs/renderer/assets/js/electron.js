@@ -1,19 +1,3 @@
-class ClassesHandler {
-	constructor(){}
-	hasClass(element, cls) {
-		return !!element.className.match(new RegExp('(\\s|^)'+cls+'(\\s|$)'))
-	}
-	addClass(element, cls) {
-		if (!this.hasClass(element, cls)) element.className += ' '+ cls
-	}
-	removeClass(element, cls) {
-		if (this.hasClass(element, cls)) {
-			var reg = new RegExp('(\\s|^)'+ cls +'(\\s|$)')
-			element.className = element.className.replace(reg, ' ')
-		}
-	}
-}
-
 var ffmpeg = api.ffmpeg
 
 class ExitPage {
@@ -112,9 +96,8 @@ class ExternalPlayer {
 	}
 }
 
-class WindowManagerCommon extends ClassesHandler {
+class WindowManagerCommon {
 	constructor(){
-		super()
 		this.waitAppCallbacks = []
 		this.trayMode = false
 		this.leftWindowDiff = 0
@@ -225,12 +208,12 @@ class WindowManagerCommon extends ClassesHandler {
 		setTimeout(() => {
 			let idle = this.app.main.idle.isIdle
 			if(idle){			
-				if(!this.hasClass(document.body, 'idle') && this.app.main.streamer.state == 'playing'){
-					this.addClass(document.body, 'idle')
+				if(!document.body.classList.contains('idle') && this.app.main.streamer.state == 'playing'){
+					document.body.classList.add('idle')
 				}
 			} else {		
-				if(this.hasClass(document.body, 'idle')){
-					this.removeClass(document.body, 'idle')
+				if(document.body.classList.contains('idle')){
+					document.body.classList.remove('idle')
 				}
 			}
 			this.updateTitlebarHeight()

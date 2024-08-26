@@ -1,4 +1,4 @@
-import { time, ucWords } from '../utils/utils.js'
+import { textSimilarity, time, ucWords } from '../utils/utils.js'
 import Download from '../download/download.js'
 import lang from "../lang/lang.js";
 import storage from '../storage/storage.js'
@@ -8,25 +8,14 @@ import setupUtils from '../multi-worker/utils.js'
 import Mag from './mag.js'
 import xmltv from 'xmltv'
 import config from "../config/config.js"
-import { getFilename } from 'cross-dirname'           
+import { getFilename } from 'cross-dirname'
 
 const utils = setupUtils(getFilename())
 
 class EPGPaginateChannelsList extends EventEmitter {
     constructor(){
         super()
-        this.badTerms = new Map([
-            ['H.265', null],
-            ['H.264', null],
-            ['H265', null],
-            ['H264', null],
-            ['FHD', null],
-            ['HD', null],
-            ['SD', null],
-            ['2K', null],
-            ['4K', null],
-            ['8K', null]
-        ])
+        this.badTerms = new Set(['H.265','H.264','H265','H264','FHD','HD','SD','2K','4K','8K'])
     }
     prepareChannelName(name){
         return ucWords(name.split('[')[0].split(' ').filter(s => s && !this.badTerms.has(s.toUpperCase())).join(' '))
@@ -110,8 +99,9 @@ class EPG extends EPGPaginateChannelsList {
         this.bytesLength = -1
         this.transferred = 0
         this.loaded = false
-        this.ttl = 2 * 3600
-        this.autoUpdateIntervalSecs = 3600
+        this.ttl = 3600
+        this.dataLiveWindow = 72 * 3600
+        this.autoUpdateIntervalSecs = 1800
         this.minExpectedEntries = 72
         this.state = 'uninitialized'
         this.error = null
@@ -350,7 +340,7 @@ class EPG extends EPGPaginateChannelsList {
         if(programme && programme.channel && programme.title.length){
             const now = time(), start = time(programme.start), end = time(programme.end)
             programme.channel = this.cidToDisplayName(programme.channel)
-            if(end >= now && end <= (now + this.ttl)){
+            if(end >= now && end <= (now + this.dataLiveWindow)){
                 if(!this.hasProgramme(programme.channel, start)){
                     this.indexate(programme.channel, start, this.prepareProgrammeData(programme, end))
                 }
@@ -358,7 +348,7 @@ class EPG extends EPGPaginateChannelsList {
         }
     }
     applyMetaCache(){
-        Object.keys(this.metaCache.categories).forEach(t => {
+        for (const t of Object.keys(this.metaCache.categories)) {
             if(this.metaCache.categories[t].some(c => c.indexOf('/') != -1)){
                 this.metaCache.categories[t] = this.metaCache.categories[t].map((c, i) => {
                     if(c.indexOf('/') != -1){
@@ -369,9 +359,9 @@ class EPG extends EPGPaginateChannelsList {
                 this.metaCache.categories[t] = this.metaCache.categories[t].flat()
             }
             this.metaCache.categories[t] = this.metaCache.categories[t].map(s => s.toLowerCase())
-        })
-        Object.keys(this.data).forEach(channel => {
-            Object.keys(this.data[channel]).forEach(start => {
+        }
+        for (const channel of Object.keys(this.data)) {
+            for (const start of Object.keys(this.data[channel])) {
                 let t = this.data[channel][start].t.toLowerCase()
                 if(this.metaCache.categories[t] && this.metaCache.categories[t].length){
                     this.data[channel][start].c = this.metaCache.categories[t]
@@ -395,8 +385,8 @@ class EPG extends EPGPaginateChannelsList {
                         }
                     }
                 }
-            })
-        })
+            }
+        }
     }
     liveNowChannelsListFilterCategories(cs){
         cs = cs.filter(c => {
@@ -453,43 +443,47 @@ class EPG extends EPGPaginateChannelsList {
         }
         return {categories, updateAfter}
     }
-    async expandRecommendations(categories){
+    async expandRecommendations(cats){
         const results = {}
-        Object.values(this.data).forEach(c => {
-            Object.values(c).forEach(p => {
-                if(!p.c.length) return
-                let tms = p.c.filter(t => categories.includes(t))
+        const categories = new Set(cats)
+        for(const c in this.data) {
+            for(const p in this.data[c]) {
+                if(!this.data[c][p].c.length) continue
+                let tms = this.data[c][p].c.filter(t => categories.has(t))
                 if(tms.length) {
                     tms.forEach(term => {
                         if(typeof(results[term]) == 'undefined') {
-                            results[term] = []
+                            results[term] = new Set()
                         }
-                        p.c.forEach(a => {
-                            if(!categories.includes(a) && !results[term].includes(a)) {
-                                results[term].push(a)
+                        for(const a of this.data[c][p].c) {
+                            if(!categories.has(a) && !results[term].has(a)) {
+                                results[term].add(a)
                             }
-                        })
+                        }
                     })
                 }
-            })
-        })
+            }
+        }
+        for(const term in results) {
+            results[term] = [...results[term]]
+        }
         return results
     }
     async getRecommendations(categories, until, limit = 24, searchTitles){
-        if(!Object.keys(categories).length){
+        const lcCategories = Object.keys(categories), now = time()
+        if(!lcCategories.length){
             return {}
         }
-        const lcCategories = Object.keys(categories), now = time()
         let results = []
         if(!until){
-            until = now + (24 * 3600)
+            until = now + (6 * 3600)
         }
-        Object.keys(this.data).forEach(channel => {
-            Object.keys(this.data[channel]).some(start => {
+        for(const channel in this.data) {
+            for(const start in this.data[channel]) {
                 if(this.data[channel][start].e > now && parseInt(start) <= until){
                     let added
                     if(Array.isArray(this.data[channel][start].c)){
-                        added = this.data[channel][start].c.some(c => {
+                        for(const c of this.data[channel][start].c) {
                             if(lcCategories.includes(c)){
                                 if(typeof(results[channel]) == 'undefined'){
                                     results[channel] = {}
@@ -497,44 +491,54 @@ class EPG extends EPGPaginateChannelsList {
                                 const row = this.data[channel][start]
                                 row.meta = {channel, start, score: 0}
                                 results.push(row)
-                                return true
+                                added = true
+                                break
                             }
-                        })
+                        }
                     }
                     if(!added && searchTitles){
                         let lct = (this.data[channel][start].t +' '+  this.data[channel][start].c.join(' ')).toLowerCase()
-                        lcCategories.some(l => {
+                        for(const l of lcCategories) {
                             if(lct.indexOf(l) != -1){
                                 const row = this.data[channel][start]
                                 row.meta = {channel, start, score: 0}
                                 results.push(row)
-                                return true
+                                break
                             }
-                        })
+                        }
                     }
                 }
-            })
-        })
-        results.forEach((row, i) => {
-            if(row.c && row.c.length){
+            }
+        }
+        for(let i=0; i<results.length; i++) {
+            if(results[i].c && results[i].c.length){
                 let score = 0
-                row.c.forEach(t => {
+                for(const t of results[i].c) {
                     if(categories[t]){
                         score += categories[t]
                     }
-                })
+                }
                 results[i].score = score
             }
+        }
+        let quota = limit, already = new Set()
+        results = results.sortByProp('score', true).filter(r => {
+            if(quota) { // limit by titles count instead of entries count to avoid duplicates from diff channels
+                if(!already.has(r.t)){
+                    quota--
+                    already.add(r.t)
+                }
+                return true
+            }
         })
-        results = results.sortByProp('score', true).slice(0, limit)
         const ret = {}
-        results.forEach(row => {
+        for(const row of results) {
             if(typeof(ret[row.meta.channel]) == 'undefined'){
                 ret[row.meta.channel] = {}
             }
             ret[row.meta.channel][row.meta.start] = row
             delete ret[row.meta.channel][row.meta.start].meta
-        })
+        }
         return ret
     }
     hasProgramme(channel, start){
@@ -566,11 +570,11 @@ class EPG extends EPGPaginateChannelsList {
             if(typeof(this.metaCache.categories[t]) == 'undefined'){
                 this.metaCache.categories[t] = []
             }
-            data.c.map(s => s.toLowerCase()).forEach(c => {
+            for(const c of data.c.map(s => s.toLowerCase())) {
                 if(!this.metaCache.categories[t].includes(c)){
                     this.metaCache.categories[t].push(c)
                 }
-            })            
+            }
         }
     }
     extractTerms(c){
@@ -618,6 +622,9 @@ class EPG extends EPGPaginateChannelsList {
         //console.log('EPGGETCHANNEL', data)
         return this.order(data, limit)
     }
+    async getData(){
+        return this.data
+    }
     async getMulti(channelsList, limit){
         let results = {}
         for(const ch of channelsList) {
@@ -630,43 +637,59 @@ class EPG extends EPGPaginateChannelsList {
         if(ks.length < 2){
             return data
         }
-        ks.sort((a, b) => a - b).forEach(start => {
+        for(const start of ks.sort((a, b) => a - b)) {
             if(limit && data[start].e > now){
                 ndata[start] = data[start]
                 limit--
             }
-        })
+        }
         return ndata
     }
     async searchChannel(terms, limit=2){
         let results = {}, data = []
-        Object.keys(this.terms).forEach(name => {
+        for(const name in this.terms) {
             if(!Array.isArray(this.terms[name])) {
                 delete this.terms[name] // clean incorrect format
-                return
+                continue
             }
             const score = listsTools.match(terms, this.terms[name], true)
             data.push({name, score})
-        })
+        }
         data = data.filter(r => r.score).sortByProp('score', true).slice(0, 24)
-        data.forEach(r => {
+        for(const r of data) {
             if(this.data[r.name]){
                 results[r.name] = this.order(this.data[r.name], limit)
             }
-        })
+        }
         return results
     }
     async searchChannelIcon(terms){
         let score, results = []
-        Object.keys(this.terms).forEach(name => {
+        for(const name in this.terms) {
             if(typeof(this.channels[name]) != 'undefined' && this.channels[name].icon){
                 score = listsTools.match(terms, this.terms[name], true)
                 if(score){
                     results.push(this.channels[name].icon)       
                 }
             }
-        })
+        }
         return results.unique()
+    }
+    async validateChannelProgramme(channel, start, title){
+        const cid = await this.findChannel(channel)
+        if(cid) {
+            if(this.data[cid]) {
+                if(this.data[cid][start] && (this.data[cid][start].t == title || textSimilarity(this.data[cid][start].t, title) > 0.75)) {
+                    return true
+                } else {
+                    for(const start in this.data[cid]) { // maybe with different start time
+                        if(this.data[cid][start].t == title) {
+                            return true
+                        }
+                    }
+                }
+            }
+        }
     }
     async findChannel(data){
         if(data.searchName && data.searchName != '-' && typeof(this.data[data.searchName]) != 'undefined'){
@@ -675,15 +698,15 @@ class EPG extends EPGPaginateChannelsList {
             return data.name
         }
         let score, candidates = [], maxScore = 0, terms = data.terms || data
-        Object.keys(this.terms).forEach(name => {
+        for(const name in this.terms) {
             score = listsTools.match(terms, this.terms[name], false)
             if(score && score >= maxScore){
                 maxScore = score
                 candidates.push({name, score})
             }
-        })
+        }
         if(!candidates.length){
-            Object.keys(this.terms).forEach(name => {
+            for(const name in this.terms) {
                 if(Array.isArray(this.terms[name])){
                     score = listsTools.match(this.terms[name], terms, false)
                     if(score && score >= maxScore){
@@ -691,7 +714,7 @@ class EPG extends EPGPaginateChannelsList {
                         candidates.push({name, score})
                     }
                 }
-            })
+            }
         }
         if(!candidates.length){
             return false
@@ -701,30 +724,30 @@ class EPG extends EPGPaginateChannelsList {
         if(candidates.length > 1){
             // first spit out the divergent ones
             let maxSimilarityScore = 0, candidatesData = {}, candidatesSimilarityScores = {}
-            candidates.forEach(c => {
+            for(const c of candidates) {
                 candidatesData[c.name] = Object.values(this.data[c.name]).map(p => p.t).unique()
-            })
-            Object.keys(candidatesData).forEach(name => {
+            }
+            for(const name in candidatesData) {
                 let similarityScore = 0
-                candidatesData[name].forEach((title, i) => {
-                    Object.keys(candidatesData).forEach(n => {
-                        if(!candidatesData[n][i]) return
+                for(let i=0; i<candidatesData[name]; i++) {
+                    for(const n in candidatesData) {
+                        if(!candidatesData[n][i]) continue
                         if(candidatesData[name][i] == candidatesData[n][i]){
                             similarityScore++
                         }
-                    })
-                })
+                    }
+                }
                 candidatesSimilarityScores[name] = similarityScore
                 if(similarityScore > maxSimilarityScore){
                     maxSimilarityScore = similarityScore
                 }
-            })
+            }
             // console.log('findChannel', Object.assign({}, candidatesData))
-            Object.keys(candidatesData).forEach(name => {
+            for(const name in candidatesData) {
                 if(candidatesSimilarityScores[name] < maxSimilarityScore){
                     delete candidatesData[name]
                 }
-            })
+            }
             // console.log('findChannel', Object.assign({}, candidatesData))
             // now pick the longest one
             let maxEndingTime = 0, ckeys = Object.keys(candidatesData).sort((a, b) => {
@@ -744,11 +767,11 @@ class EPG extends EPGPaginateChannelsList {
     }
     async search(terms, nowLive){
         let epgData = {}, now = time()
-        Object.keys(this.data).forEach(channel => {
-            Object.keys(this.data[channel]).forEach(start => {
+        for(const channel in this.data) {
+            for(const start in this.data[channel]) {
                 if(nowLive === true){
                     if(start > now || this.data[channel][start].e < now){
-                        return
+                        continue
                     }
                 }
                 let t = this.data[channel][start].t
@@ -762,8 +785,8 @@ class EPG extends EPGPaginateChannelsList {
                     }
                     epgData[channel][start] = this.data[channel][start]
                 }
-            })
-        })
+            }
+        }
         return epgData
     }
     async load(){
@@ -771,8 +794,8 @@ class EPG extends EPGPaginateChannelsList {
         let loaded
         if(data){
             const now = time()
-            Object.keys(data).forEach(channel => {
-                Object.keys(data[channel]).forEach(start => {
+            for(const channel in data) {
+                for(const start in data[channel]) {
                     if(data[channel][start].e < now || data[channel][start].e > (now + this.ttl)){
                         delete data[channel][start]
                     } else if(!this.hasProgramme(channel, start)) {
@@ -781,25 +804,25 @@ class EPG extends EPGPaginateChannelsList {
                             loaded = true
                         }
                     }
-                })
-            })
+                }
+            }
         }
         if(loaded){
             let cdata = await storage.get(this.channelsKey)
             if(cdata){
-                Object.keys(cdata).forEach(name => {
+                for(const name in cdata) {
                     if(typeof(this.channels[name]) == 'undefined'){
                         this.channels[name] = {name}
                     }
-                })
+                }
             }
             let tdata = await storage.get(this.termsKey)
             if(tdata){
-                Object.keys(data).forEach(name => {
+                for(const name in data) {
                     if(typeof(this.terms[name]) == 'undefined'){
                         this.terms[name] = data[name]
                     }
-                })
+                }
                 return true
             } else {
                 throw 'no epg terms loaded'
@@ -847,16 +870,16 @@ class EPG extends EPGPaginateChannelsList {
         storage.set(this.channelsKey, this.channels, {compress: true, ttl: 3 * this.ttl})
     }
     clean(){
-        Object.keys(this.terms).forEach(e => {
+        for(const e in this.terms) {
             if(typeof(this.data[e]) == 'undefined' || !Array.isArray(this.terms[e])){
                 delete this.terms[e]
             }
-        })
-        Object.keys(this.channels).forEach(k => {
+        }
+        for(const k in this.channels) {
             if(typeof(this.data[this.channels[k].name]) == 'undefined'){
                 delete this.channels[k]
             }
-        })
+        }
     }
     scheduleNextUpdate(timeSecs){        
         if(this.autoUpdateTimer){

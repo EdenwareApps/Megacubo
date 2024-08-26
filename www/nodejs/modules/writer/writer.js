@@ -16,6 +16,7 @@ class Writer extends EventEmitter {
         this.writeQueue = [];
         this.position = 0;
         this.prepare(() => this.emit('open'));
+        this.uid = file +'-'+ (new Date()).getTime()
     }
     write(data, position) {
         if (this.destroyed)
@@ -53,8 +54,7 @@ class Writer extends EventEmitter {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
     prepare(cb) {
-        this.debug && console.log('writeat prepare', this.file);
-        
+        this.debug && console.log('writeat prepare', this.file)        
         fs.access(this.file, err => {
             this.debug && console.log('writeat prepared', this.file, err);
             if (err) {
@@ -70,14 +70,13 @@ class Writer extends EventEmitter {
     open(file = '', flags, cb) {
         if (this.fd) {
             cb(null);
-        } else {
-            
+        } else {            
             this.debug && console.log('writeat open', this.file);
             fs.open(this.file, flags, (err, fd) => {
-                this.debug && console.log('writeat opened', this.file);
-                this.fd = fd;
-                cb(err);
-            });
+                this.debug && console.log('writeat opened', this.file)
+                this.fd = fd
+                cb(err)
+            })
         }
     }
     pump() {
@@ -92,9 +91,8 @@ class Writer extends EventEmitter {
                 if (err)
                     return this.fail(err);
                 this._write(this.fd).catch(console.error).finally(() => {
-                    if (this.autoclose && this.fd) {
-                        
-                        fs.close(this.fd, () => {});
+                    if (this.autoclose && this.fd) {                        
+                        fs.close(this.fd, () => {})
                         this.fd = null;
                     }
                     this.writing = false;
@@ -113,8 +111,7 @@ class Writer extends EventEmitter {
             });
         });
     }
-    async _write(fd) {
-        
+    async _write(fd) {        
         while (this.writeQueue.length) {
             let err;
             const current = this.writeQueue.shift();
@@ -152,20 +149,24 @@ class Writer extends EventEmitter {
         this.writeQueue = [];
     }
     end() {
-        this.writable = false;
-        this.finished = true;
-        this.ended = true;
-        this.ready(() => this.destroy());
+        this.writable = false
+        this.finished = true
+        this.ended = true
+        this.ready(() => this.destroy())
     }
     close() {
-        this.end();
+        this.end()
     }
     destroy() {
-        this.destroyed = parseInt(((new Date()).getTime() - this.uid) / 1000);
-        this.writeQueue = [];
-        this.emit('close');
-        this.emit('destroy');
-        this.removeAllListeners();
+        if(this.fd) {
+            fs.close(this.fd, () => {})
+            this.fd = null
+        }
+        this.destroyed = parseInt(((new Date()).getTime() - this.uid) / 1000)
+        this.writeQueue = []                            
+        this.emit('close')
+        this.emit('destroy')
+        this.removeAllListeners()
     }
 }
 export default Writer;

@@ -94,7 +94,7 @@ class ListsDiscovery extends EventEmitter {
             public: config.get('public-lists'),
             community: config.get('communitary-mode-lists-amount') > 0
         };
-        return this.domainCap(this.knownLists.filter(list => active[list.type]), amount);
+        return this.domainCap(this.knownLists.filter(list => active[list.type]), amount)
     }
     getDomain(u) {
         if (u && u.indexOf('//') != -1) {
@@ -107,23 +107,23 @@ class ListsDiscovery extends EventEmitter {
     }
     domainCap(lists, limit) {
         let currentLists = lists.slice(0);
-        const ret = [], domains = {}, quota = 1; // limit each domain up to 20% of selected links, except if there are no other domains enough
+        const ret = [], domains = {} // limit each domain up to 20% of selected links, except if there are no other domains enough
         while (currentLists.length && ret.length < limit) {
             currentLists = currentLists.filter(l => {
-                const dn = this.getDomain(l.url);
-                if (typeof (domains[dn]) == 'undefined') {
-                    domains[dn] = 0;
+                let pick = l.type != 'community' // public and own lists are always picked as trusted sources
+                if(!pick) {
+                    const dn = this.getDomain(l.url)
+                    if (!domains[dn]) {
+                        domains[dn] = true
+                        pick = true
+                    }
                 }
-                if (domains[dn] < quota) {
-                    domains[dn]++;
-                    ret.push(l);
-                    return false;
-                }
-                return true;
-            });
-            Object.keys(domains).forEach(dn => domains[dn] = 0); // reset counts and go again until fill limit
+                pick && ret.push(l)
+                return !pick            
+            })
+            Object.keys(domains).forEach(dn => domains[dn] = false) // reset counts and go again until fill limit
         }
-        return ret.slice(0, limit);
+        return ret.slice(0, limit)
     }
     details(url, key) {
         const list = this.knownLists.find(l => l.url === url);

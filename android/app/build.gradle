@@ -5,10 +5,10 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "tv.megacubo.app"
-        minSdk 24
+        minSdkVersion 24
         targetSdkVersion 33
-        versionCode 471
-        versionName '17.5.0'
+        versionCode 472
+        versionName '17.5.1'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -27,14 +27,14 @@ android {
         abi {
             enable true
             reset()
-            include 'arm64-v8a', 'armeabi-v7a'
-            universalApk true
+            //include "arm64-v8a", "armeabi-v7a"
+            include 'armeabi-v7a'
+            universalApk false
         }
     }
     applicationVariants.all { variant ->
         variant.outputs.each { output ->
-            def abi = output.getFilter(com.android.build.OutputFile.ABI)
-            output.outputFileName = "Megacubo_${versionName}_android_${abi}.apk"
+            output.outputFileName = "app-release-unsigned.apk"
         }
     }
     packagingOptions {

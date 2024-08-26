@@ -68,19 +68,6 @@ class MenuBase extends EventEmitter {
 		})
 		main.on('config', (_, c) => this.sounds.volume = c.volume)
 	}
-    addClass(element, className){
-        if(!this.hasClass(element, className)){
-            element.className = (element.className || '') + ' ' + className
-        }
-    }
-    removeClass(element, className){
-        if(this.hasClass(element, className)){
-            element.className = element.className.replace(className, '')
-        }
-    }
-    hasClass(element, className){
-        return element.className && element.className.indexOf(className) != -1
-    }
     buildElementFromHTML(code) {
         const wrap = document.createElement('span')
         wrap.innerHTML = code
@@ -123,7 +110,7 @@ class MenuIcons extends MenuBase {
 			if(changed) {
 				let entries = this.currentEntries.map(e => this.prepareEntry(e))
 				this.applyCurrentEntries(entries)
-				this.emit('updated')
+				this.uiUpdate(false)
 			}
 		})
 	}
@@ -134,37 +121,21 @@ class MenuSelectionMemory extends MenuIcons {
 		super(container)
 		this.selectionMemory = {}
 		this.on('open', () => {
-			this.selectionMemory[this.path] = {
-				scroll: this.wrap.scrollTop,
-				index: this.selectedIndex,
-				search: this.currentSearch
-			}
+			this.saveSelection()
 		})
-		this.on('arrow', () => {
-			this.selectionMemory[this.path] = {
-				scroll: this.wrap.scrollTop,
-				index: this.selectedIndex,
-				search: this.currentSearch
-			}
+		this.on('focus', () => {
+			this.saveSelection()
 		})
 		this.on('pre-render', () => {
-			this.selectionMemory[this.path] = {
-				scroll: this.wrap.scrollTop,
-				index: this.selectedIndex,
-				search: this.currentSearch
-			}
+			this.saveSelection()
 		})
 		this.on('pre-modal-start', () => {
 			let e = this.selected()
 			if(e && e.title){
-				this.selectionMemory[this.path] = {
-					scroll: this.wrap.scrollTop,
-					index: this.selectedIndex,
-					search: this.currentSearch
-				}
+				this.saveSelection()
 			}
 		})
-        this.on('pos-modal-end', this.updateSelection.bind(this))
+        this.on('pos-modal-end', this.restoreSelection.bind(this))
 		main.on('menu-reset-selection', () => {
             this.selectionMemory = {}
         })
@@ -172,52 +143,55 @@ class MenuSelectionMemory extends MenuIcons {
             this.currentSearch = JSON.stringify({terms, type})
         })
 	}
-	updateSelection(){
-		return this.updateSelectionCB(this.path, '')
-	}
-	updateSelectionCB(path, icon){
-		if(this.isExploring()){
-            let target = 0, index = 1
-			const inSearch = path.indexOf(main.lang.SEARCH) != -1 || this.path.indexOf(main.lang.MORE_RESULTS) != -1 || this.path.indexOf(main.lang.SEARCH_MORE) != -1
-			const inSameSearch = inSearch && this.selectionMemory[path] && this.currentSearch == this.selectionMemory[path].search		
-			if(inSearch && !inSameSearch){
-                this.wrap.scrollTop = target
-                this.focusIndex(index, false, true)
-            	return true
-            } else {
-				return this.restoreSelection()
-			}
+	saveSelection() {
+		this.debug && console.error('saveSelection', this.wrap.scrollTop, this.selectedIndex, this.path)
+		const n = this.currentViewName()
+		if(!this.selectionMemory[this.path]) this.selectionMemory[this.path] = {}
+		this.selectionMemory[this.path][n] = {
+			scroll: n == 'default' ? this.wrap.scrollTop : 0,
+			index: this.selectedIndex,
+			search: this.currentSearch
 		}
-    }
+	}
+	currentViewName() {
+		return this.activeSpatialNavigationLayout().level
+	}
     restoreSelection(){
+		const n = this.currentViewName()
 		const selected = this.selected()
 		if(selected && selected.id == 'menu-search') return
         let data = {scroll: 0, index: this.path ? 1 : 0}
-		if(typeof(this.selectionMemory[this.path]) != 'undefined'){
+		const selectables = this.selectables()
+		if(typeof(this.selectionMemory[this.path]) != 'undefined' && this.selectionMemory[this.path][n]) {
 			const inSearch = this.path.indexOf(main.lang.SEARCH) != -1 || this.path.indexOf(main.lang.MORE_RESULTS) != -1 || this.path.indexOf(main.lang.SEARCH_MORE) != -1
-			const inSameSearch = inSearch && this.currentSearch == this.selectionMemory[this.path].search
+			const inSameSearch = inSearch && this.currentSearch == this.selectionMemory[this.path][n].search
 			if(!inSearch || inSameSearch) {
-				data = this.selectionMemory[this.path]
+				data = this.selectionMemory[this.path][n]
 				if(data.index == 0 && this.path){
 					data.index = 1
 				}
 			}
         }
-        //console.log('selectionMemory restore', data.scroll, data.index, this.path)
-        this.scrollTop(data.scroll)
-        if(this.activeSpatialNavigationLayout().level == 'default'){
+        this.debug && console.log('selectionMemory restore', data.scroll, data.index, this.path)
+        if(this.activeSpatialNavigationLayout().level == 'default' && this.currentElements[data.index]){
 			let range = this.viewportRange(data.scroll)
 			if(data.index < range.start || data.index >= range.end){
 				data.index = range.start
 			}
-			this.focus(this.currentElements[data.index], true)
-            this.focusIndex(data.index, true, true) // true = force re-selecting the same entry on refresh
+			this.focus(this.currentElements[data.index], true)			
+        	this.scrollTop(data.scroll, true)
 			return true
-        }
+        } else {
+			selectables.includes(selected) || this.reset()
+		}
     }
-	scrollTop(y){
+	scrollTop(y, raw){
         if(typeof(y) == 'number') {
-			this.wrap.scrollTop = y
+			this.wrap.scroll({
+				top: y,
+				left: 0,
+				behavior: raw ? 'instant' : 'smooth'
+			})
 		}
 		return this.wrap.scrollTop
 	}
@@ -228,11 +202,10 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
         super(container)
 		this.layouts = []
 		this.defaultNavGroup = ''
-        this.angleWeight = 0.005
+        this.angleWeight = 0.0125 // 0.005
         this.className = 'selected'
         this.parentClassName = 'selected-parent'
         this.selectedIndex = 0
-        this.setGridLayout(2, 5, 1, 8)
         this.mouseWheelMovingTime = 0
         this.mouseWheelMovingInterval = 300
         this.scrollingTimer = 0
@@ -245,19 +218,19 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
 		this.wrap.addEventListener('touchend', () => {
 			this.wrap.style.scrollSnapType = 'y mandatory'
 		})
-		let resizeCappingTimer = 0
-		const onResize = event => {
-			clearTimeout(resizeCappingTimer)
-			resizeCappingTimer = setTimeout(() => this.resize(), 100)
-		}
-		window.addEventListener('resize', onResize, { capture: true })
-		window.addEventListener('orientationchange', onResize, { capture: true })
-		screen.orientation && screen.orientation.addEventListener('change', onResize)
-		onResize() // to apply initial icons size
+		const resizeListener = () => this.resize()
+		window.addEventListener('resize', resizeListener, { capture: true })
+		window.addEventListener('orientationchange', resizeListener, { capture: true })
+		screen.orientation && screen.orientation.addEventListener('change', resizeListener)
+		this.once('render', this.adjustIconSize.bind(this))
+		setTimeout(() => {
+			this.setGridLayout(4, 3, 1, 8)
+			resizeListener() // to apply initial icons size
+		}, 0)
 	}
-	resetScrollEmittingTimer(clear) {
+	resetScrollEmittingTimer(clearOnly) {
 		clearTimeout(this.scrollingTimer)
-		if(clear === true) return
+		if(clearOnly === true) return
 		this.scrollingTimer = setTimeout(() => {
 			if(this.debug){
 				console.log('pointer.scroll', this.rendering)
@@ -271,7 +244,7 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
 				this.emit('scroll', this.wrap.scrollTop)
 			}
 			done()
-		}, 250)
+		}, 400)
 	}
     setGridLayout(x, y, px, py){
         this._gridLayoutX = x
@@ -289,14 +262,14 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
             this.gridLayoutX = this._gridLayoutX
             this.gridLayoutY = this._gridLayoutY
         }
-		const wide = main.config[portrait ? 'view-size-portrait-x' : 'view-size-x'] >= 3
-        const verticalLayout = main.config[portrait ? 'view-size-portrait-x' : 'view-size-x'] == 1
+		const wide = main.config['view-size'][portrait ? 'portrait' : 'landscape'].x >= 3
+        const verticalLayout = main.config['view-size'][portrait ? 'portrait' : 'landscape'].x == 1
         document.body.classList[wide ? 'add' : 'remove']('menu-wide')
 		document.body.classList[verticalLayout ? 'add' : 'remove']('portrait')
-		this.iconSizeDetect()
+		this.adjustIconSize()
+		this.sideMenuSync(true)
     }
-	iconSizeDetect(){		
-		clearTimeout(this.iconSizeDetectTimer || 0)
+	adjustIconSize(){
 		let e = document.querySelector('a:not(.entry-2x) .entry-icon-image')
 		if(e){
 			let metrics = e.getBoundingClientRect()
@@ -311,10 +284,7 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
 				}
 
 				`, 'entry-icon-i')
-			}			
-		} else {
-			console.log('Delaying icon size calc')
-			this.iconSizeDetectTimer = setTimeout(() => this.resize(), 1000)
+			}
 		}
 	}
     isVisible(e) {
@@ -329,7 +299,7 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
     }
     updateElement(element){ // if layout has changed, find the actual corresponding element
         if(!element.parentNode){
-            let prop, val
+            let prop, val;
             ['title', 'data-path', 'id'].some(p => {
                 if(val = e.getAttribute(p) && val.indexOf('"') == -1){
                     prop = p
@@ -354,16 +324,28 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
         }
         return elements.filter(e => e.parentNode)
     }
-    findSelected(){
+	clearSelection(element){
+		for(const e of document.querySelectorAll('.'+ this.className)) e.classList.remove(this.className)
+		for(const e of document.querySelectorAll('.'+ this.parentClassName)) e.classList.remove(this.parentClassName)
+		if(element){
+			element.classList.add(this.className)
+			element.parentNode && element.parentNode.classList.add(this.parentClassName)
+		}
+	}
+    findSelected(deep){
         let elements, element = document.activeElement
-        if(element && element != document.body && (!element.className || element.className.indexOf(this.className) == -1)){ // not explicitly selected
+		if(element == document.body) {
+			element = document.querySelector('.'+ this.className)
+		}
+		if(!deep && element) return element
+        if(element && element != document.body){ // not explicitly selected
             elements = this.selectables() // check if is any explicitly selected??
             let selected = elements.filter(e => e.classList.contains(this.className))
             if(selected.length){
                 element = selected[0] // yes, that's one explicitly selected
             } else {
                 element = this.updateElement(element) // find this element in current layout, if it's not
-                if(!element.parentNode){ // not found, we'll reset so
+                if(!element.parentNode || !elements.includes(element)){ // not found, we'll reset so
                     element = false
                 }
             }
@@ -392,53 +374,27 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
         }
         return element
     } 
-	selected(){
-        let element = this.findSelected()
+	selected(deep){
+        let element = this.findSelected(deep)
         if(element){
-            if(!element.classList.contains(this.className)){
-                element.classList.add(this.className)
-				element.parentNode.classList.add(this.parentClassName)
-            }
+        	element.classList.contains(this.className) || this.clearSelection(element)
             element.focus({preventScroll: true})
         }
         return element
     }
-    focusIndex(a, force, avoidScroll){
-        if(force || a != this.selectedIndex){
-            a = this.wrap.querySelector('a[tabindex="'+ (a ? a : '') +'"]')
-            if(this.debug){
-                console.log('FOCUSINDEX', a)
-            }
-            if(a){
-                this.focus(a, avoidScroll)
-            }
-        }
-    }
     focus(a, avoidScroll){
         let ret = null        
-        if(this.debug){
-            console.log('focus', a, avoidScroll)
-        }
+        this.debug && console.error('focus', a, avoidScroll, this.wrap.scrollTop)
         if(!a) {
             a = this.entries().shift()
         }
-		if(a && a != this.selected()){
-            if(!a.parentNode) return // fix
+		const currentLayer = this.activeSpatialNavigationLayout().level
+		if(a && (a != document.querySelector('.'+ this.className))) {
             if(this.debug){
                 console.log('FOCUSENTRY', a)
             }
-            Array.from(document.querySelectorAll('.'+ this.className)).forEach(e => {
-                if(e != a){
-                    this.removeClass(e, this.className)
-                    this.removeClass(e.parentNode, this.parentClassName)
-                }
-            })
-            this.addClass(a, this.className)
-            this.addClass(a.parentNode, this.parentClassName)
-            let index = a.tabIndex
-            if(typeof(index) != 'number'){
-                index = -1
-            }
+            this.clearSelection(a)
+            let index = this.currentElements.indexOf(a)
             if(document.activeElement && document.activeElement.tagName.toLowerCase() == 'input'){
                 // dirty hack to force input to lose focus
                 let t = document.activeElement
@@ -452,34 +408,45 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
             if(n) {
                 n.focus({preventScroll: true})
             }
-            if(index != -1) { // is main menu entry
+            if(index == -1) { // is main menu or modal entry
+				a.scrollIntoViewIfNeeded({behavior: 'instant'})
+			} else {
                 let lastIndex = this.selectedIndex
                 this.selectedIndex = index
                 if(this.debug) {
                     console.log('pointer selectedIndex =', a.tabIndex, a)
                 }
-				if(avoidScroll && (a.offsetTop < this.wrap.scrollTop || a.offsetTop >= (this.wrap.scrollTop + this.wrap.offsetHeight - 4))){
-					console.log('AVOID SCROLL IGNORED', a.offsetTop, [this.wrap.scrollTop, this.wrap.offsetHeight])
-					avoidScroll = false
+				console.log('SCROLL', a.offsetTop, [this.wrap.scrollTop, this.wrap.offsetHeight])
+				if(!avoidScroll && a.offsetTop > this.wrap.scrollTop && a.offsetTop <= (this.wrap.scrollTop + this.wrap.offsetHeight - 4)) {
+					console.log('AVOID SCROLL', a.offsetTop, [this.wrap.scrollTop, this.wrap.offsetHeight])
+					avoidScroll = true
 				}
                 if(!avoidScroll) {
                     if(lastIndex != this.selectedIndex) {
                         let s = a.offsetTop
-                        if(s < 0) {
+						if(s < 0) {
                             s = 0
                         }
-                        if(s != a.parentNode.scrollTop) {
-                            a.parentNode.scrollTop = ret = s
+                        let t = a.offsetTop - (this.wrap.offsetHeight - a.offsetHeight)
+						if(t && Math.abs(this.wrap.scrollTop - t) < Math.abs(this.wrap.scrollTop - s)) {
+							s = t
+						}
+						if(s != this.wrap.scrollTop) {
+							console.warn('pointer scrolling...', a.offsetTop, s, this.wrap.scrollTop)
+                            this.scrollTop(s, true)
+							ret = s
                         }
                     }
                 }
             }
             this.emit('focus', a, index)
-        }
+        } else {
+			this.debug && console.log('Already focused', {currentLayer, a, selected: document.querySelector('.'+ this.className), avoidScroll, scrollLeft: this.container.scrollLeft, scrollTop: this.wrap.scrollTop})	
+		}
         return ret
     }  
-    activeSpatialNavigationLayout(){     
-        let ret = false 
+    activeSpatialNavigationLayout(){
+        let ret = {selector: 'body', level: 'default'} // placeholder while no views are added
         this.layouts.some(layout => {
             if(!ret){
                 ret = layout
@@ -515,11 +482,13 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
         if(typeof(sel)=='function'){
             sel = sel()
         }
-        if(typeof(sel)=='string'){
+        if(typeof(sel) == 'string'){
             e.push(...this.selector(sel))
-        } else {
+        } else if(Array.isArray(sel)) {
             e.push(...sel)
-        }
+        } else {
+			console.error('Bad layer selector')
+		}
 		e = e.filter(n => {
             return !n.className || String(n.className).indexOf('menu-not-navigable') == -1 // Uncaught TypeError: n.className.indexOf is not a function
         })
@@ -532,12 +501,6 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
         if(layout.default === true || !this.defaultNavGroup){
             this.defaultNavGroup = layout.level
         }
-		/*
-		jQuery(document.body).on('mousedown', layout.selector, event => {
-			let e = event.currentTarget
-			this.focus(e, true)
-		})
-		*/
         return this.layouts.push(layout) // add.selector can be a selector string, set of elements or function returning elements
     }
     distance(c, e, m){
@@ -675,7 +638,7 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
 			closerDist = 99999
 		}
         if(!closer){
-            if(typeof(layout.overScrollAction) != 'function' || layout.overScrollAction(direction, e) !== true && noCycle !== true){
+            if(noCycle !== true && (typeof(layout.overScrollAction) != 'function' || layout.overScrollAction(direction, e) !== true)){
                 closer = this.opposite(e, items, direction)                
                 if(this.debug){
                     console.log('opposite', e, items, direction, closer)
@@ -812,7 +775,7 @@ class MenuModal extends MenuBBCode {
 		return this.inModal() && document.body.classList.contains('modal-mandatory')
 	}
 	startModal(content, mandatory){
-		this.sounds.play('warn', 16)
+		this.sounds.play('warn', 80)
 		this.emit('pre-modal-start')
 		this.modalContent.innerHTML = content
 		document.body.classList.add('modal')
@@ -874,15 +837,15 @@ class MenuPlayer extends MenuModal {
 	}
 	showWhilePlaying(enable, ignoreFocus) {
 		if (enable) {
-			main.emit('menu-menu-playing', true)
+			main.emit('menu-playing', true)
 			document.body.classList.add('menu-playing')
 			if (!ignoreFocus) {
 				setTimeout(() => {
-					this.updateSelection() || this.reset()
+					this.restoreSelection() || this.reset()
 				}, 100)
 			}
 		} else {
-			main.emit('menu-menu-playing', false)
+			main.emit('menu-playing', false)
 			document.body.classList.remove('menu-playing')
 			main.idle.reset()
 			main.idle.lock(0.1)
@@ -1145,7 +1108,7 @@ class MenuDialog extends MenuDialogQueue {
 				}
 				if(isOption){
 					optsCount++
-					if(!validatedDefaultIndex || e.id == defaultIndex){
+					if(!validatedDefaultIndex || (e.id && e.id == defaultIndex)){
 						validatedDefaultIndex = e.id
 					}
 					if(e.template == 'text'){
@@ -1191,8 +1154,7 @@ class MenuDialog extends MenuDialogQueue {
 							callback(id)
 						})
 						if(String(e.id) == String(validatedDefaultIndex)) {						
-							const ensureFocus = () => this.focus(p, false);
-							[150, 400, 800].forEach(ms => setTimeout(ensureFocus, ms))
+							this.delayedFocus(p, false)
 						}
 					}
 				} else if(e.template == 'message') {						
@@ -1624,9 +1586,8 @@ class MenuStatusFlags extends MenuSlider {
 		return e
 	}
 	processStatusFlags(){
-		let updated
-		this.currentEntries = this.currentEntries.map(e => this.statusAddHTML(e))
-		this.emit('updated')
+		this.currentEntries.map(e => this.statusAddHTML(e))
+		this.uiUpdate(false)
 	}
 }
 
@@ -1671,7 +1632,59 @@ class MenuLoading extends MenuStatusFlags {
 	}
 }
 
-export class Menu extends MenuLoading {
+class MenuNav extends MenuLoading {
+	constructor(container){
+		super(container)
+		this.sideMenuWidthCache = null
+		this.sideMenuSyncTimer = 0
+		setTimeout(() => this.sideMenu(false, 'instant'), 0)
+	}
+	inSideMenu() {
+		const w = this.getSideMenuWidth()
+		return this.container.scrollLeft <= (w / 2)
+	}
+	sideMenuSync(resized, inSideMenu) {
+		if(resized === true) {
+			this.sideMenuWidthCache = null
+		}
+		const c = typeof(inSideMenu) == 'boolean' ? inSideMenu : this.inSideMenu() // if should add class 'side-menu'
+		const n = document.body.classList.contains('side-menu')
+		if(c != n) {
+			document.body.classList[c ? 'add' : 'remove']('side-menu')
+		}
+		this.selected(true) // update current selection
+	}
+	sideMenu(enable, behavior='smooth') {
+		if(this.inSideMenu() !== enable) {
+			enable && this.saveSelection()
+			this.container.scroll({
+				top: 0,
+				left: enable ? 0 : this.getSideMenuWidth(),
+				behavior
+			})
+		}
+		this.sideMenuSync(false, enable)
+	}
+	getSideMenuWidth() {
+		if(this.sideMenuWidthCache && this.sideMenuWidthCache.size) {
+			return this.sideMenuWidthCache.size
+		}
+		let size
+		const l = document.createElement('div')
+		l.style.visibility = 'hidden'
+		l.style.boxSize = 'content-box' 
+		l.style.position = 'absolute'
+		l.style.maxHeight = 'none'
+		l.style.height = 'var(--nav-width)'
+		document.body.appendChild(l)
+		size = l.clientHeight
+		document.body.removeChild(l)
+		this.sideMenuWidthCache = {size}
+		return size
+	}
+}
+
+export class Menu extends MenuNav {
 	constructor(container){
 		console.log('menu init')
 		try {
@@ -1683,14 +1696,14 @@ export class Menu extends MenuLoading {
 		main.on('menu-playing', () => {			
 			if(!document.body.classList.contains('menu-playing')){
 				document.body.classList.add('menu-playing')
-				main.emit('menu-menu-playing', true)
+				main.emit('menu-playing', true)
 				setTimeout(() => this.reset(), 100)
 			}
 		})
 		main.on('menu-playing-close', () => {			
 			if(document.body.classList.contains('menu-playing')){
 				document.body.classList.remove('menu-playing')
-				main.emit('menu-menu-playing', false)
+				main.emit('menu-playing', false)
 			}
 		})
 		main.on('render', (entries, path, icon) => {
@@ -1754,41 +1767,43 @@ export class Menu extends MenuLoading {
 	render(entries, path, icon){
 		this.rendering = true
 		this.resetScrollEmittingTimer()
-		let targetScrollTop = 0
-		if(typeof(this.selectionMemory[path]) != 'undefined') {
-			targetScrollTop = this.selectionMemory[path].scroll
-		}
 		let prevEntries = [], navigated = path == this.path
 		if(navigated) {
 			prevEntries = this.currentEntries
 		}
 		entries = entries.map(e => this.prepareEntry(e))
 		let changed = this.applyCurrentEntries(entries)
-		entries = this.getRange(targetScrollTop)
 		this.emit('pre-render', path, this.path)
 		this.path = path
 		this.lastOpenedElement = null
-		changed && this.emit('updated')
+		changed && this.uiUpdate(changed)
 		prevEntries = null
-		if(navigated) {
-			this.wrap.style.minHeight = (targetScrollTop + this.wrap.offsetHeight) + 'px' // avoid scrolling
-			css('span.entry-wrapper {visibility: hidden; }', 'menu-render-hack')
-			this.scrollTop(targetScrollTop)
-		}
 		setTimeout(() => {
 			this.currentElements = Array.from(this.wrap.getElementsByTagName('a'))
+			this.has2xEntry = this.currentElements.slice(0, 2).some(e => e.classList.contains('entry-2x'))
 			this.restoreSelection() // keep it in this timer, or the hell gates will open up!
 			this.rendering = false
 			this.emit('render', this.path, icon)
-        	if(navigated) {
-				this.wrap.style.minHeight = 0
-				css('span.entry-wrapper {visibility: inherit;}', 'menu-render-hack')
-			}
 			if(!this.initialized){
 				this.initialized = true
 				this.emit('init')
 			}
-			this.restoreSelection() // redundant, but needed
+		}, 0)
+	}
+	uiUpdate(pageChanged){
+		this.resetScrollEmittingTimer()
+		let targetScrollTop = 0, path = this.path
+		if(!pageChanged){
+			targetScrollTop = this.wrap.scrollTop
+		} else if(typeof(this.selectionMemory[path]) != 'undefined' && this.selectionMemory[path].default) {
+			targetScrollTop = this.selectionMemory[path].default.scroll
+		}
+		this.wrap.style.minHeight = (targetScrollTop + this.wrap.offsetHeight) + 'px' // avoid scrolling
+		this.emit('updated')
+		setTimeout(() => {
+			this.wrap.style.minHeight = 0
+			this.scrollTop(targetScrollTop, true)
+			this.getRange(targetScrollTop)
 		}, 0)
 	}
 	applyCurrentEntries(entries) {
@@ -1829,21 +1844,24 @@ export class Menu extends MenuLoading {
 			}
 			let entryHeight = this.currentElements[0].offsetHeight
 			let i = Math.round(scrollTop / entryHeight) * this.gridLayoutX
-			return {start: i, end: Math.min(i + limit, entriesCount - 1)}
+			if(this.has2xEntry) {
+				if(i) {
+					i--
+				} else {
+					limit--
+				}				
+			}
+			let end = Math.min(i + limit, entriesCount - 1)
+			return {start: i, end}
 		} else {
 			return {start: 0, end: limit}
 		}
 	}
-	viewportEntries(onlyWithIcons){
+	viewportEntries(){
 		let ret = [], as = this.currentElements
 		if(as.length){
 			let range = this.viewportRange()
 			ret = as.slice(range.start, range.end)
-			if(onlyWithIcons){
-				ret = ret.filter(a => {
-					return a.getAttribute('data-icon')
-				})
-			}
 		}
 		return ret
 	}
@@ -1853,12 +1871,7 @@ export class Menu extends MenuLoading {
 		}
 		this.ranging = false
 		let entries = [], tolerance = this.gridLayoutX, vs = Math.ceil(this.gridLayoutX * this.gridLayoutY), minLengthForRanging = vs + (tolerance * 2), shouldRange = main.config['show-logos'] && this.currentEntries.length >= minLengthForRanging
-		if(targetScrollTop == 0){
-			this.range = {start: 0, end: vs}
-		} else {
-			this.range = this.viewportRange(targetScrollTop, this.currentEntries.length)
-			this.range.end = this.range.start + (vs -1)
-		}
+		this.range = this.viewportRange(targetScrollTop, this.currentEntries.length)
 		if(shouldRange){
 			let trange = Object.assign({}, this.range)
 			trange.end += tolerance
@@ -1903,13 +1916,8 @@ export class Menu extends MenuLoading {
 				this.wrap.scrollTop = currentScrolltop // scroll was somehow being changed from function start to this point
 				main.emit('menu-update-range', this.range, this.path)
 				if(changed.length){
-					if(this.debug){
-						console.warn('UPDATING', changed, this.selectedIndex, this.range)
-						//console.log('selectionMemory updateRange', changed, this.selectedIndex, this.range, this.wrap.scrollTop)
-					}
-					this.currentElements = Array.from(this.wrap.getElementsByTagName('a'))
-					this.emit('update-range', changed)
-					if(this.selectedIndex < this.range.start || this.selectedIndex > this.range.end){
+					console.log('updateRange', changed, this.range, this.selectedIndex)
+					if(this.selectedIndex < this.range.start || this.selectedIndex >= this.range.end){
 						this.focus(this.currentElements[this.range.start], true)
 					} else {
 						this.focus(this.currentElements[this.selectedIndex], true)
@@ -1927,7 +1935,7 @@ export class Menu extends MenuLoading {
 		}, 50)
 	}
 	check(element){
-		this.sounds.play('switch', 12)
+		this.sounds.play('switch', 65)
 		const i = element.tabIndex
 		const value = !element.querySelector('.fa-toggle-on')
 		const path = element.dataset.path
@@ -1937,7 +1945,7 @@ export class Menu extends MenuLoading {
 			console.warn('NAVCHK', path, value)
 		}
 		main.emit('menu-check', path, value)
-		this.emit('updated')
+		this.uiUpdate(false)
 	}
 	setupSelect(entries, path, fa){
 		const element = this.wrap.querySelector('[data-path="'+ path.replaceAll('"', '&quot;') +'"]')
@@ -1997,7 +2005,7 @@ export class Menu extends MenuLoading {
 					this.currentEntries[i].value = value
 					this.prepareEntry(this.currentEntries[i], i)
 				}				
-				this.emit('updated')		
+				this.uiUpdate(false)
 			}
 			setTimeout(() => {
 				console.warn('DELAYED FOCUS ON', i, this.currentElements[i])
@@ -2021,13 +2029,13 @@ export class Menu extends MenuLoading {
 		}, {once: true})
 		switch(type){
 			case 'back':
-				this.sounds.play('click-out', 3)
+				this.sounds.play('click-out', 50)
 				break
 			case 'group':
-				this.sounds.play('click-in', 4)
+				this.sounds.play('click-in', 65)
 				break
 			case 'stream':
-				this.sounds.play('warn', 16)
+				this.sounds.play('warn', 80)
 				break
 		}
 		if(tabindex == '{tabindex}'){
@@ -2115,17 +2123,22 @@ export class Menu extends MenuLoading {
 		if(!e.type){
 			e.type = typeof(e.url) ? 'stream' : 'action'
 		}
-		if(!e.fa){
-			if(!e.icon || e.icon.indexOf('fa-') == -1){
-				if(this.defaultIcons[e.type]){
-					e.fa = 'fas ' + this.defaultIcons[e.type]
-				}
-			} else {
-				e.fa = e.icon
+		if(e.type != 'back') {
+			if(this.icons[e.path] && this.icons[e.path].url.startsWith('fa')){
+				e.fa = this.icons[e.path].url
 			}
-		}
-		if(!this.icons[e.path] && e.type != 'back') {
-			this.icons[e.path] = {url: e.fa}
+			if(!e.fa){
+				if(!e.icon || !e.icon.startsWith('fa')) {
+					if(this.defaultIcons[e.type]){
+						e.fa = 'fas ' + this.defaultIcons[e.type]
+					}
+				} else {
+					e.fa = e.icon
+				}
+			}
+			if(e.fa && !this.icons[e.path]) {
+				this.icons[e.path] = {url: e.fa}
+			}
 		}
 		if(!e.path){
 			e.path = this.path
@@ -2150,7 +2163,7 @@ export class Menu extends MenuLoading {
 			e.rawname = this.parseBBCode(e.rawname)
 		}
 		e.wrapperClass = 'entry-wrapper'
-		if(!e.top &&  this.icons[e.path] && this.icons[e.path].cover && (main.config['stretch-logos'] || (e.class && e.class.indexOf('entry-force-cover') != -1))) {
+		if(!e.side &&  this.icons[e.path] && this.icons[e.path].cover && (main.config['stretch-logos'] || (e.class && e.class.indexOf('entry-force-cover') != -1))) {
 			e.cover = true
 			e.wrapperClass += ' entry-cover-active'
 		} else {

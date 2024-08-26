@@ -59,7 +59,7 @@ class StreamState extends EventEmitter {
             global.menu.on('render', entries => {
                 this.cancelTests();
                 if (entries.some(e => this.supports(e))) {
-                    this.test(entries).catch(console.error);
+                    this.test(entries).catch(console.error)
                 }
             });
             renderer.get().on('state-atts', (url, atts) => {

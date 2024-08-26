@@ -1,5 +1,5 @@
 import { EventEmitter } from "events";
-import fs from "fs";
+import fs, { read } from "fs";
 import pLimit from "p-limit";
 import readline from "readline";
 import { parseJSON } from '../utils/utils.js'
@@ -49,16 +49,13 @@ class ListIndexUtils extends EventEmitter {
                 };
             }).map(limit);
             await Promise.allSettled(tasks);
-        }
-        catch (error) {
-            console.error(error);
-        }
-        finally {
+        } catch (error) {
+            console.error(error)
+        } finally {
             if (fd !== null) {
                 try {
                     await fd.close().catch(console.error);
-                }
-                catch (error) {
+                } catch (error) {
                     console.error("Error closing file descriptor:", error);
                 }
             }
@@ -71,9 +68,9 @@ class ListIndexUtils extends EventEmitter {
                 if (!map.length) {
                     return reject('empty map requested');
                 }
-                map.sort();
+                map.sort()
                 if (Array.isArray(this.linesMap)) {
-                    return this.readLinesByMap(map).then(resolve).catch(reject);
+                    return this.readLinesByMap(map).then(resolve).catch(reject)
                 }
             }            
             fs.stat(this.file, (err, stat) => {
@@ -81,21 +78,17 @@ class ListIndexUtils extends EventEmitter {
                     return reject(err || 'stat failed with no error');
                 }
                 if (stat.size) {
-                    let max, i = 0, lines = {}, rl = readline.createInterface({
-                        input: fs.createReadStream(this.file),
-                        crlfDelay: Infinity
-                    });
+                    let max, i = 0, lines = {}
+                    const input = fs.createReadStream(this.file)
+                    const rl = readline.createInterface({input, crlfDelay: Infinity})
                     if (map) {
-                        max = Math.max(...map);
+                        max = Math.max(...map)
                     } else {
-                        max = -1;
+                        max = -1
                     }
                     rl.on('line', line => {
                         if (this.destroyed) {
-                            if (rl) {
-                                rl.close();
-                                rl = null;
-                            }
+                            rl.close()
                             reject('list destroyed');
                         } else {
                             if (!map || map.includes(i)) {
@@ -108,10 +101,7 @@ class ListIndexUtils extends EventEmitter {
                                 }
                             }
                             if (max > 0 && i == max) {
-                                if (rl) {
-                                    rl.close();
-                                    rl = null;
-                                }
+                                rl.close()
                             }
                             i++;
                         }
@@ -121,8 +111,8 @@ class ListIndexUtils extends EventEmitter {
                             let last = Object.keys(lines).pop(); // remove index from entries
                             delete lines[last];
                         }
-                        resolve(lines);
-                        rl = null;
+                        resolve(lines)
+                        rl.close()
                     });
                 } else {
                     return reject('empty file ' + stat.size);
@@ -131,63 +121,57 @@ class ListIndexUtils extends EventEmitter {
         });
     }
     async readLastLine() {
-        const bufferSize = 16834        
-        const { size } = await fs.promises.stat(this.file);
-        const fd = await fs.promises.open(this.file, 'r');
-        let line = '';
-        let readPosition = Math.max(size - bufferSize, 0);
+        const bufferSize = 4096
+        const { size } = await fs.promises.stat(this.file)
+        const fd = await fs.promises.open(this.file, 'r')
+        let buffer, lastReadSize, readPosition = Math.max(size - bufferSize, 0)
         while (readPosition >= 0) {
-            const readSize = Math.min(bufferSize, size - readPosition);
-            const { buffer, bytesRead } = await fd.read(Buffer.alloc(readSize), 0, readSize, readPosition);
-            const content = String(buffer);
-            line = content + line;
-            const pos = content.lastIndexOf("\n");
-            if (pos != -1) {
-                line = line.substring(pos + 1);
-                break;
+            const readSize = Math.min(bufferSize, size - readPosition)
+            if(readSize !== lastReadSize) {
+                lastReadSize = readSize
+                buffer && buffer.dispose()
+                buffer = Buffer.alloc(readSize)
             }
-            if (!bytesRead) {
-                break;
+            const { bytesRead } = await fd.read(buffer, 0, readSize, readPosition)            
+            if (bytesRead === 0) break
+            const newlineIndex = buffer.lastIndexOf(0x0A) // 0x0A is the ASCII code for '\n'
+            if (newlineIndex !== -1) {
+                let err
+                const start = readPosition + newlineIndex
+                const lastLine = Buffer.alloc(size - start)
+                const { bytesRead } = await fd.read(lastLine, 0, size - start, start)
+                await fd.close().catch(console.error)
+                if(err) throw err
+                return String(lastLine)
+            } else {
+                readPosition -= bufferSize
             }
-            readPosition -= bytesRead;
         }
-        await fd.close().catch(console.error);
-        return line;
+        await fd.close().catch(console.error)
+        return ''
     }
     async readIndex() {
-        let line = await this.readLastLine();
-        let index = false;
-        if (line) {
-            try {
-                let parsed = parseJSON(line);
-                if (Array.isArray(parsed)) {
-                    this.linesMap = parsed;
-                    
-                    const fd = await fs.promises.open(this.file, 'r');
-                    const from = parsed[parsed.length - 2];
-                    const length = parsed[parsed.length - 1] - from;
-                    const buffer = Buffer.alloc(length);
-                    const { bytesRead } = await fd.read(buffer, 0, length, from);
-                    await fd.close().catch(console.error);
-                    line = String(buffer).substr(0, bytesRead);
-                    index = JSON.parse(line);
-                } else {
-                    index = parsed; // old style compat
-                }
-            }
-            catch (e) {
-                console.error('Index parsing failure', e, this.file);
-            }
+        if(!this.linesMap) {
+            const line = await this.readLastLine()
+            if (!line) throw 'empty file'
+            const parsed = parseJSON(line)
+            if (!Array.isArray(parsed)) throw 'bad lines map'
+            this.linesMap = parsed
         }
-        if (index && typeof (index.length) != 'undefined') {
-            if (index.linesMap) {
-                this.linesMap = index.linesMap;
-                delete index.linesMap;
-            }
-            return index;
+        let err
+        const fd = await fs.promises.open(this.file, 'r');
+        const from = this.linesMap[this.linesMap.length - 2];
+        const length = this.linesMap[this.linesMap.length - 1] - from;
+        const buffer = Buffer.alloc(length);
+        const { bytesRead } = await fd.read(buffer, 0, length, from).catch(e => err = e)
+        await fd.close().catch(console.error);
+        if(err) throw err
+        const index = JSON.parse(String(buffer).substr(0, bytesRead))
+        if (index && typeof(index.length) != 'undefined') {
+            return index
         } else {
-            console.error('Bad index on ' + this.file, String(line).substr(0, 256), this.file);
-            return this.indexTemplate;
+            console.error('Bad index on '+ this.file, index)
+            return this.indexTemplate
         }
     }
 }

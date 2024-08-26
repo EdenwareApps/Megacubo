@@ -128,10 +128,10 @@ class PublicLists extends EventEmitter {
         });
     }
     async discovery(adder) {
-        await this.ready();
+        await this.ready()
         let locs = await lang.getActiveCountries(0).catch(console.error);
         if (!Array.isArray(locs) || !locs.length) {
-            locs = [lang.countryCode];
+            locs = [lang.countryCode]
         }
         let lists = locs.map(code => this.data[code]).flat().filter(c => c);
         if (lists.length) {

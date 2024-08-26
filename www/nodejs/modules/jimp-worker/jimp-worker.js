@@ -34,60 +34,57 @@ class JimpWorker {
         if(!valid) console.warn('not transparent image, corners: ' + JSON.stringify(corners) + ', alphas: ' + JSON.stringify(alphas))
         return valid
     }
-    transform(file, opts){
-        const maxWidth = 400, maxHeight = 400
-        let changed
+    async transform(file, opts){
         opts = Object.assign({autocrop: true, shouldBeAlpha: 0, resize: false}, opts)
-        return new Promise((resolve, reject) => {
-            this.load()
-            this.jimp.read(file).then(image => {
-                if(image.bitmap.width > 0 && image.bitmap.height > 0) {
-                    let alpha = this.isAlpha(image)
-                    if(opts.shouldBeAlpha == 2 && !alpha){
-                        return reject('not an alpha image')
-                    }
-                    if(opts.minWidth && opts.minWidth > image.bitmap.width){
-                        return reject('bad image dimensions '+ image.bitmap.width +'x'+ image.bitmap.height)
-                    }
-                    if(opts.minHeight && opts.minHeight > image.bitmap.height){
-                        return reject('bad image dimensions* '+ image.bitmap.width +'x'+ image.bitmap.height)
-                    }
-                    if(opts.shouldBeAlpha == 2 && !alpha){
-                        return reject('not an alpha image')
-                    }
-                    if(opts.resize){
-                        if(image.bitmap.width > maxWidth){
-                            const start = (new Date()).getTime()
-                            image = image.resize(maxWidth, this.jimp.AUTO)
-                            console.log('JIMP resizeX', (new Date()).getTime() - start)
-                            changed = true
-                        }
-                        if(image.bitmap.height > maxHeight) {
-                            const start = (new Date()).getTime()
-                            image = image.resize(this.jimp.AUTO, maxHeight)
-                            console.log('JIMP resizeX', (new Date()).getTime() - start)
-                            changed = true
-                        }
-                    }
-                    if(opts.autocrop){
-                        image.autocrop = this.jimpCustomAutocrop
-                        image = image.autocrop({tolerance: 0.002})
-                        if(image.autoCropped) changed = true
-                    }
-                    if(changed){
-                        image.write(file, () => resolve({file, alpha, changed}))
-                    } else {
-                        resolve({file, alpha, changed})
-                    }
-                } else {
-                    reject('invalid image** ' + image.bitmap.width +'x'+ image.bitmap.height)
+        const maxWidth = 400, maxHeight = 400
+        this.load()
+        let changed, image = await this.jimp.read(file)
+        if(image.bitmap.width > 0 && image.bitmap.height > 0) {
+            let alpha = this.isAlpha(image)
+            if(opts.shouldBeAlpha == 2 && !alpha){
+                throw 'not an alpha image'
+            }
+            if(opts.minWidth && opts.minWidth > image.bitmap.width){
+                throw 'bad image dimensions '+ image.bitmap.width +'x'+ image.bitmap.height
+            }
+            if(opts.minHeight && opts.minHeight > image.bitmap.height){
+                throw 'bad image dimensions* '+ image.bitmap.width +'x'+ image.bitmap.height
+            }
+            if(opts.shouldBeAlpha == 2 && !alpha){
+                throw 'not an alpha image'
+            }
+            if(opts.resize){
+                if(image.bitmap.width > maxWidth){
+                    const start = (new Date()).getTime()
+                    image = image.resize(maxWidth, this.jimp.AUTO)
+                    console.log('JIMP resizeX', (new Date()).getTime() - start)
+                    changed = true
                 }
-                image = null
-            }).catch(err => {
-                console.error('Jimp failed to open', err, file)
-                reject('invalid image*')
-            })
-        })
+                if(image.bitmap.height > maxHeight) {
+                    const start = (new Date()).getTime()
+                    image = image.resize(this.jimp.AUTO, maxHeight)
+                    console.log('JIMP resizeX', (new Date()).getTime() - start)
+                    changed = true
+                }
+            }
+            if(opts.autocrop){
+                image.autocrop = this.jimpCustomAutocrop
+                image = image.autocrop({tolerance: 0.002})
+                if(image.autoCropped) changed = true
+            }
+            if(changed){
+                return await new Promise((resolve, reject) => {
+                    image.write(file, err => {
+                        if(err) return reject(err)
+                        resolve({file, alpha, changed})
+                    })
+                })
+            } else {
+                return {file, alpha, changed}
+            }
+        } else {
+            throw 'invalid image** ' + image.bitmap.width +'x'+ image.bitmap.height
+        }
     }
     colors(file){
         return new Promise((resolve, reject) => {

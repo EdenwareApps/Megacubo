@@ -4,7 +4,6 @@ import { EventEmitter } from 'events';
 import options from "../options/options.js";
 import lists from "../lists/lists.js";
 import http from "http";
-import streamer from "../streamer/main.js";
 import paths from '../paths/paths.js'
 import { ready } from '../bridge/bridge.js'
 import { isWritable } from '../utils/utils.js'
@@ -94,8 +93,8 @@ class AnalyticsEvents extends AnalyticsBase {
     }
     data() {
         let data = {};
-        if (streamer && streamer.active) {
-            data = streamer.active.data;
+        if (global.streamer && global.streamer.active) {
+            data = global.streamer.active.data;
         }
         return this.prepareEntry(data);
     }
@@ -123,12 +122,10 @@ class Analytics extends AnalyticsEvents {
     constructor() {
         super()
         ready(() => {
-            setInterval(this.alive.bind(this), this.keepAliveTTL);
-            streamer.on('commit', this.success.bind(this));
-            streamer.on('stop', this.stop.bind(this));
-            channels.search.on('search', data => {
-                this.search(data);
-            });
+            setInterval(this.alive.bind(this), this.keepAliveTTL)
+            global.streamer.on('commit', this.success.bind(this))
+            global.streamer.on('stop', this.stop.bind(this))
+            channels.search.on('search', data => this.search(data))
             this.alive()
         })
     }

@@ -17,7 +17,7 @@ import yt from './engines/yt.js'
 import config from '../config/config.js'
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
-import { ucFirst } from '../utils/utils.js'
+import { time, ucFirst } from '../utils/utils.js'
 import StreamState from '../stream-state/stream-state.js'
 
 const SYNC_BYTE = 0x47
@@ -70,7 +70,7 @@ class StreamerTools extends EventEmitter {
         }
         this.pingSource && await this.pingSource(entry.source).catch(console.error)
         let type = false;
-        const now = (Date.now() / 1000);
+        const now = time();
         const isMAG = url.indexOf('#mag-') != -1; // MAG URLs should be revalidated
         const cachingKey = this.infoCacheKey(url), skipSample = entry.skipSample || entry.allowBlindTrust || (entry.skipSample !== false && this.streamInfo.mi.isVideo(url));
         if (cachingKey && !isMAG && this.streamInfoCaching[cachingKey] && now < this.streamInfoCaching[cachingKey].until) {
@@ -345,13 +345,14 @@ class StreamerBase extends StreamerTools {
         this.unregisterAllLoadingIntents();
         if (this.active) {
             let data = this.active.data;
+            const elapsed = time() - this.active.commitTime
             this.emit('streamer-disconnect', err);
             console.log('STREAMER->STOP', err);
             if (!err && this.active.failed) {
                 err = 'failed';
             }
             if (!err) { // stopped with no error
-                let longWatchingThreshold = 15 * 60, watchingDuration = ((Date.now() / 1000) - this.active.commitTime);
+                let longWatchingThreshold = 15 * 60, watchingDuration = (time() - this.active.commitTime);
                 console.log('STREAMER->STOP', watchingDuration, this.active.commitTime);
                 if (this.active.commitTime && watchingDuration > longWatchingThreshold) {
                     renderer.get().emit('streamer-long-watching', watchingDuration);
@@ -360,7 +361,7 @@ class StreamerBase extends StreamerTools {
             }
             this.active.destroy();
             this.active = null;
-            this.emit('stop', err, data);
+            this.emit('stop', err, data, elapsed)
         }
     }
     unload() {
@@ -380,7 +381,7 @@ class StreamerThrottling extends StreamerBase {
     throttle(url) {
         let rule = 'allow', domain = this.streamInfo.mi.getDomain(url);
         if (typeof (this.throttling[domain]) != 'undefined') {
-            let now = (Date.now() / 1000);
+            let now = time();
             if (this.throttling[domain] > now) {
                 rule = 'deny';
             } else {
@@ -390,7 +391,7 @@ class StreamerThrottling extends StreamerBase {
         return rule == 'allow';
     }
     forbid(url) {
-        this.throttling[this.streamInfo.mi.getDomain(url)] = (Date.now() / 1000) + this.throttleTTL;
+        this.throttling[this.streamInfo.mi.getDomain(url)] = time() + this.throttleTTL;
     }
 }
 class StreamerTracks extends StreamerThrottling {
@@ -645,8 +646,8 @@ class Streamer extends StreamerTracks {
         const isMega = e && mega.isMega(e.url);
         if (!isMega && e) {
             if (c == 'stop') {
-                const terms = global.channels.entryTerms(e);
-                const ch = global.channels.isChannel(terms);
+                const terms = global.channels.entryTerms(e, true)
+                const ch = global.channels.isChannel(terms)
                 if (ch) {
                     const skips = [global.lang.STREAMS, global.lang.MY_LISTS, global.lang.CATEGORY_MOVIES_SERIES];
                     if (skips.every(s => global.menu.path.indexOf(s) == -1)) {

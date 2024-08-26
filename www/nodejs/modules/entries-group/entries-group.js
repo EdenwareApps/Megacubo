@@ -106,11 +106,9 @@ class EntriesGroup extends EventEmitter {
         this.save(true);
     }
     save(changed) {
-        this.store(this.data);
-        this.data = this.prepare(this.data);
-        if (changed) {
-            this.emit('change', this.data);
-        }
+        this.store(this.data)
+        this.data = this.prepare(this.data)
+        changed && this.emit('change', this.data)
     }
     async removalEntries() {
         const entries = [];

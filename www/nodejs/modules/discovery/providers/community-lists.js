@@ -15,14 +15,13 @@ class CommunityLists extends EventEmitter {
     }
     async discovery(adder) {
         if (paths.ALLOW_COMMUNITY_LISTS) {
-            const timeoutMs = 30000
             const limit = pLimit(2)
             const parseUsersCount = s => parseInt(s.split(' ').shift().replace('.', ''));
             const solved = [], locs = await lang.getActiveCountries();
             await Promise.allSettled(locs.map((loc, i) => {
                 return async () => {
                     const scoreLimit = 1 - (i * (1 / locs.length));
-                    let maxUsersCount = -1, lists = await cloud.get('country-sources.' + loc, {timeoutMs}).catch(console.error);
+                    let maxUsersCount = -1, lists = await cloud.get('sources/' + loc).catch(console.error);
                     solved.push(loc)
                     if(Array.isArray(lists)) {
                         lists = lists.map(list => {
@@ -36,10 +35,10 @@ class CommunityLists extends EventEmitter {
                         })
                         adder(lists)
                     }
-                };
-            }).map(limit));
+                }
+            }).map(limit))
         }
-        return [];
+        return []
     }
     showInfo() {
         menu.dialog([

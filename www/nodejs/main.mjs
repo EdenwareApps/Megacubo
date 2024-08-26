@@ -18,7 +18,7 @@ import Wizard from './modules/wizard/wizard.js';
 import downloads from './modules/downloads/downloads.js';
 import cloud from './modules/cloud/cloud.js';
 import './modules/analytics/analytics.js';
-import './modules/omni/omni.js';
+import omni from './modules/omni/omni.js';
 import config from './modules/config/config.js'
 import Download from './modules/download/download.js'
 import renderer from './modules/bridge/bridge.js'
@@ -114,7 +114,7 @@ function enableConsole(enable) {
         fns.forEach(f => { console[f] = () => {}; });
     }
 }
-enableConsole(1||config.get('enable-console') || process.argv.includes('--inspect'));
+enableConsole(config.get('enable-console') || process.argv.includes('--inspect'));
 console.log('[main] Loading modules...');
 console.log('[main] Modules loaded.');
 global.activeEPG = '';
@@ -225,7 +225,7 @@ const init = async (language, timezone) => {
     menu.addFilter(options.hook.bind(options));
     menu.addFilter(theme.hook.bind(theme));
     menu.addFilter(channels.search.hook.bind(channels.search));
-    menu.addFilter(recommendations.hook.bind(recommendations));
+    menu.addOutputFilter(recommendations.hook.bind(recommendations));
     ui.on('menu-update-range', icons.renderRange.bind(icons));
     menu.on('render', icons.render.bind(icons));
     menu.on('action', async (e) => {
@@ -438,30 +438,8 @@ const init = async (language, timezone) => {
         }
     });
     ui.on('open-url', url => {
-        console.log('OPENURL', url);
-        if (url) {
-            const isM3U = url.match(new RegExp('(get.php\\?username=|\\.m3u($|[^A-Za-z0-9])|\/supratv\\.)'));
-            if (isM3U) {
-                lists.manager.addList(url).catch(e => menu.displayErr(e));
-            } else {
-                const name = listNameFromURL(url), e = {
-                    name,
-                    url,
-                    terms: {
-                        name: lists.tools.terms(name),
-                        group: []
-                    }
-                };
-                config.set('open-url', url);
-                lists.manager.waitListsReady().then(() => {
-                    if (isStreamerReady) {
-                        streamer.play(e);
-                    } else {
-                        playOnLoaded = e;
-                    }
-                }).catch(console.error);
-            }
-        }
+        console.log('OPENURL', url)
+        omni.open(url).catch(e => menu.displayErr(e))
     });
     ui.on('open-name', name => {
         console.log('OPEN STREAM BY NAME', name);
@@ -534,27 +512,25 @@ const init = async (language, timezone) => {
         }
     });
     ui.once('menu-ready', () => {
-        menu.start();
-        icons.refresh();
+        menu.start()
+        icons.refresh()
     });
     ui.once('streamer-ready', async () => {
         isStreamerReady = true;
         streamer.state.sync();
         renderer.ready() || renderer.ready(null, true);
         if (!streamer.active) {
-            lists.manager.waitListsReady().then(() => {
-                if (playOnLoaded) {
-                    streamer.play(playOnLoaded);
-                } else if (config.get('resume')) {
-                    if (menu.path) {
-                        console.log('resume skipped, user navigated away');
-                    } else {
-                        console.log('resuming', channels.history.resumed, streamer);
-                        channels.history.resume();
-                    }
+            await lists.manager.waitListsReady().catch(console.error)
+            if (playOnLoaded) {
+                streamer.play(playOnLoaded);
+            } else if (config.get('resume')) {
+                if (menu.path) {
+                    console.log('resume skipped, user navigated away');
+                } else {
+                    console.log('resuming', channels.history.resumed, streamer);
+                    channels.history.resume();
                 }
-                menu.updateHomeFilters();
-            }).catch(console.error);
+            }
         }
     });
     ui.once('close', () => {
@@ -701,6 +677,7 @@ if (paths.android) {
         app.commandLine.appendSwitch('enable-experimental-web-platform-features'); // audioTracks support
         app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport'); // TODO: Allow user to activate Metal (macOS) and VaapiVideoDecoder (Linux) features
         app.commandLine.appendSwitch('disable-features', 'IsolateOrigins,SitePerProcess,NetworkPrediction');
+        app.commandLine.appendSwitch("autoplay-policy", "no-user-gesture-required");
         app.commandLine.appendSwitch('disable-web-security');
         await app.whenReady();
         console.log('[main] Initializing window... 5');

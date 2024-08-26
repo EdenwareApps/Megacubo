@@ -1,5 +1,5 @@
 import Download from '../download/download.js'
-import { decodeURIComponentSafe,prepareCORS, sanitize } from '../utils/utils.js';
+import { decodeURIComponentSafe, prepareCORS, sanitize, time } from '../utils/utils.js';
 import osd from '../osd/osd.js'
 import menu from '../menu/menu.js'
 import storage from '../storage/storage.js'
@@ -28,34 +28,11 @@ class IconDefault {
         }
         return sanitize(terms.filter(s => s.length && !s.startsWith('-')).join('-'));
     }
-    getDefault(terms) {
-        return new Promise((resolve, reject) => {
-            if (!terms || !terms.length) {
-                return resolve(false);
-            }
-            let name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder + '/' + name;
-            fs.stat(file, (err, stat) => {
-                if (stat && stat.size) {
-                    fs.readFile(file, { encoding: null }, (err, content) => {
-                        if (err && !content) {
-                            console.error(err);
-                            resolve(false);
-                        } else {
-                            resolve(content);
-                        }
-                    });
-                } else {
-                    resolve(false);
-                }
-            });
-        });
-    }
     getDefaultFile(terms) {
         return new Promise((resolve, reject) => {
             if (!terms || !terms.length) {
                 return resolve(false);
-            }
-            
+            }            
             let name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder + '/' + name;
             fs.stat(file, (err, stat) => {
                 if (stat && stat.size >= 32) {
@@ -66,28 +43,7 @@ class IconDefault {
             });
         });
     }
-    saveDefault(terms, data, cb) {
-        
-        const updating = !lists.loaded() || !lists.activeLists.length; // we may find a better logo after
-        if (!updating && terms && terms.length) {
-            let name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder + '/' + name;
-            if (this.opts.debug) {
-                console.log('saveDefault', terms, name, file);
-            }
-            
-            fs.writeFile(file, data, 'binary', () => {
-                if (cb) {
-                    cb(file);
-                }
-            });
-        } else {
-            if (cb) {
-                cb(false);
-            }
-        }
-    }
-    async saveDefaultFile(terms, sourceFile) {
-        
+    async saveDefaultFile(terms, sourceFile) {        
         if (!lists.loaded() || !lists.activeLists.length) { // we may find a better logo later
             return false;
         }
@@ -95,8 +51,7 @@ class IconDefault {
             let err, name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder + '/' + name;
             if (this.opts.debug) {
                 console.log('saveDefaultFile', terms, name, sourceFile, file);
-            }
-            
+            }            
             await fs.promises.stat(sourceFile).catch(e => err = e);
             if (!err)
                 await fs.promises.copyFile(sourceFile, file);
@@ -106,8 +61,7 @@ class IconDefault {
         return new Promise(resolve => {
             if (!terms || !terms.length) {
                 return resolve(false);
-            }
-            
+            }            
             let name = this.prepareDefaultName(terms) + '.icon.' + this.defaultIconExtension, file = this.opts.folder + '/' + name;
             fs.stat(file, (err, stat) => {
                 if (stat && stat.size >= 32) {
@@ -118,13 +72,15 @@ class IconDefault {
             });
         });
     }
-    async saveDefaultIcon(terms, sourceFile) {
+    async saveDefaultIcon(terms, sourceFile, force) {  
+        if (force || !lists.loaded() || !lists.activeLists.length) { // we may find a better logo later
+            return false;
+        }
         if (terms && terms.length) {
             let err, name = this.prepareDefaultName(terms) + '.icon.' + this.defaultIconExtension, file = this.opts.folder + '/' + name;
             if (this.opts.debug) {
                 console.log('saveDefaultFile', terms, name, sourceFile, file);
-            }
-            
+            }            
             await fs.promises.stat(sourceFile).catch(e => err = e);
             if (!err)
                 await fs.promises.copyFile(sourceFile, file);
@@ -161,9 +117,8 @@ class IconSearch extends IconDefault {
         return new Promise((resolve, reject) => {
             if (this.opts.debug) {
                 console.log('is channel', ntms);
-            }
-            
-            let images = [];
+            }            
+            let images = []
             const next = () => {
                 lists.search(ntms, {
                     type: 'live',
@@ -172,9 +127,9 @@ class IconSearch extends IconDefault {
                     if (this.opts.debug) {
                         console.log('fetch from terms', ntms, liveOnly, JSON.stringify(ret));
                     }
-                    if (ret.results.length) {
+                    if (ret.length) {
                         const already = {}, alreadySources = {};
-                        ret = ret.results.filter(e => {
+                        ret = ret.filter(e => {
                             return e.icon && e.icon.indexOf('//') != -1;
                         });
                         if (this.opts.debug) {
@@ -218,8 +173,10 @@ class IconSearch extends IconDefault {
 class IconServerStore extends IconSearch {
     constructor() {
         super();
-        this.ttlHTTPCache = 24 * 3600;
-        this.ttlBadHTTPCache = 1800;
+        this.ttlHTTPCache = 24 * 3600
+        this.ttlBadHTTPCache = 1800
+        this.activeDownloads = {}
+        this.downloadErrors = {}
     }
     key(url) {
         return crypto.createHash('md5').update(url).digest('hex');
@@ -261,46 +218,32 @@ class IconServerStore extends IconSearch {
             }
         }
     }
-    validateFile(file) {
-        return new Promise((resolve, reject) => {
-            
-            fs.access(file, fs.constants.R_OK, err => {
-                if (err)
-                    return reject(err);
-                fs.open(file, 'r', (err, fd) => {
-                    if (err)
-                        return reject(err);
-                    const readSize = 32;
-                    fs.read(fd, Buffer.alloc(readSize), 0, readSize, 0, (err, bytesRead, content) => {
-                        if (err)
-                            return reject(err);
-                        let v = this.validate(content);
-                        if (v) {
-                            resolve(v);
-                        } else {
-                            reject('file not validated');
-                        }
-                    });
-                });
-            });
-        });
+    async validateFile(file) {
+        let err
+        await fs.promises.access(file, fs.constants.R_OK)
+        const readSize = 32, content = Buffer.alloc(readSize)
+        const fd = await fs.promises.open(file, 'r')
+        const { bytesRead } = await fd.read(content, 0, readSize, 0).catch(e => err = e)
+        await fd.close()
+        if(err) throw err
+        return this.validate(content.slice(0, bytesRead))
     }
     resolveHTTPCache(key) {
-        return storage.resolve('icons-cache-' + key);
+        return storage.resolve('icons-cache-' + key)
     }
     async checkHTTPCache(key) {
-        const has = await storage.exists('icons-cache-' + key);
+        const has = await storage.exists('icons-cache-' + key)
         if (has !== false) {
-            return this.resolveHTTPCache(key);
+            return this.resolveHTTPCache(key)
         }
-        throw 'no http cache';
+        throw 'no http cache'
     }
     async getHTTPCache(key) {
-        const data = await storage.get('icons-cache-' + key);
+        const data = await storage.get('icons-cache-' + key)
         if (data) {
-            return { data };
+            return { data }
         }
-        throw 'no cache*';
+        throw 'no cache*'
     }
     async saveHTTPCache(key, data) {
         if (!cb)
@@ -324,9 +267,12 @@ class IconServerStore extends IconSearch {
         storage.setTTL('icons-cache-' + key, time);
     }
     async fetchURL(url) {
+        const now = time()
+        if (this.downloadErrors[url] && this.downloadErrors[url].ttl > now) {
+            throw this.downloadErrors[url].error
+        }
         const suffix = 'data:image/png;base64,';
-        if (String(url).startsWith(suffix)) {
-            
+        if (String(url).startsWith(suffix)) {            
             const key = this.key(url);
             const file = this.resolveHTTPCache(key);
             await fs.promises.writeFile(file, Buffer.from(url.substr(suffix.length), 'base64'));
@@ -358,20 +304,25 @@ class IconServerStore extends IconSearch {
         const file = this.resolveHTTPCache(key);
         err = null;
         await this.limiter.download(async () => {
-            await Download.file({
-                url,
-                file,
-                retries: 2,
-                timeout: 10,
-                downloadLimit: this.opts.downloadLimit,
-                headers: {
-                    'content-encoding': 'identity'
-                }
-            }).catch(e => err = e);
-        });
-        if (err) {            
-            await fs.promises.unlink(file).catch(console.error);
-            throw err;
+            if(!this.activeDownloads[url]) {
+                this.activeDownloads[url] = Download.file({
+                    url,
+                    file,
+                    retries: 2,
+                    timeout: 10,
+                    downloadLimit: this.opts.downloadLimit,
+                    headers: {
+                        'content-encoding': 'identity'
+                    }
+                }).catch(e => err = e)
+            }
+            await this.activeDownloads[url]
+            delete this.activeDownloads[url]
+        })
+        if (err) {
+            this.downloadErrors[url] = {error: String(err), ttl: time() + 60}
+            await fs.promises.unlink(file).catch(console.error)
+            throw err
         }
         await this.saveHTTPCacheExpiration(key);
         const ret2 = await this.validateFile(file);
@@ -410,21 +361,31 @@ class IconServer extends IconServerStore {
         this.renderingPath = null;
         this.listen();
     }
-    get(e) {
+    get(e, j) {
         const icon = new Icon(e, this);
         const promise = icon.get();
         promise.icon = icon;
         promise.entry = e;
-        promise.destroy = () => icon.destroy();
-        return promise;
+        promise.catch(console.error)
+        promise.destroy = () => icon.destroy()
+
+        icon.on('result', ret => this.result(e, e.path, j, ret))
+        if(e.iconFallback) {
+            icon.on('failed', () => {
+                const ret = {url: e.iconFallback, force: false, alpha: true}
+                this.result(e, e.path, j, ret)
+            })
+        }
+
+        return promise
     }
     result(e, path, tabindex, ret) {
         if (!this.destroyed && ret.url) {
             if (this.opts.debug) {
-                console.error('ICON=' + e.path + ' (' + e.name + ', ' + tabindex + ') ' + ret.url);
+                console.error('ICON=' + e.path + ' (' + e.name + ', ' + tabindex + ') ' + ret.url)
             }
             if (path.endsWith(e.name) && tabindex != -1) {
-                path = path.substr(0, path.length - 1 - e.name.length);
+                path = path.substr(0, path.length - 1 - e.name.length)
             }
             renderer.get().emit('icon', {
                 url: ret.url,
@@ -446,7 +407,7 @@ class IconServer extends IconServerStore {
         if (!e || (e.class && e.class.indexOf('no-icon') != -1)) {
             return false;
         }
-        if (e.icon || e.programme) {
+        if (e.icon || e.programme || e.side) {
             return true;
         }
         const t = e.type || 'stream';
@@ -460,7 +421,7 @@ class IconServer extends IconServerStore {
         }
     }
     addRenderTolerance(range, limit) {
-        let vx = config.get('view-size-x');
+        let vx = config.get('view-size').landscape.x;
         range.start = Math.max(range.start - vx, 0);
         range.end = Math.min(range.end + vx, limit);
         return range;
@@ -468,7 +429,7 @@ class IconServer extends IconServerStore {
     render(entries, path) {
         if (!config.get('show-logos'))
             return;
-        let vs = config.get('view-size-x') * config.get('view-size-y'), range = {
+        let metrics = config.get('view-size').landscape, vs = metrics.x * metrics.y, range = {
             start: 0,
             end: vs
         };
@@ -479,40 +440,31 @@ class IconServer extends IconServerStore {
         if (path == menu.path && Array.isArray(menu.pages[path])) {
             range = this.addRenderTolerance(range, menu.pages[path].length);
             if (path != this.renderingPath) {
-                Object.keys(this.rendering).forEach(i => {
-                    if (i != -1 && this.rendering[i]) {
-                        this.rendering[i].destroy();
-                        delete this.rendering[i];
-                    }
-                });
-                this.renderingPath = path;
-                menu.pages[path].slice(range.start, range.end).map((e, i) => {
-                    const j = range.start + i;
+                for(const r in this.rendering) {
+                    this.rendering[r] && this.rendering[r].destroy()
+                }
+                this.rendering = {}
+                this.renderingPath = path
+                menu.pages[path].filter(e => !e.side).slice(range.start, range.end).map((e, i) => {
+                    const j = range.start + i
                     if (this.qualifyEntry(e)) {
-                        this.rendering[j] = this.get(e); // do not use then directly to avoid losing destroy method
-                        this.rendering[j].icon.on('result', ret => {
-                            this.result(e, e.path, j, ret);
-                        });
-                        this.rendering[j].catch(console.error);
+                        this.rendering[j] = this.get(e, j) // do not use then directly to avoid losing destroy method
                     } else {
-                        this.rendering[j] = null;
+                        this.rendering[j] = null
                     }
-                });
+                })
             } else {
-                Object.keys(this.rendering).forEach(i => {
-                    if (i != -1 && this.rendering[i] && (i < range.start || i > range.end)) {
-                        this.rendering[i].destroy();
-                        delete this.rendering[i];
+                for(const i in this.rendering) {
+                    const n = parseInt(i)
+                    if (i != -1 && this.rendering[i] && (n < range.start || n > range.end)) {
+                        this.rendering[i].destroy()
+                        delete this.rendering[i]
                     }
-                });
-                menu.pages[path].slice(range.start, range.end).map((e, i) => {
+                }
+                menu.pages[path].filter(e => !e.side).slice(range.start, range.end).map((e, i) => {
                     const j = range.start + i;
                     if ((!this.rendering[j] || this.rendering[j].entry.name != e.name) && this.qualifyEntry(e)) {
                         this.rendering[j] = this.get(e); // do not use then directly to avoid losing destroy method
-                        this.rendering[j].icon.on('result', ret => {
-                            this.result(e, path, j, ret);
-                        });
-                        this.rendering[j].catch(console.error);
                     }
                 });
             }
@@ -546,11 +498,11 @@ class IconServer extends IconServerStore {
                             'Cache-Control': 'max-age=0, no-cache, no-store',
                             'Content-Type': 'image/png'
                         }, req));
-                        const stream = new Reader(file);
-                        stream.on('data', c => response.write(c));
+                        const stream = new Reader(file)
+                        stream.on('data', c => response.write(c))
                         closed(req, response, stream, () => {
-                            stream.destroy();
-                            response.end();
+                            stream.destroy()
+                            response.end()
                         });
                     } else {
                         if (this.opts.debug) {
@@ -595,9 +547,9 @@ class IconServer extends IconServerStore {
         }
     }
     refresh() {
-        Object.values(this.rendering).forEach(r => r && r.destroy());
-        this.rendering = {};
-        this.render(menu.pages[menu.path], menu.path);
+        Object.values(this.rendering).forEach(r => r && r.destroy())
+        this.rendering = {}
+        this.render(menu.pages[menu.path], menu.path)
     }
     destroy() {
         if (this.opts.debug) {

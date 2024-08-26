@@ -35,13 +35,47 @@ class Index extends Common {
             if (!opts) {
                 opts = {};
             }
-            Object.keys(ret).forEach(k => {
+            for(const k in ret) {
                 const query = this.parseQuery(ret[k], opts);
                 let smap = this.searchMap(query, opts);
                 results[k] = this.mapSize(smap, opts.group) > 0;
-            });
-            resolve(results);
+            }
+            resolve(results)
+        })
+    }
+    async multiSearch(terms, opts={}) {
+        let results = {}
+        const rmap = {}, scores = {}, sep = "\n", limit = opts.limit || 256
+        const maps = Object.keys(k).map(k => {
+            const query = this.parseQuery(k, opts)
+            return [this.searchMap(query, opts), terms[k]]
+        })
+        for(const result of maps) {
+            const score = result[1]
+            for(const url in result[0]) {
+                for(const type in result[0][url]) {
+                    for(const id of result[0][url][type]) {
+                        const uid = url + sep + type + sep + id
+                        if(!scores[uid]) {
+                            scores[uid] = 0
+                        }
+                        scores[uid] += score
+                    }
+                }
+            }
+        }
+        Object.keys(scores).map(uid => {
+            return {uid, score: scores[uid]}
+        }).sortByProp('score', true).slice(0, limit).map(row => {
+            let parts = row.uid.split(sep)
+            if(!rmap[parts[0]]) rmap[parts[0]] = {n:[], g:[]}
+            rmap[parts[0]][parts[1]].push(parseInt(parts[2]))
         });
+        results = await this.fetchMap(rmap, {group: opts.group}, limit)
+        for(let i=0; i<results.length; i++){
+            results[i].score = scores[results[i].source + sep +'n'+ sep + results[i]._] || scores[results[i].source + sep +'g'+ sep + results[i]._] || -1
+        }
+        return results.sortByProp('score', true)
     }
     searchMapCacheInvalidate(url) {
         if (!url) {
@@ -237,7 +271,7 @@ class Index extends Common {
         if (typeof (terms) == 'string') {
             terms = this.tools.terms(terms, false, true);
         }
-        let start = (Date.now() / 1000), bestResults = [], maybe = [];
+        let start = (Date.now() / 1000), results = []
         const limit = opts.limit || 256, maxWorkingSetLimit = limit * 2;
         if (!terms) {
             return [];
@@ -245,90 +279,80 @@ class Index extends Common {
         if (this.debug) {
             console.warn('lists.search() parsing query', ((Date.now() / 1000) - start) + 's (pre time)');
         }
-        const query = this.parseQuery(terms, opts), checkType = opts.type && opts.type != 'all';
+        const query = this.parseQuery(terms, opts)
         if (this.debug) {
             console.warn('lists.search() map searching', ((Date.now() / 1000) - start) + 's (pre time)', query);
         }
-        let smap = this.searchMap(query, opts), ks = Object.keys(smap);
+        let smap = this.searchMap(query, opts)
         if (this.debug) {
             console.warn('lists.search() parsing results', terms, opts, ((Date.now() / 1000) - start) + 's (pre time)');
         }
-        if (ks.length) {
+        if (Object.keys(smap).length) {
             if (this.debug) {
                 console.warn('lists.search() iterating lists', terms, opts, ((Date.now() / 1000) - start) + 's (pre time)');
             }
-            let results = [];
-            ks.forEach(listUrl => {
-                let ls;
-                if (opts.groupsOnly) {
-                    ls = smap[listUrl]['g'];
-                } else {
-                    ls = smap[listUrl]['n'];
-                    if (opts.group) {
-                        ls.push(...smap[listUrl]['g']);
-                    }
-                }
-                smap[listUrl] = ls;
-            });
-            const limiter = pLimit(4);
-            const alreadyMap = {};
-            const tasks = ks.map(listUrl => {
-                return async () => {
-                    if (this.debug) {
-                        console.warn('lists.search() ITERATE LIST ' + listUrl);
-                    }
-                    if (typeof (this.lists[listUrl]) == 'undefined' || !smap[listUrl].length)
-                        return;
-                    await this.lists[listUrl].iterate(e => {
-                        if (typeof (alreadyMap[e.url]) != 'undefined')
-                            return;
-                        alreadyMap[e.url] = null;
-                        const BREAK = this.lists[listUrl].constants.BREAK;
-                        if (checkType) {
-                            if (this.validateType(e, opts.type, opts.typeStrict === true)) {
-                                e.source = listUrl;
-                                bestResults.push(e);
-                                if (bestResults.length == maxWorkingSetLimit)
-                                    return BREAK;
-                            }
-                        } else {
-                            e.source = listUrl;
-                            bestResults.push(e);
-                            if (bestResults.length == maxWorkingSetLimit)
-                                return BREAK;
-                        }
-                    }, smap[listUrl]);
-                };
-            }).map(limiter);
-            await Promise.allSettled(tasks);
-            if (this.debug) {
-                console.warn('lists.search() RESULTS', ((Date.now() / 1000) - start) + 's (partial time)', ((Date.now() / 1000) - start) + 's', terms, bestResults.slice(0), results.slice(0), maybe.slice(0));
-            }
-            results = bestResults.concat(results);
-            if (maybe.length) {
-                if (!results.length) {
-                    results = maybe;
-                    maybe = [];
-                }
-            }
-            results = this.prepareEntries(results);
-            if (opts.parentalControl !== false) {
-                results = this.parentalControl.filter(results, true);
-                maybe = this.parentalControl.filter(maybe, true);
-            }
-            results = this.adjustSearchResults(results, opts, limit);
-            if (results.length < limit) {
-                maybe = this.adjustSearchResults(maybe, opts, limit - results.length);
-            } else {
-                maybe = [];
-            }
+            const results = await this.fetchMap(smap, opts, maxWorkingSetLimit)
             if (this.debug) {
                 console.warn('lists.search() RESULTS*', ((Date.now() / 1000) - start) + 's (total time)', terms);
             }
-            return { results, maybe };
+            return this.adjustSearchResults(results, opts, limit)
         } else {
-            return { results: [], maybe: [] };
+            return []
         }
+    }
+    async fetchMap(smap, opts={}, limit=512) {
+        let results = []
+        if(!this.fetchMapLimiter) {
+            this.fetchMapLimiter = pLimit(4)
+        }
+        const alreadyMap = {}, checkType = opts.type && opts.type != 'all'
+        for(const listUrl in smap) {
+            if(Array.isArray(smap[listUrl])) continue
+            let ls
+            if (opts.groupsOnly) {
+                ls = smap[listUrl]['g']
+            } else {
+                ls = smap[listUrl]['n']
+                if (opts.group) {
+                    ls.push(...smap[listUrl]['g'])
+                }
+            }
+            smap[listUrl] = ls
+        }
+        const tasks = Object.keys(smap).map(listUrl => {
+            return async () => {
+                if (this.debug) {
+                    console.warn('lists.search() ITERATE LIST ' + listUrl);
+                }
+                if (typeof (this.lists[listUrl]) == 'undefined' || !smap[listUrl].length)
+                    return;
+                await this.lists[listUrl].iterate(e => {
+                    if (typeof (alreadyMap[e.url]) != 'undefined')
+                        return;
+                    alreadyMap[e.url] = null;
+                    const BREAK = this.lists[listUrl].constants.BREAK;
+                    if (checkType) {
+                        if (this.validateType(e, opts.type, opts.typeStrict === true)) {
+                            e.source = listUrl;
+                            results.push(e);
+                            if (results.length == limit)
+                                return BREAK;
+                        }
+                    } else {
+                        e.source = listUrl;
+                        results.push(e);
+                        if (results.length == limit)
+                            return BREAK;
+                    }
+                }, smap[listUrl]);
+            };
+        }).map(this.fetchMapLimiter);
+        await Promise.allSettled(tasks)
+        results = this.prepareEntries(results);
+        if (opts.parentalControl !== false) {
+            results = this.parentalControl.filter(results, true)
+        }
+        return results
     }
     adjustSearchResults(entries, opts, limit) {
         let map = {}, nentries = [];

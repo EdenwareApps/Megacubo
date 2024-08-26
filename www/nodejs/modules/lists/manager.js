@@ -38,41 +38,6 @@ class ManagerEPG extends EventEmitter {
     epgSelectionPath() {
         return lang.MY_LISTS + '/' + lang.EPG + '/' + lang.SELECT;
     }
-    parseEPGURL(url, asArray) {
-        let urls = [url];
-        if (url.match(new RegExp(', *(https?://|//)'))) {
-            urls = url.replace(',//', ',http://').replaceAll(', http', ',http').split(',http').map((u, i) => {
-                if (i) {
-                    u = 'http' + u;
-                }
-                return u;
-            });
-        }
-        return asArray ? urls : urls.shift();
-    }
-    async searchEPGs() {
-        let epgs = [];
-        let urls = this.master.epgs;
-        if (Array.isArray(urls)) {
-            urls = urls.map(u => this.parseEPGURL(u, true)).flat();
-            epgs.push(...urls);
-        }
-        let c = await cloud.get('configure').catch(console.error);
-        if (c && c.epg) {
-            let cs = await lang.getActiveCountries();
-            if (!cs.includes(lang.countryCode)) {
-                cs.push(lang.countryCode);
-            }
-            cs.forEach(code => {
-                if (c.epg[code] && !epgs.includes(c.epg[code])) {
-                    epgs.push(c.epg[code]);
-                }
-            });
-        }
-        global.channels && epgs.push(...global.channels.watching.currentRawEntries.map(e => e.epg))
-        epgs = epgs.filter(e => !!e).map(u => this.parseEPGURL(u, true)).flat().sort().unique()
-        return epgs
-    }
     epgLoadingStatus(epgStatus) {
         let details = '';
         if (Array.isArray(epgStatus)) {
@@ -133,7 +98,7 @@ class ManagerEPG extends EventEmitter {
             activeEPG = '';
         }
         if (activeEPG) {
-            activeEPG = this.parseEPGURL(activeEPG, false);
+            activeEPG = this.master.parseEPGs(activeEPG, false);
         }
         return activeEPG;
     }
@@ -205,7 +170,7 @@ class ManagerEPG extends EventEmitter {
         await renderer.ready(true)
         if (typeof (url) == 'string') {
             if (url) {
-                url = this.parseEPGURL(url, false);
+                url = this.master.parseEPGs(url, false);
             }
             if (url == global.activeEPG)
                 return;
@@ -255,18 +220,18 @@ class ManagerEPG extends EventEmitter {
             throw err;
         }
         global.channels.loadedEPG = url;
-        global.channels.emit('epg-loaded', url);
+        global.channels.emit('epg-loaded', url)
         if (ui) {
             osd.show(lang.EPG_LOAD_SUCCESS, 'fas fa-check-circle', 'epg-add', 'normal');
         }
         if (menu.path == lang.TRENDING || (menu.path.startsWith(lang.LIVE) && menu.path.split('/').length == 2)) {
-            menu.refresh();
+            menu.refresh()
         }
-        return true;
+        return true
     }
-    epgEntry() {
+    epgEntry(side=false) {
         return {
-            name: lang.EPG,
+            name: lang.EPG, side,
             fa: global.channels ? global.channels.epgIcon : '',
             type: 'group', details: 'EPG',
             renderer: async () => {
@@ -322,15 +287,18 @@ class ManagerEPG extends EventEmitter {
                 return e
             }
         }).filter(e => e)
-        return chs.map(c => {
+        chs = chs.map(c => {
             return {
                 name: c.name,
                 type: 'group',
+                fa: 'fas fa-play',
+                terms: c.terms, // allow EPG info inclusion
                 renderer: async () => {
                     return await global.channels.epgChannelEntries(c)
                 }
             };
-        });
+        })
+        return await global.channels.epgChannelsAddLiveNow(chs, false)
     }
 }
 class Manager extends ManagerEPG {
@@ -349,7 +317,6 @@ class Manager extends ManagerEPG {
                 return this.labelify(es);
             });
             this.master.on('unsatisfied', () => this.update());
-            this.master.on('epg-update', () => menu.updateHomeFilters());
         });
         renderer.get().on('menu-back', () => {
             if (this.openingList) {
@@ -430,7 +397,7 @@ class Manager extends ManagerEPG {
                 type: isMega.mediaType,
                 group: isMega.mediaType != 'live'
             }).then(es => {
-                if (es.results.length > streamsCount) {
+                if (es.length > streamsCount) {
                     menu.refresh();
                 }
             }).catch(console.error);
@@ -561,7 +528,7 @@ class Manager extends ManagerEPG {
         if (info && info[listUrl] && info[listUrl].epg) {
             const currentEPG = config.get('epg-' + lang.locale);
             const isMAG = listUrl.endsWith('#mag');
-            info[listUrl].epg = this.parseEPGURL(info[listUrl].epg, false);
+            info[listUrl].epg = this.master.parseEPGs(info[listUrl].epg, false);
             let valid = isMAG || validateURL(info[listUrl].epg);
             if (valid && info[listUrl].epg != currentEPG) {
                 if (!isMAG) {
@@ -718,7 +685,7 @@ class Manager extends ManagerEPG {
         }
         if (this.master.satisfied || this.isUpdating || (!p.length && !c))
             return;
-        let lastProgress = -1;
+        let lastProgressMessage, lastProgress = -1;
         const listener = info => {
             if(info) p = info
             this.master.satisfied && p && p.length && osd.hide('update-progress')
@@ -747,7 +714,8 @@ class Manager extends ManagerEPG {
             } else {
                 m = lang[p.firstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] + ' ' + p.progress + '%';
             }
-            if (m != -1) { // if == -1 it's not complete yet, no lists
+            if (m != -1 && m != lastProgressMessage) { // if == -1 it's not complete yet, no lists
+                lastProgressMessage = m
                 osd.show(m, fa, 'update-progress', duration);
             }
             if (menu && menu.currentEntries) {
@@ -764,15 +732,15 @@ class Manager extends ManagerEPG {
                     this.maybeRefreshChannelPage();
                 }
             }
-        };
+        }
+        osd.show(m, 'fa-mega spin-x-alt', 'update-progress', 'persistent')
         this.master.on('status', listener);
         this.master.on('satisfied', listener);
         this.master.on('unsatisfied', listener);
         this.master.loader.on('progresses', () => {            
             listener(this.master.status());
         });
-        this.isUpdating = setInterval(processStatus, 1000);
-        osd.show(m, 'fa-mega spin-x-alt', 'update-progress', 'persistent');
+        this.isUpdating = setInterval(processStatus, 2000)
     }
     noListsEntry() {
         if (config.get('communitary-mode-lists-amount') > 0) {
@@ -801,9 +769,8 @@ class Manager extends ManagerEPG {
         };
     }
     updatingListsEntry(name) {
-        const { isFirstRun } = lists;
         return {
-            name: name || lang[isFirstRun ? 'STARTING_LISTS' : 'UPDATING_LISTS'],
+            name: name || lang[this.master.isFirstRun ? 'STARTING_LISTS' : 'UPDATING_LISTS'],
             fa: 'fa-mega spin-x-alt',
             type: 'action',
             action: () => {
@@ -840,7 +807,7 @@ class Manager extends ManagerEPG {
         });
         console.log('lists.manager ' + id);
         if (!id) {
-            return;
+            throw 'No input';
         } else if (id == 'file') {
             return await this.addListDialogFile()
         } else if (id == 'code') {
@@ -1165,10 +1132,10 @@ class Manager extends ManagerEPG {
                     });
                 }
                 ls.push(this.addListEntry());
-                manageOnly || ls.push(this.epgEntry());
+                manageOnly || ls.push(this.epgEntry(false));
                 return ls;
             }
-        };
+        }
     }
     async refreshList(data) {
         let updateErr
@@ -1220,9 +1187,31 @@ class Manager extends ManagerEPG {
         }
         osd.hide('refresh-list');
     }
+    async searchEPGs() {
+        let epgs = [];
+        let urls = this.master.epgs;
+        if (Array.isArray(urls)) {
+            epgs.push(...urls)
+        }
+        let c = await cloud.get('configure').catch(console.error);
+        if (c && c.epg) {
+            let cs = await lang.getActiveCountries();
+            if (!cs.includes(lang.countryCode)) {
+                cs.push(lang.countryCode);
+            }
+            cs.forEach(code => {
+                if (c.epg[code] && !epgs.includes(c.epg[code])) {
+                    epgs.push(c.epg[code]);
+                }
+            });
+        }
+        global.channels && epgs.push(...global.channels.watching.currentRawEntries.map(e => e.epg))
+        epgs = epgs.filter(e => !!e).map(u => this.master.parseEPGs(u, true)).flat().sort().unique()
+        return epgs
+    }
     async removeList(data) {
         const info = await this.master.info(true), key = 'epg-' + lang.locale;
-        if (info[data.url] && info[data.url].epg && this.parseEPGURL(info[data.url].epg) == config.get(key)) {
+        if (info[data.url] && info[data.url].epg && this.master.parseEPGs(info[data.url].epg) == config.get(key)) {
             config.set(key, '');
         }
         menu.suspendRendering();
@@ -1357,29 +1346,39 @@ class Manager extends ManagerEPG {
     async hook(entries, path) {
         if (!path) {
             if (paths.ALLOW_ADDING_LISTS) {
-                const entry = this.listsEntry(false);
-                insertEntry(entry, entries, -2, lang.TOOLS, [
+                const entry = this.listsEntry(false)
+                entry.side = true
+                insertEntry(entry, entries, -2, [
+                    lang.TOOLS, lang.OPTIONS
+                ], [
                     lang.BOOKMARKS,
                     lang.KEEP_WATHING,
                     lang.RECOMMENDED_FOR_YOU,
                     lang.CATEGORY_MOVIES_SERIES
-                ]);
+                ])
             } else {
                 if (!entries.some(e => e.name == lang.OPEN_URL)) {
-                    const entry = this.addListEntry();
-                    entry.name = lang.OPEN_URL;
-                    entry.fa = 'fas fa-plus';
-                    entry.top = true;
-                    entries.unshift(entry);
+                    const entry = this.addListEntry()
+                    entry.side = true
+                    entry.name = lang.OPEN_URL
+                    entry.fa = 'fas fa-plus'
+                    entry.side = true
+                    entries.unshift(entry)
                 }
             }
-        } else if (path == lang.TOOLS) {
-            entries.push(this.epgEntry());
+            insertEntry(this.epgEntry(true), entries, -2, [
+                lang.TOOLS, lang.OPTIONS
+            ], [
+                lang.BOOKMARKS,
+                lang.KEEP_WATHING,
+                lang.MY_LISTS,
+                lang.CATEGORY_MOVIES_SERIES
+            ])
         } else if (path.endsWith(lang.MANAGE_CHANNEL_LIST)) {
-            const entry = this.addEPGEntry();
-            entry.name = lang.EPG;
-            entry.details = lang.ADD;
-            entries.push(entry);
+            const entry = this.addEPGEntry()
+            entry.name = lang.EPG
+            entry.details = lang.ADD
+            entries.push(entry)
         }
         return entries;
     }

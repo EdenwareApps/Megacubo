@@ -35,8 +35,8 @@
 </script>
 <player>
     <div>
-        <video crossorigin plays-inline webkit-playsinline muted poster="./assets/images/blank.png"></video>
-        <audio crossorigin plays-inline webkit-playsinline muted poster="./assets/images/blank.png"></audio>
+        <video crossorigin plays-inline webkit-playsinline poster="./assets/images/blank.png"></video>
+        <audio crossorigin plays-inline webkit-playsinline poster="./assets/images/blank.png"></audio>
     </div>
 </player>
 <controls>    
@@ -125,7 +125,7 @@ html.curtains-alpha .curtain {
     width: 50vw;
     position: fixed;
     top: 0;
-    z-index: 1;
+    z-index: 10;
     box-sizing: border-box;
     transition: left 0.15s ease-in 0s, right 0.15s ease-in 0s, opacity 0.15s ease-in 0s;
 }
@@ -143,11 +143,6 @@ html.curtains-closed .curtain-b {
 }
 body.video {
     --modal-background-color: rgba(0, 0, 0, 0.75);
-}
-
-body.video:not(.modal) #menu header {
-    transition: transform var(--menu-fx-nav-duration) ease-in-out 0s;
-    transform: scale(var(--menu-fx-nav-default-inflate));
 }
 
 body.video #menu,
@@ -285,11 +280,6 @@ body.idle div#loading-layer>.control-layer-icon {
 
 body.video-loading #loading-layer {
     opacity: 1;
-}
-
-body.video-loading.idle i {
-    line-height: 150%;
-    margin: 0 0.4rem;
 }
 
 .control-layer i {

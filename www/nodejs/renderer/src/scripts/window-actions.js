@@ -288,11 +288,9 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 					}
 				}
 			}
-			if(typeof(ResizeObserver) == 'undefined') {
-				window.addEventListener('resize', listener)
-			} else {
-				(new ResizeObserver(listener)).observe(document.body)
-			}
+			window.addEventListener('resize', listener)
+			window.addEventListener('orientationchange', listener, { capture: true })
+			screen.orientation && screen.orientation.addEventListener('change', listener)
 		}
 	}
 	setBackgroundMode(state, force){
@@ -348,13 +346,7 @@ export class AndroidWinActions extends WinActionsMiniplayer {
         })
     }
 	seemsPIP(){
-		let seemsPIP		
-		if(screen.width < screen.height) {
-			seemsPIP = window.innerHeight < (screen.height / 2)
-		} else {
-			seemsPIP = window.innerWidth < (screen.width / 2)
-		}
-		return seemsPIP
+		return window.innerHeight < (screen.height / 2)
 	}
     enter(){
         return new Promise((resolve, reject) => {

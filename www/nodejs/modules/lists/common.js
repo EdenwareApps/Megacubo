@@ -14,12 +14,12 @@ class Fetcher extends EventEmitter {
         this.playlists = [];
         this.master = master;
         process.nextTick(() => {
-            this.start().catch(e => this.error = e).finally(() => {
+            this.start().catch(console.error).finally(() => {
                 console.error('Fetcher start 5')
                 this.isReady = true
                 this.emit('ready')
-            });
-        });
+            })
+        })
     }
     ready() {
         return new Promise(resolve => {
@@ -30,30 +30,29 @@ class Fetcher extends EventEmitter {
             }
         });
     }
-    start() {
-        return new Promise((resolve, reject) => {
-            console.error('Fetcher start 0')
-            this.list = new List(this.url, this.master);
-            this.list.skipValidating = true;
-            this.list.start().then(resolve).catch(err => {
-                console.error('Fetcher start 1', err)
-                this.error = err;
-                this.master.loader.addListNow(this.url, this.atts).then(() => {
-                    console.error('Fetcher start 2')            
-                    this.list.start().then(resolve).catch(err => {
-                        console.error('Fetcher start 3', err)
-                        this.error += ' ' + err;
-                        this.list.destroy();
-                        reject(err);
-                    });
-                }).catch(err => {
-                    console.error('Fetcher start 4', err)
-                    this.error += ' ' + err;
-                    this.list.destroy();
-                    reject(this.error);
-                });
-            });
-        });
+    async start() {
+        console.error('Fetcher start 0')
+        this.list = new List(this.url, this.master)
+        try {
+            return await this.list.start()
+        } catch (err) {
+            console.error('Fetcher start 1', err)
+            try {
+                await this.master.loader.addListNow(this.url, this.atts)
+                console.error('Fetcher start 2')            
+                try {
+                    return await this.list.start()
+                } catch(err) { // will trigger outer catch
+                    console.error('Fetcher start 3', err)
+                    throw err
+                }
+            } catch(err) {
+                console.error('Fetcher start 4', err)
+                this.error = err
+                this.list.destroy()
+                throw err
+            }
+        }
     }
     validateCache(content) {
         return typeof (content) == 'string' && content.length >= this.minDataLength;

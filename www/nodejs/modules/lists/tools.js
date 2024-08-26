@@ -467,9 +467,11 @@ class Tools extends TermsHandler {
         return list;
     }
     async deepify(entries, opts = {}) {
-        const folderSizeLimit = config.get('folder-size-limit');
-        if (entries.length <= folderSizeLimit)
-            return entries;
+        const folderSizeLimit = config.get('folder-size-limit')
+        if (entries.length <= folderSizeLimit) {
+            entries = this.shortenSingleFolders(entries)
+            return entries
+        }
         const shouldOffload = entries.length > 4096;
         let parsedGroups = {}, groupedEntries = [];
         for (let i = 0; i < entries.length; i++) {
@@ -482,35 +484,40 @@ class Tools extends TermsHandler {
             }
         }
         for (let k in parsedGroups) {
-            groupedEntries.push({ name: basename(k), path: k, type: 'group', entries: parsedGroups[k] });
+            groupedEntries.push({
+                name: basename(k), 
+                path: k, type: 'group', 
+                entries: parsedGroups[k] 
+            })
         }
         entries = entries.filter(e => e);
         for (let i = 0; i < groupedEntries.length; i++) {
             if (groupedEntries[i].path.indexOf('/') != -1) { // has path
-                entries = this.insertAtPath(entries, groupedEntries[i].path, groupedEntries[i]);
+                entries = this.insertAtPath(entries, groupedEntries[i].path, groupedEntries[i])
             }
         }
         for (let i = 0; i < groupedEntries.length; i++) {
             if (groupedEntries[i].path.indexOf('/') == -1) { // no path
-                entries = this.mergeEntriesWithNoCollision(entries, [groupedEntries[i]]);
+                entries = this.mergeEntriesWithNoCollision(entries, [groupedEntries[i]])
             }
         }
-        groupedEntries = parsedGroups = null;
+        groupedEntries = parsedGroups = null
+        entries = this.shortenSingleFolders(entries)
         entries = this.mapRecursively(entries, es => {
-            return this.paginateList(es, opts.minPageCount);
-        }, true);
+            return this.paginateList(es, opts.minPageCount)
+        }, true)
         if (opts.source) {
             entries = this.mapRecursively(entries, list => {
                 if (list.length && !list[0].source) {
-                    list[0].source = opts.source; // leave a hint for expandEntries
+                    list[0].source = opts.source // leave a hint for expandEntries
                 }
-                return list;
-            }, true);
+                return list
+            }, true)
         }
         if (shouldOffload) {
-            entries = await this.offload(entries, opts.source);
+            entries = await this.offload(entries, opts.source)
         }
-        return entries;
+        return entries
     }
 }
 export default new Tools();

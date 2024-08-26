@@ -1,7 +1,8 @@
 /* A class that limits access to a function to once every X seconds */
 class Limiter {
     // constructor takes a function and a time interval in seconds
-    constructor(func, intervalMs = 5000) {
+    constructor(func, intervalMs = 5000, _async=true) {
+        this.async = _async
         this.func = func;
         this.intervalMs = intervalMs;
         this.lastCalled = 0; // Timestamp of the last time the function was called
@@ -9,13 +10,24 @@ class Limiter {
         this.isPaused = false; // Flag indicating if the limiter is paused
         this.isPending = false; // Flag indicating if the function call is pending
     }
+    async run(...args) {        
+        this.lastCalled = Date.now()
+        if(this.async) {
+            await this.func(...args)
+            this.lastCalled = Date.now()
+        } else {
+            this.func(...args)
+        }
+        this.fromNow()
+    }
     // Call the function with arguments, but only if the time interval has elapsed
     async call(...args) {
         // Do not call if paused
         if (this.isPaused) {
-            this.isPending = true;
-            return;
+            this.isPending = true
+            return
         }
+        clearTimeout(this.timeoutId);
         const now = Date.now();
         const timeSinceLastCall = now - this.lastCalled;
         // Call immediately if enough time has passed since last call
@@ -23,18 +35,19 @@ class Limiter {
             this.lastCalled = now;
             this.isPending = false;
             this.timeoutId = null;
-            await this.func(...args);
-            this.fromNow();
+            await this.run(...args).catch(console.error)
+            this.lastCalled = Date.now()
         } else if (!this.timeoutId) {
             // Otherwise, schedule a call for when the time interval has elapsed
             const timeToWait = this.intervalMs - timeSinceLastCall;
             this.timeoutId = setTimeout(() => {
-                this.lastCalled = Date.now();
+                this.lastCalled = now;
                 this.isPending = false;
                 this.timeoutId = null;
-                this.func(...args);
-                this.fromNow();
-            }, timeToWait);
+                this.run(...args).catch(console.error).finally(() => {
+                    this.lastCalled = Date.now()
+                })
+            }, timeToWait)
         }
     }
     // Pause the limiter, cancel any scheduled function call
@@ -57,15 +70,11 @@ class Limiter {
         const now = Date.now();
         const timeSinceLastCall = now - this.lastCalled;
         if (timeSinceLastCall >= this.intervalMs) {
-            this.call().catch(console.error);
+            this.call().catch(console.error)
         } else {
             const timeToWait = this.intervalMs - timeSinceLastCall;
             this.timeoutId = setTimeout(async () => {
-                this.lastCalled = Date.now();
-                this.isPending = false;
-                this.timeoutId = null;
-                await this.func();
-                this.fromNow();
+                this.call().catch(console.error)
             }, timeToWait);
         }
     }
@@ -76,7 +85,7 @@ class Limiter {
     }
     // Call the function immediately and use current time as last called timestamp
     skip(...args) {
-        this.fromNow();
+        this.lastCalled = 0;
         this.call(...args).catch(console.error);
     }
     // Destroy the limiter, cancel any scheduled function call

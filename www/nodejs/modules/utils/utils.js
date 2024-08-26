@@ -1,4 +1,3 @@
-import { rimraf, rimrafSync } from "rimraf";
 import sanitizeFilename from "sanitize-filename";
 import np from "../network-ip/network-ip.js";
 import os from "os";
@@ -155,6 +154,36 @@ export const trimExt = (text, exts) => {
     });
     return text;
 }
+export const textSimilarity = (first, second) => {
+    first = first.replace(/\s+/g, '')
+    second = second.replace(/\s+/g, '')
+
+    if (first === second) return 1 // identical or empty
+    if (first.length < 2 || second.length < 2) return 0 // if either is a 0-letter or 1-letter string
+
+    let firstBigrams = new Map();
+    for (let i = 0; i < first.length - 1; i++) {
+        const bigram = first.substring(i, i + 2);
+        const count = firstBigrams.has(bigram)
+            ? firstBigrams.get(bigram) + 1
+            : 1;
+
+        firstBigrams.set(bigram, count)
+    }
+    let intersectionSize = 0;
+    for (let i = 0; i < second.length - 1; i++) {
+        const bigram = second.substring(i, i + 2);
+        const count = firstBigrams.has(bigram)
+            ? firstBigrams.get(bigram)
+            : 0;
+
+        if (count > 0) {
+            firstBigrams.set(bigram, count - 1)
+            intersectionSize++
+        }
+    }
+    return (2.0 * intersectionSize) / (first.length + second.length - 2)
+}
 export const basename = (str, rqs) => {
     str = String(str);
     let qs = '', pos = str.indexOf('?')
@@ -218,79 +247,16 @@ export const decodeURIComponentSafe = uri => {
         });
     }
 }
-export const moveFileInternal = async (from, to) => {
-    const fstat = await fs.promises.stat(from).catch(console.error);
-    if (!fstat)
-        throw '"from" file not found';
-    let err;
-    await fs.promises.rename(from, to).catch(e => err = e);
-    if (err) {
-        let err;
-        await fs.promises.copyFile(from, to).catch(e => err = e);
-        if (typeof (err) != 'undefined') {
-            const tstat = await fs.promises.stat(to).catch(console.error);
-            if (tstat && tstat.size == fstat.size)
-                err = null;
+export const moveFile = async (from, to) => {
+    try {
+        await fs.promises.rename(from, to)
+    } catch (err) {
+        if (err.code === 'EXDEV' || err.code === 'ENOTSUP') {
+            await fs.promises.copyFile(from, to)
+            await fs.promises.unlink(from)
+        } else {
+            throw err
         }
-        if (err)
-            throw err;
-        await fs.promises.unlink(from).catch(() => {});
-    }
-    return true;
-}
-export const moveFile = (from, to, _cb, timeout = 5, until = null, startedAt = null, fromSize = null) => {
-    const now = (Date.now() / 1000), cb = err => {
-        if (_cb) {
-            _cb(err);
-            _cb = null;
-        }
-    }
-    if (until === null) {
-        until = now + timeout;
-    }
-    if (startedAt === null) {
-        startedAt = now;
-    }
-    const move = () => {
-        moveFileInternal(from, to).then(() => cb()).catch(err => {
-            if (until <= now) {
-                fs.access(from, (aerr, stat) => {
-                    console.error('MOVERETRY GAVEUP AFTER ' + (now - startedAt) + ' SECONDS', err, fromSize, aerr);
-                    return cb(err);
-                });
-                return;
-            }
-            fs.stat(to, (ferr, stat) => {
-                if (stat && stat.size == fromSize) {
-                    cb();
-                } else {
-                    fs.stat(from, (err, stat) => {
-                        if (stat && stat.size == fromSize) {
-                            setTimeout(() => {
-                                moveFile(from, to, cb, timeout, until, startedAt, fromSize);
-                            }, 500);
-                        } else {
-                            console.error('MOVERETRY FROM FILE WHICH DOESNT EXISTS ANYMORE', err, stat);
-                            console.error(ferr, err);
-                            cb(err || '"from" file changed');
-                        }
-                    });
-                }
-            });
-        });
-    }
-    if (fromSize === null) {
-        fs.stat(from, (err, stat) => {
-            if (err) {
-                console.error('MOVERETRY FROM FILE WHICH NEVER EXISTED', err);
-                cb(err);
-            } else {
-                fromSize = stat.size;
-                move();
-            }
-        });
-    } else {
-        move();
     }
 }
 const insertEntryLookup = (e, term) => {
@@ -303,19 +269,19 @@ const insertEntryLookup = (e, term) => {
 export const insertEntry = (entry, entries, preferredPosition = -1, before, after) => {
     const prop = 'name';
     const i = entries.findIndex(e => e[prop] == entry[prop]);
-    if (i >= 0)
-        entries.splice(i, 1); // is already present
+    if (i >= 0) 
+        entries.splice(i, 1); // remove already present one
     if (preferredPosition < 0)
         preferredPosition = Math.max(0, entries.length - preferredPosition)
-    if (before) {
-        const n = entries.findIndex(e => insertEntryLookup(e, before))
-        if (n >= 0)
-            preferredPosition = n;
-    }
     if (after) {
         const n = entries.findLastIndex(e => insertEntryLookup(e, after))
         if (n >= 0)
             preferredPosition = n + 1;
+    }
+    if (before) {
+        const n = entries.findIndex(e => insertEntryLookup(e, before))
+        if (n >= 0)
+            preferredPosition = n;
     }
     entries.splice(preferredPosition, 0, entry);
 }
@@ -398,7 +364,7 @@ export const listNameFromURL = url => {
     if (!url)
         return 'Untitled ' + parseInt(Math.random() * 9999);
     let name, subName;
-    if (url.indexOf('?') !== -1) {
+    if (url.indexOf('?') != -1) {
         url.split('?')[1].split('&').forEach(s => {
             s = s.split('=');
             if (s.length > 1) {
@@ -437,7 +403,7 @@ export const listNameFromURL = url => {
         } else if (url.length == 1) {
             return trimExt(url[0].split(':')[0], ['m3u']);
         } else {
-            return trimExt(url[0].split('.')[0] + ' ' + (subName || url[url.length - 1]), ['m3u']);
+            return trimExt(url[0].split('.')[0] + ' ' + (subName || url[url.length - 1].substr(0, 24)), ['m3u']);
         }
     }
 }
@@ -496,36 +462,44 @@ export const ucWords = (str, force) => {
     });
 }
 export const rmdir = async (folder, itself) => {
-    if(!folder) return
-    let dir = forwardSlashes(folder)
-    if (dir.charAt(dir.length - 1) == '/') {
-        dir = dir.substr(0, dir.length - 1)
+    if (!folder) return;
+    let dir = forwardSlashes(folder);
+    if (dir.charAt(dir.length - 1) === '/') {
+        dir = dir.slice(0, -1);
     }
-    let err
-    await fs.promises.access(dir).catch(e => err = e)
-    if(!err) {
-        console.log('rimraf', {dir})
-        await rimraf(dir, {}).catch(console.error)
+
+    let err;
+    await fs.promises.access(dir).catch(e => err = e);
+    if (!err) {
+        console.log('Removing directory', { dir });
+        await fs.promises.rmdir(dir, { recursive: true }).catch(console.error);
     }
+
     if (!itself) {
-        await fs.promises.mkdir(dir)
+        await fs.promises.mkdir(dir, { recursive: true });
     }
 }
 export const rmdirSync = (folder, itself) => {
-    if(!folder) return
-    let dir = forwardSlashes(folder)
-    if (dir.charAt(dir.length - 1) == '/') {
-        dir = dir.substr(0, dir.length - 1)
+    if (!folder) return;
+    let dir = forwardSlashes(folder);
+    if (dir.charAt(dir.length - 1) === '/') {
+        dir = dir.slice(0, -1);
     }
+
     try {
-        fs.existsSync(dir) && rimrafSync(dir)
+        if (fs.existsSync(dir)) {
+            fs.rmdirSync(dir, { recursive: true });
+        }
     } catch (e) {
-        console.error(e)
+        console.error(e);
     }
-    if(!itself) {
+
+    if (!itself) {
         try {
-            fs.mkdirSync(dir, {recursive: true})
-        } catch(e) {}
+            fs.mkdirSync(dir, { recursive: true });
+        } catch (e) {
+            console.error(e);
+        }
     }
 }
 export const time = dt => {

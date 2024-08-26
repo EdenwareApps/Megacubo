@@ -232,18 +232,22 @@ class Theme {
         --menu-fx-nav-intensity: ${fxNavIntensity};    
         --radius: ${radius};
     }
+    body.video {
+        --shadow-background-color: rgba(0, 0, 0, 0.8);
+        --osd-background-color: rgba(0, 0, 0, 0.75);
+    }
     @media (orientation: landscape) {
         :root {
             --menu-entry-name-font-size: calc(((100vmin + 100vmax) * 0.333) * ${nfs});
-            --entries-per-row: ${main.config['view-size-x']} !important;
-            --entries-per-col: ${main.config['view-size-y']} !important;
+            --entries-per-row: ${main.config['view-size'].landscape.x} !important;
+            --entries-per-col: ${main.config['view-size'].landscape.y} !important;
         }
     }
     @media (orientation: portrait) {
         :root {
             --menu-entry-name-font-size: calc(((100vmin + 100vmax) * 0.333) * ${nfs * 1.1});
-            --entries-per-row: ${main.config['view-size-portrait-x']} !important;
-            --entries-per-col: ${main.config['view-size-portrait-y']} !important;
+            --entries-per-row: ${main.config['view-size'].portrait.x} !important;
+            --entries-per-col: ${main.config['view-size'].portrait.y} !important;
         }
     }
     body {
@@ -254,6 +258,31 @@ class Theme {
     }
     `
         main.css(cssCode, 'theme')
+        let setAlpha = (c, a) => {
+            return c.replace('rgb(','rgba(').replace(')', ', '+ a +')')
+        }
+        let baseColor = [70,70,70], baseFactor = 0.9
+        let a = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.5)
+        let b = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.65)
+        let c = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.7)
+        let d = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 1)
+
+        baseColor = [255, 255, 255]
+        let e = hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, 0.32))
+        let f = hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, 0.40))
+        main.css(`
+        #menu a span.entry-wrapper {
+            background: linear-gradient(to top, ${a} 0%, ${b} 75%, ${c} 100%) !important;
+            border: 1px solid ${b} !important;
+        }
+        #menu content a.selected span.entry-wrapper {
+            background: linear-gradient(to top, ${b} 0%, ${c} 75%, ${d} 100%) !important;
+            border: 1px solid ${d} !important;
+        }
+        .modal-wrap > div {
+            background: linear-gradient(to bottom, ${e} 0%, ${f} 100%) !important;
+        }
+        `,'wrapper')
         this.animateBackground(data.video ? 'none' : data.animate)
         main.menu.resize()
     }

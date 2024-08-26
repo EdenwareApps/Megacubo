@@ -11,7 +11,6 @@ import path from "path";
 import downloads from "../downloads/downloads.js";
 import options from "../options/options.js";
 import cloud from "../cloud/cloud.js";
-import config from "../config/config.js"
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
 
@@ -27,8 +26,7 @@ class Theme extends EventEmitter {
             'theme-name', 'animate-background', 'background-color',
             'background-color-transparency', 'custom-background-image',
             'custom-background-video', 'font-color', 'font-family',
-            'font-size', 'uppercase-menu', 'view-size-x', 'view-size-y',
-            'view-size-portrait-x', 'view-size-portrait-y', 'fx-nav-intensity'
+            'font-size', 'uppercase-menu', 'view-size', 'fx-nav-intensity'
         ];
         this.folder = data + '/Themes';
         renderer.ready(() => {
@@ -73,7 +71,7 @@ class Theme extends EventEmitter {
     }
     colorsAddDefaults(colors, light) {
         if (light) {
-            const white = { r: 255, g: 255, b: 255 }, f = this.hexToRgb(config.defaults['font-color']);
+            const white = { r: 255, g: 255, b: 255 }, f = this.hexToRgb(global.config.defaults['font-color']);
             if (!this.colorsIncludes(colors, f)) {
                 colors.unshift(f);
             }
@@ -81,7 +79,7 @@ class Theme extends EventEmitter {
                 colors.unshift(white);
             }
         } else {
-            const black = { r: 0, g: 0, b: 0 }, b = this.hexToRgb(config.defaults['background-color']);
+            const black = { r: 0, g: 0, b: 0 }, b = this.hexToRgb(global.config.defaults['background-color']);
             if (!this.colorsIncludes(colors, b)) {
                 colors.unshift(b);
             }
@@ -104,8 +102,8 @@ class Theme extends EventEmitter {
         try {            
             await fs.promises.copyFile(file, this.customBackgroundImagePath);
             console.warn('!!! IMPORT CUSTOM BACKGROUND FILE !!!', menu.path, file, this.customBackgroundImagePath);
-            config.set('custom-background-image', this.customBackgroundImagePath);
-            config.set('custom-background-video', '');
+            global.config.set('custom-background-image', this.customBackgroundImagePath);
+            global.config.set('custom-background-video', '');
             await this.update()
             await menu.open([lang.TOOLS, lang.THEMES, lang.CREATE_THEME, lang.BACKGROUND, lang.BACKGROUND_COLOR].join('/')).catch(e => menu.displayErr(e))
         } catch (err) {
@@ -127,10 +125,10 @@ class Theme extends EventEmitter {
                 throw 'This video file is too big. Limit it to 40MB at least.';
             await fs.promises.copyFile(file, targetFile);
             console.warn('!!! IMPORT CUSTOM BACKGROUND FILE !!!', menu.path, file, targetFile);
-            config.set('custom-background-video', targetFile);
-            config.set('custom-background-image', '');
-            if (config.get('background-color') == config.defaults['background-color']) {
-                config.set('background-color', '#000000');
+            global.config.set('custom-background-video', targetFile);
+            global.config.set('custom-background-image', '');
+            if (global.config.get('background-color') == global.config.defaults['background-color']) {
+                global.config.set('background-color', '#000000');
             }
             await this.update()
             this.cleanVideoBackgrounds(targetFile);
@@ -185,7 +183,7 @@ class Theme extends EventEmitter {
                 }
             }
         }
-        const def = config.get('theme-name'), defLabel = '<i class="fas fa-check-circle"></i> ' + lang.ENABLED;
+        const def = global.config.get('theme-name'), defLabel = '<i class="fas fa-check-circle"></i> ' + lang.ENABLED;
         let entries = Object.keys(themes).map(ffile => {
             return {
                 name: themes[ffile]['theme-name'],
@@ -233,7 +231,7 @@ class Theme extends EventEmitter {
                         type: 'action',
                         fa: 'fas fa-trash',
                         action: () => {
-                            if (themes[ffile]['theme-name'] == config.get('theme-name')) {
+                            if (themes[ffile]['theme-name'] == global.config.get('theme-name')) {
                                 this.reset();
                             }                            
                             fs.unlink(ffile, () => {
@@ -249,7 +247,7 @@ class Theme extends EventEmitter {
             name: lang.DEFAULT,
             details: [lang.DEFAULT, ''].includes(def) ? defLabel : '',
             fa: 'fas fa-palette',
-            prepend: '<i class="fas fa-circle" style="color: ' + config.defaults['background-color'] + '"></i> ',
+            prepend: '<i class="fas fa-circle" style="color: ' + global.config.defaults['background-color'] + '"></i> ',
             type: 'action',
             action: () => {
                 this.reset();
@@ -288,9 +286,9 @@ class Theme extends EventEmitter {
         } else if (!this.creatingThemeName) {
             this.creatingThemeName = 'Untitled';
         }
-        const prevName = config.get('theme-name')
+        const prevName = global.config.get('theme-name')
         if (this.creatingThemeName != prevName) {
-            config.set('theme-name', this.creatingThemeName);
+            global.config.set('theme-name', this.creatingThemeName);
             await this.save()
             if(prevName != lang.DEFAULT) {
                 const ffile = this.folder + '/' + sanitize(prevName) + '.theme.json';
@@ -324,7 +322,7 @@ class Theme extends EventEmitter {
                                     safe: true,
                                     renderer: () => {
                                         return new Promise((resolve, reject) => {
-                                            let def = config.get('animate-background');
+                                            let def = global.config.get('animate-background');
                                             if (def.indexOf('-desktop') != -1) {
                                                 if (paths.android) {
                                                     def = 'none';
@@ -351,7 +349,7 @@ class Theme extends EventEmitter {
                                                     value: n.key,
                                                     type: 'action',
                                                     action: async data => {
-                                                        config.set('animate-background', n.key);
+                                                        global.config.set('animate-background', n.key);
                                                         await this.update()
                                                     }
                                                 };
@@ -403,8 +401,8 @@ class Theme extends EventEmitter {
                                                 fa: 'fas fa-stop',
                                                 faStyle: 'color: '+ hex,
                                                 action: async () => {
-                                                    if (hex != config.get('background-color')) {
-                                                        config.set('background-color', hex);
+                                                    if (hex != global.config.get('background-color')) {
+                                                        global.config.set('background-color', hex);
                                                         await this.update()
                                                     } else {
                                                         menu.back();
@@ -416,13 +414,13 @@ class Theme extends EventEmitter {
                                             name: lang.CUSTOMIZE,
                                             type: 'input',
                                             fa: 'fas fa-palette',
-                                            value: () => config.get('background-color'),
+                                            value: () => global.config.get('background-color'),
                                             action: async (data, value) => {
                                                 if (String(value).match(new RegExp('^#?[0-9a-fA-F]{6}$'))) { // TypeError: value.match is not a function 
                                                     if (value.length == 6) {
                                                         value = '#' + value;
                                                     }
-                                                    config.set('background-color', value);
+                                                    global.config.set('background-color', value);
                                                     await this.update()
                                                     menu.back()
                                                 } else {
@@ -433,7 +431,7 @@ class Theme extends EventEmitter {
                                         return colors;
                                     },
                                     value: () => {
-                                        return config.get('background-color');
+                                        return global.config.get('background-color');
                                     },
                                     placeholder: '#000000'
                                 },
@@ -444,11 +442,11 @@ class Theme extends EventEmitter {
                                     range: { start: 1, end: 100 },
                                     action: async (data, value) => {
                                         console.warn('BACKGROUND_COLOR_TRANSPARENCY', data, value)
-                                        config.set('background-color-transparency', value)
+                                        global.config.set('background-color-transparency', value)
                                         await this.update()
                                     },
                                     value: () => {
-                                        return config.get('background-color-transparency');
+                                        return global.config.get('background-color-transparency');
                                     }
                                 }
                             ]
@@ -474,8 +472,8 @@ class Theme extends EventEmitter {
                                                         faStyle: 'color: '+ hex,
                                                         action: async () => {
                                                             let cc = hex;
-                                                            if (cc != config.get('font-color')) {
-                                                                config.set('font-color', cc);
+                                                            if (cc != global.config.get('font-color')) {
+                                                                global.config.set('font-color', cc);
                                                                 await this.update()
                                                             } else {
                                                                 menu.back();
@@ -487,21 +485,21 @@ class Theme extends EventEmitter {
                                                     name: lang.CUSTOMIZE,
                                                     type: 'input',
                                                     fa: 'fas fa-palette',
-                                                    value: () => config.get('font-color'),
+                                                    value: () => global.config.get('font-color'),
                                                     action: async (data, value) => {
                                                         if (value && value.match(new RegExp('^#?[0-9a-fA-F]{6}$'))) {
                                                             if (value.length == 6) {
                                                                 value = '#' + value;
                                                             }
-                                                            config.set('font-color', value);
+                                                            global.config.set('font-color', value);
                                                             await this.update()
                                                             menu.back()
                                                         } else {
                                                             menu.displayErr(lang.INCORRECT_FORMAT);
                                                         }
                                                     }
-                                                }),
-                                                    resolve(colors);
+                                                })
+                                                resolve(colors);
                                             }).catch(err => {
                                                 console.error(err);
                                                 reject(err);
@@ -513,7 +511,7 @@ class Theme extends EventEmitter {
                                         });
                                     },
                                     value: () => {
-                                        return config.get('font-color');
+                                        return global.config.get('font-color');
                                     },
                                     placeholder: '#FFFFFF'
                                 },
@@ -530,7 +528,7 @@ class Theme extends EventEmitter {
                                                         name, type: 'action',
                                                         action: async () => {
                                                             console.warn('CHOSEN FONT', name);
-                                                            config.set('font-family', name);
+                                                            global.config.set('font-family', name);
                                                             await this.update()
                                                         }
                                                     }
@@ -544,11 +542,11 @@ class Theme extends EventEmitter {
                                     name: lang.UPPERCASE_LETTERS_MENU,
                                     type: 'check',
                                     action: async (data, value) => {
-                                        config.set('uppercase-menu', value)
+                                        global.config.set('uppercase-menu', value)
                                         await this.update()
                                     },
                                     checked: () => {
-                                        return config.get('uppercase-menu');
+                                        return global.config.get('uppercase-menu');
                                     }
                                 },
                                 {
@@ -558,16 +556,16 @@ class Theme extends EventEmitter {
                                     range: { start: 1, end: 10 },
                                     action: async (data, value) => {
                                         console.warn('FONT_SIZE', data, value);
-                                        config.set('font-size', value);
+                                        global.config.set('font-size', value);
                                         await this.update()
                                     },
                                     value: () => {
-                                        return config.get('font-size');
+                                        return global.config.get('font-size');
                                     }
                                 }
                             ]
                         },
-                        { name: lang.RENAME, fa: 'fas fa-edit', type: 'action', action: () => this.rename(config.get('theme-name')).catch(console.error) },
+                        { name: lang.RENAME, fa: 'fas fa-edit', type: 'action', action: () => this.rename(global.config.get('theme-name')).catch(console.error) },
                         { name: lang.LAYOUT_GRID_SIZE, fa: 'fas fa-th', type: 'group', renderer: this.gridLayoutEntries.bind(this) },
                         {
                             name: 'FX Navigation Intensity',
@@ -575,11 +573,11 @@ class Theme extends EventEmitter {
                             type: 'slider',
                             range: { start: 0, end: 10 },
                             action: async (data, value) => {
-                                config.set('fx-nav-intensity', value);
+                                global.config.set('fx-nav-intensity', value);
                                 await this.update();
                             },
                             value: () => {
-                                return config.get('fx-nav-intensity');
+                                return global.config.get('fx-nav-intensity');
                             }
                         }
                     ];
@@ -667,13 +665,15 @@ class Theme extends EventEmitter {
                         type: 'slider',
                         fa: 'fas fa-ruler-horizontal',
                         value: () => {
-                            return config.get('view-size-x');
+                            return global.config.get('view-size').landscape.x;
                         },
                         range: { start: 1, end: 10 },
                         action: async (data, value) => {
-                            console.log('gridLayoutX', data, value);
-                            if (value != config.get('view-size-x')) {
-                                config.set('view-size-x', value);
+                            console.log('gridLayoutX', data, value)
+                            const metrics = global.config.get('view-size')
+                            if (metrics.landscape.x != value) {
+                                metrics.landscape.x = value
+                                global.config.set('view-size', metrics)
                                 await this.update()
                             }
                         }
@@ -683,14 +683,16 @@ class Theme extends EventEmitter {
                         type: 'slider',
                         fa: 'fas fa-ruler-vertical',
                         value: () => {
-                            return config.get('view-size-y');
+                            return global.config.get('view-size').landscape.y;
                         },
                         range: { start: 1, end: 8 },
                         action: async (data, value) => {
-                            console.log('gridLayoutY', data, value);
-                            if (value != config.get('view-size-y')) {
-                                config.set('view-size-y', value);
-                                await this.update();
+                            console.log('gridLayoutY', data, value)
+                            const metrics = global.config.get('view-size')
+                            if (metrics.landscape.y != value) {
+                                metrics.landscape.y = value
+                                global.config.set('view-size', metrics)
+                                await this.update()
                             }
                         }
                     }
@@ -707,12 +709,14 @@ class Theme extends EventEmitter {
                         fa: 'fas fa-ruler-horizontal',
                         range: { start: 1, end: 4 },
                         value: () => {
-                            return config.get('view-size-portrait-x');
+                            return global.config.get('view-size').portrait.x;
                         },
                         action: async (data, value) => {
-                            console.log('gridLayoutX', data, value);
-                            if (value != config.get('view-size-portrait-x')) {
-                                config.set('view-size-portrait-x', value);
+                            console.log('gridLayoutX', data, value)
+                            const metrics = global.config.get('view-size')
+                            if (metrics.portrait.x != value) {
+                                metrics.portrait.x = value
+                                global.config.set('view-size', metrics)
                                 await this.update();
                             }
                         }
@@ -723,12 +727,14 @@ class Theme extends EventEmitter {
                         fa: 'fas fa-ruler-vertical',
                         range: { start: 1, end: 10 },
                         value: () => {
-                            return config.get('view-size-portrait-y');
+                            return global.config.get('view-size').portrait.y;
                         },
                         action: async (data, value) => {
-                            console.log('gridLayoutY', data, value);
-                            if (value != config.get('view-size-portrait-y')) {
-                                config.set('view-size-portrait-y', value);
+                            console.log('gridLayoutY', data, value)
+                            const metrics = global.config.get('view-size')
+                            if (metrics.portrait.y != value) {
+                                metrics.portrait.y = value
+                                global.config.set('view-size', metrics);
                                 await this.update();
                             }
                         }
@@ -738,7 +744,7 @@ class Theme extends EventEmitter {
         ];
     }
     refresh() {
-        let bgi = config.get('custom-background-image'), bgv = config.get('custom-background-video');
+        let bgi = global.config.get('custom-background-image'), bgv = global.config.get('custom-background-video');
         if (bgv) {
             bgi = '';
             bgv = renderer.get().serve(bgv);
@@ -748,48 +754,44 @@ class Theme extends EventEmitter {
         } else {
             bgi = bgv = '';
         }
-        renderer.get().emit('theme-update', bgi, bgv, config.get('background-color'), config.get('font-color'), config.get('animate-background'));
+        renderer.get().emit('theme-update', bgi, bgv, global.config.get('background-color'), global.config.get('font-color'), global.config.get('animate-background'));
     }
     reset() {
         let natts = {};
         this.keys.forEach(k => {
-            natts[k] = config.defaults[k];
+            natts[k] = global.config.defaults[k];
         });
-        config.setMulti(natts);
+        global.config.setMulti(natts);
         this.refresh();
     }
     async load(file) {
         const data = await fs.promises.readFile(file)
-        config.set('custom-background-image', '')
-        config.set('custom-background-video', '')
+        global.config.set('custom-background-image', '')
+        global.config.set('custom-background-video', '')
         await options.importConfigFile(data, this.keys)
     }
-    async update(cb) {
+    async update() {
         await this.save()
         this.refresh()
     }
-    save() {
-        return new Promise(resolve => {
-            const current = config.get('theme-name');
-            if (current) {
-                const filename = sanitize(current) + '.theme.json', file = this.folder + '/' + filename;
-                options.prepareExportConfigFile(file + '.tmp', null, this.keys, err => {
+    async save() {
+        const current = global.config.get('theme-name')
+        if (current) {
+            const filename = sanitize(current) +'.theme.json', file = this.folder +'/'+ filename
+            return await new Promise((resolve, reject) => {
+                const done = err => {
                     if (err) {
                         menu.displayErr(err)
                         return reject(err)
                     }
-                    moveFile(file + '.tmp', file, err => {
-                        if (err) {
-                            menu.displayErr(err)
-                            return reject(err)
-                        }
-                        resolve()
+                    moveFile(file +'.tmp', file).then(resolve).catch(err => {
+                        menu.displayErr(err)
+                        reject(err)
                     })
-                });
-            } else {
-                resolve()
-            }
-        })
+                }
+                options.prepareExportConfigFile(file + '.tmp', null, this.keys, done)
+            })
+        }
     }
     async hook(entries, path) {
         if (path == lang.TOOLS) {

@@ -1,13 +1,12 @@
 import { ucWords } from '../utils/utils.js'
 import { EventEmitter } from "events";
-import Streamer from "../streamer/base.js";
 import pLimit from "p-limit";
 import config from "../config/config.js"
 
 let sharedStreamerShadowObject
 const streamer = () => {
     if (!sharedStreamerShadowObject) {
-        sharedStreamerShadowObject = new Streamer({ shadow: true })
+        sharedStreamerShadowObject = new global.streamer.Streamer({ shadow: true })
     }
     return sharedStreamerShadowObject
 }

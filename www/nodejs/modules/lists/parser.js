@@ -55,7 +55,7 @@ class Parser extends EventEmitter {
         if (!this.opts.url)
             throw 'Parser instance started with no stream set!';
         this.liner = new LineReader(this.opts);
-        let inExtInf, g = '', a = {}, e = { url: '', icon: '' };
+        let inExtInf,  g = '', a = {}, e = { url: '', icon: '' };
         this.liner.on('line', line => {
             this.readen += (line.length + 1);
             const hashed = line.startsWith('#');
@@ -65,7 +65,7 @@ class Parser extends EventEmitter {
                 (inExtInf && line.startsWith('"')) // if some tvg field ended with a new line, next one starts with double quotes
             );
             if (!hashed && line.length < 6)
-                return;
+                return
             if (isExtM3U) {
                 if (this.expectingHeader) {
                     const matches = [...line.matchAll(this.headerAttrMapRegex)];
@@ -76,7 +76,7 @@ class Parser extends EventEmitter {
                         }
                     }
                 }
-            } else if (isExtInf) {
+            } else if(isExtInf) {
                 inExtInf = true;
                 if (this.expectingHeader) {
                     this.expectingHeader = false;
@@ -120,6 +120,8 @@ class Parser extends EventEmitter {
                     }
                 }
                 e.name = Parser.sanitizeName(n);
+            } else if (this.expectingHeader) {
+                return
             } else if (hashed) {
                 // parse here extra info like #EXTGRP and #EXTVLCOPT
                 if (sig == '#EXTGRP') {
@@ -140,9 +142,9 @@ class Parser extends EventEmitter {
                         }
                     }
                 }
-            } else { // not hashed so, length already checked
-                inExtInf = false;
-                e.url = line;
+            } else if(inExtInf) { // not hashed so, length already checked
+                inExtInf = false
+                e.url = line.trim()
                 if (e.url.indexOf('|') !== -1 && e.url.match(Parser.regexes['m3u-url-params'])) {
                     let parts = e.url.split('|');
                     e.url = parts[0];
@@ -167,6 +169,9 @@ class Parser extends EventEmitter {
                 if (name != e.name) {
                     e.rawname = e.name
                     e.name = name                    
+                }
+                if(e.icon) {
+                    e.icon = e.icon.trim()
                 }
                 if (Object.keys(a).length) {
                     Object.assign(e, a);

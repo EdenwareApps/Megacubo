@@ -5,7 +5,7 @@ import mega from "../mega/mega.js";
 import moment from "moment-timezone";
 import EPGHistory from './epg-history.js'
 import { ready } from '../bridge/bridge.js'
-import { ucFirst } from '../utils/utils.js'
+import { ucFirst, insertEntry } from '../utils/utils.js'
 
 class History extends EntriesGroup {
     constructor(channels) {
@@ -83,31 +83,18 @@ class History extends EntriesGroup {
         });
     }
     entry() {
-        return { name: lang.KEEP_WATCHING, details: lang.WATCHED, fa: 'fas fa-history', type: 'group', hookId: this.key, renderer: this.entries.bind(this) };
+        return {
+            name: lang.KEEP_WATCHING,
+            details: lang.WATCHED,
+            fa: 'fas fa-history', type: 'group',
+            hookId: this.key, renderer: this.entries.bind(this)
+        }
     }
     async hook(entries, path) {
         if (path == lang.TOOLS) {
-            entries.push(this.entry());
-        } else if (path == '') {
-            let pos = -1, es = this.get();
-            entries = entries.filter(e => {
-                return e.hookId != this.key;
-            });
-            entries.some((e, i) => {
-                if (e.name == lang.MY_LISTS) {
-                    pos = i;
-                    return true;
-                }
-            });
-            if (es.length) {
-                pos = 0;
-                let defs = { hookId: this.key, fa: 'fas fa-redo-alt', class: 'entry-icon', details: '<i class="fas fa-play-circle"></i> ' + lang.KEEP_WATCHING };
-                entries.splice(pos, 0, Object.assign(Object.assign({}, es[0]), defs));
-            } else {
-                entries.splice(pos > 0 ? pos : entries.length - 3, 0, this.entry());
-            }
+            insertEntry(this.entry(), entries, 0, [lang.TOOLS, lang.OPTIONS], [lang.BOOKMARKS, lang.MY_LISTS])
         }
-        return entries;
+        return entries
     }
     async entries(e) {        
         const epgAddLiveNowMap = {}
@@ -116,25 +103,24 @@ class History extends EntriesGroup {
             e.details = ucFirst(moment(e.historyTime * 1000).fromNow(), true);
             const isMega = e.url && mega.isMega(e.url);
             if (isMega) {
-                let atts = mega.parse(e.url);
+                let atts = mega.parse(e.url)
                 if (atts.mediaType == 'live') {
-                    return (epgAddLiveNowMap[i] = this.channels.toMetaEntry(e, false));
+                    return (epgAddLiveNowMap[i] = this.channels.toMetaEntry(e, false))
                 } else {
-                    e.type = 'group';
+                    e.type = 'group'
                     e.renderer = async () => {
-                        let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.tools.terms(atts.name);
-                        const es = await global.lists.search(terms, {
+                        let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.tools.terms(atts.name)
+                        return await global.lists.search(terms, {
                             type: 'video',
                             group: true,
                             safe: !global.lists.parentalControl.lazyAuth()
-                        });
-                        return es.results;
-                    };
+                        })
+                    }
                 }
             } else if (e.type != 'group') {
-                e.type = 'stream';
+                e.type = 'stream'
             }
-            return e;
+            return e
         });
         let entries = await this.channels.epgChannelsAddLiveNow(Object.values(epgAddLiveNowMap), true).catch(console.error);
         if (Array.isArray(entries)) {

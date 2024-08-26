@@ -10,7 +10,6 @@
     "agentkeepalive": "^4.5.0",
     "async": "^3.2.5",
     "bl": "^6.0.12",
-    "buzz": "^1.2.1",
     "bytenode": "github:EdenwareApps/bytenode",
     "check-disk-space": "^3.4.0",
     "color-thief-jimp": "github:EdenwareApps/color-thief-jimp",
@@ -40,7 +39,6 @@
     "range-parser": "^1.2.1",
     "read-last-lines": "^1.8.0",
     "resize-observer": "^1.0.4",
-    "rimraf": "^5.0.5",
     "sanitize-filename": "^1.6.3",
     "stoppable": "^1.1.0",
     "swipey.js": "^1.0.3",
@@ -58,7 +56,10 @@
     "url": "https://megacubo.tv"
   },
   "icon": "./default_icon.png",
-  "version": "17.5.0",
+  "version": "17.5.1",
+  "megacubo": {
+    "revision": "17510"
+  },
   "theme": {
     "fullScreen": true
   },

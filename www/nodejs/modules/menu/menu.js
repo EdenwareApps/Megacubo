@@ -21,6 +21,7 @@ class Menu extends EventEmitter {
         this.waitingRender = false
         this.path = ''
         this.filters = []
+        this.outputFilters = []
         this.currentEntries = []
         this.backIcon = 'fas fa-chevron-left'
         this.addFilter(async (es, path) => {
@@ -56,6 +57,7 @@ class Menu extends EventEmitter {
             }, 5000),
             path: ''
         }
+        const ui = renderer.get()
         renderer.ready(async () => {
             global.streamer.on('streamer-connect', () => {
                 this.softRefreshLimiter.limiter.pause()
@@ -65,7 +67,7 @@ class Menu extends EventEmitter {
                 this.softRefreshLimiter.limiter.resume()
                 this.deepRefreshLimiter.limiter.resume()
             })
-            renderer.get().on('menu-menu-playing', showing => {                
+            ui.on('menu-playing', showing => {                
                 if (global.streamer.active) {
                     if (showing) {
                         this.softRefreshLimiter.limiter.resume()
@@ -77,22 +79,22 @@ class Menu extends EventEmitter {
                 }
             })
         })
-        renderer.get().on('menu-open', (path, tabindex) => {
+        ui.on('menu-open', (path, tabindex) => {
             if (this.opts.debug) {
                 console.log('menu-open', path, tabindex)
             }
             this.open(path, tabindex).catch(e => this.displayErr(e))
         })
-        renderer.get().on('menu-action', (path, tabindex) => this.action(path, tabindex))
-        renderer.get().on('menu-back', () => this.back())
-        renderer.get().on('menu-check', (path, val) => this.check(path, val))
-        renderer.get().on('menu-input', (path, val) => {
+        ui.on('menu-action', (path, tabindex) => this.action(path, tabindex))
+        ui.on('menu-back', () => this.back())
+        ui.on('menu-check', (path, val) => this.check(path, val))
+        ui.on('menu-input', (path, val) => {
             if (this.opts.debug) {
                 console.log('menu-input', path, val)
             }
             this.input(path, val)
         })
-        renderer.get().on('menu-select', (path, tabindex) => {
+        ui.on('menu-select', (path, tabindex) => {
             this.select(path, tabindex).catch(e => this.displayErr(e))
         })
         this.applyFilters(this.pages[this.path], this.path).then(es => {
@@ -261,14 +263,22 @@ class Menu extends EventEmitter {
     addFilter(f) {
         this.filters.push(f)
     }
+    prependOutputFilter(f) {
+        this.outputFilters.unshift(f)
+    }
+    addOutputFilter(f) {
+        this.outputFilters.push(f)
+    }
     async applyFilters(entries, path) {
-        for(let i=0; i<this.filters.length; i++) {
-            this.opts.debug && console.log('Menu filter '+ (i + 1) +'/'+ this.filters.length)
-            const es = await this.filters[i](entries, path).catch(console.error)
-            if (Array.isArray(es)) {
-                entries = es
-            } else {
-                this.opts.debug && console.log('Menu filter failure at filter #'+ i, this.filters[i], es)
+        for(const filters of [this.filters, this.outputFilters]) {
+            for(let i=0; i<filters.length; i++) {
+                this.opts.debug && console.log('Menu filter '+ (i + 1) +'/'+ filters.length)
+                const es = await filters[i](entries, path).catch(console.error)
+                if (Array.isArray(es)) {
+                    entries = es
+                } else {
+                    this.opts.debug && console.log('Menu filter failure at filter #'+ i, filters[i], es)
+                }
             }
         }
         if (Array.isArray(entries)) {
@@ -512,7 +522,7 @@ class Menu extends EventEmitter {
             destPath = ''
         }
         if (this.opts.debug) {
-            console.log('open', destPath, tabindex)
+            console.error('open', destPath, tabindex)
         }
         this.emit('open', destPath)
         let parentEntry, name = basename(destPath), parentPath = this.dirname(destPath)
@@ -540,7 +550,7 @@ class Menu extends EventEmitter {
         }
         let ret = await this[deep === true ? 'deepRead' : 'read'](parentPath, undefined)
         if (this.opts.debug) {
-            console.log('readen', deep, parentPath, name, ret)
+            console.log('readen', {parentPath, name, destPath, tabindex, deep, isFolder, backInSelect}, traceback())
         }
         if (ret == -1)
             return
@@ -683,30 +693,28 @@ class Menu extends EventEmitter {
         return entries.length && entries.some(e => e.url && (!e.type || e.type == 'stream') && !mega.isMega(e.url))
     }
     addMetaEntries(entries, path, backTo) {
-        if (path) {
-            if (!entries.length || entries[0].type != 'back') {
-                if (!entries.length) {
-                    entries.push(this.emptyEntry())
-                }
-                let backEntry = {
-                    name: lang.BACK,
-                    type: 'back',
-                    fa: this.backIcon,
-                    path: backTo || this.dirname(path)
-                }
-                entries.unshift(backEntry)
-                if (!config.get('auto-test')) {
-                    let has = entries.some(e => e.name == lang.TEST_STREAMS)
-                    if (!has && this.canApplyStreamTesting(entries)) {
-                        entries.splice(1, 0, {
-                            name: lang.TEST_STREAMS,
-                            fa: 'fas fa-satellite-dish',
-                            type: 'action',
-                            action: async () => {
-                                global.streamer.state.test(entries, '', true)
-                            }
-                        })
-                    }
+        if (path && (!entries.length || entries[0].type != 'back')) {
+            if (!entries.length) {
+                entries.push(this.emptyEntry())
+            }
+            let backEntry = {
+                name: lang.BACK,
+                type: 'back',
+                fa: this.backIcon,
+                path: backTo || this.dirname(path)
+            }
+            entries.unshift(backEntry)
+            if (!config.get('auto-test')) {
+                let has = entries.some(e => e.name == lang.TEST_STREAMS)
+                if (!has && this.canApplyStreamTesting(entries)) {
+                    entries.splice(1, 0, {
+                        name: lang.TEST_STREAMS,
+                        fa: 'fas fa-satellite-dish',
+                        type: 'action',
+                        action: async () => {
+                            global.streamer.state.test(entries, '', true)
+                        }
+                    })
                 }
             }
         }

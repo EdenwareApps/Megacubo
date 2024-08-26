@@ -42,7 +42,7 @@
 				width: 0%;
 				background: rgba(255, 255, 255, 0.33);
 				display: inline-block;
-				height: 100%;
+				height: inherit;
 				position: inherit;
                 left: 0;
 				transition: width 0.2s ease-in-out 0s;
@@ -101,7 +101,7 @@
 		    }
         </script>
     </head>
-    <body>
+    <body class="nav-hint">
         <div id="splash">
 			<div id="splash-progress">
 				<div>
@@ -115,20 +115,24 @@
 		<script type="text/javascript">
 			if(document.URL.endsWith('android')){
 				document.write('<scr'+'ipt type="text/javascript" src="./dist/capacitor.js"></scr'+'ipt>')
+                let splashProgress = 0
+                const splashEstimatedTime = parseInt(localStorage.getItem('splash-time-hint')) || 36000
+                const splashProgressDiv = document.querySelector('#splash-progress')
+                const splashProgressBar = splashProgressDiv.firstElementChild
+                const splashTimer = setInterval(() => {
+                    splashProgress++
+                    splashProgressBar.style.width = splashProgress +'%'
+                    splashProgress >= 100 && clearInterval(splashTimer)
+                }, splashEstimatedTime / 100)
+                const splashMetrics = metrics => {
+                    splashProgressDiv.style.bottom = metrics.bottom + 'px'
+                }
+                plugins.megacubo.once('appmetrics', splashMetrics)
+                splashMetrics(plugins.megacubo.appMetrics)
 			}
 		</script>
         <script src="./dist/renderer.js"></script>
         <script>
-            if(window.capacitor) {
-                let splashProgress = 0
-                const splashEstimatedTime = parseInt(localStorage.getItem('splash-time-hint')) || 36000
-                const splashProgressBar = document.querySelector('#splash-progress > div')
-                const splashTimer = setInterval(() => {
-                    splashProgress++
-                    splashProgressBar.style.width = splashProgress +'%'
-                    if(splashProgress >= 100) clearInterval(splashTimer)
-                }, splashEstimatedTime / 100)
-            }
             new App({target: document.querySelector('App')})
         </script>
     </body>

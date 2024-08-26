@@ -4,7 +4,7 @@ import { OMNI } from '../../../modules/omni/renderer'
 import { AndroidWinActions, ElectronWinActions} from './window-actions'
 import { Hotkeys } from './hotkeys'
 import { Clock } from './clock'
-import { css, loadJS, traceback } from './utils'
+import { css, traceback } from './utils'
 import swipey from 'swipey.js'
 import FFmpegController from '../../../modules/ffmpeg/renderer'
 
@@ -69,7 +69,8 @@ function hideBackButton(doHide) {
 
 function configUpdated() {
     menu.sounds.enabled = main.config['ui-sounds']
-    menu.setGridLayout(main.config['view-size-x'], main.config['view-size-y'], main.config['view-size-portrait-x'], main.config['view-size-portrait-y'])
+    const ms = main.config['view-size']
+    menu.setGridLayout(ms.landscape.x, ms.landscape.y, ms.portrait.x, ms.portrait.y)
     hideBackButton(main.config['hide-back-button'])
     if (typeof (window['winActions']) == 'undefined' || !window['winActions']) {
         return
@@ -121,8 +122,6 @@ function handleSwipe(e) {
             case 'right':
                 if (main.menu.inPlayer() && !main.menu.isExploring()) {
                     main.hotkeys.arrowLeftPressed(true)
-                } else {
-                    main.hotkeys.escapePressed()
                 }
                 break
             case 'up': // go down
@@ -136,7 +135,7 @@ function handleSwipe(e) {
                 if (main.menu.inPlayer()) {
                     if (main.menu.isExploring()) {
                         if (!main.menu.wrap.scrollTop) {
-                            main.menu.emit('menu-menu-playing', true)
+                            main.menu.emit('menu-playing', true)
                             document.body.classList.remove('menu-playing')
                         }
                     } else {
@@ -295,14 +294,18 @@ export const initApp = () => {
     main.menu = menu
     console.log('load app')
     main.on('sound', (n, v) => menu.sounds.play(n, v))
-    menu.on('render', path => {
+    menu.on('render', path => {   
+        if(menu.lastNavPath !== path) {
+            menu.lastNavPath = path
+            menu.sideMenu(false, 'instant')
+        }
         if (path) {
             if (document.body.classList.contains('home')) {
                 document.body.classList.remove('home')
-            }
+            }   
         } else {
-            document.body.classList.add('home')
-        }
+            document.body.classList.add('home')    
+        }  
         setTimeout(() => {
             if (typeof (haUpdate) == 'function') {
                 haUpdate()
@@ -311,42 +314,80 @@ export const initApp = () => {
     })
 
     console.log('load app')
-    configUpdated([], config)
-
-    console.log('load app')
-    menu.setGridLayout(main.config['view-size-x'], main.config['view-size-y'], main.config['view-size-portrait-x'], main.config['view-size-portrait-y']);
+    configUpdated([], main.config);
     ([
         {
             level: 'default',
-            selector: '#menu wrap a, .menu-omni span, body:not(.video) .header-entry, body.video #menu-playing-close',
+            selector: '#menu wrap a, .menu-omni, body.video #menu-playing-close',
             condition: () => {
-                return menu.isExploring()
+                return menu.isExploring() && !menu.inSideMenu()
             },
             resetSelector() {
-                return menu.viewportEntries(false)
+                return menu.viewportEntries()
             },
             default: true,
             overScrollAction: (direction, e) => {
-                if (direction == 'up') {
+                if (direction == 'up' || direction == 'down') {
                     let playing = menu.inPlayer()
                     console.log('OVERSCROLLACTION', playing)
                     if (!playing) {
                         let n
                         if (e) {
                             let entries = menu.entries(true), i = entries.indexOf(e)
-                            i++
-                            if (menu.gridLayoutX == i) {
-                                n = menu.container.querySelector('.header-entry')
+                            let rowSize = Math.floor(entries.length / menu.gridLayoutX)
+                            console.log('OVERSCROLLACTION', direction, entries.length, i, rowSize)
+                            if(direction == 'up') {
+                                i += (entries.length * rowSize)
+                                if(entries[i]) {
+                                    n = entries[i]
+                                } else {
+                                    n = entries.pop()
+                                }
+                            } else {
+                                i -= (entries.length * rowSize)
+                                if(entries[i]) {
+                                    n = entries[i]
+                                } else {
+                                    n = entries.shift()
+                                }
                             }
                         }
                         if (!n) {
-                            n = menu.container.querySelector('.menu-omni span')
+                            n = e
                         }
-                        menu.focus(n, true)
+                        menu.focus(n, false)
                         return true
-                    } else {
+                    } else if(direction == 'up') {
                         menu.showWhilePlaying(false)
                     }
+                } else if(direction == 'left' && !menu.inSideMenu() && !menu.inModal()) {
+                    menu.sideMenu(true)
+                    setTimeout(() => menu.reset(), 250)
+                    return true
+                }
+            }
+        },
+        {
+            level: 'nav-menu',
+            selector: 'body.side-menu #menu nav a',
+            condition: () => {
+                const inp = menu.inPlayer()
+                return menu.inSideMenu() && !menu.inModal() && menu.isExploring()
+            },
+            overScrollAction: (direction, e) => {
+                if (direction == 'up' || direction == 'down') {
+                    let playing = menu.inPlayer()
+                    console.log('OVERSCROLLACTION', playing)
+                    if (!playing) {
+                        let n = Array.from(menu.container.querySelectorAll('entry-nav'))[direction == 'down' ? 'shift' : 'pop']()
+                        menu.focus(n, true)
+                        return true
+                    } else if(direction == 'up' || direction == 'left') {
+                        menu.showWhilePlaying(false)
+                    }
+                } else if(direction == 'right') {
+                    menu.sideMenu(false)
+                    return true
                 }
             }
         },
@@ -378,9 +419,9 @@ export const initApp = () => {
     menu.start()
 
     console.log('load app')
-    menu.on('arrow', element => {
+    menu.on('arrow', (element, direction) => {
+        menu.sounds.play('menu', 1)
         setTimeout(() => {
-            menu.sounds.play('menu', 1)
             if (typeof (haUpdate) == 'function') {
                 haUpdate()
             }
@@ -416,7 +457,8 @@ export const initApp = () => {
                 menu.endModal()
             }
             menu.showWhilePlaying(false)
-            menu.updateSelection() || menu.reset()
+            menu.restoreSelection() || menu.reset()
+            menu.sideMenu(false, 'instant')
         })
 
         console.log('load app')
@@ -467,8 +509,7 @@ export const initApp = () => {
             })
         } else {
             document.body.addEventListener('dblclick', event => {
-                const rect = document.querySelector('header').getBoundingClientRect()
-                const valid = event.clientY < (rect.top + rect.height)
+                const valid = event.clientY < (window.innerHeight / 10)
                 if (valid) {
                     main.streamer.toggleFullScreen()
                     event.preventDefault()
@@ -498,7 +539,7 @@ export const initApp = () => {
     main.omni.on('up', () => menu.arrow('up'))
 
     menu.on('scroll', y => {
-        //console.log('selectionMemory scroll', y)
+        menu.debug && console.log('menu scroll', y)
         menu.updateRange(y)
         elpShow()
         haUpdate()
@@ -524,17 +565,17 @@ export const initApp = () => {
         }
     }
     const elpListener = () => {
-        if(menu.currentEntries[menu.selectedIndex] && menu.currentEntries[menu.selectedIndex].top) return
-        let offset = menu.path ? -1 : 0
-        let total = 0
-        let selected = -1
-        menu.currentEntries.forEach(e => {
-            if(selected == -1 && menu.selectedIndex == e.tabindex) {
+        const entry = menu.currentEntries.filter(e => !e.side)[menu.selectedIndex]
+        const realIndex = menu.currentElements.indexOf(entry)
+        let offset = menu.path.indexOf('/') == -1 ? 0 : -1
+        let selected = 0, total = menu.currentElements.length
+        for(let i=0; i<=menu.currentEntries.length; i++) {
+            if(!menu.currentEntries[i] || menu.currentEntries[i].side) continue
+            total++
+            if(total == menu.selectedIndex) {
                 selected = total
             }
-            if(e.top) return
-            total++
-        })
+        }
         elpShow(' ' + (selected + offset + 1) + '/' + (total + offset))
     }
     menu.on('arrow', elpListener)
@@ -546,10 +587,10 @@ export const initApp = () => {
     haTop.addEventListener('click', () => menu.arrow('up'))
     haBottom.addEventListener('click', () => menu.arrow('down'))
 
+    const wrap = document.querySelector('#menu wrap')
     window['home-arrows-active'] = { bottom: null, top: null, timer: 0 };
     window.haUpdate = () => {
-        const wrap = document.querySelector('#menu wrap')
-        var as = wrap.getElementsByTagName('a')
+        const as = menu.currentElements
         if (as.length > (menu.gridLayoutX * menu.gridLayoutY)) {
             var lastY = (as[as.length - 1].offsetTop) - wrap.scrollTop, firstY = as[0].offsetTop - wrap.scrollTop
             if (lastY >= wrap.parentNode.offsetHeight) {
@@ -594,7 +635,20 @@ export const initApp = () => {
     })
     console.log('load app')
 
-    main.clock = new Clock(document.querySelector('header time'))
+    main.clock = new Clock(document.querySelector('.menu-time time'))
+
+    var toggle = document.querySelector('.side-menu-toggle')
+    if(window.capacitor) { // tapping
+        menu.sideMenu(false, 'instant')
+        toggle.addEventListener('click', () => {
+            menu.inSideMenu() || menu.inModal() || menu.sideMenu(true)
+        })
+    } else { // pc mouse hovering
+        toggle.addEventListener('mouseenter', () => {
+            menu.inSideMenu() || menu.inModal() || menu.sideMenu(true)
+        })
+        wrap.addEventListener('mouseenter', () => menu.sideMenu(false))
+    }
 
     console.log('load app')
     moment.tz.setDefault(parent.Intl.DateTimeFormat().resolvedOptions().timeZone)
@@ -654,21 +708,24 @@ export const initApp = () => {
 
     console.log('load app')
     main.localEmit('renderer')
+
+    let woke
+    const wake = () => {
+        if(woke) return
+        woke = true
+        document.body.classList.remove('nav-hint')
+    }
+    document.body.addEventListener('keydown', wake, {once: true})
+    document.body.addEventListener('touchstart', wake, {once: true})
+    setTimeout(() => {
+        woke || document.body.addEventListener('mousemove', wake, {once: true})
+    }, 4000)
     console.log('load app')
 }
 
 window.onerror = function (message, file, line, column, errorObj) {
 	let stack = typeof errorObj == 'object' && errorObj !== null && errorObj.stack ? errorObj.stack : traceback();
 	console.error(errorObj || message, { errorObj, message, file, stack });
-	if (maxAlerts) {
-		maxAlerts--;
-		if (file && 
-			!file.startsWith('blob:http://') && // ignore hls.js internal errors
-			!file.endsWith('mpegts.js') // ignore mpegts.js internal errors
-			) {
-			alert(message + ' ' + file + ':' + line + ' ' + stack);
-		}
-	}
 	return true;
 }
 	

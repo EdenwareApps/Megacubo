@@ -35,6 +35,7 @@
 	],
 	"hide-back-button": false,
 	"hls-prefetching": true,
+	"home-recommendations": 3,
 	"hotkeys": {
 		"Up Shift+Tab": "NAVUP",
 		"Down Tab": "NAVDOWN",
@@ -101,10 +102,16 @@
 	"uppercase-menu": false,
 	"use-keepalive": true,
 	"user-agent": "VLC/3.0.8 LibVLC/3.0.8",
-	"view-size-x": 5,
-	"view-size-y": 2,
-	"view-size-portrait-x": 1,
-	"view-size-portrait-y": 8,
+	"view-size": {
+		"landscape": {
+			"x": 4,
+			"y": 3
+		},
+		"portrait": {
+			"x": 1,
+			"y": 8
+		}
+	},
 	"volume": 100,
 	"watch-now-auto": "auto",
 	"ui-sounds": true,

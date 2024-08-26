@@ -22,13 +22,14 @@ import Search from '../search/search.js';
 class ChannelsList extends EventEmitter {
     constructor(type, countries) {
         super();
-        this.type = type;
-        this.countries = countries;
-        this.key = 'categories-' + countries.join('-');
-        this.isChannelCache = {};
-        this.channelsIndex = {};
-        this.categories = {};
-        this.key += '-' + this.type;
+        this.type = type
+        this.countries = countries
+        this.key = 'categories-' + countries.join('-')
+        this.isChannelCache = {}
+        this.channelsIndex = {}
+        this.categories = {}
+        this.key += '-' + this.type
+        this.epgAutoUpdateInterval = 600
     }
     ready() {
         return new Promise(resolve => {
@@ -43,7 +44,7 @@ class ChannelsList extends EventEmitter {
             this.categories = data;
             fine = true;
         }
-        if (!fine || refresh) {
+        if (!fine || refresh || this.type == 'epg') {
             let err
             data = await this.getDefaultCategories().catch(e => err = e)
             if (err) {
@@ -57,6 +58,12 @@ class ChannelsList extends EventEmitter {
                 await this.save(this.key)
                 fine = true
                 changed = true
+            }
+            if(this.type == 'epg') {
+                this.epgAutoUpdateTimer && clearTimeout(this.epgAutoUpdateTimer)
+                this.epgAutoUpdateTimer = setTimeout(() => {
+                    this.load().catch(console.error)
+                }, this.epgAutoUpdateInterval * 1000)
             }
         }
         this.updateChannelsIndex(false)
@@ -95,7 +102,10 @@ class ChannelsList extends EventEmitter {
     }
     async getListsCategories() {
         const ret = {}        
-        const groups = await global.lists.groups(['live'], true);
+        let groups = await global.lists.groups(['live'], true)
+        if(!groups.length) {
+            groups = await global.lists.groups(['live'], false)
+        }
         for (const group of groups) {
             const entries = await global.lists.group(group).catch(console.error);
             if (Array.isArray(entries)) {
@@ -193,7 +203,7 @@ class ChannelsList extends EventEmitter {
     }
     compactName(name, terms) {
         if (terms && terms.length > 1 && terms != name) {
-            name += ', ' + (typeof (terms) == 'string' ? terms : terms.join(' '));
+            name += ', ' + (typeof(terms) == 'string' ? terms : terms.join(' '));
         }
         return name;
     }
@@ -281,12 +291,11 @@ class ChannelsData extends EventEmitter {
             global.lists.on('satisfied', () => this.load().catch(console.error))
         })
     }
-    ready(cb) {
-        if (this.loaded) {
-            cb()
-        } else {
-            this.once('loaded', cb);
-        }
+    ready() {
+        return new Promise(resolve => {
+            if (this.loaded) return resolve()
+            this.once('loaded', resolve)
+        })
     }
     async load(refresh) {
         const hasOwnLists = config.get('lists').length
@@ -441,8 +450,8 @@ class ChannelsEPG extends ChannelsData {
         if (map[ret.name]) {
             ret.searchName = map[ret.name];
         }
-        ret.terms = e.terms && Array.isArray(e.terms) ? e.terms : this.entryTerms(e);
-        ret.terms = this.expandTerms(ret.terms);
+        ret.terms = e.terms && Array.isArray(e.terms) ? e.terms : this.entryTerms(e, true)
+        ret.terms = this.expandTerms(ret.terms)
         return ret;
     }
     async epgChannel(e, limit) {        
@@ -519,12 +528,15 @@ class ChannelsEPG extends ChannelsData {
         }
     }
     async epgChannelsLiveNow(entries) {
+        let ret = {};
+        if(!entries.length) {
+            return ret
+        }
         if (!global.activeEPG)
             throw 'epg not loaded';
         
         let chs = entries.map(e => this.epgPrepareSearch(e));
         let epgData = await global.lists.epg(chs, 1);
-        let ret = {};
         Object.keys(epgData).forEach(ch => {
             ret[ch] = epgData[ch] ? Object.values(epgData[ch]).shift() : false;
             if (!ret[ch] && ret[ch] !== false)
@@ -532,21 +544,24 @@ class ChannelsEPG extends ChannelsData {
         });
         return ret;
     }
-    async epgChannelsAddLiveNow(entries, keepIcon) {
+    async epgChannelsAddLiveNow(entries) {
         if (this.loadedEPG) {
             let err;
-            const cs = entries.filter(e => e.terms || e.type == 'select').map(e => this.isChannel(e.name)).filter(e => e);
+            const cs = entries.filter(e => e.terms || e.type == 'select').map(e => this.isChannel(e)).filter(e => e)
             const epg = await this.epgChannelsLiveNow(cs).catch(e => err = e);
             if (!err && epg) {
                 //console.warn('epgChannelsAddLiveNow', cs, entries, epg)
                 entries.forEach((e, i) => {
-                    if (typeof (epg[e.name]) != 'undefined' && epg[e.name].t) {
+                    const name = e.isChannel ? e.isChannel.name : (e.originalName || e.name)
+                    if (typeof (epg[name]) != 'undefined' && epg[name].t) {
                         if (entries[i].details) {
-                            entries[i].details += ' &middot; ' + epg[e.name].t;
+                            if (entries[i].details.indexOf(epg[name].t) == -1) {
+                                entries[i].details += ' &middot; ' + epg[name].t
+                            }
                         } else {
-                            entries[i].details = epg[e.name].t;
+                            entries[i].details = epg[name].t
                         }
-                        entries[i].programme = epg[e.name];
+                        entries[i].programme = epg[name]
                     }
                 });
             }
@@ -565,16 +580,14 @@ class ChannelsEPG extends ChannelsData {
     }
     async adjustEPGChannelEntryRenderer(e, detached) {        
         const terms = this.entryTerms(e).filter(t => !t.startsWith('-'));
-        const options = [], results = await global.lists.epgSearchChannel(terms, 99);
+        const options = [], results = await global.lists.epgSearchChannel(terms, 99)
         //console.log('adjustEPGChannelEntryRenderer', e, terms, results)
         Object.keys(results).forEach(name => {
             let keys = Object.keys(results[name]);
             if (!keys.length)
                 return;
             let details = results[name][keys[0]].t;
-            if (keys.length > 1) {
-                details += '&nbsp;<span style="opacity: var(--opacity-level-3);">&middot;</span> +' + (keys.length - 1);
-            }
+            details += '&nbsp;<span style="opacity: var(--opacity-level-3);">&middot;</span> <i class="fas fa-th" aria-hidden="true"></i> '+ keys.length
             options.push({
                 name,
                 details,
@@ -664,7 +677,7 @@ class ChannelsEditing extends ChannelsEPG {
         };
     }
     editChannelEntry(o, _category, atts) {
-        let e = Object.assign({}, o), terms = this.entryTerms(o);
+        let e = Object.assign({}, o), terms = this.entryTerms(o, true)
         Object.assign(e, { fa: 'fas fa-play-circle', type: 'group', details: lang.EDIT_CHANNEL });
         Object.assign(e, atts);
         e.renderer = async () => {
@@ -685,6 +698,7 @@ class ChannelsEditing extends ChannelsEPG {
                                 icon: image,
                                 class: 'entry-icon-no-fallback',
                                 fa: 'fa-mega spin-x-alt',
+                                iconFallback: 'fas fa-exclamation-triangle',
                                 action: async () => {
                                     menu.setLoadingEntries([e], true, lang.PROCESSING);
                                     let err;
@@ -719,7 +733,6 @@ class ChannelsEditing extends ChannelsEPG {
                                 menu.refreshNow();
                                 osd.show(lang.ICON_CHANGED, 'fas fa-check-circle', 'channels', 'normal');
                             } });
-                        console.warn('icons ret', ret);
                         return ret;
                     }
                 });
@@ -757,9 +770,12 @@ class ChannelsEditing extends ChannelsEPG {
                             }
                         } },
                     { name: lang.SEARCH_TERMS, type: 'input', value: () => {
-                            let t = (o.terms || e.terms || terms);
-                            t = t && t.name ? t.name : (Array.isArray(t) ? t.join(' ') : name);
-                            return t;
+                            let t = (o.terms || e.terms || terms)
+                            if(t && t.name) {
+                                t = t.name    
+                            }
+                            t = Array.isArray(t) ? t.join(' ') : name
+                            return t
                         }, action: async (entry, val) => {
                             const category = _category;
                             if (!this.channelList.categories[category])
@@ -767,17 +783,17 @@ class ChannelsEditing extends ChannelsEPG {
                             let i = -1;
                             this.channelList.categories[category].some((n, j) => {
                                 if (n.substr(0, name.length) == name) {
-                                    i = j;
-                                    return true;
+                                    i = j
+                                    return true
                                 }
-                            });
+                            })
                             if (i != -1) {
                                 this.channelList.channelsIndex = null;
-                                this.channelList.categories[category][i] = this.channelList.compactName(name, val);
-                                this.emit('edited', 'searchTerms', e, val);
-                                e.terms = o.terms = { name: global.lists.tools.terms(val), group: [] };
-                                await this.channelList.save();
-                                menu.refreshNow();
+                                this.channelList.categories[category][i] = this.channelList.compactName(name, val.replaceAll(',', ' '))
+                                this.emit('edited', 'searchTerms', e, val)
+                                e.terms = o.terms = { name: global.lists.tools.terms(val), group: [] }
+                                await this.channelList.save()
+                                menu.refreshNow()
                             }
                         } },
                     { name: lang.REMOVE, fa: 'fas fa-trash', type: 'action', details: o.name, action: async () => {
@@ -1069,21 +1085,23 @@ class Channels extends ChannelsKids {
         return 0;
     }
     isChannel(terms) {        
-        if(!this.channelList) return
+        if(!this.channelList || !terms) return
+        if(terms.isChannel) {
+            return terms.isChannel
+        }
         let tms, tmsKey, chs = this.channelList.channelsIndex || {};
         if (Array.isArray(terms)) {
             tms = terms;
-            tmsKey = tms.join(' ');
+            tmsKey = tms.join(' ')
             if (this.channelList.isChannelCache[tmsKey])
                 return this.channelList.isChannelCache[tmsKey];
         } else {
-            tmsKey = terms;
+            tms = terms.name ? this.entryTerms(terms, true) : global.lists.tools.terms(terms)
+            tmsKey = tms.join(' ')
             if (this.channelList.isChannelCache[tmsKey])
                 return this.channelList.isChannelCache[tmsKey]; // before terms()
             if (typeof (chs[terms]) != 'undefined') {
-                tms = chs[terms];
-            } else {
-                tms = global.lists.tools.terms(terms);
+                tms = chs[terms]
             }
         }
         let chosen, chosenScore = -1;
@@ -1128,9 +1146,13 @@ class Channels extends ChannelsKids {
                 }).map(s => s.join(' ')).join(' | ').split(' ');
                 this.channelList.isChannelCache[chosen] = { name: chosen, terms: chTerms, alts, excludes };
             }
-            if (tmsKey != chosen)
-                this.channelList.isChannelCache[tmsKey] = this.channelList.isChannelCache[chosen];
-            return this.channelList.isChannelCache[chosen];
+            if (tmsKey != chosen) {
+                this.channelList.isChannelCache[tmsKey] = this.channelList.isChannelCache[chosen]
+            }
+            if(terms.name) {
+                terms.isChannel = this.channelList.isChannelCache[chosen]
+            }
+            return this.channelList.isChannelCache[chosen]
         }
     }
     expandTerms(terms) {
@@ -1143,18 +1165,16 @@ class Channels extends ChannelsKids {
         }
         return terms;
     }
-    async get(terms) {
-        
+    async get(terms) {        
         if (typeof (terms) == 'string') {
             terms = global.lists.tools.terms(terms);
         }
         console.warn('channels.get', terms);
-        let ret = await global.lists.search(terms, {
+        let entries = await global.lists.search(terms, {
             safe: !global.lists.parentalControl.lazyAuth(),
             type: 'live',
             limit: 1024
-        });
-        let entries = ret.results;
+        })
         await this.watching.order(entries).then(es => entries = es).catch(console.error);
         return entries;
     }
@@ -1200,19 +1220,25 @@ class Channels extends ChannelsKids {
             }).catch(reject);
         });
     }
-    entryTerms(e) {
-        
-        let terms;
-        if (e.originalName) {
-            terms = global.lists.tools.terms(e.originalName);
-        } else if (Array.isArray(e.terms) && e.terms.length) {
-            terms = e.terms;
+    entryTerms(e, expand) {
+        let terms
+        if (Array.isArray(e.terms) && e.terms.length) {
+            terms = e.terms
         } else if (typeof (e.terms) != 'undefined' && typeof (e.terms.name) != 'undefined' && Array.isArray(e.terms.name) && e.terms.name.length) {
-            terms = e.terms.name;
+            terms = e.terms.name
+        } else if (e.originalName) {
+            terms = global.lists.tools.terms(e.originalName)
         } else {
             terms = global.lists.tools.terms(e.programme ? e.programme.ch : e.name);
         }
-        return this.expandTerms(terms);
+        if(expand && !e.expanded) {
+            terms = this.expandTerms(terms)
+            e.expanded = true
+        }
+        if(!e.terms) {
+            e.terms = { name: terms, group: [] }
+        }
+        return terms
     }
     async toMetaEntryRenderer(e, _category, epgNow) {
         let category, channelName = e.originalName || (e.programme ? e.programme.ch : e.name);
@@ -1231,7 +1257,7 @@ class Channels extends ChannelsKids {
             }
         }
         console.error('CATEGORY==' + JSON.stringify({ category, channelName, _category }));
-        let terms = this.entryTerms(e), streamsEntry, epgEntry, entries = [], moreOptions = [], url = e.url;
+        let terms = this.entryTerms(e, true), streamsEntry, epgEntry, entries = [], moreOptions = [], url = e.url;
         if (!url) {
             let name = channelName;
             let ch = this.isChannel(name);
@@ -1283,7 +1309,7 @@ class Channels extends ChannelsKids {
                         fa: this.epgIcon,
                         details: (epgNow && epgNow != category) ? epgNow : '',
                         renderer: this.epgChannelEntries.bind(this, e)
-                    };
+                    }
                 }
             } else {
                 const name = global.lists.loaded(true) ? lang.NONE_STREAM_FOUND : lang.NO_LISTS_ADDED;
@@ -1366,7 +1392,7 @@ class Channels extends ChannelsKids {
         });
     }
     toMetaEntry(e, category, details) {
-        let meta = Object.assign({}, e), terms = this.entryTerms(e);
+        let meta = Object.assign({}, e), terms = this.entryTerms(e, true);
         if (typeof (meta.url) == 'undefined') {
             let name = e.name;
             if (e.programme && e.programme.ch) {
@@ -1395,7 +1421,7 @@ class Channels extends ChannelsKids {
                             safe: !global.lists.parentalControl.lazyAuth(),
                             limit: 1024
                         });
-                        return global.lists.tools.paginateList(es.results);
+                        return global.lists.tools.paginateList(es);
                     }
                 });
             } else {
@@ -1430,11 +1456,9 @@ class Channels extends ChannelsKids {
         await this.load(true).catch(e => err = e);
         if (err)
             return osd.show(err, 'fas fa-exclamation-triangle faclr-red', 'channel-grid', 'normal');
-        this.emit('channel-grid-updated');
-        menu.once('render', () => {
-            osd.show('OK', 'fas fa-check-circle faclr-green', 'channel-grid', 'normal');
-        });
-        menu.refreshNow();
+        this.emit('channel-grid-updated')
+        await menu.open(lang.LIVE)
+        osd.show('OK', 'fas fa-check-circle faclr-green', 'channel-grid', 'normal')
     }
     async entries() {
         
@@ -1533,15 +1557,14 @@ class Channels extends ChannelsKids {
                 }
                 if (config.get('parental-control') != 'remove') {
                     opts.splice(opts.length - 2, 0, { name: lang.ADULT_CONTENT, type: 'action', selected: def == 'xxx', action: () => {
-                            this.setGridType('xxx').catch(console.error);
-                        } });
+                        this.setGridType('xxx').catch(console.error)
+                    }})
                 }
                 return opts;
             }
         };
     }
-    sortCategoryEntries(entries) {
-        
+    sortCategoryEntries(entries) {        
         entries = global.lists.tools.sort(entries);
         const policy = config.get('channels-list-smart-sorting');
         /*
@@ -1620,8 +1643,7 @@ class Channels extends ChannelsKids {
                     type: 'action',
                     fa: 'fas fa-file-import',
                     action: async () => {
-                        config.set('channel-grid', '');
-                        
+                        config.set('channel-grid', '');                        
                         const file = await menu.chooseFile('application/json');
                         this.importFile(await fs.promises.readFile(file));
                     }
@@ -1641,8 +1663,7 @@ class Channels extends ChannelsKids {
         };
     }
     options() {
-        return new Promise((resolve, reject) => {
-            
+        return new Promise((resolve, reject) => {            
             let entries = [];
             if (!config.get('channel-grid') && config.get('allow-edit-channel-list')) {
                 entries.push(this.editCategoriesEntry());
@@ -1807,15 +1828,19 @@ class Channels extends ChannelsKids {
     }
     async hook(entries, path) {
         if (!path) {
-            const liveEntry = { name: lang.LIVE, fa: 'fas fa-tv', details: '<i class="fas fa-th"></i>&nbsp; ' + lang.ALL_CHANNELS, type: 'group', renderer: this.entries.bind(this) };
-            insertEntry(liveEntry, entries, 1, lang.MY_LISTS);
+            const liveEntry = { name: lang.LIVE, side: true, fa: 'fas fa-tv', details: '<i class="fas fa-th"></i>&nbsp; ' + lang.ALL_CHANNELS, type: 'group', renderer: this.entries.bind(this) }
+            const searchEntry = { name: lang.SEARCH, side: true, fa: 'fas fa-search', type: 'action', action: () => {
+                process.nextTick(() => renderer.get().emit('omni-show'))
+            }};
+            insertEntry(liveEntry, entries, 1, [lang.MY_LISTS, lang.TOOLS, lang.SEARCH]);
+            insertEntry(searchEntry, entries, 1, [lang.MY_LISTS, lang.TOOLS], [lang.TRENDING, lang.LIVE, lang.CATEGORY_MOVIES_SERIES]);
             if (paths.ALLOW_ADDING_LISTS) {
                 const moviesEntry = {
                     name: lang.CATEGORY_MOVIES_SERIES,
-                    fa: 'fas fa-th', details: '', type: 'group',
+                    side: true, fa: 'fas fa-th', details: '', type: 'group',
                     renderer: () => this.groupsRenderer('')
                 };
-                insertEntry(moviesEntry, entries, -1, [lang.OPTIONS, lang.TOOLS], [lang.LIVE]);
+                insertEntry(moviesEntry, entries, -1, [lang.OPTIONS, lang.TOOLS, lang.SEARCH], [lang.LIVE]);
             }
         }
         return entries;

@@ -79,7 +79,12 @@ class MediaPlayerAdapterHTML5TS extends MediaPlayerAdapterHTML5Video {
 			this.disconnect()
             this.mpegts.unload()
             // this.mpegts.detachMediaElement()
-            this.mpegts.destroy()
+            try {
+				this.mpegts.destroy()
+			} catch(e) {
+				// Cannot read property 'removeAllListeners' of null
+				console.error(e)
+			}
             if(this.logListener){
 				mpegts.LoggingControl.removeLogListener(this.logListener)
 				delete this.logListener

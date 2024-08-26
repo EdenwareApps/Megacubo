@@ -8,6 +8,7 @@ import mega from '../mega/mega.js'
 import listsTools from "../lists/tools.js"
 import config from "../config/config.js"
 import paths from '../paths/paths.js'
+import Limiter from '../limiter/limiter.js'
 import { deepClone, kbsfmt, ucWords, validateURL } from '../utils/utils.js';
 
 const SYNC_BYTE = 0x47
@@ -386,60 +387,58 @@ class StreamerGoNext extends StreamerSpeedo {
         }
     }
     sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise(resolve => setTimeout(resolve, ms))
     }
     async getQueue() {
-        let entries = await global.storage.get('streamer-go-next-queue').catch(console.error);
-        if (!Array.isArray(entries))
-            entries = [];
-        return entries;
+        let entries = await global.storage.get('streamer-go-next-queue').catch(console.error)
+        return Array.isArray(entries) ? entries : ''
     }
     async getPrev(offset = 0) {
-        const entry = this.active ? this.active.data : this.lastActiveData;
-        const entries = await this.getQueue();
+        const entry = this.active ? this.active.data : this.lastActiveData
+        const entries = await this.getQueue()
         if (entry && entries.length) {
             let prev, found = -1;
             if (entry.originalUrl)
-                found = entries.findIndex(e => (e.originalUrl || e.url) == entry.originalUrl);
+                found = entries.findIndex(e => (e.originalUrl || e.url) == entry.originalUrl)
             if (found == -1)
-                found = entries.findIndex(e => e.url == entry.url);
+                found = entries.findIndex(e => e.url == entry.url)
             if (found == -1)
-                return false;
+                return false
             entries.slice(0, found).reverse().some(e => {
                 if (e) {
                     if (offset) {
-                        offset--;
+                        offset--
                     } else {
-                        prev = e;
-                        return true;
+                        prev = e
+                        return true
                     }
                 }
-            });
-            return prev;
+            })
+            return prev
         }
     }
     async getNext(offset = 0) {
-        const entry = this.active ? this.active.data : this.lastActiveData;
-        const entries = await this.getQueue();
-        if (entry && entries.length) {
-            let next, found = -1;
-            if (entry.originalUrl)
-                found = entries.findIndex(e => (e.originalUrl || e.url) == entry.originalUrl);
-            if (found == -1)
-                found = entries.findIndex(e => e.url == entry.url);
-            if (found == -1)
-                return false;
-            entries.slice(found + 1).some(e => {
-                if (e) {
-                    if (offset) {
-                        offset--;
-                    } else {
-                        next = e;
-                        return true;
+        const entry = this.active ? this.active.data : this.lastActiveData
+        if (entry) {
+            const entries = await this.getQueue()
+            if (entries.length) {
+                let found = -1;
+                if (entry.originalUrl)
+                    found = entries.findIndex(e => (e.originalUrl || e.url) == entry.originalUrl)
+                if (found == -1)
+                    found = entries.findIndex(e => e.url == entry.url)
+                if (found == -1)
+                    return false
+                for(const e of entries.slice(found + 1)) {
+                    if (e) {
+                        if (offset) {
+                            offset--
+                        } else {
+                            return e
+                        }
                     }
                 }
-            });
-            return next;
+            }
         }
     }
     async saveQueue(e) {
@@ -543,12 +542,25 @@ class Streamer extends StreamerGoNext {
     constructor() {
         super()
         if (!this.opts.shadow) {
-            this.zap = new Zap(this)
+            this.zap = new Zap(this)            
+            this.mpegtsSeekingFix = new Limiter(async () => {
+                const ret = await global.menu.dialog([
+                    { template: 'question', fa: 'fas fa-warn-triangle', text: 'Force MPEGTS broadcasts to be seekable (' + global.lang.SLOW + ')' },
+                    { template: 'message', text: global.lang.ENABLE_MPEGTS_SEEKING },
+                    { template: 'option', text: global.lang.NO, fa: 'fas fa-times-circle', id: 'no' },
+                    { template: 'option', text: global.lang.YES, fa: 'fas fa-check-circle', id: 'yes' }
+                ], 'no')
+                this.mpegtsSeekingFix.fromNow()
+                if (ret == 'yes') {
+                    config.set('ffmpeg-broadcast-pre-processing', 'mpegts')
+                    this.reload()
+                }
+            }, 10000, true)
             renderer.ready(async () => {
                 global.menu.on('open', path => {
                     if (this.tuning && path.indexOf(global.lang.STREAMS) != -1) {
-                        this.tuning.destroy();
-                        this.tuning = null;
+                        this.tuning.destroy()
+                        this.tuning = null
                     }
                 })
             })
@@ -562,18 +574,7 @@ class Streamer extends StreamerGoNext {
                     }
                 }
             });
-            renderer.get().on('streamer-seek-failure', async () => {
-                const ret = await global.menu.dialog([
-                    { template: 'question', fa: 'fas fa-warn-triangle', text: 'Force MPEGTS broadcasts to be seekable (' + global.lang.SLOW + ')' },
-                    { template: 'message', text: global.lang.ENABLE_MPEGTS_SEEKING },
-                    { template: 'option', text: global.lang.NO, fa: 'fas fa-times-circle', id: 'no' },
-                    { template: 'option', text: global.lang.YES, fa: 'fas fa-check-circle', id: 'yes' }
-                ], 'no');
-                if (ret == 'yes') {
-                    config.set('ffmpeg-broadcast-pre-processing', 'mpegts');
-                    this.reload();
-                }
-            });
+            renderer.get().on('streamer-seek-failure', () => this.mpegtsSeekingFix.call())
         }
     }
     async askExternalPlayer() {
@@ -864,8 +865,8 @@ class Streamer extends StreamerGoNext {
             if (!this.tuning.destroyed && this.tuning.opts.megaURL && this.tuning.opts.megaURL == e.url) {
                 return await this.tune(e);
             }
-            this.tuning.destroy();
-            this.tuning = null;
+            this.tuning.destroy()
+            this.tuning = null
         }
         const connectId = (Date.now() / 1000);
         this.connectId = connectId;
@@ -909,13 +910,12 @@ class Streamer extends StreamerGoNext {
                 type: 'live',
                 safe: !global.lists.parentalControl.lazyAuth(),
                 limit: 1024
-            });
+            })         
             if (this.connectId != connectId) {
                 silent || global.menu.setLoadingEntries(loadingEntriesData, false);
                 throw 'another play intent in progress';
             }
             // console.error('ABOUT TO TUNE', terms, name, JSON.stringify(entries), opts)
-            entries = entries.results;
             if (entries.length) {
                 entries = entries.map(s => {
                     s.originalName = name;
@@ -945,8 +945,7 @@ class Streamer extends StreamerGoNext {
                 e = Object.assign(Object.assign({}, e), opts);
             }
             console.warn('STREAMER INTENT', e);
-            let terms = global.channels.entryTerms(e);
-            this.setTuneable(!this.streamInfo.mi.isVideo(e.url) && global.channels.isChannel(terms));
+            this.setTuneable(!this.streamInfo.mi.isVideo(e.url) && global.channels.isChannel(e))
             silent || (global.osd && global.osd.show(global.lang.CONNECTING + ' ' + e.name + '...', 'fa-mega spin-x-alt', 'streamer', 'persistent'))
             let hasErr, intent = await this.intent(e).catch(r => hasErr = r);
             if (typeof (hasErr) != 'undefined') {
@@ -985,9 +984,9 @@ class Streamer extends StreamerGoNext {
             if (this.active && !config.get('play-while-loading')) {
                 this.stop();
             }
-            const ch = global.channels.isChannel(global.channels.entryTerms(e));
+            const ch = global.channels.isChannel(e)
             if (ch) {
-                e.name = ch.name;
+                e.name = ch.name
             }
             const same = this.tuning && !this.tuning.finished && !this.tuning.destroyed && (this.tuning.has(e.url) || this.tuning.opts.megaURL == e.url);
             const loadingEntriesData = [e, global.lang.AUTO_TUNING];

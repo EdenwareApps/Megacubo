@@ -42,7 +42,11 @@ class Diagnostics extends EventEmitter {
                 priority: p.priority
             };
         })
-        let err, crashlogContent = await crashlog.read().catch(e => err = e)
+        let err, crashlogContent = await crashlog.read().catch(e => err = e)        
+        let revision = '10000'
+        if(paths.manifest.megacubo && paths.manifest.megacubo.revision) {
+            revision = paths.manifest.megacubo.revision
+        }
         const crashLog = crashlogContent || err || 'Empty'
         const updaterResults = lists.loader.results, privateLists = [];
         ['lists', 'parental-control-terms', 'parental-control-pw', 'premium-license'].forEach(k => delete configs[k]);
@@ -56,11 +60,20 @@ class Diagnostics extends EventEmitter {
             diskSpace.free = kbfmt(diskSpace.free)
             diskSpace.size = kbfmt(diskSpace.size)
         }
-        let report = { version, diskSpace, freeMem, configs, channelListType, loaded, listsInfo, listsRequesting, updaterResults, processedLists, processing, tuning, crashLog };
+        const timeoutMs = 10000, communitySources = {}, locs = await lang.getActiveCountries()
+        await Promise.allSettled(locs.map(loc => {
+            return (async () => {
+                let err, lists = await cloud.get('sources/'+ loc, {timeoutMs}).catch(e => err = e)
+                communitySources[loc] = err ? String(err) : lists.map(l => l.url)
+            })()
+        }))
+
+        let report = { version, revision, diskSpace, freeMem, configs, channelListType, loaded, communitySources, listsInfo, listsRequesting, updaterResults, processedLists, processing, tuning, crashLog };
         report = JSON.stringify(report, null, 3);
         privateLists.forEach(url => {
             report = report.replace(url, 'http://***')
-        });
+        })
+
         return report
     }
     async saveReport() {

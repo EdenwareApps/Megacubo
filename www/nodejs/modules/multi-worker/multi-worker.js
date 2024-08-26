@@ -167,13 +167,19 @@ const setupConstructor = () => {
             this.storageTouchListener && storage.removeListener('touch', this.storageTouchListener);
             if (this.worker) {
                 setTimeout(() => {
-                    const maybePromise = this.worker.terminate();
-                    maybePromise && maybePromise.catch && maybePromise.catch(console.error);
-                    this.worker = null;
-                }, 3000);
+                    const worker = this.worker
+                    this.worker = null
+                    if(worker) {
+                        try {
+                            worker.terminate().catch(console.error)
+                        } catch {
+                            console.error(e)
+                        }
+                    }
+                }, 3000)
             }
-            this.rejectAll(null, 'worker manually terminated');
-            this.removeAllListeners();
+            this.rejectAll(null, 'worker manually terminated')
+            this.removeAllListeners()
         }
     }
     class ThreadWorkerDriver extends WorkerDriver {

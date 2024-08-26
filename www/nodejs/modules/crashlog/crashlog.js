@@ -31,11 +31,14 @@ class Crashlog {
         return val;
     }
     save(...args) {
+        let revision = '10000'
+        if(paths.manifest.megacubo && paths.manifest.megacubo.revision) {
+            revision = paths.manifest.megacubo.revision
+        }
         fs.appendFileSync(this.crashFile, this.stringify(Array.from(args)).replaceAll("\\n", "\n") + "\r\n" + JSON.stringify({
             version: paths.manifest ? paths.manifest.version : '',
-            platform: process.platform,
-            release: os.release(),
-            arch: os.arch(),
+            platform: process.platform, 
+            release: os.release(), arch: os.arch(), revision,
             date: (new Date()).toString(),
             lang: typeof (lang) != 'undefined' && lang ? lang.locale : ''
         }) + "\r\n\r\n");
@@ -87,7 +90,7 @@ class Crashlog {
                                     fs.unlink(this.crashFile, () => {});
                                 });
                             } else {
-                                moveFile(this.crashFile, this.crashLogFile, () => {});
+                                moveFile(this.crashFile, this.crashLogFile).catch(console.error)
                             }
                         });
                         if (!resolved) {
