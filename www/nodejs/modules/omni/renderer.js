@@ -100,7 +100,7 @@ export class OMNI extends OMNIUtils {
         if(select){
             this.input.select()
         }
-        main.menu.focus(this.element, true)
+        main.menu.focus(this.element)
         this.input.focus()
         this.input.addEventListener('blur', () => {
             main.menu.focus(main.menu.currentElements[0])

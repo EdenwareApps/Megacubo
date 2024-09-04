@@ -120,30 +120,15 @@ class MenuSelectionMemory extends MenuIcons {
 	constructor(container){
 		super(container)
 		this.selectionMemory = {}
-		this.on('open', () => {
-			this.saveSelection()
-		})
-		this.on('focus', () => {
-			this.saveSelection()
-		})
-		this.on('pre-render', () => {
-			this.saveSelection()
-		})
-		this.on('pre-modal-start', () => {
-			let e = this.selected()
-			if(e && e.title){
-				this.saveSelection()
-			}
-		})
+		this.on('open', () => this.saveSelection())
+		this.on('focus', () => this.saveSelection())
         this.on('pos-modal-end', this.restoreSelection.bind(this))
-		main.on('menu-reset-selection', () => {
-            this.selectionMemory = {}
-        })
 		main.on('current-search', (terms, type) => {
             this.currentSearch = JSON.stringify({terms, type})
         })
 	}
 	saveSelection() {
+		if(this.rendering) return
 		this.debug && console.error('saveSelection', this.wrap.scrollTop, this.selectedIndex, this.path)
 		const n = this.currentViewName()
 		if(!this.selectionMemory[this.path]) this.selectionMemory[this.path] = {}
@@ -157,6 +142,8 @@ class MenuSelectionMemory extends MenuIcons {
 		return this.activeSpatialNavigationLayout().level
 	}
     restoreSelection(){
+		if(this.rendering) return
+		this.debug && console.log('restoreSelection', this.path)
 		const n = this.currentViewName()
 		const selected = this.selected()
 		if(selected && selected.id == 'menu-search') return
@@ -178,7 +165,7 @@ class MenuSelectionMemory extends MenuIcons {
 			if(data.index < range.start || data.index >= range.end){
 				data.index = range.start
 			}
-			this.focus(this.currentElements[data.index], true)			
+			this.focus(this.currentElements[data.index])			
         	this.scrollTop(data.scroll, true)
 			return true
         } else {
@@ -209,10 +196,19 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
         this.mouseWheelMovingTime = 0
         this.mouseWheelMovingInterval = 300
         this.scrollingTimer = 0
-        this.wrap.addEventListener('scroll', () => {
-			this.resetScrollEmittingTimer(this.rendering)
-        })
-		this.wrap.addEventListener('touchstart', () => {
+		this.resetScrollEndTrigger = () => {
+			if(this.rendering) return this.resetScrollEndTimer()
+			if(this.lastScrollTop !== this.wrap.scrollTop){
+				this.debug && console.log('menu.scroll', this.rendering, this.wrap.scrollTop)
+				this.lastScrollTop = this.wrap.scrollTop
+				this.emit('scroll', this.wrap.scrollTop)
+			}
+		}
+		for(const type of ['scroll', 'scrollend', 'resize']) {
+			// scroll was not always emitting on mobiles, scrollend is too new and not supported by all browsers
+			this.wrap.addEventListener(type, () => this.resetScrollEndTimer(this.rendering), {capture: true, passive: true})
+		}
+        this.wrap.addEventListener('touchstart', () => {
 			this.wrap.style.scrollSnapType = 'none'
 		})
 		this.wrap.addEventListener('touchend', () => {
@@ -228,23 +224,13 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
 			resizeListener() // to apply initial icons size
 		}, 0)
 	}
-	resetScrollEmittingTimer(clearOnly) {
+	resetScrollEndTimer(clearOnly) {
 		clearTimeout(this.scrollingTimer)
 		if(clearOnly === true) return
-		this.scrollingTimer = setTimeout(() => {
-			if(this.debug){
-				console.log('pointer.scroll', this.rendering)
-			}
-			if(this.rendering) return
-			const done = () => {                                
-				if(this.debug){
-					console.log('pointer.scroll', this.rendering)
-				}
-				if(this.rendering) return
-				this.emit('scroll', this.wrap.scrollTop)
-			}
-			done()
-		}, 400) // 250 was causing scroll to be emitted before too soon causing focus confusion
+		if(this.debug){
+			console.log('menu.scroll schedule', this.rendering, this.wrap.scrollTop)
+		}
+		this.scrollingTimer = setTimeout(this.resetScrollEndTrigger, 400) // 250 was causing scroll to be emitted before too soon causing focus confusion
 	}
     setGridLayout(x, y, px, py){
         this._gridLayoutX = x
@@ -253,7 +239,9 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
         this._gridLayoutPortraitY = py
         this.resize()
     }
-    resize(){
+    resize(force){
+		if(force !== true && this.lastSize && this.lastSize.x == window.innerWidth && this.lastSize.y == window.innerHeight) return
+		this.lastSize = {x: window.innerWidth, y: window.innerHeight}
         const portrait = (window.innerHeight > window.innerWidth)
         if (portrait) {
             this.gridLayoutX = this._gridLayoutPortraitX
@@ -268,6 +256,7 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
 		document.body.classList[verticalLayout ? 'add' : 'remove']('portrait')
 		this.adjustIconSize()
 		this.sideMenuSync(true)
+		window.capacitor && plugins.megacubo.updateScreenMetrics()
     }
 	adjustIconSize(){
 		let e = document.querySelector('a:not(.entry-2x) .entry-icon-image')
@@ -293,9 +282,16 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
     selector(s){
         return Array.from(document.querySelectorAll(s)).filter(this.isVisible)
     }
-    start(){
-        document.body.addEventListener('focus', this.selected.bind(this))
-        this.selected()
+    start(){        
+		document.body.addEventListener('focus', e => { // use addEventListener instead of on() here for capturing
+			setTimeout(() => {
+				if (document.activeElement == document.body) {
+					this.debug && console.log('body focus, menu.reset', e)
+					this.reset()
+				}
+			}, 100)
+		}, { passive: true })
+        this.reset()
     }
     updateElement(element){ // if layout has changed, find the actual corresponding element
         if(!element.parentNode){
@@ -324,7 +320,7 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
         }
         return elements.filter(e => e.parentNode)
     }
-	clearSelection(element){
+	updateSelectedElementClasses(element){
 		for(const e of document.querySelectorAll('.'+ this.className)) e.classList.remove(this.className)
 		for(const e of document.querySelectorAll('.'+ this.parentClassName)) e.classList.remove(this.parentClassName)
 		if(element){
@@ -377,14 +373,15 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
 	selected(deep){
         let element = this.findSelected(deep)
         if(element){
-        	element.classList.contains(this.className) || this.clearSelection(element)
+        	element.classList.contains(this.className) || this.updateSelectedElementClasses(element)
             element.focus({preventScroll: true})
         }
         return element
     }
-    focus(a, avoidScroll){
+    focus(a){
+		if(this.rendering) return
         let ret = null        
-        this.debug && console.error('focus', a, avoidScroll, this.wrap.scrollTop)
+        this.debug && console.error('focus', a, this.wrap.scrollTop)
         if(!a) {
             a = this.entries().shift()
         }
@@ -393,8 +390,9 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
             if(this.debug){
                 console.log('FOCUSENTRY', a)
             }
-            this.clearSelection(a)
-            let index = this.currentElements.indexOf(a)
+            this.updateSelectedElementClasses(a)
+            const index = this.currentElements.indexOf(a)
+            if(index != -1) this.selectedIndex = index
             if(document.activeElement && document.activeElement.tagName.toLowerCase() == 'input'){
                 // dirty hack to force input to lose focus
                 let t = document.activeElement
@@ -405,43 +403,11 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
                 a.focus({preventScroll: true})
             }
             let n = a.querySelector('input:not([type="range"]), textarea')
-            if(n) {
-                n.focus({preventScroll: true})
-            }
-            if(index == -1) { // is main menu or modal entry
-				a.scrollIntoViewIfNeeded({behavior: 'instant'})
-			} else {
-                let lastIndex = this.selectedIndex
-                this.selectedIndex = index
-                if(this.debug) {
-                    console.log('pointer selectedIndex =', a.tabIndex, a)
-                }
-				console.log('SCROLL', a.offsetTop, [this.wrap.scrollTop, this.wrap.offsetHeight])
-				if(!avoidScroll && a.offsetTop > this.wrap.scrollTop && a.offsetTop <= (this.wrap.scrollTop + this.wrap.offsetHeight - 4)) {
-					console.log('AVOID SCROLL', a.offsetTop, [this.wrap.scrollTop, this.wrap.offsetHeight])
-					avoidScroll = true
-				}
-                if(!avoidScroll) {
-                    if(lastIndex != this.selectedIndex) {
-                        let s = a.offsetTop
-						if(s < 0) {
-                            s = 0
-                        }
-                        let t = a.offsetTop - (this.wrap.offsetHeight - a.offsetHeight)
-						if(t && Math.abs(this.wrap.scrollTop - t) < Math.abs(this.wrap.scrollTop - s)) {
-							s = t
-						}
-						if(s != this.wrap.scrollTop) {
-							console.warn('pointer scrolling...', a.offsetTop, s, this.wrap.scrollTop)
-                            this.scrollTop(s, true)
-							ret = s
-                        }
-                    }
-                }
-            }
+            n && n.focus({preventScroll: true})
+			a.scrollIntoViewIfNeeded({behavior: 'auto', block: 'nearest', inline: 'nearest'})
             this.emit('focus', a, index)
         } else {
-			this.debug && console.log('Already focused', {currentLayer, a, selected: document.querySelector('.'+ this.className), avoidScroll, scrollLeft: this.container.scrollLeft, scrollTop: this.wrap.scrollTop})	
+			this.debug && console.log('Already focused', {currentLayer, a, selected: document.querySelector('.'+ this.className), scrollLeft: this.container.scrollLeft, scrollTop: this.wrap.scrollTop})
 		}
         return ret
     }  
@@ -472,7 +438,7 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
             elements = elements.filter(e => e.getAttribute('data-type') != 'back').slice(0)
             if(elements.length){
                 let _sound = this.sounds
-                this.focus(elements[0], true)
+                this.focus(elements[0])
                 this.sounds = _sound
             }
         }
@@ -649,15 +615,7 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
             if(this.debug){
                 console.warn('POINTER', closer, closerDist)
             }
-            let previousScrollTop = this.wrap.scrollTop
             this.focus(closer)
-            if(layout.default){   
-                if (this.wrap.scrollTop != previousScrollTop) {
-					this.emit('scroll', this.wrap.scrollTop)
-				}
-            } else {
-                closer.scrollIntoViewIfNeeded({ behavior: 'smooth', block: 'nearest', inline: 'start' })
-            }
         }
         this.emit('arrow', closer, direction)
     }
@@ -1154,7 +1112,7 @@ class MenuDialog extends MenuDialogQueue {
 							callback(id)
 						})
 						if(String(e.id) == String(validatedDefaultIndex)) {						
-							this.delayedFocus(p, false)
+							this.delayedFocus(p)
 						}
 					}
 				} else if(e.template == 'message') {						
@@ -1595,6 +1553,9 @@ class MenuLoading extends MenuStatusFlags {
 	constructor(container){
 		super(container)
 		this.originalNames = {}
+		this.on('render', (path, icon, prevPath) => {
+			if(path !== prevPath) this.unsetLoading()
+		})
 		main.on('set-loading', (data, active) => {
 			if(!data) return
 			console.log('set-loading', data, active)
@@ -1604,9 +1565,6 @@ class MenuLoading extends MenuStatusFlags {
 		})
 		main.on('unset-loading', () => {
 			this.unsetLoading()
-		})
-		main.on('render', (_, path) => {
-			if(path != this.path) this.unsetLoading()
 		})
 		main.on('display-error', () => {
 			this.unsetLoading()
@@ -1656,7 +1614,6 @@ class MenuNav extends MenuLoading {
 	}
 	sideMenu(enable, behavior='smooth') {
 		if(this.inSideMenu() !== enable) {
-			enable && this.saveSelection()
 			this.container.scroll({
 				top: 0,
 				left: enable ? 0 : this.getSideMenuWidth(),
@@ -1722,7 +1679,6 @@ export class Menu extends MenuNav {
 			this.endModal(cancel)
 		})
 		main.on('prompt', atts => this.prompt(atts))
-		this.initialized = false
 		this.currentEntries = []
 		this.currentElements = []
 		this.range = {start: 0, end: 99}
@@ -1765,46 +1721,37 @@ export class Menu extends MenuNav {
 		return diff
 	}
 	render(entries, path, icon){
+		this.debug && console.log('menu render', path, icon)
 		this.rendering = true
-		this.resetScrollEmittingTimer()
-		let prevEntries = [], navigated = path == this.path
-		if(navigated) {
-			prevEntries = this.currentEntries
-		}
+		let prevPath = this.path, navigated = path == this.path
 		entries = entries.map(e => this.prepareEntry(e))
 		let changed = this.applyCurrentEntries(entries)
 		this.emit('pre-render', path, this.path)
 		this.path = path
 		this.lastOpenedElement = null
-		changed && this.uiUpdate(changed)
-		prevEntries = null
-		setTimeout(() => {
+		changed && this.uiUpdate(navigated)
+		setTimeout(() => { // wait a bit to truste the browser to render the elements
 			this.currentElements = Array.from(this.wrap.getElementsByTagName('a'))
 			this.has2xEntry = this.currentElements.slice(0, 2).some(e => e.classList.contains('entry-2x'))
-			this.restoreSelection() // keep it in this timer, or the hell gates will open up!
 			this.rendering = false
-			this.emit('render', this.path, icon)
-			if(!this.initialized){
-				this.initialized = true
-				this.emit('init')
-			}
+			this.restoreSelection() // keep it in this timer, or the hell gates will open up!
+			this.emit('render', this.path, icon, prevPath)
+			this.debug && console.log('menu rendered', path, icon)
 		}, 0)
 	}
-	uiUpdate(pageChanged){
-		this.resetScrollEmittingTimer()
+	uiUpdate(navigated){
+		this.resetScrollEndTimer()
 		let targetScrollTop = 0, path = this.path
-		if(!pageChanged){
+		if(!navigated){
 			targetScrollTop = this.wrap.scrollTop
 		} else if(typeof(this.selectionMemory[path]) != 'undefined' && this.selectionMemory[path].default) {
 			targetScrollTop = this.selectionMemory[path].default.scroll
 		}
 		this.wrap.style.minHeight = (targetScrollTop + this.wrap.offsetHeight) + 'px' // avoid scrolling
 		this.emit('updated')
-		setTimeout(() => {
-			this.wrap.style.minHeight = 0
-			this.scrollTop(targetScrollTop, true)
-			this.getRange(targetScrollTop)
-		}, 0)
+		this.wrap.style.minHeight = 0
+		this.scrollTop(targetScrollTop, true)
+		this.getRange(targetScrollTop)
 	}
 	applyCurrentEntries(entries) {
 		let changed
@@ -1833,16 +1780,13 @@ export class Menu extends MenuNav {
 		})
 		return changed
 	}
-	viewportRange(scrollTop, entriesCount){
+	viewportRange(scrollTop){
 		let limit = (this.gridLayoutX * this.gridLayoutY)
 		if(this.currentElements.length){ // without elements (not initialized), we can't calc the element height
 			if(typeof(scrollTop) != 'number'){
 				scrollTop = this.wrap.scrollTop
 			}
-			if(typeof(entriesCount) != 'number'){
-				entriesCount = this.currentElements.length
-			}
-			let entryHeight = this.currentElements[0].offsetHeight
+			const entryHeight = this.currentElements[this.currentElements.length - 1].offsetHeight
 			let i = Math.round(scrollTop / entryHeight) * this.gridLayoutX
 			if(this.has2xEntry) {
 				if(i) {
@@ -1851,7 +1795,7 @@ export class Menu extends MenuNav {
 					limit--
 				}				
 			}
-			let end = Math.min(i + limit, entriesCount - 1)
+			const end = Math.max(i, Math.min(i + limit, this.currentElements.length - 1))
 			return {start: i, end}
 		} else {
 			return {start: 0, end: limit}
@@ -1871,7 +1815,7 @@ export class Menu extends MenuNav {
 		}
 		this.ranging = false
 		let entries = [], tolerance = this.gridLayoutX, vs = Math.ceil(this.gridLayoutX * this.gridLayoutY), minLengthForRanging = vs + (tolerance * 2), shouldRange = main.config['show-logos'] && this.currentEntries.length >= minLengthForRanging
-		this.range = this.viewportRange(targetScrollTop, this.currentEntries.length)
+		this.range = this.viewportRange(targetScrollTop)
 		if(shouldRange){
 			let trange = Object.assign({}, this.range)
 			trange.end += tolerance
@@ -1897,9 +1841,7 @@ export class Menu extends MenuNav {
 				const rgx = new RegExp('<img', 'i'), elements = this.currentElements
 				const currentScrolltop = this.wrap.scrollTop, entries = this.getRange(y)
 				//console.log('selectionMemory upadeteRange', entries)
-				if(this.debug){
-					console.warn("UPDATING RANGE", y, currentScrolltop, entries)
-				}
+				this.debug && console.warn("UPDATING RANGE", y, currentScrolltop, entries)
 				entries.forEach((e, i) => {
 					if(!elements[e.tabindex]) return
 					if(this.debug){
@@ -1918,20 +1860,20 @@ export class Menu extends MenuNav {
 				if(changed.length){
 					console.log('updateRange', changed, this.range, this.selectedIndex)
 					if(this.selectedIndex < this.range.start || this.selectedIndex >= this.range.end){
-						this.focus(this.currentElements[this.range.start], true)
+						this.focus(this.currentElements[this.range.start])
 					} else {
-						this.focus(this.currentElements[this.selectedIndex], true)
+						this.focus(this.currentElements[this.selectedIndex])
 					}
 				}
 			}
 		}
 	}
-	delayedFocus(element, avoidScroll){
+	delayedFocus(element){
 		setTimeout(() => {
 			if(this.debug){
 				console.warn('DELAYED FOCUS', element)
 			}
-			this.focus(element, avoidScroll)
+			this.focus(element)
 		}, 50)
 	}
 	check(element){
@@ -1982,7 +1924,7 @@ export class Menu extends MenuNav {
 					element.setAttribute('data-default-value', retPath)
 				}
 			}
-			this.delayedFocus(this.lastSelectTriggerer, true)
+			this.delayedFocus(this.lastSelectTriggerer)
 		})
 	}
 	setupSlider(element){
@@ -2009,12 +1951,12 @@ export class Menu extends MenuNav {
 			}
 			setTimeout(() => {
 				console.warn('DELAYED FOCUS ON', i, this.currentElements[i])
-				this.focus(this.currentElements[i], true)
+				this.focus(this.currentElements[i])
 			}, 200)
 		}, fa)
 	}
 	open(element){
-		this.focus(element, true)
+		this.focus(element)
 		let timeToLock = 3, path = element.getAttribute('data-path'), type = element.getAttribute('data-type'), tabindex = element.tabIndex || 0
 		if(this.lastOpenedElement == element && ['back', 'stream', 'group'].includes(type) && ((this.lastOpenedElementTime + timeToLock) > time())){
 			if(this.debug){

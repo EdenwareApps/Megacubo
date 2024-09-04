@@ -95,7 +95,7 @@ class CommunityLists extends EventEmitter {
     }
     async hook(entries, path) {
         if (paths.ALLOW_COMMUNITY_LISTS && path.split('/').pop() == lang.MY_LISTS) {
-            insertEntry(this.entry(), entries, 2, [], [lang.ADD_LIST, lang.PUBLIC_LISTS]);
+            insertEntry(this.entry(), entries, [], [lang.ADD_LIST, lang.PUBLIC_LISTS]);
         }
         return entries;
     }

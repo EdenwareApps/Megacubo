@@ -92,7 +92,7 @@ class History extends EntriesGroup {
     }
     async hook(entries, path) {
         if (path == lang.TOOLS) {
-            insertEntry(this.entry(), entries, 0, [lang.TOOLS, lang.OPTIONS], [lang.BOOKMARKS, lang.MY_LISTS])
+            insertEntry(this.entry(), entries, [lang.TOOLS, lang.OPTIONS], [lang.BOOKMARKS, lang.MY_LISTS])
         }
         return entries
     }

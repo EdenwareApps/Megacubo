@@ -286,7 +286,6 @@ const init = async (language, timezone) => {
         console.log('lists-manager', ret);
         switch (ret) {
             case 'agree':
-                ui.emit('menu-reset-selection');
                 menu.open('', 0).catch(e => menu.displayErr(e));
                 config.set('communitary-mode-lists-amount', lists.opts.defaultCommunityModeReach);
                 menu.info(lang.LEGAL_NOTICE, lang.TOS_CONTENT);

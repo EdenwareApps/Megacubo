@@ -22,7 +22,6 @@
     "exec-finder": "^0.0.2",
     "form-data": "^4.0.0",
     "formidable": "^3.5.1",
-    "fs-chmod": "^1.0.6",
     "get-folder-size": "^4.0.0",
     "hls.js": "^1.5.8",
     "http-cookie-agent": "^6.0.3",
@@ -37,13 +36,10 @@
     "p-queue": "^8.0.1",
     "png-to-ico": "^2.1.8",
     "range-parser": "^1.2.1",
-    "read-last-lines": "^1.8.0",
-    "resize-observer": "^1.0.4",
     "sanitize-filename": "^1.6.3",
     "stoppable": "^1.1.0",
     "swipey.js": "^1.0.3",
     "tough-cookie": "^4.1.3",
-    "url-search-params-polyfill": "^8.2.5",
     "xmltv": "github:EdenwareApps/node-xmltv",
     "ytdl-core": "^4.11.5",
     "ytsr": "^3.8.4"
@@ -58,7 +54,7 @@
   "icon": "./default_icon.png",
   "version": "17.5.1",
   "megacubo": {
-    "revision": "17510"
+    "revision": "17513"
   },
   "theme": {
     "fullScreen": true

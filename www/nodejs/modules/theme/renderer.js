@@ -220,44 +220,6 @@ class Theme {
         }
         const radius = window.capacitor ? '1vmax' : '9px'
         const ucase = main.config['uppercase-menu'] ? 'uppercase' : 'none'
-        const cssCode = `
-    :root {
-        --menu-fx-nav-duration: ${fxNavDuration}s;
-        --font-color: ${main.config['font-color']};
-        --secondary-font-color: ${sfg};
-        --background-color: ${main.config['background-color']};
-        --modal-background-color: ${mbg};
-        --osd-background-color: ${obg};
-        --shadow-background-color: ${sbg};
-        --menu-fx-nav-intensity: ${fxNavIntensity};    
-        --radius: ${radius};
-    }
-    body.video {
-        --shadow-background-color: rgba(0, 0, 0, 0.8);
-        --osd-background-color: rgba(0, 0, 0, 0.75);
-    }
-    @media (orientation: landscape) {
-        :root {
-            --menu-entry-name-font-size: calc(((100vmin + 100vmax) * 0.333) * ${nfs});
-            --entries-per-row: ${main.config['view-size'].landscape.x} !important;
-            --entries-per-col: ${main.config['view-size'].landscape.y} !important;
-        }
-    }
-    @media (orientation: portrait) {
-        :root {
-            --menu-entry-name-font-size: calc(((100vmin + 100vmax) * 0.333) * ${nfs * 1.1});
-            --entries-per-row: ${main.config['view-size'].portrait.x} !important;
-            --entries-per-col: ${main.config['view-size'].portrait.y} !important;
-        }
-    }
-    body {
-        font-family: ${family};
-    }
-    *:not(input):not(textarea) {
-        text-transform: ${ucase};
-    }
-    `
-        main.css(cssCode, 'theme')
         let setAlpha = (c, a) => {
             return c.replace('rgb(','rgba(').replace(')', ', '+ a +')')
         }
@@ -270,7 +232,54 @@ class Theme {
         baseColor = [255, 255, 255]
         let e = hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, 0.32))
         let f = hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, 0.40))
-        main.css(`
+
+        let l = main.config['view-size'].landscape.x > 1 ? 'column' : 'row'
+        let p = main.config['view-size'].portrait.x > 1 ? 'column' : 'row'
+
+        let cssCode = `
+        :root {
+            --menu-fx-nav-duration: ${fxNavDuration}s;
+            --font-color: ${main.config['font-color']};
+            --secondary-font-color: ${sfg};
+            --background-color: ${main.config['background-color']};
+            --modal-background-color: ${mbg};
+            --osd-background-color: ${obg};
+            --shadow-background-color: ${sbg};
+            --menu-fx-nav-intensity: ${fxNavIntensity};    
+            --radius: ${radius};
+        }
+        body.video {
+            --shadow-background-color: rgba(0, 0, 0, 0.8);
+            --osd-background-color: rgba(0, 0, 0, 0.75);
+        }
+        @media (orientation: landscape) {
+            :root {
+                --menu-entry-name-font-size: calc(((100vmin + 100vmax) * 0.333) * ${nfs});
+                --entries-per-row: ${main.config['view-size'].landscape.x} !important;
+                --entries-per-col: ${main.config['view-size'].landscape.y} !important;
+            }
+        }
+        @media (orientation: portrait) {
+            :root {
+                --menu-entry-name-font-size: calc(((100vmin + 100vmax) * 0.333) * ${nfs * 1.1});
+                --entries-per-row: ${main.config['view-size'].portrait.x} !important;
+                --entries-per-col: ${main.config['view-size'].portrait.y} !important;
+            }
+        }
+        body {
+            font-family: ${family};
+        }
+        body:not(.portrait) #menu content wrap {
+            grid-template-columns: repeat(${main.config['view-size'].landscape.x}, 1fr);
+            grid-template-rows: repeat(${main.config['view-size'].landscape.y}, 1fr);
+        }
+        body.portrait #menu content wrap {
+            grid-template-columns: repeat(${main.config['view-size'].portrait.x}, 1fr);
+            grid-template-rows: repeat(${main.config['view-size'].portrait.y}, 1fr);
+        }
+        *:not(input):not(textarea) {
+            text-transform: ${ucase};
+        }
         #menu a span.entry-wrapper {
             background: linear-gradient(to top, ${a} 0%, ${b} 75%, ${c} 100%) !important;
             border: 1px solid ${b} !important;
@@ -282,9 +291,16 @@ class Theme {
         .modal-wrap > div {
             background: linear-gradient(to bottom, ${e} 0%, ${f} 100%) !important;
         }
-        `,'wrapper')
+        body.portrait .entry-2x {
+            grid-${p}-start: span 2 !important;
+        }
+        body:not(.portrait) .entry-2x {
+            grid-${l}-start: span 2 !important;
+        }
+        `
+        main.css(cssCode, 'theme')
         this.animateBackground(data.video ? 'none' : data.animate)
-        main.menu.resize()
+        main.menu.resize(true) // force layout update
     }
     hideSplashScreen() {
         localStorage.setItem('splash-time-hint', String((new Date()).getTime() - this.splashStartTime))
@@ -303,6 +319,7 @@ class Theme {
             document.getElementById('background').style.visibility = 'visible'
         }
         setTimeout(() => splash.parentNode.removeChild(splash), 200)
+        main.idle.reset()
     }
     closeCurtains(alpha, hideAfter, cb){
         if(!main.config || !main.config['fx-nav-intensity']) return

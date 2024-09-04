@@ -355,7 +355,7 @@ export const initApp = () => {
                         if (!n) {
                             n = e
                         }
-                        menu.focus(n, false)
+                        menu.focus(n)
                         return true
                     } else if(direction == 'up') {
                         menu.showWhilePlaying(false)
@@ -380,7 +380,7 @@ export const initApp = () => {
                     console.log('OVERSCROLLACTION', playing)
                     if (!playing) {
                         let n = Array.from(menu.container.querySelectorAll('entry-nav'))[direction == 'down' ? 'shift' : 'pop']()
-                        menu.focus(n, true)
+                        menu.focus(n)
                         return true
                     } else if(direction == 'up' || direction == 'left') {
                         menu.showWhilePlaying(false)
@@ -427,15 +427,6 @@ export const initApp = () => {
             }
         }, 0)
     })
-
-    document.body.addEventListener('focus', e => { // use addEventListener instead of on() here for capturing
-        setTimeout(() => {
-            if (document.activeElement == document.body) {
-                console.log('body focus, menu.reset', e)
-                menu.reset()
-            }
-        }, 100)
-    }, { passive: true })
 
     console.log('load app')
     menu.on('prompt-start', menu.reset.bind(menu))

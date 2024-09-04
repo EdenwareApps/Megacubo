@@ -922,8 +922,8 @@ class Lists extends ListsEPGTools {
         return list.slice(0); // clone it to not alter cache
     }
 }
-if(!paths.inWorker) {
-    console.error('LISTS ON WORKER '+ global.file)
+if(paths.inWorker) {
+    console.error('!!!!!!! LISTS ON WORKER '+ global.file)
     console.error(JSON.stringify(paths.workerData))
     console.error(JSON.stringify(paths.inWorker))
 }

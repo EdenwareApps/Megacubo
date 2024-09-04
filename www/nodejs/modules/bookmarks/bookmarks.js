@@ -55,7 +55,7 @@ class Bookmarks extends EntriesGroup {
             const bmEntry = { name: lang.BOOKMARKS, fa: 'fas fa-star', side: true, type: 'group', renderer: this.entries.bind(this) };
             if (this.data.length)
                 bmEntry.details = this.data.map(e => e.name).unique().slice(0, 3).join(', ') +'...'
-            insertEntry(bmEntry, entries, -3, [lang.OPTIONS, lang.ABOUT], [lang.OPEN_URL, lang.CATEGORY_MOVIES_SERIES, lang.LIVE]);
+            insertEntry(bmEntry, entries, [lang.OPTIONS, lang.ABOUT], [lang.OPEN_URL, lang.CATEGORY_MOVIES_SERIES, lang.LIVE]);
             return entries
         }
         let isBookmarkable = path.startsWith(lang.CATEGORY_MOVIES_SERIES) || path.startsWith(lang.SEARCH) || path.startsWith(lang.LIVE + '/' + lang.MORE) || path.startsWith(lang.BOOKMARKS);

@@ -250,8 +250,10 @@ class StreamerState extends StreamerCasting {
                         main.emit('video-ended')
                         break
                     case 'error':
-                        main.emit('video-error', 'playback', data ? String(data.details || data) : 'playback error')
-                        this.stop(true) // stop silently, to let server handle the video-error
+                        if(this.active && !this.transitioning && !this.transcodeStarting) {
+                            main.emit('video-error', 'playback', data ? String(data.details || data) : 'playback error')
+                            this.stop(true) // stop silently, to let server handle the video-error
+                        }
                     case '':
                         this.stop()
                         break
@@ -428,7 +430,6 @@ class StreamerClientVideoAspectRatio extends StreamerState {
         } else {
             this.applyAspectRatio(this.activeAspectRatio)
         }
-        window.capacitor && plugins.megacubo.getAppMetrics()
     }
     generateAspectRatioMetrics(r){
         let h = r, v = 1
@@ -1155,10 +1156,9 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
                 if(b){
                     b.style.display = 'none'
                 }
-                plugins.megacubo.on('appmetrics', this.updateAndroidAppMetrics.bind(this))
+                plugins.megacubo.on('metrics', this.updateAndroidScreenMetrics.bind(this))
                 plugins.megacubo.on('nightmode', this.handleDarkModeInfoDialog.bind(this))
-                this.on('fullscreenchange', () => plugins.megacubo.getAppMetrics())
-                this.updateAndroidAppMetrics(plugins.megacubo.appMetrics)
+                this.updateAndroidScreenMetrics(plugins.megacubo.metrics)
             } else {
                 this.inFullScreen = false
                 if(b) b.style.display = 'inline-flex'
@@ -1181,19 +1181,15 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
             ])
         }
     }
-    updateAndroidAppMetrics(metrics){
-        if(this.inFullScreen){
-            css(' :root { --menu-padding-top: 0; --menu-padding-bottom: 0.5vmin; --menu-padding-right: 0.5vmin; --menu-padding-left: 0.5vmin; } ', 'frameless-window')
+    updateAndroidScreenMetrics(metrics){
+        if(metrics && typeof(metrics.bottom) != 'undefined') {
+            this.metrics = metrics
+        }
+        if(this.inFullScreen || !this.metrics){
+            // keep as '0px' instead of '0' to avoid CSS calc() issues
+            css(' :root { --menu-padding-top: 0px; --menu-padding-bottom: 0.5vmin; --menu-padding-right: 0.5vmin; --menu-padding-left: 0.5vmin; } ', 'frameless-window')
         } else {
-            if(!metrics) return
-            if(metrics && metrics.top){
-                this.lastMetrics = metrics
-            } else {
-                metrics = this.lastMetrics
-            }            
-            if(metrics) {
-                css(' :root { --menu-padding-top: ' + metrics.top + 'px; --menu-padding-bottom: calc(0.5vmin +  ' + metrics.bottom + 'px); --menu-padding-right:  calc(0.5vmin +  ' + metrics.right + 'px); --menu-padding-left: calc(0.5vmin +  ' + metrics.left + 'px); } ', 'frameless-window')
-            }
+            css(' :root { --menu-padding-top: ' + this.metrics.top + 'px; --menu-padding-bottom: calc(0.5vmin +  ' + this.metrics.bottom + 'px); --menu-padding-right:  calc(0.5vmin +  ' + this.metrics.right + 'px); --menu-padding-left: calc(0.5vmin +  ' + this.metrics.left + 'px); } ', 'frameless-window')
         }
     }
     updateAfterLeaveAndroidMiniPlayer(){
@@ -1303,8 +1299,10 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
         this.startVolumeHideTimer()
     }
     volumeBarHide(){
-        this.volumeBar.style.display = 'none'
-        this.volumeInputRect = null
+        if(this.volumeInputRect) {
+            this.volumeBar.style.display = 'none'
+            this.volumeInputRect = null
+        }
     }
     volumeBarToggle(e){
         if(e.target && e.target.tagName && ['button', 'volume-wrap', 'i'].includes(e.target.tagName.toLowerCase())){
@@ -1599,7 +1597,7 @@ class StreamerClientController extends StreamerClientControls {
         this.emit('start')
     }
     stop(fromServer){
-        if(this.active){
+        if(this.active && !this.transitioning && !this.transcodeStarting) {
             this.active = false
             this.activeSrc = ''
             this.activeMimetype = ''

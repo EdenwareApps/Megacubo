@@ -33,15 +33,15 @@ class PremiumHelper {
     }
     async hook(entries, path) {
         if (path == lang.OPTIONS) {
-            entries.push(this.entry());
-        } else if(path) {            
+            entries.push(this.entry())
+        } else if(!path) {            
             insertEntry({
                 name: lang.RECORDINGS,
                 prepend: '<i class="fas fa-star faclr-purple"></i> ',
                 type: 'action', side: true,
                 fa: 'fas fa-folder',
                 action: this.action.bind(this)
-            }, entries, 0, [lang.TOOLS, lang.OPTIONS], [lang.MY_LISTS, lang.EPG])
+            }, entries, [lang.TOOLS, lang.OPTIONS])
         }
         return entries;
     }

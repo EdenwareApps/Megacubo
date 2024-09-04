@@ -1756,10 +1756,7 @@ class Options extends OptionsExportImport {
                         renderer.get().emit('ask-exit');
                     } }
             ];
-            headerOptions.forEach(opt => {
-                if (!entries.some(e => e.side && e.name == opt.name))
-                    entries.push(opt);
-            });
+            entries.push(...headerOptions.filter(o => !entries.some(e => e.name == o.name)))
         }
         return entries;
     }

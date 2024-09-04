@@ -55,7 +55,7 @@ class Zap extends EventEmitter {
                 entries.splice(pos, 0, this.entry());
             }
         } else if (path == '' && !paths.ALLOW_ADDING_LISTS) {
-            insertEntry(this.entry(), entries, -2, [lang.OPTIONS, lang.TOOLS]);
+            insertEntry(this.entry(), entries, [lang.OPTIONS, lang.TOOLS])
         }
         return entries;
     }

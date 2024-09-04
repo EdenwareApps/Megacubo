@@ -109,22 +109,19 @@ class Menu extends EventEmitter {
         this.pages[''] = await this.applyFilters([], '')
         this.path || this.refresh()
     }
-    dialog(opts, def, mandatory) {
-        return new Promise((resolve, reject) => {
-            let uid = 'ac-' + Date.now()
-            renderer.get().once(uid, ret => resolve(ret))
-            renderer.get().emit('dialog', opts, uid, def, mandatory)
-        })
+    async dialog(opts, def, mandatory) {
+        let uid = 'ac-' + Date.now(), ui = renderer.get()
+        ui.emit('dialog', opts, uid, def, mandatory)
+        return await new Promise(resolve => ui.once(uid, resolve))
     }
-    prompt(atts) {
-        return new Promise((resolve, reject) => {
-            if (!atts.placeholder)
-                atts.placeholder = atts.question
-            if (!atts.callback)
-                atts.callback = 'ac-' + Date.now()
-            renderer.get().once(atts.callback, ret => resolve(ret))
-            renderer.get().emit('prompt', atts)
-        })
+    async prompt(atts) {
+        const ui = renderer.get()
+        if (!atts.placeholder)
+            atts.placeholder = atts.question
+        if (!atts.callback)
+            atts.callback = 'ac-' + Date.now()
+        ui.emit('prompt', atts)
+        return await new Promise(resolve => ui.once(atts.callback, resolve))
     }
     info(question, message, fa) {
         renderer.get().emit('info', question, message, fa)
@@ -176,46 +173,34 @@ class Menu extends EventEmitter {
             this.waitingRender = true
         }
     }
-    refresh(deep = false, p) {
-        if (this.rendering) {
-            const type = deep === true ? 'deepRefreshLimiter' : 'softRefreshLimiter'
-            this.refreshingPath = this.path
-            if (this[type].path == this.path) {
-                this[type].limiter.call()
-            } else {
-                this[type].path = this.path
-                this[type].limiter.skip(p)
-            }
+    refresh(deep=false, p) {
+        if (typeof(p) != 'string') p = this.path
+        if (p !== this.path || !this.rendering) return
+        const type = deep === true ? 'deepRefreshLimiter' : 'softRefreshLimiter'
+        if (this[type].path === this.path) {
+            this[type].limiter.call()
+        } else {
+            this[type].path = this.path
+            this[type].limiter.skip(p || this.path)
         }
     }
     refreshNow() {
-        this.softRefresh(this.path, true)
+        this.softRefreshLimiter.limiter.skip(this.path)
     }
-    softRefresh(p, force) {
-        if (force !== true && this.refreshingPath != this.path)
-            return
-        if (!this.startExecTime)
-            this.startExecTime = (Date.now() / 1000)
-        if (this.rendering) {
-            if (this.path && typeof (this.pages[this.path]) != 'undefined') {
-                delete this.pages[this.path]
-            }
-            this.open(this.path).catch(e => this.displayErr(e))
+    softRefresh(p) {
+        if (typeof(p) !== 'string') p = this.path
+        if (p !== this.path || !this.rendering) return
+        if (this.path && typeof(this.pages[p]) !== 'undefined') {
+            delete this.pages[p]
         }
+        this.open(p).catch(e => this.displayErr(e))
     }
-    deepRefresh(p, force) {
-        if (force !== true && this.refreshingPath != this.path)
-            return
-        if (!this.startExecTime)
-            this.startExecTime = (Date.now() / 1000)
-        if (this.rendering) {
-            if (!p) {
-                p = this.path
-            }
-            this.deepRead(p).then(ret => {
-                this.render(ret.entries, p, (ret.parent ? ret.fa : '') || 'fas fa-box-open')
-            }).catch(e => this.displayErr(e))
-        }
+    deepRefresh(p) {
+        if (typeof(p) != 'string') p = this.path
+        if (p != this.path || !this.rendering) return
+        this.deepRead(p).then(ret => {
+            this.render(ret.entries, p, (ret.parent ? ret.fa : '') || 'fas fa-box-open')
+        }).catch(e => this.displayErr(e))
     }
     inSelect() {
         if (typeof (this.pages[this.dirname(this.path)]) != 'undefined') {
@@ -724,8 +709,7 @@ class Menu extends EventEmitter {
         })
         return entries
     }
-    currentStreamEntries(includeMegaStreams) {
-        
+    currentStreamEntries(includeMegaStreams) {        
         return this.currentEntries.filter(e => {
             if (e.url && (!e.type || e.type == 'stream' || e.type == 'select')) {
                 return includeMegaStreams === true || !mega.isMega(e.url)
@@ -782,7 +766,14 @@ class Menu extends EventEmitter {
         this.rendering = false
     }
     resumeRendering() {
+        this.emit('rendered')
         this.rendering = true
+    }
+    async waitRendering() {
+        if(!this.rendering) {
+            await new Promise(resolve => this.once('rendered', resolve))
+        }
+        return true
     }
     chooseFile(mimeTypes = '*') {
         return new Promise((resolve, reject) => {

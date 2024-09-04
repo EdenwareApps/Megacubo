@@ -294,10 +294,10 @@ class PublicLists extends EventEmitter {
     }
     async hook(entries, path) {
         if (path.split('/').pop() == lang.MY_LISTS) {
-            insertEntry(this.entry(), entries, 1, [], lang.ADD_LIST);
+            insertEntry(this.entry(), entries, [], lang.ADD_LIST);
         } else if (path == '') {
             if (!paths.ALLOW_ADDING_LISTS) {
-                insertEntry(this.countriesEntry(), entries, 6, [lang.TOOLS], [lang.TREENDING]);
+                insertEntry(this.countriesEntry(), entries, [lang.TOOLS], [lang.TREENDING]);
             }
         }
         return entries;

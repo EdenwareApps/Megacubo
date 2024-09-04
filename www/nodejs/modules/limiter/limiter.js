@@ -27,11 +27,11 @@ class Limiter {
             this.isPending = true
             return
         }
-        clearTimeout(this.timeoutId);
         const now = Date.now();
         const timeSinceLastCall = now - this.lastCalled;
         // Call immediately if enough time has passed since last call
         if (timeSinceLastCall >= this.intervalMs) {
+            clearTimeout(this.timeoutId);
             this.lastCalled = now;
             this.isPending = false;
             this.timeoutId = null;
@@ -74,6 +74,7 @@ class Limiter {
         } else {
             const timeToWait = this.intervalMs - timeSinceLastCall;
             this.timeoutId = setTimeout(async () => {
+                this.timeoutId = null
                 this.call().catch(console.error)
             }, timeToWait);
         }

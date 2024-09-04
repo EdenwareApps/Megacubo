@@ -13,7 +13,7 @@ class CloudConfiguration extends EventEmitter {
     constructor(opts) {
         super()
         this.debug = false
-        this.defaultServer = 'http://app.megacubo.net/stats/data'
+        this.defaultServer = 'https://app.megacubo.net/stats/data'
         this.server = config.get('config-server') || this.defaultServer
         this.expires = {
             'configure': 3600,
@@ -25,9 +25,7 @@ class CloudConfiguration extends EventEmitter {
         }
         this.reading = {}
         this.notFound = []
-        if (opts) {
-            Object.keys(opts).forEach(k => this[k] = opts[k])
-        }
+        opts && Object.keys(opts).forEach(k => this[k] = opts[k])
     }
     cachingDomain() {
         return 'cloud-' + lang.locale + '-'

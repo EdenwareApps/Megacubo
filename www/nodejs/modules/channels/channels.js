@@ -566,7 +566,7 @@ class ChannelsEPG extends ChannelsData {
                 });
             }
         }
-        return entries;
+        return entries
     }
     adjustEPGChannelEntry(e, detached) {
         return {
@@ -716,7 +716,8 @@ class ChannelsEditing extends ChannelsEPG {
                             };
                             return e;
                         });
-                        ret.push({ name: lang.OPEN_URL, type: 'input', fa: 'fas fa-link', action: async (err, val) => {
+                        ret.push({
+                            name: lang.OPEN_URL, type: 'input', fa: 'fas fa-link', action: async (err, val) => {
                                 console.log('from-url', terms, '');
                                 const fetched = await icons.fetchURL(val);
                                 const ret = await icons.adjust(fetched.file, { shouldBeAlpha: false });
@@ -725,14 +726,17 @@ class ChannelsEditing extends ChannelsEPG {
                                 console.log('icon changed', terms, destFile);
                                 menu.refreshNow();
                                 osd.show(lang.ICON_CHANGED, 'fas fa-check-circle', 'channels', 'normal');
-                            } });
-                        ret.push({ name: lang.NO_ICON, type: 'action', fa: 'fas fa-ban', action: async () => {
+                            }
+                        });
+                        ret.push({
+                            name: lang.NO_ICON, type: 'action', fa: 'fas fa-ban', action: async () => {
                                 console.log('saveDefault', terms, '');
                                 await icons.saveDefaultFile(terms, 'no-icon');
                                 this.emit('edited', 'icon', e, null);
                                 menu.refreshNow();
                                 osd.show(lang.ICON_CHANGED, 'fas fa-check-circle', 'channels', 'normal');
-                            } });
+                            }
+                        });
                         return ret;
                     }
                 });
@@ -1256,7 +1260,6 @@ class Channels extends ChannelsKids {
                 category = false;
             }
         }
-        console.error('CATEGORY==' + JSON.stringify({ category, channelName, _category }));
         let terms = this.entryTerms(e, true), streamsEntry, epgEntry, entries = [], moreOptions = [], url = e.url;
         if (!url) {
             let name = channelName;
@@ -1832,15 +1835,15 @@ class Channels extends ChannelsKids {
             const searchEntry = { name: lang.SEARCH, side: true, fa: 'fas fa-search', type: 'action', action: () => {
                 process.nextTick(() => renderer.get().emit('omni-show'))
             }};
-            insertEntry(liveEntry, entries, 1, [lang.MY_LISTS, lang.TOOLS, lang.SEARCH]);
-            insertEntry(searchEntry, entries, 1, [lang.MY_LISTS, lang.TOOLS], [lang.TRENDING, lang.LIVE, lang.CATEGORY_MOVIES_SERIES]);
+            insertEntry(liveEntry, entries, [lang.MY_LISTS, lang.TOOLS, lang.SEARCH]);
+            insertEntry(searchEntry, entries, [lang.MY_LISTS, lang.TOOLS], [lang.TRENDING, lang.LIVE, lang.CATEGORY_MOVIES_SERIES]);
             if (paths.ALLOW_ADDING_LISTS) {
                 const moviesEntry = {
                     name: lang.CATEGORY_MOVIES_SERIES,
                     side: true, fa: 'fas fa-th', details: '', type: 'group',
                     renderer: () => this.groupsRenderer('')
                 };
-                insertEntry(moviesEntry, entries, -1, [lang.OPTIONS, lang.TOOLS, lang.SEARCH], [lang.LIVE]);
+                insertEntry(moviesEntry, entries, [lang.OPTIONS, lang.TOOLS, lang.SEARCH], [lang.LIVE]);
             }
         }
         return entries;

@@ -261,29 +261,36 @@ export const moveFile = async (from, to) => {
 }
 const insertEntryLookup = (e, term) => {
     if (Array.isArray(term)) {
-        return term.some(t => insertEntryLookup(e, t));
-    } else {
-        return e.name == term || e.hookId == term;
+        return term.some(t => insertEntryLookup(e, t))
     }
+    return term && (e.name === term || e.hookId === term)
 }
-export const insertEntry = (entry, entries, preferredPosition = -1, before, after) => {
-    const prop = 'name';
-    const i = entries.findIndex(e => e[prop] == entry[prop]);
-    if (i >= 0) 
-        entries.splice(i, 1); // remove already present one
-    if (preferredPosition < 0)
-        preferredPosition = Math.max(0, entries.length - preferredPosition)
-    if (after) {
-        const n = entries.findLastIndex(e => insertEntryLookup(e, after))
-        if (n >= 0)
-            preferredPosition = n + 1;
+const insertEntryPosition = (entries, entry, position=-1) => {
+    const existingIndex = entries.findIndex(e => e.name === entry.name)
+    if (existingIndex >= 0) position = existingIndex
+    if(entry.order) {
+        if (entry.order.after) {
+            const afterIndex = entries.findLastIndex(e => insertEntryLookup(e, entry.order ? entry.order.after : []))
+            if (afterIndex >= 0) {
+                position = afterIndex + 1
+            }
+        }
+        if (position == -1 && entry.order.before) {
+            const beforeIndex = entries.findIndex(e => insertEntryLookup(e, entry.order ? entry.order.after : []))
+            if (beforeIndex >= 0) {
+                position = beforeIndex
+            }
+        }
     }
-    if (before) {
-        const n = entries.findIndex(e => insertEntryLookup(e, before))
-        if (n >= 0)
-            preferredPosition = n;
-    }
-    entries.splice(preferredPosition, 0, entry);
+    if (position == -1) position = entries.length
+    return position
+}
+export const insertEntry = (entry, entries, before, after) => {
+    entry.order = {before, after}
+    const existingIndex = entries.findIndex(e => e.name === entry.name)
+    const position = insertEntryPosition(entries, entry, existingIndex)
+    if (existingIndex >= 0) entries.splice(existingIndex, 1)
+    entries.splice(position, 0, entry)
 }
 export const validateURL = url => {
     if (url && url.length > 11) {

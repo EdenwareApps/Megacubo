@@ -20,7 +20,7 @@
                 Array.from(wrap.getElementsByTagName('a')).forEach(e => {
                     activeKeys.includes(e.getAttribute('key')) || wrap.removeChild(e)
                 })
-                window.rendererEntries = entries = main.menu.currentEntries
+                entries = main.menu.currentEntries
                 if(!main.menu.path) {
                     headerActions = main.menu.currentEntries.filter(e => e.side)
                 }
@@ -60,7 +60,7 @@
             <div class="side-menu-toggle">
                 <div>
                     <span>
-                        <img src="assets/images/default_icon_white.png" alt="" style="width: 5vmax;" />
+                        <img src="assets/images/default_icon_white.png" alt="" style="width: 5vmax; height: 5vmax;" />
                     </span>
                 </div>
             </div>
@@ -73,7 +73,8 @@
                     <a href="{e.url}" tabindex="{e.tabindex}" class="{e.class}" title="{e.name}" aria-label="{e.name}" 
                         data-type="{e.type}" data-path="{e.path}" key="{e.key}"  draggable="false" 
                         data-range-start="{e.range ? e.range.start : 0}" data-range-end="{e.range ? e.range.end : 100}" 
-                        data-mask="{e.mask}" data-original-icon="{e.originalIcon}" data-question="{e.question}" data-dialog-details="{e.dialogDetails}">
+                        data-mask="{e.mask}" data-original-icon="{e.originalIcon}" data-question="{e.question}" data-dialog-details="{e.dialogDetails}" 
+                        style="order: {e.tabindex};">
                         <span class="{e.wrapperClass}">
                             {#if e.cover}
                                 <div class="entry-cover-container" aria-hidden="true">
@@ -170,6 +171,8 @@ body.portrait {
     scroll-snap-type: x mandatory;
     overflow: scroll hidden;
     padding-bottom: calc((var(--menu-scrollbar-width) * 4) + var(--menu-padding-bottom));
+    position: fixed;
+    top: 0;
 }
 #menu > * {
     scroll-snap-align: start;
@@ -310,11 +313,11 @@ body.video.menu-playing #menu .menu-omni {
     font-size: var(--menu-entry-name-font-size);    
 }
 body.home #menu content a.entry-2x, body.menu-wide #menu content a.entry-2x {
-    width: calc(200% / var(--entries-per-row));
-    max-width: 100%;
+    width: 100%;
+    max-width: var(--menu-width);
 }
 body.portrait #menu content a.entry-2x {
-    height: calc(200% / var(--entries-per-col));
+    height: calc((var(--menu-height) / var(--entries-per-col)) * 2);
 }
 body.portrait span.entry-icon-image {
     height: 100% !important;
@@ -366,7 +369,7 @@ body.portrait .menu-omni > span {
     background: transparent;
 }
 body:not(.portrait) #menu content a.entry-2x {
-    width: calc(200% / var(--entries-per-row));
+    width: 100%;
 }
 #menu .menu-omni input, #menu .menu-omni i, #menu .menu-omni input::-webkit-input-placeholder {
     color: var(--secondary-font-color);
@@ -516,7 +519,7 @@ div#home-arrows > div > * {
 #menu content wrap {
     overflow-x: hidden;
     overflow-y: auto;
-    display: inline-block;
+    display: grid;
     list-style-type: none;
     box-sizing: border-box;
     text-align: left;
@@ -527,15 +530,18 @@ div#home-arrows > div > * {
     transition: transform var(--menu-fx-nav-duration) ease-in-out 0s;
 }
 #menu content wrap a {
-    width: calc(100% / var(--entries-per-row));
     height: var(--menu-entry-height);
     box-sizing: border-box;
     padding: var(--menu-padding);
-    display: inline-block;
+    display: inline-flex;
     overflow: hidden;
     color: var(--font-color);
     text-align: center;
     scroll-snap-align: start;
+    grid-row-start: auto;
+    grid-row-end: auto;
+    grid-column-start: auto;
+    grid-column-end: auto;
 }
 #menu .entry-loading {
     opacity: var(--opacity-level-2);
@@ -807,7 +813,6 @@ div#modal {
     left: 0;
     z-index: 9;
     background: var(--osd-background-color);
-    position: absolute;
     top: 0;
     left: 0;
     opacity: 0;
@@ -818,15 +823,16 @@ div#modal > div {
     top: 0;
     left: 0;
     width: auto;
-    height: var(--modal-height);
+    height: auto;
     z-index: 4;
     color: #000;
-    display: block;
     box-sizing: border-box;
     top: calc(var(--menu-padding-top) + var(--padding));
     bottom: calc(var(--menu-padding-bottom) + var(--padding));
     right: calc(var(--menu-padding-right) + var(--padding));
     left: calc(var(--menu-padding-left) + var(--padding));
+    display: flex;
+    align-items: center;
 }
 div#modal > div > div {
     display: table;

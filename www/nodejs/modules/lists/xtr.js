@@ -96,11 +96,15 @@ class Xtr extends EventEmitter {
                 parents[c.category_id] = c.parent_id;
             }
         });
-        Array.isArray(series) && series.forEach(c => {
-            if (c.category_id && c.series_id) {
-                parents.series[c.series_id] = c.category_id;
-            }
-        });
+        if(Array.isArray(series)) {
+            series.forEach(c => {
+                if (c.category_id && c.series_id) {
+                    parents.series[c.series_id] = c.category_id;
+                }
+            })
+        } else { // why did it happenned without rejecting?!
+            series = []
+        }
         this.cmap = { names, parents, series };
         this.meta.epg = this.addr + '/xmltv.php?username=' + this.user + '&pass=' + this.pass;
         this.emit('meta', this.meta);

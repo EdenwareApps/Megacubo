@@ -16,7 +16,7 @@ class Watching extends EntriesGroup {
         this.timer = 0;
         this.currentEntries = null;
         this.currentRawEntries = null;
-        this.updateIntervalSecs = expires['watching'] || 300;
+        this.updateIntervalSecs = expires.watching || 300;
         config.on('change', (keys, data) => {
             if (keys.includes('only-known-channels-in-trending') || keys.includes('popular-searches-in-trending') || keys.includes('parental-control') || keys.includes('parental-control-terms')) {
                 this.updating || this.update().catch(console.error)
@@ -90,8 +90,8 @@ class Watching extends EntriesGroup {
     }
     async hook(entries, path) {
         if (path == '') {
-            let pos = 0, entry = this.entry()
-            insertEntry(entry, entries, pos, [lang.TOOLS, lang.SEARCH], [lang.BOOKMARKS])
+            let entry = this.entry()
+            insertEntry(entry, entries, [lang.TOOLS, lang.SEARCH], [lang.BOOKMARKS])
         }
         return entries
     }

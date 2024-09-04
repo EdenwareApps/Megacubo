@@ -37,8 +37,8 @@
     --menu-fx-nav-semi-inflate: calc(1 + (var(--menu-fx-nav-intensity)) / 10);
     --menu-fx-nav-semi-deflate: calc(1 - (var(--menu-fx-nav-intensity)) / 10);
     --menu-fx-nav-duration: 0.1s;
-    --menu-width: calc(100vw - var(--menu-padding-right) - var(--menu-padding-left));
-    --menu-height: calc(100vh - var(--menu-padding-top) - var(--menu-padding-bottom));
+    --menu-width: calc(100vw - (var(--menu-padding-right) + var(--menu-padding-left)));
+    --menu-height: calc(100vh - (var(--menu-padding-top) + var(--menu-padding-bottom)));
     --entries-per-row: 2;
     --entries-per-col: 2;
     --menu-padding: calc(var(--menu-height) * 0.01);
@@ -115,6 +115,8 @@ html {
     background-color: #100927;
 }
 body {
+    position: fixed; /* prevents scroll bug */
+    top: 0;
     display: flex;
     align-items: flex-end;
     justify-content: left;
@@ -122,6 +124,9 @@ body {
     overflow: hidden;
     background-color: transparent;
     overscroll-behavior-y: none; /* prevents scroll snap bug */
+}
+app {
+    max-height: 100vh; /* prevents positioning bug */
 }
 player {
     width: 100vw;
@@ -153,9 +158,6 @@ body:not(input):not(textarea) {
     width: 100%;
     height: 100%;
     display: flex;
-    position: absolute;
-    top: 0;
-    left: 0;
     justify-content: center;
     background-color: transparent;
 }

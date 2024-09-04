@@ -358,7 +358,7 @@ class Manager extends ManagerEPG {
         return new Promise(resolve => {
             const listener = info => {
                 if (this.master.satisfied && info.length) {
-                    osd.hide('update-progress')
+                    this.hideUpdateProgress()
                     setTimeout(() => this.master.removeListener('satisfied', listener), 0)
                     resolve(true)
                 }
@@ -688,10 +688,10 @@ class Manager extends ManagerEPG {
         let lastProgressMessage, lastProgress = -1;
         const listener = info => {
             if(info) p = info
-            this.master.satisfied && p && p.length && osd.hide('update-progress')
+            this.master.satisfied && p && p.length && this.hideUpdateProgress()
         }
         const processStatus = () => {
-            this.master.satisfied && p && p.length && osd.hide('update-progress')
+            this.master.satisfied && p && p.length && this.hideUpdateProgress()
             this.master.on('satisfied', listener);
             if (lastProgress >= p.progress) return;
             lastProgress = p.length ? p.progress : 0;
@@ -716,7 +716,7 @@ class Manager extends ManagerEPG {
             }
             if (m != -1 && m != lastProgressMessage) { // if == -1 it's not complete yet, no lists
                 lastProgressMessage = m
-                osd.show(m, fa, 'update-progress', duration);
+                this.showUpdateProgress(m, fa, duration)
             }
             if (menu && menu.currentEntries) {
                 const updateEntryNames = [lang.PROCESSING, lang.UPDATING_LISTS, lang.STARTING_LISTS];
@@ -733,7 +733,7 @@ class Manager extends ManagerEPG {
                 }
             }
         }
-        osd.show(m, 'fa-mega spin-x-alt', 'update-progress', 'persistent')
+        this.showUpdateProgress(m, 'fa-mega spin-x-alt', 'persistent')
         this.master.on('status', listener);
         this.master.on('satisfied', listener);
         this.master.on('unsatisfied', listener);
@@ -741,6 +741,15 @@ class Manager extends ManagerEPG {
             listener(this.master.status());
         });
         this.isUpdating = setInterval(processStatus, 2000)
+    }
+    showUpdateProgress(m, fa, duration) {
+        this.updateProgressVisible = true
+        osd.show(m, fa, duration)
+    }
+    hideUpdateProgress() {
+        if(!this.updateProgressVisible) return
+        this.updateProgressVisible = false
+        osd.hide('update-progress')
     }
     noListsEntry() {
         if (config.get('communitary-mode-lists-amount') > 0) {
@@ -1217,8 +1226,7 @@ class Manager extends ManagerEPG {
         menu.suspendRendering();
         try { // Ensure that we'll resume rendering
             this.remove(data.url);
-        }
-        catch (e) {}
+        } catch (e) {}
         osd.show(lang.LIST_REMOVED, 'fas fa-info-circle', 'list-open', 'normal');
         menu.resumeRendering();
         menu.back(null, true);
@@ -1348,11 +1356,11 @@ class Manager extends ManagerEPG {
             if (paths.ALLOW_ADDING_LISTS) {
                 const entry = this.listsEntry(false)
                 entry.side = true
-                insertEntry(entry, entries, -2, [
+                insertEntry(entry, entries, [
                     lang.TOOLS, lang.OPTIONS
                 ], [
                     lang.BOOKMARKS,
-                    lang.KEEP_WATHING,
+                    lang.KEEP_WATCHING,
                     lang.RECOMMENDED_FOR_YOU,
                     lang.CATEGORY_MOVIES_SERIES
                 ])
@@ -1363,14 +1371,25 @@ class Manager extends ManagerEPG {
                     entry.name = lang.OPEN_URL
                     entry.fa = 'fas fa-plus'
                     entry.side = true
-                    entries.unshift(entry)
+                    insertEntry(entry, entries, [
+                        lang.TOOLS,
+                        lang.OPTIONS
+                    ], [
+                        lang.BOOKMARKS,
+                        lang.KEEP_WATCHING,
+                        lang.CATEGORY_MOVIES_SERIES,
+                        lang.IPTV_LISTS,
+                        lang.RECORDINGS,
+                        lang.TRENDING,
+                        lang.SEARCH
+                    ])
                 }
             }
-            insertEntry(this.epgEntry(true), entries, -2, [
+            insertEntry(this.epgEntry(true), entries, [
                 lang.TOOLS, lang.OPTIONS
             ], [
                 lang.BOOKMARKS,
-                lang.KEEP_WATHING,
+                lang.KEEP_WATCHING,
                 lang.MY_LISTS,
                 lang.CATEGORY_MOVIES_SERIES
             ])

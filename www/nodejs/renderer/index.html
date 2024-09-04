@@ -35,7 +35,7 @@
 				height: 1.5vh;
 				background: rgba(255, 255, 255, 0.075);
 				position: fixed;
-				bottom: 0;
+				bottom: -50vh;
                 left: 0;
 			}
 			div#splash-progress > div {
@@ -110,27 +110,35 @@
 			</div>
         </div>
         <App></App>
-        <script type="text/javascript" src="assets/js/moment.min.js"></script>          
-        <script type="text/javascript" src="assets/js/moment-timezone-with-data.min.js"></script>
 		<script type="text/javascript">
 			if(document.URL.endsWith('android')){
 				document.write('<scr'+'ipt type="text/javascript" src="./dist/capacitor.js"></scr'+'ipt>')
-                let splashProgress = 0
-                const splashEstimatedTime = parseInt(localStorage.getItem('splash-time-hint')) || 36000
-                const splashProgressDiv = document.querySelector('#splash-progress')
-                const splashProgressBar = splashProgressDiv.firstElementChild
-                const splashTimer = setInterval(() => {
-                    splashProgress++
-                    splashProgressBar.style.width = splashProgress +'%'
-                    splashProgress >= 100 && clearInterval(splashTimer)
-                }, splashEstimatedTime / 100)
-                const splashMetrics = metrics => {
-                    splashProgressDiv.style.bottom = metrics.bottom + 'px'
+                function setup() {
+                    let splashProgress = 0
+                    const splashEstimatedTime = parseInt(localStorage.getItem('splash-time-hint')) || 24000
+                    const splashProgressDiv = document.querySelector('#splash-progress')
+                    const splashProgressBar = splashProgressDiv.firstElementChild
+                    const splashTimer = setInterval(() => {
+                        splashProgress++
+                        splashProgressBar.style.width = splashProgress +'%'
+                        splashProgress >= 100 && clearInterval(splashTimer)
+                    }, splashEstimatedTime / 100)
+                    const splashMetrics = metrics => {
+                        if(!metrics || typeof(metrics.bottom) == 'undefined') return
+                        splashProgressDiv.style.bottom = metrics.bottom + 'px'
+                    }
+                    plugins.megacubo.once('metrics', splashMetrics)
+                    splashMetrics(plugins.megacubo.metrics)
                 }
-                plugins.megacubo.once('appmetrics', splashMetrics)
-                splashMetrics(plugins.megacubo.appMetrics)
-			}
+                if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                    setTimeout(setup, 1)
+                } else {
+                    document.addEventListener('DOMContentLoaded', setup)
+                }
+            }
 		</script>
+        <script type="text/javascript" src="assets/js/moment.min.js"></script>          
+        <script type="text/javascript" src="assets/js/moment-timezone-with-data.min.js"></script>
         <script src="./dist/renderer.js"></script>
         <script>
             new App({target: document.querySelector('App')})
