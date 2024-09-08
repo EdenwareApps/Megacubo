@@ -427,7 +427,7 @@ body.side-menu #menu .content-out {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
 }
-body.side-menu wrap a .entry-wrapper span {
+body.side-menu wrap a .entry-wrapper span, body.side-menu wrap a .entry-cover-container {
     opacity: 0.333;
 }
 #menu nav > div {

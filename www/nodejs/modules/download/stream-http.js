@@ -201,9 +201,9 @@ class DownloadStreamHttp extends DownloadStreamBase {
             req.end();
         });
     }
-    getCookies() {
+    async getCookies() {
         const h = this.parsed.protocol == 'http:' ? httpJar : httpsJar
-        return new Promise(resolve => {
+        return await new Promise(resolve => {
             try {
                 h.getCookies(this.opts.url, (err, cookies) => {
                     if (err) return resolve('')
@@ -214,14 +214,18 @@ class DownloadStreamHttp extends DownloadStreamBase {
             }
         })
     }
-    setCookies(header) {
-        return new Promise((resolve, reject) => {
-            (this.parsed.protocol == 'http:' ? httpJar : httpsJar).setCookie(header, this.opts.url, err => {
-                if (err)
-                    return reject(err);
-                resolve(true);
-            });
-        });
+    async setCookies(header) {
+        const h = this.parsed.protocol == 'http:' ? httpJar : httpsJar
+        return await new Promise((resolve, reject) => {
+            try {
+                h.setCookie(header, this.opts.url, err => {
+                    if (err) return reject(err)
+                    resolve(true)
+                })
+            } catch (err) {
+                reject(err)
+            }
+        })
     }
     encodeURI(url) {
         if (!url.match(new RegExp('^[A-Za-z0-9-._~:/?%#\\[\\]@!$&\'()*+,;=]+$'))) {
