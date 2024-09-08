@@ -556,18 +556,8 @@ export const initApp = () => {
         }
     }
     const elpListener = () => {
-        const entry = menu.currentEntries.filter(e => !e.side)[menu.selectedIndex]
-        const realIndex = menu.currentElements.indexOf(entry)
-        let offset = menu.path.indexOf('/') == -1 ? 0 : -1
-        let selected = 0, total = menu.currentElements.length
-        for(let i=0; i<=menu.currentEntries.length; i++) {
-            if(!menu.currentEntries[i] || menu.currentEntries[i].side) continue
-            total++
-            if(total == menu.selectedIndex) {
-                selected = total
-            }
-        }
-        elpShow(' ' + (selected + offset + 1) + '/' + (total + offset))
+        let selected = menu.selectedIndex + 1, total = menu.currentElements.length
+        elpShow(' ' + selected + '/' + total)
     }
     menu.on('arrow', elpListener)
     menu.on('focus', elpListener)

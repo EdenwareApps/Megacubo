@@ -35,7 +35,7 @@
 	],
 	"hide-back-button": false,
 	"hls-prefetching": true,
-	"home-recommendations": 3,
+	"home-recommendations": 2,
 	"hotkeys": {
 		"Up Shift+Tab": "NAVUP",
 		"Down Tab": "NAVDOWN",

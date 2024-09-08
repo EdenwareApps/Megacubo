@@ -1632,13 +1632,17 @@ class Channels extends ChannelsKids {
                     name: lang.EXPORT,
                     type: 'action',
                     fa: 'fas fa-file-export',
-                    action: () => {
-                        const filename = 'categories.json', file = downloads.folder + '/' + filename;
-                        fs.writeFile(file, JSON.stringify(this.channelList.getCategories(true), null, 3), { encoding: 'utf-8' }, err => {
-                            if (err)
-                                return menu.displayErr(err);
-                            downloads.serve(file, true, false).catch(e => menu.displayErr(e));
-                        });
+                    action: async () => {
+                        let err
+                        const filename = 'categories.json', file = downloads.folder + '/' + filename
+                        const json = JSON.stringify(this.channelList.getCategories(true), null, 3)
+                        if(json) {
+                            await fs.promises.writeFile(file, json, { encoding: 'utf-8' }).catch(e => err = e)
+                            if (err) return menu.displayErr(err)
+                            downloads.serve(file, true, false).catch(e => menu.displayErr(e))
+                        } else {
+                            menu.displayErr('No data to export')
+                        }
                     }
                 },
                 {

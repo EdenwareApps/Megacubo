@@ -1,3 +1,4 @@
+import 'scrollyfills';
 import { EventEmitter } from 'events'
 import { Sounds } from './sound'
 import { main } from '../bridge/renderer'
@@ -193,20 +194,17 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
         this.className = 'selected'
         this.parentClassName = 'selected-parent'
         this.selectedIndex = 0
-        this.mouseWheelMovingTime = 0
-        this.mouseWheelMovingInterval = 300
-        this.scrollingTimer = 0
-		this.resetScrollEndTrigger = () => {
-			if(this.rendering) return this.resetScrollEndTimer()
+		const scrollEndTrigger = () => {
+			if(this.rendering) return setTimeout(scrollEndTrigger, 100)
 			if(this.lastScrollTop !== this.wrap.scrollTop){
 				this.debug && console.log('menu.scroll', this.rendering, this.wrap.scrollTop)
 				this.lastScrollTop = this.wrap.scrollTop
 				this.emit('scroll', this.wrap.scrollTop)
 			}
 		}
-		for(const type of ['scroll', 'scrollend', 'resize']) {
+		for(const type of ['scrollend', 'resize']) {
 			// scroll was not always emitting on mobiles, scrollend is too new and not supported by all browsers
-			this.wrap.addEventListener(type, () => this.resetScrollEndTimer(this.rendering), {capture: true, passive: true})
+			this.wrap.addEventListener(type, scrollEndTrigger, {capture: true, passive: true})
 		}
         this.wrap.addEventListener('touchstart', () => {
 			this.wrap.style.scrollSnapType = 'none'
@@ -223,14 +221,6 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
 			this.setGridLayout(4, 3, 1, 8)
 			resizeListener() // to apply initial icons size
 		}, 0)
-	}
-	resetScrollEndTimer(clearOnly) {
-		clearTimeout(this.scrollingTimer)
-		if(clearOnly === true) return
-		if(this.debug){
-			console.log('menu.scroll schedule', this.rendering, this.wrap.scrollTop)
-		}
-		this.scrollingTimer = setTimeout(this.resetScrollEndTrigger, 400) // 250 was causing scroll to be emitted before too soon causing focus confusion
 	}
     setGridLayout(x, y, px, py){
         this._gridLayoutX = x
@@ -1596,6 +1586,9 @@ class MenuNav extends MenuLoading {
 		this.sideMenuWidthCache = null
 		this.sideMenuSyncTimer = 0
 		setTimeout(() => this.sideMenu(false, 'instant'), 0)
+
+		// will not listen wrap, so it will be horizontal only
+		this.container.addEventListener('scrollend', () => this.sideMenuSync())
 	}
 	inSideMenu() {
 		const w = this.getSideMenuWidth()
@@ -1609,24 +1602,20 @@ class MenuNav extends MenuLoading {
 		const n = document.body.classList.contains('side-menu')
 		if(c != n) {
 			document.body.classList[c ? 'add' : 'remove']('side-menu')
+			this.selected(true) // update current selection
 		}
-		this.selected(true) // update current selection
 	}
 	sideMenu(enable, behavior='smooth') {
-		if(this.inSideMenu() !== enable) {
-			this.container.scroll({
-				top: 0,
-				left: enable ? 0 : this.getSideMenuWidth(),
-				behavior
-			})
-		}
-		this.sideMenuSync(false, enable)
+		this.container.scroll({
+			top: 0,
+			left: enable ? 0 : this.getSideMenuWidth(),
+			behavior
+		})
 	}
 	getSideMenuWidth() {
-		if(this.sideMenuWidthCache && this.sideMenuWidthCache.size) {
-			return this.sideMenuWidthCache.size
+		if(this.sideMenuWidthCache) {
+			return this.sideMenuWidthCache
 		}
-		let size
 		const l = document.createElement('div')
 		l.style.visibility = 'hidden'
 		l.style.boxSize = 'content-box' 
@@ -1634,10 +1623,9 @@ class MenuNav extends MenuLoading {
 		l.style.maxHeight = 'none'
 		l.style.height = 'var(--nav-width)'
 		document.body.appendChild(l)
-		size = l.clientHeight
+		this.sideMenuWidthCache = l.clientHeight
 		document.body.removeChild(l)
-		this.sideMenuWidthCache = {size}
-		return size
+		return this.sideMenuWidthCache
 	}
 }
 
@@ -1740,7 +1728,6 @@ export class Menu extends MenuNav {
 		}, 0)
 	}
 	uiUpdate(navigated){
-		this.resetScrollEndTimer()
 		let targetScrollTop = 0, path = this.path
 		if(!navigated){
 			targetScrollTop = this.wrap.scrollTop

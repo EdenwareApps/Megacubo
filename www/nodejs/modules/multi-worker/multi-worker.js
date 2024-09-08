@@ -105,12 +105,12 @@ const setupConstructor = () => {
                 if (!file || this.promises[id].file == file) {
                     const terminating = ['destroy', 'terminate'].includes(this.promises[id].method);
                     if (terminating) {
-                        this.promises[id].resolve();
+                        this.promises[id].resolve()
                     } else {
-                        const method = this.promises[id] ? this.promises[id].method : '';
-                        this.promises[id].reject(err + ', while calling ' + method);
+                        const method = this.promises[id] ? this.promises[id].method : ''
+                        this.promises[id].reject(err +', while calling '+ method +' of '+ this.promises[id].file)
                     }
-                    delete this.promises[id];
+                    delete this.promises[id]
                 }
             })
         }
@@ -122,8 +122,10 @@ const setupConstructor = () => {
                     return this.instances[file]
                 }
                 return this.proxy(file)
-            } else {
+            } else if(!global.isExiting) {
                 throw 'Worker already terminated: ' + file;
+            } else {
+                return {}
             }
         }
         bindChangeListeners() {

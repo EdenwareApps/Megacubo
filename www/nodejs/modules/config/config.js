@@ -167,8 +167,7 @@ class Config extends EventEmitter {
             try {
                 const jso = JSON.stringify(Object.assign({}, userConfig), null, 3);
                 fs.writeFileSync(this.file, jso, 'utf8');
-            }
-            catch (e) {
+            } catch (e) {
                 console.error(e);
             }
         }

@@ -297,9 +297,7 @@ class StorageIndex extends StorageTools {
             }
         }
         atts = this.calcExpiration(atts || {}, entry);
-        if (!atts.expiration ||
-            atts.expiration <
-                entry.expiration) {
+        if (typeof(atts.expiration) != 'number' || !atts.expiration) {
             delete atts.expiration;
         }
         this.index[key] = Object.assign(entry, atts);
@@ -326,7 +324,7 @@ class StorageIO extends StorageIndex {
                 encoding = 'utf-8'
             }
         }
-        this.touch(key, false) // wait writing on file to finish
+        await this.touch(key, false) // wait writing on file to finish before to re-enable access
         await this.lock(key, false)
         const now = (Date.now() / 1000)
         if (row.expiration < now)
@@ -336,7 +334,7 @@ class StorageIO extends StorageIndex {
         const exists = stat && typeof (stat.size) == 'number';
         if (exists) {
             let err;
-            this.touch(key, { size: stat.size });
+            await this.touch(key, { size: stat.size });
             let content = await fs.promises.readFile(file, { encoding }).catch(e => err = e);
             if (!err) {
                 if (row.compress) {
@@ -386,17 +384,16 @@ class StorageIO extends StorageIndex {
         if (atts.compress)
             content = await this.compress(content);
         await this.write(file, content, atts.encoding).catch(console.error);
-        this.touch(key, Object.assign(atts, { size: content.length }));
-        lock.release();
+        await this.touch(key, Object.assign(atts, { size: content.length }));
+        lock.release()
     }
     calcExpiration(atts, prevAtts) {
-        if (typeof (atts.expiration) == 'number')
-            return atts;
-        const now = (Date.now() / 1000);
+        if (typeof (atts.expiration) == 'number') return atts
+        const now = (Date.now() / 1000)
         if (typeof (atts.ttl) == 'number') {
             atts.expiration = now + atts.ttl;
             delete atts.ttl;
-        } else if (!atts.expiration && !atts.ttl && !atts.permanent) {
+        } else if (!atts.expiration && !atts.permanent) {
             atts.expiration = now + 600; // default = 10min
             if (prevAtts && prevAtts.expiration > atts.expiration) {
                 atts.expiration = prevAtts.expiration;
@@ -484,7 +481,7 @@ class Storage extends StorageIO {
     }
     unresolve(file) {
         const key = this.prepareKey(path.basename(file).replace(new RegExp('\\.(json|dat)$'), ''));
-        this.touch(key, false);
+        this.touch(key, false); // touch to update entry time and so warmp up our interest on it
         return key;
     }
     prepareKey(key) {

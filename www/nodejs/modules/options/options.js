@@ -2,6 +2,7 @@ import osd from '../osd/osd.js'
 import menu from '../menu/menu.js'
 import lang from '../lang/lang.js';
 import storage from '../storage/storage.js'
+import { exec } from 'child_process';
 import { EventEmitter } from 'events';
 import moment from 'moment-timezone';
 import energy from '../energy/energy.js';
@@ -106,13 +107,13 @@ class Timer extends EventEmitter {
         menu.open(lang.TOOLS).catch(e => menu.displayErr(e));
     }
     timerActionShutdown() {
-        var cmd, secs = 7, exec = { exec }.exec;
+        var cmd, secs = 7
         if (process.platform === 'win32') {
             cmd = 'shutdown -s -f -t ' + secs + ' -c "Shutdown system in ' + secs + 's"';
         } else {
             cmd = 'shutdown -h +' + secs + ' "Shutdown system in ' + secs + 's"';
         }
-        return exec(cmd);
+        return exec(cmd, () => {})
     }
 }
 class PerformanceProfiles extends Timer {
@@ -1577,6 +1578,7 @@ class Options extends OptionsExportImport {
                             type: 'select',
                             renderer: async () => {
                                 const key = 'home-recommendations'
+                                const discount = global.menu.pages[''].filter(e => e.side).length + 2 // +1 for entry-2x, +1 for 'More' entry
                                 const pagesize = config.get('view-size').landscape.x * config.get('view-size').landscape.y
                                 let def = config.get(key), opts = [
                                     {
@@ -1584,10 +1586,14 @@ class Options extends OptionsExportImport {
                                         action: () => config.set(key, 0)
                                     }
                                 ];
-                                [1, 2, 3, 4, 5].forEach(n => {
+                                [2, 3, 4].forEach(n => {
                                     opts.push({
-                                        name: String(n + 1), fa: 'fas fa-th', type: 'action', selected: (def == n),
-                                        action: () => config.set(key, n)
+                                        name: lang.X_BROADCASTS.format((n * pagesize) - discount),
+                                        fa: 'fas fa-th', type: 'action', selected: (def == n),
+                                        action: async () => {
+                                            config.set(key, n)
+                                            await menu.updateHomeFilters()
+                                        }
                                     })
                                 })
                                 return opts;

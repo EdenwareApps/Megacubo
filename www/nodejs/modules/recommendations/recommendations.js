@@ -315,7 +315,7 @@ class Recommendations extends EventEmitter {
             }
             score += 100 - (remainingTime / timeRangeP)
 
-            // bump+ last watched and most trending programme
+            // bump+ last watched and most trending channels
             if(interests.has(r.channel.name)) {
                 score += 500
             }
@@ -616,19 +616,17 @@ class Recommendations extends EventEmitter {
         if (es && es.length) {
             es = es.map(e => global.channels.toMetaEntry(e))
         } else {
-            channels = await this.getChannels(amount, []) // weak recommendations for now, as EPG may take some time to process
-            if(channels.length) {
-                channels = channels.map(e => global.channels.toMetaEntry(e))
-                channels = await global.channels.epgChannelsAddLiveNow(channels, false)
-                if(!this.featuredEntriesCache || this.featuredEntriesCache.data.length < channels.length) {
-                    this.featuredEntriesCache = {
-                        data: channels,
-                        key: tmpkey,
-                        ttl: time() + this.updateIntervalSecs
-                    }
-                    if(this.readyState < 2) {
-                        global.menu.updateHomeFilters()
-                        this.readyState = 2
+            if(!this.featuredEntriesCache || !this.featuredEntriesCache.data.length) {
+                channels = await this.getChannels(amount, []) // weak recommendations for now, as EPG may take some time to process
+                if(channels.length) {
+                    channels = channels.map(e => global.channels.toMetaEntry(e))
+                    channels = await global.channels.epgChannelsAddLiveNow(channels, false)
+                    if(!this.featuredEntriesCache || this.featuredEntriesCache.data.length < channels.length) {
+                        this.featuredEntriesCache = {data: channels, key: tmpkey}
+                        if(this.readyState < 2) {
+                            global.menu.updateHomeFilters()
+                            this.readyState = 2
+                        }
                     }
                 }
             }
@@ -641,9 +639,7 @@ class Recommendations extends EventEmitter {
                 if (es.some(n => n.programme.i)) { // prefer entries with icons
                     es = es.filter(n => n.programme.i)
                 }
-                storage.set(this.cacheKey, es, {
-                    ttl: this.updateIntervalSecs
-                })
+                storage.set(this.cacheKey, es, {ttl: this.updateIntervalSecs})
             } else es = []
         }
         console.log('recommentations.update() '+ uid +' 5 '+ (time() - start) +'s')
@@ -677,21 +673,17 @@ class Recommendations extends EventEmitter {
         */
 
         console.log('recommentations.update() '+ uid +' 10 '+ (time() - start) +'s '+ es.length)
-        const ttl = time() + 240 // 4min
         if(!this.featuredEntriesCache || this.featuredEntriesCache.data.length <= es.length || this.featuredEntriesCache.key != tmpkey) {
             this.featuredEntriesCache = {
                 data: es,
-                key: tmpkey,
-                ttl
+                key: tmpkey
             }
-        } else {
-            this.featuredEntriesCache.ttl = ttl
-        }
-        
+            global.menu.updateHomeFilters()
+        }       
         this.readyState = (this.channelsLoaded && this.epgLoaded && this.listsLoaded) ? 4 : 3
-        global.menu.updateHomeFilters()        
     }
-    async featuredEntries(amount = 5) {
+    async featuredEntries(amount=5) {
+        if(amount < 1) return []
         return (this.featuredEntriesCache && this.featuredEntriesCache.data) ? this.featuredEntriesCache.data.slice(0, amount) : []
     }
     async hook(entries, path) {
@@ -729,7 +721,7 @@ class Recommendations extends EventEmitter {
             
             entries = entries.filter(e => (e && e.hookId != hookId))
             
-            let amount = (pageCount * (viewSizeX * viewSizeY)) - 1 // -1 due to 'entry-2x' size entry
+            let amount = (pageCount * (viewSizeX * viewSizeY)) - 2 // -1 due to 'entry-2x' size entry, -1 due to 'More' entry
             let metaEntriesCount = entries.filter(e => e.side == true && e.name != lang.RECOMMENDED_FOR_YOU).length
 
             let err, recommendations = await this.featuredEntries(amount - metaEntriesCount).catch(e => err = e)
@@ -737,11 +729,17 @@ class Recommendations extends EventEmitter {
                 console.error('Recommendations hook error', err)
                 recommendations = []
             }
-
+            recommendations.length && recommendations.push({
+                name: lang.MORE,
+                details: lang.RECOMMENDED_FOR_YOU,
+                fa: 'fas fa-plus',
+                type: 'group',
+                renderer: this.entries.bind(this, false)
+            })
             recommendations = recommendations.map(e => {
                 e.hookId = hookId
                 return e
-            }) // -1 due to 'entry-2x' size entry
+            })
             entries = [...recommendations, ...entries]
             //console.error('FEATURED ENTRIES ADDED='+ JSON.stringify({rLength: recommendations.length, amount, metaEntriesCount, rAmount, length: entries.length}, null, 3))
         }

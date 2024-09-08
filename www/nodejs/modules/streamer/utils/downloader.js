@@ -174,8 +174,7 @@ class Downloader extends StreamerAdapterBase {
         const startPosition = this.warmCache.length - desiredSize;
         const currentSize = this.warmCache.length;
         if (this.committed && this.bitrateChecker.acceptingSamples(currentSize)) {
-            const { temp } = paths;
-            const file = temp + '/' + parseInt(Math.random() * 1000000) + '.ts';
+            const file = paths.temp + '/' + parseInt(Math.random() * 1000000) + '.ts';
             fs.writeFile(file, this.warmCache.slice(), () => this.bitrateChecker.addSample(file, currentSize, true));
         }
         const syncBytePosition = this.warmCache.indexOf(SYNC_BYTE, startPosition);

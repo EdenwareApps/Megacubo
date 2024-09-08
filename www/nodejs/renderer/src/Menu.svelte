@@ -226,12 +226,10 @@ body:not(.side-menu) .side-menu-toggle > div > span {
 #menubar {
     position: absolute;
     width: var(--menu-width);
-    background: linear-gradient(to top, var(--background-color), transparent);
     color: var(--font-color);
     display: flex;
     flex-direction: row;
     font-size: var(--menu-entry-name-font-size);
-    padding: var(--padding-2x) var(--padding-half) var(--padding-half) var(--padding-half);
     box-sizing: border-box;
 }
 body.video #menubar  {
@@ -267,6 +265,11 @@ body.video:not(.menu-playing) .side-menu-out {
     display: flex;
     flex-basis: 100%;
     clear: both;
+}
+.menu-location {
+    background: var(--background-color);
+    padding: var(--padding-quarter) var(--padding) var(--padding-quarter) var(--padding-quarter);
+    border-top-right-radius: var(--radius);
 }
 .menu-location-pagination {
     padding-left: var(--padding-2x);
@@ -424,8 +427,8 @@ body.side-menu #menu .content-out {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
 }
-body.side-menu wrap a:not(.selected) .entry-wrapper span {
-    opacity: 0.625;
+body.side-menu wrap a .entry-wrapper span {
+    opacity: 0.333;
 }
 #menu nav > div {
     width: 100%;
@@ -470,6 +473,11 @@ body.side-menu .side-menu-toggle {
     align-items: flex-end;
     filter: drop-shadow(var(--drop-shadow));
     flex-direction: column;
+}
+#menu .menu-time time {
+    background: var(--background-color);
+    padding: var(--padding-quarter) var(--padding-quarter) var(--padding-quarter) var(--padding);
+    border-top-left-radius: var(--radius);
 }
 div#home-arrows {
     position: relative;
