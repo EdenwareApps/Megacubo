@@ -2062,13 +2062,6 @@ export class Menu extends MenuNav {
 				this.icons[e.path] = {url: e.fa}
 			}
 		}
-		if(!e.path){
-			e.path = this.path
-			if(e.path){
-				e.path +=  '/'
-			}
-			e.path += e.name
-		}
 		if(e.type == 'check') {
 			e.fa = 'fas fa-toggle-'+ (e.value ? 'on' : 'off')
 		}

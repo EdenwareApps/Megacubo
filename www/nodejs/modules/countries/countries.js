@@ -157,7 +157,7 @@ class Countries extends EventEmitter {
         for (const code of Object.keys(countries)) {
             const scorePopulation = (countries[code].population - minPopulation) / (maxPopulation - minPopulation);
             const scoreDistance = 1 - (countries[code].dist / maxDistance);
-            const score = (scorePopulation * 3) + scoreDistance; // more weight for population
+            const score = (scorePopulation * 2) + scoreDistance; // more weight for population
             scores.push({ code, score });
         }
         return scores.sortByProp('score', true).slice(0, amount).map(c => c.code);

@@ -46,7 +46,7 @@ class Index extends Common {
     async multiSearch(terms, opts={}) {
         let results = {}
         const rmap = {}, scores = {}, sep = "\n", limit = opts.limit || 256
-        const maps = Object.keys(k).map(k => {
+        const maps = Object.keys(terms).map(k => {
             const query = this.parseQuery(k, opts)
             return [this.searchMap(query, opts), terms[k]]
         })

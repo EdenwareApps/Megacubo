@@ -37,7 +37,7 @@ class CommunityListsIPTVORG extends EventEmitter {
     async discovery(adder) {
         if (paths.ALLOW_COMMUNITY_LISTS) {
             await this.ready();
-            let locs = await lang.getActiveCountries(0).catch(console.error);
+            let locs = await lang.getActiveCountries().catch(console.error);
             if (Array.isArray(locs) || !locs.length) {
                 locs.push = [lang.countryCode];
             }

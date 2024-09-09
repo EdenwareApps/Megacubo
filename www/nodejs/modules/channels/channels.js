@@ -300,7 +300,7 @@ class ChannelsData extends EventEmitter {
     async load(refresh) {
         const hasOwnLists = config.get('lists').length
         const publicMode = config.get('public-lists') && !global.lists.loaded(true) // no list available on index beyound public lists
-        const countries = await lang.getActiveCountries(0)
+        const countries = await lang.getActiveCountries()
         const parentalControlActive = ['remove', 'block'].includes(config.get('parental-control'))
         let type = config.get('channel-grid'), typeChanged
         if (!type || (type == 'lists' && !hasOwnLists) || (type == 'xxx' && parentalControlActive)) {
@@ -1395,18 +1395,21 @@ class Channels extends ChannelsKids {
         });
     }
     toMetaEntry(e, category, details) {
-        let meta = Object.assign({}, e), terms = this.entryTerms(e, true);
+        let meta = Object.assign({}, e), terms = this.entryTerms(e, true)
         if (typeof (meta.url) == 'undefined') {
-            let name = e.name;
+            let name = e.name
             if (e.programme && e.programme.ch) {
-                name = e.programme.ch;
+                name = e.programme.ch
             }
-            const ch = this.isChannel(name);
+            const ch = this.isChannel(name)
             if (ch && ch.name) {
-                name = ch.name;
-                terms = ch.terms;
+                name = ch.name
+                terms = ch.terms
             }
-            meta.url = mega.build(name, { terms });
+            meta.url = mega.build(name, { terms })
+        }
+        if (!meta.originalName) {
+            meta.originalName = meta.name
         }
         if (mega.isMega(meta.url)) {
             let atts = Object.assign({}, mega.parse(meta.url));
@@ -1437,9 +1440,12 @@ class Channels extends ChannelsKids {
             }
         }
         if (details) {
-            meta.details = details;
+            meta.details = details
         }
-        return meta;
+        if (meta.path) {
+            delete meta.path
+        }
+        return meta
     }
     async keywords() {
         let err, keywords = [], badChrs = ['|', '-']
@@ -1464,17 +1470,16 @@ class Channels extends ChannelsKids {
         osd.show('OK', 'fas fa-check-circle faclr-green', 'channel-grid', 'normal')
     }
     async entries() {
-        
         if (!global.lists.loaded()) {
             return [global.lists.manager.updatingListsEntry()];
         }
-        let list;
+        let list
         const publicMode = config.get('public-lists') && !(paths.ALLOW_ADDING_LISTS && global.lists.loaded(true)); // no list available on index beyound public lists
         const type = publicMode ? 'public' : config.get('channel-grid');
         const editable = !type && config.get('allow-edit-channel-list');
         const categories = await this.channelList.getCategories();
         if (publicMode) {
-            list = [];
+            list = []
             for (const category of Object.keys(categories)) {
                 let chs = categories[category].entries.map(e => this.isChannel(e.name)).filter(e => !!e);
                 const ret = await global.lists.has(chs, { partial: false });

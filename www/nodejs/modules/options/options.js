@@ -633,18 +633,11 @@ class Options extends OptionsExportImport {
                 type: 'action',
                 fa: 'fas fa-times-circle',
                 action: () => {
-                    let countries = map.map(row => row.code);
-                    if (countries.includes(lang.countryCode)) {
-                        countries = [lang.countryCode];
-                    } else {
-                        countries = countries.slice(0, 1); // at least one country should be enabled
-                    }
-                    config.set('countries', countries);
+                    config.set('countries', []);
                     menu.refreshNow();
                 }
             });
-        }
-        
+        }        
         entries.push(...lists.tools.sort(map).map(row => {
             return {
                 name: row.name,

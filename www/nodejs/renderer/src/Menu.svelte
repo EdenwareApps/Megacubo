@@ -92,7 +92,7 @@
                                 <span class="entry-details">{@html [e.details, e.maskText].filter(v => v).join(' &middot; ')}</span>
                             </span>
                             <span class="entry-icon-image">
-                                {#if (!icons[e.path] || icons[e.path].url.startsWith('fa'))}
+                                {#if (!icons[e.path] || e.type == 'back' || icons[e.path].url.startsWith('fa'))}
                                     <i class="{e.fa}" style="{e.faStyle||''}" aria-hidden="true"></i>
                                 {:else}
                                     {#if !e.cover}
@@ -486,6 +486,11 @@ body.side-menu .side-menu-toggle {
     display: none;
     padding: var(--padding-half) var(--padding-half) var(--padding-half) var(--padding);
     font-size: calc(var(--menu-entry-name-font-size) * 2);
+    max-height: var(--menu-entry-name-font-size);
+}
+.menu-busy i {
+    bottom: var(--menu-entry-name-font-size);
+    position: relative;
 }
 div#home-arrows {
     position: relative;

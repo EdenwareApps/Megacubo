@@ -129,7 +129,7 @@ class PublicLists extends EventEmitter {
     }
     async discovery(adder) {
         await this.ready()
-        let locs = await lang.getActiveCountries(0).catch(console.error);
+        let locs = await lang.getActiveCountries().catch(console.error);
         if (!Array.isArray(locs) || !locs.length) {
             locs = [lang.countryCode]
         }
@@ -150,7 +150,7 @@ class PublicLists extends EventEmitter {
         let entries = Object.keys(this.data);
         entries.unshift(lang.countryCode);
         if (local === true) {
-            let locs = await lang.getActiveCountries(0).catch(console.error);
+            let locs = await lang.getActiveCountries().catch(console.error);
             entries = entries.filter(e => locs.includes(e));
         }
         entries = entries.unique().map(countryCode => {

@@ -24,25 +24,6 @@ class Menu extends EventEmitter {
         this.outputFilters = []
         this.currentEntries = []
         this.backIcon = 'fas fa-chevron-left'
-        this.addFilter(async (es, path) => {
-            return es.map(e => {
-                let o = e
-                if (o) {
-                    if (!e.path || e.path.indexOf(path) == -1) {
-                        o.path = e.name
-                        if (path) {
-                            o.path = path + '/' + o.path
-                        }
-                    }
-                    if (typeof (e.checked) == 'function') {
-                        o.value = !!e.checked(e)
-                    } else if (typeof (e.value) == 'function') {
-                        o.value = e.value()
-                    }
-                }
-                return o
-            })
-        })
         this.softRefreshLimiter = {
             limiter: new Limiter(() => {
                 this.softRefresh()
@@ -296,14 +277,14 @@ class Menu extends EventEmitter {
         if (Array.isArray(entries)) {
             this.opts.debug && console.log('Menu filtering DONE '+ this.filters.length)
             const basePath = path ? path + '/' : ''
-            entries = entries.map(e => {
-                if (!e.path) {
-                    e.path = basePath + e.name
-                } else if (e.path && basename(e.path) !== e.name) {
-                    e.path += '/' + e.name
+            for (let i = 0; i < entries.length; i++) {
+                entries[i].path = basePath + entries[i].name
+                if (typeof (entries[i].checked) == 'function') {
+                    entries[i].value = !!entries[i].checked(entries[i])
+                } else if (typeof (entries[i].value) == 'function') {
+                    entries[i].value = entries[i].value()
                 }
-                return e
-            })
+            }
             this.opts.debug && console.log('Menu filtering DONE* ', !!paths.inWorker)
         }
         return entries || []
@@ -616,24 +597,7 @@ class Menu extends EventEmitter {
         } else {
             entries = e.entries || []
         }
-        if (Array.isArray(entries)) {
-            return entries.map(n => {
-                if (typeof (n.path) != 'string') {
-                    n.path = (e.path ? e.path + '/' : '') + n.name
-                } else {
-                    if (n.path) {
-                        if (basename(n.path) != n.name || (n.name == e.name && basename(this.dirname(n.path)) != n.name)) {
-                            if (this.opts.debug) {
-                                console.log('npath', n.path, n.name, n, e)
-                            }
-                            n.path += '/' + n.name
-                        }
-                    }
-                }
-                return n
-            })
-        }
-        return []
+        return Array.isArray(entries) ? entries : []
     }
     findEntryIndex(entries, name, tabindex, isFolder) {
         let ret = false
@@ -763,20 +727,11 @@ class Menu extends EventEmitter {
         if (Array.isArray(es)) {
             this.currentEntries = es.slice(0)
             this.currentEntries = this.addMetaEntries(this.currentEntries, path, backTo)
-            this.currentEntries = this.currentEntries.map((e, i) => {
-                if (!e.type) {
-                    e.type = 'stream'
+            for (let i = 0; i < this.currentEntries.length; i++) {
+                if (!this.currentEntries[i].type) {
+                    this.currentEntries[i].type = 'stream'
                 }
-                if (typeof (e.path) != 'string') {
-                    e.path = path || ''
-                }
-                if (e.path) {
-                    if (basename(e.path) != e.name) {
-                        e.path += '/' + e.name
-                    }
-                }
-                return e
-            })
+            }
             this.pages[path] = this.currentEntries.slice(0)
             this.currentEntries = this.cleanEntries(this.currentEntries, 'renderer,entries,action')
             if (path && this.path != path)

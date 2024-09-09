@@ -81,15 +81,15 @@ class Language extends EventEmitter {
             return this.countries.getCountriesFromLanguage(loc);
         }).flat().unique();
     }
-    async getActiveCountries(limit = 20) {
-        await this.ready();
-        let actives = config.get('countries');
+    async getActiveCountries(limit=8) {
+        await this.ready()
+        let actives = config.get('countries')
         if (!Array.isArray(actives) || !actives.length) {
-            let languages = this.countries.getCountryLanguages(this.countryCode);
-            actives = await this.getCountries(languages);
+            let languages = this.countries.getCountryLanguages(this.countryCode)
+            actives = await this.getCountries(languages)
         }
-        actives = this.countries.getNearestPopulous(this.countryCode, actives.filter(c => c != this.countryCode), (limit - 1) || 999);
-        return [this.countryCode, ...actives];
+        actives = this.countries.getNearestPopulous(this.countryCode, actives.filter(c => c != this.countryCode), (limit - 1) || 999)
+        return [this.countryCode, ...actives]
     }
     async getCountriesMap(locale, additionalCountries) {
         const codes = await this.getCountries(locale);

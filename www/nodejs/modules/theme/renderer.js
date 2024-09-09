@@ -291,9 +291,11 @@ class Theme {
         .modal-wrap > div {
             background: linear-gradient(to bottom, ${e} 0%, ${f} 100%) !important;
         }
+        /* removed as bugfix
         body.portrait .entry-2x {
             grid-${p}-start: span 2 !important;
         }
+        */
         body:not(.portrait) .entry-2x {
             grid-${l}-start: span 2 !important;
         }
