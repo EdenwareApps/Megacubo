@@ -67,6 +67,7 @@
 	"in-disk-caching-size": 1024,
 	"kids-fun-titles": true,
 	"lists": [],
+	"lists-loader-concurrency": 4,
 	"live-window-time": 180,
 	"live-stream-fmt": "auto",
 	"locale": "",

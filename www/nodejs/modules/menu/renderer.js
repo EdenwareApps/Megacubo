@@ -1670,8 +1670,6 @@ export class Menu extends MenuNav {
 		this.currentEntries = []
 		this.currentElements = []
 		this.range = {start: 0, end: 99}
-		this.lastOpenedElement = null // prevent multi-click
-		this.lastOpenedElementTime = null; // prevent multi-click
 		this.ranging = false
 		main.on('trigger', data => {
 			if(this.debug){
@@ -1681,8 +1679,12 @@ export class Menu extends MenuNav {
 				e.click()
 			})
 		})
-		console.log('menu init')
-		                  
+		main.on('menu-busy', state => {
+			this.busy = state
+			document.querySelector('.menu-busy').style.display = this.busy ? 'flex' : 'none'
+			document.querySelector('.menu-time time').style.display = this.busy ? 'none' : 'flex'
+		})
+		console.log('menu init')		                  
 	}
 	get(data){
 		let ss = []
@@ -1716,7 +1718,6 @@ export class Menu extends MenuNav {
 		let changed = this.applyCurrentEntries(entries)
 		this.emit('pre-render', path, this.path)
 		this.path = path
-		this.lastOpenedElement = null
 		changed && this.uiUpdate(navigated)
 		setTimeout(() => { // wait a bit to truste the browser to render the elements
 			this.currentElements = Array.from(this.wrap.getElementsByTagName('a'))
@@ -1945,17 +1946,9 @@ export class Menu extends MenuNav {
 	open(element){
 		this.focus(element)
 		let timeToLock = 3, path = element.getAttribute('data-path'), type = element.getAttribute('data-type'), tabindex = element.tabIndex || 0
-		if(this.lastOpenedElement == element && ['back', 'stream', 'group'].includes(type) && ((this.lastOpenedElementTime + timeToLock) > time())){
-			if(this.debug){
-				console.log('multi-click prevented')
-			}
+		if(this.busy) { // multi-click prevention
 			return
 		}
-		this.lastOpenedElement = element
-		this.lastOpenedElementTime = time()
-		element.addEventListener('blur', () => {
-			this.lastOpenedElement = null
-		}, {once: true})
 		switch(type){
 			case 'back':
 				this.sounds.play('click-out', 50)

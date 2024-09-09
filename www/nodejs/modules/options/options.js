@@ -1255,7 +1255,7 @@ class Options extends OptionsExportImport {
                     config.set('lists-loader-concurrency', value);
                 },
                 value: () => {
-                    return config.get('lists-loader-concurrency') || 3;
+                    return config.get('lists-loader-concurrency')
                 }
             },
             {
@@ -1337,8 +1337,7 @@ class Options extends OptionsExportImport {
                 name: lang.ALLOW_UNKNOWN_SOURCES,
                 fa: paths.ALLOW_ADDING_LISTS ? 'fas fa-toggle-on' : 'fas fa-toggle-off',
                 type: 'select',
-                renderer: async () => {
-                    
+                renderer: async () => {                    
                     const privateFile = paths.cwd + '/ALLOW_ADDING_LISTS.md';
                     const communityFile = paths.cwd + '/ALLOW_COMMUNITY.md';
                     const def = paths.ALLOW_COMMUNITY_LISTS ? 2 : (paths.ALLOW_ADDING_LISTS ? 1 : 0), opts = [

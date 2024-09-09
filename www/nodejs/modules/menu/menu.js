@@ -79,23 +79,37 @@ class Menu extends EventEmitter {
                 }
             })
         })
-        ui.on('menu-open', (path, tabindex) => {
-            if (this.opts.debug) {
-                console.log('menu-open', path, tabindex)
-            }
-            this.open(path, tabindex).catch(e => this.displayErr(e))
+        ui.on('menu-open', async (path, tabindex) => {
+            const busy = this.setBusy()
+            this.opts.debug && console.log('menu-open', path, tabindex)
+            await this.open(path, tabindex).catch(e => this.displayErr(e))
+            busy.release()
         })
-        ui.on('menu-action', (path, tabindex) => this.action(path, tabindex))
-        ui.on('menu-back', () => this.back())
-        ui.on('menu-check', (path, val) => this.check(path, val))
-        ui.on('menu-input', (path, val) => {
-            if (this.opts.debug) {
-                console.log('menu-input', path, val)
-            }
-            this.input(path, val)
+        ui.on('menu-action', async (path, tabindex) => {
+            const busy = this.setBusy()
+            await this.action(path, tabindex).catch(e => this.displayErr(e))
+            busy.release()
         })
-        ui.on('menu-select', (path, tabindex) => {
-            this.select(path, tabindex).catch(e => this.displayErr(e))
+        ui.on('menu-back', async () => {
+            const busy = this.setBusy()
+            await this.back().catch(e => this.displayErr(e))
+            busy.release()
+        })
+        ui.on('menu-check', async (path, val) => {
+            const busy = this.setBusy()
+            await this.check(path, val)
+            busy.release()
+        })
+        ui.on('menu-input', async (path, val) => {
+            const busy = this.setBusy()
+            this.opts.debug && console.log('menu-input', path, val)
+            await this.input(path, val)
+            busy.release()
+        })
+        ui.on('menu-select', async (path, tabindex) => {
+            const busy = this.setBusy()
+            await this.select(path, tabindex).catch(e => this.displayErr(e))
+            busy.release()
         })
         this.applyFilters(this.pages[this.path], this.path).then(es => {
             this.pages[this.path] = es
@@ -104,6 +118,19 @@ class Menu extends EventEmitter {
                 this.render(this.pages[this.path], this.path, 'fas fa-home')
             }
         }).catch(e => this.displayErr(e))
+    }
+    setBusy() {
+        const ui = renderer.get()
+        const uid = 'busy-' + Date.now()
+        if(typeof(this.busies) == 'undefined') this.busies = new Set()
+        this.busies.size || ui.emit('menu-busy', true)
+        this.busies.add(uid)
+        return {
+            release: () => {
+                this.busies.delete(uid)
+                this.busies.size || ui.emit('menu-busy', false)
+            }
+        }
     }
     async updateHomeFilters() {
         this.pages[''] = await this.applyFilters([], '')
@@ -208,7 +235,7 @@ class Menu extends EventEmitter {
             return p && p.type == 'select'
         }
     }
-    back(level, deep) {
+    async back(level, deep) {
         let p = this.path
         if (this.opts.debug) {
             console.log('back', this.path)
@@ -237,9 +264,9 @@ class Menu extends EventEmitter {
             if (this.opts.debug) {
                 console.log('back', p, deep)
             }
-            this.open(p, undefined, deep, true, true, true).catch(e => this.displayErr(e))
+            await this.open(p, undefined, deep, true, true, true).catch(e => this.displayErr(e))
         } else {
-            this.refresh()
+            await this.refresh()
         }
     }
     prependFilter(f) {
@@ -351,7 +378,7 @@ class Menu extends EventEmitter {
             }
         }
     }
-    action(destPath, tabindex) {
+    async action(destPath, tabindex) {
         let name = basename(destPath), dir = this.dirname(destPath)
         if (this.opts.debug) {
             console.log('action ' + destPath + ' | ' + dir, tabindex)

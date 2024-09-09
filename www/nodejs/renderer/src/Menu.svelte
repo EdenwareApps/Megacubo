@@ -137,6 +137,9 @@
             </span>
             <span class="menu-time" aria-hidden="true">
                 <time></time>
+                <span class="menu-busy">
+                    <i class="fas fa-mega spin-x-alt" aria-hidden="true"></i>
+                </span>
             </span>
         </div>
     </div>
@@ -478,6 +481,11 @@ body.side-menu .side-menu-toggle {
     background: var(--background-color);
     padding: var(--padding-quarter) var(--padding-quarter) var(--padding-quarter) var(--padding);
     border-top-left-radius: var(--radius);
+}
+.menu-busy {
+    display: none;
+    padding: var(--padding-half) var(--padding-half) var(--padding-half) var(--padding);
+    font-size: calc(var(--menu-entry-name-font-size) * 2);
 }
 div#home-arrows {
     position: relative;

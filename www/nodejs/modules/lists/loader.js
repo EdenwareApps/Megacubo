@@ -16,7 +16,7 @@ import paths from '../paths/paths.js'
 class ListsLoader extends EventEmitter {
     constructor(master, opts) {
         super();
-        const concurrency = config.get('lists-loader-concurrency') || 8 // avoid too many concurrency on mobiles
+        const concurrency = config.get('lists-loader-concurrency') // avoid too many concurrency on mobiles
         this.debug = master.debug;
         this.master = master;
         this.opts = opts || {};
