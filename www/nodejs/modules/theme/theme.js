@@ -634,8 +634,7 @@ class Theme extends EventEmitter {
         });
     }
     async remoteThemes() {
-        const { server } = cloud;
-        let themes = await Download.get({ url: server + '/themes/feed.json', responseType: 'json' });
+        let themes = await Download.get({ url: cloud.server +'/themes/feed.json', responseType: 'json' });
         if (Array.isArray(themes)) {
             return themes.map(t => {
                 return {

@@ -13,7 +13,7 @@ class CloudConfiguration extends EventEmitter {
     constructor(opts) {
         super()
         this.debug = false
-        this.defaultServer = 'https://app.megacubo.net/stats/data'
+        this.defaultServer = 'https://app.megacubo.net/stats'
         this.server = config.get('config-server') || this.defaultServer
         this.expires = {
             'configure': 3600,
@@ -64,13 +64,13 @@ class CloudConfiguration extends EventEmitter {
         })
     }
     async testConfigServer(baseUrl) {
-        let data = await Download.get({ url: baseUrl + '/configure.json', responseType: 'json' });
+        let data = await Download.get({ url: baseUrl + '/data/configure.json', responseType: 'json' });
         if (data && data.version)
             return true;
         throw 'Bad config server URL';
     }
     url(key) {
-        return this.server +'/'+ key +'.json'
+        return this.server +'/data/'+ key +'.json'
     }
     file(key) {
         return paths.cwd +'/dist/defaults/'+ key +'.json'

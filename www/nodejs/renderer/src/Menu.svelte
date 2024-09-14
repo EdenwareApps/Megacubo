@@ -1,11 +1,13 @@
 <script>
-	import { main } from '../../modules/bridge/renderer'
-    import { initApp } from '../src/scripts/app'
     import { onMount } from 'svelte'
+    import { initApp } from '../src/scripts/app'
+	import { main } from '../../modules/bridge/renderer'
+	import { setupCrashlog } from '../../modules/crashlog/renderer'
     
     const transparentImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII='
 
     let entries = [], headerActions = [], lang = {}, icons = {}, path = ''
+    setupCrashlog(window)
 	onMount(async () => {
         main.on('lang', () => {
             lang = main.lang

@@ -69,13 +69,14 @@ class Crashlog {
         return new Promise((resolve, reject) => {
             const form = new FormData();
             form.append('log', String(content));
-            const { server } = cloud;
+            const parts = cloud.server.split('/')
+            const basePath = parts.length > 2 ? '/'+ parts.slice(3) : ''
             const options = {
                 method: 'post',
-                host: server.split('/').pop(),
-                path: '/report/index.php',
+                host: parts[2],
+                path: basePath +'/report/index.php',
                 headers: form.getHeaders()
-            };
+            }
             let resolved, req = http.request(options, res => {
                 res.setEncoding('utf8');
                 let data = '';
@@ -87,20 +88,20 @@ class Crashlog {
                         fs.stat(this.crashLogFile, (err, stat) => {
                             if (stat && stat.file) {
                                 fs.appendFile(this.crashLogFile, content, () => {
-                                    fs.unlink(this.crashFile, () => {});
-                                });
+                                    fs.unlink(this.crashFile, () => {})
+                                })
                             } else {
                                 moveFile(this.crashFile, this.crashLogFile).catch(console.error)
                             }
-                        });
+                        })
                         if (!resolved) {
-                            resolved = true;
-                            resolve(true);
+                            resolved = true
+                            resolve(true)
                         }
                     } else {
                         if (!resolved) {
-                            resolved = true;
-                            reject('Invalid crash logging response');
+                            resolved = true
+                            reject('Invalid crash logging response')
                         }
                     }
                 });

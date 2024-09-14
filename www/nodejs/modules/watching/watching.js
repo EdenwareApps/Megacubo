@@ -12,11 +12,10 @@ import { deepClone, insertEntry, ucWords } from "../utils/utils.js";
 class Watching extends EntriesGroup {
     constructor(channels) {
         super('watching', channels)
-        const { expires } = cloud;
         this.timer = 0;
         this.currentEntries = null;
         this.currentRawEntries = null;
-        this.updateIntervalSecs = expires.watching || 300;
+        this.updateIntervalSecs = cloud.expires.watching || 300;
         config.on('change', (keys, data) => {
             if (keys.includes('only-known-channels-in-trending') || keys.includes('popular-searches-in-trending') || keys.includes('parental-control') || keys.includes('parental-control-terms')) {
                 this.updating || this.update().catch(console.error)

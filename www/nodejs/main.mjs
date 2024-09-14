@@ -75,7 +75,7 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled rejection at:', promise, 'reason:', reason, reason.stack || '');
     crashlog.save('Unhandled rejection at:', promise, 'reason:', reason);
 });
-process.on('uncaughtException', (exception) => {
+process.on('uncaughtException', exception => {
     console.error('uncaughtException: ' + crashlog.stringify(exception), exception.stack);
     crashlog.save('uncaughtException', exception);
     return false;
@@ -575,8 +575,8 @@ const init = async (language, timezone) => {
             await wizard.init();
         }
         menu.addFilter(downloads.hook.bind(downloads));
-        await crashlog.send().catch(console.error);
         lists.manager.update();
+        await crashlog.send().catch(console.error);
         await lists.manager.waitListsReady();
         console.log('WaitListsReady resolved!');
         let err, c = await cloud.get('configure').catch(e => err = e); // all below in func depends on 'configure' data

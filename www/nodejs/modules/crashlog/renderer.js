@@ -29,16 +29,16 @@ class Crashlog {
         }
         return val
     }
-    save(message, file, line, column, errorObj){
-        if(!window.app) return
-        const stack = errorObj !== undefined && errorObj !== null ? errorObj.stack : traceback()
+    save(message, file, line, error) {
+        const stack = (error && error.stack) ? error.stack : traceback()
         main.emit('crash', message +' '+ file +':'+ line +' '+ stack)
     }
 }
 
-const crashlog = new Crashlog()
-window.addEventListener('error', event => {
-    const { message, filename, lineno, colno, error } = event
-    crashlog.save([{message, filename, lineno, colno, error}])
-    return true
-})
+export const setupCrashlog = ctx => {
+    const crashlog = new Crashlog()
+    ctx.addEventListener('error', event => {
+        crashlog.save(event.message || String(event), event.filename, event.lineno, event.error)
+        return true
+    })
+}
