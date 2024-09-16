@@ -32,7 +32,9 @@ Want to use the software, go to [our releases folder](https://github.com/Edenwar
 
 # Contributing
 
-Please, feel free to contribute to the project by opening a discussion under Issues section or [sending your PR](https://github.com/EdenwareApps/Megacubo/blob/master/DEVELOPING.md).
+For instructions on how to build the project, please [refer to this guide](https://github.com/EdenwareApps/Megacubo/blob/master/DEVELOPING.md).
+
+Please, feel free to contribute to the project by opening a discussion under Issues section or sending your PR.
 
 You can help us by [improving/creating translations](https://github.com/EdenwareApps/Megacubo/tree/master/www/nodejs-project/lang) and the [known channel names list for your country](https://github.com/EdenwareApps/world-tv-channels).
 
