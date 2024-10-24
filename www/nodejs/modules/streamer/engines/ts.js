@@ -20,6 +20,7 @@ class StreamerTSIntent extends StreamerBaseIntent {
                 this.transcoderStarting = true;
                 this.resetTimeout();
                 let resolved, opts = this.getTranscodingOpts();
+                this.downloader.updatePacketFilterPolicy(true)
                 const decoder = new StreamerFFmpeg(this.downloader.source.endpoint, opts);
                 this.mimetype = this.mimeTypes[decoder.opts.outputFormat];
                 this.transcoder = decoder;
@@ -40,9 +41,9 @@ class StreamerTSIntent extends StreamerBaseIntent {
                     }
                 }).finally(() => {
                     this.transcoderStarting = false;
-                });
+                })
             } else {
-                resolve(); // already transcoding
+                resolve() // already transcoding
             }
         });
     }
@@ -58,6 +59,7 @@ class StreamerTSIntent extends StreamerBaseIntent {
         this.connectAdapter(this.downloader);
         await this.downloader.start();
         if (this.useFF()) {
+            this.downloader.updatePacketFilterPolicy(true)
             const decoder = new StreamerFFmpeg(this.downloader.source.endpoint, this.opts);
             this.mimetype = this.mimeTypes[decoder.opts.outputFormat];
             this.decoder = decoder;
@@ -82,10 +84,10 @@ StreamerTSIntent.supports = info => {
     }
     if (info.contentType) {
         let c = info.contentType;
-        if (c.indexOf('mpegurl') != -1) { // is hls
+        if (c.includes('mpegurl')) { // is hls
             return false;
         }
-        if (c.indexOf('mp2t') != -1) {
+        if (c.includes('mp2t')) {
             return true;
         } else {
             return false; // other video content type

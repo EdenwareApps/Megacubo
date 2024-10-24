@@ -1,6 +1,7 @@
 import { EventEmitter } from "events";
 import Tuner from "./tuner.js";
 import config from "../config/config.js"
+import { getDomain } from "../utils/utils.js";
 
 class AutoTuner extends EventEmitter {
     constructor(entries, opts) {
@@ -32,7 +33,7 @@ class AutoTuner extends EventEmitter {
             this.entries = this.sort(this.entries, preferredStreamServers, this.opts.preferredStreamURL)
             this.tuner = new Tuner(this.entries, this.opts, this.opts.megaURL)
             this.tuner.on('success', (e, nfo, n) => {
-                if (typeof (this.succeededs[n]) == 'undefined') {
+                if (typeof(this.succeededs[n]) == 'undefined') {
                     this.succeededs[n] = 0;
                     if (!this.paused) {
                         this.pump();
@@ -57,18 +58,9 @@ class AutoTuner extends EventEmitter {
     }
     preferredStreamServers() {
         if(global.channels && global.channels.history) {
-            return global.channels.history.get().map(e => e.preferredStreamURL || e.url).map(u => this.getDomain(u)).unique()
+            return global.channels.history.get().map(e => e.preferredStreamURL || e.url).map(u => getDomain(u)).unique()
         }
         return []
-    }
-    getDomain(u) {
-        if (u && u.indexOf('//') != -1) {
-            let d = u.split('//')[1].split('/')[0].split(':')[0];
-            if (d == 'localhost' || d.indexOf('.') != -1) {
-                return d
-            }
-        }
-        return ''
     }
     sort(entries, preferredStreamServers, preferredStreamURL) {
         let preferredStreamEntry
@@ -90,9 +82,9 @@ class AutoTuner extends EventEmitter {
                 return
             }
             if (preferredStreamServers.length) { // streams from servers already known from the history gets some priority
-                let i = preferredStreamServers.indexOf(this.getDomain(e.url))
+                let i = preferredStreamServers.indexOf(getDomain(e.url))
                 if (i != -1) {
-                    if (typeof (preferredStreamServersLeveledEntries[i]) == 'undefined') {
+                    if (typeof(preferredStreamServersLeveledEntries[i]) == 'undefined') {
                         preferredStreamServersLeveledEntries[i] = []
                     }
                     preferredStreamServersLeveledEntries[i].push(e)
@@ -376,7 +368,7 @@ class AutoTuner extends EventEmitter {
         if (this.tuner) {
             this.tuner.entries.forEach((e, i) => {
                 let v;
-                if (typeof (this.tuner.errors[i]) == 'undefined') {
+                if (typeof(this.tuner.errors[i]) == 'undefined') {
                     v = 'untested';
                 } else {
                     if (this.tuner.errors[i] === 0) {
@@ -393,7 +385,7 @@ class AutoTuner extends EventEmitter {
                     state = this.results[i][0];
                     info = [this.succeededs[i], this.results[i][1]].join(' - ');
                 }
-                if (typeof (this.commitResults[i]) != 'undefined') {
+                if (typeof(this.commitResults[i]) != 'undefined') {
                     info = String(this.commitResults[i]);
                 }
                 ret[i] = {

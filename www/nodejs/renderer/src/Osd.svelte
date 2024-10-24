@@ -44,7 +44,7 @@
 #osd-root {
   position: absolute;
   padding: 2vmin 0.5vmin 1vmin 0.5vmin;
-  z-index: 10;
+  z-index: 9;
   box-sizing: border-box;
   pointer-events: none;
   display: none;

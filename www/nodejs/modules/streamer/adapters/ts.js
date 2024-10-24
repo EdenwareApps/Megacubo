@@ -2,6 +2,7 @@ import StreamerAdapterBase from "./base.js";
 import Downloader from "../utils/downloader.js";
 import Joiner from "../utils/joiner.js";
 import config from "../../config/config.js"
+import paths from '../../paths/paths.js'
 
 class StreamerAdapterTS extends StreamerAdapterBase {
     constructor(url, opts, cb) {
@@ -11,14 +12,24 @@ class StreamerAdapterTS extends StreamerAdapterBase {
         this.bitrates = [];
         this.opts.port = 0;
     }
+    updatePacketFilterPolicy(raw) {
+        let policy = config.get('mpegts-packet-filter-policy')
+        if (policy == -1) {
+            return
+        } else if (policy == 1) {
+            policy = (raw === true || paths.android || this.isTranscoding()) ? 3 : 4 // for Exoplayer and FFmpeg deliver the unaligned stream, which is meant for the mpegts.js on PC version
+        }
+        this.source.setPacketFilterPolicy(policy).catch(console.error)
+    }
     start() {
         return new Promise((resolve, reject) => {
             this.setCallback(success => (success ? resolve : reject)());
             const args = [this.url, this.opts];
             if (config.get('mpegts-packet-filter-policy') == -1) {
-                this.source = new Downloader(...args);
+                this.source = new Downloader(...args)
             } else {
-                this.source = new Joiner(...args);
+                this.source = new Joiner(...args)
+                this.updatePacketFilterPolicy()
             }
             this.server = false;
             this.connectable = false;

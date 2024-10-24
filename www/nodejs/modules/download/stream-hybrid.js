@@ -6,6 +6,7 @@ import config from "../config/config.js"
 class DownloadStream extends DownloadStreamBase {
     constructor(ropts, opts) {
         super(ropts);
+        this.type = 'hybrid';
         this.ropts = ropts;
         this.opts = opts;
         this.timeout = opts.timeout;
@@ -28,7 +29,7 @@ class DownloadStream extends DownloadStreamBase {
         if (!this.opts.cachedOnly) {
             types.push(DownloadStreamHttp);
         }
-        if (typeof (this.opts.cacheTTL) == 'number' && this.opts.cacheTTL > 0 && config.get('in-disk-caching-size')) {
+        if (typeof(this.opts.cacheTTL) == 'number' && this.opts.cacheTTL > 0 && config.get('in-disk-caching-size')) {
             types.unshift(DownloadStreamCache);
         }
         let chosen, responseData;
@@ -67,8 +68,7 @@ class DownloadStream extends DownloadStreamBase {
                 }
             });
             via.once('destroy', () => {
-                if (chosen)
-                    return;
+                if (chosen) return
                 process.nextTick(() => {
                     if (vias.every(v => v.destroyed)) {
                         if (responseData) {

@@ -85,15 +85,12 @@ class ListsUpdater extends Common {
 			if(this.debug){
 				console.log('updater - updated after '+ parseInt((Date.now() / 1000) - start) +'s', url, should)
 			}
-			if(updater.index){
+			if(typeof(updater.contentLength) == 'number'){
 				updateMeta.contentLength = updater.contentLength
 				updateMeta.updateAfter = now + (24 * 3600)
-				await this.setListMeta(url, updater.index.meta).catch(console.error)
+				await this.setListMeta(url, updater.indexMeta).catch(console.error)
 				await this.setListMeta(url, updateMeta).catch(console.error)
 				ret = true
-			} 
-			if(this.debug){
-				console.log('updater - updated 1', url, should)
 			}
 			updater.destroy()
 			if(this.debug){
@@ -112,24 +109,24 @@ class ListsUpdater extends Common {
 	async validateIndex(url){
 		const list = new List(url, this.relevantKeywords)
 		await list.start()
-		const validated = list.index.length > 0
+		const validated = list.length > 0
 		list.destroy()
 		return validated
 	}
 	async updaterShouldUpdate(url){
 		const updateMeta = await this.getListMeta(url)
 		let now = (Date.now() / 1000)
-		let should = url.indexOf('#xtream') == -1 && (!updateMeta || now >= updateMeta.updateAfter)
-		if(this.debug){
+		let should = !url.includes('#xtream') && (!updateMeta || now >= updateMeta.updateAfter)
+		if(this.debug) {
 			console.log('updater shouldUpdate', now, JSON.stringify(updateMeta, null, 3), url)
 		}
 		if(!should){
-			if(this.debug){
+			if(this.debug) {
 				console.log('updater shouldUpdate validating index', url)
 			}
 			const start = (Date.now() / 1000)
-			const valid = await this.validateIndex(url).catch(console.error)
-			if(this.debug){
+			const valid = await this.validateIndex(url).catch(() => false)
+			if(this.debug) {
 				console.log('updater shouldUpdate index validation took '+ parseInt((Date.now() / 1000) - start) +'s', JSON.stringify({valid, updateMeta}, null, 3), url)
 			}
 			if(valid === true) {

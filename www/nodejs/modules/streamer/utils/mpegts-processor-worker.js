@@ -28,6 +28,9 @@ class MPEGTSProcessorWorker {
 	}
 	async isTranscoding() {}
 	async addCodecData() {}
+	async setPacketFilterPolicy(...args) {
+		this.processor.setPacketFilterPolicy(...args)
+	}
 	async terminate() {
 		await this.destroy()
 	}

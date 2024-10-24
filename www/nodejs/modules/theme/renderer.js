@@ -53,6 +53,7 @@ class Theme {
     constructor(){
 		this.curtains = Array.from(document.querySelectorAll('.curtain'))
         this.splashStartTime = (new Date()).getTime()
+        window.addEventListener('resize', () => this.updateFontSize())
     }
     renderBackground(data) {
 		console.warn('theming renderbackground', data)
@@ -78,7 +79,7 @@ class Theme {
     animateBackground(val) {
         console.warn('animateBackground', val)
         var c = document.body.className || ''
-        if(val.indexOf('-desktop') != -1){
+        if(val.includes('-desktop')){
             if(window.capacitor){
                 val = 'none';
             } else {
@@ -91,17 +92,17 @@ class Theme {
         this.currentAnimateBackground = val
         if(val == 'fast'){
             var n = 'animate-background-fast';
-            if(c.indexOf(n) == -1) {
+            if(!c.includes(n)) {
                 document.body.className = c.replace(new RegExp('animate-background-[a-z]+', 'g'), '') + ' ' + n;
             }
         } else if(val == 'slow') {
             var n = 'animate-background-slow';
-            if(c.indexOf(n) == -1) {
+            if(!c.includes(n)) {
                 document.body.className = c.replace(new RegExp('animate-background-[a-z]+', 'g'), '') + ' ' + n;
             }
         } else {
             var n = 'animate-background';
-            if(c.indexOf(n) != -1) {
+            if(c.includes(n)) {
                 document.body.className = c.replace(new RegExp('animate-background-[a-z]+', 'g'), '');
             }
         }
@@ -197,12 +198,11 @@ class Theme {
             splash.style.backgroundColor = data.color;
             splash.style.color = data.fontColor;
         }
-        console.log('DATA', data)
         const systemFont = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif'
-        let family = main.config['font-family'], nfs = 0.0275 + (main.config['font-size'] * 0.0015)
+        let family = main.config['font-family']
         if(!family){
             family = systemFont
-        } else if(family.indexOf(systemFont) == -1) {
+        } else if(!family.includes(systemFont)) {
             family += ','+ systemFont
         }
         const sbg = colorMixer(Object.values(hexToRgb(main.config['background-color'])), [0, 0, 0], 0.5)
@@ -248,26 +248,24 @@ class Theme {
             --menu-fx-nav-intensity: ${fxNavIntensity};    
             --radius: ${radius};
         }
-        body.video {
-            --shadow-background-color: rgba(0, 0, 0, 0.8);
-            --osd-background-color: rgba(0, 0, 0, 0.75);
-        }
         @media (orientation: landscape) {
             :root {
-                --menu-entry-name-font-size: calc(((100vmin + 100vmax) * 0.333) * ${nfs});
                 --entries-per-row: ${main.config['view-size'].landscape.x} !important;
                 --entries-per-col: ${main.config['view-size'].landscape.y} !important;
             }
         }
         @media (orientation: portrait) {
             :root {
-                --menu-entry-name-font-size: calc(((100vmin + 100vmax) * 0.333) * ${nfs * 1.1});
                 --entries-per-row: ${main.config['view-size'].portrait.x} !important;
                 --entries-per-col: ${main.config['view-size'].portrait.y} !important;
             }
         }
         body {
             font-family: ${family};
+        }
+        body.video, body.idle:not(.video) {
+            --shadow-background-color: rgba(0, 0, 0, 0.8);
+            --osd-background-color: rgba(0, 0, 0, 0.75);
         }
         body:not(.portrait) #menu content wrap {
             grid-template-columns: repeat(${main.config['view-size'].landscape.x}, 1fr);
@@ -301,8 +299,51 @@ class Theme {
         }
         `
         main.css(cssCode, 'theme')
+        this.updateFontSize()
         this.animateBackground(data.video ? 'none' : data.animate)
         main.menu.resize(true) // force layout update
+    }
+    defaultFontSize() {
+        const areaSize = window.innerHeight * window.innerWidth;
+        const references = [
+            [72720, 12],    // miniplayer
+            [921600, 18],   // 720p
+            [1927680, 24],  // 1080p
+            [3840000, 28],  // 4K
+            [7680000, 32]   // 8K
+        ]
+        let slope, intercept
+        for (let i = 0; i < references.length - 1; i++) {
+            const [area1, fontSize1] = references[i]
+            const [area2, fontSize2] = references[i + 1]
+            if (areaSize >= area1 && areaSize <= area2) {
+                slope = (fontSize2 - fontSize1) / (area2 - area1)
+                intercept = fontSize1 - slope * area1
+                return slope * areaSize + intercept
+            }
+        }
+        if (areaSize > references[references.length - 1][0]) {
+            return references[references.length - 1][1]
+        }
+        return references[0][1]
+    }
+    updateFontSize() {
+        let fontSize = this.defaultFontSize()
+        if (window.innerHeight > window.innerWidth) { // portrait
+            fontSize *= 1.1
+        }
+
+        console.log({fontSize, resolution: window.innerWidth + 'x' + window.innerHeight})
+        if(main.config && main.config['font-size']){
+            if(main.config['font-size'] > 3) {
+                fontSize += (main.config['font-size'] - 3) * 0.5
+            } else if(main.config['font-size'] < 3) {
+                fontSize -= (3 - main.config['font-size']) * 0.5
+            }
+        }
+
+        let cssCode = ` :root { --menu-entry-name-font-size: ${fontSize}px; } `
+        main.css(cssCode, 'theme-font-size')
     }
     hideSplashScreen() {
         localStorage.setItem('splash-time-hint', String((new Date()).getTime() - this.splashStartTime))

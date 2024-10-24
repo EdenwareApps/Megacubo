@@ -40,7 +40,7 @@ class StreamState extends EventEmitter {
                     const data = this.data[url];
                     if (data.duration && data.position && data.position > 10 && (data.position < (data.duration - 30))) {
                         process.nextTick(() => {
-                            renderer.get().emit('resume-dialog', data.position, data.duration);
+                            renderer.ui.emit('resume-dialog', data.position, data.duration);
                         });
                     }
                 }
@@ -62,18 +62,18 @@ class StreamState extends EventEmitter {
                     this.test(entries).catch(console.error)
                 }
             });
-            renderer.get().on('state-atts', (url, atts) => {
+            renderer.ui.on('state-atts', (url, atts) => {
                 let state;
                 if (this.streamer.active && url == this.streamer.active.data.url) {
                     state = this.streamer.active.type;
-                } else if (typeof (this.data[url]) != 'undefined') {
+                } else if (typeof(this.data[url]) != 'undefined') {
                     state = this.data[url].state;
                 }
-                if (typeof (state) != 'undefined') {
+                if (typeof(state) != 'undefined') {
                     this.set(url, state, true, atts);
                 }
             });
-            this.on('state', (url, state) => renderer.get().emit('stream-state-set', url, state));
+            this.on('state', (url, state) => renderer.ui.emit('stream-state-set', url, state));
             onexit(() => {
                 this.cancelTests();
                 this.save(); // sync
@@ -82,33 +82,33 @@ class StreamState extends EventEmitter {
     }
     supports(e) {
         const cls = e.class || '';
-        if (e && e.url && cls.indexOf('skip-testing') == -1) {
-            if (cls.indexOf('allow-stream-state') != -1) {
+        if (e && e.url && !cls.includes('skip-testing')) {
+            if (cls.includes('allow-stream-state')) {
                 return true;
             }
-            if (!e.type || e.type == 'stream' || cls.indexOf('entry-meta-stream') != -1) {
+            if (!e.type || e.type == 'stream' || cls.includes('entry-meta-stream')) {
                 return true;
             }
         }
     }
     get(url) {
-        if (typeof (this.clientFailures[url]) != 'undefined' && this.clientFailures[url] === true) {
+        if (typeof(this.clientFailures[url]) != 'undefined' && this.clientFailures[url] === true) {
             return false
         }
-        if (typeof (this.data) == 'object' && typeof (this.data[url]) == 'object' && this.data[url] && typeof (this.data[url].time) != 'undefined' && (Date.now() / 1000) < (this.data[url].time + this.ttl)) {
+        if (typeof(this.data) == 'object' && typeof(this.data[url]) == 'object' && this.data[url] && typeof(this.data[url].time) != 'undefined' && (Date.now() / 1000) < (this.data[url].time + this.ttl)) {
             return this.data[url].state
         }
         return null
     }
     set(url, state, isTrusted, atts) {
-        if (typeof (this.data) == 'object') {
-            if (!isTrusted && typeof (this.clientFailures[url]) != 'undefined') {
+        if (typeof(this.data) == 'object') {
+            if (!isTrusted && typeof(this.clientFailures[url]) != 'undefined') {
                 state = 'offline';
             }
             let isMega = mega.isMega(url);
             if (!isMega) {
                 let changed, time = (Date.now() / 1000);
-                if (typeof (this.waiting[url]) != 'undefined') {
+                if (typeof(this.waiting[url]) != 'undefined') {
                     changed = true;
                     delete this.waiting[url];
                 }
@@ -117,7 +117,7 @@ class StreamState extends EventEmitter {
                 }
                 atts.time = time;
                 atts.state = state;
-                if (typeof (this.data[url]) == 'undefined') {
+                if (typeof(this.data[url]) == 'undefined') {
                     this.data[url] = {};
                 }
                 Object.keys(atts).forEach(k => {
@@ -134,12 +134,12 @@ class StreamState extends EventEmitter {
                 });
                 if (isTrusted) {
                     if (state == 'offline') {
-                        if (typeof (this.clientFailures[url]) == 'undefined') {
+                        if (typeof(this.clientFailures[url]) == 'undefined') {
                             this.clientFailures[url] = true;
                             changed = true;
                         }
                     } else {
-                        if (typeof (this.clientFailures[url]) != 'undefined') {
+                        if (typeof(this.clientFailures[url]) != 'undefined') {
                             delete this.clientFailures[url];
                             changed = true;
                         }
@@ -158,11 +158,11 @@ class StreamState extends EventEmitter {
             Object.keys(this.data).forEach(url => {
                 syncMap[url] = this.data[url].state;
             });
-            renderer.get().emit('stream-state-sync', syncMap);
+            renderer.ui.emit('stream-state-sync', syncMap);
         }
     }
     trim() {
-        if (typeof (this.data) != 'undefined') {
+        if (typeof(this.data) != 'undefined') {
             const ks = Object.keys(this.data);
             if (ks.length > this.limit) {
                 ks.map(url => ({ url, time: this.data[url].time })).sortByProp('time', true).slice(this.limit).forEach(row => {
@@ -172,7 +172,7 @@ class StreamState extends EventEmitter {
         }
     }
     async save() {
-        if (typeof (this.data) != 'undefined') {
+        if (typeof(this.data) != 'undefined') {
             const now = (Date.now() / 1000);
             this.lastSaveTime = now;
             this.trim();
@@ -196,7 +196,7 @@ class StreamState extends EventEmitter {
         }
     }
     saveDelay() {
-        if (typeof (this.data) != 'undefined') {
+        if (typeof(this.data) != 'undefined') {
             const now = (Date.now() / 1000);
             if (!this.lastSaveTime || (this.lastSaveTime + this.minSaveIntervalSecs) <= now) {
                 return 0;
@@ -208,7 +208,7 @@ class StreamState extends EventEmitter {
         }
     }
     isLocalFile(file) {
-        if (typeof (file) != 'string') {
+        if (typeof(file) != 'string') {
             return;
         }
         let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'));
@@ -240,7 +240,7 @@ class StreamState extends EventEmitter {
             const autoTesting = !manuallyTesting && allowAutoTest;
             const nt = { name: lang.TEST_STREAMS };
             if (manuallyTesting) {
-                renderer.get().emit('set-loading', nt, true, lang.TESTING);
+                global.menu.setLoading(true)
                 osd.show(lang.TESTING + ' 0%', 'fa-mega spin-x-alt', 'stream-state-tester', 'persistent');
             }
             const retest = [], syncData = {}            
@@ -254,10 +254,10 @@ class StreamState extends EventEmitter {
                         syncData[e.url] = s;
                     } else {
                         let state = this.get(e.url);
-                        if (typeof (this.clientFailures[e.url]) != 'undefined') {
+                        if (typeof(this.clientFailures[e.url]) != 'undefined') {
                             state = 'offline';
                         }
-                        if (state && typeof (state) == 'string') {
+                        if (state && typeof(state) == 'string') {
                             if (state != 'offline') {
                                 syncData[e.url] = state;
                                 const data = this.data[e.url];
@@ -295,7 +295,7 @@ class StreamState extends EventEmitter {
                         delete syncData[k];
                 });
             }
-            renderer.get().emit('stream-state-sync', syncData);
+            renderer.ui.emit('stream-state-sync', syncData);
             if (!shouldTest)
                 return resolve(true);
             if (!entries.length) {
@@ -314,17 +314,17 @@ class StreamState extends EventEmitter {
                     if (this.debug) {
                         console.warn('TESTER FINISH!', nt, this.testing.results, this.testing.states);
                     }
-                    renderer.get().emit('set-loading', nt, false);
-                    manuallyTesting && osd.hide('stream-state-tester');
-                    this.testing.destroy();
-                    this.testing = null;
-                    resolve(true);
-                    this.saveAsync();
-                    this.sync();
+                    global.menu.setLoading(false)
+                    manuallyTesting && osd.hide('stream-state-tester')
+                    this.testing.destroy()
+                    this.testing = null
+                    resolve(true)
+                    this.saveAsync()
+                    this.sync()
                 }
-            });
-            this.testing.start();
-        });
+            })
+            this.testing.start()
+        })
     }
     success(entry, info) {
         this.set(entry.url, info.type, false, { source: entry.source });
@@ -343,7 +343,7 @@ class StreamState extends EventEmitter {
     isWatched(data) {
         if (!data)
             return;
-        if (typeof (data) == 'string') {
+        if (typeof(data) == 'string') {
             data = this.data[data];
             if (!data)
                 return;

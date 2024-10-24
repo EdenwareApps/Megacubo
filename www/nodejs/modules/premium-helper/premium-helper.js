@@ -13,7 +13,7 @@ class PremiumHelper {
         menu.prependFilter(this.hook.bind(this));
     }
     open() {
-        renderer.get().emit('open-external-url', 'https://megacubo.net/');
+        renderer.ui.emit('open-external-url', 'https://megacubo.net/');
     }
     entry() {
         return {
@@ -51,7 +51,7 @@ try {
     let Premium, rq
     const file = paths.cwd +'/dist/premium'
     const req = file => {
-        if(typeof(require) == 'undefined') {
+        if(typeof(module) == 'undefined') {
             return createRequire(getFilename())(file)
         }
         return require(file)

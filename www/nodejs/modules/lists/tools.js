@@ -4,8 +4,8 @@ import pLimit from "p-limit";
 import config from "../config/config.js"
 import { basename, forwardSlashes } from "../utils/utils.js";
 import parser from "./parser.js";
-import data from "./search-redirects.json" assert {type: 'json'};
-import countryCodes from '../countries/countries.json' assert {type: 'json'};
+import data from "./search-redirects.json" with {type: 'json'};
+import countryCodes from '../countries/countries.json' with {type: 'json'};
 
 class TermsHandler {
     constructor() {
@@ -19,7 +19,7 @@ class TermsHandler {
     }
     loadSearchRedirects() {
         if (!this.searchRedirects.length) {
-            if (data && typeof (data) == 'object') {
+            if (data && typeof(data) == 'object') {
                 let results = [];
                 Object.keys(data).forEach(k => {
                     results.push({ from: this.terms(k), to: this.terms(data[k]) });
@@ -41,7 +41,7 @@ class TermsHandler {
         if (Array.isArray(e)) {
             e = this.applySearchRedirects(e);
         } else if (e.terms) {
-            if (typeof (e.terms.name) != 'undefined' && Array.isArray(e.terms.name)) {
+            if (typeof(e.terms.name) != 'undefined' && Array.isArray(e.terms.name)) {
                 e.terms.name = this.applySearchRedirects(e.terms.name);
             } else if (Array.isArray(e.terms)) {
                 e.terms = this.applySearchRedirects(e.terms);
@@ -188,8 +188,8 @@ class Tools extends TermsHandler {
                 delete entries[i];
             } else if (entries[i].url &&
                 !entries[i].prepend &&
-                (typeof (entries[i].type) == 'undefined' || entries[i].type == 'stream')) {
-                if (typeof (already[entries[i].url]) != 'undefined') {
+                (typeof(entries[i].type) == 'undefined' || entries[i].type == 'stream')) {
+                if (typeof(already[entries[i].url]) != 'undefined') {
                     changed = true;
                     var j = map[entries[i].url];
                     entries[j] = this.mergeEntries(entries[j], entries[i]);
@@ -213,7 +213,7 @@ class Tools extends TermsHandler {
     mapRecursively(list, cb, root) {
         for (var i = list.length - 1; i >= 0; i--) {
             if (list[i].type && list[i].type == 'group') {
-                if (typeof (list[i].entries) != 'undefined') {
+                if (typeof(list[i].entries) != 'undefined') {
                     let ret = this.mapRecursively(list[i].entries, cb, true);
                     if (Array.isArray(ret)) {
                         list[i].entries = ret;
@@ -232,7 +232,7 @@ class Tools extends TermsHandler {
     async asyncMapRecursively(list, cb, root) {
         for (var i = list.length - 1; i >= 0; i--) {
             if (list[i].type && list[i].type == 'group') {
-                if (typeof (list[i].entries) != 'undefined') {
+                if (typeof(list[i].entries) != 'undefined') {
                     let ret = await this.asyncMapRecursively(list[i].entries, cb, true);
                     if (Array.isArray(ret)) {
                         list[i].entries = ret;
@@ -284,8 +284,8 @@ class Tools extends TermsHandler {
         return details.join(', ');
     }    
     sort(entries, key = 'name') {
-        if (typeof (Intl) != 'undefined' && lang.locale) {
-            if (typeof (this.collator) == 'undefined') {
+        if (typeof(Intl) != 'undefined' && lang.locale) {
+            if (typeof(this.collator) == 'undefined') {
                 this.collator = new Intl.Collator(lang.locale, { numeric: true, sensitivity: 'base' });
             }
             return entries.sort((a, b) => this.collator.compare(a[key], b[key]));
@@ -312,7 +312,7 @@ class Tools extends TermsHandler {
                 nextName = sentries.slice(i + expectedFolderSizeLimit, i + expectedFolderSizeLimit + 1);
                 nextName = nextName.length ? nextName[0].name : null;
                 group.name = this.getRangeName(gentries, lastName, nextName);
-                if (group.name.indexOf('[') != -1) {
+                if (group.name.includes('[')) {
                     group.rawname = group.name;
                     group.name = group.name.replace(this.regexes['between-brackets'], '');
                 }
@@ -424,10 +424,10 @@ class Tools extends TermsHandler {
     mergeNames(a, b) {
         var la = a.toLowerCase();
         var lb = b.toLowerCase();
-        if (la && la.indexOf(lb) != -1) {
+        if (la && la.includes(lb)) {
             return a
         }
-        if (lb && lb.indexOf(la) != -1) {
+        if (lb && lb.includes(la)) {
             return b
         }
         return a + ' - ' + b
@@ -456,7 +456,7 @@ class Tools extends TermsHandler {
     shortenSingleFolders(list) {
         for (var i = 0; i < list.length; i++) {
             if (list[i].type == 'group') {
-                if (typeof (list[i].entries) != 'undefined' && list[i].entries.length == 1) {
+                if (typeof(list[i].entries) != 'undefined' && list[i].entries.length == 1) {
                     list[i].entries[0].name = this.mergeNames(list[i].name, list[i].entries[0].name);
                     list[i] = list[i].entries[0];
                     list[i].path = this.dirname(list[i].path);
@@ -476,7 +476,7 @@ class Tools extends TermsHandler {
         let parsedGroups = {}, groupedEntries = [];
         for (let i = 0; i < entries.length; i++) {
             if (entries[i].group) {
-                if (typeof (parsedGroups[entries[i].group]) == 'undefined') {
+                if (typeof(parsedGroups[entries[i].group]) == 'undefined') {
                     parsedGroups[entries[i].group] = [];
                 }
                 parsedGroups[entries[i].group].push(entries[i]);
@@ -492,12 +492,12 @@ class Tools extends TermsHandler {
         }
         entries = entries.filter(e => e);
         for (let i = 0; i < groupedEntries.length; i++) {
-            if (groupedEntries[i].path.indexOf('/') != -1) { // has path
+            if (groupedEntries[i].path.includes('/')) { // has path
                 entries = this.insertAtPath(entries, groupedEntries[i].path, groupedEntries[i])
             }
         }
         for (let i = 0; i < groupedEntries.length; i++) {
-            if (groupedEntries[i].path.indexOf('/') == -1) { // no path
+            if (!groupedEntries[i].path.includes('/')) { // no path
                 entries = this.mergeEntriesWithNoCollision(entries, [groupedEntries[i]])
             }
         }

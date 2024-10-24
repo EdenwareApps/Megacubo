@@ -3,7 +3,7 @@ import lang from "../lang/lang.js";
 import { EventEmitter } from 'events';
 import options from "../options/options.js";
 import lists from "../lists/lists.js";
-import http from "http";
+import https from "https";
 import paths from '../paths/paths.js'
 import { ready } from '../bridge/bridge.js'
 import { isWritable } from '../utils/utils.js'
@@ -17,7 +17,7 @@ class AnalyticsBase extends EventEmitter {
     toQS(obj) {
         let str = [];
         Object.keys(obj).forEach(k => {
-            if (typeof (obj[k]) == 'string') {
+            if (typeof(obj[k]) == 'string') {
                 str.push(encodeURIComponent(k) + '=' + encodeURIComponent(obj[k]));
             }
         });
@@ -40,14 +40,15 @@ class AnalyticsBase extends EventEmitter {
             data.url = this.obfuscateURL(data.url);
         if (data.source && lists.isPrivateList(data.source))
             data.source = ''; // Source URL not shareable.
-        data.epg = channels.loadedEPG || data.epg || '';
+        data.epg = global.lists.manager.activeEPGs().join(',')
         const postData = this.toQS(data);
         const opts = {
-            port: 80,
+            port: 443,
             family: 4,
             method: 'POST',
             path: '/stats/' + action,
             hostname: 'app.megacubo.net',
+            rejectUnauthorized: false,
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': postData.length,
@@ -57,7 +58,7 @@ class AnalyticsBase extends EventEmitter {
         if (this.debug) {
             console.log('register', opts, postData);
         }
-        const req = http.request(opts, res => {
+        const req = https.request(opts, res => {
             res.setEncoding('utf8');
             let data = '';
             res.on('data', (d) => {
@@ -76,7 +77,7 @@ class AnalyticsBase extends EventEmitter {
         req.end();
     }
     prepareEntry(entry) {
-        if (!entry || typeof (entry) != 'object') {
+        if (!entry || typeof(entry) != 'object') {
             return {};
         } else {
             return Object.assign({}, entry);

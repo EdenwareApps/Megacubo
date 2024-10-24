@@ -115,7 +115,7 @@ class DownloadCacheMap extends EventEmitter {
         
         const file = storage.resolve(key);
         const stat = await fs.promises.stat(file).catch(() => {});
-        if (!stat || typeof (stat.size) != 'number')
+        if (!stat || typeof(stat.size) != 'number')
             return null;
         return {
             status: info.statusCode,
@@ -143,12 +143,12 @@ class DownloadCacheMap extends EventEmitter {
         }
         const opts = downloader.opts;
         const url = downloader.currentURL;
-        if (typeof (this.saving[url]) == 'undefined') {
+        if (typeof(this.saving[url]) == 'undefined') {
             const uid = url2id(url);
             const huid = 'dch-' + uid.substr(4);
             const time = parseInt((Date.now() / 1000));
             let ttl = time + opts.cacheTTL;
-            if (downloader.lastHeadersReceived && typeof (downloader.lastHeadersReceived['x-cache-ttl']) != 'undefined') {
+            if (downloader.lastHeadersReceived && typeof(downloader.lastHeadersReceived['x-cache-ttl']) != 'undefined') {
                 const rttl = parseInt(downloader.lastHeadersReceived['x-cache-ttl']);
                 if (rttl < ttl) {
                     ttl = rttl;
@@ -235,4 +235,4 @@ class DownloadCacheMap extends EventEmitter {
         }
     }
 }
-export default DownloadCacheMap;
+export default new DownloadCacheMap()

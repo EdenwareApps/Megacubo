@@ -24,7 +24,7 @@ class Profiles {
 			fs.mkdirSync(path.join(this.folder, usr))
 		}
 		var name = localStorage.getItem('logged-user')
-		if(!name || !this.list.indexOf(name) != -1){
+		if(!name || !this.list.includes(name)){
 			name = this.list[0]
 		}
         this.logged = name
@@ -32,7 +32,7 @@ class Profiles {
         localStorage.setItem('logged-user', name)
 	}
 	logon(name){
-		if(this.list.indexOf(name) != -1){
+		if(this.list.includes(name)){
 			localStorage.setItem('logged-user', name)
 			energy.restart()
 		}

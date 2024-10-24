@@ -8,7 +8,7 @@ import { EventEmitter } from 'events';
 import cloud from "../cloud/cloud.js";
 import moment from "moment-timezone";
 import mega from "../mega/mega.js";
-import Watching from "../watching/watching.js";
+import Trending from "../trending/trending.js";
 import Bookmarks from "../bookmarks/bookmarks.js";
 import fs from "fs";
 import downloads from "../downloads/downloads.js";
@@ -16,7 +16,7 @@ import icons from '../icon-server/icon-server.js';
 import config from "../config/config.js"
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
-import { deepClone, insertEntry, parseJSON, ts2clock } from "../utils/utils.js";
+import { clone, insertEntry, parseCommaDelimitedURIs, parseJSON, ts2clock } from "../utils/utils.js";
 import Search from '../search/search.js';
 
 class ChannelsList extends EventEmitter {
@@ -67,7 +67,7 @@ class ChannelsList extends EventEmitter {
             }
         }
         this.updateChannelsIndex(false)
-        if (!this.categories || typeof (this.categories) != 'object') {
+        if (!this.categories || typeof(this.categories) != 'object') {
             this.categories = {}
         }
         this.loaded = true
@@ -89,7 +89,7 @@ class ChannelsList extends EventEmitter {
     async getPublicListsCategories() {
         const ret = {};
         await global.lists.discovery.ready();
-        const groups = await global.lists.discovery.providers.find(p => p[1] == 'public')[0].entries(true, true);
+        const groups = await global.lists.discovery.getProvider('public').entries(true, true)
         for (const group of groups) {
             if (!group.renderer)
                 continue;
@@ -209,7 +209,7 @@ class ChannelsList extends EventEmitter {
     }
     expandName(name) {        
         let terms
-        if (name.indexOf(',') != -1) {
+        if (name.includes(',')) {
             terms = name.split(',').map(s => s = s.trim());
             name = terms.shift();
             if (!terms.length) {
@@ -316,7 +316,7 @@ class ChannelsData extends EventEmitter {
         const changed = await this.channelList.load(refresh)
         this.loaded = true
         this.emit('loaded', changed)
-        typeChanged && await this.watching.update().catch(console.error);
+        typeChanged && await this.trending.update().catch(console.error);
         (typeChanged || changed) && renderer.ready(() => menu.updateHomeFilters())
     }
 }
@@ -352,11 +352,9 @@ class ChannelsEPG extends ChannelsData {
                 }
             }, async data => {
                 const name = data.originalName || data.name;
-                const category = this.getChannelCategory(name);
-                if (!global.activeEPG) {
+                const category = this.getChannelCategory(name)
+                if (!this.isEPGLoaded()) {
                     menu.displayErr(lang.EPG_DISABLED)
-                } else if (!this.loadedEPG) {
-                    menu.displayErr(lang.EPG_AVAILABLE_SOON)
                 } else if (category) {
                     let err;
                     await this.epgChannelLiveNow(data).catch(e => {
@@ -366,7 +364,7 @@ class ChannelsEPG extends ChannelsData {
                     if (!err) {
                         const entries = await this.epgChannelEntries({ name }, null, true)
                         menu.render(entries, lang.EPG, 'fas fa-plus', '/')
-                        renderer.get().emit('menu-playing')
+                        renderer.ui.emit('menu-playing')
                     }
                 } else {
                     menu.displayErr(lang.CHANNEL_EPG_NOT_FOUND);
@@ -375,7 +373,13 @@ class ChannelsEPG extends ChannelsData {
         });
     }
     isEPGEnabled() {
-        return global.activeEPG || config.get('lang-' + lang.locale);
+        let activeEPG = config.get('epg-' + lang.locale)
+        if(activeEPG && activeEPG !== 'disabled') {
+            return Array.isArray(activeEPG) ? activeEPG.filter(r => r.active).length : parseCommaDelimitedURIs(activeEPG).length
+        }
+    }
+    isEPGLoaded() {
+        return lists.loadedEPGs && lists.loadedEPGs.length
     }
     clock(start, data, includeEnd) {
         let t = this.clockIcon;
@@ -408,7 +412,7 @@ class ChannelsEPG extends ChannelsData {
         }
     }
     async epgSearch(terms, liveNow) {
-        if (typeof (terms) == 'string') {
+        if (typeof(terms) == 'string') {
             terms = global.lists.tools.terms(terms)
         }
         const entries = []
@@ -432,7 +436,7 @@ class ChannelsEPG extends ChannelsData {
         };
         return Object.keys(epgData).filter(start => epgData[start].e > now).map((start, i) => {
             let epgIcon = '';
-            if (epgData[start].i && epgData[start].i.indexOf('//') != -1) {
+            if (epgData[start].i && epgData[start].i.includes('//')) {
                 epgIcon = epgData[start].i;
             }
             return {
@@ -455,23 +459,23 @@ class ChannelsEPG extends ChannelsData {
         return ret;
     }
     async epgChannel(e, limit) {        
-        if (typeof (limit) != 'number')
+        if (typeof(limit) != 'number')
             limit = 72;
         let data = this.epgPrepareSearch(e);
-        return await global.lists.epg(data, limit);
+        return await global.lists.epgChannelsList(data, limit);
     }
     async epgChannelEntries(e, limit, detached) {
-        if (typeof (limit) != 'number') {
+        if (typeof(limit) != 'number') {
             limit = 72
         }
         console.log('EPG', {e, limit, detached})
         let data = this.epgPrepareSearch(e)
         console.log('EPG', {data})
-        const epgData = await global.lists.epg(data, limit)
+        const epgData = await global.lists.epgChannelsList(data, limit)
         let centries = []
         console.log('EPG', {epgData})
         if (epgData) {
-            if (typeof (epgData[0]) != 'string') {
+            if (typeof(epgData[0]) != 'string') {
                 centries = this.epgDataToEntries(epgData, data.name, data.terms)
                 if (!centries.length) {
                     centries.push(menu.emptyEntry(lang.NOT_FOUND))
@@ -483,11 +487,9 @@ class ChannelsEPG extends ChannelsData {
         return centries
     }
     async epgChannelLiveNow(entry) {
-        if (!global.activeEPG)
-            throw 'epg not loaded';
-        
+        if (!this.isEPGLoaded()) throw 'epg not loaded';
         let channel = this.epgPrepareSearch(entry)
-        let epgData = await global.lists.epg(channel, 1)
+        let epgData = await global.lists.epgChannelsList(channel, 1)
         let ret = Object.values(epgData).shift()
         if (ret) {
             return ret.t
@@ -501,16 +503,11 @@ class ChannelsEPG extends ChannelsData {
         return ret;
     }
     async epgChannelLiveNowAndNextInfo(entry) {
-        if (!global.activeEPG)
-            throw 'epg not loaded'        
+        if (!this.isEPGLoaded()) throw 'epg not loaded'        
         let channel = this.epgPrepareSearch(entry);
-        let epgData = await global.lists.epg(channel, 2);
-        if (typeof (epgData) == 'string') {
-            throw 'epg is loading';
-        }
-        if (Array.isArray(epgData)) {
-            throw 'not found 1';
-        }
+        let epgData = await global.lists.epgChannelsList(channel, 2);
+        if (typeof(epgData) == 'string') throw 'epg is loading';
+        if (Array.isArray(epgData)) throw 'not found 1';
         let now = Object.values(epgData).shift()
         if (now && now.t) {
             let ret = { now };
@@ -532,11 +529,9 @@ class ChannelsEPG extends ChannelsData {
         if(!entries.length) {
             return ret
         }
-        if (!global.activeEPG)
-            throw 'epg not loaded';
-        
+        if (!this.isEPGLoaded()) throw 'epg not loaded';        
         let chs = entries.map(e => this.epgPrepareSearch(e));
-        let epgData = await global.lists.epg(chs, 1);
+        let epgData = await global.lists.epgChannelsList(chs, 1);
         Object.keys(epgData).forEach(ch => {
             ret[ch] = epgData[ch] ? Object.values(epgData[ch]).shift() : false;
             if (!ret[ch] && ret[ch] !== false)
@@ -545,26 +540,24 @@ class ChannelsEPG extends ChannelsData {
         return ret;
     }
     async epgChannelsAddLiveNow(entries) {
-        if (this.loadedEPG) {
-            let err;
-            const cs = entries.filter(e => e.terms || e.type == 'select').map(e => this.isChannel(e)).filter(e => e)
-            const epg = await this.epgChannelsLiveNow(cs).catch(e => err = e);
-            if (!err && epg) {
-                //console.warn('epgChannelsAddLiveNow', cs, entries, epg)
-                entries.forEach((e, i) => {
-                    const name = e.isChannel ? e.isChannel.name : (e.originalName || e.name)
-                    if (typeof (epg[name]) != 'undefined' && epg[name].t) {
-                        if (entries[i].details) {
-                            if (entries[i].details.indexOf(epg[name].t) == -1) {
-                                entries[i].details += ' &middot; ' + epg[name].t
-                            }
-                        } else {
-                            entries[i].details = epg[name].t
+        let err
+        const cs = entries.filter(e => e.terms || e.type == 'select').map(e => this.isChannel(e)).filter(e => e)
+        const epg = await this.epgChannelsLiveNow(cs).catch(e => err = e);
+        if (!err && epg) {
+            //console.warn('epgChannelsAddLiveNow', cs, entries, epg)
+            entries.forEach((e, i) => {
+                const name = e.isChannel ? e.isChannel.name : (e.originalName || e.name)
+                if (typeof(epg[name]) != 'undefined' && epg[name].t) {
+                    if (entries[i].details) {
+                        if (!entries[i].details.includes(epg[name].t)) {
+                            entries[i].details += ' &middot; ' + epg[name].t
                         }
-                        entries[i].programme = epg[name]
+                    } else {
+                        entries[i].details = epg[name].t
                     }
-                });
-            }
+                    entries[i].programme = epg[name]
+                }
+            })
         }
         return entries
     }
@@ -672,7 +665,7 @@ class ChannelsEditing extends ChannelsEPG {
             type: 'action',
             fa: 'fas fa-share-alt',
             action: () => {
-                renderer.get().emit('share', paths.manifest.window.title, e.name, 'https://megacubo.tv/w/' + encodeURIComponent(e.name));
+                renderer.ui.emit('share', paths.manifest.window.title, e.name, 'https://megacubo.tv/w/' + encodeURIComponent(e.name));
             }
         };
     }
@@ -700,13 +693,13 @@ class ChannelsEditing extends ChannelsEPG {
                                 fa: 'fa-mega spin-x-alt',
                                 iconFallback: 'fas fa-exclamation-triangle',
                                 action: async () => {
-                                    menu.setLoadingEntries([e], true, lang.PROCESSING);
+                                    menu.setLoading(true);
                                     let err;
                                     const r = await icons.fetchURL(image);
                                     const ret = await icons.adjust(r.file, { shouldBeAlpha: false }).catch(e => menu.displayErr(e));
                                     const destFile = await icons.saveDefaultFile(terms, ret.file).catch(e => err = e);
                                     this.emit('edited', 'icon', e, destFile);
-                                    menu.setLoadingEntries([e], false);
+                                    menu.setLoading(false);
                                     if (err)
                                         throw err;
                                     console.log('icon changed', terms, destFile);
@@ -869,7 +862,7 @@ class ChannelsEditing extends ChannelsEPG {
                     } },
                 { name: lang.RENAME_CATEGORY, fa: 'fas fa-edit', type: 'input', details: cat.name, value: cat.name, action: async (e, val) => {
                         console.warn('RENAME', cat.name, 'TO', val);
-                        if (val && val != cat.name && typeof (this.channelList.categories[val]) == 'undefined') {
+                        if (val && val != cat.name && typeof(this.channelList.categories[val]) == 'undefined') {
                             let o = this.channelList.categories[cat.name];
                             delete this.channelList.categories[cat.name];
                             this.channelList.categories[val] = o;
@@ -951,15 +944,15 @@ class ChannelsKids extends ChannelsAutoWatchNow {
                 const term = lang.CATEGORY_KIDS; // lang can change in runtime, check the term here so
                 if (path.substr(term.length * -1) == term) {
                     entries = entries.map(e => {
-                        if ((e.rawname || e.name).indexOf('[') == -1 && ((!e.type || e.type == 'stream') ||
-                            (e.class && e.class.indexOf('entry-meta-stream') != -1))) {
+                        if (!(e.rawname || e.name).includes('[') && ((!e.type || e.type == 'stream') ||
+                            (e.class && e.class.includes('entry-meta-stream')))) {
                             e.rawname = '[fun]' + e.name + '[|fun]';
                         }
                         return e;
                     });
                 } else if ([lang.LIVE, lang.CATEGORY_MOVIES_SERIES].includes(path)) {
                     entries = entries.map(e => {
-                        if ((e.rawname || e.name).indexOf('[') == -1 && e.name == term) {
+                        if (!(e.rawname || e.name).includes('[') && e.name == term) {
                             e.rawname = '[fun]' + e.name + '[|fun]';
                         }
                         return e;
@@ -973,10 +966,55 @@ class ChannelsKids extends ChannelsAutoWatchNow {
 class Channels extends ChannelsKids {
     constructor() {
         super()
-        this.watching = new Watching(this)
+        this.trending = new Trending(this)
         this.history = new History(this)
         this.bookmarks = new Bookmarks(this)
         this.search = new Search(this)
+    }
+    async updateUserTasks(app) {
+        if (process.platform != 'win32') return
+        if (app) { // set from cache, Electron won't set after window is opened
+            const tasks = await storage.get('user-tasks')
+            if (tasks && !app.setUserTasks(tasks)) {
+                throw 'Failed to set user tasks. ' + JSON.stringify(tasks)
+            }
+            return
+        }
+        const limit = 12
+        const entries = []
+        entries.push(...this.bookmarks.get().slice(0, limit))
+        if (entries.length < limit) {
+            for (const entry of this.history.get()) {
+                if (!entries.some(e => e.name == entry.name)) {
+                    entries.push(entry);
+                    if (entries.length == limit)
+                        break;
+                }
+            }
+            if (entries.length < limit && Array.isArray(this.trending.currentEntries)) {
+                for (const entry of this.trending.currentEntries) {
+                    if (!entries.some(e => e.name == entry.name)) {
+                        entries.push(entry);
+                        if (entries.length == limit)
+                            break;
+                    }
+                }
+            }
+        }
+        const tasks = entries.map(entry => {
+            return {
+                arguments: '"' + entry.url + '"',
+                title: entry.name,
+                description: entry.name,
+                program: process.execPath,
+                iconPath: process.execPath,
+                iconIndex: 0
+            }
+        })
+        await storage.set('user-tasks', tasks, {
+            expiration: true,
+            permanent: true
+        })
     }
     async goChannelWebsite(name) {
         if (!name) {            
@@ -989,10 +1027,10 @@ class Channels extends ChannelsKids {
         let url = 'https://www.google.com/search?btnI=1&lr=lang_{0}&q={1}'.format(lang.locale, encodeURIComponent('"' + name + '" site'));
         const body = String(await Download.get({ url }).catch(console.error));
         const matches = body.match(new RegExp('href *= *["\']([^"\']*://[^"\']*)'));
-        if (matches && matches[1] && matches[1].indexOf('google.com') == -1) {
+        if (matches && matches[1] && !matches[1].includes('google.com')) {
             url = matches[1];
         }
-        renderer.get().emit('open-external-url', url);
+        renderer.ui.emit('open-external-url', url);
     }
     getAllChannels() {
         let list = [];
@@ -1104,7 +1142,7 @@ class Channels extends ChannelsKids {
             tmsKey = tms.join(' ')
             if (this.channelList.isChannelCache[tmsKey])
                 return this.channelList.isChannelCache[tmsKey]; // before terms()
-            if (typeof (chs[terms]) != 'undefined') {
+            if (typeof(chs[terms]) != 'undefined') {
                 tms = chs[terms]
             }
         }
@@ -1119,8 +1157,8 @@ class Channels extends ChannelsKids {
             }
         });
         if (chosenScore > 1) {
-            if (typeof (this.channelList.isChannelCache[chosen]) == 'undefined') {
-                let alts = {}, excludes = [], chTerms = deepClone(chs[chosen]);
+            if (typeof(this.channelList.isChannelCache[chosen]) == 'undefined') {
+                let alts = {}, excludes = [], chTerms = clone(chs[chosen]);
                 Object.keys(chs).forEach(name => {
                     if (name == chosen)
                         return;
@@ -1160,7 +1198,7 @@ class Channels extends ChannelsKids {
         }
     }
     expandTerms(terms) {
-        if (typeof (terms) == 'string') {
+        if (typeof(terms) == 'string') {
             terms = global.lists.tools.terms(terms)
         }
         let ch = this.isChannel(terms)
@@ -1170,7 +1208,7 @@ class Channels extends ChannelsKids {
         return terms;
     }
     async get(terms) {        
-        if (typeof (terms) == 'string') {
+        if (typeof(terms) == 'string') {
             terms = global.lists.tools.terms(terms);
         }
         console.warn('channels.get', terms);
@@ -1179,18 +1217,18 @@ class Channels extends ChannelsKids {
             type: 'live',
             limit: 1024
         })
-        await this.watching.order(entries).then(es => entries = es).catch(console.error);
+        await this.trending.order(entries).then(es => entries = es).catch(console.error);
         return entries;
     }
     searchChannels(terms, partial) {
         return new Promise((resolve, reject) => {
-            if (typeof (terms) == 'string') {                
+            if (typeof(terms) == 'string') {                
                 terms = global.lists.tools.terms(terms)
             }
             let epgEntries = [], entries = [], already = {};
             let matchAll = !terms.length || (terms.length == 1 && terms[0] == '*')
             Object.keys(this.channelList.channelsIndex).sort().forEach(name => {
-                if (typeof (already[name]) == 'undefined') {
+                if (typeof(already[name]) == 'undefined') {
                     let score = matchAll ? 1 : this.cmatch(this.channelList.channelsIndex[name], terms, partial);
                     if (score) {
                         already[name] = null;
@@ -1201,13 +1239,13 @@ class Channels extends ChannelsKids {
                     }
                 }
             });
-            console.log(deepClone(entries));
+            console.log(clone(entries));
             this.epgChannelsAddLiveNow(entries, true).then(es => {
                 this.epgSearch(terms, true).then(ees => {
                     epgEntries = ees.map(e => {
                         let ch = this.isChannel(e.programme.ch);
                         if (ch) {
-                            if (typeof (already[ch.name]) == 'undefined') {
+                            if (typeof(already[ch.name]) == 'undefined') {
                                 already[ch.name] = null;
                                 if (e.details) {
                                     e.details = e.details.replace(e.programme.ch, ch.name);
@@ -1228,7 +1266,7 @@ class Channels extends ChannelsKids {
         let terms
         if (Array.isArray(e.terms) && e.terms.length) {
             terms = e.terms
-        } else if (typeof (e.terms) != 'undefined' && typeof (e.terms.name) != 'undefined' && Array.isArray(e.terms.name) && e.terms.name.length) {
+        } else if (typeof(e.terms) != 'undefined' && typeof(e.terms.name) != 'undefined' && Array.isArray(e.terms.name) && e.terms.name.length) {
             terms = e.terms.name
         } else if (e.originalName) {
             terms = global.lists.tools.terms(e.originalName)
@@ -1248,9 +1286,9 @@ class Channels extends ChannelsKids {
         let category, channelName = e.originalName || (e.programme ? e.programme.ch : e.name);
         if (_category === false) {
             category = false;
-        } else if (_category && typeof (_category) == 'string') {
+        } else if (_category && typeof(_category) == 'string') {
             category = _category;
-        } else if (_category && typeof (_category) == 'object') {
+        } else if (_category && typeof(_category) == 'object') {
             category = _category.name;
         } else {
             let c = this.getChannelCategory(e.originalName || e.name);
@@ -1284,8 +1322,7 @@ class Channels extends ChannelsKids {
             } else {
                 throw lang.NONE_STREAM_FOUND;
             }
-        } else {
-            
+        } else {            
             if (streams.length) {
                 let call = global.lists.mi.isRadio(channelName + ' ' + category) ? lang.LISTEN_NOW : lang.WATCH_NOW;
                 entries.push({
@@ -1299,20 +1336,18 @@ class Channels extends ChannelsKids {
                         global.streamer.play(data, streams);
                         this.watchNowAuto = menu.path;
                     }
-                });
+                })
                 streamsEntry = {
                     name: lang.STREAMS + ' (' + streams.length + ')',
                     type: 'group',
                     renderer: async () => streams
-                };
-                if (this.loadedEPG) {
-                    epgEntry = {
-                        name: lang.EPG,
-                        type: 'group',
-                        fa: this.epgIcon,
-                        details: (epgNow && epgNow != category) ? epgNow : '',
-                        renderer: this.epgChannelEntries.bind(this, e)
-                    }
+                }
+                epgEntry = {
+                    name: lang.EPG,
+                    type: 'group',
+                    fa: this.epgIcon,
+                    details: (epgNow && epgNow != category) ? epgNow : '',
+                    renderer: this.epgChannelEntries.bind(this, e)
                 }
             } else {
                 const name = global.lists.loaded(true) ? lang.NONE_STREAM_FOUND : lang.NO_LISTS_ADDED;
@@ -1396,7 +1431,7 @@ class Channels extends ChannelsKids {
     }
     toMetaEntry(e, category, details) {
         let meta = Object.assign({}, e), terms = this.entryTerms(e, true)
-        if (typeof (meta.url) == 'undefined') {
+        if (typeof(meta.url) == 'undefined') {
             let name = e.name
             if (e.programme && e.programme.ch) {
                 name = e.programme.ch
@@ -1616,7 +1651,7 @@ class Channels extends ChannelsKids {
         console.log('Categories file', data);
         try {
             data = parseJSON(data);
-            if (typeof (data) == 'object') {
+            if (typeof(data) == 'object') {
                 this.channelList.setCategories(data);
                 osd.show('OK', 'fas fa-check-circle faclr-green', 'options', 'normal');
             } else {
@@ -1699,7 +1734,7 @@ class Channels extends ChannelsKids {
                     type: 'check',
                     action: (e, checked) => {
                         config.set('only-known-channels-in-trending', checked);
-                        this.watching.update().catch(console.error);
+                        this.trending.update().catch(console.error);
                     },
                     checked: () => {
                         return config.get('only-known-channels-in-trending');
@@ -1710,7 +1745,7 @@ class Channels extends ChannelsKids {
                     type: 'check',
                     action: (e, checked) => {
                         config.set('popular-searches-in-trending', checked);
-                        this.watching.update().catch(console.error);
+                        this.trending.update().catch(console.error);
                     },
                     checked: () => {
                         return config.get('popular-searches-in-trending');
@@ -1810,9 +1845,9 @@ class Channels extends ChannelsKids {
                     const entry = entries[0];
                     if (entry.entries) {
                         entries = entry.entries;
-                    } else if (typeof (entry.renderer) == 'function') {
+                    } else if (typeof(entry.renderer) == 'function') {
                         entries = await entry.renderer(entry);
-                    } else if (typeof (entry.renderer) == 'string') {
+                    } else if (typeof(entry.renderer) == 'string') {
                         entries = await storage.get(entry.renderer);
                     } else {
                         break;
@@ -1842,7 +1877,7 @@ class Channels extends ChannelsKids {
         if (!path) {
             const liveEntry = { name: lang.LIVE, side: true, fa: 'fas fa-tv', details: '<i class="fas fa-th"></i>&nbsp; ' + lang.ALL_CHANNELS, type: 'group', renderer: this.entries.bind(this) }
             const searchEntry = { name: lang.SEARCH, side: true, fa: 'fas fa-search', type: 'action', action: () => {
-                process.nextTick(() => renderer.get().emit('omni-show'))
+                process.nextTick(() => renderer.ui.emit('omni-show'))
             }};
             insertEntry(liveEntry, entries, [lang.MY_LISTS, lang.TOOLS, lang.SEARCH]);
             insertEntry(searchEntry, entries, [lang.MY_LISTS, lang.TOOLS], [lang.TRENDING, lang.LIVE, lang.CATEGORY_MOVIES_SERIES]);

@@ -49,27 +49,27 @@ class Joiner extends Downloader {
             }
         });
     }
+    async setPacketFilterPolicy(policy) {
+        return await this.processor.setPacketFilterPolicy(policy)
+    }
     handleData(data) {
+        if (!this.processor) return
         if (this.usingWorker) {
             this.workerMessageBuffer.push(data);
-            if (!this.processor || this.len(this.workerMessageBuffer) < this.workerMessageBufferSize)
-                return;
+            if (this.len(this.workerMessageBuffer) < this.workerMessageBufferSize) return
             data = Buffer.concat(this.workerMessageBuffer);
             this.workerMessageBuffer = [];
         }
         this.processor.push(data);
     }
-    flush(force) {
+    flush(force) {        
+        if (!this.processor) return; // discard so
         if (this.usingWorker) {
             const data = Buffer.concat(this.workerMessageBuffer);
-            this.workerMessageBuffer = [];
-            if (!this.processor)
-                return; // discard so
-            this.processor.push(data);
-            this.processor.flush(force);
-        } else {
-            this.processor.flush(force);
+            this.workerMessageBuffer = []
+            this.processor.push(data)
         }
+        this.processor.flush(force)
     }
     output(data, len) {
         if (this.destroyed || this.joinerDestroyed) {
@@ -78,7 +78,7 @@ class Joiner extends Downloader {
         if(typeof(data) == 'object') {
             data = Buffer.from(data)
         }
-        if (typeof (len) != 'number') {
+        if (typeof(len) != 'number') {
             len = this.len(data)
         }
         if (len) {

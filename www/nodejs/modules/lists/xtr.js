@@ -127,7 +127,7 @@ class Xtr extends EventEmitter {
         };
         const tasks = ['live', 'vod', ...this.cmap.series].map(s => {
             return async () => {
-                if (typeof (s) == 'string') {
+                if (typeof(s) == 'string') {
                     this.emitEntries(await this.execute('get_' + s + '_streams'), s);
                 } else {
                     this.emitEntries(await this.getSeriesStreams(s.category_id), 'series');
@@ -146,7 +146,7 @@ class Xtr extends EventEmitter {
                 // stream_type: "live"
                 const ext = s.container_extension || defaultExt;
                 let name = s.name;
-                if (s.is_adult && s.is_adult != '0' && s.name.toLowerCase().indexOf('xxx') == -1) {
+                if (s.is_adult && s.is_adult != '0' && !s.name.toLowerCase().includes('xxx')) {
                     name += ' XXX'; // parental control internal hint
                 }
                 let i = 6, cid = s.category_id, group = s.group || this.cmap.names[s.category_id] || '';

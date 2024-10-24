@@ -128,7 +128,7 @@ class WindowManagerCommon {
 	}
 	load(){
 		const target = document.querySelector('iframe')
-		target.src = 'http://127.0.0.1:'+ api.window.port +'/renderer/index.html'
+		target.src = './index.html'
 	}
 	screenScale(v, reverse){
 		if(Array.isArray(v)){
@@ -156,13 +156,13 @@ class WindowManagerCommon {
 		}
 		if(cmd.length){
 			cmd = cmd.pop()
-			if(cmd.length > 2 && !cmd.startsWith('-') && cmd.indexOf('\\') == -1) {
+			if(cmd.length > 2 && !cmd.startsWith('-') && !cmd.includes('\\')) {
 				cmd = cmd.replace(new RegExp('^"|"$', 'g'), '')
 				if(!cmd.match(new RegExp('^/[^/]'))){
 					console.log('cmdline*: ' + cmd)
 					let sharing = '/w/', pos = cmd.indexOf(sharing)
 					if(pos != -1) cmd = cmd.substr(pos + sharing.length)
-					if(cmd.indexOf('//') == -1) cmd = 'mega://'+ cmd
+					if(!cmd.includes('//')) cmd = 'mega://'+ cmd
 					console.log('cmdline**: ' + cmd)
 					this.app.main.waitMain(() => {
 						this.app.main.emit('open-url', decodeURIComponent(cmd))
@@ -221,7 +221,7 @@ class WindowManagerCommon {
 	}
 	updateTitlebarHeight(){
 		let idle = this.app.main.idle.isIdle
-		if (this.inFullScreen || (idle && this.app.main.streamer.state.indexOf('video-playing') != -1)) {
+		if (this.inFullScreen || (idle && this.app.main.streamer.state.includes('video-playing'))) {
 			this.app.main.css(' :root { --menu-padding-top: 0px; } ', 'frameless-window')
 		} else {
 			this.app.main.css(' :root { --menu-padding-top: 30px; } ', 'frameless-window')

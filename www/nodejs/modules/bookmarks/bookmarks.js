@@ -26,7 +26,7 @@ class Bookmarks extends EntriesGroup {
             icon: ''
         };
         renderer.ready(() => {
-            renderer.get().on('toggle-fav', () => {
+            renderer.ui.on('toggle-fav', () => {
                 if (this.current()) {
                     this.toggle();
                 } else {
@@ -45,10 +45,10 @@ class Bookmarks extends EntriesGroup {
         })
     }
     streamFilter(e) {
-        return e.url && (!e.type || e.type == 'stream');
+        return e.url && (!e.type || e.type == 'stream')
     }
     groupFilter(e) {
-        return e.type && e.type == 'group';
+        return e.type && e.type == 'group'
     }
     async hook(entries, path) {
         if (!path) {
@@ -83,7 +83,7 @@ class Bookmarks extends EntriesGroup {
                         osd.show(lang.BOOKMARK_REMOVED.format(bookmarkable.name), 'fas fa-star-half', 'bookmarks', 'normal');
                     }
                 };
-            } else if (path.indexOf(lang.BOOKMARKS) == -1) {
+            } else if (!path.includes(lang.BOOKMARKS)) {
                 bookmarker = {
                     type: 'action',
                     fa: 'fas fa-star',
@@ -137,7 +137,7 @@ class Bookmarks extends EntriesGroup {
     }
     search(terms) {
         return new Promise((resolve, reject) => {
-            if (typeof (terms) == 'string') {
+            if (typeof(terms) == 'string') {
                 terms = listsTools.terms(terms);
             }
             this.get().forEach(e => {
@@ -294,7 +294,7 @@ class Bookmarks extends EntriesGroup {
             this.addByNameEntries3({ value: this.currentBookmarkAddingByName.icon }, 1)
             return []
         }
-        if (!this.currentBookmarkAddingByName.url || this.currentBookmarkAddingByName.url.indexOf('/') == -1) {
+        if (!this.currentBookmarkAddingByName.url || !this.currentBookmarkAddingByName.url.includes('/')) {
             let mediaType = 'all', entries = [];
             if (this.currentBookmarkAddingByName.live) {
                 mediaType = 'live';
@@ -303,7 +303,7 @@ class Bookmarks extends EntriesGroup {
             }
             this.currentBookmarkAddingByName.url = mega.build(this.currentBookmarkAddingByName.name, { mediaType });
         }
-        if (config.get('show-logos') && (!this.currentBookmarkAddingByName.icon || this.currentBookmarkAddingByName.icon.indexOf('/') == -1)) {
+        if (config.get('show-logos') && (!this.currentBookmarkAddingByName.icon || !this.currentBookmarkAddingByName.icon.includes('/'))) {
             let entries = []
             Array.from(new Set(results.map(entry => { return entry.icon; }))).slice(0, 96).forEach((logoUrl, i) => {
                 entries.push({
@@ -335,7 +335,7 @@ class Bookmarks extends EntriesGroup {
         return []            
     }
     addByNameEntries3(e, n) {
-        let backLvl = typeof (n) == 'number' ? n : 2;
+        let backLvl = typeof(n) == 'number' ? n : 2;
         this.currentBookmarkAddingByName.icon = e.value;
         this.add({
             name: this.currentBookmarkAddingByName.name,
@@ -352,17 +352,17 @@ class Bookmarks extends EntriesGroup {
     prepare(_entries) {
         var knownBMIDs = [], entries = _entries.slice(0);
         entries.forEach((bm, i) => {
-            if (typeof (bm.bookmarkId) == 'string') {
+            if (typeof(bm.bookmarkId) == 'string') {
                 bm.bookmarkId = parseInt(bm.bookmarkId);
             }
-            if (typeof (bm.bookmarkId) != 'undefined') {
+            if (typeof(bm.bookmarkId) != 'undefined') {
                 knownBMIDs.push(bm.bookmarkId);
             }
         });
         entries.forEach((bm, i) => {
-            if (typeof (bm.bookmarkId) == 'undefined') {
+            if (typeof(bm.bookmarkId) == 'undefined') {
                 var j = 1;
-                while (knownBMIDs.indexOf(j) != -1) {
+                while (knownBMIDs.includes(j)) {
                     j++;
                 }
                 knownBMIDs.push(j);
@@ -408,7 +408,7 @@ class Bookmarks extends EntriesGroup {
         let outputPath, icon = paths.cwd + '/default_icon.png';
         if (process.platform == 'win32') {
             const folder = await this.getWindowsDesktop().catch(console.error);
-            if (typeof (folder) == 'string') {
+            if (typeof(folder) == 'string') {
                 outputPath = folder;
             }
             icon = paths.cwd + '/default_icon.ico';
@@ -453,7 +453,7 @@ class Bookmarks extends EntriesGroup {
     add(entry) {
         super.add(entry);
         this.createDesktopShortcut(entry).catch(console.error);
-        global.updateUserTasks().catch(console.error);
+        this.channels.updateUserTasks().catch(console.error);
     }
 }
 export default Bookmarks;

@@ -12,32 +12,21 @@ import { basename, parseJSON } from '../utils/utils.js'
 import { getDirname } from 'cross-dirname'           
 
 const dirname = getDirname()
+const TERMINATING = new Set(['destroy', 'terminate'])
 
-/* Worker to update lists in background
-function wrapAsBase64(file){
-    // workaround, macos throws not found for local files when calling Worker
-    // TODO: maybe file:// could have solved that too
-    return String(fs.readFileSync(file))
-}
-*/
 const setupConstructor = () => {
-    const workerData = { paths };
-    workerData.paths.android = !!paths.android;
-    if (typeof (lang) != 'undefined' && typeof (lang.getTexts) == 'function') {
-        workerData.lang = lang.getTexts();
-    } else {
-        workerData.lang = {};
-    }
-    workerData.bytenode = true;
+    const workerData = { paths }
+    workerData.paths.android = !!paths.android
+    workerData.bytenode = true
     class WorkerDriver extends EventEmitter {
         constructor() {
             super();
-            this.iterator = 1;
-            this.err = null;
-            this.finished = false;
-            this.promises = {};
-            this.instances = {};
-            this.terminating = {};
+            this.iterator = 1
+            this.err = null
+            this.finished = false
+            this.promises = {}
+            this.instances = {}
+            this.terminating = {}
         }
         proxy(file) {
             //file = path.resolve(file);
@@ -48,13 +37,13 @@ const setupConstructor = () => {
             const self = this;
             const instance = new Proxy(this, {
                 get: (_, method) => {
-                    const terminating = ['destroy', 'terminate'].includes(method);
+                    const terminating = TERMINATING.has(method);
                     if (terminating) {
                         self.terminating[file] = true;
                     } else if (method in self) {
                         return self[method];
                     } else if (method == 'toJSON') {
-                        return () => JSON.stringify(null);
+                        return () => JSON.stringify(null)
                     }
                     return (...args) => {
                         return new Promise((resolve, reject) => {
@@ -103,7 +92,7 @@ const setupConstructor = () => {
         rejectAll(file, err) {
             Object.keys(this.promises).forEach(id => {
                 if (!file || this.promises[id].file == file) {
-                    const terminating = ['destroy', 'terminate'].includes(this.promises[id].method);
+                    const terminating = TERMINATING.has(this.promises[id].method);
                     if (terminating) {
                         this.promises[id].resolve()
                     } else {
@@ -115,9 +104,11 @@ const setupConstructor = () => {
             })
         }
         load(file, exclusive) {
+            if (paths.inWorker) {
+                throw 'Cannot load a worker inside another worker: ' + file +' '+ global.file
+            }
             if (this.worker) {
                 file = this.resolve(file)
-                console.error('WORKER LOAD: ', {file, exclusive, inWorker: !!paths.inWorker, exists: !!this.instances[file], instances: Object.keys(this.instances)})
                 if(exclusive !== true && this.instances[file]) {
                     return this.instances[file]
                 }
@@ -129,13 +120,20 @@ const setupConstructor = () => {
             }
         }
         bindChangeListeners() {
+            if(this.configChangeListener !== undefined) return
             this.on('config-change', data => {
-                //console.log('Config changed from worker driver', data)
-                config.reload();
+                config.removeListener('change', this.configChangeListener)
+                config.reload()
+                config.on('change', this.configChangeListener)
             });
-            this.on('storage-touch', msg => {
-                msg && storage.touch(msg.key, msg.entry, true);
-            });
+            this.on('storage-touch', async msg => {
+                if(msg) {
+                    const changed = storage.validateTouchSync(msg.key, msg.entry)
+                    if (changed && changed.length) {
+                        await storage.touch(msg.key, msg.entry).catch(console.error)
+                    }
+                }
+            })
             this.configChangeListener = () => {
                 this.worker && this.worker.postMessage({ method: 'configChange', id: 0 });
             };
@@ -150,7 +148,7 @@ const setupConstructor = () => {
             if(this.instances[file]) return file
             const b = basename(file).replace(new RegExp('\\.[a-z]*$'), '.')
             for(const iname of Object.keys(this.instances)) {
-                if(iname.indexOf(b) != -1) {
+                if(iname.includes(b)) {
                     return iname
                 }
             }
@@ -165,8 +163,6 @@ const setupConstructor = () => {
         }
         terminate() {
             this.finished = true;
-            this.configChangeListener && config.removeListener('change', this.configChangeListener);
-            this.storageTouchListener && storage.removeListener('touch', this.storageTouchListener);
             if (this.worker) {
                 setTimeout(() => {
                     const worker = this.worker
@@ -178,10 +174,12 @@ const setupConstructor = () => {
                             console.error(e)
                         }
                     }
+                    this.configChangeListener && config.removeListener('change', this.configChangeListener);
+                    this.storageTouchListener && storage.removeListener('touch', this.storageTouchListener);
+                    this.removeAllListeners()
                 }, 3000)
             }
             this.rejectAll(null, 'worker manually terminated')
-            this.removeAllListeners()
         }
     }
     class ThreadWorkerDriver extends WorkerDriver {
@@ -189,6 +187,15 @@ const setupConstructor = () => {
             super()
             //let file = paths.cwd +'/modules/multi-worker/worker.mjs'
             const file = paths.cwd +'/dist/worker.js'
+            
+            if (typeof(lang) != 'undefined' && typeof(lang.getTexts) == 'function') {
+                workerData.lang = lang.getTexts()
+            } else {
+                workerData.lang = {}
+            }
+            workerData.lang.locale = lang.locale
+            workerData.lang.countryCode = lang.countryCode
+            
             this.worker = new Worker(file, {
                 type: 'commonjs', // (file == distFile ? 'commonjs' : 'module'),
                 workerData // leave stdout/stderr undefined
@@ -202,7 +209,7 @@ const setupConstructor = () => {
                     let msg = 'Worker exited out of memory, fix the settings and restart the app.';
                     osd.show(msg, 'fas fa-exclamation-triangle faclr-red', 'out-of-memory', 'long');
                 }
-                if (typeof (err.preventDefault) == 'function') {
+                if (typeof(err.preventDefault) == 'function') {
                     err.preventDefault();
                 }
                 crashlog.save('Worker error: ', err);
@@ -211,12 +218,12 @@ const setupConstructor = () => {
             this.worker.on('exit', () => {
                 this.finished = true;
                 this.worker = null;
-                console.error('Worker exited', this.err);
+                console.error('Worker exited', this.err, Object.keys(this.instances));
                 this.rejectAll(null, this.err || 'worker exited');
             });
             this.worker.on('message', ret => {
                 if (ret.id) {
-                    if (ret.id && typeof (this.promises[ret.id]) != 'undefined') {
+                    if (ret.id && typeof(this.promises[ret.id]) != 'undefined') {
                         this.promises[ret.id][ret.type](ret.data);
                         delete this.promises[ret.id];
                     } else {
@@ -231,7 +238,7 @@ const setupConstructor = () => {
                         if (evtContent.length) {
                             evtContent = parseJSON(evtContent);
                         }
-                        if (typeof (evtContent) == 'object' && evtContent.type == 'Buffer') {
+                        if (typeof(evtContent) == 'object' && evtContent.type == 'Buffer') {
                             evtContent = Buffer.from(evtContent.data);
                         }
                         args = [evtType, evtContent];

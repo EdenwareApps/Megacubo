@@ -15,7 +15,7 @@ class StreamerNetworkProxy extends StreamerProxy {
 	}
     proxify(url){
         if(this.opts.port){
-            if(typeof(url) == 'string' && url.indexOf('//') != -1){
+            if(typeof(url) == 'string' && url.includes('//')){
                 return url.replace('http://127.0.0.1:' + this.sourcePort + '/', 'http://'+ this.addr + ':' + this.opts.port + '/')
             } else if(url.startsWith('/')) { // path url
                 return 'http://'+ this.addr + ':' + this.opts.port + url
@@ -26,7 +26,7 @@ class StreamerNetworkProxy extends StreamerProxy {
         return url
     }
     unproxify(url){
-        if(typeof(url) == 'string' && url.indexOf('//') != -1){
+        if(typeof(url) == 'string' && url.includes('//')){
             return url.replace('http://'+ this.addr + ':' + this.opts.port + '/', 'http://127.0.0.1:' + this.sourcePort + '/')
         } else if(url.startsWith('/')) { // path url
             return 'http://127.0.0.1:' + this.sourcePort + url

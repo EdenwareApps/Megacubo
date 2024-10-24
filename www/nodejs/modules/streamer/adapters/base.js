@@ -48,13 +48,13 @@ class StreamerAdapterBase extends EventEmitter {
         return this.adapters.some(a => a.isTranscoding && a.isTranscoding() === true);
     }
     setOpts(opts) {
-        if (opts && typeof (opts) == 'object') {
+        if (opts && typeof(opts) == 'object') {
             Object.keys(opts).forEach((k) => {
-                if (['debug'].indexOf(k) == -1 && typeof (opts[k]) == 'function') {
+                if (!['debug'].includes(k) && typeof(opts[k]) == 'function') {
                     this.on(k, opts[k]);
                 } else {
                     this.opts[k] = opts[k];
-                    if (typeof (this.defaults[k]) == 'undefined') {
+                    if (typeof(this.defaults[k]) == 'undefined') {
                         this.defaults[k] = opts[k];
                     }
                 }
@@ -155,7 +155,7 @@ class StreamerAdapterBase extends EventEmitter {
             if (ext.length >= 2 && ext.length <= 4)
                 return ext.toLowerCase();
         }
-        if (url.indexOf('ext=') != -1) {
+        if (url.includes('ext=')) {
             const m = url.match(this.extAsURLParam);
             if (m && m[1].length >= 2 && m[1].length <= 4)
                 return m[1].toLowerCase();
@@ -169,7 +169,7 @@ class StreamerAdapterBase extends EventEmitter {
         } else if (url.match(new RegExp('^//[^/]+\\.'))) {
             ret = 'http';
         }
-        if (ret && typeof (len) == 'number') {
+        if (ret && typeof(len) == 'number') {
             ret = ret.substr(0, len);
         }
         return ret;
@@ -196,7 +196,7 @@ class StreamerAdapterBase extends EventEmitter {
             clearTimeout(this.downloadLogCalcTimer);
         }
         let nowMs = (Date.now() / 1000), now = parseInt(nowMs);
-        if (typeof (this.downloadLogging[now]) == 'undefined') {
+        if (typeof(this.downloadLogging[now]) == 'undefined') {
             this.downloadLogging[now] = bytes;
         } else {
             this.downloadLogging[now] += bytes;
@@ -217,7 +217,7 @@ class StreamerAdapterBase extends EventEmitter {
             let windowSecs = 15, ftime = 0, since = now - windowSecs, downloaded = 0;
             ks.reverse().forEach((time, i) => {
                 let rtime = parseInt(time);
-                if (typeof (rtime) == 'number' && rtime) {
+                if (typeof(rtime) == 'number' && rtime) {
                     if (rtime >= since || i < 10) { // keep at minimum 5 to prevent currentSpeed=N/A
                         if (!ftime || ftime > rtime) {
                             ftime = rtime;
@@ -264,13 +264,13 @@ class StreamerAdapterBase extends EventEmitter {
     }
     setCallback(cb) {
         this.once('ready', () => {
-            if (typeof (cb) == 'function') {
+            if (typeof(cb) == 'function') {
                 cb(true);
                 cb = null;
             }
         });
         this.once('fail', () => {
-            if (typeof (cb) == 'function') {
+            if (typeof(cb) == 'function') {
                 cb(false);
                 cb = null;
             }

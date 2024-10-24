@@ -48,6 +48,14 @@ class ListsDiscovery extends EventEmitter {
             global.menu.addFilter(this.hook.bind(this))
         })
     }
+    getProvider(type, id) {
+        if(id) {
+            const e = this.providers.find(p => p[0].type == type && p[0].id == id)
+            if(e) return e[0]
+        }
+        const e = this.providers.find(p => p[0].type == type)
+        if(e) return e[0]
+    }
     async restore() {
         const data = await storage.get(this.key).catch(console.error);
         Array.isArray(data) && this.add(data);
@@ -62,21 +70,20 @@ class ListsDiscovery extends EventEmitter {
         this.saver.call();
     }
     register(provider, type) {
-        provider._isLoaded = false;
-        provider.type = type;
-        this.providers.push([provider, type]);
+        provider._isLoaded = false
+        this.providers.push([provider, type])
         provider.discovery(lists => this.add(lists)).catch(console.error).finally(() => {
-            provider._isLoaded = true;
-            this.emit('registered');
-        });
+            provider._isLoaded = true
+            this.emit('registered')
+        })
     }
     async update(provider, type) {
         for (const provider of this.providers) {
-            provider[0]._isLoaded = false;
+            provider[0]._isLoaded = false
             await provider[0].discovery(lists => this.add(lists)).catch(console.error).finally(() => {
-                provider[0]._isLoaded = true;
-                this.emit('registered');
-            });
+                provider[0]._isLoaded = true
+                this.emit('registered')
+            })
         }
     }
     ready() {
@@ -97,9 +104,9 @@ class ListsDiscovery extends EventEmitter {
         return this.domainCap(this.knownLists.filter(list => active[list.type]), amount)
     }
     getDomain(u) {
-        if (u && u.indexOf('//') != -1) {
+        if (u && u.includes('//')) {
             var domain = u.split('//')[1].split('/')[0];
-            if (domain == 'localhost' || domain.indexOf('.') != -1) {
+            if (domain == 'localhost' || domain.includes('.')) {
                 return domain;
             }
         }
@@ -197,13 +204,13 @@ class ListsDiscovery extends EventEmitter {
         return this.knownLists.some((list, i) => {
             if (list.url === sourceListUrl) {
                 const value = success ? 1 : 0;
-                if (typeof (list.perceivedHealthTestCount) != 'number') {
+                if (typeof(list.perceivedHealthTestCount) != 'number') {
                     list.perceivedHealthTestCount = 0;
                 }
                 if (list.perceivedHealthTestCount < (1 / this.factor)) {
                     list.perceivedHealthTestCount++;
                 }
-                if (typeof (list.perceivedHealth) == 'number' && list.perceivedHealthTestCount > 1) {
+                if (typeof(list.perceivedHealth) == 'number' && list.perceivedHealthTestCount > 1) {
                     this.knownLists[i].perceivedHealth = ((list.perceivedHealth * (list.perceivedHealthTestCount - 1)) + value) / list.perceivedHealthTestCount;
                 } else {
                     this.knownLists[i].perceivedHealth = value;
@@ -215,7 +222,7 @@ class ListsDiscovery extends EventEmitter {
     }
     averageHealth(list) {
         let health = 0, values = [list.health, list.perceivedHealth].filter(n => {
-            return typeof (n) == 'number' && n >= 0 && n <= 1;
+            return typeof(n) == 'number' && n >= 0 && n <= 1;
         });
         if (values.length) {
             values.forEach(v => health += v);
@@ -246,7 +253,7 @@ class ListsDiscovery extends EventEmitter {
                 action: (e, v) => {
                     if (v !== false && v != config.get('interests')) {
                         config.set('interests', v);
-                        renderer.get().emit('ask-restart');
+                        renderer.ui.emit('ask-restart');
                     }
                 },
                 value: () => {
@@ -262,7 +269,7 @@ class ListsDiscovery extends EventEmitter {
     async interests() {
         const badTerms = ['m3u8', 'ts', 'mp4', 'tv', 'channel'];
         let terms = [], addTerms = (tms, score) => {
-            if (typeof (score) != 'number') {
+            if (typeof(score) != 'number') {
                 score = 1;
             }
             tms.forEach(term => {

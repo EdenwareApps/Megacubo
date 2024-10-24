@@ -6,7 +6,7 @@
             {
                 "targets": {
                     "browsers": [
-                        "chrome >= 60"
+                        "chrome >= 68"
                     ]
                 },
                 "useBuiltIns": false,
@@ -23,6 +23,7 @@
             "babel-plugin-transform-modules-iife", {
                 "exportNamespace": "App"
             }
-        ]
+        ],
+        "@babel/plugin-transform-class-properties"
     ]
 }

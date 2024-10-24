@@ -55,10 +55,10 @@ class Fetcher extends EventEmitter {
         }
     }
     validateCache(content) {
-        return typeof (content) == 'string' && content.length >= this.minDataLength;
+        return typeof(content) == 'string' && content.length >= this.minDataLength;
     }
     isLocal(file) {
-        if (typeof (file) != 'string') {
+        if (typeof(file) != 'string') {
             return;
         }
         let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'));
@@ -80,7 +80,7 @@ class Fetcher extends EventEmitter {
     }
     async meta() {
         await this.ready();
-        return this.list.index.meta || {};
+        return this.list.db.index.meta || {};
     }
     destroy() {
         this.list && this.list.destroy();
@@ -107,7 +107,7 @@ class Common extends EventEmitter {
         this.parentalControl = new ParentalControl()
     }
     validateType(e, type, strict) {
-        if (typeof (type) == 'string' && type) {
+        if (typeof(type) == 'string' && type) {
             switch (type) {
                 case 'live':
                     if (strict) {
@@ -138,19 +138,19 @@ class Common extends EventEmitter {
         return true;
     }
     prepareEntry(e) {
-        if (typeof (e._) == 'undefined' && typeof (e.terms) == 'undefined') {
+        if (typeof(e._) == 'undefined' && typeof(e.terms) == 'undefined') {
             e.terms = {
                 name: this.tools.terms(e.name),
                 group: this.tools.terms(e.group || '')
-            };
+            }
         }
-        return e;
+        return e
     }
     prepareEntries(es) {
-        return es.map(this.prepareEntry.bind(this));
+        return es.map(this.prepareEntry.bind(this))
     }
     listMetaKey(url) {
-        return this.listMetaKeyPrefix + url;
+        return this.listMetaKeyPrefix + url
     }
     async getListMeta(url) {
         let haserr, meta = await storage.get(this.listMetaKey(url)).catch(err => {
@@ -163,7 +163,7 @@ class Common extends EventEmitter {
         return meta
     }
     async setListMeta(url, newMeta) {
-        if (newMeta && typeof (newMeta) == 'object') {
+        if (newMeta && typeof(newMeta) == 'object') {
             let changed, meta = await this.getListMeta(url);
             Object.keys(newMeta).forEach(k => {
                 if (newMeta[k] && meta[k] !== newMeta[k]) {
@@ -191,7 +191,7 @@ class Common extends EventEmitter {
         await this.setListMeta(url, meta);
     }
     isLocal(file) {
-        if (typeof (file) != 'string') {
+        if (typeof(file) != 'string') {
             return
         }
         let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'));

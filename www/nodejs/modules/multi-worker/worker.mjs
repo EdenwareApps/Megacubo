@@ -1,11 +1,10 @@
 import '../utils/utils.js'
 import utilsSetup from './utils.js'
+import config from '../config/config.js'
 import storage from '../storage/storage.js'
 import crashlog from '../crashlog/crashlog.js'
-import config from "../config/config.js"
 import { getFilename } from 'cross-dirname'  
 import { createRequire } from 'module'
-import fs from 'fs'
 import path from 'path'
 import 'bytenode'
 
@@ -13,6 +12,10 @@ const { logErr, parentPort, loadGlobalVars } = utilsSetup(getFilename())
 const require = createRequire(getFilename())
 
 loadGlobalVars()
+
+global.config = config
+global.storage = storage
+global.crashlog = crashlog
 
 process.on('warning', e => console.warn(e, e.stack))
 process.on('unhandledRejection', (reason, promise) => {
@@ -29,51 +32,53 @@ process.on('uncaughtException', (exception) => {
     return false
 })
 
-config.on('change', () => {
-    parentPort.postMessage({id: 0, type: 'event', data: 'config-change'})
-})
-storage.on('touch', (key, entry) => {
+const touchListener = (key, entry) => {
     parentPort.postMessage({id: 0, type: 'event', data: 'storage-touch:'+ JSON.stringify({key, entry})})
-})
+}
+const changeListener = () => {
+    parentPort.postMessage({id: 0, type: 'event', data: 'config-change'})
+}
+config.on('change', changeListener)
+storage.on('touch', touchListener)
 
 const drivers = {}
 parentPort.on('message', msg => {
-    try {
     if(msg.method == 'configChange'){
-        // delay for some seconds, the config file may delay on writing
-        setTimeout(() => config.reload(), 1000)
+        config.removeListener('change', changeListener)
+        config.reload(msg.args)
+        config.on('change', changeListener)
     } else if(msg.method == 'storageTouch'){
-        storage.touch(msg.key, msg.entry, true)
+        const changed = storage.validateTouchSync(msg.key, msg.entry)
+        if (changed && changed.length) {
+            storage.touch(msg.key, msg.entry, true).catch(console.error)
+        }
     } else if(msg.method == 'loadWorker') {
-        const distFile = paths.cwd +'/dist/'+ path.basename(msg.file).replace(new RegExp('\\.m?js$'), '.js')
-        if(fs.existsSync(distFile)) {
+        if(!drivers[msg.file]) {
+            const distFile = paths.cwd +'/dist/'+ path.basename(msg.file).replace(new RegExp('\\.m?js$'), '.js')
             try {
                 const Driver = require(distFile)
                 drivers[msg.file] = new Driver()
-                console.error("::::::::::: DRIVER LOADED "+ msg.file +" - "+ Object.keys(drivers[msg.file]).join(','))
+                if(typeof(drivers[msg.file].terminate) != 'function') {
+                    console.error('Warning: worker '+ msg.file +' has no terminate() method.')
+                }
             } catch(e) {
-                console.error("::::::::::: DRIVER NOT LOADED "+ msg.file +" - "+ e)
+                console.error("!! DRIVER NOT LOADED "+ msg.file, e)
             }
-            if(typeof(drivers[msg.file].terminate) != 'function') {
-                console.error('Warning: worker '+ msg.file +' has no terminate() method.')
-            }
-        } else { // for now nodejs is problematic with ES6 + worker_threads + import()
-            console.error("::::::::::: DRIVER LOAD ERROR, FILE NOT FOUND: "+ distFile)
         }
+    } else if(msg.method == 'memoryUsage'){
+        const data = {id: msg.id, type: 'resolve', data: process.memoryUsage()}
+        parentPort.postMessage(data)
     } else if(!drivers[msg.file]) {
-        let data
-        data = {id: msg.id, type: 'reject', data: 'worker not found '+ JSON.stringify(msg) +', drivers: '+ Object.keys(drivers).join('|')}
+        const data = {id: msg.id, type: 'reject', data: 'worker not found '+ JSON.stringify(msg) +', drivers: '+ Object.keys(drivers).join('|')}
         parentPort.postMessage(data)
     } else if(typeof(drivers[msg.file][msg.method]) == 'undefined'){
-        let data
-        data = {id: msg.id, type: 'reject', data: 'method not exists '+ JSON.stringify(msg)}
+        const data = {id: msg.id, type: 'reject', data: 'method not exists '+ JSON.stringify(msg)}
         parentPort.postMessage(data)
     } else {
         let type, data = null
         const promise = drivers[msg.file][msg.method].apply(drivers[msg.file], msg.args)
         if(!promise || typeof(promise.then) == 'undefined'){
-            data = {id: -1, type: 'event', data: 'error: Not a promise ('+ msg.method +').'}
-            return parentPort.postMessage(data)
+            return parentPort.postMessage({id: -1, type: 'event', data: 'error: Not a promise ('+ msg.method +').'})
         }
         promise.then(ret => {
             type = 'resolve'
@@ -83,11 +88,12 @@ parentPort.on('message', msg => {
             data = err
         }).finally(() => {
             data = {id: msg.id, type, data}
-            parentPort.postMessage(data)
+            try {
+                parentPort.postMessage(data)
+            } catch(e) {
+                console.error('Error on postMessage:', msg.file, msg.method, type, e)
+            }
         })
     }
-} catch(e) {
-    console.error(e)
-}
 })
 

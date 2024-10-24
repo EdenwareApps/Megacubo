@@ -1,13 +1,12 @@
-import ListIndexUtils from "./list-index-utils.js";
 import fs from "fs";
-import { parseJSON } from '../utils/utils.js'
+import ListIndexUtils from "./list-index-utils.js";
+import { Database } from "jexidb"
 
 class ListIndex extends ListIndexUtils {
     constructor(file, url) {
         super();
-        this.url = url;
-        this.file = file;
-        this.indexateIterator = 0;
+        this.url = url
+        this.file = file
     }
     fail(err) {
         this.hasFailed = err;
@@ -17,63 +16,44 @@ class ListIndex extends ListIndexUtils {
         this.emit('end');
     }
     async entries(map) {
-        map && map.sort();
-        let lines = await this.readLines(map);
-        let entries, ids = Object.keys(lines);
-        try {
-            entries = parseJSON('[' + Object.values(lines).join(',') + ']'); // remove undefineds too
-        }
-        catch (e) {}
-        if (!Array.isArray(entries)) {
-            console.error('Failed to get lines', this.file);
-            throw 'failed to get lines';
-        }
-        if (entries.length) {
-            let last = entries.length - 1;
-            if (entries[last].length) { // remove index entry
-                entries.splice(last, 1);
-            }
-            entries.forEach((s, i) => {
-                entries[i]._ = parseInt(ids[i]);
-                if (!entries[i].source) {
-                    entries[i].source = this.url;
-                }
-            });
-        }
-        return entries;
+        await this.ready()
+        await this.db.ready()
+        if(!map) map = Array.from({length: this.db.length}, (_, i) => i)
+        return await this.db.query(map)
     }
     async getMap(map) {
-        const lines = await this.readLines(map);
-        const entries = Object.keys(lines).map((_, i) => {
-            const e = JSON.parse(lines[_]);
-            return e && e.name ? { group: e.group, name: e.name, _: parseInt(_) } : false;
-        }).filter(s => s);
-        if (entries.length) {
-            let last = entries.length - 1;
-            if (entries[last].length) { // remove index entry
-                entries.splice(last, 1);
-            }
-            if (entries.length) {
-                entries[0].source = this.url;
+        await this.ready()
+        const entries = []
+        for await (const e of this.db.walk(map)) {
+            if(e && e.name) {
+                entries.push({
+                    group: e.group,
+                    name: e.name,
+                    _: e._
+                })
             }
         }
-        return entries;
+        if (entries.length) {
+            entries[0].source = this.url
+        }
+        return entries
     }
     async expandMap(structure) {
-        const map = [], tbl = {}, ntypes = ['string', 'number'];
+        const map = [], tbl = {}, ntypes = ['string', 'number']
         for (let i in structure) {
-            const t = typeof (structure[i]._);
+            const t = typeof(structure[i]._)
             if (ntypes.includes(t) && !structure[i].url) {
                 if (t != 'number') {
-                    structure[i]._ = parseInt(structure[i]._);
+                    structure[i]._ = parseInt(structure[i]._)
                 }
-                tbl[structure[i]._] = i;
-                map.push(structure[i]._);
+                tbl[structure[i]._] = i
+                map.push(structure[i]._)
             }
         }
         if (map.length) {
-            map.sort();
-            const xs = await this.entries(map);
+            map.sort()
+            await this.ready()
+            const xs = await this.entries(map)
             for (let x = 0; x < xs.length; x++) {
                 let i = tbl[xs[x]._];
                 Object.assign(structure[i], xs[x]);
@@ -82,28 +62,65 @@ class ListIndex extends ListIndexUtils {
         }
         return structure;
     }
-    start() {
-        fs.stat(this.file, (err, stat) => {
-            if (this.debug) {
-                console.log('loadCache', this.url, stat);
+    async start() {
+        let err
+        const stat = await fs.promises.stat(this.file).catch(e => err = e)
+        if (stat && stat.size) {
+            if(!this.db) {
+                this.db = new Database(this.file, {
+                    index: {
+                        length: 0,
+                        uniqueStreamsLength: 0,
+                        terms: {},
+                        groups: {},
+                        meta: {},
+                        gids: {}
+                    },
+                    v8: false,
+                    compressIndex: false
+                })
             }
-            if (stat && stat.size) {
-                this.readIndex().then(index => {
-                    this.emit('data', index);
-                    this.emit('end');
-                }).catch(err => this.fail(err));
-            } else {
-                this.fail('file not found or empty ' + this.file + ' ' + err);
+            const ret = await this.db.init()
+            this.isReady = true
+            this.emit('ready')
+            return ret
+        } else {
+            throw 'file not found or empty ' + this.file + ' ' + err
+        }
+    }
+    async ready() {
+        if(this.isReady) return
+        await new Promise(resolve => {
+            const clear = () => {
+                this.removeListener('ready', resolveListener)
+                this.removeListener('destroy', rejectListener)
             }
-        });
+            const resolveListener = () => {
+                clear()
+                resolve()
+            }
+            const rejectListener = () => {
+                clear()
+                reject('destroyed')
+            }
+            this.once('ready', resolveListener)
+            this.once('destroy', rejectListener)            
+        })
     }
     destroy() {
         if (!this.destroyed) {
-            this.destroyed = true;
-            this.emit('destroy');
-            this.removeAllListeners();
-            this._log = [];
+            this.destroyed = true
+            this.emit('destroy')
+            this.removeAllListeners()
+            this.db && this.db.destroy()
+            this._log = []
         }
+    }
+    get index() {
+        return (this.db && !this.db.destroyed) ? this.db.index : {}
+    }
+    get length() {
+        return (this.db && !this.db.destroyed) ? this.db.length : 0
     }
 }
 export default ListIndex;

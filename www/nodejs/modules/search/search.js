@@ -99,7 +99,7 @@ class Search extends EventEmitter {
             mediaType = 'all';
         }
         console.log('search-start', value);
-        renderer.get().emit('set-loading', { name: lang.SEARCH }, true, lang.SEARCHING);
+        global.menu.setLoading(true)
         osd.show(lang.SEARCHING, 'fas fa-search spin-x-alt', 'search', 'persistent');
         this.searchMediaType = mediaType;
         let err;
@@ -120,8 +120,8 @@ class Search extends EventEmitter {
         } else {
             menu.displayErr(err);
         }
-        renderer.get().emit('set-loading', { name: lang.SEARCH }, false);
-        this.history.add(value);
+        global.menu.setLoading(false)
+        this.history.add(value)
     }
     refresh() {
         if (this.currentSearch) {
@@ -130,7 +130,7 @@ class Search extends EventEmitter {
     }
     mediaTypeName() {
         let type = String(this.searchMediaType).toUpperCase();
-        if (typeof (lang[type]) == 'string') {
+        if (typeof(lang[type]) == 'string') {
             type = lang[type];
         }
         return type;
@@ -185,9 +185,9 @@ class Search extends EventEmitter {
         
         const es = await this.search(terms, { groupsOnly: true });
         es.forEach(e => {
-            if (typeof (map[e.source]) == 'undefined')
+            if (typeof(map[e.source]) == 'undefined')
                 map[e.source] = {};
-            if (typeof (map[e.source][e.groupName]) == 'undefined')
+            if (typeof(map[e.source][e.groupName]) == 'undefined')
                 map[e.source][e.groupName] = {};
         });
         Object.keys(map).forEach(url => {
@@ -246,7 +246,7 @@ class Search extends EventEmitter {
         };
         
         const es = await this.search(terms);
-        renderer.get().emit('current-search', terms, this.searchMediaType);
+        renderer.ui.emit('current-search', terms, this.searchMediaType);
         if (!lists.loaded(true)) {
             if (paths.ALLOW_ADDING_LISTS) {
                 return [lists.manager.noListsEntry()];
@@ -368,7 +368,7 @@ class Search extends EventEmitter {
         let term = false;
         if (es.length) {
             es.forEach(t => {
-                if (nlc.indexOf(t.search_term) != -1) {
+                if (nlc.includes(t.search_term)) {
                     if (!term || (precision ? term.length < t.search_term.length : term.length > t.search_term.length)) {
                         term = t.search_term;
                     }
@@ -406,7 +406,7 @@ class Search extends EventEmitter {
                     if (ignoreKeywords.has(row.search_term))
                         return;
                     let count = parseInt(row.cnt);
-                    if (typeof (ret[row.search_term]) != 'undefined')
+                    if (typeof(ret[row.search_term]) != 'undefined')
                         count += ret[row.search_term];
                     ret[row.search_term] = count;
                 });
@@ -430,13 +430,13 @@ class Search extends EventEmitter {
         return ret;
     }
     removeSearchSuggestionsCheckNames(a, b) {
-        return (a != b && (a.substr(b.length * -1) == b || (a.indexOf(b) != -1 && a.length <= (b.length + 3))));
+        return (a != b && (a.substr(b.length * -1) == b || (a.includes(b) && a.length <= (b.length + 3))));
     }
     removeSearchSuggestionsGetAliases(o) {
         let aliases = {};
         if (o.length) {
             let s = o.slice(0);
-            if (typeof (s[0]) == 'object') {
+            if (typeof(s[0]) == 'object') {
                 s = s.map(t => {
                     return t.search_term;
                 });
@@ -444,7 +444,7 @@ class Search extends EventEmitter {
             s.forEach((k, i) => {
                 s.forEach(t => {
                     if (this.removeSearchSuggestionsCheckNames(t, k)) {
-                        if (typeof (aliases[k]) == 'undefined') {
+                        if (typeof(aliases[k]) == 'undefined') {
                             aliases[k] = [];
                         }
                         aliases[k].push(t);
@@ -460,7 +460,7 @@ class Search extends EventEmitter {
             s = s.filter(v => {
                 let keep = true;
                 Object.keys(aliases).some(k => {
-                    if (aliases[k].indexOf(v) != -1) {
+                    if (aliases[k].includes(v)) {
                         keep = false;
                         return true;
                     }
@@ -475,11 +475,11 @@ class Search extends EventEmitter {
             let aliases = this.removeSearchSuggestionsGetAliases(s), cnts = {};
             s = s.filter((o, i) => {
                 let keep = true;
-                if (typeof (o.cnt) != 'number') {
+                if (typeof(o.cnt) != 'number') {
                     o.cnt = parseInt(o.cnt);
                 }
                 Object.keys(aliases).some(k => {
-                    if (aliases[k].indexOf(o.search_term) != -1) {
+                    if (aliases[k].includes(o.search_term)) {
                         let rem = s.some((t, j) => {
                             if (t.search_term == k) {
                                 s[j].cnt = parseInt(s[j].cnt) + o.cnt;

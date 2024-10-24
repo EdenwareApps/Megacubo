@@ -137,7 +137,7 @@ class ParentalControl extends EventEmitter {
         }
     }
     setTerms(terms) {
-        if (typeof (terms) == 'string') {
+        if (typeof(terms) == 'string') {
             this.terms = this.keywords(terms);
         } else if (!Array.isArray(terms)) {
             console.error('Bad terms format', terms);
@@ -170,7 +170,7 @@ class ParentalControl extends EventEmitter {
         return this.termsRegex ? stack.match(this.termsRegex) : false;
     }
     allow(entry) {
-        if (typeof (entry) == 'string') {
+        if (typeof(entry) == 'string') {
             return !this.has(entry);
         }
         if (entry.type && !['group', 'stream'].includes(entry.type)) {
@@ -257,7 +257,7 @@ class ParentalControl extends EventEmitter {
         ], 'parental-control', true);
     }
     protect(e) {
-        if (e.class && e.class.indexOf('parental-control-protected') != -1) {
+        if (e.class && e.class.includes('parental-control-protected')) {
             return e;
         }
         const action = async () => {
@@ -272,8 +272,8 @@ class ParentalControl extends EventEmitter {
     only(entries) {
         if (entries.length) {
             entries = entries.filter(e => {
-                if (typeof (e) != 'string' && e.type) {
-                    if (!e.class || e.class.indexOf('entry-meta-stream') == -1) {
+                if (typeof(e) != 'string' && e.type) {
+                    if (!e.class || !e.class.includes('entry-meta-stream')) {
                         if (!['group', 'stream'].includes(e.type)) {
                             return true;
                         }

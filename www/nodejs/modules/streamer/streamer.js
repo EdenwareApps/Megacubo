@@ -9,31 +9,18 @@ import listsTools from "../lists/tools.js"
 import config from "../config/config.js"
 import paths from '../paths/paths.js'
 import Limiter from '../limiter/limiter.js'
-import { deepClone, kbsfmt, ucWords, validateURL } from '../utils/utils.js';
-
-const SYNC_BYTE = 0x47
-const PACKET_SIZE = 188
+import { clone, getDomain, kbsfmt, ucWords, validateURL } from '../utils/utils.js';
 
 class StreamerAbout extends StreamerBase {
     constructor(opts) {
-        super(opts);
+        super(opts)
         if (!this.opts.shadow) {
             this.aboutEntries = []
             this.moreAboutEntries = []
-            const aboutTitleRenderer = (data, short) => {
-                let text;
-                if (this.active.mediaType == 'live' || !data.groupName) {
-                    text = data.name;
-                } else {
-                    text = '<div style="display: flex;flex-direction: row;"><span style="opacity: 0.5;display: inline;">' + data.groupName + '&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;</span>' + data.name + '</div>';
-                }
-                return { template: 'question', text, fa: 'fas fa-info-circle' };
-            };
-            this.aboutRegisterEntry('title', aboutTitleRenderer);
-            this.aboutRegisterEntry('title', aboutTitleRenderer, null, null, true);
+            this.aboutRegisterEntry('title', this.aboutTitleRenderer.bind(this));
+            this.aboutRegisterEntry('title', this.aboutTitleRenderer.bind(this), null, null, true);
             this.aboutRegisterEntry('text', (data, short) => {
-                if (!short)
-                    return { template: 'message', text: this.aboutText() };
+                if (!short) return { template: 'message', text: this.aboutText() }
             });
             this.aboutRegisterEntry('ok', () => {
                 return { template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle' };
@@ -69,32 +56,43 @@ class StreamerAbout extends StreamerBase {
                 return { template: 'option', fa: 'fas fa-comments', text: global.lang.SELECT_SUBTITLE +': '+ length, id: 'subtitletracks' };
             }, this.showSubtitleTrackSelector.bind(this), null, true);
             this.aboutRegisterEntry('streamInfo', () => {
-                if (this.active && this.active.data.url.indexOf('://') != -1) {
+                if (this.active && this.active.data.url.includes('://')) {
                     return { template: 'option', fa: 'fas fa-info-circle', text: global.lang.KNOW_MORE, id: 'streamInfo' };
                 }
             }, this.showStreamInfo.bind(this), 99, true);
-            renderer.get().on('streamer-update-streamer-info', async () => {
+            renderer.ui.on('streamer-update-streamer-info', async () => {
                 if (this.active) {
-                    let opts = await this.aboutStructure(true);
-                    let msgs = opts.filter(o => ['question', 'message'].includes(o.template)).map(o => o.text);
+                    const opts = await this.aboutStructure(true)
+                    const msgs = opts.filter(o => ['question', 'message'].includes(o.template)).map(o => o.text).join('<br />')
                     // msgs[1] = msgs[1].split('<i')[0].replace(new RegExp('<[^>]*>', 'g'), '')
-                    renderer.get().emit('streamer-info', msgs.join('<br />'));
+                    if(this.latestStreamerInfo !== msgs) {
+                        this.latestStreamerInfo = msgs
+                        renderer.ui.emit('streamer-info', msgs)
+                    }
                 }
-            });
+            })
         }
     }
+    aboutTitleRenderer(data, short) {
+        let text
+        if (this.active.mediaType == 'live' || !data.groupName) {
+            text = data.name
+        } else {
+            text = '<div style="display: flex;flex-direction: row;"><span style="opacity: 0.5;display: inline;">' + data.groupName + '&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;</span>' + data.name + '</div>'
+        }
+        return { template: 'question', text, fa: 'fas fa-info-circle' }
+    }
     async showStreamInfo() {
-        if (!this.active)
-            return;
+        if (!this.active) return
         let countryCode, country = 'Unknown'
         const { manager } = lists;
         try {
-            const domain = Download.getDomain(this.active.data.url);
-            const addr = await Download.stream.lookup.lookup(domain, {});
-            countryCode = await cloud.getCountry(addr).catch(e => global.menu.displayErr(e));
+            const domain = getDomain(this.active.data.url)
+            const addr = await Download.stream.lookup.lookup(domain, {})
+            countryCode = await cloud.getCountry(addr).catch(e => global.menu.displayErr(e))
             country = global.lang.countries.getCountryName(countryCode, global.lang.locale)
         } catch(e) {}
-        const source = this.active.data.source ? (await manager.name(this.active.data.source)) : 'N/A';
+        const source = this.active.data.source ? (await manager.name(this.active.data.source)) : 'N/A'
         const text = 'Broadcast server country: ' + (country || countryCode) + "\r\n" +
             'Source list: ' + source;
         const opts = [
@@ -108,9 +106,9 @@ class StreamerAbout extends StreamerBase {
         if (!this.active)
             return;
         if (ret == 'copy-stream') {
-            renderer.get().emit('clipboard-write', this.active.data.url, global.lang.COPIED_URL);
+            renderer.ui.emit('clipboard-write', this.active.data.url, global.lang.COPIED_URL)
         } else if (ret == 'copy-list') {
-            renderer.get().emit('clipboard-write', this.active.data.source || 'no list', global.lang.COPIED_URL);
+            renderer.ui.emit('clipboard-write', this.active.data.source || 'no list', global.lang.COPIED_URL)
         }
     }
     aboutRegisterEntry(id, renderer, action, position, more) {
@@ -119,7 +117,7 @@ class StreamerAbout extends StreamerBase {
         let e = { id, renderer, action };
         let k = more ? 'moreAboutEntries' : 'aboutEntries';
         if (this[k]) {
-            if (typeof (position) == 'number' && position < this[k].length) {
+            if (typeof(position) == 'number' && position < this[k].length) {
                 this[k].splice(position, 0, e);
             } else {
                 this[k].push(e);
@@ -142,50 +140,50 @@ class StreamerAbout extends StreamerBase {
         return found;
     }
     async aboutStructure(short) {
-        const benchmarks = {};
-        const results = await Promise.allSettled(this.aboutEntries.map(async (o) => {
-            benchmarks[o.id] = (Date.now() / 1000);
-            const ret = await o.renderer(this.active.data, short);
-            benchmarks[o.id] = (Date.now() / 1000) - benchmarks[o.id];
-            return ret;
-        }));
-        let ret = [], textPos = -1, titlePos = -1;
+        const benchmarks = {}
+        const results = await Promise.allSettled(this.aboutEntries.map(async o => {
+            //benchmarks[o.id] = (Date.now() / 1000)
+            const ret = await o.renderer(this.active.data, short)
+            //benchmarks[o.id] = (Date.now() / 1000) - benchmarks[o.id]
+            return ret
+        }))
+        let ret = [], textPos = -1, titlePos = -1
         results.forEach(r => {
             if (r.status == 'fulfilled' && r.value) {
                 if (Array.isArray(r.value)) {
-                    ret.push(...r.value);
+                    ret.push(...r.value)
                 } else if (r.value) {
-                    ret.push(r.value);
+                    ret.push(r.value)
                 }
             }
-        });
+        })
         ret = ret.filter((r, i) => {
             if (r.template == 'question') {
                 if (titlePos == -1) {
-                    titlePos = i;
+                    titlePos = i
                 } else {
-                    ret[titlePos].text += ' &middot; ' + r.text;
-                    return false;
+                    ret[titlePos].text += ' &middot; ' + r.text
+                    return false
                 }
             }
             if (r.template == 'message') {
                 if (textPos == -1) {
-                    textPos = i;
+                    textPos = i
                 } else {
-                    ret[textPos].text += ' ' + r.text;
-                    return false;
+                    ret[textPos].text += ' ' + r.text
+                    return false
                 }
             }
-            return true;
-        });
+            return true
+        })
         ret.some((r, i) => {
             if (r.template == 'message') {
                 // ret[i].text = '<div>'+ r.text +' '+ Object.keys(benchmarks).map(id => id +': '+ parseFloat(benchmarks[id]).toFixed(1)).join(', ') +'</div>'
                 ret[i].text = '<div>' + r.text + '</div>';
                 return true;
             }
-        });
-        return ret;
+        })
+        return ret
     }
     moreAboutStructure() {
         return new Promise((resolve, reject) => {
@@ -314,7 +312,7 @@ class StreamerAbout extends StreamerBase {
         if (this.active && this.active.data) {
             this.aboutEntries.concat(this.moreAboutEntries).some(o => {
                 if (o.id && o.id == chosen) {
-                    if (typeof (o.action) == 'function') {
+                    if (typeof(o.action) == 'function') {
                         const ret = o.action(this.active.data);
                         ret && ret.catch && ret.catch(e => global.menu.displayErr(e));
                     }
@@ -330,10 +328,10 @@ class StreamerSpeedo extends StreamerAbout {
         super(opts);
         this.downlink = 0;
         if (!this.opts.shadow) {
-            renderer.get().on('downlink', downlink => this.downlink = downlink);
+            renderer.ui.on('downlink', downlink => this.downlink = downlink);
             this.on('commit', this.startSpeedo.bind(this));
             this.on('uncommit', this.endSpeedo.bind(this));
-            this.on('speed', speed => renderer.get().emit('streamer-speed', speed));
+            this.on('speed', speed => renderer.ui.emit('streamer-speed', speed));
             this.speedoSpeedListener = speed => this.emit('speed', speed);
         }
     }
@@ -364,15 +362,15 @@ class StreamerGoNext extends StreamerSpeedo {
     constructor(opts) {
         super(opts);
         if (!this.opts.shadow) {
-            renderer.get().on('video-ended', () => {
+            renderer.ui.on('video-ended', () => {
                 if (this.active && this.active.mediaType == 'video') {
                     this.goNext().catch(e => global.menu.displayErr(e));
                 }
             });
-            renderer.get().on('video-resumed', () => this.cancelGoNext());
-            renderer.get().on('stop', () => this.cancelGoNext());
-            renderer.get().on('go-prev', () => this.goPrev().catch(e => global.menu.displayErr(e)));
-            renderer.get().on('go-next', () => this.goNext(true).catch(e => global.menu.displayErr(e)));
+            renderer.ui.on('video-resumed', () => this.cancelGoNext());
+            renderer.ui.on('stop', () => this.cancelGoNext());
+            renderer.ui.on('go-prev', () => this.goPrev().catch(e => global.menu.displayErr(e)));
+            renderer.ui.on('go-next', () => this.goNext(true).catch(e => global.menu.displayErr(e)));
             this.on('pre-play-entry', e => this.saveQueue(e).catch(e => global.menu.displayErr(e)));
             this.on('streamer-connect', () => this.goNextButtonVisibility().catch(e => global.menu.displayErr(e)));
             process.nextTick(() => {
@@ -455,7 +453,7 @@ class StreamerGoNext extends StreamerSpeedo {
     }
     async goNextButtonVisibility() {
         const next = await this.getNext();
-        renderer.get().emit('enable-player-button', 'next', !!next);
+        renderer.ui.emit('enable-player-button', 'next', !!next);
     }
     async goPrev() {
         let offset = 0;
@@ -558,41 +556,51 @@ class Streamer extends StreamerGoNext {
             }, 10000, true)
             renderer.ready(async () => {
                 global.menu.on('open', path => {
-                    if (this.tuning && path.indexOf(global.lang.STREAMS) != -1) {
+                    if (this.tuning && path.includes(global.lang.STREAMS)) {
                         this.tuning.destroy()
                         this.tuning = null
                     }
                 })
             })
-            renderer.get().on('streamer-duration', duration => {
+            renderer.ui.on('streamer-duration', duration => {
                 if (this.active && this.active.mediaType == 'video' && this.active.type != 'vodhls' && this.active.info.contentLength) {
                     const bitrate = (this.active.info.contentLength / duration) * 8;
                     if (bitrate > 0) {
                         this.active.emit('bitrate', bitrate);
                         this.active.bitrate = bitrate;
-                        renderer.get().emit('streamer-bitrate', bitrate);
+                        renderer.ui.emit('streamer-bitrate', bitrate);
                     }
                 }
-            });
-            renderer.get().on('streamer-seek-failure', () => this.mpegtsSeekingFix.call())
+            })
+            renderer.ui.on('streamer-seek-failure', () => this.mpegtsSeekingFix.call())
         }
     }
-    async askExternalPlayer() {
-        if (!this.active || paths.android)
-            return;
-        const url = this.active.data.url;
+    async askExternalPlayer(codecData) {
+        if (!this.active || paths.android) return
+        const url = this.active.data.url
+        const text = Object.keys(codecData).map(k => ucWords(k) +': '+ codecData[k]).join('<br />')
         const chosen = await global.menu.dialog([
             { template: 'question', text: global.lang.OPEN_EXTERNAL_PLAYER_ASK, fa: 'fas fa-play' },
+            { template: 'message', text },
             { template: 'option', text: global.lang.YES, id: 'yes', fa: 'fas fa-check-circle' },
-            { template: 'option', text: global.lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle' }
-        ], 'yes');
+            { template: 'option', text: global.lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle' },
+            { template: 'option', text: global.lang.RETRY, id: 'retry', fa: 'fas fa-redo' },
+            { template: 'option', text: global.lang.TRANSCODE, id: 'transcode', fa: 'fas fa-cogs' }
+        ], 'yes')
         if (chosen == 'yes') {
-            renderer.get().emit('external-player', url);
-            return true;
+            renderer.ui.emit('external-player', url)
+            return true
+        } else if (chosen == 'transcode') {
+            if (!this.active) return true // already addressed
+            if (this.active.isTranscoding()) return true
+            return await new Promise(resolve => this.transcode(null, err => resolve(!err))) // transcode(intent, _cb, silent)
+        } else if (chosen == 'retry') {
+            streamer.reload()
+            return true
         }
     }
     async pingSource(url) {
-        if (typeof (this._streamerPingSourceTTLs) == 'undefined') { // using global here to make it unique between any tuning and streamer
+        if (typeof(this._streamerPingSourceTTLs) == 'undefined') { // using global here to make it unique between any tuning and streamer
             this._streamerPingSourceTTLs = {};
         }
         if (validateURL(url) && !url.match(new RegExp('#(xtr|mag)'))) {
@@ -608,7 +616,7 @@ class Streamer extends StreamerGoNext {
                     receiveLimit: 1,
                     followRedirect: true
                 }).catch(r => err = r);
-                if (typeof (err) != 'undefined') {
+                if (typeof(err) != 'undefined') {
                     console.warn('pingSource error?: ' + String(err));
                 } else {
                     console.log('pingSource: ok');
@@ -659,7 +667,7 @@ class Streamer extends StreamerGoNext {
                 });
                 intent.on('bitrate', bitrate => {
                     if (intent == this.active) {
-                        renderer.get().emit('streamer-bitrate', bitrate);
+                        renderer.ui.emit('streamer-bitrate', bitrate);
                     }
                 });
                 intent.on('type-mismatch', () => this.typeMismatchCheck());
@@ -672,16 +680,15 @@ class Streamer extends StreamerGoNext {
                 });
                 intent.on('codecData', async (codecData) => {
                     if (codecData && intent == this.active) {
-                        renderer.get().emit('codecData', codecData);
+                        renderer.ui.emit('codecData', codecData);
                     }
                     if (!paths.android && !this.opts.shadow && !intent.isTranscoding()) {
                         if (codecData.video && codecData.video.match(new RegExp('(mpeg2video|mpeg4)')) && intent.opts.videoCodec != 'libx264') {
-                            const openedExternal = await this.askExternalPlayer().catch(console.error);
+                            const openedExternal = await this.askExternalPlayer(codecData).catch(console.error);
                             if (openedExternal !== true) {
                                 if ((!this.tuning && !this.zap.isZapping) || config.get('transcoding-tuning')) {
                                     this.transcode(null, err => {
-                                        if (err)
-                                            intent.fail('unsupported format')
+                                        if (err) intent.fail('unsupported format')
                                     })
                                 } else {
                                     return intent.fail('unsupported format')
@@ -719,10 +726,10 @@ class Streamer extends StreamerGoNext {
         } else {
             data.icon = global.icons.url + global.channels.entryTerms(data).join(',');
         }
-        intent.on('outside-of-live-window', () => renderer.get().emit('outside-of-live-window'));
+        intent.on('outside-of-live-window', () => renderer.ui.emit('outside-of-live-window'));
         this.emit('streamer-connect', intent.endpoint, intent.mimetype, data);
         if (!skipTranscodingCheck && intent.transcoderStarting) {
-            renderer.get().emit('streamer-connect-suspend');
+            renderer.ui.emit('streamer-connect-suspend');
             if (!this.opts.shadow) {
                 global.osd && global.osd.hide('streamer');
             }
@@ -732,7 +739,7 @@ class Streamer extends StreamerGoNext {
     transcode(intent, _cb, silent) {
         let transcoding = config.get('transcoding');
         let cb = (err, transcoder) => {
-            if (typeof (_cb) == 'function') {
+            if (typeof(_cb) == 'function') {
                 _cb(err, transcoder);
                 _cb = null;
             }
@@ -753,28 +760,31 @@ class Streamer extends StreamerGoNext {
                     cb(null, intent.transcoder);
                 }
             } else {
-                console.warn('Transcoding started');
+                console.warn('Transcoding started')
                 if (!silent) {
-                    renderer.get().emit('streamer-connect-suspend');
-                    renderer.get().emit('transcode-starting', true);
+                    renderer.ui.emit('streamer-connect-suspend')
+                    renderer.ui.emit('transcode-starting', true)
                 }
+                intent.once('destroy', () => {
+                    renderer.ui.emit('transcode-starting', false)
+                })
                 intent.transcode().then(async () => {
-                    await this.uiConnect(intent, true);
-                    cb(null, intent.transcoder);
+                    await this.uiConnect(intent, true)
+                    cb(null, intent.transcoder)
                 }).catch(err => {
                     if (this.active) {
-                        console.error(err);
-                        cb(err);
-                        intent.fail('unsupported format', err, intent.codecData);
-                        silent || intent.fail('unsupported format');
+                        console.error(err)
+                        intent.fail('unsupported format', err, intent.codecData)
+                        silent || intent.fail('unsupported format')
                     }
+                    cb(err)
                 }).finally(() => {
-                    renderer.get().emit('transcode-starting', false);
-                });
+                    renderer.ui.emit('transcode-starting', false)
+                })
             }
-            return true;
+            return true
         } else {
-            cb('Transcoding unavailable');
+            cb('Transcoding unavailable')
         }
     }
     share() {
@@ -783,16 +793,16 @@ class Streamer extends StreamerGoNext {
             let name = this.active.data.originalName || this.active.data.name;
             let icon = this.active.data.originalIcon || this.active.data.icon;
             if (mega.isMega(url)) {
-                renderer.get().emit('share', ucWords(paths.manifest.name), name, 'https://megacubo.tv/w/' + encodeURIComponent(url.replace('mega://', '')));
+                renderer.ui.emit('share', ucWords(paths.manifest.name), name, 'https://megacubo.tv/w/' + encodeURIComponent(url.replace('mega://', '')));
             } else {
                 url = mega.build(name, { url, icon, mediaType: this.active.mediaType });
-                renderer.get().emit('share', ucWords(paths.manifest.name), name, url.replace('mega://', 'https://megacubo.tv/w/'));
+                renderer.ui.emit('share', ucWords(paths.manifest.name), name, url.replace('mega://', 'https://megacubo.tv/w/'));
             }
         }
     }
     setTuneable(enable) {
         this.isTuneable = !!enable;
-        renderer.get().emit('tuneable', this.isTuneable);
+        renderer.ui.emit('tuneable', this.isTuneable);
     }
     findPreferredStreamURL(name) {
         let ret = null;
@@ -810,7 +820,7 @@ class Streamer extends StreamerGoNext {
         }
         const loadingEntriesData = [global.lang.AUTO_TUNING, name];
         console.warn('playFromEntries', name, connectId, silent);
-        global.menu.setLoadingEntries(loadingEntriesData, true, txt);
+        global.menu.setLoading(true);
         silent || (global.osd && global.osd.show(global.lang.TUNING_WAIT_X.format(name) + ' 0%', 'fa-mega spin-x-alt', 'streamer', 'persistent'))
         this.tuning && this.tuning.destroy();
         if (this.connectId != connectId) {
@@ -840,24 +850,24 @@ class Streamer extends StreamerGoNext {
         let hasErr;
         await tuning.tune().catch(err => {
             if (err != 'cancelled by user') {
-                hasErr = err;
-                console.error(err);
+                hasErr = err
+                console.error(err)
             }
         });
         if (hasErr) {
             silent || (global.osd && global.osd.show(global.lang.NONE_STREAM_WORKED_X.format(name), 'fas fa-exclamation-triangle faclr-red', 'streamer', 'normal'))
-            this.emit('hard-failure', entries);
+            this.emit('hard-failure', entries)
         } else {
-            this.setTuneable(true);
+            this.setTuneable(true)
         }
-        global.menu.setLoadingEntries(loadingEntriesData, false);
-        return !hasErr;
+        global.menu.setLoading(false)
+        return !hasErr
     }
     async playPromise(e, results, silent) {
         if (this.opts.shadow) {
             throw 'in shadow mode';
         }
-        e = deepClone(e);
+        e = clone(e);
         if (this.active && !config.get('play-while-loading')) {
             this.stop();
         }
@@ -875,7 +885,7 @@ class Streamer extends StreamerGoNext {
         const isMega = mega.isMega(e.url), txt = isMega ? global.lang.TUNING : undefined;
         const opts = isMega ? mega.parse(e.url) : { mediaType: 'live' };
         const loadingEntriesData = [e, global.lang.AUTO_TUNING];
-        silent || global.menu.setLoadingEntries(loadingEntriesData, true, txt);
+        silent || global.menu.setLoading(true);
         console.warn('STREAMER INTENT', e, results);
         let succeeded;
         this.emit('pre-play-entry', e);
@@ -891,20 +901,20 @@ class Streamer extends StreamerGoNext {
                     this.emit('connecting-failure', e);
                 }
             } else {
-                silent || global.menu.setLoadingEntries(loadingEntriesData, false);
+                silent || global.menu.setLoading(false);
                 throw 'another play intent in progress';
             }
         } else if (isMega && !opts.url) {            
-            let name = e.name;
+            let name = e.name
             if (opts.name) {
-                name = opts.name;
+                name = opts.name
             }
-            let terms = opts.terms || listsTools.terms(name);
+            let terms = opts.terms || listsTools.terms(name)
             silent || (global.osd && global.osd.show(global.lang.TUNING_WAIT_X.format(name), 'fa-mega spin-x-alt', 'streamer', 'persistent'))
-            const listsReady = await global.lists.manager.waitListsReady(10);
+            const listsReady = await global.lists.manager.ready(10)
             if (listsReady !== true) {
                 silent || (global.osd && global.osd.hide('streamer'))
-                throw global.lang.WAIT_LISTS_READY;
+                throw global.lang.WAIT_LISTS_READY
             }
             let entries = await global.lists.search(terms, {
                 type: 'live',
@@ -912,8 +922,8 @@ class Streamer extends StreamerGoNext {
                 limit: 1024
             })         
             if (this.connectId != connectId) {
-                silent || global.menu.setLoadingEntries(loadingEntriesData, false);
-                throw 'another play intent in progress';
+                silent || global.menu.setLoading(false)
+                throw 'another play intent in progress'
             }
             // console.error('ABOUT TO TUNE', terms, name, JSON.stringify(entries), opts)
             if (entries.length) {
@@ -936,7 +946,7 @@ class Streamer extends StreamerGoNext {
                         global.lang.NONE_STREAM_WORKED_X.format(name) :
                         ((global.lists && Object.keys(global.lists).length) ? global.lang.NO_LIST : global.lang.NO_LISTS_ADDED);
                     global.osd && global.osd.show(err, 'fas fa-exclamation-triangle faclr-red', 'streamer', 'normal');
-                    renderer.get().emit('sound', 'static', 25);
+                    renderer.ui.emit('sound', 'static', 25);
                     this.emit('hard-failure', entries);
                 }
             }
@@ -948,13 +958,13 @@ class Streamer extends StreamerGoNext {
             this.setTuneable(!this.streamInfo.mi.isVideo(e.url) && global.channels.isChannel(e))
             silent || (global.osd && global.osd.show(global.lang.CONNECTING + ' ' + e.name + '...', 'fa-mega spin-x-alt', 'streamer', 'persistent'))
             let hasErr, intent = await this.intent(e).catch(r => hasErr = r);
-            if (typeof (hasErr) != 'undefined') {
+            if (typeof(hasErr) != 'undefined') {
                 if (this.connectId != connectId) {
-                    silent || global.menu.setLoadingEntries(loadingEntriesData, false);
+                    silent || global.menu.setLoading(false);
                     throw 'another play intent in progress';
                 }
                 console.warn('STREAMER INTENT ERROR', hasErr);
-                renderer.get().emit('sound', 'static', 25);
+                renderer.ui.emit('sound', 'static', 25);
                 this.connectId = false;
                 this.emit('connecting-failure', e);
                 this.handleFailure(e, hasErr).catch(e => global.menu.displayErr(e));
@@ -966,7 +976,7 @@ class Streamer extends StreamerGoNext {
                 succeeded = true;
             }
         }
-        silent || global.menu.setLoadingEntries(loadingEntriesData, false);
+        silent || global.menu.setLoading(false);
         return succeeded;
     }
     play(e, results, silent) {
@@ -994,7 +1004,7 @@ class Streamer extends StreamerGoNext {
             if (same) {
                 let err;
                 await this.tuning.tune().catch(e => err = e);
-                global.menu.setLoadingEntries(loadingEntriesData, false);
+                global.menu.setLoading(false);
                 if (err) {
                     if (err != 'cancelled by user') {
                         this.emit('connecting-failure', e);

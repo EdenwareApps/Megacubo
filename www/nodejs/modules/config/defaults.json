@@ -94,6 +94,7 @@
 	"transcoding-resolution": "720p",
 	"transcoding-tuning": false,
 	"mpegts-packet-filter-policy": 1,
+	"mpegts-persistent-connections": true,
 	"mpegts-use-worker": true,
 	"read-timeout": 30,
 	"tune-concurrency": 8,

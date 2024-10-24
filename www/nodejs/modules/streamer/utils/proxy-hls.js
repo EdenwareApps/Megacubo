@@ -117,12 +117,12 @@ class HLSJournal {
     }
     inLiveWindow(name) {
         let n = name;
-        if (n.indexOf('://') != -1) {
+        if (n.includes('://')) {
             n = this.segmentName(n);
         }
         return Object.keys(this.journal).some(k => {
             this.journal[k].urls.some(u => {
-                return u.indexOf(n) != -1;
+                return u.includes(n);
             });
         });
     }
@@ -163,7 +163,7 @@ class HLSRequests extends StreamerProxyBase {
         let key, mediaSequence, name = this.journals[journalUrl].segmentName(segmentUrl);
         Object.keys(this.journals[journalUrl].journal).some(seq => {
             return this.journals[journalUrl].journal[seq].urls.some(url => {
-                if (url.indexOf(name) != -1) {
+                if (url.includes(name)) {
                     mediaSequence = seq;
                     return true;
                 }
@@ -185,7 +185,7 @@ class HLSRequests extends StreamerProxyBase {
     }
     async getNextInactiveSegment() {
         const journalUrl = this.activeManifest;
-        if (typeof (this.journals[journalUrl]) == 'undefined')
+        if (typeof(this.journals[journalUrl]) == 'undefined')
             return;
         const journal = this.journals[journalUrl].journal;
         let next, lastDownloadingMediaSequence, lastDownloadingMediaSequenceIndex;
@@ -236,7 +236,7 @@ class HLSRequests extends StreamerProxyBase {
             if (this.journals[journalUrl].journal[mediaSequence].live)
                 return;
             for (const segmentUrl of this.journals[journalUrl].journal[mediaSequence].urls) {
-                if (typeof (this.activeRequests[segmentUrl]) != 'undefined') {
+                if (typeof(this.activeRequests[segmentUrl]) != 'undefined') {
                     if (!this.activeRequests[segmentUrl] || this.activeRequests[segmentUrl].ended)
                         continue;
                     const notFromUser = this.activeRequests[segmentUrl].opts.shadowClient;
@@ -345,7 +345,7 @@ class HLSRequests extends StreamerProxyBase {
                         }
                     }
                     // Using nextTick to prevent "RangeError: Maximum call stack size exceeded"
-                    process.nextTick(() => this.prefetch(opts));
+                    process.nextTick(() => (config.get('hls-prefetching') && this.prefetch(opts)))
                 }
             }
         };
@@ -377,22 +377,19 @@ class HLSRequests extends StreamerProxyBase {
         return request;
     }
     async prefetch(opts) {
-        if (!this.destroyed) {
-            let next = await this.getNextInactiveSegment();
-            if (next && !Object.keys(this.activeRequests).length) {
-                if (this.debugConns)
-                    console.warn('PREFETCHING', this.lastUserRequestedSegment, '=>', next);
-                const nopts = opts;
-                nopts.url = next;
-                nopts.cachedOnly = false;
-                nopts.shadowClient = true;
-                const dl = await this.download(nopts);
-                dl.start();
-            } else {
-                if (this.debugConns)
-                    console.warn('NOT PREFETCHING', Object.values(this.activeRequests).length, this.lastUserRequestedSegment);
-            }
+        if (this.destroyed) return
+        let next = await this.getNextInactiveSegment();
+        if (!next || Object.keys(this.activeRequests).length > 1) {
+            this.debugConns && console.warn('NOT PREFETCHING', Object.values(this.activeRequests).length, this.lastUserRequestedSegment);
+            return
         }
+        this.debugConns && console.warn('PREFETCHING', this.lastUserRequestedSegment, '=>', next);
+        const nopts = opts;
+        nopts.url = next;
+        nopts.cachedOnly = false;
+        nopts.shadowClient = true;
+        const dl = await this.download(nopts);
+        dl.start()
     }
     debugActiveRequests() {
         if (Download.debugConns) {
@@ -400,9 +397,9 @@ class HLSRequests extends StreamerProxyBase {
         }
     }
     findJournal(url, altURL) {
-        if (typeof (this.journals[url]) != 'undefined')
+        if (typeof(this.journals[url]) != 'undefined')
             return this.journals[url];
-        if (typeof (this.journals[altURL]) != 'undefined')
+        if (typeof(this.journals[altURL]) != 'undefined')
             return this.journals[altURL];
         let ret, urls = [url, altURL];
         Object.values(this.journals).some(j => {
@@ -437,7 +434,7 @@ class StreamerProxyHLS extends HLSRequests {
         this.playlistsMeta = {};
     }
     proxify(url) {
-        if (typeof (url) == 'string' && url.indexOf('//') != -1) {
+        if (typeof(url) == 'string' && url.includes('//')) {
             if (!this.opts.port) {
                 console.error('proxify() before server is ready', url);
                 return url; // srv not ready
@@ -452,18 +449,18 @@ class StreamerProxyHLS extends HLSRequests {
         return url;
     }
     unproxify(url) {
-        if (typeof (url) == 'string') {
+        if (typeof(url) == 'string') {
             if (url.substr(0, 3) == '/s/') {
                 url = 'https://' + url.substr(3);
             } else if (url.startsWith('/') && url.charAt(1) != '/') {
                 url = 'http://' + url.substr(1);
-            } else if (this.opts.addr && url.indexOf('//') != -1) {
-                if (url.indexOf(this.opts.addr + ':' + this.opts.port + '/') != -1) {
+            } else if (this.opts.addr && url.includes('//')) {
+                if (url.includes(this.opts.addr + ':' + this.opts.port + '/')) {
                     url = url.replace(new RegExp('^(http://|//)' + this.opts.addr.replaceAll('.', '\\.') + ':' + this.opts.port + '/', 'g'), '$1');
                     url = url.replace('://s/', 's://');
                 }
             }
-            if (url.indexOf('&') != -1 && url.indexOf(';') != -1) {
+            if (url.includes(';') && url.includes('&')) {
                 url = decodeEntities(url);
             }
         }
@@ -519,7 +516,7 @@ class StreamerProxyHLS extends HLSRequests {
                 parser.manifest.segments.map(segment => {
                     segment.uri = segment.uri.trim();
                     let dn = this.getURLRoot(segment.uri);
-                    if (typeof (replaces[dn]) == 'undefined') {
+                    if (typeof(replaces[dn]) == 'undefined') {
                         let df = segment.uri.length - dn.length;
                         if (this.opts.debug) {
                             console.log('dn', dn, df, segment.uri);
@@ -537,14 +534,14 @@ class StreamerProxyHLS extends HLSRequests {
                     }
                 });
                 let journal = this.findJournal(baseUrl, url);
-                if (typeof (journal) == 'undefined') {
+                if (typeof(journal) == 'undefined') {
                     this.journals[baseUrl] = journal = new HLSJournal(baseUrl, url, this);
                 }
                 journal.process(body);
                 body = journal.readM3U8(body);
             }
             if (parser.manifest.playlists && parser.manifest.playlists.length) {
-                if (typeof (this.playlists[url]) == 'undefined') {
+                if (typeof(this.playlists[url]) == 'undefined') {
                     this.playlists[url] = {};
                 }
                 parser.manifest.playlists.forEach(playlist => {
@@ -553,7 +550,7 @@ class StreamerProxyHLS extends HLSRequests {
                     if (!this.playlists[url][u]) {
                         this.playlists[url][u] = { state: true, name: this.trackName(playlist) }; // state=true here means "online"
                     }
-                    if (typeof (replaces[dn]) == 'undefined') {
+                    if (typeof(replaces[dn]) == 'undefined') {
                         if (this.opts.debug) {
                             console.log('dn', dn);
                         }
@@ -580,7 +577,7 @@ class StreamerProxyHLS extends HLSRequests {
                 });
             }
             body = body.replace(new RegExp('(URI="?)([^\\n"\']+)', 'ig'), (...match) => {
-                if (match[2].indexOf('127.0.0.1') == -1) {
+                if (!match[2].includes('127.0.0.1')) {
                     match[2] = absolutize(match[2], baseUrl);
                     match[2] = this.proxify(match[2]);
                 }
@@ -597,7 +594,7 @@ class StreamerProxyHLS extends HLSRequests {
             if (line.length < 3 || line.startsWith('#')) {
                 return;
             }
-            if (line.indexOf('/') == -1 || line.substr(0, 2) == './' || line.substr(0, 3) == '../') {
+            if (!line.includes('/') || line.substr(0, 2) == './' || line.substr(0, 3) == '../') {
                 if (from == '') {
                     lines[i] = joinPath(to, line);
                 }
@@ -635,7 +632,7 @@ class StreamerProxyHLS extends HLSRequests {
         this.networkOnly = enable;
     }
     async handleRequest(req, response) {
-        if (this.destroyed || req.url.indexOf('favicon.ico') != -1) {
+        if (this.destroyed || req.url.includes('favicon.ico')) {
             response.writeHead(404, prepareCORS({
                 'connection': 'close'
             }, req));
@@ -788,7 +785,7 @@ class StreamerProxyHLS extends HLSRequests {
                             }
                         }
                     });
-                } else if (typeof (headers.location) != 'undefined') {
+                } else if (typeof(headers.location) != 'undefined') {
                     location = this.proxify(absolutize(headers.location, url));
                 } else if (!statusCode) {
                     statusCode = 500;

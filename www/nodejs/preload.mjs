@@ -5,9 +5,12 @@ import fs from "fs";
 import { spawn } from "child_process";
 import AdmZip from "adm-zip";
 import ExecFinder from 'exec-finder';
+import { getFilename } from "cross-dirname";
+import { createRequire } from 'module';
+import Download from "./modules/download/download.js";
 
 function getElectron() {
-    const ret = {}, keys = ['contextBridge', 'ipcRenderer', 'getGlobal', 'screen', 'app', 'shell', 'Tray', 'Menu'];
+    const ret = {}, keys = ['contextBridge', 'webFrame', 'ipcRenderer', 'getGlobal', 'screen', 'app', 'shell', 'Tray', 'Menu'];
     const extract = electron => {
         keys.forEach(k => {
             if (electron[k])
@@ -18,6 +21,7 @@ function getElectron() {
     if (electron.remote) {
         extract(electron.remote);
     }
+    const require = createRequire(getFilename())
     try {
         const remote = require('@electron/remote')
         extract(remote)
@@ -28,8 +32,8 @@ function getElectron() {
     });
     return ret;
 }
-const { contextBridge, ipcRenderer, getGlobal, screen, app, shell, Tray, Menu } = getElectron();
-const Download = getGlobal('Download'), paths = getGlobal('paths'), config = getGlobal('config');
+const { contextBridge, webFrame, ipcRenderer, getGlobal, screen, app, shell, Tray, Menu } = getElectron();
+const paths = getGlobal('paths'), config = getGlobal('config');
 function download(opts) {
     let _reject;
     const dl = new Download(opts);
@@ -129,7 +133,7 @@ class FFmpegDownloader {
         if(!data || !data.versions) return null
         for (const version of Object.keys(data.versions).sort().reverse()) {
             const versionInfo = await download({ url: data.versions[version], responseType: 'json' });
-            if (versionInfo.bin && typeof (versionInfo.bin[variant]) != 'undefined') {
+            if (versionInfo.bin && typeof(versionInfo.bin[variant]) != 'undefined') {
                 return versionInfo.bin[variant].ffmpeg;
             }
         }
@@ -145,7 +149,7 @@ class FFMpeg extends FFmpegDownloader {
         }
         this.executableDir = process.resourcesPath || path.resolve('ffmpeg');
         this.executableDir = this.executableDir.replace(new RegExp('\\\\', 'g'), '/');
-        if (this.executableDir.indexOf('resources/app') != -1) {
+        if (this.executableDir.includes('resources/app')) {
             this.executableDir = this.executableDir.split('resources/app').shift() + 'resources';
         }
         this.executable = path.basename(this.executable);
@@ -155,7 +159,7 @@ class FFMpeg extends FFmpegDownloader {
         });
     }
     isMetadata(s) {
-        return s.indexOf('Stream mapping:') != -1;
+        return s.includes('Stream mapping:');
     }
     exec(cmd, success, error, outputListener) {
         let exe, gotMetadata, output = '';
@@ -197,7 +201,7 @@ class FFMpeg extends FFmpegDownloader {
         success('start-' + child.pid);
     }
     abort(pid) {
-        if (typeof (this.childs[pid]) != 'undefined') {
+        if (typeof(this.childs[pid]) != 'undefined') {
             const child = this.childs[pid];
             delete this.childs[pid];
             child.kill('SIGINT');
@@ -323,21 +327,17 @@ class TrayProxy {
 }
 class WindowProxy extends EventEmitter {
     constructor() {
-        super();
-        this.localEmit = super.emit.bind(this);
-        this.on = super.on.bind(this);
-        this.ipc = getGlobal('ui');
-        this.port = this.ipc.opts.port;
-        this.removeAllListeners = super.removeAllListeners.bind(this);
-        this.emit = (...args) => {
-            this.ipc.channel.originalEmit(...args);
-        };
+        super()
+        this.ipc = ipcRenderer
+        this.on = super.on.bind(this)
+        this.localEmit = super.emit.bind(this)
+        this.removeAllListeners = super.removeAllListeners.bind(this)
+        this.emit = (...args) => this.ipc.send('message', args)
         ipcRenderer.on('message', (_, args) => {
             try {
-                this.localEmit('message', args);
-            }
-            catch (e) {
-                console.error(e, args);
+                this.localEmit('message', args)
+            } catch (e) {
+                console.error(e, args)
             }
         });
         ['focus', 'blur', 'show', 'hide', 'minimize', 'maximize', 'restore', 'close', 'isMaximized', 'getPosition', 'getSize', 'setSize', 'setAlwaysOnTop', 'setFullScreen', 'setPosition'].forEach(k => {
@@ -345,7 +345,7 @@ class WindowProxy extends EventEmitter {
         });
         ['maximize', 'enter-fullscreen', 'leave-fullscreen', 'restore', 'minimize', 'close'].forEach(k => {
             window.on(k, (...args) => this.localEmit(k, ...args));
-        });
+        })
     }
 }
 const windowProxy = new WindowProxy();
@@ -373,14 +373,21 @@ const restart = () => {
         app.quit();
         setTimeout(() => app.exit(), 2000); // some deadline
     }, 0);
-};
+}
+const getResourceUsage = () => {
+    return webFrame.getResourceUsage()
+}
+const clearCache = () => {
+    webFrame.clearCache()
+}
 if (parseFloat(process.versions.electron) < 22) {
     global.api = {
         platform: process.platform,
         window: windowProxy,
         openExternal: f => shell.openExternal(f),
         screenScaleFactor, externalPlayer, getScreen,
-        download, restart, ffmpeg, paths, tray
+        download, restart, ffmpeg, paths, tray,
+        getResourceUsage, clearCache
     };
 } else {
     // On older Electron version (9.1.1) exposing 'require' doesn't works as expected.
@@ -394,6 +401,8 @@ if (parseFloat(process.versions.electron) < 22) {
             available: externalPlayer.available,
             setContext: externalPlayer.setContext
         },
+        getResourceUsage,
+        clearCache,
         getScreen,
         download,
         restart,

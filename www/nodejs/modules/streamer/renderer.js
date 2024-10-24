@@ -399,7 +399,7 @@ class StreamerState extends StreamerCasting {
     isTuning(){
         if(!main.osd) return ''
         let txt = main.osd.textContent()
-        return txt.indexOf(main.lang.TUNING) != -1 || txt.indexOf(main.lang.CONNECTING) != -1
+        return txt.includes(main.lang.TUNING) || txt.includes(main.lang.CONNECTING)
     }
 }
 
@@ -1060,7 +1060,7 @@ class StreamerClientTimeWarp extends StreamerLiveStreamClockTimer {
         player.on('timeupdate', pos => this.doTimeWarp(pos))
         player.on('durationchange', () => this.doTimeWarp())
         main.on('streamer-connect', (src, mimetype, cookie, mediatype) => {
-            if(!main.config['in-disk-caching-size'] && mimetype.toLowerCase().indexOf('mpegurl') != -1 && mediatype != 'video') {
+            if(!main.config['in-disk-caching-size'] && mimetype.toLowerCase().includes('mpegurl') && mediatype != 'video') {
                 this.bufferTimeSecs = this.defaultBufferTimeSecs.pressure
             } else {
                 this.bufferTimeSecs = this.defaultBufferTimeSecs.lazy
@@ -1075,7 +1075,7 @@ class StreamerClientTimeWarp extends StreamerLiveStreamClockTimer {
         const currentTime = player.time()
         const nudge = 10
         let duration, pduration = player.duration()
-        if(!main.config['in-disk-caching-size'] && this.activeMimetype.indexOf('mpegurl') != -1 && this.activeMediatype != 'video') {
+        if(!main.config['in-disk-caching-size'] && this.activeMimetype.includes('mpegurl') && this.activeMediatype != 'video') {
             duration = this.clockTimerDuration()
         } else {
             duration = pduration
@@ -1093,7 +1093,7 @@ class StreamerClientTimeWarp extends StreamerLiveStreamClockTimer {
                 ptime = player.time()
             }
             let duration, pduration = player.duration()
-            if(!main.config['in-disk-caching-size'] && this.activeMimetype.indexOf('mpegurl') != -1 && this.activeMediatype != 'video') {
+            if(!main.config['in-disk-caching-size'] && this.activeMimetype.includes('mpegurl') && this.activeMediatype != 'video') {
                 duration = this.clockTimerDuration()
             } else {
                 duration = pduration
@@ -1459,7 +1459,6 @@ class StreamerClientControls extends StreamerAudioUI {
                 main.emit('streamer-update-streamer-info')
             }
         })
-        main.idle.on('active', () => main.emit('streamer-update-streamer-info'))
         this.addPlayerButton('play-pause', 'PAUSE', `
             <i class="fas fa-play play-button"></i>
             <i class="fas fa-pause pause-button"></i>`, 0, () => {
@@ -1504,7 +1503,7 @@ class StreamerClientControls extends StreamerAudioUI {
         const id = cls.split(' ')[0], name = main.lang[langKey]
         if(this.getPlayerButton(id)) return
         let container = this.controls.querySelector('#buttons')
-        let iconTpl = fa.indexOf('<') == -1 ? '<i class="'+ fa +'"></i>' : fa
+        let iconTpl = fa.includes('<') ? fa : '<i class="'+ fa +'"></i>'
         let template = `
         <button id="${id}" data-position="${position}" class="${cls}" title="${name}" aria-label="${name}">
             <span class="button-icon">${iconTpl}</span>
@@ -1619,7 +1618,7 @@ export class StreamerClient extends StreamerClientController {
         zapSetup(this)
     }
     errorCallback(src, mimetype){
-        if(this.autoTuning && !this.transcodeStarting && this.stateListening && mimetype.indexOf('video/') == -1){ // seems live
+        if(this.autoTuning && !this.transcodeStarting && this.stateListening && !mimetype.startsWith('video/')){ // seems live
             main.menu.dialog([
                 {template: 'question', text: '', fa: 'fas fa-question-circle'},
                 {template: 'option', text: main.lang.PLAY_ALTERNATE, id: 'tune', fa: main.config['tuning-icon']},

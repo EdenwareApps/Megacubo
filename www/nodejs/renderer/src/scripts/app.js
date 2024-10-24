@@ -72,7 +72,7 @@ function configUpdated() {
     const ms = main.config['view-size']
     menu.setGridLayout(ms.landscape.x, ms.landscape.y, ms.portrait.x, ms.portrait.y)
     hideBackButton(main.config['hide-back-button'])
-    if (typeof (window['winActions']) == 'undefined' || !window['winActions']) {
+    if (typeof(window['winActions']) == 'undefined' || !window['winActions']) {
         return
     }
     window['winActions'].enabled = main.config['miniplayer-auto']
@@ -307,8 +307,8 @@ export const initApp = () => {
             document.body.classList.add('home')    
         }  
         setTimeout(() => {
-            if (typeof (haUpdate) == 'function') {
-                haUpdate()
+            if (typeof(verticalArrowsUpdate) == 'function') {
+                verticalArrowsUpdate()
             }
         }, 0)
     })
@@ -420,10 +420,10 @@ export const initApp = () => {
 
     console.log('load app')
     menu.on('arrow', (element, direction) => {
-        menu.sounds.play('menu', 1)
+        menu.sounds.play('menu', 7)
         setTimeout(() => {
-            if (typeof (haUpdate) == 'function') {
-                haUpdate()
+            if (typeof(verticalArrowsUpdate) == 'function') {
+                verticalArrowsUpdate()
             }
         }, 0)
     })
@@ -532,74 +532,74 @@ export const initApp = () => {
     menu.on('scroll', y => {
         menu.debug && console.log('menu scroll', y)
         menu.updateRange(y)
-        elpShow()
-        haUpdate()
+        menuLocationShow()
+        verticalArrowsUpdate()
     })
 
-    var elp = document.querySelector('.menu-location-pagination'), elpTxt = elp.querySelector('span'), elpTimer = 0, elpDuration = 5000, elpShown = false
-    const elpShow = txt => {
-        clearTimeout(elpTimer)
-        if (!elpShown) {
-            elpShown = true
-            elp.style.display = 'inline-block'
+    var menuLocation = document.querySelector('.menu-location-pagination'), menuLocationTxt = menuLocation.querySelector('span'), menuLocationTimer = 0, menuLocationDuration = 5000, menuLocationShown = false
+    const menuLocationShow = txt => {
+        clearTimeout(menuLocationTimer)
+        if (!menuLocationShown) {
+            menuLocationShown = true
+            menuLocation.style.display = 'inline-block'
         }
-        if (typeof (txt) == 'string') {
-            elpTxt.innerHTML = txt
+        if (typeof(txt) == 'string') {
+            menuLocationTxt.innerHTML = txt
         }
         if (menu.selectedIndex < 2) {
-            elpTimer = setTimeout(() => {
-                if (elpShown) {
-                    elpShown = false
-                    elp.style.display = 'none'
+            menuLocationTimer = setTimeout(() => {
+                if (menuLocationShown) {
+                    menuLocationShown = false
+                    menuLocation.style.display = 'none'
                 }
-            }, elpDuration)
+            }, menuLocationDuration)
         }
     }
-    const elpListener = () => {
+    const menuLocationListener = () => {
         let selected = menu.selectedIndex + 1, total = menu.currentElements.length
-        elpShow(' ' + selected + '/' + total)
+        menuLocationShow(' ' + selected + '/' + total)
     }
-    menu.on('arrow', elpListener)
-    menu.on('focus', elpListener)
-    menu.on('render', elpListener)
+    menu.on('arrow', menuLocationListener)
+    menu.on('focus', menuLocationListener)
+    menu.on('render', menuLocationListener)
 
     console.log('load app')
-    var haTop = document.querySelector('#home-arrows-top'), haBottom = document.querySelector('#home-arrows-bottom')
-    haTop.addEventListener('click', () => menu.arrow('up'))
-    haBottom.addEventListener('click', () => menu.arrow('down'))
+    var verticalArrowTop = document.querySelector('#home-arrows-top'), verticalArrowBottom = document.querySelector('#home-arrows-bottom')
+    verticalArrowTop.addEventListener('click', () => menu.arrow('up'))
+    verticalArrowBottom.addEventListener('click', () => menu.arrow('down'))
 
     const wrap = document.querySelector('#menu wrap')
-    window['home-arrows-active'] = { bottom: null, top: null, timer: 0 };
-    window.haUpdate = () => {
+    const verticalArrows = { bottom: null, top: null, timer: 0 };
+    window.verticalArrowsUpdate = () => {
         const as = menu.currentElements
         if (as.length > (menu.gridLayoutX * menu.gridLayoutY)) {
             var lastY = (as[as.length - 1].offsetTop) - wrap.scrollTop, firstY = as[0].offsetTop - wrap.scrollTop
             if (lastY >= wrap.parentNode.offsetHeight) {
-                if (window['home-arrows-active'].bottom !== true) {
-                    window['home-arrows-active'].bottom = true
-                    haBottom.style.opacity = 'var(--opacity-level-3)'
+                if (verticalArrows.bottom !== true) {
+                    verticalArrows.bottom = true
+                    verticalArrowBottom.style.opacity = 'var(--opacity-level-3)'
                 }
             } else {
-                if (window['home-arrows-active'].bottom !== false) {
-                    window['home-arrows-active'].bottom = false
-                    haBottom.style.opacity = 0
+                if (verticalArrows.bottom !== false) {
+                    verticalArrows.bottom = false
+                    verticalArrowBottom.style.opacity = 0
                 }
             }
             if (firstY < 0) {
-                if (window['home-arrows-active'].top !== true) {
-                    window['home-arrows-active'].top = true
-                    haTop.style.opacity = 'var(--opacity-level-3)'
+                if (verticalArrows.top !== true) {
+                    verticalArrows.top = true
+                    verticalArrowTop.style.opacity = 'var(--opacity-level-3)'
                 }
             } else {
-                if (window['home-arrows-active'].top !== false) {
-                    window['home-arrows-active'].top = false
-                    haTop.style.opacity = 0
+                if (verticalArrows.top !== false) {
+                    verticalArrows.top = false
+                    verticalArrowTop.style.opacity = 0
                 }
             }
         } else {
-            window['home-arrows-active'].top = window['home-arrows-active'].bottom = false
-            haTop.style.opacity = 0
-            haBottom.style.opacity = 0
+            verticalArrows.top = verticalArrows.bottom = false
+            verticalArrowTop.style.opacity = 0
+            verticalArrowBottom.style.opacity = 0
         }
     }
 

@@ -1,5 +1,13 @@
 apply plugin: 'com.android.application'
 
+static def getVersionCodeFromVersionName(String versionName) {
+    def versionParts = versionName.split("\\.")
+    while (versionParts.size() < 3) {
+        versionParts += "0"
+    }
+    return versionParts[0].toInteger() * 10000 + versionParts[1].toInteger() * 100 + versionParts[2].toInteger()
+}
+
 android {
     namespace "tv.megacubo.app"
     compileSdk rootProject.ext.compileSdkVersion
@@ -7,8 +15,8 @@ android {
         applicationId "tv.megacubo.app"
         minSdkVersion 24
         targetSdkVersion 33
-        versionCode 472
-        versionName '17.5.1'
+        versionName '17.5.2'
+        versionCode getVersionCodeFromVersionName(versionName)
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -27,7 +35,7 @@ android {
         abi {
             enable true
             reset()
-            //include "arm64-v8a", "armeabi-v7a"
+            //include 'armeabi-v7a'_64'
             include 'armeabi-v7a'
             universalApk false
         }

@@ -9,7 +9,7 @@ class Reader extends Readable {
         this.opts = opts;
         this.fd = null;
         this.bytesRead = 0;
-        if (typeof (this.opts.start) == 'undefined')
+        if (typeof(this.opts.start) == 'undefined')
             this.opts.start = 0;
         if (!this.file)
             throw 'Reader initialized with no file specified';
@@ -48,7 +48,7 @@ class Reader extends Readable {
                 return this.close();
             }
             const available = stat.size - position;
-            const readSize = typeof (size) == 'number' ? Math.min(size, available) : available;
+            const readSize = typeof(size) == 'number' ? Math.min(size, available) : available;
             const done = () => {
                 if (this.opts.persistent === true) {
                     this.nextReadTimer = setTimeout(() => {

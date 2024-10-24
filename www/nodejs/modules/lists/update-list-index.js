@@ -1,4 +1,4 @@
-import { dirname, joinPath, moveFile } from "../utils/utils.js";
+import { dirname, joinPath, moveFile } from '../utils/utils.js';
 import Download from '../download/download.js'
 import ListIndexUtils from './list-index-utils.js'
 import { temp } from '../paths/paths.js'
@@ -7,7 +7,8 @@ import MediaURLInfo from '../streamer/utils/media-url-info.js'
 import Xtr from './xtr.js'
 import Mag from './mag.js'
 import Parser from './parser.js'
-import config from "../config/config.js"
+import config from '../config/config.js'
+import { Database } from 'jexidb';
 
 class UpdateListIndex extends ListIndexUtils { 
 	constructor(opts={}){
@@ -17,14 +18,13 @@ class UpdateListIndex extends ListIndexUtils {
 		this.playlists = []
         this.master = opts.master
         this.lastProgress = -1
-        this.directURL = opts.directURL
+        this.directURL = opts.directURL || this.url
         this.updateMeta = opts.updateMeta
-        this.forceDownload = opts.forceDownload === true 
+        this.forceDownload = opts.forceDownload === true
         this.uid = parseInt(Math.random() * 100000000000)
-        this.tmpOutputFile = temp +'/'+ this.uid +'.out.tmp'
+        this.tmpOutputFile = temp +'/'+ this.uid +'.jdb.tmp'
         this.timeout = opts.timeout || config.get('read-timeout')
-        this.linesMapPtr = 0
-        this.linesMap = []
+        this.indexMeta = {}
         this.debug = opts.debug
         this.reset()
     }
@@ -37,47 +37,46 @@ class UpdateListIndex extends ListIndexUtils {
 			return ''
 		}
     }
-	indexate(entry, i){
+	indexate(entry, i, db){
         entry = this.master.prepareEntry(entry)
-        if (!entry.terms) entry.terms = { name: [], group: [] }
         entry.terms.name.concat(entry.terms.group).forEach(term => {
-            if (typeof (this.index.terms[term]) == 'undefined') {
-                this.index.terms[term] = { n: [], g: [] }
+            if (typeof(db.index.terms[term]) == 'undefined') {
+                db.index.terms[term] = { n: [], g: [] }
             }
         })
 		entry.terms.name.forEach(term => {
             // ensure it's an array an not a method
-			if(Array.isArray(this.index.terms[term].n) && !this.index.terms[term].n.includes(i)){
-				this.index.terms[term].n.push(i)
+			if(Array.isArray(db.index.terms[term].n) && !db.index.terms[term].n.includes(i)){
+				db.index.terms[term].n.push(i)
 			}
 		})
 		entry.terms.group.forEach(term => {
-			if(Array.isArray(this.index.terms[term].n) && !this.index.terms[term].g.includes(i)){
-				this.index.terms[term].g.push(i)
+			if(Array.isArray(db.index.terms[term].n) && !db.index.terms[term].g.includes(i)){
+				db.index.terms[term].g.push(i)
 			}
 		})
         if(entry.name && entry.gid){
-            if(typeof(this.index.gids) == 'undefined'){
-                this.index.gids = {}
+            if(typeof(db.index.gids) == 'undefined'){
+                db.index.gids = {}
             }
-            if(typeof(this.index.gids[entry.gid]) == 'undefined'){
-                this.index.gids[entry.gid] = []
+            if(typeof(db.index.gids[entry.gid]) == 'undefined'){
+                db.index.gids[entry.gid] = []
             }
-            if(!this.index.gids[entry.gid].includes(entry.name)){
-                this.index.gids[entry.gid].push(entry.name)
+            if(!db.index.gids[entry.gid].includes(entry.name)){
+                db.index.gids[entry.gid].push(entry.name)
             }
         }
-		if(typeof(this.index.groups[entry.group]) == 'undefined'){
-			this.index.groups[entry.group] = []
+		if(typeof(db.index.groups[entry.group]) == 'undefined'){
+			db.index.groups[entry.group] = []
 		}
-		this.index.groups[entry.group].push(i)
+		db.index.groups[entry.group].push(i)
 		return entry
 	}
     parseHeadersMeta(headers) {
         const prefix = 'x-m3u-meta-'
         Object.keys(headers).filter(k => k.startsWith(prefix)).forEach(k => {
             const name = k.substr(prefix.length)
-            this.index.meta[name] = headers[k]
+            this.indexMeta[name] = headers[k]            
         })
     }
 	fetch(path){
@@ -176,21 +175,56 @@ class UpdateListIndex extends ListIndexUtils {
             }
         }
         await fs.promises.mkdir(dirname(this.tmpOutputFile), {recursive: true}).catch(console.error)
-        const writer = fs.createWriteStream(this.tmpOutputFile)
-        writer.once('finish', () => this.writerClosed = true)
+        const db = new Database(this.tmpOutputFile, {
+            clear: true,
+            index: {
+                length: 0,
+                uniqueStreamsLength: 0,
+                terms: {},
+                groups: {},
+                meta: {},
+                gids: {}
+            },
+            v8: false,
+            compressIndex: false
+        })
+        await db.init()
+        db.on('before-save', () => {
+            Object.assign(db.index.meta, this.indexMeta)
+            this.indexMeta = db.index.meta
+            db.index.uniqueStreamsLength = this.uniqueStreamsIndexate.size
+            db.index.groupsTypes = this.sniffGroupsTypes(this.groups)
+        })
+        db.on('insert', (e, i) => {
+            e = this.indexate(e, i, db)
+            if(e.group) { // collect some data to sniff after if each group seems live, serie or movie
+                if(typeof(this.groups[e.group]) == 'undefined') {
+                    this.groups[e.group] = []
+                }
+                this.groups[e.group].push({
+                    name: e.name,
+                    url: e.url,
+                    icon: e.icon
+                })
+            }
+            if(!this.uniqueStreamsIndexate.has(e.url)) {
+                this.uniqueStreamsIndexate.add(e.url)
+            }
+            this.indexateIterator++
+        })
         for(let url of urls){
             let err
-            const hasCredentials = url.indexOf('@') != -1
-            if(hasCredentials && url.indexOf('#xtream') != -1) {
-                await this.xparse(url, writer).catch(console.error)
+            const hasCredentials = url.includes('@')
+            if(hasCredentials && url.includes('#xtream')) {
+                await this.xparse(url, db).catch(console.error)
                 if(this.indexateIterator) break
-            } else if(hasCredentials && url.indexOf('#mag') != -1) {
-                await this.mparse(url, writer).catch(console.error)
+            } else if(hasCredentials && url.includes('#mag')) {
+                await this.mparse(url, db).catch(console.error)
                 if(this.indexateIterator) break
             } else {
                 const ret = await this.fetch(url).catch(e => err = e)
                 if(!err && ret){
-                    await this.parse(ret, writer).catch(console.error)
+                    await this.parse(ret, db).catch(console.error)
                     if(this.indexateIterator) break
                 }
             }
@@ -203,48 +237,26 @@ class UpdateListIndex extends ListIndexUtils {
             const ret = await this.fetch(playlist.url).catch(e => err = e)
             console.error('PLAYLIST '+ playlist.url +' '+ this.indexateIterator +' '+ err)
             if(!err && ret){
-                await this.parse(ret, writer, playlist).catch(console.error)
+                await this.parse(ret, db, playlist).catch(console.error)
             }
         }
         let err
-        await this.writeIndex(writer).catch(e => err = e)
-        writer.destroy()
+        await db.save().catch(e => err = e)
+        await db.destroy().catch(e => err = e)
+        await moveFile(this.tmpOutputFile, this.file).catch(e => { if(!err) err = e })
         if(err) {
-            console.warn('writeIndex error', err)
-            throw err
+            console.error('writeIndex error', err)
         }
         return true
 	}
-    async xparse(url, writer){
-        let err, count = 0
+    async xparse(url, db){
+        let err
         const xtr = new Xtr(url)
         xtr.on('progress', p => this.emit('progress', p, this.url))
         xtr.on('meta', meta => {
-            Object.assign(this.index.meta, meta)
+            Object.assign(this.indexMeta, meta)
         })
-        xtr.on('entry', entry => {
-            count++
-            if(entry.group) { // collect some data to sniff after if each group seems live, serie or movie
-                if(typeof(this.groups[entry.group]) == 'undefined') {
-                    this.groups[entry.group] = []
-                }
-                this.groups[entry.group].push({
-                    name: entry.name,
-                    url: entry.url,
-                    icon: entry.icon
-                })
-            }
-            entry = this.indexate(entry, this.indexateIterator)
-            const line = Buffer.from(JSON.stringify(entry) + "\n")
-            writer.write(line)
-            this.linesMap.push(this.linesMapPtr)
-            this.linesMapPtr += line.byteLength
-            if(!this.uniqueStreamsIndexate.has(entry.url)) {
-                this.uniqueStreamsIndexate.set(entry.url, null)
-                this.uniqueStreamsIndexateIterator++
-            }
-            this.indexateIterator++
-        })
+        xtr.on('entry', entry => db.insert(entry).catch(console.error))
         await xtr.run().catch(e => err = e)
         xtr.destroy()
         if(err) {
@@ -252,36 +264,14 @@ class UpdateListIndex extends ListIndexUtils {
             throw err
         }
     }
-    async mparse(url, writer){
-        let err, count = 0
+    async mparse(url, db){
+        let err
         const mag = new Mag(url)
         mag.on('progress', p => this.emit('progress', p, this.url))
         mag.on('meta', meta => {
-            Object.assign(this.index.meta, meta)
+            Object.assign(this.indexMeta, meta)
         })
-        mag.on('entry', entry => {
-            count++
-            if(entry.group) { // collect some data to sniff after if each group seems live, serie or movie
-                if(typeof(this.groups[entry.group]) == 'undefined') {
-                    this.groups[entry.group] = []
-                }
-                this.groups[entry.group].push({
-                    name: entry.name,
-                    url: entry.url,
-                    icon: entry.icon
-                })
-            }
-            entry = this.indexate(entry, this.indexateIterator)
-            const line = Buffer.from(JSON.stringify(entry) + "\n")
-            writer.write(line)
-            this.linesMap.push(this.linesMapPtr)
-            this.linesMapPtr += line.byteLength
-            if(!this.uniqueStreamsIndexate.has(entry.url)) {
-                this.uniqueStreamsIndexate.set(entry.url, null)
-                this.uniqueStreamsIndexateIterator++
-            }
-            this.indexateIterator++
-        })
+        mag.on('entry', entry => db.insert(entry).catch(console.error))
         await mag.run().catch(e => err = e)
         mag.destroy()
         if(err) {
@@ -289,14 +279,14 @@ class UpdateListIndex extends ListIndexUtils {
             throw err
         }
     }
-	async parse(opts, writer, playlist){
-        let resolved, count = 0
+	async parse(opts, db, playlist){
+        let resolved
         const endListener = () => {
             this.parser && this.parser.end()
         }
         this.parser && this.parser.destroy()
         this.parser = new Parser(opts)
-        this.parser.on('meta', meta => Object.assign(this.index.meta, meta))
+        this.parser.on('meta', meta => Object.assign(this.indexMeta, meta))
         this.parser.on('playlist', e => this.playlists.push(e))
         this.parser.on('progress', readen => {
             const pp = this.contentLength / 100
@@ -329,7 +319,6 @@ class UpdateListIndex extends ListIndexUtils {
                 }
             }
 			this.parser.on('entry', entry => {
-                count++
 				if(this.destroyed){
                     if(!resolved){
                         resolved = true
@@ -340,32 +329,13 @@ class UpdateListIndex extends ListIndexUtils {
                 if(playlist){
                     entry.group = joinPath(joinPath(playlist.group, playlist.name), entry.group)
                 }
-                if(entry.group) { // collect some data to sniff after if each group seems live, serie or movie
-                    if(typeof(this.groups[entry.group]) == 'undefined') {
-                        this.groups[entry.group] = []
-                    }
-                    this.groups[entry.group].push({
-                        name: entry.name,
-                        url: entry.url,
-                        icon: entry.icon
-                    })
-                }
-                entry = this.indexate(entry, this.indexateIterator)
-                const line = Buffer.from(JSON.stringify(entry) + "\n") // Writer expects buffer, that's better to get byteLength right after
-                writer.write(line)
-                this.linesMap.push(this.linesMapPtr)
-                this.linesMapPtr += line.byteLength
-                if(!this.uniqueStreamsIndexate.has(entry.url)) {
-                    this.uniqueStreamsIndexate.set(entry.url, null)
-                    this.uniqueStreamsIndexateIterator++
-                }
-                this.indexateIterator++
+                db.insert(entry).catch(console.error)
 			})
             this.once('destroy', destroyListener)
 			this.parser.once('finish', () => {
                 if(!resolved){
                     resolved = true
-                    if(count){
+                    if(this.indexateIterator) {
                         resolve(true)
                     } else {
                         reject('empty list')
@@ -384,44 +354,6 @@ class UpdateListIndex extends ListIndexUtils {
         this.stream.resume()
         return await ret
 	}
-    writeIndex(writer){
-        return new Promise((resolve, reject) => {
-            fs.stat(this.file, (err, stat) => {
-                let resolved
-                const exists = !err && stat && stat.size
-                this.index.length = this.indexateIterator
-                this.index.uniqueStreamsLength = this.uniqueStreamsIndexateIterator
-                this.index.groupsTypes = this.sniffGroupsTypes(this.groups)
-                console.log('writeIndex', this.index.length, exists)
-                if(this.index.length || !exists) {
-                    const finish = err => {
-                        console.log('writeIndex written', err)
-                        if(resolved) return
-                        resolved = true
-                        if(err) console.error(err)
-                        moveFile(this.tmpOutputFile, this.file).then(() => {
-                            resolve(!!this.index.length)
-                        }).catch(reject)
-                    }
-                    writer.once('finish', finish)
-                    writer.on('error', finish)
-                    
-                    const indexLine = JSON.stringify(this.index) +"\n"
-                    this.linesMap.push(this.linesMapPtr)
-                    this.linesMapPtr += Buffer.byteLength(indexLine, 'utf8')
-                    this.linesMap.push(this.linesMapPtr)
-
-                    const linesMapLine = JSON.stringify(this.linesMap)
-                    writer.write(indexLine + linesMapLine)
-                    writer.end()
-                    console.log('writeIndex writing', (indexLine + linesMapLine).length)
-                } else {
-                    resolved = true
-                    reject('empty list')
-                }
-            })
-        })
-    }
     sniffGroupsTypes(groups){
         const ret = {live: [], vod: [], series: []}
         Object.keys(groups).forEach(g => {
@@ -467,17 +399,8 @@ class UpdateListIndex extends ListIndexUtils {
     }
 	reset(){	
         this.groups = {}
-		this.index = {
-            length: 0,
-            uniqueStreamsLength: 0,
-            terms: {},
-            groups: {},
-            meta: {},
-            gids: {}
-        }
 		this.indexateIterator = 0
-		this.uniqueStreamsIndexate = new Map()
-		this.uniqueStreamsIndexateIterator = 0
+		this.uniqueStreamsIndexate = new Set()
 		this.defaultContentLength = 62 * (1024 * 1024) // estimate it if we don't know
 		this.contentLength = this.defaultContentLength // estimate it if we don't know
 	}

@@ -47,7 +47,7 @@ class Downloads extends EventEmitter {
             '.ts': 'video/MP2T'
         }
         this.activeDownloads = {}
-        renderer.get().on('download-in-background', this.download.bind(this))
+        renderer.ui.on('download-in-background', this.download.bind(this))
     }
     dialogCallback(ret) {
         if (ret == 'downloads-start') {
@@ -63,7 +63,7 @@ class Downloads extends EventEmitter {
                         this.activeDownloads[url].cancelled = true;
                         this.activeDownloads[url].destroy();
                         fs.unlink(this.activeDownloads[url].file, () => {});
-                        renderer.get().emit('background-mode-unlock', 'saving-file-' + uid);
+                        renderer.ui.emit('background-mode-unlock', 'saving-file-' + uid);
                         osd.hide(uid);
                         delete this.activeDownloads[url];
                         global.menu && global.menu.refreshNow();
@@ -96,7 +96,7 @@ class Downloads extends EventEmitter {
                 }
                 pathname = decodeURIComponentSafe(pathname);
                 const ext = path.parse(pathname).ext;
-                if (typeof (this.map[pathname]) != 'undefined') {
+                if (typeof(this.map[pathname]) != 'undefined') {
                     console.log('serve ' + pathname);
                     pathname = this.map[pathname];
                     console.log('serve ' + pathname);
@@ -258,7 +258,7 @@ class Downloads extends EventEmitter {
             this.map['./' + name] = file
         }
         if (triggerDownload) {
-            renderer.get().emit('download', url, name)
+            renderer.ui.emit('download', url, name)
             if(paths.android) {
                 osd.show(lang.FILE_SAVED_ON.format('Download', name), 'fas fa-check-circle', 'downloads', 'normal')
             }
@@ -268,7 +268,7 @@ class Downloads extends EventEmitter {
     async serveContent(filename, content) {
         await this.prepare()
         const url = 'http://' + this.opts.addr + ':' + this.opts.port + '/' + encodeURIComponent(filename)
-        const file = global.paths.temp +'/'+ filename
+        const file = paths.temp +'/'+ filename
         await fs.promises.writeFile(file, content)
         this.map['./' + filename] = file
         console.log('serve serve', file, url)
@@ -315,7 +315,7 @@ class Downloads extends EventEmitter {
     download(url, name, target) {
         target = target.replace('file:///', '/');
         console.log('Download in background', url, name, target);
-        if (typeof (this.activeDownloads[url]) != 'undefined') {
+        if (typeof(this.activeDownloads[url]) != 'undefined') {
             return;
         }
         
@@ -327,7 +327,7 @@ class Downloads extends EventEmitter {
                 console.log('READDIR ERR ' + String(err));
             }
             const uid = 'download-' + name.replace(new RegExp('[^A-Za-z0-9]+', 'g'), '');
-            renderer.get().emit('background-mode-lock', 'saving-file-' + uid);
+            renderer.ui.emit('background-mode-lock', 'saving-file-' + uid);
             osd.show(lang.SAVING_FILE_X.format(name) + ' 0%', 'fa-mega spin-x-alt', uid, 'persistent');
             const file = target + '/' + name;
             const writer = fs.createWriteStream(file, { flags: 'w', highWaterMark: Number.MAX_SAFE_INTEGER }), download = new Download({
@@ -346,7 +346,7 @@ class Downloads extends EventEmitter {
             }
             download.on('progress', progress => {
                 osd.show(lang.SAVING_FILE_X.format(name) + '  ' + parseInt(progress) + '%', 'fa-mega spin-x-alt', uid, 'persistent');
-                if (global.menu && global.menu.path.indexOf(lang.ACTIVE_DOWNLOADS) != -1) {
+                if (global.menu && global.menu.path.includes(lang.ACTIVE_DOWNLOADS)) {
                     global.menu.refresh()
                 }
             });
@@ -356,9 +356,9 @@ class Downloads extends EventEmitter {
                 const finished = () => {
                     writer.destroy();
                     const done = () => {
-                        renderer.get().emit('background-mode-unlock', 'saving-file-' + uid);
+                        renderer.ui.emit('background-mode-unlock', 'saving-file-' + uid);
                         delete this.activeDownloads[url];
-                        if (global.menu && global.menu.path.indexOf(lang.ACTIVE_DOWNLOADS) != -1) {
+                        if (global.menu && global.menu.path.includes(lang.ACTIVE_DOWNLOADS)) {
                             global.menu.refreshNow()
                         }
                     };

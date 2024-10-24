@@ -32,8 +32,8 @@ class EntriesGroup extends EventEmitter {
         return entries;
     }
     get(index) {
-        if (typeof (index) == 'number') {
-            if (typeof (this.data[index]) != 'undefined') {
+        if (typeof(index) == 'number') {
+            if (typeof(this.data[index]) != 'undefined') {
                 return Object.assign({}, this.data[index]);
             }
             return false;
@@ -43,8 +43,8 @@ class EntriesGroup extends EventEmitter {
     cleanAtts(oentry) {
         let entry = Object.assign({}, oentry);
         ['class', 'path', 'users', 'position', 'renderer', 'action', 'prepend', 'append', 'hlsOnly'].forEach(k => {
-            if (typeof (entry[k]) != 'undefined') {
-                delete entry[k];
+            if (typeof(entry[k]) != 'undefined') {
+                delete entry[k]
             }
         });
         if (entry.entries) {

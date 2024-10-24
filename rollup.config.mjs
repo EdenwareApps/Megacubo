@@ -8,8 +8,8 @@ import json from '@rollup/plugin-json'
 import css from 'rollup-plugin-import-css'
 import sveltePreprocess from 'svelte-preprocess'
 import { getBabelOutputPlugin } from '@rollup/plugin-babel';
-import babelConfig from './babel.config.json' assert { type: 'json'};
-import babelRendererConfig from './babel.config.renderer.json' assert { type: 'json'};
+import babelConfig from './babel.config.json' with { type: 'json'};
+import babelRendererConfig from './babel.config.renderer.json' with { type: 'json'};
 import replace from '@rollup/plugin-replace';
 // import { visualizer } from 'rollup-plugin-visualizer';
 

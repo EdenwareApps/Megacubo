@@ -27,11 +27,12 @@ import channels from './modules/channels/channels.js'
 import { getFilename } from 'cross-dirname'
 import { createRequire } from 'module';
 import menu from './modules/menu/menu.js'
-import { listNameFromURL, rmdirSync } from './modules/utils/utils.js'
+import { clone, rmdirSync } from './modules/utils/utils.js'
 import osd from './modules/osd/osd.js';
 import ffmpeg from './modules/ffmpeg/ffmpeg.js'
 import promo from './modules/promoter/promoter.js'
 import mega from './modules/mega/mega.js'
+import EPGManager from './modules/lists/epg-worker.js';
                 
 /* Preload script variables */
 Object.assign(global, {
@@ -40,18 +41,15 @@ Object.assign(global, {
     config,
     Download,
     downloads,
-    energy,
     ffmpeg,
     icons,
     lang,
     lists,
     menu,
-    moment,
     options,
     osd,
     paths,
     promo,
-    recommendations,
     renderer,
     storage,
     streamer
@@ -60,7 +58,7 @@ Object.assign(global, {
 console.log('[main] Initializing node...');
 process.env.UV_THREADPOOL_SIZE = 16;
 if (!paths.android) {
-    if (typeof (electron) === 'string') {
+    if (typeof(electron) === 'string') {
         const file = getFilename()
         console.log('[main] Electron: ' + electron +' '+ file);
         const args = [file, ...process.argv.slice(2)];
@@ -68,7 +66,7 @@ if (!paths.android) {
         child.unref();
         process.exit();
     }
-    console.log('ELECTRON: ' + typeof (electron));}
+}
 
 process.on('warning', e => console.warn(e, e.stack));
 process.on('unhandledRejection', (reason, promise) => {
@@ -83,7 +81,7 @@ process.on('uncaughtException', exception => {
 onexit(() => {
     global.isExiting = true;
     console.error('APP_EXIT')
-    if (typeof (streamer) != 'undefined' && streamer.active) {
+    if (typeof(streamer) != 'undefined' && streamer.active) {
         streamer.stop();
     }
     if (streamer.tuning) {
@@ -91,17 +89,16 @@ onexit(() => {
         streamer.tuning = null;
     }
     rmdirSync(paths.temp, false)
-    if (typeof (renderer) != 'undefined' && renderer) {
-        const ui = renderer.get()
-        ui.emit('exit', true);
-        ui.destroy();
+    if (typeof(renderer) != 'undefined' && renderer) {
+        renderer.ui.emit('exit', true);
+        renderer.ui.destroy();
     }
 })
 
 let originalConsole;
 function enableConsole(enable) {
     let fns = ['log', 'warn'];
-    if (typeof (originalConsole) == 'undefined') { // initialize
+    if (typeof(originalConsole) == 'undefined') { // initialize
         originalConsole = {};
         fns.forEach(f => originalConsole[f] = console[f].bind(console));
         config.on('change', (keys, data) => keys.includes('enable-console') && enableConsole(data['enable-console']));
@@ -120,52 +117,6 @@ console.log('[main] Modules loaded.');
 global.activeEPG = '';
 streamer.tuning = null;
 let isStreamerReady, playOnLoaded, tuningHintShown, showingSlowBroadcastDialog;
-global.updateUserTasks = async app => {
-    if (process.platform != 'win32')
-        return
-    if (app) { // set from cache, Electron won't set after window is opened
-        const tasks = await storage.get('user-tasks');
-        if (tasks && !app.setUserTasks(tasks)) {
-            throw 'Failed to set user tasks. ' + JSON.stringify(tasks);
-        }
-        return
-    }
-    const limit = 12;
-    const entries = [];
-    entries.push(...channels.bookmarks.get().slice(0, limit));
-    if (entries.length < limit) {
-        for (const entry of channels.history.get()) {
-            if (!entries.some(e => e.name == entry.name)) {
-                entries.push(entry);
-                if (entries.length == limit)
-                    break;
-            }
-        }
-        if (entries.length < limit && Array.isArray(channels.watching.currentEntries)) {
-            for (const entry of channels.watching.currentEntries) {
-                if (!entries.some(e => e.name == entry.name)) {
-                    entries.push(entry);
-                    if (entries.length == limit)
-                        break;
-                }
-            }
-        }
-    }
-    const tasks = entries.map(entry => {
-        return {
-            arguments: '"' + entry.url + '"',
-            title: entry.name,
-            description: entry.name,
-            program: process.execPath,
-            iconPath: process.execPath,
-            iconIndex: 0
-        };
-    });
-    await storage.set('user-tasks', tasks, {
-        expiration: true,
-        permanent: true
-    });
-};
 const setupCompleted = () => {
     const l = config.get('lists');
     const fine = (l && l.length) || config.get('communitary-mode-lists-amount');
@@ -189,11 +140,11 @@ const videoErrorTimeoutCallback = ret => {
     } else if (ret == 'transcode') {
         streamer.transcode()
     } else if (ret == 'external') {
-        renderer.get().emit('external-player')
+        renderer.ui.emit('external-player')
     } else if (ret == 'stop') {
         streamer.stop()
     } else {
-        renderer.get().emit('streamer-reset-timeout')
+        renderer.ui.emit('streamer-reset-timeout')
     }
 }
 let initialized
@@ -208,6 +159,7 @@ const init = async (language, timezone) => {
     
     rmdirSync(streamer.opts.workDir, false)
     console.log('Initializing premium...');
+
     const Premium = await import('./modules/premium-helper/premium-helper.js')
     global.premium = new Premium.default()
 
@@ -216,24 +168,22 @@ const init = async (language, timezone) => {
             lists.discovery.reportHealth(source, state != 'offline');
         }
     });
-    const ui = renderer.get()
     menu.addFilter(channels.hook.bind(channels));
     menu.addFilter(channels.bookmarks.hook.bind(channels.bookmarks));
     menu.addFilter(channels.history.hook.bind(channels.history));
-    menu.addFilter(channels.watching.hook.bind(channels.watching));
+    menu.addFilter(channels.trending.hook.bind(channels.trending));
     menu.addFilter(lists.manager.hook.bind(lists.manager));
     menu.addFilter(options.hook.bind(options));
     menu.addFilter(theme.hook.bind(theme));
     menu.addFilter(channels.search.hook.bind(channels.search));
     menu.addOutputFilter(recommendations.hook.bind(recommendations));
-    ui.on('menu-update-range', icons.renderRange.bind(icons));
+    renderer.ui.on('menu-update-range', icons.renderRange.bind(icons));
     menu.on('render', icons.render.bind(icons));
     menu.on('action', async (e) => {
-        console.warn('ACTION', e, typeof (e.action));
-        if (typeof (e.type) == 'undefined') {
-            if (typeof (e.url) == 'string') {
+        if (typeof(e.type) == 'undefined') {
+            if (typeof(e.url) == 'string') {
                 e.type = 'stream';
-            } else if (typeof (e.action) == 'function') {
+            } else if (typeof(e.action) == 'function') {
                 e.type = 'action';
             }
         }
@@ -280,9 +230,9 @@ const init = async (language, timezone) => {
                 break
         }
     });
-    ui.on('config-set', (k, v) => config.set(k, v));
-    ui.on('crash', (...args) => crashlog.save(...args));
-    ui.on('lists-manager', ret => {
+    renderer.ui.on('config-set', (k, v) => config.set(k, v));
+    renderer.ui.on('crash', (...args) => crashlog.save(...args));
+    renderer.ui.on('lists-manager', ret => {
         console.log('lists-manager', ret);
         switch (ret) {
             case 'agree':
@@ -311,7 +261,7 @@ const init = async (language, timezone) => {
                 break;
         }
     });
-    ui.on('reload', ret => {
+    renderer.ui.on('reload', ret => {
         console.log('reload', ret);
         switch (ret) {
             case 'agree':
@@ -321,7 +271,7 @@ const init = async (language, timezone) => {
                 break;
         }
     });
-    ui.on('reload-dialog', async () => {
+    renderer.ui.on('reload-dialog', async () => {
         console.log('reload-dialog');
         if (!streamer.active)
             return
@@ -337,7 +287,7 @@ const init = async (language, timezone) => {
         if (!paths.android) {
             opts.push({ template: 'option', text: lang.OPEN_EXTERNAL_PLAYER, fa: 'fas fa-window-restore', id: 'external' });
         }
-        if (typeof (streamer.active.transcode) == 'function' && !streamer.active.isTranscoding()) {
+        if (typeof(streamer.active.transcode) == 'function' && !streamer.active.isTranscoding()) {
             opts.push({ template: 'option', text: lang.FIX_AUDIO_OR_VIDEO + ' &middot; ' + lang.TRANSCODE, fa: 'fas fa-film', id: 'transcode' });
         }
         if (opts.length > 2) {
@@ -347,15 +297,15 @@ const init = async (language, timezone) => {
             streamer.reload();
         }
     });
-    ui.on('testing-stop', () => {
+    renderer.ui.on('testing-stop', () => {
         console.warn('TESTING STOP');
         streamer.state.cancelTests();
     });
-    ui.on('tuning-stop', () => {
+    renderer.ui.on('tuning-stop', () => {
         console.warn('TUNING ABORT');
         streamer.tuning && streamer.tuning.destroy();
     });
-    ui.on('tune', () => {
+    renderer.ui.on('tune', () => {
         let data = streamer.active ? streamer.active.data : streamer.lastActiveData;
         console.warn('RETUNNING', data);
         if (data) {
@@ -364,11 +314,11 @@ const init = async (language, timezone) => {
             streamer.zap.go().catch(e => menu.displayErr(e));
         }
     });
-    ui.on('retry', () => {
+    renderer.ui.on('retry', () => {
         console.warn('RETRYING');
         streamer.reload();
     });
-    ui.on('video-error', async (type, errData) => {
+    renderer.ui.on('video-error', async (type, errData) => {
         console.error('VIDEO ERROR', { type, errData });
         if (streamer.zap.isZapping) {
             await streamer.zap.go();
@@ -414,33 +364,32 @@ const init = async (language, timezone) => {
                     }
                     if (!paths.android && type == 'playback') {
                         // skip if it's not a false positive due to tuning-blind-trust
-                        const openedExternal = await streamer.askExternalPlayer().catch(console.error);
-                        if (openedExternal === true)
-                            return;
+                        const openedExternal = await streamer.askExternalPlayer(active.codecData).catch(console.error);
+                        if (openedExternal === true) return
                     }
                     streamer.handleFailure(null, type).catch(e => menu.displayErr(e));
                 }
             }
         }
     });
-    ui.on('share', () => streamer.share());
-    ui.on('stop', () => {
+    renderer.ui.on('share', () => streamer.share());
+    renderer.ui.on('stop', () => {
         if (streamer.active) {
             console.warn('STREAMER STOP FROM CLIENT');
             streamer.emit('stop-from-client');
             streamer.stop();
             streamer.tuning && streamer.tuning.pause()
         }
-        let isEPGEnabledPath = !channels.search.isSearching() && channels.loadedEPG && [lang.TRENDING, lang.BOOKMARKS, lang.LIVE].some(p => menu.path.substr(0, p.length) == p);
+        let isEPGEnabledPath = !channels.search.isSearching() && [lang.TRENDING, lang.BOOKMARKS, lang.LIVE].some(p => menu.path.startsWith(p))
         if (isEPGEnabledPath) { // update current section data for epg freshness
-            menu.refresh();
+            menu.refresh()
         }
     });
-    ui.on('open-url', url => {
+    renderer.ui.on('open-url', url => {
         console.log('OPENURL', url)
         omni.open(url).catch(e => menu.displayErr(e))
     });
-    ui.on('open-name', name => {
+    renderer.ui.on('open-name', name => {
         console.log('OPEN STREAM BY NAME', name);
         if (name) {            
             const e = { name, url: mega.build(name) }
@@ -451,16 +400,16 @@ const init = async (language, timezone) => {
             }
         }
     });
-    ui.on('about', async () => {
+    renderer.ui.on('about', async () => {
         if (streamer.active) {
             await streamer.about();
         } else {
             options.about();
         }
     });
-    ui.on('network-state-up', () => setNetworkConnectionState(true))
-    ui.on('network-state-down', () => setNetworkConnectionState(false))
-    ui.on('network-ip', ip => {
+    renderer.ui.on('network-state-up', () => setNetworkConnectionState(true))
+    renderer.ui.on('network-state-down', () => setNetworkConnectionState(false))
+    renderer.ui.on('network-ip', ip => {
         if (ip && np.isNetworkIP(ip)) {
             np.networkIP = () => ip
         }
@@ -483,43 +432,42 @@ const init = async (language, timezone) => {
                 cantune = true;
             }
         }
-        ui.emit('streamer-connect', src, codecs, '', streamer.active.mediaType, info, cantune);
+        renderer.ui.emit('streamer-connect', src, codecs, '', streamer.active.mediaType, info, cantune);
         if (cantune) {
             if (!tuningHintShown && channels.history.get().length) {
                 tuningHintShown = true;
             }
             if (!tuningHintShown) {
                 tuningHintShown = true;
-                ui.emit('streamer-show-tune-hint');
+                renderer.ui.emit('streamer-show-tune-hint');
             }
         }
     });
     streamer.on('streamer-disconnect', err => {
         console.warn('DISCONNECT', err, streamer.tuning !== false);
-        ui.emit('streamer-disconnect', err, streamer.tuning !== false);
+        renderer.ui.emit('streamer-disconnect', err, streamer.tuning !== false);
     });
     streamer.on('stop', (err, data) => {
-        ui.emit('remove-status-flag-from-all', 'fas fa-play-circle faclr-green');
-        ui.emit('set-loading', data, false);
-        ui.emit('streamer-stop');
+        renderer.ui.emit('remove-status-flag-from-all', 'fas fa-play-circle faclr-green')
+        renderer.ui.emit('streamer-stop')
     });
     config.on('change', (keys, data) => {
-        ui.emit('config', keys, data);
+        renderer.ui.emit('config', keys, data);
         if (['lists', 'communitary-mode-lists-amount', 'interests'].some(k => keys.includes(k))) {
             menu.refresh();
             lists.manager.update();
         }
     });
-    ui.once('menu-ready', () => {
+    renderer.ui.once('menu-ready', () => {
         menu.start()
         icons.refresh()
     });
-    ui.once('streamer-ready', async () => {
+    renderer.ui.once('streamer-ready', async () => {
         isStreamerReady = true;
         streamer.state.sync();
         renderer.ready() || renderer.ready(null, true);
         if (!streamer.active) {
-            await lists.manager.waitListsReady().catch(console.error)
+            await lists.manager.ready().catch(console.error)
             if (playOnLoaded) {
                 streamer.play(playOnLoaded);
             } else if (config.get('resume')) {
@@ -532,15 +480,15 @@ const init = async (language, timezone) => {
             }
         }
     });
-    ui.once('close', () => {
+    renderer.ui.once('close', () => {
         console.warn('Client closed!');
         energy.exit();
     });
-    ui.once('exit', () => {
+    renderer.ui.once('exit', () => {
         console.error('Immediate exit called from client.');
         process.exit(0);
     });
-    ui.on('suspend', () => {
+    renderer.ui.on('suspend', () => {
         streamer.tuning && streamer.tuning.destroy();
         streamer.state && streamer.state.cancelTests();
     });
@@ -556,7 +504,7 @@ const init = async (language, timezone) => {
             ], 'yes');
             console.log('update callback', chosen);
             if (chosen == 'yes') {
-                ui.emit('open-external-url', 'https://megacubo.net/update?ver=' + paths.manifest.version);
+                renderer.ui.emit('open-external-url', 'https://megacubo.net/update?ver=' + paths.manifest.version);
             } else if (chosen == 'how') {
                 await menu.dialog([
                     { template: 'question', text: lang.HOW_TO_UPDATE, fa: 'fas fa-question-circle' },
@@ -565,7 +513,7 @@ const init = async (language, timezone) => {
                 ], 'yes');
                 await updatePrompt(c);
             } else if (chosen == 'changelog') {
-                ui.emit('open-external-url', 'https://github.com/EdenwareApps/Megacubo/releases/latest');
+                renderer.ui.emit('open-external-url', 'https://github.com/EdenwareApps/Megacubo/releases/latest');
                 await updatePrompt(c);
             }
         };
@@ -577,15 +525,14 @@ const init = async (language, timezone) => {
         menu.addFilter(downloads.hook.bind(downloads));
         lists.manager.update();
         await crashlog.send().catch(console.error);
-        await lists.manager.waitListsReady();
+        await lists.manager.ready();
         console.log('WaitListsReady resolved!');
         let err, c = await cloud.get('configure').catch(e => err = e); // all below in func depends on 'configure' data
         if (err) {
             console.error(err);
             c = {};
         }
-        await options.updateEPGConfig(c).catch(console.error);
-        console.log('checking update...');
+        console.log('checking update...')
         if (!config.get('hide-updates')) {
             if (c.version > paths.manifest.version) {
                 console.log('new version found', c.version);
@@ -594,12 +541,12 @@ const init = async (language, timezone) => {
                 console.log('updated');
             }
         }
-        ui.emit('arguments', process.argv);
-    });
+        renderer.ui.emit('arguments', process.argv)
+    })
     console.warn('Prepared to connect.')
-    ui.emit('main-ready', config.all(), lang.getTexts())
+    renderer.ui.emit('main-ready', config.all(), lang.getTexts())
 };
-renderer.get().once('get-lang-callback', (locale, timezone, ua, online) => {
+renderer.ui.once('get-lang-callback', (locale, timezone, ua, online) => {
     console.log('[main] get-lang-callback', timezone, ua, online);
     if (timezone) {
         moment.tz.setDefault(timezone.name);
@@ -607,21 +554,21 @@ renderer.get().once('get-lang-callback', (locale, timezone, ua, online) => {
     if (ua && ua != config.get('default-user-agent')) {
         config.set('default-user-agent', ua);
     }
-    if (typeof (online) == 'boolean') {
+    if (typeof(online) == 'boolean') {
         setNetworkConnectionState(online);
     }
     if (!initialized) {
         console.log('get-lang-callback 1');
-        init(locale, timezone);
+        init(locale, timezone)
     } else {
         console.log('get-lang-callback 2');
         lang.ready().catch(e => menu.displayErr(e)).finally(() => {
-            renderer.get().emit('main-ready', config.all(), lang.getTexts());
-        });
+            renderer.ui.emit('main-ready', config.all(), lang.getTexts());
+        })
     }
 });
 if (paths.android) {
-    renderer.get().emit('get-lang');
+    renderer.ui.emit('get-lang');
 } else {
     console.log('[main] Initializing window...');
     let remote
@@ -629,7 +576,8 @@ if (paths.android) {
     const contextIsolation = parseFloat(process.versions.electron) >= 22
     const require = createRequire(getFilename())
     if(contextIsolation) {
-        remote = require('@electron/remote/main').initialize()
+        remote = require('@electron/remote/main')
+        remote.initialize()
     }
 
     const { app, BrowserWindow, globalShortcut, Menu } = electron;
@@ -642,14 +590,13 @@ if (paths.android) {
     onexit(() => app.quit());
     if (contextIsolation) {
         app.once('browser-window-created', (_, window) => {
-            remote.enable(window.webContents);
-        });
+            remote.enable(window.webContents)
+        })
     }
     const initAppWindow = async () => {
-        global.ui = renderer.get()
         console.log('[main] Initializing window... 3');
         const isLinux = process.platform == 'linux';
-        await updateUserTasks(app).catch(console.error);
+        await channels.updateUserTasks(app).catch(console.error);
         console.log('[main] Initializing window... 4');
         if (config.get('gpu')) {
             config.get('gpu-flags').forEach(f => {
@@ -663,23 +610,23 @@ if (paths.android) {
         } else {
             app.disableHardwareAcceleration();
         }
-        app.commandLine.appendSwitch('no-zygote');
-        app.commandLine.appendSwitch('no-sandbox');
-        app.commandLine.appendSwitch('no-prefetch');
-        app.commandLine.appendSwitch('disable-websql', 'true');
-        app.commandLine.appendSwitch('password-store', 'basic');
-        app.commandLine.appendSwitch('disable-http-cache', 'true');
-        app.commandLine.appendSwitch('enable-tcp-fast-open', tcpFastOpen); // networking environments that do not fully support the TCP Fast Open standard may have problems connecting to some websites
-        app.commandLine.appendSwitch('disable-transparency', 'true');
-        app.commandLine.appendSwitch('disable-site-isolation-trials');
-        app.commandLine.appendSwitch('enable-smooth-scrolling', 'true');
-        app.commandLine.appendSwitch('enable-experimental-web-platform-features'); // audioTracks support
-        app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport'); // TODO: Allow user to activate Metal (macOS) and VaapiVideoDecoder (Linux) features
-        app.commandLine.appendSwitch('disable-features', 'IsolateOrigins,SitePerProcess,NetworkPrediction');
-        app.commandLine.appendSwitch("autoplay-policy", "no-user-gesture-required");
-        app.commandLine.appendSwitch('disable-web-security');
-        await app.whenReady();
-        console.log('[main] Initializing window... 5');
+        app.commandLine.appendSwitch('no-zygote')
+        app.commandLine.appendSwitch('no-sandbox')
+        app.commandLine.appendSwitch('no-prefetch')
+        app.commandLine.appendSwitch('disable-websql', 'true')
+        app.commandLine.appendSwitch('password-store', 'basic')
+        app.commandLine.appendSwitch('disable-http-cache', 'true')
+        app.commandLine.appendSwitch('enable-tcp-fast-open', tcpFastOpen) // networking environments that do not fully support the TCP Fast Open standard may have problems connecting to some websites
+        app.commandLine.appendSwitch('disable-transparency', 'true')
+        app.commandLine.appendSwitch('disable-site-isolation-trials')
+        app.commandLine.appendSwitch('enable-smooth-scrolling', 'true')
+        app.commandLine.appendSwitch('enable-experimental-web-platform-features') // audioTracks support
+        app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport') // TODO: Allow user to activate Metal (macOS) and VaapiVideoDecoder (Linux) features
+        app.commandLine.appendSwitch('disable-features', 'IsolateOrigins,SitePerProcess,NetworkPrediction')
+        app.commandLine.appendSwitch("autoplay-policy", "no-user-gesture-required")
+        app.commandLine.appendSwitch('disable-web-security')
+        await app.whenReady()
+        console.log('[main] Initializing window... 5')
         global.window = new BrowserWindow({
             width: 320,
             height: 240,
@@ -690,10 +637,10 @@ if (paths.android) {
             webPreferences: {
                 cache: false,
                 sandbox: false,
+                contextIsolation,
                 fullscreenable: true,
                 disablePreconnect: true,
                 dnsPrefetchingEnabled: false,
-                contextIsolation,
                 nodeIntegration: false,
                 nodeIntegrationInWorker: false,
                 nodeIntegrationInSubFrames: false,
@@ -702,25 +649,27 @@ if (paths.android) {
                 experimentalFeatures: true,
                 webSecurity: false // desabilita o webSecurity
             }
-        });
-        window.loadURL('http://127.0.0.1:' + ui.opts.port + '/renderer/electron.html', { userAgent: ui.ua }); // file:// is required on Linux to prevent blank window on Electron 9.1.2
+        })
         app.on('browser-window-focus', () => {
             // We'll use Ctrl+M to enable Miniplayer instead of minimizing
             globalShortcut.registerAll(['CommandOrControl+M'], () => { return; });
             globalShortcut.registerAll(['F11'], () => { return; });
-        });
+        })
         app.on('browser-window-blur', () => {
             globalShortcut.unregisterAll();
-        });
+        })
         app.on('second-instance', (event, commandLine) => {
             if (window) {
                 window.isMinimized() || window.restore();
                 window.focus();
-                ui.emit('arguments', commandLine);
+                renderer.ui.emit('arguments', commandLine);
             }
-        });
-        window.once('closed', () => window.closed = true); // prevent bridge IPC error
-        ui.setElectronWindow(window)
+        })
+        window.once('closed', () => window.closed = true) // prevent bridge IPC error
+        renderer.ui.setElectronWindow(window)
+        renderer.bridgeReady((err, port) => {
+            window.loadURL('http://127.0.0.1:'+ port +'/renderer/electron.html', { userAgent: renderer.ui.ua })
+        })
         console.log('[main] Initializing window... 6')    
     };
     initAppWindow().catch(console.error);

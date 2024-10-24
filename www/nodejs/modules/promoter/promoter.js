@@ -17,8 +17,8 @@ class Promoter {
         this.startTime = (Date.now() / 1000);
         this.promoteDialogTime = 0;
         this.promoteDialogInterval = 1800;
-        renderer.get().on('video-error', () => this.promoteDialogSignal());
-        renderer.get().on('streamer-is-slow', () => this.promoteDialogSignal());
+        renderer.ui.on('video-error', () => this.promoteDialogSignal());
+        renderer.ui.on('streamer-is-slow', () => this.promoteDialogSignal());
         renderer.ready(() => {
             global.streamer.on('hard-failure', () => this.promoteDialogSignal())
             global.streamer.on('stop', () => this.promoteDialog())
@@ -65,13 +65,13 @@ class Promoter {
                 if (skipRequirements && skipRequirements.includes(k)) {
                     return true;
                 } else if (k == 'country') {
-                    return typeof (p.countries) == 'undefined' || p.countries.includes(atts[k]);
+                    return typeof(p.countries) == 'undefined' || p.countries.includes(atts[k]);
                 } else if (k == 'platform') {
-                    return typeof (p.platforms) == 'undefined' || p.platforms.includes(atts[k]);
+                    return typeof(p.platforms) == 'undefined' || p.platforms.includes(atts[k]);
                 } else if (k == 'version') {
-                    return typeof (p.minVersion) == 'undefined' || atts.version >= p.minVersion;
+                    return typeof(p.minVersion) == 'undefined' || atts.version >= p.minVersion;
                 } else {
-                    return typeof (p[k]) == 'undefined' || p[k] == atts[k];
+                    return typeof(p[k]) == 'undefined' || p[k] == atts[k];
                 }
             })
         })
@@ -91,7 +91,7 @@ class Promoter {
             callbacks[id] = async () => {
                 if (!o.url)
                     return;
-                if (o.url.indexOf('{email}') != -1) {
+                if (o.url.includes('{email}')) {
                     const email = await menu.prompt({
                         question: o.emailPrompt || '',
                         placeholder: o.emailPlaceholder || '',
@@ -99,7 +99,7 @@ class Promoter {
                     });
                     o.url = o.url.replace('{email}', encodeURIComponent(email || ''));
                 }
-                if (o.url.indexOf('{name}') != -1) {
+                if (o.url.includes('{name}')) {
                     const name = await menu.prompt({
                         question: o.namePrompt || '',
                         placeholder: o.namePlaceholder || '',
@@ -118,7 +118,7 @@ class Promoter {
                         osd.hide('promoter');
                     });
                 } else {
-                    renderer.get().emit('open-external-url', o.url);
+                    renderer.ui.emit('open-external-url', o.url);
                 }
             };
             return {
@@ -130,7 +130,7 @@ class Promoter {
             };
         }));
         const id = await menu.dialog(opts);
-        if (typeof (callbacks[id]) == 'function')
+        if (typeof(callbacks[id]) == 'function')
             await callbacks[id]();
     }
     async applyFilters(entries, path) {
@@ -139,7 +139,7 @@ class Promoter {
             const chosen = entries[0].type == 'back' ? 1 : 0
             entries = entries.filter(e => e.hookId != 'promoter')
             entries.forEach((e, i) => {
-                if (!e.side && e.class && e.class.indexOf('entry-2x') != -1) {
+                if (!e.side && e.class && e.class.includes('entry-2x')) {
                     entries[i].class = e.class.replace(new RegExp('(entry-2x|entry-cover|entry-force-cover)', 'g'), '');
                 }
             })
@@ -182,7 +182,7 @@ class Promoter {
             }
             const hasIcon = entries[chosen].icon || (entries[chosen].programme && entries[chosen].programme.i)
             if (!path || entries.length == (chosen + 1) || hasIcon) {
-                if (typeof (entries[chosen].class) == 'undefined') {
+                if (typeof(entries[chosen].class) == 'undefined') {
                     entries[chosen].class = ''
                 }
                 entries[chosen].class += ' entry-2x'

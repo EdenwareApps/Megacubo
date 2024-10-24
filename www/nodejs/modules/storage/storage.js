@@ -52,7 +52,7 @@ class StorageTools extends EventEmitter {
                 } if (ext == 'commit') {
                     const ffile = this.opts.folder + '/' + file
                     const stat = await fs.promises.stat(ffile).catch(() => {})
-                    if (stat && typeof (stat.size) == 'number') {
+                    if (stat && typeof(stat.size) == 'number') {
                         const mtime = stat.mtimeMs / 1000;
                         if ((now - mtime) > this.opts.minIdleTime) {
                             fs.promises.unlink(ffile, () => {}).catch(() => {})
@@ -102,7 +102,7 @@ class StorageTools extends EventEmitter {
         const tfile = file.replace('.json', '.dat');
         const key = this.unresolve(tfile);
         const tstat = await fs.promises.stat(this.opts.folder + '/' + tfile).catch(() => {});
-        if (!tstat || typeof (tstat) != 'number') {
+        if (!tstat || typeof(tstat) != 'number') {
             let expiration = parseInt(await fs.promises.readFile(this.opts.folder + '/' + efile).catch(() => {}));
             if (!isNaN(expiration)) {
                 let err;
@@ -141,7 +141,7 @@ class StorageTools extends EventEmitter {
     size() {
         let usage = 0;
         Object.keys(this.index).forEach(k => {
-            if (typeof (this.index[k].size) == 'number') {
+            if (typeof(this.index[k].size) == 'number') {
                 usage += this.index[k].size;
             }
         });
@@ -157,7 +157,7 @@ class StorageIndex extends StorageTools {
         try {
             index = fs.readFileSync(this.opts.folder + '/' + this.indexFile, { encoding: 'utf8' })
         } catch (e) {}
-        if (typeof (index) == 'string') {
+        if (typeof(index) == 'string') {
             try {
                 index = JSON.parse(index);
                 Object.keys(index).forEach(k => {
@@ -202,7 +202,7 @@ class StorageIndex extends StorageTools {
         this.lastSaveTime = (Date.now() / 1000)
         await fs.promises.writeFile(tmp, JSON.stringify(this.index), 'utf8').catch(console.error)
         try {
-            await fs.promises.rename(tmp, this.opts.folder +'/'+ this.indexFile)
+            await moveFile(tmp, this.opts.folder +'/'+ this.indexFile)
         } catch (err) {
             fs.promises.unlink(tmp).catch(console.error)
             throw err
@@ -234,7 +234,7 @@ class StorageIndex extends StorageTools {
         const ordered = Object.keys(this.index).filter(a => {
             if(!this.index[a]) return // bad value or deleted in mean time
             if (this.index[a].permanent || this.locked[a]) {
-                if (typeof (this.index[a].size) == 'number') {
+                if (typeof(this.index[a].size) == 'number') {
                     left -= this.index[a].size
                 }
                 return false
@@ -270,40 +270,76 @@ class StorageIndex extends StorageTools {
         }
         this.saveLimiter.call(); // always
     }
-    async touch(key, atts, silent, skipAlign) {
-        key = this.prepareKey(key);
+    validateTouchSync(key, atts) {
+        const entry = this.index[key]
+        if (!entry) return Object.keys(atts)
+        if (entry.delete === true) {
+            return [
+                {
+                    key,
+                    attr: 'delete',
+                    before: false,
+                    after: true
+                }
+            ]
+        }
+        if (atts.expiration && atts.expiration < entry.expiration) {
+            return false
+        }
+        if (atts.time && atts.time < entry.time) {
+            return false
+        }
+        const changed = Object.keys(atts).filter(k => {
+            return (k === 'expiration' || k === 'time') ? 
+                (atts[k] > entry[k] && Math.abs(atts[k] - entry[k]) > 5) : // ignore minor time changes (performance), if something else changed it will pass
+                (atts[k] != entry[k])
+        }).map(k => {
+            return {
+                key,
+                attr: k,
+                before: entry[k],
+                after: atts[k]
+            }
+        })
+        return changed
+    }
+    async touch(key, atts, doNotPropagate) {
+        key = this.prepareKey(key)
         if (atts && atts.delete === true) { // IPC sync only
             if (this.index[key]) {
-                delete this.index[key];
+                delete this.index[key]
+                this.emit('delete', key)
             }
-            return;
+            return
         }
-        const time = parseInt((Date.now() / 1000));
+        const time = parseInt((Date.now() / 1000))
         if (!this.index[key]) {
-            if (atts === false)
-                return;
-            this.index[key] = {};
+            if (atts === false) return
+            this.index[key] = {}
         }
-        const entry = this.index[key];
-        if (!atts)
-            atts = {};
-        entry.time = time;
-        if (atts.size === 'auto' || typeof (entry.size) == 'undefined') {            
+        const entry = this.index[key]
+        if (!atts) atts = {}
+        const prevAtts = Object.assign({}, atts)        
+        atts = this.calcExpiration(atts || {}, entry)
+        if (typeof(atts.expiration) != 'number' || !atts.expiration) {
+            delete atts.expiration
+        }
+        atts.time = time
+        if (atts.size === 'auto' || typeof(entry.size) == 'undefined') {            
             const stat = await fs.promises.stat(this.resolve(key)).catch(() => {})
             if (stat && stat.size) {
-                atts.size = stat.size;
+                atts.size = stat.size
             } else {
-                delete atts.size;
+                delete atts.size
             }
         }
-        atts = this.calcExpiration(atts || {}, entry);
-        if (typeof(atts.expiration) != 'number' || !atts.expiration) {
-            delete atts.expiration;
-        }
-        this.index[key] = Object.assign(entry, atts);
-        silent || this.emit('touch', key, this.index[key]);
-        if (!skipAlign && this.opts.main) { // only main process should align/save index, worker will sync through IPC		
-            this.alignLimiter.call(); // will call saver when done
+        const prevValues = Object.assign({}, entry)
+        this.index[key] = Object.assign(entry, atts)
+        if(doNotPropagate !== true) { // IPC sync only
+            this.emit('touch', key, this.index[key])
+            if (this.opts.main) { // only main process should align/save index, worker will sync through IPC		
+                this.alignLimiter.call() // will call saver when done
+            }
         }
     }
 }
@@ -317,7 +353,7 @@ class StorageIO extends StorageIndex {
             return null
         const row = this.index[key]
         // grab this row to mem to avoid losing it due to its deletion in meanwhile, maybe using a lock() would be better
-        if (encoding !== null && typeof (encoding) != 'string') {
+        if (encoding !== null && typeof(encoding) != 'string') {
             if (row.compress) {
                 encoding = null
             } else {
@@ -331,7 +367,7 @@ class StorageIO extends StorageIndex {
             return null        
         const file = this.resolve(key);
         const stat = await fs.promises.stat(file).catch(() => {});
-        const exists = stat && typeof (stat.size) == 'number';
+        const exists = stat && typeof(stat.size) == 'number';
         if (exists) {
             let err;
             await this.touch(key, { size: stat.size });
@@ -362,14 +398,14 @@ class StorageIO extends StorageIndex {
     }
     async set(key, content, atts) {
         key = this.prepareKey(key);
-        const lock = await this.lock(key, true), t = typeof (atts);
+        const lock = await this.lock(key, true), t = typeof(atts);
         if (t == 'boolean' || t == 'number') {
             if (t == 'number') {
                 atts += (Date.now() / 1000);
             }
             atts = { expiration: atts };
         }
-        if (atts.encoding !== null && typeof (atts.encoding) != 'string') {
+        if (atts.encoding !== null && typeof(atts.encoding) != 'string') {
             if (atts.compress) {
                 atts.encoding = null;
             } else {
@@ -377,7 +413,7 @@ class StorageIO extends StorageIndex {
             }
         }
         let file = this.resolve(key);
-        if (atts.raw && typeof (content) != 'string' && !Buffer.isBuffer(content))
+        if (atts.raw && typeof(content) != 'string' && !Buffer.isBuffer(content))
             atts.raw = false;
         if (!atts.raw)
             content = JSON.stringify(content);
@@ -388,9 +424,9 @@ class StorageIO extends StorageIndex {
         lock.release()
     }
     calcExpiration(atts, prevAtts) {
-        if (typeof (atts.expiration) == 'number') return atts
+        if (typeof(atts.expiration) == 'number') return atts
         const now = (Date.now() / 1000)
-        if (typeof (atts.ttl) == 'number') {
+        if (typeof(atts.ttl) == 'number') {
             atts.expiration = now + atts.ttl;
             delete atts.ttl;
         } else if (!atts.expiration && !atts.permanent) {
@@ -406,7 +442,7 @@ class StorageIO extends StorageIndex {
     setTTL(key, expiration) {
         if (expiration === false) {
             expiration = 600 // default = 10min
-        } else if (expiration === true || typeof (expiration) != 'number') {
+        } else if (expiration === true || typeof(expiration) != 'number') {
             expiration = this.opts.maxExpiration // true = forever (100 years)
         }
         expiration = (Date.now() / 1000) + expiration
@@ -424,7 +460,7 @@ class StorageIO extends StorageIndex {
         if (this.has(key)) {            
             const file = this.resolve(key);
             const stat = await fs.promises.stat(file).catch(() => {});
-            if (stat && typeof (stat.size) == 'number') {
+            if (stat && typeof(stat.size) == 'number') {
                 return true;
             }
         }
@@ -438,7 +474,7 @@ class StorageIO extends StorageIndex {
         return (expiral > (Date.now() / 1000));
     }
     async write(file, content, enc) {
-        if (typeof (content) == 'number') {
+        if (typeof(content) == 'number') {
             content = String(content);
         }        
         const tmpFile = path.join(path.dirname(file), String(parseInt(Math.random() * 1000000))) + '.commit';

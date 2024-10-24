@@ -2,6 +2,7 @@ import { ucWords } from '../utils/utils.js'
 import { EventEmitter } from "events";
 import pLimit from "p-limit";
 import config from "../config/config.js"
+import { getDomain } from "../utils/utils.js";
 
 let sharedStreamerShadowObject
 const streamer = () => {
@@ -26,24 +27,15 @@ class TunerUtils extends EventEmitter {
         }
     }
     setOpts(opts) {
-        if (opts && typeof (opts) == 'object') {
+        if (opts && typeof(opts) == 'object') {
             Object.keys(opts).forEach((k) => {
-                if (['debug'].indexOf(k) == -1 && typeof (opts[k]) == 'function') {
+                if (!['debug'].includes(k) && typeof(opts[k]) == 'function') {
                     this.on(k, opts[k]);
                 } else {
                     this.opts[k] = opts[k];
                 }
             });
         }
-    }
-    getDomain(u) {
-        if (u && u.indexOf('//') != -1) {
-            let d = u.split('//')[1].split('/')[0].split(':')[0];
-            if (d == 'localhost' || d.indexOf('.') != -1) {
-                return d;
-            }
-        }
-        return '';
     }
 }
 class TunerTask extends TunerUtils {
@@ -84,7 +76,7 @@ class TunerTask extends TunerUtils {
         this.domainDelay[domain] = (Date.now() / 1000) + 1; // try to keep a max of 1 request per sec for same domain connections
         let err;
         const info = await streamer().info(e.url, 2, Object.assign({ skipSample: this.opts.skipSample }, e)).catch(r => err = r);
-        if (typeof (err) != 'undefined') {
+        if (typeof(err) != 'undefined') {
             this.states[i] = -1;
             console.error('Tuner err', err, i);
             throw err;
@@ -104,8 +96,8 @@ class TunerTask extends TunerUtils {
         }
     }
     domainAt(i) {
-        if (typeof (this.domains[i]) == 'undefined') {
-            this.domains[i] = this.getDomain(this.entries[i].url);
+        if (typeof(this.domains[i]) == 'undefined') {
+            this.domains[i] = getDomain(this.entries[i].url)
         }
         return this.domains[i];
     }
@@ -135,7 +127,7 @@ class TunerTask extends TunerUtils {
                 let ret = -1;
                 let busy = this.busyDomains();
                 this.entries.some((e, i) => {
-                    if (typeof (this.results[i]) == 'undefined') {
+                    if (typeof(this.results[i]) == 'undefined') {
                         if (!busy.length || !busy.includes(this.domainAt(i))) {
                             ret = i;
                             return true;
@@ -175,7 +167,7 @@ class TunerTask extends TunerUtils {
             console.log('Tuner pre', i);
         }
         const ret = await this.test(e, i).catch(e => err = e);
-        if (typeof (err) != 'undefined') {
+        if (typeof(err) != 'undefined') {
             if (this.opts.debug) {
                 console.warn('Tuner failure', i);
             }

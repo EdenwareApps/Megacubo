@@ -12,7 +12,7 @@ class HLSTrackSelector {
         this.tracks = {};
     }
     async getPlaylistTracks(masterUrl) {
-        if (typeof (this.tracks[masterUrl]) != 'undefined') {
+        if (typeof(this.tracks[masterUrl]) != 'undefined') {
             return this.tracks[masterUrl];
         }
         const body = await Download.get({
@@ -225,7 +225,7 @@ StreamerHLSIntent.supports = info => {
         }
     }
     if (info.contentType) {
-        if (info.contentType.indexOf('mpegurl') != -1) {
+        if (info.contentType.includes('mpegurl')) {
             return true;
         } else {
             return false; // other video content type

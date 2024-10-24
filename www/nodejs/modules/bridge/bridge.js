@@ -7,6 +7,8 @@ import url from 'url'
 import formidable from 'formidable'
 import closed from '../on-closed/on-closed.js'
 import paths from '../paths/paths.js'
+import { createRequire } from 'module'
+import { getFilename } from 'cross-dirname'
 
 class BaseChannel extends EventEmitter {
     constructor() {
@@ -16,20 +18,20 @@ class BaseChannel extends EventEmitter {
         this.setMaxListeners(20)
     }
     onMessage(args) {
-        setTimeout(() => this.originalEmit.apply(this, args), 0) // async to prevent blocking renderer
+        process.nextTick(() => this.originalEmit.apply(this, args)) // prevent to block renderer
     }
     prepareSerialization(value) {
         if (Array.isArray(value)) {
             return value.map(item => this.prepareSerialization(item))
-        } else if (typeof (value) == 'object' && value !== null) {
+        } else if (typeof(value) == 'object' && value !== null) {
             const ret = {}
             Object.keys(value).forEach(k => {
-                if (typeof (value[k]) != 'function')
+                if (typeof(value[k]) != 'function')
                     ret[k] = this.prepareSerialization(value[k])
             })
             return ret
         } else {
-            if (typeof (value) == 'function')
+            if (typeof(value) == 'function')
                 return null
             return value
         }
@@ -60,6 +62,10 @@ class AndroidChannel extends BaseChannel {
 class ElectronChannel extends BaseChannel {
     constructor() {
         super()
+        const require = createRequire(getFilename())
+        require('electron').ipcMain.on('message', (...args) => {
+            this.onMessage(args[1])
+        })
     }
     customEmit(...args) {
         this.window && !this.window.closed && this.window.webContents.send('message', this.prepareSerialization(args))
@@ -123,7 +129,7 @@ class BridgeServer extends EventEmitter {
                 if (pathname == './') {
                     pathname = './index.html'
                 }
-                if (typeof (this.map[pathname]) != 'undefined') {
+                if (typeof(this.map[pathname]) != 'undefined') {
                     pathname = this.map[pathname]
                 } else {
                     pathname = path.join(paths.cwd, pathname)
@@ -151,13 +157,16 @@ class BridgeServer extends EventEmitter {
             }
         })
         this.server.listen(0, this.opts.addr, err => {
-            if (err)
-                console.error(err)
-            if (!this.server)
-                return
-            this.opts.port = this.server.address().port
-            console.log('Bridge server started', err)
-            this.uploadURL = 'http://' + this.opts.addr + ':' + this.opts.port + '/upload'
+            if(!err && !this.serve) {
+                err = new Error('Bridge server not started')
+            }
+            if (err) console.error(err)
+            if (this.server) {
+                this.opts.port = this.server.address().port
+                console.log('Bridge server started', err)
+                this.uploadURL = 'http://' + this.opts.addr + ':' + this.opts.port + '/upload'
+            }
+            this.emit('connected', err, this.opts.port)
         })
     }
     secret(length) {
@@ -287,51 +296,62 @@ if(!Array.isArray(global.bridgeInstanceCallbacks)) {
     global.bridgeInstanceCallbacks = []
 }
 
-export const get = () => {
-    if(!global.bridgeInstance) {
-        if(paths.inWorker) {
-            console.error('!!! Tried to create a Bridge instance from a worker !!!', traceback())
+class BridgeController {
+    constructor() {}
+    bridgeReady(f) {
+        if(global.bridgeInstance && global.bridgeInstance.opts.port) {
+            f(null, global.bridgeInstance.opts.port)
         } else {
-            global.bridgeInstance = new Bridge()
+            global.bridgeInstance.once('connected', f)
         }
     }
-    return global.bridgeInstance
-}
-
-export const ready = (f, done) => {
-    const isReady = !Array.isArray(global.bridgeInstanceCallbacks)
-    if (typeof (f) == 'function') {
-        if (isReady) {
-            f()
-        } else {
-            global.bridgeInstanceCallbacks.push(f)
-        }
-        return
-    } else if (f === true) { // promisify
-        return new Promise(resolve => {
+    ready(f, done) {
+        const isReady = !Array.isArray(global.bridgeInstanceCallbacks)
+        if (typeof(f) == 'function') {
             if (isReady) {
-                resolve()
+                f()
             } else {
-                global.bridgeInstanceCallbacks.push(resolve)
+                global.bridgeInstanceCallbacks.push(f)
             }
-        })
-    }
-    if (!isReady && done === true) {
-        const cbs = global.bridgeInstanceCallbacks
-        global.bridgeInstanceCallbacks = null
-        cbs.map(f => {
-            try {
-                const p = f()
-                if (p && typeof (p.catch) == 'function') {
-                    p.catch(console.error)
+            return
+        } else if (f === true) { // promisify
+            return new Promise(resolve => {
+                if (isReady) {
+                    resolve()
+                } else {
+                    global.bridgeInstanceCallbacks.push(resolve)
                 }
-            }
-            catch (e) {
-                console.error(e)
-            }
-        })
+            })
+        }
+        if (!isReady && done === true) {
+            const cbs = global.bridgeInstanceCallbacks
+            global.bridgeInstanceCallbacks = null
+            cbs.map(f => {
+                try {
+                    const p = f()
+                    if (p && typeof(p.catch) == 'function') {
+                        p.catch(console.error)
+                    }
+                }
+                catch (e) {
+                    console.error(e)
+                }
+            })
+        }
+        return isReady
     }
-    return isReady
+    get ui () {
+        if(!global.bridgeInstance) {
+            if(paths.inWorker) {
+                console.error('!!! Tried to create a Bridge instance from a worker !!!', traceback())
+            } else {
+                global.bridgeInstance = new Bridge()
+            }
+        }
+        return global.bridgeInstance || {}
+    }
 }
 
-export default {get, ready}
+const instance = new BridgeController
+export const ready = instance.ready.bind(instance)
+export default instance

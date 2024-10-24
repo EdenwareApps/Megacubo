@@ -1,7 +1,6 @@
-import { kbfmt } from '../../utils/utils.js'
+import { findSyncBytePosition, isSyncByteValid, kbfmt } from '../../utils/utils.js'
 import { EventEmitter } from "events";
 import MultiBuffer from "./multibuffer.js";
-import config from "../../config/config.js"
 
 const SYNC_BYTE = 0x47;
 const PACKET_SIZE = 188;
@@ -19,30 +18,20 @@ class MPEGTSProcessor extends EventEmitter {
         */
         this.direction = 1;
         this.packetBuffer = new MultiBuffer();
-        this.packetFilterPolicy = config.get('mpegts-packet-filter-policy');
+        this.packetFilterPolicy = 0;
         this.pcrMemoNudgeSize = parseInt(this.maxPcrMemoSize / 10);
         this.pcrMemoSize = 0;
         this.pcrMemo = new Map();
     }
-    checkSyncByte(pos) {
-        return pos >= 0 && pos < this.packetBuffer.length && this.packetBuffer.get(pos) == SYNC_BYTE;
+    setPacketFilterPolicy(policy) {
+        this.packetFilterPolicy = policy
     }
-    nextSyncByte(offset = 0) {
-        while (offset < (this.packetBuffer.length - 4)) {
-            const pos = this.packetBuffer.indexOf(SYNC_BYTE, offset);
-            if (pos == -1) {
-                return -1;
-            } else if (this.checkSyncByte(pos)) {
-                return pos;
-            } else { // not a valid sync byte
-                offset = pos + 1;
-            }
-        }
-        return -1;
+    nextSyncByte(offset=0) {
+        return findSyncBytePosition(this.packetBuffer, offset)
     }
     packetize() {
-        let currentPCR, initialPos = 0;
-        let pointer = this.checkSyncByte(0) ? 0 : this.nextSyncByte();
+        let currentPCR, initialPos = 0
+        let pointer = this.nextSyncByte()
         let positions = {}, outputBounds = { start: -1, end: -1 }, errorCount = 0, iterationsCounter = 0;
         if (pointer == -1) {
             if (this.debug) {
@@ -61,8 +50,8 @@ class MPEGTSProcessor extends EventEmitter {
             }
             let offset = -1;
             if ((pointer + PACKET_SIZE) < this.packetBuffer.length) { // has a next packet start
-                if (!this.checkSyncByte(pointer + PACKET_SIZE)) {
-                    offset = this.packetBuffer.indexOf(SYNC_BYTE, pointer + PACKET_SIZE);
+                if (!isSyncByteValid(this.packetBuffer, pointer + PACKET_SIZE)) {
+                    offset = this.nextSyncByte(pointer + PACKET_SIZE)
                 }
             }
             let size = offset == -1 ? PACKET_SIZE : (offset - pointer);
@@ -70,30 +59,37 @@ class MPEGTSProcessor extends EventEmitter {
                 errorCount = 0;
             } else {
                 errorCount++;
-                if (errorCount > 10) { // seems not mpegts, discard all
+                if (errorCount > 20) { // seems not mpegts, discard all
                     this.direction = 0;
                     this.packetBuffer.clear();
                     return;
                 }
                 switch (this.packetFilterPolicy) {
                     case 1:
+                    case 4:
                         if (size < PACKET_SIZE) {
-                            console.log('bad packet size: ' + size + ', removing it');
-                            this.packetBuffer.remove(pointer, pointer + size);
-                            size = 0;
+                            if(this.packetFilterPolicy == 1) {
+                                this.debug && console.log('bad packet size: ' + size + ', padding it')
+                                const missingBytes = PACKET_SIZE - size
+                                const zeroFill = Buffer.alloc(missingBytes)
+                                this.packetBuffer.insert(zeroFill, pointer + size)
+                                size = PACKET_SIZE
+                            } else {
+                                this.debug && console.log('bad packet size: ' + size + ', removing it')
+                                this.packetBuffer.remove(pointer, pointer + size)
+                                size = 0
+                            }
                         } else {
-                            console.log('bad packet size: ' + size + ', trimming it');
-                            this.packetBuffer.remove(pointer + PACKET_SIZE, pointer + size);
-                            size = PACKET_SIZE;
+                            this.debug && console.log('bad packet size: ' + size + ', trimming it')
+                            this.packetBuffer.remove(pointer + PACKET_SIZE, pointer + size)
+                            size = PACKET_SIZE
                         }
                         break;
                     case 2:
-                        console.log('bad packet size: ' + size + ', removing it');
+                        this.debug && console.log('bad packet size: ' + size + ', removing it');
                         this.packetBuffer.remove(pointer, pointer + size);
                         size = 0;
                         break;
-                    default:
-                        console.log('bad packet size: ' + size + ', passthrough');
                 }
             }
             if (!size)
@@ -115,7 +111,7 @@ class MPEGTSProcessor extends EventEmitter {
                     }
                 }
                 currentPCR = pcr;
-                if (typeof (positions[pcr]) == 'undefined') {
+                if (typeof(positions[pcr]) == 'undefined') {
                     positions[pcr] = pointer;
                 }
             }

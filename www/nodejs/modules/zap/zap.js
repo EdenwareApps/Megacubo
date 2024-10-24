@@ -30,14 +30,14 @@ class Zap extends EventEmitter {
                 this.setZapping(true, true);
             }
         });
-        renderer.get().on('zap', () => {
+        renderer.ui.on('zap', () => {
             this.go().catch(console.error);
         });
-        renderer.get().on('stop', () => {
+        renderer.ui.on('stop', () => {
             this.setZapping(false);
         });
-        renderer.get().on('streamer-ready', () => {
-            renderer.get().emit('add-player-button', 'zap', 'ZAP', this.icon, 6, 'zap');
+        renderer.ui.on('streamer-ready', () => {
+            renderer.ui.emit('add-player-button', 'zap', 'ZAP', this.icon, 6, 'zap');
         });
     }
     async hook(entries, path) {
@@ -49,7 +49,7 @@ class Zap extends EventEmitter {
                 }
             });
             if (!has) {
-                if (typeof (pos) == 'undefined') {
+                if (typeof(pos) == 'undefined') {
                     pos = 0;
                 }
                 entries.splice(pos, 0, this.entry());
@@ -111,7 +111,7 @@ class Zap extends EventEmitter {
             return;
         }
         this.isZapping = state;
-        renderer.get().emit('is-zapping', this.isZapping, skipOSD);
+        renderer.ui.emit('is-zapping', this.isZapping, skipOSD);
         if (!state && force) {
             this.zappingLocked = true;
             setTimeout(() => this.zappingLocked = false, 2000);
@@ -119,7 +119,7 @@ class Zap extends EventEmitter {
     }
     async channelsList() {        
         let chs = [], wdata = {};
-        (await global.channels.watching.entries()).forEach(e => {
+        (await global.channels.trending.entries()).forEach(e => {
             wdata[e.name] = e.users;
         });
         Object.keys(global.channels.channelList.channelsIndex).forEach(name => {

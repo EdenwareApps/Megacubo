@@ -1,5 +1,5 @@
 import Download from '../../download/download.js'
-import { basename, kbfmt, prepareCORS } from "../../utils/utils.js";
+import { basename, findSyncBytePosition, kbfmt, prepareCORS } from "../../utils/utils.js";
 import osd from '../../osd/osd.js'
 import lang from "../../lang/lang.js";
 import http from "http";
@@ -10,8 +10,6 @@ import fs from "fs";
 import paths from "../../paths/paths.js";
 import config from "../../config/config.js"
 
-const SYNC_BYTE = 0x47;
-const PACKET_SIZE = 188;
 class Downloader extends StreamerAdapterBase {
     constructor(url, opts) {
         /*
@@ -61,7 +59,7 @@ class Downloader extends StreamerAdapterBase {
             this.warmCache = new MultiBuffer()
             this.on('bitrate', bitrate => {
                 const newMaxSize = Math.min(Math.max(this.opts.warmCacheMinSize, bitrate * this.opts.warmCacheSeconds), this.opts.warmCacheMaxMaxSize);
-                if (typeof (newMaxSize) == 'number' && !isNaN(newMaxSize)) {
+                if (typeof(newMaxSize) == 'number' && !isNaN(newMaxSize)) {
                     this.opts.warmCacheMaxSize = newMaxSize;
                 }
             });
@@ -109,7 +107,7 @@ class Downloader extends StreamerAdapterBase {
                     const uid = parseInt(Math.random() * 1000000);
                     if (this.warmCache && this.warmCache.length) {
                         let buf = this.warmCache.slice()
-                        if(typeof(buf) == 'object') {
+                        if(!Buffer.isBuffer(buf)) {
                             buf = Buffer.from(buf)
                         }
                         buf && buf.length && response.write(buf)
@@ -168,23 +166,24 @@ class Downloader extends StreamerAdapterBase {
         });
     }
     rotateWarmCache() {
-        if (this.warmCache.length < this.opts.warmCacheMaxSize)
-            return true;
-        const desiredSize = this.opts.warmCacheMaxSize * 0.75; // avoid to run it too frequently
-        const startPosition = this.warmCache.length - desiredSize;
-        const currentSize = this.warmCache.length;
+        if (this.warmCache.length < this.opts.warmCacheMaxSize) return true
+        const desiredSize = this.opts.warmCacheMaxSize * 0.75 // avoid to run it too frequently
+        const startPosition = this.warmCache.length - desiredSize
+        const currentSize = this.warmCache.length
         if (this.committed && this.bitrateChecker.acceptingSamples(currentSize)) {
-            const file = paths.temp + '/' + parseInt(Math.random() * 1000000) + '.ts';
-            fs.writeFile(file, this.warmCache.slice(), () => this.bitrateChecker.addSample(file, currentSize, true));
+            const file = paths.temp + '/' + parseInt(Math.random() * 1000000) + '.ts'
+            fs.writeFile(file, this.warmCache.slice(), () => this.bitrateChecker.addSample(file, currentSize, true))
         }
-        const syncBytePosition = this.warmCache.indexOf(SYNC_BYTE, startPosition);
+        const syncBytePosition = findSyncBytePosition(this.warmCache, startPosition)
         if (syncBytePosition == -1) {
-            menu.displayErr('!!! SYNC_BYTE não encontrado');
-            this.warmCache.clear();
+            menu.displayErr('!!! SYNC_BYTE não encontrado')
+            this.warmCache.clear()
         } else {
-            this.warmCache.consume(syncBytePosition);
+            this.warmCache.consume(syncBytePosition)
+            const newSyncBytePosition = findSyncBytePosition(this.warmCache)
+            if(newSyncBytePosition !== 0) menu.displayErr('!!! SYNC_BYTE not found, this may indicate a Multibuffer error. =O')
         }
-        return true;
+        return true
     }
     destroyWarmCache() {
         if (this.warmCache) {
@@ -229,7 +228,7 @@ class Downloader extends StreamerAdapterBase {
         if(typeof(data) == 'object') {
             data = Buffer.from(data)
         }
-        if (typeof (len) != 'number')
+        if (typeof(len) != 'number')
             len = this.len(data);
         if (!len)
             return;
@@ -314,7 +313,7 @@ class Downloader extends StreamerAdapterBase {
             }
             statusCode = statusCode;
             headers = headers;
-            contentType = typeof (headers['content-type']) != 'undefined' ? headers['content-type'] : '';
+            contentType = typeof(headers['content-type']) != 'undefined' ? headers['content-type'] : '';
             if (this.opts.debug) {
                 console.log('[' + this.type + '] headers received', headers, statusCode, contentType); // 200
             }
@@ -323,7 +322,7 @@ class Downloader extends StreamerAdapterBase {
                     this.opts.contentType = contentType;
                 }
                 download.on('data', chunk => {
-                    if (typeof (connTime) == 'undefined') {
+                    if (typeof(connTime) == 'undefined') {
                         connTime = (Date.now() / 1000) - connStart;
                         this.connectTime = connTime;
                         if (this.opts.debug) {

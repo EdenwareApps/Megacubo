@@ -11,6 +11,8 @@ class CommunityLists extends EventEmitter {
     constructor(master) {
         super()
         this.master = master
+        this.type = 'community'
+        this.id = 'community-lists'
         renderer.ready(() => menu.addFilter(this.hook.bind(this)));
     }
     async discovery(adder) {
@@ -48,14 +50,14 @@ class CommunityLists extends EventEmitter {
             { template: 'option', text: lang.KNOW_MORE, id: 'know', fa: 'fas fa-info-circle' }
         ], 'ok').then(ret => {
             if (ret == 'know') {
-                renderer.get().emit('open-external-url', 'https://megacubo.net/tos');
+                renderer.ui.emit('open-external-url', 'https://megacubo.net/tos');
             }
         }).catch(console.error);
     }
     async receivedListsEntries() {
         const info = await this.master.lists.info();
         let entries = Object.keys(info).filter(u => info[u].origin == 'community').sort((a, b) => {
-            if ([a, b].some(a => typeof (info[a].score) == 'undefined'))
+            if ([a, b].some(a => typeof(info[a].score) == 'undefined'))
                 return 0
             if (info[a].score == info[b].score)
                 return 0
@@ -87,7 +89,11 @@ class CommunityLists extends EventEmitter {
         if (!entries.length) {
             if (!this.master.lists.loaded()) {
                 entries = [this.master.lists.manager.updatingListsEntry()];
-            } else {
+            } else if(Object.keys(this.master.lists.lists).length) {
+                entries = [
+                    { name: lang.EMPTY, fa: 'fas fa-info-circle', type: 'action', class: 'entry-empty' }
+                ]
+            } {
                 entries = [this.master.lists.manager.noListsRetryEntry()];
             }
         }
@@ -106,20 +112,20 @@ class CommunityLists extends EventEmitter {
                 let options = [
                     { name: lang.ACCEPT_LISTS, type: 'check', details: lang.LIST_SHARING, action: (data, checked) => {
                             if (checked) {
-                                renderer.get().emit('dialog', [
+                                renderer.ui.emit('dialog', [
                                     { template: 'question', text: lang.COMMUNITY_LISTS, fa: 'fas fa-users' },
                                     { template: 'message', text: lang.ASK_COMMUNITY_LIST },
                                     { template: 'option', id: 'back', fa: 'fas fa-times-circle', text: lang.BACK },
                                     { template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: lang.I_AGREE }
-                                ], 'lists-manager', 'back', true);
+                                ], 'lists-manager', 'back', true)
                             } else {
-                                config.set('communitary-mode-lists-amount', 0);
-                                menu.refreshNow(); // epg options path
+                                config.set('communitary-mode-lists-amount', 0)
+                                menu.refreshNow(true) // epg options path
                             }
                         }, checked: () => {
-                            return config.get('communitary-mode-lists-amount') > 0;
+                            return config.get('communitary-mode-lists-amount') > 0
                         } }
-                ];
+                ]
                 if (config.get('communitary-mode-lists-amount') > 0) {
                     options.push({
                         name: lang.RECEIVED_LISTS,

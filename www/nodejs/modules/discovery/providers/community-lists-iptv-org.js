@@ -6,12 +6,15 @@ import cloud from "../../cloud/cloud.js";
 import config from "../../config/config.js"
 import renderer from '../../bridge/bridge.js'
 import menu from '../../menu/menu.js'
+import Download from '../../download/download.js'
 
-class CommunityListsIPTVORG extends EventEmitter {
+export default class CommunityListsIPTVORG extends EventEmitter {
     constructor(master) {
         super()
         this.master = master
-        this.data = {};
+        this.data = {}
+        this.type = 'community'
+        this.id = 'community-lists-iptv-org'
         this.countries = new Countries();
         this.load().catch(console.error);
         renderer.ready(() => menu.addFilter(this.hook.bind(this)));
@@ -88,4 +91,3 @@ class CommunityListsIPTVORG extends EventEmitter {
         return entries;
     }
 }
-export default CommunityListsIPTVORG;

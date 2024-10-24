@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path'
 import { LIST_DATA_KEY_MASK } from '../utils/utils.js';
 import Download from '../download/download.js'
 import osd from '../osd/osd.js'
@@ -7,11 +9,10 @@ import { EventEmitter } from 'events';
 import PQueue from 'p-queue';
 import workers from '../multi-worker/main.js';
 import ConnRacing from '../conn-racing/conn-racing.js';
-import fs from 'fs';
 import config from '../config/config.js'
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
-//import UpdaterWorker from './updater-worker.js'
+import { getDirname } from 'cross-dirname'
 
 class ListsLoader extends EventEmitter {
     constructor(master, opts) {
@@ -33,13 +34,13 @@ class ListsLoader extends EventEmitter {
         this.enqueue(this.myCurrentLists, 1);
         renderer.ready(async () => {
             this.master.discovery.on('found', () => this.resetLowPriorityUpdates())
-            global.streamer.on('commit', () => this.pause());
+            global.streamer.on('commit', () => this.pause())
             global.streamer.on('stop', () => {
                 setTimeout(() => {
-                    global.streamer.active || this.resume();
-                }, 2000); // wait 2 seconds, maybe user was just switching channels
-            });
-            this.resetLowPriorityUpdates();
+                    global.streamer.active || this.resume()
+                }, 2000) // wait 2 seconds, maybe user is just zapping channels
+            })
+            this.resetLowPriorityUpdates()
         });
         config.on('change', (keys, data) => {
             if (keys.includes('lists')) {
@@ -76,12 +77,12 @@ class ListsLoader extends EventEmitter {
         });
         this.master.on('satisfied', () => {
             if (this.master.activeLists.length) {
-                this.queue._concurrency = 1; // try to change pqueue concurrency dinamically
+                this.queue._concurrency = 1 // try to change pqueue concurrency dinamically
                 this.resetLowPriorityUpdates()
             }
         });
         this.master.on('unsatisfied', () => {
-            this.queue._concurrency = concurrency; // try to change pqueue concurrency dinamically
+            this.queue._concurrency = concurrency // try to change pqueue concurrency dinamically
             this.resetLowPriorityUpdates()
         });
         this.resetLowPriorityUpdates()
@@ -144,10 +145,7 @@ class ListsLoader extends EventEmitter {
     async prepareUpdater() {
         if (!this.updater || this.updater.finished === true) {
             if(!this.uid) this.uid = parseInt(Math.random() * 1000000)
-            console.error('[listsLoader] Creating updater worker')
-            console.error('[listsLoader] ', this.updater, this.uid)
-            const updater = this.updater = workers.load(paths.cwd + '/modules/lists/updater-worker.js')
-            console.error('[listsLoader] ', this.updater)
+            const updater = this.updater = workers.load(path.join(getDirname(), 'updater-worker.js'))
             this.once('destroy', () => updater.terminate())
             this.updaterClients = 1
             this.updater.on('progress', p => {
@@ -162,7 +160,7 @@ class ListsLoader extends EventEmitter {
                 }
                 if (!this.updaterClients && !this.updater.terminating) {
                     this.updater.terminating = setTimeout(() => {
-                        console.error('[listsLoader] Terminating updater worker');
+                        this.debug && console.error('[listsLoader] Terminating updater worker');
                         updater.terminate();
                         this.updater = null;
                     }, 5000);
@@ -198,7 +196,7 @@ class ListsLoader extends EventEmitter {
         }
         let already = [];
         urls = urls.filter(url => {
-            if (typeof (this.pings[url]) == 'undefined') {
+            if (typeof(this.pings[url]) == 'undefined') {
                 return true;
             }
             if (this.pings[url] > 0) { // if zero, is loading yet
@@ -294,8 +292,8 @@ class ListsLoader extends EventEmitter {
     }
     async reload(url) {
         let updateErr;
-        const file = storage.resolve(LIST_DATA_KEY_MASK.format(url));
-        const progressId = 'reloading-' + parseInt(Math.random() * 1000000);
+        const file = storage.resolve(LIST_DATA_KEY_MASK.format(url))
+        const progressId = 'reloading-' + parseInt(Math.random() * 1000000)
         const progressListener = p => {
             if (p.progressId == progressId) {
                 osd.show(lang.RECEIVING_LIST + ' ' + p.progress + '%', 'fas fa-circle-notch fa-spin', 'progress-' + progressId, 'persistent');

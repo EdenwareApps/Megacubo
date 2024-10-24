@@ -171,8 +171,7 @@ class Language extends EventEmitter {
         }
         return this._availableLocalesMap;
     }
-    async loadLanguage(locale) {
-        
+    async loadLanguage(locale) {        
         let file = path.join(this.folder, locale + '.json');
         let stat = await fs.promises.stat(file).catch(console.error);
         if (stat && stat.size) {

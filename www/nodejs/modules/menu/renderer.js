@@ -1,8 +1,7 @@
-import 'scrollyfills';
 import { EventEmitter } from 'events'
 import { Sounds } from './sound'
 import { main } from '../bridge/renderer'
-import { css, time, traceback } from '../../renderer/src/scripts/utils'
+import { css } from '../../renderer/src/scripts/utils'
 
 class MenuURLInputHelper {
     constructor(){
@@ -18,7 +17,7 @@ class MenuURLInputHelper {
             }],
             ['.modal-wrap input[placeholder^="http"]', 'keyup', e => {
 				let v = e.target.value
-                if(v.length == 6 && v.indexOf(':') == -1){
+                if(v.length == 6 && !v.includes(':')){
                     e.target.value = 'http://' + v
                 }
             }]
@@ -55,6 +54,7 @@ class MenuURLInputHelper {
 class MenuBase extends EventEmitter {
 	constructor(container){
 		super()
+		this.setMaxListeners(20)
 		console.log('Menu base', {container, main})		
 		this.sounds = new Sounds()
 		this.debug = false
@@ -68,6 +68,9 @@ class MenuBase extends EventEmitter {
 			a && !a.classList.contains('entry-ignore') && this.action(a)
 		})
 		main.on('config', (_, c) => this.sounds.volume = c.volume)
+		if (main.config && main.config['volume'] !== undefined) {
+			this.sounds.volume = main.config['volume']
+		}
 	}
     buildElementFromHTML(code) {
         const wrap = document.createElement('span')
@@ -123,6 +126,7 @@ class MenuSelectionMemory extends MenuIcons {
 		this.selectionMemory = {}
 		this.on('open', () => this.saveSelection())
 		this.on('focus', () => this.saveSelection())
+		this.on('scroll', () => this.saveSelection())
         this.on('pos-modal-end', this.restoreSelection.bind(this))
 		main.on('current-search', (terms, type) => {
             this.currentSearch = JSON.stringify({terms, type})
@@ -151,7 +155,7 @@ class MenuSelectionMemory extends MenuIcons {
         let data = {scroll: 0, index: this.path ? 1 : 0}
 		const selectables = this.selectables()
 		if(typeof(this.selectionMemory[this.path]) != 'undefined' && this.selectionMemory[this.path][n]) {
-			const inSearch = this.path.indexOf(main.lang.SEARCH) != -1 || this.path.indexOf(main.lang.MORE_RESULTS) != -1 || this.path.indexOf(main.lang.SEARCH_MORE) != -1
+			const inSearch = this.path.includes(main.lang.SEARCH) || this.path.includes(main.lang.MORE_RESULTS) || this.path.includes(main.lang.SEARCH_MORE)
 			const inSameSearch = inSearch && this.currentSearch == this.selectionMemory[this.path][n].search
 			if(!inSearch || inSameSearch) {
 				data = this.selectionMemory[this.path][n]
@@ -163,11 +167,14 @@ class MenuSelectionMemory extends MenuIcons {
         this.debug && console.log('selectionMemory restore', data.scroll, data.index, this.path)
         if(this.activeSpatialNavigationLayout().level == 'default' && this.currentElements[data.index]){
 			let range = this.viewportRange(data.scroll)
-			if(data.index < range.start || data.index >= range.end){
+			if(data.index < range.start || data.index >= range.end) {
 				data.index = range.start
 			}
-			this.focus(this.currentElements[data.index])			
-        	this.scrollTop(data.scroll, true)
+			this.focus(this.currentElements[data.index], true)
+			const start = this.wrap.scrollTop, end = this.wrap.scrollTop + this.wrap.clientHeight
+			if(data.scroll < start || data.scroll > end) {
+				this.scrollTop(data.scroll, true)
+			}
 			return true
         } else {
 			selectables.includes(selected) || this.reset()
@@ -287,7 +294,7 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
         if(!element.parentNode){
             let prop, val;
             ['title', 'data-path', 'id'].some(p => {
-                if(val = e.getAttribute(p) && val.indexOf('"') == -1){
+                if(val = e.getAttribute(p) && !val.includes('"')){
                     prop = p
                     return true
                 }
@@ -311,11 +318,11 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
         return elements.filter(e => e.parentNode)
     }
 	updateSelectedElementClasses(element){
-		for(const e of document.querySelectorAll('.'+ this.className)) e.classList.remove(this.className)
-		for(const e of document.querySelectorAll('.'+ this.parentClassName)) e.classList.remove(this.parentClassName)
-		if(element){
+		if(element && element.classList){
+			for(const e of document.querySelectorAll('.'+ this.className)) e.classList.remove(this.className)
+			for(const e of document.querySelectorAll('.'+ this.parentClassName)) e.classList.remove(this.parentClassName)
 			element.classList.add(this.className)
-			element.parentNode && element.parentNode.classList.add(this.parentClassName)
+			element.parentNode && element.parentNode.classList && element.parentNode.classList.add(this.parentClassName)
 		}
 	}
     findSelected(deep){
@@ -368,7 +375,7 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
         }
         return element
     }
-    focus(a){
+    focus(a, preventScroll){
 		if(this.rendering) return
         let ret = null        
         this.debug && console.error('focus', a, this.wrap.scrollTop)
@@ -394,7 +401,7 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
             }
             let n = a.querySelector('input:not([type="range"]), textarea')
             n && n.focus({preventScroll: true})
-			a.scrollIntoViewIfNeeded({behavior: 'auto', block: 'nearest', inline: 'nearest'})
+			preventScroll || a.scrollIntoViewIfNeeded({behavior: 'auto', block: 'nearest', inline: 'nearest'})
             this.emit('focus', a, index)
         } else {
 			this.debug && console.log('Already focused', {currentLayer, a, selected: document.querySelector('.'+ this.className), scrollLeft: this.container.scrollLeft, scrollTop: this.wrap.scrollTop})
@@ -424,7 +431,7 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
         } else {
             elements = this.entries()
         }
-        if(elements.length && elements.indexOf(this.selected()) == -1){
+        if(elements.length && !elements.includes(this.selected())){
             elements = elements.filter(e => e.getAttribute('data-type') != 'back').slice(0)
             if(elements.length){
                 let _sound = this.sounds
@@ -446,7 +453,7 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
 			console.error('Bad layer selector')
 		}
 		e = e.filter(n => {
-            return !n.className || String(n.className).indexOf('menu-not-navigable') == -1 // Uncaught TypeError: n.className.indexOf is not a function
+            return !n.className || !String(n.className).includes('menu-not-navigable') // Uncaught TypeError: n.className.indexOf is not a function
         })
 		if(noAsides === true){
 			e = e.filter(n => n.parentNode && n.parentNode == this.wrap)
@@ -670,7 +677,7 @@ class MenuBBCode extends MenuSpatialNavigation {
 		return this.makeFunnyText(name)
 	}
 	makeFunnyText(text){
-		if(text.indexOf('&') != -1 && text.indexOf('&') != -1){
+		if(text.includes('&') && text.includes(';')){
 			const wrap = document.createElement('span')
 			wrap.innerHTML = text
 			text = wrap.innerText
@@ -751,21 +758,21 @@ class MenuModal extends MenuBBCode {
 			let t = typeof(replaces[before])
 			if(['string', 'number', 'boolean'].includes(t)) {
 				let fixQuotes = (typeof(replaces.raw) == 'boolean' ? 
-					!replaces.raw : (t == 'string' && replaces[before].indexOf('<') == -1))
+					!replaces.raw : (t == 'string' && !replaces[before].includes('<')))
 				let to = fixQuotes ? this.fixQuotes(replaces[before]) : String(replaces[before])
-				if(to.indexOf('[') != -1){
+				if(to.includes('[')){
 					if(before == 'rawname') {
 						to = this.parseBBCode(to)
 					}
 				}
 				text = text.split('{' + before + '}').join(to)
-				if(text.indexOf("\r\n") != -1){
+				if(text.includes("\r\n")){
 					text = text.replace(new RegExp('\r\n', 'g'), '<br />')
 				}
 			}
 		})
 		text = text.replace(new RegExp('\\{[a-z\\-]+\\}', 'g'), '')
-		replaces.details && replaces.details.indexOf('<') != -1 && console.log('TEMPLATE', text)
+		replaces.details && replaces.details.includes('<') && console.log('TEMPLATE', text)
 		return text
 	}  
 	fixQuotes(text){
@@ -1033,7 +1040,7 @@ class MenuDialog extends MenuDialogQueue {
 				let tpl = this.modalTemplates[template]
 				e['tag-icon'] = ''
 				if(e.fa){
-					if(e.fa.indexOf('//') == -1){
+					if(!e.fa.includes('//')){
 						e['tag-icon'] = '<i class="'+ e.fa + '"></i> '
 					} else {
 						e['tag-icon'] = '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=" style="background-image: url(&quot;'+ e.fa +'&quot;);"> '
@@ -1106,7 +1113,7 @@ class MenuDialog extends MenuDialogQueue {
 						}
 					}
 				} else if(e.template == 'message') {						
-					if(e.text.indexOf('<i ') != -1) {
+					if(e.text.includes('<i ')) {
 						Array.from(m.querySelectorAll('.modal-template-message i')).forEach(s => {
 							s.parentNode.style.display = 'block'
 						})						
@@ -1493,7 +1500,7 @@ class MenuStatusFlags extends MenuSlider {
 	statusAddHTML(e) {
 		if(e.url && typeof(this.statusFlags[e.url]) != 'undefined'){
 			let status = this.statusFlags[e.url], type = e.type || 'stream', cls = e.class || ''
-			if(status && cls.indexOf('skip-testing') == -1 && (type == 'stream' || cls.match(new RegExp('(allow-stream-state|entry-meta-stream)')))){
+			if(status && !cls.includes('skip-testing') && (type == 'stream' || cls.match(new RegExp('(allow-stream-state|entry-meta-stream)')))){
 				let content = '', cls = ''
 				if(status == 'tune'){
 					content = '<i class="fas fa-layer-group"></i>'
@@ -1523,10 +1530,10 @@ class MenuStatusFlags extends MenuSlider {
 				e.statusFlags = content
 				const offline = status == 'offline'
 				if(offline) {
-					if(!e.class || e.class.indexOf('entry-disabled') == -1) {
+					if(!e.class || !e.class.includes('entry-disabled')) {
 						e.class = (e.class || '') +' entry-disabled'
 					}
-				} else if(e.class && e.class.indexOf('entry-disabled') != -1) {
+				} else if(e.class && e.class.includes('entry-disabled')) {
 					e.class = e.class.replace(new RegExp('( |^)entry-disabled', 'g'), '')
 				}
 			}
@@ -1539,48 +1546,7 @@ class MenuStatusFlags extends MenuSlider {
 	}
 }
 
-class MenuLoading extends MenuStatusFlags {
-	constructor(container){
-		super(container)
-		this.originalNames = {}
-		this.on('render', (path, icon, prevPath) => {
-			if(path !== prevPath) this.unsetLoading()
-		})
-		main.on('set-loading', (data, active) => {
-			if(!data) return
-			console.log('set-loading', data, active)
-			this.get(data).forEach(e => {
-				this.setLoading(e, active)
-			})
-		})
-		main.on('unset-loading', () => {
-			this.unsetLoading()
-		})
-		main.on('display-error', () => {
-			this.unsetLoading()
-		})
-	}
-	setLoading(element, active){
-		console.log('setLoading', element, active)
-		if(!element) return
-		if(active){
-			if(!element.classList.contains('entry-loading')){
-				element.classList.add('entry-loading')
-			}
-		} else {
-			if(element.classList.contains('entry-loading')){
-				element.classList.remove('entry-loading')
-			}
-		}
-	}
-	unsetLoading(){ // remove any loading state entry
-		Array.from(document.body.querySelectorAll('a.entry-loading')).forEach((e, i) => {
-			this.setLoading(e, false)
-		})
-	}
-}
-
-class MenuNav extends MenuLoading {
+class MenuNav extends MenuStatusFlags {
 	constructor(container){
 		super(container)
 		this.sideMenuWidthCache = null
@@ -1588,7 +1554,26 @@ class MenuNav extends MenuLoading {
 		setTimeout(() => this.sideMenu(false, 'instant'), 0)
 
 		// will not listen wrap, so it will be horizontal only
-		this.container.addEventListener('scrollend', () => this.sideMenuSync())
+		this.container.addEventListener('scroll', () => {
+			this.isScrolling = true
+		})
+		this.container.addEventListener('scrollend', () => {
+			this.isScrolling = false
+			this.sideMenuSync()
+		})
+		this.scrollendPolyfillElement(this.container)
+	}
+	scrollendPolyfillElement(element) {
+		if('onscrollend' in window) return
+		let isScrolling
+		const dispatchScrollEndEvent = () => {
+			const event = new CustomEvent('scrollend')
+			element.dispatchEvent(event)
+		}
+		element.addEventListener('scroll', () => {
+			window.clearTimeout(isScrolling)
+			isScrolling = setTimeout(dispatchScrollEndEvent, 150)
+		}, false)
 	}
 	inSideMenu() {
 		const w = this.getSideMenuWidth()
@@ -1723,7 +1708,11 @@ export class Menu extends MenuNav {
 			this.currentElements = Array.from(this.wrap.getElementsByTagName('a'))
 			this.has2xEntry = this.currentElements.slice(0, 2).some(e => e.classList.contains('entry-2x'))
 			this.rendering = false
-			this.restoreSelection() // keep it in this timer, or the hell gates will open up!
+			if(navigated) {
+				this.restoreSelection() // keep it in this timer, or the hell gates will open up!
+			} else {
+				this.selected() // force finding and set it as 'selected' if needed
+			}
 			this.emit('render', this.path, icon, prevPath)
 			this.debug && console.log('menu rendered', path, icon)
 		}, 0)
@@ -1738,7 +1727,7 @@ export class Menu extends MenuNav {
 		this.wrap.style.minHeight = (targetScrollTop + this.wrap.offsetHeight) + 'px' // avoid scrolling
 		this.emit('updated')
 		this.wrap.style.minHeight = 0
-		this.scrollTop(targetScrollTop, true)
+		this.isScrolling || this.scrollTop(targetScrollTop, true)
 		this.getRange(targetScrollTop)
 	}
 	applyCurrentEntries(entries) {
@@ -1846,11 +1835,11 @@ export class Menu extends MenuNav {
 				this.wrap.scrollTop = currentScrolltop // scroll was somehow being changed from function start to this point
 				main.emit('menu-update-range', this.range, this.path)
 				if(changed.length){
-					console.log('updateRange', changed, this.range, this.selectedIndex)
+					this.debug && console.log('updateRange', changed, this.range, this.selectedIndex)
 					if(this.selectedIndex < this.range.start || this.selectedIndex >= this.range.end){
-						this.focus(this.currentElements[this.range.start])
+						this.focus(this.currentElements[this.range.start], true)
 					} else {
-						this.focus(this.currentElements[this.selectedIndex])
+						this.focus(this.currentElements[this.selectedIndex], true)
 					}
 				}
 			}
@@ -1968,9 +1957,6 @@ export class Menu extends MenuNav {
 			path.pop()
 			path.pop()
 			path = path.join('/')
-			this.setLoading(element, true)
-		} else if(type == 'group'){
-			this.setLoading(element, true)
 		}
 		if(this.debug){
 			console.warn('menu-open', path, type, tabindex || false)
@@ -2046,13 +2032,13 @@ export class Menu extends MenuNav {
 			e.type = typeof(e.url) ? 'stream' : 'action'
 		}
 		if(e.type != 'back') {
-			if(this.icons[e.path] && this.icons[e.path].url.startsWith('fa')){
-				e.fa = this.icons[e.path].url
-			}
 			if(!e.fa){
+				if(this.icons[e.path] && this.icons[e.path].url.startsWith('fa')) {
+					e.fa = this.icons[e.path].url
+				}
 				if(!e.icon || !e.icon.startsWith('fa')) {
 					if(this.defaultIcons[e.type]){
-						e.fa = 'fas ' + this.defaultIcons[e.type]
+						e.fa = 'fas '+ this.defaultIcons[e.type]
 					}
 				} else {
 					e.fa = e.icon
@@ -2074,18 +2060,18 @@ export class Menu extends MenuNav {
 				e.maskText = e.mask.replace('{0}', e.value)
 			}
 		}
-		if(e.rawname && e.rawname.indexOf('[') != -1) {
+		if(e.rawname && e.rawname.includes('[')) {
 			e.rawname = this.parseBBCode(e.rawname)
 		}
 		e.wrapperClass = 'entry-wrapper'
-		if(!e.side &&  this.icons[e.path] && this.icons[e.path].cover && (main.config['stretch-logos'] || (e.class && e.class.indexOf('entry-force-cover') != -1))) {
+		if(!e.side &&  this.icons[e.path] && this.icons[e.path].cover && (main.config['stretch-logos'] || (e.class && e.class.includes('entry-force-cover')))) {
 			e.cover = true
 			e.wrapperClass += ' entry-cover-active'
 		} else {
 			if(e.cover) {
 				e.cover = false
 			}
-			if(e.wrapperClass.indexOf('entry-cover-active') != -1) {
+			if(e.wrapperClass.includes('entry-cover-active')) {
 				e.wrapperClass = e.wrapperClass.replace(new RegExp(' *entry\-cover\-active *', 'g'), ' ')
 			}
 		}

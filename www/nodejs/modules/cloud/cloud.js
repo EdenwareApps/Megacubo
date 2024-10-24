@@ -7,7 +7,7 @@ import config from '../config/config.js'
 import paths from '../paths/paths.js'
 import { EventEmitter } from 'events'
 import { getDirname } from 'cross-dirname'
-import { parseJSON } from '../utils/utils.js'
+import { getDomain, parseJSON } from '../utils/utils.js'
 
 class CloudConfiguration extends EventEmitter {
     constructor(opts) {
@@ -21,7 +21,7 @@ class CloudConfiguration extends EventEmitter {
             'searches': 6 * 3600,
             'channels': 6 * 3600,
             'sources': 6 * 3600,
-            'watching': 300
+            'trending': 300
         }
         this.reading = {}
         this.notFound = []
@@ -38,7 +38,7 @@ class CloudConfiguration extends EventEmitter {
                 family: 4,
                 method: 'POST',
                 path: '/stats/get_country_low',
-                hostname: Download.getDomain(this.server),
+                hostname: getDomain(this.server),
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'Content-Length': postData.length,
@@ -122,7 +122,7 @@ class CloudConfiguration extends EventEmitter {
             console.log('cloud: got ' + JSON.stringify({ key, err, body }));
         }
         // use validator here only for minor overhead, so we'll not cache any bad data
-        const succeeded = !err && body && (typeof (opts.validator) != 'function' || opts.validator(body))
+        const succeeded = !err && body && (typeof(opts.validator) != 'function' || opts.validator(body))
         if (this.debug) {
             console.log('cloud: got ' + JSON.stringify({key, succeeded}))
         }
@@ -191,7 +191,7 @@ class CloudConfiguration extends EventEmitter {
     }
     async save(key, body, opts) {
         const permanent = key === 'configure'
-        if (typeof (this.expires[opts.expiralKey]) != 'undefined') {
+        if (typeof(this.expires[opts.expiralKey]) != 'undefined') {
             storage.set(opts.cachingDomain + key, body, { ttl: this.expires[opts.expiralKey], permanent });
             storage.set(opts.cachingDomain + key + '-fallback', body, { expiration: true, permanent });
         } else {

@@ -7,36 +7,15 @@ import diag from "../diagnostics/diagnostics.js";
 import config from "../config/config.js"
 import paths from '../paths/paths.js'
 
-class WizardUtils extends EventEmitter {
-    constructor() {
-        super();
-    }
-    isMobile() {
-        return !!paths.android;
-    }
-    validateURL(url) {
-        if (url && url.length > 11) {
-            let u = url.toLowerCase();
-            if (u.substr(0, 4) == 'http' && u.indexOf('://') != -1 && u.indexOf('.') != -1) {
-                return true;
-            }
-            let m = u.match(new RegExp('^([a-z]{1,6}):', 'i'));
-            if (m && m.length > 1 && (m[1].length == 1 || m[1].toLowerCase() == 'file')) { // drive letter or file protocol
-                return true;
-            } else {
-                if (u.length >= 2 && u.startsWith('/') && u.charAt(1) != '/') { // unix path
-                    return true;
-                }
-            }
-        }
-    }
-}
-class Wizard extends WizardUtils {
+class Wizard extends EventEmitter {
     constructor() {
         super();
         this.on('restart', () => {
             this.init().catch(console.error);
         });
+    }
+    isMobile() {
+        return !!paths.android;
     }
     async init() {
         if (!lang.isTrusted) {
@@ -85,7 +64,7 @@ class Wizard extends WizardUtils {
         const { manager } = lists;
         let err, ret = await manager.addListDialog(false).catch(e => err = e);
         console.log('ASKED', ret);
-        if (typeof (err) != 'undefined') {
+        if (typeof(err) != 'undefined') {
             menu.displayErr(lang.INVALID_URL_MSG);
             return await this.lists();
         }
@@ -101,7 +80,7 @@ class Wizard extends WizardUtils {
     }
     async performance() {
         let ram = await diag.checkMemory().catch(console.error);
-        if (typeof (ram) == 'number' && (ram / 1024) >= 2048) { // at least 2G of RAM
+        if (typeof(ram) == 'number' && (ram / 1024) >= 2048) { // at least 2G of RAM
             return true;
         }
         await options.performance(true);

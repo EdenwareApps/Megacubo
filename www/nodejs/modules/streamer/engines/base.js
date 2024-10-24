@@ -64,10 +64,10 @@ class StreamerBaseIntent extends EventEmitter {
     getTranscodingCodecs() {
         const opts = { audioCodec: 'aac', videoCodec: 'libx264' };
         if (this.codecData) {
-            if (this.codecData.video && this.codecData.video.indexOf('h264') != -1) {
+            if (this.codecData.video && this.codecData.video.includes('h264')) {
                 opts.videoCodec = 'copy';
             }
-            if (this.codecData.audio && this.codecData.audio.indexOf('aac') != -1) {
+            if (this.codecData.audio && this.codecData.audio.includes('aac')) {
                 opts.audioCodec = 'copy';
             }
         }
@@ -82,9 +82,9 @@ class StreamerBaseIntent extends EventEmitter {
         }, this.getTranscodingCodecs());
     }
     setOpts(opts) {
-        if (opts && typeof (opts) == 'object') {
+        if (opts && typeof(opts) == 'object') {
             Object.keys(opts).forEach((k) => {
-                if (['debug'].indexOf(k) == -1 && typeof (opts[k]) == 'function') {
+                if (!['debug'].includes(k) && typeof(opts[k]) == 'function') {
                     this.on(k, opts[k]);
                 } else {
                     this.opts[k] = opts[k];
@@ -351,38 +351,38 @@ class StreamerBaseIntent extends EventEmitter {
     }
 }
 StreamerBaseIntent.isVODM3U8 = (content, contentLength, headers) => {
-    let sample = String(content).toLowerCase();
+    let sample = String(content).toLowerCase()
     if (sample.match(new RegExp('ext-x-playlist-type: *(vod|event)')))
-        return true;
-    if (sample.indexOf('#ext-x-media-sequence') != -1 && !sample.match(new RegExp('#ext\-x\-media\-sequence:[0-1][^0-9]')))
-        return false;
+        return true
+    if (sample.includes('#ext-x-media-sequence') && !sample.match(new RegExp('#ext\-x\-media\-sequence:[0-1][^0-9]')))
+        return false
     if (headers) {
         if (headers['last-modified']) {
             let date = new Date(headers['last-modified']);
             if (!isNaN(date.getTime())) {
                 const elapsed = (Date.now() / 1000) - (date.getTime() / 1000);
                 if (elapsed > 180) {
-                    return true;
+                    return true
                 }
             }
         }
     }
-    let pe = sample.indexOf('#ext-x-endlist');
-    let px = sample.lastIndexOf('#extinf');
+    let pe = sample.indexOf('#ext-x-endlist')
+    let px = sample.lastIndexOf('#extinf')
     if (pe != -1) {
-        return pe > px;
+        return pe > px
     }
-    if (sample.indexOf('#ext-x-program-date-time') == -1) {
-        const pieces = sample.split('#extinf');
+    if (!sample.includes('#ext-x-program-date-time')) {
+        const pieces = sample.split('#extinf')
         if (pieces.length > 30) {
-            return true;
+            return true
         }
-        if (typeof (contentLength) == 'number' && pieces.length > 2) { //  at least 3 pieces, to ensure that the first extinf is complete
-            let header = pieces.shift();
-            let pieceLen = pieces[0].length + 7;
-            let totalEstimatedPieces = (contentLength - header.length) / pieceLen;
+        if (typeof(contentLength) == 'number' && pieces.length > 2) { //  at least 3 pieces, to ensure that the first extinf is complete
+            let header = pieces.shift()
+            let pieceLen = pieces[0].length + 7
+            let totalEstimatedPieces = (contentLength - header.length) / pieceLen
             if (totalEstimatedPieces > 30) {
-                return true;
+                return true
             }
         }
     }

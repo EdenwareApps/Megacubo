@@ -15,11 +15,6 @@ class EPGHistory extends EntriesGroup {
         this.resumed = false;
         this.session = null;
         this.allowDupes = true;
-        channels.on('epg-loaded', () => {
-            if (this.inSection()) {
-                menu.refresh()
-            }
-        })
         ready(() => {
             moment.locale(global.lang.locale)
             global.streamer.on('commit', async () => {
@@ -47,6 +42,9 @@ class EPGHistory extends EntriesGroup {
                 console.warn('Session finished')
                 this.finishSession()
             })
+            global.lists.epg.ready().then(() => {
+                if (this.inSection()) menu.refresh()
+            }).catch(console.error)
         })
     }
     currentStreamData() {        
@@ -156,15 +154,15 @@ class EPGHistory extends EntriesGroup {
         if (!Array.isArray(entries)) {
             entries = menu.currentEntries;
         }
-        if (typeof (path) != 'string') {
+        if (typeof(path) != 'string') {
             path = menu.path;
         }
-        if (this.data.length && this.channels.loadedEPG) {
+        if (this.data.length) {
             if (path == lang.LIVE) {
                 return 3;
             } else if (path == lang.BOOKMARKS) {
                 return 2;
-            } else if (path.indexOf(lang.RECOMMENDED_FOR_YOU) != -1) {
+            } else if (path.includes(lang.RECOMMENDED_FOR_YOU)) {
                 return 1;
             }
         }

@@ -97,7 +97,7 @@ class Theme extends EventEmitter {
         return (n / (255 * 3)) * 100;
     }
     async importBackgroundImage(file) {
-        renderer.get().emit('set-loading', { name: lang.CHOOSE_BACKGROUND_IMAGE }, true, lang.PROCESSING);
+        global.menu.setLoading(true);
         osd.show(lang.PROCESSING, 'fas fa-cog fa-spin', 'theme-upload', 'persistent');
         try {            
             await fs.promises.copyFile(file, this.customBackgroundImagePath);
@@ -110,11 +110,11 @@ class Theme extends EventEmitter {
             menu.displayErr(err)
         }
         console.warn('!!! IMPORT CUSTOM BACKGROUND FILE !!! ok', menu.path, file, this.customBackgroundImagePath);
-        renderer.get().emit('set-loading', { name: lang.CHOOSE_BACKGROUND_IMAGE }, false);
+        global.menu.setLoading(false);
         osd.hide('theme-upload');
     }
     async importBackgroundVideo(file) {
-        renderer.get().emit('set-loading', { name: lang.CHOOSE_BACKGROUND_VIDEO }, true, lang.PROCESSING);
+        global.menu.setLoading(true);
         osd.show(lang.PROCESSING, 'fas fa-cog fa-spin', 'theme-upload', 'persistent');
         try {
             
@@ -134,11 +134,10 @@ class Theme extends EventEmitter {
             this.cleanVideoBackgrounds(targetFile);
             osd.show(lang.BACKGROUND_VIDEO_BLACK_SCREEN_HINT, 'fas fa-info-circle', 'theme-upload-hint', 'long');
             menu.open([lang.TOOLS, lang.THEMES, lang.CREATE_THEME, lang.BACKGROUND, lang.BACKGROUND_COLOR].join('/')).catch(e => menu.displayErr(e));
-        }
-        catch (err) {
+        } catch (err) {
             menu.displayErr(err);
         }
-        renderer.get().emit('set-loading', { name: lang.CHOOSE_BACKGROUND_VIDEO }, false);
+        global.menu.setLoading(false);
         osd.hide('theme-upload');
     }
     cleanVideoBackgrounds(currentFile) {        
@@ -294,7 +293,7 @@ class Theme extends EventEmitter {
                 const ffile = this.folder + '/' + sanitize(prevName) + '.theme.json';
                 fs.unlink(ffile, () => {})
             }
-            if (prevName && menu.path.indexOf(prevName) != -1 && menu.path.indexOf(lang.CREATE_THEME) == -1) {
+            if (prevName && menu.path.includes(prevName) && !menu.path.includes(lang.CREATE_THEME)) {
                 await menu.open(menu.path.replace(prevName, this.creatingThemeName)).catch(e => menu.displayErr(e));
             }
         }
@@ -323,7 +322,7 @@ class Theme extends EventEmitter {
                                     renderer: () => {
                                         return new Promise((resolve, reject) => {
                                             let def = global.config.get('animate-background');
-                                            if (def.indexOf('-desktop') != -1) {
+                                            if (def.includes('-desktop')) {
                                                 if (paths.android) {
                                                     def = 'none';
                                                 } else {
@@ -388,46 +387,51 @@ class Theme extends EventEmitter {
                                     renderer: async () => {
                                         let hasErr, colors = await this.colors(this.customBackgroundImagePath, c => this.colorLightLevel(c) < 40, 52).catch(err => hasErr = err);
                                         osd.hide('theme-upload');
-                                        renderer.get().emit('set-loading', { name: lang.CHOOSE_BACKGROUND_IMAGE }, false);
-                                        if (!Array.isArray(colors)) colors = [];
-                                        colors = this.colorsAddDefaults(colors, false).map(c => {
-                                            return this.rgbToHex.apply(this, Object.values(c));
-                                        });
-                                        colors = [...new Set(colors)].slice(0, 32).map((hex, i) => {
-                                            return {
-                                                name: lang.BACKGROUND_COLOR + ' ' + (i + 1),
-                                                details: hex.substr(1),
-                                                type: 'action',
-                                                fa: 'fas fa-stop',
-                                                faStyle: 'color: '+ hex,
-                                                action: async () => {
-                                                    if (hex != global.config.get('background-color')) {
-                                                        global.config.set('background-color', hex);
+                                        global.menu.setLoading(true)
+                                        if (!Array.isArray(colors)) colors = []
+                                        try {
+                                            colors = this.colorsAddDefaults(colors, false).map(c => {
+                                                return this.rgbToHex.apply(this, Object.values(c));
+                                            });
+                                            colors = [...new Set(colors)].slice(0, 32).map((hex, i) => {
+                                                return {
+                                                    name: lang.BACKGROUND_COLOR + ' ' + (i + 1),
+                                                    details: hex.substr(1),
+                                                    type: 'action',
+                                                    fa: 'fas fa-stop',
+                                                    faStyle: 'color: '+ hex,
+                                                    action: async () => {
+                                                        if (hex != global.config.get('background-color')) {
+                                                            global.config.set('background-color', hex);
+                                                            await this.update()
+                                                        } else {
+                                                            menu.back();
+                                                        }
+                                                    }
+                                                };
+                                            });
+                                            colors.push({
+                                                name: lang.CUSTOMIZE,
+                                                type: 'input',
+                                                fa: 'fas fa-palette',
+                                                value: () => global.config.get('background-color'),
+                                                action: async (data, value) => {
+                                                    if (String(value).match(new RegExp('^#?[0-9a-fA-F]{6}$'))) { // TypeError: value.match is not a function 
+                                                        if (value.length == 6) {
+                                                            value = '#' + value;
+                                                        }
+                                                        global.config.set('background-color', value);
                                                         await this.update()
+                                                        menu.back()
                                                     } else {
-                                                        menu.back();
+                                                        menu.displayErr(lang.INCORRECT_FORMAT);
                                                     }
                                                 }
-                                            };
-                                        });
-                                        colors.push({
-                                            name: lang.CUSTOMIZE,
-                                            type: 'input',
-                                            fa: 'fas fa-palette',
-                                            value: () => global.config.get('background-color'),
-                                            action: async (data, value) => {
-                                                if (String(value).match(new RegExp('^#?[0-9a-fA-F]{6}$'))) { // TypeError: value.match is not a function 
-                                                    if (value.length == 6) {
-                                                        value = '#' + value;
-                                                    }
-                                                    global.config.set('background-color', value);
-                                                    await this.update()
-                                                    menu.back()
-                                                } else {
-                                                    menu.displayErr(lang.INCORRECT_FORMAT);
-                                                }
-                                            }
-                                        });
+                                            })
+                                        } catch (err) { 
+                                            console.error(err)
+                                        }
+                                        global.menu.setLoading(false)
                                         return colors;
                                     },
                                     value: () => {
@@ -505,10 +509,10 @@ class Theme extends EventEmitter {
                                                 reject(err);
                                                 menu.back();
                                             }).finally(() => {
-                                                osd.hide('theme-upload');
-                                                renderer.get().emit('set-loading', { name: lang.CHOOSE_BACKGROUND_IMAGE }, false);
-                                            });
-                                        });
+                                                osd.hide('theme-upload')
+                                                global.menu.setLoading(false)
+                                            })
+                                        })
                                     },
                                     value: () => {
                                         return global.config.get('font-color');
@@ -521,8 +525,8 @@ class Theme extends EventEmitter {
                                     fa: 'fas fa-font',
                                     renderer: () => {
                                         return new Promise(resolve => {
-                                            renderer.get().on('fontlist', list => {
-                                                renderer.get().removeAllListeners('fontlist');
+                                            renderer.ui.on('fontlist', list => {
+                                                renderer.ui.removeAllListeners('fontlist');
                                                 resolve(list.map(name => {
                                                     return {
                                                         name, type: 'action',
@@ -534,7 +538,7 @@ class Theme extends EventEmitter {
                                                     }
                                                 }))
                                             })
-                                            renderer.get().emit('fontlist')
+                                            renderer.ui.emit('fontlist')
                                         });
                                     }
                                 },
@@ -746,14 +750,14 @@ class Theme extends EventEmitter {
         let bgi = global.config.get('custom-background-image'), bgv = global.config.get('custom-background-video');
         if (bgv) {
             bgi = '';
-            bgv = renderer.get().serve(bgv);
+            bgv = renderer.ui.serve(bgv);
         } else if (bgi) {
-            bgi = renderer.get().serve(bgi);
+            bgi = renderer.ui.serve(bgi);
             bgv = '';
         } else {
             bgi = bgv = '';
         }
-        renderer.get().emit('theme-update', bgi, bgv, global.config.get('background-color'), global.config.get('font-color'), global.config.get('animate-background'));
+        renderer.ui.emit('theme-update', bgi, bgv, global.config.get('background-color'), global.config.get('font-color'), global.config.get('animate-background'));
     }
     reset() {
         let natts = {};

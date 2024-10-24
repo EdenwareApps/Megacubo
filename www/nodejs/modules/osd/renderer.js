@@ -21,7 +21,7 @@ class Speaker {
     chooseVoice(){
         if(this.voice) return this.voice
         let locale
-        if(lang && main.lang.locale){
+        if(main.lang && main.lang.locale){
             locale = main.lang.locale
         }
         let voices = window.speechSynthesis.getVoices()
@@ -38,7 +38,7 @@ class Speaker {
         }
     }
     queue(id, text){
-        if(id.indexOf('-sub') != -1) return // skip -sub hint messages to avoid confusion
+        if(id.includes('-sub')) return // skip -sub hint messages to avoid confusion
         this.messages = this.messages.filter(m => {
             if(m.id == id) console.warn('CANCELLING SPEAK', m)
             return m.id != id
@@ -109,7 +109,7 @@ export class OSD extends EventEmitter {
         }
         this.messages[i].text = text
         if(icon){
-            if(icon.indexOf('.') == -1){
+            if(!icon.includes('.')){
                 this.messages[i].icon = '<i class="'+ icon +'"></i>'
             } else {
                 this.messages[i].icon = '<img src="'+icon+'" style="display: none;" onload="this.style.display=&apos;inline-block&apos;" />'

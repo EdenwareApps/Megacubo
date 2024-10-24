@@ -71,6 +71,12 @@
 					transform: translateX(100vw) scaleX(0.1);
 				}
 			}
+            @media (prefers-reduced-motion) {
+                * {
+                    animation: none !important;
+                    transition: none !important;
+                }
+            }
         </style>
         <script type="text/javascript">
             var menu, config
@@ -139,7 +145,7 @@
 		</script>
         <script type="text/javascript" src="assets/js/moment.min.js"></script>          
         <script type="text/javascript" src="assets/js/moment-timezone-with-data.min.js"></script>
-        <script src="./dist/renderer.js"></script>
+        <script type="text/javascript" src="dist/renderer.js"></script>
         <script>
             new App({target: document.querySelector('App')})
         </script>

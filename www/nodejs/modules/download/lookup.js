@@ -107,7 +107,7 @@ class UltimateLookup extends EventEmitter {
             return aresults.ips;
         }
         const now = (Date.now() / 1000), key = domain + family;
-        if (typeof (this.data[key]) != 'undefined') { // cached
+        if (typeof(this.data[key]) != 'undefined') { // cached
             if (Array.isArray(this.data[key]) && this.data[key].length) {
                 if (this.ttlData[key] >= now) {
                     if (this.debug) {
@@ -130,7 +130,7 @@ class UltimateLookup extends EventEmitter {
     process(domain, family) {
         return new Promise(resolve => {
             const queueKey = domain + family
-            if (typeof (this.queue[queueKey]) != 'undefined') {
+            if (typeof(this.queue[queueKey]) != 'undefined') {
                 if (this.debug) {
                     console.log('lookup->queued', domain);
                 }
@@ -153,7 +153,7 @@ class UltimateLookup extends EventEmitter {
                     }
                     this.finishQueue(domain, queueKey, ips, false) // this will make it respond ASAP, but we'll still be looking for most trusteable results on other resolvers
                     ips.forEach(ip => {
-                        if (typeof (resultIps[ip]) == 'undefined') {
+                        if (typeof(resultIps[ip]) == 'undefined') {
                             resultIps[ip] = 0
                         }
                         resultIps[ip]++
@@ -192,11 +192,11 @@ class UltimateLookup extends EventEmitter {
             this.save()
     }
     async lookup(hostname, options) {
-        if (typeof (options) == 'function') {
+        if (typeof(options) == 'function') {
             options = {};
         }
         await this.ready();
-        let family = typeof (options.family) == 'undefined' ? 0 : options.family;
+        let family = typeof(options.family) == 'undefined' ? 0 : options.family;
         let policy = config.get('preferred-ip-version');
         if ([4, 6].includes(policy)) {
             family = policy;
@@ -236,7 +236,7 @@ class UltimateLookup extends EventEmitter {
         return ip;
     }
     defer(hostname, ip) {
-        if (typeof (this.failedIPs[hostname]) == 'undefined') {
+        if (typeof(this.failedIPs[hostname]) == 'undefined') {
             this.failedIPs[hostname] = [];
         } else {
             this.failedIPs[hostname] = this.failedIPs[hostname].filter(i => i != ip);

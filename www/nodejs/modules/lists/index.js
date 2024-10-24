@@ -2,7 +2,7 @@ import Download from '../download/download.js'
 import Common from "../lists/common.js";
 import pLimit from "p-limit";
 import config from "../config/config.js"
-import { deepClone, getDomain } from "../utils/utils.js";
+import { clone, getDomain } from "../utils/utils.js";
 
 class Index extends Common {
     constructor(opts) {
@@ -82,7 +82,7 @@ class Index extends Common {
             this.searchMapCache = {};
         } else {
             Object.keys(this.searchMapCache).forEach(k => {
-                if (typeof (this.searchMapCache[k][url]) != 'undefined') {
+                if (typeof(this.searchMapCache[k][url]) != 'undefined') {
                     delete this.searchMapCache[k][url];
                 }
             });
@@ -122,7 +122,7 @@ class Index extends Common {
                 let filter;
                 if (config.get('search-mode') == 1) {
                     filter = (term, t) => {
-                        if (term.indexOf(t) !== -1 && t != term) {
+                        if (term.includes(t) && t != term) {
                             return true;
                         }
                     };
@@ -145,7 +145,7 @@ class Index extends Common {
                             }
                         });
                         if (from) {
-                            if (typeof (aliases[from]) == 'undefined') {
+                            if (typeof(aliases[from]) == 'undefined') {
                                 aliases[from] = [];
                             }
                             if (!aliases[from].includes(term)) {
@@ -172,19 +172,19 @@ class Index extends Common {
         }
     }
     searchMap(query, opts) {
-        let fullMap;
-        this.debug && console.log('searchMap', query);
-        opts = this.optimizeSearchOpts(opts);
+        let fullMap
+        this.debug && console.log('searchMap', query)
+        opts = this.optimizeSearchOpts(opts)
         query.queries.forEach(q => {
-            let map = this.querySearchMap(q, query.excludes, opts);
-            fullMap = fullMap ? this.joinMap(fullMap, map) : map;
+            let map = this.querySearchMap(q, query.excludes, opts)
+            fullMap = fullMap ? this.joinMap(fullMap, map) : map
         });
-        this.debug && console.log('searchMap', opts);
-        return this.cloneMap(fullMap);
+        this.debug && console.log('searchMap', opts)
+        return this.cloneMap(fullMap)
     }
-    queryTermMap(terms, group) {
-        let key = 'qtm-' + group + '-' + terms.join(',');
-        if (typeof (this.searchMapCache[key]) != 'undefined') {
+    queryTermMap(terms) {
+        let key = 'qtm-' + terms.join(',')
+        if (typeof(this.searchMapCache[key]) != 'undefined') {
             return this.cloneMap(this.searchMapCache[key]);
         }
         let tmap;
@@ -194,7 +194,7 @@ class Index extends Common {
                 console.log('querying term map ' + term);
             }
             Object.keys(this.lists).forEach(listUrl => {
-                if (typeof (this.lists[listUrl].index.terms[term]) != 'undefined') {
+                if (this.lists[listUrl].index.terms && typeof(this.lists[listUrl].index.terms[term]) != 'undefined') {
                     map[listUrl] = this.lists[listUrl].index.terms[term];
                 }
             });
@@ -216,10 +216,10 @@ class Index extends Common {
     querySearchMap(terms, excludes = [], opts = {}) {
         let smap;
         let key = 'qsm-' + opts.group + '-' + terms.join(',') + '_' + excludes.join(',') + JSON.stringify(opts); // use _ to diff excludes from terms in key
-        if (typeof (this.searchMapCache[key]) != 'undefined') {
+        if (typeof(this.searchMapCache[key]) != 'undefined') {
             return this.cloneMap(this.searchMapCache[key]);
         }
-        if (typeof (opts.type) != 'string') {
+        if (typeof(opts.type) != 'string') {
             opts.type = false;
         }
         terms.some(term => {
@@ -268,7 +268,7 @@ class Index extends Common {
         return {};
     }
     async search(terms, opts = {}) {
-        if (typeof (terms) == 'string') {
+        if (typeof(terms) == 'string') {
             terms = this.tools.terms(terms, false, true);
         }
         let start = (Date.now() / 1000), results = []
@@ -302,10 +302,8 @@ class Index extends Common {
     }
     async fetchMap(smap, opts={}, limit=512) {
         let results = []
-        if(!this.fetchMapLimiter) {
-            this.fetchMapLimiter = pLimit(4)
-        }
-        const alreadyMap = {}, checkType = opts.type && opts.type != 'all'
+        const limiter = pLimit(4)
+        const already = new Set(), checkType = opts.type && opts.type != 'all'
         for(const listUrl in smap) {
             if(Array.isArray(smap[listUrl])) continue
             let ls
@@ -321,33 +319,31 @@ class Index extends Common {
         }
         const tasks = Object.keys(smap).map(listUrl => {
             return async () => {
-                if (this.debug) {
-                    console.warn('lists.search() ITERATE LIST ' + listUrl);
-                }
-                if (typeof (this.lists[listUrl]) == 'undefined' || !smap[listUrl].length)
-                    return;
-                await this.lists[listUrl].iterate(e => {
-                    if (typeof (alreadyMap[e.url]) != 'undefined')
-                        return;
-                    alreadyMap[e.url] = null;
-                    const BREAK = this.lists[listUrl].constants.BREAK;
+                this.debug && console.warn('lists.search() ITERATE LIST ' + listUrl, smap[listUrl]);
+                if (typeof(this.lists[listUrl]) == 'undefined' || !smap[listUrl].length) return
+                this.debug && console.warn('lists.search() WILL WALK ' + listUrl);
+                for await (const e of this.lists[listUrl].walk(smap[listUrl])) {
+                    this.debug && console.warn('lists.search() WALK ', e)
+                    if (already.has(e.url)) continue
+                    already.add(e.url)
                     if (checkType) {
                         if (this.validateType(e, opts.type, opts.typeStrict === true)) {
                             e.source = listUrl;
                             results.push(e);
-                            if (results.length == limit)
-                                return BREAK;
+                            if (results.length == limit) break
                         }
                     } else {
                         e.source = listUrl;
                         results.push(e);
-                        if (results.length == limit)
-                            return BREAK;
+                        if (results.length == limit) break
                     }
-                }, smap[listUrl]);
-            };
-        }).map(this.fetchMapLimiter);
+                }
+            }
+        }).map(limiter)
         await Promise.allSettled(tasks)
+        if (this.debug) {
+            console.warn('lists.search() ITERATED ' + results.length)
+        }
         results = this.prepareEntries(results);
         if (opts.parentalControl !== false) {
             results = this.parentalControl.filter(results, true)
@@ -369,7 +365,7 @@ class Index extends Common {
         }
         entries.forEach(e => {
             let domain = getDomain(e.url);
-            if (typeof (map[domain]) == 'undefined') {
+            if (typeof(map[domain]) == 'undefined') {
                 map[domain] = [];
             }
             map[domain].push(e);
@@ -425,7 +421,7 @@ class Index extends Common {
     intersectMap(a, b) {
         let c = {};
         for (const listUrl in b) {
-            if (typeof (a[listUrl]) != 'undefined') {
+            if (typeof(a[listUrl]) != 'undefined') {
                 const gset = new Set(a[listUrl].g.length && b[listUrl].g.length ?
                     b[listUrl].g : []);
                 const nset = new Set(a[listUrl].n.length && b[listUrl].n.length ?
@@ -441,7 +437,7 @@ class Index extends Common {
     joinMap(a, b) {
         let c = this.cloneMap(a); // clone it
         for (const listUrl in b) {
-            if (typeof (c[listUrl]) == 'undefined') {
+            if (typeof(c[listUrl]) == 'undefined') {
                 c[listUrl] = { g: [], n: [] };
             }
             for (const type in b[listUrl]) {
@@ -463,7 +459,7 @@ class Index extends Common {
         return c;
     }
     diffMap(a, b) {
-        let c = deepClone(a); // cloning needed
+        let c = clone(a); // cloning needed
         for (const listUrl in b) {
             if (a[listUrl] !== undefined) {
                 c[listUrl] = { g: [], n: [] };
@@ -484,7 +480,7 @@ class Index extends Common {
         return c;
     }
     cloneMap(a) {
-        return deepClone(a);
+        return clone(a);
     }
     async groups(types, myListsOnly) {
         let groups = [], map = {};
@@ -503,7 +499,7 @@ class Index extends Common {
                     if (parts.length > 1) {
                         parts.forEach((part, i) => {
                             const path = parts.slice(0, i + 1).join('/');
-                            if (typeof (map[path]) == 'undefined')
+                            if (typeof(map[path]) == 'undefined')
                                 map[path] = [];
                             if (i < (parts.length - 1))
                                 map[path].push(parts[i + 1]);
@@ -527,7 +523,7 @@ class Index extends Common {
                     const path = parentPath + '/' + name;
                     if (group.group == path) {
                         let ret = false;
-                        if (typeof (routerVar[parentPath]) == 'undefined') {
+                        if (typeof(routerVar[parentPath]) == 'undefined') {
                             routerVar[parentPath] = i;
                             const ngroup = Object.assign({}, groups[i]);
                             groups[i].name = gname;
@@ -554,7 +550,7 @@ class Index extends Common {
                 let mmap, map = this.lists[group.url].index.groups[group.group].slice(0)
                 if(!map) map = []
                 Object.keys(this.lists[group.url].index.groups).forEach(s => {
-                    if(s != group.group && s.indexOf('/') != -1 && s.startsWith(group.group)){
+                    if(s != group.group && s.includes('/') && s.startsWith(group.group)){
                         if(!mmap) { // jit
                             mmap = new Map(map.map(m => [m, null]))
                             map = [] // freeup mem

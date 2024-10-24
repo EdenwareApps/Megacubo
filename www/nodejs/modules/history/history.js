@@ -26,7 +26,7 @@ class History extends EntriesGroup {
                             entry.historyTime = time;
                             this.remove(entry);
                             this.add(entry);
-                            global.updateUserTasks().catch(console.error);
+                            this.channels.updateUserTasks().catch(console.error);
                         }
                     }, 90000);
                 }

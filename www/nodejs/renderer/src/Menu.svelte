@@ -834,7 +834,7 @@ div#modal {
     width: 100vw;
     height: 100vh;
     left: 0;
-    z-index: 9;
+    z-index: 8;
     background: var(--osd-background-color);
     top: 0;
     left: 0;

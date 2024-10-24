@@ -41,7 +41,6 @@ class Parser extends EventEmitter {
         this.attrMapRegex = this.generateAttrMapRegex(this.attrMap);
         this.headerAttrMapRegex = this.generateAttrMapRegex(this.headerAttrMap);
         this.readen = 0; // no precision required, just for progress stats
-        this.lastProgress = -1;
     }
     generateAttrMapRegex(attrs) {
         return new RegExp('(' +
@@ -145,7 +144,7 @@ class Parser extends EventEmitter {
             } else if(inExtInf) { // not hashed so, length already checked
                 inExtInf = false
                 e.url = line.trim()
-                if (e.url.indexOf('|') !== -1 && e.url.match(Parser.regexes['m3u-url-params'])) {
+                if (e.url.includes('|') && e.url.match(Parser.regexes['m3u-url-params'])) {
                     let parts = e.url.split('|');
                     e.url = parts[0];
                     parts = parts[1].split('=');
@@ -210,14 +209,14 @@ class Parser extends EventEmitter {
         if (s.length == 3 && s.toLowerCase().trim() === 'n/a') {
             return '';
         }
-        if (s.indexOf('/') == -1 && s.match(Parser.regexes['group-separators'])) { // if there are few cases, is better not replace directly
+        if (!s.includes('/') && s.match(Parser.regexes['group-separators'])) { // if there are few cases, is better not replace directly
             s = s.replace(Parser.regexes['group-separators'], '/');
             if (s.startsWith('/'))
                 s = s.substr(1);
             if (s.endsWith('/'))
                 s = s.substr(0, s.length - 1);
         }
-        if (s.indexOf('[') != -1) {
+        if (s.includes('[')) {
             s = s.replace(Parser.regexes['between-brackets'], '');
         }
         // s = s.normalize('NFD') // is it really needed?
@@ -227,7 +226,7 @@ class Parser extends EventEmitter {
         return sig == '#EXTINF';
     }
     isExtInfPlaylist(line) {
-        return line.indexOf('playlist') != -1 && line.match(Parser.regexes['type-playlist']);
+        return line.includes('playlist') && line.match(Parser.regexes['type-playlist']);
     }
     isExtM3U(sig) {
         return sig == '#EXTM3U' || sig == '#PLAYLI'; // #playlistv
@@ -297,18 +296,18 @@ Parser.regexes = {
     'm3u-url-params': new RegExp('.*\\|[A-Za-z0-9\\-]*=')
 };
 Parser.sanitizeName = s => {
-    if (typeof (s) != 'string' || !s) {
+    if (typeof(s) != 'string' || !s) {
         s = 'Untitled ' + parseInt(Math.random() * 10000);
-    } else if (s.indexOf('/') !== -1) {
-        if (s.indexOf('[/') !== -1) {
+    } else if (s.includes('/')) {
+        if (s.includes('[/')) {
             s = s.split('[/').join('[|');
         }
-        if (s.indexOf('/') !== -1) {
+        if (s.includes('/')) {
             s = s.replaceAll('/', ' ');
         }
     }
     /* needed on too specific cases, but bad for performance
-    if (s.indexOf('\\') !== -1) {
+    if (s.includes('\\')) {
         s = s.replaceAll('\\', ' ')
     }
     */

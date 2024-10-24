@@ -21,6 +21,7 @@ import decodeEntities from 'decode-entities';
 import config from '../config/config.js'
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
+import Download from '../download/download.js'
 import { insertEntry, kbfmt, kbsfmt, parseJSON, rmdirSync, ucFirst, ucWords } from '../utils/utils.js'
 
 class Timer extends EventEmitter {
@@ -194,13 +195,10 @@ class PerformanceProfiles extends Timer {
             { template: 'option', id: 'low', fa: cur == 'low' ? 'fas fa-check-circle' : '', text: lang.FOR_SLOW_DEVICES }
         ], cur);
         console.log('performance-callback', ret);
-        if (typeof (this.profiles[ret]) != 'undefined') {
-            console.log('performance-callback set', this.profiles[ret]);
-            config.setMulti(this.profiles[ret]);
-            if (typeof (this.profiles[ret].epg) != 'undefined') {
-                this.updateEPGConfig(this.profiles[ret].epg);
-            }
-            global.theme.refresh();
+        if (typeof(this.profiles[ret]) != 'undefined') {
+            console.log('performance-callback set', this.profiles[ret])
+            config.setMulti(this.profiles[ret])
+            global.theme.refresh()
         }
     }
 }
@@ -373,7 +371,7 @@ class OptionsExportImport extends OptionsGPU {
                 }
             }
         });
-        if (typeof (natts['custom-background-image']) == 'string' && natts['custom-background-image']) {
+        if (typeof(natts['custom-background-image']) == 'string' && natts['custom-background-image']) {
             let buf = fs.readFileSync(natts['custom-background-image']);
             if (buf) {
                 natts['custom-background-image'] = buf.toString('base64');
@@ -381,7 +379,7 @@ class OptionsExportImport extends OptionsGPU {
                 delete natts['custom-background-image'];
             }
         }
-        if (typeof (natts['custom-background-video']) == 'string' && natts['custom-background-video']) {
+        if (typeof(natts['custom-background-video']) == 'string' && natts['custom-background-video']) {
             let buf = fs.readFileSync(natts['custom-background-video']);
             if (buf) {
                 natts['custom-background-video'] = buf.toString('base64');
@@ -443,7 +441,7 @@ class OptionsExportImport extends OptionsGPU {
         const zip = new AdmZip(), files = [];
         const add = (path, subDir) => {
             if (fs.existsSync(path)) {
-                if (typeof (subDir) == 'string') {
+                if (typeof(subDir) == 'string') {
                     zip.addLocalFolder(path, subDir);
                 } else {
                     zip.addLocalFile(path);
@@ -466,27 +464,7 @@ class OptionsExportImport extends OptionsGPU {
 class Options extends OptionsExportImport {
     constructor() {
         super()
-        renderer.get().on('devtools', () => this.devtools());
-    }
-    async updateEPGConfig(c) {
-        let activeEPG = config.get('epg-' + lang.locale);
-        const { manager } = lists;
-        if (activeEPG == 'disabled') {
-            activeEPG = false;
-            await manager.setEPG('', false).catch(console.error);
-        } else {
-            if (!activeEPG || activeEPG == 'auto') {
-                if (!c) {
-                    c = await cloud.get('configure').catch(console.error);
-                }
-                if (c && c.epg) {
-                    activeEPG = c.epg[lang.countryCode] || c.epg[lang.locale] || false;
-                } else {
-                    activeEPG = false;
-                }
-            }
-            await manager.setEPG(activeEPG || '', false).catch(console.error);
-        }
+        renderer.ui.on('devtools', () => this.devtools());
     }
     async tools() {
         let entries = [
@@ -517,7 +495,7 @@ class Options extends OptionsExportImport {
             { template: 'question', text: lang.SELECT_LANGUAGE, fa: 'fas fa-language' }
         ].concat(options), def);
         if (locale == 'improve') {
-            renderer.get().emit('open-external-url', 'https://github.com/efoxbr/megacubo/tree/master/www/nodejs-project/lang');
+            renderer.ui.emit('open-external-url', 'https://github.com/efoxbr/megacubo/tree/master/www/nodejs-project/lang');
             return await this.showLanguageEntriesDialog();
         }
         const _def = config.get('locale') || lang.locale;
@@ -530,7 +508,7 @@ class Options extends OptionsExportImport {
                 if (texts) {
                     lang.locale = locale;
                     lang.applyTexts(texts);
-                    renderer.get().emit('lang', texts);
+                    renderer.ui.emit('lang', texts);
                     menu.pages = { '': [] };
                     menu.refreshNow();
                 }
@@ -577,7 +555,7 @@ class Options extends OptionsExportImport {
                 menu.refreshNow();
                 await global.channels.load();
                 await lists.discovery.reset();
-                await global.channels.watching.update();
+                await global.channels.trending.update();
             }
             osd.hide('countries');
         }
@@ -595,7 +573,7 @@ class Options extends OptionsExportImport {
         if (!actives || !actives.length) {
             actives = await lang.getActiveCountries();
         }
-        if (typeof (this.countriesEntriesOriginalActives) == 'undefined') {
+        if (typeof(this.countriesEntriesOriginalActives) == 'undefined') {
             this.countriesEntriesOriginalActives = actives.slice(0);
         }
         entries.push({
@@ -689,19 +667,19 @@ class Options extends OptionsExportImport {
         return entries;
     }
     tos() {
-        renderer.get().emit('open-external-url', 'https://megacubo.net/tos');
+        renderer.ui.emit('open-external-url', 'https://megacubo.net/tos');
     }
     privacy() {
-        renderer.get().emit('open-external-url', 'https://megacubo.net/privacy');
+        renderer.ui.emit('open-external-url', 'https://megacubo.net/privacy');
     }
     uninstall() {
-        renderer.get().emit('open-external-url', 'https://megacubo.net/uninstall-info');
+        renderer.ui.emit('open-external-url', 'https://megacubo.net/uninstall-info');
     }
     help() {
         
         cloud.get('configure').then(c => {
-            const url = (c && typeof (c.help) == 'string') ? c.help : paths.manifest.bugs;
-            renderer.get().emit('open-external-url', url);
+            const url = (c && typeof(c.help) == 'string') ? c.help : paths.manifest.bugs;
+            renderer.ui.emit('open-external-url', url);
         }).catch(e => menu.displayErr(e));
     }
     share() {
@@ -709,12 +687,11 @@ class Options extends OptionsExportImport {
         if (!['en', 'es', 'pt'].includes(locale)) { // Megacubo website languages
             locale = 'en';
         }
-        renderer.get().emit('share', ucWords(paths.manifest.name), ucWords(paths.manifest.name), 'https://megacubo.net/' + locale + '/');
+        renderer.ui.emit('share', ucWords(paths.manifest.name), ucWords(paths.manifest.name), 'https://megacubo.net/' + locale + '/');
     }
     async about() {        
         let outdated, c = await cloud.get('configure').catch(console.error)
         if (c) {
-            this.updateEPGConfig(c);
             console.log('checking update...');
             let vkey = 'version';
             outdated = c[vkey] > paths.manifest.version;
@@ -844,11 +821,11 @@ class Options extends OptionsExportImport {
     async chooseExternalPlayer() {
         if (!this.availableExternalPlayers) {
             return await new Promise((resolve, reject) => {
-                renderer.get().once('external-players', players => {
+                renderer.ui.once('external-players', players => {
                     this.availableExternalPlayers = players;
                     this.chooseExternalPlayer().then(resolve).catch(reject);
                 });
-                renderer.get().emit('get-external-players');
+                renderer.ui.emit('get-external-players');
             });
         }
         const keys = Object.keys(this.availableExternalPlayers);
@@ -1034,7 +1011,7 @@ class Options extends OptionsExportImport {
                 renderer: async () => {
                     // Some lists wont open using a browser user agent
                     let def = config.get('preferred-ip-version');
-                    if (typeof (def) != 'number')
+                    if (typeof(def) != 'number')
                         def = 0;
                     return [
                         {
@@ -1199,7 +1176,6 @@ class Options extends OptionsExportImport {
         }).catch(console.error);
     }
     async developerEntries() {
-        const {default: Download} = await import('../download/download.js')
         const opts = [
             {
                 name: lang.ENABLE_DISK_CACHE,
@@ -1281,20 +1257,23 @@ class Options extends OptionsExportImport {
                         type: 'select',
                         renderer: async () => {
                             const def = config.get('mpegts-packet-filter-policy'), opts = [
-                                { name: 'Do not remove repetitions', type: 'action', selected: (def == -1), action: () => {
-                                        config.set('mpegts-packet-filter-policy', -1);
+                                { name: lang.AUTO, type: 'action', selected: (def == 1), action: () => {
+                                        config.set('mpegts-packet-filter-policy', 1)
                                     } },
-                                { name: 'Trim larger packets, remove smaller ones', type: 'action', selected: (def == 1), action: () => {
-                                        config.set('mpegts-packet-filter-policy', 1);
+                                { name: 'Trim larger packets, remove smaller ones', type: 'action', selected: (def == 4), action: () => {
+                                        config.set('mpegts-packet-filter-policy', 4)
                                     } },
                                 { name: 'Remove invalid size packets', type: 'action', selected: (def == 2), action: () => {
-                                        config.set('mpegts-packet-filter-policy', 2);
+                                        config.set('mpegts-packet-filter-policy', 2)
                                     } },
                                 { name: 'Ignore invalid size packets', type: 'action', selected: (def == 3), action: () => {
-                                        config.set('mpegts-packet-filter-policy', 3);
+                                        config.set('mpegts-packet-filter-policy', 3)
+                                    } },
+                                { name: 'Do not remove repetitions', type: 'action', selected: (def == -1), action: () => {
+                                        config.set('mpegts-packet-filter-policy', -1)
                                     } }
-                            ];
-                            return opts;
+                            ]
+                            return opts
                         }
                     }
                 ]
@@ -1751,7 +1730,7 @@ class Options extends OptionsExportImport {
                         this.about().catch(e => menu.displayErr(e));
                     } },
                 { name: lang.SHUTDOWN, side: true, fa: 'fas fa-power-off', type: 'action', action: () => {
-                        renderer.get().emit('ask-exit');
+                        renderer.ui.emit('ask-exit');
                     } }
             ];
             entries.push(...headerOptions.filter(o => !entries.some(e => e.name == o.name)))

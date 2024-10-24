@@ -91,12 +91,14 @@ class PublicLists extends EventEmitter {
     constructor(master) {
         super()
         this.master = master
-        this.data = {};
-        this.countries = new Countries();
-        this.load().catch(console.error);
+        this.data = {}
+        this.type = 'public'
+        this.id = 'public-lists'
+        this.countries = new Countries()
+        this.load().catch(console.error)
         renderer.ready(async () => {
-            global.menu.addFilter(this.hook.bind(this));
-        });
+            global.menu.addFilter(this.hook.bind(this))
+        })
     }
     async load() {
         if (!Object.keys(this.data).length) {
@@ -189,11 +191,11 @@ class PublicLists extends EventEmitter {
         return {
             name: lang.PUBLIC_LISTS, type: 'group', fa: 'fas fa-broadcast-tower',
             renderer: async () => {
-                let toggle = config.get('public-lists') ? 'fas fa-toggle-on' : 'fas fa-toggle-off';
-                let options = [
+                const toggle = config.get('public-lists') ? 'fas fa-toggle-on' : 'fas fa-toggle-off';
+                const options = [
                     {
                         name: lang.ACCEPT_LISTS, details: '', type: 'select', fa: toggle, renderer: async () => {
-                            let def = config.get('public-lists');
+                            const def = config.get('public-lists')
                             return [
                                 {
                                     name: lang.YES,
@@ -212,25 +214,27 @@ class PublicLists extends EventEmitter {
                                     name: n.name,
                                     type: 'action',
                                     selected: def == n.value,
-                                    action: async () => {
+                                    action: () => {
                                         config.set('public-lists', n.value)
-                                        global.menu.refreshNow()
+                                        process.nextTick(() => global.menu.refreshNow())
                                     }
-                                };
-                            });
+                                }
+                            })
                         }
-                    },
-                    {
+                    }
+                ];
+                if(config.get('public-lists')) {
+                    options.push({
                         name: lang.RECEIVED_LISTS,
                         details: lang.SHARED_AND_LOADED,
                         fa: 'fas fa-users',
                         type: 'group',
                         renderer: this.receivedListsEntries.bind(this)
-                    }
-                ];
-                config.get('public-lists') && options.push(this.countriesEntry());
-                options.push(this.infoEntry());
-                return options;
+                    })
+                    options.push(this.countriesEntry())
+                }
+                options.push(this.infoEntry())
+                return options
             }
         };
     }
@@ -254,7 +258,7 @@ class PublicLists extends EventEmitter {
     async receivedListsEntries() {
         const info = await this.master.lists.info();
         let entries = Object.keys(info).filter(u => info[u].origin == 'public').sort((a, b) => {
-            if ([a, b].some(a => typeof (info[a].score) == 'undefined'))
+            if ([a, b].some(a => typeof(info[a].score) == 'undefined'))
                 return 0
             if (info[a].score == info[b].score)
                 return 0
@@ -286,6 +290,10 @@ class PublicLists extends EventEmitter {
         if (!entries.length) {
             if (!this.master.lists.loaded()) {
                 entries = [this.master.lists.manager.updatingListsEntry()];
+            } else if(Object.keys(this.master.lists.lists).length) {
+                entries = [
+                    { name: lang.EMPTY, fa: 'fas fa-info-circle', type: 'action', class: 'entry-empty' }
+                ]
             } else {
                 entries = [this.master.lists.manager.noListsRetryEntry()];
             }
@@ -310,7 +318,7 @@ class PublicLists extends EventEmitter {
             { template: 'option', text: lang.KNOW_MORE, id: 'know', fa: 'fas fa-info-circle' }
         ], 'ok').then(ret => {
             if (ret == 'know') {
-                renderer.get().emit('open-external-url', 'https://github.com/EdenwareApps/Free-IPTV-Extras');
+                renderer.ui.emit('open-external-url', 'https://github.com/EdenwareApps/Free-IPTV-Extras');
             }
         }).catch(console.error);
     }

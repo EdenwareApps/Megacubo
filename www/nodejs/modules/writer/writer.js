@@ -21,7 +21,7 @@ class Writer extends EventEmitter {
     write(data, position) {
         if (this.destroyed)
             return;
-        if (typeof (position) == 'undefined') {
+        if (typeof(position) == 'undefined') {
             position = this.position;
             this.position += data.length;
         }
@@ -101,9 +101,15 @@ class Writer extends EventEmitter {
             });
         });
     }
+    async truncate(size) {
+        let err;
+        await this.ready()
+        await fs.promises.truncate(this.file, size).catch(e => err = e)
+        if (err) return this.fail(err)
+        this.position = size
+    }
     fsWrite(fd, data, offset, length, position) {
-        return new Promise((resolve, reject) => {
-            
+        return new Promise((resolve, reject) => {            
             fs.write(fd, data, offset, length, position, (err, writtenBytes) => {
                 if (err)
                     return reject(err);

@@ -12,8 +12,17 @@ class MultiBuffer extends BufferList {
         const pieces = [
             this.shallowSlice(0, start),
             this.shallowSlice(end, this.length)
-        ];
+        ]
         this.consume(this.length);
+        pieces.forEach(p => this.append(p));
+    }
+    insert(data, start) {
+        const pieces = [
+            this.shallowSlice(0, start),
+            data,
+            this.shallowSlice(start, this.length)
+        ]
+        this.consume(this.length)
         pieces.forEach(p => this.append(p));
     }
     clear() {

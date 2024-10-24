@@ -4,7 +4,7 @@ import { EventEmitter } from 'events';
 import zlib from "zlib";
 import Writer from "../writer/writer.js";
 import { StringDecoder } from "string_decoder";
-import DownloadCacheMap from "./download-cache.js";
+import cacheMap from "./download-cache.js";
 import DownloadStreamHybrid from "./stream-hybrid.js";
 import parseRange from "range-parser";
 import { temp } from '../paths/paths.js';
@@ -95,10 +95,10 @@ class Download extends EventEmitter {
         this.currentResponse = null;
         this.responseSource = '';
         this.on('error', () => {}); // avoid uncaught exception, make error listening not mandatory
-        if (typeof (this.opts.headers['range']) != 'undefined') {
+        if (typeof(this.opts.headers['range']) != 'undefined') {
             this.checkRequestingRange(this.opts.headers['range']);
         }
-        if (this.opts.post && typeof (this.opts.post) != 'string') {
+        if (this.opts.post && typeof(this.opts.post) != 'string') {
             this.opts.post = this.object2QS(this.opts.post);
         }
     }
@@ -109,7 +109,7 @@ class Download extends EventEmitter {
         }
         return ['KHttpAgent', 'KHttpsAgent'].some(method => {
             return Object.keys(DownloadStreamHybrid.engines.http.keepAliveAgents[method].sockets).some(domain => {
-                if (domain.indexOf(d) == -1)
+                if (!domain.includes(d))
                     return;
                 if (DownloadStreamHybrid.engines.http.keepAliveAgents[method].sockets[domain] && DownloadStreamHybrid.engines.http.keepAliveAgents[method].sockets[domain].length == DownloadStreamHybrid.engines.http.keepAliveAgents[method].maxSockets) {
                     if (!DownloadStreamHybrid.engines.http.keepAliveAgents[method].freeSockets[domain] || !DownloadStreamHybrid.engines.http.keepAliveAgents[method].freeSockets[domain].length) {
@@ -139,7 +139,7 @@ class Download extends EventEmitter {
         }
     }
     start() {
-        if (typeof (this.opts.url) != 'string' || !validateURL(this.opts.url)) {
+        if (typeof(this.opts.url) != 'string' || !validateURL(this.opts.url)) {
             this.endWithError('Invalid URL: ' + JSON.stringify(this.opts), 400);
             return;
         }
@@ -185,7 +185,7 @@ class Download extends EventEmitter {
     }
     checkRequestingRange(range) {
         const ranges = this.parseRange(range);
-        if (ranges && typeof (ranges.start) == 'number') { // TODO: enable multi-ranging support
+        if (ranges && typeof(ranges.start) == 'number') { // TODO: enable multi-ranging support
             this.requestingRange = ranges;
             if (this.requestingRange.end && this.requestingRange.end > 0) {
                 this.contentLength = (this.requestingRange.end - this.requestingRange.start) + 1;
@@ -204,7 +204,7 @@ class Download extends EventEmitter {
         return time() - this.startTime
     }
     parsePhases(timings) {
-        let keys = Object.keys(timings).filter(k => typeof (timings[k]) == 'number').sort((a, b) => timings[a] - timings[b]);
+        let keys = Object.keys(timings).filter(k => typeof(timings[k]) == 'number').sort((a, b) => timings[a] - timings[b]);
         let phases = {}, base = timings.start || this.stream.startTime;
         keys.slice(1).forEach((k, i) => {
             let pk = keys[i];
@@ -378,11 +378,11 @@ class Download extends EventEmitter {
         return err;
     }
     getTimeoutOptions() {
-        if (this.opts.timeout && typeof (this.opts.timeout) == 'object' && this.opts.timeout.connect && this.opts.timeout.response) {
+        if (this.opts.timeout && typeof(this.opts.timeout) == 'object' && this.opts.timeout.connect && this.opts.timeout.response) {
             return this.opts.timeout;
         } else {
             let ms;
-            if (typeof (this.opts.timeout) == 'number' && this.opts.timeout > 0) {
+            if (typeof(this.opts.timeout) == 'number' && this.opts.timeout > 0) {
                 ms = this.opts.timeout * 1000;
             } else {
                 ms = (config.get('connect-timeout-secs') || 10) * 1000;
@@ -426,17 +426,17 @@ class Download extends EventEmitter {
                 this.isResponseCompressed = false;
             }
             if (this.opts.acceptRanges) {
-                if (typeof (response.headers['accept-ranges']) == 'undefined' || response.headers['accept-ranges'] == 'none') {
-                    if (typeof (response.headers['content-range']) == 'undefined') {
+                if (typeof(response.headers['accept-ranges']) == 'undefined' || response.headers['accept-ranges'] == 'none') {
+                    if (typeof(response.headers['content-range']) == 'undefined') {
                         this.opts.acceptRanges = false;
                     }
                 }
             } else {
-                if (typeof (response.headers['accept-ranges']) != 'undefined' && response.headers['accept-ranges'] != 'none') {
+                if (typeof(response.headers['accept-ranges']) != 'undefined' && response.headers['accept-ranges'] != 'none') {
                     this.opts.acceptRanges = true;
                 }
             }
-            if (this.contentLength == -1 && typeof (response.headers['content-length']) != 'undefined') {
+            if (this.contentLength == -1 && typeof(response.headers['content-length']) != 'undefined') {
                 if (response.statusCode == 200 || (response.statusCode == 206 && this.requestingRange && this.requestingRange.start == 0 && !this.requestingRange.end)) {
                     this.contentLength = parseInt(response.headers['content-length']);
                     if (this.totalContentLength < this.contentLength) {
@@ -451,12 +451,12 @@ class Download extends EventEmitter {
                     }
                 }
             }
-            if (typeof (response.headers['content-range']) != 'undefined') { // server support ranges, so we received the right data
+            if (typeof(response.headers['content-range']) != 'undefined') { // server support ranges, so we received the right data
                 if (!this.opts.acceptRanges) {
                     this.opts.acceptRanges = true;
                 }
                 let fullLength = 0, range = response.headers['content-range'].replace('bytes ', 'bytes=');
-                if (range.indexOf('/') != -1) {
+                if (range.includes('/')) {
                     fullLength = parseInt(range.split('/').pop());
                     if (!isNaN(fullLength) && this.totalContentLength < fullLength) {
                         this.totalContentLength = fullLength;
@@ -550,10 +550,10 @@ class Download extends EventEmitter {
                     this.emitData(chunk);
                     this.updateProgress();
                     let receiveLimit = 0;
-                    if (typeof (this.opts.receiveLimit) == 'number') {
+                    if (typeof(this.opts.receiveLimit) == 'number') {
                         receiveLimit = this.opts.receiveLimit;
                     }
-                    if (typeof (this.opts.downloadLimit) == 'number') {
+                    if (typeof(this.opts.downloadLimit) == 'number') {
                         if (receiveLimit <= 0 || receiveLimit > this.opts.downloadLimit) {
                             receiveLimit = this.opts.downloadLimit;
                         }
@@ -748,7 +748,7 @@ class Download extends EventEmitter {
         return true;
     }
     checkRedirect(response) {
-        if (typeof (response.headers['location']) != 'undefined') {
+        if (typeof(response.headers['location']) != 'undefined') {
             if (this.opts.cacheTTL) {
                 Download.cache.save(this, null, true); // save redirect, before changing currentURL, end it always despite of responseSource
             }
@@ -845,14 +845,14 @@ class Download extends EventEmitter {
                     delay = parseInt(this.lastHeadersReceived['retry-after']);
                     if (isNaN(delay)) {
                         delay = Date.parse(this.lastHeadersReceived['retry-after']);
-                        if (typeof (delay) == 'number') {
+                        if (typeof(delay) == 'number') {
                             delay /= 1000;
                             delay -= time();
                         }
                     }
                 }
             }
-            if (typeof (delay) != 'number') {
+            if (typeof(delay) != 'number') {
                 if (overloaded) {
                     delay = 3000;
                 } else {
@@ -872,15 +872,15 @@ class Download extends EventEmitter {
     updateProgress() {
         let current = this.progress;
         if (this.ended) {
-            this.progress = 100;
+            this.progress = 100
         } else {
-            if (this.contentLength != -1) {
-                this.progress = parseInt(this.received / (this.contentLength / 100));
+            if (typeof(this.contentLength) == 'number' && this.contentLength != -1) {
+                this.progress = parseInt(this.received / (this.contentLength / 100))
                 if (this.progress > 99) {
-                    this.progress = 99;
+                    this.progress = 99
                 }
             } else {
-                this.progress = 99;
+                this.progress = this.received ? 99 : 0
             }
         }
         if (this.progress != current && this.progress < 100) {
@@ -901,7 +901,7 @@ class Download extends EventEmitter {
         if (this.stream) {
             let timings = this.parsePhases(this.stream.timings || {});
             Object.keys(timings).forEach(k => {
-                if (typeof (this.timings[k]) == 'undefined') {
+                if (typeof(this.timings[k]) == 'undefined') {
                     this.timings[k] = 0;
                 }
                 this.timings[k] += timings[k];
@@ -932,7 +932,7 @@ class Download extends EventEmitter {
                     if (remains && remains.length)
                         data.push(remains);
                 }
-                if (data.length && typeof (data[0]) == 'string' && this.len(data) < maxStringSize) {
+                if (data.length && typeof(data[0]) == 'string' && this.len(data) < maxStringSize) {
                     data = data.join('');
                 } else {
                     data = data.map(chunk => {
@@ -1116,9 +1116,8 @@ class Download extends EventEmitter {
     }
 }
 const networkListeners = [];
-Download.getDomain = getDomain;
 Download.stream = DownloadStreamHybrid;
-Download.cache = new DownloadCacheMap();
+Download.cache = cacheMap;
 Download.keepAliveDomainBlacklist = [];
 Download.pingAuthDelay = {};
 Download.isNetworkConnected = true;
@@ -1227,7 +1226,7 @@ Download.file = (...args) => {
             g.destroy();
             resolve(file);
         });
-        if (typeof (opts.progress) == 'function') {
+        if (typeof(opts.progress) == 'function') {
             g.on('progress', opts.progress);
         }
         if (opts.autostart !== false)

@@ -36,7 +36,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
     async options(ip, family) {
         const opts = {
             ip, family,
-            path: this.encodeURI(this.parsed.path),
+            path: this.encodeURI(this.parsed.path || ''),
             port: this.parsed.port || (this.parsed.protocol == 'http:' ? 80 : 443),
             realHost: this.parsed.hostname,
             host: ip,
@@ -227,11 +227,11 @@ class DownloadStreamHttp extends DownloadStreamBase {
             }
         })
     }
-    encodeURI(url) {
+    encodeURI(url='') {
         if (!url.match(new RegExp('^[A-Za-z0-9-._~:/?%#\\[\\]@!$&\'()*+,;=]+$'))) {
             return url.replace(new RegExp('[^A-Za-z0-9-._~:/?%#\\[\\]@!$&\'()*+,;=]+', 'g'), txt => encodeURIComponent(txt));
         }
-        return url;
+        return url
     }
 }
 DownloadStreamHttp.lookup = lookup;

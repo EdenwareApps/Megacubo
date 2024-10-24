@@ -49,7 +49,7 @@ class Mag extends EventEmitter {
             headers: this.headers,
             progress
         };
-        path += (path.indexOf('?') == -1) ? '?' : '&';
+        path += path.includes('?') ? '&' : '?';
         path += Object.keys(atts).map(k => k + '=' + atts[k]).join('&');
         if (this.method != 'GET') {
             options.post = Object.keys(atts).map(k => k + '=' + atts[k]).join('&');
@@ -60,11 +60,11 @@ class Mag extends EventEmitter {
         if (err) {
             if (retries) {
                 retries--;
-                if (String(err).toLowerCase().indexOf('method not allowed') != -1) {
+                if (String(err).toLowerCase().includes('method not allowed')) {
                     this.method = this.method == 'GET' ? 'POST' : 'GET';
                     return await this.execute(atts, progress, endpoint, retries);
                 }
-                if (String(err).indexOf('end of JSON input') != -1) {
+                if (String(err).includes('end of JSON input')) {
                     return await this.execute(atts, progress, endpoint, retries);
                 }
             }

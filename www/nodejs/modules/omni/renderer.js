@@ -4,12 +4,13 @@ import { main } from '../bridge/renderer'
 class OMNIUtils extends EventEmitter {
     constructor(){
         super()
+        this.xtraChars = new Set(' -+@!'.split(''))
     }
     isNumeric(chr){
         return !!String(chr).match(new RegExp('^[0-9]+$'))
     }
     isXtraChar(chr){
-        return (' -+@!').indexOf(String(chr)) != -1
+        return this.xtraChars.has(chr)
     }
     isLetter(chr){
         return String(chr).toLowerCase() != String(chr).toUpperCase()
@@ -166,7 +167,7 @@ export class OMNI extends OMNIUtils {
     }
     updateIcon(cls){
         let fa = this.element.querySelector('i')
-        if(fa.className.indexOf(cls) == -1){
+        if(!fa.className.includes(cls)){
             fa.outerHTML = `<i class="${cls}"></i>`
         }
     }

@@ -4,146 +4,138 @@ import menu from '../menu/menu.js'
 import lang from "../lang/lang.js";
 import storage from '../storage/storage.js'
 import mega from "../mega/mega.js";
-import fs from "fs";
 import Xtr from "./xtr.js";
 import crashlog from "../crashlog/crashlog.js";
 import downloads from "../downloads/downloads.js";
 import Mag from "./mag.js";
 import { EventEmitter } from "events";
 import { promises as fsp } from "fs";
-import { basename, deepClone, forwardSlashes, insertEntry, kfmt, LIST_DATA_KEY_MASK, listNameFromURL, validateURL } from "../utils/utils.js";
+import { basename, clone, forwardSlashes, getDomain, insertEntry, kfmt, LIST_DATA_KEY_MASK, listNameFromURL, parseCommaDelimitedURIs, validateURL } from "../utils/utils.js";
 import config from "../config/config.js"
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
+import Limiter from '../limiter/limiter.js'
+import cloud from '../cloud/cloud.js'
 
 class ManagerEPG extends EventEmitter {
     constructor() {
-        super();
-        this.lastActiveEPGDetails = '';
+        super()
         renderer.ready(() => {
             menu.on('open', path => {
-                if (this.addingEPG || (path == this.epgSelectionPath())) {
+                if (this.inEPGSelectionPath(path)) {
                     if (!this.epgStatusTimer) {
-                        this.epgStatusTimer = setInterval(() => this.updateEPGStatus().catch(console.error), 1000);
+                        let currentHash
+                        const listener = () => {
+                            let entries
+                            this.epgOptionsEntries().then(es => {
+                                entries = es.map(e => {
+                                    if (e.name == lang.SYNC_EPG_CHANNELS) {
+                                        e.value = e.checked()
+                                    }
+                                    return e
+                                })
+                            }).catch(console.error).finally(() => {
+                                clearTimeout(this.epgStatusTimer)
+                                if(!this.inEPGSelectionPath(menu.path)) {
+                                    this.epgStatusTimer = null
+                                    return
+                                }
+                                if (Array.isArray(entries) && entries.length) {
+                                    const hash = entries.map(e => e.name + e.details + e.value).join('')
+                                    if (hash !== currentHash) {
+                                        currentHash = hash
+                                        menu.render(entries, this.epgSelectionPath(), global.channels ? global.channels.epgIcon : '')
+                                    }
+                                }
+                                this.epgStatusTimer = setTimeout(listener, 1000)
+                            })
+                        }
+                        clearTimeout(this.epgStatusTimer)
+                        this.epgStatusTimer = setTimeout(listener, 1000)
                     }
                 } else {
-                    if (this.epgStatusTimer) {
-                        clearInterval(this.epgStatusTimer);
-                        this.epgStatusTimer = 0;
-                    }
+                    clearTimeout(this.epgStatusTimer)
+                    this.epgStatusTimer = null
                 }
-            });
-        });
+            })
+        })
     }
     epgSelectionPath() {
-        return lang.MY_LISTS + '/' + lang.EPG + '/' + lang.SELECT;
+        if(menu.path.startsWith(lang.MY_LISTS)) {
+            return lang.MY_LISTS + '/' + lang.EPG + '/' + lang.SELECT
+        }
+        return lang.EPG + '/' + lang.SELECT
     }
-    epgLoadingStatus(epgStatus) {
-        let details = '';
-        if (Array.isArray(epgStatus)) {
-            switch (epgStatus[0]) {
-                case 'uninitialized':
-                    details = '<i class="fas fa-clock"></i>';
-                    break;
-                case 'loading':
-                    details = lang.LOADING;
-                    break;
-                case 'connecting':
-                    details = lang.CONNECTING;
-                    break;
-                case 'connected':
-                    details = lang.PROCESSING + ' ' + epgStatus[1] + '%';
-                    break;
-                case 'loaded':
-                    details = lang.ENABLED;
-                    break;
-                case 'error':
-                    if (epgStatus[1].indexOf('worker manually terminated') == -1) { // in EPG change worker transition
-                        details = 'Error: ' + epgStatus[1];
-                    }
-                    break;
+    inEPGSelectionPath(path) {
+        return path.includes(lang.EPG + '/' + lang.SELECT)
+    }
+    EPGs() {
+        let activeEPG = config.get('epg-' + lang.locale)
+        if(activeEPG && activeEPG !== 'disabled') {
+            if(Array.isArray(activeEPG)) {
+                return activeEPG
+            } else {
+                return parseCommaDelimitedURIs(activeEPG).map(url => {
+                    return {url, active: true}
+                })
             }
         }
-        this.lastActiveEPGDetails = details;
-        return details;
-    }
-    async updateEPGStatus() {
-        let err;
-        const epgData = await this.master.epg([], 2).catch(e => err = e);
-        err || this.epgLoadingStatus(epgData);
-        if (this.addingEPG && this.lastActiveEPGDetails && !this.lastActiveEPGDetails.startsWith('Error:')) {
-            osd.show(this.lastActiveEPGDetails, 'fas fa-circle-notch fa-spin', 'epg-add', 'persistent');
-        }
-        if (this.epgSelectionPath() == menu.path) {
-            if (this.lastDetailedEPGDetails !== this.lastActiveEPGDetails) {
-                this.lastDetailedEPGDetails = this.lastActiveEPGDetails;
-                let es = await this.epgOptionsEntries();
-                if (this.epgStatusTimer) {
-                    es = es.map(e => {
-                        if (e.name == lang.SYNC_EPG_CHANNELS) {
-                            e.value = e.checked();
-                        }
-                        return e;
-                    });
-                    menu.render(es, this.epgSelectionPath(), global.channels ? global.channels.epgIcon : '');
-                }
-            }
-        } else {
-            this.lastDetailedEPGDetails = undefined;
-        }
-    }
-    activeEPG() {
-        let activeEPG = config.get('epg-' + lang.locale) || global.activeEPG;
-        if (!activeEPG || activeEPG == 'disabled') {
-            activeEPG = '';
-        }
-        if (activeEPG) {
-            activeEPG = this.master.parseEPGs(activeEPG, false);
-        }
-        return activeEPG;
+        return []
+    } 
+    activeEPGs() {
+        return this.EPGs().filter(r => r.active).map(r => r.url)
     }
     async epgOptionsEntries() {
-        let options = [], epgs = [];
-        await this.searchEPGs().then(urls => epgs.push(...urls)).catch(console.error);
-        let activeEPG = this.activeEPG();
-        if (activeEPG) {
-            epgs.includes(activeEPG) || epgs.push(activeEPG);
-        }
-        options = epgs.unique().sort().map(url => {
-            let details = '', name = listNameFromURL(url);
-            if (url == activeEPG) {
-                if (this.lastActiveEPGDetails) {
-                    details = this.lastActiveEPGDetails;
+        let epgs = new Set()
+        const key = 'epg-'+ lang.locale
+        const states = await this.master.epg.getState()
+        const actives = new Set(states.info.map(r => r.url))
+        const options = (await this.searchEPGs(22, actives)).map(url => {
+            let details, state
+            const isActive = actives.has(url), name = listNameFromURL(url)
+            if (isActive) {
+                state = states.info.find(r => r.url == url)
+                if (state.state == 'error') {
+                    details = lang[state.error] || state.error || 'Unknown error'
+                } else if (state.progress > 99) {
+                    details = lang.EPG_LOAD_SUCCESS
                 } else {
-                    if (global.channels && global.channels.loadedEPG == url) {
-                        details = lang.EPG_LOAD_SUCCESS;
-                    } else {
-                        details = lang.PROCESSING;
-                    }
+                    details = lang.PROCESSING + ' ' + (state.progress || 0) + '%'
                 }
+            } else {
+                details = getDomain(url)
+            }
+            const checked = () => {
+                const data = this.EPGs()
+                return data.some(r => r.url == url)
             }
             return {
                 name,
-                type: 'action',
-                fa: 'fas fa-th-large',
-                url,
-                prepend: (url == activeEPG) ? '<i class="fas fa-check-circle faclr-green"></i> ' : '',
-                details,
-                action: () => {
-                    if (url == config.get('epg-' + lang.locale)) {
-                        config.set('epg-' + lang.locale, 'disabled');
-                        global.channels && global.channels.load();
-                        this.setEPG('', true);
+                type: 'check',
+                action: (e, checked) => {
+                    const data = this.EPGs()
+                    const has = data.findIndex(r => r.url == url)
+                    if(checked) {
+                        if(has === -1) {
+                            data.push({url, active: true})
+                            this.epgShowLoading(url).catch(console.error)
+                        }
                     } else {
-                        config.set('epg-' + lang.locale, url);
-                        this.setEPG(url, true);
+                        if(has !== -1) {
+                            data.splice(has, 1)
+                        }
                     }
-                    menu.refreshNow(); // epg options path
-                }
+                    console.log('EPG', {key, has, data, url})
+                    config.set(key, data)
+                    menu.refreshNow() // epg options path
+                },
+                checked,
+                prepend: isActive ? (state.state == 'error' ? '<i class="fas fa-times-circle faclr-red"></i> ' : '<i class="fas fa-check-circle faclr-green"></i> ') : '',
+                details
             };
         });
-        options.unshift(this.addEPGEntry());
-        return options;
+        options.unshift(this.addEPGEntry())
+        return options
     }
     addEPGEntry() {
         return {
@@ -152,82 +144,50 @@ class ManagerEPG extends EventEmitter {
                 const url = await menu.prompt({
                     question: lang.EPG,
                     placeholder: 'http://.../epg.xml',
-                    defaultValue: this.lastEPGURLInput || global.activeEPG || '',
+                    defaultValue: this.lastEPGURLInput || '',
                     fa: global.channels ? global.channels.epgIcon : ''
-                });
+                })
                 if (url && url.length > 6) {
                     this.lastEPGURLInput = url
-                    console.log('SET-EPG', url, global.activeEPG);
-                    const { manager } = lists;
-                    config.set('epg-' + lang.locale, url || 'disabled');
-                    manager.setEPG(url, true).catch(console.error);
-                    menu.refresh();
-                }
-            }
-        };
-    }
-    async setEPG(url, ui) {
-        await renderer.ready(true)
-        if (typeof (url) == 'string') {
-            if (url) {
-                url = this.master.parseEPGs(url, false);
-            }
-            if (url == global.activeEPG)
-                return;
-            if (!url || validateURL(url)) {
-                global.activeEPG = url;
-                global.channels.loadedEPG = '';
-                await this.loadEPG(url, ui);
-                let refresh = () => {
-                    if (menu.path.indexOf(lang.EPG) != -1 || menu.path.indexOf(lang.LIVE) != -1) {
-                        menu.refreshNow();
+                    const key = 'epg-' + lang.locale
+                    let data = this.EPGs()
+                    const has = data.some(r => r.url == url)
+                    if (!has) {
+                        data.push({url, active: true})
+                        config.set(key, data)
+                        menu.refreshNow() // epg options path
+                        this.epgShowLoading(url).catch(console.error)
                     }
-                };
-                if (!url) {
-                    global.channels.load();
-                    ui && osd.show(lang.EPG_DISABLED, 'fas fa-times-circle', 'epg', 'normal');
                 }
-                refresh();
-            } else {
-                if (ui) {
-                    osd.show(lang.INVALID_URL, 'fas fa-exclamation-triangle faclr-red', 'epg', 'normal');
-                }
-                throw lang.INVALID_URL;
             }
         }
     }
-    async loadEPG(url, ui) {
-        await renderer.ready(true)
-        global.channels.loadedEPG = '';
-        if (!url && config.get('epg-' + lang.locale) != 'disabled') {
-            url = config.get('epg-' + lang.locale);
+    async epgShowLoading(url) {
+        let lastProgress = -1, lastState = ''
+        const uid = 'epg-add-'+ Math.random()
+        osd.show(lang.EPG_AVAILABLE_SOON, 'fas fa-circle-notch fa-spin', uid, 'persistent')
+        await new Promise(resolve => setTimeout(resolve, 3000))
+        while(true) {
+            const states = await this.master.epg.getState()
+            const state = states.info.find(r => r.url == url)
+            await new Promise(resolve => setTimeout(resolve, 500))
+            if (state) {
+                if (state.progress == lastProgress && state.state == lastState) continue
+                menu.refresh()
+                if (state.state == 'error') {
+                    osd.show(lang.EPG_LOAD_FAILURE + ': ' + state.error, 'fas fa-times-circle', uid, 'normal')
+                    break
+                } else if (state.progress > 99) {
+                    osd.show(lang.EPG_LOAD_SUCCESS, 'fas fa-check-circle', uid, 'normal')
+                    break
+                } else {
+                    osd.show(lang.PROCESSING + ' ' + state.progress + '%', 'fas fa-circle-notch fa-spin', uid, 'persistent')
+                }
+            } else {
+                osd.show(lang.EPG_LOAD_FAILURE + ': ' + state.error, 'fas fa-times-circle', uid, 'normal')
+                break
+            }
         }
-        if (!url && ui) {
-            ui = false;
-        }
-        this.lastActiveEPGDetails = lang.EPG_AVAILABLE_SOON;
-        if (ui) {
-            this.addingEPG = true;
-            console.error('ASSIGN EPG')
-            osd.show(lang.EPG_AVAILABLE_SOON, 'fas fa-circle-notch fa-spin', 'epg-add', 'persistent');
-        }
-        let err;
-        await this.master.loadEPG(url).catch(e => err = e);
-        this.addingEPG = false;
-        if (err) {
-            console.error(err);
-            osd.show(lang.EPG_LOAD_FAILURE + ': ' + String(err), 'fas fa-times-circle', 'epg-add', 'normal');
-            throw err;
-        }
-        global.channels.loadedEPG = url;
-        global.channels.emit('epg-loaded', url)
-        if (ui) {
-            osd.show(lang.EPG_LOAD_SUCCESS, 'fas fa-check-circle', 'epg-add', 'normal');
-        }
-        if (menu.path == lang.TRENDING || (menu.path.startsWith(lang.LIVE) && menu.path.split('/').length == 2)) {
-            menu.refresh()
-        }
-        return true
     }
     epgEntry(side=false) {
         return {
@@ -241,14 +201,11 @@ class ManagerEPG extends EventEmitter {
                         name: lang.SELECT,
                         type: 'group',
                         fa: 'fas fa-cog',
-                        renderer: async () => {
-                            const epgData = await this.master.epg([], 2);
-                            this.epgLoadingStatus(epgData);
-                            return await this.epgOptionsEntries();
-                        }
+                        renderer: this.epgOptionsEntries.bind(this)
                     }
-                ];
-                if (global.channels.loadedEPG) {
+                ]
+                const states = await this.master.epg.getState()
+                if (states.info.length && states.state !== 'error') {
                     entries.push(...[
                         global.channels.epgSearchEntry(),
                         global.channels.chooseChannelGridOption(true),
@@ -263,16 +220,7 @@ class ManagerEPG extends EventEmitter {
                         })
                     ]);
                 } else {
-                    entries.push({
-                        name: global.channels.loadedEPG ? lang.EMPTY : lang.EPG_DISABLED,
-                        details: this.lastActiveEPGDetails,
-                        fa: 'fas fa-info-circle',
-                        type: 'action',
-                        class: 'entry-empty',
-                        action: () => {
-                            menu.open(this.epgSelectionPath()).catch(console.error);
-                        }
-                    });
+                    entries[0].details = states.state === 'error' ? lang.EPG_LOAD_FAILURE : lang.EPG_DISABLED
                 }
                 return entries;
             }
@@ -307,25 +255,31 @@ class Manager extends ManagerEPG {
         this.master = master;
         this.listFaIcon = 'fas fa-satellite-dish';
         this.key = 'lists';
-        this.lastProgress = 0;
         this.openingList = false;
         this.inputMemory = {}
         renderer.ready(async () => {
-            global.streamer.on('hard-failure', es => this.checkListExpiral(es).catch(console.error));
+            global.streamer.on('hard-failure', es => this.checkListExpiral(es).catch(console.error))
             menu.prependFilter(async (es, path) => {
-                es = await this.expandEntries(es, path);
-                return this.labelify(es);
-            });
-            this.master.on('unsatisfied', () => this.update());
-        });
-        renderer.get().on('menu-back', () => {
+                es = await this.expandEntries(es, path)
+                return this.labelify(es)
+            })
+            this.master.on('unsatisfied', () => this.update())
+            await this.ready()
+            const activeEPG = config.get('epg-' + lang.locale)
+            if (activeEPG === 'disabled') return
+            const suggest = !activeEPG || activeEPG === 'auto' || (Array.isArray(activeEPG) && !activeEPG.length)
+            if (!suggest) return
+            const urls = await this.searchEPGs()
+            await global.lists.epg.suggest(urls)
+        })
+        renderer.ui.on('menu-back', () => {
             if (this.openingList) {
-                osd.hide('list-open');
+                osd.hide('list-open')
             }
-        });
+        })
     }
     async expandEntries(entries, path) {
-        let shouldExpand = entries.some(e => typeof (e._) == 'number' && !e.url);
+        let shouldExpand = entries.some(e => typeof(e._) == 'number' && !e.url);
         if (shouldExpand) {
             let source;
             entries.some(e => {
@@ -348,25 +302,25 @@ class Manager extends ManagerEPG {
     }
     labelify(list) {
         for (let i = 0; i < list.length; i++) {
-            if (list[i] && (typeof (list[i].type) == 'undefined' || list[i].type == 'stream')) {
+            if (list[i] && (typeof(list[i].type) == 'undefined' || list[i].type == 'stream')) {
                 list[i].details = list[i].groupName || basename(list[i].path || list[i].group || '');
             }
         }
         return list;
     }
-    waitListsReady(timeoutSecs) {
+    ready(timeoutSecs) {
         return new Promise(resolve => {
             const listener = info => {
                 if (this.master.satisfied && info.length) {
-                    this.hideUpdateProgress()
-                    setTimeout(() => this.master.removeListener('satisfied', listener), 0)
+                    this.master.removeListener('satisfied', listener)
                     resolve(true)
+                    this.hideUpdateProgress()
                 }
-            };
-            this.master.on('satisfied', listener);
-            typeof (timeoutSecs) == 'number' && setTimeout(() => resolve(false), timeoutSecs * 1000);
+            }
+            this.master.on('satisfied', listener)
+            typeof(timeoutSecs) == 'number' && setTimeout(() => resolve(false), timeoutSecs * 1000)
             listener(this.master.status())
-        });
+        })
     }
     inChannelPage() {
         return menu.currentEntries.some(e => lang.SHARE == e.name);
@@ -382,7 +336,7 @@ class Manager extends ManagerEPG {
             }
         });
         menu.currentEntries.some(e => {
-            if (e.name.indexOf(lang.STREAMS) != -1) {
+            if (e.name.includes(lang.STREAMS)) {
                 let match = e.name.match(new RegExp('\\(([0-9]+)\\)'));
                 if (match) {
                     streamsCount = parseInt(match[1]);
@@ -440,9 +394,9 @@ class Manager extends ManagerEPG {
         this.addingList = true;
         menu.path.endsWith(lang.MY_LISTS) && menu.refreshNow();
         const cacheFile = storage.resolve(LIST_DATA_KEY_MASK.format(url));
-        const stat = await fs.promises.stat(cacheFile).catch(console.error);
+        const stat = await fsp.stat(cacheFile).catch(console.error);
         if (stat && stat.size && stat.size < 16384) {
-            await fs.promises.unlink(cacheFile).catch(console.error); // invalidate possibly bad caches
+            await fsp.unlink(cacheFile).catch(console.error); // invalidate possibly bad caches
         }
         const fetch = new this.master.Fetcher(url, {
             progress: p => {
@@ -475,22 +429,22 @@ class Manager extends ManagerEPG {
         let err;
         const uid = parseInt(Math.random() * 100000);
         osd.show(lang.RECEIVING_LIST, 'fa-mega spin-x-alt', 'add-list-progress-' + uid, 'persistent');
-        renderer.get().emit('background-mode-lock', 'add-list');
+        renderer.ui.emit('background-mode-lock', 'add-list');
         listUrl = forwardSlashes(listUrl);
         await this.add(listUrl, name, uid).catch(e => err = e);
         osd.hide('add-list-progress-' + uid);
-        renderer.get().emit('background-mode-unlock', 'add-list');
-        if (typeof (err) != 'undefined') {
+        renderer.ui.emit('background-mode-unlock', 'add-list');
+        if (typeof(err) != 'undefined') {
             throw err;
         } else {
             if (!paths.ALLOW_ADDING_LISTS) {                
                 paths.ALLOW_ADDING_LISTS = true;
-                await fs.promises.writeFile(paths.cwd + '/ALLOW_ADDING_LISTS.md', 'ok').catch(console.error);
+                await fsp.writeFile(paths.cwd + '/ALLOW_ADDING_LISTS.md', 'ok').catch(console.error);
                 menu.info(lang.LEGAL_NOTICE, lang.TOS_CONTENT);
             }
             osd.show(lang.LIST_ADDED, 'fas fa-check-circle', 'add-list', 'normal');
             const isURL = validateURL(listUrl);
-            const sensible = listUrl.match(new RegExp('(pwd?|pass|password)=', 'i')) || listUrl.match(new RegExp('#(xtream|mag)')) || listUrl.indexOf('@') != -1 || listUrl.indexOf('supratv') != -1; // protect sensible lists
+            const sensible = listUrl.match(new RegExp('(pwd?|pass|password)=', 'i')) || listUrl.match(new RegExp('#(xtream|mag)')) || listUrl.includes('@') || listUrl.includes('supratv') // protect sensible lists
             let makePrivate;
             if (fromCommunity) {
                 makePrivate = false;
@@ -526,33 +480,33 @@ class Manager extends ManagerEPG {
             info = await this.master.info();
         }
         if (info && info[listUrl] && info[listUrl].epg) {
-            const currentEPG = config.get('epg-' + lang.locale);
-            const isMAG = listUrl.endsWith('#mag');
-            info[listUrl].epg = this.master.parseEPGs(info[listUrl].epg, false);
-            let valid = isMAG || validateURL(info[listUrl].epg);
-            if (valid && info[listUrl].epg != currentEPG) {
+            const currentEPGs = this.activeEPGs()
+            const isMAG = listUrl.endsWith('#mag')
+            const listEpgs = parseCommaDelimitedURIs(info[listUrl].epg).filter(validateURL)
+            let valid = isMAG || listEpgs.length
+            if (valid && !currentEPGs.some(r => (r.active && listEpgs.includes(r.url)))) {
+                const url = listEpgs.shift()
                 if (!isMAG) {
-                    const sample = await Download.get({ url: info[listUrl].epg, range: '0-512', responseType: 'text' });
-                    if (typeof (sample) != 'string' || sample.toLowerCase().indexOf('<tv') == -1)
-                        return;
+                    const sample = await Download.get({url, range: '0-512', responseType: 'text' })
+                    if (typeof(sample) != 'string' || !sample.toLowerCase().includes('<tv'))
+                        return
                 }
                 let chosen = await menu.dialog([
                     { template: 'question', text: ucWords(paths.manifest.name), fa: 'fas fa-star' },
                     { template: 'message', text: lang.ADDED_LIST_EPG },
                     { template: 'option', text: lang.YES, id: 'yes', fa: 'fas fa-check-circle' },
                     { template: 'option', text: lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle' }
-                ], 'yes');
+                ], 'yes')
                 if (chosen == 'yes') {
-                    config.set('epg-' + lang.locale, info[listUrl].epg);
-                    await this.setEPG(info[listUrl].epg, true);
-                    console.error('XEPG', chosen);
+                    config.set('epg-' + lang.locale, [{url, active: true}])
+                    console.error('XEPG', chosen)
                 }
             }
         }
     }
     remove(url) {
         let lists = config.get(this.key);
-        if (typeof (lists) != 'object') {
+        if (typeof(lists) != 'object') {
             lists = [];
         }
         for (let i in lists) {
@@ -592,14 +546,14 @@ class Manager extends ManagerEPG {
             if (content) {
                 name = this.nameFromContent(content);
             }
-            if (typeof (name) != 'string' || !name) {
+            if (typeof(name) != 'string' || !name) {
                 name = listNameFromURL(url);
             }
         }
         return name;
     }
     isLocal(file) {
-        if (typeof (file) != 'string') {
+        if (typeof(file) != 'string') {
             return;
         }
         let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'));
@@ -613,7 +567,7 @@ class Manager extends ManagerEPG {
     }
     validate(content) {
         // technically, a m3u8 may contain one stream only, so it can be really small
-        return typeof (content) == 'string' && content.length >= 32 && content.toLowerCase().indexOf('#ext') != -1;
+        return typeof(content) == 'string' && content.length >= 32 && content.toLowerCase().includes('#ext');
     }
     rename(url, name) {
         this.setMeta(url, 'name', name);
@@ -634,7 +588,7 @@ class Manager extends ManagerEPG {
         return es;
     }
     setMeta(url, key, val) {
-        let lists = deepClone(this.get()); // clone it
+        let lists = clone(this.get()); // clone it
         for (let i in lists) {
             if (lists[i][1] == url) {
                 if (key == 'name') {
@@ -672,37 +626,34 @@ class Manager extends ManagerEPG {
         });
     }
     update() {
-        let p = this.master.status();
-        const c = config.get('communitary-mode-lists-amount');
-        const m = p.progress ? (lang[p.firstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] + ' ' + p.progress + '%') : (c ? lang.SEARCH_COMMUNITY_LISTS : lang.STARTING_LISTS);
+        let listener, p = this.master.status()
+        const c = config.get('communitary-mode-lists-amount')
+        const m = p.progress ? (lang[p.firstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] + ' ' + p.progress + '%') : (c ? lang.SEARCH_COMMUNITY_LISTS : lang.STARTING_LISTS)
         if (!this.receivedCommunityListsListener) {
             this.receivedCommunityListsListener = () => {
                 if (menu.path && basename(menu.path) == lang.RECEIVED_LISTS) {
-                    menu.refresh();
+                    menu.refresh()
                 }
-            };
-            this.master.on('status', this.receivedCommunityListsListener);
+            }
+            this.master.on('status', this.receivedCommunityListsListener)
         }
-        if (this.master.satisfied || this.isUpdating || (!p.length && !c))
-            return;
-        let lastProgressMessage, lastProgress = -1;
-        const listener = info => {
+        if (this.master.satisfied || this.isUpdating || (!p.length && !c)) return
+        let lastProgressMessage, lastProgress = -1
+        const processState = info => {
             if(info) p = info
             this.master.satisfied && p && p.length && this.hideUpdateProgress()
-        }
-        const processStatus = () => {
-            this.master.satisfied && p && p.length && this.hideUpdateProgress()
-            this.master.on('satisfied', listener);
-            if (lastProgress >= p.progress) return;
-            lastProgress = p.length ? p.progress : 0;
+            const progress = p.length ? parseInt(p.progress) : 0
+            if (lastProgress === progress) return
+            lastProgress = progress
             let m, fa = 'fa-mega spin-x-alt', duration = 'persistent';
             if (this.master.satisfied) {
                 clearInterval(this.isUpdating);
                 delete this.isUpdating;
                 if (p.length) {
-                    this.master.off('status', listener);
-                    this.master.off('satisfied', listener);
-                    this.master.off('unsatisfied', listener);
+                    this.master.removeListener('status', listener)
+                    this.master.removeListener('satisfied', listener)
+                    this.master.removeListener('unsatisfied', listener)
+                    this.master.loader.removeListener('progresses', listener)
                     m = lang.LISTS_UPDATED;
                     this.master.isFirstRun = false;
                 } else {
@@ -710,7 +661,6 @@ class Manager extends ManagerEPG {
                 }
                 fa = 'fas fa-check-circle';
                 duration = 'normal';
-                this.master.removeListener('status', listener);
             } else {
                 m = lang[p.firstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] + ' ' + p.progress + '%';
             }
@@ -724,23 +674,23 @@ class Manager extends ManagerEPG {
                 if (updateBaseNames.includes(basename(menu.path)) ||
                     menu.currentEntries.some(e => updateEntryNames.includes(e.name))) {
                     if (m == -1) {
-                        menu.refreshNow();
+                        menu.refreshNow()
                     } else {
-                        menu.refresh();
+                        menu.refresh()
                     }
                 } else if (this.inChannelPage()) {
-                    this.maybeRefreshChannelPage();
+                    this.maybeRefreshChannelPage()
                 }
             }
         }
+        this.status = new Limiter(() => processState(this.master.status()), 1000)
+        listener = () => this.status.call()
         this.showUpdateProgress(m, 'fa-mega spin-x-alt', 'persistent')
-        this.master.on('status', listener);
-        this.master.on('satisfied', listener);
-        this.master.on('unsatisfied', listener);
-        this.master.loader.on('progresses', () => {            
-            listener(this.master.status());
-        });
-        this.isUpdating = setInterval(processStatus, 2000)
+        this.master.on('status', listener)
+        this.master.on('satisfied', listener)
+        this.master.on('unsatisfied', listener)
+        this.master.loader.on('progresses', listener)
+        listener()
     }
     showUpdateProgress(m, fa, duration) {
         this.updateProgressVisible = true
@@ -848,7 +798,7 @@ class Manager extends ManagerEPG {
             { template: 'option', id: 'back', fa: 'fas fa-chevron-circle-left', text: lang.BACK }
         ], 'agree');
         if (choose == 'agree') {
-            renderer.get().localEmit('lists-manager', 'agree');
+            renderer.ui.localEmit('lists-manager', 'agree');
             return true;
         }
     }
@@ -871,7 +821,7 @@ class Manager extends ManagerEPG {
         if (server.startsWith('/')) {
             server = 'http:' + server;
         }
-        if (server.indexOf('username=') != -1) {
+        if (server.includes('username=')) {
             return server;
         }
         this.inputMemory['server'] = server
@@ -894,7 +844,7 @@ class Manager extends ManagerEPG {
         this.inputMemory['pass'] = pass
         osd.show(lang.PROCESSING, 'fa-mega spin-x-alt', 'add-list-pre', 'persistent');
         let url = await this.getM3UFromCredentials(server, user, pass).catch(console.error);
-        if (typeof (url) != 'string') {
+        if (typeof(url) != 'string') {
             url = server.replace('//', '//' + user + ':' + pass + '@') + '#xtream';
             let chosen = await menu.dialog([
                 { template: 'question', text: lang.ADD_USER_PASS, fa: 'fas fa-key' },
@@ -918,7 +868,7 @@ class Manager extends ManagerEPG {
             data.askListCredentials = String(err);
         } else {
             data.askListCredentials = url;
-            if (url.indexOf('#xtream') != -1) {
+            if (url.includes('#xtream')) {
                 const xtr = new Xtr(url, true);
                 await xtr.run().catch(e => err = e);
                 data.calls = xtr.debugInfo;
@@ -940,7 +890,7 @@ class Manager extends ManagerEPG {
             '{0}/get.php?username={1}&password={2}&output=hls&type=m3u_plus',
             '{0}/get.php?username={1}&password={2}&type=m3u_plus'
         ];
-        if (server.indexOf('username=') != -1) {
+        if (server.includes('username=')) {
             masks.push(server);
         }
         for (const mask of masks) {
@@ -1008,7 +958,7 @@ class Manager extends ManagerEPG {
         if (res.length >= 6) {
             const user = res[4], pass = res[5];
             const list = await this.getM3UFromCredentials(server, user, pass).catch(() => {});
-            if (typeof (list) == 'string' && list) {
+            if (typeof(list) == 'string' && list) {
                 return list;
             }
         }
@@ -1032,7 +982,7 @@ class Manager extends ManagerEPG {
                     let name = extInfo[url].name || row[0] || listNameFromURL(url);
                     let details = [extInfo[url].author || '', '<i class="fas fa-play-circle"></i> ' + kfmt(extInfo[url].length || 0)].filter(n => n).join(' &nbsp;&middot;&nbsp; ');
                     let icon = extInfo[url].icon || undefined;
-                    let priv = (row.length > 2 && typeof (row[2]['private']) != 'undefined') ? row[2]['private'] : doNotShareHint;
+                    let priv = (row.length > 2 && typeof(row[2]['private']) != 'undefined') ? row[2]['private'] : doNotShareHint;
                     let expired = await this.master.isListExpired(url, false);
                     let flag = expired ? 'fas fa-exclamation-triangle faclr-red' : (priv ? 'fas fa-lock' : 'fas fa-users');
                     ls.push({
@@ -1064,7 +1014,7 @@ class Manager extends ManagerEPG {
                                     action: (e, v) => {
                                         if (v !== false) {
                                             let path = menu.path, parentPath = menu.dirname(path);
-                                            if (path.indexOf(name) != -1) {
+                                            if (path.includes(name)) {
                                                 path = path.replace('/' + name, '/' + v);
                                             } else {
                                                 path = false;
@@ -1106,7 +1056,7 @@ class Manager extends ManagerEPG {
                                     type: 'action',
                                     fa: contactFa,
                                     action: () => {
-                                        renderer.get().emit('open-external-url', contactUrl);
+                                        renderer.ui.emit('open-external-url', contactUrl);
                                     }
                                 });
                             }
@@ -1153,7 +1103,7 @@ class Manager extends ManagerEPG {
             if (updateErr == 'empty list' || updateErr == 'empty index') {
                 let haserr, msg = updateErr;
                 const ret = await Download.head({ url: data.url }).catch(err => haserr = err);
-                if (ret && typeof (ret.statusCode) == 'number') {
+                if (ret && typeof(ret.statusCode) == 'number') {
                     switch (String(ret.statusCode)) {
                         case '200':
                         case '210':
@@ -1196,32 +1146,36 @@ class Manager extends ManagerEPG {
         }
         osd.hide('refresh-list');
     }
-    async searchEPGs() {
-        let epgs = [];
-        let urls = this.master.epgs;
-        if (Array.isArray(urls)) {
-            epgs.push(...urls)
-        }
-        let c = await cloud.get('configure').catch(console.error);
-        if (c && c.epg) {
-            let cs = await lang.getActiveCountries();
-            if (!cs.includes(lang.countryCode)) {
-                cs.push(lang.countryCode);
-            }
-            cs.forEach(code => {
-                if (c.epg[code] && !epgs.includes(c.epg[code])) {
-                    epgs.push(c.epg[code]);
+    async searchEPGs(limit, mandatories) {
+        const c = await cloud.get('configure')
+        if(c && c.epgs) {
+            const countries = await lang.getActiveCountries()
+            for(const country of Object.keys(c.epgs).filter(t => countries.includes(t))) {
+                for(const url of c.epgs[country]) {
+                    if(!this.master.epgs[url]) this.master.epgs[url] = new Set()
+                    this.master.epgs[url].add(country)
                 }
-            });
+            }
         }
-        global.channels && epgs.push(...global.channels.watching.currentRawEntries.map(e => e.epg))
-        epgs = epgs.filter(e => !!e).map(u => this.master.parseEPGs(u, true)).flat().sort().unique()
-        return epgs
+        if(global.channels && global.channels.trending.currentRawEntries) {
+            global.channels.trending.currentRawEntries.forEach(e => {
+                if(e.epg) {
+                    for(const url of parseCommaDelimitedURIs(e.epg)) {
+                        if(!this.master.epgs[url]) this.master.epgs[url] = new Set()
+                        e.source && this.master.epgs[url].add(e.source)
+                    }
+                }
+            })
+        }
+        return await this.master.searchEPGs(limit, mandatories)
     }
     async removeList(data) {
         const info = await this.master.info(true), key = 'epg-' + lang.locale;
-        if (info[data.url] && info[data.url].epg && this.master.parseEPGs(info[data.url].epg) == config.get(key)) {
-            config.set(key, '');
+        if (info[data.url] && info[data.url].epg) {
+            let data = this.EPGs()
+            const urls = new Set(parseCommaDelimitedURIs(info[data.url].epg))
+            data = data.filter(e => !urls.has(e.url))
+            config.set(key, data)
         }
         menu.suspendRendering();
         try { // Ensure that we'll resume rendering
@@ -1344,7 +1298,7 @@ class Manager extends ManagerEPG {
                 }
                 const ret = await menu.dialog(opts);
                 if (ret == 'contact') {
-                    renderer.get().emit('open-external-url', contactUrl);
+                    renderer.ui.emit('open-external-url', contactUrl);
                 } else if (ret == 'offer') {
                     await global.promo.dialogOffer(offer)
                 }

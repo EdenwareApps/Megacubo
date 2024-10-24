@@ -1,9 +1,10 @@
-import sanitizeFilename from "sanitize-filename";
-import np from "../network-ip/network-ip.js";
-import os from "os";
+import sanitizeFilename from 'sanitize-filename'
+import np from '../network-ip/network-ip.js'
+import os from 'os';
 import { URL } from 'url'
 import fs from 'fs'
-import moment from 'moment-timezone';
+import moment from 'moment-timezone'
+import clone from 'fast-json-clone'
 
 if (!global.Promise.allSettled) {
     global.Promise.allSettled = ((promises) => Promise.all(promises.map(p => p
@@ -79,7 +80,7 @@ if (!global.Array.prototype.sortByProp) {
         value: function (p, reverse) {
             if (Array.isArray(this)) { // this.slice is not a function (?!)
                 return this.slice(0).sort((a, b) => {
-                    let ua = typeof (a[p]) == 'undefined', ub = typeof (b[p]) == 'undefined';
+                    let ua = typeof(a[p]) == 'undefined', ub = typeof(b[p]) == 'undefined';
                     if (ua && ub)
                         return 0;
                     if (ua && !ub)
@@ -113,7 +114,7 @@ if (!global.String.prototype.replaceAll) {
         writable: false,
         value: function (search, replacement) {
             let target = String(this);
-            if (target.indexOf(search) != -1) {
+            if (target.includes(search)) {
                 target = target.split(search).join(replacement);
             }
             return target;
@@ -121,38 +122,48 @@ if (!global.String.prototype.replaceAll) {
     });
 }
 
+const DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS = 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Content-Range, Range, Vary, range, Authorization'
+const trimExt = (text, exts) => {
+    if (typeof(exts) == 'string') {
+        exts = [exts]
+    }
+    exts.some(e => {
+        if (text.endsWith('.' + e)) {
+            text = text.substr(0, text.length - (e.length + 1))
+            return true
+        }
+    })
+    return text
+}
+
+export { clone }
 export const LIST_DATA_KEY_MASK = 'list-data-1-{0}'
-export const DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS = 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Content-Range, Range, Vary, range, Authorization';
 export const forwardSlashes = path => {
-    if (path && path.indexOf('\\') != -1) {
+    if (path && path.includes('\\')) {
         return path.replaceAll('\\', '/').replaceAll('//', '/');
     }
     return path;
 }
 export const getDomain = (u, includePort) => {
     let d = u;
-    if (u && u.indexOf('//') != -1) {
-        d = u.split('//')[1].split('/')[0];
+    if (u && u.includes('//')) {
+        d = u.split('//')[1].split('/')[0]
     }
-    if (d.indexOf('@') != -1) {
-        d = d.split('@')[1];
+    if (d.includes('@')) {
+        d = d.split('@')[1]
     }
-    if (d.indexOf(':') != -1 && !includePort) {
-        d = d.split(':')[0];
+    if (d.includes(':') && !includePort) {
+        d = d.split(':')[0]
     }
-    return d;
+    return d
 }
-export const trimExt = (text, exts) => {
-    if (typeof (exts) == 'string') {
-        exts = [exts];
-    }
-    exts.some(e => {
-        if (text.endsWith('.' + e)) {
-            text = text.substr(0, text.length - (e.length + 1));
-            return true;
+export const isYT = (url) => {
+    if (url.includes('youtu')) {
+        const d = getDomain(url)
+        if (d.includes('youtube.com') || d.includes('youtu.be')) {
+            return true
         }
-    });
-    return text;
+    }
 }
 export const textSimilarity = (first, second) => {
     first = first.replace(/\s+/g, '')
@@ -215,10 +226,10 @@ export const joinPath = (folder, file) => {
     if (!folder)
         return file;
     let ret, ffolder = folder, ffile = file;
-    if (ffolder.indexOf('\\') != -1) {
+    if (ffolder.includes('\\')) {
         ffolder = forwardSlashes(ffolder);
     }
-    if (ffile.indexOf('\\') != -1) {
+    if (ffile.includes('\\')) {
         ffile = forwardSlashes(ffile);
     }
     let folderEndsWithSlash = ffolder.charAt(ffolder.length - 1) == '/';
@@ -248,13 +259,14 @@ export const decodeURIComponentSafe = uri => {
     }
 }
 export const moveFile = async (from, to) => {
+    await fs.promises.mkdir(dirname(to), { recursive: true }).catch(() => {})
     try {
         await fs.promises.rename(from, to)
     } catch (err) {
-        if (err.code === 'EXDEV' || err.code === 'ENOTSUP') {
+        try {
             await fs.promises.copyFile(from, to)
             await fs.promises.unlink(from)
-        } else {
+        } catch(err) {
             throw err
         }
     }
@@ -301,12 +313,27 @@ export const insertEntry = (entry, entries, before, after) => {
     entries.splice(position, 0, entry)
 }
 
+const validateURLRegex = new RegExp(
+    // supported protocols: http, https, rtmp, rtmps, rtmpte, rtsp, mms, and others
+    '^(?:(?:(?:https?|rt[ms]p[a-z]{0,2}):)?\\/\\/)' + 
+    // optional user authentication
+    '(?:\\S+(?::\\S*)?@)?' + 
+    // domain name or IP address (without excluding private IPs)
+    '(?:(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}' + 
+    '(?:\\.(?:[1-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))|' + // match valid IP address
+    '(?:(?:[a-z\\u00a1-\\uffff0-9]-*)*[a-z\\u00a1-\\uffff0-9]+)' + // match domain name
+    '(?:\\.(?:[a-z\\u00a1-\\uffff0-9]-*)*[a-z\\u00a1-\\uffff0-9]+)*' + // subdomains
+    '(?:\\.(?:[a-z\\u00a1-\\uffff]{2,}))' + // top-level domain
+    ')(?::\\d{2,5})?' + // optional port
+    '(?:[/?#]\\S*)?$', // optional path and query string
+    'i' // case-insensitive
+)
+
 export const validateURL = url => {
-    if (url && url.length > 11) {
-        const parts = url.match(new RegExp('^(https?://|//)[A-Za-z0-9_\\-\\.\\:@]{4,}', 'i'));
-        return parts && parts.length;
-    }
+    if (!url || url.length <= 11) return false
+    return validateURLRegex.test(url)
 }
+
 export const ucFirst = (str, keepCase) => {
     if (!keepCase) {
         str = str.toLowerCase();
@@ -317,16 +344,16 @@ export const ucFirst = (str, keepCase) => {
 }
 export const ts2clock = time => {
     let locale = undefined, timezone = undefined;
-    if (typeof (time) == 'string') {
+    if (typeof(time) == 'string') {
         time = parseInt(time)
     }
     time = moment(time * 1000)
     return time.format('LT')
 }
 export const dirname = _path => {
-    let parts = _path.replace(new RegExp('\\\\', 'g'), '/').split('/');
-    parts.pop();
-    return parts.join('/');
+    let parts = _path.replace(new RegExp('\\\\', 'g'), '/').split('/')
+    parts.pop()
+    return parts.join('/')
 }
 export const sanitize = (txt, keepAccents) => {
     let ret = txt;
@@ -342,9 +369,9 @@ if (process.platform == 'android') {
     }
 }
 export const prepareCORS = (headers, url, forceOrigin) => {
-    let origin = typeof (forceorigin) == 'string' ? forceOrigin : '*';
+    let origin = typeof(forceorigin) == 'string' ? forceOrigin : '*';
     if (url) {
-        if (typeof (url) != 'string') { // is req object
+        if (typeof(url) != 'string') { // is req object
             if (url.headers.origin) {
                 url = url.headers.origin;
             } else {
@@ -380,7 +407,7 @@ export const listNameFromURL = url => {
     if (!url)
         return 'Untitled ' + parseInt(Math.random() * 9999);
     let name, subName;
-    if (url.indexOf('?') != -1) {
+    if (url.includes('?')) {
         url.split('?')[1].split('&').forEach(s => {
             s = s.split('=');
             if (s.length > 1) {
@@ -397,7 +424,7 @@ export const listNameFromURL = url => {
             }
         });
     }
-    if (!name && url.indexOf('@') != -1) {
+    if (!name && url.includes('@')) {
         const m = url.match(new RegExp('//([^:]+):[^@]+@([^/#]+)'));
         if (m) {
             name = m[2] + ' ' + m[1];
@@ -405,12 +432,12 @@ export const listNameFromURL = url => {
     }
     if (name) {
         name = decodeURIComponentSafe(name);
-        if (name.indexOf(' ') === -1 && name.indexOf('+') !== -1) {
+        if (!name.includes(' ') && name.includes('+')) {
             name = name.replaceAll('+', ' ').replaceAll('<', '').replaceAll('>', '');
         }
         return trimExt(name, ['m3u']);
     }
-    if (url.indexOf('//') == -1) { // isLocal
+    if (!url.includes('//')) { // isLocal
         return trimExt(url.split('/').pop(), ['m3u']);
     } else {
         url = String(url).replace(new RegExp('^[a-z]*://', 'i'), '').split('/').filter(s => s.length);
@@ -426,14 +453,34 @@ export const listNameFromURL = url => {
 export const parseJSON = json => {
     let ret;
     try {
-        let parsed = JSON.parse(json);
-        ret = parsed;
+        let parsed = JSON.parse(typeof(json) === 'string' ? json : String(json))
+        ret = parsed
     }
     catch (e) {}
-    return ret;
+    return ret
+}
+export const parseCommaDelimitedURIs = (url, pickFirst) => {
+    let urls
+    if(Array.isArray(url)) {
+        urls = url.slice(0)
+    } else {
+        if (url.match(new RegExp(', *(https?://|//)'))) {
+            urls = url.replace(',//', ',http://').replaceAll(', http', ',http').split(',http').map((u, i) => {
+                if (i) {
+                    u = 'http' + u
+                }
+                return u
+            })
+        } else if(url) {
+            urls = [url]
+        } else {
+            urls = []
+        }
+    }
+    return pickFirst ? urls.shift() : urls
 }
 export const kbfmt = (bytes, decimals = 2) => {
-    if (isNaN(bytes) || typeof (bytes) != 'number')
+    if (isNaN(bytes) || typeof(bytes) != 'number')
         return 'N/A';
     if (bytes === 0)
         return '0 Bytes';
@@ -442,7 +489,7 @@ export const kbfmt = (bytes, decimals = 2) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 export const kbsfmt = (bytes, decimals = 1) => {
-    if (isNaN(bytes) || typeof (bytes) != 'number')
+    if (isNaN(bytes) || typeof(bytes) != 'number')
         return 'N/A';
     if (bytes === 0)
         return '0 Bytes/ps';
@@ -532,13 +579,13 @@ export const time = dt => {
 }
 export const kfmt = (num, digits) => {
     var si = [
-        { value: 1, symbol: "" },
-        { value: 1E3, symbol: "K" },
-        { value: 1E6, symbol: "M" },
-        { value: 1E9, symbol: "G" },
-        { value: 1E12, symbol: "T" },
-        { value: 1E15, symbol: "P" },
-        { value: 1E18, symbol: "E" }
+        { value: 1, symbol: '' },
+        { value: 1E3, symbol: 'K' },
+        { value: 1E6, symbol: 'M' },
+        { value: 1E9, symbol: 'G' },
+        { value: 1E12, symbol: 'T' },
+        { value: 1E15, symbol: 'P' },
+        { value: 1E18, symbol: 'E' }
     ];
     var i, rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
     for (i = si.length - 1; i > 0; i--) {
@@ -547,9 +594,6 @@ export const kfmt = (num, digits) => {
         }
     }
     return (num / si[i].value).toFixed(digits).replace(rx, "$1") + si[i].symbol;
-}
-export const currentTime = () => {
-    return Date.now() / 1000
 }
 export const traceback = () => {
     try { 
@@ -560,25 +604,37 @@ export const traceback = () => {
         return ex.stack.split(piece).slice(1).join(piece).trim()
     }
 }
-export const deepClone = (from, allowNonSerializable) => {
-    if (from == null || typeof from != "object")
-        return from;
-    if (from.constructor != Object && from.constructor != Array)
-        return from;
-    if (from.constructor == Date || from.constructor == RegExp || from.constructor == Function ||
-        from.constructor == String || from.constructor == Number || from.constructor == Boolean)
-        return new from.constructor(from);
-    let to = new from.constructor();
-    for (var name in from) {
-        if (allowNonSerializable || ['string', 'object', 'number', 'boolean'].includes(typeof (from[name]))) {
-            to[name] = typeof to[name] == "undefined" ? deepClone(from[name], allowNonSerializable) : to[name];
-        }
-    }
-    return to;
+
+const SYNC_BYTE = 0x47 // define the sync byte value
+const PACKET_SIZE = 188 // define the size of each packet
+
+export const isSyncByteValid = (buffer, position) => {
+    // check the transport_error_indicator (bit 7 of the second byte)
+    const transportErrorIndicator = (buffer[position + 1] & 0x80) === 0 // should be 0 to indicate no transport error
+    const pid = ((buffer[position + 1] & 0x1F) << 8) | buffer[position + 2] // extract the PID
+    // return true if there's no transport error and the PID is within a valid range
+    return transportErrorIndicator && (pid >= 0 && pid <= 8191)
 }
 
-const SYNC_BYTE = 0x47
-const PACKET_SIZE = 188
 export const isPacketized = sample => {
-    return Buffer.isBuffer(sample) && sample.length >= PACKET_SIZE && sample[0] == SYNC_BYTE && sample[PACKET_SIZE] == SYNC_BYTE
+    // check if the sample is a buffer, has sufficient length,
+    // and if the sync byte is valid at the start of the buffer
+    return Buffer.isBuffer(sample) && sample.length >= PACKET_SIZE && isSyncByteValid(sample, 0)
 }
+
+export const findSyncBytePosition = (buffer, from = 0) => {
+    const bufferLength = buffer.length // get the length of the buffer
+    let position = buffer.indexOf(SYNC_BYTE, from) // find the position of the first sync byte starting from 'from'
+
+    // continue searching while a valid sync byte is not found 
+    // and we are within the buffer limits
+    while (position !== -1 && position < bufferLength - PACKET_SIZE) {
+        if (isSyncByteValid(buffer, position)) {
+            return position // return position if the sync byte is valid
+        }
+        position = buffer.indexOf(SYNC_BYTE, position + 1) // move to the next sync byte
+    }    
+    return -1  // return -1 if no valid sync byte is found
+}
+
+

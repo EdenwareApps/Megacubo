@@ -1,3 +1,5 @@
+import { isYT } from '../../utils/utils.js'
+
 class MediaStreamInfo {
     constructor() {
         this.extAsURLParam = new RegExp('[#&\\?]ext=([^&]+)');
@@ -14,7 +16,7 @@ class MediaStreamInfo {
             if (ext.length >= 2 && ext.length <= 4)
                 return ext.toLowerCase();
         }
-        if (url.indexOf('ext=') != -1) {
+        if (url.includes('ext=')) {
             const m = url.match(this.extAsURLParam);
             if (m && m[1].length >= 2 && m[1].length <= 4)
                 return m[1].toLowerCase();
@@ -30,20 +32,11 @@ class MediaStreamInfo {
             } else if (url.match(this.protoRegexB)) {
                 ret = 'http';
             }
-            if (ret && typeof (len) == 'number') {
+            if (ret && typeof(len) == 'number') {
                 ret = ret.substr(0, len);
             }
         }
         return ret;
-    }
-    getDomain(u) {
-        if (u && u.indexOf('//') != -1) {
-            var domain = u.split('//')[1].split('/')[0];
-            if (domain == 'localhost' || domain.indexOf('.') != -1) {
-                return domain;
-            }
-        }
-        return '';
     }
     setM3UStreamFmt(url, fmt) {
         let badfmt, type;
@@ -71,7 +64,7 @@ class MediaStreamInfo {
         }
     }
     mediaType(entry, def, ext) {
-        if (!entry || typeof (entry) != 'object') {
+        if (!entry || typeof(entry) != 'object') {
             entry = {
                 url: String(entry)
             };
@@ -85,11 +78,11 @@ class MediaStreamInfo {
         if (this.isLive(entry.url, ext, proto)) {
             return 'live';
         }
-        if (this.isVideo(entry.url, ext, proto) || this.isAudio(entry.url, ext) || this.isYT(entry.url)) {
+        if (this.isVideo(entry.url, ext, proto) || this.isAudio(entry.url, ext) || isYT(entry.url)) {
             return 'video';
         } else if (entry.url.match(this.seemsLiveRegex)) {
             return 'live';
-        } else if (entry.url.indexOf('video') != -1) {
+        } else if (entry.url.includes('video')) {
             return 'video';
         } else {
             const name = entry.name + ' ' + (entry.group || '');
@@ -97,14 +90,14 @@ class MediaStreamInfo {
                 return 'live';
             }
         }
-        return (def && typeof (def) == 'string') ? def : 'live'; // "live" by default
+        return (def && typeof(def) == 'string') ? def : 'live'; // "live" by default
     }
     isM3U8(url, ext, headers) {
         if (!ext)
             ext = this.ext(url);
         if (ext == 'm3u8' || ext == 'm3u')
             return true;
-        if (headers && headers['content-type'] && headers['content-type'].toLowerCase().indexOf('mpegurl') != -1)
+        if (headers && headers['content-type'] && headers['content-type'].toLowerCase().includes('mpegurl'))
             return true;
         return false;
     }
@@ -129,16 +122,8 @@ class MediaStreamInfo {
         }
         return ['https', 'http'].includes(proto);
     }
-    isYT(url) {
-        if (url.indexOf('youtube.com') != -1 || url.indexOf('youtu.be') != -1) {
-            const d = this.getDomain(url);
-            if (d.indexOf('youtu') != -1) {
-                return true;
-            }
-        }
-    }
     isRTP(url, proto) {
-        return ['mms', 'mmsh', 'mmst', 'rtp', 'rtsp', 'rtmp'].indexOf(this.proto(url, 4)) != -1;
+        return ['mms', 'mmsh', 'mmst', 'rtp', 'rtsp', 'rtmp'].includes(this.proto(url, 4));
     }
     isVideo(url, ext, proto) {
         if (!url)
@@ -151,14 +136,14 @@ class MediaStreamInfo {
             }
             return this.isLocalTS(url, ext, proto);
         } else {
-            return ['wmv', 'avi', 'mp4', 'mkv', 'm4v', 'mov', 'flv', 'webm', 'ogv'].indexOf(ext) != -1;
+            return ['wmv', 'avi', 'mp4', 'mkv', 'm4v', 'mov', 'flv', 'webm', 'ogv'].includes(ext);
         }
     }
     isAudio(url, ext) {
         if (!ext) {
             ext = this.ext(url);
         }
-        return ['wma', 'mp3', 'mka', 'm4a', 'flac', 'aac', 'ogg', 'pls', 'nsv'].indexOf(ext) != -1;
+        return ['wma', 'mp3', 'mka', 'm4a', 'flac', 'aac', 'ogg', 'pls', 'nsv'].includes(ext);
     }
     isRadio(name) {
         if (name.match(this.radioRegexA) || name.match(this.radioRegexB)) {

@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import data from './countries.json' assert {type: 'json'}
+import data from './countries.json' with {type: 'json'}
 
 class Countries extends EventEmitter {
     constructor() {
@@ -8,13 +8,13 @@ class Countries extends EventEmitter {
     }
     query(fields, where = {}, orderBy, desc) {
         const ret = [];
-        if (typeof (fields) == 'string' && fields) {
+        if (typeof(fields) == 'string' && fields) {
             fields = fields.split(',');
         }
         orderBy && (fields.includes(orderBy) || fields.push(orderBy));
         for (var key in this.data) {
             const fine = Object.keys(where).every(by => {
-                if (typeof (where[by]) == 'function') {
+                if (typeof(where[by]) == 'function') {
                     return where[by](this.data[key][by]);
                 } else if (Array.isArray(where[by])) {
                     return where[by].includes(this.data[key][by]);
@@ -34,7 +34,7 @@ class Countries extends EventEmitter {
         }
         if (orderBy) {
             let sorter;
-            if (typeof (orderBy) == 'function') {
+            if (typeof(orderBy) == 'function') {
                 sorter = orderBy;
             } else if (desc) {
                 sorter = (a, b) => {

@@ -67,7 +67,7 @@ class StreamerProxyBase extends StreamerAdapterBase {
     }
     uid() {
         let _uid = 1;
-        while (typeof (this.connections[_uid]) != 'undefined') {
+        while (typeof(this.connections[_uid]) != 'undefined') {
             _uid++;
         }
         this.connections[_uid] = false;
@@ -75,19 +75,19 @@ class StreamerProxyBase extends StreamerAdapterBase {
     }
     getMediaType(headers, url) {
         let type = '', minSegmentSize = 96 * 1024;
-        if (typeof (headers['content-length']) != 'undefined' && parseInt(headers['content-length']) >= minSegmentSize && this.ext(url) == 'ts') { // a ts was being sent with m3u8 content-type
+        if (typeof(headers['content-length']) != 'undefined' && parseInt(headers['content-length']) >= minSegmentSize && this.ext(url) == 'ts') { // a ts was being sent with m3u8 content-type
             type = 'video';
-        } else if (typeof (headers['content-type']) != 'undefined' && (headers['content-type'].startsWith('video/') || headers['content-type'].startsWith('audio/'))) {
+        } else if (typeof(headers['content-type']) != 'undefined' && (headers['content-type'].startsWith('video/') || headers['content-type'].startsWith('audio/'))) {
             type = 'video';
-        } else if (typeof (headers['content-type']) != 'undefined' && headers['content-type'].endsWith('linguist')) { // .ts bad mimetype "text/vnd.trolltech.linguist"
+        } else if (typeof(headers['content-type']) != 'undefined' && headers['content-type'].endsWith('linguist')) { // .ts bad mimetype "text/vnd.trolltech.linguist"
             type = 'video';
-        } else if (typeof (headers['content-type']) != 'undefined' && (headers['content-type'].toLowerCase().endsWith('mpegurl') || headers['content-type'].startsWith('text/'))) {
+        } else if (typeof(headers['content-type']) != 'undefined' && (headers['content-type'].toLowerCase().endsWith('mpegurl') || headers['content-type'].startsWith('text/'))) {
             type = 'meta';
-        } else if (typeof (headers['content-type']) == 'undefined' && this.ext(url) == 'm3u8') {
+        } else if (typeof(headers['content-type']) == 'undefined' && this.ext(url) == 'm3u8') {
             type = 'meta';
-        } else if (typeof (headers['content-length']) != 'undefined' && parseInt(headers['content-length']) >= minSegmentSize) {
+        } else if (typeof(headers['content-length']) != 'undefined' && parseInt(headers['content-length']) >= minSegmentSize) {
             type = 'video';
-        } else if (typeof (headers['content-type']) != 'undefined' && headers['content-type'] == 'application/octet-stream') { // force download video header
+        } else if (typeof(headers['content-type']) != 'undefined' && headers['content-type'] == 'application/octet-stream') { // force download video header
             type = 'video';
         }
         //console.warn('MEDIATYPE', type, headers, url)
@@ -96,7 +96,7 @@ class StreamerProxyBase extends StreamerAdapterBase {
     isSRT(headers, url) {
         if (url && (this.ext(url) == 'srt' || url.endsWith('.srt.gz'))) {
             return true;
-        } else if (typeof (headers['content-type']) != 'undefined' && (headers['content-type'].endsWith('/srt') || headers['content-type'].endsWith('subrip'))) {
+        } else if (typeof(headers['content-type']) != 'undefined' && (headers['content-type'].endsWith('/srt') || headers['content-type'].endsWith('subrip'))) {
             return true;
         }
     }
@@ -105,11 +105,11 @@ class StreamerProxyBase extends StreamerAdapterBase {
             srt.replace(new RegExp(':([0-9]{2}),', 'g'), ':$1.').trim();
     }
     isSegmentURL(url) {
-        return typeof (this.segmentExts[this.ext(url)]) != 'undefined';
+        return typeof(this.segmentExts[this.ext(url)]) != 'undefined';
     }
     isM3U8Content(body) {
         // Error: Cannot create a string longer than 0x1fffffe8 characters
-        return body.length < 0x1fffffe8 && body.substr(0, 12).indexOf('#EXT') != -1;
+        return body.length < 0x1fffffe8 && body.substr(0, 12).includes('#EXT');
     }
     addCachingHeaders(headers, secs) {
         return Object.assign(headers, {
@@ -123,7 +123,7 @@ class StreamerProxyBase extends StreamerAdapterBase {
         this.typeMismatchChecked = true;
         if (this.committed) {
             const sample = String(Buffer.concat(data));
-            if (sample.indexOf('#EXT') == -1) {
+            if (!sample.includes('#EXT')) {
                 this.emit('type-mismatch');
             }
         } else {

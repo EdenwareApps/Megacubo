@@ -104,12 +104,12 @@ class FFmpegController extends EventEmitter {
         if (Array.isArray(k)) {
             return k;
         }
-        if (typeof (v) == 'number') {
+        if (typeof(v) == 'number') {
             v = String(v);
         }
-        if (typeof (v) != 'string') {
-            if (typeof (k) != 'string') {
-                console.error('BADTYPE: ' + typeof (k) + ' ' + k);
+        if (typeof(v) != 'string') {
+            if (typeof(k) != 'string') {
+                console.error('BADTYPE: ' + typeof(k) + ' ' + k);
             }
             return k.split(' ');
         }
@@ -143,16 +143,16 @@ class FFmpegController extends EventEmitter {
     }
     run() {
         let cmdArr = this.cmdArr();
-        renderer.get().on('ffmpeg-callback-' + this.uid, this.callback.bind(this));
-        renderer.get().on('ffmpeg-metadata-' + this.uid, this.metadataCallback.bind(this));
-        renderer.get().emit('ffmpeg-exec', this.uid, cmdArr);
+        renderer.ui.on('ffmpeg-callback-' + this.uid, this.callback.bind(this));
+        renderer.ui.on('ffmpeg-metadata-' + this.uid, this.metadataCallback.bind(this));
+        renderer.ui.emit('ffmpeg-exec', this.uid, cmdArr);
         this.emit('start', cmdArr.join(' '));
     }
     abort() {
-        renderer.get().emit('ffmpeg-abort', this.uid);
+        renderer.ui.emit('ffmpeg-abort', this.uid);
         this.options.input = this.options.output = [];
-        renderer.get().removeAllListeners('ffmpeg-callback-' + this.uid);
-        renderer.get().removeAllListeners('ffmpeg-metadata-' + this.uid);
+        renderer.ui.removeAllListeners('ffmpeg-callback-' + this.uid);
+        renderer.ui.removeAllListeners('ffmpeg-metadata-' + this.uid);
         this.emit('abort');
     }
     metadataCallback(nfo) {
@@ -321,7 +321,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
         }
     }
     isLocal(file) {
-        if (typeof (file) != 'string') {
+        if (typeof(file) != 'string') {
             return;
         }
         let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'));
@@ -338,7 +338,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
         return ext.length >= 2 && ext.length <= 4 ? ext : null;
     }
     info(path, durationWanted, cb) {
-        if (path.indexOf('://') == -1) {
+        if (!path.includes('://')) {
             this.exec(path, [], (error, output) => {
                 
                 fs.stat(path, (err, stat) => {
@@ -350,7 +350,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
             const ext = this.ext(path) || 'ts';
             const { temp } = paths;
             const tempFile = temp + '/' + Math.random() + '.' + ext;
-            if (path.toLowerCase().indexOf('.m3u8') != -1)
+            if (path.toLowerCase().includes('.m3u8'))
                 path = 'hls+' + path;
             const inputOptions = [
                 '-timeout', 30000,
@@ -484,13 +484,13 @@ class FFMPEG extends FFMPEGDiagnostic {
     constructor() {
         super();
         if (!paths.android) {
-            renderer.get().on('ffmpeg-download', state => {
+            renderer.ui.on('ffmpeg-download', state => {
                 this.downloading = state;
                 state || this.emit('downloaded');
             });
             renderer.ready(() => {
                 const { data } = paths;
-                renderer.get().emit('ffmpeg-check', lang.INSTALLING_FFMPEG, data);
+                renderer.ui.emit('ffmpeg-check', lang.INSTALLING_FFMPEG, data);
             });
         }
     }
@@ -511,7 +511,7 @@ class FFMPEG extends FFMPEGDiagnostic {
     exec(input, cmd, cb, inputOptions) {
         const proc = this.create(input, { live: false }), timeout = setTimeout(() => {
             proc && proc.abort();
-            if (typeof (cb) == 'function') {
+            if (typeof(cb) == 'function') {
                 cb('timeout', '');
                 cb = null;
             }
@@ -522,14 +522,14 @@ class FFMPEG extends FFMPEGDiagnostic {
         }
         proc.once('end', data => {
             clearTimeout(timeout);
-            if (typeof (cb) == 'function') {
+            if (typeof(cb) == 'function') {
                 cb(null, data);
                 cb = null;
             }
         });
         proc.on('error', err => {
             clearTimeout(timeout);
-            if (typeof (cb) == 'function') {
+            if (typeof(cb) == 'function') {
                 cb(err);
                 cb = null;
             }

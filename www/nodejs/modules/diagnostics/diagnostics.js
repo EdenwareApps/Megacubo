@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import { exec } from 'child_process';
-import { deepClone, kbfmt } from '../utils/utils.js';
+import { clone, kbfmt } from '../utils/utils.js';
 import { default as cds } from 'check-disk-space';
 import osd from '../osd/osd.js'
 import menu from '../menu/menu.js'
@@ -28,7 +28,7 @@ class Diagnostics extends EventEmitter {
         const version = paths.manifest.version;
         const diskSpace = await this.checkDisk();
         const freeMem = kbfmt(await this.checkMemory());
-        const configs = deepClone(config.data);
+        const configs = clone(config.data);
         const listsInfo = lists.info(true);
         const myLists = configs.lists.map(a => a[1]);
         const listsRequesting = lists.requesting;
@@ -81,7 +81,7 @@ class Diagnostics extends EventEmitter {
         const report = await this.report();
         await fs.promises.writeFile(file, report, { encoding: 'utf8' });
         downloads.serve(file, true, false).catch(e => menu.displayErr(e));
-        renderer.get().emit('clipboard-write', report);
+        renderer.ui.emit('clipboard-write', report);
         console.error('REPORT => ' + report);
     }
     async checkDisk() {
@@ -116,29 +116,42 @@ class Diagnostics extends EventEmitter {
     checkMemory() {
         return new Promise((resolve, reject) => {
             if (process.platform == 'win32') {
-                exec('wmic OS get FreePhysicalMemory', (err, stdout) => {
+                exec('powershell.exe -Command "Get-CimInstance -ClassName Win32_OperatingSystem | Select-Object -ExpandProperty FreePhysicalMemory"', (err, stdout) => {
                     if (err) {
-                        return reject('checkMemory err:' + String(err));
+                        return reject('checkMemory err:' + String(err))
                     }
-                    let data = stdout.split("\n");
-                    if (data.length > 1) {
-                        resolve(parseInt(data[1].trim()) * 1024);
+                    let data = stdout.trim()
+                    if (data) {
+                        resolve(parseInt(data))
                     } else {
-                        reject('checkMemory err: bad data, ' + String(data));
+                        reject('checkMemory err: bad data, ' + String(data))
                     }
-                });
+                })
+            } else if (process.platform === 'darwin') {
+                exec('vm_stat', (err, stdout) => {
+                    if (err) {
+                        return reject('checkMemory err:' + String(err))
+                    }
+                    const freePages = stdout.match(new RegExp('Pages free:\s+([0-9]+)'))
+                    if (freePages && freePages.length > 1) {
+                        const pageSize = 4096
+                        resolve(parseInt(freePages[1]) * pageSize)
+                    } else {
+                        reject('checkMemory err: bad data, ' + String(stdout))
+                    }
+                })
             } else {
                 exec('free -b', (err, stdout) => {
                     if (err) {
-                        return reject('checkMemory err:' + String(err));
+                        return reject('checkMemory err:' + String(err))
                     }
-                    let data = stdout.match(new RegExp('Mem: +[0-9]+ +[0-9]+ +([0-9]+)'));
+                    let data = stdout.match(new RegExp('Mem: +[0-9]+ +[0-9]+ +([0-9]+)'))
                     if (data && data.length > 1) {
-                        resolve(parseInt(data[1].trim()));
+                        resolve(parseInt(data[1].trim()))
                     } else {
-                        reject('checkMemory err: bad data, ' + String(data));
+                        reject('checkMemory err: bad data, ' + String(data))
                     }
-                });
+                })
             }
         });
     }

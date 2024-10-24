@@ -7,7 +7,7 @@ import downloads from "../../downloads/downloads.js";
 import fs from "fs";
 import config from "../../config/config.js"
 import paths from "../../paths/paths.js";
-import { ext } from "../../utils/utils.js";
+import { ext, getDomain } from "../../utils/utils.js";
 
 const YTDomainRegex = new RegExp('youtube\.com|youtu\.be');
 const YTIDRegex = new RegExp('(v=|/v/|/embed/|\.be/)([A-Za-z0-9\-_]+)');
@@ -166,7 +166,7 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
 }
 StreamerYTHLSIntent.mediaType = 'live';
 StreamerYTHLSIntent.supports = info => {
-    if (info.url && Download.getDomain(info.url).match(YTDomainRegex)) {
+    if (info.url && getDomain(info.url).match(YTDomainRegex)) {
         return true;
     }
     return false;

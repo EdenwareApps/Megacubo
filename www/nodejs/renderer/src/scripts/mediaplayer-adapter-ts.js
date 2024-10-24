@@ -1,5 +1,5 @@
 import {MediaPlayerAdapterHTML5Video} from './mediaplayer-adapter'
-import mpegts from 'mpegts.js'
+import mpegts from './mpegts.js'
 
 class MediaPlayerAdapterHTML5TS extends MediaPlayerAdapterHTML5Video {
 	constructor(container){
@@ -51,7 +51,7 @@ class MediaPlayerAdapterHTML5TS extends MediaPlayerAdapterHTML5Video {
 			this.lastErrorTime = t
         }
 		this.logListener = (type, message) => {
-			if(String(message).indexOf('sync_byte') != -1){
+			if(String(message).includes('sync_byte')){
 				this.errorListener(message)
 			}
 		}

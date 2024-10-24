@@ -1,5 +1,7 @@
-import DownloadStreamBase from "./stream-base.js";
+import fs from 'fs';
 import Reader from "../reader/reader.js";
+import DownloadStreamBase from "./stream-base.js";
+import cacheMap from "./download-cache.js";
 
 class DownloadStreamCache extends DownloadStreamBase {
     constructor(opts) {
@@ -16,12 +18,13 @@ class DownloadStreamCache extends DownloadStreamBase {
         if (this.destroyed) {
             throw 'Already destroyed';
         }
-        const {default: Download} = await import('./download.js')
-        const url = this.opts.url;
-        const row = await Download.cache.info(url);
-        if (!row || !row.status || row.dlid == this.opts.uid) {
+        const url = this.opts.url
+        const row = await cacheMap.info(url)
+        if (!row || !row.status || row.dlid == this.opts.uid || row.file === undefined) {
             throw 'Not cached';
         }
+        const stat = await fs.promises.stat(row.file).catch(() => null)
+        if (!stat || !stat.size) throw 'Now cached *'
         let range;
         const headers = Object.assign({}, row.headers) || {};
         const source = headers['x-megacubo-dl-source'];

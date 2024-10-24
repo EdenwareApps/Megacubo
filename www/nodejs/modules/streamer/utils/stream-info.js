@@ -1,4 +1,4 @@
-import { absolutize } from '../../utils/utils.js'
+import { absolutize, isYT, validateURL } from '../../utils/utils.js'
 import Download from '../../download/download.js'
 import lang from "../../lang/lang.js";
 import MediaURLInfo from "./media-url-info.js";
@@ -25,12 +25,12 @@ class StreamInfo {
     }
     _probe(url, timeoutSecs, retries = 0, opts = {}, recursion = 10) {
         return new Promise((resolve, reject) => {
-            let sampleSize = typeof (opts.probeSampleSize) == 'number' ?
+            let sampleSize = typeof(opts.probeSampleSize) == 'number' ?
                 opts.probeSampleSize :
                 (opts.skipSample ? 0 : this.opts.probeSampleSize);
             let status = 0, timer = 0, headers = {}, sample = [], start = (Date.now() / 1000);
-            if (this.validate(url)) {
-                if (typeof (timeoutSecs) != 'number') {
+            if (validateURL(url)) {
+                if (typeof(timeoutSecs) != 'number') {
                     timeoutSecs = 10;
                 }
                 const req = {
@@ -41,7 +41,7 @@ class StreamInfo {
                     retries,
                     headers: []
                 };
-                if (opts && typeof (opts) == 'object' && opts) {
+                if (opts && typeof(opts) == 'object' && opts) {
                     if (opts['user-agent']) {
                         req.headers['user-agent'] = opts['user-agent'];
                     }
@@ -69,7 +69,7 @@ class StreamInfo {
                         }
                         sample = Buffer.concat(sample);
                         let strSample = String(sample);
-                        if (strSample.toLowerCase().indexOf('#ext-x-stream-inf') != -1) {
+                        if (strSample.toLowerCase().includes('#ext-x-stream-inf')) {
                             let trackUrls = strSample.split("\n").map(s => s.trim()).filter(line => line.length > 3 && !line.startsWith('#'));
                             let trackUrl = this.takeMiddleValue(trackUrls); // get a middle track to try to prevent possibly offline tracks in m3u8
                             trackUrl = absolutize(trackUrl, download.currentURL);
@@ -82,7 +82,7 @@ class StreamInfo {
                                 console.error('HLSTRACKERR*', err, url, trackUrl);
                                 reject(err);
                             });
-                        } else if (strSample.toLowerCase().indexOf('#extinf') != -1) {
+                        } else if (strSample.toLowerCase().includes('#extinf')) {
                             let segmentUrls = strSample.split("\n").map(s => s.trim()).filter(line => line.length > 3 && !line.startsWith('#'));
                             let segmentUrl = this.takeMiddleValue(segmentUrls); // get a middle segment to try to prevent possibly expiring segments in m3u8
                             segmentUrl = absolutize(segmentUrl, download.currentURL);
@@ -112,7 +112,7 @@ class StreamInfo {
                     console.warn(url, err);
                 });
                 download.on('data', chunk => {
-                    if (typeof (chunk) == 'string') {
+                    if (typeof(chunk) == 'string') {
                         chunk = Buffer.from(chunk);
                     }
                     sample.push(chunk);
@@ -217,7 +217,7 @@ class StreamInfo {
                     }
                 }
             }
-            if (ct.substr(0, 4) == 'text' && !this.isYT(url)) {
+            if (ct.substr(0, 4) == 'text' && !isYT(url)) {
                 console.error('Bad content type: ' + ct);
                 throw 404;
             }
@@ -229,7 +229,7 @@ class StreamInfo {
             }
             ret.ext = this.mi.ext(ret.directURL) || this.mi.ext(url);
             return ret;
-        } else if (this.validate(url)) { // maybe rtmp
+        } else if (validateURL(url)) { // maybe rtmp
             let ret = {};
             ret.status = 200;
             ret.contentType = '';
@@ -268,7 +268,7 @@ class StreamInfo {
         } else if (url.match(new RegExp('^//[^/]+\\.'))) {
             ret = 'http';
         }
-        if (ret && typeof (len) == 'number') {
+        if (ret && typeof(len) == 'number') {
             ret = ret.substr(0, len);
         }
         return ret;
@@ -280,30 +280,13 @@ class StreamInfo {
         }
         return mediaType;
     }
-    isYT(url) {
-        if (url.indexOf('youtube.com') != -1 || url.indexOf('youtu.be') != -1) {
-            const d = this.getDomain(url);
-            if (d.indexOf('youtu') != -1) {
-                return true;
-            }
-        }
-    }
-    getDomain(u) {
-        if (u && u.indexOf('//') != -1) {
-            let d = u.split('//')[1].split('/')[0];
-            if (d == 'localhost' || d.indexOf('.') != -1) {
-                return d;
-            }
-        }
-        return '';
-    }
     validate(value) {
         if (value.startsWith('//')) {
             value = 'http:' + value;
         }
         let v = value.toLowerCase(), prt = v.substr(0, 4), pos = v.indexOf('://');
         if (['http'].includes(prt) && pos >= 4 && pos <= 6) {
-            return true; // /^(?:(?:(?:https?|rt[ms]p[a-z]?):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i.test(value);
+            return true // /^(?:(?:(?:https?|rt[ms]p[a-z]?):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i.test(value);
         }
     }
     len(data) {
@@ -331,7 +314,7 @@ class StreamInfo {
         return !isAscii;
     }
     isLocalFile(file) {
-        if (typeof (file) != 'string') {
+        if (typeof(file) != 'string') {
             return;
         }
         let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'));

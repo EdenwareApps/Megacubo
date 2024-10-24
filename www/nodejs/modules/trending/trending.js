@@ -7,21 +7,21 @@ import lists from "../lists/lists.js";
 import pLimit from "p-limit";
 import mega from "../mega/mega.js";
 import config from "../config/config.js"
-import { deepClone, insertEntry, ucWords } from "../utils/utils.js";
+import { clone, insertEntry, ucWords } from "../utils/utils.js";
 
-class Watching extends EntriesGroup {
+export default class Trending extends EntriesGroup {
     constructor(channels) {
-        super('watching', channels)
+        super('trending', channels)
         this.timer = 0;
         this.currentEntries = null;
         this.currentRawEntries = null;
-        this.updateIntervalSecs = cloud.expires.watching || 300;
+        this.updateIntervalSecs = cloud.expires.trending || 300;
         config.on('change', (keys, data) => {
             if (keys.includes('only-known-channels-in-trending') || keys.includes('popular-searches-in-trending') || keys.includes('parental-control') || keys.includes('parental-control-terms')) {
                 this.updating || this.update().catch(console.error)
             }
         })
-        storage.get('watching-current').then(async data => {
+        storage.get('trending-current').then(async data => {
             await this.channels.ready()
             if (!this.currentRawEntries || !this.currentRawEntries.length) {
                 this.currentRawEntries = data;
@@ -29,7 +29,7 @@ class Watching extends EntriesGroup {
             } else if (Array.isArray(data)) {
                 this.currentEntries && this.currentEntries.forEach((c, i) => {
                     data.forEach(e => {
-                        if (typeof (c.trend) == 'undefined' && typeof (e.trend) != 'undefined') {
+                        if (typeof(c.trend) == 'undefined' && typeof(e.trend) != 'undefined') {
                             this.currentEntries[i].trend = e.trend
                             return true
                         }
@@ -106,7 +106,7 @@ class Watching extends EntriesGroup {
             return [lists.manager.updatingListsEntry()];
         }
         await this.ready();
-        let list = this.currentEntries ? deepClone(this.currentEntries, true) : [];
+        let list = this.currentEntries ? clone(this.currentEntries, true) : [];
         list = list.map((e, i) => {
             e.position = (i + 1);
             return e;
@@ -153,7 +153,7 @@ class Watching extends EntriesGroup {
         const limit = pLimit(3)        
         const tasks = countries.map(country => {
             return async () => {
-                let es = await cloud.get('watching/'+ country, {shadow: false, validator}).catch(console.error);
+                let es = await cloud.get('trending/'+ country, {shadow: false, validator}).catch(console.error);
                 Array.isArray(es) && data.push(...es);
             };
         }).map(limit);
@@ -173,7 +173,7 @@ class Watching extends EntriesGroup {
             return [];
         
         data = lists.prepareEntries(data);
-        data = data.filter(e => (e && typeof (e) == 'object' && typeof (e.name) == 'string')).map(e => {
+        data = data.filter(e => (e && typeof(e) == 'object' && typeof(e.name) == 'string')).map(e => {
             const isMega = mega.isMega(e.url);
             if (isMega && recoverNameFromMegaURL) {
                 let n = mega.parse(e.url);
@@ -221,11 +221,11 @@ class Watching extends EntriesGroup {
             }
             if (ch) {
                 let term = ch.name;
-                if (typeof (groups[term]) == 'undefined') {
+                if (typeof(groups[term]) == 'undefined') {
                     groups[term] = [];
                     gcount[term] = 0;
                 }
-                if (typeof (entry.users) != 'undefined') {
+                if (typeof(entry.users) != 'undefined') {
                     entry.users = this.extractUsersCount(entry);
                 }
                 gcount[term] += entry.users;
@@ -260,11 +260,11 @@ class Watching extends EntriesGroup {
         data = this.addTrendAttr(data);
         data = this.applyUsersPercentages(data);
         this.currentEntries = data;
-        storage.set('watching-current', this.currentRawEntries, {
+        storage.set('trending-current', this.currentRawEntries, {
             permanent: true,
             expiration: true
         }).catch(console.error); // do not await
-        global.updateUserTasks().catch(console.error); // do not await
+        this.channels.updateUserTasks().catch(console.error); // do not await
         return data;
     }
     addTrendAttr(entries) {
@@ -277,7 +277,7 @@ class Watching extends EntriesGroup {
                             e.trend = 1;
                         } else if (e[k] < c[k]) {
                             e.trend = -1;
-                        } else if (typeof (c.trend) == 'number') {
+                        } else if (typeof(c.trend) == 'number') {
                             e.trend = c.trend;
                         }
                         return true;
@@ -310,4 +310,3 @@ class Watching extends EntriesGroup {
         return { name: this.title(), side: true, details: lang.BEEN_WATCHED, fa: 'fas fa-chart-bar', hookId: this.key, type: 'group', renderer: this.entries.bind(this) }
     }
 }
-export default Watching

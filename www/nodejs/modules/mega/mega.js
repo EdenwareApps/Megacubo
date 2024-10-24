@@ -4,7 +4,7 @@ import { decodeURIComponentSafe, getDomain } from "../utils/utils.js";
 class Mega {
     constructor() {}
     isMega(url) {
-        if (typeof (url) != 'string') {
+        if (typeof(url) != 'string') {
             return false;
         }
         return url.substr(0, 7) == 'mega://';
@@ -26,7 +26,7 @@ class Mega {
             }
             if (parts.length > 1) {
                 qs = this.qs2Object(parts[1]);
-                if (typeof (qs.mediaType) != 'undefined' && !['live', 'video', 'all'].includes(qs.mediaType)) {
+                if (typeof(qs.mediaType) != 'undefined' && !['live', 'video', 'all'].includes(qs.mediaType)) {
                     delete qs.mediaType; // avoid bad mediaType
                 }
             }
@@ -80,7 +80,7 @@ class Mega {
                     return true;
                 }
             } else if (data.type == 'link') {
-                if (data.url.indexOf('/') != -1) {
+                if (data.url.includes('/')) {
                     return true;
                 }
             }

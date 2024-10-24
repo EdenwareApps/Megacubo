@@ -1,23 +1,40 @@
-import Download from '../download/download.js'
+import fs from "fs";
+import path from 'path'
 import storage from '../storage/storage.js'
 import Index from "./index.js";
-import MultiWorker from "../multi-worker/multi-worker.js";
 import pLimit from "p-limit";
 import PQueue from "p-queue";
 import Loader from "./loader.js";
 import Manager from "./manager.js";
-import fs from "fs";
 import List from "./list.js";
 import Discovery from "../discovery/discovery.js";
 import config from "../config/config.js"
 import { ready } from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
-import { forwardSlashes, LIST_DATA_KEY_MASK } from "../utils/utils.js";
+import { forwardSlashes, parseCommaDelimitedURIs, LIST_DATA_KEY_MASK } from "../utils/utils.js";
+import { getDirname } from 'cross-dirname'           
+import MultiWorker from '../multi-worker/multi-worker.js';
 
 class ListsEPGTools extends Index {
     constructor(opts) {
         super(opts)
-        this._epg = false
+        this.epgWorker = new MultiWorker()
+        this.epg = this.epgWorker.load(path.join(getDirname(), 'epg-worker.js'))
+        this.epg.on('update', async () => {
+            const states = await this.epg.getState()
+            this.loadedEPGs = states.info.filter(r => r.progress > 99).map(r => r.url)
+            this.emit('epg-update', states)
+        })
+        ready(() => {
+            config.on('change', keys => {
+                const key = 'epg-'+ lang.locale
+                if(keys.includes(key) || keys.includes('locale')) {
+                    this.epg.sync(config.get(key)).catch(console.error)
+                }
+            })
+            const key = 'epg-'+ lang.locale
+            this.epg.start(config.get(key)).catch(console.error)
+        })
     }
     epgChannelsListSanityScore(data) {
         let count = Object.keys(data).length, idealCatCount = 8;
@@ -27,48 +44,10 @@ class ListsEPGTools extends Index {
         let c = Math.abs(count - idealCatCount);
         return 100 - c;
     }
-    async loadEPG(url) {
-        if (this._epg) {
-            if (this._epg.url == url) {
-                console.error('same epg url', this._epg.url);
-                return await this._epg.ready();
-            }
-            console.error('changed epg url', this._epg.url, url);
-            try {
-                await this._epg.terminate();
-            }
-            catch (e) {}
-            try {
-                await this._epgWorker.terminate();
-            }
-            catch (e) {}
-            delete this._epg;
-            delete this._epgWorker;
-        }
-        console.error('will load epg ' + JSON.stringify(url));
-        if (url) {
-            this._epgWorker = new MultiWorker()
-            this._epg = this._epgWorker.load(paths.cwd + '/modules/lists/epg-worker.js', true)
-            this._epg.setURL(url)
-            this._epg.on('updated', () => {
-                console.error('EPG UPDATED! FINE ' + (new Date()).getUTCMinutes());
-                this.emit('epg-update');
-            })
-            await this._epg.ready()
-            return true;
-        }
-    }
-    async epg(channelsList, limit) {
-        if (!this._epg)
-            return ['error', 'no epg']
+    async epgChannelsList(channelsList, limit) {
         let data, err
-        let ret = await this._epg.getState().catch(e => err = e);
-        if (err) { // one more try
-            err = null
-            ret = await this._epg.getState().catch(e => err = e);
-        }
-        if (err)
-            return ['error', String(err)];
+        let ret = await this.epg.getState().catch(e => err = e)
+        if (err) return ['error', String(err)]
         const { progress, state, error } = ret;
         if (error) {
             data = [state];
@@ -77,76 +56,51 @@ class ListsEPGTools extends Index {
             } else {
                 data.push(progress);
             }
-        } else if (!this._epg) { // unset in the meantime
+        } else if (!this.epg) { // unset in the meantime
             data = ['error', 'no epg']
         } else {
             if (Array.isArray(channelsList)) {
                 channelsList = channelsList.map(c => this.tools.applySearchRedirectsOnObject(c));
-                data = await this._epg.getMulti(channelsList, limit);
+                data = await this.epg.getMulti(channelsList, limit);
             } else {
                 channelsList = this.tools.applySearchRedirectsOnObject(channelsList);
-                data = await this._epg.get(channelsList, limit);
+                data = await this.epg.get(channelsList, limit);
             }
         }
         return data;
     }
-    async epgExpandRecommendations(categories) {
-        if (!this._epg)
-            throw 'no epg 1';
-        return await this._epg.expandRecommendations(categories);
-    }
-    async epgRecommendations(categories, until, limit, searchTitles) {
-        if (!this._epg)
-            throw 'no epg 2';
-        return await this._epg.getRecommendations(categories, until, limit, searchTitles)
-    }
     async epgSearch(terms, nowLive) {
-        if (!this._epg)
-            throw 'no epg 3';
-        return await this._epg.search(this.tools.applySearchRedirects(terms), nowLive);
-    }
-    async epgData() {
-        if (!this._epg)
-            throw 'no epg 3';
-        return await this._epg.getData()
+        return await this.epg.search(this.tools.applySearchRedirects(terms), nowLive);
     }
     async epgSearchChannel(terms, limit) {
-        if (!this._epg)
-            throw 'no epg 4';
-        return await this._epg.searchChannel(this.tools.applySearchRedirects(terms), limit);
+        return await this.epg.searchChannel(this.tools.applySearchRedirects(terms), limit);
     }
     async epgSearchChannelIcon(terms) {
-        if (!this._epg)
-            throw 'no epg 5';
-        return await this._epg.searchChannelIcon(this.tools.applySearchRedirects(terms));
-    }
-    async epgFindChannel(data) {
-        return await this._epg.findChannel(data);
+        return await this.epg.searchChannelIcon(this.tools.applySearchRedirects(terms));
     }
     async epgLiveNowChannelsList() {
-        if (!this._epg) {
-            throw 'no epg 8';
-        }
-        let data = await this._epg.liveNowChannelsList();
+        let data = await this.epg.liveNowChannelsList()
         if (data && data['categories'] && Object.keys(data['categories']).length) {
             let currentScore = this.epgChannelsListSanityScore(data['categories']);
-            const limit = pLimit(3);
+            const _ = global.config.get('epg')
+            const limit = pLimit(3)
+            const activeEPGs =  Array.isArray(_) ? _.filter(e => e.active).map(e => e.key) : [];
             const tasks = Object.keys(this.lists).filter(url => {
-                return this.lists[url].index.meta['epg'] && this.lists[url].index.meta['epg'].indexOf(this._epg.url) != -1; // use indexOf as it can be a comma delimited list
+                return this.lists[url].index.meta['epg'] && activeEPGs.some(k => this.lists[url].index.meta['epg'].includes(k)); // use indexOf as it can be a comma delimited list
             }).map(url => {
                 return async () => {
                     let categories = {};
-                    await this.lists[url].iterate(async (e) => {
+                    for await (const e of this.lists[url].walk()) {
                         if (!e.groupName)
-                            return;
-                        const c = await this._epg.findChannel(this.tools.terms(e.name));
-                        if (typeof (categories[e.groupName]) == 'undefined') {
-                            categories[e.groupName] = [];
+                            continue
+                        const c = await this.epg.findChannel(this.tools.terms(e.name))
+                        if (typeof(categories[e.groupName]) == 'undefined') {
+                            categories[e.groupName] = []
                         }
                         if (!categories[e.groupName].includes(e.name)) {
-                            categories[e.groupName].push(e.name);
+                            categories[e.groupName].push(e.name)
                         }
-                    }, null);
+                    }
                     let newScore = this.epgChannelsListSanityScore(categories);
                     console.warn('epgChannelsList', categories, currentScore, newScore);
                     if (newScore > currentScore) {
@@ -164,26 +118,21 @@ class ListsEPGTools extends Index {
         }
     }
     async epgChannelsTermsList() {
-        if (!this._epg) {
+        if (!this.epg) {
             throw 'no epg';
         }
-        let data = await this._epg.getTerms();
+        let data = await this.epg.getTerms();
         if (data && Object.keys(data).length) {
             return data;
         } else {
             throw 'failed';
         }
     }
-    async epgValidateChannelProgramme(channel, start, title) {
-        if (!this._epg) {
-            throw 'no epg';
-        }
-        return await this._epg.validateChannelProgramme(channel, start, title)
-    }
 }
 class Lists extends ListsEPGTools {
     constructor(opts) {
         super(opts)
+        if(paths.inWorker) throw new Error('Lists cannot be used in a worker')
         this.setMaxListeners(256)
         this.debug = false
         this.lists = {}
@@ -192,7 +141,7 @@ class Lists extends ListsEPGTools {
             community: [],
             length: 0
         };
-        this.epgs = [];
+        this.epgs = {}
         this.myLists = [];
         this.communityLists = [];
         this.processedLists = new Map();
@@ -229,6 +178,75 @@ class Lists extends ListsEPGTools {
             }
         })
     }
+    epgScore(url) {
+        if(this.epgScoreCache[url] !== undefined) {
+            return this.epgScoreCache[url]
+        }
+        let score = 0
+        if (this.epgs[url]) {
+            const origins = new Set()
+            for(const u of this.epgs[url]) {
+                this.lists[u] && origins.add(this.lists[u].origin)
+            }
+            if (origins.has('own')) score += 10
+            else if (origins.has('community')) score += 0.5
+            else if (origins.has('public')) score += 0.2
+        }
+        if (url.match(this.regexSameCountry)) score += 7
+        else if (this.activeCountries.length && url.match(this.regexCountries)) score += 3
+        this.epgScoreCache[url] = score
+        return score
+    }
+    async resetEPGScoreCache() {
+        this.epgScoreCache = {}
+        const activeCountries = await lang.getActiveCountries()
+        if(this.activeCountries && activeCountries.join('') == this.activeCountries.join('')) return
+        this.activeCountries = activeCountries
+        const any = '[^a-zA-Z0-9]'
+        this.regexSameCountry = new RegExp('(' + any + '|^)' + lang.countryCode + '(' + any + '|$)', 'i')
+        this.regexCountries = new RegExp('(' + any + '|^)(' + this.activeCountries.join('|') + ')(' + any + '|$)', 'i')
+        if(!this.watchingActiveCountries) {
+            this.watchingActiveCountries = true
+            this.on('list-loaded', async () => {
+                this.activeCountries = undefined
+            })
+            this.epg.on('update', async () => {
+                this.activeCountries = undefined
+            })
+            config.on('change', async keys => {
+                if(keys.includes('countries')) {
+                    this.activeCountries = undefined // force cache reset
+                }
+            })
+        }
+    }
+    async searchEPGs(limit = 24, mandatories) {
+        if(this.activeCountries === undefined) {
+            await this.resetEPGScoreCache()
+        }
+        let epgs = Object.keys(this.epgs)
+        if (!epgs.length) return []
+    
+        // Precompute scores to avoid multiple scorify calls
+        const epgScores = epgs.map(e => ({epg: e, score: this.epgScore(e)}))
+        epgScores.sort((a, b) => b.score - a.score || a.epg.localeCompare(b.epg))
+    
+        let mandatoriesFound = mandatories instanceof Set ? epgs.filter(e => mandatories.has(e)).length : 0
+        let freeQuota = limit - mandatoriesFound
+    
+        const result = []
+        for (const { epg } of epgScores) {
+            if (mandatoriesFound && mandatories.has(epg)) {
+                mandatoriesFound--
+                result.push(epg)
+            } else if (freeQuota) {
+                freeQuota--
+                result.push(epg)
+            }
+            if (!freeQuota && !mandatoriesFound) break
+        }    
+        return result
+    }    
     getAuthURL(listUrl) {
         if (listUrl && this.lists[listUrl] && this.lists[listUrl].index && this.lists[listUrl].index.meta && this.lists[listUrl].index.meta['auth-url']) {
             return this.lists[listUrl].index.meta['auth-url'];
@@ -244,16 +262,17 @@ class Lists extends ListsEPGTools {
         this.loadCachedLists(newLists).catch(console.error) // load them up if cached
     }
     async isListCached(url) {
-        let err, file = storage.resolve(LIST_DATA_KEY_MASK.format(url));
-        const stat = await fs.promises.stat(file).catch(e => err = e);
-        return (stat && stat.size >= 1024);
+        let err
+        const file = storage.resolve(LIST_DATA_KEY_MASK.format(url))
+        const stat = await fs.promises.stat(file).catch(e => err = e)
+        return (stat && stat.size >= 1024)
     }
     async filterCachedUrls(urls) {
         if (this.debug)
             console.log('filterCachedUrls', urls.join("\r\n"));
         let loadedUrls = [], cachedUrls = [];
         urls = urls.filter(u => {
-            if (typeof (this.lists[u]) == 'undefined') {
+            if (typeof(this.lists[u]) == 'undefined') {
                 return true;
             }
             loadedUrls.push(u);
@@ -293,7 +312,7 @@ class Lists extends ListsEPGTools {
             return this._relevantKeywords
         const badTerms = ['m3u8', 'ts', 'mp4', 'tv', 'channel']
         let terms = [], addTerms = (tms, score) => {
-            if (typeof (score) != 'number') {
+            if (typeof(score) != 'number') {
                 score = 1
             }
             tms.forEach(term => {
@@ -377,7 +396,7 @@ class Lists extends ListsEPGTools {
         });
         this.delimitActiveLists(); // helps to avoid too many lists in memory
         for (let url of lists) {
-            if (typeof (this.lists[url]) == 'undefined') {
+            if (typeof(this.lists[url]) == 'undefined') {
                 hits++;
                 this.addList(url, this.myLists.includes(url) ? 1 : 9);
             }
@@ -388,19 +407,19 @@ class Lists extends ListsEPGTools {
         return hits;
     }
     status(url = '') {
-        let progress = 0, firstRun = this.isFirstRun, satisfyAmount = this.myLists.length;
+        let progress = 0, firstRun = this.isFirstRun, satisfyAmount = this.myLists.length
         const isUpdatingFinished = this.isUpdaterFinished && !this.queue.size
-        const communityListsAmount = config.get('communitary-mode-lists-amount');
-        const progresses = this.myLists.map(url => this.lists[url] ? this.lists[url].progress() : 0);
-        const lks = Object.values(this.lists);
+        const communityListsAmount = config.get('communitary-mode-lists-amount')
+        const progresses = this.myLists.map(url => this.lists[url] ? this.lists[url].progress() : 0)
+        const lks = Object.values(this.lists)
         if (communityListsAmount > satisfyAmount) {
-            satisfyAmount = communityListsAmount;
+            satisfyAmount = communityListsAmount
         }
         if (satisfyAmount > 3) { // 3 lists are enough to start tuning
             satisfyAmount = 3
         }
         if (isUpdatingFinished || !satisfyAmount) {
-            progress = 100;
+            progress = 100
         } else {
             const communityListsQuota = communityListsAmount - this.myLists.length;
             if (communityListsQuota) {
@@ -416,12 +435,12 @@ class Lists extends ListsEPGTools {
                     progresses.push(...Object.keys(this.loader.progresses).filter(u => !this.lists[u]).map(u => this.loader.progresses[u]).sort((a, b) => b - a).slice(0, left));
                 }
             }
-            const allProgress = satisfyAmount * 100;
-            const sumProgress = progresses.reduce((a, b) => a + b, 0);
-            progress = Math.min(100, parseInt(sumProgress / (allProgress / 100)));
+            const allProgress = satisfyAmount * 100
+            const sumProgress = progresses.reduce((a, b) => a + b, 0)
+            progress = Math.min(100, parseInt(sumProgress / (allProgress / 100)))
         }
         if (this.debug) {
-            console.log('status() progresses', progress);
+            console.log('status() progresses', progress)
         }
         const ret = {
             url,
@@ -444,13 +463,13 @@ class Lists extends ListsEPGTools {
                 this.emit('unsatisfied', ret)
             }
         }
-        this.emit('status', ret);
-        return ret;
+        this.emit('status', ret)
+        return ret
     }
     loaded(isEnough) {
         if (isEnough === true) {
             if (config.get('public-lists') != 'only' && !Object.values(this.lists).filter(l => l.origin != 'public').length) {
-                return false;
+                return false
             }
         }
         const stat = this.status(), ret = stat.progress > 99
@@ -463,13 +482,13 @@ class Lists extends ListsEPGTools {
                 if (cancel)
                     return;
                 let err
-                if (typeof (this.lists[url]) == 'undefined') {
+                if (typeof(this.lists[url]) == 'undefined') {
                     await this.loadList(url).catch(e => err = e);
                 } else {
                     let contentLength = await this.shouldReloadList(url)
                     if (cancel)
                         return;
-                    if (typeof (contentLength) == 'number') {
+                    if (typeof(contentLength) == 'number') {
                         console.log('List got updated, reload it. ' + this.lists[url].contentLength + ' => ' + contentLength);
                         await this.loadList(url, contentLength).catch(e => err = e)
                     } else {
@@ -488,7 +507,7 @@ class Lists extends ListsEPGTools {
     async loadList(url, contentLength) {
         url = forwardSlashes(url);
         this.processedLists.has(url) || this.processedLists.set(url, null);
-        if (typeof (contentLength) != 'number') { // contentLength controls when the list should refresh
+        if (typeof(contentLength) != 'number') { // contentLength controls when the list should refresh
             let err;
             const meta = await this.getListMeta(url).catch(e => err = e);
             if (err) {
@@ -496,7 +515,7 @@ class Lists extends ListsEPGTools {
                 contentLength = 0; // ok, give up and load list anyway
             } else {
                 contentLength = meta.contentLength;
-                if (typeof (contentLength) != 'number') {
+                if (typeof(contentLength) != 'number') {
                     contentLength = 0; // ok, give up and load list anyway
                 }
             }
@@ -573,9 +592,10 @@ class Lists extends ListsEPGTools {
                 }
                 this.setListMeta(url, list.index.meta).catch(console.error)
                 if (list.index.meta['epg']) {
-                    const epgs = this.parseEPGs(list.index.meta['epg'], true)
+                    const epgs = parseCommaDelimitedURIs(list.index.meta['epg'])
                     for(const epg of epgs) {
-                        this.epgs.includes(epg) || this.epgs.push(epg)
+                        if(!this.epgs[epg]) this.epgs[epg] = new Set()
+                        this.epgs[epg].add(url)
                     }
                 }
                 if (this.debug) {
@@ -610,7 +630,7 @@ class Lists extends ListsEPGTools {
                         }
                     }
                     if (this.debug) {
-                        console.log('Added community list...', url, list.index.length);
+                        console.log('Added community list...', url, list.length);
                     }
                     if (!replace) {
                         this.delimitActiveLists();
@@ -623,24 +643,6 @@ class Lists extends ListsEPGTools {
         this.updateActiveLists()
         this.status(url)
         return true
-    }
-    parseEPGs(url, asArray) {
-        let urls
-        if(Array.isArray(url)) {
-            urls = url.slice(0)
-        } else {
-            if (url.match(new RegExp(', *(https?://|//)'))) {
-                urls = url.replace(',//', ',http://').replaceAll(', http', ',http').split(',http').map((u, i) => {
-                    if (i) {
-                        u = 'http' + u
-                    }
-                    return u
-                })
-            } else {
-                urls = [url]
-            }
-        }
-        return asArray ? urls : urls.shift()
     }
     async getListContentLength(url) {
         const updateMeta = await this.getListMeta(url)
@@ -683,8 +685,8 @@ class Lists extends ListsEPGTools {
             if (k == url || !this.lists[k].index) {
                 continue
             }
-            if (this.lists[k].index.length == this.lists[url].index.length) {
-                if (JSON.stringify(this.lists[k].index.length) == JSON.stringify(this.lists[url].index.length)) {
+            if (this.lists[k].length == this.lists[url].length) {
+                if (JSON.stringify(this.lists[k].length) == JSON.stringify(this.lists[url].length)) {
                     return k
                 }
             }
@@ -694,7 +696,7 @@ class Lists extends ListsEPGTools {
         if (!list || !list.index) {
             return;
         }
-        if (list.isReady && !list.index.length)
+        if (list.isReady && !list.length)
             return true; // loaded with no content
         if (this.loader.results[list.url]) {
             const ret = String(this.loader.results[list.url] || '');
@@ -702,7 +704,7 @@ class Lists extends ListsEPGTools {
                 return true;
             }
         }
-        const quota = list.index.length * 0.7;
+        const quota = list.length * 0.7;
         if (list.index.uniqueStreamsLength && list.index.uniqueStreamsLength < quota) {
             return true;
         }
@@ -719,7 +721,7 @@ class Lists extends ListsEPGTools {
         return err || !connectable;
     }
     async isSameContentLoaded(list) {
-        let err, alreadyLoaded, listDataFile = list.file, listIndexLength = list.index.length;
+        let err, alreadyLoaded, listDataFile = list.file, listIndexLength = list.length;
         const stat = await fs.promises.stat(listDataFile).catch(e => err = e);
         if (err || stat.size == 0) {
             return true; // force this list discarding
@@ -728,7 +730,7 @@ class Lists extends ListsEPGTools {
             const limit = pLimit(3);
             const tasks = Object.keys(this.lists).map(url => {
                 return async () => {
-                    if (!alreadyLoaded && url != list.url && this.lists[url] && this.lists[url].index.length == listIndexLength) {
+                    if (!alreadyLoaded && url != list.url && this.lists[url] && this.lists[url].length == listIndexLength) {
                         let err;
                         const f = this.lists[url].file;
                         const a = await fs.promises.stat(f).catch(e => err = e);
@@ -777,14 +779,14 @@ class Lists extends ListsEPGTools {
                     e.icon = this.lists[url].index.meta.icon;
                     e.epg = this.lists[url].index.meta.epg;
                 }
-                e.length = this.lists[url].index.length;
+                e.length = this.lists[url].length;
             }
             if (c.length > 2) {
                 Object.keys(c[2]).forEach(k => {
                     e[k] = c[2][k];
                 });
             }
-            if (typeof (e['private']) == 'undefined') {
+            if (typeof(e['private']) == 'undefined') {
                 e['private'] = !hint;
             }
             return e;
@@ -797,7 +799,7 @@ class Lists extends ListsEPGTools {
                 return;
             info[url] = { url, owned: false };
             info[url].score = this.lists[url].relevance.total
-            info[url].length = this.lists[url].index.length
+            info[url].length = this.lists[url].length
             info[url].origin = this.lists[url].origin
             if (this.lists[url].index.meta) {
                 info[url].name = this.lists[url].index.meta.name
@@ -870,7 +872,7 @@ class Lists extends ListsEPGTools {
             found && p.cancel();
             return !found;
         });
-        if (typeof (this.lists[u]) != 'undefined') {
+        if (typeof(this.lists[u]) != 'undefined') {
             this.searchMapCacheInvalidate(u);
             this.lists[u].destroy();
             delete this.lists[u];
@@ -881,7 +883,7 @@ class Lists extends ListsEPGTools {
         }
     }
     async directListRenderer(v, opts = {}) {
-        if (typeof (this.lists[v.url]) != 'undefined' && (!opts.fetch || (this.lists[v.url].isReady && !this.lists[v.url].indexer.hasFailed))) { // if not loaded yet, fetch directly
+        if (typeof(this.lists[v.url]) != 'undefined' && (!opts.fetch || (this.lists[v.url].isReady && !this.lists[v.url].indexer.hasFailed))) { // if not loaded yet, fetch directly
             let entries;
             if (opts.expand) {
                 entries = await this.lists[v.url].fetchAll();
@@ -904,11 +906,11 @@ class Lists extends ListsEPGTools {
         }
     }
     async directListRendererPrepare(list, url) {
-        if (typeof (this.directListRendererPrepareCache) == 'undefined') {
+        if (typeof(this.directListRendererPrepareCache) == 'undefined') {
             this.directListRendererPrepareCache = {};
         }
         const cachettl = 3600, now = (Date.now() / 1000), olen = list.length;
-        if (typeof (this.directListRendererPrepareCache[url]) != 'undefined' && this.directListRendererPrepareCache[url].size == olen && this.directListRendererPrepareCache[url].time > (now - cachettl)) {
+        if (typeof(this.directListRendererPrepareCache[url]) != 'undefined' && this.directListRendererPrepareCache[url].size == olen && this.directListRendererPrepareCache[url].time > (now - cachettl)) {
             return this.directListRendererPrepareCache[url].list.slice(0); // clone it
         }
         if (list.length) {

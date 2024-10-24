@@ -7,7 +7,7 @@ import { ts2clock, time } from "../utils/utils.js"
 import { EventEmitter } from 'events'
 import PQueue from 'p-queue'
 import renderer from '../bridge/bridge.js'
-import fs from 'fs'
+import cloud from '../cloud/cloud.js'
 
 class Tags extends EventEmitter{
     constructor() {
@@ -17,7 +17,7 @@ class Tags extends EventEmitter{
         this.filterTagsRegex = new RegExp('[a-z]', 'i')
         this.resetQueue = new PQueue({concurrency: 1})
         global.channels.history.epg.on('change', () => this.historyUpdated(true))
-        global.channels.watching.on('update', () => this.trendingUpdated(true))
+        global.channels.trending.on('update', () => this.trendingUpdated(true))
         global.channels.ready().then(() => this.reset()).catch(console.error)
     }
     async reset() {
@@ -59,7 +59,7 @@ class Tags extends EventEmitter{
             const name = row.originalName || row.name
             const category = global.channels.getChannelCategory(name)
             if (category) {
-                if (typeof (data[category]) == 'undefined') {
+                if (typeof(data[category]) == 'undefined') {
                     data[category] = 0
                 }
                 data[category] += row.watched.time
@@ -82,7 +82,7 @@ class Tags extends EventEmitter{
             cs.length && [...new Set(cs)].forEach(category => {
                 if (category) {
                     let lc = category.toLowerCase()
-                    if (typeof (data0[lc]) == 'undefined') {
+                    if (typeof(data0[lc]) == 'undefined') {
                         data0[lc] = 0
                     }
                     data0[lc] += row.watched ? row.watched.time : 180
@@ -103,16 +103,16 @@ class Tags extends EventEmitter{
         emit && this.emit('updated')
     }
     async trendingUpdated(emit) {
-        let watchingPromise = true
-        if(!global.channels.watching.currentRawEntries) {
-            watchingPromise = global.channels.watching.getRawEntries()
+        let trendingPromise = true
+        if(!global.channels.trending.currentRawEntries) {
+            trendingPromise = global.channels.trending.getRawEntries()
         }
         let searchPromise = this.searchSuggestionEntries || global.channels.search.searchSuggestionEntries().then(data => this.searchSuggestionEntries = data)
-        await Promise.allSettled([watchingPromise, searchPromise]).catch(console.error)
+        await Promise.allSettled([trendingPromise, searchPromise]).catch(console.error)
 
         const map = {}
-        if(Array.isArray(global.channels.watching.currentRawEntries)) {
-            const data = global.channels.watching.currentRawEntries
+        if(Array.isArray(global.channels.trending.currentRawEntries)) {
+            const data = global.channels.trending.currentRawEntries
             for(const e of data) {
                 const terms = global.channels.entryTerms(e)
                 terms.forEach(t => {
@@ -151,16 +151,14 @@ class Tags extends EventEmitter{
         let err, additionalTags = {}            
         const limit = this.defaultTagsCount
         const additionalLimit = limit - Object.keys(tags).length
-        console.log('rec.tags() 1')
-        const expandedTags = await global.lists.epgExpandRecommendations(Object.keys(tags)).catch(e => err = e)
-        console.log('rec.tags() 2')
+        const expandedTags = await global.lists.epg.expandRecommendations(tags).catch(e => err = e)
         if (!err && expandedTags) {
             Object.keys(expandedTags).forEach(term => {
                 const score = tags[term]
                 expandedTags[term].forEach(t => {
                     if (tags[t])
                         return
-                    if (typeof (additionalTags[t]) == 'undefined') {
+                    if (typeof(additionalTags[t]) == 'undefined') {
                         additionalTags[t] = 0
                     }  
                     additionalTags[t] += score / 2
@@ -175,13 +173,10 @@ class Tags extends EventEmitter{
         if(typeof(limit) != 'number') {
             limit = this.defaultTagsCount
         }
-        console.log('rec.tags() 0')
         const programmeTags = this.prepare(this.caching.programmes, limit)
         if (Object.keys(programmeTags).length < limit) {
-            console.log('rec.tags() 3')
             Object.assign(programmeTags, this.caching.trending)
         }
-        console.log('rec.tags() 4')
         return this.prepare(programmeTags, limit)
     }
 }
@@ -199,7 +194,7 @@ class Recommendations extends EventEmitter {
         this.listsLoaded = false
         this.cacheKey = 'epg-suggestions-featured-1'
         renderer.ready(() => {
-            this.updateIntervalSecs = global.cloud.expires.watching || 300
+            this.updateIntervalSecs = cloud.expires.trending || 300
             this.tags.on('updated', () => this.scheduleUpdate())
             global.lists.on('list-loaded', () => {
                 if(!this.someListLoaded && this.readyState < 4) {
@@ -207,12 +202,17 @@ class Recommendations extends EventEmitter {
                     this.scheduleUpdate()
                 }
             })
-            global.channels.on('epg-loaded', async () => {
+            global.lists.on('epg-update', () => {
                 this.epgLoaded || storage.delete(this.cacheKey)
                 this.epgLoaded = true
                 this.scheduleUpdate()
             })
-            global.lists.manager.waitListsReady().then(async () => {
+            global.lists.epg.ready().then(() => {
+                this.epgLoaded || storage.delete(this.cacheKey)
+                this.epgLoaded = true
+                this.scheduleUpdate()
+            }).catch(console.error)
+            global.lists.manager.ready().then(async () => {
                 this.listsLoaded = true
                 this.scheduleUpdate()
             }).catch(console.error)
@@ -237,7 +237,7 @@ class Recommendations extends EventEmitter {
         let alloweds = []
         await Promise.allSettled(Object.keys(chs).map(async name => {
             return this.queue.add(async () => {
-                const channelMappedTo = await global.lists.epgFindChannel(chs[name])
+                const channelMappedTo = await global.lists.epg.findChannel(chs[name])
                 if (channelMappedTo)
                     alloweds.push(channelMappedTo)
             })
@@ -278,7 +278,7 @@ class Recommendations extends EventEmitter {
         if(!tags) {
             tags = await this.tags.get()
         }
-        let data = await global.lists.epgRecommendations(tags, until, amount * 4)
+        let data = await global.lists.epg.getRecommendations(tags, until, amount * 4)
 
         const interests = new Set()
         global.channels.history.get().some(e => {
@@ -288,8 +288,8 @@ class Recommendations extends EventEmitter {
                 return true
             }
         })
-        if(channels.watching.currentEntries && channels.watching.currentEntries.length) {
-            global.channels.watching.currentEntries.some(e => {
+        if(channels.trending.currentEntries && channels.trending.currentEntries.length) {
+            global.channels.trending.currentEntries.some(e => {
                 if(e.type != 'select') return
                 interests.add(e.originalName || e.name)
                 return true
@@ -326,7 +326,6 @@ class Recommendations extends EventEmitter {
         })
 
         // remove repeated programmes
-        console.log('RGET RESULTS', results.length) 
         let nresults = [], already = new Set()
         results = results.sortByProp('score', true) // sort before equilibrating
         
@@ -334,14 +333,12 @@ class Recommendations extends EventEmitter {
             if (already.has(r.programme.t)) continue
             already.add(r.programme.t)
             const c = global.channels.epgPrepareSearch(r.channel)
-            const valid = await global.lists.epgValidateChannelProgramme(c, r.start, r.programme.t).catch(console.error)
+            const valid = await global.lists.epg.validateChannelProgramme(c, r.start, r.programme.t).catch(console.error)
             valid === true && nresults.push(r)
         }
-        console.log('RGET RESULTS', results.length) 
         results = nresults
         nresults = []
         
-        console.log('RGET RESULTS', results.length) 
 
         // equilibrate categories presence
         /* not yet mature piece of code, needs more testing 
@@ -410,7 +407,7 @@ class Recommendations extends EventEmitter {
         })
     }
     hasEPG() {
-        return global.activeEPG && global.channels.loadedEPG
+        return global.channels.isEPGLoaded()
     }
     async hasEPGChannel(ch, withIcon) {     
         const terms = global.channels.entryTerms(ch).filter(t => !t.startsWith('-'))
@@ -476,8 +473,8 @@ class Recommendations extends EventEmitter {
             }
             return hasEPGCache[key]
         }
-        const watchingIndex = (global.channels.watching.currentEntries || []).map(n => channel(n)).filter(n => n)
-        for (const e of watchingIndex) {
+        const trendingIndex = (global.channels.trending.currentEntries || []).map(n => channel(n)).filter(n => n)
+        for (const e of trendingIndex) {
             const valid = await validate(e).catch(console.error)
             if (valid !== false) {
                 if(await hasEPG(valid, true)) {
@@ -514,8 +511,8 @@ class Recommendations extends EventEmitter {
     }
     shuffle(arr) {
         const names = global.channels.history.get().map(e => (e.originalName || e.name))
-        if(global.channels.watching.currentRawEntries) {
-            names.push(...global.channels.watching.currentRawEntries.map(e => e.name))
+        if(global.channels.trending.currentRawEntries) {
+            names.push(...global.channels.trending.currentRawEntries.map(e => e.name))
         }
         const known = new Set(names)
         return arr.map(value => {
@@ -524,8 +521,9 @@ class Recommendations extends EventEmitter {
         }).sortByProp('sort', true).map(({value}) => value)
     }
     shuffledIndex() {
+        if(!global.channels.channelList) return []
         const index = global.channels.channelList.channelsIndex
-        const hash = Object.keys(global.channels.channelList.channelsIndex).join('|') +':'+ typeof(global.channels.watching.currentRawEntries)
+        const hash = Object.keys(global.channels.channelList.channelsIndex).join('|') +':'+ typeof(global.channels.trending.currentRawEntries)
         if(!this._shuffledIndex || this._shuffledIndex.hash != hash) { // shuffle once per run on each channelList
             this._shuffledIndex = {hash, index: this.shuffle(Object.keys(index))}
         }
@@ -542,7 +540,7 @@ class Recommendations extends EventEmitter {
             es = []
         }
         if (!es.length) {
-            if (global.activeEPG || config.get('epg-' + lang.locale)) {
+            if (global.channels.isEPGLoaded()) {
                 es.push({
                     name: lang.NO_RECOMMENDATIONS_YET,
                     type: 'action',
@@ -610,9 +608,7 @@ class Recommendations extends EventEmitter {
             tmpkey += global.channels.channelList.key
         }
         let tags, channels
-        console.log('recommentations.update() '+ uid +' 3 '+ (time() - start) +'s')
         es = await storage.get(this.cacheKey).catch(console.error)
-        console.log('recommentations.update() '+ uid +' 4 '+ (time() - start) +'s')
         if (es && es.length) {
             es = es.map(e => global.channels.toMetaEntry(e))
         } else {
@@ -630,11 +626,8 @@ class Recommendations extends EventEmitter {
                     }
                 }
             }
-            console.log('recommentations.update() '+ uid +' 4.4 '+ (time() - start) +'s')
             tags = await this.tags.get()
-            console.log('recommentations.update() '+ uid +' 4.5 '+ (time() - start) +'s')
             es = await this.get(tags, 128).catch(console.error)
-            console.log('recommentations.update() '+ uid +' 4.6 '+ (time() - start) +'s')
             if (Array.isArray(es) && es.length) {
                 if (es.some(n => n.programme.i)) { // prefer entries with icons
                     es = es.filter(n => n.programme.i)
@@ -642,13 +635,11 @@ class Recommendations extends EventEmitter {
                 storage.set(this.cacheKey, es, {ttl: this.updateIntervalSecs})
             } else es = []
         }
-        console.log('recommentations.update() '+ uid +' 5 '+ (time() - start) +'s')
         if (es.length < amount) {
             channels = await this.getChannels(amount - es.length, es.map(e => (e.originalName || e.name)))
             channels = channels.map(e => global.channels.toMetaEntry(e))
             channels = await global.channels.epgChannelsAddLiveNow(channels, false)
             es.push(...channels)
-            console.log('recommentations.update() '+ uid +' 6 '+ (time() - start) +'s '+ channels.length)
         }
 
         /*
@@ -672,7 +663,6 @@ class Recommendations extends EventEmitter {
         }
         */
 
-        console.log('recommentations.update() '+ uid +' 10 '+ (time() - start) +'s '+ es.length)
         if(!this.featuredEntriesCache || this.featuredEntriesCache.data.length <= es.length || this.featuredEntriesCache.key != tmpkey) {
             this.featuredEntriesCache = {
                 data: es,

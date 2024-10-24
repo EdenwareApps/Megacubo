@@ -17,7 +17,7 @@ import yt from './engines/yt.js'
 import config from '../config/config.js'
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
-import { time, ucFirst } from '../utils/utils.js'
+import { getDomain, time, ucFirst } from '../utils/utils.js'
 import StreamState from '../stream-state/stream-state.js'
 
 const SYNC_BYTE = 0x47
@@ -32,9 +32,9 @@ class StreamerTools extends EventEmitter {
         this.on('failure', data => this.invalidateInfoCache(data.url))
     }
     setOpts(opts) {
-        if (opts && typeof (opts) == 'object') {
+        if (opts && typeof(opts) == 'object') {
             Object.keys(opts).forEach((k) => {
-                if (['debug'].indexOf(k) == -1 && typeof (opts[k]) == 'function') {
+                if (!['debug'].includes(k) && typeof(opts[k]) == 'function') {
                     this.on(k, opts[k]);
                 } else {
                     this.opts[k] = opts[k];
@@ -43,7 +43,7 @@ class StreamerTools extends EventEmitter {
         }
     }
     isEntry(e) {
-        return typeof (e) == 'object' && e && typeof (e.url) == 'string';
+        return typeof(e) == 'object' && e && typeof(e.url) == 'string';
     }
     validate(value) {
         let v = value.toLowerCase(), prt = v.substr(0, 4), pos = v.indexOf('://');
@@ -52,7 +52,7 @@ class StreamerTools extends EventEmitter {
         }
     }
     isLocalFile(file) {
-        if (typeof (file) != 'string') {
+        if (typeof(file) != 'string') {
             return;
         }
         let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'));
@@ -71,7 +71,7 @@ class StreamerTools extends EventEmitter {
         this.pingSource && await this.pingSource(entry.source).catch(console.error)
         let type = false;
         const now = time();
-        const isMAG = url.indexOf('#mag-') != -1; // MAG URLs should be revalidated
+        const isMAG = url.includes('#mag-'); // MAG URLs should be revalidated
         const cachingKey = this.infoCacheKey(url), skipSample = entry.skipSample || entry.allowBlindTrust || (entry.skipSample !== false && this.streamInfo.mi.isVideo(url));
         if (cachingKey && !isMAG && this.streamInfoCaching[cachingKey] && now < this.streamInfoCaching[cachingKey].until) {
             if (skipSample || (this.streamInfoCaching[cachingKey].sample && this.streamInfoCaching[cachingKey].sample.length)) {
@@ -119,7 +119,7 @@ class StreamerTools extends EventEmitter {
     infoCacheKey(url) {
         const rawType = this.streamInfo.rawType(url);
         const proto = this.streamInfo.mi.proto(url);
-        const domain = this.streamInfo.mi.getDomain(url);
+        const domain = getDomain(url);
         if (!rawType)
             return null;
         return [proto, domain, rawType].join('-');
@@ -332,7 +332,7 @@ class StreamerBase extends StreamerTools {
     pause() {
         if (this.active) {
             if (!this.opts.shadow) {
-                renderer.get().emit('pause');
+                renderer.ui.emit('pause');
             }
         }
     }
@@ -355,7 +355,7 @@ class StreamerBase extends StreamerTools {
                 let longWatchingThreshold = 15 * 60, watchingDuration = (time() - this.active.commitTime);
                 console.log('STREAMER->STOP', watchingDuration, this.active.commitTime);
                 if (this.active.commitTime && watchingDuration > longWatchingThreshold) {
-                    renderer.get().emit('streamer-long-watching', watchingDuration);
+                    renderer.ui.emit('streamer-long-watching', watchingDuration);
                     this.emit('streamer-long-watching', watchingDuration);
                 }
             }
@@ -379,8 +379,8 @@ class StreamerThrottling extends StreamerBase {
         this.throttleTTL = 10;
     }
     throttle(url) {
-        let rule = 'allow', domain = this.streamInfo.mi.getDomain(url);
-        if (typeof (this.throttling[domain]) != 'undefined') {
+        let rule = 'allow', domain = getDomain(url);
+        if (typeof(this.throttling[domain]) != 'undefined') {
             let now = time();
             if (this.throttling[domain] > now) {
                 rule = 'deny';
@@ -391,26 +391,26 @@ class StreamerThrottling extends StreamerBase {
         return rule == 'allow';
     }
     forbid(url) {
-        this.throttling[this.streamInfo.mi.getDomain(url)] = time() + this.throttleTTL;
+        this.throttling[getDomain(url)] = time() + this.throttleTTL;
     }
 }
 class StreamerTracks extends StreamerThrottling {
     constructor(opts) {
         super(opts);
         if (!this.opts.shadow) {
-            renderer.get().on('audioTracks', tracks => {
+            renderer.ui.on('audioTracks', tracks => {
                 if (this.active) {
                     this.active.audioTracks = tracks;
                 }
             });
-            renderer.get().on('subtitleTracks', tracks => {
+            renderer.ui.on('subtitleTracks', tracks => {
                 if (this.active) {
                     this.active.subtitleTracks = tracks;
                     if (!this.active.subtitleAutoConfigured && tracks.length && config.get('subtitles')) {
                         this.active.subtitleAutoConfigured = true;
                         const id = tracks[0].id || 0;
                         this.active.subtitleTrack = id;
-                        renderer.get().emit('streamer-subtitle-track', id);
+                        renderer.ui.emit('streamer-subtitle-track', id);
                     }
                 }
             });
@@ -524,7 +524,7 @@ class StreamerTracks extends StreamerThrottling {
         if (ret) {
             const n = ret.replace(new RegExp('^track\\-'), '');
             this.active.audioTrack = n;
-            renderer.get().emit('streamer-audio-track', n);
+            renderer.ui.emit('streamer-audio-track', n);
         }
         return { ret, opts };
     }
@@ -548,7 +548,7 @@ class StreamerTracks extends StreamerThrottling {
         } else if (ret) {
             const n = ret.replace(new RegExp('^track\\-'), '');
             this.active.subtitleTrack = n;
-            renderer.get().emit('streamer-subtitle-track', n);
+            renderer.ui.emit('streamer-subtitle-track', n);
             config.set('subtitles', ret != '-1');
         }
     }
@@ -607,7 +607,7 @@ class StreamerTracks extends StreamerThrottling {
         } else if (ret != cancelId) {
             const i = results.findIndex(r => r.url == ret);
             this.active.subtitleTrack = ret;
-            renderer.get().emit('streamer-add-subtitle-track', results[i]);
+            renderer.ui.emit('streamer-add-subtitle-track', results[i]);
             config.set('subtitles', true);
         } else {
             config.set('subtitles', false);
@@ -638,7 +638,7 @@ class Streamer extends StreamerTracks {
         } else if (c != 'tune' && e && (this.tuning && this.tuning.has(e.url))) {
             c = 'tune';
         }
-        if ((r != null && typeof (r) != 'undefined') && (c != 'tune' || !e) && (silent !== true || c == 'stop' || !e)) {
+        if ((r != null && typeof(r) != 'undefined') && (c != 'tune' || !e) && (silent !== true || c == 'stop' || !e)) {
             this.handleFailureMessage(r);
         }
         console.error('handleFailure', r, c, e);
@@ -650,15 +650,19 @@ class Streamer extends StreamerTracks {
                 const ch = global.channels.isChannel(terms)
                 if (ch) {
                     const skips = [global.lang.STREAMS, global.lang.MY_LISTS, global.lang.CATEGORY_MOVIES_SERIES];
-                    if (skips.every(s => global.menu.path.indexOf(s) == -1)) {
+                    if (skips.every(s => !global.menu.path.includes(s))) {
                         const chosen = await global.menu.dialog([
                             { template: 'question', text: global.lang.PLAYBACK_OFFLINE_STREAM, fa: 'fas fa-exclamation-triangle faclr-red' },
                             { template: 'message', text: global.lang.PLAY_ALTERNATE_ASK },
                             { template: 'option', text: global.lang.YES, id: 'yes', fa: 'fas fa-check-circle' },
-                            { template: 'option', text: global.lang.NO, id: 'no', fa: 'fas fa-times-circle' }
-                        ], 'yes');
+                            { template: 'option', text: global.lang.NO, id: 'no', fa: 'fas fa-times-circle' },
+                            { template: 'option', text: global.lang.RETRY, id: 'retry', fa: 'fas fa-redo' }
+                        ], 'yes')
                         if (chosen == 'yes')
-                            c = 'tune';
+                            c = 'tune'
+                        else if(chosen == 'retry') {
+                            return this.reload()
+                        }
                     }
                 }
             }

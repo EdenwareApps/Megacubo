@@ -117,7 +117,7 @@ class Subtitles extends EventEmitter {
                         let err;
                         const cacheKey = 'os-sub-' + file_id;
                         const cached = await storage.get(cacheKey).catch(console.error);
-                        if (cached && typeof (cached) == 'string')
+                        if (cached && typeof(cached) == 'string')
                             return cached;
                         const ret = await this.os.download({ file_id }).catch(e => err = e);
                         if (err)

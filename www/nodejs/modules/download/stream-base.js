@@ -53,7 +53,7 @@ class DownloadStream extends EventEmitter {
         const ranges = parseRange(maxInt, range.replace('bytes ', 'bytes='));
         if (Array.isArray(ranges)) { // TODO: enable multi-ranging support
             let requestingRange = ranges[0];
-            if (typeof (requestingRange.end) != 'number') { // remove dummy value
+            if (typeof(requestingRange.end) != 'number') { // remove dummy value
                 delete requestingRange.end;
             } else if (requestingRange.end >= (maxInt - 1)) { // remove dummy value
                 delete requestingRange.end;
@@ -62,7 +62,7 @@ class DownloadStream extends EventEmitter {
         }
     }
     extractMaxAge(headers) {
-        if (typeof (headers['cache-control']) != 'undefined') {
+        if (typeof(headers['cache-control']) != 'undefined') {
             const match = headers['cache-control'].match(new RegExp('age=([0-9]+)'));
             if (match) {
                 return parseInt(match[1]);
@@ -80,7 +80,7 @@ class DownloadStream extends EventEmitter {
     }
     emitError(error, report) {
         this.error = error;
-        report && !this.destroyed && console.warn('DownloadStream:' + this.type, this.opts.url, error);
+        report && !this.destroyed && this.type === 'hybrid' && console.warn('DownloadStream:' + this.type, this.opts.url, error);
         this.listenerCount('error') && this.emit('error', error, report);
         this.destroy();
     }

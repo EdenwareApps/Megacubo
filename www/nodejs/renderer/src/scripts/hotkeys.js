@@ -48,8 +48,8 @@ class GamepadHandler {
             const gamepad = this.connectedGamepads[index]
             const lastActionTime = this.lastActionTimes[index]
             if (gamepad) {
-                const buttonX = gamepad.buttons[0]
-                const buttonO = gamepad.buttons[1]
+                const buttonX = gamepad.buttons[0] || {}
+                const buttonO = gamepad.buttons[1] || {}
                 if (buttonX.pressed && this.canEmitEvent(lastActionTime.buttonX)) {
                     this.emit('x')
                     lastActionTime.buttonX = now
@@ -58,10 +58,10 @@ class GamepadHandler {
                     this.emit('o')
                     lastActionTime.buttonO = now
                 }
-                const dpadUp = gamepad.buttons[12]
-                const dpadDown = gamepad.buttons[13]
-                const dpadLeft = gamepad.buttons[14]
-                const dpadRight = gamepad.buttons[15]
+                const dpadUp = gamepad.buttons[12] || {}
+                const dpadDown = gamepad.buttons[13] || {}
+                const dpadLeft = gamepad.buttons[14] || {}
+                const dpadRight = gamepad.buttons[15] || {}
                 if (dpadUp.pressed && this.canEmitEvent(lastActionTime.dpadUp)) {
                     this.emit('up')
                     lastActionTime.dpadUp = now
@@ -82,8 +82,6 @@ class GamepadHandler {
                 const threshold = 0.5
                 const leftStickX = gamepad.axes[0]
                 const leftStickY = gamepad.axes[1]
-                const rightStickX = gamepad.axes[2]
-                const rightStickY = gamepad.axes[3]
                 
                 if (leftStickX < -threshold && this.canEmitEvent(lastActionTime.leftStick)) {
                     this.emit('left')
@@ -146,7 +144,7 @@ export class Hotkeys {
     }
     start(hotkeys) {
         this.end()
-        if (typeof (hotkeys) == 'object') {
+        if (typeof(hotkeys) == 'object') {
             for (let key in hotkeys) {
                 if (Array.isArray(hotkeysActions[hotkeys[key]])) {
                     key.split(' ').forEach(k => {
@@ -184,7 +182,7 @@ export class Hotkeys {
         return ''
     }
     arePlayerControlsVisible() {
-        return window.streamer && [0, '0', '0px'].indexOf(window.getComputedStyle(main.streamer.controls).getPropertyValue('bottom')) != -1
+        return window.streamer && [0, '0', '0px'].includes(window.getComputedStyle(main.streamer.controls).getPropertyValue('bottom'))
     }
     escapePressed() {
         console.log('Escape pressed')        

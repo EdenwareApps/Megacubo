@@ -9,20 +9,11 @@ class StreamerVideoIntent extends StreamerBaseIntent {
         super(data, opts, info);
         this.type = 'video';
         this.mediaType = 'video';
-        if (this.info.contentType && this.info.contentType.indexOf('o/') != -1 && this.info.contentType.indexOf('mp2t') == -1) {
+        if (this.info.contentType && this.info.contentType.includes('o/')) {
             this.mimetype = this.info.contentType;
         } else {
             this.mimetype = this.mimeTypes.video;
         }
-    }
-    getDomain(u) {
-        if (u && u.indexOf('//') != -1) {
-            let d = u.split('//')[1].split('/')[0].split(':')[0];
-            if (d == 'localhost' || d.indexOf('.') != -1) {
-                return d;
-            }
-        }
-        return '';
     }
     _start() {
         return new Promise((resolve, reject) => {
@@ -72,7 +63,7 @@ StreamerVideoIntent.supports = info => {
     }
     if (info.contentType) {
         let c = info.contentType;
-        if (c.indexOf('mp2t') != -1 && (!info.headers || !info.headers['content-length'])) {
+        if (c.includes('mp2t') && (!info.headers || !info.headers['content-length'])) {
             return false;
         }
         if (c.indexOf('video') == 0) {

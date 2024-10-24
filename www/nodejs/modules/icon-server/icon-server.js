@@ -104,8 +104,25 @@ class IconDefault {
 }
 class IconSearch extends IconDefault {
     constructor() {
-        super();
-        this.watchingIcons = {};
+        super()
+        this.trendingIcons = {}
+        renderer.ready(() => {
+            global.channels.trending.on('update', () => this.updateTrendingIcons())
+            this.updateTrendingIcons()
+        })
+    }
+    updateTrendingIcons() {
+        if(!global.channels.trending.currentRawEntries) return
+        this.trendingIcons = {}
+        global.channels.trending.currentRawEntries.forEach(e => {
+            if (e.icon) {
+                if(typeof(this.trendingIcons[e.icon]) == 'undefined') {
+                    this.trendingIcons[e.icon] = 1
+                } else {
+                    this.trendingIcons[e.icon]++
+                }
+            }
+        })
     }
     seemsLive(e) {        
         return (e.gid || lists.mi.isLive(e.url)) ? 1 : 0; // gid here serves as a hint of a live stream
@@ -130,20 +147,20 @@ class IconSearch extends IconDefault {
                     if (ret.length) {
                         const already = {}, alreadySources = {};
                         ret = ret.filter(e => {
-                            return e.icon && e.icon.indexOf('//') != -1;
+                            return e.icon && e.icon.includes('//');
                         });
                         if (this.opts.debug) {
                             console.log('fetch from terms', JSON.stringify(ret));
                         }
                         ret = ret.map((e, i) => {
-                            if (typeof (already[e.icon]) == 'undefined') {
+                            if (typeof(already[e.icon]) == 'undefined') {
                                 already[e.icon] = i;
                                 alreadySources[e.icon] = [e.source];
                                 return {
                                     icon: e.icon,
                                     live: this.seemsLive(e) ? 1 : 0,
                                     hits: 1,
-                                    watching: this.watchingIcons[e.icon] || 0,
+                                    trending: this.trendingIcons[e.icon] || 0,
                                     epg: 0
                                 };
                             } else {
@@ -165,7 +182,7 @@ class IconSearch extends IconDefault {
                 }).catch(console.error).finally(() => resolve(images));
             }
             lists.epgSearchChannelIcon(ntms).then(srcs => images = srcs.map(src => {
-                return { icon: src, live: true, hits: 1, watching: 1, epg: 1 };
+                return { icon: src, live: true, hits: 1, trending: 1, epg: 1 };
             })).catch(console.error).finally(next)
         });
     }
@@ -182,7 +199,7 @@ class IconServerStore extends IconSearch {
         return crypto.createHash('md5').update(url).digest('hex');
     }
     isHashKey(key) {
-        return key.length == 32 && key.indexOf(',') == -1;
+        return key.length == 32 && !key.includes(',');
     }
     file(url, isKey) {
         return this.opts.folder + '/logo-' + (isKey === true ? url : this.key(url)) + '.cache';
@@ -254,7 +271,7 @@ class IconServerStore extends IconSearch {
     async saveHTTPCacheExpiration(key, size) {
         let stat;
         const file = storage.resolve('icons-cache-' + key);
-        if (typeof (size) != 'number') {
+        if (typeof(size) != 'number') {
             let err;
             
             stat = await fs.promises.stat(file).catch(e => err = e);
@@ -280,7 +297,7 @@ class IconServerStore extends IconSearch {
             const ret = await this.validateFile(file);
             return { key, file, isAlpha: ret == 2 };
         }
-        if (typeof (url) != 'string' || url.indexOf('//') == -1) {
+        if (typeof(url) != 'string' || !url.includes('//')) {
             throw 'bad url ' + crashlog.stringify(url);
         }
         const key = this.key(url);
@@ -387,7 +404,7 @@ class IconServer extends IconServerStore {
             if (path.endsWith(e.name) && tabindex != -1) {
                 path = path.substr(0, path.length - 1 - e.name.length)
             }
-            renderer.get().emit('icon', {
+            renderer.ui.emit('icon', {
                 url: ret.url,
                 path,
                 tabindex,
@@ -404,7 +421,7 @@ class IconServer extends IconServerStore {
         osd.show(Array.from(args).map(s => String(s)).join(', '), 'fas fa-info-circle', 'active-downloads', 'persistent');
     }
     qualifyEntry(e) {
-        if (!e || (e.class && e.class.indexOf('no-icon') != -1)) {
+        if (!e || (e.class && e.class.includes('no-icon'))) {
             return false;
         }
         if (e.icon || e.programme || e.side) {
@@ -412,7 +429,7 @@ class IconServer extends IconServerStore {
         }
         const t = e.type || 'stream';
         if (t == 'stream' || ['entry-meta-stream', 'entry-icon'].some(c => {
-            return e.class && e.class.indexOf(c) != -1;
+            return e.class && e.class.includes(c);
         })) {
             return true;
         }

@@ -1,5 +1,4 @@
 import { LIST_DATA_KEY_MASK } from "../utils/utils.js";
-import fs from 'fs'
 import storage from '../storage/storage.js'
 import { EventEmitter } from "events";
 import ListIndex from "./list-index.js";
@@ -17,17 +16,14 @@ class List extends EventEmitter {
         } else {
             this.master = masterOrKeywords;
         }
-        this.url = url;
-        this.relevance = {};
-        this.reset();
-        this.dataKey = LIST_DATA_KEY_MASK.format(url);
-        this.file = storage.resolve(this.dataKey);
-        this.constants = { BREAK: -1 };
-        this._log = [
-            this.url
-        ];
+        this.url = url
+        this.relevance = {}
+        this.dataKey = LIST_DATA_KEY_MASK.format(url)
+        this.file = storage.resolve(this.dataKey)
+        this.constants = { BREAK: -1 }
+        this._log = [this.url]
         if (storage.has(this.dataKey)) {
-            storage.touch(this.dataKey, { permanent: true }); // avoid cache eviction for loaded up lists
+            storage.touch(this.dataKey, { permanent: true }) // avoid cache eviction for loaded up lists
         }
     }
     log(...args) {
@@ -47,50 +43,9 @@ class List extends EventEmitter {
     }
     async start() {
         if (this.started) return true
-        await fs.promises.access(this.file)
         this.indexer = new ListIndex(this.file, this.url)
-        return await new Promise((resolve, reject) => {
-            let resolved, destroyListener = () => {
-                if (!resolved) {
-                    reject('destroyed')
-                }
-            }, cleanup = () => {
-                this.removeListener('destroy', destroyListener)
-                if (!this.isReady)
-                    this.isReady = true
-            }
-            this.once('destroy', destroyListener)
-            this.indexer.on('error', err => {
-                reject(err)
-                cleanup()
-                this.emit('ready')
-            })
-            this.indexer.on('data', index => {
-                if (index.length) {
-                    let err;
-                    this.setIndex(index).catch(e => err = e).finally(() => {
-                        storage.touch(this.dataKey, {
-                            size: 'auto',
-                            permanent: true
-                        });
-                        resolved = true
-                        if (err) {
-                            reject(err)
-                        } else {
-                            this.started = true
-                            resolve(true)
-                        }
-                        cleanup()
-                        this.emit('ready')
-                    })
-                } else {
-                    reject('empty index')
-                    cleanup()
-                    this.emit('ready')
-                }
-            });
-            this.indexer.start()
-        })
+        await this.indexer.start()
+        if (!this.isReady) this.isReady = true
     }
     reload() {
         this.indexer && this.indexer.destroy();
@@ -101,13 +56,10 @@ class List extends EventEmitter {
         let p = 0;
         if (this.validator) {
             p = this.validator.progress();
-        } else if (this.isReady || (this.indexer && this.indexer.hasFailed)) {
+        } else if (this.isReady || this.destroyed) {
             p = 100;
         }
         return p;
-    }
-    async setIndex(index) {
-        this.index = index
     }
     async verify() {
         let quality = 0, relevance = 0;
@@ -137,7 +89,7 @@ class List extends EventEmitter {
                 throw cached.err;
             return cached.result;
         }
-        let len = this.index.length;
+        let len = this.indexer.length;
         if (!len) {
             const err = 'insufficient streams ' + len;
             storage.set(cacheKey, { err }, atts).catch(console.error);
@@ -180,13 +132,15 @@ class List extends EventEmitter {
             values.relevantKeywords = 50;
         } else {
             let hits = 0, presence = 0;
-            rks.forEach(term => {
-                if (typeof (index.terms[term]) != 'undefined') {
-                    hits++;
-                    presence += index.terms[term].n.length;
-                }
-            });
-            presence /= Math.min(index.length, 1024); // to avoid too small lists
+            if(index.terms) {
+                rks.forEach(term => {
+                    if (typeof(index.terms[term]) != 'undefined') {
+                        hits++;
+                        presence += index.terms[term].n.length;
+                    }
+                })
+            }
+            presence /= Math.min(this.length, 1024); // to avoid too small lists
             if (presence > 1)
                 presence = 1;
             // presence factor aims to decrease relevance of too big lists for the contents that we want
@@ -201,8 +155,8 @@ class List extends EventEmitter {
         let log = '', total = 0, maxtotal = 0;
         Object.values(factors).map(n => maxtotal += n);
         Object.keys(factors).forEach(k => {
-            if (typeof (values[k]) == 'number' && typeof (factors[k]) == 'number') {
-                log += k + '-' + typeof (values[k]) + '-' + typeof (factors[k]) + '-((' + values[k] + ' / 100) * ' + factors[k] + ')';
+            if (typeof(values[k]) == 'number' && typeof(factors[k]) == 'number') {
+                log += k + '-' + typeof(values[k]) + '-' + typeof(factors[k]) + '-((' + values[k] + ' / 100) * ' + factors[k] + ')';
                 total += ((values[k] / 100) * factors[k]);
             }
         });
@@ -210,17 +164,6 @@ class List extends EventEmitter {
         values.debug = { values, factors, total, maxtotal, log };
         //console.warn('LIST RELEVANCE', this.url, index.lastmtime, Object.keys(values).map(k => k +': '+ values[k]).join(', '))
         return values;
-    }
-    async iterate(fn, map) {
-        if (!Array.isArray(map)) {
-            map = false;
-        }
-        const entries = await this.indexer.entries(map);
-        for (const e of entries) {
-            let ret = await fn(e);
-            if (ret === this.constants.BREAK)
-                break;
-        }
     }
     async fetchAll() {
         await this.ready();
@@ -237,22 +180,12 @@ class List extends EventEmitter {
     async getEntries(map) {
         return await this.indexer.entries(map);
     }
-    reset() {
-        this.index = {
-            length: 0,
-            terms: {},
-            groups: {},
-            meta: {}
-        };
-        this.indexateIterator = 0;
-    }
     destroy() {
         if (!this.destroyed) {
             if (storage.has(this.dataKey)) {
                 storage.touch(this.dataKey, { permanent: false }); // freeup for cache eviction
             }
-            this.destroyed = true;
-            this.reset();
+            this.destroyed = true
             if (this.indexer) {
                 this.indexer.destroy();
                 this.indexer = null;
@@ -266,6 +199,15 @@ class List extends EventEmitter {
             this.master = null;
             this._log = [];
         }
+    }
+    get walk() {
+        return (this.indexer && this.indexer.db.walk) ? this.indexer.db.walk.bind(this.indexer.db) : () => {}
+    }
+    get index() {
+        return this.indexer ? this.indexer.index : {}
+    }
+    get length() {
+        return this.indexer ? this.indexer.length : 0
     }
 }
 export default List;

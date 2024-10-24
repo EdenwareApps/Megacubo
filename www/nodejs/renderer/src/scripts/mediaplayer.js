@@ -98,7 +98,7 @@ class MediaPlayer extends EventEmitter {
 			document.documentElement.classList.add('playing')
 			const c = document.body.className
 			// console.warn('VIDEOCLASS* '+ c)
-            if(c.indexOf('video-') == -1) { // no state set yet, add 'video-loading' so
+            if(!c.includes('video-')) { // no state set yet, add 'video-loading' so
 				document.body.classList.add('video')
 				document.body.classList.add('video-loading')
 			} else {
@@ -160,13 +160,13 @@ class MediaPlayer extends EventEmitter {
 			this.setup('native', MediaPlayerAdapterAndroidNative)
 		} else {
 			let m = mimetype.toLowerCase()
-			if(m.indexOf('mpegurl') != -1){
+			if(m.includes('mpegurl')){
 				this.setup('html5h', MediaPlayerAdapterHTML5HLS)
-			} else if(m.indexOf('mp2t') != -1 || (src.endsWith('.ts') && mediatype == 'video') || (data && data.mpegts === true)){
+			} else if(m.includes('mp2t') || (src.endsWith('.ts') && mediatype == 'video') || (data && data.mpegts === true)){
 				this.setup('html5t', MediaPlayerAdapterHTML5TS)
-			} else if(m.indexOf('dash') != -1 || src.endsWith('.mpd')) {
+			} else if(m.includes('dash') || src.endsWith('.mpd')) {
 				this.setup('html5d', MediaPlayerAdapterHTML5DASH)
-			} else if(m.indexOf('audio/') != -1){
+			} else if(m.includes('audio/')){
 				this.setup('html5a', MediaPlayerAdapterHTML5Audio)
 			} else {
 				this.setup('html5v', MediaPlayerAdapterHTML5Video)

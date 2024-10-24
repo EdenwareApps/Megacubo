@@ -18,9 +18,9 @@ class IconFetcher extends EventEmitter {
         if (prevImage.hits < nextImage.hits) {
             return true;
         } else if (prevImage.hits == nextImage.hits) {
-            if (prevImage.watching < nextImage.watching) {
+            if (prevImage.trending < nextImage.trending) {
                 return true;
-            } else if (prevImage.watching == nextImage.watching) {
+            } else if (prevImage.trending == nextImage.trending) {
                 if (!prevImage.epg && nextImage.epg) {
                     return true;
                 } else {
@@ -112,7 +112,7 @@ class IconFetcher extends EventEmitter {
                 this.emit('failed')
             }
         }
-        if (!this.entry.class || this.entry.class.indexOf('entry-icon-no-fallback') == -1) {
+        if (!this.entry.class || !this.entry.class.includes('entry-icon-no-fallback')) {
             let atts;
             this.terms = channels.entryTerms(this.entry, true)
             this.isChannel = channels.isChannel(this.terms);
@@ -189,7 +189,7 @@ class Icon extends IconFetcher {
                 (this.succeeded ? resolve : reject)(this.result);
                 cb = () => {};
             };
-            if (typeof (this.result) != 'undefined') {
+            if (typeof(this.result) != 'undefined') {
                 cb();
             } else {
                 this.once('result', cb);

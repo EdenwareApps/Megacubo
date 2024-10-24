@@ -10,6 +10,7 @@ const paths = {}
 paths.inWorker = workerData && Object.keys(workerData).length
 if(paths.inWorker) {
     Object.assign(paths, workerData.paths)
+    paths.inWorker = true
 } else {
     if (process.platform == 'android') {
         const require = createRequire(getFilename())
@@ -25,8 +26,7 @@ if(paths.inWorker) {
             fs.writeFileSync(file, '0');
             fine = true;
             fs.unlinkSync(file);
-        }
-        catch (e) {
+        } catch (e) {
             console.error(e);
         }
         return fine;
@@ -46,7 +46,7 @@ if(paths.inWorker) {
     paths.manifest = JSON.parse(String(fs.readFileSync(paths.cwd + '/package.json')))
     if (paths.android && paths.android.getDataPath) {
         const data = paths.android.getDataPath();
-        const temp = data.indexOf('files') != -1 ? data.replace('files', 'cache') : tmpdir()
+        const temp = data.includes('files') ? data.replace('files', 'cache') : tmpdir()
         Object.assign(paths, { data, temp });
     } else {
         if (fs.existsSync(paths.cwd + '/.portable') && checkDirWritePermissionSync(paths.cwd + '/.portable')) {
@@ -56,7 +56,7 @@ if(paths.inWorker) {
         }
     }
     Object.keys(paths).forEach(type => {
-        if (typeof (paths[type]) != 'string')
+        if (typeof(paths[type]) != 'string')
             return
         paths[type] = forwardSlashes(paths[type])
         if (paths[type].endsWith('/')) {

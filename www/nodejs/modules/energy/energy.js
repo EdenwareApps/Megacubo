@@ -6,17 +6,17 @@ class Energy extends EventEmitter {
         super();
     }
     restart() {
-        renderer.get().emit('restart');
+        renderer.ui.emit('restart');
     }
     exit() {
         console.error('ENERGY_EXIT')
-        renderer.get().emit('exit', false)
+        renderer.ui.emit('exit', false)
     }
     askRestart() {
-        renderer.get().emit('ask-restart')
+        renderer.ui.emit('ask-restart')
     }
     askExit() {
-        renderer.get().emit('ask-exit')
+        renderer.ui.emit('ask-exit')
     }
 }
 export default new Energy()

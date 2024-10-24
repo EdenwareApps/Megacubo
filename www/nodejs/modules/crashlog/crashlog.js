@@ -14,7 +14,7 @@ class Crashlog {
     }
     replaceCircular(val, cache) {
         cache = cache || new WeakSet();
-        if (val && typeof (val) == 'object') {
+        if (val && typeof(val) == 'object') {
             if (cache.has(val))
                 return '[Circular]';
             cache.add(val);
@@ -40,7 +40,7 @@ class Crashlog {
             platform: process.platform, 
             release: os.release(), arch: os.arch(), revision,
             date: (new Date()).toString(),
-            lang: typeof (lang) != 'undefined' && lang ? lang.locale : ''
+            lang: typeof(lang) != 'undefined' && lang ? lang.locale : ''
         }) + "\r\n\r\n");
     }
     stringify(data) {
@@ -84,7 +84,7 @@ class Crashlog {
                     data += d;
                 });
                 res.once('end', () => {
-                    if (data.indexOf('OK') != -1) {                        
+                    if (data.includes('OK')) {                        
                         fs.stat(this.crashLogFile, (err, stat) => {
                             if (stat && stat.file) {
                                 fs.appendFile(this.crashLogFile, content, () => {

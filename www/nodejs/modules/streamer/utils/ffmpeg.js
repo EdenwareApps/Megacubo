@@ -43,9 +43,9 @@ class StreamerFFmpeg extends EventEmitter {
         return this.opts.videoCodec == 'libx264' || this.opts.audioCodec == 'aac';
     }
     setOpts(opts) {
-        if (opts && typeof (opts) == 'object') {
+        if (opts && typeof(opts) == 'object') {
             Object.keys(opts).forEach((k) => {
-                if (['debug'].indexOf(k) == -1 && typeof (opts[k]) == 'function') {
+                if (!['debug'].includes(k) && typeof(opts[k]) == 'function') {
                     this.on(k, opts[k]);
                 } else {
                     this.opts[k] = opts[k];
@@ -174,13 +174,13 @@ class StreamerFFmpeg extends EventEmitter {
         });
     }
     proxify(file) {
-        if (typeof (file) == 'string') {
+        if (typeof(file) == 'string') {
             if (!this.opts.port) {
                 console.error('proxify() before server is ready', file);
                 return file; // srv not ready
             }
             let host = 'http://' + this.opts.addr + ':' + this.opts.port + '/';
-            if (file.indexOf(host) != -1) {
+            if (file.includes(host)) {
                 return file;
             }
             console.log('proxify before', file);
@@ -198,13 +198,13 @@ class StreamerFFmpeg extends EventEmitter {
         return file;
     }
     unproxify(url) {
-        if (typeof (url) == 'string') {
+        if (typeof(url) == 'string') {
             if (url.startsWith('/')) {
                 url = url.slice(1);
             }
             url = url.replace(new RegExp('^.*:[0-9]+/+'), '');
-            if (url.indexOf('&') != -1 && url.indexOf(';') != -1) {
-                url = decodeEntities(url);
+            if (url.includes(';') && url.includes('&')) {
+                url = decodeEntities(url)
             }
             url = url.split('?')[0].split('#')[0];
             url = path.resolve(this.opts.workDir + path.sep + this.uid + path.sep + url);
@@ -221,7 +221,7 @@ class StreamerFFmpeg extends EventEmitter {
                     fs.readdir(this.opts.workDir + path.sep + this.uid, (err, files) => {
                         if (Array.isArray(files)) {
                             let basename = path.basename(file);
-                            let firstFile = files.sort().filter(f => f.indexOf('m3u8') == -1).shift();
+                            let firstFile = files.sort().filter(f => !f.includes('m3u8')).shift();
                             if (basename < firstFile) {
                                 console.warn('Outdated file', basename, firstFile, files);
                                 reject(this.OUTDATED);
@@ -384,7 +384,6 @@ class StreamerFFmpeg extends EventEmitter {
             // outputOptions('-async', -1).
             outputOptions('-async', 2).
             outputOptions('-flags:a', '+global_header').
-            // outputOptions('-packetsize', 188).
             outputOptions('-level', '4.1').
             outputOptions('-x264opts', 'vbv-bufsize=50000:vbv-maxrate=50000:nal-hrd=vbr').
             cast fix try end */
@@ -402,7 +401,7 @@ class StreamerFFmpeg extends EventEmitter {
             // fragTime=2 to start playing asap, it will generate 3 segments before create m3u8
             // fragTime=1 may cause manifestParsingError "invalid target duration" on hls.js
             let fragTime = 2, lwt = config.get('live-window-time');
-            if (typeof (lwt) != 'number') {
+            if (typeof(lwt) != 'number') {
                 lwt = 120;
             } else if (lwt < 30) { // too low will cause isBehindLiveWindowError
                 lwt = 30;
@@ -424,6 +423,9 @@ class StreamerFFmpeg extends EventEmitter {
                 outputOptions('-hls_list_size', hlsListSize).
                 outputOptions('-master_pl_name', 'master.m3u8');
         } else if (this.opts.outputFormat == 'mpegts') { // mpegts
+            if (!paths.android) {
+                this.decoder.outputOptions('-packetsize', 188) // mpegts.js
+            }
             this.decoder.
                 outputOptions('-movflags', 'frag_keyframe+empty_moov').
                 outputOptions('-listen', 1); // 2 wont work
@@ -443,7 +445,7 @@ class StreamerFFmpeg extends EventEmitter {
             this.decoder.outputOptions('-profile:v', this.opts.vprofile || 'baseline');
             //this.decoder.outputOptions('-filter_complex', 'scale=iw*min(1\,min(640/iw\,360/ih)):-1')
         }
-        if (typeof (this.source) == 'string' && this.source.indexOf('http') == 0) { // skip other protocols
+        if (typeof(this.source) == 'string' && this.source.indexOf('http') == 0) { // skip other protocols
             this.decoder.
                 inputOptions('-stream_loop', -1).
                 inputOptions('-reconnect', 1).
@@ -581,7 +583,7 @@ class StreamerFFmpeg extends EventEmitter {
                         }
                         if (this.codecData.audio && this.codecData.audio.match(new RegExp('(ac3|mp2)')) && this.opts.audioCodec != 'aac') {
                             transcode = true;
-                            if (this.codecData.video.indexOf('h264 (High)') != -1) { // may be problematic
+                            if (this.codecData.video.includes('h264 (High)')) { // may be problematic
                                 this.opts.videoCodec = 'libx264';
                             }
                             this.opts.audioCodec = 'aac';
@@ -604,7 +606,7 @@ class StreamerFFmpeg extends EventEmitter {
                                     });
                                 }).catch(e => {
                                     console.error('waitFile failed', this.timeout, e);
-                                    if (String(e).indexOf('timeout') != -1) {
+                                    if (String(e).includes('timeout')) {
                                         e = 'timeout';
                                     }
                                     reject(e);

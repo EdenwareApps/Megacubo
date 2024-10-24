@@ -238,7 +238,7 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
                             })
                         }).catch(e => {
                             console.error('waitFile failed', this.opts.timeout, e)
-                            if(String(e).indexOf('timeout') != -1){
+                            if(String(e).includes('timeout')){
                                 e = 'timeout'
                             }
                             reject(e)
@@ -262,7 +262,7 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
         }
         if(this.destroyed){
             fail('destroyed')
-        } else if(req.url.indexOf(this.basename) == -1){
+        } else if(!req.url.includes(this.basename)){
             fail('not found')
         } else {
             let len = 2 * (1024 * 1024 * 1024)

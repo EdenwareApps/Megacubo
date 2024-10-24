@@ -153,7 +153,7 @@ class CustomFrame {
 		options.win.on('maximize', function () {
 			that.window.localStorage.customFrameState = 'maximized';
 			if (buttonMaximize.getAttribute('style') === null ||
-				(buttonMaximize.getAttribute('style') !== null && buttonMaximize.getAttribute('style').indexOf('display: none;') === -1)) {
+				(buttonMaximize.getAttribute('style') !== null && !buttonMaximize.getAttribute('style').includes('display: none;'))) {
 				buttonMaximize.setAttribute('style', buttonMaximize.getAttribute('style') === null ? 'display: none;' : buttonMaximize.getAttribute('style') + 'display: none;');
 			}
 			buttonRestore.setAttribute('style', buttonRestore.getAttribute('style').replace('display: none;', ''));

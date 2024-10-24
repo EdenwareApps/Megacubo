@@ -6,21 +6,22 @@ import renderer from '../bridge/bridge.js'
 class OMNI extends EventEmitter {
     constructor() {
         super()
+        renderer.ui.on('omni', (text, type) => this.open(text, type))
     }
     async open(text, type) {
         if (type == 'numeric') {
             const n = parseInt(text), es = global.channels.bookmarks.get().filter(e => e.bookmarkId == n);
             if (es.length) {
-                ui.emit('omni-callback', text, !!es.length);
+                renderer.ui.emit('omni-callback', text, !!es.length);
                 console.warn('omni-callback', text, !!es.length, es);
                 let entry = es.shift();
                 if (entry.type == 'group') {
-                    ui.emit('menu-playing')
+                    renderer.ui.emit('menu-playing')
                     global.menu.open([lang.BOOKMARKS, entry.name].join('/')).catch(e => global.menu.displayErr(e));
                     return
                 } else {                        
                     global.streamer.play(entry)
-                    ui.emit('menu-playing-close')
+                    renderer.ui.emit('menu-playing-close')
                     return
                 }
             }
@@ -36,13 +37,17 @@ class OMNI extends EventEmitter {
         }).catch(err => {
             global.channels.search.go(text, 'all');
         }).finally(() => {
-            ui.emit('omni-callback', text, true)
+            renderer.ui.emit('omni-callback', text, true)
         });
     }
     async openURL(url) {
         const info = await global.streamer.streamInfo.probe(url)
-        if(info.sample) {
-            if(String(info.sample).substr(0, 24).toUpperCase().indexOf('#EXTM3U') != -1) { // is list
+        if (info.sample) {
+            const sample = String(info.sample).substr(0, 128).toUpperCase()
+            const isM3U = sample.includes('#EXTM3U')
+            const isM3U8 = !sample.match(new RegExp('#EXT\-X\-(TARGETDURATION|MEDIA\-SEQUENCE)'))
+            const hasStreamNames = sample.match(new RegExp('#EXTINF:.+,.*[A-Z]+'))    
+            if (isM3U && !isM3U8 && hasStreamNames) {
                 return await global.lists.manager.addList(url)
             }
         }
@@ -55,7 +60,7 @@ class OMNI extends EventEmitter {
             }
         };
         config.set('open-url', url);
-        await lists.manager.waitListsReady()
+        await lists.manager.ready()
         await global.streamer.play(e)
     }
 }
