@@ -37,7 +37,7 @@ class StreamerProxy extends StreamerProxyBase {
     destroyConn(uid, data = false, force = true) {
         if (this.connections[uid]) {
             if (this.connections[uid].response) {
-                if (data && typeof (data) != 'number' && isWritable(this.connections[uid].response)) {
+                if (data && typeof(data) != 'number' && isWritable(this.connections[uid].response)) {
                     if (!this.connections[uid].response.headersSent) {
                         const origin = this.type == 'network-proxy' ? '*' : undefined;
                         this.connections[uid].response.writeHead(500, prepareCORS(response, undefined, origin));
@@ -59,7 +59,7 @@ class StreamerProxy extends StreamerProxyBase {
         });
     }
     proxify(url) {
-        if (typeof (url) == 'string' && url.indexOf('//') != -1) {
+        if (typeof(url) == 'string' && url.includes('//')) {
             if (!this.opts.port) {
                 console.error('proxify() before server is ready', url);
                 return url; // srv not ready
@@ -74,31 +74,22 @@ class StreamerProxy extends StreamerProxyBase {
         return url;
     }
     unproxify(url) {
-        if (typeof (url) == 'string') {
+        if (typeof(url) == 'string') {
             if (url.substr(0, 3) == '/s/') {
-                url = 'https://' + url.substr(3);
+                url = 'https://' + url.substr(3)
             } else if (url.startsWith('/') && url.charAt(1) != '/') {
-                url = 'http://' + url.substr(1);
-            } else if (this.opts.addr && url.indexOf('//') != -1) {
-                /*
-                if(!this.addrp){
-                    this.addrp = this.opts.addr.split('.').slice(0, 3).join('.')
-                }
-                if(url.indexOf(this.addrp) != -1){
-                    url = url.replace(new RegExp('^(http://|//)'+ this.addrp.replaceAll('.', '\\.') +'\\.[0-9]{0,3}:([0-9]+)/', 'g'), '$1')
+                url = 'http://' + url.substr(1)
+            } else if (this.opts.addr && url.includes('//')) {
+                if (url.includes(this.addr + ':' + this.opts.port + '/')) {
+                    url = url.replace(new RegExp('^(http://|//)' + this.addr.replaceAll('.', '\\.') + ':' + this.opts.port + '/', 'g'), '$1')
                     url = url.replace('://s/', 's://')
                 }
-                */
-                if (url.indexOf(this.addr + ':' + this.opts.port + '/') != -1) {
-                    url = url.replace(new RegExp('^(http://|//)' + this.addr.replaceAll('.', '\\.') + ':' + this.opts.port + '/', 'g'), '$1');
-                    url = url.replace('://s/', 's://');
-                }
             }
-            if (url.indexOf('&') != -1 && url.indexOf(';') != -1) {
-                url = decodeEntities(url);
+            if (url.includes(';') && url.includes('&')) {
+                url = decodeEntities(url)
             }
         }
-        return url;
+        return url
     }
     proxifyM3U8(body, url) {
         if (!this.isM3U8Content(body))
@@ -124,7 +115,7 @@ class StreamerProxy extends StreamerProxyBase {
                 parser.manifest.segments.map(segment => {
                     segment.uri = segment.uri.trim();
                     let dn = this.getURLRoot(segment.uri);
-                    if (typeof (replaces[dn]) == 'undefined') {
+                    if (typeof(replaces[dn]) == 'undefined') {
                         let df = segment.uri.length - dn.length;
                         if (this.opts.debug) {
                             console.log('dn', dn, df, segment.uri);
@@ -145,7 +136,7 @@ class StreamerProxy extends StreamerProxyBase {
             if (parser.manifest.playlists && parser.manifest.playlists.length) {
                 parser.manifest.playlists.forEach(playlist => {
                     let dn = this.dirname(playlist.uri);
-                    if (typeof (replaces[dn]) == 'undefined') {
+                    if (typeof(replaces[dn]) == 'undefined') {
                         if (this.opts.debug) {
                             console.log('dn', dn);
                         }
@@ -163,7 +154,7 @@ class StreamerProxy extends StreamerProxyBase {
             }
             // console.warn('PRXBODY', body, parser.manifest, replaces)
             body = body.replace(new RegExp('(URI="?)([^\\n"\']+)', 'ig'), (...match) => {
-                if (match[2].indexOf('127.0.0.1') == -1) {
+                if (!match[2].includes('127.0.0.1')) {
                     match[2] = absolutize(match[2], url);
                     match[2] = this.proxify(match[2]);
                 }
@@ -180,7 +171,7 @@ class StreamerProxy extends StreamerProxyBase {
             if (line.length < 3 || line.startsWith('#')) {
                 return;
             }
-            if (line.indexOf('/') == -1 || line.substr(0, 2) == './' || line.substr(0, 3) == '../') {
+            if (!line.includes('/') || line.substr(0, 2) == './' || line.substr(0, 3) == '../') {
                 // keep it relative, no problem in these cases
                 /*
                 if(from == ''){
@@ -233,10 +224,10 @@ class StreamerProxy extends StreamerProxyBase {
     }
     fileNameFromURL(url, defaultExt = 'mp4') {
         let filename = url.split('?')[0].split('/').filter(s => s).pop();
-        if (!filename || filename.indexOf('=') != -1) {
+        if (!filename || filename.includes('=')) {
             filename = 'video';
         }
-        if (filename.indexOf('.') == -1) {
+        if (!filename.includes('.')) {
             filename += '.' + defaultExt;
         }
         return sanitize(filename);
@@ -248,7 +239,7 @@ class StreamerProxy extends StreamerProxyBase {
             }, req));
             return response.end();
         }
-        if (this.destroyed || req.url.indexOf('favicon.ico') != -1) {
+        if (this.destroyed || req.url.includes('favicon.ico')) {
             response.writeHead(404, prepareCORS({
                 'connection': 'close'
             }, req));
@@ -271,7 +262,7 @@ class StreamerProxy extends StreamerProxyBase {
         if (this.opts.debug) {
             console.log('req starting...', req.url);
         }
-        if (typeof (this.connectionsServed) != 'undefined') { // for networkproxy activity detection
+        if (typeof(this.connectionsServed) != 'undefined') { // for networkproxy activity detection
             this.connectionsServed++;
         }
         const uid = this.uid();
@@ -356,13 +347,13 @@ class StreamerProxy extends StreamerProxyBase {
                 return end();
             }
             if (statusCode >= 200 && statusCode < 300) { // is data response
-                if (!headers['content-disposition'] || headers['content-disposition'].indexOf('attachment') == -1 || headers['content-disposition'].indexOf('filename=') == -1) {
+                if (!headers['content-disposition'] || !headers['content-disposition'].includes('attachment') || !headers['content-disposition'].includes('filename=')) {
                     // setting filename to allow future file download feature
                     // will use sanitize to prevent net::ERR_RESPONSE_HEADERS_MULTIPLE_CONTENT_DISPOSITION on bad filename
                     headers['content-disposition'] = 'attachment; filename="' + this.fileNameFromURL(url) + '"';
                 }
                 let len = parseInt(headers['content-length']);
-                if (len && typeof (headers['content-range']) == 'undefined') {
+                if (len && typeof(headers['content-range']) == 'undefined') {
                     headers['content-range'] = 'bytes 0-' + (len - 1) + '/' + len; // improve upnp compat
                 }
                 if (this.type == 'network-proxy' && this.opts.debug) {
@@ -396,7 +387,7 @@ class StreamerProxy extends StreamerProxyBase {
                 }
                 let location;
                 headers['content-length'] = 0;
-                if (typeof (headers.location) != 'undefined') {
+                if (typeof(headers.location) != 'undefined') {
                     location = this.proxify(absolutize(headers.location, url));
                 }
                 if (location) {
