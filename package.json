@@ -15,7 +15,7 @@
     "url": "https://megacubo.tv"
   },
   "icon": "./default_icon.png",
-  "version": "17.5.3",
+  "version": "17.5.4",
   "dependencies": {
     "@capacitor-community/keep-awake": "^5.0.1",
     "@capacitor/android": "^6.1.2",
@@ -95,13 +95,12 @@
     "svelte-preprocess": "^5.1.4"
   },
   "bin": {
-    "megacubo": "./bin.js",
-    "megacubo-debug": "./bin-debug.js"
+    "megacubo": "./bin.js"
   },
   "scripts": {
-    "start": "electron ./www/nodejs",
-    "debug": "electron --inspect --enable-logging=stderr --trace-warnings --remote-debugging-port=9222 ./www/nodejs",
-    "assets": "@capacitor/assets generate --android --iconBackgroundColor #4E2F8F --iconBackgroundColorDark #4E2F8F --splashBackgroundColor #200040 --splashBackgroundColorDark #200040",
+    "start": "node bin.js",
+    "debug": "node --inspect bin.js debug",
+    "assets": "npx @capacitor/assets generate --android --iconBackgroundColor #4E2F8F --iconBackgroundColorDark #4E2F8F --splashBackgroundColor #200040 --splashBackgroundColorDark #200040",
     "cap": "node configure.mjs && cap sync",
     "capacitor:sync:after": "shx rm -rf android/app/src/main/assets/public/nodejs/node_modules/levelup/node_modules/semver/semver*.js.gz && shx rm -rf android/app/src/main/assets/public/nodejs/modules && shx rm -rf android/app/src/main/assets/public/nodejs/node_modules && shx rm -rf android/app/src/main/assets/public/nodejs/renderer/src && shx rm -f android/app/src/main/assets/public/nodejs/dist/windows.vbs",
     "prepare": "rollup -c",
