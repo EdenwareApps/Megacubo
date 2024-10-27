@@ -1,5 +1,7 @@
-### Default Hotkeys in Megacubo:
-<br /><br />
+### Default hotkeys in Megacubo:
+<br />
+
+Below is a list of keyboard shortcuts available for use in Megacubo. To learn more about the [app's configuration options, click here](https://github.com/EdenwareApps/Megacubo/blob/master/CONFIGURING.md).<br /><br />
 
 - Back: Backspace or Esc
 
@@ -39,7 +41,7 @@
 
 - Developer Tools Console: F12 or Ctrl + Shift + I
 
-<br /><br />
+<br />
 
 If there’s a hotkey you’d like to see added, [let us know](https://github.com/EdenwareApps/Megacubo/issues).
 
