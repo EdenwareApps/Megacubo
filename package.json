@@ -8,13 +8,14 @@
   },
   "description": "A intuitive, multi-language and cross-platform IPTV player.",
   "name": "megacubo",
+  "type": "module",
   "author": {
     "name": "megacubo.tv",
     "email": "contact@megacubo.tv",
     "url": "https://megacubo.tv"
   },
   "icon": "./default_icon.png",
-  "version": "17.5.2",
+  "version": "17.5.3",
   "dependencies": {
     "@capacitor-community/keep-awake": "^5.0.1",
     "@capacitor/android": "^6.1.2",
