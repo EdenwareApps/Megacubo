@@ -448,18 +448,14 @@ class EPGManager extends EPGPaginateChannelsList {
     }
     async suggest(urls) {
         const epgs = Object.values(this.epgs)
-        console.log('epg.SUGGEST()', urls, epgs.length)
         if(epgs.length) return
         let added
         const tasks = urls.map(url => {
             return async () => {
                 if(added === true) return
-                console.log('epg.SUGGEST() add', url)
                 await this.add(url, true)
                 if(this.epgs[url]){
-                    console.log('epg.SUGGEST() adding', url)
                     await this.epgs[url].ready()
-                    console.log('epg.SUGGEST() added', url, this.epgs[url].state)
                     if(added === true || this.epgs[url].state !== 'loaded') {
                         await this.remove(url)
                     } else {

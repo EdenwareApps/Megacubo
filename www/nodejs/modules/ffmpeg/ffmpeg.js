@@ -1,11 +1,14 @@
 import { kbfmt } from '../utils/utils.js'
-import lang from "../lang/lang.js";
+import lang from '../lang/lang.js';
 import { EventEmitter } from 'events';
-import fs from "fs";
-import downloads from "../downloads/downloads.js";
-import config from "../config/config.js"
+import fs from 'fs';
+import path from 'path';
+import Download from '../download/download.js';
+import downloads from '../downloads/downloads.js';
+import config from '../config/config.js'
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
+import AdmZip from 'adm-zip'
 
 let FFmpegControllerUIDIterator = 1;
 class FFmpegController extends EventEmitter {
@@ -157,15 +160,12 @@ class FFmpegController extends EventEmitter {
     }
     metadataCallback(nfo) {
         let codecs = this.master.codecs(nfo), dimensions = this.master.dimensions(nfo), bitrate = this.master.rawBitrate(nfo);
-        //console.log('ffmpeg.metadata', nfo, codecs)
-        //if(bitrate) this.emit('bitrate', bitrate)
         if (codecs)
             this.emit('codecData', codecs);
         if (dimensions)
             this.emit('dimensions', dimensions);
     }
     callback(err, output) {
-        //console.log('ffmpeg.callback '+ this.uid +"\n::ERR:: "+ err +"\n::OUTPUT:: "+ output)
         if (err) {
             this.emit('error', err);
         } else {
@@ -192,26 +192,26 @@ class FFMPEGHelper extends EventEmitter {
     parseBytes(t, b) {
         let n = parseFloat(t);
         switch (b) {
-            case "kb":
-            case "kbit":
-            case "kbits":
+            case 'kb':
+            case 'kbit':
+            case 'kbits':
                 n = n * 1024;
                 break;
-            case "mb":
-            case "mbit":
-            case "mbits":
+            case 'mb':
+            case 'mbit':
+            case 'mbits':
                 n = n * (1024 * 1024);
                 break;
-            case "gb":
-            case "gbit":
-            case "gbits":
+            case 'gb':
+            case 'gbit':
+            case 'gbits':
                 n = n * (1024 * 1024 * 1024);
                 break;
         }
         return parseInt(n);
     }
     fmtSlashes(file) {
-        return file.replace(new RegExp("[\\\\/]+", "g"), "/");
+        return file.replace(new RegExp('[\\\\/]+', 'g'), '/');
     }
 }
 class FFMPEGMediaInfo extends FFMPEGHelper {
@@ -235,7 +235,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
     }
     rawBitrate(nfo) {
         // bitrate: 1108 kb/s
-        let bitrate = 0, lines = nfo.match(new RegExp("Stream #[^\n]+", "g"));
+        let bitrate = 0, lines = nfo.match(new RegExp('Stream #[^\n]+', 'g'));
         if (lines) {
             lines.forEach(line => {
                 let raw = line.match(new RegExp('([0-9\\.]+) ([a-z]+)/s'));
@@ -339,8 +339,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
     }
     info(path, durationWanted, cb) {
         if (!path.includes('://')) {
-            this.exec(path, [], (error, output) => {
-                
+            this.exec(path, [], (error, output) => {                
                 fs.stat(path, (err, stat) => {
                     cb({ error, output, size: stat ? stat.size : null });
                 });
@@ -426,7 +425,7 @@ class FFMPEGDiagnostic extends FFMPEGMediaInfo {
             }
             this.arch(arch => {
                 this.version((data, output) => {
-                    const nl = "\r\n";
+                    const nl = '\r\n';
                     this.log = (data || lang.FFMPEG_NOT_FOUND) + nl;
                     this.log += 'Arch: ' + arch + nl;
                     let finish = () => {
@@ -487,11 +486,7 @@ class FFMPEG extends FFMPEGDiagnostic {
             renderer.ui.on('ffmpeg-download', state => {
                 this.downloading = state;
                 state || this.emit('downloaded');
-            });
-            renderer.ready(() => {
-                const { data } = paths;
-                renderer.ui.emit('ffmpeg-check', lang.INSTALLING_FFMPEG, data);
-            });
+            })
         }
     }
     ready() {
@@ -500,13 +495,9 @@ class FFMPEG extends FFMPEGDiagnostic {
         });
     }
     create(input, opts) {
-        const proc = new FFmpegController(input, this);
-        if (opts) {
-            if (opts.live) {
-                // proc.inputOptions('-re') // it will make hls startup slower
-            }
-        }
-        return proc;
+        const proc = new FFmpegController(input, this)
+        // proc.inputOptions('-re') // it will make hls startup slower
+        return proc
     }
     exec(input, cmd, cb, inputOptions) {
         const proc = this.create(input, { live: false }), timeout = setTimeout(() => {
@@ -548,4 +539,100 @@ class FFMPEG extends FFMPEGDiagnostic {
         });
     }
 }
+
+class FFmpegDownloader {
+    constructor() {
+        this.executable = 'ffmpeg';
+        if (process.platform == 'win32') {
+            this.executable += '.exe'
+        }
+        this.executableDir = process.resourcesPath || path.resolve('ffmpeg')
+        this.executableDir = this.executableDir.replace(new RegExp('\\\\', 'g'), '/')
+        if (this.executableDir.includes('resources/app')) {
+            this.executableDir = this.executableDir.split('resources/app').shift() + 'resources'
+        }
+        this.executable = path.basename(this.executable)
+    }
+    async download(target, mask) {
+        const arch = process.arch == 'x64' ? 64 : 32
+        let osName
+        switch (process.platform) {
+            case 'darwin':
+                osName = 'macos';
+                break;
+            case 'win32':
+                osName = 'windows';
+                break;
+            default:
+                osName = 'linux';
+                break;
+        }
+        const variant = osName + '-' + arch;
+        const url = await this.getVariantURL(variant)
+        if (!url) throw 'FFmpeg source binary URL not found'
+        osd.show(mask.replace('{0}', '0%'), 'fas fa-circle-notch fa-spin', 'ffmpeg-dl', 'persistent');
+        const tmpZipFile = await Download.file({
+            url,
+            file: path.join(target, 'ffmpeg.zip'),
+            progress: p => {
+                osd.show(mask.replace('{0}', p + '%'), 'fas fa-circle-notch fa-spin', 'ffmpeg-dl', 'persistent');
+            }
+        });
+        const zip = new AdmZip(tmpZipFile);
+        const entryName = process.platform == 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
+        const targetFile = path.join(target, entryName);
+        zip.extractEntryTo(entryName, target, false, true);
+        fs.unlink(tmpZipFile, () => {});
+        return targetFile;
+    }
+    async check() {
+        const mask = lang.INSTALLING_FFMPEG
+        const folder = paths.data
+        try {
+            await fs.promises.access(path.join(this.executableDir, this.executable), fs.constants.F_OK);
+            return true;
+        }
+        catch (error) {
+            try {
+                await fs.promises.access(path.join(folder, this.executable), fs.constants.F_OK);
+                this.executableDir = folder;
+                return true;
+            }
+            catch (error) {
+                let err;
+                const file = await this.download(folder, mask).catch(e => err = e);
+                if (err) {
+                    osd.show(String(err), 'fas fa-exclamation-triangle faclr-red', 'ffmpeg-dl', 'normal');
+                } else {
+                    osd.show(mask.replace('{0}', '100%'), 'fas fa-circle-notch faclr-green', 'ffmpeg-dl', 'normal');
+                    this.executableDir = path.dirname(file);
+                    this.executable = path.basename(file);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    async getVariantURL(variant) {
+        const data = await Download.get({ url: 'https://ffbinaries.com/api/v1/versions', responseType: 'json' });
+        if(!data || !data.versions) return null
+        for (const version of Object.keys(data.versions).sort().reverse()) {
+            const versionInfo = await Download.get({ url: data.versions[version], responseType: 'json' });
+            if (versionInfo.bin && typeof(versionInfo.bin[variant]) != 'undefined') {
+                return versionInfo.bin[variant].ffmpeg;
+            }
+        }
+    }
+}
+
+if(process.platform !== 'android') {
+    renderer.ready(() => {
+        const downloader = new FFmpegDownloader()
+        console.log('ffmpeg-path ...')
+        downloader.check().then(() => {
+            renderer.ui.emit('ffmpeg-path', downloader.executableDir, downloader.executable)
+        }).catch(global.displayErr)
+    })
+}
+
 export default new FFMPEG()

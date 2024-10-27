@@ -472,7 +472,7 @@
    "TUNE": "Sintonizzare",
    "TUNING": "Sintonizzando",
    "TUNING_CONCURRENCY_LIMIT": "Limite di test simultaneo",
-   "TUNING_FFMPEG_CONCURRENCY_LIMIT": "Limite di concorrenza FFMpeg nella sintonizzazione",
+   "TUNING_FFMPEG_CONCURRENCY_LIMIT": "Limite di concorrenza FFmpeg nella sintonizzazione",
    "TUNING_HINT": "Se il flusso è lento (anche dopo aver atteso 20 secondi), in un'altra lingua o con qualsiasi altro problema, fai clic sull'icona {0} nei controlli del giocatore e attendi che si aprano un altro flusso dallo stesso canale.",
    "TUNING_WAIT_X": "Sintonizzando {0}, aspetta...",
    "TYPE_PASSWORD": "Digita la tua password",

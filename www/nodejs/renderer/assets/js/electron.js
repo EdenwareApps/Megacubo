@@ -156,7 +156,7 @@ class WindowManagerCommon {
 		}
 		if(cmd.length){
 			cmd = cmd.pop()
-			if(cmd.length > 2 && !cmd.startsWith('-') && !cmd.includes('\\')) {
+			if(cmd.length > 2 && !cmd.startsWith('-') && !cmd.includes('\\') && !cmd.includes('/nodejs')) {
 				cmd = cmd.replace(new RegExp('^"|"$', 'g'), '')
 				if(!cmd.match(new RegExp('^/[^/]'))){
 					console.log('cmdline*: ' + cmd)

@@ -105,6 +105,8 @@ google-services.json
 
 # Custom
 www/.vscode
+www/nodejs/dist/
+www/nodejs/renderer/dist/
 www/nodejs/modules/premium/
 www/nodejs/node_modules/
 www/nodejs/ffmpeg/*

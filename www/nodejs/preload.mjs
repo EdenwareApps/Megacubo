@@ -3,7 +3,6 @@ import { EventEmitter } from 'events';
 import path from "path";
 import fs from "fs";
 import { spawn } from "child_process";
-import AdmZip from "adm-zip";
 import ExecFinder from 'exec-finder';
 import { getFilename } from "cross-dirname";
 import { createRequire } from 'module';
@@ -65,98 +64,24 @@ function download(opts) {
     };
     return promise;
 }
-const window = getGlobal('window');
-class FFmpegDownloader {
-    constructor() {}
-    async download(osd, target, mask) {
-        const tmpZipFile = path.join(target, 'ffmpeg.zip');
-        const arch = process.arch == 'x64' ? 64 : 32;
-        let osName;
-        switch (process.platform) {
-            case 'darwin':
-                osName = 'macos';
-                break;
-            case 'win32':
-                osName = 'windows';
-                break;
-            default:
-                osName = 'linux';
-                break;
-        }
-        const variant = osName + '-' + arch;
-        const url = await this.getVariantURL(variant)
-        if (!url) throw 'FFmpeg source binary URL not found'
-        osd.show(mask.replace('{0}', '0%'), 'fas fa-circle-notch fa-spin', 'ffmpeg-dl', 'persistent');
-        await download({
-            url,
-            file: tmpZipFile,
-            progress: p => {
-                osd.show(mask.replace('{0}', p + '%'), 'fas fa-circle-notch fa-spin', 'ffmpeg-dl', 'persistent');
-            }
-        });
-        const zip = new AdmZip(tmpZipFile);
-        const entryName = process.platform == 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
-        const targetFile = path.join(target, entryName);
-        zip.extractEntryTo(entryName, target, false, true);
-        fs.unlink(tmpZipFile, () => {});
-        return targetFile;
-    }
-    async check(mask, folder) {
-        const osd = getGlobal('osd');
-        try {
-            await fs.promises.access(path.join(this.executableDir, this.executable), fs.constants.F_OK);
-            return true;
-        }
-        catch (error) {
-            try {
-                await fs.promises.access(path.join(folder, this.executable), fs.constants.F_OK);
-                this.executableDir = folder;
-                return true;
-            }
-            catch (error) {
-                let err;
-                const file = await this.download(osd, folder, mask).catch(e => err = e);
-                if (err) {
-                    osd.show(String(err), 'fas fa-exclamation-triangle faclr-red', 'ffmpeg-dl', 'normal');
-                } else {
-                    osd.show(mask.replace('{0}', '100%'), 'fas fa-circle-notch fa-spin', 'ffmpeg-dl', 'normal');
-                    this.executableDir = path.dirname(file);
-                    this.executable = path.basename(file);
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-    async getVariantURL(variant) {
-        const data = await download({ url: 'https://ffbinaries.com/api/v1/versions', responseType: 'json' });
-        if(!data || !data.versions) return null
-        for (const version of Object.keys(data.versions).sort().reverse()) {
-            const versionInfo = await download({ url: data.versions[version], responseType: 'json' });
-            if (versionInfo.bin && typeof(versionInfo.bin[variant]) != 'undefined') {
-                return versionInfo.bin[variant].ffmpeg;
-            }
-        }
-    }
-}
-class FFMpeg extends FFmpegDownloader {
+const window = getGlobal('window')
+class FFmpeg {
     constructor() {
-        super();
         this.childs = {};
         this.executable = 'ffmpeg';
         if (process.platform == 'win32') {
-            this.executable += '.exe';
+            this.executable += '.exe'
         }
         this.executableDir = process.resourcesPath || path.resolve('ffmpeg');
         this.executableDir = this.executableDir.replace(new RegExp('\\\\', 'g'), '/');
         if (this.executableDir.includes('resources/app')) {
             this.executableDir = this.executableDir.split('resources/app').shift() + 'resources';
         }
-        this.executable = path.basename(this.executable);
+        this.executable = path.basename(this.executable)
         this.tmpdir = paths.temp;
-        ['exec', 'cleanup', 'check', 'abort'].forEach(k => {
-            this[k] = this[k].bind(this); // allow export on contextBridge
-        });
+        ['exec', 'cleanup', 'abort'].forEach(k => {
+            this[k] = this[k].bind(this) // allow export on contextBridge
+        })
     }
     isMetadata(s) {
         return s.includes('Stream mapping:');
@@ -350,7 +275,7 @@ class WindowProxy extends EventEmitter {
 }
 const windowProxy = new WindowProxy();
 const externalPlayer = new ExternalPlayer();
-const ffmpeg = new FFMpeg();
+const ffmpeg = new FFmpeg();
 const tray = new TrayProxy();
 const screenScaleFactor = screen.getPrimaryDisplay().scaleFactor || 1;
 const getScreen = () => {

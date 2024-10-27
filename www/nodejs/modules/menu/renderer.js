@@ -132,13 +132,13 @@ class MenuSelectionMemory extends MenuIcons {
             this.currentSearch = JSON.stringify({terms, type})
         })
 	}
-	saveSelection() {
+	saveSelection(scrollTop) {
 		if(this.rendering) return
 		this.debug && console.error('saveSelection', this.wrap.scrollTop, this.selectedIndex, this.path)
 		const n = this.currentViewName()
 		if(!this.selectionMemory[this.path]) this.selectionMemory[this.path] = {}
 		this.selectionMemory[this.path][n] = {
-			scroll: n == 'default' ? this.wrap.scrollTop : 0,
+			scroll: n == 'default' ? (typeof(scrollTop) == 'number' ? scrollTop : this.wrap.scrollTop) : 0,
 			index: this.selectedIndex,
 			search: this.currentSearch
 		}
@@ -164,7 +164,7 @@ class MenuSelectionMemory extends MenuIcons {
 				}
 			}
         }
-        this.debug && console.log('selectionMemory restore', data.scroll, data.index, this.path)
+		let ret
         if(this.activeSpatialNavigationLayout().level == 'default' && this.currentElements[data.index]){
 			let range = this.viewportRange(data.scroll)
 			if(data.index < range.start || data.index >= range.end) {
@@ -172,13 +172,14 @@ class MenuSelectionMemory extends MenuIcons {
 			}
 			this.focus(this.currentElements[data.index], true)
 			const start = this.wrap.scrollTop, end = this.wrap.scrollTop + this.wrap.clientHeight
-			if(data.scroll < start || data.scroll > end) {
+        	if(data.scroll < start || data.scroll > end) {
 				this.scrollTop(data.scroll, true)
 			}
-			return true
+			ret = true
         } else {
 			selectables.includes(selected) || this.reset()
 		}
+		return ret
     }
 	scrollTop(y, raw){
         if(typeof(y) == 'number') {
@@ -187,6 +188,7 @@ class MenuSelectionMemory extends MenuIcons {
 				left: 0,
 				behavior: raw ? 'instant' : 'smooth'
 			})
+			this.saveSelection(y)
 		}
 		return this.wrap.scrollTop
 	}
@@ -1109,7 +1111,8 @@ class MenuDialog extends MenuDialogQueue {
 							callback(id)
 						})
 						if(String(e.id) == String(validatedDefaultIndex)) {						
-							this.delayedFocus(p)
+							p.focus()
+							p.scrollIntoViewIfNeeded({behavior: 'instant'})
 						}
 					}
 				} else if(e.template == 'message') {						
@@ -1479,7 +1482,7 @@ class MenuStatusFlags extends MenuSlider {
 		})
 		main.on('stream-state-sync', data => {
 			if(this.debug){
-				console.warn('SYNCSTATUSFLAGS', data)
+				console.warn('SYNCSTATUSFLAGS', data, this.wrap.scrollTop)
 			}
 			Object.keys(data).forEach(url => {
 				data[url] && this.setStatusFlag(url, data[url], true)
@@ -1552,16 +1555,8 @@ class MenuNav extends MenuStatusFlags {
 		this.sideMenuWidthCache = null
 		this.sideMenuSyncTimer = 0
 		setTimeout(() => this.sideMenu(false, 'instant'), 0)
-
-		// will not listen wrap, so it will be horizontal only
-		this.container.addEventListener('scroll', () => {
-			this.isScrolling = true
-		})
-		this.container.addEventListener('scrollend', () => {
-			this.isScrolling = false
-			this.sideMenuSync()
-		})
 		this.scrollendPolyfillElement(this.container)
+		this.container.addEventListener('scrollend', () => this.sideMenuSync())
 	}
 	scrollendPolyfillElement(element) {
 		if('onscrollend' in window) return
@@ -1696,15 +1691,18 @@ export class Menu extends MenuNav {
 		return diff
 	}
 	render(entries, path, icon){
-		this.debug && console.log('menu render', path, icon)
+		this.debug && console.log('menu render', path, icon, this.wrap.scrollTop)
 		this.rendering = true
 		let prevPath = this.path, navigated = path == this.path
 		entries = entries.map(e => this.prepareEntry(e))
 		let changed = this.applyCurrentEntries(entries)
 		this.emit('pre-render', path, this.path)
 		this.path = path
-		changed && this.uiUpdate(navigated)
+		this.debug && console.log('menu rendering1', path, this.wrap.scrollTop)
+		changed && this.uiUpdate(navigated, true)
+		this.debug && console.log('menu rendering2', path, this.wrap.scrollTop)
 		setTimeout(() => { // wait a bit to truste the browser to render the elements
+			this.debug && console.log('menu rendering3', path, this.wrap.scrollTop)
 			this.currentElements = Array.from(this.wrap.getElementsByTagName('a'))
 			this.has2xEntry = this.currentElements.slice(0, 2).some(e => e.classList.contains('entry-2x'))
 			this.rendering = false
@@ -1713,11 +1711,14 @@ export class Menu extends MenuNav {
 			} else {
 				this.selected() // force finding and set it as 'selected' if needed
 			}
+			this.debug && console.log('menu rendering4', path, this.wrap.scrollTop)
 			this.emit('render', this.path, icon, prevPath)
-			this.debug && console.log('menu rendered', path, icon)
+			this.debug && console.log('menu rendered', path, icon, this.wrap.scrollTop)
 		}, 0)
 	}
-	uiUpdate(navigated){
+	uiUpdate(navigated, trusted){
+		if(trusted !== true && this.rendering) return
+		this.debug && console.log('menu rendering2.0', this.wrap.scrollTop, navigated)
 		let targetScrollTop = 0, path = this.path
 		if(!navigated){
 			targetScrollTop = this.wrap.scrollTop
@@ -1726,8 +1727,8 @@ export class Menu extends MenuNav {
 		}
 		this.wrap.style.minHeight = (targetScrollTop + this.wrap.offsetHeight) + 'px' // avoid scrolling
 		this.emit('updated')
+		this.scrollTop(targetScrollTop, true)
 		this.wrap.style.minHeight = 0
-		this.isScrolling || this.scrollTop(targetScrollTop, true)
 		this.getRange(targetScrollTop)
 	}
 	applyCurrentEntries(entries) {
@@ -1901,7 +1902,8 @@ export class Menu extends MenuNav {
 					element.setAttribute('data-default-value', retPath)
 				}
 			}
-			this.delayedFocus(this.lastSelectTriggerer)
+			this.lastSelectTriggerer && this.delayedFocus(this.lastSelectTriggerer)
+			this.lastSelectTriggerer = null
 		})
 	}
 	setupSlider(element){
@@ -1985,7 +1987,7 @@ export class Menu extends MenuNav {
 				break
 			default:
 				if(type == 'select'){
-					this.lastSelectTriggerer = this
+					this.lastSelectTriggerer = element
 				}
 				this.open(element)
 		}

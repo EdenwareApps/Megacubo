@@ -264,11 +264,11 @@ if(fs.existsSync('www/nodejs/modules/premium/premium.js')) {
 }
 
 async function copyFiles() {
-  await fs.promises.copyFile('www/nodejs/node_modules/create-desktop-shortcuts/src/windows.vbs', 'www/nodejs/dist/windows.vbs').catch(console.error)
+  await fs.promises.copyFile('node_modules/create-desktop-shortcuts/src/windows.vbs', 'www/nodejs/dist/windows.vbs').catch(console.error)
   await fs.promises.mkdir('www/nodejs/dist/moment-locale', {recursive: true}).catch(console.error)
-  for(const file of (await fs.promises.readdir('www/nodejs/node_modules/moment/dist/locale'))) {
+  for(const file of (await fs.promises.readdir('node_modules/moment/dist/locale'))) {
     let err
-    const content = await fs.promises.readFile('www/nodejs/node_modules/moment/dist/locale/'+ file).catch(e => err = e)
+    const content = await fs.promises.readFile('node_modules/moment/dist/locale/'+ file).catch(e => err = e)
     if(err) {
       console.error(err)
     } else {

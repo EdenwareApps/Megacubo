@@ -69,21 +69,24 @@ class ManagerEPG extends EventEmitter {
     inEPGSelectionPath(path) {
         return path.includes(lang.EPG + '/' + lang.SELECT)
     }
-    EPGs() {
-        let activeEPG = config.get('epg-' + lang.locale)
+    EPGs(activeOnly=false, urlsOnly=false) {
+        let ret = [], activeEPG = config.get('epg-' + lang.locale)
         if(activeEPG && activeEPG !== 'disabled') {
             if(Array.isArray(activeEPG)) {
-                return activeEPG
+                ret = activeEPG
             } else {
-                return parseCommaDelimitedURIs(activeEPG).map(url => {
+                ret = parseCommaDelimitedURIs(activeEPG).map(url => {
                     return {url, active: true}
                 })
             }
         }
-        return []
-    } 
-    activeEPGs() {
-        return this.EPGs().filter(r => r.active).map(r => r.url)
+        if(activeOnly) {
+            ret = ret.filter(r => r.active)
+        }
+        if(urlsOnly) {
+            ret = ret.map(r => r.url)
+        }
+        return ret
     }
     async epgOptionsEntries() {
         let epgs = new Set()
@@ -480,11 +483,11 @@ class Manager extends ManagerEPG {
             info = await this.master.info();
         }
         if (info && info[listUrl] && info[listUrl].epg) {
-            const currentEPGs = this.activeEPGs()
+            const currentEPGs = this.EPGs(true, true)
             const isMAG = listUrl.endsWith('#mag')
-            const listEpgs = parseCommaDelimitedURIs(info[listUrl].epg).filter(validateURL)
+            const listEpgs = parseCommaDelimitedURIs(info[listUrl].epg).filter(validateURL).filter(u => !currentEPGs.includes(u))
             let valid = isMAG || listEpgs.length
-            if (valid && !currentEPGs.some(r => (r.active && listEpgs.includes(r.url)))) {
+            if (valid && listEpgs.length) {
                 const url = listEpgs.shift()
                 if (!isMAG) {
                     const sample = await Download.get({url, range: '0-512', responseType: 'text' })

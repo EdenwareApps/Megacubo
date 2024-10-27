@@ -675,10 +675,9 @@ class Options extends OptionsExportImport {
     uninstall() {
         renderer.ui.emit('open-external-url', 'https://megacubo.net/uninstall-info');
     }
-    help() {
-        
+    help() {        
         cloud.get('configure').then(c => {
-            const url = (c && typeof(c.help) == 'string') ? c.help : paths.manifest.bugs;
+            const url = (c && typeof(c.help) == 'string') ? c.help : paths.manifest.bugs.url;
             renderer.ui.emit('open-external-url', url);
         }).catch(e => menu.displayErr(e));
     }

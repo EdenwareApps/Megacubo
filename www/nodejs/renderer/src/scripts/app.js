@@ -229,22 +229,9 @@ const getFontList = () => {
 }
 
 export const initApp = () => {
-    console.warn('INITAPP')
     main.css = css
     window.main = main
 
-    console.warn('INITAPP')
-    if (!window.capacitor) {
-        main.on('ffmpeg-check', (mask, folder) => {
-            console.log('Starting FFmpeg check', [mask, folder])
-            parent.ffmpeg.check(mask, folder).then(ret => {
-                console.log('FFmpeg checking succeeded', ret)
-            }).catch(err => {
-                console.error('FFmpeg checking error')
-                main.osd.show(String(err), 'fas fa-exclamation-triangle faclr-red', 'ffmpeg-dl', 'normal')
-            })
-        })
-    }
     main.on('clipboard-write', (text, successMessage) => {
         if (!top.navigator.clipboard) {
             main.osd.show('Your webview doesn\'t supports copying to clipboard.', 'fas fa-exclamation-triangle faclr-red', 'clipboard', 'normal')
@@ -685,7 +672,16 @@ export const initApp = () => {
         }
     })
     main.menu.wrap.addEventListener('scroll', () => main.idle.reset());
-    (new FFmpegController(parent.ffmpeg)).bind()
+    
+    const ffmpeg = new FFmpegController(parent.ffmpeg)
+    if(!window.capacitor) {
+        main.on('ffmpeg-path', (dir, executable) => {
+            console.log('ffmpeg-path', dir, executable)
+            ffmpeg.master.executableDir = ffmpeg.executableDir = dir
+            ffmpeg.master.executable = executable
+        })        
+    }
+    ffmpeg.bind()
 
     console.log('load app')
     main.localEmit('renderer')

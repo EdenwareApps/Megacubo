@@ -265,7 +265,6 @@ class Theme {
         }
         body.video, body.idle:not(.video) {
             --shadow-background-color: rgba(0, 0, 0, 0.8);
-            --osd-background-color: rgba(0, 0, 0, 0.75);
         }
         body:not(.portrait) #menu content wrap {
             grid-template-columns: repeat(${main.config['view-size'].landscape.x}, 1fr);

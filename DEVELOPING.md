@@ -6,7 +6,7 @@ Easier and recommended way.
 ```
 git clone https://github.com/EdenwareApps/Megacubo.git
 cd Megacubo
-npm i --force
+npm i
 npm run debug
 ```
 
@@ -14,7 +14,7 @@ npm run debug
 ```
 git clone https://github.com/EdenwareApps/Megacubo.git
 cd Megacubo
-npm i --force
+npm i
 npx cap sync
 npx cap open android
 ```

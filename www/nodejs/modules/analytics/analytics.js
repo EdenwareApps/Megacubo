@@ -40,7 +40,7 @@ class AnalyticsBase extends EventEmitter {
             data.url = this.obfuscateURL(data.url);
         if (data.source && lists.isPrivateList(data.source))
             data.source = ''; // Source URL not shareable.
-        data.epg = global.lists.manager.activeEPGs().join(',')
+        data.epg = global.lists.manager.EPGs(true, true).join(',')
         const postData = this.toQS(data);
         const opts = {
             port: 443,

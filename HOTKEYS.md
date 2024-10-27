@@ -1,46 +1,47 @@
-### Default hotkeys on Megacubo:
+### Default Hotkeys in Megacubo:
 <br /><br />
+
 - Back: Backspace or Esc
 
 - Navigate: Arrow keys
 
-- Open bookmarked channel: Press the number of the channel (you can find the number of each favorite in the "Bookmarks" section)
+- Open Bookmarked Channel: Press the channel number (view channel numbers in the "Bookmarks" section)
 
-- Add or remove currently playing channel from favorites: Ctrl+D or Ctrl+Shift+D
+- Add/Remove Channel to/from Favorites: Ctrl + D or Ctrl + Shift + D
 
-- Start or stop recording: F9 or Ctrl+X
+- Record Start/Stop: F9 or Ctrl + X
 
-- History: Ctrl+H
+- History: Ctrl + H
 
-- Go to the beginning of the application: Home
+- Home: Home
 
-- Change language: Ctrl+L
+- Switch Language: Ctrl + L
 
-- Miniplayer: Alt+M or Ctrl+M
+- Miniplayer Mode: Alt + M or Ctrl + M
 
-- Open URL: Ctrl+U or Ctrl+O
+- Open URL: Ctrl + U or Ctrl + O
 
-- Search: F3 Ctrl+F
+- Search: F3 or Ctrl + F
 
-- Go to the next video: Ctrl+Right
+- Next Video: Ctrl + Right Arrow
 
-- Go to the previous video: Ctrl+Left
+- Previous Video: Ctrl + Left Arrow
 
-- Pause: Space
+- Pause/Play: Space
 
-- Reload stream: F5
+- Reload Stream: F5
 
-- Forward or rewind video: Right and Left arrows (without player controls on screen, press "Up" arrow first to hide player controls)
+- Seek Forward/Backward: Right/Left Arrow (Hide player controls by pressing Up Arrow first)
 
-- About: F1 or Ctrl+I
+- About Megacubo: F1 or Ctrl + I
 
-- Full screen: F11 or Alt+Enter
+- Fullscreen Toggle: F11 or Alt + Enter
 
-- Devtools console: F12 or Ctrl+Shift+I
+- Developer Tools Console: F12 or Ctrl + Shift + I
 
 <br /><br />
 
-If you miss a specific hotkey, [let us know](https://github.com/EdenwareApps/Megacubo/issues).
+If there’s a hotkey you’d like to see added, [let us know](https://github.com/EdenwareApps/Megacubo/issues).
 
 Note: Enabling special features in the app, you can go to Tools > "Key Mapping" to customize these and other hotkeys.
 

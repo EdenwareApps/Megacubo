@@ -1,4 +1,20 @@
 {
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EdenwareApps/Megacubo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/EdenwareApps/Megacubo/issues"
+  },
+  "description": "A intuitive, multi-language and cross-platform IPTV player.",
+  "name": "megacubo",
+  "author": {
+    "name": "megacubo.tv",
+    "email": "contact@megacubo.tv",
+    "url": "https://megacubo.tv"
+  },
+  "icon": "./default_icon.png",
+  "version": "17.5.2",
   "dependencies": {
     "@capacitor-community/keep-awake": "^5.0.1",
     "@capacitor/android": "^6.1.2",
@@ -7,16 +23,54 @@
     "@capacitor/keyboard": "^6.0.2",
     "@capacitor/share": "^6.0.2",
     "@eoscz/capacitor-plugin-native-file-downloader": "github:EdenwareApps/capacitor-plugin-native-file-downloader",
+    "adm-zip": "github:EdenwareApps/adm-zip",
+    "agentkeepalive": "^4.5.0",
+    "async": "^3.2.5",
+    "bl": "^6.0.12",
+    "bytenode": "github:EdenwareApps/bytenode",
     "capacitor-nodejs": "https://github.com/EdenwareApps/Capacitor-NodeJS/releases/download/v1.0.0-beta.7/capacitor6-nodejs.tgz",
+    "check-disk-space": "^3.4.0",
+    "color-thief-jimp": "github:EdenwareApps/color-thief-jimp",
     "cordova-androidx-build": "^1.0.4",
     "cordova-plugin-android-permissions": "^1.1.5",
     "cordova-plugin-background-mode": "bitbucket:TheBosZ/cordova-plugin-run-in-background",
     "cordova-plugin-device": "^2.1.0",
+    "create-desktop-shortcuts": "^1.11.0",
+    "cross-dirname": "^0.1.0",
+    "dashjs": "^4.7.4",
+    "decode-entities": "^1.0.7",
+    "electron": "^9.1.1",
+    "env-paths": "^3.0.0",
+    "exec-finder": "^0.0.2",
+    "fast-json-clone": "^1.0.2",
+    "form-data": "^4.0.0",
+    "formidable": "^3.5.1",
+    "get-folder-size": "^4.0.0",
+    "hls.js": "^1.5.16",
+    "http-cookie-agent": "^6.0.3",
+    "iconv-lite": "^0.6.3",
     "ionic-plugin-deeplinks": "^1.0.24",
-    "megacubo-electron": "file:www/nodejs",
+    "jexidb": "^1.0.2",
+    "jimp": "^0.22.12",
+    "m3u8-parser": "^7.1.0",
+    "moment": "^2.30.1",
+    "moment-timezone": "^0.5.45",
+    "mpegts.js": "github:xqq/mpegts.js",
+    "node-cleanup": "^2.1.2",
+    "opensubtitles.com": "^1.1.0",
+    "p-queue": "^8.0.1",
+    "png-to-ico": "^2.1.8",
+    "range-parser": "^1.2.1",
+    "sanitize-filename": "^1.6.3",
+    "stoppable": "^1.1.0",
+    "swipey.js": "^1.0.3",
+    "tough-cookie": "^4.1.3",
     "tv.megacubo.ffmpeg": "github:EdenwareApps/tv.megacubo.ffmpeg",
     "tv.megacubo.pip": "github:EdenwareApps/tv.megacubo.pip",
-    "tv.megacubo.player": "github:EdenwareApps/tv.megacubo.player"
+    "tv.megacubo.player": "github:EdenwareApps/tv.megacubo.player",
+    "xmltv": "github:EdenwareApps/node-xmltv",
+    "ytdl-core": "^4.11.5",
+    "ytsr": "^3.8.4"
   },
   "devDependencies": {
     "@babel/plugin-syntax-import-attributes": "^7.25.6",
@@ -29,21 +83,30 @@
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-replace": "^5.0.7",
     "@rollup/plugin-terser": "^0.4.4",
+    "babel-plugin-transform-modules-iife": "^1.0.0",
     "postcss": "^8.4.43",
     "rimraf": "^5.0.10",
     "rollup": "^4.21.2",
     "rollup-plugin-import-css": "^3.5.1",
     "rollup-plugin-node-builtins": "^2.1.2",
     "rollup-plugin-svelte": "^7.2.2",
+    "shx": "^0.3.4",
     "svelte-preprocess": "^5.1.4"
   },
+  "bin": {
+    "megacubo": "./bin.js",
+    "megacubo-debug": "./bin-debug.js"
+  },
   "scripts": {
-    "start": "cd www/nodejs && npm start",
-    "debug": "cd www/nodejs && npm run debug",
+    "start": "electron ./www/nodejs",
+    "debug": "electron --inspect --enable-logging=stderr --trace-warnings --remote-debugging-port=9222 ./www/nodejs",
     "assets": "npx @capacitor/assets generate --android --iconBackgroundColor #4E2F8F --iconBackgroundColorDark #4E2F8F --splashBackgroundColor #200040 --splashBackgroundColorDark #200040",
     "build": "rollup -c",
     "cap": "node configure.mjs && cap sync",
-    "capacitor:sync:after": "rimraf --glob android/app/src/main/assets/public/nodejs/node_modules/levelup/node_modules/semver/semver*.js.gz",
-    "postinstall": "cd www/nodejs && npm i && cd ../.. && npm run build"
+    "capacitor:sync:after": "shx rm -rf android/app/src/main/assets/public/nodejs/node_modules/levelup/node_modules/semver/semver*.js.gz && shx rm -rf android/app/src/main/assets/public/nodejs/modules && shx rm -rf android/app/src/main/assets/public/nodejs/node_modules && shx rm -rf android/app/src/main/assets/public/nodejs/renderer/src && shx rm -f android/app/src/main/assets/public/nodejs/dist/windows.vbs",
+    "postinstall": "cd www/nodejs && npm i && cd ../.. && npm run build",
+    "start:capacitor": "npx cap serve",
+    "build:capacitor": "npx cap build",
+    "build:electron": "npx electron-packager ./www/nodejs"
   }
 }
