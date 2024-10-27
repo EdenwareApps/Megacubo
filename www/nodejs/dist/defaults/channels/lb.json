@@ -1,0 +1,36 @@
+{
+   "News": [
+      "Al Manar",
+      "Al Mayadeen",
+      "Nabaa TV",
+      "Newvision",
+      "TV Seventeen"
+   ],
+   "Religious": [
+      "Aliman TV",
+      "CharityTV",
+      "Nour Al Koddas",
+      "Nour Al Sharq",
+      "Nour Mariam",
+      "NourSAT"
+   ],
+   "Kids": [
+      "Taha TV"
+   ],
+   "Music Videos": [
+      "Aghani Aghani",
+      "Arabica TV"
+   ],
+   "Entertainment": [
+      "Al Ittihad",
+      "Al Jadeed",
+      "Alhayat TV",
+      "Future TV",
+      "LBC",
+      "LBC International",
+      "NBN",
+      "OTV",
+      "Sawt El Mada",
+      "Tele Liban"
+   ]
+}

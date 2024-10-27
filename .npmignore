@@ -1,3 +1,5 @@
 # OS X
 .DS_Store
 www/nodejs/node_modules
+www/nodejs/modules/premium/
+www/nodejs/dist/premium.js

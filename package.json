@@ -100,13 +100,12 @@
   "scripts": {
     "start": "electron ./www/nodejs",
     "debug": "electron --inspect --enable-logging=stderr --trace-warnings --remote-debugging-port=9222 ./www/nodejs",
-    "assets": "npx @capacitor/assets generate --android --iconBackgroundColor #4E2F8F --iconBackgroundColorDark #4E2F8F --splashBackgroundColor #200040 --splashBackgroundColorDark #200040",
-    "build": "rollup -c",
+    "assets": "@capacitor/assets generate --android --iconBackgroundColor #4E2F8F --iconBackgroundColorDark #4E2F8F --splashBackgroundColor #200040 --splashBackgroundColorDark #200040",
     "cap": "node configure.mjs && cap sync",
     "capacitor:sync:after": "shx rm -rf android/app/src/main/assets/public/nodejs/node_modules/levelup/node_modules/semver/semver*.js.gz && shx rm -rf android/app/src/main/assets/public/nodejs/modules && shx rm -rf android/app/src/main/assets/public/nodejs/node_modules && shx rm -rf android/app/src/main/assets/public/nodejs/renderer/src && shx rm -f android/app/src/main/assets/public/nodejs/dist/windows.vbs",
-    "postinstall": "rollup -c",
-    "start:capacitor": "npx cap serve",
-    "build:capacitor": "npx cap build",
-    "build:electron": "npx electron-packager ./www/nodejs"
+    "prepare": "rollup -c",
+    "start:capacitor": "cap serve",
+    "build:capacitor": "cap build",
+    "build:electron": "electron-packager ./www/nodejs"
   }
 }
