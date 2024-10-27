@@ -1698,11 +1698,8 @@ export class Menu extends MenuNav {
 		let changed = this.applyCurrentEntries(entries)
 		this.emit('pre-render', path, this.path)
 		this.path = path
-		this.debug && console.log('menu rendering1', path, this.wrap.scrollTop)
 		changed && this.uiUpdate(navigated, true)
-		this.debug && console.log('menu rendering2', path, this.wrap.scrollTop)
 		setTimeout(() => { // wait a bit to truste the browser to render the elements
-			this.debug && console.log('menu rendering3', path, this.wrap.scrollTop)
 			this.currentElements = Array.from(this.wrap.getElementsByTagName('a'))
 			this.has2xEntry = this.currentElements.slice(0, 2).some(e => e.classList.contains('entry-2x'))
 			this.rendering = false
@@ -1711,14 +1708,12 @@ export class Menu extends MenuNav {
 			} else {
 				this.selected() // force finding and set it as 'selected' if needed
 			}
-			this.debug && console.log('menu rendering4', path, this.wrap.scrollTop)
 			this.emit('render', this.path, icon, prevPath)
 			this.debug && console.log('menu rendered', path, icon, this.wrap.scrollTop)
 		}, 0)
 	}
 	uiUpdate(navigated, trusted){
 		if(trusted !== true && this.rendering) return
-		this.debug && console.log('menu rendering2.0', this.wrap.scrollTop, navigated)
 		let targetScrollTop = 0, path = this.path
 		if(!navigated){
 			targetScrollTop = this.wrap.scrollTop

@@ -788,16 +788,6 @@ class Options extends OptionsExportImport {
                 }
             },
             {
-                name: 'Enable when tuning',
-                type: 'check',
-                action: (data, checked) => {
-                    config.set('transcoding-tuning', checked);
-                },
-                checked: () => {
-                    return config.get('transcoding-tuning');
-                }
-            },
-            {
                 name: 'Resolution limit when transcoding', type: 'select', fa: 'fas fa-film',
                 renderer: async () => {
                     let def = config.get('transcoding-resolution') || '720p', opts = [

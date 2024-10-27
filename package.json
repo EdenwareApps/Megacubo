@@ -104,7 +104,7 @@
     "build": "rollup -c",
     "cap": "node configure.mjs && cap sync",
     "capacitor:sync:after": "shx rm -rf android/app/src/main/assets/public/nodejs/node_modules/levelup/node_modules/semver/semver*.js.gz && shx rm -rf android/app/src/main/assets/public/nodejs/modules && shx rm -rf android/app/src/main/assets/public/nodejs/node_modules && shx rm -rf android/app/src/main/assets/public/nodejs/renderer/src && shx rm -f android/app/src/main/assets/public/nodejs/dist/windows.vbs",
-    "postinstall": "cd www/nodejs && npm i && cd ../.. && npm run build",
+    "postinstall": "rollup -c",
     "start:capacitor": "npx cap serve",
     "build:capacitor": "npx cap build",
     "build:electron": "npx electron-packager ./www/nodejs"

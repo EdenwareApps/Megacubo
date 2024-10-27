@@ -686,7 +686,7 @@ class Streamer extends StreamerGoNext {
                         if (codecData.video && codecData.video.match(new RegExp('(mpeg2video|mpeg4)')) && intent.opts.videoCodec != 'libx264') {
                             const openedExternal = await this.askExternalPlayer(codecData).catch(console.error);
                             if (openedExternal !== true) {
-                                if ((!this.tuning && !this.zap.isZapping) || config.get('transcoding-tuning')) {
+                                if (!this.tuning && !this.zap.isZapping) {
                                     this.transcode(null, err => {
                                         if (err) intent.fail('unsupported format')
                                     })

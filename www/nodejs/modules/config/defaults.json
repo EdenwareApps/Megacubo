@@ -92,7 +92,6 @@
 	"timeout-secs-energy-saving": 60,
 	"transcoding": true,
 	"transcoding-resolution": "720p",
-	"transcoding-tuning": false,
 	"mpegts-packet-filter-policy": 1,
 	"mpegts-persistent-connections": true,
 	"mpegts-use-worker": true,
