@@ -1,12 +1,13 @@
-### Documentation of Megacubo Settings
-
-### Application Settings Information
+### Megacubo settings documentation
+<br />
 
 You can customize the application's settings at any time by navigating to the **Options** section. Here, you'll find a variety of preferences designed to enhance your overall experience.
 
 Additionally, you have the option to export your current settings as a JSON file. To do this, go to **Options > Export | Import > Export Settings**. A ZIP file containing `config.json` will be saved to your device.
 
 To import settings back into the application, navigate to **Options > Export | Import > Import Settings** and select a ZIP or JSON file.
+
+To learn more about the app's default [hotkeys, click here](https://github.com/EdenwareApps/Megacubo/blob/master/HOTKEYS.md).
 
 **Note:** Some settings may require you to restart the application for changes to take effect.
 
