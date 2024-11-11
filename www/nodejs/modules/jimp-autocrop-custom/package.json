@@ -1,6 +1,0 @@
-{
-    "name": "jimp-autocrop-custom",
-    "type": "module",
-"exports": "./jimp-autocrop-custom.js"
-  }
-  

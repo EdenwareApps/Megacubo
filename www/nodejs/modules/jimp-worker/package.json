@@ -1,6 +1,0 @@
-{
-    "name": "jimp-worker",
-    "type": "module",
-"exports": "./jimp-worker.js"
-  }
-  
