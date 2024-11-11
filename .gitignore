@@ -103,10 +103,10 @@ google-services.json
 *.hprof
 
 # Custom
-www/nodejs/dist/
+/dist/
 www/.vscode
-www/nodejs/dist/premium.js
-www/nodejs/modules/premium/
+premium.js
+www/nodejs/modules
 www/nodejs/node_modules/
 www/nodejs/ffmpeg/*
 www/nodejs/.arch
@@ -114,3 +114,5 @@ www/nodejs/arch.dat
 www/nodejs/tool.html
 android/app/release/output-metadata.json
 android/app/src/main/assets/public/nodejs/
+/www/nodejs/dist
+/www/nodejs/renderer/dist
