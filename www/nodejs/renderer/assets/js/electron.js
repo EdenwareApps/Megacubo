@@ -190,7 +190,7 @@ class WindowManagerCommon {
 		}
 		this.openFileDialogChooser.onchange = evt => {
 			if(this.openFileDialogChooser.value){
-				const file = Array.from(evt.target.files).shift()
+				const file = [...evt.target.files].shift()
 				if(file && file.path){
 					cb(null, file.path)
 				} else {
@@ -356,10 +356,7 @@ class WindowManager extends WindowManagerCommon {
 			this.app.main.on('arguments', this.handleArgs.bind(this))
 			this.app.main.on('exit-page', url => this.exitPage.url = url)
 			this.patch()
-			setTimeout(() => {
-				this.focusApp()
-				this.app.menu.reset()
-			}, 100)
+			setTimeout(() => this.focusApp(), 100)
 		})
 	}
 	getScreenSize(real){

@@ -1,9 +1,8 @@
 import menu from '../menu/menu.js'
 import lang from "../lang/lang.js";
 import EntriesGroup from "../entries-group/entries-group.js";
-import moment from "moment-timezone";
 import { ready } from '../bridge/bridge.js'
-import { ts2clock } from "../utils/utils.js";
+import { moment, ts2clock } from "../utils/utils.js";
 
 class EPGHistory extends EntriesGroup {
     constructor(channels) {
@@ -16,7 +15,6 @@ class EPGHistory extends EntriesGroup {
         this.session = null;
         this.allowDupes = true;
         ready(() => {
-            moment.locale(global.lang.locale)
             global.streamer.on('commit', async () => {
                 await this.busy()
                 const data = this.currentStreamData()
@@ -42,7 +40,7 @@ class EPGHistory extends EntriesGroup {
                 console.warn('Session finished')
                 this.finishSession()
             })
-            global.lists.epg.ready().then(() => {
+            global.lists.epg.ready().then(() => { // we need to wait for the epg to be ready, it can be slow so do it as last
                 if (this.inSection()) menu.refresh()
             }).catch(console.error)
         })
@@ -61,11 +59,11 @@ class EPGHistory extends EntriesGroup {
     }
     async finishSession() {
         if (this.session) {
-            this.setBusy(true)
+            const busy = global.menu.setBusy(true)
             clearInterval(this.session.timer)
             await this.check().catch(console.error)
             this.session = null
-            this.setBusy(false)
+            busy.release()
         }
     }
     startSessionTimer() {

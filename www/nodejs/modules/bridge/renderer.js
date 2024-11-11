@@ -1,9 +1,11 @@
 import EventEmitter from 'events'
 import { Idle } from '../../renderer/src/scripts/idle'
+import { css } from '../../renderer/src/scripts/utils'
 
 class BridgeClient extends EventEmitter {
 	constructor() {
         super()
+		this.css = css
 		this.config = {}
 		this.lang = {}
 		this.isReady = {renderer: false, main: false}

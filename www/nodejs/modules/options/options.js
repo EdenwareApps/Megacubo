@@ -4,7 +4,6 @@ import lang from '../lang/lang.js';
 import storage from '../storage/storage.js'
 import { exec } from 'child_process';
 import { EventEmitter } from 'events';
-import moment from 'moment-timezone';
 import energy from '../energy/energy.js';
 import fs from 'fs';
 import downloads from '../downloads/downloads.js';
@@ -22,7 +21,7 @@ import config from '../config/config.js'
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
 import Download from '../download/download.js'
-import { insertEntry, kbfmt, kbsfmt, parseJSON, rmdirSync, ucFirst, ucWords } from '../utils/utils.js'
+import { kbfmt, kbsfmt, parseJSON, moment, ucFirst, ucWords } from '../utils/utils.js'
 
 class Timer extends EventEmitter {
     constructor() {
@@ -495,7 +494,7 @@ class Options extends OptionsExportImport {
             { template: 'question', text: lang.SELECT_LANGUAGE, fa: 'fas fa-language' }
         ].concat(options), def);
         if (locale == 'improve') {
-            renderer.ui.emit('open-external-url', 'https://github.com/efoxbr/megacubo/tree/master/www/nodejs-project/lang');
+            renderer.ui.emit('open-external-url', 'https://github.com/EdenwareApps/megacubo/tree/master/www/nodejs-project/lang');
             return await this.showLanguageEntriesDialog();
         }
         const _def = config.get('locale') || lang.locale;

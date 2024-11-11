@@ -10,7 +10,7 @@ import fs from 'fs'
 import * as iconv from 'iconv-lite'
 import { exec } from 'child_process'
 import icons from '../icon-server/icon-server.js'
-import jimp from '../jimp-worker/main.js'
+import imp from '../icon-server/image-processor.js'
 import createShortcut from 'create-desktop-shortcuts'
 import config from '../config/config.js'
 import renderer from '../bridge/bridge.js'
@@ -426,7 +426,7 @@ class Bookmarks extends EntriesGroup {
                 }
             }
             if (nicon.file) {
-                const file = await jimp.iconize(nicon.file).catch(e => err = e);
+                const file = await imp.iconize(nicon.file).catch(e => err = e);
                 if (!err) {
                     icon = file;
                     const cachedFile = await icons.saveDefaultIcon(global.channels.entryTerms(entry, true), file, true).catch(e => err = e);

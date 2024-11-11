@@ -1,4 +1,4 @@
-import '../utils/utils.js'
+import { moment } from '../utils/utils.js'
 import utilsSetup from './utils.js'
 import config from '../config/config.js'
 import storage from '../storage/storage.js'
@@ -16,6 +16,9 @@ loadGlobalVars()
 global.config = config
 global.storage = storage
 global.crashlog = crashlog
+
+lang.timezone && moment.tz.setDefault(lang.timezone.name)
+lang.locale && moment.locale([lang.locale +'-'+ lang.countryCode, lang.locale])
 
 process.on('warning', e => console.warn(e, e.stack))
 process.on('unhandledRejection', (reason, promise) => {
@@ -47,6 +50,10 @@ parentPort.on('message', msg => {
         config.removeListener('change', changeListener)
         config.reload(msg.args)
         config.on('change', changeListener)
+    } else if(msg.method == 'langChange'){
+        global.lang = msg.data
+        global.lang.timezone && moment.tz.setDefault(global.lang.timezone.name)
+        global.lang.locale && moment.locale([global.lang.locale +'-'+ global.lang.countryCode, global.lang.locale])
     } else if(msg.method == 'storageTouch'){
         const changed = storage.validateTouchSync(msg.key, msg.entry)
         if (changed && changed.length) {

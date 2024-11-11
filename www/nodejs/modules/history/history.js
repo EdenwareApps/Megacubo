@@ -2,10 +2,9 @@ import menu from '../menu/menu.js'
 import lang from "../lang/lang.js";
 import EntriesGroup from "../entries-group/entries-group.js";
 import mega from "../mega/mega.js";
-import moment from "moment-timezone";
 import EPGHistory from './epg-history.js'
 import { ready } from '../bridge/bridge.js'
-import { ucFirst, insertEntry } from '../utils/utils.js'
+import { ucFirst, insertEntry, moment } from '../utils/utils.js'
 
 class History extends EntriesGroup {
     constructor(channels) {
@@ -98,7 +97,6 @@ class History extends EntriesGroup {
     }
     async entries(e) {        
         const epgAddLiveNowMap = {}
-        moment.locale(global.lang.locale)
         let gentries = this.get().map((e, i) => {
             e.details = ucFirst(moment(e.historyTime * 1000).fromNow(), true);
             const isMega = e.url && mega.isMega(e.url);

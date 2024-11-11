@@ -6,7 +6,6 @@ import lang from "../lang/lang.js";
 import storage from '../storage/storage.js'
 import { EventEmitter } from 'events';
 import cloud from "../cloud/cloud.js";
-import moment from "moment-timezone";
 import mega from "../mega/mega.js";
 import Trending from "../trending/trending.js";
 import Bookmarks from "../bookmarks/bookmarks.js";
@@ -16,7 +15,7 @@ import icons from '../icon-server/icon-server.js';
 import config from "../config/config.js"
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
-import { clone, insertEntry, parseCommaDelimitedURIs, parseJSON, ts2clock } from "../utils/utils.js";
+import { clone, insertEntry, parseCommaDelimitedURIs, parseJSON, moment, time, ts2clock } from "../utils/utils.js";
 import Search from '../search/search.js';
 
 class ChannelsList extends EventEmitter {
@@ -353,7 +352,7 @@ class ChannelsEPG extends ChannelsData {
             }, async data => {
                 const name = data.originalName || data.name;
                 const category = this.getChannelCategory(name)
-                if (!this.isEPGLoaded()) {
+                if (!global.lists.epg.loaded) {
                     menu.displayErr(lang.EPG_DISABLED)
                 } else if (category) {
                     let err;
@@ -363,7 +362,10 @@ class ChannelsEPG extends ChannelsData {
                     });
                     if (!err) {
                         const entries = await this.epgChannelEntries({ name }, null, true)
-                        menu.render(entries, lang.EPG, 'fas fa-plus', '/')
+                        menu.render(entries, lang.EPG, {
+                            icon: 'fas fa-plus', 
+                            backTo: '/'
+                        })
                         renderer.ui.emit('menu-playing')
                     }
                 } else {
@@ -378,16 +380,12 @@ class ChannelsEPG extends ChannelsData {
             return Array.isArray(activeEPG) ? activeEPG.filter(r => r.active).length : parseCommaDelimitedURIs(activeEPG).length
         }
     }
-    isEPGLoaded() {
-        return lists.loadedEPGs && lists.loadedEPGs.length
-    }
-    clock(start, data, includeEnd) {
-        let t = this.clockIcon;
-        t += ts2clock(start);
+    clock(data, includeEnd) {
+        let t = this.clockIcon + ts2clock(data.start)
         if (includeEnd) {
-            t += ' - ' + ts2clock(data.e);
+            t += ' - ' + ts2clock(data.e)
         }
-        return t;
+        return t
     }
     epgSearchEntry() {
         return {
@@ -399,10 +397,13 @@ class ChannelsEPG extends ChannelsData {
                 if (value) {
                     this.epgSearch(value).then(entries => {
                         let path = menu.path.split('/').filter(s => s != lang.SEARCH).join('/');
-                        entries.unshift(this.epgSearchEntry());
-                        menu.render(entries, path + '/' + lang.SEARCH, 'fas fa-search', path);
-                        this.search.history.add(value);
-                    }).catch(e => menu.displayErr(e));
+                        entries.unshift(this.epgSearchEntry())
+                        menu.render(entries, path + '/' + lang.SEARCH, {
+                            icon: 'fas fa-search', 
+                            backTo: path
+                        })
+                        this.search.history.add(value)
+                    }).catch(e => menu.displayErr(e))
                 }
             },
             value: () => {
@@ -427,27 +428,24 @@ class ChannelsEPG extends ChannelsData {
         })
     }
     epgDataToEntries(epgData, ch, terms) {
-        let now = (Date.now() / 1000);
-        let at = start => {
-            if (start <= now && epgData[start].e > now) {
-                return lang.LIVE;
+        const now = (Date.now() / 1000)
+        const at = p => {
+            if (p.start <= now && p.e >= now) {
+                return lang.LIVE
             }
-            return this.clock(start, epgData[start], true);
-        };
-        return Object.keys(epgData).filter(start => epgData[start].e > now).map((start, i) => {
-            let epgIcon = '';
-            if (epgData[start].i && epgData[start].i.includes('//')) {
-                epgIcon = epgData[start].i;
-            }
+            return this.clock(p, true)
+        }
+        return epgData.filter(p => p.e > now).map(p => {
+            const epgIcon = (p.i && p.i.includes('//')) ? p.i : ''
             return {
-                name: epgData[start].t,
-                details: ch + ' | ' + at(start),
+                name: p.t,
+                details: ch + ' | ' + at(p),
                 type: 'action',
                 fa: 'fas fa-play-circle',
-                programme: { start, ch, i: epgIcon },
-                action: this.epgProgramAction.bind(this, start, ch, epgData[start], terms, epgIcon)
-            };
-        });
+                programme: { start: p.start, ch, i: epgIcon },
+                action: this.epgProgramAction.bind(this, p.start, ch, p, terms, epgIcon)
+            }
+        })
     }
     epgPrepareSearch(e) {
         let ret = { name: e.originalName || e.name }, map = config.get('epg-map');
@@ -468,26 +466,26 @@ class ChannelsEPG extends ChannelsData {
         if (typeof(limit) != 'number') {
             limit = 72
         }
-        console.log('EPG', {e, limit, detached})
+        // console.log('EPG', {e, limit, detached})
         let data = this.epgPrepareSearch(e)
-        console.log('EPG', {data})
+        // console.log('EPG', {data})
         const epgData = await global.lists.epgChannelsList(data, limit)
         let centries = []
-        console.log('EPG', {epgData})
+        // console.log('EPG', {epgData})
         if (epgData) {
             if (typeof(epgData[0]) != 'string') {
                 centries = this.epgDataToEntries(epgData, data.name, data.terms)
                 if (!centries.length) {
                     centries.push(menu.emptyEntry(lang.NOT_FOUND))
                 }
-                console.log('EPG', {centries})
+                // console.log('EPG', {centries})
             }
         }
         centries.unshift(this.adjustEPGChannelEntry(e, detached))
         return centries
     }
     async epgChannelLiveNow(entry) {
-        if (!this.isEPGLoaded()) throw 'epg not loaded';
+        if (!global.lists.epg.loaded) throw 'epg not loaded';
         let channel = this.epgPrepareSearch(entry)
         let epgData = await global.lists.epgChannelsList(channel, 1)
         let ret = Object.values(epgData).shift()
@@ -503,46 +501,44 @@ class ChannelsEPG extends ChannelsData {
         return ret;
     }
     async epgChannelLiveNowAndNextInfo(entry) {
-        if (!this.isEPGLoaded()) throw 'epg not loaded'        
-        let channel = this.epgPrepareSearch(entry);
-        let epgData = await global.lists.epgChannelsList(channel, 2);
-        if (typeof(epgData) == 'string') throw 'epg is loading';
-        if (Array.isArray(epgData)) throw 'not found 1';
-        let now = Object.values(epgData).shift()
+        if (!global.lists.epg.loaded) throw 'epg not loaded'        
+        let channel = this.epgPrepareSearch(entry)
+        let epgData = await global.lists.epgChannelsList(channel, 2)
+        if (typeof(epgData) == 'string') throw 'epg is loading'
+        if (!Array.isArray(epgData)) throw 'not found 1'
+        let now = epgData.shift()
         if (now && now.t) {
-            let ret = { now };
-            let ks = Object.keys(epgData);
-            if (ks.length > 1) {
-                let start = ks.pop();
-                let next = epgData[start];
-                start = moment(start * 1000).fromNow();
-                start = start.charAt(0).toUpperCase() + start.slice(1);
-                ret[start] = next;
+            let ret = { now }
+            if (epgData.length) {
+                let s = time()
+                let next = epgData.filter(n => n.start > s).shift()
+                let start = moment(next.start * 1000).fromNow()
+                start = start.charAt(0).toUpperCase() + start.slice(1)
+                ret[start] = next
             }
-            return ret;
+            return ret
         } else {
-            throw 'not found 2';
+            throw 'not found 2'
         }
     }
     async epgChannelsLiveNow(entries) {
-        let ret = {};
-        if(!entries.length) {
+        let ret = {}
+        if(!entries.length || !global.lists.epg.loaded) {
             return ret
-        }
-        if (!this.isEPGLoaded()) throw 'epg not loaded';        
-        let chs = entries.map(e => this.epgPrepareSearch(e));
-        let epgData = await global.lists.epgChannelsList(chs, 1);
+        }  
+        let chs = entries.map(e => this.epgPrepareSearch(e))
+        let epgData = await global.lists.epgChannelsList(chs, 1)
         Object.keys(epgData).forEach(ch => {
-            ret[ch] = epgData[ch] ? Object.values(epgData[ch]).shift() : false;
-            if (!ret[ch] && ret[ch] !== false)
-                ret[ch] = false;
-        });
-        return ret;
+            ret[ch] = epgData[ch] ? epgData[ch].shift() : false
+            if (!ret[ch] && ret[ch] !== false) ret[ch] = false
+        })
+        return ret
     }
     async epgChannelsAddLiveNow(entries) {
+        if (!global.lists.epg.loaded) return entries
         let err
         const cs = entries.filter(e => e.terms || e.type == 'select').map(e => this.isChannel(e)).filter(e => e)
-        const epg = await this.epgChannelsLiveNow(cs).catch(e => err = e);
+        const epg = await this.epgChannelsLiveNow(cs).catch(e => err = e)
         if (!err && epg) {
             //console.warn('epgChannelsAddLiveNow', cs, entries, epg)
             entries.forEach((e, i) => {
@@ -693,13 +689,11 @@ class ChannelsEditing extends ChannelsEPG {
                                 fa: 'fa-mega spin-x-alt',
                                 iconFallback: 'fas fa-exclamation-triangle',
                                 action: async () => {
-                                    menu.setLoading(true);
                                     let err;
                                     const r = await icons.fetchURL(image);
                                     const ret = await icons.adjust(r.file, { shouldBeAlpha: false }).catch(e => menu.displayErr(e));
                                     const destFile = await icons.saveDefaultFile(terms, ret.file).catch(e => err = e);
                                     this.emit('edited', 'icon', e, destFile);
-                                    menu.setLoading(false);
                                     if (err)
                                         throw err;
                                     console.log('icon changed', terms, destFile);
@@ -916,7 +910,6 @@ class ChannelsAutoWatchNow extends ChannelsEditing {
         this.watchNowAuto = false;
         this.disableWatchNowAuto = false;
         renderer.ready(() => {
-            moment.locale(lang.locale)
             menu.on('render', (_, path) => {
                 if (path != this.watchNowAuto) {
                     this.watchNowAuto = false;
@@ -1507,6 +1500,9 @@ class Channels extends ChannelsKids {
     async entries() {
         if (!global.lists.loaded()) {
             return [global.lists.manager.updatingListsEntry()];
+        }
+        if(!this.channelList) {
+            throw new Error('Channel list not loaded')
         }
         let list
         const publicMode = config.get('public-lists') && !(paths.ALLOW_ADDING_LISTS && global.lists.loaded(true)); // no list available on index beyound public lists

@@ -1,4 +1,6 @@
 import { main } from '../bridge/renderer'
+import { detectFontSizeMultiplier } from '../../renderer/src/scripts/utils'
+import { EventEmitter } from 'events'
 
 const colorChannelMixer = (colorChannelA, colorChannelB, amountToMix) => {
     var channelA = colorChannelA*amountToMix
@@ -49,14 +51,20 @@ const hexToRgb = ohex => {
     } : ohex
 }
 
-class Theme {
+class Theme extends EventEmitter {
     constructor(){
-		this.curtains = Array.from(document.querySelectorAll('.curtain'))
+        super()
+		this.curtains = [...document.querySelectorAll('.curtain')]
         this.splashStartTime = (new Date()).getTime()
-        window.addEventListener('resize', () => this.updateFontSize())
+        window.addEventListener('resize', () => {
+            this.resizingTimer && clearTimeout(this.resizingTimer)
+            this.resizingTimer = setTimeout(() => {
+                this.emit('resized')
+            }, 150)
+        })
+        this.on('resized', () => this.updateFontSize())
     }
     renderBackground(data) {
-		console.warn('theming renderbackground', data)
         const bg = document.getElementById('background')
 		if(data.video){
 			bg.style.backgroundImage = 'none';		
@@ -305,7 +313,7 @@ class Theme {
     defaultFontSize() {
         const areaSize = window.innerHeight * window.innerWidth;
         const references = [
-            [72720, 12],    // miniplayer
+            [72720, 14],    // miniplayer
             [921600, 18],   // 720p
             [1927680, 24],  // 1080p
             [3840000, 28],  // 4K
@@ -328,21 +336,24 @@ class Theme {
     }
     updateFontSize() {
         let fontSize = this.defaultFontSize()
+        if(main.config && main.config['font-size']) {
+            if(main.config['font-size'] > 3) {
+                fontSize += (main.config['font-size'] - 3)
+            } else if(main.config['font-size'] < 3) {
+                fontSize -= (3 - main.config['font-size'])
+            }
+        }
         if (window.innerHeight > window.innerWidth) { // portrait
             fontSize *= 1.1
         }
-
-        console.log({fontSize, resolution: window.innerWidth + 'x' + window.innerHeight})
-        if(main.config && main.config['font-size']){
-            if(main.config['font-size'] > 3) {
-                fontSize += (main.config['font-size'] - 3) * 0.5
-            } else if(main.config['font-size'] < 3) {
-                fontSize -= (3 - main.config['font-size']) * 0.5
+		const multiplier = detectFontSizeMultiplier() // may change on orientationchange or miniplayer        
+        const cssText = `
+            :root {
+                --font-size: ${fontSize}px;
+                --font-scaling: ${multiplier};
             }
-        }
-
-        let cssCode = ` :root { --menu-entry-name-font-size: ${fontSize}px; } `
-        main.css(cssCode, 'theme-font-size')
+        `
+		main.css(cssText, 'theme-font-size', window)
     }
     hideSplashScreen() {
         localStorage.setItem('splash-time-hint', String((new Date()).getTime() - this.splashStartTime))

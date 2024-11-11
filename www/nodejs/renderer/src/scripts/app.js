@@ -7,6 +7,7 @@ import { Clock } from './clock'
 import { css, traceback } from './utils'
 import swipey from 'swipey.js'
 import FFmpegController from '../../../modules/ffmpeg/renderer'
+import { ImageProcessor  } from './image-processor'
 
 var maxAlerts = 8
 
@@ -28,31 +29,6 @@ function openExternalFile(file, mimetype) {
 	} else {
 		window.open(file, '_system')
 	}
-}
-
-function importMomentLocale(locale, cbk) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', '../dist/moment-locale/'+ locale +'.js', true)
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4) {
-            if (xhr.status === 200) {
-                cbk && setTimeout(() => cbk(), 100)
-                window.global = window
-                var content = xhr.responseText.replace(new RegExp('module.export.*='), '')
-                var script = document.createElement('script')
-                script.type = 'text/javascript'
-                try {
-                    script.appendChild(document.createTextNode(content))
-                } catch (e) {
-                    script.text = content
-                }
-                document.head.appendChild(script)
-            } else {
-                console.error('Request failed: ' + xhr.statusText)
-            }
-        }
-    }
-    xhr.send(null)
 }
 
 var hidingBackButton = false
@@ -135,7 +111,7 @@ function handleSwipe(e) {
                 if (main.menu.inPlayer()) {
                     if (main.menu.isExploring()) {
                         if (!main.menu.wrap.scrollTop) {
-                            main.menu.emit('menu-playing', true)
+                            main.emit('menu-playing', true)
                             document.body.classList.remove('menu-playing')
                         }
                     } else {
@@ -228,10 +204,9 @@ const getFontList = () => {
     ].filter(isFontAvailable)
 }
 
-export const initApp = () => {
-    main.css = css
+export const initApp = async () => {
     window.main = main
-
+    main.imp = new ImageProcessor(main)
     main.on('clipboard-write', (text, successMessage) => {
         if (!top.navigator.clipboard) {
             main.osd.show('Your webview doesn\'t supports copying to clipboard.', 'fas fa-exclamation-triangle faclr-red', 'clipboard', 'normal')
@@ -279,7 +254,6 @@ export const initApp = () => {
     console.log('load app')
     menu = new Menu(document.querySelector('#menu'))
     main.menu = menu
-    console.log('load app')
     main.on('sound', (n, v) => menu.sounds.play(n, v))
     menu.on('render', path => {   
         if(menu.lastNavPath !== path) {
@@ -300,7 +274,6 @@ export const initApp = () => {
         }, 0)
     })
 
-    console.log('load app')
     configUpdated([], main.config);
     ([
         {
@@ -349,7 +322,6 @@ export const initApp = () => {
                     }
                 } else if(direction == 'left' && !menu.inSideMenu() && !menu.inModal()) {
                     menu.sideMenu(true)
-                    setTimeout(() => menu.reset(), 250)
                     return true
                 }
             }
@@ -366,7 +338,7 @@ export const initApp = () => {
                     let playing = menu.inPlayer()
                     console.log('OVERSCROLLACTION', playing)
                     if (!playing) {
-                        let n = Array.from(menu.container.querySelectorAll('entry-nav'))[direction == 'down' ? 'shift' : 'pop']()
+                        let n = [...menu.container.querySelectorAll('entry-nav')][direction == 'down' ? 'shift' : 'pop']()
                         menu.focus(n)
                         return true
                     } else if(direction == 'up' || direction == 'left') {
@@ -402,44 +374,25 @@ export const initApp = () => {
             }
         }
     ]).forEach(menu.addSpatialNavigationLayout.bind(menu))
-    console.log('load app')
-    menu.start()
-
-    console.log('load app')
-    menu.on('arrow', (element, direction) => {
-        menu.sounds.play('menu', 7)
-        setTimeout(() => {
-            if (typeof(verticalArrowsUpdate) == 'function') {
-                verticalArrowsUpdate()
-            }
-        }, 0)
-    })
-
-    console.log('load app')
-    menu.on('prompt-start', menu.reset.bind(menu))
-    menu.on('ask-start', menu.reset.bind(menu))
-
-    console.log('load app')
     main.on('streamer-ready', () => {
-        main.streamer.on('show', menu.reset.bind(menu))
+        main.streamer.on('show', () => menu.selected())
         main.streamer.on('state', s => {
             if (s == 'playing' && menu.modalContainer && menu.modalContainer.querySelector('#modal-template-option-wait')) {
                 menu.endModal()
             }
         })
-        main.streamer.on('stop', () => {
+        main.streamer.on('hide', () => {
+            menu.sideMenu(false, 'instant')
+            menu.showWhilePlaying(false)
             if (menu.modalContainer && (
                 menu.modalContainer.querySelector('#modal-template-option-wait') ||
                 menu.modalContainer.querySelector('#modal-template-option-resume')
             )) {
                 menu.endModal()
+            } else {
+                menu.selected(true)
             }
-            menu.showWhilePlaying(false)
-            menu.restoreSelection() || menu.reset()
-            menu.sideMenu(false, 'instant')
         })
-
-        console.log('load app')
         const WinActions = window.capacitor ? AndroidWinActions : ElectronWinActions
         window.winActions = new WinActions(main)
         main.on('open-file', (uploadURL, cbID, mimetypes) => {
@@ -497,11 +450,30 @@ export const initApp = () => {
         }
         parent.Manager && parent.Manager.appLoaded()
     })
+    
+    menu.on('modal-start', () => menu.selected())
+    menu.on('pos-modal-end', () => menu.selected())
+    menu.on('arrow', (element, direction) => {
+        menu.sounds.play('menu', 7)
+        setTimeout(() => {
+            if (typeof(verticalArrowsUpdate) == 'function') {
+                verticalArrowsUpdate()
+            }
+        }, 0)
+    })
+    menu.on('menu-playing', enable => {
+        main.emit('menu-playing', enable)
+        main.idle.reset()
+        main.idle.lock(0.1)
+    })
+
+    menu.on('side-menu', enable => menu.selected(true))
+    main.on('menu-playing', () => menu.showWhilePlaying(true))
+    main.on('menu-playing-close', () => menu.showWhilePlaying(false))
+
     main.localEmit('menu-ready')
     main.emit('menu-ready')
     
-    console.log('load app')
-
     document.querySelector('#menu-playing-close').addEventListener('click', () => {
         menu.showWhilePlaying(false)
     })
@@ -509,16 +481,17 @@ export const initApp = () => {
         menu.showWhilePlaying(true)
     })
 
-    console.log('load app')
     main.omni = new OMNI()
     main.omni.on('left', () => menu.arrow('left'))
     main.omni.on('right', () => menu.arrow('right'))
     main.omni.on('down', () => menu.arrow('down'))
     main.omni.on('up', () => menu.arrow('up'))
 
+    main.omni.on('show', () => menu.sideMenu(false, 'instant'))
+    main.omni.on('hide', () => menu.selected())
+
     menu.on('scroll', y => {
         menu.debug && console.log('menu scroll', y)
-        menu.updateRange(y)
         menuLocationShow()
         verticalArrowsUpdate()
     })
@@ -550,7 +523,6 @@ export const initApp = () => {
     menu.on('focus', menuLocationListener)
     menu.on('render', menuLocationListener)
 
-    console.log('load app')
     var verticalArrowTop = document.querySelector('#home-arrows-top'), verticalArrowBottom = document.querySelector('#home-arrows-bottom')
     verticalArrowTop.addEventListener('click', () => menu.arrow('up'))
     verticalArrowBottom.addEventListener('click', () => menu.arrow('down'))
@@ -560,8 +532,9 @@ export const initApp = () => {
     window.verticalArrowsUpdate = () => {
         const as = menu.currentElements
         if (as.length > (menu.gridLayoutX * menu.gridLayoutY)) {
-            var lastY = (as[as.length - 1].offsetTop) - wrap.scrollTop, firstY = as[0].offsetTop - wrap.scrollTop
-            if (lastY >= wrap.parentNode.offsetHeight) {
+            const lastY = Math.floor((as[as.length - 1].offsetTop + as[as.length - 1].offsetHeight) - wrap.scrollTop), firstY = as[0].offsetTop - wrap.scrollTop
+            console.log('verticalArrowsUpdate', lastY, wrap.parentNode.offsetHeight)
+            if (lastY > wrap.parentNode.offsetHeight) {
                 if (verticalArrows.bottom !== true) {
                     verticalArrows.bottom = true
                     verticalArrowBottom.style.opacity = 'var(--opacity-level-3)'
@@ -590,10 +563,8 @@ export const initApp = () => {
         }
     }
 
-    console.log('load app')
     configUpdated([], config)
 
-    console.log('load app')
     main.hotkeys = new Hotkeys()
     main.hotkeys.start(main.config.hotkeys)
     main.on('config', (keys, c) => {
@@ -601,7 +572,6 @@ export const initApp = () => {
             main.hotkeys.start(c.hotkeys)
         }
     })
-    console.log('load app')
 
     main.clock = new Clock(document.querySelector('.menu-time time'))
 
@@ -618,19 +588,10 @@ export const initApp = () => {
         wrap.addEventListener('mouseenter', () => menu.sideMenu(false))
     }
 
-    console.log('load app')
-    moment.tz.setDefault(parent.Intl.DateTimeFormat().resolvedOptions().timeZone)
-    if (main.lang.locale && !moment.locales().includes(main.lang.locale)) {
-        importMomentLocale(main.lang.locale, () => {
-            moment.locale(main.lang.locale)
-            main.clock.update()
-        })
-    }
     swipey.add(document.body, handleSwipe, { diagonal: false })
 
-    console.log('load app')
     var mouseWheelMovingTime = 0, mouseWheelMovingInterval = 200;
-    ['mousewheel', 'DOMMouseScroll'].forEach(n => {
+    window.capacitor || ['mousewheel', 'DOMMouseScroll'].forEach(n => {
         window.addEventListener(n, event => {
             if (!menu.inPlayer() || menu.isExploring()) return
             let now = (new Date()).getTime()
@@ -648,7 +609,6 @@ export const initApp = () => {
         })
     })
 
-    console.log('load app')
     main.on('share', (title, text, url) => {
         console.log('share', title, text, url)
         if (window.capacitor) {
@@ -663,7 +623,6 @@ export const initApp = () => {
             winActions.openExternalURL('https://megacubo.tv/share/?url=' + encodeURIComponent(url) + '&title=' + encodeURIComponent(title) + '&text=' + encodeURIComponent(text))
         }
     })
-
     main.idle.on('idle', () => {
         if (menu.inPlayer() && !menu.isExploring()) {
             if (document.activeElement != document.body) {
@@ -683,21 +642,7 @@ export const initApp = () => {
     }
     ffmpeg.bind()
 
-    console.log('load app')
     main.localEmit('renderer')
-
-    let woke
-    const wake = () => {
-        if(woke) return
-        woke = true
-        document.body.classList.remove('nav-hint')
-    }
-    document.body.addEventListener('keydown', wake, {once: true})
-    document.body.addEventListener('touchstart', wake, {once: true})
-    setTimeout(() => {
-        woke || document.body.addEventListener('mousemove', wake, {once: true})
-    }, 4000)
-    console.log('load app')
 }
 
 window.onerror = function (message, file, line, column, errorObj) {

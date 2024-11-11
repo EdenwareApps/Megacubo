@@ -13,19 +13,20 @@
             lang = main.lang
         })
         main.waitMain(() => {
-            initApp()
-            const wrap = document.querySelector('wrap')
-            main.menu.on('updated', () => {
-                path = main.menu.path
-                icons = main.menu.icons                
-                const activeKeys = main.menu.currentEntries.map(e => e.key)
-                Array.from(wrap.getElementsByTagName('a')).forEach(e => {
-                    activeKeys.includes(e.getAttribute('key')) || wrap.removeChild(e)
+            initApp().catch(console.error).finally(() => {
+                const wrap = document.querySelector('wrap')
+                main.menu.on('updated', () => {
+                    path = main.menu.path
+                    icons = main.menu.icons                
+                    const activeKeys = main.menu.currentEntries.map(e => e.key);
+                    [...wrap.getElementsByTagName('a')].forEach(e => {
+                        activeKeys.includes(e.getAttribute('key')) || wrap.removeChild(e)
+                    })
+                    entries = main.menu.currentEntries
+                    if(!main.menu.path) {
+                        headerActions = main.menu.currentEntries.filter(e => e.side)
+                    }
                 })
-                entries = main.menu.currentEntries
-                if(!main.menu.path) {
-                    headerActions = main.menu.currentEntries.filter(e => e.side)
-                }
             })
         })
     })
@@ -308,7 +309,7 @@ body.video.menu-playing #menu .menu-omni {
     text-align: left;
     align-items: center;
     margin-right: calc(var( --padding) * 2);
-    padding: var(--menu-padding) calc(2 * var(--menu-padding));
+    padding: var(--menu-padding) var(--menu-padding-2x);
     vertical-align: middle;
     display: flex;
     flex-direction: row;
@@ -398,7 +399,7 @@ body:not(.portrait) #menu content a.entry-2x {
 .menu-omni-submit {
     justify-content: center;
     align-items: center;
-    height: calc(var(--menu-entry-name-font-size) + (2 * var(--menu-padding)));
+    height: calc(var(--menu-entry-name-font-size) + var(--menu-padding-2x));
     padding: 0 var(--padding);
 }
 #menu .menu-location-icon img {
@@ -406,7 +407,6 @@ body:not(.portrait) #menu content a.entry-2x {
     max-height: var(--padding-2x);
     object-fit: contain;
     object-position: center;
-    transform: rotateZ(90deg);
     transform-origin: center;
     height: var(--menu-entry-name-font-size);
     vertical-align: bottom;
@@ -566,8 +566,13 @@ div#home-arrows > div > * {
     grid-column-start: auto;
     grid-column-end: auto;
 }
-#menu .entry-loading {
-    opacity: var(--opacity-level-2);
+#menu wrap a.entry-busy .entry-wrapper > span {
+    animation: fading-pulse 1.5s infinite ease-out;
+}
+@keyframes fading-pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
 }
 #menu .entry-icon-image i, #menu content a span.entry-name, #menu content a span.entry-details {
     display: block;
@@ -593,20 +598,33 @@ div#home-arrows > div > * {
     opacity: 0.65;
 }
 #menu content a .entry-icon-image {
-    width: 92%;
-    height: 64%;
-    display: flex;
+    width: var(--menu-entry-icon-width);
+    height: var(--menu-entry-icon-height);
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     border-radius: var(--radius);
     position: absolute;
     bottom: 4%;
     left: 4%;
+    overflow: hidden;
+    -webkit-text-size-adjust: none;
+    text-size-adjust: none;
+}
+#menu content a.entry-2x .entry-icon-image {
+    width: calc(2 * var(--menu-entry-icon-width));
 }
 #menu content a .entry-icon-image i {
     width: auto;
     height: auto !important;
-    font-size: calc(var(--menu-entry-icon-height) * 0.9);
+    font-size: var(--menu-entry-icon-innersize);
+    line-height: normal;
+    -webkit-text-size-adjust: none;
+    text-size-adjust: none;
+}
+body.portrait #menu content a .entry-icon-image i {
+    font-size: calc((var(--menu-entry-height) * 0.65) * var(--font-scaling)) !important;
+    margin-top: var(--padding);
 }
 #menu content a .entry-icon-image img {
     height: auto !important;

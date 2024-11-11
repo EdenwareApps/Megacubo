@@ -294,7 +294,7 @@ export class Hotkeys {
         // ENTER PRESSED true true false <button class=​"menu selected">​…​</button>​ true false -1
         console.log('ENTER PRESSED', main.menu.inPlayer(), main.menu.isExploring(), this.arePlayerControlsVisible(), document.activeElement, main.streamer.active, main.idle.isIdle, document.body.className.indexOf('idle'))
         if (main.menu.inPlayer()) {
-            let e = main.menu.selected(false)
+            let e = main.menu.selected()
             if (e) {
                 if (main.idle.isIdle) {
                     if (main.streamer.state != 'paused') {

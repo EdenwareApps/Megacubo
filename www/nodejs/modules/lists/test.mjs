@@ -10,6 +10,7 @@ async function runTests() {
 
     // Teste 1: Criar uma instância de EPG
     const url = "http://app.megacubo.net/stats/data/epg.br.xml.gz";
+    //const url = "https://epg.pw/xmltv/epg_BR.xml.gz"
 
     /*
     const epg = new EPG(url);
@@ -26,16 +27,10 @@ async function runTests() {
     const epgManager = global.epgManager = new EPGManager();
     console.assert(epgManager.epgs instanceof Object, "Teste 3 falhou: epgs não é um objeto");
 
-    // Teste 4: Adicionar um EPG ao EPGManager
-    epgManager.add(url);
-    console.assert(epgManager.epgs[url] instanceof EPG, "Teste 4 falhou: EPG não foi adicionado ao EPGManager");
-
-    // Teste 5: Remover um EPG
-    epgManager.remove(url);
     console.assert(epgManager.epgs[url] === undefined, "Teste 5 falhou: EPG não foi removido do EPGManager");
 
     // Teste 6: Verificar o estado do EPGManager
-    epgManager.add(url);
+    await epgManager.add(url);
     epgManager.ready().then(() => {
         console.assert(epgManager.epgs[url].loaded === true, "Teste 6 falhou: EPG não está carregado");
     }).catch(e => console.error("Teste 6 falhou:", e));

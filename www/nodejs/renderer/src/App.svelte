@@ -15,6 +15,8 @@
 </div>
 <style global>
 :root {
+    --font-size: 16px;
+    --font-scaling: 1;
     --playlist-width: 25vw;
     --main-icons-width: 5vw;
     --padding: 1vw;
@@ -42,7 +44,9 @@
     --entries-per-row: 2;
     --entries-per-col: 2;
     --menu-padding: calc(var(--menu-height) * 0.01);
+    --menu-padding-2x: calc(var(--menu-height) * 0.02);
     --menu-entry-width: calc((var(--menu-width) - var(--menu-scrollbar-width)) / var(--entries-per-row));
+    --menu-entry-name-font-size: calc(var(--font-size) * var(--font-scaling));
     --menu-entry-details-font-size: calc(var(--menu-entry-name-font-size) * 0.8);
     --menu-scrollbar-width: 12px;
     --menu-scrollbar-color: rgba(255, 255, 255, 0.25);
@@ -50,8 +54,9 @@
     --menu-content-border-size: calc(var(--menu-height) * 0.005);
     --menu-content-vertical-padding: calc((var(--menu-height) * 0.025) - (2 * var(--menu-content-border-size)));
     --menu-entry-height: calc((var(--menu-height) - 1px) / var(--entries-per-col));
-    --menu-entry-icon-width: calc(0.92 * (var(--menu-entry-width) - (2 * var(--menu-padding))));
-    --menu-entry-icon-height: calc(var(--menu-entry-height) * 0.625);
+    --menu-entry-icon-width: calc((0.92 * var(--menu-entry-width)) - var(--menu-padding-2x));
+    --menu-entry-icon-height: calc((0.62 * var(--menu-entry-height)) - var(--menu-padding-2x));
+    --menu-entry-icon-innersize: calc((0.92 * var(--menu-entry-icon-height)) * var(--font-scaling));
     --font-color: #ffffff;
     --menu-padding-top: 0px;
     --menu-padding-bottom: 0.5vmin;
@@ -68,11 +73,11 @@
     --seekbar-height: calc(var(--padding) * 3);
 }
 ::-webkit-scrollbar {
-    height: 12px;
+    height: var(--menu-scrollbar-width);
     width: var(--menu-scrollbar-width);
 }
 ::-webkit-scrollbar-thumb {
-    border-radius: 1ex;
+    border-radius: 1vmax;
     background: var(--menu-scrollbar-color);
     box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
 }
@@ -99,7 +104,6 @@ html, body {
     border-width: 0;
     width: 100vw;
     height: 100vh;
-    font-size: 5vh;
     overflow: hidden;
     box-sizing: border-box;
 }

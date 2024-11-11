@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application 
-        android:extractNativeLibs="true" 
-        android:allowBackup="true"
+        android:allowBackup="true" 
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -21,7 +20,8 @@
             android:exported="true"
             android:supportsPictureInPicture="true"
             android:resizeableActivity="true" 
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustResize" 
+            android:windowLayoutInDisplayCutoutMode="always">
             <intent-filter android:label="Megacubo">
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -50,23 +50,32 @@
             android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
-        <service android:name="de.appplant.cordova.plugin.background.ForegroundService" />
+        <service 
+            android:name="de.appplant.cordova.plugin.background.ForegroundService" 
+            android:foregroundServiceType="dataSync" android:exported="false" />
+        <receiver
+            android:name="de.appplant.cordova.plugin.background.BackgroundMode"
+            android:enabled="true" android:exported="false">
+            <intent-filter>
+                <action android:name="com.backgroundmode.closetv.megacubo.app" />
+            </intent-filter>
+        </receiver>
     </application>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.faketouch" android:required="false" />
-    <uses-sdk android:minSdkVersion="24" />
+    <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="34" />
     <supports-screens
         android:anyDensity="true"
         android:largeScreens="true"

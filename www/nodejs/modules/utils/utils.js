@@ -2,9 +2,46 @@ import sanitizeFilename from 'sanitize-filename'
 import np from '../network-ip/network-ip.js'
 import os from 'os';
 import { URL } from 'url'
+import { inWorker } from '../paths/paths.js'
 import fs from 'fs'
-import moment from 'moment-timezone'
+import path from 'path'
+import dayjs from 'dayjs'
 import clone from 'fast-json-clone'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone' // dependent on utc plugin
+import relativeTime from 'dayjs/plugin/relativeTime'
+import localizedFormat from 'dayjs/plugin/localizedFormat'
+import { getDirname } from 'cross-dirname'
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
+dayjs.extend(relativeTime)
+dayjs.extend(localizedFormat)
+
+const originalLocale = dayjs.locale.bind(dayjs)
+dayjs.locale = async locales => {
+    if (typeof(locales) == 'string') {
+        locales = [locales]
+    }
+    if(inWorker) return // fails to load language in worker (android) as it tries to require 'dayjs' again
+    for (const locale of locales) {
+        const file = path.join(getDirname(), 'dayjs-locale', locale +'.js')
+        try {
+            console.log(`Loading locale ${file}`)
+            const data = await import(file)
+            if(!data.default) {
+                throw new Error('No default export found')
+            }
+            const ret = originalLocale(data.default)
+            console.log(`Locale ${locale} loaded from ${file}`)
+            break
+        } catch(err) {
+            console.error(`Error loading locale ${locale} from ${file}:`, err)
+        }
+    }
+}
+
+export const moment = dayjs
 
 if (!global.Promise.allSettled) {
     global.Promise.allSettled = ((promises) => Promise.all(promises.map(p => p
@@ -15,6 +52,7 @@ if (!global.Promise.allSettled) {
         status: 'rejected', reason
     })))))
 }
+
 if (!global.String.prototype.format) {
     Object.defineProperty(global.String.prototype, 'format', {
         enumerable: false,
@@ -343,7 +381,6 @@ export const ucFirst = (str, keepCase) => {
     });
 }
 export const ts2clock = time => {
-    let locale = undefined, timezone = undefined;
     if (typeof(time) == 'string') {
         time = parseInt(time)
     }
@@ -636,5 +673,3 @@ export const findSyncBytePosition = (buffer, from = 0) => {
     }    
     return -1  // return -1 if no valid sync byte is found
 }
-
-

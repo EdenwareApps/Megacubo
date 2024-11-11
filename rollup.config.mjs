@@ -11,6 +11,7 @@ import { getBabelOutputPlugin } from '@rollup/plugin-babel';
 import babelConfig from './babel.config.json' with { type: 'json'};
 import babelRendererConfig from './babel.config.renderer.json' with { type: 'json'};
 import replace from '@rollup/plugin-replace';
+import copy from 'rollup-plugin-copy';
 // import { visualizer } from 'rollup-plugin-visualizer';
 
 const plugins = [
@@ -52,6 +53,18 @@ const pluginsMain = [
     preferBuiltins: false // form-data
   }),
   commonjs({sourceMap: false}),
+  copy({
+    targets: [
+      {
+        src: 'node_modules/dayjs/locale/*.js',
+        dest: 'www/nodejs/dist/dayjs-locale'
+      },
+      {
+        src: 'node_modules/create-desktop-shortcuts/src/windows.vbs',
+        dest: 'www/nodejs/dist'
+      }
+    ]
+  }),
   json({compact: true}),
   getBabelOutputPlugin(babelConfig), // transform esm to cjs here
   replace({
@@ -207,16 +220,6 @@ const outputs = [
     external: []
   },
   {
-    input: 'www/nodejs/modules/jimp-worker/jimp-worker.js',
-    output: {
-      format: 'cjs',
-      file: 'www/nodejs/dist/jimp-worker.js',
-      inlineDynamicImports: true
-    },
-    plugins,
-    external: []
-  },
-  {
     input: 'www/nodejs/modules/lists/epg-worker.js',
     output: {
       format: 'cjs',
@@ -262,24 +265,5 @@ if(fs.existsSync('www/nodejs/modules/premium/premium.js')) {
     ]
   })
 }
-
-async function copyFiles() {
-  await fs.promises.copyFile('node_modules/create-desktop-shortcuts/src/windows.vbs', 'www/nodejs/dist/windows.vbs').catch(console.error)
-  await fs.promises.mkdir('www/nodejs/dist/moment-locale', {recursive: true}).catch(console.error)
-  for(const file of (await fs.promises.readdir('node_modules/moment/dist/locale'))) {
-    let err
-    const content = await fs.promises.readFile('node_modules/moment/dist/locale/'+ file).catch(e => err = e)
-    if(err) {
-      console.error(err)
-    } else {
-      await fs.promises.writeFile('www/nodejs/dist/moment-locale/'+ file, String(content).
-        replace('import moment from \'../moment\';', ''). // will use global moment
-        replace('export default', 'module.exports =')
-      ).catch(console.error)
-    }
-  }  
-}
-
-await copyFiles().catch(console.error)
 
 export default outputs

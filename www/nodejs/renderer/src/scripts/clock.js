@@ -11,42 +11,50 @@ export class Clock {
         }, startUpdatingAfter * 1000)
     }
     update(){
-        this.element.innerText = moment().format('LT')
+        const lang = main.lang?.countryCode || 'en'
+        const time = (new Date()).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
+        this.element.innerText = time
     }
     humanize(seconds, zeroMeansDisabled) {
-        const duration = moment.duration(seconds, 'seconds')
-        const days = duration.days()
-        const hours = duration.hours()
-        const minutes = duration.minutes()
-        const secs = duration.seconds()
+        const days = Math.floor(seconds / 86400) // 86400 seconds in a day
+        const hours = Math.floor((seconds % 86400) / 3600) // 3600 seconds in an hour
+        const minutes = Math.floor((seconds % 3600) / 60) // 60 seconds in a minute
+        const secs = seconds % 60
+
         let message = ''
-        if (days == 1) {
+    
+        if (days === 1) {
             message += main.lang.X_DAY.format(days) + ', '
         } else if (days > 1) {
             message += main.lang.X_DAYS.format(days) + ', '
         }
-        if (hours == 1) {
+    
+        if (hours === 1) {
             message += main.lang.X_HOUR.format(hours) + ', '
         } else if (hours > 1) {
             message += main.lang.X_HOURS.format(hours) + ', '
         }
-        if (minutes == 1) {
+    
+        if (minutes === 1) {
             message += main.lang.X_MINUTE.format(minutes) + ', '
         } else if (minutes > 1) {
             message += main.lang.X_MINUTES.format(minutes) + ', '
         }
-        if (secs == 1) {
+    
+        if (secs === 1) {
             message += main.lang.X_SECOND.format(secs) + ', '
         } else if (secs > 1) {
             message += main.lang.X_SECONDS.format(secs) + ', '
-        } else if(!message) {
-            if(zeroMeansDisabled){
+        } else if (!message) {
+            if (zeroMeansDisabled) {
                 message = main.lang.DISABLED
             } else {
                 message = main.lang.X_SECONDS.format(secs)
             }
         }
+    
+        // Remove the trailing comma and space, if any
         message = message.replace(/,\s*$/, '')
         return message
-    }
+    }    
 }

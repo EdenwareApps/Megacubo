@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events'
 import { Sounds } from './sound'
 import { main } from '../bridge/renderer'
-import { css } from '../../renderer/src/scripts/utils'
+import { traceback } from '../../renderer/src/scripts/utils'
 
 class MenuURLInputHelper {
     constructor(){
@@ -102,6 +102,16 @@ class MenuIcons extends MenuBase {
 
 			let changed
 			const isCover = !data.alpha
+			
+			if(!data.force) {
+				if(this.icons[fullPath].cover === false && isCover) { // prefer alpha icons
+					return
+				}
+				if(this.icons[fullPath].cover === isCover) { // ignore updates with same type
+					return
+				}
+			}
+
 			if(this.icons[fullPath].cover != isCover) {
 				this.icons[fullPath].cover = isCover
 				changed = true
@@ -114,7 +124,7 @@ class MenuIcons extends MenuBase {
 			if(changed) {
 				let entries = this.currentEntries.map(e => this.prepareEntry(e))
 				this.applyCurrentEntries(entries)
-				this.uiUpdate(false)
+				this.emit('updated')
 			}
 		})
 	}
@@ -123,72 +133,75 @@ class MenuIcons extends MenuBase {
 class MenuSelectionMemory extends MenuIcons {
 	constructor(container){
 		super(container)
-		this.selectionMemory = {}
-		this.on('open', () => this.saveSelection())
-		this.on('focus', () => this.saveSelection())
-		this.on('scroll', () => this.saveSelection())
-        this.on('pos-modal-end', this.restoreSelection.bind(this))
+		this.selectionMemory = {
+			'': {
+				default: {scroll: 0, index: 0}
+			}
+		}
+		this.on('open', () => this.save())
+		this.on('focus', () => this.save())
 		main.on('current-search', (terms, type) => {
             this.currentSearch = JSON.stringify({terms, type})
         })
+		this.once('render', () => {
+			this.scrollTop(0)
+			this.save()
+			this.on('scroll', () => this.selected(true))
+		})
 	}
-	saveSelection(scrollTop) {
+	save(scrollTop) {
 		if(this.rendering) return
-		this.debug && console.error('saveSelection', this.wrap.scrollTop, this.selectedIndex, this.path)
-		const n = this.currentViewName()
+		this.debug && console.error('save', this.wrap.scrollTop, this.selectedIndex, this.path)
+		const { level } = this.activeSpatialNavigationLayout()
 		if(!this.selectionMemory[this.path]) this.selectionMemory[this.path] = {}
-		this.selectionMemory[this.path][n] = {
-			scroll: n == 'default' ? (typeof(scrollTop) == 'number' ? scrollTop : this.wrap.scrollTop) : 0,
+		this.selected(true) // force a entry to be selected in current scroll view
+		this.selectionMemory[this.path][level] = {
+			scroll: level == 'default' ? (typeof(scrollTop) == 'number' ? scrollTop : this.wrap.scrollTop) : 0,
 			index: this.selectedIndex,
 			search: this.currentSearch
 		}
 	}
-	currentViewName() {
-		return this.activeSpatialNavigationLayout().level
-	}
-    restoreSelection(){
+    reset(){
 		if(this.rendering) return
-		this.debug && console.log('restoreSelection', this.path)
-		const n = this.currentViewName()
+		this.debug && console.log('reset', this.path)
 		const selected = this.selected()
 		if(selected && selected.id == 'menu-search') return
-        let data = {scroll: 0, index: this.path ? 1 : 0}
+		const { level } = this.activeSpatialNavigationLayout()
+        const i = (level == 'default' && this.path) ? 1 : 0
+		let remembered, data = {scroll: 0, index: i}
 		const selectables = this.selectables()
-		if(typeof(this.selectionMemory[this.path]) != 'undefined' && this.selectionMemory[this.path][n]) {
+		if(typeof(this.selectionMemory[this.path]) != 'undefined' && this.selectionMemory[this.path][level]) {
 			const inSearch = this.path.includes(main.lang.SEARCH) || this.path.includes(main.lang.MORE_RESULTS) || this.path.includes(main.lang.SEARCH_MORE)
-			const inSameSearch = inSearch && this.currentSearch == this.selectionMemory[this.path][n].search
+			const inSameSearch = inSearch && this.currentSearch == this.selectionMemory[this.path][level].search
 			if(!inSearch || inSameSearch) {
-				data = this.selectionMemory[this.path][n]
-				if(data.index == 0 && this.path){
-					data.index = 1
-				}
+				remembered = true
+				data = this.selectionMemory[this.path][level]
 			}
         }
 		let ret
-        if(this.activeSpatialNavigationLayout().level == 'default' && this.currentElements[data.index]){
-			let range = this.viewportRange(data.scroll)
+        if(level == 'default' && this.currentElements[data.index] && remembered) {
+			const range = this.viewportRange(data.scroll)
 			if(data.index < range.start || data.index >= range.end) {
 				data.index = range.start
 			}
 			this.focus(this.currentElements[data.index], true)
 			const start = this.wrap.scrollTop, end = this.wrap.scrollTop + this.wrap.clientHeight
         	if(data.scroll < start || data.scroll > end) {
-				this.scrollTop(data.scroll, true)
+				this.scrollTop(data.scroll)
 			}
 			ret = true
-        } else {
-			selectables.includes(selected) || this.reset()
+        } else if(!selectables.includes(selected)) {
+			this.focus(selectables[i])
 		}
 		return ret
     }
-	scrollTop(y, raw){
-        if(typeof(y) == 'number') {
+	scrollTop(y, animate){
+        if(typeof(y) == 'number' && this.wrap.scrollTop != y) {
 			this.wrap.scroll({
 				top: y,
 				left: 0,
-				behavior: raw ? 'instant' : 'smooth'
+				behavior: animate ? 'smooth' : 'instant'
 			})
-			this.saveSelection(y)
 		}
 		return this.wrap.scrollTop
 	}
@@ -207,7 +220,8 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
 			if(this.rendering) return setTimeout(scrollEndTrigger, 100)
 			if(this.lastScrollTop !== this.wrap.scrollTop){
 				this.debug && console.log('menu.scroll', this.rendering, this.wrap.scrollTop)
-				this.lastScrollTop = this.wrap.scrollTop
+				this.lastScrollTop = this.wrap.scrollTop				
+				this.updateRange(this.wrap.scrollTop)
 				this.emit('scroll', this.wrap.scrollTop)
 			}
 		}
@@ -225,11 +239,7 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
 		window.addEventListener('resize', resizeListener, { capture: true })
 		window.addEventListener('orientationchange', resizeListener, { capture: true })
 		screen.orientation && screen.orientation.addEventListener('change', resizeListener)
-		this.once('render', this.adjustIconSize.bind(this))
-		setTimeout(() => {
-			this.setGridLayout(4, 3, 1, 8)
-			resizeListener() // to apply initial icons size
-		}, 0)
+		setTimeout(resizeListener, 0)
 	}
     setGridLayout(x, y, px, py){
         this._gridLayoutX = x
@@ -253,44 +263,13 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
         const verticalLayout = main.config['view-size'][portrait ? 'portrait' : 'landscape'].x == 1
         document.body.classList[wide ? 'add' : 'remove']('menu-wide')
 		document.body.classList[verticalLayout ? 'add' : 'remove']('portrait')
-		this.adjustIconSize()
 		this.sideMenuSync(true)
-		window.capacitor && plugins.megacubo.updateScreenMetrics()
-    }
-	adjustIconSize(){
-		let e = document.querySelector('a:not(.entry-2x) .entry-icon-image')
-		if(e){
-			let metrics = e.getBoundingClientRect()
-			if(metrics && metrics.width){
-				let min = Math.min(metrics.width, metrics.height) * 0.85
-				css(`
-
-				#menu content a .entry-icon-image i {
-    				font-size: ${min}px;
-    				line-height: ${metrics.height}px;
-    				min-height: ${metrics.height}px;
-				}
-
-				`, 'entry-icon-i')
-			}
-		}
 	}
     isVisible(e) {
         return e.offsetParent !== null
     }
     selector(s){
-        return Array.from(document.querySelectorAll(s)).filter(this.isVisible)
-    }
-    start(){        
-		document.body.addEventListener('focus', e => { // use addEventListener instead of on() here for capturing
-			setTimeout(() => {
-				if (document.activeElement == document.body) {
-					this.debug && console.log('body focus, menu.reset', e)
-					this.reset()
-				}
-			}, 100)
-		}, { passive: true })
-        this.reset()
+        return [...document.querySelectorAll(s)].filter(this.isVisible)
     }
     updateElement(element){ // if layout has changed, find the actual corresponding element
         if(!element.parentNode){
@@ -327,65 +306,31 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
 			element.parentNode && element.parentNode.classList && element.parentNode.classList.add(this.parentClassName)
 		}
 	}
-    findSelected(deep){
-        let elements, element = document.activeElement
-		if(element == document.body) {
-			element = document.querySelector('.'+ this.className)
-		}
-		if(!deep && element) return element
-        if(element && element != document.body){ // not explicitly selected
-            elements = this.selectables() // check if is any explicitly selected??
-            let selected = elements.filter(e => e.classList.contains(this.className))
-            if(selected.length){
-                element = selected[0] // yes, that's one explicitly selected
-            } else {
-                element = this.updateElement(element) // find this element in current layout, if it's not
-                if(!element.parentNode || !elements.includes(element)){ // not found, we'll reset so
-                    element = false
-                }
-            }
-        }
-        if(!element || element == document || element == document.body){
-            if(typeof(elements) == 'undefined'){
-                elements = this.selectables()
-            }
-            let selected
-			if(elements.length){
-				try { // $.filter was triggering errors on some TV boxes, somehow
-					selected = elements.filter(e => e.classList.contains(this.className))
-				} catch(e) {}
-			}
-            if(selected && selected.length){
-                element = selected[0] // yes, that's one explicitly selected
-            } else {
-                element = elements[0]
-            }
-        }
+	selected(force){
+        const selectables = this.selectables() // check if is any explicitly selected??
+        let element = selectables.find(e => (e.classList.contains(this.className) || e == document.activeElement))
 		if(element && element.id == 'menu-omni-input') {
 			element = element.parentNode
+		} else if(!element) {
+			const { level } = this.activeSpatialNavigationLayout()
+			if(this.selectionMemory[this.path] && this.selectionMemory[this.path][level]) {
+				const { index } = this.selectionMemory[this.path][level]
+				element = selectables.find(e => e.tabIndex == index)
+			}
+			if(!element) {
+				if (level !== 'default' || force) {
+					const i = (level == 'default' && this.path && !this.wrap.scrollTop) ? 1 : 0
+					element = selectables[i]
+				}
+			}
 		}
-        if(this.debug){
-            console.log('findSelected', element, elements)
-        }
-        return element
-    } 
-	selected(deep){
-        let element = this.findSelected(deep)
-        if(element){
-        	element.classList.contains(this.className) || this.updateSelectedElementClasses(element)
-            element.focus({preventScroll: true})
-        }
+        element && this.focus(element)
         return element
     }
     focus(a, preventScroll){
-		if(this.rendering) return
-        let ret = null        
         this.debug && console.error('focus', a, this.wrap.scrollTop)
-        if(!a) {
-            a = this.entries().shift()
-        }
-		const currentLayer = this.activeSpatialNavigationLayout().level
-		if(a && (a != document.querySelector('.'+ this.className))) {
+        if(!a) return
+		if(!a.classList.contains(this.className)) {
             if(this.debug){
                 console.log('FOCUSENTRY', a)
             }
@@ -401,14 +346,13 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
             } else {
                 a.focus({preventScroll: true})
             }
-            let n = a.querySelector('input:not([type="range"]), textarea')
-            n && n.focus({preventScroll: true})
 			preventScroll || a.scrollIntoViewIfNeeded({behavior: 'auto', block: 'nearest', inline: 'nearest'})
+            const n = a.querySelector('input:not([type="range"]), textarea')
+            n && n.focus({preventScroll: true})
             this.emit('focus', a, index)
         } else {
-			this.debug && console.log('Already focused', {currentLayer, a, selected: document.querySelector('.'+ this.className), scrollLeft: this.container.scrollLeft, scrollTop: this.wrap.scrollTop})
+			this.debug && console.log('Already focused', {a, selected: document.querySelector('.'+ this.className), scrollLeft: this.container.scrollLeft, scrollTop: this.wrap.scrollTop})
 		}
-        return ret
     }  
     activeSpatialNavigationLayout(){
         let ret = {selector: 'body', level: 'default'} // placeholder while no views are added
@@ -422,25 +366,6 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
             }
         })
         return ret
-    }
-    reset(){        
-        if(this.debug){
-            console.log('reset')
-        }
-        let elements, layout = this.activeSpatialNavigationLayout()
-        if(typeof(layout.resetSelector) == 'function'){
-            elements = layout.resetSelector()
-        } else {
-            elements = this.entries()
-        }
-        if(elements.length && !elements.includes(this.selected())){
-            elements = elements.filter(e => e.getAttribute('data-type') != 'back').slice(0)
-            if(elements.length){
-                let _sound = this.sounds
-                this.focus(elements[0])
-                this.sounds = _sound
-            }
-        }
     }
     entries(noAsides){
 		let e = [], layout = this.activeSpatialNavigationLayout(), sel = layout.selector
@@ -738,7 +663,7 @@ class MenuModal extends MenuBBCode {
 		document.body.classList.add('modal')
 		mandatory && document.body.classList.add('modal-mandatory')
 		this.inputHelper.start()
-		this.reset()
+		this.emit('modal-start')
 	}
 	endModal(cancel){
 		if(this.inModal()){
@@ -792,20 +717,17 @@ class MenuPlayer extends MenuModal {
 	isExploring(){
 		return !this.inModal() && (!this.inPlayer() || document.body.classList.contains('menu-playing'))
 	}
-	showWhilePlaying(enable, ignoreFocus) {
+	showWhilePlaying(enable) {
 		if (enable) {
-			main.emit('menu-playing', true)
-			document.body.classList.add('menu-playing')
-			if (!ignoreFocus) {
-				setTimeout(() => {
-					this.restoreSelection() || this.reset()
-				}, 100)
+			if(!document.body.classList.contains('menu-playing')) {
+				document.body.classList.add('menu-playing')
+				this.emit('menu-playing', true)
 			}
 		} else {
-			main.emit('menu-playing', false)
-			document.body.classList.remove('menu-playing')
-			main.idle.reset()
-			main.idle.lock(0.1)
+			if(document.body.classList.contains('menu-playing')) {
+				document.body.classList.remove('menu-playing')
+				this.emit('menu-playing', false)
+			}
 		}
 	}
 }
@@ -1117,7 +1039,7 @@ class MenuDialog extends MenuDialogQueue {
 					}
 				} else if(e.template == 'message') {						
 					if(e.text.includes('<i ')) {
-						Array.from(m.querySelectorAll('.modal-template-message i')).forEach(s => {
+						m.querySelectorAll('.modal-template-message i').forEach(s => {
 							s.parentNode.style.display = 'block'
 						})						
 					}
@@ -1302,13 +1224,9 @@ class MenuPrompt extends MenuOpenFile {
 			}
 			if(ret !== false){
 				this.endModal()
-				this.emit('prompt-end', id)
 			}
 		}, 'submit')
 		this.inputHelper.stop()
-
-		this.emit('prompt-start')
-
 		p = this.modalContent.querySelector('#modal-template-option-submit')
 		if(p){
 			p.addEventListener('keypress', (event) => {
@@ -1545,7 +1463,7 @@ class MenuStatusFlags extends MenuSlider {
 	}
 	processStatusFlags(){
 		this.currentEntries.map(e => this.statusAddHTML(e))
-		this.uiUpdate(false)
+		this.emit('updated')
 	}
 }
 
@@ -1582,7 +1500,7 @@ class MenuNav extends MenuStatusFlags {
 		const n = document.body.classList.contains('side-menu')
 		if(c != n) {
 			document.body.classList[c ? 'add' : 'remove']('side-menu')
-			this.selected(true) // update current selection
+			this.emit('side-menu', c)
 		}
 	}
 	sideMenu(enable, behavior='smooth') {
@@ -1618,19 +1536,6 @@ export class Menu extends MenuNav {
 			console.error(e)
 		}
 		console.log('menu init')
-		main.on('menu-playing', () => {			
-			if(!document.body.classList.contains('menu-playing')){
-				document.body.classList.add('menu-playing')
-				main.emit('menu-playing', true)
-				setTimeout(() => this.reset(), 100)
-			}
-		})
-		main.on('menu-playing-close', () => {			
-			if(document.body.classList.contains('menu-playing')){
-				document.body.classList.remove('menu-playing')
-				main.emit('menu-playing', false)
-			}
-		})
 		main.on('render', (entries, path, icon) => {
 			this.render(entries, path, icon)
 		})
@@ -1650,7 +1555,6 @@ export class Menu extends MenuNav {
 		this.currentEntries = []
 		this.currentElements = []
 		this.range = {start: 0, end: 99}
-		this.ranging = false
 		main.on('trigger', data => {
 			if(this.debug){
 				console.warn('TRIGGER', data)
@@ -1660,9 +1564,18 @@ export class Menu extends MenuNav {
 			})
 		})
 		main.on('menu-busy', state => {
-			this.busy = state
+			this.busy = state !== false
 			document.querySelector('.menu-busy').style.display = this.busy ? 'flex' : 'none'
 			document.querySelector('.menu-time time').style.display = this.busy ? 'none' : 'flex'
+			if(state) {
+				for(const path of state) {
+					this.get({path}).forEach(e => {
+						e.classList.add('entry-busy')
+					})
+				}
+			} else {
+				this.wrap.querySelectorAll('.entry-busy').forEach(e => e.classList.remove('entry-busy'))
+			}
 		})
 		console.log('menu init')		                  
 	}
@@ -1691,40 +1604,47 @@ export class Menu extends MenuNav {
 		return diff
 	}
 	render(entries, path, icon){
-		this.debug && console.log('menu render', path, icon, this.wrap.scrollTop)
+		this.debug && console.log('menu render1', path, this.wrap.scrollTop)
 		this.rendering = true
-		let prevPath = this.path, navigated = path == this.path
+		let prevPath = this.path, navigated = path !== this.path
+		this.debug && console.log('menu render2', path, this.wrap.scrollTop)
 		entries = entries.map(e => this.prepareEntry(e))
 		let changed = this.applyCurrentEntries(entries)
+		this.debug && console.log('menu render3', path, this.wrap.scrollTop)
 		this.emit('pre-render', path, this.path)
 		this.path = path
-		changed && this.uiUpdate(navigated, true)
+		this.debug && console.log('menu render4', path, this.wrap.scrollTop)
+		let scrollTop = this.wrap.scrollTop
+		if (changed) {
+			if(navigated) {
+				scrollTop = this.selectionMemory?.[this.path]?.default?.scroll || 0
+				this.debug && console.log('menu render4.5', path, this.wrap.scrollTop)
+				this.scrollTop(scrollTop)
+			}
+			this.emit('updated')
+			this.updateRange(scrollTop)
+		}
+		const unscroll = event => {
+			if(event) {
+				event.stopPropagation()
+				event.preventDefault()
+			}
+			if (this.wrap.scrollTop != scrollTop) {
+				this.wrap.scrollTop = scrollTop
+			}
+		}
+		this.wrap.addEventListener('scroll', unscroll) // lock scrolling during html updates to prevent content jumping
+		this.debug && console.log('menu render5', path, this.wrap.scrollTop)
 		setTimeout(() => { // wait a bit to truste the browser to render the elements
-			this.currentElements = Array.from(this.wrap.getElementsByTagName('a'))
+			this.wrap.removeEventListener('scroll', unscroll)
+			unscroll()
+			this.debug && console.log('menu render6', path, this.wrap.scrollTop)
+			this.currentElements = [...this.wrap.getElementsByTagName('a')]
 			this.has2xEntry = this.currentElements.slice(0, 2).some(e => e.classList.contains('entry-2x'))
 			this.rendering = false
-			if(navigated) {
-				this.restoreSelection() // keep it in this timer, or the hell gates will open up!
-			} else {
-				this.selected() // force finding and set it as 'selected' if needed
-			}
 			this.emit('render', this.path, icon, prevPath)
-			this.debug && console.log('menu rendered', path, icon, this.wrap.scrollTop)
+			this.debug && console.log('menu rendered7', path, this.wrap.scrollTop)
 		}, 0)
-	}
-	uiUpdate(navigated, trusted){
-		if(trusted !== true && this.rendering) return
-		let targetScrollTop = 0, path = this.path
-		if(!navigated){
-			targetScrollTop = this.wrap.scrollTop
-		} else if(typeof(this.selectionMemory[path]) != 'undefined' && this.selectionMemory[path].default) {
-			targetScrollTop = this.selectionMemory[path].default.scroll
-		}
-		this.wrap.style.minHeight = (targetScrollTop + this.wrap.offsetHeight) + 'px' // avoid scrolling
-		this.emit('updated')
-		this.scrollTop(targetScrollTop, true)
-		this.wrap.style.minHeight = 0
-		this.getRange(targetScrollTop)
 	}
 	applyCurrentEntries(entries) {
 		let changed
@@ -1782,73 +1702,20 @@ export class Menu extends MenuNav {
 		}
 		return ret
 	}
-    getRange(targetScrollTop){
+    updateRange(targetScrollTop){
 		if(typeof(targetScrollTop) != 'number'){
 			targetScrollTop = this.wrap.scrollTop
 		}
 		this.ranging = false
-		let entries = [], tolerance = this.gridLayoutX, vs = Math.ceil(this.gridLayoutX * this.gridLayoutY), minLengthForRanging = vs + (tolerance * 2), shouldRange = main.config['show-logos'] && this.currentEntries.length >= minLengthForRanging
+		const tolerance = this.gridLayoutX, vs = Math.ceil(this.gridLayoutX * this.gridLayoutY)
+		const minLengthForRanging = vs + (tolerance * 2)
+		const shouldRange = main.config['show-logos'] && this.currentEntries.length >= minLengthForRanging
+		const prevRange = Object.assign({}, this.range || {})
 		this.range = this.viewportRange(targetScrollTop)
-		if(shouldRange){
-			let trange = Object.assign({}, this.range)
-			trange.end += tolerance
-			if(trange.start >= tolerance){
-				trange.start -= tolerance
-			}
-			this.currentEntries.forEach((e, i) => {
-				const lazy = i < trange.start || i > trange.end
-				entries[i] = Object.assign({lazy}, e)
-				if(lazy && !this.ranging) {
-					this.ranging = true
-				}
-			})
-		} else {
-			entries = this.currentEntries.slice(0)
+		if(this.range.start != prevRange.start || this.range.end != prevRange.end) {
+			main.emit('menu-update-range', this.range, this.path)
 		}
-        return entries
     }
-	updateRange(y){
-		if(this.ranging){
-			const changed = [], shouldUpdateRange = main.config['show-logos'] && this.currentEntries.length > (this.gridLayoutX * this.gridLayoutY)
-			if(shouldUpdateRange){
-				const rgx = new RegExp('<img', 'i'), elements = this.currentElements
-				const currentScrolltop = this.wrap.scrollTop, entries = this.getRange(y)
-				//console.log('selectionMemory upadeteRange', entries)
-				this.debug && console.warn("UPDATING RANGE", y, currentScrolltop, entries)
-				entries.forEach((e, i) => {
-					if(!elements[e.tabindex]) return
-					if(this.debug){
-						//console.warn(e.type, type, elements[e.tabindex], e.tabindex, this.selectedIndex)
-					}
-					const lazy = e.lazy && elements[e.tabindex].innerHTML.match(rgx)
-					if(lazy != elements[e.tabindex].getAttribute('data-lazy')){
-						elements[e.tabindex].setAttribute('data-lazy', !!lazy)
-						changed.push(elements[e.tabindex])
-					} else {
-						elements[e.tabindex].setAttribute('data-lazy', false)
-					}
-				})
-				this.wrap.scrollTop = currentScrolltop // scroll was somehow being changed from function start to this point
-				main.emit('menu-update-range', this.range, this.path)
-				if(changed.length){
-					this.debug && console.log('updateRange', changed, this.range, this.selectedIndex)
-					if(this.selectedIndex < this.range.start || this.selectedIndex >= this.range.end){
-						this.focus(this.currentElements[this.range.start], true)
-					} else {
-						this.focus(this.currentElements[this.selectedIndex], true)
-					}
-				}
-			}
-		}
-	}
-	delayedFocus(element){
-		setTimeout(() => {
-			if(this.debug){
-				console.warn('DELAYED FOCUS', element)
-			}
-			this.focus(element)
-		}, 50)
-	}
 	check(element){
 		this.sounds.play('switch', 65)
 		const i = element.tabIndex
@@ -1860,7 +1727,7 @@ export class Menu extends MenuNav {
 			console.warn('NAVCHK', path, value)
 		}
 		main.emit('menu-check', path, value)
-		this.uiUpdate(false)
+		this.emit('updated')
 	}
 	setupSelect(entries, path, fa){
 		const element = this.wrap.querySelector('[data-path="'+ path.replaceAll('"', '&quot;') +'"]')
@@ -1897,8 +1764,10 @@ export class Menu extends MenuNav {
 					element.setAttribute('data-default-value', retPath)
 				}
 			}
-			this.lastSelectTriggerer && this.delayedFocus(this.lastSelectTriggerer)
-			this.lastSelectTriggerer = null
+			this.lastSelectTriggerer && setTimeout(() => {
+				this.focus(this.lastSelectTriggerer)
+				this.lastSelectTriggerer = null
+			}, 50)
 		})
 	}
 	setupSlider(element){
@@ -1921,16 +1790,15 @@ export class Menu extends MenuNav {
 					this.currentEntries[i].value = value
 					this.prepareEntry(this.currentEntries[i], i)
 				}				
-				this.uiUpdate(false)
+				this.emit('updated')
 			}
 			setTimeout(() => {
 				console.warn('DELAYED FOCUS ON', i, this.currentElements[i])
 				this.focus(this.currentElements[i])
-			}, 200)
+			}, 50)
 		}, fa)
 	}
 	open(element){
-		this.focus(element)
 		let timeToLock = 3, path = element.getAttribute('data-path'), type = element.getAttribute('data-type'), tabindex = element.tabIndex || 0
 		if(this.busy) { // multi-click prevention
 			return
@@ -1973,6 +1841,7 @@ export class Menu extends MenuNav {
 	action(element){
 		let type = element.getAttribute('data-type')
 		console.log('action', type, element)
+		this.focus(element)
 		switch(type){
 			case 'slider':
 				this.setupSlider(element)

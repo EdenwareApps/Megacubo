@@ -248,7 +248,7 @@ class Downloads extends EventEmitter {
     async serve(file, triggerDownload, doImport, name) {
         await this.prepare();
         if (!name) {
-            name = path.basename(file)
+            name = path.basename(file) || String(Math.random()).substr(2)
         }
         let url
         if (doImport) {

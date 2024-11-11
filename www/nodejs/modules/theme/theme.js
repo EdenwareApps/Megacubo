@@ -6,7 +6,7 @@ import lang from "../lang/lang.js";
 import storage from '../storage/storage.js'
 import { EventEmitter } from "events";
 import fs from "fs";
-import jimp from "../jimp-worker/main.js";
+import imp from "../icon-server/image-processor.js";
 import path from "path";
 import downloads from "../downloads/downloads.js";
 import options from "../options/options.js";
@@ -18,7 +18,7 @@ class Theme extends EventEmitter {
     constructor() {
         super();
         const { data } = paths;
-        this.jimp = jimp
+        this.imp = imp
         this.backgroundVideoSizeLimit = 40 * (1024 * 1024);
         this.customBackgroundImagePath = data + '/background.png';
         this.customBackgroundVideoPath = data + '/background';
@@ -50,7 +50,7 @@ class Theme extends EventEmitter {
         const key = 'colors-' + basename(file) + '-' + stat.size
         let colors = await storage.get(key)
         if (!Array.isArray(colors)) {
-            colors = await jimp.colors(file)
+            colors = await imp.colors(file)
             await storage.set(key, colors, { expiration: true })                    
         }
         if (!Array.isArray(colors)) {
@@ -97,7 +97,6 @@ class Theme extends EventEmitter {
         return (n / (255 * 3)) * 100;
     }
     async importBackgroundImage(file) {
-        global.menu.setLoading(true);
         osd.show(lang.PROCESSING, 'fas fa-cog fa-spin', 'theme-upload', 'persistent');
         try {            
             await fs.promises.copyFile(file, this.customBackgroundImagePath);
@@ -110,11 +109,9 @@ class Theme extends EventEmitter {
             menu.displayErr(err)
         }
         console.warn('!!! IMPORT CUSTOM BACKGROUND FILE !!! ok', menu.path, file, this.customBackgroundImagePath);
-        global.menu.setLoading(false);
         osd.hide('theme-upload');
     }
     async importBackgroundVideo(file) {
-        global.menu.setLoading(true);
         osd.show(lang.PROCESSING, 'fas fa-cog fa-spin', 'theme-upload', 'persistent');
         try {
             
@@ -137,7 +134,6 @@ class Theme extends EventEmitter {
         } catch (err) {
             menu.displayErr(err);
         }
-        global.menu.setLoading(false);
         osd.hide('theme-upload');
     }
     cleanVideoBackgrounds(currentFile) {        
@@ -387,7 +383,7 @@ class Theme extends EventEmitter {
                                     renderer: async () => {
                                         let hasErr, colors = await this.colors(this.customBackgroundImagePath, c => this.colorLightLevel(c) < 40, 52).catch(err => hasErr = err);
                                         osd.hide('theme-upload');
-                                        global.menu.setLoading(true)
+                                        const busy = global.menu.setBusy(global.menu.path +'/'+ lang.BACKGROUND_COLOR)
                                         if (!Array.isArray(colors)) colors = []
                                         try {
                                             colors = this.colorsAddDefaults(colors, false).map(c => {
@@ -431,8 +427,8 @@ class Theme extends EventEmitter {
                                         } catch (err) { 
                                             console.error(err)
                                         }
-                                        global.menu.setLoading(false)
-                                        return colors;
+                                        busy.release()
+                                        return colors
                                     },
                                     value: () => {
                                         return global.config.get('background-color');
@@ -510,7 +506,6 @@ class Theme extends EventEmitter {
                                                 menu.back();
                                             }).finally(() => {
                                                 osd.hide('theme-upload')
-                                                global.menu.setLoading(false)
                                             })
                                         })
                                     },

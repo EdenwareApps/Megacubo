@@ -134,7 +134,7 @@ class MPEGTSProcessor extends EventEmitter {
             this.pcrMemo.set(pcr, 0);
             if (this.pcrMemoSize > this.maxPcrMemoSize) {
                 const deleteCount = this.pcrMemoSize - (this.maxPcrMemoSize - this.pcrMemoNudgeSize);
-                const keysToDelete = Array.from(this.pcrMemo.keys()).slice(0, deleteCount);
+                const keysToDelete = [...this.pcrMemo.keys()].slice(0, deleteCount);
                 keysToDelete.forEach((pcr) => this.pcrMemo.delete(pcr));
                 this.pcrMemoSize -= deleteCount;
             }

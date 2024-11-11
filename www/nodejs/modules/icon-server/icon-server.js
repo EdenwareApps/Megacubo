@@ -6,7 +6,7 @@ import storage from '../storage/storage.js'
 import crypto from 'crypto';
 import lists from '../lists/lists.js';
 import fs from 'fs';
-import jimp from '../jimp-worker/main.js';
+import imp from '../icon-server/image-processor.js';
 import crashlog from '../crashlog/crashlog.js';
 import paths from '../paths/paths.js';
 import path from 'path';
@@ -89,17 +89,14 @@ class IconDefault {
     }
     async adjust(file, options) {
         return await this.limiter.adjust(async () => {
-            return await this.doAdjust(file, options);
-        });
-    }
-    async doAdjust(file, options) {
-        let opts = {
-            autocrop: config.get('autocrop-logos')
-        };
-        if (options) {
-            Object.assign(opts, options);
-        }
-        return await jimp.transform(file, opts);
+            let opts = {
+                autocrop: config.get('autocrop-logos')
+            };
+            if (options) {
+                Object.assign(opts, options);
+            }
+            return await imp.transform(file, opts)
+        })
     }
 }
 class IconSearch extends IconDefault {
@@ -190,8 +187,8 @@ class IconSearch extends IconDefault {
 class IconServerStore extends IconSearch {
     constructor() {
         super();
-        this.ttlHTTPCache = 24 * 3600
-        this.ttlBadHTTPCache = 1800
+        this.ttlCache = 24 * 3600
+        this.ttlBadCache = 600
         this.activeDownloads = {}
         this.downloadErrors = {}
     }
@@ -245,42 +242,23 @@ class IconServerStore extends IconSearch {
         if(err) throw err
         return this.validate(content.slice(0, bytesRead))
     }
-    resolveHTTPCache(key) {
+    resolve(key) {
         return storage.resolve('icons-cache-' + key)
     }
-    async checkHTTPCache(key) {
+    async checkCache(key) {
         const has = await storage.exists('icons-cache-' + key)
         if (has !== false) {
-            return this.resolveHTTPCache(key)
+            return this.resolve(key)
         }
         throw 'no http cache'
     }
-    async getHTTPCache(key) {
-        const data = await storage.get('icons-cache-' + key)
-        if (data) {
-            return { data }
-        }
-        throw 'no cache*'
-    }
-    async saveHTTPCache(key, data) {
-        if (!cb)
-            cb = () => {};
-        const ttl = data && data.length ? this.ttlHTTPCache : this.ttlBadHTTPCache;
-        await storage.set('icons-cache-' + key, data, { raw: true, ttl });
-    }
-    async saveHTTPCacheExpiration(key, size) {
-        let stat;
+    async saveCacheExpiration(key, valid) {
         const file = storage.resolve('icons-cache-' + key);
-        if (typeof(size) != 'number') {
-            let err;
-            
-            stat = await fs.promises.stat(file).catch(e => err = e);
-            err || (size = stat.size);
+        if (typeof(valid) != 'boolean') {
+            const stat = await fs.promises.stat(file).catch(() => false);
+            valid = stat && stat.size && stat.size > 25
         }
-        let time = this.ttlBadHTTPCache;
-        if (stat && stat.size) {
-            time = this.ttlHTTPCache;
-        }
+        const time = valid ? this.ttlCache : this.ttlBadCache;
         storage.setTTL('icons-cache-' + key, time);
     }
     async fetchURL(url) {
@@ -291,7 +269,7 @@ class IconServerStore extends IconSearch {
         const suffix = 'data:image/png;base64,';
         if (String(url).startsWith(suffix)) {            
             const key = this.key(url);
-            const file = this.resolveHTTPCache(key);
+            const file = this.resolve(key);
             await fs.promises.writeFile(file, Buffer.from(url.substr(suffix.length), 'base64'));
             this.opts.debug && console.log('FETCHED ' + url + ' => ' + file);
             const ret = await this.validateFile(file);
@@ -305,7 +283,7 @@ class IconServerStore extends IconSearch {
             console.warn('WILLFETCH', url);
         }
         let err;
-        const cfile = await this.checkHTTPCache(key).catch(e => err = e);
+        const cfile = await this.checkCache(key).catch(e => err = e);
         if (!err) { // has cache
             if (this.opts.debug) {
                 console.log('fetchURL', url, 'cached');
@@ -318,7 +296,7 @@ class IconServerStore extends IconSearch {
         if (this.opts.debug) {
             console.log('fetchURL', url, 'request', err);
         }
-        const file = this.resolveHTTPCache(key);
+        const file = this.resolve(key);
         err = null;
         await this.limiter.download(async () => {
             if(!this.activeDownloads[url]) {
@@ -330,7 +308,8 @@ class IconServerStore extends IconSearch {
                     downloadLimit: this.opts.downloadLimit,
                     headers: {
                         'content-encoding': 'identity'
-                    }
+                    },
+                    cacheTTL: this.ttlBadCache
                 }).catch(e => err = e)
             }
             await this.activeDownloads[url]
@@ -341,7 +320,7 @@ class IconServerStore extends IconSearch {
             await fs.promises.unlink(file).catch(console.error)
             throw err
         }
-        await this.saveHTTPCacheExpiration(key);
+        await this.saveCacheExpiration(key, true);
         const ret2 = await this.validateFile(file);
         const atts = { key, file, isAlpha: ret2 == 2 };
         if (this.opts.debug) {
@@ -372,7 +351,7 @@ class IconServer extends IconServerStore {
         this.server = false;
         this.limiter = {
             download: pLimit(20),
-            adjust: pLimit(1)
+            adjust: pLimit(2)
         };
         this.rendering = {};
         this.renderingPath = null;
@@ -483,7 +462,7 @@ class IconServer extends IconServerStore {
                     if ((!this.rendering[j] || this.rendering[j].entry.name != e.name) && this.qualifyEntry(e)) {
                         this.rendering[j] = this.get(e); // do not use then directly to avoid losing destroy method
                     }
-                });
+                })
             }
         }
     }
@@ -549,7 +528,7 @@ class IconServer extends IconServerStore {
                     response.end(err + ' - ' + req.url.split('#')[0]);
                 };
                 if (this.isHashKey(key)) {
-                    this.checkHTTPCache(key).then(send).catch(onerr);
+                    this.checkCache(key).then(send).catch(onerr);
                 } else {
                     this.getDefaultFile(decodeURIComponentSafe(key).split(',')).then(send).catch(onerr);
                 }

@@ -585,7 +585,7 @@ class Streamer extends StreamerGoNext {
             { template: 'option', text: global.lang.YES, id: 'yes', fa: 'fas fa-check-circle' },
             { template: 'option', text: global.lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle' },
             { template: 'option', text: global.lang.RETRY, id: 'retry', fa: 'fas fa-redo' },
-            { template: 'option', text: global.lang.TRANSCODE, id: 'transcode', fa: 'fas fa-cogs' }
+            { template: 'option', text: global.lang.FIX_AUDIO_OR_VIDEO, id: 'transcode', fa: 'fas fa-wrench' }
         ], 'yes')
         if (chosen == 'yes') {
             renderer.ui.emit('external-player', url)
@@ -820,7 +820,7 @@ class Streamer extends StreamerGoNext {
         }
         const loadingEntriesData = [global.lang.AUTO_TUNING, name];
         console.warn('playFromEntries', name, connectId, silent);
-        global.menu.setLoading(true);
+        const busy = global.menu.setBusy(this.path +'/'+ name);
         silent || (global.osd && global.osd.show(global.lang.TUNING_WAIT_X.format(name) + ' 0%', 'fa-mega spin-x-alt', 'streamer', 'persistent'))
         this.tuning && this.tuning.destroy();
         if (this.connectId != connectId) {
@@ -860,7 +860,7 @@ class Streamer extends StreamerGoNext {
         } else {
             this.setTuneable(true)
         }
-        global.menu.setLoading(false)
+        busy.release()
         return !hasErr
     }
     async playPromise(e, results, silent) {
@@ -882,12 +882,12 @@ class Streamer extends StreamerGoNext {
         this.connectId = connectId;
         this.emit('connecting', connectId);
         
-        const isMega = mega.isMega(e.url), txt = isMega ? global.lang.TUNING : undefined;
-        const opts = isMega ? mega.parse(e.url) : { mediaType: 'live' };
-        const loadingEntriesData = [e, global.lang.AUTO_TUNING];
-        silent || global.menu.setLoading(true);
-        console.warn('STREAMER INTENT', e, results);
-        let succeeded;
+        const isMega = mega.isMega(e.url), txt = isMega ? global.lang.TUNING : undefined
+        const opts = isMega ? mega.parse(e.url) : { mediaType: 'live' }
+        const loadingEntriesData = [e, global.lang.AUTO_TUNING]
+        const busy = silent ? false : global.menu.setBusy(this.path +'/'+ e.name)
+        console.warn('STREAMER INTENT', e, results)
+        let succeeded
         this.emit('pre-play-entry', e);
         if (Array.isArray(results)) {
             let name = e.name;
@@ -898,11 +898,11 @@ class Streamer extends StreamerGoNext {
             if (this.connectId == connectId) {
                 this.connectId = false;
                 if (!succeeded) {
-                    this.emit('connecting-failure', e);
+                    this.emit('connecting-failure', e)
                 }
             } else {
-                silent || global.menu.setLoading(false);
-                throw 'another play intent in progress';
+                busy && busy.release()
+                throw 'another play intent in progress'
             }
         } else if (isMega && !opts.url) {            
             let name = e.name
@@ -922,7 +922,7 @@ class Streamer extends StreamerGoNext {
                 limit: 1024
             })         
             if (this.connectId != connectId) {
-                silent || global.menu.setLoading(false)
+                busy && busy.release()
                 throw 'another play intent in progress'
             }
             // console.error('ABOUT TO TUNE', terms, name, JSON.stringify(entries), opts)
@@ -960,7 +960,7 @@ class Streamer extends StreamerGoNext {
             let hasErr, intent = await this.intent(e).catch(r => hasErr = r);
             if (typeof(hasErr) != 'undefined') {
                 if (this.connectId != connectId) {
-                    silent || global.menu.setLoading(false);
+                    busy && busy.release()
                     throw 'another play intent in progress';
                 }
                 console.warn('STREAMER INTENT ERROR', hasErr);
@@ -976,8 +976,8 @@ class Streamer extends StreamerGoNext {
                 succeeded = true;
             }
         }
-        silent || global.menu.setLoading(false);
-        return succeeded;
+        busy && busy.release()
+        return succeeded
     }
     play(e, results, silent) {
         return this.playPromise(e, results, silent).catch(silent ? console.error : global.menu.displayErr);
@@ -999,13 +999,14 @@ class Streamer extends StreamerGoNext {
                 e.name = ch.name
             }
             const same = this.tuning && !this.tuning.finished && !this.tuning.destroyed && (this.tuning.has(e.url) || this.tuning.opts.megaURL == e.url);
-            const loadingEntriesData = [e, global.lang.AUTO_TUNING];
+            const loadingEntriesData = [e, global.lang.AUTO_TUNING]
+            const busy = global.menu.setBusy(this.path +'/'+ e.name)
             console.log('tuneEntry', e, same);
             if (same) {
                 let err;
                 await this.tuning.tune().catch(e => err = e);
-                global.menu.setLoading(false);
                 if (err) {
+                    busy.release()
                     if (err != 'cancelled by user') {
                         this.emit('connecting-failure', e);
                         console.error('tune() ERR', err);
@@ -1014,8 +1015,7 @@ class Streamer extends StreamerGoNext {
                     return;
                 }
                 this.setTuneable(true);
-            } else {
-                
+            } else {                
                 if (ch) {
                     e.url = mega.build(ch.name, { terms: ch.terms });
                 } else {
@@ -1026,6 +1026,7 @@ class Streamer extends StreamerGoNext {
                 }
                 this.play(e);
             }
+            busy.release()
             return true;
         }
     }

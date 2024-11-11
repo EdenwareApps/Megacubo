@@ -75,3 +75,5 @@ if(paths.inWorker) {
 
 export default paths
 export const temp = paths.temp
+export const inWorker = paths.inWorker
+

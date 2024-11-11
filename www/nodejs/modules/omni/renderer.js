@@ -35,8 +35,10 @@ export class OMNI extends OMNIUtils {
         this.button = document.querySelector('.menu-omni .menu-omni-submit')
         this.input = document.querySelector('.menu-omni input')
         this.rinput = this.input
+        this.visible = false
         this.setup()
-        this.bind()
+        this.bind()        
+        this.element.style.display = 'none'
         document.addEventListener('keyup', this.eventHandler.bind(this))
     }
     bind(){
@@ -54,20 +56,38 @@ export class OMNI extends OMNIUtils {
         return this.element.offsetParent !== null
     }
     show(focus) {
-        main.menu.sideMenu(false, 'instant')
+        if(this.visible) return
+        this.emit('before-show')
+        this.visible = true
         this.element.style.display = 'inline-flex'
+        if(window.innerHeight > window.innerWidth) {
+            document.body.classList.add('portrait-search')
+            this.input.addEventListener('blur', () => {
+                document.body.classList.remove('portrait-search')
+            }, { once: true })
+        }
+        this.emit('show')
         focus && this.focus(true)
     }
-    showPortrait() {
-        document.body.classList.add('portrait-search')
-        this.focus(true)
+    focus(select){
+        this.input.value = this.defaultValue
+        if(select){
+            this.input.select()
+        }
+        this.input.focus()
         this.input.addEventListener('blur', () => {
-            document.body.classList.remove('portrait-search')
+            this.save()
+            this.hide()
         }, { once: true })
+        if(!select) { // as last, move to the end
+            this.rinput.selectionStart = this.rinput.selectionEnd = this.rinput.value.length
+        }
     }
     hide() {
+        if(!this.visible) return
+        this.visible = false
         this.element.style.display = 'none'
-        main.menu.reset()
+        this.emit('hide')
     }
     submit(){
         let val = this.save()
@@ -80,8 +100,8 @@ export class OMNI extends OMNIUtils {
     }
     setup(){
         this.hide()
-        this.button.addEventListener('click', event => {
-            if(!this.element.classList.contains('selected') || !this.submit()){
+        this.button.addEventListener('click', () => {
+            if(!this.element.classList.contains('selected')){
                 this.focus(true)
             }
         })
@@ -94,23 +114,6 @@ export class OMNI extends OMNIUtils {
         this.input.addEventListener('keydown', event => {
             if(event.key === 'Enter') this.submit()
         })
-    }
-    focus(select){
-        this.show()
-        this.input.value = this.defaultValue
-        if(select){
-            this.input.select()
-        }
-        main.menu.focus(this.element)
-        this.input.focus()
-        this.input.addEventListener('blur', () => {
-            main.menu.focus(main.menu.currentElements[0])
-            this.save()
-            this.hide()			
-        }, { once: true })
-        if(!select) { // as last, move to the end
-            this.rinput.selectionStart = this.rinput.selectionEnd = this.rinput.value.length
-        }
     }
     save(){
         this.updateIcon('fas fa-search')
@@ -177,7 +180,7 @@ export class OMNI extends OMNIUtils {
             if(evt.key && evt.key.length == 1 && evt.key != ' ') {
                 this.defaultValue = evt.key
                 if(main.menu.inPlayer() && !main.menu.isExploring()) {
-                    main.menu.showWhilePlaying(true, true)
+                    main.menu.showWhilePlaying(true)
                 }
                 this.focus(false)
                 this.update()

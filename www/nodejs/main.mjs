@@ -8,7 +8,6 @@ import streamer from './modules/streamer/main.js'
 import lang from './modules/lang/lang.js'
 import lists from './modules/lists/lists.js'
 import Theme from './modules/theme/theme.js'
-import moment from 'moment-timezone'
 import options from './modules/options/options.js'
 import recommendations from './modules/recommendations/recommendations.js'
 import icons from './modules/icon-server/icon-server.js'
@@ -27,12 +26,11 @@ import channels from './modules/channels/channels.js'
 import { getFilename } from 'cross-dirname'
 import { createRequire } from 'module'
 import menu from './modules/menu/menu.js'
-import { clone, rmdirSync } from './modules/utils/utils.js'
+import { moment, rmdirSync, ucWords } from './modules/utils/utils.js'
 import osd from './modules/osd/osd.js'
 import ffmpeg from './modules/ffmpeg/ffmpeg.js'
 import promo from './modules/promoter/promoter.js'
 import mega from './modules/mega/mega.js'
-import EPGManager from './modules/lists/epg-worker.js'
                 
 /* Preload script variables */
 Object.assign(global, {
@@ -46,10 +44,12 @@ Object.assign(global, {
     lang,
     lists,
     menu,
+    moment,
     options,
     osd,
     paths,
     promo,
+    recommendations,
     renderer,
     storage,
     streamer
@@ -153,7 +153,10 @@ const init = async (language, timezone) => {
     initialized = true
     await lang.load(language, config.get('locale'), paths.cwd + '/lang', timezone).catch(e => menu.displayErr(e))
     console.log('Language loaded.')
-    moment.locale(lang.locale)
+    moment.locale([
+        lang.locale +'-'+ lang.countryCode,
+        lang.locale
+    ])
     
     global.theme = new Theme()
     
@@ -179,7 +182,8 @@ const init = async (language, timezone) => {
     menu.addOutputFilter(recommendations.hook.bind(recommendations))
     renderer.ui.on('menu-update-range', icons.renderRange.bind(icons))
     menu.on('render', icons.render.bind(icons))
-    menu.on('action', async (e) => {
+    menu.on('action', async e => {
+        const busy = menu.setBusy(e.path)
         if (typeof(e.type) == 'undefined') {
             if (typeof(e.url) == 'string') {
                 e.type = 'stream'
@@ -229,6 +233,7 @@ const init = async (language, timezone) => {
                 }
                 break
         }
+        busy.release()
     })
     renderer.ui.on('config-set', (k, v) => config.set(k, v))
     renderer.ui.on('crash', (...args) => crashlog.save(...args))
@@ -288,7 +293,7 @@ const init = async (language, timezone) => {
             opts.push({ template: 'option', text: lang.OPEN_EXTERNAL_PLAYER, fa: 'fas fa-window-restore', id: 'external' })
         }
         if (typeof(streamer.active.transcode) == 'function' && !streamer.active.isTranscoding()) {
-            opts.push({ template: 'option', text: lang.FIX_AUDIO_OR_VIDEO + ' &middot; ' + lang.TRANSCODE, fa: 'fas fa-film', id: 'transcode' })
+            opts.push({ template: 'option', text: lang.FIX_AUDIO_OR_VIDEO + ' &middot; ' + lang.TRANSCODE, fa: 'fas fa-wrench', id: 'transcode' })
         }
         if (opts.length > 2) {
             let ret = await menu.dialog(opts, def)

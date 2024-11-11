@@ -10,7 +10,7 @@ import List from "./list.js";
 import Discovery from "../discovery/discovery.js";
 import config from "../config/config.js"
 import { ready } from '../bridge/bridge.js'
-import paths from '../paths/paths.js'
+import { inWorker } from '../paths/paths.js'
 import { forwardSlashes, parseCommaDelimitedURIs, LIST_DATA_KEY_MASK } from "../utils/utils.js";
 import { getDirname } from 'cross-dirname'           
 import MultiWorker from '../multi-worker/multi-worker.js';
@@ -20,9 +20,11 @@ class ListsEPGTools extends Index {
         super(opts)
         this.epgWorker = new MultiWorker()
         this.epg = this.epgWorker.load(path.join(getDirname(), 'epg-worker.js'))
+        this.epg.loaded = null
         this.epg.on('update', async () => {
             const states = await this.epg.getState()
-            this.loadedEPGs = states.info.filter(r => r.progress > 99).map(r => r.url)
+            const loaded = states.info.filter(r => r.progress > 99).map(r => r.url)
+            this.epg.loaded = loaded.length ? loaded : null
             this.emit('epg-update', states)
         })
         ready(() => {
@@ -48,37 +50,39 @@ class ListsEPGTools extends Index {
         let data, err
         let ret = await this.epg.getState().catch(e => err = e)
         if (err) return ['error', String(err)]
-        const { progress, state, error } = ret;
-        if (error) {
+        const { progress, state, error } = ret
+        if (error || !this.epg.loaded) {
             data = [state];
             if (state == 'error') {
-                data.push(error);
+                data.push(error)
             } else {
-                data.push(progress);
+                data.push(progress)
             }
-        } else if (!this.epg) { // unset in the meantime
-            data = ['error', 'no epg']
         } else {
             if (Array.isArray(channelsList)) {
-                channelsList = channelsList.map(c => this.tools.applySearchRedirectsOnObject(c));
-                data = await this.epg.getMulti(channelsList, limit);
+                channelsList = channelsList.map(c => this.tools.applySearchRedirectsOnObject(c))
+                data = await this.epg.getMulti(channelsList, limit)
             } else {
-                channelsList = this.tools.applySearchRedirectsOnObject(channelsList);
-                data = await this.epg.get(channelsList, limit);
+                channelsList = this.tools.applySearchRedirectsOnObject(channelsList)
+                data = await this.epg.get(channelsList, limit)
             }
         }
-        return data;
+        return data
     }
     async epgSearch(terms, nowLive) {
+        if (!this.epg.loaded) return []
         return await this.epg.search(this.tools.applySearchRedirects(terms), nowLive);
     }
     async epgSearchChannel(terms, limit) {
+        if (!this.epg.loaded) return {}
         return await this.epg.searchChannel(this.tools.applySearchRedirects(terms), limit);
     }
     async epgSearchChannelIcon(terms) {
+        if (!this.epg.loaded) return []
         return await this.epg.searchChannelIcon(this.tools.applySearchRedirects(terms));
     }
     async epgLiveNowChannelsList() {
+        if (!this.epg.loaded) return {categories: {}}
         let data = await this.epg.liveNowChannelsList()
         if (data && data['categories'] && Object.keys(data['categories']).length) {
             let currentScore = this.epgChannelsListSanityScore(data['categories']);
@@ -116,67 +120,6 @@ class ListsEPGTools extends Index {
             console.error('epgLiveNowChannelsList FAILED', JSON.stringify(data));
             throw 'failed';
         }
-    }
-    async epgChannelsTermsList() {
-        if (!this.epg) {
-            throw 'no epg';
-        }
-        let data = await this.epg.getTerms();
-        if (data && Object.keys(data).length) {
-            return data;
-        } else {
-            throw 'failed';
-        }
-    }
-}
-class Lists extends ListsEPGTools {
-    constructor(opts) {
-        super(opts)
-        if(paths.inWorker) throw new Error('Lists cannot be used in a worker')
-        this.setMaxListeners(256)
-        this.debug = false
-        this.lists = {}
-        this.activeLists = {
-            my: [],
-            community: [],
-            length: 0
-        };
-        this.epgs = {}
-        this.myLists = [];
-        this.communityLists = [];
-        this.processedLists = new Map();
-        this.requesting = {};
-        this.loadTimes = {};
-        this.processes = [];
-        this.satisfied = false;
-        this.isFirstRun = !config.get('communitary-mode-lists-amount') && !config.get('lists').length;
-        this.queue = new PQueue({concurrency: 4});
-        config.on('change', keys => {
-            keys.includes('lists') && this.configChanged();
-        });
-        ready(async () => {
-            global.channels.on('channel-grid-updated', keys => {
-                this._relevantKeywords = null
-            })
-        });
-        this.on('satisfied', () => {
-            if (this.activeLists.length) {
-                this.queue._concurrency = 1; // try to change pqueue concurrency dinamically
-            }
-        });
-        this.discovery = new Discovery(this)
-        this.loader = new Loader(this)
-        this.manager = new Manager(this)
-        this.configChanged()
-    }
-    ready() {
-        return new Promise(resolve => {
-            if(this.isReady) {
-                resolve()
-            } else {
-                this.once('ready', resolve)
-            }
-        })
     }
     epgScore(url) {
         if(this.epgScoreCache[url] !== undefined) {
@@ -225,6 +168,14 @@ class Lists extends ListsEPGTools {
             await this.resetEPGScoreCache()
         }
         let epgs = Object.keys(this.epgs)
+        if (this.epg.loaded) {
+            epgs.push(...this.epg.loaded.filter(u => !epgs.includes(u)))
+        }
+
+        const c = config.get('epg-'+ lang.locale)
+        if (Array.isArray(c) && c.length) {
+            epgs.push(...c.filter(e => e.active && !epgs.includes(e.url)).map(e => e.url))
+        }
         if (!epgs.length) return []
     
         // Precompute scores to avoid multiple scorify calls
@@ -247,6 +198,56 @@ class Lists extends ListsEPGTools {
         }    
         return result
     }    
+}
+class Lists extends ListsEPGTools {
+    constructor(opts) {
+        super(opts)
+        if(inWorker) throw new Error('Lists cannot be used in a worker')
+        this.setMaxListeners(256)
+        this.debug = false
+        this.lists = {}
+        this.activeLists = {
+            my: [],
+            community: [],
+            length: 0
+        };
+        this.epgs = {}
+        this.myLists = [];
+        this.communityLists = [];
+        this.processedLists = new Map();
+        this.requesting = {};
+        this.loadTimes = {};
+        this.processes = [];
+        this.satisfied = false;
+        this.isFirstRun = !config.get('communitary-mode-lists-amount') && !config.get('lists').length;
+        this.queue = new PQueue({concurrency: 4});
+        config.on('change', keys => {
+            keys.includes('lists') && this.configChanged();
+        });
+        ready(async () => {
+            global.channels.on('channel-grid-updated', keys => {
+                this._relevantKeywords = null
+            })
+        });
+        this.on('satisfied', () => {
+            if (this.activeLists.length) {
+                this.queue._concurrency = 1; // try to change pqueue concurrency dinamically
+            }
+        });
+        this.discovery = new Discovery(this)
+        this.loader = new Loader(this)
+        this.manager = new Manager(this)
+        this.configChanged()
+    }
+    ready() {
+        return new Promise(resolve => {
+            if(this.isReady) {
+                resolve()
+            } else {
+                this.once('ready', resolve)
+            }
+        })
+    }
     getAuthURL(listUrl) {
         if (listUrl && this.lists[listUrl] && this.lists[listUrl].index && this.lists[listUrl].index.meta && this.lists[listUrl].index.meta['auth-url']) {
             return this.lists[listUrl].index.meta['auth-url'];
@@ -924,9 +925,8 @@ class Lists extends ListsEPGTools {
         return list.slice(0); // clone it to not alter cache
     }
 }
-if(paths.inWorker) {
+if(inWorker) {
     console.error('!!!!!!! LISTS ON WORKER '+ global.file)
-    console.error(JSON.stringify(paths.workerData))
-    console.error(JSON.stringify(paths.inWorker))
+    console.error(JSON.stringify(inWorker))
 }
 export default new Lists();

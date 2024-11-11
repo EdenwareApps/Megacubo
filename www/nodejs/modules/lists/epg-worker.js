@@ -2,18 +2,88 @@ import fs from 'fs'
 import pLimit from 'p-limit';
 import { moveFile, parseCommaDelimitedURIs, textSimilarity, time, ucWords } from '../utils/utils.js'
 import Download from '../download/download.js'
-import paths from '../paths/paths.js'
 import config from '../config/config.js';
 import { EventEmitter } from 'events'
 import listsTools from '../lists/tools.js'
 import setupUtils from '../multi-worker/utils.js'
 import Mag from './mag.js'
-import xmltv from 'xmltv'
+import { Parser } from 'xmltv-stream'
 import { getFilename } from 'cross-dirname'
 import { Database } from 'jexidb'
 import { workerData } from 'worker_threads'
 
 const utils = setupUtils(getFilename())
+const DBOPTS = {
+    indexes: {ch: 'string', start: 'number', e: 'number', c: 'number'},
+    index: {channels: {}, terms: {}},
+    compressIndex: false,
+    v8: false
+}
+
+class EPGDataRefiner {
+    constructor(){
+        this.data = {}
+    }
+    format(t){
+        return t.trim().toLowerCase()
+    }
+    learn(programme){
+        const key = this.format(programme.t)
+        if(!this.data[key]){
+            this.data[key] = {
+                title: programme.t,
+                c: new Set(programme.c),
+                i: programme.i,
+                programmes: [
+                    {ch: programme.ch, start: programme.start}
+                ]
+            }
+        } else {
+            if(programme.c && programme.c.length){
+                programme.c.forEach(c => {
+                    this.data[key].updated = true
+                    this.data[key].c.has(c) || this.data[key].c.add(c)
+                })
+            }
+            if(programme.i && !this.data[key].i){
+                this.data[key].updated = true
+                this.data[key].i = programme.i
+            }
+            this.data[key].programmes.push({ch: programme.ch, start: programme.start})
+        }
+    }
+    async apply(db) {
+        const start = time()
+        try {
+            const tmpFile = db.fileHandler.filePath +'.refine'
+            const rdb = new Database(tmpFile, Object.assign({clear: true}, DBOPTS))
+            await rdb.init()
+            for await (const programme of db.walk()) {
+                delete programme._
+                const key = this.format(programme.t)
+                if(key && this.data[key] && this.data[key].updated) {
+                    if(!programme.c.length && this.data[key].c.size) {
+                        programme.c = [...this.data[key].c]
+                    }
+                    if(!programme.i && this.data[key].i) {
+                        programme.i = this.data[key].i
+                    }
+                }
+                await rdb.insert(programme)
+            }
+            rdb.indexManager.index = db.indexManager.index
+            await rdb.save()
+            await rdb.destroy()
+            await fs.promises.unlink(db.fileHandler.filePath)
+            await moveFile(tmpFile, db.fileHandler.filePath)
+            console.error('REFINER APPLIED IN '+ parseInt(time() - start) +'s', tmpFile)
+        } catch(e) {
+            console.error('REFINER APPLY ERROR', e)
+        } finally { 
+            this.data = {}
+        }
+    }
+}
 
 class EPGPaginateChannelsList extends EventEmitter {
     constructor(){
@@ -92,19 +162,10 @@ class EPGPaginateChannelsList extends EventEmitter {
 class EPGUpdater extends EventEmitter {
     constructor(url){
         super()
+        this.refiner = new EPGDataRefiner()
     }
     fixSlashes(txt){
         return txt.replaceAll('/', '|') // this character will break internal app navigation
-    }
-    prepareProgrammeData(programme, end){
-        if(!end){
-            end = time(programme.end)
-        }
-        let t = programme.title.shift() || 'No title'
-        if(t.includes('/')) {
-            t = this.fixSlashes(t)
-        }
-        return {e: end, t, c: programme.category || [], i: programme.icon || ''}
     }
     channel(channel){
         if(!channel) return
@@ -122,6 +183,10 @@ class EPGUpdater extends EventEmitter {
         })
     }
     async update(){
+        if(this.parser) {
+            console.error('already updating')
+            return
+        }
         await this.db.init().catch(console.error)
         const now = time()
         const lastFetchedAt = this.db.index.fetchCtrlKey
@@ -134,7 +199,7 @@ class EPGUpdater extends EventEmitter {
             if(!this.loaded){
                 this.state = 'connecting'
             }
-            let validEPG, failed, hasErr, newLastModified, received = 0, errorCount = 0, initialBuffer = []            
+            let validEPG, failed, hasErr, newLastModified, received = 0, errorCount = 0
             this.error = null
             console.log('epg updating...')
             const onErr = err => {
@@ -142,7 +207,7 @@ class EPGUpdater extends EventEmitter {
                     return
                 }
                 hasErr = true
-                //console.error('EPG FAILED DEBUG', initialBuffer)
+                //console.error('EPG FAILED DEBUG')
                 errorCount++
                 console.error(err)
                 if(errorCount >= 128){
@@ -153,8 +218,7 @@ class EPGUpdater extends EventEmitter {
                         this.request = null
                     }
                     if(this.parser){
-                        this.parser.destroy() 
-                        this.parser = null    
+                        this.parser.end() 
                     }
                     this.state = 'error'
                     this.error = 'EPG_BAD_FORMAT'
@@ -182,7 +246,7 @@ class EPGUpdater extends EventEmitter {
                     cacheTTL: this.ttl - 30,
                     responseType: 'text'
                 }
-                this.parser = new xmltv.Parser()
+                this.parser = new Parser()
                 this.request = new Download(req)
                 this.request.on('error', err => {
                     console.warn(err)
@@ -206,10 +270,11 @@ class EPGUpdater extends EventEmitter {
                 })
                 this.request.on('data', chunk => {
                     received += chunk.length
-                    if(!hasErr) initialBuffer.push(chunk)
                     try {
                         this.parser.write(chunk)
-                    } catch(e) {}
+                    } catch(e) {
+                        console.error(e)
+                    }
                     if(!validEPG && chunk.toLowerCase().includes('<programme')){
                         validEPG = true
                     }
@@ -217,26 +282,26 @@ class EPGUpdater extends EventEmitter {
                 this.request.once('end', () => {
                     this.request.destroy() 
                     this.request = null
-                    console.log('EPG REQUEST ENDED', validEPG, received, Object.keys(this.data).length)
-                    this.parser && this.parser.end()
+                    console.log('EPG REQUEST ENDED', validEPG, received, this.udb?.length)
+                    this.parser.end()
                 })
                 this.request.start()
             }
-            this.udb = new Database(this.tmpFile, {
-                clear: true,
-                indexes: {channel: 'string', start: 'number', c: 'number'},
-                index: {channels: {}, terms: {}},
-                v8: false,
-                compressIndex: false
-            })
+            this.udb = new Database(this.tmpFile, Object.assign({clear: true}, DBOPTS))
             await this.udb.init()
             this.parser.on('programme', this.programme.bind(this))
             this.parser.on('channel', this.channel.bind(this))
-            this.parser.on('error', () => {})
-            await new Promise(resolve => this.parser.once('end', resolve))
+            this.parser.on('error', onErr)
+            console.log('EPG UPDATE START')
+            await (new Promise(resolve => {
+                this.parser.once('close', resolve)
+                this.parser.once('end', resolve)
+            })).catch(console.error)
+            console.log('EPG UPDATE END 0', this.udb.length)
             this.parser && this.parser.destroy() // TypeError: Cannot read property 'destroy' of null
             this.parser = null                     
             this.scheduleNextUpdate()
+            console.log('EPG UPDATE END', this.udb.length)
             if(this.udb.length){
                 if(newLastModified){
                     this.udb.index.lastmCtrlKey = newLastModified
@@ -247,16 +312,16 @@ class EPGUpdater extends EventEmitter {
                 this.error = null
                 
                 await this.udb.save()
+
+                console.log('EPG apply 1')
+                await this.refiner.apply(this.udb).catch(console.error)
+
+                console.log('EPG apply 2')
                 await this.udb.destroy()
                 await this.db.destroy()
                 await moveFile(this.tmpFile, this.file)
                 
-                this.db = new Database(this.file, {
-                    indexes: {channel: 'string', start: 'number', c: 'number'},
-                    index: {channels: {}, terms: {}},
-                    v8: false,
-                    compressIndex: false
-                })
+                this.db = new Database(this.file, DBOPTS)
                 await this.db.init()
                 this.emit('load')
             } else {
@@ -280,18 +345,47 @@ class EPGUpdater extends EventEmitter {
             this.udb.index.channels[cid].name
     }
     programme(programme){
-        if(programme && programme.channel && programme.title.length){
-            const now = time(), start = time(programme.start), end = time(programme.end)
-            programme.channel = this.cidToDisplayName(programme.channel)
-            if(end >= now && end <= (now + this.dataLiveWindow)){
-                this.indexate(programme.channel, start, this.prepareProgrammeData(programme, end))
+        if(programme && programme.channel && programme.title.length) {
+            const now = time()
+            const start = parseInt(programme.start.getTime() / 1000)
+            const end = parseInt(programme.end.getTime() / 1000)
+            if(end >= now && end <= (now + this.dataLiveWindow)) {
+                const ch = this.cidToDisplayName(programme.channel)
+                let t = programme.title.shift() || 'Untitled'
+                if(t.includes('/')) {
+                    t = this.fixSlashes(t)
+                }
+                let i
+                if(programme.icon) {
+                    i = programme.icon
+                } else if(programme.images.length) {
+                    const weight = {
+                        'large': 1,
+                        'medium': 0,
+                        'small': 2
+                    }
+                    programme.images.sort((a, b) => {
+                        return weight[a.size] - weight[b.size]
+                    }).some(a => {
+                        i = a.url
+                        return true
+                    })
+                } else {
+                    i = ''
+                }
+                this.indexate({
+                    start, e: end,
+                    t, i, ch, 
+                    c: programme.category || []
+                })
             }
         }
     }
-    indexate(channel, start, data){
-        this.udb.insert({channel, start, ...data}).catch(console.error)
-        if(!this.udb.index.terms[channel] || !Array.isArray(this.udb.index.terms[channel])){
-            this.udb.index.terms[channel] = listsTools.terms(channel)
+    indexate(data){
+        this.udb.insert(data).catch(console.error)
+        this.refiner.learn(data)
+        if(!this.udb.index.terms[data.ch] || !Array.isArray(this.udb.index.terms[data.ch])){
+            this.udb.index.terms[data.ch] = listsTools.terms(data.ch)
         }
     }
     extractTerms(c){
@@ -337,12 +431,7 @@ class EPG extends EPGUpdater {
         this.minExpectedEntries = 72
         this.state = 'uninitialized'
         this.error = null
-        this.db = new Database(this.file, {
-            fields: {channel: 'string', start: 'number', c: 'number'},
-            index: {channels: {}, terms: {}},
-            v8: false,
-            compressIndex: false
-        })
+        this.db = new Database(this.file, DBOPTS)
     }
     ready(){
         return new Promise((resolve, reject) => {
@@ -370,12 +459,14 @@ class EPG extends EPGUpdater {
     async start(){
         if(!this.loaded){ // initialize
             this.state = 'loading'
+            console.log('START EPG', this.url)
             await this.db.init().catch(err => {
                 this.error = err
             })
             const updatePromise = this.update().catch(err => {
                 this.error = err
             })
+            console.log('START EPG2', this.url)
             if(this.db.length < this.minExpectedEntries) {
                 await updatePromise // will update anyway, but only wait for if it has few programmes
             }
@@ -383,9 +474,6 @@ class EPG extends EPGUpdater {
             this.loaded = true
             this.emit('load')
         }
-    }
-    async getTerms(){
-        return this.db.index.terms
     }
     async getState(){
 		return {            
@@ -525,15 +613,26 @@ class EPGManager extends EPGPaginateChannelsList {
         }
         return cs
     }
+    async liveNow(ch) {
+        const now = time()
+        const data = await this.get(ch, 1)
+        if(data && data.length) {
+            const p = data[0]
+            if(p.e > now && parseInt(p.start) <= now){
+                return p
+            }
+        }
+        return false
+    }
     async liveNowChannelsList(){
         const categories = {}, now = time()
         let updateAfter = 600
         for(const url in this.epgs) {
             if(this.epgs[url].state !== 'loaded') continue
             const db = this.epgs[url].db
-            for(const channel of db.indexManager.readColumnIndex('channel')) {
-                const name = this.prepareChannelName(channel)
-                const programmes = await db.query({channel, start: {'<=': now}, e: {'>': now}})
+            for(const ch of db.indexManager.readColumnIndex('ch')) {
+                const name = this.prepareChannelName(ch)
+                const programmes = await db.query({ch, start: {'<=': now}, e: {'>': now}})
                 for(const programme of programmes) {
                     if(programme.e > now && parseInt(programme.start) <= now){
                         if(Array.isArray(programme.c)){
@@ -564,9 +663,9 @@ class EPGManager extends EPGPaginateChannelsList {
             for(const url in this.epgs) {
                 if(this.epgs[url].state !== 'loaded') continue
                 const db = this.epgs[url].db
-                for(const channel of db.indexManager.readColumnIndex('channel')) {
-                    const name = this.prepareChannelName(channel)
-                    const programmes = await db.query({channel, start: {'<=': now}, e: {'>': now}})
+                for(const ch of db.indexManager.readColumnIndex('ch')) {
+                    const name = this.prepareChannelName(ch)
+                    const programmes = await db.query({ch, start: {'<=': now}, e: {'>': now}})
                     for(const programme of programmes) {
                         if(programme.e > now && parseInt(programme.start) <= now){
                             if(typeof(categories[category]) == 'undefined'){
@@ -643,8 +742,8 @@ class EPGManager extends EPGPaginateChannelsList {
         for(const url in this.epgs) {
             if(this.epgs[url].state !== 'loaded') continue
             const db = this.epgs[url].db
-            for(const channel of db.indexManager.readColumnIndex('channel')) {
-                const programmes = await db.query({channel, start: {'<=': until}, e: {'>': now}})
+            for(const ch of db.indexManager.readColumnIndex('ch')) {
+                const programmes = await db.query({ch, start: {'<=': until}, e: {'>': now}})
                 for(const programme of programmes) {
                     const start = programme.start
                     if(programme.e > now && parseInt(start) <= until){
@@ -652,11 +751,11 @@ class EPGManager extends EPGPaginateChannelsList {
                         if(Array.isArray(programme.c)){
                             for(const c of programme.c) {
                                 if(lcCategories.includes(c)){
-                                    if(typeof(results[channel]) == 'undefined'){
-                                        results[channel] = {}
+                                    if(typeof(results[ch]) == 'undefined'){
+                                        results[ch] = {}
                                     }
                                     const row = programme
-                                    row.meta = {channel, start, score: 0}
+                                    row.meta = {ch, start, score: 0}
                                     results.push(row)
                                     added = true
                                     break
@@ -668,7 +767,7 @@ class EPGManager extends EPGPaginateChannelsList {
                             for(const l of lcCategories) {
                                 if(lct.includes(l)){
                                     const row = programme
-                                    row.meta = {channel, start, score: 0}
+                                    row.meta = {ch, start, score: 0}
                                     results.push(row)
                                     break
                                 }
@@ -701,11 +800,11 @@ class EPGManager extends EPGPaginateChannelsList {
         })
         const ret = {}
         for(const row of results) {
-            if(typeof(ret[row.meta.channel]) == 'undefined'){
-                ret[row.meta.channel] = {}
+            if(typeof(ret[row.meta.ch]) == 'undefined'){
+                ret[row.meta.ch] = {}
             }
-            ret[row.meta.channel][row.meta.start] = row
-            delete ret[row.meta.channel][row.meta.start].meta
+            ret[row.meta.ch][row.meta.start] = row
+            delete ret[row.meta.ch][row.meta.start].meta
         }
         return ret
     }
@@ -737,21 +836,21 @@ class EPGManager extends EPGPaginateChannelsList {
 		return maxData
     }
     async get(channel, limit){
-        let data
         if(channel.searchName == '-'){
-            data = {}
+            return []
         } else {
-            const now = time()
+            const now = time(), query = {e: {'>': now}}
+            if (limit <= 1) {
+                query.start = {'<=': now} // will short-up the search
+            }
             if(channel.searchName) {
                 for(const url in this.epgs) {
                     if(this.epgs[url].state !== 'loaded') continue
                     const db = this.epgs[url].db
-                    const availables = db.indexManager.readColumnIndex('channel')
+                    const availables = db.indexManager.readColumnIndex('ch')
                     if(availables.has(channel.searchName)){
-                        return await db.query(
-                            {channel: channel.searchName, e: {'>': now}},
-                            {orderBy: 'start', limit}
-                        )
+                        query.ch = channel.searchName
+                        return await db.query(query, {orderBy: 'start', limit})
                     }
                 }
             }
@@ -759,36 +858,14 @@ class EPGManager extends EPGPaginateChannelsList {
             for(const url in this.epgs) {
                 if(this.epgs[url].state !== 'loaded') continue
                 const db = this.epgs[url].db
-                const availables = db.indexManager.readColumnIndex('channel')
+                const availables = db.indexManager.readColumnIndex('ch')
                 if(n && availables.has(n)){
-                    return await db.query(
-                        {channel: n, e: {'>': now}},
-                        {orderBy: 'start', limit}
-                    )
+                    query.ch = n
+                    return await db.query(query, {orderBy: 'start', limit})
                 }
             }
         }
         return false
-    }
-    async getData(){
-        return Object.keys(this.epgs).map(url => {
-            return {
-                state: this.epgs[url].state,
-                error: this.epgs[url].error,
-                length: this.epgs[url].db.length,
-            }
-        })
-    }
-    async getTerms(){
-        let results = {}        
-        for(const url in this.epgs) {
-            if(this.epgs[url].state !== 'loaded') continue
-            for(const name in this.epgs[url].db.index.terms) {
-                if(results[name] !== undefined) continue
-                results[name] = this.epgs[url].db.index.terms[name]
-            }
-        }
-        return results
     }
     async getMulti(channelsList, limit){
         let results = {}
@@ -812,7 +889,7 @@ class EPGManager extends EPGPaginateChannelsList {
         }
         data = data.sortByProp('score', true).slice(0, 24)
         for(const r of data) {
-            results[r.name] = await this.epgs[r.url].db.query({channel: r.name, end: {'>': time()}}, {limit})
+            results[r.name] = await this.epgs[r.url].db.query({ch: r.name, end: {'>': time()}}, {limit})
         }
         return results
     }
@@ -832,26 +909,11 @@ class EPGManager extends EPGPaginateChannelsList {
         }
         return results.unique()
     }
-    async validateChannelProgramme(channel, start, title){
-        const cid = await this.findChannel(channel)
-        if(cid) {            
-            for(const url in this.epgs) {
-                if(this.epgs[url].state !== 'loaded') continue
-                const db = this.epgs[url].db
-                const programmes = await db.query({channel: cid, start}, {orderBy: 'start asc', limit: 2})
-                for(const programme of programmes) {
-                    if(programme.t == title || textSimilarity(programme.t, title) > 0.75) {
-                        return true
-                    }
-                }
-            }
-        }
-    }
     async findChannel(data){
         for(const url in this.epgs) {
             if(this.epgs[url].state !== 'loaded') continue
             const db = this.epgs[url].db
-            const availables = db.indexManager.readColumnIndex('channel')
+            const availables = db.indexManager.readColumnIndex('ch')
             if(data.searchName && data.searchName != '-' && availables.has(data.searchName)){
                 return data.searchName
             } else if(data.name && availables.has(data.name)){
@@ -863,6 +925,7 @@ class EPGManager extends EPGPaginateChannelsList {
             if(this.epgs[url].state !== 'loaded') continue
             const db = this.epgs[url].db
             for(const name in db.index.terms) {
+                if(!Array.isArray(db.index.terms[name])) continue
                 score = listsTools.match(terms, db.index.terms[name], false)
                 if(score && score >= maxScore){
                     maxScore = score
@@ -875,12 +938,11 @@ class EPGManager extends EPGPaginateChannelsList {
                 if(this.epgs[url].state !== 'loaded') continue
                 const db = this.epgs[url].db
                 for(const name in db.index.terms) {
-                    if(Array.isArray(db.index.terms[name])){
-                        score = listsTools.match(db.index.terms[name], terms, false)
-                        if(score && score >= maxScore){
-                            maxScore = score
-                            candidates.push({name, score})
-                        }
+                    if(!Array.isArray(db.index.terms[name])) continue
+                    score = listsTools.match(db.index.terms[name], terms, false)
+                    if(score && score >= maxScore){
+                        maxScore = score
+                        candidates.push({name, score})
                     }
                 }
             }
@@ -893,9 +955,9 @@ class EPGManager extends EPGPaginateChannelsList {
         for(const url in this.epgs) {
             if(this.epgs[url].state !== 'loaded') continue
             const db = this.epgs[url].db
-            const availables = db.indexManager.readColumnIndex('channel')
-            for(const channel of availables) {
-                const query = {channel, e: {'>': now}}
+            const availables = db.indexManager.readColumnIndex('ch')
+            for(const ch of availables) {
+                const query = {ch, e: {'>': now}}
                 if(nowLive) query['<='] = now
                 for await (const programme of db.walk(query)) {
                     let t = programme.t
@@ -904,15 +966,35 @@ class EPGManager extends EPGPaginateChannelsList {
                     }
                     let pterms = listsTools.terms(t)
                     if(listsTools.match(terms, pterms, true)){
-                        if(typeof(epgData[channel]) == 'undefined'){
-                            epgData[channel] = {}
+                        if(typeof(epgData[ch]) == 'undefined'){
+                            epgData[ch] = {}
                         }
-                        epgData[channel][programme.start] = programme
+                        epgData[ch][programme.start] = programme
                     }
                 }
             }
         }
         return epgData
+    }
+    async validateChannels(data) {
+        const processed = {}
+        for (const channel in data) {
+            let err
+            const cid = await this.findChannel(data[channel].terms || listsTools.terms(channel))
+            const live = await this.liveNow(cid).catch(e => console.error(err = e))
+            if (!err && live) {
+                for (const candidate of data[channel].candidates) {
+                    if (live.t == candidate.t) {
+                        processed[channel] = candidate.ch
+                        break
+                    }
+                }
+            }
+        }
+        return processed
+    }
+    async lang(code, timezone) {
+        return global.lang.countryCode || global.lang.locale
     }
 	async terminate(){
         config.removeListener('change', this.changeListener)

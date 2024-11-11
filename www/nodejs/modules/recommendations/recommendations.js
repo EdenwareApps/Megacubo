@@ -207,13 +207,13 @@ class Recommendations extends EventEmitter {
                 this.epgLoaded = true
                 this.scheduleUpdate()
             })
+            global.lists.manager.ready().then(async () => {
+                this.listsLoaded = true
+                this.scheduleUpdate()
+            }).catch(console.error)
             global.lists.epg.ready().then(() => {
                 this.epgLoaded || storage.delete(this.cacheKey)
                 this.epgLoaded = true
-                this.scheduleUpdate()
-            }).catch(console.error)
-            global.lists.manager.ready().then(async () => {
-                this.listsLoaded = true
                 this.scheduleUpdate()
             }).catch(console.error)
         })
@@ -223,54 +223,59 @@ class Recommendations extends EventEmitter {
             await this.update().catch(console.error)
         })
     }
-    /*
     async validateChannels(data) {
-        let chs = {}
-        Object.keys(data).forEach(ch => {
+        const chs = {}, now = time()
+        for(const ch in data) {
             let channel = global.channels.isChannel(ch)
             if (channel) {
-                if (!chs[channel.name]) {
+                if(typeof(chs[channel.name]) == 'undefined') {
                     chs[channel.name] = global.channels.epgPrepareSearch(channel)
+                    chs[channel.name].candidates = []
+                }
+                for(const p in data[ch]) {
+                    if(parseInt(p) <= now && data[ch][p].e < now) {
+                        chs[channel.name].candidates.push({
+                            t: data[ch][p].t,
+                            ch
+                        })
+                        break
+                    }
                 }
             }
-        })
-        let alloweds = []
-        await Promise.allSettled(Object.keys(chs).map(async name => {
-            return this.queue.add(async () => {
-                const channelMappedTo = await global.lists.epg.findChannel(chs[name])
-                if (channelMappedTo)
-                    alloweds.push(channelMappedTo)
-            })
-        }))
-        Object.keys(data).forEach(ch => {
-            if (!alloweds.includes(ch)) {
-                delete data[ch]
-            }
-        })
-        return data
+        }
+        const ret = {}, alloweds = await global.lists.epg.validateChannels(chs)
+        for(const ch in alloweds) {
+            ret[ch] = data[ch]
+        }
+        return ret
     }
-    */
-    processEPGRecommendations(data) {
+    async processEPGRecommendations(data) {
+        data = await this.validateChannels(data)
         const results = [], already = new Set()
-        Object.keys(data).forEach(ch => {
+        for(const ch in data) {
             let channel = global.channels.isChannel(ch)
             if (channel) {
-                if(already.has(channel.name)) return
-                already.add(channel.name)
-                Object.keys(data[ch]).forEach(start => {
+                let t
+                for (const programme of data[ch]) {
+                    if(!t) {
+                        t = programme.t
+                        if(already.has(t)) return // prevent same program on diff channels
+                        already.add(t)
+                    }
                     results.push({
                         channel,
-                        labels: data[ch][start].c,
-                        programme: data[ch][start],
-                        start: parseInt(start),
+                        labels: programme.c,
+                        programme,
+                        start: parseInt(programme.start),
                         och: ch
                     })
-                })
+                }
             }
-        })
+        }
         return results
     }
     async get(tags, amount=128) {
+        if(!global.lists.epg.loaded) return []
         const now = (Date.now() / 1000)
         const timeRange = 3 * 3600
         const timeRangeP = timeRange / 100
@@ -279,7 +284,7 @@ class Recommendations extends EventEmitter {
             tags = await this.tags.get()
         }
         let data = await global.lists.epg.getRecommendations(tags, until, amount * 4)
-
+        
         const interests = new Set()
         global.channels.history.get().some(e => {
             const c = global.channels.isChannel(e)
@@ -297,7 +302,7 @@ class Recommendations extends EventEmitter {
         }
         
         // console.log('suggestions.get', tags)
-        let maxScore = 0, results = this.processEPGRecommendations(data)
+        let maxScore = 0, results = await this.processEPGRecommendations(data)
         results = results.map(r => {
             let score = 0
             
@@ -326,19 +331,12 @@ class Recommendations extends EventEmitter {
         })
 
         // remove repeated programmes
-        let nresults = [], already = new Set()
-        results = results.sortByProp('score', true) // sort before equilibrating
-        
-        for(const r of results) {
-            if (already.has(r.programme.t)) continue
-            already.add(r.programme.t)
-            const c = global.channels.epgPrepareSearch(r.channel)
-            const valid = await global.lists.epg.validateChannelProgramme(c, r.start, r.programme.t).catch(console.error)
-            valid === true && nresults.push(r)
-        }
-        results = nresults
-        nresults = []
-        
+        let already = new Set()
+        results = results.sortByProp('score', true).filter(e => {
+            if (already.has(e.programme.t)) return false
+            already.add(e.programme.t)
+            return true
+        })        
 
         // equilibrate categories presence
         /* not yet mature piece of code, needs more testing 
@@ -406,10 +404,8 @@ class Recommendations extends EventEmitter {
             return entry
         })
     }
-    hasEPG() {
-        return global.channels.isEPGLoaded()
-    }
-    async hasEPGChannel(ch, withIcon) {     
+    async hasEPGChannel(ch, withIcon) {
+        if(!global.lists.epg.loaded) return false
         const terms = global.channels.entryTerms(ch).filter(t => !t.startsWith('-'))
         const results = await global.lists.epgSearchChannel(terms, 99)
         return Object.keys(results).some(name => {
@@ -425,7 +421,7 @@ class Recommendations extends EventEmitter {
     }
     async getChannels(amount=5, _excludes=[]) {
         const excludes = new Set(_excludes)
-        const results = [], epgAvailable = this.hasEPG()
+        const results = []
         const isChannelCache = {}, validateCache = {}, hasEPGCache = {}
         const channel = e => {
             const name = typeof(e) == 'string' ? e : (e.originalName || e.name)
@@ -461,7 +457,7 @@ class Recommendations extends EventEmitter {
             return validateCache[name]
         }
         const hasEPG = async (e, icon) => {
-            if(!epgAvailable) return true
+            if(!global.lists.epg.loaded) return true
             const name = typeof(e) == 'string' ? e : (e.originalName || e.name)
             const key = name + (icon ? '-icon' : '')
             if (typeof(hasEPGCache[key]) == 'undefined') {
@@ -540,7 +536,7 @@ class Recommendations extends EventEmitter {
             es = []
         }
         if (!es.length) {
-            if (global.channels.isEPGLoaded()) {
+            if (global.lists.epg.loaded) {
                 es.push({
                     name: lang.NO_RECOMMENDATIONS_YET,
                     type: 'action',

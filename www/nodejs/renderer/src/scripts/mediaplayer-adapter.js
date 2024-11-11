@@ -390,7 +390,7 @@ class MediaPlayerAdapterHTML5 extends MediaPlayerAdapter {
 			return []
 		}
 		if(!Array.isArray(tracks)){
-			tracks = Array.from(tracks)
+			tracks = [...tracks]
 		}
 		const allow = ['id', 'lang', 'language', 'enabled', 'label', 'name']
 		return tracks.map((t, i) => {

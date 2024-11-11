@@ -1,4 +1,3 @@
-
 Object.defineProperty(Array.prototype, 'unique', {
     enumerable: false,
     configurable: false,
@@ -73,6 +72,29 @@ export const css = (code, id, scope) => {
             console.log('CSS Error', e, code)
         }
     }
+}
+
+let detectFontSizeTempElement = null
+export const detectFontSizeMultiplier = () => {
+    const testFontSize = 100 // px
+    if(!detectFontSizeTempElement) {
+        detectFontSizeTempElement = document.createElement('span')
+        detectFontSizeTempElement.textContent = 'M'
+        detectFontSizeTempElement.style.cssText = `
+            font-size: ${testFontSize}px;
+            line-height: ${testFontSize}px;
+            position: absolute;
+            visibility: hidden;
+        `
+    }
+    document.body.appendChild(detectFontSizeTempElement)
+    const renderedHeight = detectFontSizeTempElement.offsetHeight
+    document.body.removeChild(detectFontSizeTempElement)
+    return testFontSize / renderedHeight
+}
+
+export const getCssVariable = variableName => {
+    return getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
 }
 
 export const time = () => {

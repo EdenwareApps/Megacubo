@@ -4,7 +4,7 @@ export const hotkeysActions = {
     'HOME': [
         () => {
             if(main.menu.scrollTop()){
-                main.menu.scrollTop(0)
+                main.menu.scrollTop(0, true)
             } else {
                 main.menu.triggerAction('').catch(console.error)
             }
@@ -99,8 +99,7 @@ export const hotkeysActions = {
     ],
     'SEARCH': [
         () => {
-            main.omni.show()
-            main.omni.focus()
+            main.omni.show(true)
         }, 'up', true
     ],
     'OPENURL': [

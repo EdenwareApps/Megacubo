@@ -6,7 +6,7 @@ import Limiter from '../limiter/limiter.js'
 import mega from '../mega/mega.js'
 import config from '../config/config.js'
 import renderer from '../bridge/bridge.js'
-import paths from '../paths/paths.js'
+import { inWorker } from '../paths/paths.js'
 
 class Menu extends EventEmitter {
     constructor(opts) {
@@ -61,50 +61,43 @@ class Menu extends EventEmitter {
             })
         })
         renderer.ui.on('menu-open', async (path, tabindex) => {
-            const busy = this.setBusy()
+            const busy = this.setBusy(path, tabindex)
             this.opts.debug && console.log('menu-open', path, tabindex)
             await this.open(path, tabindex).catch(e => this.displayErr(e))
             busy.release()
         })
         renderer.ui.on('menu-action', async (path, tabindex) => {
-            const busy = this.setBusy()
+            const busy = this.setBusy(path, tabindex)
             await this.action(path, tabindex).catch(e => this.displayErr(e))
             busy.release()
         })
         renderer.ui.on('menu-back', async () => {
-            const busy = this.setBusy()
+            const busy = this.setBusy(this.dirname(this.path))
             await this.back().catch(e => this.displayErr(e))
             busy.release()
         })
         renderer.ui.on('menu-check', async (path, val) => {
-            const busy = this.setBusy()
+            const busy = this.setBusy(path)
             await this.check(path, val)
             busy.release()
         })
         renderer.ui.on('menu-input', async (path, val) => {
-            const busy = this.setBusy()
+            const busy = this.setBusy(path)
             this.opts.debug && console.log('menu-input', path, val)
             await this.input(path, val)
             busy.release()
         })
         renderer.ui.on('menu-select', async (path, tabindex) => {
-            const busy = this.setBusy()
+            const busy = this.setBusy(path, tabindex)
             await this.select(path, tabindex).catch(e => this.displayErr(e))
             busy.release()
         })
-        this.applyFilters(this.pages[this.path], this.path).then(es => {
-            this.pages[this.path] = es
-            if (this.waitingRender) {
-                this.waitingRender = false
-                this.render(this.pages[this.path], this.path, 'fas fa-home')
-            }
-        }).catch(e => this.displayErr(e))
     }
-    setBusy() {
+    setBusy(path) {
         const uid = 'busy-' + Date.now()
-        if(typeof(this.busies) == 'undefined') this.busies = new Set()
-        this.busies.size || renderer.ui.emit('menu-busy', true)
-        this.busies.add(uid)
+        if(typeof(this.busies) == 'undefined') this.busies = new Map()
+        this.busies.set(uid, path)
+        renderer.ui.emit('menu-busy', Array.from(this.busies.values()))
         return {
             release: () => {
                 this.busies.delete(uid)
@@ -173,11 +166,7 @@ class Menu extends EventEmitter {
         }
     }
     start() {
-        if (typeof(this.pages[this.path]) != 'undefined') {
-            this.render(this.pages[this.path], this.path, 'fas fa-home')
-        } else {
-            this.waitingRender = true
-        }
+        this.open('').catch(e => this.displayErr(e))
     }
     refresh(deep=false, p) {
         if (typeof(p) != 'string') p = this.path
@@ -219,8 +208,11 @@ class Menu extends EventEmitter {
     deepRefresh(p) {
         if (typeof(p) != 'string') p = this.path
         if (p != this.path || !this.rendering) return
-        this.deepRead(p).then(ret => {
-            this.render(ret.entries, p, (ret.parent ? ret.fa : '') || 'fas fa-box-open')
+        this.deepRead(p).then(async ret => {
+            await this.render(ret.entries, p, {
+                parent: ret.parent,
+                icon: (ret.parent ? ret.fa : '') || 'fas fa-box-open'
+            })
         }).catch(e => this.displayErr(e))
     }
     inSelect() {
@@ -299,7 +291,7 @@ class Menu extends EventEmitter {
                     entries[i].value = entries[i].value()
                 }
             }
-            this.opts.debug && console.log('Menu filtering DONE* ', !!paths.inWorker)
+            this.opts.debug && console.log('Menu filtering DONE* ', !!inWorker)
         }
         return entries || []
     }
@@ -395,18 +387,6 @@ class Menu extends EventEmitter {
                 return true
             } else {
                 console.warn('ACTION ' + name + ' (' + tabindex + ') NOT FOUND IN ', { dir }, this.pages[dir])
-            }
-        }
-    }
-    setLoading(state) {
-        if(state) {
-            if(!this.loadingEntriesBusyLock) {
-                this.loadingEntriesBusyLock = this.setBusy()
-            }
-        } else {
-            if(this.loadingEntriesBusyLock) {
-                this.loadingEntriesBusyLock.release()
-                this.loadingEntriesBusyLock = null
             }
         }
     }
@@ -555,7 +535,7 @@ class Menu extends EventEmitter {
             }
             es = this.addMetaEntries(es, destPath, parentPath)
             this.pages[this.path] = es
-            await this.render(this.pages[this.path], this.path, parentEntry)
+            await this.render(this.pages[this.path], this.path, {parent: parentEntry})
             return true
         }
         if (name) {
@@ -597,7 +577,7 @@ class Menu extends EventEmitter {
             }
         } else {
             this.path = destPath
-            await this.render(this.pages[this.path], this.path, parentEntry)
+            await this.render(this.pages[this.path], this.path, {parent: parentEntry})
             return true
         }
     }
@@ -742,11 +722,14 @@ class Menu extends EventEmitter {
         })
         return nentries
     }
-    render(es, path, parentEntryOrIcon, backTo) {
+    async render(es, path, opts={}) {
         if (this.opts.debug) {
-            console.log('render', es, path, parentEntryOrIcon, backTo)
+            console.log('render', es, path, opts)
         }
         if (Array.isArray(es)) {
+            if(opts.filter === true) {
+                es = await this.applyFilters(es, path)
+            }
             for (let i = 0; i < es.length; i++) {
                 if (!es[i].type) {
                     es[i].type = 'stream'
@@ -756,17 +739,16 @@ class Menu extends EventEmitter {
                 }
             }
             this.currentEntries = es.slice(0)
-            this.currentEntries = this.addMetaEntries(this.currentEntries, path, backTo)
+            this.currentEntries = this.addMetaEntries(this.currentEntries, path, opts.backTo)
             this.pages[path] = this.currentEntries.slice(0)
             this.currentEntries = this.cleanEntries(this.currentEntries, 'renderer,entries,action')
-            if (path && this.path != path)
-                this.path = path
-        }
-        if (this.rendering) {
-            const icon = typeof(parentEntryOrIcon) == 'string' ? parentEntryOrIcon : (parentEntryOrIcon ? parentEntryOrIcon.fa : 'fas fa-home')
-            renderer.ui.emit('render', this.cleanEntries(this.checkFlags(this.currentEntries), 'checked,users,terms'), path, icon)
-            this.emit('render', this.currentEntries, path, parentEntryOrIcon, backTo)
-            this.syncPages()
+            if (typeof(path) === 'string') this.path = path
+            if (this.rendering) {
+                const icon = opts.icon || opts?.parent?.fa || 'fas fa-home'
+                renderer.ui.emit('render', this.cleanEntries(this.checkFlags(this.currentEntries), 'checked,users,terms'), path, icon)
+                this.emit('render', this.currentEntries, path)
+                this.syncPages()
+            }
         }
     }
     suspendRendering() {
@@ -800,4 +782,4 @@ class Menu extends EventEmitter {
     }
 }
 
-export default (global.menu || (paths.inWorker ? {} : (global.menu = new Menu({}))))
+export default (global.menu || (inWorker ? {} : (global.menu = new Menu({}))))

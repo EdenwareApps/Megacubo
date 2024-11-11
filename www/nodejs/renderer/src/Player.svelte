@@ -193,7 +193,7 @@ video {
 }
 
 .control-layer-icon {
-    padding: 0 2vmin;
+    padding: 4vmin;
     mask-image: var(--controls-mask-image);
     -webkit-mask-image: var(--controls-mask-image);
 }
@@ -547,7 +547,7 @@ controls button i.fab {
     color: var(--font-color);
     height: 100% !important;
     max-height: var(--controls-button-height);
-    font-size: calc(var(--controls-button-height) * 0.5);
+    font-size: calc((var(--controls-button-height) * 0.5) * var(--font-scaling));
     line-height: 100%;
     display: inline-flex;
     align-items: center;

@@ -11,11 +11,12 @@ static def getVersionCodeFromVersionName(String versionName) {
 android {
     namespace "tv.megacubo.app"
     compileSdk rootProject.ext.compileSdkVersion
+    compileSdkVersion 34
     defaultConfig {
         applicationId "tv.megacubo.app"
         minSdkVersion 24
-        targetSdkVersion 33
-        versionName '17.5.4'
+        targetSdkVersion 34
+        versionName '17.5.5'
         versionCode getVersionCodeFromVersionName(versionName)
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -35,7 +36,6 @@ android {
         abi {
             enable true
             reset()
-            //include 'armeabi-v7a'_64'
             include 'armeabi-v7a'
             universalApk false
         }

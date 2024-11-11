@@ -18,6 +18,16 @@ const setupConstructor = () => {
     const workerData = { paths }
     workerData.paths.android = !!paths.android
     workerData.bytenode = true
+    const getLangObject = () => {
+        const ret = {}
+        if (typeof(lang) != 'undefined' && typeof(lang.getTexts) == 'function') {
+            Object.assign(ret, lang.getTexts())
+        }
+        ret.locale = lang.locale
+        ret.timezone = lang.timezone
+        ret.countryCode = lang.countryCode
+        return ret
+    }
     class WorkerDriver extends EventEmitter {
         constructor() {
             super();
@@ -137,9 +147,14 @@ const setupConstructor = () => {
             this.configChangeListener = () => {
                 this.worker && this.worker.postMessage({ method: 'configChange', id: 0 });
             };
+            this.langChangeListener = () => {
+                const lang = getLangObject()
+                this.worker && this.worker.postMessage({ method: 'langChange', id: 0, data: lang });
+            };
             this.storageTouchListener = (key, entry) => {
                 this.worker && this.worker.postMessage({ method: 'storageTouch', entry, key, id: 0 });
             };
+            lang.on('ready', this.langChangeListener);
             config.on('change', this.configChangeListener);
             storage.on('touch', this.storageTouchListener);
         }
@@ -174,6 +189,7 @@ const setupConstructor = () => {
                             console.error(e)
                         }
                     }
+                    this.langChangeListener && lang.removeListener('ready', this.langChangeListener);
                     this.configChangeListener && config.removeListener('change', this.configChangeListener);
                     this.storageTouchListener && storage.removeListener('touch', this.storageTouchListener);
                     this.removeAllListeners()
@@ -186,16 +202,8 @@ const setupConstructor = () => {
         constructor() {
             super()
             //let file = paths.cwd +'/modules/multi-worker/worker.mjs'
-            const file = paths.cwd +'/dist/worker.js'
-            
-            if (typeof(lang) != 'undefined' && typeof(lang.getTexts) == 'function') {
-                workerData.lang = lang.getTexts()
-            } else {
-                workerData.lang = {}
-            }
-            workerData.lang.locale = lang.locale
-            workerData.lang.countryCode = lang.countryCode
-            
+            const file = paths.cwd +'/dist/worker.js'            
+            workerData.lang = getLangObject()            
             this.worker = new Worker(file, {
                 type: 'commonjs', // (file == distFile ? 'commonjs' : 'module'),
                 workerData // leave stdout/stderr undefined

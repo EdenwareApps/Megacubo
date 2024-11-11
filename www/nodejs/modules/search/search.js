@@ -99,7 +99,6 @@ class Search extends EventEmitter {
             mediaType = 'all';
         }
         console.log('search-start', value);
-        global.menu.setLoading(true)
         osd.show(lang.SEARCHING, 'fas fa-search spin-x-alt', 'search', 'persistent');
         this.searchMediaType = mediaType;
         let err;
@@ -112,15 +111,17 @@ class Search extends EventEmitter {
             }
             this.emit('search', { query: value });
             if (!menu.path) {
-                menu.path = lang.SEARCH;
+                menu.path = lang.SEARCH
             }
-            const resultsCount = rs.length;
-            menu.render(this.addFixedEntries(mediaType, rs), menu.path, 'fas fa-search', '/');
+            const resultsCount = rs.length
+            menu.render(this.addFixedEntries(mediaType, rs), menu.path, {
+                icon: 'fas fa-search',
+                backTo: '/'
+            })
             osd.show(lang.X_RESULTS.format(resultsCount), 'fas fa-check-circle', 'search', 'normal');
         } else {
             menu.displayErr(err);
         }
-        global.menu.setLoading(false)
         this.history.add(value)
     }
     refresh() {
@@ -166,10 +167,13 @@ class Search extends EventEmitter {
                         let ret = await menu.dialog(opts, def);
                         if (ret == 'epg') {
                             this.channels.epgSearch(this.currentSearch.name).then(entries => {
-                                entries.unshift(this.channels.epgSearchEntry());
-                                let path = menu.path.split('/').filter(s => s != lang.SEARCH).join('/');
-                                menu.render(entries, path + '/' + lang.SEARCH, 'fas fa-search', path);
-                                this.history.add(this.currentSearch.name);
+                                entries.unshift(this.channels.epgSearchEntry())
+                                let path = menu.path.split('/').filter(s => s != lang.SEARCH).join('/')
+                                menu.render(entries, path + '/' + lang.SEARCH, {
+                                    icon: 'fas fa-search',
+                                    backTo: path
+                                })
+                                this.history.add(this.currentSearch.name)
                             }).catch(e => menu.displayErr(e));
                         } else {
                             this.go(this.currentSearch.name, 'all');

@@ -422,7 +422,7 @@ class StreamerClientVideoAspectRatio extends StreamerState {
             this.activeAspectRatio = this.aspectRatioList[0]
         })
     }
-    resize() {
+    resize() {        
         let landscape = window.innerWidth > window.innerHeight
         if(landscape != this.landscape){ // orientation changed
             this.landscape = landscape
@@ -430,6 +430,7 @@ class StreamerClientVideoAspectRatio extends StreamerState {
         } else {
             this.applyAspectRatio(this.activeAspectRatio)
         }
+		window.capacitor && plugins.megacubo.updateScreenMetrics()
     }
     generateAspectRatioMetrics(r){
         let h = r, v = 1
@@ -664,6 +665,7 @@ class StreamerButtonActionFeedback extends StreamerSpeedo {
         this.on('draw', () => {
             this.buttonActionFeedbackLayer = document.querySelector('#button-action-feedback')
             this.buttonActionFeedbackLayer.style.visibility = 'visible'
+            this.buttonActionFeedbackLayer.style.display = 'none'
             this.buttonActionFeedbackLayerInner = this.buttonActionFeedbackLayer.querySelector('span')
         })
         this.on('added-player-button', this.addedPlayerButton.bind(this))
@@ -689,10 +691,10 @@ class StreamerButtonActionFeedback extends StreamerSpeedo {
         }
         clearTimeout(this.buttonActionFeedbackTimer)        
         this.buttonActionFeedbackLayerInner.innerHTML = '<i class="'+ fa +'" style="transform: scale(1); opacity: 1;"></i>'
-        this.buttonActionFeedbackLayer.style.display = 'inline-block'
+        this.buttonActionFeedbackLayer.style.display = 'flex'
         const i = this.buttonActionFeedbackLayerInner.querySelector('i')
         i.style.transform = 'scale(1.5)'
-        i.style.opacity = '0.01'
+        i.style.opacity = '0.75'
         this.buttonActionFeedbackTimer = setTimeout(() => {
             this.buttonActionFeedbackLayer.style.display = 'none'
         }, 500)
@@ -1145,31 +1147,19 @@ class StreamerAndroidNetworkIP extends StreamerClientTimeWarp {
 class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
     constructor(controls){
         super(controls)
+        this.metricsCache = {}
         let b = this.controls.querySelector('button.fullscreen')
-        if(main.config['startup-window'] == 'fullscreen'){
+        if(window.capacitor){
+            if(b) b.style.display = 'none'
+            plugins.megacubo.on('nightmode', this.handleDarkModeInfoDialog.bind(this))
+        } else if(main.config['startup-window'] == 'fullscreen') {
             this.inFullScreen = true
             document.body.classList.add('fullscreen')
             if(b) b.style.display = 'none'
             this.enterFullScreen()
         } else {
-            if(window.capacitor){
-                if(b){
-                    b.style.display = 'none'
-                }
-                plugins.megacubo.on('metrics', this.updateAndroidScreenMetrics.bind(this))
-                plugins.megacubo.on('nightmode', this.handleDarkModeInfoDialog.bind(this))
-                this.updateAndroidScreenMetrics(plugins.megacubo.metrics)
-            } else {
-                this.inFullScreen = false
-                if(b) b.style.display = 'inline-flex'
-            }
-            this.on('fullscreenchange', fs => {
-                if(fs){
-                    document.body.classList.add('fullscreen')
-                } else {
-                    document.body.classList.remove('fullscreen')
-                }
-            })
+            this.inFullScreen = false
+            if(b) b.style.display = 'inline-flex'
         }
     }
     handleDarkModeInfoDialog(info){
@@ -1181,39 +1171,30 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
             ])
         }
     }
-    updateAndroidScreenMetrics(metrics){
-        if(metrics && typeof(metrics.bottom) != 'undefined') {
-            this.metrics = metrics
-        }
-        if(this.inFullScreen || !this.metrics){
-            // keep as '0px' instead of '0' to avoid CSS calc() issues
-            css(' :root { --menu-padding-top: 0px; --menu-padding-bottom: 0.5vmin; --menu-padding-right: 0.5vmin; --menu-padding-left: 0.5vmin; } ', 'frameless-window')
-        } else {
-            css(' :root { --menu-padding-top: ' + this.metrics.top + 'px; --menu-padding-bottom: calc(0.5vmin +  ' + this.metrics.bottom + 'px); --menu-padding-right:  calc(0.5vmin +  ' + this.metrics.right + 'px); --menu-padding-left: calc(0.5vmin +  ' + this.metrics.left + 'px); } ', 'frameless-window')
-        }
-    }
     updateAfterLeaveAndroidMiniPlayer(){
         if(screen.width == window.outerWidth && screen.height == window.outerHeight && this.active){
             this.enterFullScreen()
         }
     }
     enterFullScreen(){
-        if(window.capacitor){
-            if(!this.pipLeaveListener){
-                this.pipLeaveListener = () => {
-                    console.log('LEAVING PIP', screen.width, screen.height, window.outerWidth, window.outerHeight, this.active)
-                    this.updateAfterLeaveAndroidMiniPlayer()
+        if(!this.inFullScreen){
+            this.inFullScreen = true
+            if(window.capacitor){
+                if(!this.pipLeaveListener){
+                    this.pipLeaveListener = () => {
+                        console.log('LEAVING PIP', screen.width, screen.height, window.outerWidth, window.outerHeight, this.active)
+                        this.updateAfterLeaveAndroidMiniPlayer()
+                    }
                 }
+                plugins.megacubo.enterFullScreen()
+                if(!winActions.listeners('leave').includes(this.pipLeaveListener)){
+                    winActions.on('leave', this.pipLeaveListener)
+                }
+            } else {
+                parent.Manager.setFullScreen(true)
             }
-            plugins.megacubo.enterFullScreen()
-            if(!winActions.listeners('leave').includes(this.pipLeaveListener)){
-                winActions.on('leave', this.pipLeaveListener)
-            }
-        } else {
-            parent.Manager.setFullScreen(true)
+            this.emit('fullscreenchange', this.inFullScreen)
         }
-        this.inFullScreen = true
-        this.emit('fullscreenchange', this.inFullScreen)
     }
     leaveFullScreen(){
         if(this.inFullScreen){
@@ -1516,8 +1497,8 @@ class StreamerClientControls extends StreamerAudioUI {
         const bt = this.buildElementFromHTML(template)
         const bts = container.querySelectorAll('button')
         if(bts.length) {
-            let ptr, type = 'after'
-            Array.from(bts).some(e => {
+            let ptr, type = 'after';
+            [...bts].some(e => {
                 const btpos = parseInt(e.getAttribute('data-position'))
                 if(btpos < position) {
                     ptr = e                        

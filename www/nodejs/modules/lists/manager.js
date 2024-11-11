@@ -10,7 +10,7 @@ import downloads from "../downloads/downloads.js";
 import Mag from "./mag.js";
 import { EventEmitter } from "events";
 import { promises as fsp } from "fs";
-import { basename, clone, forwardSlashes, getDomain, insertEntry, kfmt, LIST_DATA_KEY_MASK, listNameFromURL, parseCommaDelimitedURIs, validateURL } from "../utils/utils.js";
+import { basename, clone, forwardSlashes, getDomain, insertEntry, kfmt, LIST_DATA_KEY_MASK, listNameFromURL, parseCommaDelimitedURIs, validateURL, ucWords } from "../utils/utils.js";
 import config from "../config/config.js"
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
@@ -44,7 +44,10 @@ class ManagerEPG extends EventEmitter {
                                     const hash = entries.map(e => e.name + e.details + e.value).join('')
                                     if (hash !== currentHash) {
                                         currentHash = hash
-                                        menu.render(entries, this.epgSelectionPath(), global.channels ? global.channels.epgIcon : '')
+                                        menu.render(entries, this.epgSelectionPath(), {
+                                            icon: global.channels ? global.channels.epgIcon : '',
+                                            filter: true
+                                        })
                                     }
                                 }
                                 this.epgStatusTimer = setTimeout(listener, 1000)
@@ -67,10 +70,12 @@ class ManagerEPG extends EventEmitter {
         return lang.EPG + '/' + lang.SELECT
     }
     inEPGSelectionPath(path) {
-        return path.includes(lang.EPG + '/' + lang.SELECT)
+        if (path.startsWith(lang.EPG) || path.startsWith(lang.MY_LISTS)) {
+            return path.includes(lang.EPG + '/' + lang.SELECT)
+        }
     }
     EPGs(activeOnly=false, urlsOnly=false) {
-        let ret = [], activeEPG = config.get('epg-' + lang.locale)
+        let ret = [], activeEPG = config.get('epg-'+ lang.locale)
         if(activeEPG && activeEPG !== 'disabled') {
             if(Array.isArray(activeEPG)) {
                 ret = activeEPG
@@ -115,10 +120,10 @@ class ManagerEPG extends EventEmitter {
             return {
                 name,
                 type: 'check',
-                action: (e, checked) => {
+                action: (e, isChecked) => {
                     const data = this.EPGs()
                     const has = data.findIndex(r => r.url == url)
-                    if(checked) {
+                    if(isChecked) {
                         if(has === -1) {
                             data.push({url, active: true})
                             this.epgShowLoading(url).catch(console.error)
@@ -697,7 +702,7 @@ class Manager extends ManagerEPG {
     }
     showUpdateProgress(m, fa, duration) {
         this.updateProgressVisible = true
-        osd.show(m, fa, duration)
+        osd.show(m, fa, 'update-progress', duration)
     }
     hideUpdateProgress() {
         if(!this.updateProgressVisible) return

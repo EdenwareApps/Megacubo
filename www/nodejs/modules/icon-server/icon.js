@@ -74,7 +74,7 @@ class IconFetcher extends EventEmitter {
                     return false;
                 }
                 const ret2 = await this.master.adjust(ret.file, { shouldBeAlpha: true, minWidth: 75, minHeight: 75 });
-                await this.master.saveHTTPCacheExpiration(key);
+                await this.master.saveCacheExpiration(key, true)
                 if (!done || this.hasPriority(done.image, image, images)) {
                     done = ret2;
                     if (!done.key) done.key = key
@@ -83,7 +83,7 @@ class IconFetcher extends EventEmitter {
                     this.succeeded = true;
                     this.result = done;
                     results[image.icon] = 'OK'
-                    this.emit('result', done);
+                    this.emit('result', done)
                 }
             };
         }).map(limit);

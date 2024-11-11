@@ -604,7 +604,7 @@ class FFmpegDownloader {
                 if (err) {
                     osd.show(String(err), 'fas fa-exclamation-triangle faclr-red', 'ffmpeg-dl', 'normal');
                 } else {
-                    osd.show(mask.replace('{0}', '100%'), 'fas fa-circle-notch faclr-green', 'ffmpeg-dl', 'normal');
+                    osd.show(mask.replace('{0}', '100%'), 'fas fa-check-circle faclr-green', 'ffmpeg-dl', 'normal');
                     this.executableDir = path.dirname(file);
                     this.executable = path.basename(file);
                     return true;

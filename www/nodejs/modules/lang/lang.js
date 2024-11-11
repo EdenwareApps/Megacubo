@@ -20,7 +20,7 @@ class Language extends EventEmitter {
             } else {
                 this.on('ready', resolve);
             }
-        });
+        })
     }
     async findLanguages() {
         let files = await fs.promises.readdir(this.folder).catch(e => menu.displayErr(e));

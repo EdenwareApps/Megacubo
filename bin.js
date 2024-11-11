@@ -60,7 +60,6 @@ findElectronExecutable().then(electronPath => {
             stdio: 'ignore',
         };
         const child = spawn(electronPath, params, opts);
-        console.log({electronPath, params, opts})
         if(debug) {                
             child.stdout.on('data', (data) => {
                 process.stdout.write(data);
