@@ -246,7 +246,9 @@ class EPGUpdater extends EventEmitter {
                     cacheTTL: this.ttl - 30,
                     responseType: 'text'
                 }
-                this.parser = new Parser()
+                this.parser = new Parser({
+                    timestamps: true
+                })
                 this.request = new Download(req)
                 this.request.on('error', err => {
                     console.warn(err)
@@ -347,8 +349,8 @@ class EPGUpdater extends EventEmitter {
     programme(programme){
         if(programme && programme.channel && programme.title.length) {
             const now = time()
-            const start = parseInt(programme.start.getTime() / 1000)
-            const end = parseInt(programme.end.getTime() / 1000)
+            const start = programme.start
+            const end = programme.end
             if(end >= now && end <= (now + this.dataLiveWindow)) {
                 const ch = this.cidToDisplayName(programme.channel)
                 let t = programme.title.shift() || 'Untitled'
