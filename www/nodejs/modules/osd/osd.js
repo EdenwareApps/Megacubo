@@ -2,7 +2,9 @@ import renderer from '../bridge/bridge.js'
 import { EventEmitter } from 'events'
 
 class OSD extends EventEmitter {
-    constructor() {}
+    constructor() {
+        super()
+    }
     show(text, icon, name, time) {
         renderer.ui.emit('osd-show', text, icon, name, time)
         this.emit('show', text, icon, name, time)
