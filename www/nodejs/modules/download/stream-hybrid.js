@@ -29,7 +29,7 @@ class DownloadStream extends DownloadStreamBase {
         if (!this.opts.cachedOnly) {
             types.push(DownloadStreamHttp);
         }
-        if (typeof(this.opts.cacheTTL) == 'number' && this.opts.cacheTTL > 0 && config.get('in-disk-caching-size')) {
+        if (this.opts.bypassCache !== true && typeof(this.opts.cacheTTL) == 'number' && this.opts.cacheTTL > 0 && config.get('in-disk-caching-size')) {
             types.unshift(DownloadStreamCache);
         }
         let chosen, responseData;

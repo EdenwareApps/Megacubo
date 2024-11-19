@@ -2,21 +2,22 @@ import History from '../history/history.js'
 import Download from '../download/download.js'
 import osd from '../osd/osd.js'
 import menu from '../menu/menu.js'
-import lang from "../lang/lang.js";
+import lang from '../lang/lang.js'
 import storage from '../storage/storage.js'
-import { EventEmitter } from 'events';
-import cloud from "../cloud/cloud.js";
-import mega from "../mega/mega.js";
-import Trending from "../trending/trending.js";
-import Bookmarks from "../bookmarks/bookmarks.js";
-import fs from "fs";
-import downloads from "../downloads/downloads.js";
-import icons from '../icon-server/icon-server.js';
-import config from "../config/config.js"
+import { EventEmitter } from 'events'
+import cloud from '../cloud/cloud.js'
+import mega from '../mega/mega.js'
+import Trending from '../trending/trending.js'
+import Bookmarks from '../bookmarks/bookmarks.js'
+import fs from 'fs'
+import pLimit from 'p-limit'
+import downloads from '../downloads/downloads.js'
+import icons from '../icon-server/icon-server.js'
+import config from '../config/config.js'
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
-import { clone, insertEntry, parseCommaDelimitedURIs, parseJSON, moment, time, ts2clock } from "../utils/utils.js";
-import Search from '../search/search.js';
+import { clone, insertEntry, parseCommaDelimitedURIs, parseJSON, moment, time, ts2clock } from '../utils/utils.js'
+import Search from '../search/search.js'
 
 class ChannelsList extends EventEmitter {
     constructor(type, countries) {
@@ -120,21 +121,36 @@ class ChannelsList extends EventEmitter {
         return ret;
     }
     async getAppRecommendedCategories(amount=256) {
-        let data = {}        
-        const completed = c => {
-            return this.mapSize(data) >= amount
-        }
-        for (const country of this.countries) {
+        let received = 0
+        const limit = pLimit(3), data = {}, ret = {}
+        const processCountry = async country => {
             let err
-            const isMainCountry = this.countries[0] == country
-            if (!isMainCountry && completed())
-                break;
-            const map = await cloud.get('channels/' + country).catch(e => err = e)
-            if (err)
-                continue
-            data = await this.applyMapCategories(map, data, amount, !isMainCountry)
+            const priority = country == lang.countryCode
+            if (!priority && received >= amount) return
+            let map = await cloud.get('channels/'+ country).catch(e => err = e)
+            if (err) {
+                if(priority) {
+                    err = null
+                    map = await cloud.get('channels/'+ country, {
+                        bypassCache: true // force refresh
+                    }).catch(e => err = e)
+                }
+            }
+            if (err) return
+            data[country] = map
+            received += this.mapSize(map)
         }
-        return data
+        const promise = processCountry(this.countries[0])
+        await Promise.allSettled(this.countries.slice(1).map(country => {
+            return limit(() => processCountry(country))
+        }))
+        await promise
+        for (const country of this.countries) { // this.countries will be in the preferred order
+            if (!data[country]) continue
+            await this.applyMapCategories(data[country], ret, amount, country != lang.countryCode)
+            if(this.mapSize(ret) >= amount) break
+        }
+        return ret
     }
     updateChannelsIndex(refresh) {
         if (refresh === true || !this.channelsIndex || !Object.keys(this.channelsIndex).length) {
@@ -435,7 +451,7 @@ class ChannelsEPG extends ChannelsData {
             }
             return this.clock(p, true)
         }
-        return epgData.filter(p => p.e > now).map(p => {
+        return (Array.isArray(epgData) ? epgData : Object.values(epgData)).filter(p => p.e > now).map(p => {
             const epgIcon = (p.i && p.i.includes('//')) ? p.i : ''
             return {
                 name: p.t,
@@ -687,7 +703,7 @@ class ChannelsEditing extends ChannelsEPG {
                                 icon: image,
                                 class: 'entry-icon-no-fallback',
                                 fa: 'fa-mega spin-x-alt',
-                                iconFallback: 'fas fa-exclamation-triangle',
+                                iconFallback: 'fas fa-times-circle',
                                 action: async () => {
                                     let err;
                                     const r = await icons.fetchURL(image);
@@ -1487,14 +1503,18 @@ class Channels extends ChannelsKids {
         return keywords
     }
     async setGridType(type) {
+        const busy = menu.setBusy(lang.LIVE +'/' + lang.CHOOSE_CHANNEL_GRID)
         osd.show(lang.PROCESSING, 'fas fa-circle-notch fa-spin', 'channel-grid', 'persistent');
         config.set('channel-grid', type);
         let err;
         await this.load(true).catch(e => err = e);
-        if (err)
-            return osd.show(err, 'fas fa-exclamation-triangle faclr-red', 'channel-grid', 'normal');
+        if (err) {
+            busy.release()
+            return osd.show(err, 'fas fa-exclamation-triangle faclr-red', 'channel-grid', 'normal')
+        }
         this.emit('channel-grid-updated')
-        await menu.open(lang.LIVE)
+        await menu.open(lang.LIVE).catch(e => menu.displayErr(e))
+        busy.release()
         osd.show('OK', 'fas fa-check-circle faclr-green', 'channel-grid', 'normal')
     }
     async entries() {
@@ -1819,7 +1839,8 @@ class Channels extends ChannelsKids {
                 class: isSeries ? 'entry-cover' : undefined,
                 fa: isSeries ? 'fas fa-play-circle' : undefined,
                 renderer: async () => {
-                    return await renderer(group);
+                    console.log({group})
+                    return await renderer(group)
                 }
             };
         };
@@ -1833,7 +1854,7 @@ class Channels extends ChannelsKids {
             }
             return entries;
         };
-        const renderer = async (group) => {
+        const renderer = async group => {
             let entries = await global.lists.group(group).catch(e => menu.displayErr(e));
             if (Array.isArray(entries)) {
                 let gentries = (group.entries || []).map(g => groupToEntry(g));

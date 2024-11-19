@@ -164,7 +164,7 @@ class Search extends EventEmitter {
                             { template: 'option', text: lang.EPG, details: lang.LIVE, fa: 'fas fa-th', id: 'epg' },
                             { template: 'option', text: lang.IPTV_LISTS, details: lang.CATEGORY_MOVIES_SERIES, fa: 'fas fa-list', id: 'lists' }
                         ], def = 'epg';
-                        let ret = await menu.dialog(opts, def);
+                        let ret = await menu.dialog(opts, def)
                         if (ret == 'epg') {
                             this.channels.epgSearch(this.currentSearch.name).then(entries => {
                                 entries.unshift(this.channels.epgSearchEntry())
@@ -174,9 +174,9 @@ class Search extends EventEmitter {
                                     backTo: path
                                 })
                                 this.history.add(this.currentSearch.name)
-                            }).catch(e => menu.displayErr(e));
+                            }).catch(e => menu.displayErr(e))
                         } else {
-                            this.go(this.currentSearch.name, 'all');
+                            this.go(this.currentSearch.name, 'all')
                         }
                     }
                 });
@@ -185,21 +185,20 @@ class Search extends EventEmitter {
         return es;
     }
     async searchGroups(terms) {
-        const map = {}, entries = [];
-        
-        const es = await this.search(terms, { groupsOnly: true });
+        const map = {}, entries = []        
+        const es = await this.search(terms, {groupsOnly: true})
         es.forEach(e => {
             if (typeof(map[e.source]) == 'undefined')
-                map[e.source] = {};
+                map[e.source] = {}
             if (typeof(map[e.source][e.groupName]) == 'undefined')
-                map[e.source][e.groupName] = {};
-        });
+                map[e.source][e.groupName] = {}
+        })
         Object.keys(map).forEach(url => {
             Object.keys(map[url]).forEach(name => {
-                entries.push({ name, type: 'group', renderer: () => lists.group({ group: name, url }) });
-            });
-        });
-        return lists.tools.sort(entries);
+                entries.push({ name, type: 'group', renderer: () => lists.group({group: name, url}) });
+            })
+        })
+        return lists.tools.sort(entries)
     }
     async search(terms, atts = {}) {        
         const policy = config.get('parental-control');
@@ -349,7 +348,7 @@ class Search extends EventEmitter {
         es = es.map(e => this.channels.toMetaEntry(e))
 
         const gs = await this.searchGroups(terms)
-        es.push(...gs.map(e => e))
+        es.push(...gs)
 
         const minResultsWanted = 256
         if (config.get('search-youtube') && es.length < minResultsWanted) {

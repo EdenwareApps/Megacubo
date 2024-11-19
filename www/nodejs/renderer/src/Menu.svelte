@@ -286,12 +286,12 @@ body.video:not(.menu-playing) .side-menu-out {
     top: 0;
     background: linear-gradient(to bottom, var(--background-color) 70%, transparent 100%);
     width: 100%;
-    z-index: 1;
+    z-index: 2;
     justify-content: center;
     display: flex;
     align-self: center;
     flex-grow: inherit;
-    padding: var(--padding-2x) 0;
+    padding: var(--padding-2x) 0 10vmin 0;
     align-items: center;
     color: var(--font-color);
     font-size: var(--menu-entry-name-font-size);
@@ -315,11 +315,12 @@ body.video.menu-playing #menu .menu-omni {
     flex-direction: row;
 }
 #menu .menu-omni input {
-    border-width: 0;
     width: calc(100% - var(--menu-entry-name-font-size));    
     min-width: calc(13 * var(--menu-entry-name-font-size));
+    font-size: var(--menu-entry-name-font-size);   
     background: transparent;
-    font-size: var(--menu-entry-name-font-size);    
+    line-height: 150%; 
+    border-width: 0;
 }
 body.home #menu content a.entry-2x, body.menu-wide #menu content a.entry-2x {
     width: 100%;
@@ -397,6 +398,7 @@ body:not(.portrait) #menu content a.entry-2x {
     font-size: var(--menu-entry-name-font-size);
 }
 .menu-omni-submit {
+    display: flex;
     justify-content: center;
     align-items: center;
     height: calc(var(--menu-entry-name-font-size) + var(--menu-padding-2x));
@@ -649,7 +651,6 @@ body.portrait #menu content a .entry-icon-image i {
     display: inline-flex;    
     border-radius: var(--radius);
     box-sizing: content-box;
-    background: linear-gradient(to top, rgba(75, 75, 75, 0.25) 0%, rgba(75, 75, 75, 0.5) 75%, rgba(75, 75, 75, 0.75) 100%);
     border: 1px solid rgba(255, 255, 255, 0.009);
     width: calc(100% - 2px);
     height: calc(100% - 2px);
@@ -673,11 +674,11 @@ body.portrait #menu content a .entry-icon-image i {
     z-index: 1;
     position: absolute;
     display: inline-block;
-    text-align: center;    
-    top: var(--menu-padding);
-    left: 0;
+    text-align: center;
     z-index: 1;
     width: 100%;
+    padding: var(--menu-padding) 0 var(--padding-2x) 0;
+    text-shadow: var(--solid-text-shadow);
 }
 #menu content a span.entry-name {
     letter-spacing: 0.033em;
@@ -685,7 +686,6 @@ body.portrait #menu content a .entry-icon-image i {
     min-height: var(--menu-entry-name-font-size);
     display: inline-block;
     line-height: 150%;
-    text-shadow: 1px 1px black, 0 0 4px black;
     -webkit-font-smoothing: antialiased;
 }
 #menu content a span.entry-details {
@@ -693,7 +693,6 @@ body.portrait #menu content a .entry-icon-image i {
     font-size: var(--menu-entry-details-font-size);
     min-height: var(--menu-entry-details-font-size);
     color: var(--secondary-font-color);
-    text-shadow: 1px 1px black, 0 0 4px black;
 }
 div#arrow-down-hint {
     justify-content: center;
@@ -1000,8 +999,11 @@ span.modal-template-question img {
 }
 a.modal-template-option, a.modal-template-option-detailed {
     justify-content: center;
-    background: linear-gradient(to bottom, rgba(255,255,255, 0.2) 0%, transparent 150%);
-    color: var(--shadow-background-color);
+    background: linear-gradient(to bottom, rgba(255,255,255, 0.3) 0%, transparent 150%);
+    color: black;
+    border-width: 0 1px 1px 0;
+    border-style: solid;
+    border-color: rgba(0,0,0, 0.2);
 }
 a.modal-template-option > div, a.modal-template-option-detailed > div {
     padding: 2.5vmax 0;
@@ -1014,6 +1016,7 @@ a.modal-template-option i, a.modal-template-option-detailed i {
 }
 a.modal-template-option.selected, a.modal-template-option-detailed.selected {
     background: linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(255,255,255,0.4) 100%);
+    border-color: rgba(0,0,0,0.3);
     opacity: 1;
 }
 div.modal-template-option-detailed-name {
@@ -1045,11 +1048,11 @@ span.modal-template-text input:focus, span.modal-template-textarea textarea:focu
     max-height: var(--modal-height);
     padding: var(--padding);
     background: var(--secondary-font-color);
-    color: var(--shadow-background-color);
     border-radius: var(--radius);
     box-sizing: border-box;    
     flex-direction: column;
     display: flex;
+    color: black;
 }
 .modal-template-options {
     box-sizing: border-box;

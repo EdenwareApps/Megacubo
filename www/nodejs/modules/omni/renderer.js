@@ -42,7 +42,10 @@ export class OMNI extends OMNIUtils {
         document.addEventListener('keyup', this.eventHandler.bind(this))
     }
     bind(){
-        main.on('omni-show', () => this.show(true))
+        main.on('omni-show', () => {
+            main.menu.sideMenu(false, 'instant')
+            setTimeout(() => this.show(true), 50)
+        })
         main.on('omni-hide', () => this.hide())
         main.on('omni-callback', (text, success) => {
             if(success){

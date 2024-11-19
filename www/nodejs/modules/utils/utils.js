@@ -4,6 +4,7 @@ import os from 'os';
 import { URL } from 'url'
 import { inWorker } from '../paths/paths.js'
 import fs from 'fs'
+import vm from 'vm'
 import path from 'path'
 import dayjs from 'dayjs'
 import clone from 'fast-json-clone'
@@ -23,17 +24,23 @@ dayjs.locale = async locales => {
     if (typeof(locales) == 'string') {
         locales = [locales]
     }
-    if(inWorker) return // fails to load language in worker (android) as it tries to require 'dayjs' again
     for (const locale of locales) {
         const file = path.join(getDirname(), 'dayjs-locale', locale +'.js')
         try {
             console.log(`Loading locale ${file}`)
-            const data = await import(file)
-            if(!data.default) {
-                throw new Error('No default export found')
+
+            let scriptContent = await fs.promises.readFile(file, 'utf8')
+            scriptContent = 'output='+ (scriptContent.
+                replace(new RegExp('^.*s ?=', 'm'), '').
+                replace(new RegExp(';[^;]*return.*$', 'm'), ''))
+            const context = {output: null}
+            const script = new vm.Script(scriptContent); 
+            vm.createContext(context)
+            script.runInNewContext(context)
+            if(context.output) {
+                originalLocale(context.output)
+                console.log(`Locale ${locale} loaded from ${file}`)
             }
-            const ret = originalLocale(data.default)
-            console.log(`Locale ${locale} loaded from ${file}`)
             break
         } catch(err) {
             console.error(`Error loading locale ${locale} from ${file}:`, err)

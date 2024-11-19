@@ -115,7 +115,7 @@ class CloudConfiguration extends EventEmitter {
             retry: 2,
             timeout: 30,
             responseType: 'json',
-            cacheTTL: this.expires[opts.expiralKey] || 300,
+            cacheTTL: this.expires[opts.expiralKey] || opts.cacheTTL || 300,
             encoding: 'utf8'
         }).catch(e => err = e)
         if (this.debug) {

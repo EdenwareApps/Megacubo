@@ -189,7 +189,7 @@ class ManagerEPG extends EventEmitter {
                     osd.show(lang.EPG_LOAD_SUCCESS, 'fas fa-check-circle', uid, 'normal')
                     break
                 } else {
-                    osd.show(lang.PROCESSING + ' ' + state.progress + '%', 'fas fa-circle-notch fa-spin', uid, 'persistent')
+                    osd.show(lang.PROCESSING + ' ' + (state.progress || 0) + '%', 'fas fa-circle-notch fa-spin', uid, 'persistent')
                 }
             } else {
                 osd.show(lang.EPG_LOAD_FAILURE + ': ' + state.error, 'fas fa-times-circle', uid, 'normal')

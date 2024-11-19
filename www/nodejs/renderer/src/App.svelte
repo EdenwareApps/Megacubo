@@ -71,6 +71,7 @@
     --controls-button-height: calc(var(--controls-height) - 2vmin);
     --controls-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 20%, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 0.9) 50.5%, rgba(0, 0, 0, 0.3) 100%);
     --seekbar-height: calc(var(--padding) * 3);
+    --solid-text-shadow: 1px 1px 0 black, -1px -1px 0 black, -1px 1px 0 black, 1px -1px 0 black, 2px 2px 0 black;
 }
 ::-webkit-scrollbar {
     height: var(--menu-scrollbar-width);

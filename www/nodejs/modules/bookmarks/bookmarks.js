@@ -199,17 +199,16 @@ class Bookmarks extends EntriesGroup {
         if (gentries.length) {
             let centries = []
             if (!paths.android && config.get('bookmarks-desktop-icons')) {
-                centries.push({ name: lang.BOOKMARK_ICONS_SYNC, fa: 'fas fa-sync-alt', type: 'action', action: () => this.desktopIconsSync().catch(console.error) });
+                centries.push(...[
+                    { name: lang.BOOKMARK_ICONS_SYNC, fa: 'fas fa-sync-alt', type: 'action', action: () => this.desktopIconsSync().catch(console.error) },
+                    { name: lang.BOOKMARK_CREATE_DESKTOP_ICONS, type: 'check',
+                        action: (_, value) => config.set('bookmarks-desktop-icons', value),
+                        checked: () => config.get('bookmarks-desktop-icons')
+                    }
+                ])
             }
             centries.push(...[
                 { name: lang.SET_SHORTCUT_NUMBERS, fa: 'fas fa-list-ol', type: 'group', renderer: this.shortcutNumberEntries.bind(this) },
-                { name: lang.BOOKMARK_CREATE_DESKTOP_ICONS, type: 'check', action: (_, value) => {
-                        config.set('bookmarks-desktop-icons', value)
-                    },
-                    checked: () => {
-                        return config.get('bookmarks-desktop-icons')
-                    }
-                },
                 { name: lang.REMOVE, fa: 'fas fa-trash', type: 'group', renderer: this.removalEntries.bind(this) }
             ])
             es.push({
@@ -313,7 +312,7 @@ class Bookmarks extends EntriesGroup {
                     url: logoUrl,
                     value: logoUrl,
                     type: 'action',
-                    iconFallback: 'fas fa-exclamation-triangle',
+                    iconFallback: 'fas fa-times-circle',
                     action: this.addByNameEntries3.bind(this)
                 });
             });

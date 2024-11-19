@@ -59,11 +59,9 @@ class EPGHistory extends EntriesGroup {
     }
     async finishSession() {
         if (this.session) {
-            const busy = global.menu.setBusy(true)
             clearInterval(this.session.timer)
             await this.check().catch(console.error)
             this.session = null
-            busy.release()
         }
     }
     startSessionTimer() {

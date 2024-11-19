@@ -78,7 +78,7 @@ body.video #osd-root {
   border-width: 0;
   margin-bottom: var(--padding);
   border-radius: var(--radius);
-  text-shadow: 0 0 1vh #000, 0 0 6vh #000;
+  text-shadow: var(--solid-text-shadow), 0 0 1vmax #000;
   opacity: 1;
   background: var(--osd-background-color);
   max-width: 98%;

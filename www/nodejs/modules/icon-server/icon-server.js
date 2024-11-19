@@ -368,7 +368,7 @@ class IconServer extends IconServerStore {
         icon.on('result', ret => this.result(e, e.path, j, ret))
         if(e.iconFallback) {
             icon.on('failed', () => {
-                const ret = {url: e.iconFallback, force: false, alpha: true}
+                const ret = {url: e.iconFallback, force: true, alpha: true}
                 this.result(e, e.path, j, ret)
             })
         }

@@ -66,13 +66,7 @@ class WindowActions extends EventEmitter {
 		cb && setTimeout(cb, 400)
 	}
 	canAutoRestart(){ 
-		let autoRestartSupport
-		if(parent.api && parent.api.platform == 'win32'){
-			autoRestartSupport = true
-		} else if(typeof(window.capacitor) != 'undefined' && window.capacitor && parseInt(device.version) < 10 && typeof(plugins) != 'undefined' && plugins.megacubo) {
-			autoRestartSupport = true
-		}
-		return autoRestartSupport
+		return true
 	}
 	restart(){
 		let next = auto => {
@@ -227,7 +221,9 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 			const stateListener = () => {
 				setTimeout(() => { // wait consolidated values
 					if(main.streamer.active && !main.streamer.isAudio && !main.streamer.casting) {
-						this.pip.autoPIP(true, 240 * player.videoRatio(), 240)
+						const ratio = player.videoRatio()
+						const width = (240 * ratio) || 320
+						this.pip.autoPIP(true, (240 * player.videoRatio()) || 320, 240)
 					} else {
 						this.pip.autoPIP(false, 0, 0)
 					}
@@ -291,6 +287,9 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 			window.addEventListener('resize', listener)
 			window.addEventListener('orientationchange', listener, { capture: true })
 			screen.orientation && screen.orientation.addEventListener('change', listener)
+			this.pip.isPipModeSupported(() => {}, err => {
+				console.error('PiP not supported', err)
+			})
 		}
 	}
 	setBackgroundMode(state, force){

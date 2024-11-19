@@ -17,7 +17,7 @@ import { getDirname } from 'cross-dirname'
 class ListsLoader extends EventEmitter {
     constructor(master, opts) {
         super();
-        const concurrency = config.get('lists-loader-concurrency') // avoid too many concurrency on mobiles
+        const concurrency = config.get('lists-loader-concurrency') || 6 // avoid too many concurrency on mobiles
         this.debug = master.debug;
         this.master = master;
         this.opts = opts || {};
@@ -32,7 +32,7 @@ class ListsLoader extends EventEmitter {
         this.publicListsActive = config.get('public-lists');
         this.communityListsAmount = config.get('communitary-mode-lists-amount');
         this.enqueue(this.myCurrentLists, 1);
-        renderer.ready(async () => {
+        renderer.ready(() => {
             this.master.discovery.on('found', () => this.resetLowPriorityUpdates())
             global.streamer.on('commit', () => this.pause())
             global.streamer.on('stop', () => {
@@ -76,12 +76,14 @@ class ListsLoader extends EventEmitter {
             }
         });
         this.master.on('satisfied', () => {
-            if (this.master.activeLists.length) {
+            if (this.master.activeLists.length) {                
+                this.queue.concurrency = 1
                 this.queue._concurrency = 1 // try to change pqueue concurrency dinamically
                 this.resetLowPriorityUpdates()
             }
         });
         this.master.on('unsatisfied', () => {
+            this.queue.concurrency = concurrency
             this.queue._concurrency = concurrency // try to change pqueue concurrency dinamically
             this.resetLowPriorityUpdates()
         });
@@ -98,7 +100,6 @@ class ListsLoader extends EventEmitter {
         this.master.delimitActiveLists()
     }
     async resetLowPriorityUpdates() {
-        this.debug && console.error('[listsLoader] resetLowPriorityUpdates()', this.communityListsAmount);
         this.processes = this.processes.filter(p => {
             /* Cancel pending processes to reorder it */
             if (p.priority > 1 && !p.started() && !p.done()) {
@@ -116,7 +117,6 @@ class ListsLoader extends EventEmitter {
         const taskId = Math.random();
         this.currentTaskId = taskId;
         this.master.updaterFinished(false);
-        this.debug && console.error('[listsLoader] resetLowPriorityUpdates(1)')
         const lists = await this.master.discovery.get(maxListsToTry)
         const loadingLists = []
         lists.some(({ url, type }) => {
@@ -127,20 +127,15 @@ class ListsLoader extends EventEmitter {
                 return loadingLists.length == maxListsToTry;
             }
         });
-        this.debug && console.error('[listsLoader] resetLowPriorityUpdates(2)');
         const loadingListsCached = await this.master.filterCachedUrls(loadingLists);
-        this.debug && console.error('[listsLoader] resetLowPriorityUpdates(3)');
         this.master.loadCachedLists(loadingListsCached).catch(console.error)
         this.enqueue([...loadingLists.filter(u => !loadingListsCached.includes(u)), ...loadingListsCached]); // update uncached lists first
-        this.queue.onIdle().catch(console.error).finally(() => {
-            setTimeout(() => {
-                if (this.currentTaskId == taskId && !this.queue.size) {
-                    this.master.updaterFinished(true);
-                }
-                this.master.status();
-            }, 2000);
-        });
-        this.debug && console.error('[listsLoader] resetLowPriorityUpdates(4)');
+        await this.queue.onIdle().catch(console.error)
+        await new Promise(resolve => setTimeout(resolve, 2000))
+        if (this.currentTaskId == taskId && !this.queue.size) {
+            this.master.updaterFinished(true)
+        }
+        this.master.status()
     }
     async prepareUpdater() {
         if (!this.updater || this.updater.finished === true) {
@@ -206,40 +201,34 @@ class ListsLoader extends EventEmitter {
         urls.forEach(u => this.pings[u] = 0);
         already.sortByProp('time').map(u => u.url).forEach(url => this.schedule(url, priority));
         const start = (Date.now() / 1000);
-        const racing = new ConnRacing(urls, { retries: 1, timeout: 8 });
+        const racing = new ConnRacing(urls, { retries: 2, timeout: 8 });
         this.debug && console.error('[listsLoader] enqueue conn racing: ' + urls.join("\n"));
         for (let i = 0; i < urls.length; i++) {
-            const res = await racing.next().catch(console.error);
+            const res = await racing.next().catch(console.error)
             if (res && res.valid) {
                 const url = res.url;
                 const time = (Date.now() / 1000) - start;
-                if (!this.pings[url] || this.pings[url] < time) {
-                    this.pings[url] = (Date.now() / 1000) - start;
+                if (!this.pings[url] || this.pings[url] > time) {
+                    this.pings[url] = time
                 }
-                this.schedule(url, priority);
+                this.schedule(url, priority)
             }
         }
         urls.filter(u => this.pings[u] == 0).forEach(u => delete this.pings[u]);
     }
     async addListNow(url, atts = {}) {
-        console.error('addListNow() 1')
         const uid = parseInt(Math.random() * 1000000)
         const progressListener = p => {
             if (p.progressId == uid)
                 atts.progress(p.progress)
         };
-        console.error('addListNow() 2')
         await Download.waitNetworkConnection()
-        console.error('addListNow() 3')
         await this.prepareUpdater()
-        console.error('addListNow() 4')
         atts.progress && this.updater.on('progress', progressListener)
-        console.error('addListNow ' + JSON.stringify(atts))
         await this.updater.update(url, {
             uid,
             timeout: atts.timeout
         }).catch(console.error)
-        console.error('addListNow OK')
         atts.progress && this.updater.removeListener('progress', progressListener)
         this.updater && this.updater.close && this.updater.close()
         this.master.addList(url, 1)
@@ -249,17 +238,13 @@ class ListsLoader extends EventEmitter {
         this.debug && console.error('[listsLoader] schedule: ' + url)
         this.processes.some(p => p.url == url) || this.processes.push({
             promise: this.queue.add(async () => {
-                this.debug && console.error('[listsLoader] schedule processing 0: ' + url + ' | ' + this.paused);
                 started = true;
                 this.paused && await this.wait();
-                this.debug && console.error('[listsLoader] schedule processing 1: ' + url);
                 if (cancel)
                     return;
                 await this.prepareUpdater();
-                this.debug && console.error('[listsLoader] schedule processing 3: ' + url);
                 this.results[url] = 'awaiting';
                 this.results[url] = await this.updater.update(url).catch(console.error);
-                this.debug && console.error('[listsLoader] schedule processing 4: ' + url + ' | ' + this.results[url]);
                 this.updater && this.updater.close && this.updater.close();
                 done = true;
                 const add = this.results[url] == 'updated' ||

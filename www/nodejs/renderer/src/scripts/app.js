@@ -208,6 +208,13 @@ export const initApp = async () => {
     window.main = main
     main.imp = new ImageProcessor(main)
     main.on('clipboard-write', (text, successMessage) => {
+        if(window.capacitor) {
+            return window.capacitor.clipboard(text).then(ret => {
+                successMessage && main.osd.show(successMessage, 'fas fa-check-circle faclr-green', 'clipboard', 'normal')
+            }).catch(err => {
+                main.osd.show(String(err.message || err), 'fas fa-exclamation-triangle faclr-red', 'clipboard', 'normal')
+            })
+        }
         if (!top.navigator.clipboard) {
             main.osd.show('Your webview doesn\'t supports copying to clipboard.', 'fas fa-exclamation-triangle faclr-red', 'clipboard', 'normal')
             return
@@ -216,6 +223,14 @@ export const initApp = async () => {
             successMessage && main.osd.show(successMessage, 'fas fa-check-circle faclr-green', 'clipboard', 'normal')
         }).catch(err => {
             main.osd.show(String(err.message || err), 'fas fa-exclamation-triangle faclr-red', 'clipboard', 'normal')
+        })
+    })
+    main.on('clipboard-read', (callbackId, timeoutMs) => {
+        console.log('clipboard-read', callbackId)
+        main.menu.readClipboard(timeoutMs).then(text => {
+            main.emit(callbackId, null, text)
+        }).catch(err => {
+            main.emit(callbackId, err, '')
         })
     })
     main.on('open-external-url', url => winActions.openExternalURL(url))
@@ -395,17 +410,17 @@ export const initApp = async () => {
         })
         const WinActions = window.capacitor ? AndroidWinActions : ElectronWinActions
         window.winActions = new WinActions(main)
-        main.on('open-file', (uploadURL, cbID, mimetypes) => {
+        main.on('open-file', (uploadURL, callbackId, mimetypes) => {
             const next = () => {
-                menu.openFile(uploadURL, cbID, mimetypes).catch(err => {
+                menu.openFile(uploadURL, callbackId, mimetypes).catch(err => {
                     main.osd.show(String(err), 'fas fa-exclamation-triangle', 'menu', 'normal')
-                    main.emit(cbID, null)
+                    main.emit(callbackId, null)
                 }).finally(() => {
                     winActions && winActions.backgroundModeUnlock('open-file')
                 })
             }
             if (parent.Manager) {
-                parent.Manager.openFile(mimetypes, (err, file) => main.emit(cbID, err ? null : [file]))
+                parent.Manager.openFile(mimetypes, (err, file) => main.emit(callbackId, err ? null : [file]))
             } else {
                 window.capacitor && window.winActions && winActions.backgroundModeLock('open-file')
                 next()

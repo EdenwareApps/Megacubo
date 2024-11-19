@@ -31,19 +31,16 @@ class Fetcher extends EventEmitter {
         });
     }
     async start() {
-        console.error('Fetcher start 0')
         this.list = new List(this.url, this.master)
         try {
             return await this.list.start()
         } catch (err) {
-            console.error('Fetcher start 1', err)
             try {
                 await this.master.loader.addListNow(this.url, this.atts)
-                console.error('Fetcher start 2')            
                 try {
                     return await this.list.start()
                 } catch(err) { // will trigger outer catch
-                    console.error('Fetcher start 3', err)
+                    console.error('Fetcher start error', err)
                     throw err
                 }
             } catch(err) {

@@ -32,7 +32,6 @@ const plugins = [
       '"node:': '"',
       'getFilename()': '__filename',
       'getDirname()': '__dirname',
-      'aliasedRequire(\'./locale': 'require(\'./moment-locale', // moment locales
       'require("electron")': 'process.platform=="android"?{}:require("electron")' // dummy value for Android
     }
   }),
@@ -77,7 +76,6 @@ const pluginsMain = [
       '"node:': '"',
       'getFilename()': '__filename',
       'getDirname()': '__dirname',
-      'aliasedRequire(\'./locale': 'require(\'./moment-locale', // moment locales
       'require("electron")': 'process.platform=="android"?{}:require("electron")' // dummy value for Android
     }
   }),
@@ -110,7 +108,6 @@ const pluginsPremium = [
       '"node:': '"',
       'getFilename()': '__filename',
       'getDirname()': '__dirname',
-      'aliasedRequire(\'./locale': 'require(\'./moment-locale', // moment locales
       'require("electron")': 'process.platform=="android"?{}:require("electron")' // dummy value for Android
     }
   }),

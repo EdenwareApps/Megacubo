@@ -210,6 +210,26 @@ class BridgeUtils extends BridgeServer {
     constructor(opts) {
         super(opts)
     }
+    async clipboard(text, successMessage, ms) {
+        if (typeof(text) == 'string') { // write
+            this.emit('clipboard-write', text, successMessage, ms)
+        } else { // read
+            ms = text
+            const uid = 'clipboard-read-'+ Math.random().toString(36).substr(2, 9)
+            const promise = new Promise((resolve, reject) => {
+                this.once(uid, (err, text) => {
+                    if (err) {
+                        console.error('Clipboard error', err)
+                        return reject(err)
+                    }
+                    resolve(text)
+                })
+            })
+            this.emit('clipboard-read', uid, ms)
+            const ret = await promise
+            return ret
+        }
+    }
     async resolveFileFromClient(data) {
         const check = async (file) => {            
             await fs.promises.access(file, fs.constants.R_OK)

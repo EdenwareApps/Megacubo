@@ -56,8 +56,10 @@ class ListIndex extends ListIndexUtils {
             const xs = await this.entries(map)
             for (let x = 0; x < xs.length; x++) {
                 let i = tbl[xs[x]._];
-                Object.assign(structure[i], xs[x]);
-                structure[i]._ = xs[x]._ = undefined;
+                if(structure[i] && xs[x]) {
+                    Object.assign(structure[i], xs[x])
+                    structure[i]._ = xs[x]._ = undefined
+                }
             }
         }
         return structure;

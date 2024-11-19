@@ -81,8 +81,8 @@ class Diagnostics extends EventEmitter {
         const report = await this.report();
         await fs.promises.writeFile(file, report, { encoding: 'utf8' });
         downloads.serve(file, true, false).catch(e => menu.displayErr(e));
-        renderer.ui.emit('clipboard-write', report);
-        console.error('REPORT => ' + report);
+        report && await renderer.ui.clipboard(report)
+        console.error('REPORT => ' + report)
     }
     async checkDisk() {
         return cds(this.folder); // {diskPath: 'C:', free: 12345678, size: 98756432}

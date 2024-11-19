@@ -65,22 +65,26 @@ class Theme extends EventEmitter {
         this.on('resized', () => this.updateFontSize())
     }
     renderBackground(data) {
-        const bg = document.getElementById('background')
+        const bg = document.getElementById('background')	
+        const v = bg.querySelector('video')
 		if(data.video){
-			bg.style.backgroundImage = 'none';		
-			var v = bg.querySelector('video');
-			if(!v || v.src != data.video){
-				bg.innerHTML = '&nbsp;';
-				setTimeout(function () {
-					bg.innerHTML = '<video crossorigin src="'+ data.video +'" onerror="setTimeout(() => {if(this.parentNode)this.load()}, 500)" loop muted autoplay style="background-color: black;object-fit: cover;" poster="./assets/images/blank.png"></video>';
-				}, 1000);
-			}
+			bg.style.backgroundImage = 'none';	
+			if(!v){
+				bg.innerHTML += '<video crossorigin src="'+ data.video +'" onerror="setTimeout(() => {if(this.parentNode)this.load()}, 500)" loop muted autoplay style="background-color: black;object-fit: cover;" poster="./assets/images/blank.png"></video>'
+			} else if(v.src != data.video) {
+                v.setAttribute('src', data.video)
+                try {
+                    v.load()
+                } catch(e) {
+                    console.error(e)
+                }
+            }
 		} else {
 			var m = 'url("' + data.image +'")';
 			if(bg.style.backgroundImage != m){
 				bg.style.backgroundImage = m;
 			}
-			bg.innerHTML = '';
+            v && v.parentNode.removeChild(v)
 		}
 		this.setCurtainsTransition(false, false)
 	}
@@ -214,9 +218,10 @@ class Theme extends EventEmitter {
             family += ','+ systemFont
         }
         const sbg = colorMixer(Object.values(hexToRgb(main.config['background-color'])), [0, 0, 0], 0.5)
-        const mbg = hexToRGBA(main.config['background-color'], main.config['background-color-transparency'] / 100)
-        const obg = hexToRGBA(main.config['background-color'], 0.75)
-        const sfg = hexToRGBA(main.config['font-color'], 0.6)
+        const mbg = hexToRGBA(main.config['background-color'], 0.25)
+        const bbg = hexToRGBA(main.config['background-color'], (100 - main.config['background-transparency']) / 100)
+        const obg = hexToRGBA(main.config['background-color'], 0.5)
+        const sfg = colorMixer(Object.values(hexToRgb(main.config['font-color'])), [0, 0, 0], 0.75)
         const fxNavIntensityStep = parseFloat(window.getComputedStyle(document.documentElement).getPropertyValue('--menu-fx-nav-intensity-step').trim())
         const fxNavIntensity = main.config['fx-nav-intensity'] * fxNavIntensityStep
         let fxNavDuration
@@ -232,10 +237,10 @@ class Theme extends EventEmitter {
             return c.replace('rgb(','rgba(').replace(')', ', '+ a +')')
         }
         let baseColor = [70,70,70], baseFactor = 0.9
-        let a = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.5)
-        let b = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.65)
-        let c = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.7)
-        let d = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 1)
+        let a = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.35)
+        let b = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.5)
+        let c = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.55)
+        let d = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.85)
 
         baseColor = [255, 255, 255]
         let e = hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, 0.32))
@@ -284,6 +289,9 @@ class Theme extends EventEmitter {
         }
         *:not(input):not(textarea) {
             text-transform: ${ucase};
+        }
+        div#background > div {
+            background-color: ${bbg};
         }
         #menu a span.entry-wrapper {
             background: linear-gradient(to top, ${a} 0%, ${b} 75%, ${c} 100%) !important;

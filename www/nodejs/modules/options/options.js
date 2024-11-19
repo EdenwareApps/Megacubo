@@ -21,7 +21,7 @@ import config from '../config/config.js'
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
 import Download from '../download/download.js'
-import { kbfmt, kbsfmt, parseJSON, moment, ucFirst, ucWords } from '../utils/utils.js'
+import { kbfmt, kbsfmt, parseJSON, moment, rmdirSync, ucFirst, ucWords } from '../utils/utils.js'
 
 class Timer extends EventEmitter {
     constructor() {
@@ -324,9 +324,7 @@ class OptionsExportImport extends OptionsGPU {
         super()
     }
     async importConfigFile(data, keysToImport, cb) {
-        console.log('Config file', data)
-        global.tmpData = data
-        data = parseJSON(String(data));
+        data = parseJSON(String(data))
         if (typeof(data) == 'object') {
             data = this.prepareImportConfigFile(data, keysToImport)
             config.setMulti(data)

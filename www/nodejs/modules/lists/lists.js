@@ -71,7 +71,7 @@ class ListsEPGTools extends Index {
     }
     async epgSearch(terms, nowLive) {
         if (!this.epg.loaded) return []
-        return await this.epg.search(this.tools.applySearchRedirects(terms), nowLive);
+        return await this.epg.search(this.tools.applySearchRedirects(terms), nowLive)
     }
     async epgSearchChannel(terms, limit) {
         if (!this.epg.loaded) return {}
@@ -231,7 +231,8 @@ class Lists extends ListsEPGTools {
         });
         this.on('satisfied', () => {
             if (this.activeLists.length) {
-                this.queue._concurrency = 1; // try to change pqueue concurrency dinamically
+                this.queue.concurrency = 1
+                this.queue._concurrency = 1 // try to change pqueue concurrency dinamically
             }
         });
         this.discovery = new Discovery(this)

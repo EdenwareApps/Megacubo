@@ -1186,7 +1186,6 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
                         this.updateAfterLeaveAndroidMiniPlayer()
                     }
                 }
-                plugins.megacubo.enterFullScreen()
                 if(!winActions.listeners('leave').includes(this.pipLeaveListener)){
                     winActions.on('leave', this.pipLeaveListener)
                 }
@@ -1203,7 +1202,6 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
                 if(this.pipLeaveListener){
                     winActions.removeListener('leave', this.pipLeaveListener)
                 }
-                plugins.megacubo.leaveFullScreen()
             } else {
                 parent.Manager.setFullScreen(false)
             }
@@ -1280,8 +1278,8 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
         this.startVolumeHideTimer()
     }
     volumeBarHide(){
+        this.volumeBar.style.display = 'none'
         if(this.volumeInputRect) {
-            this.volumeBar.style.display = 'none'
             this.volumeInputRect = null
         }
     }
@@ -1357,7 +1355,7 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
             }
         })
         this.volumeButton.addEventListener('blur', () => {
-            if(document.activeElement != this.volumeInput && !document.activeElement.contains(this.volumeInput)){
+            if(document.activeElement != this.volumeInput){
                 this.volumeBarHide()
             }
         }, {passive: true})
@@ -1413,8 +1411,8 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
                 this.lastVolIcon = volIcon
                 this.updatePlayerButton('volume', null, volIcon)
             }
+            this.startVolumeHideTimer()
         }
-        this.startVolumeHideTimer()
     }
     saveVolume(){
         if(this.saveVolumeTimer){

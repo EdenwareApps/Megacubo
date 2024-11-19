@@ -24,7 +24,7 @@ class Theme extends EventEmitter {
         this.customBackgroundVideoPath = data + '/background';
         this.keys = [
             'theme-name', 'animate-background', 'background-color',
-            'background-color-transparency', 'custom-background-image',
+            'background-transparency', 'custom-background-image',
             'custom-background-video', 'font-color', 'font-family',
             'font-size', 'uppercase-menu', 'view-size', 'fx-nav-intensity'
         ];
@@ -137,7 +137,7 @@ class Theme extends EventEmitter {
         osd.hide('theme-upload');
     }
     cleanVideoBackgrounds(currentFile) {        
-        const dir = path.dirname(currentFile), name = basename(currentFile);
+        const dir = path.dirname(currentFile), name = basename(currentFile)
         fs.readdir(dir, (err, files) => {
             if (files) {
                 files.forEach(file => {
@@ -146,7 +146,7 @@ class Theme extends EventEmitter {
                     }
                 });
             }
-        });
+        })
     }
     async localThemes() {
         let err
@@ -201,16 +201,9 @@ class Theme extends EventEmitter {
                         type: 'action',
                         fa: 'fas fa-edit',
                         action: async () => {
-                            console.log('Edit theme')
-                            console.log('Edit theme', ffile)
                             await this.load(ffile)
-                            console.log('Edit theme OK', ffile, JSON.stringify(themes))
-                            console.log('Edit theme OK', ffile, Object.keys(themes))
-                            console.log('Edit theme OK', ffile, themes[ffile]['theme-name'])
                             this.creatingThemeName = themes[ffile]['theme-name'];
-                            console.log('Edit theme OK', ffile, this.creatingThemeName)                                
                             await menu.open([lang.TOOLS, lang.THEMES, lang.CREATE_THEME].join('/')).catch(e => menu.displayErr(e));
-                            console.log('Edit theme OK**', ffile, themes[ffile]['theme-name'])
                         }
                     },
                     {
@@ -442,11 +435,11 @@ class Theme extends EventEmitter {
                                     range: { start: 1, end: 100 },
                                     action: async (data, value) => {
                                         console.warn('BACKGROUND_COLOR_TRANSPARENCY', data, value)
-                                        global.config.set('background-color-transparency', value)
+                                        global.config.set('background-transparency', value)
                                         await this.update()
                                     },
                                     value: () => {
-                                        return global.config.get('background-color-transparency');
+                                        return global.config.get('background-transparency');
                                     }
                                 }
                             ]
@@ -612,14 +605,14 @@ class Theme extends EventEmitter {
                     file,
                     url,
                     progress: p => {
-                        osd.show(lang.LOADING + ' ' + p + '%', 'fas fa-download', 'theme', 'persistent');
+                        osd.show(lang.LOADING +' '+ p +'%', 'fas fa-download', 'theme', 'persistent');
                     },
                     cacheTTL: 24 * 3600
                 }).then(async file => {
                     osd.hide('theme')
                     await this.load(file)
                     menu.refreshNow()
-                }).catch(e => {                    
+                }).catch(e => {
                     Download.cache.remove(url)
                     fs.unlink(file, () => {})
                     menu.displayErr(e)
@@ -633,7 +626,11 @@ class Theme extends EventEmitter {
         });
     }
     async remoteThemes() {
-        let themes = await Download.get({ url: cloud.server +'/themes/feed.json', responseType: 'json' });
+        let themes = await Download.get({
+            cacheTTL: 600,
+            url: cloud.server +'/themes/feed.json',
+            responseType: 'json'
+        })
         if (Array.isArray(themes)) {
             return themes.map(t => {
                 return {

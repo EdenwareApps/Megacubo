@@ -59,6 +59,23 @@ class Menu extends EventEmitter {
                     }
                 }
             })
+            osd.on('show', (text, icon, name, duration) => {
+                if(duration == 'persistent' && text.includes('...')) {
+                    if(!this.osdBusies) this.osdBusies = {}
+                    if(!this.osdBusies[name]) this.osdBusies[name] = this.setBusy(name)
+                } else {
+                    if(this.osdBusies && this.osdBusies[name]) {
+                        this.osdBusies[name].release()
+                        delete this.osdBusies[name]
+                    }
+                }
+            })
+            osd.on('hide', name => {
+                if(this.osdBusies && this.osdBusies[name]) {
+                    this.osdBusies[name].release()
+                    delete this.osdBusies[name]
+                }
+            })
         })
         renderer.ui.on('menu-open', async (path, tabindex) => {
             const busy = this.setBusy(path, tabindex)
@@ -250,6 +267,9 @@ class Menu extends EventEmitter {
             }
             if (this.opts.debug) {
                 console.log('back', p, deep)
+            }
+            if (p == lang.SEARCH && this.pages[p]) {
+                return await this.render(this.pages[p], p, {parent: {name: lang.SEARCH, fa: 'fas fa-search'}})
             }
             await this.open(p, undefined, deep, true, true, true).catch(e => this.displayErr(e))
         } else {
@@ -508,18 +528,31 @@ class Menu extends EventEmitter {
         }
         this.emit('open', destPath)
         let parentEntry, name = basename(destPath), parentPath = this.dirname(destPath)
+        if (this.opts.debug) {
+            console.log('readen1', this.pages[parentPath], parentPath, name)
+        }
         if (Array.isArray(this.pages[parentPath])) {
             const i = this.pages[parentPath].findIndex(e => e.name == name)
+            if (this.opts.debug) {
+                console.log('readen1.5', i)
+            }
             if (i != -1) {
                 const e = this.pages[parentPath][i]
                 if (e.url && (!e.type || e.type == 'stream')) { // force search results to open directly
                     return this.action(destPath, tabindex)
+                } else if(e.type == 'group' && parentPath.startsWith(lang.SEARCH)) {
+                    if (this.opts.debug) {
+                        console.log('readen1.6', e)
+                    }
+                    let es = await this.readEntry(e, parentPath)
+                    es = await this.applyFilters(es, destPath)
+                    return await this.render(es, destPath, {parent: e})
                 }
             }
         }
         let ret = await this[deep === true ? 'deepRead' : 'read'](parentPath, undefined)
         if (this.opts.debug) {
-            console.log('readen', {parentPath, name, destPath, tabindex, deep, isFolder, backInSelect}, traceback())
+            console.log('readen2', {ret, page: this.pages[parentPath], parentPath, name, destPath, tabindex, deep, isFolder, backInSelect}, traceback())
         }
         if (ret === -1 || ret === undefined) return
         parentEntry = ret.parent
@@ -539,7 +572,7 @@ class Menu extends EventEmitter {
             return true
         }
         if (name) {
-            let e = this.findEntry(ret.entries, name, {
+            const e = this.findEntry(ret.entries, name, {
                 tabindex, isFolder, fullPath: destPath
             })
             if (this.opts.debug) {

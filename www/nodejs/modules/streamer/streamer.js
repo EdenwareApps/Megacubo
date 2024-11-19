@@ -106,9 +106,9 @@ class StreamerAbout extends StreamerBase {
         if (!this.active)
             return;
         if (ret == 'copy-stream') {
-            renderer.ui.emit('clipboard-write', this.active.data.url, global.lang.COPIED_URL)
+            await renderer.ui.clipboard(this.active.data.url, global.lang.COPIED_URL)
         } else if (ret == 'copy-list') {
-            renderer.ui.emit('clipboard-write', this.active.data.source || 'no list', global.lang.COPIED_URL)
+            await renderer.ui.clipboard(this.active.data.source || 'no list', global.lang.COPIED_URL)
         }
     }
     aboutRegisterEntry(id, renderer, action, position, more) {
@@ -820,14 +820,14 @@ class Streamer extends StreamerGoNext {
         }
         const loadingEntriesData = [global.lang.AUTO_TUNING, name];
         console.warn('playFromEntries', name, connectId, silent);
-        const busy = global.menu.setBusy(this.path +'/'+ name);
+        const busies = [name, global.lang.AUTO_TUNING].map(n => global.menu.setBusy(global.menu.path +'/'+ n))
         silent || (global.osd && global.osd.show(global.lang.TUNING_WAIT_X.format(name) + ' 0%', 'fa-mega spin-x-alt', 'streamer', 'persistent'))
         this.tuning && this.tuning.destroy();
         if (this.connectId != connectId) {
             throw 'another play intent in progress';
         }
         console.log('tuning', name, entries.length);
-        let tuning = new AutoTuner(entries, {
+        const tuning = new AutoTuner(entries, {
             preferredStreamURL,
             name,
             megaURL,
@@ -844,8 +844,7 @@ class Streamer extends StreamerGoNext {
             tuning.destroy();
         });
         tuning.once('destroy', () => {
-            global.osd && global.osd.hide('streamer');
-            tuning = null;
+            global.osd && global.osd.hide('streamer')
         });
         let hasErr;
         await tuning.tune().catch(err => {
@@ -860,7 +859,7 @@ class Streamer extends StreamerGoNext {
         } else {
             this.setTuneable(true)
         }
-        busy.release()
+        busies.forEach(b => b.release())
         return !hasErr
     }
     async playPromise(e, results, silent) {
@@ -885,7 +884,7 @@ class Streamer extends StreamerGoNext {
         const isMega = mega.isMega(e.url), txt = isMega ? global.lang.TUNING : undefined
         const opts = isMega ? mega.parse(e.url) : { mediaType: 'live' }
         const loadingEntriesData = [e, global.lang.AUTO_TUNING]
-        const busy = silent ? false : global.menu.setBusy(this.path +'/'+ e.name)
+        const busy = silent ? false : global.menu.setBusy(global.menu.path +'/'+ e.name)
         console.warn('STREAMER INTENT', e, results)
         let succeeded
         this.emit('pre-play-entry', e);
@@ -999,22 +998,24 @@ class Streamer extends StreamerGoNext {
                 e.name = ch.name
             }
             const same = this.tuning && !this.tuning.finished && !this.tuning.destroyed && (this.tuning.has(e.url) || this.tuning.opts.megaURL == e.url);
-            const loadingEntriesData = [e, global.lang.AUTO_TUNING]
-            const busy = global.menu.setBusy(this.path +'/'+ e.name)
             console.log('tuneEntry', e, same);
             if (same) {
-                let err;
-                await this.tuning.tune().catch(e => err = e);
+                let err
+                const busies = [e.name, global.lang.AUTO_TUNING].map(name => global.menu.setBusy(global.menu.path +'/'+ name))
+                global.osd && global.osd.show(global.lang.TUNING_WAIT_X.format(e.name), 'fa-mega spin-x-alt', 'streamer', 'persistent')
+                await this.tuning.tune().catch(e => err = e)
+                busies.forEach(b => b.release())
                 if (err) {
-                    busy.release()
                     if (err != 'cancelled by user') {
                         this.emit('connecting-failure', e);
                         console.error('tune() ERR', err);
-                        global.osd && global.osd.show(global.lang.NO_MORE_STREAM_WORKED_X.format(e.name), 'fas fa-exclamation-triangle faclr-red', 'streamer', 'normal');
+                        global.osd && global.osd.show(global.lang.NO_MORE_STREAM_WORKED_X.format(e.name), 'fas fa-exclamation-triangle faclr-red', 'streamer', 'normal')
+                        return
                     }
-                    return;
+                } else {
+                    this.setTuneable(true)
                 }
-                this.setTuneable(true);
+                global.osd && global.osd.hide('streamer')
             } else {                
                 if (ch) {
                     e.url = mega.build(ch.name, { terms: ch.terms });
@@ -1024,10 +1025,9 @@ class Streamer extends StreamerGoNext {
                     if (Array.isArray(terms)) terms = terms.join(' ')
                     e.url = mega.build(name, { terms });
                 }
-                this.play(e);
+                this.play(e)
             }
-            busy.release()
-            return true;
+            return true
         }
     }
 }

@@ -2,7 +2,7 @@
     import '../../modules/theme/renderer'
 </script>
 <div id="background-wrapper">
-    <div id="background"></div>
+    <div id="background"><div></div></div>
 </div>
 <style global>
 div#background-wrapper {
@@ -24,6 +24,13 @@ div#background {
     height: 100%;
     visibility: hidden;
     transform-origin: center center;
+}
+div#background > div {
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    display: block;
+    top: 0;
 }
 body.animate-background-slow div#background {
     animation-name: background-breathing;

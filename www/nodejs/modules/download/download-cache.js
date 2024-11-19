@@ -1,9 +1,9 @@
 import storage from '../storage/storage.js'
 import { EventEmitter } from 'events';
-import Reader from "../reader/reader.js";
-import Writer from "../writer/writer.js";
-import fs from "fs";
-import config from "../config/config.js"
+import Reader from '../reader/reader.js';
+import Writer from '../writer/writer.js';
+import fs from 'fs';
+import config from '../config/config.js'
 
 const url2id = url => {
     return 'dlc-' + url.replace(new RegExp('^https?://'), '').replace(new RegExp('[^A-Za-z0-9]+', 'g'), '-').substr(0, 255);
@@ -128,10 +128,14 @@ class DownloadCacheMap extends EventEmitter {
     remove(url) {
         if (this.saving[url]) {
             if (this.saving[url].chunks && this.saving[url].chunks.fail) {
-                this.saving[url].chunks.fail('Removed');
+                this.saving[url].chunks.fail('Removed')
             }
-            delete this.saving[url];
+            delete this.saving[url]
         }
+        const key = url2id(url)
+        const hkey = 'dch-' + key.substr(4)
+        storage.delete(key).catch(() => {})
+        storage.delete(hkey).catch(() => {})
     }
     save(downloader, chunk, ended) {
         if (!config.get('in-disk-caching-size'))

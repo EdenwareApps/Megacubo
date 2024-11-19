@@ -36,9 +36,8 @@ class Zap extends EventEmitter {
         renderer.ui.on('stop', () => {
             this.setZapping(false);
         });
-        renderer.ui.on('streamer-ready', () => {
-            renderer.ui.emit('add-player-button', 'zap', 'ZAP', this.icon, 6, 'zap');
-        });
+        await renderer.ready()
+        renderer.ui.emit('add-player-button', 'zap', 'ZAP', this.icon, 6, 'zap')
     }
     async hook(entries, path) {
         if (this.lists && path == lang.LIVE && global.lists.loaded() && global.lists.activeLists.length) {

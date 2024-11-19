@@ -55,7 +55,7 @@ class EPGDataRefiner {
     async apply(db) {
         const start = time()
         try {
-            const tmpFile = db.fileHandler.filePath +'.refine'
+            const tmpFile = db.fileHandler.file +'.refine'
             const rdb = new Database(tmpFile, Object.assign({clear: true}, DBOPTS))
             await rdb.init()
             for await (const programme of db.walk()) {
@@ -74,9 +74,8 @@ class EPGDataRefiner {
             rdb.indexManager.index = db.indexManager.index
             await rdb.save()
             await rdb.destroy()
-            await fs.promises.unlink(db.fileHandler.filePath)
-            await moveFile(tmpFile, db.fileHandler.filePath)
-            console.error('REFINER APPLIED IN '+ parseInt(time() - start) +'s', tmpFile)
+            await fs.promises.unlink(db.fileHandler.file)
+            await moveFile(tmpFile, db.fileHandler.file)
         } catch(e) {
             console.error('REFINER APPLY ERROR', e)
         } finally { 
@@ -109,12 +108,10 @@ class EPGPaginateChannelsList extends EventEmitter {
                 }
             }
         }
-        //console.log('namdiff res', c)
         return c
     }
     getRangeName(names, lastName, nextName){
         var l, start = '0', end = 'Z', r = new RegExp('[a-z\\d]', 'i'), r2 = new RegExp('[^a-z\\d]+$', 'i')
-        //console.log('last', JSON.stringify(lastName))
         for(var i=0; i<names.length; i++){
             if(lastName){
                 l = this.getNameDiff(names[i], lastName)
@@ -126,7 +123,6 @@ class EPGPaginateChannelsList extends EventEmitter {
                 break
             }
         }
-        //console.log('next')
         for(var i=(names.length - 1); i>=0; i--){
             if(nextName){
                 l = this.getNameDiff(names[i], nextName)
@@ -183,49 +179,54 @@ class EPGUpdater extends EventEmitter {
         })
     }
     async update(){
-        if(this.parser) {
-            console.error('already updating')
-            return
+        if(this.updating) return
+        this.updating = true
+        try {
+            await this.doUpdate()
+        } catch(e) {
+            console.error(e)
+        } finally {
+            this.updating = false            
+            if(this.parser) {
+                this.parser.destroy()
+                this.parser = null           
+            }
+            if(this.request) {
+                this.request.destroy()
+                this.request = null
+            }
+            if(this.udb) {
+                this.udb.destroy()
+                this.udb = null
+            }
         }
+    }
+    async doUpdate(){
         await this.db.init().catch(console.error)
         const now = time()
         const lastFetchedAt = this.db.index.fetchCtrlKey
         const lastModifiedAt = this.db.index.lastmCtrlKey
         if(this.db.length < this.minExpectedEntries || !lastFetchedAt || lastFetchedAt < (time() - (this.ttl / 2))){
-            if(this.request || this.parser){
-                console.error('already updating')
-                return
-            }
             if(!this.loaded){
                 this.state = 'connecting'
             }
-            let validEPG, failed, hasErr, newLastModified, received = 0, errorCount = 0
+            let validEPG, failed, newLastModified, received = 0, errorCount = 0
             this.error = null
-            console.log('epg updating...')
             const onErr = err => {
                 if(failed){
                     return
                 }
-                hasErr = true
-                //console.error('EPG FAILED DEBUG')
                 errorCount++
                 console.error(err)
-                if(errorCount >= 128){
+                if(errorCount >= 128 && !validEPG) {
                     // sometimes we're receiving scrambled response, not sure about the reason, do a dirty workaround for now
                     failed = true
-                    if(this.request){
-                        this.request.destroy() 
-                        this.request = null
-                    }
-                    if(this.parser){
-                        this.parser.end() 
-                    }
+                    this.parser && this.parser.end() 
                     this.state = 'error'
-                    this.error = 'EPG_BAD_FORMAT'
+                    this.error = lang.EPG_BAD_FORMAT
                     if(this.listenerCount('error')){
                         this.emit('error', lang.EPG_BAD_FORMAT)
                     }
-                    this.scheduleNextUpdate(30)
                 }
                 return true
             }
@@ -255,11 +256,9 @@ class EPGUpdater extends EventEmitter {
                     return true
                 })
                 this.request.once('response', (code, headers) => {
-                    console.log('EPG RESPONSE', code, headers)
                     if(this.loaded){
                         if(headers['last-modified']) {
                             if(headers['last-modified'] == lastModifiedAt) {
-                                console.log('epg update skipped by last-modified '+ lastModifiedAt)
                                 this.request.destroy()
                                 return
                             } else {
@@ -284,7 +283,6 @@ class EPGUpdater extends EventEmitter {
                 this.request.once('end', () => {
                     this.request.destroy() 
                     this.request = null
-                    console.log('EPG REQUEST ENDED', validEPG, received, this.udb?.length)
                     this.parser.end()
                 })
                 this.request.start()
@@ -294,16 +292,10 @@ class EPGUpdater extends EventEmitter {
             this.parser.on('programme', this.programme.bind(this))
             this.parser.on('channel', this.channel.bind(this))
             this.parser.on('error', onErr)
-            console.log('EPG UPDATE START')
             await (new Promise(resolve => {
                 this.parser.once('close', resolve)
                 this.parser.once('end', resolve)
             })).catch(console.error)
-            console.log('EPG UPDATE END 0', this.udb.length)
-            this.parser && this.parser.destroy() // TypeError: Cannot read property 'destroy' of null
-            this.parser = null                     
-            this.scheduleNextUpdate()
-            console.log('EPG UPDATE END', this.udb.length)
             if(this.udb.length){
                 if(newLastModified){
                     this.udb.index.lastmCtrlKey = newLastModified
@@ -315,12 +307,9 @@ class EPGUpdater extends EventEmitter {
                 
                 await this.udb.save()
 
-                console.log('EPG apply 1')
                 await this.refiner.apply(this.udb).catch(console.error)
-
-                console.log('EPG apply 2')
-                await this.udb.destroy()
                 await this.db.destroy()
+
                 await moveFile(this.tmpFile, this.file)
                 
                 this.db = new Database(this.file, DBOPTS)
@@ -335,11 +324,10 @@ class EPGUpdater extends EventEmitter {
                 await this.udb.destroy()
                 await fs.promises.unlink(this.tmpFile).catch(console.error)
             }
-            this.udb = null
         } else {
             console.log('epg update skipped')
-            this.scheduleNextUpdate()
         }
+        this.scheduleNextUpdate()
     }
     cidToDisplayName(cid){
         return typeof(this.udb.index.channels[cid]) == 'undefined' ? 
@@ -402,7 +390,7 @@ class EPGUpdater extends EventEmitter {
         }
         return []
     }
-    scheduleNextUpdate(timeSecs){        
+    scheduleNextUpdate(timeSecs){
         if(this.autoUpdateTimer){
             clearTimeout(this.autoUpdateTimer)
         }
@@ -461,14 +449,12 @@ class EPG extends EPGUpdater {
     async start(){
         if(!this.loaded){ // initialize
             this.state = 'loading'
-            console.log('START EPG', this.url)
             await this.db.init().catch(err => {
                 this.error = err
             })
             const updatePromise = this.update().catch(err => {
                 this.error = err
             })
-            console.log('START EPG2', this.url)
             if(this.db.length < this.minExpectedEntries) {
                 await updatePromise // will update anyway, but only wait for if it has few programmes
             }
@@ -489,10 +475,10 @@ class EPG extends EPGUpdater {
         this.state = 'uninitialized'
         this.request && this.request.destroy()
         this.parser && this.parser.destroy()
-        this.db && this.db.destroy()
         this.udb && this.udb.destroy()
-        this.data = {}
+        this.db && this.db.destroy()
         this.removeAllListeners()
+        this.data = {}
     }
 }
 

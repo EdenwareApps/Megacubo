@@ -48,18 +48,22 @@ class PremiumHelper {
 }
 
 try {
-    let Premium, rq
-    const file = paths.cwd +'/dist/premium'
-    const req = file => {
-        if(typeof(module) == 'undefined') {
-            return createRequire(getFilename())(file)
+    let Premium
+    const is64 = process.arch.endsWith('64')
+    const distFolder = paths.cwd +'/dist/'
+    const distFiles = new Set(fs.readdirSync(distFolder))
+    const r = typeof(module) == 'undefined' ? createRequire(getFilename()) : require
+    const candidates = ['premium.js', is64 ? 'premium-arm64.jsc' : 'premium-arm.jsc', 'premium.jsc']
+    for(const file of candidates) {
+        if(!distFiles.has(file)) continue
+        try {
+            console.log('Premium loading: '+ distFolder + file)
+            Premium = r(distFolder + file)
+            console.log('Premium loaded')
+            break
+        } catch(e) {
+            console.error('Premium load error: '+ e)
         }
-        return require(file)
-    }
-    if(fs.existsSync(file +'.js')) {
-        Premium = req(file +'.js')        
-    } else if(fs.existsSync(file +'.jsc')) {
-        Premium = req(file +'.jsc')
     }
     if(Premium) PremiumHelper = Premium
 } catch(e) {

@@ -122,7 +122,7 @@ class MenuIcons extends MenuBase {
 			}
 			
 			if(changed) {
-				let entries = this.currentEntries.map(e => this.prepareEntry(e))
+				const entries = this.currentEntries.map(e => this.prepareEntry(e))
 				this.applyCurrentEntries(entries)
 				this.emit('updated')
 			}
@@ -858,7 +858,7 @@ class MenuDialog extends MenuDialogQueue {
 		this.modalTemplates['text'] = `
 			<span class="modal-template-text" id="modal-template-option-{id}">
 				<i class="fas fa-caret-right"></i>
-				<input type="text" placeholder="{placeholder}" value="{text}" aria-label="{plainText}" onmousedown="main.menu.inputPaste(this)" />
+				<input type="text" placeholder="{placeholder}" data-mask="{mask}" value="{text}" aria-label="{plainText}" onfocus="main.menu.inputPaste(this)" />
 			</span>
 		`
 		this.modalTemplates['textarea'] = `
@@ -890,11 +890,12 @@ class MenuDialog extends MenuDialogQueue {
 		`
 	}
 	inputPaste(input) {
-		if(input.value || !top.navigator.clipboard) return
-		top.navigator.clipboard.readText().then(paste => {
+		if(input.value) return
+		this.readClipboard().then(paste => {
 			if(paste) {
-				paste = paste.trim()
-				if(paste.startsWith('http') || paste.startsWith('//')) { // seems URL
+				const mask = input.getAttribute('data-mask') || '(//|[a-z]{3,6}?://)'
+				const regex = new RegExp(mask, 'i')
+				if(paste.match(regex)) {
 					input.value = paste
 					input.select()
 				}
@@ -1191,6 +1192,7 @@ class MenuPrompt extends MenuOpenFile {
 			template: atts.multiline ? 'textarea' : 'text',
 			text: this.promptMemory[memId] || atts.defaultValue || '',
 			id: 'text',
+			mask: atts.mask,
 			isPassword: atts.isPassword,
 			placeholder: atts.placeholder
 		})
@@ -1946,5 +1948,73 @@ export class Menu extends MenuNav {
 		}
 		e.key = ((e.path && e.path != ' ') ? e.path : String(Math.random())) + (e.url || '') // svelte id, added url to key to fix stream-state processing
 		return e
+	}
+	createHiddenInput() {
+		if (this.cachedHiddenInput) {
+			return this.cachedHiddenInput
+		}
+		const input = document.createElement('textarea')
+		input.style.position = 'fixed'
+		input.style.opacity = '0'
+		input.style.pointerEvents = 'none'
+		input.style.left = '-9999px'
+		input.style.top = '0'
+		document.body.appendChild(input)
+		this.cachedHiddenInput = input
+		return input
+	}
+	readClipboard(timeout = 0) {
+		return new Promise((resolve, reject) => {
+			if(window.capacitor) {
+				return window.capacitor.clipboard().then(ret => {
+					resolve(String(ret.value))
+				}).catch(reject)
+			}
+			if (!navigator.clipboard || !navigator.clipboard.readText) {
+				return reject('Clipboard API not available.')
+			}	
+
+			let timeoutId, focusHandler = () => {
+				window.removeEventListener('focus', focusHandler)
+				handleClipboardRead(true)
+			}
+	
+			const hiddenInput = this.createHiddenInput(), handleClipboardRead = async final => {
+				try {
+					hiddenInput.focus()
+					hiddenInput.select()
+					const clipboardText = await navigator.clipboard.readText()
+					clearTimeout(timeoutId)
+					resolve(clipboardText.trim())
+				} catch (error) {
+					if(final) {
+						clearTimeout(timeoutId)
+						reject('Clipboard read error: '+ error.message)
+					} else {
+						throw 'Clipboard read error: '+ error.message
+					}
+				}
+			}
+	
+			handleClipboardRead(false).catch(err => {
+				if (document.hasFocus()) {
+					return reject(err)
+				}
+				try {
+					window.blur() && parent != window && parent.blur()
+				} finally {
+					window.addEventListener('focus', focusHandler, { once: true })
+					parent != window && parent.focus()
+					window.focus()
+				}
+			})
+	
+			if (timeout > 0) {
+				timeoutId = setTimeout(() => {
+					window.removeEventListener('focus', focusHandler)
+					handleClipboardRead(true).catch(reject)
+				}, timeout)
+			}
+		})
 	}
 }

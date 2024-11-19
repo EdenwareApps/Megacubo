@@ -4,6 +4,7 @@ import { App } from '@capacitor/app';
 import { NativeFileDownloader } from '@eoscz/capacitor-plugin-native-file-downloader'
 import { Keyboard } from '@capacitor/keyboard';
 import { Share } from '@capacitor/share';
+import { Clipboard } from '@capacitor/clipboard';
 
 const requestPermission = async perm => {
 	const permissions = cordova.plugins.permissions
@@ -27,9 +28,19 @@ const requestPermission = async perm => {
 	return has
 }
 
+const clipboard = async text => {
+	if(typeof text === 'string') {
+		await Clipboard.write({string: text})
+	} else {
+		const { type, value } = await Clipboard.read()	  
+		return {type, value}
+	}
+}
+
 window.capacitor = {
 	NodeJS, App, Share,
 	KeepAwake, Keyboard,
 	NativeFileDownloader,
-	requestPermission
+	requestPermission,
+	clipboard
 }

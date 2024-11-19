@@ -29,13 +29,20 @@ class TermsHandler {
         }
     }
     applySearchRedirects(terms) {
+        if(terms instanceof Set) {
+            terms = [...terms]
+        } else if(typeof(terms) == 'string') {
+            terms = this.terms(terms, true, false)
+        } else if (!Array.isArray(terms)) {
+            return []
+        }
         this.searchRedirects.forEach(redirect => {
             if (redirect.from && redirect.from.length && redirect.from.every(t => terms.includes(t))) {
-                terms = terms.filter(t => !redirect.from.includes(t));
-                terms.push(...redirect.to);
+                terms = terms.filter(t => !redirect.from.includes(t))
+                terms.push(...redirect.to)
             }
-        });
-        return terms;
+        })
+        return terms
     }
     applySearchRedirectsOnObject(e) {
         if (Array.isArray(e)) {
