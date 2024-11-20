@@ -90,6 +90,9 @@ const pluginsMain = [
   })
 ]
 
+const ppFragment = `else if (process.platform == 'android') {
+    return true;
+  }`
 const pluginsPremium = [
   resolve({
     browser: false,
@@ -108,6 +111,7 @@ const pluginsPremium = [
       '"node:': '"',
       'getFilename()': '__filename',
       'getDirname()': '__dirname',
+      [ppFragment]: `else if (process.platform == 'android') { return false; }`,
       'require("electron")': 'process.platform=="android"?{}:require("electron")' // dummy value for Android
     }
   }),

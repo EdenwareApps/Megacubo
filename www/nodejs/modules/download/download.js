@@ -812,10 +812,11 @@ class Download extends EventEmitter {
         } else { // keep trying
             retry = true;
             if (this.received == this.lastReceived || !this.statusCode || (this.statusCode < 200 || this.statusCode >= 400)) {
-                this.retryCount++;
+                this.retryCount++
+                this.opts.bypassCache = true
             }
-            this.lastReceived = this.received;
-            this.connect();
+            this.lastReceived = this.received
+            this.connect()
         }
         if (retry) {
             if (this.opts.debug) {

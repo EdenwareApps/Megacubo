@@ -70,28 +70,34 @@ body.video #osd-root {
   bottom: calc(var(--controls-height) + var(--padding) + var(--seekbar-height));
 }
 
-#osd-root>div {
+#osd-root > div {
   font-size: var(--menu-entry-name-font-size);
+  font-weight: 500;
   min-height: calc(1.5 * var(--menu-entry-name-font-size));
-  color: var(--font-color);
+  color: var(--shadow-background-color);
   display: flex;
   border-width: 0;
   margin-bottom: var(--padding);
   border-radius: var(--radius);
-  text-shadow: var(--solid-text-shadow), 0 0 1vmax #000;
+  text-shadow: 1px 1px rgba(0,0,0,0.25);
   opacity: 1;
-  background: var(--osd-background-color);
+  background: linear-gradient(to bottom, var(--font-color), var(--secondary-font-color));
   max-width: 98%;
   padding: var(--padding-half) var(--padding-2x) var(--padding-half) var(--padding-2x);
   margin-left: var(--padding-half);
   line-height: 150%;
   height: inherit;
-  box-shadow: 0 0 var(--padding-2x) var(--osd-background-color);
+  box-shadow: 2px 2px 0 rgb(0,0,0);
 }
 
-body.video #osd-root>div {
-  background: rgba(0, 0, 0, 0.75) !important;
-  box-shadow: 0 0 var(--padding-2x) rgba(0, 0, 0, 0.75) !important;
+body.video #osd-root > div {
+  color: var(--font-color);
+  background: rgba(0, 0, 0, 0.8) !important;
+  box-shadow: 0 0 var(--padding-2x) rgba(0, 0, 0, 0.5) !important;
+}
+
+body.portrait #osd-root > div {
+  border-bottom-left-radius: 0;
 }
 
 .osd-icon img,

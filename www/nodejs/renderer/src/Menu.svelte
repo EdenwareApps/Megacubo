@@ -852,7 +852,7 @@ div#modal {
     height: 100vh;
     left: 0;
     z-index: 8;
-    background: var(--osd-background-color);
+    background: var(--modal-background-color);
     top: 0;
     left: 0;
     opacity: 0;
@@ -1003,7 +1003,7 @@ a.modal-template-option, a.modal-template-option-detailed {
     color: black;
     border-width: 0 1px 1px 0;
     border-style: solid;
-    border-color: rgba(0,0,0, 0.2);
+    border-color: rgba(0,0,0, 0.1);
 }
 a.modal-template-option > div, a.modal-template-option-detailed > div {
     padding: 2.5vmax 0;

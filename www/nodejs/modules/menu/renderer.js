@@ -890,7 +890,8 @@ class MenuDialog extends MenuDialogQueue {
 		`
 	}
 	inputPaste(input) {
-		if(input.value) return
+		if(input.value || input.getAttribute('data-pasted')) return
+		input.setAttribute('data-pasted', 'true')
 		this.readClipboard().then(paste => {
 			if(paste) {
 				const mask = input.getAttribute('data-mask') || '(//|[a-z]{3,6}?://)'
@@ -900,7 +901,9 @@ class MenuDialog extends MenuDialogQueue {
 					input.select()
 				}
 			}
-		}).catch(console.error)
+		}).catch(console.error).finally(() => {
+			input.focus()
+		})
 	}
 	text2id(txt){
 		if(txt.match(new RegExp('^[A-Za-z0-9\\-_]+$', 'g'))){
@@ -1959,7 +1962,6 @@ export class Menu extends MenuNav {
 		input.style.pointerEvents = 'none'
 		input.style.left = '-9999px'
 		input.style.top = '0'
-		document.body.appendChild(input)
 		this.cachedHiddenInput = input
 		return input
 	}
@@ -1979,8 +1981,9 @@ export class Menu extends MenuNav {
 				handleClipboardRead(true)
 			}
 	
-			const hiddenInput = this.createHiddenInput(), handleClipboardRead = async final => {
+			const originalFocus = document.activeElement, hiddenInput = this.createHiddenInput(), handleClipboardRead = async final => {
 				try {
+					hiddenInput.parentNode || document.body.appendChild(hiddenInput)
 					hiddenInput.focus()
 					hiddenInput.select()
 					const clipboardText = await navigator.clipboard.readText()
@@ -1992,6 +1995,11 @@ export class Menu extends MenuNav {
 						reject('Clipboard read error: '+ error.message)
 					} else {
 						throw 'Clipboard read error: '+ error.message
+					}
+				} finally {
+					if(final) {
+						originalFocus.focus()
+						hiddenInput.parentNode && document.body.removeChild(hiddenInput)
 					}
 				}
 			}
@@ -2009,7 +2017,7 @@ export class Menu extends MenuNav {
 				}
 			})
 	
-			if (timeout > 0) {
+			if (timeout && timeout > 0) {
 				timeoutId = setTimeout(() => {
 					window.removeEventListener('focus', focusHandler)
 					handleClipboardRead(true).catch(reject)

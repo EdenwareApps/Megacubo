@@ -456,10 +456,9 @@ class StreamerGoNext extends StreamerSpeedo {
         renderer.ui.emit('enable-player-button', 'next', !!next);
     }
     async goPrev() {
-        let offset = 0;
-        
+        let offset = 0        
         const msg = global.lang.GOING_PREVIOUS;
-        global.osd && global.osd.show(msg, 'fa-mega spin-x-alt', 'go-next', 'persistent');
+        this.opts.shadow || global.osd.show(msg, 'fa-mega spin-x-alt', 'go-next', 'persistent');
         this.goingNext = true;
         while (true) {
             const prev = await this.getPrev(offset), ret = {};
@@ -489,13 +488,12 @@ class StreamerGoNext extends StreamerSpeedo {
             }
         }
         this.goingNext = false;
-        global.osd && global.osd.hide('go-next');
+        this.opts.shadow || global.osd.hide('go-next');
     }
     async goNext(immediate) {
-        let offset = 0, start = (Date.now() / 1000), delay = immediate ? 0 : 5;
-        
+        let offset = 0, start = (Date.now() / 1000), delay = immediate ? 0 : 5        
         const msg = delay ? global.lang.GOING_NEXT_SECS_X.format(delay) : global.lang.GOING_NEXT;
-        global.osd && global.osd.show(msg, 'fa-mega spin-x-alt', 'go-next', 'persistent');
+        this.opts.shadow || global.osd.show(msg, 'fa-mega spin-x-alt', 'go-next', 'persistent');
         this.goingNext = true;
         while (true) {
             const next = await this.getNext(offset), ret = {};
@@ -528,11 +526,11 @@ class StreamerGoNext extends StreamerSpeedo {
             }
         }
         this.goingNext = false;
-        global.osd && global.osd.hide('go-next');
+        this.opts.shadow || global.osd.hide('go-next');
     }
     cancelGoNext() {
         delete this.goingNext;
-        global.osd && global.osd.hide('go-next');
+        this.opts.shadow || global.osd.hide('go-next');
     }
 }
 
@@ -731,7 +729,7 @@ class Streamer extends StreamerGoNext {
         if (!skipTranscodingCheck && intent.transcoderStarting) {
             renderer.ui.emit('streamer-connect-suspend');
             if (!this.opts.shadow) {
-                global.osd && global.osd.hide('streamer');
+                this.opts.shadow || global.osd.hide('streamer');
             }
         }
         return data;
@@ -821,7 +819,7 @@ class Streamer extends StreamerGoNext {
         const loadingEntriesData = [global.lang.AUTO_TUNING, name];
         console.warn('playFromEntries', name, connectId, silent);
         const busies = [name, global.lang.AUTO_TUNING].map(n => global.menu.setBusy(global.menu.path +'/'+ n))
-        silent || (global.osd && global.osd.show(global.lang.TUNING_WAIT_X.format(name) + ' 0%', 'fa-mega spin-x-alt', 'streamer', 'persistent'))
+        silent || (this.opts.shadow || global.osd.show(global.lang.TUNING_WAIT_X.format(name) + ' 0%', 'fa-mega spin-x-alt', 'streamer', 'persistent'))
         this.tuning && this.tuning.destroy();
         if (this.connectId != connectId) {
             throw 'another play intent in progress';
@@ -837,14 +835,14 @@ class Streamer extends StreamerGoNext {
         tuning.txt = txt;
         tuning.on('progress', i => {
             if (!silent && i.progress && !isNaN(i.progress)) {
-                global.osd && global.osd.show(global.lang.TUNING_WAIT_X.format(name) + ' ' + i.progress + '%', 'fa-mega spin-x-alt', 'streamer', 'persistent');
+                this.opts.shadow || global.osd.show(global.lang.TUNING_WAIT_X.format(name) + ' ' + i.progress + '%', 'fa-mega spin-x-alt', 'streamer', 'persistent');
             }
         });
         tuning.on('finish', () => {
             tuning.destroy();
         });
         tuning.once('destroy', () => {
-            global.osd && global.osd.hide('streamer')
+            this.opts.shadow || global.osd.hide('streamer')
         });
         let hasErr;
         await tuning.tune().catch(err => {
@@ -854,7 +852,7 @@ class Streamer extends StreamerGoNext {
             }
         });
         if (hasErr) {
-            silent || (global.osd && global.osd.show(global.lang.NONE_STREAM_WORKED_X.format(name), 'fas fa-exclamation-triangle faclr-red', 'streamer', 'normal'))
+            silent || (this.opts.shadow || global.osd.show(global.lang.NONE_STREAM_WORKED_X.format(name), 'fas fa-exclamation-triangle faclr-red', 'streamer', 'normal'))
             this.emit('hard-failure', entries)
         } else {
             this.setTuneable(true)
@@ -872,7 +870,7 @@ class Streamer extends StreamerGoNext {
         }
         if (this.tuning) {
             if (!this.tuning.destroyed && this.tuning.opts.megaURL && this.tuning.opts.megaURL == e.url) {
-                return await this.tune(e);
+                return await this.tune(e)
             }
             this.tuning.destroy()
             this.tuning = null
@@ -909,10 +907,10 @@ class Streamer extends StreamerGoNext {
                 name = opts.name
             }
             let terms = opts.terms || listsTools.terms(name)
-            silent || (global.osd && global.osd.show(global.lang.TUNING_WAIT_X.format(name), 'fa-mega spin-x-alt', 'streamer', 'persistent'))
+            silent || (this.opts.shadow || global.osd.show(global.lang.TUNING_WAIT_X.format(name), 'fa-mega spin-x-alt', 'streamer', 'persistent'))
             const listsReady = await global.lists.manager.ready(10)
             if (listsReady !== true) {
-                silent || (global.osd && global.osd.hide('streamer'))
+                silent || (this.opts.shadow || global.osd.hide('streamer'))
                 throw global.lang.WAIT_LISTS_READY
             }
             let entries = await global.lists.search(terms, {
@@ -937,14 +935,14 @@ class Streamer extends StreamerGoNext {
                 succeeded = await this.playFromEntries(entries, name, e.url, txt, connectId, opts.mediaType, e.preferredStreamURL || this.findPreferredStreamURL(name), silent);
             }
             if (!succeeded) {
-                global.osd && global.osd.hide('streamer');
+                this.opts.shadow || global.osd.hide('streamer');
                 this.connectId = false;
                 this.emit('connecting-failure', e);
                 if (!silent) {
                     const err = global.lists.activeLists.length ?
                         global.lang.NONE_STREAM_WORKED_X.format(name) :
                         ((global.lists && Object.keys(global.lists).length) ? global.lang.NO_LIST : global.lang.NO_LISTS_ADDED);
-                    global.osd && global.osd.show(err, 'fas fa-exclamation-triangle faclr-red', 'streamer', 'normal');
+                    this.opts.shadow || global.osd.show(err, 'fas fa-exclamation-triangle faclr-red', 'streamer', 'normal');
                     renderer.ui.emit('sound', 'static', 25);
                     this.emit('hard-failure', entries);
                 }
@@ -955,7 +953,7 @@ class Streamer extends StreamerGoNext {
             }
             console.warn('STREAMER INTENT', e);
             this.setTuneable(!this.streamInfo.mi.isVideo(e.url) && global.channels.isChannel(e))
-            silent || (global.osd && global.osd.show(global.lang.CONNECTING + ' ' + e.name + '...', 'fa-mega spin-x-alt', 'streamer', 'persistent'))
+            silent || (this.opts.shadow || global.osd.show(global.lang.CONNECTING + ' ' + e.name + '...', 'fa-mega spin-x-alt', 'streamer', 'persistent'))
             let hasErr, intent = await this.intent(e).catch(r => hasErr = r);
             if (typeof(hasErr) != 'undefined') {
                 if (this.connectId != connectId) {
@@ -1002,20 +1000,21 @@ class Streamer extends StreamerGoNext {
             if (same) {
                 let err
                 const busies = [e.name, global.lang.AUTO_TUNING].map(name => global.menu.setBusy(global.menu.path +'/'+ name))
-                global.osd && global.osd.show(global.lang.TUNING_WAIT_X.format(e.name), 'fa-mega spin-x-alt', 'streamer', 'persistent')
+                this.opts.shadow || global.osd.show(global.lang.TUNING_WAIT_X.format(e.name), 'fa-mega spin-x-alt', 'streamer', 'persistent')
                 await this.tuning.tune().catch(e => err = e)
                 busies.forEach(b => b.release())
+                console.log('tunedEntry', e, err)
                 if (err) {
                     if (err != 'cancelled by user') {
                         this.emit('connecting-failure', e);
                         console.error('tune() ERR', err);
-                        global.osd && global.osd.show(global.lang.NO_MORE_STREAM_WORKED_X.format(e.name), 'fas fa-exclamation-triangle faclr-red', 'streamer', 'normal')
+                        this.opts.shadow || global.osd.show(global.lang.NO_MORE_STREAM_WORKED_X.format(e.name), 'fas fa-exclamation-triangle faclr-red', 'streamer', 'normal')
                         return
                     }
                 } else {
                     this.setTuneable(true)
                 }
-                global.osd && global.osd.hide('streamer')
+                this.opts.shadow || global.osd.hide('streamer')
             } else {                
                 if (ch) {
                     e.url = mega.build(ch.name, { terms: ch.terms });

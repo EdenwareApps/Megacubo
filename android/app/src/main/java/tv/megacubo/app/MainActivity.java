@@ -7,7 +7,6 @@ public class MainActivity extends BridgeActivity {
     private Runnable onUserLeaveHintCallback;
 
     public void setOnUserLeaveHintCallback(Runnable callback) {
-        Log.d("PIPPlugin", "setOnUserLeaveHintCallback");
         this.onUserLeaveHintCallback = callback;
     }
 
@@ -15,10 +14,7 @@ public class MainActivity extends BridgeActivity {
     public void onUserLeaveHint() {
         super.onUserLeaveHint();
         if (onUserLeaveHintCallback != null) {
-            Log.d("PIPPlugin", "onUserLeaveHint OK");
             onUserLeaveHintCallback.run();
-        } else {
-            Log.d("PIPPlugin", "onUserLeaveHint NULL");
         }
     }
 
@@ -27,11 +23,8 @@ public class MainActivity extends BridgeActivity {
         super.onPause();
         if (onUserLeaveHintCallback != null) {
             if (!isChangingConfigurations()) { // avoid calling onUserLeaveHint when rotating the screen
-                Log.d("PIPPlugin", "onUserLeaveHint OK");
                 onUserLeaveHintCallback.run();
             }
-        } else {
-            Log.d("PIPPlugin", "onUserLeaveHint NULL");
         }
     }
     
@@ -39,10 +32,7 @@ public class MainActivity extends BridgeActivity {
     public void onWindowFocusChanged(boolean hasFocus) {
         if(!hasFocus) {
             if (onUserLeaveHintCallback != null) {
-                Log.d("PIPPlugin", "onUserLeaveHint OK");
                 onUserLeaveHintCallback.run();
-            } else {
-                Log.d("PIPPlugin", "onUserLeaveHint NULL");
             }
         }
     }

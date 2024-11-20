@@ -217,10 +217,9 @@ class Theme extends EventEmitter {
         } else if(!family.includes(systemFont)) {
             family += ','+ systemFont
         }
-        const sbg = colorMixer(Object.values(hexToRgb(main.config['background-color'])), [0, 0, 0], 0.5)
-        const mbg = hexToRGBA(main.config['background-color'], 0.25)
+        const sbg = colorMixer(Object.values(hexToRgb(main.config['background-color'])), [0, 0, 0], 0.675)
+        const mbg = hexToRGBA(main.config['background-color'], 0.5)
         const bbg = hexToRGBA(main.config['background-color'], (100 - main.config['background-transparency']) / 100)
-        const obg = hexToRGBA(main.config['background-color'], 0.5)
         const sfg = colorMixer(Object.values(hexToRgb(main.config['font-color'])), [0, 0, 0], 0.75)
         const fxNavIntensityStep = parseFloat(window.getComputedStyle(document.documentElement).getPropertyValue('--menu-fx-nav-intensity-step').trim())
         const fxNavIntensity = main.config['fx-nav-intensity'] * fxNavIntensityStep
@@ -256,7 +255,6 @@ class Theme extends EventEmitter {
             --secondary-font-color: ${sfg};
             --background-color: ${main.config['background-color']};
             --modal-background-color: ${mbg};
-            --osd-background-color: ${obg};
             --shadow-background-color: ${sbg};
             --menu-fx-nav-intensity: ${fxNavIntensity};    
             --radius: ${radius};
@@ -276,7 +274,7 @@ class Theme extends EventEmitter {
         body {
             font-family: ${family};
         }
-        body.video, body.idle:not(.video) {
+        body.video, html.curtains-closed body {
             --shadow-background-color: rgba(0, 0, 0, 0.8);
         }
         body:not(.portrait) #menu content wrap {

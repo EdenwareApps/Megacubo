@@ -39,6 +39,7 @@ Object.assign(global, {
     config,
     Download,
     downloads,
+    energy,
     ffmpeg,
     icons,
     lang,

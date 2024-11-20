@@ -225,12 +225,12 @@ export const initApp = async () => {
             main.osd.show(String(err.message || err), 'fas fa-exclamation-triangle faclr-red', 'clipboard', 'normal')
         })
     })
-    main.on('clipboard-read', (callbackId, timeoutMs) => {
-        console.log('clipboard-read', callbackId)
+    main.on('clipboard-read', (callbackId, timeoutMs=0) => {
         main.menu.readClipboard(timeoutMs).then(text => {
             main.emit(callbackId, null, text)
         }).catch(err => {
-            main.emit(callbackId, err, '')
+            console.error(err)
+            main.emit(callbackId, null, '')
         })
     })
     main.on('open-external-url', url => winActions.openExternalURL(url))
