@@ -43,7 +43,7 @@
 <style global>
 #osd-root {
   position: absolute;
-  padding: 2vmin 0.5vmin 1vmin 0.5vmin;
+  padding: var(--menu-padding);
   z-index: 9;
   box-sizing: border-box;
   pointer-events: none;
@@ -81,7 +81,7 @@ body.video #osd-root {
   border-radius: var(--radius);
   text-shadow: 1px 1px rgba(0,0,0,0.25);
   opacity: 1;
-  background: linear-gradient(to bottom, var(--font-color), var(--secondary-font-color));
+  background: linear-gradient(to bottom, var(--font-color) 25%, var(--background-color) 200%);
   max-width: 98%;
   padding: var(--padding-half) var(--padding-2x) var(--padding-half) var(--padding-2x);
   margin-left: var(--padding-half);

@@ -204,16 +204,22 @@ body.portrait {
     width: var(--padding);
     justify-content: center;
     border-radius: 100vw;
-    background: linear-gradient(to bottom, var(--background-color), var(--shadow-background-color));
+    background: var(--background-color);
     padding: 0.75vmax 3vmax;
     color: var(--secondary-font-color);
     position: absolute;
     z-index: 1;
+    opacity: 1;
+    transition: opacity 0.15s ease-in 0s;
     align-self: center;
-    box-shadow: 0 0 1vmax rgba(255, 255, 255, 0.125);
+    box-shadow: var(--padding-quarter) var(--padding-quarter) var(--padding-half) rgba(0,0,0, 0.8), inset var(--padding-quarter) var(--padding-quarter) 1vmin rgba(255,255,255, 0.1);
 }
-body.idle .side-menu-toggle > div > span, body.side-menu-hint .side-menu-toggle > div > span {
+html.curtains-closed .side-menu-toggle > div > span, body.video .side-menu-toggle > div > span {
     background: black;
+}
+html.curtains-closed .side-menu-toggle > div > span, body.video .side-menu-toggle > div > span, body.side-menu .side-menu-toggle > div > span {
+    opacity: 0;
+    box-shadow: none;
 }
 body.side-menu:not(.idle) .side-menu-toggle > div > span {
     background: var(--background-color);
@@ -684,15 +690,42 @@ body.portrait #menu content a .entry-icon-image i {
     letter-spacing: 0.033em;
     font-size: var(--menu-entry-name-font-size);
     min-height: var(--menu-entry-name-font-size);
-    display: inline-block;
     line-height: 150%;
-    -webkit-font-smoothing: antialiased;
+    -webkit-font-smoothing: antialiased;    
+    overflow: hidden;
+    display: -webkit-box;
+    text-overflow: ellipsis;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-pack: center;
+    -webkit-box-orient: vertical;
+}
+#menu content a.selected span.entry-name,
+#menu content a:hover span.entry-name,
+#menu content a:focus span.entry-name,
+#menu content a:active span.entry-name {
+    -webkit-box-orient: initial;
+    -webkit-box-pack: center;
 }
 #menu content a span.entry-details {
     line-height: 150%;
+    color: var(--secondary-font-color);
     font-size: var(--menu-entry-details-font-size);
     min-height: var(--menu-entry-details-font-size);
-    color: var(--secondary-font-color);
+    overflow: hidden;
+    display: -webkit-box;
+    text-overflow: ellipsis;
+    line-clamp: 1;
+    -webkit-line-clamp: 1;
+    -webkit-box-pack: center;
+    -webkit-box-orient: vertical;
+}
+#menu content a.selected span.entry-details,
+#menu content a:hover span.entry-details,
+#menu content a:focus span.entry-details,
+#menu content a:active span.entry-details {
+    -webkit-box-orient: initial;
+    -webkit-box-pack: center;
 }
 div#arrow-down-hint {
     justify-content: center;

@@ -61,22 +61,7 @@ class List extends EventEmitter {
         }
         return p;
     }
-    async verify() {
-        let quality = 0, relevance = 0;
-        const qualityPromise = this.verifyListQuality().then(q => quality = q).catch(console.error);
-        const relevancePromise = this.verifyListRelevance(this.index).then(r => relevance = r).catch(console.error);
-        await qualityPromise;
-        if (quality) {
-            await relevancePromise;
-            this.quality = quality;
-            this.relevance = relevance;
-        } else {
-            this.quality = quality;
-            this.relevance = { total: 0, err: 'list streams seems offline' };
-        }
-        this.verified = true
-    }
-    async verifyListQuality() {
+    async isConnectable() {
         const ttl = 120, cacheKey = 'list-quality-' + this.url;
         const cached = await storage.get(cacheKey);
         const atts = {
@@ -89,36 +74,38 @@ class List extends EventEmitter {
                 throw cached.err;
             return cached.result;
         }
-        let len = this.indexer.length;
+        let len = this.indexer.length
         if (!len) {
-            const err = 'insufficient streams ' + len;
-            storage.set(cacheKey, { err }, atts).catch(console.error);
-            throw err;
+            const err = 'insufficient streams ' + len
+            storage.set(cacheKey, { err }, atts).catch(console.error)
+            throw err
         }
-        let tests = Math.min(len, 10), mtp = Math.floor((len - 1) / (tests - 1));
-        let ids = [];
+        let tests = Math.min(len, 20), mtp = Math.floor((len - 1) / (tests - 1))
+        let ids = []
         for (let i = 0; i < len; i += mtp)
-            ids.push(i);
-        let entries = await this.indexer.entries(ids);
-        const urls = entries.map(e => e.url);
+            ids.push(i)
+        let entries = await this.indexer.entries(ids)
+        const urls = entries.map(e => e.url)
         if (this.debug) {
-            console.log('validating list quality', this.url, tests, mtp, urls);
+            console.log('validating list quality', this.url, tests, mtp, urls)
         }
-        const racing = new ConnRacing(urls, { retries: 1, timeout: 8 });
+        const racing = new ConnRacing(urls, { retries: 1, timeout: 8 })
         for (let i = 0; i < urls.length; i++) {
-            const res = await racing.next().catch(console.error);
+            const res = await racing.next().catch(console.error)
             if (res && res.valid) {
                 const result = 100 / (i + 1);
-                storage.set(cacheKey, { result }, atts).catch(console.error);
-                return result;
+                storage.set(cacheKey, { result }, atts).catch(console.error)
+                racing.destroy()
+                return result
             }
         }
+        racing.destroy()
         const err = 'no valid links';
-        storage.set(cacheKey, { err }, atts).catch(console.error);
-        throw err;
+        storage.set(cacheKey, { err }, atts).catch(console.error)
+        throw err
     }
-    async verifyListRelevance(index) {
-        const values = {
+    async verify() {
+        const index = this.index, values = {
             hits: 0
         };
         const factors = {
@@ -163,6 +150,8 @@ class List extends EventEmitter {
         values.total = total / maxtotal;
         values.debug = { values, factors, total, maxtotal, log };
         //console.warn('LIST RELEVANCE', this.url, index.lastmtime, Object.keys(values).map(k => k +': '+ values[k]).join(', '))
+        this.relevance = values;
+        this.verified = true
         return values;
     }
     async fetchAll() {

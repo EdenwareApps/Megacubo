@@ -116,7 +116,8 @@ class CloudConfiguration extends EventEmitter {
             timeout: 30,
             responseType: 'json',
             cacheTTL: this.expires[opts.expiralKey] || opts.cacheTTL || 300,
-            encoding: 'utf8'
+            encoding: 'utf8',
+            bypassCache: opts.bypassCache || undefined
         }).catch(e => err = e)
         if (this.debug) {
             console.log('cloud: got ' + JSON.stringify({ key, err, body }));

@@ -507,18 +507,17 @@ class Lists extends ListsEPGTools {
         })
     }
     async loadList(url, contentLength) {
-        url = forwardSlashes(url);
-        this.processedLists.has(url) || this.processedLists.set(url, null);
+        url = forwardSlashes(url)
+        this.processedLists.has(url) || this.processedLists.set(url, null)
         if (typeof(contentLength) != 'number') { // contentLength controls when the list should refresh
-            let err;
-            const meta = await this.getListMeta(url).catch(e => err = e);
+            let err, meta = await this.getListMeta(url).catch(e => err = e)
             if (err) {
-                console.error(err);
-                contentLength = 0; // ok, give up and load list anyway
+                console.error(err)
+                contentLength = 0 // ok, give up and load list anyway
             } else {
                 contentLength = meta.contentLength;
                 if (typeof(contentLength) != 'number') {
-                    contentLength = 0; // ok, give up and load list anyway
+                    contentLength = 0 // ok, give up and load list anyway
                 }
             }
         }
@@ -530,7 +529,10 @@ class Lists extends ListsEPGTools {
             this.loadTimes[url] = {};
         } else {
             if (this.lists[url]) {
-                defaultOrigin = this.lists[url].origin;
+                if (this.lists[url].contentLength == contentLength) {
+                    throw 'list already loaded';
+                }
+                defaultOrigin = this.lists[url].origin
             }
             this.remove(url);
         }
@@ -638,6 +640,10 @@ class Lists extends ListsEPGTools {
                         this.delimitActiveLists();
                     }
                     this.searchMapCacheInvalidate()
+                    list.isConnectable().catch(err => {
+                        this.requesting[url] = String(err)
+                        this.remove(url)
+                    });
                     this.emit('list-loaded', url)
                 }
             }
@@ -719,7 +725,7 @@ class Lists extends ListsEPGTools {
         if (!test)
             return false;
         let err;
-        const connectable = await this.lists[url].verifyListQuality().catch(e => err = e);
+        const connectable = await this.lists[url].isConnectable().catch(e => err = e);
         return err || !connectable;
     }
     async isSameContentLoaded(list) {

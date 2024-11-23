@@ -16,7 +16,7 @@ import { getDirname } from 'cross-dirname'
 
 class ListsLoader extends EventEmitter {
     constructor(master, opts) {
-        super();
+        super()
         const concurrency = config.get('lists-loader-concurrency') || 6 // avoid too many concurrency on mobiles
         this.debug = master.debug;
         this.master = master;
@@ -33,61 +33,72 @@ class ListsLoader extends EventEmitter {
         this.communityListsAmount = config.get('communitary-mode-lists-amount');
         this.enqueue(this.myCurrentLists, 1);
         renderer.ready(() => {
-            this.master.discovery.on('found', () => this.resetLowPriorityUpdates())
+            this.master.discovery.on('found', () => this.process())
             global.streamer.on('commit', () => this.pause())
             global.streamer.on('stop', () => {
                 setTimeout(() => {
                     global.streamer.active || this.resume()
                 }, 2000) // wait 2 seconds, maybe user is just zapping channels
             })
-            this.resetLowPriorityUpdates()
-        });
+            this.process()
+        })
         config.on('change', (keys, data) => {
             if (keys.includes('lists')) {
-                const newMyLists = data.lists.map(l => l[1])
-                const added = newMyLists.filter(l => !this.myCurrentLists.includes(l))
-                const removed = this.myCurrentLists.filter(l => !newMyLists.includes(l))
-                removed.forEach(u => this.master.remove(u))
-                newMyLists.forEach(u => {
-                    this.master.processedLists.has(u) && this.master.processedLists.delete(u) // allow reprocessing it
-                })
-                this.myCurrentLists = newMyLists
-                this.enqueue(added, 1)
+                this.handleListsChange(data);
             }
             if (keys.includes('communitary-mode-lists-amount')) {
-                if (this.communityListsAmount != data['communitary-mode-lists-amount']) {
-                    this.communityListsAmount = data['communitary-mode-lists-amount'];
-                    this.master.processedLists.clear();
-                    this.resetLowPriorityUpdates();
-                    if (!data['communitary-mode-lists-amount']) { // unload community lists
-                        this.cancelProcessesByType('community')
-                    }
-                }
+                this.handleCommunityListsAmountChange(data);
             }
             if (keys.includes('public-lists')) {
-                if (this.publicListsActive != data['public-lists']) {
-                    this.publicListsActive = data['public-lists'];
-                    this.master.processedLists.clear();
-                    this.resetLowPriorityUpdates();
-                    if (!data['public-lists']) { // unload public lists
-                        this.cancelProcessesByType('public')
-                    }
-                }
+                this.handlePublicListsChange(data);
             }
-        });
+        })
         this.master.on('satisfied', () => {
-            if (this.master.activeLists.length) {                
-                this.queue.concurrency = 1
-                this.queue._concurrency = 1 // try to change pqueue concurrency dinamically
-                this.resetLowPriorityUpdates()
+            if (this.master.activeLists.length) {
+                this.setQueueConcurrency(1)
+                this.process()
             }
         });
         this.master.on('unsatisfied', () => {
-            this.queue.concurrency = concurrency
-            this.queue._concurrency = concurrency // try to change pqueue concurrency dinamically
-            this.resetLowPriorityUpdates()
+            this.setQueueConcurrency(concurrency)
+            this.process()
         });
-        this.resetLowPriorityUpdates()
+        this.process()
+    }
+    setQueueConcurrency(concurrency) {
+        this.queue.concurrency = concurrency
+        this.queue._concurrency = concurrency // try to change pqueue concurrency dinamically
+    }
+    handleListsChange(data) {
+        const newMyLists = data.lists.map(l => l[1]);
+        const added = newMyLists.filter(l => !this.myCurrentLists.includes(l));
+        const removed = this.myCurrentLists.filter(l => !newMyLists.includes(l));
+        removed.forEach(u => this.master.remove(u));
+        newMyLists.forEach(u => {
+            this.master.processedLists.has(u) && this.master.processedLists.delete(u);
+        });
+        this.myCurrentLists = newMyLists;
+        this.enqueue(added, 1);
+    }
+    handleCommunityListsAmountChange(data) {
+        if (this.communityListsAmount != data['communitary-mode-lists-amount']) {
+            this.communityListsAmount = data['communitary-mode-lists-amount'];
+            this.master.processedLists.clear();
+            this.process();
+            if (!data['communitary-mode-lists-amount']) {
+                this.cancelProcessesByType('community');
+            }
+        }
+    }
+    handlePublicListsChange(data) {
+        if (this.publicListsActive != data['public-lists']) {
+            this.publicListsActive = data['public-lists'];
+            this.master.processedLists.clear();
+            this.process();
+            if (!data['public-lists']) {
+                this.cancelProcessesByType('public');
+            }
+        }
     }
     async cancelProcessesByType(type) {
         for(const p of this.master.processes) {
@@ -99,7 +110,8 @@ class ListsLoader extends EventEmitter {
         }
         this.master.delimitActiveLists()
     }
-    async resetLowPriorityUpdates() {
+    async process(recursion=0) {
+        if (recursion > 2) return
         this.processes = this.processes.filter(p => {
             /* Cancel pending processes to reorder it */
             if (p.priority > 1 && !p.started() && !p.done()) {
@@ -118,22 +130,31 @@ class ListsLoader extends EventEmitter {
         this.currentTaskId = taskId;
         this.master.updaterFinished(false);
         const lists = await this.master.discovery.get(maxListsToTry)
+        if (this.currentTaskId != taskId) return
         const loadingLists = []
         lists.some(({ url, type }) => {
             if (!this.myCurrentLists.includes(url) &&
                 !this.processes.some(p => p.url == url) &&
                 !this.master.processedLists.has(url)) {
-                loadingLists.push(url);
-                return loadingLists.length == maxListsToTry;
+                loadingLists.push(url)
+                return loadingLists.length == maxListsToTry
             }
         });
         const loadingListsCached = await this.master.filterCachedUrls(loadingLists);
+        if (this.currentTaskId != taskId) return
         this.master.loadCachedLists(loadingListsCached).catch(console.error)
-        this.enqueue([...loadingLists.filter(u => !loadingListsCached.includes(u)), ...loadingListsCached]); // update uncached lists first
+        this.enqueue([...loadingLists.filter(u => !loadingListsCached.includes(u)), ...loadingListsCached]) // update uncached lists first
         await this.queue.onIdle().catch(console.error)
-        await new Promise(resolve => setTimeout(resolve, 2000))
-        if (this.currentTaskId == taskId && !this.queue.size) {
-            this.master.updaterFinished(true)
+        if (this.currentTaskId != taskId) return
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        if (this.currentTaskId != taskId) return
+        if (!this.queue.size) {
+            if(this.master.satisfied) {
+                this.master.updaterFinished(true)
+            } else {
+                recursion++
+                return await this.process(recursion)
+            }
         }
         this.master.status()
     }
@@ -242,14 +263,16 @@ class ListsLoader extends EventEmitter {
                 this.paused && await this.wait();
                 if (cancel)
                     return;
-                await this.prepareUpdater();
+                await this.prepareUpdater()
+                const processed = this.master.processedLists.has(url)
+                this.master.processedLists.set(url, null)
                 this.results[url] = 'awaiting';
                 this.results[url] = await this.updater.update(url).catch(console.error);
                 this.updater && this.updater.close && this.updater.close();
                 done = true;
                 const add = this.results[url] == 'updated' ||
                     (this.myCurrentLists.includes(url) && !this.master.lists[url]) ||
-                    (this.results[url] == 'already updated' && !this.master.processedLists.has(url));
+                    (this.results[url] == 'already updated' && !processed);
                 add && this.master.addList(url, priority)
             }, { priority }),
             started: () => {

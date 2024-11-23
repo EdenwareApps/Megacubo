@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply from: '../variables.gradle'
 
 static def getVersionCodeFromVersionName(String versionName) {
     def versionParts = versionName.split("\\.")
@@ -10,18 +11,15 @@ static def getVersionCodeFromVersionName(String versionName) {
 
 android {
     namespace "tv.megacubo.app"
-    compileSdk rootProject.ext.compileSdkVersion
-    compileSdkVersion 34
+    compileSdk rootProject.ext.compileSdk
     defaultConfig {
         applicationId "tv.megacubo.app"
-        minSdkVersion 24
-        targetSdkVersion 34
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
         versionName '17.5.5'
         versionCode getVersionCodeFromVersionName(versionName)
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
-             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
-             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
         vectorDrawables.useSupportLibrary = true
@@ -29,14 +27,14 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled true // fine
-            shrinkResources true // fine
+            minifyEnabled true
+            shrinkResources true
             postprocessing {
                 proguardFiles = []
-                removeUnusedCode false // villain
-                removeUnusedResources true // fine
-                obfuscate false // villain
-                optimizeCode true // fine
+                removeUnusedCode false
+                removeUnusedResources true
+                obfuscate false
+                optimizeCode true
             }
         }
     }
@@ -52,10 +50,6 @@ android {
         jniLibs {
             useLegacyPackaging = true
             pickFirsts += [
-                /*
-                'lib/x86/libc++_shared.so',
-                'lib/x86_64/libc++_shared.so',
-                */
                 'lib/armeabi-v7a/libnative-lib.so',
                 'lib/armeabi-v7a/libc++_shared.so',
                 'lib/arm64-v8a/libnative-lib.so',
@@ -64,18 +58,39 @@ android {
             excludes += ['**/*~', 'lib/x86/**', 'lib/x86_64/**']
         }
         resources {
-            excludes += ['META-INF/NOTICE', 'META-INF/LICENSE', 'META-INF/DEPENDENCIES', 'META-INF/LICENSE', 'META-INF/LICENSE.txt', 'META-INF/NOTICE', 'META-INF/NOTICE.txt', 'META-INF/ASL2.0', '**/.DS_Store', '**/thumbs.db', '**/*.bak', '**/*~']
+            excludes += [
+                'META-INF/NOTICE',
+                'META-INF/LICENSE',
+                'META-INF/DEPENDENCIES',
+                'META-INF/LICENSE',
+                'META-INF/LICENSE.txt',
+                'META-INF/NOTICE',
+                'META-INF/NOTICE.txt',
+                'META-INF/ASL2.0',
+                '**/.DS_Store',
+                '**/thumbs.db',
+                '**/*.bak',
+                '**/*~'
+            ]
         }
     }
     sourceSets {
         main {
-            jniLibs.srcDirs = ['src/main/jniLibs', '../capacitor-cordova-android-plugins/src/main/libs', 'libs']
+            jniLibs.srcDirs = [
+                'src/main/jniLibs',
+                '../capacitor-cordova-android-plugins/src/main/libs',
+                'libs'
+            ]
         }
     }
 }
 
+configurations.configureEach {
+    resolutionStrategy.force 'androidx.constraintlayout:constraintlayout:2.1.4'
+}
+
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar','*.aar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
@@ -93,6 +108,6 @@ try {
     if (servicesJSON.text) {
         apply plugin: 'com.google.gms.google-services'
     }
-} catch(Exception e) {
+} catch (Exception ignored) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }

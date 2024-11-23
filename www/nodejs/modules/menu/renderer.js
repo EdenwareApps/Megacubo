@@ -1,7 +1,6 @@
 import { EventEmitter } from 'events'
 import { Sounds } from './sound'
 import { main } from '../bridge/renderer'
-import { traceback } from '../../renderer/src/scripts/utils'
 
 class MenuURLInputHelper {
     constructor(){
@@ -240,6 +239,31 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
 		window.addEventListener('orientationchange', resizeListener, { capture: true })
 		screen.orientation && screen.orientation.addEventListener('change', resizeListener)
 		setTimeout(resizeListener, 0)
+		
+		this.wrap.addEventListener('touchstart', event => {
+			console.log('touchstart', event.target.tagName)
+			const t = event.target.tagName?.toLowerCase()
+			const e = t === 'a' ? event.target : event.target.closest('a')
+			let timeout
+			const start = () => {
+				console.log('start')
+				timeout = setTimeout(() => {
+					console.log('hold')
+					const holdEvent = new CustomEvent('hold', {bubbles: false})
+					e.dispatchEvent(holdEvent)
+					this.focus(e)
+				}, 500)
+			}
+			const cancel = () => {
+				console.log('cancel')
+				clearTimeout(timeout)
+				document.removeEventListener('touchend', cancel)
+				document.removeEventListener('touchmove', cancel)
+			}
+			start()
+			document.addEventListener('touchend', cancel)
+			document.addEventListener('touchmove', cancel)
+		})
 	}
     setGridLayout(x, y, px, py){
         this._gridLayoutX = x
