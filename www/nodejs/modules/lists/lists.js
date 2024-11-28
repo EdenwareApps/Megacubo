@@ -167,6 +167,7 @@ class ListsEPGTools extends Index {
         if(this.activeCountries === undefined) {
             await this.resetEPGScoreCache()
         }
+
         let epgs = Object.keys(this.epgs)
         if (this.epg.loaded) {
             epgs.push(...this.epg.loaded.filter(u => !epgs.includes(u)))
@@ -176,7 +177,31 @@ class ListsEPGTools extends Index {
         if (Array.isArray(c) && c.length) {
             epgs.push(...c.filter(e => e.active && !epgs.includes(e.url)).map(e => e.url))
         }
-        if (!epgs.length) return []
+
+        const o = await cloud.get('configure', {shadow: false})
+        if (o?.epgs) {
+            for(const code of this.activeCountries) {
+                if (o.epgs[code]) {
+                    epgs.push(...o.epgs[code].filter(u => !epgs.includes(u)))
+                }
+            }
+        } else if(o?.epg) {
+            for(const code of this.activeCountries) {
+                if (o.epg[code] && !epgs.includes(o.epg[code])) {
+                    epgs.push(o.epg[code])
+                }
+            }
+        }
+
+        if(global?.channels?.trending.currentRawEntries) {
+            global.channels.trending.currentRawEntries.forEach(e => {
+                if(e.epg) {
+                    epgs.push(...parseCommaDelimitedURIs(e.epg).filter(u => !epgs.includes(u)))
+                }
+            })
+        }
+
+        if (!epgs.length) return epgs
     
         // Precompute scores to avoid multiple scorify calls
         const epgScores = epgs.map(e => ({epg: e, score: this.epgScore(e)}))
@@ -231,23 +256,33 @@ class Lists extends ListsEPGTools {
         });
         this.on('satisfied', () => {
             if (this.activeLists.length) {
-                this.queue.concurrency = 1
-                this.queue._concurrency = 1 // try to change pqueue concurrency dinamically
+                this.setQueueConcurrency(1)
             }
+        });
+        this.on('unsatisfied', () => {
+            this.setQueueConcurrency(4)
         });
         this.discovery = new Discovery(this)
         this.loader = new Loader(this)
         this.manager = new Manager(this)
         this.configChanged()
     }
-    ready() {
-        return new Promise(resolve => {
-            if(this.isReady) {
-                resolve()
-            } else {
-                this.once('ready', resolve)
-            }
-        })
+    async ready(timeoutSecs) {
+        if(!this.satisfied) {
+            const promises = [
+                new Promise(resolve => this.once('satisfied', resolve))
+            ]
+            timeoutSecs && promises.push(this.wait(timeoutSecs * 1000))
+            await Promise.race(promises)
+        }
+        return this.satisfied
+    }
+    wait(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms))
+    }
+    setQueueConcurrency(concurrency) {
+        this.queue.concurrency = concurrency
+        this.queue._concurrency = concurrency // try to change pqueue concurrency dinamically
     }
     getAuthURL(listUrl) {
         if (listUrl && this.lists[listUrl] && this.lists[listUrl].index && this.lists[listUrl].index.meta && this.lists[listUrl].index.meta['auth-url']) {
@@ -439,7 +474,7 @@ class Lists extends ListsEPGTools {
             }
             const allProgress = satisfyAmount * 100
             const sumProgress = progresses.reduce((a, b) => a + b, 0)
-            progress = Math.min(100, parseInt(sumProgress / (allProgress / 100)))
+            progress = parseInt(sumProgress / (allProgress / 100))
         }
         if (this.debug) {
             console.log('status() progresses', progress)
@@ -453,7 +488,7 @@ class Lists extends ListsEPGTools {
             isUpdatingFinished: this.isUpdaterFinished,
             pendingCount: this.queue.size,
             length: lks.filter(l => l.isReady).length
-        };
+        }
         if (progress > 99) {
             if (!this.satisfied) {
                 this.satisfied = true
@@ -563,7 +598,7 @@ class Lists extends ListsEPGTools {
             this.processedLists.delete(url);
             this.loadTimes[url].synced = (Date.now() / 1000);
             if (!this.requesting[url] || this.requesting[url] == 'loading') {
-                this.requesting[url] = String(err);
+                this.requesting[url] = err;
             }
             console.warn('loadList error: ', err);
             if (this.lists[url] && !this.myLists.includes(url)) {
@@ -641,7 +676,9 @@ class Lists extends ListsEPGTools {
                     }
                     this.searchMapCacheInvalidate()
                     list.isConnectable().catch(err => {
-                        this.requesting[url] = String(err)
+                        if(this.requesting[url] == 'loading') {
+                            this.requesting[url] = err
+                        }
                         this.remove(url)
                     });
                     this.emit('list-loaded', url)

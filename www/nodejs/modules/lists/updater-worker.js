@@ -3,8 +3,8 @@ import storage from '../storage/storage.js'
 import Common from './common.js'
 import setupUtils from '../multi-worker/utils.js'
 import UpdateListIndex from './update-list-index.js'
-import List from './list.js'
-import { getFilename } from 'cross-dirname'           
+import ListIndex from './list-index.js'
+import { getFilename } from 'cross-dirname'
 
 const utils = setupUtils(getFilename())
 
@@ -107,9 +107,9 @@ class ListsUpdater extends Common {
 		}
 	}
 	async validateIndex(url){
-		const list = new List(url, this.relevantKeywords)
-		await list.start()
-		const validated = list.length > 0
+		const file = storage.resolve(LIST_DATA_KEY_MASK.format(url))
+		const list = new ListIndex(file, url)
+		const validated = (await list.check()) > 0
 		list.destroy()
 		return validated
 	}

@@ -60,7 +60,7 @@ class OMNI extends EventEmitter {
             }
         };
         config.set('open-url', url);
-        await lists.manager.ready()
+        await lists.ready()
         await global.streamer.play(e)
     }
 }

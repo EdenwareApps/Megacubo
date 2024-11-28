@@ -2,7 +2,41 @@ import { EventEmitter } from "events";
 import LineReader from "../line-reader/line-reader.js";
 import { absolutize, listNameFromURL } from '../utils/utils.js'
 
-class Parser extends EventEmitter {
+export const regexes = {
+    'group-separators': new RegExp('( ?[\\\\|;] ?| /+|/+ )', 'g'),
+    'notags': new RegExp('\\[[^\\]]*\\]', 'g'),
+    'between-brackets': new RegExp('\\[[^\\]]*\\]', 'g'),
+    'accents': new RegExp('[\\u0300-\\u036f]', 'g'),
+    'plus-signal': new RegExp('\\+', 'g'),
+    'hyphen': new RegExp('\\-', 'g'),
+    'hyphen-not-modifier': new RegExp('(.)\\-', 'g'),
+    'spaces': new RegExp(' {2,}', 'g'),
+    'type-playlist': new RegExp('type[\s\'"]*=[\s\'"]*playlist[\s\'"]*'),
+    'strip-query-string': new RegExp('\\?.*$'),
+    'strip-proto': new RegExp('^[a-z]*://'),
+    'm3u-url-params': new RegExp('.*\\|[A-Za-z0-9\\-]*=')
+}
+
+export const sanitizeName = s => {
+    if (typeof(s) != 'string' || !s) {
+        s = 'Untitled ' + parseInt(Math.random() * 10000);
+    } else if (s.includes('/')) {
+        if (s.includes('[/')) {
+            s = s.split('[/').join('[|');
+        }
+        if (s.includes('/')) {
+            s = s.replaceAll('/', ' ');
+        }
+    }
+    /* needed on too specific cases, but bad for performance
+    if (s.includes('\\')) {
+        s = s.replaceAll('\\', ' ')
+    }
+    */
+    return s;
+}
+
+export class Parser extends EventEmitter {
     constructor(opts) {
         super();
         this.opts = opts;
@@ -118,7 +152,7 @@ class Parser extends EventEmitter {
                         n = line.substr(pos + 1).trim();
                     }
                 }
-                e.name = Parser.sanitizeName(n);
+                e.name = sanitizeName(n);
             } else if (this.expectingHeader) {
                 return
             } else if (hashed) {
@@ -144,7 +178,7 @@ class Parser extends EventEmitter {
             } else if(inExtInf) { // not hashed so, length already checked
                 inExtInf = false
                 e.url = line.trim()
-                if (e.url.includes('|') && e.url.match(Parser.regexes['m3u-url-params'])) {
+                if (e.url.includes('|') && e.url.match(regexes['m3u-url-params'])) {
                     let parts = e.url.split('|');
                     e.url = parts[0];
                     parts = parts[1].split('=');
@@ -164,7 +198,7 @@ class Parser extends EventEmitter {
                 if (!e.name) {
                     e.name = e.gid || listNameFromURL(e.url);
                 }
-                const name = e.name.replace(Parser.regexes['between-brackets'], '');
+                const name = e.name.replace(regexes['between-brackets'], '');
                 if (name != e.name) {
                     e.rawname = e.name
                     e.name = name                    
@@ -209,15 +243,15 @@ class Parser extends EventEmitter {
         if (s.length == 3 && s.toLowerCase().trim() === 'n/a') {
             return '';
         }
-        if (!s.includes('/') && s.match(Parser.regexes['group-separators'])) { // if there are few cases, is better not replace directly
-            s = s.replace(Parser.regexes['group-separators'], '/');
+        if (!s.includes('/') && s.match(regexes['group-separators'])) { // if there are few cases, is better not replace directly
+            s = s.replace(regexes['group-separators'], '/');
             if (s.startsWith('/'))
                 s = s.substr(1);
             if (s.endsWith('/'))
                 s = s.substr(0, s.length - 1);
         }
         if (s.includes('[')) {
-            s = s.replace(Parser.regexes['between-brackets'], '');
+            s = s.replace(regexes['between-brackets'], '');
         }
         // s = s.normalize('NFD') // is it really needed?
         return s;
@@ -226,7 +260,7 @@ class Parser extends EventEmitter {
         return sig == '#EXTINF';
     }
     isExtInfPlaylist(line) {
-        return line.includes('playlist') && line.match(Parser.regexes['type-playlist']);
+        return line.includes('playlist') && line.match(regexes['type-playlist']);
     }
     isExtM3U(sig) {
         return sig == '#EXTM3U' || sig == '#PLAYLI'; // #playlistv
@@ -281,36 +315,3 @@ class Parser extends EventEmitter {
         this.removeAllListeners();
     }
 }
-Parser.regexes = {
-    'group-separators': new RegExp('( ?[\\\\|;] ?| /+|/+ )', 'g'),
-    'notags': new RegExp('\\[[^\\]]*\\]', 'g'),
-    'between-brackets': new RegExp('\\[[^\\]]*\\]', 'g'),
-    'accents': new RegExp('[\\u0300-\\u036f]', 'g'),
-    'plus-signal': new RegExp('\\+', 'g'),
-    'hyphen': new RegExp('\\-', 'g'),
-    'hyphen-not-modifier': new RegExp('(.)\\-', 'g'),
-    'spaces': new RegExp(' {2,}', 'g'),
-    'type-playlist': new RegExp('type[\s\'"]*=[\s\'"]*playlist[\s\'"]*'),
-    'strip-query-string': new RegExp('\\?.*$'),
-    'strip-proto': new RegExp('^[a-z]*://'),
-    'm3u-url-params': new RegExp('.*\\|[A-Za-z0-9\\-]*=')
-};
-Parser.sanitizeName = s => {
-    if (typeof(s) != 'string' || !s) {
-        s = 'Untitled ' + parseInt(Math.random() * 10000);
-    } else if (s.includes('/')) {
-        if (s.includes('[/')) {
-            s = s.split('[/').join('[|');
-        }
-        if (s.includes('/')) {
-            s = s.replaceAll('/', ' ');
-        }
-    }
-    /* needed on too specific cases, but bad for performance
-    if (s.includes('\\')) {
-        s = s.replaceAll('\\', ' ')
-    }
-    */
-    return s;
-};
-export default Parser;

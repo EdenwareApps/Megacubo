@@ -53,100 +53,74 @@ class Tags extends EventEmitter{
                 .sort(([, valueA], [, valueB]) => valueB - valueA) 
                 .slice(0, limit)
         )
-    }
+    }    
     async historyUpdated(emit) {
-        const data = {}
-        global.channels.history.epg.data.slice(-6).forEach(row => {
-            const name = row.originalName || row.name
-            const category = global.channels.getChannelCategory(name)
+        const data = {}, data0 = {}
+        const historyData = global.channels.history.epg.data.slice(-6);
+
+        historyData.forEach(row => {
+            const name = row.originalName || row.name;
+            const category = global.channels.getChannelCategory(name);
             if (category) {
-                if (typeof(data[category]) == 'undefined') {
-                    data[category] = 0
-                }
-                data[category] += row.watched.time
+                data[category] = (data[category] || 0) + row.watched.time;
             }
-        })
-        const pp = Math.max(...Object.values(data)) / 100
-        Object.keys(data).forEach(k => data[k] = data[k] / pp)
-        
-        const data0 = {}
-        for(const row of global.channels.history.epg.data.slice(-6)) {
-            const cs = row.watched ? row.watched.categories : []
-            const name = row.originalName || row.name
-            const cat = global.channels.getChannelCategory(name)
-            if (cat && !cs.includes(cat)) {
-                cs.push(cat)
+
+            const cs = row.watched ? row.watched.categories : [];
+            if (category && !cs.includes(category)) {
+                cs.push(category);
             }
             if (row.groupName && !cs.includes(row.groupName)) {
-                cs.push(row.groupName)
-            }            
-            cs.length && [...new Set(cs)].forEach(category => {
-                if (category) {
-                    let lc = category.toLowerCase()
-                    if (typeof(data0[lc]) == 'undefined') {
-                        data0[lc] = 0
-                    }
-                    data0[lc] += row.watched ? row.watched.time : 180
-                }
-            })
-        }
-        const pp0 = Math.max(...Object.values(data0)) / 100
-        Object.keys(data0).forEach(k => data0[k] = data0[k] / pp0)
-        
-        for(const k in data) {
-            if(data0[k]) {
-                data0[k] = Math.max(data0[k], data[k])
-            } else {
-                data0[k] = data[k]
+                cs.push(row.groupName);
             }
+            cs.forEach(cat => {
+                if (cat) {
+                    const lc = cat.toLowerCase();
+                    data0[lc] = (data0[lc] || 0) + (row.watched ? row.watched.time : 180);
+                }
+            });
+        });
+
+        const pp = Math.max(...Object.values(data)) / 100;
+        Object.keys(data).forEach(k => data[k] = data[k] / pp);
+
+        const pp0 = Math.max(...Object.values(data0)) / 100;
+        Object.keys(data0).forEach(k => data0[k] = data0[k] / pp0);
+
+        for (const k in data) {
+            data0[k] = Math.max(data0[k] || 0, data[k]);
         }
-        this.caching.programmes = await this.expand(this.filterTags(data0))
-        emit && this.emit('updated')
+
+        this.caching.programmes = await this.expand(this.filterTags(data0));
+        emit && this.emit('updated');
     }
     async trendingUpdated(emit) {
-        let trendingPromise = true
-        if(!global.channels.trending.currentRawEntries) {
-            trendingPromise = global.channels.trending.getRawEntries()
+        let trendingPromise = true;
+        if (!global.channels.trending.currentRawEntries) {
+            trendingPromise = global.channels.trending.getRawEntries();
         }
-        let searchPromise = this.searchSuggestionEntries || global.channels.search.searchSuggestionEntries().then(data => this.searchSuggestionEntries = data)
-        await Promise.allSettled([trendingPromise, searchPromise]).catch(console.error)
+        let searchPromise = this.searchSuggestionEntries || global.channels.search.searchSuggestionEntries().then(data => this.searchSuggestionEntries = data);
+        await Promise.allSettled([trendingPromise, searchPromise]).catch(console.error);
 
-        const map = {}
-        if(Array.isArray(global.channels.trending.currentRawEntries)) {
-            const data = global.channels.trending.currentRawEntries
-            for(const e of data) {
-                const terms = global.channels.entryTerms(e)
-                terms.forEach(t => {
-                    if(t.startsWith('-')) return
-                    if(typeof(map[t]) == 'undefined') {
-                        map[t] = 0
-                    }
-                    if(typeof(map[t]) == 'number') { // do not mess object methods
-                        map[t] += e.users
-                    }
-                })
-            } 
+        const map = {};
+        const addToMap = (terms, value) => {
+            terms.forEach(t => {
+                if (t.startsWith('-')) return;
+                map[t] = (map[t] || 0) + value;
+            });
+        };
+
+        if (Array.isArray(global.channels.trending.currentRawEntries)) {
+            global.channels.trending.currentRawEntries.forEach(e => addToMap(global.channels.entryTerms(e), e.users));
         }
 
-        if(Array.isArray(this.searchSuggestionEntries)) {
-            console.log('trendingUpdated() 1')
-            for(const e of this.searchSuggestionEntries) {
-                const t = e.search_term
-                if(t.startsWith('-')) continue
-                if(typeof(map[t]) == 'undefined') {
-                    map[t] = 0
-                }
-                if(typeof(map[t]) == 'number') { // do not mess object methods
-                    map[t] += e.cnt
-                }
-            }
+        if (Array.isArray(this.searchSuggestionEntries)) {
+            this.searchSuggestionEntries.forEach(e => addToMap([e.search_term], e.cnt));
         }
 
-        console.log('trendingUpdated() 2')
-        const pp = Math.max(...Object.values(map)) / 100
-        Object.keys(map).forEach(k => map[k] = map[k] / pp)
-        this.caching.trending = await this.expand(this.filterTags(map))
-        emit && this.emit('updated')
+        const pp = Math.max(...Object.values(map)) / 100;
+        Object.keys(map).forEach(k => map[k] = map[k] / pp);
+        this.caching.trending = await this.expand(this.filterTags(map));
+        emit && this.emit('updated');
     }
     async expand(tags) {
         let err, additionalTags = {}            
@@ -188,7 +162,6 @@ class Recommendations extends EventEmitter {
         this.readyState = 0
         this.tags = new Tags()
         this.updaterQueue = new PQueue({concurrency: 1})
-        this.channelsLoaded = false
         this.epgLoaded = false
         this.someListLoaded = false
         this.listsLoaded = false
@@ -207,7 +180,7 @@ class Recommendations extends EventEmitter {
                 this.epgLoaded = true
                 this.scheduleUpdate()
             })
-            global.lists.manager.ready().then(async () => {
+            global.lists.ready().then(async () => {
                 this.listsLoaded = true
                 this.scheduleUpdate()
             }).catch(console.error)
@@ -405,14 +378,17 @@ class Recommendations extends EventEmitter {
         })
     }
     async getChannels(amount=5, _excludes=[]) {
+        const already = new Set()
         const excludes = new Set(_excludes)
         const isChannelCache = {}, validateCache = {}
+        const channels = global.channels
+        const channelsIndex = channels.channelList.channelsIndex
         const channel = e => {
             const name = typeof(e) == 'string' ? e : (e.originalName || e.name)
             if (typeof(isChannelCache[name]) == 'undefined') {
                 isChannelCache[name] = false
                 if (name && !excludes.has(name)) {
-                    const e = global.channels.isChannel(name)
+                    const e = channels.isChannel(name)
                     if (e) {
                         isChannelCache[name] = e
                     }
@@ -421,7 +397,6 @@ class Recommendations extends EventEmitter {
             return isChannelCache[name]
         }
         const validateMulti = async es => {
-            const ret = []
             const hasMap = es.map((e, i) => {
                 const name = typeof(e) == 'string' ? e : (e.originalName || e.name)
                 if (typeof(validateCache[name]) == 'undefined' && !excludes.has(name)) {
@@ -429,9 +404,7 @@ class Recommendations extends EventEmitter {
                 }
             }).filter(e => e)
             const results = await global.lists.has(hasMap)
-            for(const key in results) {
-                validateCache[key] = results[key]
-            }
+            Object.assign(validateCache, results)
             return es.map((e, i) => {
                 const name = typeof(e) == 'string' ? e : (e.originalName || e.name)
                 if (typeof(validateCache[name]) == 'undefined') {
@@ -441,10 +414,9 @@ class Recommendations extends EventEmitter {
                 return validateCache[name]
             })
         }
-        const results = []
-        if(global.channels.trending.currentEntries && global.channels.trending.currentEntries.length) {
-            const already = new Set()
-            const trendingIndex = (global.channels.trending.currentEntries.filter(e => e.type == 'select') || []).map(e => {
+        const results = [], trending = channels.trending
+        if(trending.currentEntries && trending.currentEntries.length) {
+            const trendingIndex = (trending.currentEntries.filter(e => e.type == 'select') || []).map(e => {
                 const c = channel(e)
                 if(c && !already.has(c.name)) {
                     already.add(c.name)
@@ -453,19 +425,25 @@ class Recommendations extends EventEmitter {
             }).filter(c => c)
             const validations = await validateMulti(trendingIndex)
             validations.forEach((valid, i) => {
-                valid && results.push(trendingIndex[i])
+                if(!valid || already.has(trendingIndex[i].name)) return
+                already.add(trendingIndex[i].name)
+                results.push(trendingIndex[i])
             })
         }
         if(results.length < amount) {
             const shuffledIndex = this.shuffledIndex().slice(0, amount * 4)
             const validations = await validateMulti(shuffledIndex)
-            const results = []
             validations.forEach((valid, i) => {
-                valid && results.push(shuffledIndex[i])
+                if(!valid || already.has(shuffledIndex[i])) return
+                already.add(shuffledIndex[i])
+                results.push({
+                    name: shuffledIndex[i],
+                    terms: channelsIndex[shuffledIndex[i]]                
+                })
             })
         }
         return results.map(e => {
-            return global.channels.toMetaEntry({
+            return channels.toMetaEntry({
                 name: e.name,
                 url: mega.build(e.name, { mediaType: 'live', terms: e.terms })
             })
@@ -492,38 +470,69 @@ class Recommendations extends EventEmitter {
         return this._shuffledIndex.index
     }
     async entries(vod) {
+        const limit = 128
+        const adjust = e => {
+            if(e.programme && e.programme.t) {
+                if(!e.originalName) {
+                    e.originalName = e.name
+                }
+                e.details = e.name
+                e.name = e.programme.t
+            }
+            return e
+        }
+        const improveEntry = {
+            name: lang.IMPROVE_YOUR_RECOMMENDATIONS,
+            type: 'action',
+            fa: 'fas fa-info-circle',
+            class: 'entry-empty',
+            action: async () => {
+                await menu.dialog([
+                    { template: 'question', text: lang.IMPROVE_YOUR_RECOMMENDATIONS, fa: 'fas fa-thumbs-up' },
+                    { template: 'message', text: lang.RECOMMENDATIONS_IMPROVE_HINT },
+                    { template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle' }
+                ])
+            }
+        }
+        const noRecommendations = {
+            name: lang.NO_RECOMMENDATIONS_YET,
+            type: 'action',
+            fa: 'fas fa-info-circle',
+            class: 'entry-empty',
+            action: async () => {
+                const ret = await menu.dialog([
+                    { template: 'question', text: lang.NO_RECOMMENDATIONS_YET, fa: 'fas fa-info-circle' },
+                    { template: 'message', text: lang.RECOMMENDATIONS_INITIAL_HINT },
+                    { template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle' },
+                    { template: 'option', text: lang.EPG, id: 'epg', fa: 'fas fa-th' }
+                ])
+                if (ret == 'epg') {
+                    if (paths.ALLOW_ADDING_LISTS) {
+                        menu.open(lang.MY_LISTS + '/' + lang.EPG).catch(console.error)
+                    } else {
+                        menu.open(lang.OPTIONS + '/' + lang.MANAGE_CHANNEL_LIST + '/' + lang.EPG).catch(console.error)
+                    }
+                }
+            }
+        }
         let es
         if(vod === true) {
-            es = await global.lists.multiSearch(await this.tags.get(), {limit: 128, type:'video', group: false, typeStrict: true})
+            es = await global.lists.multiSearch(await this.tags.get(), {limit, type:'video', group: false, typeStrict: true})
         } else {
-            es = await this.get(null, 128).catch(console.error)
+            es = await this.get(null, limit).catch(console.error)
         }
         if (!Array.isArray(es)) {
             es = []
         }
         if (!es.length) {
             if (global.lists.epg.loaded) {
-                es.push({
-                    name: lang.NO_RECOMMENDATIONS_YET,
-                    type: 'action',
-                    fa: 'fas fa-info-circle',
-                    class: 'entry-empty',
-                    action: async () => {
-                        const ret = await menu.dialog([
-                            { template: 'question', text: lang.NO_RECOMMENDATIONS_YET, fa: 'fas fa-info-circle' },
-                            { template: 'message', text: lang.RECOMMENDATIONS_INITIAL_HINT },
-                            { template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle' },
-                            { template: 'option', text: lang.EPG, id: 'epg', fa: 'fas fa-th' }
-                        ])
-                        if (ret == 'epg') {
-                            if (paths.ALLOW_ADDING_LISTS) {
-                                menu.open(lang.MY_LISTS + '/' + lang.EPG).catch(console.error)
-                            } else {
-                                menu.open(lang.OPTIONS + '/' + lang.MANAGE_CHANNEL_LIST + '/' + lang.EPG).catch(console.error)
-                            }
-                        }
-                    }
-                })
+                if(vod) {
+                    es.push(noRecommendations)
+                } else {
+                    const featured = await this.featuredEntries(limit)
+                    Array.isArray(featured) && es.push(...featured.map(adjust))
+                    es.unshift(es.length ? improveEntry : noRecommendations)
+                }
             } else {
                 es.push({
                     name: lang.EPG_DISABLED,
@@ -531,25 +540,16 @@ class Recommendations extends EventEmitter {
                     fa: 'fas fa-times-circle',
                     class: 'entry-empty',
                     action: async () => {
-                        const path = lang.MY_LISTS + '/' + lang.EPG
-                        await menu.open(path)
+                        await menu.open(lang.EPG)
                     }
                 })
             }
         } else if (es.length <= 5) {
-            es.push({
-                name: lang.IMPROVE_YOUR_RECOMMENDATIONS,
-                type: 'action',
-                fa: 'fas fa-info-circle',
-                class: 'entry-empty',
-                action: async () => {
-                    await menu.dialog([
-                        { template: 'question', text: lang.IMPROVE_YOUR_RECOMMENDATIONS, fa: 'fas fa-thumbs-up' },
-                        { template: 'message', text: lang.RECOMMENDATIONS_IMPROVE_HINT },
-                        { template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle' }
-                    ])
-                }
-            })
+            es.unshift(improveEntry)
+            if(!vod) {
+                const featured = this.featuredEntries(limit - es.length)
+                Array.isArray(featured) && es.push(...featured.map(adjust))
+            }
         }
         if (vod !== true && es.length) {
             es.push({
@@ -639,20 +639,20 @@ class Recommendations extends EventEmitter {
         */
      
         console.log('recommentations.update() took '+ Math.round(time() - start) +'s')
-        this.readyState = (this.channelsLoaded && this.epgLoaded && this.listsLoaded) ? 4 : 3
+        this.readyState = (this.epgLoaded && this.listsLoaded) ? 4 : 3
     }
     async featuredEntries(amount=5) {
-        if(amount < 1) return []
         return (this.featuredEntriesCache && this.featuredEntriesCache.data) ? this.featuredEntriesCache.data.slice(0, amount) : []
     }
     async hook(entries, path) {
+        const hookId = 'recommendations'
         if (path == lang.LIVE) {
             const entry = {
                 name: lang.RECOMMENDED_FOR_YOU,
                 fa: 'fas fa-solid fa-thumbs-up',
                 type: 'group',
                 details: lang.LIVE,
-                hookId: 'recommendations',
+                hookId,
                 renderer: this.entries.bind(this, false)
             }
             if (entries.some(e => e.hookId == entry.hookId)) {
@@ -665,7 +665,7 @@ class Recommendations extends EventEmitter {
                 fa: 'fas fa-solid fa-thumbs-up',
                 type: 'group',
                 details: lang.CATEGORY_MOVIES_SERIES,
-                hookId: 'recommendations',
+                hookId,
                 renderer: this.entries.bind(this, true)
             }
             if (entries.some(e => e.hookId == entry.hookId)) {
@@ -675,7 +675,6 @@ class Recommendations extends EventEmitter {
         } else if (!path) {
             const viewSizeX = config.get('view-size').landscape.x
             const viewSizeY = config.get('view-size').landscape.y
-            const hookId = 'recommendations'
             const pageCount = config.get('home-recommendations') || 0
             
             entries = entries.filter(e => (e && e.hookId != hookId))

@@ -1,8 +1,8 @@
 import fs from 'fs'
-import pLimit from 'p-limit';
+import pLimit from 'p-limit'
 import { moveFile, parseCommaDelimitedURIs, textSimilarity, time, ucWords } from '../utils/utils.js'
 import Download from '../download/download.js'
-import config from '../config/config.js';
+import config from '../config/config.js'
 import { EventEmitter } from 'events'
 import listsTools from '../lists/tools.js'
 import setupUtils from '../multi-worker/utils.js'
@@ -143,8 +143,7 @@ class EPGPaginateChannelsList extends EventEmitter {
         let nextName, lastName
         for(let i=0; i<snames.length; i += folderSizeLimit){
             let gentries = snames.slice(i, i + folderSizeLimit)
-            nextName = snames.slice(i + folderSizeLimit, i + folderSizeLimit + 1)
-            nextName = nextName.length ? nextName[0] : null
+            nextName = snames[i + folderSizeLimit] || null
             let gname = this.getRangeName(gentries, lastName, nextName)
             if(gentries.length){
                 lastName = gentries[gentries.length - 1]
@@ -166,7 +165,7 @@ class EPGUpdater extends EventEmitter {
     channel(channel){
         if(!channel) return
         let name = channel.displayName || channel.name
-        if(!name) return;
+        if(!name) return
         [channel.id, channel.name || channel.displayName].filter(s => s).forEach(cid => {
             if(typeof(this.udb.index.channels[cid]) == 'undefined'){
                 this.udb.index.channels[cid] = {name}
@@ -447,7 +446,7 @@ class EPG extends EPGUpdater {
         })
     }
     async start(){
-        if(!this.loaded){ // initialize
+        if(this.state == 'uninitialized') { // initialize
             this.state = 'loading'
             await this.db.init().catch(err => {
                 this.error = err
@@ -508,39 +507,32 @@ class EPGManager extends EPGPaginateChannelsList {
     activeEPGs() {
         return this.EPGs().filter(r => r.active).map(r => r.url)
     }    
-    async sync(config){
+    async sync(config) {
         this.config = config
         const activeEPGs = this.activeEPGs()
-        for(const url in this.epgs) {
-            if(!activeEPGs.includes(url)) {
-                await this.remove(url)
-            }
-        }
-        for(const url of activeEPGs) {
-            if(!this.epgs[url]) {
-                await this.add(url)
-            }
-        }
+        const currentEPGs = Object.keys(this.epgs)
+
+        // Remove inactive EPGs
+        await Promise.all(currentEPGs.filter(url => !activeEPGs.includes(url)).map(url => this.remove(url)))
+
+        // Add new EPGs
+        await Promise.all(activeEPGs.filter(url => !currentEPGs.includes(url)).map(url => this.add(url)))
     }
     async suggest(urls) {
         const epgs = Object.values(this.epgs)
-        if(epgs.length) return
-        let added
-        const tasks = urls.map(url => {
-            return async () => {
-                if(added === true) return
-                await this.add(url, true)
-                if(this.epgs[url]){
-                    await this.epgs[url].ready()
-                    if(added === true || this.epgs[url].state !== 'loaded') {
-                        await this.remove(url)
-                    } else {
-                        added = true
-                    }
+        if(epgs.length) return 0
+        for(const url of urls) {
+            await this.add(url, true)
+            if(this.epgs[url]) {
+                await this.epgs[url].ready()
+                if(this.epgs[url].state === 'loaded') {
+                    return url
+                } else {
+                    await this.remove(url)
                 }
             }
-        }).map(this.limit)
-        await Promise.allSettled(tasks)
+        }
+        return false
     }
     async add(url, suggested){
         console.log('epg.add', url, suggested, Object.keys(this.epgs))
@@ -613,64 +605,43 @@ class EPGManager extends EPGPaginateChannelsList {
         return false
     }
     async liveNowChannelsList(){
-        const categories = {}, now = time()
         let updateAfter = 600
-        for(const url in this.epgs) {
-            if(this.epgs[url].state !== 'loaded') continue
-            const db = this.epgs[url].db
-            for(const ch of db.indexManager.readColumnIndex('ch')) {
-                const name = this.prepareChannelName(ch)
-                const programmes = await db.query({ch, start: {'<=': now}, e: {'>': now}})
-                for(const programme of programmes) {
-                    if(programme.e > now && parseInt(programme.start) <= now){
-                        if(Array.isArray(programme.c)){
-                            this.liveNowChannelsListFilterCategories(programme.c).forEach(category => {
-                                category = ucWords(category)
-                                if(category.includes('/')){
-                                    category = category.replaceAll('/', ' ')
-                                }
-                                if(typeof(categories[category]) == 'undefined'){
-                                    categories[category] = new Set
-                                }
-                                if(!categories[category].has(name)){
-                                    categories[category].add(name)
-                                }
-                            })
+        const categories = {}, now = time()
+        const processProgramme = (programme, name) => {
+            if (programme.e > now && parseInt(programme.start) <= now) {
+                if (Array.isArray(programme.c)) {
+                    this.liveNowChannelsListFilterCategories(programme.c).forEach(category => {
+                        category = ucWords(category).replaceAll('/', ' ')
+                        if (!categories[category]) {
+                            categories[category] = new Set()
                         }
-                        let requiresUpdateAfter = Math.max(programme.e - now, 10)
-                        if(requiresUpdateAfter < updateAfter){
-                            updateAfter = requiresUpdateAfter
-                        }
-                        break
-                    }
+                        categories[category].add(name)
+                    })
                 }
+                updateAfter = Math.min(updateAfter, Math.max(programme.e - now, 10))
+                return true
             }
         }
-        if(!Object.keys(categories).length){
-            const category = lang.ALL            
-            for(const url in this.epgs) {
-                if(this.epgs[url].state !== 'loaded') continue
+        for (const url in this.epgs) {
+            if (this.epgs[url].state !== 'loaded') continue
+            const db = this.epgs[url].db
+            for (const ch of db.indexManager.readColumnIndex('ch')) {
+                const name = this.prepareChannelName(ch)
+                const programmes = await db.query({ ch, start: { '<=': now }, e: { '>': now } })
+                programmes.some(programme => processProgramme(programme, name))
+            }
+        }
+        if (!Object.keys(categories).length) {
+            const category = lang.ALL
+            for (const url in this.epgs) {
+                if (this.epgs[url].state !== 'loaded') continue
                 const db = this.epgs[url].db
-                for(const ch of db.indexManager.readColumnIndex('ch')) {
+                for (const ch of db.indexManager.readColumnIndex('ch')) {
                     const name = this.prepareChannelName(ch)
-                    const programmes = await db.query({ch, start: {'<=': now}, e: {'>': now}})
-                    for(const programme of programmes) {
-                        if(programme.e > now && parseInt(programme.start) <= now){
-                            if(typeof(categories[category]) == 'undefined'){
-                                categories[category] = new Set
-                            }
-                            if(!categories[category].has(name)){
-                                categories[category].add(name)
-                            }
-                            let requiresUpdateAfter = Math.max(programme.e - now, 10)
-                            if(requiresUpdateAfter < updateAfter){
-                                updateAfter = requiresUpdateAfter
-                            }
-                            break
-                        }
-                    }
+                    const programmes = await db.query({ ch, start: { '<=': now }, e: { '>': now } })
+                    programmes.some(programme => processProgramme(programme, name))
                 }
-            }            
+            }
         }
         for(const c in categories) {
             categories[c] = [...categories[c]].sort()
@@ -718,82 +689,65 @@ class EPGManager extends EPGPaginateChannelsList {
         }
         return ret
     }
-    async getRecommendations(categories, until, limit = 24, searchTitles){
-        const lcCategories = Object.keys(categories), now = time()
-        if(!lcCategories.length){
-            return {}
-        }
+    async getRecommendations(categories, until, limit = 24, searchTitles) {
+        const lcCategories = new Set(Object.keys(categories))
+        const now = time()
+        if (!lcCategories.size) return {}
+    
         let results = []
-        if(!until){
-            until = now + (6 * 3600)
-        }        
-        for(const url in this.epgs) {
-            if(this.epgs[url].state !== 'loaded') continue
+        if (!until) until = now + (6 * 3600)
+    
+        const processProgramme = (programme, ch) => {
+            const start = programme.start
+            if (programme.e > now && parseInt(start) <= until) {
+                let added = false
+                if (Array.isArray(programme.c)) {
+                    for (const c of programme.c) {
+                        if (lcCategories.has(c)) {
+                            results.push({ ...programme, meta: { ch, start, score: 0 } })
+                            added = true
+                            break
+                        }
+                    }
+                }
+                if (!added && searchTitles) {
+                    const lct = (programme.t + ' ' + programme.c.join(' ')).toLowerCase()
+                    if ([...lcCategories].some(l => lct.includes(l))) {
+                        results.push({ ...programme, meta: { ch, start, score: 0 } })
+                    }
+                }
+            }
+        }
+    
+        for (const url in this.epgs) {
+            if (this.epgs[url].state !== 'loaded') continue
             const db = this.epgs[url].db
-            for(const ch of db.indexManager.readColumnIndex('ch')) {
-                const programmes = await db.query({ch, start: {'<=': until}, e: {'>': now}})
-                for(const programme of programmes) {
-                    const start = programme.start
-                    if(programme.e > now && parseInt(start) <= until){
-                        let added
-                        if(Array.isArray(programme.c)){
-                            for(const c of programme.c) {
-                                if(lcCategories.includes(c)){
-                                    if(typeof(results[ch]) == 'undefined'){
-                                        results[ch] = {}
-                                    }
-                                    const row = programme
-                                    row.meta = {ch, start, score: 0}
-                                    results.push(row)
-                                    added = true
-                                    break
-                                }
-                            }
-                        }
-                        if(!added && searchTitles){
-                            let lct = (programme.t +' '+  programme.c.join(' ')).toLowerCase()
-                            for(const l of lcCategories) {
-                                if(lct.includes(l)){
-                                    const row = programme
-                                    row.meta = {ch, start, score: 0}
-                                    results.push(row)
-                                    break
-                                }
-                            }
-                        }
-                    }
-                }
+            for (const ch of db.indexManager.readColumnIndex('ch')) {
+                const programmes = await db.query({ ch, start: { '<=': until }, e: { '>': now } })
+                programmes.forEach(programme => processProgramme(programme, ch))
             }
         }
-        for(let i=0; i<results.length; i++) {
-            if(results[i].c && results[i].c.length){
-                let score = 0
-                for(const t of results[i].c) {
-                    if(categories[t]){
-                        score += categories[t]
-                    }
-                }
-                results[i].score = score
-            }
-        }
-        let quota = limit, already = new Set()
-        results = results.sortByProp('score', true).filter(r => {
-            if(quota) { // limit by titles count instead of entries count to avoid duplicates from diff channels
-                if(!already.has(r.t)){
-                    quota--
-                    already.add(r.t)
-                }
-                return true
+    
+        results.forEach(result => {
+            if (result.c && result.c.length) {
+                result.score = result.c.reduce((score, t) => score + (categories[t] || 0), 0)
             }
         })
+    
+        const already = new Set()
+        results = results.sort((a, b) => b.score - a.score).filter(r => {
+            if (already.has(r.t)) return false
+            already.add(r.t)
+            return true
+        }).slice(0, limit)
+    
         const ret = {}
-        for(const row of results) {
-            if(typeof(ret[row.meta.ch]) == 'undefined'){
-                ret[row.meta.ch] = {}
-            }
+        results.forEach(row => {
+            if (!ret[row.meta.ch]) ret[row.meta.ch] = {}
             ret[row.meta.ch][row.meta.start] = row
-            delete ret[row.meta.ch][row.meta.start].meta
-        }
+            delete row.meta
+        })
+    
         return ret
     }
     extractTerms(c){

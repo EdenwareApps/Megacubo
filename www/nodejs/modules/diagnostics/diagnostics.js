@@ -31,7 +31,7 @@ class Diagnostics extends EventEmitter {
         const configs = clone(config.data);
         const listsInfo = lists.info(true);
         const myLists = configs.lists.map(a => a[1]);
-        const listsRequesting = lists.requesting;
+        const listsRequesting = Object.assign({}, lists.requesting);
         const tuning = global.streamer.tuning ? global.streamer.tuning.logText(false) : ''
         const processedLists = lists.processedLists.keys()
         const loaded = lists.loaded(true)
@@ -49,6 +49,9 @@ class Diagnostics extends EventEmitter {
         }
         const crashLog = crashlogContent || err || 'Empty'
         const updaterResults = lists.loader.results, privateLists = [];
+        for(const k of listsRequesting) {
+            listsRequesting[k] = String(listsRequesting[k])
+        };
         ['lists', 'parental-control-terms', 'parental-control-pw', 'premium-license'].forEach(k => delete configs[k]);
         Object.keys(listsInfo).forEach(url => {
             listsInfo[url].owned = myLists.includes(url);

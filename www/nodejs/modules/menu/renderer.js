@@ -920,8 +920,9 @@ class MenuDialog extends MenuDialogQueue {
 			if(paste) {
 				const mask = input.getAttribute('data-mask') || '(//|[a-z]{3,6}?://)'
 				const regex = new RegExp(mask, 'i')
-				if(paste.match(regex)) {
-					input.value = paste
+				const matched = paste.match(regex)
+				if(matched) {
+					input.value = matched[0]
 					input.select()
 				}
 			}

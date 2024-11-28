@@ -595,35 +595,32 @@ class Theme extends EventEmitter {
         });
         return entries
     }
-    applyRemoteTheme(url, name = 'Untitled') {        
-        const file = this.folder + '/' + sanitize(name) + '.theme.json';
-        fs.stat(file, (err, stat) => {
-            const next = () => {
-                osd.show(lang.LOADING + ' 0%', 'fas fa-download', 'theme', 'persistent');
-                Download.file({
-                    debug: false,
-                    file,
-                    url,
-                    progress: p => {
-                        osd.show(lang.LOADING +' '+ p +'%', 'fas fa-download', 'theme', 'persistent');
-                    },
-                    cacheTTL: 24 * 3600
-                }).then(async file => {
-                    osd.hide('theme')
-                    await this.load(file)
-                    menu.refreshNow()
-                }).catch(e => {
-                    Download.cache.remove(url)
-                    fs.unlink(file, () => {})
-                    menu.displayErr(e)
-                })
-            };
-            if (stat && stat.size) {
-                fs.unlink(file, next);
-            } else {
-                next();
-            }
-        });
+    async applyRemoteTheme(url, name = 'Untitled') {
+        const file = this.folder + '/' + sanitize(name) + '.theme.json'
+        const stat = await fs.promises.stat(file).catch(() => {})
+        if(stat && stat.size) {
+            await fs.promises.unlink(file)
+        }
+        osd.show(lang.LOADING + ' 0%', 'fas fa-download', 'theme', 'persistent');
+        let err
+        const rfile = await Download.file({
+            debug: false,
+            file,
+            url,
+            progress: p => {
+                osd.show(lang.LOADING +' '+ p +'%', 'fas fa-download', 'theme', 'persistent');
+            },
+            cacheTTL: 24 * 3600
+        }).catch(e => err = e)
+        if (err) {
+            await Download.cache.invalidate(url)
+            await fs.promises.unlink(file)
+            menu.displayErr(err)
+        } else {
+            await this.load(rfile)
+            menu.refreshNow()
+        }
+        osd.hide('theme')
     }
     async remoteThemes() {
         let themes = await Download.get({

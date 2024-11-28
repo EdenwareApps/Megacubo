@@ -2,18 +2,18 @@ import fs from "fs";
 import ListIndexUtils from "./list-index-utils.js";
 import { Database } from "jexidb"
 
-class ListIndex extends ListIndexUtils {
+export default class ListIndex extends ListIndexUtils {
     constructor(file, url) {
-        super();
+        super()
         this.url = url
         this.file = file
     }
     fail(err) {
         this.hasFailed = err;
         if (this.listenerCount('error')) {
-            this.emit('error', err);
+            this.emit('error', err)
         }
-        this.emit('end');
+        this.emit('end')
     }
     async entries(map) {
         await this.ready()
@@ -62,7 +62,24 @@ class ListIndex extends ListIndexUtils {
                 }
             }
         }
-        return structure;
+        return structure
+    }
+    async check() {
+        const db = new Database(this.file, {
+            index: {
+                length: 0,
+                uniqueStreamsLength: 0,
+                terms: {},
+                groups: {},
+                meta: {},
+                gids: {}
+            },
+            v8: false,
+            compressIndex: false
+        })
+        const ret = await db.check()
+        await db.destroy().catch(console.error)
+        return ret
     }
     async start() {
         let err
@@ -125,4 +142,3 @@ class ListIndex extends ListIndexUtils {
         return (this.db && !this.db.destroyed) ? this.db.length : 0
     }
 }
-export default ListIndex;

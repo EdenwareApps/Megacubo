@@ -1688,7 +1688,7 @@ class Options extends OptionsExportImport {
     }
     openURLEntry() {
         return {
-            name: lang.OPEN_URL, fa: 'fas fa-link', details: lang.STREAMS, type: 'action',
+            name: lang.OPEN_URL, fa: 'fas fa-cloud-download-alt', details: lang.STREAMS, type: 'action',
             action: async () => {
                 let err, defaultURL = '';
                 const url = config.get('open-url');
@@ -1700,8 +1700,8 @@ class Options extends OptionsExportImport {
                     placeholder: 'http://.../example.m3u8',
                     defaultValue: defaultURL,
                     callback: 'open-url',
-                    fa: 'fas fa-link'
-                });
+                    fa: 'fas fa-cloud-download-alt'
+                })
             }
         };
     }

@@ -4,7 +4,75 @@ import pLimit from "p-limit";
 import config from "../config/config.js"
 import { clone, getDomain } from "../utils/utils.js";
 
-class Index extends Common {
+class IndexMapUtils extends Common {
+    constructor(opts) {
+        super(opts)
+    }
+
+    // calculates the size of the map, including group size if specified
+    mapSize(a, group) {
+        let c = 0
+        for (const listUrl in a) {
+            const list = a[listUrl]
+            c += list.n.length
+            if (group) {
+                c += list.g.length
+            }
+        }
+        return c
+    }
+
+    // finds the intersection of two maps
+    intersectMap(a, b) {
+        const c = {}
+        for (const listUrl in b) {
+            if (a[listUrl] !== undefined) {
+                const gset = b[listUrl].g.length ? new Set(b[listUrl].g) : null
+                const nset = b[listUrl].n.length ? new Set(b[listUrl].n) : null
+                c[listUrl] = {
+                    g: gset ? a[listUrl].g.filter(n => gset.has(n)) : [],
+                    n: nset ? a[listUrl].n.filter(n => nset.has(n)) : []
+                }
+            }
+        }
+        return c
+    }
+
+    // combines two maps joining duplicate values
+    joinMap(a, b) {
+        const c = clone(a) // clones the original map to avoid modifying it
+        for (const listUrl in b) {
+            if (!c[listUrl]) {
+                c[listUrl] = { g: [], n: [] }
+            }
+            for (const type in b[listUrl]) {
+                const map = new Set(c[listUrl][type])
+                b[listUrl][type].forEach(n => map.add(n))
+                c[listUrl][type] = Array.from(map).sort((a, b) => a - b)
+            }
+        }
+        return c
+    }
+
+    // calculates the difference between two maps
+    diffMap(a, b) {
+        const c = clone(a) // clones the original map to avoid modifying it
+        for (const listUrl in b) {
+            if (a[listUrl] !== undefined) {
+                c[listUrl] = { g: [], n: [] }
+                for (const type in b[listUrl]) {
+                    if (a[listUrl][type] !== undefined) {
+                        const diffSet = new Set(b[listUrl][type])
+                        c[listUrl][type] = a[listUrl][type].filter(n => !diffSet.has(n))
+                    }
+                }
+            }
+        }
+        return c
+    }
+}
+
+class Index extends IndexMapUtils {
     constructor(opts) {
         super(opts);
         this.searchMapCache = {};
@@ -180,12 +248,12 @@ class Index extends Common {
             fullMap = fullMap ? this.joinMap(fullMap, map) : map
         });
         this.debug && console.log('searchMap', opts)
-        return this.cloneMap(fullMap)
+        return clone(fullMap)
     }
     queryTermMap(terms) {
         let key = 'qtm-' + terms.join(',')
         if (typeof(this.searchMapCache[key]) != 'undefined') {
-            return this.cloneMap(this.searchMapCache[key]);
+            return clone(this.searchMapCache[key]);
         }
         let tmap;
         terms.forEach(term => {
@@ -204,20 +272,20 @@ class Index extends Common {
                 }
                 tmap = this.intersectMap(tmap, map);
             } else {
-                tmap = this.cloneMap(map);
+                tmap = clone(map);
             }
         });
         if (this.debug) {
             console.log('querying term map done');
         }
-        this.searchMapCache[key] = this.cloneMap(tmap);
+        this.searchMapCache[key] = clone(tmap);
         return tmap;
     }
     querySearchMap(terms, excludes = [], opts = {}) {
         let smap;
         let key = 'qsm-' + opts.group + '-' + terms.join(',') + '_' + excludes.join(',') + JSON.stringify(opts); // use _ to diff excludes from terms in key
         if (typeof(this.searchMapCache[key]) != 'undefined') {
-            return this.cloneMap(this.searchMapCache[key]);
+            return clone(this.searchMapCache[key]);
         }
         if (typeof(opts.type) != 'string') {
             opts.type = false;
@@ -261,7 +329,7 @@ class Index extends Common {
             if (this.debug) {
                 console.log('done');
             }
-            this.searchMapCache[key] = this.cloneMap(smap);
+            this.searchMapCache[key] = clone(smap);
             return smap;
         }
         this.searchMapCache[key] = {};
@@ -405,82 +473,6 @@ class Index extends Common {
             entries = notHLS.push(...entries);
         }
         return entries;
-    }
-    mapSize(a, group) {
-        let c = 0;
-        Object.keys(a).forEach(listUrl => {
-            if (a[listUrl].n.length) {
-                c += a[listUrl].n.length;
-            }
-            if (group && a[listUrl].g.length) {
-                c += a[listUrl].g.length;
-            }
-        });
-        return c;
-    }
-    intersectMap(a, b) {
-        let c = {};
-        for (const listUrl in b) {
-            if (typeof(a[listUrl]) != 'undefined') {
-                const gset = new Set(a[listUrl].g.length && b[listUrl].g.length ?
-                    b[listUrl].g : []);
-                const nset = new Set(a[listUrl].n.length && b[listUrl].n.length ?
-                    b[listUrl].n : []);
-                c[listUrl] = {
-                    g: gset.size ? a[listUrl].g.filter(n => gset.has(n)) : [],
-                    n: nset.size ? a[listUrl].n.filter(n => nset.has(n)) : []
-                };
-            }
-        }
-        return c;
-    }
-    joinMap(a, b) {
-        let c = this.cloneMap(a); // clone it
-        for (const listUrl in b) {
-            if (typeof(c[listUrl]) == 'undefined') {
-                c[listUrl] = { g: [], n: [] };
-            }
-            for (const type in b[listUrl]) {
-                let changed;
-                const map = new Set(c[listUrl][type] || []);
-                b[listUrl][type].forEach(n => {
-                    if (!map.has(n)) {
-                        c[listUrl][type].push(n);
-                        if (!changed) {
-                            changed = true;
-                        }
-                    }
-                });
-                if (changed) {
-                    c[listUrl][type].sort((a, b) => a - b);
-                }
-            }
-        }
-        return c;
-    }
-    diffMap(a, b) {
-        let c = clone(a); // cloning needed
-        for (const listUrl in b) {
-            if (a[listUrl] !== undefined) {
-                c[listUrl] = { g: [], n: [] };
-                const gSet = new Set(a[listUrl].g);
-                const nSet = new Set(a[listUrl].n);
-                for (const type in b[listUrl]) {
-                    if (a[listUrl][type] !== undefined) {
-                        const diffSet = new Set(b[listUrl][type]);
-                        if (type === 'g') {
-                            c[listUrl].g = [...gSet].filter(n => !diffSet.has(n));
-                        } else {
-                            c[listUrl].n = [...nSet].filter(n => !diffSet.has(n));
-                        }
-                    }
-                }
-            }
-        }
-        return c;
-    }
-    cloneMap(a) {
-        return clone(a);
     }
     async groups(types, myListsOnly) {
         let groups = [], map = {};

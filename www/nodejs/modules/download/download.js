@@ -565,12 +565,14 @@ class Download extends EventEmitter {
                         }
                         this.end();
                     }
+                    /*
                     if (this.contentLength != -1 && this.received >= this.contentLength) { // already received whole content requested
                         if (this.opts.debug) {
                             console.log('>> Download content received', this.requestingRange, this.received, this.contentLength, this.totalContentLength);
                         }
                         this.end();
                     }
+                    */
                 });
                 response.on('error', console.error);
                 const onend = () => {
@@ -954,8 +956,8 @@ class Download extends EventEmitter {
                         try {
                             data = JSON.parse(String(data)); // use JSON.parse instead of parseJSON to catch any error
                         } catch (e) {
-                            Download.cache.remove(this.opts.url)
-                            Download.cache.remove(this.currentURL)
+                            Download.cache.invalidate(this.opts.url)
+                            Download.cache.invalidate(this.currentURL)
                             e = 'JSON error on '+ this.opts.url +' '+ e
                             this.listenerCount('error') && this.emit('error', e)
                             this.endWithError(e, 415)

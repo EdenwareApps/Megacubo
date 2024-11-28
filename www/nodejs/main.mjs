@@ -256,7 +256,7 @@ const init = async (language, timezone) => {
                     placeholder: 'http://.../example.m3u',
                     defaultValue: '',
                     callback: 'lists-manager',
-                    fa: 'fas fa-plus-square'
+                    fa: 'fas fa-cloud-download-alt'
                 }).catch(console.error)
                 break
             case 'back':
@@ -473,7 +473,7 @@ const init = async (language, timezone) => {
         streamer.state.sync()
         renderer.ready() || renderer.ready(null, true)
         if (!streamer.active) {
-            await lists.manager.ready().catch(console.error)
+            await lists.ready().catch(console.error)
             if (playOnLoaded) {
                 streamer.play(playOnLoaded)
             } else if (config.get('resume')) {
@@ -531,7 +531,7 @@ const init = async (language, timezone) => {
         menu.addFilter(downloads.hook.bind(downloads))
         lists.manager.update()
         await crashlog.send().catch(console.error)
-        await lists.manager.ready()
+        await lists.ready()
         console.log('WaitListsReady resolved!')
         let err, c = await cloud.get('configure').catch(e => err = e) // all below in func depends on 'configure' data
         if (err) {

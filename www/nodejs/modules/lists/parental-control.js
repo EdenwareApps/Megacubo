@@ -137,13 +137,16 @@ class ParentalControl extends EventEmitter {
         }
     }
     setTerms(terms) {
+        if(terms === undefined) { // reload from config
+            terms = config.get('parental-control-terms')
+        }
         if (typeof(terms) == 'string') {
             this.terms = this.keywords(terms);
         } else if (!Array.isArray(terms)) {
             console.error('Bad terms format', terms);
             return;
         }
-        this.terms = this.terms.unique(); // make unique
+        this.terms = [...new Set(this.terms)] // make unique
         let sterms = this.terms.join(',');
         config.set('parental-control-terms', sterms);
         this.setupTerms(sterms);

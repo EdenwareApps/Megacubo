@@ -74,6 +74,7 @@ class List extends EventEmitter {
                 throw cached.err;
             return cached.result;
         }
+        if (this.destroyed) throw new Error('destroyed')
         let len = this.indexer.length
         if (!len) {
             const err = 'insufficient streams ' + len

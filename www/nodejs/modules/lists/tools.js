@@ -3,52 +3,50 @@ import storage from '../storage/storage.js'
 import pLimit from "p-limit";
 import config from "../config/config.js"
 import { basename, forwardSlashes } from "../utils/utils.js";
-import parser from "./parser.js";
+import { regexes, sanitizeName } from "./parser.js";
 import data from "./search-redirects.json" with {type: 'json'};
 import countryCodes from '../countries/countries.json' with {type: 'json'};
 
 class TermsHandler {
     constructor() {
-        const { regexes, sanitizeName } = parser;
+        this.countryCodes = new Set(countryCodes.map(c => c.code)); // precompute country codes as Set
+
         this.regexes = regexes;
-        this.charToSpaceRegex = new RegExp('["/=\\,\\.:]+');
+        this.allowedCharsRegex = /[^a-z0-9+@*$]+/g; // remove chars not allowed
         this.sanitizeName = sanitizeName;
         this.searchRedirects = [];
-        this.stopWords = ['sd', '4k', 'hd', 'h264', 'h.264', 'fhd', 'uhd']; // common words to ignore on searching
+        this.stopWords = new Set(['sd', '4k', 'hd', 'h264', 'h.264', 'fhd', 'uhd']); // common words to ignore on searching
         this.loadSearchRedirects();
     }
     loadSearchRedirects() {
-        if (!this.searchRedirects.length) {
-            if (data && typeof(data) == 'object') {
-                let results = [];
-                Object.keys(data).forEach(k => {
-                    results.push({ from: this.terms(k), to: this.terms(data[k]) });
-                });
-                this.searchRedirects = results;
-            }
+        if (!this.searchRedirects.length && data && typeof data === 'object') {
+            this.searchRedirects = Object.entries(data).map(([key, value]) => ({
+                from: this.terms(key),
+                to: this.terms(value),
+            }));
         }
     }
     applySearchRedirects(terms) {
-        if(terms instanceof Set) {
-            terms = [...terms]
-        } else if(typeof(terms) == 'string') {
-            terms = this.terms(terms, true, false)
+        if (terms instanceof Set) {
+            terms = Array.from(terms);
+        } else if (typeof terms === 'string') {
+            terms = this.terms(terms, true, false);
         } else if (!Array.isArray(terms)) {
-            return []
+            return [];
         }
-        this.searchRedirects.forEach(redirect => {
-            if (redirect.from && redirect.from.length && redirect.from.every(t => terms.includes(t))) {
-                terms = terms.filter(t => !redirect.from.includes(t))
-                terms.push(...redirect.to)
+        for (const redirect of this.searchRedirects) {
+            if (redirect.from.every(t => terms.includes(t))) {
+                terms = terms.filter(t => !redirect.from.includes(t));
+                terms.push(...redirect.to);
             }
-        })
-        return terms
+        }
+        return terms;
     }
     applySearchRedirectsOnObject(e) {
         if (Array.isArray(e)) {
-            e = this.applySearchRedirects(e);
+            return this.applySearchRedirects(e);
         } else if (e.terms) {
-            if (typeof(e.terms.name) != 'undefined' && Array.isArray(e.terms.name)) {
+            if (Array.isArray(e.terms.name)) {
                 e.terms.name = this.applySearchRedirects(e.terms.name);
             } else if (Array.isArray(e.terms)) {
                 e.terms = this.applySearchRedirects(e.terms);
@@ -57,127 +55,98 @@ class TermsHandler {
         return e;
     }
     terms(txt, noModifiers, keepStopWords) {
-        if (!txt) {
-            return [];
-        }
-        if (Array.isArray(txt)) {
-            txt = txt.join(' ');
-        }
-        txt = txt.toLowerCase();
-        if (txt.match(this.charToSpaceRegex)) {
-            txt = txt.replace(this.charToSpaceRegex, ' ');
-        }
-        const tchar = txt.charAt(2);
-        if (tchar == ' ') {
+        if (!txt) return [];        
+        if (Array.isArray(txt)) txt = txt.join(' ');
+        txt = txt
+            .toLowerCase() // normalize to lowercase
+            .normalize('NFD') // decompose accents
+            .replace(/[\u0300-\u036f]/g, '') // remove accents
+            .replace(this.regexes['plus-signal'], 'plus') // specific replacements
+            .replace(this.regexes['between-brackets'], '') // remove bracket contents
+            .replace(this.allowedCharsRegex, ' '); // remove disallowed chars
+
+        const sep = txt.charAt(2);
+        if (sep == ' ') {
+            if (!Array.isArray(this.countryCodes)) {
+                this.countryCodes = new Set(global.lang?.countries?.getCountries() || [])
+            }
+            
             // for channels name formatted like 'US: CNN', 'US - CNN' or 'US | CNN'
             const maybeCountryCode = txt.substr(0, 2);
-            if (!Array.isArray(this.countryCodes)) {
-                this.countryCodes = countryCodes.map(c => c.code);
-            }
-            if (this.countryCodes.includes(maybeCountryCode)) {
+            if (this.countryCodes.has(maybeCountryCode)) {
                 txt = txt.substr(3).trim();
             }
         }
-        let tms = this.applySearchRedirects(txt.replace(this.regexes['plus-signal'], 'plus').
-            replace(this.regexes['between-brackets'], '').
-            normalize('NFD').toLowerCase().replace(this.regexes['accents'], ''). // replace/normalize accents
-            split(' ').
-            map(s => {
+
+        let terms = txt.split(' ').map(s => {
             if (s.startsWith('-')) {
-                if (noModifiers) {
-                    return '';
-                } else {
-                    s = s.replace(this.regexes['hyphen-not-modifier'], '$1');
-                    return s.length > 1 ? s : '';
-                }
-            } else if (s == '|' && noModifiers) {
+                if (noModifiers) return '';
+                s = s.replace(this.regexes['hyphen-not-modifier'], '$1');
+                return s.length > 1 ? s : '';
+            } else if (s === '|' && noModifiers) {
                 return '';
             }
             return s.replace(this.regexes['hyphen-not-modifier'], '$1');
-        }));
-        tms = tms.filter(s => s);
+        });
+
+        terms = terms.filter(s => s); // remove empty terms
+
         if (!keepStopWords) {
-            tms = tms.filter(s => !this.stopWords.includes(s));
+            terms = terms.filter(s => !this.stopWords.has(s));
         }
-        return tms;
+
+        return this.applySearchRedirects(terms); // apply redirects last
     }
-    match(needleTerms, stackTerms, partial) {
-        if (!Array.isArray(needleTerms)) {
-            console.error('needleTerms is not an array', needleTerms);
-        }
+    match(needleTerms, stackTerms, partial = false) {
+        if (!Array.isArray(needleTerms) || !Array.isArray(stackTerms)) return 0;
+
         if (needleTerms.includes('|')) {
-            let needles = needleTerms.join(' ').split('|').map(s => s.trim()).filter(s => s).map(s => s.split(' '));
-            let score = 0;
-            needles.forEach(needle => {
-                let s = this.match(needle, stackTerms, partial);
-                if (s > score) {
-                    score = s;
-                }
-            });
-            return score;
+            return Math.max(
+                ...needleTerms
+                    .join(' ')
+                    .split('|')
+                    .map(s => this.match(s.trim().split(' '), stackTerms, partial))
+            );
         }
-        if (needleTerms.length && stackTerms.length) {
-            let score = 0, sTerms = [], nTerms = []
-            let weakTerms = ['tv', ...this.stopWords]
-            let excludeMatch = needleTerms.some(t => {
-                if (t.startsWith('-')) {
-                    if (stackTerms.includes(t.substr(1))) {
-                        return true;
-                    }
-                } else {
-                    nTerms.push(t);
+
+        const nTerms = needleTerms.filter(t => !t.startsWith('-'));
+        const sTerms = stackTerms.filter(t => !t.startsWith('-'));
+        const weakTerms = this.stopWords;
+
+        // Check for exclude terms
+        if (
+            needleTerms.some(t => t.startsWith('-') && sTerms.includes(t.slice(1))) ||
+            stackTerms.some(t => t.startsWith('-') && nTerms.includes(t.slice(1)))
+        ) {
+            return 0;
+        }
+
+        const matchedTerms = new Set();
+        let score = 0;
+
+        for (const term of nTerms) {
+            if (partial) {
+                const len = term.length;
+                if (sTerms.some(sTerm => sTerm.startsWith(term) && (sTerm.length === len || sTerm.startsWith(term)))) {
+                    matchedTerms.add(term);
+                    score++;
                 }
-            }) || stackTerms.some(t => {
-                if (t.startsWith('-')) {
-                    if (needleTerms.includes(t.substr(1))) {
-                        return true;
-                    }
-                } else {
-                    sTerms.push(t);
-                }
-            });
-            if (excludeMatch || !sTerms.length || !nTerms.length) {
-                return 0;
-            }
-            let matchedTerms = []
-            nTerms.forEach(term => {
-                if (partial === true) {
-                    let len = term.length;
-                    sTerms.some(strm => {
-                        if (len == strm.length) {
-                            if (strm == term) {
-                                matchedTerms.push(term)
-                                score++;
-                                return true;
-                            }
-                        } else if (strm.length > term.length && term == strm.substr(0, len)) {
-                            matchedTerms.push(term)
-                            score++;
-                            return true;
-                        }
-                    });
-                } else {
-                    if (sTerms.includes(term)) {
-                        matchedTerms.push(term)
-                        score++;
-                    }
-                }
-            })
-            if (matchedTerms.every(t => weakTerms.includes(t))) {
-                score = 0
-            }
-            if (score) {
-                if (score == nTerms.length) { // all search terms are present
-                    if (score == sTerms.length) { // terms are equal
-                        return 3;
-                    } else {
-                        return 2;
-                    }
-                } else if (nTerms.length >= 3 && score == (nTerms.length - 1)) {
-                    return 1;
-                }
+            } else if (sTerms.includes(term)) {
+                matchedTerms.add(term);
+                score++;
             }
         }
+
+        // If all matched terms are weak, ignore the match
+        if ([...matchedTerms].every(t => weakTerms.has(t))) return 0;
+
+        if (score) {
+            if (score === nTerms.length) {
+                return score === sTerms.length ? 3 : 2; // Full match or partial match
+            }
+            if (nTerms.length >= 3 && score === nTerms.length - 1) return 1; // Almost full match
+        }
+
         return 0;
     }
 }

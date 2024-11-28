@@ -6,7 +6,7 @@ import fs from 'fs'
 import MediaURLInfo from '../streamer/utils/media-url-info.js'
 import Xtr from './xtr.js'
 import Mag from './mag.js'
-import Parser from './parser.js'
+import { Parser } from './parser.js'
 import config from '../config/config.js'
 import { Database } from 'jexidb';
 

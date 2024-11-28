@@ -122,7 +122,7 @@ class ChannelsList extends EventEmitter {
     }
     async getAppRecommendedCategories(amount=256) {
         let received = 0
-        const limit = pLimit(3), data = {}, ret = {}
+        const limit = pLimit(2), data = {}, ret = {}
         const processCountry = async country => {
             let err
             const priority = country == lang.countryCode
@@ -256,8 +256,8 @@ class ChannelsList extends EventEmitter {
                 entries: data[name].map(name => {
                     return Object.assign(this.expandName(name), { type: 'option' });
                 })
-            };
-        });
+            }
+        })
     }
     async save() {
         let ordering = {};
@@ -1147,7 +1147,7 @@ class Channels extends ChannelsKids {
             if (this.channelList.isChannelCache[tmsKey])
                 return this.channelList.isChannelCache[tmsKey];
         } else {
-            tms = terms.name ? this.entryTerms(terms, true) : global.lists.tools.terms(terms)
+            tms = typeof(terms) == 'string' ? global.lists.tools.terms(terms) : this.entryTerms(terms, true)
             tmsKey = tms.join(' ')
             if (this.channelList.isChannelCache[tmsKey])
                 return this.channelList.isChannelCache[tmsKey]; // before terms()
@@ -1625,7 +1625,17 @@ class Channels extends ChannelsKids {
     }
     sortCategoryEntries(entries) {        
         entries = global.lists.tools.sort(entries);
-        const policy = config.get('channels-list-smart-sorting');
+        const policy = config.get('channels-list-smart-sorting')
+        const adjust = e => {
+            if(e.programme && e.programme.t) {
+                if(!e.originalName) {
+                    e.originalName = e.name
+                }
+                e.details = e.name
+                e.name = e.programme.t
+            }
+            return e
+        }
         /*
         0 = Focus on EPG data.
         1 = Focus on channels, without EPG images.
@@ -1641,15 +1651,7 @@ class Channels extends ChannelsKids {
             case 2:
                 break;
             default: // 0
-                const adjust = es => {
-                    
-                    return global.lists.tools.sort(es.map(e => {
-                        e.details = e.name;
-                        e.name = e.programme.t;
-                        return e;
-                    }));
-                };
-                let noEPG = [], noEPGI = [];
+                let noEPG = []
                 entries = entries.filter(e => {
                     if (!e.programme) {
                         noEPG.push(e);
@@ -1657,7 +1659,7 @@ class Channels extends ChannelsKids {
                     }
                     return true;
                 });
-                entries = adjust(entries);
+                entries = global.lists.tools.sort(entries.map(adjust))
                 entries.push(...noEPG);
                 break;
         }

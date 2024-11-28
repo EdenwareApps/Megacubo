@@ -37,11 +37,17 @@ export class OMNI extends OMNIUtils {
         this.rinput = this.input
         this.visible = false
         this.setup()
-        this.bind()        
+        this.bind()
         this.element.style.display = 'none'
         document.addEventListener('keyup', this.eventHandler.bind(this))
     }
     bind(){
+        main.menu.on('focus', element => {
+            if(!this.visible) return
+            if(element != this.input && !element.contains(this.input)){
+                this.hide()
+            }
+        })
         main.on('omni-show', () => {
             main.menu.sideMenu(false, 'instant')
             setTimeout(() => this.show(true), 50)

@@ -187,7 +187,7 @@ class Menu extends EventEmitter {
     }
     refresh(deep=false, p) {
         if (typeof(p) != 'string') p = this.path
-        if (p !== this.path || !this.rendering) return
+        if (p != this.path) return
         const type = deep === true ? 'deepRefreshLimiter' : 'softRefreshLimiter'
         if (this[type].path === this.path) {
             this[type].limiter.call()
@@ -215,11 +215,12 @@ class Menu extends EventEmitter {
             if(page && !this.pages[p]) {
                 this.pages[p] = page
             }
-        }).catch(e => {
+        }).catch(err => {
+            console.error(err)
             if(page && !this.pages[p]) {
                 this.pages[p] = page
             }
-            this.open(p).catch(e => this.displayErr(e))
+            this.open(p).catch(e => this.displayErr(err))
         })
     }
     deepRefresh(p) {
@@ -230,7 +231,7 @@ class Menu extends EventEmitter {
                 parent: ret.parent,
                 icon: (ret.parent ? ret.fa : '') || 'fas fa-box-open'
             })
-        }).catch(e => this.displayErr(e))
+        }).catch(err => this.displayErr(err))
     }
     inSelect() {
         if (typeof(this.pages[this.dirname(this.path)]) != 'undefined') {

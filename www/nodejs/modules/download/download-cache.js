@@ -125,7 +125,7 @@ class DownloadCacheMap extends EventEmitter {
             file
         };
     }
-    remove(url) {
+    async invalidate(url) {
         if (this.saving[url]) {
             if (this.saving[url].chunks && this.saving[url].chunks.fail) {
                 this.saving[url].chunks.fail('Removed')
@@ -134,8 +134,10 @@ class DownloadCacheMap extends EventEmitter {
         }
         const key = url2id(url)
         const hkey = 'dch-' + key.substr(4)
-        storage.delete(key).catch(() => {})
-        storage.delete(hkey).catch(() => {})
+        await Promise.allSettled([
+            storage.delete(key).catch(() => {}),
+            storage.delete(hkey).catch(() => {})
+        ])
     }
     save(downloader, chunk, ended) {
         if (!config.get('in-disk-caching-size'))

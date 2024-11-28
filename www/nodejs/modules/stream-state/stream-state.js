@@ -75,8 +75,10 @@ class StreamState extends EventEmitter {
             });
             this.on('state', (url, state) => renderer.ui.emit('stream-state-set', url, state));
             onexit(() => {
-                this.cancelTests();
-                this.save(); // sync
+                if(this.exitHandled) return
+                this.exitHandled = true
+                const now = (Date.now() / 1000)
+                this.cancelTests()
             })
         })
     }
@@ -147,7 +149,7 @@ class StreamState extends EventEmitter {
                 }
                 if (changed) {
                     this.emit('state', url, state, atts.source);
-                    this.saveAsync();
+                    this.save();
                 }
             }
         }
@@ -171,31 +173,22 @@ class StreamState extends EventEmitter {
             }
         }
     }
-    async save() {
-        if (typeof(this.data) != 'undefined') {
-            const now = (Date.now() / 1000);
-            this.lastSaveTime = now;
-            this.trim();
-            await storage.set(this.key, this.data, { expiration: true });
-            console.warn('STREAMSTATE SAVE', now);
-        }
-    }
-    saveAsync() {
-        const delay = this.saveDelay() * 1000;
+    save() {
+        const delay = this.getSaveDelay() * 1000;
         if (delay) { // delay saving
             if (this.saveTimer) {
                 clearTimeout(this.saveTimer);
             }
-            this.saveTimer = setTimeout(() => this.saveAsync(), delay);
+            this.saveTimer = setTimeout(() => this.save(), delay)
         } else { // save now
             const now = (Date.now() / 1000);
             this.lastSaveTime = now;
             this.trim();
-            storage.set(this.key, this.data, { expiration: true }).catch(console.error);
-            console.warn('STREAMSTATE SAVE', now);
+            storage.set(this.key, this.data, {expiration: true}).catch(console.error);
+            console.warn('STREAMSTATE SAVE*', now);
         }
     }
-    saveDelay() {
+    getSaveDelay() {
         if (typeof(this.data) != 'undefined') {
             const now = (Date.now() / 1000);
             if (!this.lastSaveTime || (this.lastSaveTime + this.minSaveIntervalSecs) <= now) {
@@ -319,7 +312,7 @@ class StreamState extends EventEmitter {
                     this.testing.destroy()
                     this.testing = null
                     resolve(true)
-                    this.saveAsync()
+                    this.save()
                     this.sync()
                 }
             })

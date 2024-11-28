@@ -98,7 +98,7 @@ class ManagerEPG extends EventEmitter {
         const key = 'epg-'+ lang.locale
         const states = await this.master.epg.getState()
         const actives = new Set(states.info.map(r => r.url))
-        const options = (await this.searchEPGs(22, actives)).map(url => {
+        const options = (await this.master.searchEPGs(22, actives)).map(url => {
             let details, state
             const isActive = actives.has(url), name = listNameFromURL(url)
             if (isActive) {
@@ -272,13 +272,22 @@ class Manager extends ManagerEPG {
                 return this.labelify(es)
             })
             this.master.on('unsatisfied', () => this.update())
-            await this.ready()
+            await this.master.ready()
             const activeEPG = config.get('epg-' + lang.locale)
             if (activeEPG === 'disabled') return
             const suggest = !activeEPG || activeEPG === 'auto' || (Array.isArray(activeEPG) && !activeEPG.length)
             if (!suggest) return
-            const urls = await this.searchEPGs()
-            await global.lists.epg.suggest(urls)
+            
+            const urls = await this.master.searchEPGs()
+            const ret = await global.lists.epg.suggest(urls)
+
+            if(urls.length) return
+
+            let epgs = Object.keys(lists.epgs)
+            let loaded = lists.epg.loaded
+            let clouds = await cloud.get('configure')
+            let countries = lists.activeCountries
+            let trending = global.channels.trending.currentRawEntries
         })
         renderer.ui.on('menu-back', () => {
             if (this.openingList) {
@@ -315,20 +324,6 @@ class Manager extends ManagerEPG {
             }
         }
         return list;
-    }
-    ready(timeoutSecs) {
-        return new Promise(resolve => {
-            const listener = info => {
-                if (this.master.satisfied && info.length) {
-                    this.master.removeListener('satisfied', listener)
-                    resolve(true)
-                    this.hideUpdateProgress()
-                }
-            }
-            this.master.on('satisfied', listener)
-            typeof(timeoutSecs) == 'number' && setTimeout(() => resolve(false), timeoutSecs * 1000)
-            listener(this.master.status())
-        })
     }
     inChannelPage() {
         return menu.currentEntries.some(e => lang.SHARE == e.name);
@@ -484,7 +479,7 @@ class Manager extends ManagerEPG {
         let info, i = 20;
         while (i > 0 && (!info || !info[listUrl])) {
             i--;
-            await this.wait(500);
+            await this.master.wait(500);
             info = await this.master.info();
         }
         if (info && info[listUrl] && info[listUrl].epg) {
@@ -619,9 +614,6 @@ class Manager extends ManagerEPG {
             }
         }
     }
-    wait(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
     getUniqueLists(urls) {
         let already = [];
         return urls.filter(u => {
@@ -745,18 +737,18 @@ class Manager extends ManagerEPG {
             }
         };
     }
-    addListEntry() {
-        return {
+    addListEntry(atts={}) {
+        return Object.assign({
             name: lang.ADD_LIST,
             fa: 'fas fa-plus-square',
             type: 'action',
             action: () => {
                 const offerCommunityMode = paths.ALLOW_COMMUNITY_LISTS && !config.get('communitary-mode-lists-amount');
-                this.addListDialog(offerCommunityMode).catch(e => menu.displayErr(e));
+                this.addListDialog(offerCommunityMode, atts).catch(e => menu.displayErr(e));
             }
-        };
+        }, atts)
     }
-    async addListDialog(offerCommunityMode) {
+    async addListDialog(offerCommunityMode, atts={}) {
         let extraOpts = [], openM3UText = paths.ALLOW_ADDING_LISTS ? lang.OPEN_M3U_FILE : lang.OPEN_FILE;
         extraOpts.push({ template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle' });
         extraOpts.push({ template: 'option', text: openM3UText, id: 'file', fa: 'fas fa-folder-open' });
@@ -768,7 +760,7 @@ class Manager extends ManagerEPG {
         let id = await menu.prompt({
             question: lang[paths.ALLOW_ADDING_LISTS ? 'ASK_IPTV_LIST' : 'OPEN_URL'],
             placeholder: 'http://',
-            fa: 'fas fa-plus-square',
+            fa: atts.fa || 'fas fa-plus-square',
             defaultValue: this.inputMemory['url'] || '',
             extraOpts
         });
@@ -1154,29 +1146,6 @@ class Manager extends ManagerEPG {
         }
         osd.hide('refresh-list');
     }
-    async searchEPGs(limit, mandatories) {
-        const c = await cloud.get('configure')
-        if(c && c.epgs) {
-            const countries = await lang.getActiveCountries()
-            for(const country of Object.keys(c.epgs).filter(t => countries.includes(t))) {
-                for(const url of c.epgs[country]) {
-                    if(!this.master.epgs[url]) this.master.epgs[url] = new Set()
-                    this.master.epgs[url].add(country)
-                }
-            }
-        }
-        if(global.channels && global.channels.trending.currentRawEntries) {
-            global.channels.trending.currentRawEntries.forEach(e => {
-                if(e.epg) {
-                    for(const url of parseCommaDelimitedURIs(e.epg)) {
-                        if(!this.master.epgs[url]) this.master.epgs[url] = new Set()
-                        e.source && this.master.epgs[url].add(e.source)
-                    }
-                }
-            })
-        }
-        return await this.master.searchEPGs(limit, mandatories)
-    }
     async removeList(data) {
         const info = await this.master.info(true), key = 'epg-' + lang.locale;
         if (info[data.url] && info[data.url].epg) {
@@ -1328,11 +1297,11 @@ class Manager extends ManagerEPG {
                 ])
             } else {
                 if (!entries.some(e => e.name == lang.OPEN_URL)) {
-                    const entry = this.addListEntry()
-                    entry.side = true
-                    entry.name = lang.OPEN_URL
-                    entry.fa = 'fas fa-plus'
-                    entry.side = true
+                    const entry = this.addListEntry({
+                        side: true,
+                        name: lang.OPEN_URL,
+                        fa: 'fas fa-cloud-download-alt'
+                    })
                     insertEntry(entry, entries, [
                         lang.TOOLS,
                         lang.OPTIONS

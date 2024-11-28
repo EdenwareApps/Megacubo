@@ -908,7 +908,7 @@ class Streamer extends StreamerGoNext {
             }
             let terms = opts.terms || listsTools.terms(name)
             silent || (this.opts.shadow || global.osd.show(global.lang.TUNING_WAIT_X.format(name), 'fa-mega spin-x-alt', 'streamer', 'persistent'))
-            const listsReady = await global.lists.manager.ready(10)
+            const listsReady = await global.lists.ready(10)
             if (listsReady !== true) {
                 silent || (this.opts.shadow || global.osd.hide('streamer'))
                 throw global.lang.WAIT_LISTS_READY

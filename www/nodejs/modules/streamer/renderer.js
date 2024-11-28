@@ -1268,16 +1268,18 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
     }
     startVolumeHideTimer(){
         clearTimeout(this.volumeHideTimer)
-        this.volumeHideTimer = setTimeout(() => this.volumeBarHide(), 1500)
+        this.volumeHideTimer = setTimeout(() => this.volumeBarHide(), 2500)
     }
     volumeBarVisible(){
         return this.volumeBar.style.display != 'none'
     }
     volumeBarShow(){
+        if(this.volumeBar.style.display == 'inline-table') return
         this.volumeBar.style.display = 'inline-table'
         this.startVolumeHideTimer()
     }
     volumeBarHide(){
+        if(this.volumeBar.style.display == 'none') return
         this.volumeBar.style.display = 'none'
         if(this.volumeInputRect) {
             this.volumeInputRect = null
@@ -1355,7 +1357,7 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
             }
         })
         this.volumeButton.addEventListener('blur', () => {
-            if(document.activeElement != this.volumeInput){
+            if(document.activeElement != document.body && document.activeElement != this.volumeInput){
                 this.volumeBarHide()
             }
         }, {passive: true})

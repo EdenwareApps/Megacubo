@@ -1,203 +1,184 @@
 import Download from '../download/download.js'
 import lang from '../lang/lang.js'
 import storage from '../storage/storage.js'
-import fs from 'fs'
-import http from 'http'
+import fs from 'fs/promises'
 import config from '../config/config.js'
 import paths from '../paths/paths.js'
 import { EventEmitter } from 'events'
-import { getDirname } from 'cross-dirname'
 import { getDomain, parseJSON } from '../utils/utils.js'
 
 class CloudConfiguration extends EventEmitter {
-    constructor(opts) {
+    constructor(opts = {}) {
         super()
-        this.debug = false
+        this.expires = {
+            configure: 3600,
+            promos: 300,
+            searches: 21600,
+            channels: 21600,
+            sources: 21600,
+            trending: 300
+        }
+        this.debug = opts.debug || false
+        this.defaultTTL = 300
         this.defaultServer = 'https://app.megacubo.net/stats'
         this.server = config.get('config-server') || this.defaultServer
-        this.expires = {
-            'configure': 3600,
-            'promos': 300,
-            'searches': 6 * 3600,
-            'channels': 6 * 3600,
-            'sources': 6 * 3600,
-            'trending': 300
+        this.activeFetches = new Map() // Track active fetches by key
+        Object.assign(this, opts)
+    }
+
+    get cachePrefix() {
+        return `cloud-${lang.locale}-`
+    }
+
+    logDebug(message, data = null) {
+        if (this.debug) {
+            console.log(`CloudConfiguration: ${message}`, data || '')
         }
-        this.reading = {}
-        this.notFound = []
-        opts && Object.keys(opts).forEach(k => this[k] = opts[k])
     }
-    cachingDomain() {
-        return 'cloud-' + lang.locale + '-'
-    }
-    getCountry(ip) {
+
+    async getCountry(ip) {
+        const postData = `ip=${ip}`
+        const options = {
+            port: 80,
+            method: 'POST',
+            path: '/stats/get_country_low',
+            hostname: getDomain(this.server),
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': Buffer.byteLength(postData),
+                'Cache-Control': 'no-cache',
+            },
+        }
+
         return new Promise((resolve, reject) => {
-            const postData = 'ip='+ ip
-            const options = {
-                port: 80,
-                family: 4,
-                method: 'POST',
-                path: '/stats/get_country_low',
-                hostname: getDomain(this.server),
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Content-Length': postData.length,
-                    'Cache-Control': 'no-cache'
-                }
-            }
-            const req = http.request(options, res => {
-                res.setEncoding('utf8');
+            const req = require('http').request(options, res => {
                 let data = ''
-                res.on('data', d => data += d)
-                res.on('error', reject)
-                res.once('end', () => {
+                res.setEncoding('utf8')
+                res.on('data', chunk => data += chunk)
+                res.on('end', () => {
                     try {
-                        data = JSON.parse(data)
-                        if (!data || !data.country_code) throw 'invalid response: '+ data
-                        resolve(data.country_code)
-                    } catch (e) { reject(e) }
-                });
+                        const parsed = JSON.parse(data)
+                        if (!parsed.country_code) throw new Error('Invalid response')
+                        resolve(parsed.country_code)
+                    } catch (error) {
+                        reject(error)
+                    }
+                })
             }).on('error', reject)
-            req.on('error', reject)
+
             req.write(postData)
             req.end()
         })
     }
+
     async testConfigServer(baseUrl) {
-        let data = await Download.get({ url: baseUrl + '/data/configure.json', responseType: 'json' });
+        let data = await Download.get({ url: baseUrl + '/data/configure.json', responseType: 'json' })
         if (data && data.version)
-            return true;
-        throw 'Bad config server URL';
+            return true
+        throw 'Bad config server URL'
     }
-    url(key) {
-        return this.server +'/data/'+ key +'.json'
-    }
-    file(key) {
-        return paths.cwd +'/dist/defaults/'+ key +'.json'
-    }
-    async get(...args) {
-        let prom
-        const key = args[0], original = !this.reading[key]
-        if(original) {
-            this.reading[key] = true
-            prom = this.read(...args)
-            prom.then(r => this.emit(key, null, r)).catch(e => this.emit(key, e))
-        } else {
-            prom = new Promise((rs, rj) => {
-                this.once(key, (err, data) => (err ? rj(err) : rs(data)))
+
+    async fetch(key, opts = {}) {
+        const url = `${this.server}/data/${key}.json`
+        this.logDebug(`Fetching URL: ${url}`)
+        try {
+            const response = await Download.get({
+                url,
+                retry: 2,
+                timeout: 30,
+                responseType: 'json',
+                cacheTTL: this.expires[opts.expiralKey] || this.defaultTTL,
+                bypassCache: opts.bypassCache,
             })
-        }
-        return await new Promise((resolve, reject) => {
-            let resolved, timer = 0
-            prom.then(resolve).catch(reject).finally(() => {
-                resolved = true
-                clearTimeout(timer)
-                if(original) {
-                    delete this.reading[key]
-                }
-            })
-            if(args.length > 1 && args[1].timeoutMs) {
-                timer = setTimeout(() => {
-                    if(resolved) return
-                    resolved = true
-                    const err = 'cloud: get timeout ' + JSON.stringify(args)
-                    console.error(err)
-                    reject(err)
-                }, args[1].timeoutMs)
+            this.logDebug(`Fetched data for ${key}`, response)
+            if (opts.validator && !opts.validator(response)) {
+                throw new Error('Validation failed')
             }
-        })
+            await this.saveToCache(key, response, opts)
+            return response
+        } catch (error) {
+            this.logDebug(`Fetch failed for ${key}`, error)
+            throw error
+        }
     }
-    async fetch(key, opts={}) {
-        let err
-        const url = this.url(key), body = await Download.get({
-            url,
-            debug: this.debug,
-            retry: 2,
-            timeout: 30,
-            responseType: 'json',
-            cacheTTL: this.expires[opts.expiralKey] || opts.cacheTTL || 300,
-            encoding: 'utf8',
-            bypassCache: opts.bypassCache || undefined
-        }).catch(e => err = e)
-        if (this.debug) {
-            console.log('cloud: got ' + JSON.stringify({ key, err, body }));
-        }
-        // use validator here only for minor overhead, so we'll not cache any bad data
-        const succeeded = !err && body && (typeof(opts.validator) != 'function' || opts.validator(body))
-        if (this.debug) {
-            console.log('cloud: got ' + JSON.stringify({key, succeeded}))
-        }
-        if (succeeded) {
-            if (this.debug) {
-                console.log('cloud: got', key, body, this.expires[opts.expiralKey]);
-            }
-            this.save(key, body, opts)
-            return body
-        }
-        if (err && String(err).endsWith('404')) {
-            this.notFound.push(key)
-        }
-        throw err || 'unknown download error'
-    }
-    async read(key, opts={}) {
-        if (this.debug) {
-            console.log('cloud: get', key)
-        }
-        opts.expiralKey = key.split('/')[0].split('.')[0]
-        opts.cachingDomain = this.cachingDomain()
-        let rerr, serr, data = await storage.get(opts.cachingDomain + key).catch(console.error);
+
+    async get(key, opts = {}) {
+        const cacheKey = `${this.cachePrefix}${key}`
+        this.logDebug(`Reading cache for ${key}`)
+        let data = await storage.get(cacheKey).catch(() => null)
+
         if (data) {
-            if (this.debug) {
-                console.log('cloud: got cache', key);
+            this.logDebug(`Cache hit for ${key}`)
+            return data
+        }
+
+        // Check if there is an ongoing fetch for this key
+        if (this.activeFetches.has(key)) {
+            this.logDebug(`Waiting for ongoing fetch for ${key}`)
+            return this.activeFetches.get(key) // Return the shared fetch promise
+        }
+
+        // Create a fetch promise and store it
+        const fetchPromise = (async () => {
+            try {
+                const result = await this.fetch(key, opts)
+                await this.saveToCache(key, result, opts)
+                return result
+            } catch (fetchError) {
+                this.logDebug(`Fetch failed, trying fallback for ${key}`)
+                try {
+                    return await this.readFallback(key)
+                } catch (fallbackError) {
+                    this.logDebug(`Fallback failed for ${key}`, fallbackError)
+                    throw new Error(`Unable to retrieve data for ${key}`)
+                }
+            } finally {
+                this.activeFetches.delete(key) // Clean up when done
             }
-            return data
-        }
-        let ferr
-        const fetching = this.fetch(key, opts).then(ret => {
-            this.save(key, ret, opts).catch(console.error)
-        }).catch(e => ferr = e)
-        if(opts.shadow === false) { // shadow=true is default
-            data = await fetching
-            if (!ferr) {
-                return data
-            } else if (this.debug) {
-                console.log('cloud: fetch failure', key, ferr)
+        })()
+
+        this.activeFetches.set(key, fetchPromise)
+
+        try {
+            // Wait for fetch or timeout
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Fetch timeout')), 5000)
+            )
+            data = await Promise.race([fetchPromise, timeoutPromise])
+
+            if (data) {
+                return data // If fetch succeeds within timeout, return data
             }
+        } catch (timeoutError) {
+            this.logDebug(`Fetch timed out for ${key}, using fallback`)
         }
-        data = await storage.get(opts.cachingDomain + key + '-fallback').catch(e => serr = e)
-        if (data && !serr) {
-            this.emit(key, null, data)
-            return data
+
+        // Fetch didn't resolve in time or failed, use fallback
+        try {
+            return await this.readFallback(key)
+        } catch (fallbackError) {
+            this.logDebug(`Fallback failed for ${key}`, fallbackError)
         }
-        if (this.debug) {
-            console.log('cloud: get fallback** ' + JSON.stringify({ key, url }));
-        }
-        data = await this.fromDefaults(key).catch(e => rerr = e)
-        if (data && !rerr) {
-            return data
-        }
-        return await fetching
+
+        return fetchPromise
     }
-    async fromDefaults(key) {    
-        let err
-        const file = this.file(key)
-        const stat = await fs.promises.stat(file).catch(e => err = e)
-        if(stat && stat.size) {
-            const content = await fs.promises.readFile(file)
+
+    async readFallback(key) {
+        const filePath = paths.cwd + `/dist/defaults/${key}.json`
+        try {
+            const content = await fs.readFile(filePath, 'utf8')
             return parseJSON(content)
+        } catch (error) {
+            this.logDebug(`Fallback failed for ${key}`, error)
+            throw error
         }
-        err = 'empty response, no fallback for ' + key
-        this.emit(key, err)
-        throw err
     }
-    async save(key, body, opts) {
-        const permanent = key === 'configure'
-        if (typeof(this.expires[opts.expiralKey]) != 'undefined') {
-            storage.set(opts.cachingDomain + key, body, { ttl: this.expires[opts.expiralKey], permanent });
-            storage.set(opts.cachingDomain + key + '-fallback', body, { expiration: true, permanent });
-        } else {
-            console.error('"' + key + '" is not cacheable (no expires set)');
-        }
+
+    async saveToCache(key, data, opts) {
+        const cacheKey = `${this.cachePrefix}${key}`
+        const ttl = this.expires[opts.expiralKey] || this.defaultTTL
+        this.logDebug(`Saving ${key} to cache`, { cacheKey, ttl })
+        await storage.set(cacheKey, data, { ttl, permanent: opts.permanent })
     }
 }
 
