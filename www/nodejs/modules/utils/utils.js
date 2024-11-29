@@ -31,7 +31,7 @@ dayjs.locale = async locales => {
 
             let scriptContent = await fs.promises.readFile(file, 'utf8')
             scriptContent = 'output='+ (scriptContent.
-                replace(new RegExp('^.*s ?=', 'm'), '').
+                replace(new RegExp('(^.*|,)[a-z] ?=', 'm'), '').
                 replace(new RegExp(';[^;]*return.*$', 'm'), ''))
             const context = {output: null}
             const script = new vm.Script(scriptContent); 

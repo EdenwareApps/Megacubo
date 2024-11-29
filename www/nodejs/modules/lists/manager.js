@@ -263,7 +263,6 @@ class Manager extends ManagerEPG {
         this.master = master;
         this.listFaIcon = 'fas fa-satellite-dish';
         this.key = 'lists';
-        this.openingList = false;
         this.inputMemory = {}
         renderer.ready(async () => {
             global.streamer.on('hard-failure', es => this.checkListExpiral(es).catch(console.error))
@@ -289,11 +288,7 @@ class Manager extends ManagerEPG {
             let countries = lists.activeCountries
             let trending = global.channels.trending.currentRawEntries
         })
-        renderer.ui.on('menu-back', () => {
-            if (this.openingList) {
-                osd.hide('list-open')
-            }
-        })
+        renderer.ui.on('menu-back', () => osd.hide('list-open'))
     }
     async expandEntries(entries, path) {
         let shouldExpand = entries.some(e => typeof(e._) == 'number' && !e.url);
@@ -1181,7 +1176,6 @@ class Manager extends ManagerEPG {
         if (!opts.raw) {
             list = this.prependBookmarkingAction(list, v.url);
         }
-        this.openingList = false;
         opts.silent || osd.hide('list-open');
         return list;
     }

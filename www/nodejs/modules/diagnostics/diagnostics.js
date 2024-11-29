@@ -25,58 +25,82 @@ class Diagnostics extends EventEmitter {
         ready(() => this.checkDiskUI().catch(console.error))
     }
     async report() {
-        const version = paths.manifest.version;
-        const diskSpace = await this.checkDisk();
-        const freeMem = kbfmt(await this.checkMemory());
-        const configs = clone(config.data);
-        const listsInfo = lists.info(true);
-        const myLists = configs.lists.map(a => a[1]);
-        const listsRequesting = Object.assign({}, lists.requesting);
-        const tuning = global.streamer.tuning ? global.streamer.tuning.logText(false) : ''
-        const processedLists = lists.processedLists.keys()
-        const loaded = lists.loaded(true)
-        const channelListType = global.channels.channelList ? global.channels.channelList.type : 'no channelList loaded'
-        const processing = lists.loader.processes.filter(p => p.started() && !p.done()).map(p => {
-            return {
-                url: p.url,
-                priority: p.priority
-            };
-        })
-        let err, crashlogContent = await crashlog.read().catch(e => err = e)        
-        let revision = '10000'
-        if(paths.manifest.megacubo && paths.manifest.megacubo.revision) {
-            revision = paths.manifest.megacubo.revision
-        }
-        const crashLog = crashlogContent || err || 'Empty'
-        const updaterResults = lists.loader.results, privateLists = [];
-        for(const k of listsRequesting) {
-            listsRequesting[k] = String(listsRequesting[k])
-        };
-        ['lists', 'parental-control-terms', 'parental-control-pw', 'premium-license'].forEach(k => delete configs[k]);
-        Object.keys(listsInfo).forEach(url => {
-            listsInfo[url].owned = myLists.includes(url);
-            if (listsInfo[url].private) {
-                privateLists.push(url)
+        let report = ''
+        osd.show(lang.PROCESSING, 'fa-mega spin-x-alt', 'diag', 'persistent')
+        try {
+            console.log('Generating report... 0')
+            const version = paths.manifest.version;
+            const diskSpace = await this.checkDisk();
+            const freeMem = kbfmt(await this.checkMemory());
+            const configs = clone(config.data);
+            const listsInfo = lists.info(true);
+            const myLists = configs.lists.map(a => a[1]);
+            const listsRequesting = Object.assign({}, lists.requesting);
+            const tuning = global.streamer.tuning ? global.streamer.tuning.logText(false) : ''
+            const processedLists = [...lists.processedLists.keys()]
+            const loaded = lists.loaded(true)
+            const channelListType = global.channels.channelList ? global.channels.channelList.type : 'no channelList loaded'
+            const channelListKey = global.channels.channelList ? global.channels.channelList.key : ''
+            const processing = lists.loader.processes.filter(p => p.started() && !p.done()).map(p => {
+                return {
+                    url: p.url,
+                    priority: p.priority
+                }
+            })
+
+            console.log('Generating report... 1')
+
+            let perr, publicCategories = await global.channels.channelList.getPublicListsCategories().catch(e => perr = e)
+            if (perr) publicCategories = 'Error: ' + String(perr)
+
+            console.log('Generating report... 2')
+            let err, crashlogContent = await crashlog.read().catch(e => err = e)        
+            let revision = '10000'
+            if(paths.manifest.megacubo && paths.manifest.megacubo.revision) {
+                revision = paths.manifest.megacubo.revision
             }
-        });
-        if (diskSpace && diskSpace.size) {
-            diskSpace.free = kbfmt(diskSpace.free)
-            diskSpace.size = kbfmt(diskSpace.size)
+            const crashLog = crashlogContent || err || 'Empty'
+            const updaterResults = lists.loader.results, privateLists = [];
+            for(const k in listsRequesting) {
+                listsRequesting[k] = String(listsRequesting[k])
+            };
+            ['lists', 'parental-control-terms', 'parental-control-pw', 'premium-license'].forEach(k => delete configs[k]);
+            for (const url in listsInfo) {
+                listsInfo[url].owned = myLists.includes(url);
+                if (listsInfo[url].private) {
+                    privateLists.push(url)
+                }
+            }
+            if (diskSpace && diskSpace.size) {
+                diskSpace.free = kbfmt(diskSpace.free)
+                diskSpace.size = kbfmt(diskSpace.size)
+            }
+            const timeoutMs = 10000, communitySources = {}, locs = await lang.getActiveCountries()
+            console.log('Generating report... 3')
+            await Promise.allSettled(locs.map(loc => {
+                return (async () => {
+                    let err, lists = await cloud.get('sources/'+ loc, {timeoutMs}).catch(e => err = e)
+                    communitySources[loc] = err ? String(err) : lists.map(l => l.url)
+                })()
+            }))
+            console.log('Generating report... 4')
+
+            report = {
+                version, revision, diskSpace, freeMem, configs, channelListKey, channelListType,
+                channels: global.channels.channelList.channelsIndex, categories: global.channels.channelList.categories, loaded, 
+                communitySources, listsInfo, listsRequesting, updaterResults, processedLists, processing, tuning, crashLog,
+                publicCategories
+            }
+            report = JSON.stringify(report, null, 3)
+            console.log('Generating report... 5')
+            privateLists.forEach(url => {
+                report = report.replace(url, 'http://***')
+            })
+        } catch(e) {
+            console.error('report err:', e)
+            report = 'Error generating report: ' + String(e)
         }
-        const timeoutMs = 10000, communitySources = {}, locs = await lang.getActiveCountries()
-        await Promise.allSettled(locs.map(loc => {
-            return (async () => {
-                let err, lists = await cloud.get('sources/'+ loc, {timeoutMs}).catch(e => err = e)
-                communitySources[loc] = err ? String(err) : lists.map(l => l.url)
-            })()
-        }))
-
-        let report = { version, revision, diskSpace, freeMem, configs, channelListType, loaded, communitySources, listsInfo, listsRequesting, updaterResults, processedLists, processing, tuning, crashLog };
-        report = JSON.stringify(report, null, 3);
-        privateLists.forEach(url => {
-            report = report.replace(url, 'http://***')
-        })
-
+        osd.hide('diag')
         return report
     }
     async saveReport() {

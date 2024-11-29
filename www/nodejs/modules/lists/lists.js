@@ -238,11 +238,8 @@ class Lists extends ListsEPGTools {
         };
         this.epgs = {}
         this.myLists = [];
-        this.communityLists = [];
         this.processedLists = new Map();
         this.requesting = {};
-        this.loadTimes = {};
-        this.processes = [];
         this.satisfied = false;
         this.isFirstRun = !config.get('communitary-mode-lists-amount') && !config.get('lists').length;
         this.queue = new PQueue({concurrency: 4});
@@ -402,40 +399,22 @@ class Lists extends ListsEPGTools {
         this._relevantKeywords = terms
         return terms
     }
-    setCommunityLists(communityLists) {
-        // communityLists for reference (we'll use it to calc lists loading progress)
-        communityLists.forEach(url => {
-            if (!this.communityLists.includes(url)) {
-                this.communityLists.push(url);
-            }
-        });
-        return true;
-    }
     async loadCachedLists(lists) {
         let hits = 0;
         if (this.debug) {
             console.log('Checking for cached lists...', lists);
         }
         if (!lists.length)
-            return hits;
-        lists.forEach(url => {
-            if (!this.loadTimes[url]) {
-                this.loadTimes[url] = {};
-            }
-            this.loadTimes[url].sync = (Date.now() / 1000);
-        });
-        lists = await this.filterCachedUrls(lists);
-        lists.forEach(url => {
-            if (!this.loadTimes[url]) {
-                this.loadTimes[url] = {};
-            }
-            this.loadTimes[url].filtered = (Date.now() / 1000);
-        });
+            return hits
+        lists = await this.filterCachedUrls(lists)
         this.delimitActiveLists(); // helps to avoid too many lists in memory
         for (let url of lists) {
             if (typeof(this.lists[url]) == 'undefined') {
-                hits++;
-                this.addList(url, this.myLists.includes(url) ? 1 : 9);
+                hits++
+                await this.loadList(url).catch(err => {
+                    hits--
+                    console.error(err)
+                })
             }
         }
         if (this.debug) {
@@ -512,38 +491,9 @@ class Lists extends ListsEPGTools {
         const stat = this.status(), ret = stat.progress > 99
         return ret
     }
-    addList(url, priority = 9) {
-        let cancel, started, done;
-        this.processes.push({
-            promise: this.queue.add(async () => {
-                if (cancel)
-                    return;
-                let err
-                if (typeof(this.lists[url]) == 'undefined') {
-                    await this.loadList(url).catch(e => err = e);
-                } else {
-                    let contentLength = await this.shouldReloadList(url)
-                    if (cancel)
-                        return;
-                    if (typeof(contentLength) == 'number') {
-                        console.log('List got updated, reload it. ' + this.lists[url].contentLength + ' => ' + contentLength);
-                        await this.loadList(url, contentLength).catch(e => err = e)
-                    } else {
-                        err = 'no need to update';
-                    }
-                }
-                done = true;
-            }, { priority }),
-            started: () => started,
-            cancel: () => cancel = true,
-            done: () => done || cancel,
-            priority,
-            url
-        })
-    }
     async loadList(url, contentLength) {
         url = forwardSlashes(url)
-        this.processedLists.has(url) || this.processedLists.set(url, null)
+        this.processedLists.has(url) || this.processedLists.set(url, 1)
         if (typeof(contentLength) != 'number') { // contentLength controls when the list should refresh
             let err, meta = await this.getListMeta(url).catch(e => err = e)
             if (err) {
@@ -560,21 +510,18 @@ class Lists extends ListsEPGTools {
         if (this.debug) {
             console.log('loadList start', url);
         }
-        if (!this.loadTimes[url]) {
-            this.loadTimes[url] = {};
-        } else {
-            if (this.lists[url]) {
-                if (this.lists[url].contentLength == contentLength) {
-                    throw 'list already loaded';
-                }
-                defaultOrigin = this.lists[url].origin
+        if (this.lists[url]) {
+            if (this.lists[url].contentLength == contentLength) {
+                return true
             }
-            this.remove(url);
+            defaultOrigin = this.lists[url].origin
+            this.remove(url)
         }
-        this.loadTimes[url].adding = (Date.now() / 1000);
+            
         this.requesting[url] = 'loading';
         const list = new List(url, this);
-        list.contentLength = contentLength;
+        list.contentLength = contentLength
+        list.isConnectableResult = 1 // 1 = unknown, 2 = yes, 0 = no
         if (isMine) {
             list.origin = 'own';
         } else {
@@ -596,7 +543,6 @@ class Lists extends ListsEPGTools {
         }
         if (err) {
             this.processedLists.delete(url);
-            this.loadTimes[url].synced = (Date.now() / 1000);
             if (!this.requesting[url] || this.requesting[url] == 'loading') {
                 this.requesting[url] = err;
             }
@@ -607,7 +553,6 @@ class Lists extends ListsEPGTools {
             this.updateActiveLists();
             throw err;
         } else {
-            this.loadTimes[url].synced = (Date.now() / 1000);
             if (this.debug) {
                 console.log('loadList started', url);
             }
@@ -654,16 +599,16 @@ class Lists extends ListsEPGTools {
                     }
                     throw 'content already loaded';
                 } else {
-                    let replace;
+                    let replace
                     this.requesting[url] = 'added';
                     if (!isMine && this.loadedListsCount('community') > (this.myLists.length + config.get('communitary-mode-lists-amount'))) {
-                        replace = this.shouldReplace(list);
+                        replace = this.shouldReplace(list)
                         if (replace) {
-                            const pr = this.lists[replace].relevance.total;
+                            const pr = this.lists[replace].relevance.total
                             if (this.debug) {
                                 console.log('List', url, list.relevance.total, 'will replace', replace, pr);
                             }
-                            this.remove(replace);
+                            this.remove(replace)
                             this.requesting[replace] = 'replaced by ' + url + ', ' + pr + ' < ' + list.relevance.total;
                             this.requesting[url] = 'added in place of ' + replace + ', ' + pr + ' < ' + list.relevance.total;
                         }
@@ -675,12 +620,15 @@ class Lists extends ListsEPGTools {
                         this.delimitActiveLists();
                     }
                     this.searchMapCacheInvalidate()
-                    list.isConnectable().catch(err => {
+                    list.isConnectable().then(() => {
+                        list.isConnectableResult = 2
+                    }).catch(err => {
+                        if(!this.lists[url]) return
+                        list.isConnectableResult = 0
                         if(this.requesting[url] == 'loading') {
                             this.requesting[url] = err
                         }
-                        this.remove(url)
-                    });
+                    })
                     this.emit('list-loaded', url)
                 }
             }
@@ -704,22 +652,19 @@ class Lists extends ListsEPGTools {
     }
     shouldReplace(list) {
         if (!list) {
-            console.error('shouldReplace error: no list given', list);
-            return;
-        }
-        let weaker
-        for(const k in this.lists) {
-            if (!this.lists[k].verified) {
-                continue
+            console.error('shouldReplace error: no list given', list)
+            return
+        }        
+        const communityListsAmount = config.get('communitary-mode-lists-amount')
+        const communityListsQuota = Math.max(communityListsAmount - this.myLists.length, 0)
+        if (this.loadedListsCount('community') >= communityListsQuota) {
+            const urlsToRemove = this.sortCommunityLists()
+            for(const url of urlsToRemove) {
+                if (this.lists[url].isConnectableResult == 0) { // 0=not connectable
+                    return url
+                }
             }
-            if (this.myLists.includes(k) || !this.lists[k].isReady || this.lists[k].origin != 'community')
-                continue
-            if (!weaker || (this.lists[k].relevance.total > -1 && this.lists[k].relevance.total < this.lists[weaker].relevance.total)) {
-                weaker = k
-            }
-        }
-        if (weaker && this.lists[weaker] && this.lists[weaker].relevance.total < list.relevance.total) {
-            return weaker;
+            return urlsToRemove.pop()
         }
     }
     isRepeatedList(url) {
@@ -806,7 +751,7 @@ class Lists extends ListsEPGTools {
             my: this.myLists,
             community: communityUrls,
             length: this.myLists.length + communityUrls.length
-        };
+        }
     }
     getMyLists() {
         const hint = config.get('communitary-mode-lists-amount');
@@ -838,10 +783,10 @@ class Lists extends ListsEPGTools {
         });
     }
     info(includeNotReady) {
-        const info = {};
-        Object.keys(this.lists).forEach(url => {
-            if (info[url] || (!includeNotReady && !this.lists[url].isReady))
-                return;
+        const info = {}
+        for(const url in this.lists) {
+            if (!includeNotReady && !this.lists[url].isReady)
+                continue
             info[url] = { url, owned: false };
             info[url].score = this.lists[url].relevance.total
             info[url].length = this.lists[url].length
@@ -852,7 +797,7 @@ class Lists extends ListsEPGTools {
                 info[url].epg = this.lists[url].index.meta.epg
             }
             info[url].private = false // communitary list
-        });
+        }
         this.getMyLists().forEach(l => {
             if (!info[l.url])
                 info[l.url] = l
@@ -871,52 +816,37 @@ class Lists extends ListsEPGTools {
         });
         return ret;
     }
+    sortCommunityLists() { // return community lists urls by relevance not including my lists
+        return Object.keys(this.lists).filter(u => u.origin == 'community').sort((a, b) => {
+            if(this.lists[b].isConnectableResult != this.lists[a].isConnectableResult) {
+                return this.lists[b].isConnectableResult - this.lists[a].isConnectableResult
+            }
+            return this.lists[b].relevance.total - this.lists[a].relevance.total
+        }).map(u => this.lists[u].url)
+    }
     delimitActiveLists() {
         const publicListsActive = config.get('public-lists');
         const communityListsAmount = config.get('communitary-mode-lists-amount');
         const communityListsQuota = Math.max(communityListsAmount - this.myLists.length, 0);
         if (this.loadedListsCount('community') > communityListsQuota) {
-            let results = {}
-            if (this.debug) {
-                console.log('delimitActiveLists', Object.keys(this.lists), communityListsQuota)
-            }
-            for(const url in this.lists) {
-                if (!this.myLists.includes(url) && this.lists[url].origin == 'community' && this.lists[url].verified) {
-                    results[url] = this.lists[url].relevance.total
+            const urlsToRemove = this.sortCommunityLists().slice(communityListsQuota)
+            for(const url of urlsToRemove) {
+                if (this.lists[url]) {
+                    this.requesting[url] = 'destroyed on delimiting (relevance: '+ this.lists[url].relevance.total +')'
+                    this.remove(url)
                 }
-            }
-            let sorted = Object.keys(results).sort((a, b) => results[b] - results[a])
-            sorted.slice(communityListsQuota).forEach(u => {
-                if (this.lists[u]) {
-                    this.requesting[u] = 'destroyed on delimiting (relevance: '+ this.lists[u].relevance.total +')'
-                    this.remove(u)
-                }
-            })
-            if (this.debug) {
-                console.log('delimitActiveLists', Object.keys(this.lists), communityListsQuota, results, sorted);
             }
         }
         if (!publicListsActive) {
-            if (this.debug) {
-                console.log('delimitActiveLists', Object.keys(this.lists), publicListsActive);
-            }
             Object.keys(this.lists).forEach(url => {
                 if (!this.myLists.includes(url) && this.lists[url].origin == 'public') {
                     this.requesting[url] = 'destroyed on delimiting (public lists disabled)';
                     this.remove(url);
                 }
-            });
-            if (this.debug) {
-                console.log('delimitActiveLists', Object.keys(this.lists), publicListsActive);
-            }
+            })
         }
     }
     remove(u) {
-        this.processes = this.processes.filter(p => {
-            const found = p.url == u;
-            found && p.cancel();
-            return !found;
-        });
         if (typeof(this.lists[u]) != 'undefined') {
             this.searchMapCacheInvalidate(u);
             this.lists[u].destroy();
@@ -937,6 +867,7 @@ class Lists extends ListsEPGTools {
             }
             return this.directListRendererPrepare(entries, v.url);
         } else if (opts.fetch) {
+            console.log('directListRenderer', v.url);
             let entries, fetcher = new this.Fetcher(v.url, {
                 progress: opts.progress
             }, this);
@@ -945,6 +876,7 @@ class Lists extends ListsEPGTools {
             } else {
                 entries = await fetcher.getMap();
             }
+            console.log('directListRenderer end', entries);
             return await this.directListRendererPrepare(entries, v.url);
         } else {
             throw 'List not loaded';

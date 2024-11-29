@@ -418,10 +418,9 @@ class Recommendations extends EventEmitter {
         if(trending.currentEntries && trending.currentEntries.length) {
             const trendingIndex = (trending.currentEntries.filter(e => e.type == 'select') || []).map(e => {
                 const c = channel(e)
-                if(c && !already.has(c.name)) {
-                    already.add(c.name)
+                if(c && !already.has(c.name)) { // do not add it to already for now
                     return c
-                }            
+                }
             }).filter(c => c)
             const validations = await validateMulti(trendingIndex)
             validations.forEach((valid, i) => {

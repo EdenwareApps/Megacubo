@@ -252,7 +252,7 @@ class ListsLoader extends EventEmitter {
         }).catch(console.error)
         atts.progress && this.updater.removeListener('progress', progressListener)
         this.updater && this.updater.close && this.updater.close()
-        this.master.addList(url, 1)
+        await this.master.loadList(url)
     }
     schedule(url, priority) {
         let cancel, started, done
@@ -273,7 +273,7 @@ class ListsLoader extends EventEmitter {
                 const add = this.results[url] == 'updated' ||
                     (this.myCurrentLists.includes(url) && !this.master.lists[url]) ||
                     (this.results[url] == 'already updated' && !processed);
-                add && this.master.addList(url, priority)
+                add && await this.master.loadList(url)
             }, { priority }),
             started: () => {
                 return started;

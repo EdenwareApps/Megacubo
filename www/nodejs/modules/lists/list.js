@@ -32,20 +32,22 @@ class List extends EventEmitter {
         args.unshift(Date.now() / 1000);
         this._log.push(args);
     }
-    ready() {
-        return new Promise((resolve, reject) => {
-            if (this.isReady) {
-                resolve();
-            } else {
-                this.once('ready', resolve);
-            }
-        });
+    async ready() {
+        if (this.isReady) {
+            return
+        }
+        return new Promise(resolve => this.once('ready', resolve))
     }
     async start() {
         if (this.started) return true
         this.indexer = new ListIndex(this.file, this.url)
-        await this.indexer.start()
-        if (!this.isReady) this.isReady = true
+        let err
+        await this.indexer.start().catch(e => err = e)
+        if (!this.isReady) {
+            this.isReady = true
+            this.emit('ready')
+        }
+        if (err) throw err
     }
     reload() {
         this.indexer && this.indexer.destroy();

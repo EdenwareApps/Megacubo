@@ -660,8 +660,8 @@ class Options extends OptionsExportImport {
                 entries: options
             });
         }
-        osd.show(lang.WHEN_READY_CLICK_BACK.format(lang.BACK), 'fas fa-info-circle', 'click-back-to-save', 'persistent');
-        return entries;
+        osd.show(lang.WHEN_READY_CLICK_BACK.format(lang.BACK), 'fas fa-info-circle', 'click-back-to-save', 'long')
+        return entries
     }
     tos() {
         renderer.ui.emit('open-external-url', 'https://megacubo.net/tos');

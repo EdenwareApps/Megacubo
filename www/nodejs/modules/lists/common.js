@@ -39,12 +39,12 @@ class Fetcher extends EventEmitter {
                 await this.master.loader.addListNow(this.url, this.atts)
                 try {
                     return await this.list.start()
-                } catch(err) { // will trigger outer catch
-                    console.error('Fetcher start error', err)
+                } catch(e) { // will trigger outer catch
+                    console.error('Fetcher start error', e)
                     throw err
                 }
             } catch(err) {
-                console.error('Fetcher start 4', err)
+                console.error('Fetcher start error *', err)
                 this.error = err
                 this.list.destroy()
                 throw err

@@ -41,14 +41,14 @@ class ChannelsList extends EventEmitter {
     async load(refresh) {
         let fine, changed, data = await storage.get(this.key).catch(console.error)
         if (data) {
-            this.categories = data;
-            fine = true;
+            this.categories = data
+            fine = true
         }
         if (!fine || refresh || this.type == 'epg') {
             let err
-            data = await this.getDefaultCategories().catch(e => err = e)
+            data = await this.getActiveCategories().catch(e => err = e)
             if (err) {
-                console.error('channel.getDefaultCategories error: ' + err)
+                console.error('channel.getActiveCategories error: ' + err)
             } else {
                 if (!Object.keys(data).length) {
                     console.log('channel.load', data)
@@ -87,18 +87,24 @@ class ChannelsList extends EventEmitter {
         return data.categories
     }
     async getPublicListsCategories() {
-        const ret = {};
-        await global.lists.discovery.ready();
+        const ret = {}, limit = pLimit(2)
+        await global.lists.discovery.ready()
+        console.log('getPublicListsCategories 1')
         const groups = await global.lists.discovery.getProvider('public').entries(true, true)
-        for (const group of groups) {
-            if (!group.renderer)
-                continue;
-            const entries = await group.renderer(group).catch(console.error);
-            if (Array.isArray(entries)) {
-                ret[group.name] = entries.filter(e => e.type != 'action').map(e => e.name).unique();
-            }
-        }
-        return ret;
+        console.log('getPublicListsCategories 2', groups)
+        const promises = groups.filter(g => g.renderer).map(g => {
+            return limit(async () => {
+                console.log('getPublicListsCategories 2.1', g)
+                const entries = await g.renderer(g).catch(console.error)
+                console.log('getPublicListsCategories 2.2', Array.isArray(entries) ? entries.length : -1)
+                if (Array.isArray(entries)) {
+                    ret[g.name] = [...new Set(entries.filter(e => e.name && e.type != 'action').map(e => e.name))]
+                }
+            })
+        })
+        await Promise.allSettled(promises)
+        console.log('getPublicListsCategories 3', ret)
+        return ret
     }
     async getListsCategories() {
         const ret = {}        
@@ -120,13 +126,16 @@ class ChannelsList extends EventEmitter {
         }
         return ret;
     }
-    async getAppRecommendedCategories(amount=256) {
-        let received = 0
+    async getAppRecommendedCategories() {
+        let finished, received = 0
         const limit = pLimit(2), data = {}, ret = {}
+        const maxChannelsToProcess = 1024
+        const maxChannelsPerCategory = 24
         const processCountry = async country => {
+            if (finished) return
             let err
             const priority = country == lang.countryCode
-            if (!priority && received >= amount) return
+            if (!priority && received >= maxChannelsToProcess) return
             let map = await cloud.get('channels/'+ country).catch(e => err = e)
             if (err) {
                 if(priority) {
@@ -140,16 +149,19 @@ class ChannelsList extends EventEmitter {
             data[country] = map
             received += this.mapSize(map)
         }
-        const promise = processCountry(this.countries[0])
+        const promises = {}, promise = processCountry(this.countries[0])
         await Promise.allSettled(this.countries.slice(1).map(country => {
-            return limit(() => processCountry(country))
+            promises[country] = limit(() => processCountry(country))
+            return promises[country]
         }))
         await promise
         for (const country of this.countries) { // this.countries will be in the preferred order
-            if (!data[country]) continue
-            await this.applyMapCategories(data[country], ret, amount, country != lang.countryCode)
-            if(this.mapSize(ret) >= amount) break
+            if(promises[country]) await promises[country].catch(console.error)
+            if(!data[country]) continue
+            if(this.mapSize(data[country]) >= maxChannelsPerCategory) break
+            await this.applyMapCategories(data[country], ret, maxChannelsPerCategory, country != lang.countryCode)
         }
+        finished = true
         return ret
     }
     updateChannelsIndex(refresh) {
@@ -170,13 +182,12 @@ class ChannelsList extends EventEmitter {
     mapSize(n) {
         return Object.values(n).map(k => Array.isArray(k) ? k.length : 0).reduce((s, v) => s + v, 0);
     }
-    applyMapCategories(map, target, amount, weighted=false) {
-        const categories = Object.keys(target).concat(Object.keys(map).map(k => this.translateKey(k)).filter(k => !(k in target)));
-        const quota = amount / Math.max(categories.length, 5);
+    applyMapCategories(map, target, maxChannelsPerCategory, weighted=false) {
+        const categories = Object.keys(target).concat(Object.keys(map).map(k => this.translateKey(k)).filter(k => !(k in target)))
         for (const k of Object.keys(map)) {
-            const cat = this.translateKey(k);
-            target[cat] = target[cat] || [];
-            const left = quota - target[cat].length;
+            const cat = this.translateKey(k)
+            if(!target[cat]) target[cat] = []
+            const left = maxChannelsPerCategory - target[cat].length
             if (left > 0 && Array.isArray(map[k])) {
                 const slice = map[k].filter(s => !target[cat].includes(s)).slice(0, weighted ? left : undefined)
                 if (slice.length) {
@@ -191,7 +202,7 @@ class ChannelsList extends EventEmitter {
         let nk = lang[lk] || k;
         return nk;
     }
-    async getDefaultCategories() {
+    async getActiveCategories() {
         switch (this.type) {
             case 'public':
                 return await this.getPublicListsCategories();
