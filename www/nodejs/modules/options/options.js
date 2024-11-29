@@ -660,7 +660,7 @@ class Options extends OptionsExportImport {
                 entries: options
             });
         }
-        osd.show(lang.WHEN_READY_CLICK_BACK.format(lang.BACK), 'fas fa-info-circle', 'click-back-to-save', 'long')
+        osd.show(lang.WHEN_READY_CLICK_BACK.format(lang.BACK), 'fas fa-info-circle', 'click-back-to-save', 'normal')
         return entries
     }
     tos() {

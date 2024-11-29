@@ -867,7 +867,6 @@ class Lists extends ListsEPGTools {
             }
             return this.directListRendererPrepare(entries, v.url);
         } else if (opts.fetch) {
-            console.log('directListRenderer', v.url);
             let entries, fetcher = new this.Fetcher(v.url, {
                 progress: opts.progress
             }, this);
@@ -876,7 +875,6 @@ class Lists extends ListsEPGTools {
             } else {
                 entries = await fetcher.getMap();
             }
-            console.log('directListRenderer end', entries);
             return await this.directListRendererPrepare(entries, v.url);
         } else {
             throw 'List not loaded';

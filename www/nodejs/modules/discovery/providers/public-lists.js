@@ -87,7 +87,8 @@ const FreeTVMap = {
     'ae': ['playlist_united_arab_emirates.m3u8'],
     'us': ['playlist_usa.m3u8', 'playlist_usa_vod.m3u8'],
     've': ['playlist_venezuela.m3u8']
-};
+}
+
 class PublicLists extends EventEmitter {
     constructor(master) {
         super()
@@ -122,13 +123,13 @@ class PublicLists extends EventEmitter {
         this.emit('ready');
     }
     async ready() {
-        await new Promise((resolve, reject) => {
+        await new Promise(resolve => {
             if (this.isReady) {
-                resolve();
+                resolve()
             } else {
-                this.once('ready', resolve);
+                this.once('ready', resolve)
             }
-        });
+        })
     }
     async discovery(adder) {
         await this.ready()
@@ -166,9 +167,7 @@ class PublicLists extends EventEmitter {
                     let err, finished
                     const ret = [], limit = pLimit(2)
                     const promises = this.data[countryCode].map(url => {
-                        console.log('Fetching list', url)
                         return limit(async () => {
-                            console.log('Fetching list', url, finished, !!this.master.lists.lists[url])
                             if (finished) return
                             let es = await this.master.lists.manager.directListRenderer({url}, {
                                 raw: true,
@@ -176,7 +175,6 @@ class PublicLists extends EventEmitter {
                                 expand: true,
                                 silent: silent === true // for channels.getPublicListsCategories()
                             }).catch(e => err = e)
-                            console.log('Fetched list', url)
                             if (Array.isArray(es)) {
                                 ret.push(...es.filter(e => e.name != lang.EMPTY));
                             }

@@ -271,7 +271,8 @@ export const initApp = async () => {
     main.menu = menu
     main.on('sound', (n, v) => menu.sounds.play(n, v))
     menu.on('render', path => {   
-        if(menu.lastNavPath !== path) {
+        if(menu.lastNavPath !== path || menu.sideMenuPending) {
+            menu.sideMenuPending = false
             menu.lastNavPath = path
             menu.sideMenu(false, 'instant')
         }
@@ -482,7 +483,7 @@ export const initApp = async () => {
         main.idle.lock(0.1)
     })
 
-    menu.on('side-menu', enable => menu.selected(true))
+    menu.on('side-menu', () => menu.selected(true))
     main.on('menu-playing', () => menu.showWhilePlaying(true))
     main.on('menu-playing-close', () => menu.showWhilePlaying(false))
 

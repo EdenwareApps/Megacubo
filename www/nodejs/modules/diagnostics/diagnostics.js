@@ -28,7 +28,6 @@ class Diagnostics extends EventEmitter {
         let report = ''
         osd.show(lang.PROCESSING, 'fa-mega spin-x-alt', 'diag', 'persistent')
         try {
-            console.log('Generating report... 0')
             const version = paths.manifest.version;
             const diskSpace = await this.checkDisk();
             const freeMem = kbfmt(await this.checkMemory());
@@ -48,12 +47,9 @@ class Diagnostics extends EventEmitter {
                 }
             })
 
-            console.log('Generating report... 1')
-
             let perr, publicCategories = await global.channels.channelList.getPublicListsCategories().catch(e => perr = e)
             if (perr) publicCategories = 'Error: ' + String(perr)
 
-            console.log('Generating report... 2')
             let err, crashlogContent = await crashlog.read().catch(e => err = e)        
             let revision = '10000'
             if(paths.manifest.megacubo && paths.manifest.megacubo.revision) {
@@ -76,14 +72,12 @@ class Diagnostics extends EventEmitter {
                 diskSpace.size = kbfmt(diskSpace.size)
             }
             const timeoutMs = 10000, communitySources = {}, locs = await lang.getActiveCountries()
-            console.log('Generating report... 3')
             await Promise.allSettled(locs.map(loc => {
                 return (async () => {
                     let err, lists = await cloud.get('sources/'+ loc, {timeoutMs}).catch(e => err = e)
                     communitySources[loc] = err ? String(err) : lists.map(l => l.url)
                 })()
             }))
-            console.log('Generating report... 4')
 
             report = {
                 version, revision, diskSpace, freeMem, configs, channelListKey, channelListType,
@@ -92,7 +86,6 @@ class Diagnostics extends EventEmitter {
                 publicCategories
             }
             report = JSON.stringify(report, null, 3)
-            console.log('Generating report... 5')
             privateLists.forEach(url => {
                 report = report.replace(url, 'http://***')
             })

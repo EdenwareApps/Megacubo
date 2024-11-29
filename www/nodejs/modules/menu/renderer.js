@@ -64,7 +64,12 @@ class MenuBase extends EventEmitter {
 		container.addEventListener('click', event => {
 			event.preventDefault()
 			const a = event.target.closest('a')
-			a && !a.classList.contains('entry-ignore') && this.action(a)
+			if(a && !a.classList.contains('entry-ignore')) {
+				if(this.inSideMenu()) {
+					this.sideMenuPending = true
+				}
+				this.action(a)
+			}
 		})
 		main.on('config', (_, c) => this.sounds.volume = c.volume)
 		if (main.config && main.config['volume'] !== undefined) {

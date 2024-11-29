@@ -87,23 +87,18 @@ class ChannelsList extends EventEmitter {
         return data.categories
     }
     async getPublicListsCategories() {
-        const ret = {}, limit = pLimit(2)
         await global.lists.discovery.ready()
-        console.log('getPublicListsCategories 1')
+        const ret = {}, limit = pLimit(2)
         const groups = await global.lists.discovery.getProvider('public').entries(true, true)
-        console.log('getPublicListsCategories 2', groups)
         const promises = groups.filter(g => g.renderer).map(g => {
             return limit(async () => {
-                console.log('getPublicListsCategories 2.1', g)
                 const entries = await g.renderer(g).catch(console.error)
-                console.log('getPublicListsCategories 2.2', Array.isArray(entries) ? entries.length : -1)
                 if (Array.isArray(entries)) {
                     ret[g.name] = [...new Set(entries.filter(e => e.name && e.type != 'action').map(e => e.name))]
                 }
             })
         })
         await Promise.allSettled(promises)
-        console.log('getPublicListsCategories 3', ret)
         return ret
     }
     async getListsCategories() {

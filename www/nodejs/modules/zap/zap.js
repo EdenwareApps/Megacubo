@@ -90,11 +90,10 @@ class Zap extends EventEmitter {
         this.connecting = true;
         let entry = await this.random();
         if (entry) {
-            entry.url = mega.build(entry.name, { mediaType: 'live' });
-            
+            entry.url = mega.build(entry.name, { mediaType: 'live' });            
             let succeeded = await this.streamer.play(entry, undefined, true).catch(console.error);
-            this.connecting = false;
             this.setZapping(true, succeeded);
+            this.connecting = false;
             if (this.streamer.tuning) {
                 this.streamer.tuning.destroy();
                 this.streamer.tuning = null;
