@@ -8,7 +8,7 @@ import { getFilename } from 'cross-dirname'
 
 const utils = setupUtils(getFilename())
 
-class ListsUpdater extends Common {
+class UpdaterWorker extends Common {
 	constructor(){
 		super()
 		this.debug = false
@@ -138,4 +138,4 @@ class ListsUpdater extends Common {
 	async terminate(){}
 }
 
-export default ListsUpdater
+export default UpdaterWorker

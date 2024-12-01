@@ -179,20 +179,21 @@ class ListsEPGTools extends Index {
         }
 
         const o = await cloud.get('configure', {shadow: false})
-        if (o?.epgs) {
-            for(const code of this.activeCountries) {
-                if (o.epgs[code]) {
-                    epgs.push(...o.epgs[code].filter(u => !epgs.includes(u)))
-                }
-            }
-        } else if(o?.epg) {
+        if(o?.epg) {
             for(const code of this.activeCountries) {
                 if (o.epg[code] && !epgs.includes(o.epg[code])) {
                     epgs.push(o.epg[code])
                 }
             }
         }
-
+        if (o?.epgs) {
+            for(const code of this.activeCountries) {
+                if (o.epgs[code]) {
+                    epgs.push(...o.epgs[code].filter(u => !epgs.includes(u)))
+                }
+            }
+        }
+        
         if(global?.channels?.trending.currentRawEntries) {
             global.channels.trending.currentRawEntries.forEach(e => {
                 if(e.epg) {

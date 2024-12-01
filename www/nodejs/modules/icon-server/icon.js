@@ -12,21 +12,17 @@ class IconFetcher extends EventEmitter {
         this.isAlphaRegex = new RegExp('\.png', 'i');
         this.isNonAlphaRegex = new RegExp('\.(jpe?g|webp|gif)', 'i');
     }
-    hasPriority(prev, next, images) {
-        const prevImage = images.filter(m => m.icon == prev.icon)[0];
-        const nextImage = images.filter(m => m.icon == next.icon)[0];
-        if (prevImage.hits < nextImage.hits) {
-            return true;
+    hasPriority(prevImage, nextImage, images) {
+        if (!prevImage.alpha && nextImage.alpha) {
+            return true
+        } else if (prevImage.hits < nextImage.hits) {
+            return true
         } else if (prevImage.hits == nextImage.hits) {
-            if (prevImage.trending < nextImage.trending) {
-                return true;
-            } else if (prevImage.trending == nextImage.trending) {
-                if (!prevImage.epg && nextImage.epg) {
-                    return true;
-                } else {
-                    if (!prevImage.live && nextImage.live) {
-                        return true;
-                    }
+            if (!prevImage.epg && nextImage.epg) {
+                return true
+            } else {
+                if (!prevImage.live && nextImage.live) {
+                    return true
                 }
             }
         }
@@ -51,10 +47,10 @@ class IconFetcher extends EventEmitter {
                         console.log('ICON DOWNLOADING CANCELLED');
                     }
                     results[image.icon] = 'already found and processed another image for this channel'
-                    return false;
+                    return false
                 }
                 if (this.master.opts.debug) {
-                    console.log('GOFETCH', image);
+                    console.log('GOFETCH', image)
                 }
                 const ret = await this.master.fetchURL(image.icon);
                 const key = ret.key;
@@ -75,17 +71,18 @@ class IconFetcher extends EventEmitter {
                 }
                 const ret2 = await this.master.adjust(ret.file, { shouldBeAlpha: true, minWidth: 75, minHeight: 75 });
                 await this.master.saveCacheExpiration(key, true)
+                image.alpha = ret2.alpha
                 if (!done || this.hasPriority(done.image, image, images)) {
-                    done = ret2;
+                    done = ret2
                     if (!done.key) done.key = key
-                    done.image = image;
-                    done.url = this.master.url + done.key;
-                    this.succeeded = true;
-                    this.result = done;
+                    done.image = image
+                    done.url = this.master.url + done.key
+                    this.succeeded = true
+                    this.result = done
                     results[image.icon] = 'OK'
                     this.emit('result', done)
                 }
-            };
+            }
         }).map(limit);
         await Promise.allSettled(tasks);
         if (this.destroyed) throw 'destroyed'

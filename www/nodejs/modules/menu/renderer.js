@@ -887,7 +887,7 @@ class MenuDialog extends MenuDialogQueue {
 		this.modalTemplates['text'] = `
 			<span class="modal-template-text" id="modal-template-option-{id}">
 				<i class="fas fa-caret-right"></i>
-				<input type="text" placeholder="{placeholder}" data-mask="{mask}" value="{text}" aria-label="{plainText}" onfocus="main.menu.inputPaste(this)" />
+				<input type="text" placeholder="{placeholder}" data-default-value="{defaultValue}" data-mask="{mask}" value="{text}" aria-label="{plainText}" onfocus="main.menu.inputPaste(this)" />
 			</span>
 		`
 		this.modalTemplates['textarea'] = `
@@ -897,7 +897,7 @@ class MenuDialog extends MenuDialogQueue {
 						<i class="fas fa-caret-right"></i>
 					</span>
 				</span>
-				<textarea placeholder="{placeholder}" rows="3" aria-label="{plainText}">{text}</textarea>
+				<textarea placeholder="{placeholder}" data-default-value="{defaultValue}" rows="3" aria-label="{plainText}" onfocus="main.menu.inputPaste(this)">{text}</textarea>
 			</span>
 		`
 		this.modalTemplates['message'] = `
@@ -919,7 +919,8 @@ class MenuDialog extends MenuDialogQueue {
 		`
 	}
 	inputPaste(input) {
-		if(input.value || input.getAttribute('data-pasted')) return
+		if(input.value && input.value != input.getAttribute('data-default-value')) return
+		if(input.getAttribute('data-pasted')) return
 		input.setAttribute('data-pasted', 'true')
 		this.readClipboard().then(paste => {
 			if(paste) {
@@ -931,9 +932,7 @@ class MenuDialog extends MenuDialogQueue {
 					input.select()
 				}
 			}
-		}).catch(console.error).finally(() => {
-			input.focus()
-		})
+		}).catch(console.error).finally(() => input.focus())
 	}
 	text2id(txt){
 		if(txt.match(new RegExp('^[A-Za-z0-9\\-_]+$', 'g'))){
@@ -1742,9 +1741,6 @@ export class Menu extends MenuNav {
 			targetScrollTop = this.wrap.scrollTop
 		}
 		this.ranging = false
-		const tolerance = this.gridLayoutX, vs = Math.ceil(this.gridLayoutX * this.gridLayoutY)
-		const minLengthForRanging = vs + (tolerance * 2)
-		const shouldRange = main.config['show-logos'] && this.currentEntries.length >= minLengthForRanging
 		const prevRange = Object.assign({}, this.range || {})
 		this.range = this.viewportRange(targetScrollTop)
 		if(this.range.start != prevRange.start || this.range.end != prevRange.end) {

@@ -126,6 +126,7 @@ class ChannelsList extends EventEmitter {
         const limit = pLimit(2), data = {}, ret = {}
         const maxChannelsToProcess = 1024
         const maxChannelsPerCategory = 24
+        const minChannelsToCollect = maxChannelsToProcess / 3
         const processCountry = async country => {
             if (finished) return
             let err
@@ -150,10 +151,13 @@ class ChannelsList extends EventEmitter {
             return promises[country]
         }))
         await promise
+        let size = 0
         for (const country of this.countries) { // this.countries will be in the preferred order
-            if(promises[country]) await promises[country].catch(console.error)
+            const size = this.mapSize(ret)
+            if(promises[country] && size <= minChannelsToCollect) {
+                await promises[country].catch(console.error)
+            }
             if(!data[country]) continue
-            if(this.mapSize(data[country]) >= maxChannelsPerCategory) break
             await this.applyMapCategories(data[country], ret, maxChannelsPerCategory, country != lang.countryCode)
         }
         finished = true
@@ -241,7 +245,7 @@ class ChannelsList extends EventEmitter {
         } else {
             terms = name;
         }
-        terms = global.lists.tools.terms(terms);
+        terms = global.lists.tools.terms(terms)
         return { name, terms: { name: terms, group: [] } };
     }
     compact(data, withTerms) {

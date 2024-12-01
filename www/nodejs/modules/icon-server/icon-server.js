@@ -126,11 +126,11 @@ class IconSearch extends IconDefault {
     }
     search(ntms, liveOnly) {
         if (this.opts.debug) {
-            console.log('icons.search', ntms);
+            console.log('icons.search', ntms)
         }
-        return new Promise((resolve, reject) => {
+        return new Promise(resolve => {
             if (this.opts.debug) {
-                console.log('is channel', ntms);
+                console.log('is channel', ntms)
             }            
             let images = []
             const next = () => {

@@ -170,7 +170,7 @@ export default class Trending extends EntriesGroup {
         let data = Array.isArray(rawEntries) ? rawEntries : (await this.getRawEntries());
         let recoverNameFromMegaURL = true;
         if (!Array.isArray(data) || !data.length)
-            return [];
+            return []
         
         data = lists.prepareEntries(data);
         data = data.filter(e => (e && typeof(e) == 'object' && typeof(e.name) == 'string')).map(e => {
@@ -196,16 +196,17 @@ export default class Trending extends EntriesGroup {
         const onlyKnownChannels = !adultContentOnly && config.get('only-known-channels-in-trending');
         const popularSearches = config.get('popular-searches-in-trending');
         if (popularSearches) {
+            const searchExcludes = new Set(['live', 'tv', 'free', 'hd', '4k', 'live', 'sport', 'sports'])
             const sdata = {}, sentries = await this.channels.search.searchSuggestionEntries()
             sentries.map(s => s.search_term).filter(s => s.length >= 3).filter(s => !this.channels.isChannel(s)).filter(s => lists.parentalControl.allow(s)).forEach(name => {
+                if (searchExcludes.has(name)) return
                 sdata[name] = { name, terms: lists.tools.terms(name) };
             });
-            const filtered = await lists.has(Object.values(sdata));
+            const filtered = await lists.has(Object.values(sdata))
             Object.keys(filtered).forEach(name => {
-                if (!filtered[name])
-                    return;
-                searchTerms.push(sdata[name].terms);
-            });
+                if (!filtered[name]) return
+                searchTerms.push(sdata[name].terms)
+            })
         }
         data.forEach((entry, i) => {
             let ch = this.channels.isChannel(entry.terms.name);
@@ -220,25 +221,25 @@ export default class Trending extends EntriesGroup {
                 });
             }
             if (ch) {
-                let term = ch.name;
+                const term = ch.name
                 if (typeof(groups[term]) == 'undefined') {
-                    groups[term] = [];
-                    gcount[term] = 0;
+                    groups[term] = []
+                    gcount[term] = 0
                 }
                 if (typeof(entry.users) != 'undefined') {
-                    entry.users = this.extractUsersCount(entry);
+                    entry.users = this.extractUsersCount(entry)
                 }
-                gcount[term] += entry.users;
-                delete data[i];
+                gcount[term] += entry.users
+                delete data[i]
             } else {
                 if (onlyKnownChannels) {
-                    delete data[i];
+                    delete data[i]
                 } else {
                     if (!mega.isMega(entry.url)) {
-                        const mediaType = lists.mi.mediaType(entry);
-                        entry.url = mega.build(entry.name, { mediaType });
+                        const mediaType = lists.mi.mediaType(entry)
+                        entry.url = mega.build(entry.name, { mediaType })
                     }
-                    data[i] = this.channels.toMetaEntry(entry);
+                    data[i] = this.channels.toMetaEntry(entry)
                 }
             }
         });
