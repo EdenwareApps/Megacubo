@@ -249,6 +249,7 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
 			console.log('touchstart', event.target.tagName)
 			const t = event.target.tagName?.toLowerCase()
 			const e = t === 'a' ? event.target : event.target.closest('a')
+			if(!e) return
 			let timeout
 			const start = () => {
 				console.log('start')
@@ -918,21 +919,26 @@ class MenuDialog extends MenuDialogQueue {
 			</span>
 		`
 	}
-	inputPaste(input) {
-		if(input.value && input.value != input.getAttribute('data-default-value')) return
-		if(input.getAttribute('data-pasted')) return
-		input.setAttribute('data-pasted', 'true')
-		this.readClipboard().then(paste => {
-			if(paste) {
-				const mask = input.getAttribute('data-mask') || '(//|[a-z]{3,6}?://)'
-				const regex = new RegExp(mask, 'i')
-				const matched = paste.match(regex)
-				if(matched) {
-					input.value = matched[0]
-					input.select()
-				}
+	async inputPaste(input) {
+		if(input.value && input.value != input.getAttribute('data-default-value')) {
+			return
+		}
+		let err
+		const paste = await this.readClipboard().catch(e => err = e)
+		if(err) {
+			console.error(err)
+		} else if(paste) {
+			if(String(input.getAttribute('data-pasted')) == paste) return
+			input.setAttribute('data-pasted', paste)
+			const mask = input.getAttribute('data-mask') || '(^.{0,6}//|[a-z]{3,6}?://)[^ ]+'
+			const regex = new RegExp(mask, 'i')
+			const matched = paste.match(regex)
+			if(matched) {
+				input.value = matched[0]
+				input.select()
 			}
-		}).catch(console.error).finally(() => input.focus())
+		}
+		input.focus()
 	}
 	text2id(txt){
 		if(txt.match(new RegExp('^[A-Za-z0-9\\-_]+$', 'g'))){
@@ -1292,12 +1298,11 @@ class MenuSlider extends MenuPrompt {
 		this.sliderSync(element, range, mask)
 	}
 	sliderVal(element, range){
-		const n = element.querySelector('.modal-template-slider-track'), value = parseInt(n.value)
-		return value
+		const n = element.querySelector('.modal-template-slider-track')
+		return parseInt(n.value)
 	}
 	sliderSync(element, range, mask){
 		var l, h, n = element.querySelector('.modal-template-slider-track'), t = (range.end - range.start), step = 1, value = parseInt(n.value)
-		// console.warn('SLIDERSYNC', {element, range, mask, step, value, val: this.sliderVal(element, range)})
 		if(value < range.start){
 			value = range.start
 		} else if(value > range.end){
@@ -1365,7 +1370,7 @@ class MenuSlider extends MenuPrompt {
 		}
 		opts.push({template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'submit'})
 		this.dialog(opts, ret => {
-			if(ret !== false){
+			if(e && ret !== false){
 				ret = this.sliderVal(e, range)
 				if(callback(ret) !== false){
 					this.endModal()
@@ -1403,7 +1408,6 @@ class MenuSlider extends MenuPrompt {
 		n.addEventListener('input', () => this.sliderSync(e, range, mask))
 		n.addEventListener('change', () => this.sliderSync(e, range, mask))
 		n.parentNode.addEventListener('keydown', event => {
-			console.log('SLIDERINPUT', event, s)
 			switch(event.keyCode) {
 				case 13:  // enter
 					s.click()
@@ -1709,8 +1713,8 @@ export class Menu extends MenuNav {
 	}
 	viewportRange(scrollTop){
 		let limit = (this.gridLayoutX * this.gridLayoutY)
-		if(this.currentElements.length){ // without elements (not initialized), we can't calc the element height
-			if(typeof(scrollTop) != 'number'){
+		if(this.currentElements.length) { // without elements (not initialized), we can't calc the element height
+			if(typeof(scrollTop) != 'number') {
 				scrollTop = this.wrap.scrollTop
 			}
 			const entryHeight = this.currentElements[this.currentElements.length - 1].offsetHeight

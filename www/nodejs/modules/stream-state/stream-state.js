@@ -234,7 +234,7 @@ class StreamState extends EventEmitter {
             let busy
             if (manuallyTesting) {
                 busy = global.menu.setBusy(global.menu.path +'/'+ lang.TESTING)
-                osd.show(lang.TESTING + ' 0%', 'fa-mega spin-x-alt', 'stream-state-tester', 'persistent')
+                osd.show(lang.TESTING, 'fa-mega spin-x-alt', 'stream-state-tester', 'persistent')
             }
             const retest = [], syncData = {}            
             entries = entries.filter(e => {
@@ -307,7 +307,7 @@ class StreamState extends EventEmitter {
                     if (this.debug) {
                         console.warn('TESTER FINISH!', nt, this.testing.results, this.testing.states);
                     }
-                    busy.release()
+                    busy && busy.release()
                     manuallyTesting && osd.hide('stream-state-tester')
                     this.testing.destroy()
                     this.testing = null

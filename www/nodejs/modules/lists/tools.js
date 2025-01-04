@@ -2,10 +2,12 @@ import lang from "../lang/lang.js";
 import storage from '../storage/storage.js'
 import pLimit from "p-limit";
 import config from "../config/config.js"
-import { basename, forwardSlashes } from "../utils/utils.js";
-import { regexes, sanitizeName } from "./parser.js";
 import data from "./search-redirects.json" with {type: 'json'};
 import countryCodes from '../countries/countries.json' with {type: 'json'};
+
+import { options } from "./common.js";
+import { basename, forwardSlashes } from "../utils/utils.js";
+import { regexes, sanitizeName } from "./parser.js";
 
 class TermsHandler {
     constructor() {
@@ -153,7 +155,6 @@ class TermsHandler {
 class Tools extends TermsHandler {
     constructor() {
         super()
-        this.folderSizeLimitTolerance = 12;
     }
     dedup(entries) {
         let changed, already = {}, map = {};
@@ -224,7 +225,7 @@ class Tools extends TermsHandler {
         return list;
     }
     async offload(list, url) {
-        if (list.length <= this.offloadThreshold) {
+        if (list.length <= options.offloadThreshold) {
             return list;
         } else {
             let i = 0;
@@ -271,7 +272,7 @@ class Tools extends TermsHandler {
     paginateList(sentries, minPageCount) {
         sentries = this.sort(sentries);
         const folderSizeLimit = config.get('folder-size-limit');
-        if (sentries.length > (folderSizeLimit + this.folderSizeLimitTolerance)) {
+        if (sentries.length > (folderSizeLimit + options.folderSizeLimitTolerance)) {
             if (!minPageCount) {
                 minPageCount = 8;
             }

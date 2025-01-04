@@ -744,17 +744,19 @@ class Menu extends EventEmitter {
         })
     }
     cleanEntries(entries, props) {
-        let nentries = []
-        entries.forEach(e => {
-            let n = Object.assign({}, e)
-            props.split(',').forEach(prop => {
-                if (typeof(n[prop]) != 'undefined') {
+        return entries.map(e => {
+            let n, started
+            for(const prop of props) {
+                if (typeof(e[prop]) != 'undefined') {
+                    if (!started) {
+                        n = Object.assign({}, e)
+                        started = true
+                    }
                     delete n[prop]
                 }
-            })
-            nentries.push(n)
+            }
+            return started ? n : e
         })
-        return nentries
     }
     async render(es, path, opts={}) {
         if (this.opts.debug) {
@@ -775,11 +777,11 @@ class Menu extends EventEmitter {
             this.currentEntries = es.slice(0)
             this.currentEntries = this.addMetaEntries(this.currentEntries, path, opts.backTo)
             this.pages[path] = this.currentEntries.slice(0)
-            this.currentEntries = this.cleanEntries(this.currentEntries, 'renderer,entries,action')
+            this.currentEntries = this.cleanEntries(this.currentEntries, ['renderer','entries','action'])
             if (typeof(path) === 'string') this.path = path
             if (this.rendering) {
                 const icon = opts.icon || opts?.parent?.fa || 'fas fa-home'
-                renderer.ui.emit('render', this.cleanEntries(this.checkFlags(this.currentEntries), 'checked,users,terms'), path, icon)
+                renderer.ui.emit('render', this.cleanEntries(this.checkFlags(this.currentEntries), ['checked','users','terms']), path, icon)
                 this.emit('render', this.currentEntries, path)
                 this.syncPages()
             }

@@ -1,5 +1,5 @@
 import Download from '../download/download.js'
-import Common from "../lists/common.js";
+import { Common } from "../lists/common.js";
 import pLimit from "p-limit";
 import config from "../config/config.js"
 import { clone, getDomain } from "../utils/utils.js";

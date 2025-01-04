@@ -24,13 +24,49 @@ function getElectron() {
     try {
         const remote = require('@electron/remote')
         extract(remote)
-    } catch(e) {}
+    } catch (e) { }
     keys.forEach(k => {
         if (!ret[k])
             ret[k] = null;
     });
     return ret;
 }
+function prepareSerialization(obj, visited = new WeakSet()) {
+    if (obj === null || typeof obj !== 'object') {
+        return obj
+    }
+
+    if (visited.has(obj)) {
+        return null
+    }
+    visited.add(obj)
+
+    if (Array.isArray(obj)) {
+        return obj.map((item) => prepareSerialization(item, visited))
+    }
+
+    if (obj instanceof Date) {
+        return obj.toISOString()
+    }
+    if (obj instanceof RegExp) {
+        return obj.toString()
+    }
+    if (obj instanceof Map || obj instanceof Set) {
+        return Array.from(obj)
+    }
+
+    const result = {};
+    for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            const value = obj[key]
+            if (typeof value !== 'function' && value !== undefined) {
+                result[key] = prepareSerialization(value, visited)
+            }
+        }
+    }
+    return result
+}
+
 const { contextBridge, webFrame, ipcRenderer, getGlobal, screen, app, shell, Tray, Menu } = getElectron();
 const paths = getGlobal('paths'), config = getGlobal('config');
 function download(opts) {
@@ -126,7 +162,7 @@ class FFmpeg {
         success('start-' + child.pid);
     }
     abort(pid) {
-        if (typeof(this.childs[pid]) != 'undefined') {
+        if (typeof (this.childs[pid]) != 'undefined') {
             const child = this.childs[pid];
             delete this.childs[pid];
             child.kill('SIGINT');
@@ -257,7 +293,9 @@ class WindowProxy extends EventEmitter {
         this.on = super.on.bind(this)
         this.localEmit = super.emit.bind(this)
         this.removeAllListeners = super.removeAllListeners.bind(this)
-        this.emit = (...args) => this.ipc.send('message', args)
+        this.emit = (...args) => {
+            this.ipc.send('message', prepareSerialization(args))
+        }
         ipcRenderer.on('message', (_, args) => {
             try {
                 this.localEmit('message', args)

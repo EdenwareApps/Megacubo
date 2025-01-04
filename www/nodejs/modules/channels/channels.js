@@ -18,6 +18,7 @@ import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
 import { clone, insertEntry, parseCommaDelimitedURIs, parseJSON, moment, time, ts2clock } from '../utils/utils.js'
 import Search from '../search/search.js'
+import Limiter from '../limiter/limiter.js'
 
 class ChannelsList extends EventEmitter {
     constructor(type, countries) {
@@ -30,6 +31,25 @@ class ChannelsList extends EventEmitter {
         this.categories = {}
         this.key += '-' + this.type
         this.epgAutoUpdateInterval = 600
+        this.limiter = new Limiter(async () => {
+            await this.load().catch(console.error)
+        }, 3000)
+        renderer.ready(() => {
+            const lcb = async () => {
+                if(this.type == 'lists') {
+                    await this.limiter.call()
+                }
+            }
+            const ecb = async () => {
+                if(this.type == 'epg') {
+                    await this.limiter.call()
+                }
+            }
+            global.lists.on('list-loaded', lcb)
+            global.lists.on('epg-loaded', ecb)
+            global.lists.on('satisfied', lcb)
+            this.limiter.call()
+        })
     }
     ready() {
         return new Promise(resolve => {
@@ -39,8 +59,10 @@ class ChannelsList extends EventEmitter {
         });
     }
     async load(refresh) {
-        let fine, changed, data = await storage.get(this.key).catch(console.error)
-        if (data) {
+        let fine, changed
+        let data = await storage.get(this.key).catch(console.error)
+        let len = data ? Object.keys(data).length : 0
+        if (data && len) {
             this.categories = data
             fine = true
         }
@@ -48,23 +70,22 @@ class ChannelsList extends EventEmitter {
             let err
             data = await this.getActiveCategories().catch(e => err = e)
             if (err) {
+                len = 0
                 console.error('channel.getActiveCategories error: ' + err)
             } else {
-                if (!Object.keys(data).length) {
-                    console.log('channel.load', data)
-                }
+                len = Object.keys(data).length
                 this.channelsIndex = null
                 this.categories = data
                 await this.save(this.key)
                 fine = true
                 changed = true
             }
-            if(this.type == 'epg') {
-                this.epgAutoUpdateTimer && clearTimeout(this.epgAutoUpdateTimer)
-                this.epgAutoUpdateTimer = setTimeout(() => {
-                    this.load().catch(console.error)
-                }, this.epgAutoUpdateInterval * 1000)
+            if(this.type == 'epg' && len) {
+                this.schedule()
             }
+        }
+        if(!len) {
+            this.schedule(15)
         }
         this.updateChannelsIndex(false)
         if (!this.categories || typeof(this.categories) != 'object') {
@@ -72,6 +93,15 @@ class ChannelsList extends EventEmitter {
         }
         this.loaded = true
         this.emit('loaded', changed)
+    }
+    schedule(secs) {
+        if(!secs) {
+            secs = this.epgAutoUpdateInterval
+        }
+        this.epgAutoUpdateTimer && clearTimeout(this.epgAutoUpdateTimer)
+        this.epgAutoUpdateTimer = setTimeout(() => {
+            this.load().catch(console.error)
+        }, secs * 1000)
     }
     async reset() {
         delete this.categories
@@ -112,9 +142,9 @@ class ChannelsList extends EventEmitter {
             if (Array.isArray(entries)) {
                 let es = entries.map(e => {
                     return e.name.split(' ').filter(w => {
-                        return w && !global.lists.tools.stopWords.includes(w.toLowerCase());
+                        return w && !global.lists.tools.stopWords.has(w.toLowerCase());
                     }).join(' ')
-                }).unique();
+                });
                 if (es.length)
                     ret[group.name] = es;
             }

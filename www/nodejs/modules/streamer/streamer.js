@@ -819,7 +819,7 @@ class Streamer extends StreamerGoNext {
         const loadingEntriesData = [global.lang.AUTO_TUNING, name];
         console.warn('playFromEntries', name, connectId, silent);
         const busies = [name, global.lang.AUTO_TUNING].map(n => global.menu.setBusy(global.menu.path +'/'+ n))
-        silent || (this.opts.shadow || global.osd.show(global.lang.TUNING_WAIT_X.format(name) + ' 0%', 'fa-mega spin-x-alt', 'streamer', 'persistent'))
+        silent || (this.opts.shadow || global.osd.show(global.lang.TUNING_WAIT_X.format(name), 'fa-mega spin-x-alt', 'streamer', 'persistent'))
         this.tuning && this.tuning.destroy();
         if (this.connectId != connectId) {
             throw 'another play intent in progress';

@@ -20,21 +20,40 @@ class BaseChannel extends EventEmitter {
     onMessage(args) {
         process.nextTick(() => this.originalEmit.apply(this, args)) // prevent to block renderer
     }
-    prepareSerialization(value) {
-        if (Array.isArray(value)) {
-            return value.map(item => this.prepareSerialization(item))
-        } else if (typeof(value) == 'object' && value !== null) {
-            const ret = {}
-            Object.keys(value).forEach(k => {
-                if (typeof(value[k]) != 'function')
-                    ret[k] = this.prepareSerialization(value[k])
-            })
-            return ret
-        } else {
-            if (typeof(value) == 'function')
-                return null
-            return value
+    prepareSerialization(obj, visited = new WeakSet()) {
+        if (obj === null || typeof obj !== 'object') {
+            return obj
         }
+
+        if (visited.has(obj)) {
+            return null
+        }
+        visited.add(obj)
+
+        if (Array.isArray(obj)) {
+            return obj.map((item) => this.prepareSerialization(item, visited))
+        }
+
+        if (obj instanceof Date) {
+            return obj.toISOString()
+        }
+        if (obj instanceof RegExp) {
+            return obj.toString()
+        }
+        if (obj instanceof Map || obj instanceof Set) {
+            return Array.from(obj)
+        }
+
+        const result = {};
+        for (const key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                const value = obj[key]
+                if (typeof value !== 'function' && value !== undefined) {
+                    result[key] = this.prepareSerialization(value, visited)
+                }
+            }
+        }
+        return result
     }
 }
 
@@ -48,7 +67,7 @@ class AndroidChannel extends BaseChannel {
         try {
             this.channel.send('message', ...args)
         } catch (err) {
-            console.error('CANNOT SEND MESSAGE ' + JSON.stringify(args) +' '+ err, err)
+            console.error('CANNOT SEND MESSAGE ' + JSON.stringify(args) + ' ' + err, err)
         }
     }
     attach() {
@@ -129,7 +148,7 @@ class BridgeServer extends EventEmitter {
                 if (pathname == './') {
                     pathname = './index.html'
                 }
-                if (typeof(this.map[pathname]) != 'undefined') {
+                if (typeof (this.map[pathname]) != 'undefined') {
                     pathname = this.map[pathname]
                 } else {
                     pathname = path.join(paths.cwd, pathname)
@@ -157,7 +176,7 @@ class BridgeServer extends EventEmitter {
             }
         })
         this.server.listen(0, this.opts.addr, err => {
-            if(!err && !this.serve) {
+            if (!err && !this.serve) {
                 err = new Error('Bridge server not started')
             }
             if (err) console.error(err)
@@ -211,11 +230,11 @@ class BridgeUtils extends BridgeServer {
         super(opts)
     }
     async clipboard(text, successMessage, ms) {
-        if (typeof(text) == 'string') { // write
+        if (typeof (text) == 'string') { // write
             this.emit('clipboard-write', text, successMessage, ms)
         } else { // read
             ms = text
-            const uid = 'clipboard-read-'+ Math.random().toString(36).substr(2, 9)
+            const uid = 'clipboard-read-' + Math.random().toString(36).substr(2, 9)
             const promise = new Promise((resolve, reject) => {
                 this.once(uid, (err, text) => {
                     if (err) {
@@ -231,7 +250,7 @@ class BridgeUtils extends BridgeServer {
         }
     }
     async resolveFileFromClient(data) {
-        const check = async (file) => {            
+        const check = async (file) => {
             await fs.promises.access(file, fs.constants.R_OK)
             return file
         }
@@ -251,7 +270,7 @@ class BridgeUtils extends BridgeServer {
         }
     }
     async importFileFromClient(data, target) {
-        console.warn('!!! IMPORT FILE !!!' + target + ' | ' + JSON.stringify(data))        
+        console.warn('!!! IMPORT FILE !!!' + target + ' | ' + JSON.stringify(data))
         const resolveFile = await this.resolveFileFromClient(data).catch(err => {
             console.error('DATA=' + JSON.stringify(data) + ' ' + err)
         })
@@ -312,14 +331,14 @@ class Bridge extends BridgeUtils {
     }
 }
 
-if(!Array.isArray(global.bridgeInstanceCallbacks)) {
+if (!Array.isArray(global.bridgeInstanceCallbacks)) {
     global.bridgeInstanceCallbacks = []
 }
 
 class BridgeController {
-    constructor() {}
+    constructor() { }
     bridgeReady(f) {
-        if(global.bridgeInstance && global.bridgeInstance.opts.port) {
+        if (global.bridgeInstance && global.bridgeInstance.opts.port) {
             f(null, global.bridgeInstance.opts.port)
         } else {
             global.bridgeInstance.once('connected', f)
@@ -327,7 +346,7 @@ class BridgeController {
     }
     ready(f, done) {
         const isReady = !Array.isArray(global.bridgeInstanceCallbacks)
-        if (typeof(f) == 'function') {
+        if (typeof (f) == 'function') {
             if (isReady) {
                 f()
             } else {
@@ -349,7 +368,7 @@ class BridgeController {
             cbs.map(f => {
                 try {
                     const p = f()
-                    if (p && typeof(p.catch) == 'function') {
+                    if (p && typeof (p.catch) == 'function') {
                         p.catch(console.error)
                     }
                 }
@@ -360,9 +379,9 @@ class BridgeController {
         }
         return isReady
     }
-    get ui () {
-        if(!global.bridgeInstance) {
-            if(paths.inWorker) {
+    get ui() {
+        if (!global.bridgeInstance) {
+            if (paths.inWorker) {
                 console.error('!!! Tried to create a Bridge instance from a worker !!!', traceback())
             } else {
                 global.bridgeInstance = new Bridge()

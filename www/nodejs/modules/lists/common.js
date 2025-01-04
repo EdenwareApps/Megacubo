@@ -5,7 +5,14 @@ import tools from "./tools.js";
 import MediaURLInfo from "../streamer/utils/media-url-info.js";
 import ParentalControl from "./parental-control.js";
 
-class Fetcher extends EventEmitter {
+export const options = {
+    defaultCommunityModeReach: 12,
+    folderSizeLimitTolerance: 12,
+    offloadThreshold: 256,
+    listMetaKeyPrefix: 'meta-cache-'
+}
+
+export class Fetcher extends EventEmitter {
     constructor(url, atts, master) {
         super();
         this.progress = 0;
@@ -31,10 +38,16 @@ class Fetcher extends EventEmitter {
         });
     }
     async start() {
+        if(!this.master) {
+            throw new Error('Fetcher master not set')
+        }
         this.list = new List(this.url, this.master)
         try {
             return await this.list.start()
         } catch (err) {
+            if(!this.master.loader) {
+                throw new Error('Fetcher loader not set')
+            }
             try {
                 await this.master.loader.addListNow(this.url, this.atts)
                 try {
@@ -77,23 +90,18 @@ class Fetcher extends EventEmitter {
     }
     async meta() {
         await this.ready();
-        return this.list.db.index.meta || {};
+        return this.list.indexer.db?.index?.meta || {};
     }
     destroy() {
         this.list && this.list.destroy();
         this.updater && this.list.destroy();
     }
 }
-class Common extends EventEmitter {
+
+export class Common extends EventEmitter {
     constructor(opts) {
         super()
-        this.Fetcher = Fetcher;
-        this.listMetaKeyPrefix = 'meta-cache-';
-        this.opts = {
-            defaultCommunityModeReach: 12,
-            folderSizeLimitTolerance: 12,
-            offloadThreshold: 256
-        };
+        this.opts = options;
         if (opts) {
             Object.keys(opts).forEach(k => {
                 this[k] = opts[k];
@@ -147,7 +155,7 @@ class Common extends EventEmitter {
         return es.map(this.prepareEntry.bind(this))
     }
     listMetaKey(url) {
-        return this.listMetaKeyPrefix + url
+        return options.listMetaKeyPrefix + url
     }
     async getListMeta(url) {
         let haserr, meta = await storage.get(this.listMetaKey(url)).catch(err => {
@@ -201,4 +209,3 @@ class Common extends EventEmitter {
         }
     }
 }
-export default Common;

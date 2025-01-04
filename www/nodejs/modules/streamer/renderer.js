@@ -799,6 +799,26 @@ class StreamerSeek extends StreamerButtonActionFeedback {
             }
         }
     }
+    formatLocalTime(unixSecondsTimestamp) {
+        const locale = main.lang.locale, countryCode = main.lang.countryCode
+        const date = new Date(unixSecondsTimestamp * 1000)
+        let fullLocale = `${locale}-${countryCode.toUpperCase()}`
+        try {
+            return new Intl.DateTimeFormat(fullLocale, {
+                hour: 'numeric',
+                minute: 'numeric',
+                second: 'numeric',
+                hour12: false
+            }).format(date)
+        } catch (error) {
+            return new Intl.DateTimeFormat(locale, {
+                hour: 'numeric',
+                minute: 'numeric',
+                second: 'numeric',
+                hour12: false,
+            }).format(date)
+        }
+    }
     seekBarReset(){
         this.seekBarUpdate(true, 0)
     }
@@ -836,7 +856,8 @@ class StreamerSeek extends StreamerButtonActionFeedback {
     seekbarLabelFormat(t, d){        
         let txt
         if(this.inLiveStream && main.config['use-local-time-counter']){
-            txt = moment.unix(this.clockTimerCurrentTime()).format('LTS') //.replace(new RegExp('(\\d\\d:\\d\\d)(:\\d\\d)'), '$1<font style="opacity: var(--opacity-level-2);">$2</font>')
+            txt = this.formatLocalTime(this.clockTimerCurrentTime())
+            txt = txt.replace(new RegExp('(\\d\\d:\\d\\d)(:\\d\\d)'), '$1<font style="opacity: var(--opacity-level-2);">$2</font>')
         } else {
             txt = this.hms(t) +' <font style="opacity: var(--opacity-level-2);">/</font> '+ this.hms(d)
         }

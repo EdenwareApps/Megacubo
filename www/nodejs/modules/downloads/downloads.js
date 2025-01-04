@@ -328,7 +328,7 @@ class Downloads extends EventEmitter {
             }
             const uid = 'download-' + name.replace(new RegExp('[^A-Za-z0-9]+', 'g'), '');
             renderer.ui.emit('background-mode-lock', 'saving-file-' + uid);
-            osd.show(lang.SAVING_FILE_X.format(name) + ' 0%', 'fa-mega spin-x-alt', uid, 'persistent');
+            osd.show(lang.SAVING_FILE_X.format(name), 'fa-mega spin-x-alt', uid, 'persistent');
             const file = target + '/' + name;
             const writer = fs.createWriteStream(file, { flags: 'w', highWaterMark: Number.MAX_SAFE_INTEGER }), download = new Download({
                 url,

@@ -83,7 +83,7 @@ class CommunityLists extends EventEmitter {
                 fa: 'fas fa-satellite-dish',
                 type: 'group',
                 class: 'skip-testing',
-                renderer: this.master.lists.manager.directListRenderer.bind(this.master.lists.manager)
+                renderer: this.master.lists.manager.listRenderer.bind(this.master.lists.manager)
             };
         }).filter(l => l)
         if (!entries.length) {
@@ -93,7 +93,7 @@ class CommunityLists extends EventEmitter {
                 entries = [
                     { name: lang.EMPTY, fa: 'fas fa-info-circle', type: 'action', class: 'entry-empty' }
                 ]
-            } {
+            } else {
                 entries = [this.master.lists.manager.noListsRetryEntry()];
             }
         }

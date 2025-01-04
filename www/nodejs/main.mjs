@@ -32,7 +32,7 @@ import ffmpeg from './modules/ffmpeg/ffmpeg.js'
 import promo from './modules/promoter/promoter.js'
 import mega from './modules/mega/mega.js'
                 
-/* Preload script variables */
+// set globally available objects
 Object.assign(global, {
     channels,
     cloud,

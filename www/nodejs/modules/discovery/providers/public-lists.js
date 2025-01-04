@@ -169,7 +169,7 @@ class PublicLists extends EventEmitter {
                     const promises = this.data[countryCode].map(url => {
                         return limit(async () => {
                             if (finished) return
-                            let es = await this.master.lists.manager.directListRenderer({url}, {
+                            let es = await this.master.lists.manager.listRenderer({url}, {
                                 raw: true,
                                 fetch: true,
                                 expand: true,
@@ -288,7 +288,7 @@ class PublicLists extends EventEmitter {
                 fa: 'fas fa-satellite-dish',
                 type: 'group',
                 class: 'skip-testing',
-                renderer: this.master.lists.manager.directListRenderer.bind(this.master.lists.manager)
+                renderer: this.master.lists.manager.listRenderer.bind(this.master.lists.manager)
             };
         }).filter(l => l)
         if (!entries.length) {

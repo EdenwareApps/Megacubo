@@ -11,10 +11,18 @@ export class Clock {
         }, startUpdatingAfter * 1000)
     }
     update(){
-        const lang = main.lang?.countryCode || 'en'
-        const time = (new Date()).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
+        let time
+        const date = new Date()
+        const locale = main.lang?.locale
+        const fullLocale = `${locale}-${main.lang.countryCode}`
+        const params = {hour: '2-digit', minute: '2-digit'}
+        try {
+            time = date.toLocaleTimeString(fullLocale, params)
+        } catch (e) {
+            time = date.toLocaleTimeString(locale, params)
+        }
         this.element.innerText = time
-    }
+    }    
     humanize(seconds, zeroMeansDisabled) {
         const days = Math.floor(seconds / 86400) // 86400 seconds in a day
         const hours = Math.floor((seconds % 86400) / 3600) // 3600 seconds in an hour

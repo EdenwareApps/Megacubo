@@ -86,12 +86,21 @@ android {
 }
 
 configurations.configureEach {
-    resolutionStrategy.force 'androidx.constraintlayout:constraintlayout:2.1.4'
+    resolutionStrategy {
+        force 'androidx.constraintlayout:constraintlayout:2.1.4'
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'androidx.constraintlayout:constraintlayout:2.1.4'
+    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')

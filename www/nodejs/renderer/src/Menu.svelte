@@ -204,7 +204,7 @@ body.portrait {
     width: var(--padding);
     justify-content: center;
     border-radius: 100vw;
-    background: var(--background-color);
+    background: var(--modal-background-color);
     padding: 0.75vmax 3vmax;
     color: var(--secondary-font-color);
     position: absolute;
@@ -212,7 +212,7 @@ body.portrait {
     opacity: 1;
     transition: opacity 0.15s ease-in 0s;
     align-self: center;
-    box-shadow: var(--padding-quarter) var(--padding-quarter) var(--padding-half) rgba(0,0,0, 0.8), inset var(--padding-quarter) var(--padding-quarter) 1vmin rgba(255,255,255, 0.1);
+    box-shadow: inset calc(var(--padding-quarter) * -0.5) 0 1.5vmin rgba(255,255,255, 0.175);
 }
 html.curtains-closed .side-menu-toggle > div > span, body.video .side-menu-toggle > div > span {
     background: black;
@@ -225,7 +225,7 @@ body.side-menu:not(.idle) .side-menu-toggle > div > span {
     background: var(--background-color);
 }
 body:not(.side-menu) .side-menu-toggle > div > span {
-    animation: shake 5s infinite ease-out;
+    animation: shake 3.6s infinite ease-out;
 }
 @keyframes shake {
     0% { margin-left: 0vh; }

@@ -136,14 +136,16 @@ class ListsEPGTools extends Index {
             else if (origins.has('public')) score += 0.2
         }
         if (url.match(this.regexSameCountry)) score += 7
-        else if (this.activeCountries.length && url.match(this.regexCountries)) score += 3
+        else if (this.activeCountries && this.activeCountries.length && url.match(this.regexCountries)) score += 3
         this.epgScoreCache[url] = score
         return score
     }
     async resetEPGScoreCache() {
         this.epgScoreCache = {}
-        const activeCountries = await lang.getActiveCountries()
-        if(this.activeCountries && activeCountries.join('') == this.activeCountries.join('')) return
+        const activeCountries = await lang.getActiveCountries().catch(console.error)
+        if(!activeCountries || !activeCountries.length || (this.activeCountries && (activeCountries.join('') == this.activeCountries.join('')))) {
+            return
+        }
         this.activeCountries = activeCountries
         const any = '[^a-zA-Z0-9]'
         this.regexSameCountry = new RegExp('(' + any + '|^)' + lang.countryCode + '(' + any + '|$)', 'i')
@@ -557,8 +559,8 @@ class Lists extends ListsEPGTools {
             if (this.debug) {
                 console.log('loadList started', url);
             }
-            let repeated, expired;
-            if (!this.lists[url] || (!isMine &&
+            let repeated, expired, isAdding = this.manager.addingLists.has(url);
+            if (!this.lists[url] || (!isMine && !isAdding && 
                 (expired = this.seemsExpiredList(this.lists[url])) || (repeated = this.isRepeatedList(url)))) {
                 if (!this.requesting[url] || this.requesting[url] == 'loading') {
                     this.requesting[url] = repeated ? 'repeated at ' + repeated : (expired ? 'seems expired, destroyed' : 'loaded, but destroyed')
@@ -857,47 +859,6 @@ class Lists extends ListsEPGTools {
             }
             this.updateActiveLists();
         }
-    }
-    async directListRenderer(v, opts = {}) {
-        if (typeof(this.lists[v.url]) != 'undefined' && (!opts.fetch || (this.lists[v.url].isReady && !this.lists[v.url].indexer.hasFailed))) { // if not loaded yet, fetch directly
-            let entries;
-            if (opts.expand) {
-                entries = await this.lists[v.url].fetchAll();
-            } else {
-                entries = await this.lists[v.url].getMap();
-            }
-            return this.directListRendererPrepare(entries, v.url);
-        } else if (opts.fetch) {
-            let entries, fetcher = new this.Fetcher(v.url, {
-                progress: opts.progress
-            }, this);
-            if (opts.expand) {
-                entries = await fetcher.fetch();
-            } else {
-                entries = await fetcher.getMap();
-            }
-            return await this.directListRendererPrepare(entries, v.url);
-        } else {
-            throw 'List not loaded';
-        }
-    }
-    async directListRendererPrepare(list, url) {
-        if (typeof(this.directListRendererPrepareCache) == 'undefined') {
-            this.directListRendererPrepareCache = {};
-        }
-        const cachettl = 3600, now = (Date.now() / 1000), olen = list.length;
-        if (typeof(this.directListRendererPrepareCache[url]) != 'undefined' && this.directListRendererPrepareCache[url].size == olen && this.directListRendererPrepareCache[url].time > (now - cachettl)) {
-            return this.directListRendererPrepareCache[url].list.slice(0); // clone it
-        }
-        if (list.length) {
-            list = this.parentalControl.filter(list, true);
-            list = this.prepareEntries(list);
-            list = await this.tools.deepify(list, { source: url });
-        }
-        if (olen >= this.opts.offloadThreshold) {
-            this.directListRendererPrepareCache[url] = { list, time: now, size: olen };
-        }
-        return list.slice(0); // clone it to not alter cache
     }
 }
 if(inWorker) {

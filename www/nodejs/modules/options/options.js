@@ -1500,11 +1500,11 @@ class Options extends OptionsExportImport {
                             rawname: '[fun]' + decodeEntities(lang.SHOW_FUN_LETTERS.format(lang.CATEGORY_KIDS)) + '[|fun]',
                             type: 'check',
                             action: (e, checked) => {
-                                config.set('kids-fun-titles', checked);
-                                menu.refreshNow();
+                                config.set('kids-fun-titles', checked)
+                                menu.refreshNow()
                             },
                             checked: () => {
-                                return config.get('kids-fun-titles');
+                                return config.get('kids-fun-titles')
                             }
                         },
                         {
@@ -1540,7 +1540,10 @@ class Options extends OptionsExportImport {
                                 let def = config.get(key), opts = [
                                     {
                                         name: lang.NEVER, fa: 'fas fa-ban', type: 'action', selected: (def == 0), 
-                                        action: () => config.set(key, 0)
+                                        action: async () => {
+                                            config.set(key, 0)
+                                            await menu.updateHomeFilters()
+                                        }
                                     }
                                 ];
                                 [2, 3, 4].forEach(n => {

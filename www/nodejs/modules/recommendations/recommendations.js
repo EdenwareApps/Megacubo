@@ -382,6 +382,8 @@ class Recommendations extends EventEmitter {
         const excludes = new Set(_excludes)
         const isChannelCache = {}, validateCache = {}
         const channels = global.channels
+        if(!channels || !channels.channelList) return []
+
         const channelsIndex = channels.channelList.channelsIndex
         const channel = e => {
             const name = typeof(e) == 'string' ? e : (e.originalName || e.name)
@@ -675,30 +677,33 @@ class Recommendations extends EventEmitter {
             const viewSizeX = config.get('view-size').landscape.x
             const viewSizeY = config.get('view-size').landscape.y
             const pageCount = config.get('home-recommendations') || 0
+            let recommendations = []
             
             entries = entries.filter(e => (e && e.hookId != hookId))
             
-            let amount = (pageCount * (viewSizeX * viewSizeY)) - 2 // -1 due to 'entry-2x' size entry, -1 due to 'More' entry
-            let metaEntriesCount = entries.filter(e => e.side == true && e.name != lang.RECOMMENDED_FOR_YOU).length
+            if(pageCount) {
+                let amount = (pageCount * (viewSizeX * viewSizeY)) - 2 // -1 due to 'entry-2x' size entry, -1 due to 'More' entry
+                let metaEntriesCount = entries.filter(e => e.side == true && e.name != lang.RECOMMENDED_FOR_YOU).length
 
-            let err, recommendations = await this.featuredEntries(amount - metaEntriesCount).catch(e => err = e)
-            if (err) {
-                console.error('Recommendations hook error', err)
-                recommendations = []
+                let err
+                recommendations = await this.featuredEntries(amount - metaEntriesCount).catch(e => err = e)
+                if (err) {
+                    console.error('Recommendations hook error', err)
+                    recommendations = []
+                }
+                recommendations.length && recommendations.push({
+                    name: lang.MORE,
+                    details: lang.RECOMMENDED_FOR_YOU,
+                    fa: 'fas fa-plus',
+                    type: 'group',
+                    renderer: this.entries.bind(this, false)
+                })
+                recommendations = recommendations.map(e => {
+                    e.hookId = hookId
+                    return e
+                })
+                entries = [...recommendations, ...entries]
             }
-            recommendations.length && recommendations.push({
-                name: lang.MORE,
-                details: lang.RECOMMENDED_FOR_YOU,
-                fa: 'fas fa-plus',
-                type: 'group',
-                renderer: this.entries.bind(this, false)
-            })
-            recommendations = recommendations.map(e => {
-                e.hookId = hookId
-                return e
-            })
-            entries = [...recommendations, ...entries]
-            //console.error('FEATURED ENTRIES ADDED='+ JSON.stringify({rLength: recommendations.length, amount, metaEntriesCount, rAmount, length: entries.length}, null, 3))
         }
         return entries
     }

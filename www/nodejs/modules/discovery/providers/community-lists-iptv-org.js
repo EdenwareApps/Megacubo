@@ -72,10 +72,9 @@ export default class CommunityListsIPTVORG extends EventEmitter {
                 countryCode,
                 renderer: async data => {
                     let err;
-                    let ret = await this.master.lists.manager.directListRenderer(data, { fetch: true }).catch(e => err = e);
+                    let ret = await this.master.lists.manager.listRenderer(data, { fetch: true }).catch(e => err = e);
                     osd.hide('list-open');
-                    if (err)
-                        throw err;
+                    if (err) throw err;
                     return ret;
                 }
             };

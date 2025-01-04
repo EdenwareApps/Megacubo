@@ -601,7 +601,7 @@ class Theme extends EventEmitter {
         if(stat && stat.size) {
             await fs.promises.unlink(file)
         }
-        osd.show(lang.LOADING + ' 0%', 'fas fa-download', 'theme', 'persistent');
+        osd.show(lang.LOADING, 'fas fa-download', 'theme', 'persistent');
         let err
         const rfile = await Download.file({
             debug: false,

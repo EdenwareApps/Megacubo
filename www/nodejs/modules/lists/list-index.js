@@ -18,14 +18,14 @@ export default class ListIndex extends ListIndexUtils {
     async entries(map) {
         await this.ready()
         await this.db.ready()
-        if(!map) map = Array.from({length: this.db.length}, (_, i) => i)
+        if (!map) map = Array.from({ length: this.db.length }, (_, i) => i)
         return await this.db.query(map)
     }
     async getMap(map) {
         await this.ready()
         const entries = []
         for await (const e of this.db.walk(map)) {
-            if(e && e.name) {
+            if (e && e.name) {
                 entries.push({
                     group: e.group,
                     name: e.name,
@@ -41,7 +41,7 @@ export default class ListIndex extends ListIndexUtils {
     async expandMap(structure) {
         const map = [], tbl = {}, ntypes = ['string', 'number']
         for (let i in structure) {
-            const t = typeof(structure[i]._)
+            const t = typeof (structure[i]._)
             if (ntypes.includes(t) && !structure[i].url) {
                 if (t != 'number') {
                     structure[i]._ = parseInt(structure[i]._)
@@ -55,8 +55,8 @@ export default class ListIndex extends ListIndexUtils {
             await this.ready()
             const xs = await this.entries(map)
             for (let x = 0; x < xs.length; x++) {
-                let i = tbl[xs[x]._];
-                if(structure[i] && xs[x]) {
+                let i = tbl[xs[x]._ || map[x]];
+                if (structure[i] && xs[x]) {
                     Object.assign(structure[i], xs[x])
                     structure[i]._ = xs[x]._ = undefined
                 }
@@ -85,7 +85,7 @@ export default class ListIndex extends ListIndexUtils {
         let err
         const stat = await fs.promises.stat(this.file).catch(e => err = e)
         if (stat && stat.size) {
-            if(!this.db) {
+            if (!this.db) {
                 this.db = new Database(this.file, {
                     index: {
                         length: 0,
@@ -108,7 +108,7 @@ export default class ListIndex extends ListIndexUtils {
         }
     }
     async ready() {
-        if(this.isReady) return
+        if (this.isReady) return
         await new Promise(resolve => {
             const clear = () => {
                 this.removeListener('ready', resolveListener)
@@ -123,7 +123,7 @@ export default class ListIndex extends ListIndexUtils {
                 reject('destroyed')
             }
             this.once('ready', resolveListener)
-            this.once('destroy', rejectListener)            
+            this.once('destroy', rejectListener)
         })
     }
     destroy() {

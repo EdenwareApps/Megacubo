@@ -1,6 +1,6 @@
 import { LIST_DATA_KEY_MASK } from "../utils/utils.js";
 import storage from '../storage/storage.js'
-import Common from './common.js'
+import { Common } from './common.js'
 import setupUtils from '../multi-worker/utils.js'
 import UpdateListIndex from './update-list-index.js'
 import ListIndex from './list-index.js'
