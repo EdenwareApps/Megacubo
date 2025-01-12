@@ -165,7 +165,10 @@ const init = async (language, timezone) => {
     console.log('Initializing premium...')
 
     const Premium = await import('./modules/premium-helper/premium-helper.js')
-    global.premium = new Premium.default()
+    if(Premium) {
+        const p = typeof(Premium.default) == 'function' ? Premium.default : Premium
+        global.premium = new p()
+    }
 
     streamer.state.on('state', (url, state, source) => {
         if (source) {

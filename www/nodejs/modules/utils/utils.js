@@ -24,27 +24,41 @@ dayjs.locale = async locales => {
     if (typeof(locales) == 'string') {
         locales = [locales]
     }
-    for (const locale of locales) {
-        const file = path.join(getDirname(), 'dayjs-locale', locale +'.js')
-        try {
-            console.log(`Loading locale ${file}`)
-
-            let scriptContent = await fs.promises.readFile(file, 'utf8')
-            scriptContent = 'output='+ (scriptContent.
-                replace(new RegExp('(^.*|,)[a-z] ?=', 'm'), '').
-                replace(new RegExp(';[^;]*return.*$', 'm'), ''))
-            const context = {output: null}
-            const script = new vm.Script(scriptContent); 
-            vm.createContext(context)
-            script.runInNewContext(context)
-            if(context.output) {
-                originalLocale(context.output)
-                console.log(`Locale ${locale} loaded from ${file}`)
-            }
-            break
-        } catch(err) {
-            console.error(`Error loading locale ${locale} from ${file}:`, err)
+    const dir = getDirname()
+    const run = (content, varName) => {
+        const context = {
+            global: {
+                [varName]: null
+            },
+            [varName]: null,
+            output: null
         }
+        vm.createContext(context)
+        try {
+            const script = new vm.Script(content)
+            script.runInNewContext(context)
+            return context.output || context.global[varName] || context[varName] || null
+        } catch(err) {
+            return null
+        }
+    }
+    for (const locale of locales) {
+        const file = path.join(dir, 'dayjs-locale', locale +'.js')
+        const stat = await fs.promises.stat(file).catch(() => {})
+        if (!stat || !stat.size) continue
+    
+        const varName = 'dayjs_locale_' + locale.replace('-', '_')
+        const scriptContent = await fs.promises.readFile(file, 'utf8')
+        let trimmedScriptContent = 'output='+ scriptContent.
+            replace(new RegExp('(^.*|,)[a-z] ?=', 'm'), '').
+            replace(new RegExp(';[^;]*return.*$', 'm'), '')
+        const ret = run(trimmedScriptContent, varName) || run(scriptContent, varName)
+        if(!ret) {
+            console.error(`Error loading locale ${locale} from ${file}`)
+            continue
+        }
+        originalLocale(ret)
+        break
     }
 }
 
