@@ -6,7 +6,8 @@ import fs from "fs";
 import zlib from "zlib";
 import path from "path";
 import config from "../config/config.js"
-import { moveFile, parseJSON, rmdir } from '../utils/utils.js'
+import { moveFile, rmdir } from '../utils/utils.js'
+import { parse } from '../serialize/serialize.js'
 
 class StorageTools extends EventEmitter {
     constructor(opts) {
@@ -384,7 +385,7 @@ class StorageIO extends StorageIndex {
                     }
                     if (content != 'undefined') {
                         try {
-                            let j = parseJSON(content);
+                            let j = parse(content);
                             if (j && j != null) {
                                 return j;
                             }

@@ -5,8 +5,9 @@ import fs from "fs";
 import { spawn } from "child_process";
 import ExecFinder from 'exec-finder';
 import { getFilename } from "cross-dirname";
-import { createRequire } from 'module';
+import { createRequire } from 'node:module';
 import Download from "./modules/download/download.js";
+import { prepare } from "./modules/serialize/serialize.js";
 
 function getElectron() {
     const ret = {}, keys = ['contextBridge', 'webFrame', 'ipcRenderer', 'getGlobal', 'screen', 'app', 'shell', 'Tray', 'Menu'];
@@ -30,41 +31,6 @@ function getElectron() {
             ret[k] = null;
     });
     return ret;
-}
-function prepareSerialization(obj, visited = new WeakSet()) {
-    if (obj === null || typeof obj !== 'object') {
-        return obj
-    }
-
-    if (visited.has(obj)) {
-        return null
-    }
-    visited.add(obj)
-
-    if (Array.isArray(obj)) {
-        return obj.map((item) => prepareSerialization(item, visited))
-    }
-
-    if (obj instanceof Date) {
-        return obj.toISOString()
-    }
-    if (obj instanceof RegExp) {
-        return obj.toString()
-    }
-    if (obj instanceof Map || obj instanceof Set) {
-        return Array.from(obj)
-    }
-
-    const result = {};
-    for (const key in obj) {
-        if (obj.hasOwnProperty(key)) {
-            const value = obj[key]
-            if (typeof value !== 'function' && value !== undefined) {
-                result[key] = prepareSerialization(value, visited)
-            }
-        }
-    }
-    return result
 }
 
 const { contextBridge, webFrame, ipcRenderer, getGlobal, screen, app, shell, Tray, Menu } = getElectron();
@@ -294,7 +260,7 @@ class WindowProxy extends EventEmitter {
         this.localEmit = super.emit.bind(this)
         this.removeAllListeners = super.removeAllListeners.bind(this)
         this.emit = (...args) => {
-            this.ipc.send('message', prepareSerialization(args))
+            this.ipc.send('message', prepare(args))
         }
         ipcRenderer.on('message', (_, args) => {
             try {

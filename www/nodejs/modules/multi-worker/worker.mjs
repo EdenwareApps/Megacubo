@@ -4,7 +4,7 @@ import config from '../config/config.js'
 import storage from '../storage/storage.js'
 import crashlog from '../crashlog/crashlog.js'
 import { getFilename } from 'cross-dirname'  
-import { createRequire } from 'module'
+import { createRequire } from 'node:module'
 import path from 'path'
 import 'bytenode'
 

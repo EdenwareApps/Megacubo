@@ -2,7 +2,7 @@ import osd from '../osd/osd.js'
 import menu from '../menu/menu.js'
 import lang from '../lang/lang.js';
 import storage from '../storage/storage.js'
-import { exec } from 'child_process';
+import { exec } from 'node:child_process';
 import { EventEmitter } from 'events';
 import energy from '../energy/energy.js';
 import fs from 'fs';
@@ -21,7 +21,8 @@ import config from '../config/config.js'
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
 import Download from '../download/download.js'
-import { kbfmt, kbsfmt, parseJSON, moment, rmdirSync, ucFirst, ucWords } from '../utils/utils.js'
+import { kbfmt, kbsfmt, moment, rmdirSync, ucFirst, ucWords } from '../utils/utils.js'
+import { parse } from '../serialize/serialize.js'
 
 class Timer extends EventEmitter {
     constructor() {
@@ -324,7 +325,7 @@ class OptionsExportImport extends OptionsGPU {
         super()
     }
     async importConfigFile(data, keysToImport, cb) {
-        data = parseJSON(String(data))
+        data = parse(String(data))
         if (typeof(data) == 'object') {
             data = this.prepareImportConfigFile(data, keysToImport)
             config.setMulti(data)
@@ -1319,7 +1320,7 @@ class Options extends OptionsExportImport {
                             action: async (data) => {
                                 if (def == 1)
                                     return;
-                                await fs.promises.writeFile(privateFile, 'OK').catch(console.error);
+                                await fs.promises.writeFile(privateFile, 'OK');
                                 await fs.promises.unlink(communityFile).catch(console.error);
                                 config.set('communitary-mode-lists-amount', 0);
                                 menu.refreshNow();
@@ -1334,8 +1335,9 @@ class Options extends OptionsExportImport {
                                 if (def == 2)
                                     return;
                                 const { opts: { defaultCommunityModeReach } } = lists;
-                                await fs.promises.writeFile(privateFile, 'OK').catch(console.error);
-                                await fs.promises.writeFile(communityFile, 'OK').catch(console.error);
+                                console.log('allow sharing lists', communityFile, privateFile);
+                                await fs.promises.writeFile(communityFile, 'OK');
+                                await fs.promises.writeFile(privateFile, 'OK');
                                 config.set('communitary-mode-lists-amount', defaultCommunityModeReach);
                                 menu.refreshNow();
                                 await menu.info(lang.LEGAL_NOTICE, lang.TOS_CONTENT);
@@ -1542,6 +1544,13 @@ class Options extends OptionsExportImport {
                                         name: lang.NEVER, fa: 'fas fa-ban', type: 'action', selected: (def == 0), 
                                         action: async () => {
                                             config.set(key, 0)
+                                            await menu.updateHomeFilters()
+                                        }
+                                    },
+                                    {
+                                        name: lang.AUTO, fa: 'fas fa-check-circle', type: 'action', selected: (def == 0), 
+                                        action: async () => {
+                                            config.set(key, 1)
                                             await menu.updateHomeFilters()
                                         }
                                     }

@@ -3,7 +3,8 @@ import fs from "fs"
 import path from "path"
 import defaults from './defaults.json' with { type: 'json' }
 import paths from '../paths/paths.js'
-import { clone, parseJSON } from "../utils/utils.js"
+import { clone } from "../utils/utils.js"
+import { parse } from '../serialize/serialize.js'
 
 class Config extends EventEmitter {
     constructor() {
@@ -37,7 +38,7 @@ class Config extends EventEmitter {
                         console.log('DATA', data)
                     }
                     if (typeof(data) == 'string' && data.length > 2) {
-                        data = parseJSON(data)
+                        data = parse(data)
                         if (typeof(data) == 'object' && data) {
                             this.data = Object.assign({}, this.defaults)
                             this.data = Object.assign(this.data, data)

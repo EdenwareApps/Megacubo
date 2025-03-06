@@ -16,7 +16,23 @@ class ParentalControl extends EventEmitter {
             process.nextTick(() => menu.refreshNow())
         })
         config.on('change', keys => {
-            keys.includes('parental-control-terms') && this.setTerms();
+            if(keys.includes('parental-control-terms')) {
+                this.setTerms();
+            }
+            if(keys.includes('parental-control')) {
+                const currentType = config.get('channel-grid');
+                if (data['parental-control'] == 'only') {
+                    if(currentType != 'xxx') {
+                        config.set('channel-grid-prev', currentType);
+                        config.set('channel-grid', 'xxx');
+                    }
+                } else {
+                    if(currentType == 'xxx') {
+                        const prev = config.get('channel-grid-prev');
+                        config.set('channel-grid', prev || '');
+                    }
+                }
+            }
         });
         this.setupTerms();
         renderer.ready && renderer.ready(() => this.update());
@@ -81,6 +97,7 @@ class ParentalControl extends EventEmitter {
                                         } else {
                                             config.set('parental-control-pw', '');
                                             config.set('parental-control', n.key);
+
                                             if (this.authenticated) {
                                                 delete this.authenticated;
                                             }

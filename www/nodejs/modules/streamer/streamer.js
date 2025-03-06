@@ -575,13 +575,19 @@ class Streamer extends StreamerGoNext {
     }
     async askExternalPlayer(codecData) {
         if (!this.active || paths.android) return
+
+        let no = global.lang.NO_THANKS, noFa = 'fas fa-stop'
+        if(this.zap.isZapping) {
+            noFa = 'fas fa-check-circle'
+        }
+
         const url = this.active.data.url
         const text = Object.keys(codecData).map(k => ucWords(k) +': '+ codecData[k]).join('<br />')
         const chosen = await global.menu.dialog([
-            { template: 'question', text: global.lang.OPEN_EXTERNAL_PLAYER_ASK, fa: 'fas fa-play' },
+            { template: 'question', text: global.lang.OPEN_EXTERNAL_PLAYER_ASK, fa: 'fas fa-window-restore' },
             { template: 'message', text },
-            { template: 'option', text: global.lang.YES, id: 'yes', fa: 'fas fa-check-circle' },
-            { template: 'option', text: global.lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle' },
+            { template: 'option', text: global.lang.YES, id: 'yes', fa: 'fas fa-window-restore' },
+            { template: 'option', text: no, id: 'no', fa: noFa },
             { template: 'option', text: global.lang.RETRY, id: 'retry', fa: 'fas fa-redo' },
             { template: 'option', text: global.lang.FIX_AUDIO_OR_VIDEO, id: 'transcode', fa: 'fas fa-wrench' }
         ], 'yes')

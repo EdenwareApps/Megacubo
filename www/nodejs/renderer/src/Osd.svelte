@@ -4,14 +4,11 @@
   import { OSD } from '../../modules/osd/renderer'
   
   let messages = []
-  console.warn('OSD STEP1')
   onMount(async () => {
-    console.warn('OSD STEP2')
     main.on('display-error', txt => {
       console.error(txt)
       main.osd && main.osd.show(txt, 'fas fa-exclamation-triangle faclr-red', 'error', 'normal')
     })
-    console.warn('OSD STEP3')
     main.osd = new OSD(document.getElementById('osd-root'))
     main.osd.on('updated', () => {
       messages = main.osd.messages

@@ -5,7 +5,7 @@ import lang from "../lang/lang.js";
 import { EventEmitter } from 'events';
 import fs from "fs";
 import http from "http";
-import url from 'url';
+import url from 'node:url';
 import path from 'path';
 import parseRange from 'range-parser';
 import closed from '../on-closed/on-closed.js';

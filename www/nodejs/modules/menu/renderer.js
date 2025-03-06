@@ -53,7 +53,7 @@ class MenuURLInputHelper {
 class MenuBase extends EventEmitter {
 	constructor(container){
 		super()
-		this.setMaxListeners(20)
+		this.setMaxListeners(99)
 		console.log('Menu base', {container, main})		
 		this.sounds = new Sounds()
 		this.debug = false
@@ -156,24 +156,30 @@ class MenuSelectionMemory extends MenuIcons {
 	save(scrollTop) {
 		if(this.rendering) return
 		this.debug && console.error('save', this.wrap.scrollTop, this.selectedIndex, this.path)
-		const { level } = this.activeSpatialNavigationLayout()
+		const { level } = this.activeSpatialNavigationLayout(), entries = this.selectables()
 		if(!this.selectionMemory[this.path]) this.selectionMemory[this.path] = {}
-		this.selected(true) // force a entry to be selected in current scroll view
+		if(!entries.includes(this.selected())) { // prevent looping
+			this.selected(true) // force a entry to be selected in current scroll view
+		}
 		this.selectionMemory[this.path][level] = {
 			scroll: level == 'default' ? (typeof(scrollTop) == 'number' ? scrollTop : this.wrap.scrollTop) : 0,
 			index: this.selectedIndex,
 			search: this.currentSearch
 		}
 	}
-    reset(){
+    reset(force){
 		if(this.rendering) return
 		this.debug && console.log('reset', this.path)
 		const selected = this.selected()
 		if(selected && selected.id == 'menu-search') return
+		const selectables = this.selectables()
+		if(!selectables.length) return
 		const { level } = this.activeSpatialNavigationLayout()
         const i = (level == 'default' && this.path) ? 1 : 0
+		if(force === true && level != 'default') {
+			return this.focus(selectables[0])
+		}
 		let remembered, data = {scroll: 0, index: i}
-		const selectables = this.selectables()
 		if(typeof(this.selectionMemory[this.path]) != 'undefined' && this.selectionMemory[this.path][level]) {
 			const inSearch = this.path.includes(main.lang.SEARCH) || this.path.includes(main.lang.MORE_RESULTS) || this.path.includes(main.lang.SEARCH_MORE)
 			const inSameSearch = inSearch && this.currentSearch == this.selectionMemory[this.path][level].search
@@ -211,12 +217,38 @@ class MenuSelectionMemory extends MenuIcons {
 	}
 }
 
-class MenuSpatialNavigation extends MenuSelectionMemory {
+class MenuMouseOver extends MenuSelectionMemory {
+	constructor(container){
+		super(container)
+		document.body.addEventListener('mousemove', () => { // is a mouse based navigation
+			if(this.listeningMouseOver) return
+			this.listeningMouseOver = true
+			document.body.addEventListener('mouseover', e => {
+				let focused = e?.target?.tagName?.toLowerCase() == 'a' ? e.target : (e.relatedTarget || e.target)
+				if(!focused) return
+				if(focused?.tagName?.toLowerCase() == 'input' && focused.parentNode) {
+					focused = focused.parentNode
+				}
+				if(focused?.tagName?.toLowerCase() == 'seekbar' && focused.lastElementChild) {
+					focused = focused.lastElementChild
+				}
+				const layout = this.activeSpatialNavigationLayout()
+				const closest = sel => focused.closest(sel)
+				const element = Array.isArray(layout.selector) ? layout.selector.map(closest).filter(e => e).shift() : closest(layout.selector)
+				if(element && this.isVisible(element)){
+					this.focus(element)
+				}
+			})
+		}, {once: true})
+	}
+}
+
+class MenuSpatialNavigation extends MenuMouseOver {
     constructor(container){
         super(container)
 		this.layouts = []
 		this.defaultNavGroup = ''
-        this.angleWeight = 0.0125 // 0.005
+        this.angleWeight = 0.2
         this.className = 'selected'
         this.parentClassName = 'selected-parent'
         this.selectedIndex = 0
@@ -295,11 +327,8 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
 		document.body.classList[verticalLayout ? 'add' : 'remove']('portrait')
 		this.sideMenuSync(true)
 	}
-    isVisible(e) {
-        return e.offsetParent !== null
-    }
     selector(s){
-        return [...document.querySelectorAll(s)].filter(this.isVisible)
+        return [...document.querySelectorAll(s)].filter(e => this.isVisible(e))
     }
     updateElement(element){ // if layout has changed, find the actual corresponding element
         if(!element.parentNode){
@@ -320,13 +349,9 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
     selectables(){
         let elements = [], layout = this.activeSpatialNavigationLayout() // is any explicitly selected??
         if(layout){
-            if(typeof(layout.resetSelector) == 'function'){
-                elements = layout.resetSelector()
-            } else {
-                elements = this.entries()
-            }
+            elements = this.entries()
         }
-        return elements.filter(e => e.parentNode)
+        return elements.filter(e => this.isVisible(e))
     }
 	updateSelectedElementClasses(element){
 		if(element && element.classList){
@@ -338,10 +363,11 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
 	}
 	selected(force){
         const selectables = this.selectables() // check if is any explicitly selected??
-        let element = selectables.find(e => (e.classList.contains(this.className) || e == document.activeElement))
+        let element = selectables.find(e => e.classList.contains(this.className)) || selectables[0] || null
 		if(element && element.id == 'menu-omni-input') {
 			element = element.parentNode
 		} else if(!element) {
+			this.debug && console.log('No selected element', {selectables, force})
 			const { level } = this.activeSpatialNavigationLayout()
 			if(this.selectionMemory[this.path] && this.selectionMemory[this.path][level]) {
 				const { index } = this.selectionMemory[this.path][level]
@@ -383,6 +409,7 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
         } else {
 			this.debug && console.log('Already focused', {a, selected: document.querySelector('.'+ this.className), scrollLeft: this.container.scrollLeft, scrollTop: this.wrap.scrollTop})
 		}
+
     }  
     activeSpatialNavigationLayout(){
         let ret = {selector: 'body', level: 'default'} // placeholder while no views are added
@@ -405,14 +432,20 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
         if(typeof(sel) == 'string'){
             e.push(...this.selector(sel))
         } else if(Array.isArray(sel)) {
-            e.push(...sel)
+            e.push(...sel.map(e => {
+				if(typeof(e) == 'string'){
+					return this.selector(e)
+				} else {
+					return e
+				}
+			}).flat())
         } else {
 			console.error('Bad layer selector')
 		}
 		e = e.filter(n => {
             return !n.className || !String(n.className).includes('menu-not-navigable') // Uncaught TypeError: n.className.indexOf is not a function
         })
-		if(noAsides === true){
+		if(layout.default === true && noAsides === true){
 			e = e.filter(n => n.parentNode && n.parentNode == this.wrap)
 		}
 		return e
@@ -421,7 +454,7 @@ class MenuSpatialNavigation extends MenuSelectionMemory {
         if(layout.default === true || !this.defaultNavGroup){
             this.defaultNavGroup = layout.level
         }
-        return this.layouts.push(layout) // add.selector can be a selector string, set of elements or function returning elements
+        return this.layouts.push(layout) // add.selector can be a selector string, set of selectors or function returning elements
     }
     distance(c, e, m){
         let r = Math.hypot(e.left - c.left, e.top - c.top)
@@ -744,7 +777,33 @@ class MenuPlayer extends MenuModal {
 	inPlayer(){
 		return typeof(streamer) != 'undefined' && streamer.active
 	}
-	isExploring(){
+	isVisible(element){
+		if(element) {
+			if (element.style.display === 'none' || element.style.visibility === 'hidden') {
+				return false;
+			}
+			if (parseFloat(element.style.opacity) === 0) {
+				return false;
+			}
+			let parent = element.parentElement;
+			while (parent) {
+				if (!parent) {
+					return false;
+				}
+				if (window.getComputedStyle(parent).visibility === 'hidden') {
+					return false;
+				}
+				if(parent === document.body) {
+					break;
+				}
+				parent = parent.parentElement;
+			}
+			const rect = element.getBoundingClientRect();
+			if (rect.width === 0 || rect.height === 0 || rect.top >= window.innerHeight || rect.bottom <= 0 || rect.left >= window.innerWidth || rect.right <= 0) {
+				return false;
+			}
+			return element.offsetParent !== null
+		}
 		return !this.inModal() && (!this.inPlayer() || document.body.classList.contains('menu-playing'))
 	}
 	showWhilePlaying(enable) {
@@ -1542,11 +1601,14 @@ class MenuNav extends MenuStatusFlags {
 		}
 	}
 	sideMenu(enable, behavior='smooth') {
+		const prev = behavior == 'smooth'? '' : window.getComputedStyle(this.container).getPropertyValue('transition')
+		if(prev && prev != 'none') this.container.style.transition = 'none'
 		this.container.scroll({
 			top: 0,
 			left: enable ? 0 : this.getSideMenuWidth(),
 			behavior
 		})
+		if(prev && prev != 'none') this.container.style.transition = prev
 	}
 	getSideMenuWidth() {
 		if(this.sideMenuWidthCache) {

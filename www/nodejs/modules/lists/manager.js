@@ -12,6 +12,7 @@ import config from "../config/config.js"
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
 import Limiter from '../limiter/limiter.js'
+import { parse } from '../serialize/serialize.js'
 
 import { EventEmitter } from "events";
 import { promises as fsp } from "fs";
@@ -306,16 +307,17 @@ class ManagerFetch extends ManagerEPG {
         }
 
         let source, entries
-        if (lists[url] && (!opts.fetch || (lists[url].isReady && !lists[url].indexer.hasFailed))) { // if not loaded yet, fetch directly
+        if (lists[url] && lists[url].fetchAll && (!opts.fetch || (lists[url].isReady && !lists[url].indexer.hasFailed))) { // if not loaded yet, fetch directly
             source = lists[url]
         } else if (opts.fetch) {
             source = new Fetcher(url, {
                 progress: opts.progress
-            }, this)            
+            }, this.master)            
         } else {
             throw new Error('List not loaded');
         }
 
+        await source.ready()
         if(typeof(source.fetchAll) != 'function') {
             console.error({source}, typeof(source.fetchAll))
             throw new Error('List fetcher not ready');
@@ -963,7 +965,7 @@ class Manager extends ManagerFetch {
                 xtr.destroy();
             }
         }
-        await fsp.writeFile(output, crashlog.stringify(data));
+        await fsp.writeFile(output, stringify(data));
         await downloads.serve(output, true);
     }
     async getM3UFromCredentials(server, user, pass) {

@@ -162,6 +162,10 @@ class ListsLoader extends EventEmitter {
         if (!this.updater || this.updater.finished === true) {
             if(!this.uid) this.uid = parseInt(Math.random() * 1000000)
             const updater = workers.load(path.join(getDirname(), 'updater-worker.js'))
+            if (!updater || typeof(updater.update) != 'function') {
+                if(!updater) updater = {}
+                throw new Error('Could not create updater worker #'+ typeof(updater.update));
+            }
             this.updater = updater
             this.once('destroy', () => updater.terminate())
             this.updaterClients = 1
@@ -193,6 +197,7 @@ class ListsLoader extends EventEmitter {
                 this.updater.terminating = null;
             }
         }
+        return true
     }
     async enqueue(urls, priority = 9) {
         if (priority == 1) { // priority=1 should be reprocessed, as it is in our lists            

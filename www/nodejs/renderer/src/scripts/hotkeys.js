@@ -49,7 +49,7 @@ class GamepadHandler {
             const lastActionTime = this.lastActionTimes[index]
             if (gamepad) {
                 const buttonX = gamepad.buttons[0] || {}
-                const buttonO = gamepad.buttons[1] || {}
+                const buttonO = gamepad.buttons[1] || gamepad.buttons[5] || {}
                 if (buttonX.pressed && this.canEmitEvent(lastActionTime.buttonX)) {
                     this.emit('x')
                     lastActionTime.buttonX = now
@@ -184,6 +184,24 @@ export class Hotkeys {
     arePlayerControlsVisible() {
         return window.streamer && [0, '0', '0px'].includes(window.getComputedStyle(main.streamer.controls).getPropertyValue('bottom'))
     }
+    tabPressed() {
+        if (main.omni.active()) {
+            main.omni.hide()
+        } else {
+            if (main.menu.inPlayer()) {
+                main.menu.showWhilePlaying(true)
+            } else {
+                main.omni.toggle()
+            }
+        }
+    }
+    reload() {        
+        if(main.streamer.isZapping){
+            main.emit('zap')
+        } else {
+            main.emit('reload-dialog')
+        }
+    }
     escapePressed() {
         console.log('Escape pressed')        
         if (main.menu.inModal()) {
@@ -193,8 +211,8 @@ export class Hotkeys {
         } else {
             if (main.omni.active()) return main.omni.hide()
             if (main.streamer.casting) return main.streamer.castUIStop()
-            let playing = main.menu.inPlayer(), exploring = playing && main.menu.isExploring()
-            if (playing && !exploring) {
+            let playing = main.menu.inPlayer()
+            if (playing && !main.menu.isVisible()) {
                 if (main.streamer.state == 'playing' && this.arePlayerControlsVisible()) {
                     main.idle.start()
                     main.idle.lock(1)
@@ -206,12 +224,12 @@ export class Hotkeys {
                     main.emit('menu-back') 
                 } else {
                     if (playing) {
-                        main.idle.start()
+                        main.menu.showWhilePlaying(false)
                     } else {
                         if(main.menu.inSideMenu()) {
-                            menu.sideMenu(false)
-                        } else if(!menu.inModal()) {
-                            menu.sideMenu(true)
+                            main.menu.sideMenu(false)
+                        } else if(!main.menu.inModal()) {
+                            main.menu.sideMenu(true)
                         }
                     }
                 }
@@ -219,21 +237,19 @@ export class Hotkeys {
         }
     }
     arrowUpPressed(noNav) {
-        let playing = main.menu.inPlayer(), exploring = main.menu.isExploring()
+        if(!main.menu) return
+        let playing = main.menu.inPlayer(), exploring = main.menu.isVisible()
         if (!main.menu.inModal() && playing && !exploring) {
-            if (!noNav && main.streamer.isVolumeButtonActive()) {
-                main.streamer.volumeUp(1)
-            } else {
-                main.idle.start()
-                main.idle.lock(1)
+            if (main.streamer.isVolumeButtonActive()) {
+                return main.streamer.volumeUp(1)
             }
-        } else {
-            noNav || main.menu.arrow('up')
         }
+        main.menu.arrow('up')
     }
     arrowDownPressed(noNav) {
+        if(!main.menu) return
         if (!main.menu.inModal() && main.menu.inPlayer()) {
-            if (main.menu.isExploring()) {
+            if (main.menu.isVisible()) {
                 noNav || main.menu.arrow('down')
             } else {
                 if (!noNav && main.streamer.isVolumeButtonActive()) {
@@ -259,9 +275,10 @@ export class Hotkeys {
         }
     }
     arrowRightPressed(noNav) {
-        let playing = main.menu.inPlayer(), exploring = playing && main.menu.isExploring()
+        if(!main.menu) return
+        let playing = main.menu.inPlayer(), exploring = playing && main.menu.isVisible()
         if (playing && !exploring) {
-            if (main.streamer.isSeeking) {
+            if (main.menu.selected()?.parentNode?.tagName?.toLowerCase() == 'seekbar') {
                 main.streamer.seekForward()
             } else if (main.idle.isIdle || noNav) {
                 main.streamer.seekForward()
@@ -275,9 +292,10 @@ export class Hotkeys {
         }
     }
     arrowLeftPressed(noNav) {
-        let playing = main.menu.inPlayer(), exploring = playing && main.menu.isExploring()
+        if(!main.menu) return
+        let playing = main.menu.inPlayer(), exploring = playing && main.menu.isVisible()
         if (playing && !exploring) {
-            if (main.streamer.isSeeking) {
+            if (main.menu.selected()?.parentNode?.tagName?.toLowerCase() == 'seekbar') {
                 main.streamer.seekRewind()
             } else if (main.idle.isIdle || noNav) {
                 main.streamer.seekRewind()
@@ -291,16 +309,12 @@ export class Hotkeys {
         }
     }
     enterPressed() {
-        // ENTER PRESSED true true false <button class=​"menu selected">​…​</button>​ true false -1
-        console.log('ENTER PRESSED', main.menu.inPlayer(), main.menu.isExploring(), this.arePlayerControlsVisible(), document.activeElement, main.streamer.active, main.idle.isIdle, document.body.className.indexOf('idle'))
         if (main.menu.inPlayer()) {
             let e = main.menu.selected()
             if (e) {
-                if (main.idle.isIdle) {
-                    if (main.streamer.state != 'paused') {
-                        console.log('ENTER IGNORED ON IDLE OUT', e)
-                        return main.idle.reset()
-                    }
+                if (main.idle.isIdle && main.streamer.state != 'paused') {
+                    // Enter ignored on idle out
+                    return main.idle.reset()
                 }
             }
         }

@@ -3,12 +3,13 @@ import http from 'http'
 import path from 'path'
 import fs from 'fs'
 import { prepareCORS, traceback } from '../utils/utils.js'
-import url from 'url'
+import url from 'node:url'
 import formidable from 'formidable'
 import closed from '../on-closed/on-closed.js'
 import paths from '../paths/paths.js'
-import { createRequire } from 'module'
+import { createRequire } from 'node:module'
 import { getFilename } from 'cross-dirname'
+import { prepare } from '../serialize/serialize.js'
 
 class BaseChannel extends EventEmitter {
     constructor() {
@@ -19,41 +20,6 @@ class BaseChannel extends EventEmitter {
     }
     onMessage(args) {
         process.nextTick(() => this.originalEmit.apply(this, args)) // prevent to block renderer
-    }
-    prepareSerialization(obj, visited = new WeakSet()) {
-        if (obj === null || typeof obj !== 'object') {
-            return obj
-        }
-
-        if (visited.has(obj)) {
-            return null
-        }
-        visited.add(obj)
-
-        if (Array.isArray(obj)) {
-            return obj.map((item) => this.prepareSerialization(item, visited))
-        }
-
-        if (obj instanceof Date) {
-            return obj.toISOString()
-        }
-        if (obj instanceof RegExp) {
-            return obj.toString()
-        }
-        if (obj instanceof Map || obj instanceof Set) {
-            return Array.from(obj)
-        }
-
-        const result = {};
-        for (const key in obj) {
-            if (obj.hasOwnProperty(key)) {
-                const value = obj[key]
-                if (typeof value !== 'function' && value !== undefined) {
-                    result[key] = this.prepareSerialization(value, visited)
-                }
-            }
-        }
-        return result
     }
 }
 
@@ -82,12 +48,10 @@ class ElectronChannel extends BaseChannel {
     constructor() {
         super()
         const require = createRequire(getFilename())
-        require('electron').ipcMain.on('message', (...args) => {
-            this.onMessage(args[1])
-        })
+        require('electron').ipcMain.on('message', (...args) => this.onMessage(args[1]))
     }
     customEmit(...args) {
-        this.window && !this.window.closed && this.window.webContents.send('message', this.prepareSerialization(args))
+        this.window && !this.window.closed && this.window.webContents.send('message', prepare(args))
     }
 }
 

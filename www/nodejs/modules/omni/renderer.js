@@ -78,6 +78,9 @@ export class OMNI extends OMNIUtils {
         this.emit('show')
         focus && this.focus(true)
     }
+    toggle(){
+        this.visible ? this.hide() : this.show(true)
+    }
     focus(select){
         this.input.value = this.defaultValue
         if(select){
@@ -158,7 +161,7 @@ export class OMNI extends OMNIUtils {
             console.warn('INPUT ignored')
             return
         }
-        if(main.menu.inModal()){
+        if(main.menu?.inModal()){
             var v = document.querySelector('#modal-content input[type="text"]')
             if(v){ // that's some input field on ui?
                 v.focus()
@@ -188,7 +191,7 @@ export class OMNI extends OMNIUtils {
         if(evt.target && evt.target != this.rinput){
             if(evt.key && evt.key.length == 1 && evt.key != ' ') {
                 this.defaultValue = evt.key
-                if(main.menu.inPlayer() && !main.menu.isExploring()) {
+                if(main.menu.inPlayer() && !main.menu.isVisible()) {
                     main.menu.showWhilePlaying(true)
                 }
                 this.focus(false)

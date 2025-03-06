@@ -15,7 +15,7 @@ class Tags extends EventEmitter{
     constructor() {
         super()
         this.caching = {programmes: {}, trending: {}}
-        this.defaultTagsCount = 1024
+        this.defaultTagsCount = 256
         this.queue = new PQueue({concurrency: 1})
         global.channels.history.epg.on('change', () => this.historyUpdated(true))
         global.channels.trending.on('update', () => this.trendingUpdated(true))
@@ -29,21 +29,6 @@ class Tags extends EventEmitter{
             await this.historyUpdated(false)
             await this.trendingUpdated(true)
         })
-    }
-    filterTag(tag) {
-        return tag && tag.length > 2 && (tag.length > 4 || tag.match(TAGS_FILTER_REGEX)) // not a integer
-    }
-    filterTags(tags) {
-        if(Array.isArray(tags)) {
-            return tags.filter(this.filterTag.bind(this))
-        } else {
-            for(const k in tags) {
-                if(!this.filterTag(k)) {
-                    delete tags[k]
-                }
-            }
-            return tags
-        }
     }
     prepare(data, limit) {
         const maxWords = 3
@@ -90,7 +75,7 @@ class Tags extends EventEmitter{
             data0[k] = Math.max(data0[k] || 0, data[k]);
         }
 
-        this.caching.programmes = await this.expand(this.filterTags(data0));
+        this.caching.programmes = await this.expand(data0);
         emit && this.emit('updated');
     }
     async trendingUpdated(emit) {
@@ -119,27 +104,25 @@ class Tags extends EventEmitter{
 
         const pp = Math.max(...Object.values(map)) / 100;
         Object.keys(map).forEach(k => map[k] = map[k] / pp);
-        this.caching.trending = await this.expand(this.filterTags(map));
+        this.caching.trending = await this.expand(map);
         emit && this.emit('updated');
     }
     async expand(tags) {
         let err, additionalTags = {}            
         const limit = this.defaultTagsCount
         const additionalLimit = limit - Object.keys(tags).length
-        const expandedTags = await global.lists.epg.expandRecommendations(tags).catch(e => err = e)
+        const expandedTags = await global.lists.epg.expandTags(tags, {as: 'objects', amount: additionalLimit}).catch(e => err = e)
         if (!err && expandedTags) {
-            Object.keys(expandedTags).forEach(term => {
-                const score = tags[term]
-                expandedTags[term].forEach(t => {
-                    if (tags[t])
-                        return
-                    if (typeof(additionalTags[t]) == 'undefined') {
-                        additionalTags[t] = 0
-                    }  
-                    additionalTags[t] += score / 2
-                })
+            expandedTags.forEach(t => {
+                if(tags[t.category]) {
+                    return
+                }
+                if(typeof(additionalTags[t.category]) == 'undefined') {
+                    additionalTags[t.category] = 0
+                }
+                additionalTags[t.category] += t.score
             })
-            additionalTags = this.prepare(this.filterTags(additionalTags), additionalLimit)
+            additionalTags = this.prepare(additionalTags, additionalLimit)
             Object.assign(tags, additionalTags)
         }
         return tags
@@ -247,7 +230,7 @@ class Recommendations extends EventEmitter {
         }
         return results
     }
-    async get(tags, amount=128) {
+    async get(tags, amount=25) {
         if(!global.lists.epg.loaded) return []
         const now = (Date.now() / 1000)
         const timeRange = 3 * 3600
@@ -471,7 +454,7 @@ class Recommendations extends EventEmitter {
         return this._shuffledIndex.index
     }
     async entries(vod) {
-        const limit = 128
+        const limit = 25
         const adjust = e => {
             if(e.programme && e.programme.t) {
                 if(!e.originalName) {
@@ -564,14 +547,14 @@ class Recommendations extends EventEmitter {
     }
     async update() {
         const start = time()
-        const amount = 36
+        const amount = 48
         let es = [], tmpkey = this.cacheKey
         if(global.channels && global.channels.channelList) {
             tmpkey += global.channels.channelList.key
         }
         let tags, channels, timer
         const collectFeaturedEntries = async channels => {
-            if(!this.featuredEntriesCache || channels.length) {
+            if(channels && (!this.featuredEntriesCache || channels.length)) {
                 clearTimeout(timer)
                 this.featuredEntriesCache = {data: channels, key: tmpkey}
                 timer = setTimeout(() => {
@@ -598,7 +581,7 @@ class Recommendations extends EventEmitter {
             }
 
             tags = await this.tags.get()
-            es = await this.get(tags, 128).catch(console.error)
+            es = await this.get(tags, 3 * amount).catch(console.error)
             if (Array.isArray(es) && es.length) {
                 if (es.some(n => n.programme.i)) { // prefer entries with icons
                     es = es.filter(n => n.programme.i)
@@ -682,11 +665,15 @@ class Recommendations extends EventEmitter {
             entries = entries.filter(e => (e && e.hookId != hookId))
             
             if(pageCount) {
-                let amount = (pageCount * (viewSizeX * viewSizeY)) - 2 // -1 due to 'entry-2x' size entry, -1 due to 'More' entry
                 let metaEntriesCount = entries.filter(e => e.side == true && e.name != lang.RECOMMENDED_FOR_YOU).length
-
+                let amount = pageCount == 1 ?
+                    ((viewSizeX * Math.max(1, viewSizeY - 1)) + (Math.ceil(metaEntriesCount / viewSizeX) * viewSizeX)) : 
+                    (pageCount * (viewSizeX * viewSizeY));                    
+                amount -= 2 // -1 due to 'entry-2x' size entry, -1 due to 'More' entry
                 let err
-                recommendations = await this.featuredEntries(amount - metaEntriesCount).catch(e => err = e)
+                if(amount > 0) {
+                    recommendations = await this.featuredEntries(amount - metaEntriesCount).catch(e => err = e)
+                }
                 if (err) {
                     console.error('Recommendations hook error', err)
                     recommendations = []

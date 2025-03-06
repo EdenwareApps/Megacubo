@@ -1,6 +1,6 @@
 import fs from 'fs'
 import pLimit from 'p-limit'
-import { moveFile, parseCommaDelimitedURIs, textSimilarity, time, ucWords } from '../utils/utils.js'
+import { moveFile, parseCommaDelimitedURIs, time, ucWords } from '../utils/utils.js'
 import Download from '../download/download.js'
 import config from '../config/config.js'
 import { EventEmitter } from 'events'
@@ -11,49 +11,60 @@ import { Parser } from 'xmltv-stream'
 import { getFilename } from 'cross-dirname'
 import { Database } from 'jexidb'
 import { workerData } from 'worker_threads'
+import { Trias } from 'trias'
 
 const utils = setupUtils(getFilename())
 const DBOPTS = {
-    indexes: {ch: 'string', start: 'number', e: 'number', c: 'number'},
+    indexes: {ch: 'string', start: 'number', e: 'number', c: 'string'},
     index: {channels: {}, terms: {}},
     compressIndex: false,
     v8: false
 }
 
-class EPGDataRefiner {
-    constructor(){
-        this.data = {}
+class EPGDataCompleter {
+    constructor(trias){
+        this.learning = {}
+        this.readyListeners = []
+        this.trias = trias
     }
     format(t){
         return t.trim().toLowerCase()
     }
     learn(programme){
         const key = this.format(programme.t)
-        if(!this.data[key]){
-            this.data[key] = {
+        if(!this.learning[key]){
+            this.learning[key] = {
                 title: programme.t,
                 c: new Set(programme.c),
                 i: programme.i,
-                programmes: [
-                    {ch: programme.ch, start: programme.start}
-                ]
+                desc: programme.desc || ''
             }
         } else {
             if(programme.c && programme.c.length){
                 programme.c.forEach(c => {
-                    this.data[key].updated = true
-                    this.data[key].c.has(c) || this.data[key].c.add(c)
+                    this.learning[key].updated = true
+                    this.learning[key].c.has(c) || this.learning[key].c.add(c)
                 })
             }
-            if(programme.i && !this.data[key].i){
-                this.data[key].updated = true
-                this.data[key].i = programme.i
+            if(programme.i && !this.learning[key].i){
+                this.learning[key].updated = true
+                this.learning[key].i = programme.i
             }
-            this.data[key].programmes.push({ch: programme.ch, start: programme.start})
+            if(programme.desc && !this.learning[key].desc){
+                this.learning[key].updated = true
+                this.learning[key].desc = programme.desc
+            }
+        }
+        if(programme.c && programme.c.length) {
+            const txt = [programme.t, programme.desc, ...programme.c].filter(s => s).join(' ')
+            this.trias.train(txt, programme.c).catch(console.error)
         }
     }
+    async extractCategories(programme){
+        const txt = [programme.t, programme.desc, ...programme.c].filter(s => s).join(' ')
+        return await this.trias.predict(txt, {as: 'array', limit: 3})
+    }
     async apply(db) {
-        const start = time()
         try {
             const tmpFile = db.fileHandler.file +'.refine'
             const rdb = new Database(tmpFile, Object.assign({clear: true}, DBOPTS))
@@ -61,12 +72,23 @@ class EPGDataRefiner {
             for await (const programme of db.walk()) {
                 delete programme._
                 const key = this.format(programme.t)
-                if(key && this.data[key] && this.data[key].updated) {
-                    if(!programme.c.length && this.data[key].c.size) {
-                        programme.c = [...this.data[key].c]
-                    }
-                    if(!programme.i && this.data[key].i) {
-                        programme.i = this.data[key].i
+                if(key) {
+                    const has = !Array.isArray(programme.c) || !programme.c.length
+                    if(this.learning[key] && this.learning[key].updated) {
+                        if(!has) {
+                            if(this.learning[key].c.size) {
+                                programme.c = [...this.learning[key].c]
+                            } else {
+                                programme.c = await this.extractCategories(programme)
+                            }
+                        }
+                        if(!programme.i && this.learning[key].i) {
+                            programme.i = this.learning[key].i
+                        }
+                    } else {
+                        if(!has) {
+                            programme.c = await this.extractCategories(programme)
+                        }
                     }
                 }
                 await rdb.insert(programme)
@@ -74,13 +96,20 @@ class EPGDataRefiner {
             rdb.indexManager.index = db.indexManager.index
             await rdb.save()
             await rdb.destroy()
+            await this.trias.save().catch(console.error)
             await fs.promises.unlink(db.fileHandler.file)
             await moveFile(tmpFile, db.fileHandler.file)
         } catch(e) {
             console.error('REFINER APPLY ERROR', e)
         } finally { 
-            this.data = {}
+            this.learning = {}
         }
+    }
+    destroy(){
+        this.trias.destroy && this.trias.destroy().catch(console.error)
+        this.learning = {}
+        this.trias = null
+        this.completer = null        
     }
 }
 
@@ -155,9 +184,10 @@ class EPGPaginateChannelsList extends EventEmitter {
 }
 
 class EPGUpdater extends EventEmitter {
-    constructor(url){
+    constructor(url, trias){
         super()
-        this.refiner = new EPGDataRefiner()
+        this.trias = trias
+        this.completer = new EPGDataCompleter(this.trias)
     }
     fixSlashes(txt){
         return txt.replaceAll('/', '|') // this character will break internal app navigation
@@ -306,7 +336,7 @@ class EPGUpdater extends EventEmitter {
                 
                 await this.udb.save()
 
-                await this.refiner.apply(this.udb).catch(console.error)
+                await this.completer.apply(this.udb).catch(console.error)
                 await this.db.destroy()
 
                 await moveFile(this.tmpFile, this.file)
@@ -344,6 +374,9 @@ class EPGUpdater extends EventEmitter {
                 if(t.includes('/')) {
                     t = this.fixSlashes(t)
                 }
+                if(Array.isArray(programme.desc)) {
+                    programme.desc = programme.desc.shift() || ''
+                }
                 let i
                 if(programme.icon) {
                     i = programme.icon
@@ -362,17 +395,31 @@ class EPGUpdater extends EventEmitter {
                 } else {
                     i = ''
                 }
+                if(programme.category){
+                    if(typeof(programme.category) == 'string'){
+                        programme.category = programme.category.split(',').map(c => c.trim())
+                    } else if(Array.isArray(programme.category) && programme.category.length == 1){
+                        programme.category = programme.category[0].split(',').map(c => c.trim())
+                    }
+                }
                 this.indexate({
                     start, e: end,
                     t, i, ch, 
-                    c: programme.category || []
+                    c: programme.category || [],
+                    desc: programme.desc || ''
                 })
             }
         }
     }
     indexate(data){
+        if(Array.isArray(data.c)){
+            data.c = data.c.map(c => ucWords(c, true))
+        }
+        if(Array.isArray(data.desc)){
+            data.desc = data.desc.shift() || ''
+        }
         this.udb.insert(data).catch(console.error)
-        this.refiner.learn(data)
+        this.completer.learn(data)
         if(!this.udb.index.terms[data.ch] || !Array.isArray(this.udb.index.terms[data.ch])){
             this.udb.index.terms[data.ch] = listsTools.terms(data.ch)
         }
@@ -401,13 +448,12 @@ class EPGUpdater extends EventEmitter {
 }
 
 class EPG extends EPGUpdater {
-    constructor(url){
-        super()
+    constructor(url, trias){
+        super(url, trias)
         this.url = url
         this.file = storage.resolve('epg-'+ url)
         this.tmpFile = storage.resolve('epg-'+ url) +'-'+ Math.random().toString(36).substring(7)
         this.debug = false
-        this.data = {}
         this.errorCount = 0
         this.errorCountLimit = 3
         this.acceptRanges = false
@@ -420,6 +466,7 @@ class EPG extends EPGUpdater {
         this.minExpectedEntries = 72
         this.state = 'uninitialized'
         this.error = null
+        this.trias = trias
         this.db = new Database(this.file, DBOPTS)
     }
     ready(){
@@ -477,16 +524,21 @@ class EPG extends EPGUpdater {
         this.udb && this.udb.destroy()
         this.db && this.db.destroy()
         this.removeAllListeners()
-        this.data = {}
     }
 }
 
 class EPGManager extends EPGPaginateChannelsList {
     constructor(){
         super()
-        this.limit = pLimit(2)
         this.epgs = {}
         this.config = []
+        this.limit = pLimit(2)
+        this.trias = new Trias({
+            file: storage.resolve(lang.locale +'.trias'),
+            language: lang.locale,
+            capitalize: true,
+            excludes: ['separator', 'separador', 'hd', 'hevc', 'sd', 'fullhd', 'fhd', 'channels', 'canais', 'aberto', 'abertos', 'world', 'países', 'paises', 'countries', 'ww', 'live', 'ao vivo', 'en vivo', 'directo', 'en directo', 'unknown', 'other', 'others']
+        })
     }
     async start(config){
         await this.sync(config)
@@ -537,7 +589,7 @@ class EPGManager extends EPGPaginateChannelsList {
     async add(url, suggested){
         console.log('epg.add', url, suggested, Object.keys(this.epgs))
         if(!this.epgs[url]){
-            this.epgs[url] = new EPG(url)
+            this.epgs[url] = new EPG(url, this.trias)
             this.epgs[url].start().then(() => {
                 utils.emit('update', url)
             }).catch(err => {
@@ -648,107 +700,88 @@ class EPGManager extends EPGPaginateChannelsList {
         }
         return {categories, updateAfter}
     }
-    async expandRecommendations(cats, limit=1532){
-        const relatedTerms = []
-        const tasks = Object.values(this.epgs).map(({db}) => {
-            return async () => {
-                if(db === undefined || db.state !== 'loaded') return
-                for await (const programme of db.walk({c: Object.keys(cats)})) {
-                    if(programme.c && programme.c.length){
-                        let score = 0
-                        for(const t of programme.c) {
-                            if(typeof(cats[t]) != 'undefined') {
-                                score += cats[t]
-                            }
-                        }
-                        for(const t of programme.c) {
-                            if(typeof(cats[t]) != 'undefined') return
-                            if(typeof(relatedTerms[t]) == 'undefined'){
-                                relatedTerms[t] = 0
-                            }
-                            relatedTerms[t] += score
-                        }
-                    }
-                }
-            }
-        })
-        await Promise.allSettled(tasks.map(this.limit))
-        return this.equalize(relatedTerms, limit)
-    }
-    equalize(tags, limit) {
-        let max = 0
-        const ret = {}, pass = new Set(Object.keys(tags).sort((a, b) => relatedTerms[b] - relatedTerms[a]).slice(0, limit))
-        for(const t in pass) {
-            if(tags[t] > max) {
-                max = tags[t]
-            }
-            ret[t] = tags[t]
-        }
-        for(const t in ret) {
-            ret[t] = ret[t] / max
-        }
-        return ret
-    }
-    async getRecommendations(categories, until, limit = 24, searchTitles) {
-        const lcCategories = new Set(Object.keys(categories))
-        const now = time()
-        if (!lcCategories.size) return {}
-    
-        let results = []
-        if (!until) until = now + (6 * 3600)
-    
-        const processProgramme = (programme, ch) => {
-            const start = programme.start
-            if (programme.e > now && parseInt(start) <= until) {
-                let added = false
-                if (Array.isArray(programme.c)) {
-                    for (const c of programme.c) {
-                        if (lcCategories.has(c)) {
-                            results.push({ ...programme, meta: { ch, start, score: 0 } })
-                            added = true
-                            break
-                        }
-                    }
-                }
-                if (!added && searchTitles) {
-                    const lct = (programme.t + ' ' + programme.c.join(' ')).toLowerCase()
-                    if ([...lcCategories].some(l => lct.includes(l))) {
-                        results.push({ ...programme, meta: { ch, start, score: 0 } })
-                    }
-                }
-            }
-        }
-    
+    async queryTags(terms) {
+        if(!terms.length) return [];
+        const query = {c: terms}, results = []
         for (const url in this.epgs) {
-            if (this.epgs[url].state !== 'loaded') continue
-            const db = this.epgs[url].db
-            for (const ch of db.indexManager.readColumnIndex('ch')) {
-                const programmes = await db.query({ ch, start: { '<=': until }, e: { '>': now } })
-                programmes.forEach(programme => processProgramme(programme, ch))
+            if (this.epgs[url].state !== 'loaded') continue;
+            const { db } = this.epgs[url];
+            for await (const programme of db.walk(query, {caseInsensitive: true, matchAny: true})) {
+                results.push(programme)
             }
         }
+        return results;
+    }
+    prepareRegex(arr) {
+        if(!this._prepareRegex) {
+            this._prepareRegex = new RegExp('[.*+?^${}()[\\]\\\\]', 'g')
+        }
+        let ret = arr.map(c => c.toLowerCase().trim()).filter(c => c).join('|').replace(this._prepareRegex, '\\$&').replace(new RegExp('\\|+', 'g'), '|')
+        if(ret.startsWith('|')) {
+            ret = ret.slice(1)
+        }
+        if(ret.endsWith('|')) {
+            ret = ret.slice(0, -1)
+        }
+        return new RegExp(ret, 'i')
+    }
+    async getRecommendations(categories, until, limit = 24, searchTitles) {    
+        
+        const now = time();
+        const maxResultSetSize = 4096;
+        const lcCategoriesArr = Object.keys(categories).map(c => c.toLowerCase().trim()).filter(c => c);
+        const lcCategories = new Set(lcCategoriesArr);
+        const searchTitlesRegex = this.prepareRegex(lcCategoriesArr);
+
+        if (!lcCategories.size) {
+            return {};
+        }
     
-        results.forEach(result => {
-            if (result.c && result.c.length) {
-                result.score = result.c.reduce((score, t) => score + (categories[t] || 0), 0)
+        if (!until) until = now + (6 * 3600);
+        
+        let prs = await this.queryTags([...lcCategories]);
+        const resultsMap = new Map();
+
+        for (const programme of prs) {
+            processProgramme(programme, programme.ch);
+            if (resultsMap.size >= maxResultSetSize) break;
+        }
+
+        function processProgramme(programme, ch) {
+            const start = programme.start;
+            if (programme.e > now && parseInt(start) <= until) {
+                let isMatch = false;
+                let score = 0;
+                
+                if (Array.isArray(programme.c) && programme.c.some(c => lcCategories.has(c))) {
+                    isMatch = true;
+                    // Cálculo do score incremental, logo no processamento
+                    score = programme.c.reduce((s, t) => s + (categories[t] || 0), 0);
+                } else if (searchTitles && programme.t.match(searchTitlesRegex)) {
+                    isMatch = true;
+                    score = programme.c ? programme.c.reduce((s, t) => s + (categories[t] || 0), 0) : 0;
+                }
+                
+                if (isMatch) {
+                    // Se já existe um resultado com o mesmo título, mantemos aquele com maior score
+                    const existing = resultsMap.get(programme.t);
+                    if (!existing || score > existing.meta.score) {
+                        resultsMap.set(programme.t, { ...programme, meta: { ch, start, score } });
+                    }
+                }
             }
-        })
-    
-        const already = new Set()
-        results = results.sort((a, b) => b.score - a.score).filter(r => {
-            if (already.has(r.t)) return false
-            already.add(r.t)
-            return true
-        }).slice(0, limit)
-    
+        }
+
         const ret = {}
-        results.forEach(row => {
-            if (!ret[row.meta.ch]) ret[row.meta.ch] = {}
-            ret[row.meta.ch][row.meta.start] = row
-            delete row.meta
-        })
-    
-        return ret
+        Array.from(resultsMap.values())
+            .sort((a, b) => b.meta.score - a.meta.score)
+            .slice(0, limit).forEach(row => {
+                if (!ret[row.meta.ch]) ret[row.meta.ch] = {};
+                ret[row.meta.ch][row.meta.start] = row;
+                delete row.meta;
+            });
+
+        return ret;
     }
     extractTerms(c){
         if(Array.isArray(c)){
@@ -897,26 +930,21 @@ class EPGManager extends EPGPaginateChannelsList {
         for(const url in this.epgs) {
             if(this.epgs[url].state !== 'loaded') continue
             const db = this.epgs[url].db
-            const availables = db.indexManager.readColumnIndex('ch')
-            for(const ch of availables) {
-                const query = {ch, e: {'>': now}}
-                if(nowLive) query['<='] = now
-                for await (const programme of db.walk(query)) {
-                    let t = programme.t
-                    if(programme.c.length){
-                        t += ' '+ programme.c.join(' ')
-                    }
-                    let pterms = listsTools.terms(t)
-                    if(listsTools.match(terms, pterms, true)){
-                        if(typeof(epgData[ch]) == 'undefined'){
-                            epgData[ch] = {}
-                        }
-                        epgData[ch][programme.start] = programme
-                    }
+            const query = {e: {'>': now}}
+            if(nowLive) query.start['<='] = now
+            const options = {scanTerms: terms}
+            for await (const programme of db.walk(query, options)) {
+                const ch = programme.ch
+                if(typeof(epgData[ch]) == 'undefined'){
+                    epgData[ch] = {}
                 }
+                epgData[ch][programme.start] = programme
             }
         }
         return epgData
+    }
+    async expandTags(tags, options){
+        return this.trias.getRelatedCategories(tags, options)
     }
     async validateChannels(data) {
         const processed = {}

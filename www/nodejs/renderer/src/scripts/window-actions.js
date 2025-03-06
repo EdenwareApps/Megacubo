@@ -183,9 +183,6 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 			this.enteredPipTimeMs = false
 			console.warn('leaved miniplayer')
 			document.body.classList.remove('miniplayer-android')
-			if(main.streamer && main.streamer.active){
-				main.streamer.enterFullScreen()	
-			}
 			if(this.appPaused){
 				clearTimeout(this.waitAppResumeTimer)
 				this.waitAppResumeTimer = setTimeout(() => {
@@ -218,9 +215,29 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 	}
 	setup(){
 		if(this.pip){
+			// orientation change listener to avoid enter PIP mode when the user is just rotating the device
+			let orientationChanging = 0
+			const orientationListener = () => {
+				if(orientationChanging) {
+					clearTimeout(orientationChanging)
+				} else {					
+					this.pip.autoPIP(false, 0, 0) // only if it was not already changing orientation
+				}
+				orientationChanging = setTimeout(() => {
+					orientationChanging = 0
+					stateListener()
+				}, 2000)
+			}
+			screen.orientation && screen.orientation.addEventListener('change', orientationListener)
+			window.addEventListener('resize', orientationListener)
+			window.addEventListener('orientationchange', orientationListener)
+
 			const stateListener = () => {
-				setTimeout(() => { // wait consolidated values
-					if(main.streamer.active && !main.streamer.isAudio && !main.streamer.casting) {
+				if(orientationChanging) return
+				setTimeout(() => { // wait a bit for consolidated values
+					if(orientationChanging) return
+					const shouldAutoPIP = main.streamer.active && !main.streamer.isAudio && !main.streamer.casting
+					if(shouldAutoPIP) {
 						const ratio = player.videoRatio()
 						const width = (240 * ratio) || 320
 						this.pip.autoPIP(true, (240 * player.videoRatio()) || 320, 240)
@@ -238,7 +255,7 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 				this.appPaused = true
 				let keepInBackground = this.backgroundModeLocks.length
 				let keepPlaying = this.backgroundModeLocks.filter(l => l != 'schedules').length
-				console.warn('app-pause', screenOff, keepInBackground, this.inPIP)
+				console.warn('app-pause', screenOff, keepInBackground, keepPlaying, this.inPIP)
 				if(main.streamer){
 					if(!keepPlaying){
 						keepPlaying = main.streamer.casting || main.streamer.isAudio
@@ -345,7 +362,10 @@ export class AndroidWinActions extends WinActionsMiniplayer {
         })
     }
 	seemsPIP(){
-		return window.innerHeight < (screen.height / 2)
+		// should not confuse with phone in portrait mode but the app with landscape orientation
+		// so we check if the height is less than half of the screen height
+		// and if the width is less than half of the screen width
+		return window.innerHeight < (screen.height / 2) && window.innerWidth < (screen.width * 0.7)
 	}
     enter(){
         return new Promise((resolve, reject) => {

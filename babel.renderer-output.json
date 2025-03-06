@@ -1,5 +1,4 @@
 {
-    "allowAllFormats": true,
     "presets": [
         [
             "@babel/preset-env",
@@ -11,19 +10,13 @@
                 },
                 "useBuiltIns": false,
                 "corejs": false,
-                "modules": false,
-                "exclude": [
-                    "transform-typeof-symbol"
-                ]
+                "forceAllTransforms": true,
+                "bugfixes": true,
+                "exclude": ["transform-typeof-symbol"]
             }
         ]
     ],
     "plugins": [
-        [
-            "babel-plugin-transform-modules-iife", {
-                "exportNamespace": "App"
-            }
-        ],
         "@babel/plugin-transform-class-properties"
     ]
 }

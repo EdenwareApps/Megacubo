@@ -17,6 +17,7 @@ import Reader from '../reader/reader.js';
 import closed from '../on-closed/on-closed.js';
 import config from '../config/config.js'
 import renderer from '../bridge/bridge.js'
+import { stringify } from '../serialize/serialize.js'
 
 class IconDefault {
     constructor() {
@@ -276,7 +277,7 @@ class IconServerStore extends IconSearch {
             return { key, file, isAlpha: ret == 2 };
         }
         if (typeof(url) != 'string' || !url.includes('//')) {
-            throw 'bad url ' + crashlog.stringify(url);
+            throw 'bad url ' + stringify(url);
         }
         const key = this.key(url);
         if (this.opts.debug) {

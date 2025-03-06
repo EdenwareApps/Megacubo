@@ -60,9 +60,15 @@
 <div class="curtain curtain-a"></div>
 <div class="curtain curtain-b"></div>
 <div id="paused-layer" class="control-layer" aria-hidden="true">
-    <span class="control-layer-icon">
+    <button class="control-layer-icon cl-icon-play">
         <i class="fas fa-play"></i>
-    </span>
+    </button>
+    <button class="control-layer-icon cl-icon-stop">
+        <i class="fas fa-stop"></i>
+    </button>
+    <button class="control-layer-icon cl-icon-menu">
+        <i class="fas fa-th"></i>
+    </button>
 </div>
 <div id="audio-layer" class="control-layer" aria-hidden="true">
     <span class="control-layer-icon">
@@ -198,6 +204,19 @@ video {
     -webkit-mask-image: var(--controls-mask-image);
 }
 
+a.control-layer-icon, button.control-layer-icon {
+    pointer-events: all !important;
+    color: var(--font-color);
+    background-color: transparent;
+    font-size: inherit;
+    border-width: 0;
+    cursor: pointer;
+}
+
+a.selected.control-layer-icon {
+    filter: drop-shadow(0 0 1vmin #ffffff);
+}
+
 body.menu-playing .control-layer,
 body:not(.video) .control-layer {
     display: none;
@@ -278,6 +297,11 @@ body.idle div#loading-layer>.control-layer-icon {
     display: none;
 }
 
+#paused-layer .control-layer-icon a {
+    color: var(--font-color);
+    text-decoration: none;
+}
+
 body.video-loading #loading-layer {
     opacity: 1;
 }
@@ -323,10 +347,14 @@ body.video controls {
     transform: scale(var(--menu-fx-nav-inflate));
 }
 
-controls>div {
+controls > div {
     display: flex;
     align-items: center;
     height: var(--controls-height);
+}
+
+body.seeking controls > div {
+    opacity: var(--opacity-level-2);
 }
 
 div#streamer-info {
@@ -339,8 +367,8 @@ div#streamer-info {
     transition: opacity var(--menu-fx-nav-duration) ease-in-out 0s;
 }
 
-div#streamer-info>div {
-    background-color: rgba(0, 0, 0, 0.5);
+div#streamer-info > div {
+    background-color: var(--shadow-background-color);
     color: #fff;
     display: inline-flex;
     flex-direction: column;
@@ -375,7 +403,7 @@ seekbar {
     cursor: wait;
 }
 
-seekbar>div {
+seekbar > div {
     padding: 0;
     display: block;
     pointer-events: none;
@@ -383,9 +411,14 @@ seekbar>div {
     margin-top: calc(-1 * var(--padding));
     background-color: rgba(255, 255, 255, 0.1);
     box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
+    transition: box-shadow 0.1s ease-in, transform 0.1s ease-in !important;
 }
 
-seekbar>div>div {
+seekbar > div.selected {
+    box-shadow: 0 0 18px rgba(0, 0, 0, 1);
+}
+
+seekbar > div > div {
     padding: 0;
     display: block;
     pointer-events: none;
@@ -452,6 +485,10 @@ body.miniplayer-android div#paused-layer {
     padding: 0;
 }
 
+div#paused-layer span {
+    cursor: pointer;
+}
+
 controls span.filler {
     flex-grow: 1;
 }
@@ -468,10 +505,11 @@ controls button {
     justify-content: center;
     opacity: 0.9;
     margin: 0 0 0 1.5%;
+    transition: transform 0.1s ease-in, opacity 0.1s ease-in;
 }
 
 body.video controls button span.button-icon {
-    transition: -webkit-mask-image 0.2s linear;
+    transition: -webkit-mask-image 0.2s ease-in;
     mask-image: var(--controls-mask-image);
     -webkit-mask-image: var(--controls-mask-image);
 }
@@ -493,7 +531,6 @@ controls button:hover:not(#info) span.button-icon,
 controls button:active:not(#info) span.button-icon {
     mask-image: none;
     -webkit-mask-image: none;
-    filter: drop-shadow(0 0 1vmin #ffffff);
 }
 
 controls button span.status {

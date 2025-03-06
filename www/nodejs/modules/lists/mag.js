@@ -40,12 +40,10 @@ class Mag extends EventEmitter {
         let err;
         let path = endpoint;
         const options = {
-            timeout: 15,
+            timeout: 30,
             responseType: 'json',
             keepalive: true,
             maxAuthErrors: 0,
-            maxAbortErrors: 1,
-            redirectionLimit: 1,
             headers: this.headers,
             progress
         };
@@ -70,7 +68,8 @@ class Mag extends EventEmitter {
             }
             throw err;
         }
-        return data.js || data;
+        if(data === undefined) return {};
+        return data?.js || data;
     }
     async getVODStreams(progress) {
         if (!this.genres.vod) {
@@ -79,9 +78,11 @@ class Mag extends EventEmitter {
                 type: 'vod',
                 JsHttpRequest: '1-xml'
             });
-            this.genres.vod = {};
-            for (const genre of genres) {
-                this.genres.vod[genre.id] = genre.title;
+            this.genres.vod = {}
+            if(genres) {
+                for (const genre of genres) {
+                    this.genres.vod[genre.id] = genre.title;
+                }
             }
         }
         let i = 0;
@@ -110,10 +111,12 @@ class Mag extends EventEmitter {
                 action: 'get_genres',
                 p: 1,
                 JsHttpRequest: '1-xml'
-            });
+            }).catch(console.error);
             this.genres.live = {};
-            for (const genre of genres) {
-                this.genres.live[genre.id] = genre.title;
+            if(genres && typeof(genres) == 'object') {
+                for (const genre of genres) {
+                    this.genres.live[genre.id] = genre.title;
+                }            
             }
         }
         const chs = await this.execute({
@@ -121,7 +124,7 @@ class Mag extends EventEmitter {
             action: 'get_all_channels',
             JsHttpRequest: '1-xml'
         }, progress);
-        this.emitEntries(chs.data, 'live');
+        this.emitEntries(chs?.data || [], 'live');
     }
     async prepare() {
         if (this.headers.authorization)
@@ -174,8 +177,6 @@ class Mag extends EventEmitter {
             responseType: 'json',
             keepalive: true,
             maxAuthErrors: 0,
-            maxAbortErrors: 1,
-            redirectionLimit: 1,
             headers: this.headers
         };
         const data = await Download.head(options).catch(e => err = e);

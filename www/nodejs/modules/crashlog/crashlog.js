@@ -5,6 +5,7 @@ import fs from "fs";
 import FormData from "form-data";
 import http from "http";
 import cloud from "../cloud/cloud.js";
+import { prepare, stringify } from "../serialize/serialize.js";
 
 class Crashlog {
     constructor() {
@@ -12,48 +13,18 @@ class Crashlog {
         this.crashFile = folder + '/crash.txt'; // unreported crashes
         this.crashLogFile = folder + '/crashlog.txt'; // reported crashes
     }
-    replaceCircular(val, cache) {
-        cache = cache || new WeakSet();
-        if (val && typeof(val) == 'object') {
-            if (cache.has(val))
-                return '[Circular]';
-            cache.add(val);
-            var obj = (Array.isArray(val) ? [] : {});
-            for (var idx in val) {
-                obj[idx] = this.replaceCircular(val[idx], cache);
-            }
-            if (val['stack']) {
-                obj['stack'] = this.replaceCircular(val['stack']);
-            }
-            cache.delete(val);
-            return obj;
-        }
-        return val;
-    }
     save(...args) {
         let revision = '10000'
         if(paths.manifest.megacubo && paths.manifest.megacubo.revision) {
             revision = paths.manifest.megacubo.revision
         }
-        fs.appendFileSync(this.crashFile, this.stringify(Array.from(args)).replaceAll("\\n", "\n") + "\r\n" + JSON.stringify({
+        fs.appendFileSync(this.crashFile, stringify(Array.from(args)).replaceAll("\\n", "\n") + "\r\n" + stringify({
             version: paths.manifest ? paths.manifest.version : '',
             platform: process.platform, 
             release: os.release(), arch: os.arch(), revision,
             date: (new Date()).toString(),
             lang: typeof(lang) != 'undefined' && lang ? lang.locale : ''
         }) + "\r\n\r\n");
-    }
-    stringify(data) {
-        return JSON.stringify(this.replaceCircular(data), (key, value) => {
-            if (value instanceof Error) {
-                var error = {};
-                Object.getOwnPropertyNames(value).forEach(function (propName) {
-                    error[propName] = value[propName];
-                });
-                return error;
-            }
-            return value;
-        }, 3);
     }
     async read() {        
         let content = '';

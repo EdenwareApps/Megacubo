@@ -3,10 +3,11 @@ import lang from '../../lang/lang.js';
 import { EventEmitter } from 'events';
 import Countries from '../../countries/countries.js';
 import cloud from '../../cloud/cloud.js';
-import config from '../../config/config.js'
-import renderer from '../../bridge/bridge.js'
-import { insertEntry, kfmt, listNameFromURL } from '../../utils/utils.js'
-import pLimit from 'p-limit'
+import config from '../../config/config.js';
+import renderer from '../../bridge/bridge.js';
+import storage from '../../storage/storage.js';
+import { insertEntry, kfmt, listNameFromURL } from '../../utils/utils.js';
+import pLimit from 'p-limit';
 
 const FreeTVMap = {
     'al': ['playlist_albania.m3u8'],
@@ -218,8 +219,18 @@ class PublicLists extends EventEmitter {
                                     name: n.name,
                                     type: 'action',
                                     selected: def == n.value,
-                                    action: () => {
+                                    action: async () => {
                                         config.set('public-lists', n.value)
+                                        if(n.value == 'only') {
+                                            const prev = config.get('channel-grid')
+                                            if(prev != 'xxx') {
+                                                await storage.set('previous-channel-grid', prev).catch(console.error)
+                                                await global.channels.setGridType('xxx').catch(console.error)
+                                            }
+                                        } else if(config.get('channel-grid') == 'xxx') {
+                                            const prev = await storage.get('previous-channel-grid')
+                                            await global.channels.setGridType(prev || '').catch(console.error)
+                                        }
                                         process.nextTick(() => global.menu.refreshNow())
                                     }
                                 }

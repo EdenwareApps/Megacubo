@@ -10,7 +10,8 @@ import parseRange from "range-parser";
 import { temp } from '../paths/paths.js';
 import fs from 'fs';
 import config from "../config/config.js"
-import { absolutize, getDomain, isWritable, kbfmt, parseJSON,  time, traceback, validateURL } from '../utils/utils.js'
+import { absolutize, getDomain, isWritable, kbfmt,  time, traceback, validateURL } from '../utils/utils.js'
+import { parse } from '../serialize/serialize.js'
 
 class Download extends EventEmitter {
     constructor(opts) {
@@ -954,7 +955,7 @@ class Download extends EventEmitter {
                         break;
                     case 'json':
                         try {
-                            data = JSON.parse(String(data)); // use JSON.parse instead of parseJSON to catch any error
+                            data = JSON.parse(String(data)); // use JSON.parse instead of parse to catch any error
                         } catch (e) {
                             Download.cache.invalidate(this.opts.url)
                             Download.cache.invalidate(this.currentURL)

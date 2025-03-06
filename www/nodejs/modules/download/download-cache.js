@@ -1,8 +1,8 @@
-import storage from '../storage/storage.js'
 import { EventEmitter } from 'events';
+import fs from 'fs';
+import storage from '../storage/storage.js'
 import Reader from '../reader/reader.js';
 import Writer from '../writer/writer.js';
-import fs from 'fs';
 import config from '../config/config.js'
 
 const url2id = url => {

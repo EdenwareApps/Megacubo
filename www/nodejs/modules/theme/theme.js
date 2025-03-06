@@ -1,4 +1,4 @@
-import { basename, moveFile, parseJSON, sanitize } from "../utils/utils.js";
+import { basename, moveFile, sanitize } from "../utils/utils.js";
 import Download from '../download/download.js'
 import osd from '../osd/osd.js'
 import menu from '../menu/menu.js'
@@ -13,6 +13,7 @@ import options from "../options/options.js";
 import cloud from "../cloud/cloud.js";
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
+import { parse } from '../serialize/serialize.js'
 
 class Theme extends EventEmitter {
     constructor() {
@@ -166,7 +167,7 @@ class Theme extends EventEmitter {
             } else {
                 let e
                 try {
-                    e = parseJSON(String(content))
+                    e = parse(String(content))
                     if (e) {
                         themes[ffile] = Object.assign({ 'theme-name': n }, e)
                     }

@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { exec } from 'child_process';
+import { exec } from 'node:child_process';
 import { clone, kbfmt } from '../utils/utils.js';
 import { default as cds } from 'check-disk-space';
 import osd from '../osd/osd.js'

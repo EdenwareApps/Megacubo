@@ -5,7 +5,8 @@ import fs from 'fs/promises'
 import config from '../config/config.js'
 import paths from '../paths/paths.js'
 import { EventEmitter } from 'events'
-import { getDomain, parseJSON } from '../utils/utils.js'
+import { getDomain } from '../utils/utils.js'
+import { parse } from '../serialize/serialize.js'
 
 class CloudConfiguration extends EventEmitter {
     constructor(opts = {}) {
@@ -167,7 +168,7 @@ class CloudConfiguration extends EventEmitter {
         const filePath = paths.cwd + `/dist/defaults/${key}.json`
         try {
             const content = await fs.readFile(filePath, 'utf8')
-            return parseJSON(content)
+            return parse(content)
         } catch (error) {
             this.logDebug(`Fallback failed for ${key}`, error)
             throw error

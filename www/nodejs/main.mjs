@@ -1,6 +1,6 @@
 import paths from './modules/paths/paths.js'
 import electron from 'electron'
-import { spawn } from 'child_process'
+import { spawn } from 'node:child_process'
 import path from 'path'
 import crashlog from './modules/crashlog/crashlog.js'
 import onexit from 'node-cleanup'
@@ -24,14 +24,15 @@ import renderer from './modules/bridge/bridge.js'
 import storage from './modules/storage/storage.js'
 import channels from './modules/channels/channels.js'
 import { getFilename } from 'cross-dirname'
-import { createRequire } from 'module'
+import { createRequire } from 'node:module'
 import menu from './modules/menu/menu.js'
 import { moment, rmdirSync, ucWords } from './modules/utils/utils.js'
 import osd from './modules/osd/osd.js'
 import ffmpeg from './modules/ffmpeg/ffmpeg.js'
 import promo from './modules/promoter/promoter.js'
 import mega from './modules/mega/mega.js'
-                
+import { stringify } from './modules/serialize/serialize.js'
+
 // set globally available objects
 Object.assign(global, {
     channels,
@@ -75,7 +76,7 @@ process.on('unhandledRejection', (reason, promise) => {
     crashlog.save('Unhandled rejection at:', promise, 'reason:', reason)
 })
 process.on('uncaughtException', exception => {
-    console.error('uncaughtException: ' + crashlog.stringify(exception), exception.stack)
+    console.error('uncaughtException: ' + stringify(exception), exception.stack)
     crashlog.save('uncaughtException', exception)
     return false
 })
@@ -683,6 +684,5 @@ if (paths.android) {
     }
     initAppWindow().catch(console.error)
 }
-console.log('[main] Main initialized.')
 
-export default {paths, config, osd, channels, lists, energy, lang, options, streamer, storage, renderer}
+console.log('[main] Main initialized.')

@@ -80,7 +80,7 @@ export class Fetcher extends EventEmitter {
             }
         }
     }
-    async fetch() {
+    async fetchAll() {
         await this.ready();
         return await this.list.fetchAll();
     }

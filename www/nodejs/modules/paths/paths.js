@@ -4,7 +4,7 @@ import { tmpdir } from "os";
 import envPaths from "env-paths";
 import { getDirname, getFilename } from 'cross-dirname'
 import { workerData } from 'worker_threads'
-import { createRequire } from 'module';
+import { createRequire } from 'node:module';
 
 const paths = {}
 paths.inWorker = workerData && Object.keys(workerData).length

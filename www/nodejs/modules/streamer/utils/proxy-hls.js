@@ -210,9 +210,6 @@ class HLSRequests extends StreamerProxyBase {
                 next = journal[k].url;
                 break;
             }
-            if (this.debugConns && !next) {
-                console.warn('ALL CACHED IN: ' + journal[Object.keys(journal).pop()].url);
-            }
         }
         return next;
     }

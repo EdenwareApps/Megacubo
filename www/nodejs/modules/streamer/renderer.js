@@ -233,20 +233,23 @@ class StreamerState extends StreamerCasting {
                     main.emit('video-resumed')
                 }
                 this.state = s
-                console.log('STREAMER-STATE', this.state)
+                if(!this.playButton) {
+                    this.playButton = this.controls.querySelector('.play-button')
+                    this.pauseButton = this.controls.querySelector('.pause-button')
+                }
                 switch(this.state){
                     case 'paused':
-                        this.controls.querySelector('.play-button').style.display = 'inline-flex'
-                        this.controls.querySelector('.pause-button').style.display = 'none'
+                        this.playButton.style.display = 'inline-flex'
+                        this.pauseButton.style.display = 'none'
                         break
                     case 'loading':
                     case 'playing':
-                        this.controls.querySelector('.play-button').style.display = 'none'
-                        this.controls.querySelector('.pause-button').style.display = 'inline-flex'
+                        this.playButton.style.display = 'none'
+                        this.pauseButton.style.display = 'inline-flex'
                         break
                     case 'ended':                    
-                        this.controls.querySelector('.play-button').style.display = 'inline-flex'
-                        this.controls.querySelector('.pause-button').style.display = 'none'
+                        this.playButton.style.display = 'inline-flex'
+                        this.pauseButton.style.display = 'none'
                         main.emit('video-ended')
                         break
                     case 'error':
@@ -254,6 +257,7 @@ class StreamerState extends StreamerCasting {
                             main.emit('video-error', 'playback', data ? String(data.details || data) : 'playback error')
                             this.stop(true) // stop silently, to let server handle the video-error
                         }
+                        // do not break;
                     case '':
                         this.stop()
                         break
@@ -353,7 +357,6 @@ class StreamerState extends StreamerCasting {
         this.stateListening = true
     } 
     unbindStateListener(){
-        console.log('STREAMER-UNBINDSTATELISTENER')
         player.removeListener('state', this.stateListener)
         this.stateListening = false
     }
@@ -385,16 +388,13 @@ class StreamerState extends StreamerCasting {
                 }
             } else {
                 player.pause()
-                main.emit('streamer-pause')
+                main.emit('streamer-pause')                
             }
         }
     }
     playOrPauseNotIdle(){
-        let _idle = main.idle.isIdle || main.idle.lastIdleTime > ((Date.now() / 1000) - 0.5)
-        console.error('playOrPauseNotIdle() '+ (_idle?'Y':'N'), main.idle.isIdle, main.idle.lastIdleTime)
-        if(!_idle){
-            this.playOrPause()
-        }
+        const isIdle = main.idle.isIdle || (main.idle.lastIdleTime > ((Date.now() / 1000) - 0.5))
+        isIdle || this.playOrPause()
     }
     isTuning(){
         if(!main.osd) return ''
@@ -800,9 +800,9 @@ class StreamerSeek extends StreamerButtonActionFeedback {
         }
     }
     formatLocalTime(unixSecondsTimestamp) {
-        const locale = main.lang.locale, countryCode = main.lang.countryCode
+        const locale = main.lang.locale, countryCode = main.lang.countryCode || ''
         const date = new Date(unixSecondsTimestamp * 1000)
-        let fullLocale = `${locale}-${countryCode.toUpperCase()}`
+        let fullLocale = `${locale}${countryCode?'-'+countryCode.toUpperCase():''}`
         try {
             return new Intl.DateTimeFormat(fullLocale, {
                 hour: 'numeric',
@@ -811,12 +811,16 @@ class StreamerSeek extends StreamerButtonActionFeedback {
                 hour12: false
             }).format(date)
         } catch (error) {
-            return new Intl.DateTimeFormat(locale, {
-                hour: 'numeric',
-                minute: 'numeric',
-                second: 'numeric',
-                hour12: false,
-            }).format(date)
+            try {
+                return new Intl.DateTimeFormat(locale, {
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    second: 'numeric',
+                    hour12: false,
+                }).format(date)
+            } catch (error) {
+                return '00:00:00'
+            }
         }
     }
     seekBarReset(){
@@ -1012,14 +1016,36 @@ class StreamerSeek extends StreamerButtonActionFeedback {
     }
     seekRewind(steps=1){
         if(this.active){
+            this.setSeeking()
             let now = player.time(), nct = now - (steps * this.seekSkipSecs)
             this.seekTo(nct, 'rewind')
         }
     }
     seekForward(steps=1){
         if(this.active){
+            this.setSeeking()
             let now = player.time(), nct = now + (steps * this.seekSkipSecs)
             this.seekTo(nct, 'forward')
+        }
+    }
+    setSeeking(){
+        const c = document.body.classList
+        if(!this.seeking) {
+            this.seeking = true
+            this.emit('seeking')
+            c.add('seeking')
+        }
+        this.seekingTimer && clearTimeout(this.seekingTimer)
+        this.seekingTimer = setTimeout(() => this.unsetSeeking(), 2000)
+        main.menu.focus(this.seekbar.lastElementChild)
+    }
+    unsetSeeking(){
+        clearTimeout(this.seekingTimer)
+        this.seeking = false
+        this.emit('seeked')
+        document.body.classList.remove('seeking')
+        if(main.menu.selected() == this.seekbar.lastElementChild) {
+            
         }
     }
 }
@@ -1490,7 +1516,7 @@ class StreamerClientControls extends StreamerAudioUI {
         this.emit('draw')
         document.querySelector('#menu').addEventListener('click', e => {
             if(e.target.id == 'menu'){
-                if(this.active && !main.menu.inModal() && !main.menu.isExploring()){
+                if(this.active && !main.menu?.inModal() && !main.menu?.isVisible()){
                     this.playOrPauseNotIdle()
                 }
             }
@@ -1691,7 +1717,6 @@ export class StreamerClient extends StreamerClientController {
         })
         main.on('streamer-disconnect', (err, autoTuning) => {
             this.unbindStateListener()
-            console.warn('DISCONNECT', err, autoTuning)
             this.autoTuning = autoTuning
             this.stop(true)  
         })

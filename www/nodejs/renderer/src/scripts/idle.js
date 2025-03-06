@@ -58,14 +58,14 @@ export class Idle extends EventEmitter {
         this.reset()
     }
     reset(){
-        if(!this.locked){
+        if(!this.locked) {
             var now = parseInt(Date.now() / 1000)
             if(now <= this.lastResetTime) return // cap to 1 call/sec
             this.isAway = false
             this.lastResetTime = now
             clearTimeout(this.awayTimer)
             clearTimeout(this.idleTimer)
-            if(this.idle){
+            if(this.idle) {
                 this.lastIdleTime = now
                 this.isIdle = this.idle = false
                 this.isAway = false
@@ -76,7 +76,7 @@ export class Idle extends EventEmitter {
     }
     start(){
         if(!this.locked){
-            if (!this.idle){
+            if (!this.idle) {
                 this.idleTime = Date.now() / 1000
                 this.isIdle = this.idle = true
                 this.emit('idle')

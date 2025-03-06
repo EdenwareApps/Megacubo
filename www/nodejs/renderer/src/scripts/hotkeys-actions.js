@@ -37,6 +37,11 @@ export const hotkeysActions = {
             // ...
         }, 'up', true
     ],
+    'SHOW_HIDE_MENU': [
+        () => {
+            main.hotkeys.tabPressed()
+        }, 'up', true
+    ],
     'ESCAPE': [
         () => {            
             main.hotkeys.escapePressed()
@@ -134,11 +139,7 @@ export const hotkeysActions = {
     ],
     'RELOAD': [
         () => {
-            if(streamer.isZapping){
-                main.emit('zap')
-            } else {
-                main.emit('reload-dialog')
-            }
+            main.hotkeys.reload()
         }, 'up', true
     ],
     'MINIPLAYER': [

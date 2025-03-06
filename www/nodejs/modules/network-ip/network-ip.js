@@ -1,5 +1,5 @@
-import { execSync } from "child_process";
 import { networkInterfaces } from "os";
+import { execSync } from "node:child_process";
 
 class NetworkIP {
     constructor() {

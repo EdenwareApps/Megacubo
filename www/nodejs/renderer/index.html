@@ -21,10 +21,6 @@
                 align-items: center;
                 justify-content: center;
                 background-color: #100927;
-                background-image: url(./assets/images/default_icon_white.png);
-                background-position: center center;
-                background-repeat: no-repeat;
-                background-size: 25vmin 25vmin;
                 transition: background-color 1.5s ease-in 0s;
 				position: fixed;
                 top: 0;
@@ -57,6 +53,56 @@
 				animation-timing-function: ease-in-out;
 				animation-iteration-count: infinite;
 			}
+            div.splash-logo {
+                width: 100vw;
+                height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            div.splash-logo > div {
+                width: 25vmin;
+                height: 25vmin;
+                background-image: url(./assets/images/default_icon_white.png);
+                background-position: center center;
+                background-repeat: no-repeat;
+                background-size: 25vmin 25vmin;
+                -webkit-animation-duration: 2s;
+                animation-duration: 2s;
+                -webkit-animation-fill-mode: both;
+                animation-fill-mode: both;
+                opacity: 0;
+            }
+
+            @keyframes flipInX {
+                0% {
+                    transform: perspective(400px) rotateX(180deg);
+                    -webkit-transform: perspective(400px) rotateX(180deg);
+                    opacity: 0;
+                }
+
+                /* 40% {
+                    transform: perspective(400px) rotateX(-20deg);
+                }
+
+                70% {
+                    transform: perspective(400px) rotateX(10deg);
+                } */
+
+                100% {
+                    transform: perspective(400px) rotateX(0deg);
+                    -webkit-transform: perspective(400px) rotateX(0deg);
+                    opacity: 1;
+                }
+            }
+
+            .splash-logo-animate {
+                -webkit-backface-visibility: visible !important;
+                -webkit-animation-name: flipInX;
+                backface-visibility: visible !important;
+                animation-name: flipInX;
+            }
+
 			@keyframes splash-progress-spinner {
 				0% {
 					transform: translateX(-10vw) scaleX(0.1);
@@ -80,9 +126,12 @@
         </style>
         <script type="text/javascript">
             var menu, config
-            function isUACompatible() {     
+            function chromeVersion() {     
                 var raw = navigator.userAgent.match(new RegExp('Chrom(e|ium)\/([0-9]+)\.'))
-                return raw ? (parseInt(raw[2], 10) >= 60) : false
+                return raw ? parseInt(raw[2], 10) : 0
+            }
+            function isUACompatible() {     
+                return chromeVersion() >= 68
             }
             function updateWebView(){
                 var msg, playStoreUrl = 'market://details?id=com.google.android.webview';
@@ -97,18 +146,24 @@
                         msg = 'You need to update your system\'s Google Chrome in order to run this app.';
                         break;
                 }
+                msg += '\n\nInstalled version: ' + chromeVersion() + '\nRequired version: 68';
                 alert(msg);
                 window.open(playStoreUrl, '_system')
-                setTimeout(() => window.close(), 5000)
             }
 			if (!window.top.api /* electron */ && !isUACompatible() /* capacitor */) {
 			    updateWebView()
-                document.documentElement.onclick = updateWebView
+                document.documentElement.onclick = function () {
+                    window.open('https://play.google.com/store/apps/details?id=com.google.android.webview', '_system')
+                    setTimeout(() => window.close(), 5000)
+                }
 		    }
         </script>
     </head>
     <body>
         <div id="splash">
+            <div class="splash-logo">
+                <div></div>
+            </div>
 			<div id="splash-progress">
 				<div>
 					<div></div>
@@ -117,35 +172,58 @@
         </div>
         <App></App>
 		<script type="text/javascript">
-			if(document.URL.endsWith('android')){
-				document.write('<scr'+'ipt type="text/javascript" src="./dist/capacitor.js"></scr'+'ipt>')
-                function setup() {
-                    let splashProgress = 0
-                    const splashEstimatedTime = parseInt(localStorage.getItem('splash-time-hint')) || 24000
-                    const splashProgressDiv = document.querySelector('#splash-progress')
-                    const splashProgressBar = splashProgressDiv.firstElementChild
-                    const splashTimer = setInterval(() => {
-                        splashProgress++
-                        splashProgressBar.style.width = splashProgress +'%'
-                        splashProgress >= 100 && clearInterval(splashTimer)
-                    }, splashEstimatedTime / 100)
-                    const splashMetrics = metrics => {
-                        if(!metrics || typeof(metrics.bottom) == 'undefined') return
-                        splashProgressDiv.style.bottom = metrics.bottom + 'px'
-                    }
-                    plugins.megacubo.once('metrics', splashMetrics)
-                    splashMetrics(plugins.megacubo.metrics)
+            const splashProgressDiv = document.querySelector('#splash-progress')
+            const isAndroid = document.URL.endsWith('android');
+            const loadScript = function (src, callback) {
+                const script = document.createElement('script')
+                script.type = 'text/javascript'
+                script.src = src
+                script.onload = callback
+                document.head.appendChild(script)
+            }
+			const setupSplashScreen = function () {
+                let splashProgress = 0
+                const splashEstimatedTime = parseInt(localStorage.getItem('splash-time-hint')) || 24000
+                const splashProgressBar = splashProgressDiv.firstElementChild
+                const splashTimer = setInterval(() => {
+                    splashProgress++
+                    splashProgressBar.style.width = splashProgress +'%'
+                    splashProgress >= 100 && clearInterval(splashTimer)
+                }, splashEstimatedTime / 100)
+            }
+			const setupSplashScreenMetrics = function () {
+                const splashMetrics = metrics => {
+                    if(!metrics || typeof(metrics.bottom) == 'undefined') return
+                    splashProgressDiv.style.bottom = metrics.bottom + 'px'
                 }
-                if (document.readyState === 'complete' || document.readyState === 'interactive') {
-                    setTimeout(setup, 1)
-                } else {
-                    document.addEventListener('DOMContentLoaded', setup)
-                }
+                plugins.megacubo.once('metrics', splashMetrics)
+                splashMetrics(plugins.megacubo.metrics)
+            }
+            const load = () => {
+                loadScript('./dist/renderer.js', () => {
+                    new App({target: document.querySelector('App')})
+                })
+            }
+            const loadCapacitor = callback => {
+                loadScript('./dist/capacitor.js', () => {
+                    callback && callback()
+                })
+            }
+
+            // start splash animation
+            document.addEventListener('DOMContentLoaded', setupSplashScreen)
+            setTimeout(() => document.querySelector('.splash-logo > div').classList.add('splash-logo-animate'), 150)
+
+            // load app
+            if(isAndroid) {
+                loadCapacitor(() => {
+                    setupSplashScreenMetrics()
+                    load()
+                })
+            } else {
+                splashProgressDiv.style.bottom = '0px'
+                load()
             }
 		</script>
-        <script type="text/javascript" src="dist/renderer.js"></script>
-        <script>
-            new App({target: document.querySelector('App')})
-        </script>
     </body>
 </html>

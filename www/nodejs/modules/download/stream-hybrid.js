@@ -38,7 +38,12 @@ class DownloadStream extends DownloadStreamBase {
             const via = new t(opts);
             this.once('destroy', () => via.destroy());
             via.once('error', (err, report) => {
-                (report || via == chosen) && console.error(err);
+                if (report || via == chosen) {
+                    if (String(err).includes('Not found') && this.opts.cachedOnly) {
+                        return
+                    }
+                    console.error('Download: error '+ via.type, err)
+                }
             });
             via.once('response', response => {
                 if (chosen)

@@ -63,7 +63,7 @@
             <div class="side-menu-toggle">
                 <div>
                     <span>
-                        <img src="assets/images/default_icon_white.png" alt="" style="width: 5vmax; height: 5vmax;" />
+                        <img src="assets/images/default_icon_white.png" alt="" style="width: 4vmax; height: 4vmax; margin: 0.5vmax 0;" />
                     </span>
                 </div>
             </div>
@@ -204,7 +204,7 @@ body.portrait {
     width: var(--padding);
     justify-content: center;
     border-radius: 100vw;
-    background: var(--modal-background-color);
+    background: transparent;
     padding: 0.75vmax 3vmax;
     color: var(--secondary-font-color);
     position: absolute;
@@ -212,7 +212,7 @@ body.portrait {
     opacity: 1;
     transition: opacity 0.15s ease-in 0s;
     align-self: center;
-    box-shadow: inset calc(var(--padding-quarter) * -0.5) 0 1.5vmin rgba(255,255,255, 0.175);
+    box-shadow: inset -0.1vmin 0 rgba(255,255,255, 0.175);
 }
 html.curtains-closed .side-menu-toggle > div > span, body.video .side-menu-toggle > div > span {
     background: black;
@@ -224,15 +224,15 @@ html.curtains-closed .side-menu-toggle > div > span, body.video .side-menu-toggl
 body.side-menu:not(.idle) .side-menu-toggle > div > span {
     background: var(--background-color);
 }
-body:not(.side-menu) .side-menu-toggle > div > span {
-    animation: shake 3.6s infinite ease-out;
+body:not(.side-menu) .side-menu-toggle > div > span > img {
+    animation: shake 5s infinite ease-out;
 }
 @keyframes shake {
     0% { margin-left: 0vh; }
-    84% { margin-left: 0vh; }
-    88% { margin-left: 0.5vh; }
     92% { margin-left: 0vh; }
-    96% { margin-left: 0.5vh; }
+    94% { margin-left: 0.5vh; }
+    96% { margin-left: 0vh; }
+    98% { margin-left: 0.5vh; }
     100% { margin-left: 0vh; }
 }
 #menubar {
@@ -248,10 +248,11 @@ body.video #menubar  {
     display: none;
 }
 body .side-menu-out {
-    transition: width 0.15s linear;
+    transition: width 0.15s ease-in;
     display: flex; 
     width: var(--nav-width);
     max-height: var(--menu-height);
+    padding-right: var(--padding-quarter); /* bugfix: avoid a white vertical line on menu-playing */
 }
 body.modal .side-menu-toggle {
     opacity: 0.25;
@@ -260,7 +261,7 @@ body.video:not(.menu-playing) .side-menu-out {
     display: none;
 }
 .side-menu-toggle i.fa-chevron-down {
-    animation: fa-shake 5s 3 linear;
+    animation: fa-shake 5s 3 ease-in;
     animation-iteration-count: infinite;
     transform: inherit;
 }
@@ -309,7 +310,7 @@ body.video.menu-playing #menu .menu-omni {
     visibility: visible !important;
 }
 #menu .menu-omni > span {
-    background: linear-gradient(to bottom, rgba(255,255,255,0.0625) 0%, rgba(255, 255, 255, 0.09) 100%);
+    background: linear-gradient(to bottom, var(--background-color) 0%, var(--shadow-background-color) 90%, rgba(0, 0, 0, 0.75) 90%, transparent 100%);
     border-radius: var(--padding-2x);
     min-width: calc(var(--menu-entry-name-font-size) * 14);
     text-align: left;
@@ -319,6 +320,7 @@ body.video.menu-playing #menu .menu-omni {
     vertical-align: middle;
     display: flex;
     flex-direction: row;
+    margin: 10vmin 0 12vmin 0;
 }
 #menu .menu-omni input {
     width: calc(100% - var(--menu-entry-name-font-size));    
@@ -470,6 +472,9 @@ body.side-menu wrap a .entry-wrapper span, body.side-menu wrap a .entry-cover-co
     box-sizing: border-box !important;
     white-space: pre-wrap;
 }
+body.video #menu a span.entry-wrapper {
+    background: var(--shadow-background-color) !important;
+}
 #menu nav a .entry-wrapper > span {
     margin-left: var(--padding-half);
     white-space: normal;
@@ -545,7 +550,7 @@ div#home-arrows > div > * {
     display: flex;
     position: relative;
     justify-content: left;
-    transition: -webkit-mask-image 0.2s linear;
+    transition: -webkit-mask-image 0.2s ease-in;
 }
 #menu content wrap {
     overflow-x: hidden;
@@ -660,6 +665,7 @@ body.portrait #menu content a .entry-icon-image i {
     border: 1px solid rgba(255, 255, 255, 0.009);
     width: calc(100% - 2px);
     height: calc(100% - 2px);
+    transition: transform 0.1s ease-in;
 }
 #menu content a.entry-cover span.entry-wrapper {
     border: 1px solid rgba(255,255,255,0.03) !important;
@@ -670,6 +676,23 @@ body.portrait #menu content a .entry-icon-image i {
     border-color: rgba(255, 255, 255, 0.009);
     background: linear-gradient(to top, rgba(150, 150, 150, 0.5) 0%, rgba(150, 150, 150, 0.75) 75%, rgba(150, 150, 150, 1) 100%);
     box-shadow: 0 0 2px white;
+}
+wrap a.selected {
+    overflow: visible !important;
+}
+wrap a.selected > span {
+    transform: scale(1.025);
+    transform-origin: center center;
+}
+controls button.selected span.button-icon, seekbar div.selected, a.control-layer-icon.selected, button.control-layer-icon.selected, div#arrow-down-hint i.selected {
+    transform-origin: center center;    
+    filter: drop-shadow(0 0 1vmin #ffffff);
+}
+seekbar div.selected {
+    transform: scaleY(2);
+}
+controls button.selected span.button-icon, a.control-layer-icon.selected, button.control-layer-icon.selected, div#arrow-down-hint i.selected {
+    transform: scale(1.25);
 }
 #menu content a span.entry-name, #menu content a span.entry-details {
     text-align: center;
@@ -794,6 +817,8 @@ body.menu-playing #menu {
 }
 body.video.menu-playing #main {
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.75) 0, rgba(0, 0, 0, 0.75) calc(100vh - var(--controls-height)), #000 100vh);
+    position: fixed;
+    top: 0;
 }
 #menu-playing-close {
     position: absolute;

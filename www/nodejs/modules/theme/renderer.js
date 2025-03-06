@@ -240,6 +240,8 @@ class Theme extends EventEmitter {
         let b = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.5)
         let c = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.55)
         let d = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.85)
+        let g = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.8)
+        let h = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.9)
 
         baseColor = [255, 255, 255]
         let e = hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, 0.32))
@@ -292,11 +294,10 @@ class Theme extends EventEmitter {
             background-color: ${bbg};
         }
         #menu a span.entry-wrapper {
-            background: linear-gradient(to top, ${a} 0%, ${b} 75%, ${c} 100%) !important;
+            background: linear-gradient(to top, ${g} 75%, ${h} 100%) !important;
             border: 1px solid ${b} !important;
         }
         #menu content a.selected span.entry-wrapper {
-            background: linear-gradient(to top, ${b} 0%, ${c} 75%, ${d} 100%) !important;
             border: 1px solid ${d} !important;
         }
         .modal-wrap > div {

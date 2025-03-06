@@ -16,9 +16,10 @@ import icons from '../icon-server/icon-server.js'
 import config from '../config/config.js'
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
-import { clone, insertEntry, parseCommaDelimitedURIs, parseJSON, moment, time, ts2clock } from '../utils/utils.js'
+import { clone, insertEntry, parseCommaDelimitedURIs, moment, time, ts2clock } from '../utils/utils.js'
 import Search from '../search/search.js'
 import Limiter from '../limiter/limiter.js'
+import { parse } from '../serialize/serialize.js'
 
 class ChannelsList extends EventEmitter {
     constructor(type, countries) {
@@ -567,7 +568,8 @@ class ChannelsEPG extends ChannelsData {
             let ret = { now }
             if (epgData.length) {
                 let s = time()
-                let next = epgData.filter(n => n.start > s).shift()
+                let next = epgData.filter(n => n && (n.start > s)).shift()
+                if(!next) throw 'not found 3'
                 let start = moment(next.start * 1000).fromNow()
                 start = start.charAt(0).toUpperCase() + start.slice(1)
                 ret[start] = next
@@ -1654,7 +1656,7 @@ class Channels extends ChannelsKids {
                     }
                     opts.push(this.exportImportOption());
                 }
-                if (config.get('parental-control') != 'remove') {
+                if (config.get('parental-control') != 'remove' && global.lists.parentalControl.lazyAuth()) {
                     opts.splice(opts.length - 2, 0, { name: lang.ADULT_CONTENT, type: 'action', selected: def == 'xxx', action: () => {
                         this.setGridType('xxx').catch(console.error)
                     }})
@@ -1708,7 +1710,7 @@ class Channels extends ChannelsKids {
     importFile(data) {
         console.log('Categories file', data);
         try {
-            data = parseJSON(data);
+            data = parse(data);
             if (typeof(data) == 'object') {
                 this.channelList.setCategories(data);
                 osd.show('OK', 'fas fa-check-circle faclr-green', 'options', 'normal');

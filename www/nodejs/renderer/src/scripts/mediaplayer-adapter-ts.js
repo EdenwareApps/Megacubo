@@ -1,5 +1,5 @@
 import {MediaPlayerAdapterHTML5Video} from './mediaplayer-adapter'
-import mpegts from './mpegts.js'
+import 'mpegts.js/src/mpegts.js'
 
 class MediaPlayerAdapterHTML5TS extends MediaPlayerAdapterHTML5Video {
 	constructor(container){

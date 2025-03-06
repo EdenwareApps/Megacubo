@@ -3,9 +3,7 @@ import Countries from "../countries/countries.js";
 import fs from "fs";
 import path from "path";
 import config from "../config/config.js"
-import { parseJSON } from '../utils/utils.js'
-
-const debug = false
+import { parse } from '../serialize/serialize.js'
 
 class Language extends EventEmitter {
     constructor() {
@@ -177,7 +175,7 @@ class Language extends EventEmitter {
         if (stat && stat.size) {
             let obj, content = await fs.promises.readFile(file, 'utf8');
             try {
-                obj = parseJSON(content);
+                obj = parse(content);
                 return obj;
             }
             catch (err) {

@@ -5,7 +5,7 @@ import paths from '../paths/paths.js'
 import lang from "../lang/lang.js";
 import menu from '../menu/menu.js'
 import { getFilename } from 'cross-dirname'
-import { createRequire } from 'module'
+import { createRequire } from 'node:module'
 import { insertEntry } from '../utils/utils.js'
 
 class PremiumHelper {

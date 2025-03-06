@@ -9,24 +9,30 @@ import Manager from "./manager.js";
 import List from "./list.js";
 import Discovery from "../discovery/discovery.js";
 import config from "../config/config.js"
+import MultiWorker from '../multi-worker/multi-worker.js';
+import lang from '../lang/lang.js';
 import { ready } from '../bridge/bridge.js'
 import { inWorker } from '../paths/paths.js'
 import { forwardSlashes, parseCommaDelimitedURIs, LIST_DATA_KEY_MASK } from "../utils/utils.js";
-import { getDirname } from 'cross-dirname'           
-import MultiWorker from '../multi-worker/multi-worker.js';
+import { getDirname } from 'cross-dirname';
+import { Trias } from 'trias';
+
+global.Trias = Trias;
 
 class ListsEPGTools extends Index {
     constructor(opts) {
         super(opts)
-        this.epgWorker = new MultiWorker()
-        this.epg = this.epgWorker.load(path.join(getDirname(), 'epg-worker.js'))
-        this.epg.loaded = null
-        this.epg.on('update', async () => {
-            const states = await this.epg.getState()
-            const loaded = states.info.filter(r => r.progress > 99).map(r => r.url)
-            this.epg.loaded = loaded.length ? loaded : null
-            this.emit('epg-update', states)
-        })
+        lang.ready().then(() => {
+            this.epgWorker = new MultiWorker()
+            this.epg = this.epgWorker.load(path.join(getDirname(), 'epg-worker.js')) // wait lang to be loaded
+            this.epg.loaded = null
+            this.epg.on('update', async () => {
+                const states = await this.epg.getState()
+                const loaded = states.info.filter(r => r.progress > 99).map(r => r.url)
+                this.epg.loaded = loaded.length ? loaded : null
+                this.emit('epg-update', states)
+            })
+        }).catch(console.error)
         ready(() => {
             config.on('change', keys => {
                 const key = 'epg-'+ lang.locale
@@ -166,10 +172,11 @@ class ListsEPGTools extends Index {
         }
     }
     async searchEPGs(limit = 24, mandatories) {
-        if(this.activeCountries === undefined) {
+        if(!Array.isArray(this.activeCountries)) {
             await this.resetEPGScoreCache()
         }
 
+        const activeCountries = this.activeCountries || await lang.getActiveCountries()
         let epgs = Object.keys(this.epgs)
         if (this.epg.loaded) {
             epgs.push(...this.epg.loaded.filter(u => !epgs.includes(u)))
@@ -182,14 +189,14 @@ class ListsEPGTools extends Index {
 
         const o = await cloud.get('configure', {shadow: false})
         if(o?.epg) {
-            for(const code of this.activeCountries) {
+            for(const code of activeCountries) {
                 if (o.epg[code] && !epgs.includes(o.epg[code])) {
                     epgs.push(o.epg[code])
                 }
             }
         }
         if (o?.epgs) {
-            for(const code of this.activeCountries) {
+            for(const code of activeCountries) {
                 if (o.epgs[code]) {
                     epgs.push(...o.epgs[code].filter(u => !epgs.includes(u)))
                 }
@@ -578,8 +585,8 @@ class Lists extends ListsEPGTools {
                     console.log('loadList else', url);
                 }
                 this.setListMeta(url, list.index.meta).catch(console.error)
-                if (list.index.meta['epg']) {
-                    const epgs = parseCommaDelimitedURIs(list.index.meta['epg'])
+                if (list.index?.meta?.epg) {
+                    const epgs = parseCommaDelimitedURIs(list.index.meta.epg)
                     for(const epg of epgs) {
                         if(!this.epgs[epg]) this.epgs[epg] = new Set()
                         this.epgs[epg].add(url)

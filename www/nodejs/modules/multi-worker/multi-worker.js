@@ -8,8 +8,9 @@ import config from "../config/config.js"
 import paths from '../paths/paths.js'
 import { EventEmitter } from "events";
 import { Worker } from 'worker_threads';
-import { basename, parseJSON } from '../utils/utils.js'
+import { basename } from '../utils/utils.js'
 import { getDirname } from 'cross-dirname'           
+import { parse, stringify } from '../serialize/serialize.js'
 
 const dirname = getDirname()
 const TERMINATING = new Set(['destroy', 'terminate'])
@@ -64,7 +65,7 @@ const setupConstructor = () => {
                                     }
                                 }
                                 catch (e) {
-                                    console.error('WORKER_ERR: ' + crashlog.stringify(self));
+                                    console.error('WORKER_ERR: '+ stringify(self));
                                 }
                                 return reject('worker already exited ' + file + ' ' + method);
                             }
@@ -244,7 +245,7 @@ const setupConstructor = () => {
                         let evtType = ret.data.substr(0, pos);
                         let evtContent = ret.data.substr(pos + 1);
                         if (evtContent.length) {
-                            evtContent = parseJSON(evtContent);
+                            evtContent = parse(evtContent);
                         }
                         if (typeof(evtContent) == 'object' && evtContent.type == 'Buffer') {
                             evtContent = Buffer.from(evtContent.data);

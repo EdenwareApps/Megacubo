@@ -7,18 +7,7 @@ import { Clock } from './clock'
 import { css, traceback } from './utils'
 import swipey from 'swipey.js'
 import FFmpegController from '../../../modules/ffmpeg/renderer'
-import { ImageProcessor  } from './image-processor'
-
-var maxAlerts = 8
-
-function exit() {
-	console.log('index exit()');
-	if (window.capacitor) {
-		window.capacitor.App.exitApp()
-	} else if (top == window) {
-		window.close();
-	}
-}
+import { ImageProcessor } from './image-processor'
 
 function openExternalFile(file, mimetype) {
 	console.log('openExternalFile', file);
@@ -71,7 +60,7 @@ function configUpdated() {
 }
 
 function handleSwipe(e) {
-    if (main.menu.inModal()) return
+    if (!main.menu || main.menu.inModal()) return
     console.log('swipey', e)
     let orientation = innerHeight > innerWidth ? 'portrait' : 'landscape'
     let swipeDist, swipeArea = ['up', 'down'].includes(e.direction) ? innerHeight : innerWidth
@@ -91,31 +80,31 @@ function handleSwipe(e) {
         console.log('SWIPE WEIGHT', swipeWeight)
         switch (e.direction) {
             case 'left':
-                if (main.menu.inPlayer() && !main.menu.isExploring()) {
+                if (main.menu.inPlayer() && !main.menu.isVisible()) {
                     main.hotkeys.arrowRightPressed(true)
                 }
                 break
             case 'right':
-                if (main.menu.inPlayer() && !main.menu.isExploring()) {
+                if (main.menu.inPlayer() && !main.menu.isVisible()) {
                     main.hotkeys.arrowLeftPressed(true)
                 }
                 break
             case 'up': // go down
                 if (main.menu.inPlayer()) {
-                    if (!main.menu.isExploring()) {
+                    if (!main.menu.isVisible()) {
                         main.hotkeys.arrowDownPressed(true)
                     }
                 }
                 break
             case 'down': // go up
                 if (main.menu.inPlayer()) {
-                    if (main.menu.isExploring()) {
+                    if (main.menu.isVisible()) {
                         if (!main.menu.wrap.scrollTop) {
                             main.emit('menu-playing', true)
                             document.body.classList.remove('menu-playing')
                         }
                     } else {
-                        main.hotkeys.arrowUpPressed(false)
+                        main.hotkeys.arrowUpPressed()
                     }
                 }
                 break
@@ -294,12 +283,9 @@ export const initApp = async () => {
     ([
         {
             level: 'default',
-            selector: '#menu wrap a, .menu-omni, body.video #menu-playing-close',
+            selector: ['#menu wrap a', 'body.video #menu-playing-close', '.menu-omni'],
             condition: () => {
-                return menu.isExploring() && !menu.inSideMenu()
-            },
-            resetSelector() {
-                return menu.viewportEntries()
+                return menu.isVisible() && !menu.inSideMenu()
             },
             default: true,
             overScrollAction: (direction, e) => {
@@ -347,7 +333,7 @@ export const initApp = async () => {
             selector: 'body.side-menu #menu nav a',
             condition: () => {
                 const inp = menu.inPlayer()
-                return menu.inSideMenu() && !menu.inModal() && menu.isExploring()
+                return menu.inSideMenu() && !menu.inModal() && menu.isVisible()
             },
             overScrollAction: (direction, e) => {
                 if (direction == 'up' || direction == 'down') {
@@ -370,28 +356,56 @@ export const initApp = async () => {
             level: 'modal',
             selector: '#modal-content input, #modal-content textarea, #modal-content .button, #modal-content a',
             condition: () => {
-                return menu.inModal()
+                return menu?.inModal()
             }
         },
         {
             level: 'player',
-            selector: 'controls button',
+            selector: [
+                '.control-layer-icon',
+                'controls button, div#arrow-down-hint i',
+                'seekbar > div'
+            ], // use array to force selector to keep this auto focus order
             condition: () => {
-                return menu.inPlayer() && !menu.inModal() && !menu.isExploring()
+                return menu.inPlayer() && !menu.inModal() && !menu.isVisible()
             },
             overScrollAction: direction => {
                 if (direction == 'down') {
                     menu.showWhilePlaying(true)
                     return true
                 } else if (direction == 'up') {
+                    menu.reset(true)
                     main.idle.start()
+                    main.idle.lock(1)
                     return true
                 }
             }
         }
     ]).forEach(menu.addSpatialNavigationLayout.bind(menu))
     main.on('streamer-ready', () => {
-        main.streamer.on('show', () => menu.selected())
+        const reset = () => menu.reset(true)
+        main.streamer.on('streamer-pause', reset)
+        main.streamer.on('start', () => {
+            main.menu.showWhilePlaying(false)
+            reset()
+        })
+        main.streamer.on('show', reset)
+        main.idle.on('active', () => {
+            if (menu.inPlayer() && !menu.isVisible()) {
+                const selected = menu.selected()
+                console.warn('idle active', selected, selected?.parentNode?.tagName?.toLowerCase() || null)
+                if (selected?.parentNode?.tagName?.toLowerCase() == 'seekbar') {
+                    reset()
+                }
+            }
+        })
+        main.menu.on('focus', e => {
+            if(e == main.streamer.seekbar.lastElementChild) {
+                main.streamer.setSeeking()
+            } else {
+                main.streamer.unsetSeeking()
+            }
+        })
         main.streamer.on('state', s => {
             if (s == 'playing' && menu.modalContainer && menu.modalContainer.querySelector('#modal-template-option-wait')) {
                 menu.endModal()
@@ -409,6 +423,33 @@ export const initApp = async () => {
                 menu.selected(true)
             }
         })
+        const buttons = {
+            play: document.querySelector('.control-layer-icon.cl-icon-play'),
+            stop: document.querySelector('.control-layer-icon.cl-icon-stop'),
+            menu: document.querySelector('.control-layer-icon.cl-icon-menu')
+        }
+        const titles = {
+            play: main.lang.PLAY,
+            stop: main.lang.STOP,
+            menu: main.lang.MORE
+        }
+        const actions = {
+            play: () => main.streamer.playOrPauseNotIdle(),
+            stop: () => {
+                if(main.streamer.casting) return main.streamer.castUIStop()
+                main.streamer.stop()
+            },
+            menu: () => menu.showWhilePlaying(true)
+        }
+        for(const k in buttons) {
+            buttons[k].setAttribute('title', titles[k])
+            buttons[k].setAttribute('aria-label', titles[k])
+            buttons[k].addEventListener('click', actions[k])
+        }
+        main.on('streamer-connect', () => {
+            menu.sideMenu(false, 'instant')
+        })
+        main.on('streamer-disconnect', () => menu.sideMenu(false, 'instant'))
         const WinActions = window.capacitor ? AndroidWinActions : ElectronWinActions
         window.winActions = new WinActions(main)
         main.on('open-file', (uploadURL, callbackId, mimetypes) => {
@@ -595,21 +636,34 @@ export const initApp = async () => {
     if(window.capacitor) { // tapping
         menu.sideMenu(false, 'instant')
         toggle.addEventListener('click', () => {
-            menu.inSideMenu() || menu.inModal() || menu.sideMenu(true)
+            menu.inSideMenu() || menu.inModal() || menu.sideMenu(true, 'smooth')
         })
+        swipey.add(document.body, handleSwipe, { diagonal: false })
     } else { // pc mouse hovering
         toggle.addEventListener('mouseenter', () => {
             menu.inSideMenu() || menu.inModal() || menu.sideMenu(true)
         })
         wrap.addEventListener('mouseenter', () => menu.sideMenu(false))
-    }
 
-    swipey.add(document.body, handleSwipe, { diagonal: false })
+        let autoScrollInterval = 0, autoScrollDirection = 'down', autoScrollFn = () => menu.arrow(autoScrollDirection), autoScrollClearTimer = () => clearInterval(autoScrollInterval);
+        for (const o of [
+            {element: verticalArrowTop, direction: 'up'},
+            {element: verticalArrowBottom, direction: 'down'}
+        ]) {
+            o.element.addEventListener('mouseenter', () => {
+                o.element.addEventListener('mouseleave', autoScrollClearTimer)
+                autoScrollClearTimer()
+                autoScrollDirection = o.direction
+                autoScrollInterval = setInterval(autoScrollFn, 750)
+                autoScrollFn()
+            })
+        }
+    }
 
     var mouseWheelMovingTime = 0, mouseWheelMovingInterval = 200;
     window.capacitor || ['mousewheel', 'DOMMouseScroll'].forEach(n => {
         window.addEventListener(n, event => {
-            if (!menu.inPlayer() || menu.isExploring()) return
+            if (!menu.inPlayer() || menu.isVisible()) return
             let now = (new Date()).getTime()
             if (now > (mouseWheelMovingTime + mouseWheelMovingInterval)) {
                 mouseWheelMovingTime = now
@@ -640,7 +694,7 @@ export const initApp = async () => {
         }
     })
     main.idle.on('idle', () => {
-        if (menu.inPlayer() && !menu.isExploring()) {
+        if (menu.inPlayer() && !menu.isVisible()) {
             if (document.activeElement != document.body) {
                 document.activeElement.blur()
             }
