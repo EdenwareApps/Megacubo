@@ -150,7 +150,22 @@ class MenuSelectionMemory extends MenuIcons {
 		this.once('render', () => {
 			this.scrollTop(0)
 			this.save()
-			this.on('scroll', () => this.selected(true))
+			let timer
+			this.wrap.addEventListener('scroll', () => {
+				if(!this.isScrolling) {
+					this.isScrolling = true
+					clearTimeout(timer)
+				}
+			})
+			this.wrap.addEventListener('scrollend', () => {
+				if(this.isScrolling) {
+					this.isScrolling = false
+					clearTimeout(timer)
+					timer = setTimeout(() => {
+						this.selected(true, true)
+					}, 400)
+				}
+			})
 		})
 	}
 	save(scrollTop) {
@@ -159,7 +174,7 @@ class MenuSelectionMemory extends MenuIcons {
 		const { level } = this.activeSpatialNavigationLayout(), entries = this.selectables()
 		if(!this.selectionMemory[this.path]) this.selectionMemory[this.path] = {}
 		if(!entries.includes(this.selected())) { // prevent looping
-			this.selected(true) // force a entry to be selected in current scroll view
+			this.selected(true, true) // force a entry to be selected in current scroll view
 		}
 		this.selectionMemory[this.path][level] = {
 			scroll: level == 'default' ? (typeof(scrollTop) == 'number' ? scrollTop : this.wrap.scrollTop) : 0,
@@ -327,8 +342,8 @@ class MenuSpatialNavigation extends MenuMouseOver {
 		document.body.classList[verticalLayout ? 'add' : 'remove']('portrait')
 		this.sideMenuSync(true)
 	}
-    selector(s){
-        return [...document.querySelectorAll(s)].filter(e => this.isVisible(e))
+    selector(s, ignoreViewport){
+        return [...document.querySelectorAll(s)].filter(e => this.isVisible(e, ignoreViewport))
     }
     updateElement(element){ // if layout has changed, find the actual corresponding element
         if(!element.parentNode){
@@ -346,12 +361,9 @@ class MenuSpatialNavigation extends MenuMouseOver {
         }
         return element
     }
-    selectables(){
-        let elements = [], layout = this.activeSpatialNavigationLayout() // is any explicitly selected??
-        if(layout){
-            elements = this.entries()
-        }
-        return elements.filter(e => this.isVisible(e))
+    selectables(ignoreViewport){
+        let layout = this.activeSpatialNavigationLayout() // is any explicitly selected??
+		return layout ? this.entries(true, ignoreViewport) : []
     }
 	updateSelectedElementClasses(element){
 		if(element && element.classList){
@@ -361,7 +373,7 @@ class MenuSpatialNavigation extends MenuMouseOver {
 			element.parentNode && element.parentNode.classList && element.parentNode.classList.add(this.parentClassName)
 		}
 	}
-	selected(force){
+	selected(force, preventScroll, animate){
         const selectables = this.selectables() // check if is any explicitly selected??
         let element = selectables.find(e => e.classList.contains(this.className)) || selectables[0] || null
 		if(element && element.id == 'menu-omni-input') {
@@ -380,10 +392,10 @@ class MenuSpatialNavigation extends MenuMouseOver {
 				}
 			}
 		}
-        element && this.focus(element)
+        element && this.focus(element, preventScroll, animate)
         return element
     }
-    focus(a, preventScroll){
+    focus(a, preventScroll, animate){
         this.debug && console.error('focus', a, this.wrap.scrollTop)
         if(!a) return
 		if(!a.classList.contains(this.className)) {
@@ -402,7 +414,11 @@ class MenuSpatialNavigation extends MenuMouseOver {
             } else {
                 a.focus({preventScroll: true})
             }
-			preventScroll || a.scrollIntoViewIfNeeded({behavior: 'auto', block: 'nearest', inline: 'nearest'})
+			preventScroll || a.scrollIntoViewIfNeeded({
+				behavior: animate ? 'smooth' : 'instant',
+				block: 'nearest',
+				inline: 'nearest'
+			})
             const n = a.querySelector('input:not([type="range"]), textarea')
             n && n.focus({preventScroll: true})
             this.emit('focus', a, index)
@@ -424,17 +440,17 @@ class MenuSpatialNavigation extends MenuMouseOver {
         })
         return ret
     }
-    entries(noAsides){
+    entries(noAsides, ignoreViewport){
 		let e = [], layout = this.activeSpatialNavigationLayout(), sel = layout.selector
         if(typeof(sel)=='function'){
             sel = sel()
         }
         if(typeof(sel) == 'string'){
-            e.push(...this.selector(sel))
+            e.push(...this.selector(sel, ignoreViewport))
         } else if(Array.isArray(sel)) {
             e.push(...sel.map(e => {
 				if(typeof(e) == 'string'){
-					return this.selector(e)
+					return this.selector(e, ignoreViewport)
 				} else {
 					return e
 				}
@@ -534,7 +550,8 @@ class MenuSpatialNavigation extends MenuMouseOver {
 	}
     arrow(direction, noCycle){
         let closer, closerDist, directionAngleStart, directionAngleEnd
-		let items = this.entries(), layout = this.activeSpatialNavigationLayout(), e = this.selected()
+		let items = this.entries(true, true), layout = this.activeSpatialNavigationLayout(), e = this.selected()
+		if(!e) return this.selected(true, false, true) // if no element is selected, just select one
 		switch(direction){
 			case 'up':
 				directionAngleStart = 270
@@ -602,7 +619,7 @@ class MenuSpatialNavigation extends MenuMouseOver {
             if(this.debug){
                 console.warn('POINTER', closer, closerDist)
             }
-            this.focus(closer)
+            this.focus(closer, false, true)
         }
         this.emit('arrow', closer, direction)
     }
@@ -777,7 +794,7 @@ class MenuPlayer extends MenuModal {
 	inPlayer(){
 		return typeof(streamer) != 'undefined' && streamer.active
 	}
-	isVisible(element){
+	isVisible(element, ignoreViewport){
 		if(element) {
 			if (element.style.display === 'none' || element.style.visibility === 'hidden') {
 				return false;
@@ -799,8 +816,28 @@ class MenuPlayer extends MenuModal {
 				parent = parent.parentElement;
 			}
 			const rect = element.getBoundingClientRect();
-			if (rect.width === 0 || rect.height === 0 || rect.top >= window.innerHeight || rect.bottom <= 0 || rect.left >= window.innerWidth || rect.right <= 0) {
-				return false;
+			// when inViewport is true, more than 75% of the element should be visible in the viewport
+			if (ignoreViewport !== true) {
+				const parentElement = element.parentElement;
+				if (!parentElement) return false;
+
+				const parentRect = parentElement.getBoundingClientRect();
+
+				const intersectionLeft = Math.max(rect.left, parentRect.left);
+				const intersectionRight = Math.min(rect.right, parentRect.right);
+				const intersectionTop = Math.max(rect.top, parentRect.top);
+				const intersectionBottom = Math.min(rect.bottom, parentRect.bottom);
+
+				if (intersectionRight <= intersectionLeft || intersectionBottom <= intersectionTop) {
+					return false;
+				}
+
+				const intersectionArea = (intersectionRight - intersectionLeft) * (intersectionBottom - intersectionTop);
+				const elementArea = rect.width * rect.height;
+
+				if (intersectionArea < 0.75 * elementArea) {
+					return false;
+				}
 			}
 			return element.offsetParent !== null
 		}

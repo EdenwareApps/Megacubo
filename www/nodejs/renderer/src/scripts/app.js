@@ -291,13 +291,11 @@ export const initApp = async () => {
             overScrollAction: (direction, e) => {
                 if (direction == 'up' || direction == 'down') {
                     let playing = menu.inPlayer()
-                    console.log('OVERSCROLLACTION', playing)
                     if (!playing) {
                         let n
                         if (e) {
-                            let entries = menu.entries(true), i = entries.indexOf(e)
+                            let entries = menu.entries(true, true), i = entries.indexOf(e)
                             let rowSize = Math.floor(entries.length / menu.gridLayoutX)
-                            console.log('OVERSCROLLACTION', direction, entries.length, i, rowSize)
                             if(direction == 'up') {
                                 i += (entries.length * rowSize)
                                 if(entries[i]) {
@@ -338,7 +336,6 @@ export const initApp = async () => {
             overScrollAction: (direction, e) => {
                 if (direction == 'up' || direction == 'down') {
                     let playing = menu.inPlayer()
-                    console.log('OVERSCROLLACTION', playing)
                     if (!playing) {
                         let n = [...menu.container.querySelectorAll('entry-nav')][direction == 'down' ? 'shift' : 'pop']()
                         menu.focus(n)

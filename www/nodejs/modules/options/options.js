@@ -1335,7 +1335,6 @@ class Options extends OptionsExportImport {
                                 if (def == 2)
                                     return;
                                 const { opts: { defaultCommunityModeReach } } = lists;
-                                console.log('allow sharing lists', communityFile, privateFile);
                                 await fs.promises.writeFile(communityFile, 'OK');
                                 await fs.promises.writeFile(privateFile, 'OK');
                                 config.set('communitary-mode-lists-amount', defaultCommunityModeReach);

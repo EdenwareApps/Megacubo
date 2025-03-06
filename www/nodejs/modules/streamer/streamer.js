@@ -540,6 +540,7 @@ class Streamer extends StreamerGoNext {
         if (!this.opts.shadow) {
             this.zap = new Zap(this)            
             this.mpegtsSeekingFix = new Limiter(async () => {
+                this.mpegtsSeekingFix.fromNow()
                 const ret = await global.menu.dialog([
                     { template: 'question', fa: 'fas fa-warn-triangle', text: 'Force MPEGTS broadcasts to be seekable (' + global.lang.SLOW + ')' },
                     { template: 'message', text: global.lang.ENABLE_MPEGTS_SEEKING },
