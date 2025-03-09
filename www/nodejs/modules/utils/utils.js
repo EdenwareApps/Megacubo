@@ -7,11 +7,11 @@ import fs from 'fs'
 import vm from 'vm'
 import path from 'path'
 import dayjs from 'dayjs'
-import clone from 'fast-json-clone'
-import utc from 'dayjs/plugin/utc'
-import timezone from 'dayjs/plugin/timezone' // dependent on utc plugin
-import relativeTime from 'dayjs/plugin/relativeTime'
-import localizedFormat from 'dayjs/plugin/localizedFormat'
+import cloneModule from 'fast-json-clone'
+import utc from 'dayjs/plugin/utc.js'
+import timezone from 'dayjs/plugin/timezone.js' // dependent on utc plugin
+import relativeTime from 'dayjs/plugin/relativeTime.js'
+import localizedFormat from 'dayjs/plugin/localizedFormat.js'
 import { getDirname } from 'cross-dirname'
 
 dayjs.extend(utc)
@@ -194,8 +194,11 @@ const trimExt = (text, exts) => {
     })
     return text
 }
+const cleanListName = (name) => {
+    return trimExt(name.replace(/[?\\"<>]/g, ' '), ['m3u'])
+}
 
-export { clone }
+export const clone = (cloneModule?.default || cloneModule)
 export const LIST_DATA_KEY_MASK = 'list-data-1-{0}'
 export const forwardSlashes = path => {
     if (path && path.includes('\\')) {
@@ -463,18 +466,18 @@ export const listNameFromURL = url => {
         if (!name.includes(' ') && name.includes('+')) {
             name = name.replaceAll('+', ' ').replaceAll('<', '').replaceAll('>', '');
         }
-        return trimExt(name, ['m3u']);
+        return cleanListName(name);
     }
     if (!url.includes('//')) { // isLocal
-        return trimExt(url.split('/').pop(), ['m3u']);
+        return cleanListName(url.split('/').pop());
     } else {
         url = String(url).replace(new RegExp('^[a-z]*://', 'i'), '').split('/').filter(s => s.length);
         if (!url.length) {
             return 'Untitled ' + parseInt(Math.random() * 9999);
         } else if (url.length == 1) {
-            return trimExt(url[0].split(':')[0], ['m3u']);
+            return cleanListName(url[0].split(':')[0]);
         } else {
-            return trimExt(url[0].split('.')[0] + ' ' + (subName || url[url.length - 1].substr(0, 24)), ['m3u']);
+            return cleanListName(url[0].split('.')[0] + ' ' + (subName || url[url.length - 1].substr(0, 24)));
         }
     }
 }
@@ -570,7 +573,7 @@ export const rmdirSync = (folder, itself) => {
 
     try {
         if (fs.existsSync(dir)) {
-            fs.rmdirSync(dir, { recursive: true });
+            fs.rmdirSync(dir, { maxRetries: 10, retryDelay: 200, recursive: true });
         }
     } catch (e) {
         console.error(e);

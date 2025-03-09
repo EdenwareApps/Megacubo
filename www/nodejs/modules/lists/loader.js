@@ -80,11 +80,10 @@ class ListsLoader extends EventEmitter {
         this.myCurrentLists = newMyLists;
         this.enqueue(added, 1);
     }
-    handleCommunityListsAmountChange(data) {
-        if (this.communityListsAmount != data['communitary-mode-lists-amount']) {
+    handleCommunityListsAmountChange(data, force) {
+        if (force === true || this.communityListsAmount != data['communitary-mode-lists-amount']) {
             this.communityListsAmount = data['communitary-mode-lists-amount'];
-            this.master.processedLists.clear();
-            this.process();
+            this.reset();
             if (!data['communitary-mode-lists-amount']) {
                 this.cancelProcessesByType('community');
             }
@@ -93,8 +92,7 @@ class ListsLoader extends EventEmitter {
     handlePublicListsChange(data) {
         if (this.publicListsActive != data['public-lists']) {
             this.publicListsActive = data['public-lists'];
-            this.master.processedLists.clear();
-            this.process();
+            this.reset();
             if (!data['public-lists']) {
                 this.cancelProcessesByType('public');
             }
@@ -109,6 +107,10 @@ class ListsLoader extends EventEmitter {
             }
         }
         this.master.delimitActiveLists()
+    }
+    async reset() {
+        this.master.processedLists.clear();
+        this.process();
     }
     async process(recursion=0) {
         if (recursion > 2) return
@@ -252,13 +254,18 @@ class ListsLoader extends EventEmitter {
         await Download.waitNetworkConnection()
         await this.prepareUpdater()
         atts.progress && this.updater.on('progress', progressListener)
-        await this.updater.update(url, {
+        let err
+        const ret = await this.updater.update(url, {
             uid,
             timeout: atts.timeout
-        }).catch(console.error)
+        }).catch(e => err = e)
         atts.progress && this.updater.removeListener('progress', progressListener)
         this.updater && this.updater.close && this.updater.close()
-        await this.master.loadList(url)
+        try {
+            return this.master.loadList(url)
+        } catch(e) {
+            throw (err || e)
+        }
     }
     schedule(url, priority) {
         let cancel, started, done
@@ -272,7 +279,7 @@ class ListsLoader extends EventEmitter {
                 const processed = this.master.processedLists.has(url)
                 this.master.processedLists.set(url, null)
                 this.results[url] = 'awaiting';
-                this.results[url] = await this.updater.update(url).catch(console.error);
+                this.results[url] = await this.updater.update(url).catch(e => e);
                 this.updater && this.updater.close && this.updater.close();
                 done = true;
                 const add = this.results[url] == 'updated' ||

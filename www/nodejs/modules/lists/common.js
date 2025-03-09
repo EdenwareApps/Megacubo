@@ -4,13 +4,7 @@ import List from "./list.js";
 import tools from "./tools.js";
 import MediaURLInfo from "../streamer/utils/media-url-info.js";
 import ParentalControl from "./parental-control.js";
-
-export const options = {
-    defaultCommunityModeReach: 12,
-    folderSizeLimitTolerance: 12,
-    offloadThreshold: 256,
-    listMetaKeyPrefix: 'meta-cache-'
-}
+import options from "./options.json" with { type: 'json' }
 
 export class Fetcher extends EventEmitter {
     constructor(url, atts, master) {
@@ -21,8 +15,9 @@ export class Fetcher extends EventEmitter {
         this.playlists = [];
         this.master = master;
         process.nextTick(() => {
-            this.start().catch(console.error).finally(() => {
-                console.error('Fetcher start 5')
+            this.start().catch(err => {
+                if(!this.error) this.error = err
+            }).finally(() => {
                 this.isReady = true
                 this.emit('ready')
             })

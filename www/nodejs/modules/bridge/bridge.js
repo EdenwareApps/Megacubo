@@ -55,6 +55,19 @@ class ElectronChannel extends BaseChannel {
     }
 }
 
+class NodeChannel extends BaseChannel {
+    constructor() {
+        super();
+        this.renderer = new BaseChannel();
+        this.renderer.customEmit = (...args) => {
+            process.nextTick(() => this.onMessage(args));
+        };
+    }
+    customEmit(...args) {
+        process.nextTick(() => this.renderer.onMessage(args));
+    }
+}
+
 class BridgeServer extends EventEmitter {
     constructor(opts) {
         super()
@@ -255,10 +268,14 @@ class BridgeUtils extends BridgeServer {
 class Bridge extends BridgeUtils {
     constructor(opts) {
         super(opts)
+        const require = createRequire(getFilename())
+        const electron = require('electron')
         if (paths.android) {
             this.channel = new AndroidChannel()
-        } else {
+        } else if (electron?.BrowserWindow) {
             this.channel = new ElectronChannel()
+        } else {
+            this.channel = new NodeChannel()
         }
         this.channel.setMaxListeners && this.channel.setMaxListeners(20)
     }

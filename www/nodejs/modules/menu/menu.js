@@ -62,7 +62,7 @@ class Menu extends EventEmitter {
             osd.on('show', (text, icon, name, duration) => {
                 if(duration == 'persistent' && text.includes('...')) {
                     if(!this.osdBusies) this.osdBusies = {}
-                    if(!this.osdBusies[name]) this.osdBusies[name] = this.setBusy(name)
+                    if(!this.osdBusies[name]) this.osdBusies[name] = this.setBusy(name, 2000)
                 } else {
                     if(this.osdBusies && this.osdBusies[name]) {
                         this.osdBusies[name].release()
@@ -110,17 +110,17 @@ class Menu extends EventEmitter {
             busy.release()
         })
     }
-    setBusy(path) {
+    setBusy(path, timeout=0) {
         const uid = 'busy-' + Date.now()
         if(typeof(this.busies) == 'undefined') this.busies = new Map()
         this.busies.set(uid, path)
         renderer.ui.emit('menu-busy', Array.from(this.busies.values()))
-        return {
-            release: () => {
-                this.busies.delete(uid)
-                this.busies.size || renderer.ui.emit('menu-busy', false)
-            }
+        const release = () => {
+            this.busies.delete(uid)
+            this.busies.size || renderer.ui.emit('menu-busy', false)
         }
+        timeout && setTimeout(release, timeout) // busy state blocks the menu, so we should release it after some time
+        return {release}
     }
     async updateHomeFilters() {
         this.pages[''] = await this.applyFilters([], '')

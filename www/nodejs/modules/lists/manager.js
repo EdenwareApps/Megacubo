@@ -12,12 +12,11 @@ import config from "../config/config.js"
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
 import Limiter from '../limiter/limiter.js'
-import { parse } from '../serialize/serialize.js'
-
+import options from './options.json' with { type: 'json' };
 import { EventEmitter } from "events";
 import { promises as fsp } from "fs";
 import { basename, clone, forwardSlashes, getDomain, insertEntry, kfmt, LIST_DATA_KEY_MASK, listNameFromURL, parseCommaDelimitedURIs, validateURL, ucWords } from "../utils/utils.js";
-import { Fetcher, options } from './common.js';
+import { Fetcher } from './common.js';
 
 class ManagerEPG extends EventEmitter {
     constructor() {
@@ -355,13 +354,14 @@ class Manager extends ManagerFetch {
         this.listFaIcon = 'fas fa-satellite-dish';
         this.key = 'lists';
         this.inputMemory = {}
+        this.master.on('status', this.updateProgress.bind(this))        
         renderer.ready(async () => {
+            renderer.ui.on('menu-back', () => osd.hide('list-open'))
             global.streamer.on('hard-failure', es => this.checkListExpiral(es).catch(console.error))
             menu.prependFilter(async (es, path) => {
                 es = await this.expandEntries(es, path)
                 return this.labelify(es)
             })
-            this.master.on('unsatisfied', () => this.update())
             await this.master.ready()
             const activeEPG = config.get('epg-' + lang.locale)
             if (activeEPG === 'disabled') return
@@ -371,7 +371,6 @@ class Manager extends ManagerFetch {
             const urls = await this.master.searchEPGs()
             await this.master.epg.suggest(urls)
         })
-        renderer.ui.on('menu-back', () => osd.hide('list-open'))
     }
     async expandEntries(entries, path) {
         let shouldExpand = entries.some(e => typeof(e._) == 'number' && !e.url);
@@ -469,12 +468,13 @@ class Manager extends ManagerFetch {
         let lists = this.get();
         for (let i in lists) {
             if (lists[i][1] == url) {
-                throw lang.LIST_ALREADY_ADDED;
+                // throw lang.LIST_ALREADY_ADDED;
+                return true;
             }
         }
-        menu.path.endsWith(lang.MY_LISTS) && menu.refreshNow();
+        menu.path.endsWith(lang.MY_LISTS) && menu.refreshNow()
         const cacheFile = storage.resolve(LIST_DATA_KEY_MASK.format(url));
-        const stat = await fsp.stat(cacheFile).catch(console.error);
+        const stat = await fsp.stat(cacheFile).catch(() => {});
         if (stat && stat.size && stat.size < 16384) {
             await fsp.unlink(cacheFile).catch(console.error); // invalidate possibly bad caches
         }
@@ -486,11 +486,11 @@ class Manager extends ManagerFetch {
                 }
             },
             timeout: Math.max(90, config.get('read-timeout')) // some servers take too long to respond with the list
-        }, this.master);
-        let err, entries = await fetch.getMap().catch(e => err = e);
+        }, this.master)
+        let err, entries = await fetch.getMap().catch(e => err = e)
         this.addingLists.delete(url)
-        menu.path.endsWith(lang.MY_LISTS) && menu.refreshNow();
-        this.master.status();
+        menu.path.endsWith(lang.MY_LISTS) && menu.refreshNow()
+        this.master.status()
         if (Array.isArray(entries) && entries.length) {
             if (!name) {
                 let meta = await fetch.meta();
@@ -713,72 +713,49 @@ class Manager extends ManagerFetch {
             }
         });
     }
-    update() {
-        let listener, p = this.master.status()
-        const c = config.get('communitary-mode-lists-amount')
-        const m = p.progress ? (lang[p.firstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] + ' ' + p.progress + '%') : (c ? lang.SEARCH_COMMUNITY_LISTS : lang.STARTING_LISTS)
-        if (!this.receivedCommunityListsListener) {
-            this.receivedCommunityListsListener = () => {
-                if (menu.path && basename(menu.path) == lang.RECEIVED_LISTS) {
+    updateProgress(info) {
+        const communityListsAmount = config.get('communitary-mode-lists-amount')
+        const progress = info.length ? info.progress : 0
+        let m, fa = 'fa-mega spin-x-alt', duration = 'persistent';
+        if (this.master.satisfied) {
+            if (info.length || !communityListsAmount) {
+                m = lang.LISTS_UPDATED;
+                this.master.isFirstRun = false;
+                this.hideUpdateProgress()
+            } else {
+                m = -1; // do not show 'lists updated' message yet
+            }
+            fa = 'fas fa-check-circle';
+            duration = 'normal';
+        } else {
+            if(progress) {
+                m = info.firstRun ? lang['STARTING_LISTS_FIRST_TIME_WAIT'] : lang['UPDATING_LISTS']
+                m += ' ' + progress + '%'
+            } else {
+                m = communityListsAmount ? lang.SEARCH_COMMUNITY_LISTS : lang.STARTING_LISTS
+            }
+        }
+        if (m != -1 && m != this.lastProgressMessage) { // if == -1 it's not complete yet, no lists
+            this.lastProgressMessage = m
+            this.showUpdateProgress(m, fa, duration)
+        }
+        if (menu?.currentEntries) {
+            const updateBaseNames = [lang.TRENDING, lang.COMMUNITY_LISTS];
+            const updateEntryNames = [lang.PROCESSING, lang.UPDATING_LISTS, lang.STARTING_LISTS];
+            
+            if (basename(menu.path) == lang.RECEIVED_LISTS) {
+                menu.refresh()
+            } else if (updateBaseNames.includes(basename(menu.path)) ||
+                menu.currentEntries.some(e => updateEntryNames.includes(e.name))) {
+                if (m == -1) {
+                    menu.refreshNow()
+                } else {
                     menu.refresh()
                 }
-            }
-            this.master.on('status', this.receivedCommunityListsListener)
-        }
-        if (this.master.satisfied || this.isUpdating || (!p.length && !c)) return
-        let lastProgressMessage, lastProgress = -1
-        const processState = info => {
-            if(info) p = info
-            this.master.satisfied && p && p.length && this.hideUpdateProgress()
-            const progress = p.length ? parseInt(p.progress) : 0
-            if (lastProgress === progress) return
-            lastProgress = progress
-            let m, fa = 'fa-mega spin-x-alt', duration = 'persistent';
-            if (this.master.satisfied) {
-                clearInterval(this.isUpdating);
-                delete this.isUpdating;
-                if (p.length) {
-                    this.master.removeListener('status', listener)
-                    this.master.removeListener('satisfied', listener)
-                    this.master.removeListener('unsatisfied', listener)
-                    this.master.loader.removeListener('progresses', listener)
-                    m = lang.LISTS_UPDATED;
-                    this.master.isFirstRun = false;
-                } else {
-                    m = -1; // do not show 'lists updated' message yet
-                }
-                fa = 'fas fa-check-circle';
-                duration = 'normal';
-            } else {
-                m = lang[p.firstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] + ' ' + p.progress + '%';
-            }
-            if (m != -1 && m != lastProgressMessage) { // if == -1 it's not complete yet, no lists
-                lastProgressMessage = m
-                this.showUpdateProgress(m, fa, duration)
-            }
-            if (menu && menu.currentEntries) {
-                const updateEntryNames = [lang.PROCESSING, lang.UPDATING_LISTS, lang.STARTING_LISTS];
-                const updateBaseNames = [lang.TRENDING, lang.COMMUNITY_LISTS];
-                if (updateBaseNames.includes(basename(menu.path)) ||
-                    menu.currentEntries.some(e => updateEntryNames.includes(e.name))) {
-                    if (m == -1) {
-                        menu.refreshNow()
-                    } else {
-                        menu.refresh()
-                    }
-                } else if (this.inChannelPage()) {
-                    this.maybeRefreshChannelPage()
-                }
+            } else if (this.inChannelPage()) {
+                this.maybeRefreshChannelPage()
             }
         }
-        this.status = new Limiter(() => processState(this.master.status()), 1000)
-        listener = () => this.status.call()
-        this.showUpdateProgress(m, 'fa-mega spin-x-alt', 'persistent')
-        this.master.on('status', listener)
-        this.master.on('satisfied', listener)
-        this.master.on('unsatisfied', listener)
-        this.master.loader.on('progresses', listener)
-        listener()
     }
     showUpdateProgress(m, fa, duration) {
         this.updateProgressVisible = true
@@ -812,7 +789,10 @@ class Manager extends ManagerFetch {
             name: lang.LOAD_COMMUNITY_LISTS,
             fa: 'fas fa-plus-square',
             type: 'action',
-            action: () => this.update()
+            action: async () => {
+                await this.master.loader.reset()
+                menu.refresh()
+            }
         };
     }
     updatingListsEntry(name) {
@@ -852,7 +832,6 @@ class Manager extends ManagerFetch {
             defaultValue: this.inputMemory['url'] || '',
             extraOpts
         });
-        console.log('lists.manager ' + id);
         if (!id) {
             throw 'No input';
         } else if (id == 'file') {
@@ -869,7 +848,6 @@ class Manager extends ManagerFetch {
         } else if (id == 'mac') {
             return await this.addListMacDialog()
         } else {
-            console.log('lists.manager.addList(' + id + ')')
             this.inputMemory['url'] = id
             return await this.addList(id)
         }
@@ -1236,7 +1214,7 @@ class Manager extends ManagerFetch {
     }
     async removeList(data) {
         const info = await this.master.info(true), key = 'epg-' + lang.locale;
-        if (info[data.url] && info[data.url].epg) {
+        if (info[data.url]?.epg) {
             let data = this.EPGs()
             const urls = new Set(parseCommaDelimitedURIs(info[data.url].epg))
             data = data.filter(e => !urls.has(e.url))

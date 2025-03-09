@@ -5,9 +5,12 @@ import Reader from '../reader/reader.js';
 import Writer from '../writer/writer.js';
 import config from '../config/config.js'
 
+const CACHE_PREFIX = 'dlc-'
+
 const url2id = url => {
-    return 'dlc-' + url.replace(new RegExp('^https?://'), '').replace(new RegExp('[^A-Za-z0-9]+', 'g'), '-').substr(0, 255);
-};
+    return CACHE_PREFIX + url.replace(new RegExp('^https?://'), '').replace(new RegExp('[^A-Za-z0-9]+', 'g'), '-').substr(0, 255);
+}
+
 class DownloadCacheFileReader extends EventEmitter {
     constructor(master, opts) {
         super();
@@ -100,6 +103,7 @@ class DownloadCacheMap extends EventEmitter {
         this.saving = {};
         this.debug = false;
         this.folder = storage.opts.folder + '/';
+        this.prefix = CACHE_PREFIX;
     }
     async info(url) {
         if (this.saving[url])

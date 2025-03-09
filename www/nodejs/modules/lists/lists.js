@@ -22,7 +22,7 @@ global.Trias = Trias;
 class ListsEPGTools extends Index {
     constructor(opts) {
         super(opts)
-        lang.ready().then(() => {
+        lang.ready().catch(console.error).finally(() => {
             this.epgWorker = new MultiWorker()
             this.epg = this.epgWorker.load(path.join(getDirname(), 'epg-worker.js')) // wait lang to be loaded
             this.epg.loaded = null
@@ -32,16 +32,16 @@ class ListsEPGTools extends Index {
                 this.epg.loaded = loaded.length ? loaded : null
                 this.emit('epg-update', states)
             })
-        }).catch(console.error)
-        ready(() => {
-            config.on('change', keys => {
+            ready(() => {
+                config.on('change', keys => {
+                    const key = 'epg-'+ lang.locale
+                    if(keys.includes(key) || keys.includes('locale')) {
+                        this.epg.sync(config.get(key)).catch(console.error)
+                    }
+                })
                 const key = 'epg-'+ lang.locale
-                if(keys.includes(key) || keys.includes('locale')) {
-                    this.epg.sync(config.get(key)).catch(console.error)
-                }
+                this.epg.start(config.get(key)).catch(console.error)
             })
-            const key = 'epg-'+ lang.locale
-            this.epg.start(config.get(key)).catch(console.error)
         })
     }
     epgChannelsListSanityScore(data) {
@@ -268,11 +268,14 @@ class Lists extends ListsEPGTools {
         });
         this.on('unsatisfied', () => {
             this.setQueueConcurrency(4)
+            clearInterval(this.statusInterval)
+            this.statusInterval = setInterval(() => this.status(), 1000)
         });
         this.discovery = new Discovery(this)
         this.loader = new Loader(this)
         this.manager = new Manager(this)
-        this.configChanged()
+        this.configChanged()        
+        this.emit('unsatisfied', this.status(null, true))
     }
     async ready(timeoutSecs) {
         if(!this.satisfied) {
@@ -348,7 +351,10 @@ class Lists extends ListsEPGTools {
         return loadedUrls;
     }
     updaterFinished(isFinished) {
-        this.isUpdaterFinished = isFinished;
+        if(this.isUpdaterFinished != isFinished) {
+            this.isUpdaterFinished = isFinished;
+            process.nextTick(() => this.status(null, true)) // force status update
+        }
         return this.isUpdaterFinished;
     }
     async relevantKeywords(refresh) {
@@ -432,7 +438,7 @@ class Lists extends ListsEPGTools {
         }
         return hits;
     }
-    status(url = '') {
+    status(url = '', returnProgress = false) {
         let progress = 0, firstRun = this.isFirstRun, satisfyAmount = this.myLists.length
         const isUpdatingFinished = this.isUpdaterFinished && !this.queue.size
         const communityListsAmount = config.get('communitary-mode-lists-amount')
@@ -465,32 +471,33 @@ class Lists extends ListsEPGTools {
             const sumProgress = progresses.reduce((a, b) => a + b, 0)
             progress = parseInt(sumProgress / (allProgress / 100))
         }
-        if (this.debug) {
-            console.log('status() progresses', progress)
-        }
-        const ret = {
-            url,
-            progress,
-            firstRun,
-            satisfyAmount,
-            communityListsAmount,
-            isUpdatingFinished: this.isUpdaterFinished,
-            pendingCount: this.queue.size,
-            length: lks.filter(l => l.isReady).length
-        }
-        if (progress > 99) {
-            if (!this.satisfied) {
-                this.satisfied = true
-                this.emit('satisfied', ret)
+        if(returnProgress || progress !== this.lastProgress) {
+            const ret = {
+                url,
+                progress,
+                firstRun,
+                satisfyAmount,
+                communityListsAmount,
+                isUpdatingFinished: this.isUpdaterFinished,
+                pendingCount: this.queue.size,
+                length: lks.filter(l => l.isReady).length
             }
-        } else {
-            if (this.satisfied) {
-                this.satisfied = false
-                this.emit('unsatisfied', ret)
+            if (progress > 99) {
+                if (!this.satisfied) {
+                    this.satisfied = true
+                    this.emit('satisfied', ret)
+                    clearInterval(this.statusInterval)
+                }
+            } else {
+                if (this.satisfied) {
+                    this.satisfied = false
+                    this.emit('unsatisfied', ret)
+                }
             }
+            this.emit('status', ret)
+            this.lastProgress = progress
+            return ret
         }
-        this.emit('status', ret)
-        return ret
     }
     loaded(isEnough) {
         if (isEnough === true) {
@@ -498,7 +505,7 @@ class Lists extends ListsEPGTools {
                 return false
             }
         }
-        const stat = this.status(), ret = stat.progress > 99
+        const stat = this.status(null, true), ret = stat.progress > 99
         return ret
     }
     async loadList(url, contentLength) {
@@ -522,7 +529,7 @@ class Lists extends ListsEPGTools {
         }
         if (this.lists[url]) {
             if (this.lists[url].contentLength == contentLength) {
-                return true
+                return this.lists[url]
             }
             defaultOrigin = this.lists[url].origin
             this.remove(url)
@@ -645,7 +652,7 @@ class Lists extends ListsEPGTools {
         }
         this.updateActiveLists()
         this.status(url)
-        return true
+        return this.lists[url]
     }
     async getListContentLength(url) {
         const updateMeta = await this.getListMeta(url)
@@ -827,7 +834,9 @@ class Lists extends ListsEPGTools {
         return ret;
     }
     sortCommunityLists() { // return community lists urls by relevance not including my lists
-        return Object.keys(this.lists).filter(u => u.origin == 'community').sort((a, b) => {
+        return Object.keys(this.lists).filter(u => {
+            return this.lists[u]?.origin == 'community'
+        }).sort((a, b) => {
             if(this.lists[b].isConnectableResult != this.lists[a].isConnectableResult) {
                 return this.lists[b].isConnectableResult - this.lists[a].isConnectableResult
             }

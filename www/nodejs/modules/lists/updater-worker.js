@@ -38,12 +38,12 @@ class UpdaterWorker extends Common {
 		if(typeof(err) != 'undefined'){
 			this.info[url] = 'update failed, '+ String(err)
 			console.error('updater - err: '+ err)
-		} else {
-			if(this.debug){
-				console.log('updater - updated', url, updated)
-			}
-			this.info[url] = updated ? 'updated' : 'already updated'
+			throw err
 		}
+		if(this.debug) {
+			console.log('updater - updated', url, updated)
+		}
+		this.info[url] = updated ? 'updated' : 'already updated'
 		return this.info[url]
     }
 	async updateList(url, params={}){
@@ -95,7 +95,7 @@ class UpdaterWorker extends Common {
 			updater.destroy()
 			if(this.debug){
 				console.log('updater - updated 2', url, should)
-			}			
+			}
 			storage.touch(key, {
 				size: 'auto',
 				raw: true,

@@ -62,7 +62,6 @@ if(paths.inWorker) {
         if (paths[type].endsWith('/')) {
             paths[type] = paths[type].substr(0, paths[type].length - 1)
         }
-        console.log('DEFAULT PATH ' + type + '=' + paths[type] + ' ' + paths.inWorker + ' :: ' + !!paths.android);
         if (!fs.existsSync(paths[type])) {
             try {
                 fs.mkdirSync(paths[type], { recursive: true })

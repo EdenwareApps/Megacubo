@@ -52,7 +52,11 @@ const setupConstructor = () => {
                     if (terminating) {
                         self.terminating[file] = true;
                     } else if (method in self) {
-                        return self[method];
+                        let ret = self[method];
+                        if (typeof ret == 'function') {
+                            ret = ret.bind(self);
+                        }
+                        return ret;
                     } else if (method == 'toJSON') {
                         return () => JSON.stringify(null)
                     }
@@ -96,7 +100,7 @@ const setupConstructor = () => {
                         });
                     };
                 }
-            });
+            });            
             this.instances[file] = instance;
             return instance;
         }
@@ -256,7 +260,7 @@ const setupConstructor = () => {
                     }
                     const name = this.resolve(ret.file)
                     if (name && this.instances[name]) {
-                        this.instances[name].emit(...args)
+                       this.instances[name].emit(...args)
                     } else {
                         this.emit(...args)
                     }

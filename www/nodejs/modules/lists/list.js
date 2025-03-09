@@ -22,9 +22,7 @@ class List extends EventEmitter {
         this.file = storage.resolve(this.dataKey)
         this.constants = { BREAK: -1 }
         this._log = [this.url]
-        if (storage.has(this.dataKey)) {
-            storage.touch(this.dataKey, { permanent: true }) // avoid cache eviction for loaded up lists
-        }
+        this.hold = storage.hold(this.dataKey)
     }
     log(...args) {
         if (this.destroyed)
@@ -174,9 +172,8 @@ class List extends EventEmitter {
     }
     destroy() {
         if (!this.destroyed) {
-            if (storage.has(this.dataKey)) {
-                storage.touch(this.dataKey, { permanent: false }); // freeup for cache eviction
-            }
+            storage.touch(this.dataKey, { ttl: 24 * 3600 })
+            this.hold.release()
             this.destroyed = true
             if (this.indexer) {
                 this.indexer.destroy();

@@ -9,7 +9,6 @@ class Energy extends EventEmitter {
         renderer.ui.emit('restart');
     }
     exit() {
-        console.error('ENERGY_EXIT')
         renderer.ui.emit('exit', false)
     }
     askRestart() {

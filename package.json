@@ -9,13 +9,21 @@
   "description": "A intuitive, multi-language and cross-platform IPTV player.",
   "name": "megacubo",
   "type": "module",
+  "main": "./www/nodejs/dist/main.js",
+  "module": "./www/nodejs/main.mjs",
+  "exports": {
+    ".": {
+      "require": "./www/nodejs/dist/main.js",
+      "import": "./www/nodejs/main.mjs"
+    }
+  },
   "author": {
     "name": "megacubo.tv",
     "email": "contact@megacubo.tv",
     "url": "https://megacubo.tv"
   },
   "icon": "./default_icon.png",
-  "version": "17.5.7",
+  "version": "17.6.0",
   "dependencies": {
     "@babel/runtime-corejs3": "^7.26.9",
     "@capacitor-community/keep-awake": "^5.0.1",
@@ -70,7 +78,7 @@
     "tv.megacubo.pip": "github:EdenwareApps/tv.megacubo.pip",
     "tv.megacubo.player": "github:EdenwareApps/tv.megacubo.player",
     "xmltv-stream": "^0.4.2",
-    "ytdl-core": "^4.11.5",
+    "ytdl-core": "github:EdenwareApps/ytdl-core",
     "ytsr": "^3.8.4"
   },
   "devDependencies": {

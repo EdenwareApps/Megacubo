@@ -85,7 +85,6 @@ class UpdateListIndex extends ListIndexUtils {
                 path = 'http:' + path
             }
             if(path.match(new RegExp('^https?:'))){
-                console.error('UpdateListIndex fetch '+ path +' ('+ this.timeout +')')
                 let resolved
                 const opts = {
                     debug: false, // this.debug,
@@ -113,7 +112,6 @@ class UpdateListIndex extends ListIndexUtils {
                             this.contentLength = this.stream.totalContentLength
                         }
                         if(this.stream.totalContentLength > 0 && (this.stream.totalContentLength == this.updateMeta.contentLength)){
-                            console.log('UpdateListIndex fetch skipped')
                             this.stream.destroy()
                             resolve(false) // no need to update
                         } else {
@@ -212,19 +210,19 @@ class UpdateListIndex extends ListIndexUtils {
             }
             this.indexateIterator++
         })
+        let err
         for(let url of urls){
-            let err
             const hasCredentials = url.includes('@')
             if(hasCredentials && url.includes('#xtream')) {
-                await this.xparse(url, db).catch(console.error)
+                await this.xparse(url, db).catch(e => err = e)
                 if(this.indexateIterator) break
             } else if(hasCredentials && url.includes('#mag')) {
-                await this.mparse(url, db).catch(console.error)
+                await this.mparse(url, db).catch(e => err = e)
                 if(this.indexateIterator) break
             } else {
                 const ret = await this.fetch(url).catch(e => err = e)
                 if(!err && ret){
-                    await this.parse(ret, db).catch(console.error)
+                    await this.parse(ret, db).catch(e => err = e)
                     if(this.indexateIterator) break
                 }
             }
@@ -240,12 +238,11 @@ class UpdateListIndex extends ListIndexUtils {
                 await this.parse(ret, db, playlist).catch(console.error)
             }
         }
-        let err
         await db.save().catch(e => err = e)
         await db.destroy().catch(e => err = e)
         await moveFile(this.tmpOutputFile, this.file).catch(e => { if(!err) err = e })
         if(err) {
-            console.error('writeIndex error', err)
+            throw err
         }
         return true
 	}

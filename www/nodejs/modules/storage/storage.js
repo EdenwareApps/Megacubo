@@ -45,12 +45,12 @@ class StorageTools extends EventEmitter {
                     continue
                 const ext = file.split('.').pop()
                 const key = this.unresolve(file)
+                if (this.heldKeys.has(key)) {
+                    continue
+                }
                 if (ext == 'dat') {
-                    if (this.index[key] && (this.index[key].permanent || this.index[key].expiration > now)) {
-                        continue // fine
-                    }
-                    this.delete(key, this.opts.folder + '/' + file)
-                } if (ext == 'commit') {
+                    continue // expired files are deleted in align()
+                } else if (ext == 'commit') { // delete zombie commits
                     const ffile = this.opts.folder + '/' + file
                     const stat = await fs.promises.stat(ffile).catch(() => {})
                     if (stat && typeof(stat.size) == 'number') {
@@ -59,7 +59,7 @@ class StorageTools extends EventEmitter {
                             fs.promises.unlink(ffile, () => {}).catch(() => {})
                         }
                     }
-                } else if (ext == 'json') {
+                } else if (ext == 'json') { // upgrade files
                     upgraded = true
                     await this.upgrade(file)
                 } else {
@@ -72,6 +72,9 @@ class StorageTools extends EventEmitter {
     async clear(force) {        
         for (const k of Object.keys(this.index)) {
             if (force || !this.index[k].permanent) {
+                if (this.heldKeys.has(k)) {
+                    continue
+                }
                 await fs.promises.unlink(this.resolve(k)).catch(() => {})
                 delete this.index[k]
             }
@@ -149,7 +152,29 @@ class StorageTools extends EventEmitter {
         return usage;
     }
 }
-class StorageIndex extends StorageTools {
+
+class StorageHolding extends StorageTools {
+    constructor(opts) {
+        super(opts);
+        this.holds = []
+        this.heldKeys = new Set()
+    }
+    hold(key) {
+        const hold = {
+            key,
+            release: () => {
+                this.holds = this.holds.filter(h => h.key !== key)
+                this.holds.some(h => h.key === key) || this.heldKeys.delete(key)
+                this.touch(key, false)
+            }
+        }
+        this.holds.push(hold)
+        this.heldKeys.add(key)
+        return hold
+    }
+}
+
+class StorageIndex extends StorageHolding {
     constructor(opts) {
         super(opts);
     }
@@ -229,11 +254,11 @@ class StorageIndex extends StorageTools {
         for(const key of Object.keys(this.index)) {
             if(!this.index[key]) return // bad value or deleted in mean time
             if(!this.index[key].time || (now - this.index[key].time) > this.opts.minIdleTime) {
-                await this.mtime(key) // update time for idle keys to ensure sync with workers
+                await this.mtime(key) // read mtime again from file, for idle keys, to ensure sync with workers
             }
         }
         const ordered = Object.keys(this.index).filter(a => {
-            if(!this.index[a]) return // bad value or deleted in mean time
+            if (!this.index[a]) return // bad value or deleted in mean time
             if (this.index[a].permanent || this.locked[a]) {
                 if (typeof(this.index[a].size) == 'number') {
                     left -= this.index[a].size
@@ -344,6 +369,7 @@ class StorageIndex extends StorageTools {
         }
     }
 }
+
 class StorageIO extends StorageIndex {
     constructor(opts) {
         super(opts);
@@ -494,6 +520,7 @@ class StorageIO extends StorageIndex {
             await fs.promises.unlink(removeFile).catch(() => {})
     }
 }
+
 class Storage extends StorageIO {
     constructor(opts) {
         super(opts)        

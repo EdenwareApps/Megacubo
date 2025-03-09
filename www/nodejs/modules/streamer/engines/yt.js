@@ -11,6 +11,7 @@ import { ext, getDomain } from "../../utils/utils.js";
 
 const YTDomainRegex = new RegExp('youtube\.com|youtu\.be');
 const YTIDRegex = new RegExp('(v=|/v/|/embed/|\.be/)([A-Za-z0-9\-_]+)');
+
 class StreamerYTHLSIntent extends StreamerHLSIntent {
     constructor(data, opts, info) {
         super(data, opts, info);
@@ -18,6 +19,7 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
         this.mimetype = this.mimeTypes.hls;
         this.mediaType = 'live';
     }
+
     generateMasterPlaylist(tracks) {
         let resolutionMap = {
             '144p': '256x144',
@@ -28,147 +30,155 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
             '1080p': '1920x1080',
             '1440p': '2560x1440'
         };
+
         let body = `#EXTM3U
 #EXT-X-VERSION:3
 #EXT-X-INDEPENDENT-SEGMENTS
 `;
+
         tracks.map(track => {
             body += '#EXT-X-STREAM-INF:BANDWIDTH=' + track.bitrate + ',AVERAGE-BANDWIDTH=' + track.bitrate;
             if (resolutionMap[track.qualityLabel]) {
-                +',RESOLUTION=' + resolutionMap[track.qualityLabel];
+                body += ',RESOLUTION=' + resolutionMap[track.qualityLabel];
             }
             body += "\r\n" + track.url + "\r\n";
         });
-        console.warn(body, tracks);
+
         return body;
     }
+
     async getYTInfo(id) {
         let info, err, retries = 5, url = 'https://www.youtube.com/watch?v=' + id;
+        
+        const requestOptions = {
+            rejectUnauthorized: false,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+        };
+
         while ((!info || !info.formats) && retries) {
             retries--;
-            console.warn('TRY', (Date.now() / 1000));
-            info = await ytdl.getInfo(url, {
-                requestOptions: {
-                    rejectUnauthorized: false,
-                    transform: (parsed) => {
-                        return Object.assign(parsed, {
-                            rejectUnauthorized: false
-                        });
-                    }
-                }
-            }).catch(e => {
-                console.error(err);
-                if (String(err).match(new RegExp('Status code: 4'))) { // permanent error, like 410
-                    retries = 0;
-                }
-                err = e;
-            });
+            info = await ytdl.getInfo(url, { requestOptions })
+                .catch(e => {
+                    console.error(e);
+                    if (String(e).match(/Status code: 4/)) retries = 0;
+                    err = e;
+                });
         }
-        if (!info)
-            throw err;
+
+        if (!info) throw err;
         return info;
     }
+
     validateTrackConnectivity(url) {
         return new Promise((resolve, reject) => {
-            let resolved;
-            console.log('validateTrackConnectivity', url);
+            let resolved = false;
             const stream = new Download({ url });
+            
             stream.on('response', (status, headers) => {
-                console.log('validateTrackConnectivity', url, status, headers);
                 resolved = true;
-                if (status >= 200 && status < 400) {
-                    resolve(true);
-                } else {
-                    reject('bad status ' + status);
-                }
+                status >= 200 && status < 400 ? resolve(true) : reject(`bad status ${status}`);
                 stream.destroy();
             });
+
             stream.once('end', () => {
-                if (!resolved) {
-                    console.log('validateTrackConnectivity', url, stream);
-                    reject('unreachable');
-                }
+                if (!resolved) reject('unreachable');
             });
+
             stream.start();
         });
     }
+
     async selectTrackBW(tracks, bandwidth) {
         let chosen, chosenBandwidth, chosenMimeType;
+
         tracks.sortByProp('bitrate').some((track, i) => {
-            if (!chosen) {
+            if (!chosen || (!bandwidth && i === 1) || (track.bitrate <= bandwidth)) {
                 chosen = track.url;
                 chosenMimeType = track.mimeType;
                 chosenBandwidth = track.bitrate;
-            } else {
-                if (!bandwidth || track.bitrate <= bandwidth) {
-                    chosen = track.url;
-                    chosenMimeType = track.mimeType;
-                    chosenBandwidth = track.bitrate;
-                    if (!bandwidth && i == 1) { // if we don't know the connection speed yet, use the #1 to skip a possible audio track
-                        return true;
-                    }
-                } else {
-                    return true; // to break
-                }
             }
+            return track.bitrate > bandwidth;
         });
+
         const valid = await this.validateTrackConnectivity(chosen).catch(console.error);
         if (valid !== true) {
-            tracks = tracks.filter(t => t.url != chosen);
-            if (tracks.length) {
-                return await this.selectTrackBW(tracks, bandwidth);
-            } else {
-                throw 'no valid track';
-            }
+            const filtered = tracks.filter(t => t.url !== chosen);
+            if (filtered.length) return this.selectTrackBW(filtered, bandwidth);
+            throw 'no valid track';
         }
-        chosenBandwidth && this.prx && this.prx.bitrateChecker.reset(chosenBandwidth);
-        return { url: chosen, mimetype: chosenMimeType, bandwidth: chosenBandwidth };
+
+        this.prx?.bitrateChecker?.reset(chosenBandwidth);
+        return { 
+            url: chosen, 
+            mimetype: chosenMimeType, 
+            bandwidth: chosenBandwidth 
+        };
     }
+
     async _startVideo(info) {
         this.mimetype = this.mimeTypes.video;
         this.mediaType = 'video';
-        info.formats = info.formats.filter(fmt => {
-            return fmt.hasAudio && fmt.hasVideo && !fmt.isDashMPD;
-        })
-        let ret = await this.selectTrackBW(info.formats, global.streamer ? global.streamer.downlink : undefined);
+        
+        info.formats = info.formats.filter(fmt => 
+            fmt.hasAudio && fmt.hasVideo && !fmt.isDashMPD
+        );
+
+        let ret = await this.selectTrackBW(
+            info.formats, 
+            global.streamer?.downlink
+        );
+
         this.mimetype = ret.mimetype;
-        this.prx = new StreamerProxy(Object.assign({}, this.opts));
+        this.prx = new StreamerProxy({...this.opts});
         this.connectAdapter(this.prx);
         await this.prx.start();
+        
         this.endpoint = this.prx.proxify(ret.url);
-        return { endpoint: this.endpoint, mimetype: this.mimetype };
+        return { 
+            endpoint: this.endpoint, 
+            mimetype: this.mimetype 
+        };
     }
+
     async _start() {
         const matches = this.data.url.match(YTIDRegex);
-        if (!matches || !matches.length)
-            throw 'Bad yt url';
+        if (!matches?.[2]) throw 'Bad YT URL';
+
         let info = await this.getYTInfo(matches[2]);
         this.data.name = info.videoDetails.title;
-        let tracks = info.formats.filter(s => s.isHLS).filter(s => s.hasVideo || s.hasAudio);
-        if (!tracks.length) {
-            return this._startVideo(info);
-        }
+
+        let tracks = info.formats
+            .filter(s => s.isHLS && (s.hasVideo || s.hasAudio))
+            .map(s => ({
+                ...s,
+                url: this.prx?.proxify(s.url) || s.url
+            }));
+
+        if (!tracks.length) return this._startVideo(info);
+
         const mw = config.get('hls-prefetching');
-        this.prx = new (mw ? StreamerHLSProxy : StreamerProxy)(Object.assign({}, this.opts));
+        this.prx = new (mw ? StreamerHLSProxy : StreamerProxy)({...this.opts});
         this.connectAdapter(this.prx);
         await this.prx.start();
-        tracks = tracks.map(s => {
-            s.url = this.prx.proxify(s.url);
-            return s;
-        });
+
         const { temp } = paths;
-        let file = temp + '/master.m3u8';
+        let file = `${temp}/master.m3u8`;
+        
         await fs.promises.writeFile(file, this.generateMasterPlaylist(tracks));
         let url = await downloads.serve(file);
-        this.endpoint = this.prx.proxify(url); // proxify again to get tracks on super()
-        return { endpoint: this.endpoint, mimetype: this.mimetype };
+        
+        this.endpoint = this.prx.proxify(url);
+        return { 
+            endpoint: this.endpoint, 
+            mimetype: this.mimetype 
+        };
     }
 }
+
 StreamerYTHLSIntent.mediaType = 'live';
-StreamerYTHLSIntent.supports = info => {
-    if (info.url && getDomain(info.url).match(YTDomainRegex)) {
-        return true;
-    }
-    return false;
-};
+StreamerYTHLSIntent.supports = info => 
+    YTDomainRegex.test(getDomain(info.url));
+
 export default StreamerYTHLSIntent;

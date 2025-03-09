@@ -11,7 +11,6 @@ import { temp } from '../paths/paths.js';
 import fs from 'fs';
 import config from "../config/config.js"
 import { absolutize, getDomain, isWritable, kbfmt,  time, traceback, validateURL } from '../utils/utils.js'
-import { parse } from '../serialize/serialize.js'
 
 class Download extends EventEmitter {
     constructor(opts) {

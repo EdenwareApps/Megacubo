@@ -4,8 +4,7 @@ import pLimit from "p-limit";
 import config from "../config/config.js"
 import data from "./search-redirects.json" with {type: 'json'};
 import countryCodes from '../countries/countries.json' with {type: 'json'};
-
-import { options } from "./common.js";
+import options from "./options.json" with { type: 'json' }
 import { basename, forwardSlashes } from "../utils/utils.js";
 import { regexes, sanitizeName } from "./parser.js";
 

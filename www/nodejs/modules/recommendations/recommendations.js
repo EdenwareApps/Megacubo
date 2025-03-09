@@ -167,11 +167,14 @@ class Recommendations extends EventEmitter {
                 this.listsLoaded = true
                 this.scheduleUpdate()
             }).catch(console.error)
-            global.lists.epg.ready().then(() => {
-                this.epgLoaded || storage.delete(this.cacheKey)
-                this.epgLoaded = true
-                this.scheduleUpdate()
-            }).catch(console.error)
+            
+            lang.ready().catch(console.error).finally(() => {
+                global.lists.epg.ready().then(() => {
+                    this.epgLoaded || storage.delete(this.cacheKey)
+                    this.epgLoaded = true
+                    this.scheduleUpdate()
+                }).catch(console.error)
+            })
         })
     }
     async scheduleUpdate() {

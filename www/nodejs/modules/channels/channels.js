@@ -990,26 +990,28 @@ class ChannelsAutoWatchNow extends ChannelsEditing {
 class ChannelsKids extends ChannelsAutoWatchNow {
     constructor() {
         super()
-        renderer.ready(() => {
-            menu.addFilter(async (entries, path) => {
-                const term = lang.CATEGORY_KIDS; // lang can change in runtime, check the term here so
-                if (path.substr(term.length * -1) == term) {
-                    entries = entries.map(e => {
-                        if (!(e.rawname || e.name).includes('[') && ((!e.type || e.type == 'stream') ||
-                            (e.class && e.class.includes('entry-meta-stream')))) {
-                            e.rawname = '[fun]' + e.name + '[|fun]';
-                        }
-                        return e;
-                    });
-                } else if ([lang.LIVE, lang.CATEGORY_MOVIES_SERIES].includes(path)) {
-                    entries = entries.map(e => {
-                        if (!(e.rawname || e.name).includes('[') && e.name == term) {
-                            e.rawname = '[fun]' + e.name + '[|fun]';
-                        }
-                        return e;
-                    });
-                }
-                return entries;
+        renderer.ready(() => {            
+            lang.ready().catch(console.error).finally(() => {
+                menu.addFilter(async (entries, path) => {
+                    const term = lang.CATEGORY_KIDS; // lang can change in runtime, check the term here so
+                    if (path.endsWith(term)) {
+                        entries = entries.map(e => {
+                            if (!(e.rawname || e.name).includes('[') && ((!e.type || e.type == 'stream') ||
+                                (e.class && e.class.includes('entry-meta-stream')))) {
+                                e.rawname = '[fun]' + e.name + '[|fun]';
+                            }
+                            return e;
+                        });
+                    } else if ([lang.LIVE, lang.CATEGORY_MOVIES_SERIES].includes(path)) {
+                        entries = entries.map(e => {
+                            if (!(e.rawname || e.name).includes('[') && e.name == term) {
+                                e.rawname = '[fun]' + e.name + '[|fun]';
+                            }
+                            return e;
+                        });
+                    }
+                    return entries;
+                });
             });
         });
     }
