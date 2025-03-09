@@ -1,8 +1,6 @@
 {
   "projectName": "Megacubo",
   "projectOwner": "EdenwareApps",
-  "repoOwner": "EdenwareApps",
-  "repoName": "Megacubo",
   "repoType": "github",
   "repoHost": "https://github.com",
   "files": [
@@ -52,5 +50,6 @@
     }
   ],
   "contributorsPerLine": 6,
-  "linkToUsage": false
+  "linkToUsage": false,
+  "contributorTemplate": "<td align='center'><a href='<%= contributor.profile %>' style='text-decoration: none;'><img src='<%= contributor.avatar_url %>' width='80' alt='<%= contributor.name %>' /><br /><sub><%= contributor.name %></sub></a><br /><i><%= contributor.contributions %></i></td>"
 }
