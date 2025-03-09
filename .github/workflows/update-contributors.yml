@@ -20,6 +20,10 @@ jobs:
         uses: akhilmhdh/contributors-readme-action@v2.3.10
         with:
           commit_message: "Update contributors list in README"
-          readme_path: "README.md"        
+          readme_path: "README.md"
+          image_size: 100
+          use_username: true
+          columns_per_row: 6
+          collaborators: all 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
