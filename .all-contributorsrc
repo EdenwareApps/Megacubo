@@ -47,6 +47,15 @@
       "contributions": [
         "translation"
       ]
+    },
+    {
+      "login": "EdenwareApps",
+      "name": "Edenware",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7549528?v=4",
+      "profile": "http://edenware.app/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 6,
