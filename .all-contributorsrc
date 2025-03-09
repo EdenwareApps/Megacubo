@@ -40,6 +40,15 @@
       "contributions": [
         "translation"
       ]
+    },
+    {
+      "login": "MembaCo",
+      "name": "Memba Co.",
+      "avatar_url": "https://avatars.githubusercontent.com/u/661617?v=4",
+      "profile": "http://membaco.com/",
+      "contributions": [
+        "translation"
+      ]
     }
   ],
   "contributorsPerLine": 6,
