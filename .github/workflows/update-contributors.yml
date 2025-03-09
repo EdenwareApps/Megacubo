@@ -13,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Update contributors
-        uses: akhilmhdh/contributors-readme-action@v2.0.0
+        uses: akhilmhdh/contributors-readme-action@v2.3.10
         with:
           commit_message: "Update contributors list in README"
           readme_path: "README.md"
