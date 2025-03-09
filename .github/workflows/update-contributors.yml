@@ -1,29 +1,29 @@
-name: Update Contributors List
+name: Add All Contributors
 
 on:
   push:
     branches:
       - master
+  pull_request:
+    branches:
+      - master
   workflow_dispatch:
 
 jobs:
-  update-contributors:
+  add-contributors:
     runs-on: ubuntu-latest
-    name: A job to automate contrib in readme
     permissions:
       contents: write
       pull-requests: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Update contributors
-        uses: akhilmhdh/contributors-readme-action@v2.3.10
-        with:
-          commit_message: "Update contributors list in README"
-          readme_path: "README.md"
-          image_size: 100
-          use_username: true
-          columns_per_row: 6
-          collaborators: all 
+      - name: Install all-contributors-cli
+        run: npm install -g all-contributors-cli
+      - name: Add contributors
+        run: |
+          all-contributors add @${{ github.actor }} code
+          git commit -am "docs: add all contributors"
+          git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
