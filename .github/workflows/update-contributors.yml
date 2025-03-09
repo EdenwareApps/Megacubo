@@ -1,0 +1,19 @@
+name: Update Contributors List
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  update-contributors:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Update contributors
+        uses: akhilmhdh/contributors-readme-action@v2.0.0
+        with:
+          commit_message: "Update contributors list in README"
+          readme_path: "README.md"
