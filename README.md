@@ -1,4 +1,7 @@
 # Megacubo
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-0-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 <p align="center">
   <img src="https://static.megacubo.tv/wp-content/uploads/2022/03/cropped-default_icon-192x192.png" alt="Megacubo logo" title="Megacubo logo" />
 </p>
@@ -39,3 +42,16 @@ Please, feel free to contribute to the project by opening a discussion under Iss
 You can help us by [improving/creating translations](https://github.com/EdenwareApps/Megacubo/tree/master/www/nodejs-project/lang) and the [known channel names list for your country](https://github.com/EdenwareApps/world-tv-channels).
 
 Do you want to thank me for the development and help maintain this project in another way? How about buying me a coffee via [PayPal by clicking here](https://www.paypal.com/donate/?item_name=megacubo.tv&cmd=_donations&business=efox.web%40gmail.com)? This will help me a lot! :)
+
+# Contributors ✨
+
+Big thanks to these amazing folks ([emoji key](https://allcontributors.org/docs/en/emoji-key)) who’ve rocked this project:
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project embraces the [all-contributors](https://github.com/all-contributors/all-contributors) spirit —  every bit of help is mega-welcome!

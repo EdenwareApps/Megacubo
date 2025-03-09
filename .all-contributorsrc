@@ -1,0 +1,15 @@
+{
+  "projectName": "Megacubo",
+  "projectOwner": "EdenwareApps",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 92,
+  "commit": true,
+  "commitConvention": "gitmoji",
+  "contributors": [],
+  "contributorsPerLine": 7,
+  "linkToUsage": false
+}
