@@ -47,7 +47,6 @@ Big thanks to these amazing folks who’ve rocked this project:
       <td align="center" valign="top" width="20%"><a href="https://github.com/tarteAuxPommes"><img src="https://avatars.githubusercontent.com/u/2378786?v=4" width="80px;" alt=""/><br /><sub><b>tarteAuxPommes</b></sub></a></td>
       <td align="center" valign="top" width="20%"><a href="https://github.com/taksssss"><img src="https://avatars.githubusercontent.com/u/26397391?v=4" width="80px;" alt=""/><br /><sub><b>Tak</b></sub></a></td>
       <td align="center" valign="top" width="20%"><a href="http://membaco.com/"><img src="https://avatars.githubusercontent.com/u/661617?v=4" width="80px;" alt=""/><br /><sub><b>Memba Co.</b></sub></a></td>
-      <td align="center" valign="top" width="20%"><a href="http://edenware.app/"><img src="https://avatars.githubusercontent.com/u/7549528?v=4" width="80px;" alt=""/><br /><sub><b>Edenware</b></sub></a></td>
     </tr>
   </tbody>
 </table>
