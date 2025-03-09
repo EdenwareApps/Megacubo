@@ -33,19 +33,9 @@ Want to use the software, go to [our releases folder](https://github.com/Edenwar
 
 <br/>
 
-# Contributing
-
-For instructions on how to build the project, please [refer to this guide](https://github.com/EdenwareApps/Megacubo/blob/master/DEVELOPING.md).
-
-Please, feel free to contribute to the project by opening a discussion under Issues section or sending your PR.
-
-You can help us by [improving/creating translations](https://github.com/EdenwareApps/Megacubo/tree/master/www/nodejs-project/lang) and the [known channel names list for your country](https://github.com/EdenwareApps/world-tv-channels).
-
-Do you want to thank me for the development and help maintain this project in another way? How about buying me a coffee via [PayPal by clicking here](https://www.paypal.com/donate/?item_name=megacubo.tv&cmd=_donations&business=efox.web%40gmail.com)? This will help me a lot! :)
-
 # Contributors ✨
 
-Big thanks to these amazing folks ([emoji key](https://allcontributors.org/docs/en/emoji-key)) who’ve rocked this project:
+Big thanks to these amazing folks who’ve rocked this project:
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
@@ -65,5 +55,11 @@ Big thanks to these amazing folks ([emoji key](https://allcontributors.org/docs/
 <!-- prettier-ignore-end -->
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
+
+Feel free to contribute to the project by starting a discussion in the [Issues](https://github.com/EdenwareApps/Megacubo/issues) section or submitting a pull request (PR).
+
+You can help by [improving or creating translations](https://github.com/EdenwareApps/Megacubo/tree/master/www/nodejs-project/lang) or contributing to the [list of known channel names for your country](https://github.com/EdenwareApps/world-tv-channels).
+
+For instructions on building the project, please [refer to this guide](https://github.com/EdenwareApps/Megacubo/blob/master/DEVELOPING.md).
 
 This project embraces the [all-contributors](https://github.com/all-contributors/all-contributors) spirit —  every bit of help is mega-welcome!
