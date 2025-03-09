@@ -4,20 +4,19 @@ on:
   push:
     branches:
       - master
-  pull_request:
-    branches:
-      - master
-  workflow_dispatch:
 
 jobs:
-  add-contributors:
+  update-contributors:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          # Use the latest Node.js LTS version
+          node-version: 'lts/*'
 
       - name: Install all-contributors-cli
         run: npm install -g all-contributors-cli
@@ -26,11 +25,13 @@ jobs:
         run: |
           git config user.email "efox.web@gmail.com"
           git config user.name "EdenwareApps"
+          git fetch origin
+          git reset --soft origin/master
 
       - name: Add contributor
         run: |
-          all-contributors add EdenwareApps code
-          git commit -am "docs: add all contributors"
-          git push --force
+          all-contributors add ${{ github.actor }} code
+          git commit -am "docs: add all contributors" || echo "No changes to commit"
+          git push origin master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
