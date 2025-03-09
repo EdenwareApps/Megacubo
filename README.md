@@ -1,6 +1,6 @@
 # Megacubo
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-0-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 <p align="center">
   <img src="https://static.megacubo.tv/wp-content/uploads/2022/03/cropped-default_icon-192x192.png" alt="Megacubo logo" title="Megacubo logo" />
@@ -50,8 +50,17 @@ Big thanks to these amazing folks ([emoji key](https://allcontributors.org/docs/
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="16.66%"><a href="https://anasyaseen.com/"><img src="https://avatars.githubusercontent.com/u/72883250?v=4?s=100" width="100px;" alt="Anas Yaseen"/><br /><sub><b>Anas Yaseen</b></sub></a><br /><a href="#translation-anasomar1" title="Translation">🌍</a></td>
+    </tr>
+  </tbody>
+</table>
+
 <!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
+
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project embraces the [all-contributors](https://github.com/all-contributors/all-contributors) spirit —  every bit of help is mega-welcome!

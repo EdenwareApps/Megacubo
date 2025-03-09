@@ -13,7 +13,17 @@
   "commit": true,
   "commitConvention": "gitmoji",
   "columnsPerRow": 6,
-  "contributors": [],
+  "contributors": [
+    {
+      "login": "anasomar1",
+      "name": "Anas Yaseen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/72883250?v=4",
+      "profile": "https://anasyaseen.com/",
+      "contributions": [
+        "translation"
+      ]
+    }
+  ],
   "contributorsPerLine": 6,
   "linkToUsage": false
 }
