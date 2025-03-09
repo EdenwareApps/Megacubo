@@ -43,11 +43,11 @@ Big thanks to these amazing folks who’ve rocked this project:
 <table>
   <tbody>
     <tr>
-      <td align="center" valign="top" width="16.66%"><td align='center'><a href='https://anasyaseen.com/' style='text-decoration: none;'><img src='https://avatars.githubusercontent.com/u/72883250?v=4' width='80' height='80' alt='Anas Yaseen' /><br /><sub>Anas Yaseen</sub></a></td></td>
-      <td align="center" valign="top" width="16.66%"><td align='center'><a href='https://github.com/tarteAuxPommes' style='text-decoration: none;'><img src='https://avatars.githubusercontent.com/u/2378786?v=4' width='80' height='80' alt='tarteAuxPommes' /><br /><sub>tarteAuxPommes</sub></a></td></td>
-      <td align="center" valign="top" width="16.66%"><td align='center'><a href='https://github.com/taksssss' style='text-decoration: none;'><img src='https://avatars.githubusercontent.com/u/26397391?v=4' width='80' height='80' alt='Tak' /><br /><sub>Tak</sub></a></td></td>
-      <td align="center" valign="top" width="16.66%"><td align='center'><a href='http://membaco.com/' style='text-decoration: none;'><img src='https://avatars.githubusercontent.com/u/661617?v=4' width='80' height='80' alt='Memba Co.' /><br /><sub>Memba Co.</sub></a></td></td>
-      <td align="center" valign="top" width="16.66%"><td align='center'><a href='http://edenware.app/' style='text-decoration: none;'><img src='https://avatars.githubusercontent.com/u/7549528?v=4' width='80' height='80' alt='Edenware' /><br /><sub>Edenware</sub></a></td></td>
+      <td align="center" valign="top" width="20%"><a href="https://anasyaseen.com/"><img src="https://avatars.githubusercontent.com/u/72883250?v=4" width="80px;" alt=""/><br /><sub><b>Anas Yaseen</b></sub></a></td>
+      <td align="center" valign="top" width="20%"><a href="https://github.com/tarteAuxPommes"><img src="https://avatars.githubusercontent.com/u/2378786?v=4" width="80px;" alt=""/><br /><sub><b>tarteAuxPommes</b></sub></a></td>
+      <td align="center" valign="top" width="20%"><a href="https://github.com/taksssss"><img src="https://avatars.githubusercontent.com/u/26397391?v=4" width="80px;" alt=""/><br /><sub><b>Tak</b></sub></a></td>
+      <td align="center" valign="top" width="20%"><a href="http://membaco.com/"><img src="https://avatars.githubusercontent.com/u/661617?v=4" width="80px;" alt=""/><br /><sub><b>Memba Co.</b></sub></a></td>
+      <td align="center" valign="top" width="20%"><a href="http://edenware.app/"><img src="https://avatars.githubusercontent.com/u/7549528?v=4" width="80px;" alt=""/><br /><sub><b>Edenware</b></sub></a></td>
     </tr>
   </tbody>
 </table>
