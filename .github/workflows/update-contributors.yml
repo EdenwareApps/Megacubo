@@ -9,8 +9,10 @@ on:
 jobs:
   update-contributors:
     runs-on: ubuntu-latest
+    name: A job to automate contrib in readme
     permissions:
       contents: write
+      pull-requests: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
