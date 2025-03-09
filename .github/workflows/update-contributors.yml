@@ -22,7 +22,7 @@ jobs:
         run: npm install -g all-contributors-cli
       - name: Add contributors
         run: |
-          all-contributors add @${{ github.actor }} code
+          all-contributors add ${{ github.actor }} code
           git commit -am "docs: add all contributors"
           git push
         env:
