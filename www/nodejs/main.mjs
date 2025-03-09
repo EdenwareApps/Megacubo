@@ -391,10 +391,22 @@ const initElectronWindow = async () => {
     let remote
     const tcpFastOpen = config.get('tcp-fast-open') ? 'true' : 'false'
     const contextIsolation = parseFloat(process.versions.electron) >= 22
-    const require = createRequire(getFilename())
     if(contextIsolation) {
-        remote = require('@electron/remote/main')
-        remote.initialize()
+        if(electron.remote) {
+            remote = electron.remote
+        } else {
+            const require = createRequire(getFilename())
+            try {
+                remote = require('@electron/remote/main')
+            } catch (e) {
+                try {
+                    remote = require('@electron/remote')
+                } catch (e) {
+                    console.error('Error loading remote', e)
+                }
+            }
+        }
+        remote?.initialize()
     }
 
     const { app, BrowserWindow, globalShortcut, Menu } = electron
@@ -406,7 +418,7 @@ const initElectronWindow = async () => {
     onexit(() => app.quit())
     if (contextIsolation) {
         app.once('browser-window-created', (_, window) => {
-            remote.enable(window.webContents)
+            remote?.enable(window.webContents)
         })
     }
     const isLinux = process.platform == 'linux', appCmd = app.commandLine
