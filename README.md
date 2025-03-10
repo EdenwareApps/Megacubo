@@ -3,7 +3,9 @@
 [![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 <p align="center">
-  <img src="https://static.megacubo.tv/wp-content/uploads/2022/03/cropped-default_icon-192x192.png" alt="Megacubo logo" title="Megacubo logo" />
+  <a href="https://megacubo.tv" target="_blank">
+    <img src="https://static.megacubo.tv/wp-content/uploads/2022/03/cropped-default_icon-192x192.png" alt="Megacubo logo" title="Megacubo logo" />
+  </a>
 </p>
 
 Megacubo is an intuitive, free, multi-language and cross-platform IPTV player with support for history, bookmarks, smart recommendations, [hotkeys](https://github.com/EdenwareApps/Megacubo/blob/master/HOTKEYS.md) and much more.
