@@ -20,7 +20,7 @@ Can you help us by adding [more languages](https://github.com/EdenwareApps/Megac
 
 <br/>
 
-# Releases
+# Releases 🚀
 Want to use the software, go to [our releases folder](https://github.com/EdenwareApps/Megacubo/releases) to get it.
 
 <br/>
