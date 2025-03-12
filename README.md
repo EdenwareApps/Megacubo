@@ -58,7 +58,7 @@ Big thanks to these amazing folks who’ve rocked this project:
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-Feel free to contribute to the project by starting a discussion in the [Issues](https://github.com/EdenwareApps/Megacubo/issues) section or submitting a pull request (PR).
+Feel free to contribute to the project by starting a discussion in the [Issues](https://github.com/EdenwareApps/Megacubo/issues) section or submitting a [pull request (PR)](https://github.com/EdenwareApps/Megacubo/pulls).
 
 You can help by [improving or creating translations](https://github.com/EdenwareApps/Megacubo/tree/master/www/nodejs-project/lang) or contributing to the [list of known channel names for your country](https://github.com/EdenwareApps/world-tv-channels).
 
