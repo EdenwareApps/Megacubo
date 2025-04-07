@@ -65,3 +65,7 @@ You can help by [improving or creating translations](https://github.com/Edenware
 For instructions on building the project, please [refer to this guide](https://github.com/EdenwareApps/Megacubo/blob/master/DEVELOPING.md).
 
 This project embraces the [all-contributors](https://github.com/all-contributors/all-contributors) spirit —  every bit of help is mega-welcome!
+
+&nbsp; &nbsp;
+
+[![Star History Chart](https://api.star-history.com/svg?repos=EdenwareApps/Megacubo&type=Date)](https://www.star-history.com/#EdenwareApps/Megacubo&Date)
