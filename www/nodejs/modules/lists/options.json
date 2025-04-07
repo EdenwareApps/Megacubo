@@ -1,0 +1,6 @@
+{
+    "defaultCommunityModeReach": 12,
+    "folderSizeLimitTolerance": 12,
+    "offloadThreshold": 256,
+    "listMetaKeyPrefix": "meta-cache-"
+}

@@ -1,0 +1,9 @@
+{
+    "type": "module",
+"exports": "./ready.js",
+    "name": "ready",
+    "version": "0.0.1",
+    "dependencies": {
+    }   
+ }
+ 
