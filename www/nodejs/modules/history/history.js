@@ -25,7 +25,7 @@ class History extends EntriesGroup {
                             entry.historyTime = time;
                             this.remove(entry);
                             this.add(entry);
-                            this.channels.updateUserTasks().catch(console.error);
+                            this.channels.updateUserTasks().catch(err => console.error(err));
                         }
                     }, 90000);
                 }
@@ -108,7 +108,7 @@ class History extends EntriesGroup {
                     e.type = 'group'
                     e.renderer = async () => {
                         let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.tools.terms(atts.name)
-                        return await global.lists.search(terms, {
+                        return global.lists.search(terms, {
                             type: 'video',
                             group: true,
                             safe: !global.lists.parentalControl.lazyAuth()
@@ -120,7 +120,7 @@ class History extends EntriesGroup {
             }
             return e
         });
-        let entries = await this.channels.epgChannelsAddLiveNow(Object.values(epgAddLiveNowMap), true).catch(console.error);
+        let entries = await this.channels.epgChannelsAddLiveNow(Object.values(epgAddLiveNowMap), true).catch(err => console.error(err));
         if (Array.isArray(entries)) {
             const ks = Object.keys(epgAddLiveNowMap);
             entries.forEach((e, i) => gentries[ks[i]] = e);

@@ -180,6 +180,7 @@
    "EPG_LOAD_FAILURE": "EPGを取得できませんでした",
    "EPG_LOAD_SUCCESS": "EPGは正常にロードされました",
    "EPG_OUTDATED": "構成されたEPGは時代遅れです",
+   "EPG_SUGGESTED": "構成されていない場合、ランダムEPGをロードします",
    "EXIT": "出口",
    "EXIT_FS_HINT": "{0}キーを押して、フルスクリーンを終了します",
    "EXPORT": "輸出",

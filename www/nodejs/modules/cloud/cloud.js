@@ -6,7 +6,6 @@ import config from '../config/config.js'
 import paths from '../paths/paths.js'
 import { EventEmitter } from 'events'
 import { getDomain } from '../utils/utils.js'
-import { parse } from '../serialize/serialize.js'
 
 class CloudConfiguration extends EventEmitter {
     constructor(opts = {}) {
@@ -31,45 +30,18 @@ class CloudConfiguration extends EventEmitter {
         return `cloud-${lang.locale}-`
     }
 
-    logDebug(message, data = null) {
-        if (this.debug) {
-            console.log(`CloudConfiguration: ${message}`, data || '')
-        }
-    }
-
     async getCountry(ip) {
-        const postData = `ip=${ip}`
-        const options = {
-            port: 80,
-            method: 'POST',
-            path: '/stats/get_country_low',
-            hostname: getDomain(this.server),
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': Buffer.byteLength(postData),
-                'Cache-Control': 'no-cache',
-            },
-        }
-
-        return new Promise((resolve, reject) => {
-            const req = require('http').request(options, res => {
-                let data = ''
-                res.setEncoding('utf8')
-                res.on('data', chunk => data += chunk)
-                res.on('end', () => {
-                    try {
-                        const parsed = JSON.parse(data)
-                        if (!parsed.country_code) throw new Error('Invalid response')
-                        resolve(parsed.country_code)
-                    } catch (error) {
-                        reject(error)
-                    }
-                })
-            }).on('error', reject)
-
-            req.write(postData)
-            req.end()
+        const postData = `ip=${encodeURIComponent(ip)}`
+        const ret = await Download.post({
+            url: `${this.server}/get_country_low`,
+            post: postData,
+            responseType: 'json',
+            timeout: 10000,
+            retry: 2,
+            debug: this.debug,
         })
+        if (!ret.country_code) throw new Error('Invalid response')
+        return ret.country_code
     }
 
     async testConfigServer(baseUrl) {
@@ -81,7 +53,7 @@ class CloudConfiguration extends EventEmitter {
 
     async fetch(key, opts = {}) {
         const url = `${this.server}/data/${key}.json`
-        this.logDebug(`Fetching URL: ${url}`)
+        this.debug && console.log(`Fetching URL: ${url}`)
         try {
             const response = await Download.get({
                 url,
@@ -91,52 +63,55 @@ class CloudConfiguration extends EventEmitter {
                 cacheTTL: this.expires[opts.expiralKey] || this.defaultTTL,
                 bypassCache: opts.bypassCache,
             })
-            this.logDebug(`Fetched data for ${key}`, response)
+            this.debug && console.log(`Fetched data for ${key}`, response)
             if (opts.validator && !opts.validator(response)) {
                 throw new Error('Validation failed')
             }
             await this.saveToCache(key, response, opts)
             return response
         } catch (error) {
-            this.logDebug(`Fetch failed for ${key}`, error)
+            this.debug && console.log(`Fetch failed for ${key}`, error)
             throw error
         }
     }
 
     async get(key, opts = {}) {
         const cacheKey = `${this.cachePrefix}${key}`
-        this.logDebug(`Reading cache for ${key}`)
-        let data = await storage.get(cacheKey).catch(() => null)
+        this.debug && console.log(`Reading cache for ${key}`)
+        let data = await storage.get(cacheKey)
 
         if (data) {
-            this.logDebug(`Cache hit for ${key}`)
+            this.debug && console.log(`Cache hit for ${key}`)
             return data
         }
 
         // Check if there is an ongoing fetch for this key
         if (this.activeFetches.has(key)) {
-            this.logDebug(`Waiting for ongoing fetch for ${key}`)
+            this.debug && console.log(`Waiting for ongoing fetch for ${key}`)
             return this.activeFetches.get(key) // Return the shared fetch promise
         }
 
         // Create a fetch promise and store it
-        const fetchPromise = (async () => {
+        const fetchPromise = ((async () => {
             try {
                 const result = await this.fetch(key, opts)
                 await this.saveToCache(key, result, opts)
                 return result
             } catch (fetchError) {
-                this.logDebug(`Fetch failed, trying fallback for ${key}`)
+                this.debug && console.log(`Fetch failed, trying fallback for ${key}`)
                 try {
-                    return await this.readFallback(key)
+                    return this.readFallback(key)
                 } catch (fallbackError) {
-                    this.logDebug(`Fallback failed for ${key}`, fallbackError)
+                    this.debug && console.log(`Fallback failed for ${key}`, fallbackError)
                     throw new Error(`Unable to retrieve data for ${key}`)
                 }
             } finally {
                 this.activeFetches.delete(key) // Clean up when done
             }
-        })()
+        })()).catch(err => {
+            this.debug && console.log(`Fetch failed for ${key}`, err)
+            return null
+        })
 
         this.activeFetches.set(key, fetchPromise)
 
@@ -145,32 +120,39 @@ class CloudConfiguration extends EventEmitter {
             const timeoutPromise = new Promise((_, reject) =>
                 setTimeout(() => reject(new Error('Fetch timeout')), 5000)
             )
-            data = await Promise.race([fetchPromise, timeoutPromise])
-
+            await Promise.race([fetchPromise.then(ret => data = ret), timeoutPromise])
             if (data) {
                 return data // If fetch succeeds within timeout, return data
             }
         } catch (timeoutError) {
-            this.logDebug(`Fetch timed out for ${key}, using fallback`)
+            this.debug && console.log(`Fetch timed out for ${key}, using fallback`)
         }
 
         // Fetch didn't resolve in time or failed, use fallback
         try {
-            return await this.readFallback(key)
+            return this.readFallback(key)
         } catch (fallbackError) {
-            this.logDebug(`Fallback failed for ${key}`, fallbackError)
+            this.debug && console.log(`Fallback failed for ${key}`, fallbackError)
         }
 
         return fetchPromise
+    }
+
+    async register(endpoint, params) {
+        const url = `${this.server}/${endpoint}`
+        const response = await Download.post({ url, responseType: 'text', post: params, debug: true })
+        return response
     }
 
     async readFallback(key) {
         const filePath = paths.cwd + `/dist/defaults/${key}.json`
         try {
             const content = await fs.readFile(filePath, 'utf8')
-            return parse(content)
+            return JSON.parse(content)
         } catch (error) {
-            this.logDebug(`Fallback failed for ${key}`, error)
+            if (key === 'configure') {
+                console.error(`[cloud] No fallback found for ${key}`, error)
+            }
             throw error
         }
     }
@@ -178,7 +160,7 @@ class CloudConfiguration extends EventEmitter {
     async saveToCache(key, data, opts) {
         const cacheKey = `${this.cachePrefix}${key}`
         const ttl = this.expires[opts.expiralKey] || this.defaultTTL
-        this.logDebug(`Saving ${key} to cache`, { cacheKey, ttl })
+        this.debug && console.log(`Saving ${key} to cache`, { cacheKey, ttl })
         await storage.set(cacheKey, data, { ttl, permanent: opts.permanent })
     }
 }

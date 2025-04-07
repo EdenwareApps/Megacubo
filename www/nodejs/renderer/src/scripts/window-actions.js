@@ -70,7 +70,7 @@ class WindowActions extends EventEmitter {
 	}
 	restart(){
 		let next = auto => {
-			if(auto){
+			if(auto === true){
 				if(typeof(plugins) != 'undefined' && plugins.megacubo){ // android
 					return plugins.megacubo.restartApp()
 				} else if(parent.Manager) {
@@ -148,19 +148,16 @@ class WinActionsMiniplayer extends WindowActions {
 		this.set(false)
 		return true
 	}
-	getDimensions(real){
+	getLimits(real){
 		const scr = window.capacitor ? screen : parent.Manager.getScreenSize(real)
-		let width = Math.min(scr.width, scr.height) / 2, aw = Math.max(scr.width, scr.height) / 3
-		if(aw < width){
-			width = aw
-		}
-		width = parseInt(width)
+		const factor = 0.25
 		let r = window.innerWidth / window.innerHeight
 		if(main.streamer && main.streamer.active){
 			r = main.streamer.activeAspectRatio.h / main.streamer.activeAspectRatio.v			
 		}
-		let height = parseInt(width / r)
-		return {width, height}
+		const width = scr.width * factor
+		const height = width / r
+		return { width, height }
 	}
 	enterIfPlaying(){
 		if(this.enabled && this.supports() && main.streamer && (main.streamer.active || main.streamer.isTuning())) {
@@ -215,36 +212,31 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 	}
 	setup(){
 		if(this.pip){
-			// orientation change listener to avoid enter PIP mode when the user is just rotating the device
-			let orientationChanging = 0
+			let orientationTimeout = null;			
 			const orientationListener = () => {
-				if(orientationChanging) {
-					clearTimeout(orientationChanging)
-				} else {					
-					this.pip.autoPIP(false, 0, 0) // only if it was not already changing orientation
-				}
-				orientationChanging = setTimeout(() => {
-					orientationChanging = 0
-					stateListener()
-				}, 2000)
-			}
+				clearTimeout(orientationTimeout);
+				orientationTimeout = setTimeout(() => {
+					if(main.streamer.active && !main.streamer.isAudio && document.visibilityState === 'visible') {
+						const ratio = player.videoRatio();
+						this.pip.autoPIP(true, (240 * ratio) || 320, 240);
+					}
+				}, 3000);
+			};
+			
 			screen.orientation && screen.orientation.addEventListener('change', orientationListener)
 			window.addEventListener('resize', orientationListener)
 			window.addEventListener('orientationchange', orientationListener)
 
 			const stateListener = () => {
-				if(orientationChanging) return
-				setTimeout(() => { // wait a bit for consolidated values
-					if(orientationChanging) return
-					const shouldAutoPIP = main.streamer.active && !main.streamer.isAudio && !main.streamer.casting
-					if(shouldAutoPIP) {
-						const ratio = player.videoRatio()
-						const width = (240 * ratio) || 320
-						this.pip.autoPIP(true, (240 * player.videoRatio()) || 320, 240)
-					} else {
-						this.pip.autoPIP(false, 0, 0)
-					}
-				}, 0)
+				if(orientationTimeout) return;
+				
+				const shouldAutoPIP = main.streamer.active && !main.streamer.isAudio && !main.streamer.casting;
+				if(shouldAutoPIP && document.visibilityState === 'visible') {
+					const ratio = player.videoRatio();
+					this.pip.autoPIP(true, (240 * ratio) || 320, 240);
+				} else {
+					this.pip.autoPIP(false, 0, 0);
+				}
 			}
 			main.streamer.on('state', stateListener)
 			main.streamer.on('cast-start', stateListener)
@@ -362,10 +354,9 @@ export class AndroidWinActions extends WinActionsMiniplayer {
         })
     }
 	seemsPIP(){
-		// should not confuse with phone in portrait mode but the app with landscape orientation
-		// so we check if the height is less than half of the screen height
-		// and if the width is less than half of the screen width
-		return window.innerHeight < (screen.height / 2) && window.innerWidth < (screen.width * 0.7)
+		const threshold = 0.65;
+		return window.innerHeight < (screen.height * threshold) && 
+			   window.innerWidth < (screen.width * threshold);
 	}
     enter(){
         return new Promise((resolve, reject) => {
@@ -377,7 +368,7 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 			}
             this.prepare().then(() => {
 				console.warn('ABOUT TO PIP', this.inPIP)
-				let m = this.getDimensions()
+				let m = this.getLimits()
                 this.pip.enter(m.width, m.height, success => {
                     if(success){
 						this.enteredPipTimeMs = (new Date()).getTime()
@@ -441,8 +432,8 @@ export class ElectronWinActions extends WinActionsMiniplayer {
 		}
 	}
 	seemsPIP(){
-		let dimensions = this.getDimensions();
-		['height', 'width'].forEach(m => dimensions[m] = dimensions[m] * 1.5)
+		let dimensions = this.getLimits(); // default miniplayer size
+		['height', 'width'].forEach(m => dimensions[m] = dimensions[m] * 1.5) // magnetic margin to recognize miniplayer when resizing window
 		let seemsPIP = window.innerWidth <= dimensions.width && window.innerHeight <= dimensions.height
 		return seemsPIP
 	}
@@ -452,7 +443,7 @@ export class ElectronWinActions extends WinActionsMiniplayer {
 				return reject('miniplayer disabled')
 			}
             if(!this.inPIP){
-				let m = this.getDimensions()
+				let m = this.getLimits()
 				this.pip.enterMiniPlayer(m.width, m.height)
 				this.set(true)
 			}

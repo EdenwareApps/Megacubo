@@ -29,18 +29,18 @@ class Joiner extends Downloader {
             this.once('destroy', () => {
                 const done = () => this.worker && this.worker.terminate()
                 if (this.processor) {
-                    this.processor.terminate().catch(console.error).finally(done)
+                    this.processor.terminate().catch(err => console.error(err)).finally(done)
                 } else {
                     done();
                 }
             });
         } else {
             this.processor = new MPEGTSProcessor();
-            this.once('destroy', () => this.processor && this.processor.terminate().catch(console.error));
+            this.once('destroy', () => this.processor && this.processor.terminate().catch(err => console.error(err)));
         }
         this.processor.on('data', data => (data && this.output(data)));
         this.processor.on('fail', () => this.emit('fail'));
-        // this.opts.debug = this.processor.debug  = true
+        this.opts.debug = this.processor.debug  = false
         this.once('destroy', () => {
             if (!this.joinerDestroyed) {
                 this.joinerDestroyed = true
@@ -50,7 +50,7 @@ class Joiner extends Downloader {
         });
     }
     async setPacketFilterPolicy(policy) {
-        return await this.processor.setPacketFilterPolicy(policy)
+        return this.processor.setPacketFilterPolicy(policy)
     }
     handleData(data) {
         if (!this.processor) return

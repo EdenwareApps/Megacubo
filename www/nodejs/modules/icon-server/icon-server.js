@@ -89,14 +89,14 @@ class IconDefault {
         }
     }
     async adjust(file, options) {
-        return await this.limiter.adjust(async () => {
+        return this.limiter.adjust(async () => {
             let opts = {
                 autocrop: config.get('autocrop-logos')
             };
             if (options) {
                 Object.assign(opts, options);
             }
-            return await imp.transform(file, opts)
+            return imp.transform(file, opts)
         })
     }
 }
@@ -177,11 +177,11 @@ class IconSearch extends IconDefault {
                         }
                         images.push(...ret);
                     }
-                }).catch(console.error).finally(() => resolve(images));
+                }).catch(err => console.error(err)).finally(() => resolve(images));
             }
             lists.epgSearchChannelIcon(ntms).then(srcs => images = srcs.map(src => {
                 return { icon: src, live: true, hits: 1, trending: 1, epg: 1 };
-            })).catch(console.error).finally(next)
+            })).catch(err => console.error(err)).finally(next)
         });
     }
 }
@@ -306,7 +306,7 @@ class IconServerStore extends IconSearch {
                     file,
                     retries: 2,
                     timeout: 10,
-                    downloadLimit: this.opts.downloadLimit,
+                    maxContentLength: this.opts.maxContentLength,
                     headers: {
                         'content-encoding': 'identity'
                     },
@@ -318,7 +318,10 @@ class IconServerStore extends IconSearch {
         })
         if (err) {
             this.downloadErrors[url] = {error: String(err), ttl: time() + 60}
-            await fs.promises.unlink(file).catch(console.error)
+            const exists = await fs.promises.access(file).catch(() => false);
+            if (exists) {
+                await fs.promises.unlink(file).catch(err => console.error(err))
+            }
             throw err
         }
         await this.saveCacheExpiration(key, true);
@@ -337,7 +340,7 @@ class IconServer extends IconServerStore {
         this.opts = {
             addr: '127.0.0.1',
             port: 0,
-            downloadLimit: 1 * (1024 * 1024),
+            maxContentLength: 1 * (1024 * 1024),
             folder: data + '/icons',
             debug: false
         };
@@ -363,7 +366,7 @@ class IconServer extends IconServerStore {
         const promise = icon.get();
         promise.icon = icon;
         promise.entry = e;
-        promise.catch(console.error)
+        promise.catch(err => console.error(err))
         promise.destroy = () => icon.destroy()
 
         icon.on('result', ret => this.result(e, e.path, j, ret))
@@ -526,7 +529,7 @@ class IconServer extends IconServerStore {
                         'Connection': 'close',
                         'Cache-Control': 'max-age=0, no-cache, no-store'
                     }, req));
-                    response.end(err + ' - ' + req.url.split('#')[0]);
+                    response.end(err);
                 };
                 if (this.isHashKey(key)) {
                     this.checkCache(key).then(send).catch(onerr);

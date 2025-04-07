@@ -7,6 +7,7 @@ import CommunityListsProvider from "./providers/community-lists.js";
 import CommunityListsIPTVOrgProvider from "./providers/community-lists-iptv-org.js";
 import config from "../config/config.js"
 import renderer from '../bridge/bridge.js'
+import ready from '../ready/ready.js'
 
 class ListsDiscovery extends EventEmitter {
     constructor(lists) {
@@ -23,22 +24,20 @@ class ListsDiscovery extends EventEmitter {
         this.on('registered', () => {
             process.nextTick(() => {
                 if (this.providers.length > 1 && this.providers.every(p => p[0]._isLoaded)) {
-                    this.isReady = true;
-                    this.emit('ready');
-                    this.save().catch(console.error);
-                } else {
-                    this.isReady = false;
+                    this.ready.done()
+                    this.save().catch(err => console.error(err));
                 }
             });
         });
-        this.on('found', () => this.save().catch(console.error));
+        this.on('found', () => this.save().catch(err => console.error(err)));
+        this.ready = ready()
         this.saver = new Limiter(() => {
             storage.set(this.key, this.knownLists, {
                 permanent: true,
                 expiration: true
             });
         }, 10000);
-        this.restore().catch(console.error);
+        this.restore().catch(err => console.error(err));
         renderer.ready(async () => {
             [
                 [new PublicListsProvider(this), 'public'],
@@ -57,7 +56,7 @@ class ListsDiscovery extends EventEmitter {
         if(e) return e[0]
     }
     async restore() {
-        const data = await storage.get(this.key).catch(console.error);
+        const data = await storage.get(this.key);
         Array.isArray(data) && this.add(data);
     }
     async reset() {
@@ -72,7 +71,7 @@ class ListsDiscovery extends EventEmitter {
     register(provider, type) {
         provider._isLoaded = false
         this.providers.push([provider, type])
-        provider.discovery(lists => this.add(lists)).catch(console.error).finally(() => {
+        provider.discovery(lists => this.add(lists)).catch(err => console.error(err)).finally(() => {
             provider._isLoaded = true
             this.emit('registered')
         })
@@ -80,28 +79,20 @@ class ListsDiscovery extends EventEmitter {
     async update(provider, type) {
         for (const provider of this.providers) {
             provider[0]._isLoaded = false
-            await provider[0].discovery(lists => this.add(lists)).catch(console.error).finally(() => {
+            await provider[0].discovery(lists => this.add(lists)).catch(err => console.error(err)).finally(() => {
                 provider[0]._isLoaded = true
                 this.emit('registered')
             })
         }
     }
-    ready() {
-        return new Promise(resolve => {
-            if (this.isReady) {
-                return resolve();
-            }
-            this.once('ready', resolve);
-        });
-    }
-    async get(amount = 20) {
+    async get(amount = 20, types = ['public', 'community'], ignoreSettings = false) {
         await this.ready();
         this.sort();
         const active = {
-            public: config.get('public-lists'),
-            community: config.get('communitary-mode-lists-amount') > 0
+            public: ignoreSettings || config.get('public-lists'),
+            community: ignoreSettings || config.get('communitary-mode-lists-amount') > 0
         };
-        return this.domainCap(this.knownLists.filter(list => active[list.type]), amount)
+        return this.domainCap(this.knownLists.filter(list => active[list.type] && types.includes(list.type)), amount)
     }
     getDomain(u) {
         if (u && u.includes('//')) {
@@ -203,7 +194,7 @@ class ListsDiscovery extends EventEmitter {
     reportHealth(sourceListUrl, success) {
         return this.knownLists.some((list, i) => {
             if (list.url === sourceListUrl) {
-                const value = success ? 1 : 0;
+                const value = typeof(success) == 'number' ? success : success ? 1 : 0;
                 if (typeof(list.perceivedHealthTestCount) != 'number') {
                     list.perceivedHealthTestCount = 0;
                 }
@@ -215,13 +206,18 @@ class ListsDiscovery extends EventEmitter {
                 } else {
                     this.knownLists[i].perceivedHealth = value;
                 }
-                this.save().catch(console.error);
+                this.save().catch(err => console.error(err));
                 return true;
             }
         });
     }
     averageHealth(list) {
-        let health = 0, values = [list.health, list.perceivedHealth].filter(n => {
+        let health = 0
+        const i = this.knownLists.findIndex(l => l.url == list.url)
+        const values = [
+            list.health || this.knownLists[i].health, 
+            list.perceivedHealth || this.knownLists[i].perceivedHealth
+        ].filter(n => {
             return typeof(n) == 'number' && n >= 0 && n <= 1;
         });
         if (values.length) {

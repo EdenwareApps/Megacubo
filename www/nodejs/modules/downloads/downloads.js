@@ -88,7 +88,6 @@ class Downloads extends EventEmitter {
             this.server = http.createServer((req, res) => {
                 const uid = (Date.now() / 1000);
                 this.clients.push(uid);
-                console.log(`serve ${req.method} ${req.url}`);
                 const parsedUrl = url.parse(req.url);
                 let pathname = `.${parsedUrl.pathname}`;
                 if (pathname == './') {
@@ -97,13 +96,9 @@ class Downloads extends EventEmitter {
                 pathname = decodeURIComponentSafe(pathname);
                 const ext = path.parse(pathname).ext;
                 if (typeof(this.map[pathname]) != 'undefined') {
-                    console.log('serve ' + pathname);
                     pathname = this.map[pathname];
-                    console.log('serve ' + pathname);
                 } else {
-                    console.log('serve ' + pathname);
                     pathname = path.join(this.folder, pathname);
-                    console.log('serve ' + pathname, fs.readdirSync(this.folder));
                 }
                 let resHeaders = prepareCORS({
                     'accept-ranges': 'bytes',
@@ -152,7 +147,7 @@ class Downloads extends EventEmitter {
                     fs.stat(pathname, (err, stat) => {
                         if (err) {
                             res.statusCode = 404;
-                            res.end(`File ${pathname} not found!`);
+                            res.end();
                             return;
                         }
                         let status = 200, len = stat.size, start = 0, end = Math.max(0, len - 1);
@@ -198,7 +193,6 @@ class Downloads extends EventEmitter {
                         let stream = fs.createReadStream(pathname, { start, end });
                         let sent = 0;
                         closed(req, res, stream, () => {
-                            console.log('serve res finished', sent, start, end);
                             if (stream) {
                                 stream.destroy();
                                 stream = null;
@@ -211,7 +205,6 @@ class Downloads extends EventEmitter {
                         });
                         stream.pipe(res);
                         stream.on('data', chunk => sent += chunk.length);
-                        console.log('serve res started');
                     });
                 }
             }).listen(this.opts.port, this.opts.addr, (err) => {
@@ -227,14 +220,11 @@ class Downloads extends EventEmitter {
     import(file) {
         return new Promise((resolve, reject) => {
             const name = path.basename(file);
-            console.log('serve import', this.folder, name);
             const dest = path.join(this.folder, name);
-            console.log('serve import', file, dest);
             this.served.push(dest);
             if (file == dest) {
                 resolve('http://' + this.opts.addr + ':' + this.opts.port + '/' + encodeURIComponent(name));
             } else {
-                
                 fs.copyFile(file, dest, err => {
                     if (err) {
                         reject(err)
@@ -271,11 +261,9 @@ class Downloads extends EventEmitter {
         const file = paths.temp +'/'+ filename
         await fs.promises.writeFile(file, content)
         this.map['./' + filename] = file
-        console.log('serve serve', file, url)
         return url
     }
     clear() {
-        console.log('serve clear');
         fs.access(this.folder, error => {
             if (error) {
                 fs.mkdir(this.folder, { recursive: true }, () => {});
@@ -328,7 +316,7 @@ class Downloads extends EventEmitter {
             }
             const uid = 'download-' + name.replace(new RegExp('[^A-Za-z0-9]+', 'g'), '');
             renderer.ui.emit('background-mode-lock', 'saving-file-' + uid);
-            osd.show(lang.SAVING_FILE_X.format(name), 'fa-mega spin-x-alt', uid, 'persistent');
+            osd.show(lang.SAVING_FILE_X.format(name), 'fa-mega busy-x', uid, 'persistent');
             const file = target + '/' + name;
             const writer = fs.createWriteStream(file, { flags: 'w', highWaterMark: Number.MAX_SAFE_INTEGER }), download = new Download({
                 url,
@@ -345,7 +333,7 @@ class Downloads extends EventEmitter {
                 global.menu.refresh()
             }
             download.on('progress', progress => {
-                osd.show(lang.SAVING_FILE_X.format(name) + '  ' + parseInt(progress) + '%', 'fa-mega spin-x-alt', uid, 'persistent');
+                osd.show(lang.SAVING_FILE_X.format(name) + '  ' + parseInt(progress) + '%', 'fa-mega busy-x', uid, 'persistent');
                 if (global.menu && global.menu.path.includes(lang.ACTIVE_DOWNLOADS)) {
                     global.menu.refresh()
                 }

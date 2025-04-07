@@ -22,11 +22,11 @@ class Diagnostics extends EventEmitter {
         this.minDiskSpaceRequired = 512 * (1024 * 1024); // 512MB
         this.minFreeMemoryRequired = 350 * (1024 * 1024); // 350MB
         this.lowDiskSpaceWarnInterval = 5 * 50; // 5min
-        ready(() => this.checkDiskUI().catch(console.error))
+        ready(() => this.checkDiskUI().catch(err => console.error(err)))
     }
     async report() {
         let report = ''
-        osd.show(lang.PROCESSING, 'fa-mega spin-x-alt', 'diag', 'persistent')
+        osd.show(lang.PROCESSING, 'fa-mega busy-x', 'diag', 'persistent')
         try {
             const version = paths.manifest.version;
             const diskSpace = await this.checkDisk();
@@ -113,7 +113,7 @@ class Diagnostics extends EventEmitter {
             if (!fine) {
                 osd.show(lang.LOW_DISK_SPACE_AVAILABLE.format(kbfmt(data.free)), 'fas fa-exclamation-triangle faclr-red', 'diag', 'long');
             }
-        }).catch(console.error);
+        }).catch(err => console.error(err));
     }
     async checkDiskUI(force) {
         let data = await this.checkDisk()
@@ -128,7 +128,7 @@ class Diagnostics extends EventEmitter {
                 if (ret == 'clear') {
                     options.requestClearCache();
                 }
-            }).catch(console.error); // dont wait
+            }).catch(err => console.error(err)); // dont wait
             // {diskPath: 'C:', free: 12345678, size: 98756432}
         }
         return fine;
@@ -183,7 +183,7 @@ class Diagnostics extends EventEmitter {
                 { template: 'question', text: paths.manifest.window.title, fa: 'fas fa-exclamation-triangle faclr-red' },
                 { template: 'message', text: lang.LOW_MEMORY_AVAILABLE.format(kbfmt(freeBytes)) },
                 { template: 'option', text: 'OK', id: 'ok' }
-            ], 'ok').catch(console.error); // dont wait
+            ], 'ok').catch(err => console.error(err)); // dont wait
             // {diskPath: 'C:', free: 12345678, size: 98756432}
         }
         return fine;

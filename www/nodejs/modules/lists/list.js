@@ -1,6 +1,7 @@
 import { LIST_DATA_KEY_MASK } from "../utils/utils.js";
 import storage from '../storage/storage.js'
 import { EventEmitter } from "events";
+import ready from '../ready/ready.js'
 import ListIndex from "./list-index.js";
 import ConnRacing from "../conn-racing/conn-racing.js";
 
@@ -23,6 +24,8 @@ class List extends EventEmitter {
         this.constants = { BREAK: -1 }
         this._log = [this.url]
         this.hold = storage.hold(this.dataKey)
+        this.ready = ready(this.url)
+        this.ready.starter(() => this.init(), true)
     }
     log(...args) {
         if (this.destroyed)
@@ -30,36 +33,19 @@ class List extends EventEmitter {
         args.unshift(Date.now() / 1000);
         this._log.push(args);
     }
-    async ready() {
-        if (this.isReady) {
-            return
-        }
-        return new Promise(resolve => this.once('ready', resolve))
-    }
-    async start() {
-        if (this.started) return true
+    async init() {
         this.indexer = new ListIndex(this.file, this.url)
-        let err
-        await this.indexer.start().catch(e => err = e)
-        if (!this.isReady) {
-            this.isReady = true
-            this.emit('ready')
+        try {
+            await this.indexer.ready()
+            this.ready.done()
+        } catch (err) {
+            this.ready.done(err)
+            throw err
         }
-        if (err) throw err
     }
     reload() {
         this.indexer && this.indexer.destroy();
-        this.started = false;
-        return this.start();
-    }
-    progress() {
-        let p = 0;
-        if (this.validator) {
-            p = this.validator.progress();
-        } else if (this.isReady || this.destroyed) {
-            p = 100;
-        }
-        return p;
+        return this.init();
     }
     async isConnectable() {
         const ttl = 120, cacheKey = 'list-quality-' + this.url;
@@ -78,7 +64,7 @@ class List extends EventEmitter {
         let len = this.indexer.length
         if (!len) {
             const err = 'insufficient streams ' + len
-            storage.set(cacheKey, { err }, atts).catch(console.error)
+            storage.set(cacheKey, { err }, atts).catch(err => console.error(err))
             throw err
         }
         let tests = Math.min(len, 20), mtp = Math.floor((len - 1) / (tests - 1))
@@ -92,17 +78,17 @@ class List extends EventEmitter {
         }
         const racing = new ConnRacing(urls, { retries: 1, timeout: 8 })
         for (let i = 0; i < urls.length; i++) {
-            const res = await racing.next().catch(console.error)
+            const res = await racing.next().catch(err => console.error(err))
             if (res && res.valid) {
                 const result = 100 / (i + 1);
-                storage.set(cacheKey, { result }, atts).catch(console.error)
+                storage.set(cacheKey, { result }, atts).catch(err => console.error(err))
                 racing.destroy()
                 return result
             }
         }
         racing.destroy()
         const err = 'no valid links';
-        storage.set(cacheKey, { err }, atts).catch(console.error)
+        storage.set(cacheKey, { err }, atts).catch(err => console.error(err))
         throw err
     }
     async verify() {
@@ -159,16 +145,16 @@ class List extends EventEmitter {
         await this.ready();
         if (!this.indexer)
             return [];
-        return await this.indexer.entries();
+        return this.indexer.entries();
     }
     async getMap(map) {
         await this.ready();
         if (!this.indexer)
             return [];
-        return await this.indexer.getMap(map);
+        return this.indexer.getMap(map);
     }
     async getEntries(map) {
-        return await this.indexer.entries(map);
+        return this.indexer.entries(map);
     }
     destroy() {
         if (!this.destroyed) {
@@ -178,10 +164,6 @@ class List extends EventEmitter {
             if (this.indexer) {
                 this.indexer.destroy();
                 this.indexer = null;
-            }
-            if (this.validator) {
-                this.validator.destroy();
-                this.validator = null;
             }
             this.emit('destroy');
             this.removeAllListeners();

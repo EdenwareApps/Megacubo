@@ -180,6 +180,7 @@
    "EPG_LOAD_FAILURE": "Kukosa wakati wa kupata EPG",
    "EPG_LOAD_SUCCESS": "EPG ilishtakiwa kwa mafanikio",
    "EPG_OUTDATED": "EPG iliyosanidiwa imepitwa na wakati",
+   "EPG_SUGGESTED": "Pakia nasibu EPG ikiwa hakuna iliyosanidiwa",
    "EXIT": "Kwenda nje",
    "EXIT_FS_HINT": "Bonyeza kitufe cha {0} kutoka kwenye skrini kamili",
    "EXPORT": "Kuuza nje",

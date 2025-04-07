@@ -1,6 +1,6 @@
 import sanitizeFilename from 'sanitize-filename'
 import np from '../network-ip/network-ip.js'
-import os from 'os';
+import os from 'os'
 import { URL } from 'node:url'
 import { inWorker } from '../paths/paths.js'
 import fs from 'fs'
@@ -13,6 +13,7 @@ import timezone from 'dayjs/plugin/timezone.js' // dependent on utc plugin
 import relativeTime from 'dayjs/plugin/relativeTime.js'
 import localizedFormat from 'dayjs/plugin/localizedFormat.js'
 import { getDirname } from 'cross-dirname'
+import rangeParser from 'range-parser';
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -72,6 +73,47 @@ if (!global.Promise.allSettled) {
         .catch(reason => ({
         status: 'rejected', reason
     })))))
+}
+
+if (!global.Promise.any) {
+    global.Promise.any = function (iterable) {
+        if (!iterable || typeof iterable[Symbol.iterator] !== 'function') {
+            return Promise.reject(new TypeError('Invalid iterable'));
+        }
+        return new Promise((resolve, reject) => {
+            const promises = Array.from(iterable);
+            const errors = [];
+            let rejectedCount = 0;
+
+            if (promises.length === 0) {
+                return reject(new Error('All promises were rejected'));
+            }
+
+            promises.forEach((p, index) => {
+                Promise.resolve(p)
+                    .then(resolve)
+                    .catch((error) => {
+                        errors[index] = error;
+                        rejectedCount++;
+                        if (rejectedCount === promises.length) {
+                            reject(new Error('All promises were rejected'));
+                        }
+                    });
+            });
+        });
+    };
+}
+
+const uncaughtExceptionsDebug = false
+
+if (uncaughtExceptionsDebug) {
+    const OldPromise = global.Promise; 
+    global.Promise = class Promise extends OldPromise {
+        constructor(executor) {
+            super(executor);
+            this.$stack = traceback();
+        }
+    };
 }
 
 if (!global.String.prototype.format) {
@@ -219,6 +261,20 @@ export const getDomain = (u, includePort) => {
     }
     return d
 }
+export const isLocal = file => {
+    if (typeof(file) != 'string') {
+        return false
+    }
+    let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'));
+    if (m && m.length && (m[1].length == 1 || m[1].toLowerCase() == 'file')) { // drive letter or file protocol
+        return true
+    } else {
+        if (file.length >= 2 && file.startsWith('/') && file.charAt(1) != '/') { // unix path
+            return true
+        }
+    }
+    return false
+}
 export const isYT = (url) => {
     if (url.includes('youtu')) {
         const d = getDomain(url)
@@ -345,25 +401,16 @@ export const insertEntry = (entry, entries, before, after) => {
     entries.splice(position, 0, entry)
 }
 
-const validateURLRegex = new RegExp(
-    // supported protocols: http, https, rtmp, rtmps, rtmpte, rtsp, mms, and others
-    '^(?:(?:(?:https?|rt[ms]p[a-z]{0,2}):)?\\/\\/)' + 
-    // optional user authentication
-    '(?:\\S+(?::\\S*)?@)?' + 
-    // domain name or IP address (without excluding private IPs)
-    '(?:(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}' + 
-    '(?:\\.(?:[1-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))|' + // match valid IP address
-    '(?:(?:[a-z\\u00a1-\\uffff0-9]-*)*[a-z\\u00a1-\\uffff0-9]+)' + // match domain name
-    '(?:\\.(?:[a-z\\u00a1-\\uffff0-9]-*)*[a-z\\u00a1-\\uffff0-9]+)*' + // subdomains
-    '(?:\\.(?:[a-z\\u00a1-\\uffff]{2,}))' + // top-level domain
-    ')(?::\\d{2,5})?' + // optional port
-    '(?:[/?#]\\S*)?$', // optional path and query string
-    'i' // case-insensitive
-)
-
+const allowedProtocols = new Set(['http:', 'https:', 'ftp:', 'rtmp:', 'rtmps:', 'rtmpt:', 'rtmpts:', 'rtmpe:', 'rtmpte:', 'rtmp://', 'rtmps://', 'rtmpt://', 'rtmpts://', 'rtmpe://', 'rtmpte://', 'rtp://', 'udp://', 'rtsp:', 'rtsps:', 'rtsp://', 'rtsps://', 'mms:', 'mmsh:', 'mmst:', 'mmsh://', 'mmst://', 'mega://', 'srt://', 'srtp://', 'tls://', 'tcp://'])
 export const validateURL = url => {
-    if (!url || url.length <= 11) return false
-    return validateURLRegex.test(url)
+    if (!url || url.length < 2) return false;
+    try {
+        const formattedUrl = url.startsWith('//') ? 'http:' + url : url;
+        const parsedUrl = new URL(formattedUrl);
+        return allowedProtocols.has(parsedUrl.protocol);
+    } catch (err) {
+        return false;
+    }
 }
 
 export const ucFirst = (str, keepCase) => {
@@ -557,7 +604,7 @@ export const rmdir = async (folder, itself) => {
     await fs.promises.access(dir).catch(e => err = e);
     if (!err) {
         console.log('Removing directory', { dir });
-        await fs.promises.rmdir(dir, { recursive: true }).catch(console.error);
+        await fs.promises.rmdir(dir, { recursive: true }).catch(err => console.error(err));
     }
 
     if (!itself) {
@@ -627,21 +674,71 @@ export const traceback = () => {
     }
 }
 
-const SYNC_BYTE = 0x47 // define the sync byte value
-const PACKET_SIZE = 188 // define the size of each packet
-
-export const isSyncByteValid = (buffer, position) => {
-    // check the transport_error_indicator (bit 7 of the second byte)
-    const transportErrorIndicator = (buffer[position + 1] & 0x80) === 0 // should be 0 to indicate no transport error
-    const pid = ((buffer[position + 1] & 0x1F) << 8) | buffer[position + 2] // extract the PID
-    // return true if there's no transport error and the PID is within a valid range
-    return transportErrorIndicator && (pid >= 0 && pid <= 8191)
+export const parseRange = (range, length) => {
+    const maxInt = Number.MAX_SAFE_INTEGER;
+    const ranges = rangeParser(typeof(length) == 'number' ? length : maxInt, range.replace('bytes ', 'bytes='));
+    if (Array.isArray(ranges)) { // TODO: enable multi-ranging support
+        let requestingRange = ranges[0];
+        if (typeof(requestingRange.end) != 'number') { // remove dummy value
+            delete requestingRange.end;
+        } else if (requestingRange.end >= (maxInt - 1)) { // remove dummy value
+            delete requestingRange.end;
+        }
+        return requestingRange;
+    }
 }
 
-export const isPacketized = sample => {
-    // check if the sample is a buffer, has sufficient length,
-    // and if the sync byte is valid at the start of the buffer
-    return Buffer.isBuffer(sample) && sample.length >= PACKET_SIZE && isSyncByteValid(sample, 0)
+const SYNC_BYTE = 0x47
+const PACKET_SIZE = 188
+
+export const isSyncByteValid = (buffer, position, strict = false) => {
+    
+    if (position + 2 >= buffer.length) return false
+
+    const char = pos => typeof(buffer.get) == 'function' ? buffer.get(pos) : buffer[pos]
+    if (char(position) !== SYNC_BYTE) return false
+    
+    if (strict) {
+        // transport_error_indicator verification
+        const transportError = (char(position + 1) & 0x80) !== 0
+        if (transportError) return false
+        
+        // pid validation with safe bitwise operations
+        const pid = ((char(position + 1) & 0x1F) << 8) | char(position + 2)
+        return pid >= 0x0000 && pid <= 0x1FFF // 13 bits (0-8191)
+    }
+    return true
+}
+
+export const isPacketized = (buffer) => {
+    if (!Buffer.isBuffer(buffer) || buffer.length < PACKET_SIZE) return false
+    
+    // calculate packets for verification
+    let errors = 0, pointer = 0, foundPackets = 0
+    const maxPacketsToCheck = 10
+    const errorTolerance = Math.ceil(maxPacketsToCheck / 4)
+    const totalPackets = Math.floor(buffer.length / PACKET_SIZE)
+    
+    // intelligent packet verification
+    while (pointer <= buffer.length) {
+        // two-step verification for optimization
+        if (isSyncByteValid(buffer, pointer, true)) {
+            pointer += PACKET_SIZE
+            foundPackets++
+        } else {
+            const newPointer = findSyncBytePosition(buffer, pointer)
+            if(newPointer === 0) {
+                foundPackets++
+                pointer = PACKET_SIZE
+            } else if ((newPointer - pointer) > PACKET_SIZE) {
+                return false
+            } else {
+                pointer = newPointer
+            }
+        }
+    }
+    
+   return foundPackets >= Math.max(1, totalPackets - errorTolerance)
 }
 
 export const findSyncBytePosition = (buffer, from = 0) => {
@@ -651,7 +748,7 @@ export const findSyncBytePosition = (buffer, from = 0) => {
     // continue searching while a valid sync byte is not found 
     // and we are within the buffer limits
     while (position !== -1 && position < bufferLength - PACKET_SIZE) {
-        if (isSyncByteValid(buffer, position)) {
+        if (isSyncByteValid(buffer, position, false)) {
             return position // return position if the sync byte is valid
         }
         position = buffer.indexOf(SYNC_BYTE, position + 1) // move to the next sync byte

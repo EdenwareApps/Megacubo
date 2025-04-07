@@ -229,10 +229,10 @@ class Tools extends TermsHandler {
         } else {
             let i = 0;
             const limit = pLimit(4);
-            return await this.asyncMapRecursively(list, async (slist) => {
+            return this.asyncMapRecursively(list, async (slist) => {
                 let key = 'offload-' + i + '-' + url;
                 limit(async () => {
-                    return await storage.set(key, slist, { expiration: true });
+                    return storage.set(key, slist, { expiration: true });
                 });
                 i++;
                 return key;

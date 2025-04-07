@@ -11,7 +11,7 @@ class Wizard extends EventEmitter {
     constructor() {
         super();
         this.on('restart', () => {
-            this.init().catch(console.error);
+            this.init().catch(err => console.error(err));
         });
     }
     isMobile() {
@@ -54,9 +54,9 @@ class Wizard extends EventEmitter {
         if (choose == 'no') {
             return true;
         } else if (choose == 'sh') {
-            return await this.communityMode();
+            return this.communityMode();
         } else {
-            return await this.input();
+            return this.input();
         }
     }
     async input() {
@@ -66,7 +66,7 @@ class Wizard extends EventEmitter {
         console.log('ASKED', ret);
         if (typeof(err) != 'undefined') {
             menu.displayErr(lang.INVALID_URL_MSG);
-            return await this.lists();
+            return this.lists();
         }
         return true;
     }
@@ -75,11 +75,11 @@ class Wizard extends EventEmitter {
         let err, ret = await manager.communityModeDialog().catch(e => err = e);
         console.warn('communityMode', err, ret);
         if (ret !== true) {
-            return await this.lists();
+            return this.lists();
         }
     }
     async performance() {
-        let ram = await diag.checkMemory().catch(console.error);
+        let ram = await diag.checkMemory().catch(err => console.error(err));
         if (typeof(ram) == 'number' && (ram / 1024) >= 2048) { // at least 2G of RAM
             return true;
         }

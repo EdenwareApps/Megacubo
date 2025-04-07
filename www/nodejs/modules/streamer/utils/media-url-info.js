@@ -1,4 +1,7 @@
-import { isYT } from '../../utils/utils.js'
+import { isYT, isPacketized } from '../../utils/utils.js'
+
+export const VIDEO_FORMATS = ['mp4', 'm4v', 'm4b', 'm4p', 'm4v', 'mkv', 'm4v', 'mov', 'flv', 'webm', 'ogv', 'avi', 'asf', 'divx', 'hevc'];
+export const AUDIO_FORMATS = ['wma', 'mp3', 'mka', 'm4a', 'flac', 'aac', 'ogg', 'pls', 'nsv'];
 
 class MediaStreamInfo {
     constructor() {
@@ -136,14 +139,14 @@ class MediaStreamInfo {
             }
             return this.isLocalTS(url, ext, proto);
         } else {
-            return ['wmv', 'avi', 'mp4', 'mkv', 'm4v', 'mov', 'flv', 'webm', 'ogv'].includes(ext);
+            return VIDEO_FORMATS.includes(ext);
         }
     }
     isAudio(url, ext) {
         if (!ext) {
             ext = this.ext(url);
         }
-        return ['wma', 'mp3', 'mka', 'm4a', 'flac', 'aac', 'ogg', 'pls', 'nsv'].includes(ext);
+        return AUDIO_FORMATS.includes(ext);
     }
     isRadio(name) {
         if (name.match(this.radioRegexA) || name.match(this.radioRegexB)) {
@@ -160,4 +163,78 @@ class MediaStreamInfo {
         return this.isM3U8(url, ext) || this.isRTP(url, proto) || this.isRemoteTS(url, ext, proto);
     }
 }
+
+const mediaTypeFromInfo = info => {
+    const { headers } = info;
+    let liveScore = 0;
+    let vodScore = 0;
+
+    const cacheControl = headers?.['cache-control']?.toLowerCase();
+    if (cacheControl) {
+        if (cacheControl.includes('no-cache')) liveScore += 1;
+        if (cacheControl.includes('no-store')) liveScore += 1;
+        if (cacheControl.includes('must-revalidate')) liveScore += 1;
+        if (cacheControl.includes('max-age=0')) liveScore += 1;
+        if (cacheControl.includes('s-maxage=0')) liveScore += 1;
+
+        const maxAgeMatch = cacheControl.match(/max-age=(\d+)/);
+        if (maxAgeMatch) {
+            const maxAge = parseInt(maxAgeMatch[1], 10);
+            if (maxAge > 0) vodScore += 2;
+        }
+        const sMaxAgeMatch = cacheControl.match(/s-maxage=(\d+)/);
+        if (sMaxAgeMatch) {
+            const sMaxAge = parseInt(sMaxAgeMatch[1], 10);
+            if (sMaxAge > 0) vodScore += 2;
+        }
+    }
+
+    const expires = headers?.['expires'];
+    if (expires !== undefined) {
+        if (expires === '0') {
+            liveScore += 1;
+        } else {
+            vodScore += 2;
+        }
+    }
+
+    if (headers?.['transfer-encoding'] === 'chunked') {
+        liveScore += 1;
+    }
+
+    if (headers?.['content-length']) {
+        vodScore += 1;
+    }
+
+    if (headers?.['x-content-duration']) {
+        vodScore += 1;
+    }
+
+    if (headers?.['accept-ranges'] && headers['accept-ranges'].toLowerCase() === 'bytes') {
+        vodScore += 1;
+    }
+
+    if (Object.keys(headers).length < 7) { // streaming servers will try to send as few headers as possible
+        liveScore += 1;
+    }
+
+    return vodScore > liveScore ? 'vod' : 'live';
+};
+
+export const isMPEGTSFromInfo = info => {
+
+    if (info.contentType && info.contentType.includes('video/mp2t')) {
+        return mediaTypeFromInfo(info)
+    }
+
+    if (['ts', 'mts', 'm2ts'].includes(info.ext) && (!info.contentType || !info.contentType.includes('video/mp4'))) {
+        if (info.sample) {
+            return isPacketized(info.sample) ? mediaTypeFromInfo(info) : false
+        }
+        return mediaTypeFromInfo(info)
+    }
+
+    return false;
+};
+
 export default MediaStreamInfo;

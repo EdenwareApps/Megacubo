@@ -14,6 +14,7 @@ import cloud from "../cloud/cloud.js";
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
 import { parse } from '../serialize/serialize.js'
+import Color from 'parse-css-color'
 
 class Theme extends EventEmitter {
     constructor() {
@@ -39,8 +40,32 @@ class Theme extends EventEmitter {
             });
         })
     }
-    async colors(file, filter, limit) {
-        osd.show(lang.PROCESSING, 'fa-mega spin-x-alt', 'theme-processing-colors', 'persistent');
+    componentToHex(c) {
+        const hex = c.toString(16);
+        return hex.length == 1 ? '0' + hex : hex;
+    }
+    color(color, format = '') {
+        const c = typeof(color) == 'string' ? Color(color) : {values: Array.isArray(color) ? color : [color.r, color.g, color.b], alpha: color.a||color.alpha||1};
+        if(format == 'rgb') {
+            return `rgb(${c.values[0]}, ${c.values[1]}, ${c.values[2]})`
+        } else if(format == 'rgba') {
+            return `rgba(${c.values[0]}, ${c.values[1]}, ${c.values[2]}, ${c.alpha||c.a})`
+        } else if(format == 'hex') {
+            return `#${this.componentToHex(c.values[0])}${this.componentToHex(c.values[1])}${this.componentToHex(c.values[2])}`
+        } else if(format == 'hexa') {
+            return `#${this.componentToHex(c.values[0])}${this.componentToHex(c.values[1])}${this.componentToHex(c.values[2])}${this.componentToHex(parseInt((c.alpha||c.a) * 255))}`
+        } else if(format == 'human') {
+            return c.values.join(' ')
+        }
+        return {
+            r: c.values[0],
+            g: c.values[1],
+            b: c.values[2],
+            a: c.alpha
+        }
+    }
+    async colors(file, lightLevel, limit) {
+        osd.show(lang.PROCESSING, 'fa-mega busy-x', 'theme-processing-colors', 'persistent');
         let err
         const stat = await fs.promises.stat(file).catch(e => err = e)
         if(err) {
@@ -48,23 +73,55 @@ class Theme extends EventEmitter {
             osd.hide('theme-processing-colors')
             return []
         }
-        const key = 'colors-' + basename(file) + '-' + stat.size
+        const key = 'colors-' + basename(file) + '-' + stat.size + '-' + lightLevel + '-' + limit
         let colors = await storage.get(key)
         if (!Array.isArray(colors)) {
-            colors = await imp.colors(file)
+            colors = await imp.colors(file, limit)
             await storage.set(key, colors, { expiration: true })                    
         }
         if (!Array.isArray(colors)) {
             colors = []
         }
         osd.hide('theme-processing-colors')
-        if (typeof(filter) == 'function') {
-            colors = colors.filter(filter)
+        if (Array.isArray(lightLevel)) {
+            colors = colors.map(color => {
+                const parsed = this.color(color)
+                return this.equalizeLightLevel(parsed, lightLevel)
+            })
         }
+        colors = [...new Set(colors)]
         if (typeof(limit) == 'number') {
             return colors.slice(0, limit)
         }
         return colors
+    }
+    equalizeLightLevel(color, filter) {
+        const {r, g, b} = color;
+        const S = r + g + b;
+        const lightLevel = (S / 765) * 100;
+        const [min, max] = filter;
+        const targetLightLevel = lightLevel < min ? min : (lightLevel > max ? max : lightLevel)
+        if (lightLevel < targetLightLevel) {
+            const requiredIncrease =  Math.min(targetLightLevel - lightLevel) / 100;
+            const maxIncrease =  Math.max(0, Math.min(...[r, g, b].map(c => 255 - c)));
+            const increaseSize = Math.min((255 * requiredIncrease), maxIncrease);
+            return {
+                r: Math.round(r + increaseSize),
+                g: Math.round(g + increaseSize),
+                b: Math.round(b + increaseSize)
+            }
+        } else if (lightLevel > targetLightLevel) {
+            const requiredDecrease =  Math.max(lightLevel - targetLightLevel) / 100;
+            const maxDecrease =  Math.min(r, g, b);
+            const decreaseSize = Math.min((255 * requiredDecrease), maxDecrease);
+            return {
+                r: Math.round(r - decreaseSize),
+                g: Math.round(g - decreaseSize),
+                b: Math.round(b - decreaseSize)
+            }
+        } else {
+            return color;
+        }
     }
     colorsIncludes(colors, color) {
         let i = colors.findIndex(x => x.r == color.r && x.g == color.g && x.b == color.b);
@@ -72,7 +129,8 @@ class Theme extends EventEmitter {
     }
     colorsAddDefaults(colors, light) {
         if (light) {
-            const white = { r: 255, g: 255, b: 255 }, f = this.hexToRgb(global.config.defaults['font-color']);
+            const white = { r: 255, g: 255, b: 255 }
+            const f = this.color(global.config.defaults['font-color']);
             if (!this.colorsIncludes(colors, f)) {
                 colors.unshift(f);
             }
@@ -80,7 +138,7 @@ class Theme extends EventEmitter {
                 colors.unshift(white);
             }
         } else {
-            const black = { r: 0, g: 0, b: 0 }, b = this.hexToRgb(global.config.defaults['background-color']);
+            const black = { r: 0, g: 0, b: 0 }, b = this.color(global.config.defaults['background-color']);
             if (!this.colorsIncludes(colors, b)) {
                 colors.unshift(b);
             }
@@ -89,13 +147,6 @@ class Theme extends EventEmitter {
             }
         }
         return colors;
-    }
-    colorLightLevel(color) {
-        let n = 0;
-        Object.values(color).forEach(v => {
-            n += v;
-        });
-        return (n / (255 * 3)) * 100;
     }
     async importBackgroundImage(file) {
         osd.show(lang.PROCESSING, 'fas fa-cog fa-spin', 'theme-upload', 'persistent');
@@ -221,7 +272,7 @@ class Theme extends EventEmitter {
                         fa: 'fas fa-trash',
                         action: () => {
                             if (themes[ffile]['theme-name'] == global.config.get('theme-name')) {
-                                this.reset();
+                                this.reset(true);
                             }                            
                             fs.unlink(ffile, () => {
                                 menu.refreshNow();
@@ -239,29 +290,11 @@ class Theme extends EventEmitter {
             prepend: '<i class="fas fa-circle" style="color: ' + global.config.defaults['background-color'] + '"></i> ',
             type: 'action',
             action: () => {
-                this.reset();
+                this.reset(true);
                 menu.refreshNow();
             }
         });
         return entries
-    }
-    componentToHex(c) {
-        const hex = c.toString(16);
-        return hex.length == 1 ? '0' + hex : hex;
-    }
-    hexToRgb(ohex) {
-        const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i, hex = ohex.replace(shorthandRegex, (m, r, g, b) => {
-            return r + r + g + g + b + b;
-        });
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return result ? {
-            r: parseInt(result[1], 16),
-            g: parseInt(result[2], 16),
-            b: parseInt(result[3], 16)
-        } : ohex;
-    }
-    rgbToHex(r, g, b) {
-        return '#' + this.componentToHex(r) + this.componentToHex(g) + this.componentToHex(b);
     }
     async rename(name) {
         name = await menu.prompt({
@@ -296,7 +329,7 @@ class Theme extends EventEmitter {
             fa: 'fas fa-plus-square',
             renderer: () => {
                 return new Promise((resolve, reject) => {
-                    this.creatingThemeName || this.rename().catch(console.error)
+                    this.creatingThemeName || this.rename().catch(err => console.error(err))
                     let opts = [
                         {
                             name: lang.BACKGROUND,
@@ -375,53 +408,53 @@ class Theme extends EventEmitter {
                                     type: 'group',
                                     fa: 'fas fa-palette',
                                     renderer: async () => {
-                                        let hasErr, colors = await this.colors(this.customBackgroundImagePath, c => this.colorLightLevel(c) < 40, 52).catch(err => hasErr = err);
+                                        const file = global.config.get('custom-background-image') || (global.config.get('custom-background-video') ? await global.ffmpeg.thumbnail(global.config.get('custom-background-video')) : this.customBackgroundImagePath)
+                                        let hasErr, colors = await this.colors(file, [0, 25], 52).catch(err => hasErr = err);
                                         osd.hide('theme-upload');
-                                        const busy = global.menu.setBusy(global.menu.path +'/'+ lang.BACKGROUND_COLOR)
-                                        if (!Array.isArray(colors)) colors = []
-                                        try {
-                                            colors = this.colorsAddDefaults(colors, false).map(c => {
-                                                return this.rgbToHex.apply(this, Object.values(c));
-                                            });
-                                            colors = [...new Set(colors)].slice(0, 32).map((hex, i) => {
-                                                return {
-                                                    name: lang.BACKGROUND_COLOR + ' ' + (i + 1),
-                                                    details: hex.substr(1),
-                                                    type: 'action',
-                                                    fa: 'fas fa-stop',
-                                                    faStyle: 'color: '+ hex,
-                                                    action: async () => {
-                                                        if (hex != global.config.get('background-color')) {
-                                                            global.config.set('background-color', hex);
+                                        await global.menu.withBusy(global.menu.path +'/'+ lang.BACKGROUND_COLOR, async () => {
+                                            if (!Array.isArray(colors)) colors = []
+                                            try {
+                                                colors = this.colorsAddDefaults(colors, false).map(c => this.color(c));
+                                                colors = [...new Set(colors)].slice(0, 32).map((color, i) => {
+                                                    const hex = this.color(color, 'hex')
+                                                    return {
+                                                        name: lang.BACKGROUND_COLOR + ' ' + (i + 1),
+                                                        details: this.color(color, 'human'),
+                                                        type: 'action',
+                                                        fa: 'fas fa-stop',
+                                                        faStyle: 'color: '+ hex,
+                                                        action: async () => {
+                                                            if (hex != global.config.get('background-color')) {
+                                                                global.config.set('background-color', hex);
+                                                                await this.update()
+                                                            } else {
+                                                                menu.back();
+                                                            }
+                                                        }
+                                                    };
+                                                });
+                                                colors.push({
+                                                    name: lang.CUSTOMIZE,
+                                                    type: 'input',
+                                                    fa: 'fas fa-palette',
+                                                    value: () => global.config.get('background-color'),
+                                                    action: async (data, value) => {
+                                                        if (String(value).match(new RegExp('^#?[0-9a-fA-F]{6}$'))) { // TypeError: value.match is not a function 
+                                                            if (value.length == 6) {
+                                                                value = '#' + value;
+                                                            }
+                                                            global.config.set('background-color', value);
                                                             await this.update()
+                                                            menu.back()
                                                         } else {
-                                                            menu.back();
+                                                            menu.displayErr(lang.INCORRECT_FORMAT);
                                                         }
                                                     }
-                                                };
-                                            });
-                                            colors.push({
-                                                name: lang.CUSTOMIZE,
-                                                type: 'input',
-                                                fa: 'fas fa-palette',
-                                                value: () => global.config.get('background-color'),
-                                                action: async (data, value) => {
-                                                    if (String(value).match(new RegExp('^#?[0-9a-fA-F]{6}$'))) { // TypeError: value.match is not a function 
-                                                        if (value.length == 6) {
-                                                            value = '#' + value;
-                                                        }
-                                                        global.config.set('background-color', value);
-                                                        await this.update()
-                                                        menu.back()
-                                                    } else {
-                                                        menu.displayErr(lang.INCORRECT_FORMAT);
-                                                    }
-                                                }
-                                            })
-                                        } catch (err) { 
-                                            console.error(err)
-                                        }
-                                        busy.release()
+                                                })
+                                            } catch (err) { 
+                                                console.error(err)
+                                            }
+                                        })
                                         return colors
                                     },
                                     value: () => {
@@ -456,18 +489,17 @@ class Theme extends EventEmitter {
                                     fa: 'fas fa-palette',
                                     renderer: () => {
                                         return new Promise((resolve, reject) => {
-                                            this.colors(this.customBackgroundImagePath, c => this.colorLightLevel(c) > 70, 32).then(colors => {
-                                                colors = this.colorsAddDefaults(colors, true).map((c, i) => {
-                                                    let hex = this.rgbToHex.apply(this, Object.values(c));
+                                            this.colors(this.customBackgroundImagePath, [75, 100], 32).then(colors => {
+                                                colors = this.colorsAddDefaults(colors, true).map(color => {
+                                                    const hex = this.color(color, 'hex');
                                                     return {
-                                                        name: lang.FONT_COLOR + ' ' + (i + 1),
+                                                        name: this.color(color, 'human'),
                                                         type: 'action',
                                                         fa: 'fas fa-stop',
                                                         faStyle: 'color: '+ hex,
                                                         action: async () => {
-                                                            let cc = hex;
-                                                            if (cc != global.config.get('font-color')) {
-                                                                global.config.set('font-color', cc);
+                                                            if (hex != global.config.get('font-color')) {
+                                                                global.config.set('font-color', hex);
                                                                 await this.update()
                                                             } else {
                                                                 menu.back();
@@ -558,7 +590,7 @@ class Theme extends EventEmitter {
                                 }
                             ]
                         },
-                        { name: lang.RENAME, fa: 'fas fa-edit', type: 'action', action: () => this.rename(global.config.get('theme-name')).catch(console.error) },
+                        { name: lang.RENAME, fa: 'fas fa-edit', type: 'action', action: () => this.rename(global.config.get('theme-name')).catch(err => console.error(err)) },
                         { name: lang.LAYOUT_GRID_SIZE, fa: 'fas fa-th', type: 'group', renderer: this.gridLayoutEntries.bind(this) },
                         {
                             name: 'FX Navigation Intensity',
@@ -592,7 +624,7 @@ class Theme extends EventEmitter {
             name: lang.MORE_THEMES,
             type: 'group',
             fa: 'fas fa-download',
-            renderer: () => this.remoteThemes().catch(console.error)
+            renderer: () => this.remoteThemes().catch(err => console.error(err))
         });
         return entries
     }
@@ -613,15 +645,22 @@ class Theme extends EventEmitter {
             },
             cacheTTL: 24 * 3600
         }).catch(e => err = e)
+        console.log('applyRemoteTheme', rfile, err)
         if (err) {
+            osd.hide('theme')
             await Download.cache.invalidate(url)
             await fs.promises.unlink(file)
             menu.displayErr(err)
         } else {
-            await this.load(rfile)
-            menu.refreshNow()
+            await this.load(rfile).catch(err => {
+                Download.cache.invalidate(url).catch(err => console.error(err))
+                fs.promises.unlink(rfile).catch(err => console.error(err))
+                console.error(err)
+                menu.displayErr(err)
+            }).finally(() => {
+                osd.hide('theme')
+            })
         }
-        osd.hide('theme')
     }
     async remoteThemes() {
         let themes = await Download.get({
@@ -749,15 +788,16 @@ class Theme extends EventEmitter {
         }
         renderer.ui.emit('theme-update', bgi, bgv, global.config.get('background-color'), global.config.get('font-color'), global.config.get('animate-background'));
     }
-    reset() {
+    reset(refresh) {
         let natts = {};
         this.keys.forEach(k => {
             natts[k] = global.config.defaults[k];
         });
         global.config.setMulti(natts);
-        this.refresh();
+        refresh && this.refresh();
     }
     async load(file) {
+        this.reset(false);
         const data = await fs.promises.readFile(file)
         global.config.set('custom-background-image', '')
         global.config.set('custom-background-video', '')
@@ -771,7 +811,7 @@ class Theme extends EventEmitter {
         const current = global.config.get('theme-name')
         if (current) {
             const filename = sanitize(current) +'.theme.json', file = this.folder +'/'+ filename
-            return await new Promise((resolve, reject) => {
+            return new Promise((resolve, reject) => {
                 const done = err => {
                     if (err) {
                         menu.displayErr(err)

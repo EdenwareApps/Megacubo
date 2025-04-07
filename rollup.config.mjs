@@ -14,10 +14,6 @@ import babelRendererOutput from './babel.renderer-output.json' with { type: 'jso
 import babelRendererPolyfills from './babel.renderer-polyfills.json' with { type: 'json' };
 import replace from '@rollup/plugin-replace';
 import copy from 'rollup-plugin-copy';
-import createRequire from 'create-require';
-
-const require = createRequire(import.meta.url);
-const resolveSync = require('resolve').sync;
 
 const commonResolve = resolve({
   browser: false,
@@ -28,7 +24,7 @@ const commonJson = json({ compact: true });
 const commonReplace = replace({
   preventAssignment: false,
   delimiters: ['', ''],
-  values: {
+  values: {    
     'fs/promises")': 'fs").promises',
     'fs/promises\')': 'fs\').promises',
     '\'node:': '\'',
@@ -182,6 +178,11 @@ function customResolve(options = {}) {
   }
 }
 
+const watch = {
+  buildDelay: 3000,
+  exclude: 'node_modules/**'
+}
+
 const pluginsRenderer = [
   svelte({ preprocess: sveltePreprocess() }),
   babel({
@@ -220,7 +221,8 @@ const outputs = [
       name: 'App',
       inlineDynamicImports: true
     },
-    plugins: pluginsRenderer
+    plugins: pluginsRenderer,
+    watch
   },
   {
     input: { capacitor: 'capacitor.js' },
@@ -230,7 +232,8 @@ const outputs = [
       name: 'capacitor',
       inlineDynamicImports: true
     },
-    plugins: pluginsRenderer
+    plugins: pluginsRenderer,
+    watch
   },
   {
     input: 'www/nodejs/main.mjs',
@@ -240,7 +243,8 @@ const outputs = [
       inlineDynamicImports: true
     },
     plugins: createMainPlugins(),
-    external: [/(@?electron\/?)/, /premium\./]
+    external: [/(@?electron\/?)/, /premium\./],
+    watch
   },
   {
     input: 'www/nodejs/preload.mjs',
@@ -251,7 +255,8 @@ const outputs = [
       inlineDynamicImports: true
     },
     plugins: createBasePlugins(),
-    external: [/(@?electron\/?)/]
+    external: [/(@?electron\/?)/],
+    watch
   },
   {
     input: 'www/nodejs/modules/lists/updater-worker.js',
@@ -261,7 +266,8 @@ const outputs = [
       inlineDynamicImports: true
     },
     plugins: createBasePlugins(),
-    external: []
+    external: [],
+    watch
   },
   {
     input: 'www/nodejs/modules/lists/epg-worker.js',
@@ -271,7 +277,8 @@ const outputs = [
       inlineDynamicImports: true
     },
     plugins: createBasePlugins(),
-    external: []
+    external: [],
+    watch
   },
   {
     input: 'www/nodejs/modules/streamer/utils/mpegts-processor-worker.js',
@@ -281,7 +288,8 @@ const outputs = [
       inlineDynamicImports: true
     },
     plugins: createBasePlugins(),
-    external: []
+    external: [],
+    watch
   },
   {
     input: 'www/nodejs/modules/multi-worker/worker.mjs',
@@ -291,7 +299,8 @@ const outputs = [
       inlineDynamicImports: true
     },
     plugins: createBasePlugins(),
-    external: []
+    external: [],
+    watch
   }
 ];
 
@@ -304,7 +313,8 @@ if (fs.existsSync('www/nodejs/modules/premium/premium.js')) {
       inlineDynamicImports: true
     },
     plugins: createPremiumPlugins(),
-    external: [/node\-bright\-sdk.node_modules/]
+    external: [/node\-bright\-sdk.node_modules/],
+    watch
   });
 }
 

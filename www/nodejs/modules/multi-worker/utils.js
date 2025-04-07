@@ -1,8 +1,17 @@
 import { workerData, parentPort } from 'worker_threads'
 
+const DEBUG = false;
+
 let postMessage
 if(parentPort) {
-    postMessage = parentPort.postMessage.bind(parentPort)
+    if(DEBUG) {
+        postMessage = (data) => {
+            console.log('postMessage', data);
+            return parentPort.postMessage(data);
+        }
+    } else {
+        postMessage = parentPort.postMessage.bind(parentPort)
+    }
 } else {
     postMessage = () => {}
 }

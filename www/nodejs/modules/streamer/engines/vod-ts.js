@@ -1,6 +1,6 @@
 import StreamerBaseIntent from "./base.js";
 import downloads from "../../downloads/downloads.js";
-import { isPacketized } from "../../utils/utils.js";
+import { isMPEGTSFromInfo } from "../utils/media-url-info.js";
         
 class StreamerVODTSIntent extends StreamerBaseIntent {
     constructor(data, opts, info) {
@@ -31,11 +31,6 @@ class StreamerVODTSIntent extends StreamerBaseIntent {
 }
 StreamerVODTSIntent.mediaType = 'video';
 StreamerVODTSIntent.supports = info => {
-    if (info.ext && ['mp4', 'ts', 'mts', 'm2ts'].includes(info.ext)) { // mp4 files have been seen with video/mp2t contentType
-        if (info.sample && isPacketized(info.sample)) {
-            return true;
-        }
-    }
-    return false;
+    return isMPEGTSFromInfo(info) === 'vod';
 };
 export default StreamerVODTSIntent;

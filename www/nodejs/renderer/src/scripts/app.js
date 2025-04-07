@@ -7,7 +7,7 @@ import { Clock } from './clock'
 import { css, traceback } from './utils'
 import swipey from 'swipey.js'
 import FFmpegController from '../../../modules/ffmpeg/renderer'
-import { ImageProcessor } from './image-processor'
+import { ImageProcessor } from '../../../modules/icon-server/renderer'
 
 function openExternalFile(file, mimetype) {
 	console.log('openExternalFile', file);
@@ -587,7 +587,6 @@ export const initApp = async () => {
         const as = menu.currentElements
         if (as.length > (menu.gridLayoutX * menu.gridLayoutY)) {
             const lastY = Math.floor((as[as.length - 1].offsetTop + as[as.length - 1].offsetHeight) - wrap.scrollTop), firstY = as[0].offsetTop - wrap.scrollTop
-            console.log('verticalArrowsUpdate', lastY, wrap.parentNode.offsetHeight)
             if (lastY > wrap.parentNode.offsetHeight) {
                 if (verticalArrows.bottom !== true) {
                     verticalArrows.bottom = true
@@ -703,8 +702,7 @@ export const initApp = async () => {
     if(!window.capacitor) {
         main.on('ffmpeg-path', (dir, executable) => {
             console.log('ffmpeg-path', dir, executable)
-            ffmpeg.master.executableDir = ffmpeg.executableDir = dir
-            ffmpeg.master.executable = executable
+            ffmpeg.master.setExecutable(dir +'/'+ executable)
         })        
     }
     ffmpeg.bind()

@@ -3,6 +3,7 @@
     import Theme from './Theme.svelte'
     import Menu from './Menu.svelte'
     import Osd from './Osd.svelte'
+    import DragDrop from './DragDrop.svelte'
 </script>
 <link rel="stylesheet" global href="./assets/css/all.min.css" />
 <link rel="stylesheet" global href="./assets/icons/icons.css" />
@@ -12,6 +13,7 @@
 <div id="main">
     <Menu />
     <Osd />
+    <DragDrop />
 </div>
 <style global>
 :root {
@@ -187,6 +189,11 @@ input {
     filter: drop-shadow(0 0 0.4vmin #f05);
     margin-right: 0.8vmin;
 }
+.modal-template-message i.fa-circle.faclr-darkred {
+    color: #930d42 !important;
+    filter: drop-shadow(0 0 0.4vmin #930d42);
+    margin-right: 0.8vmin;
+}
 button.button-alpha i {
     opacity: var(--opacity-level-3);
 }
@@ -198,6 +205,9 @@ button.button-alpha i {
 }
 .faclr-red {
     color: #f05 !important;
+}
+.faclr-darkred {
+    color: #930d42 !important;
 }
 .faclr-purple {
     color: #af07c1 !important;

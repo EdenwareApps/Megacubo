@@ -180,6 +180,7 @@
    "EPG_LOAD_FAILURE": "Niet om EPG te krijgen",
    "EPG_LOAD_SUCCESS": "EPG met succes geladen",
    "EPG_OUTDATED": "De geconfigureerde EPG is verouderd",
+   "EPG_SUGGESTED": "Laad willekeurige EPG als er geen is geconfigureerd",
    "EXIT": "Uitgang",
    "EXIT_FS_HINT": "Druk op de toets {0} om het volledige scherm te verlaten",
    "EXPORT": "Exporteren",

@@ -19,7 +19,7 @@ class Zap extends EventEmitter {
         global.menu.addFilter(this.hook.bind(this));
         this.streamer.on('stop', err => {
             if (this.isZapping) {
-                this.go().catch(console.error);
+                this.go().catch(err => console.error(err));
             }
         });
         this.streamer.on('stop-from-client', err => {
@@ -31,7 +31,7 @@ class Zap extends EventEmitter {
             }
         });
         renderer.ui.on('zap', () => {
-            this.go().catch(console.error);
+            this.go().catch(err => console.error(err));
         });
         renderer.ui.on('stop', () => {
             this.setZapping(false);
@@ -91,7 +91,7 @@ class Zap extends EventEmitter {
         let entry = await this.random();
         if (entry) {
             entry.url = mega.build(entry.name, { mediaType: 'live' });            
-            let succeeded = await this.streamer.play(entry, undefined, true).catch(console.error);
+            let succeeded = await this.streamer.play(entry, undefined, true).catch(err => console.error(err));
             this.setZapping(true, succeeded);
             this.connecting = false;
             if (this.streamer.tuning) {

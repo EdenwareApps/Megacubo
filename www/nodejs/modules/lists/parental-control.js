@@ -86,7 +86,7 @@ class ParentalControl extends EventEmitter {
                                         if (['block', 'remove'].includes(n.key)) {
                                             let fine = !!config.get('parental-control-pw');
                                             if (!fine) {
-                                                fine = await this.setupAuth().catch(console.error);
+                                                fine = await this.setupAuth().catch(err => console.error(err));
                                             }
                                             if (fine === true) {
                                                 config.set('parental-control', n.key);
@@ -281,7 +281,7 @@ class ParentalControl extends EventEmitter {
             return e;
         }
         const action = async () => {
-            let allow = await this.auth().catch(console.error);
+            let allow = await this.auth().catch(err => console.error(err));
             if (allow === true) {
                 menu.emit('action', e);
             }

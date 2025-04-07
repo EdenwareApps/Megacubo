@@ -163,7 +163,7 @@ class Icon extends IconFetcher {
         super();
         this.master = master;
         this.entry = entry;
-        this.start().catch(console.error);
+        this.start().catch(err => console.error(err));
     }
     async start() {
         let err;

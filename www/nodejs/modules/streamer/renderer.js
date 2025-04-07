@@ -94,7 +94,7 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                     main.osd.hide(this.osdID)
                     clearTimeout(this.transmissionNotWorkingHintTimer)
                     if(this.transcodeStarting){
-                        main.osd.show(main.lang.TRANSCODING_WAIT, 'fas fa-circle-notch fa-spin', this.osdID, 'persistent')
+                        main.osd.show(main.lang.TRANSCODING_WAIT, 'fa-mega busy-x', this.osdID, 'persistent')
                         main.osd.hide(this.osdID +'-sub')
                     } else {
                         this.transmissionNotWorkingHintTimer = setTimeout(() => {
@@ -1260,7 +1260,7 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
             this.leaveFullScreen()
         } else {
             if(winActions && winActions.inPIP) {
-                winActions.leave().catch(console.error)
+                winActions.leave().catch(err => console.error(err))
             } else {
                 this.enterFullScreen()
             }

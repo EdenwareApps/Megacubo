@@ -2,6 +2,7 @@ import StreamerBaseIntent from "./base.js";
 import StreamerFFmpeg from "../utils/ffmpeg.js";
 import StreamerAdapterTS from "../adapters/ts.js";
 import config from "../../config/config.js"
+import { isMPEGTSFromInfo } from "../utils/media-url-info.js";
 
 class StreamerTSIntent extends StreamerBaseIntent {
     constructor(data, opts, info) {
@@ -21,7 +22,7 @@ class StreamerTSIntent extends StreamerBaseIntent {
                 this.resetTimeout();
                 let resolved, opts = this.getTranscodingOpts();
                 this.downloader.updatePacketFilterPolicy(true)
-                const decoder = new StreamerFFmpeg(this.downloader.source.endpoint, opts);
+                const decoder = new StreamerFFmpeg(this.downloader.endpoint, opts);
                 this.mimetype = this.mimeTypes[decoder.opts.outputFormat];
                 this.transcoder = decoder;
                 this.connectAdapter(decoder);
@@ -60,7 +61,7 @@ class StreamerTSIntent extends StreamerBaseIntent {
         await this.downloader.start();
         if (this.useFF()) {
             this.downloader.updatePacketFilterPolicy(true)
-            const decoder = new StreamerFFmpeg(this.downloader.source.endpoint, this.opts);
+            const decoder = new StreamerFFmpeg(this.downloader.endpoint, this.opts);
             this.mimetype = this.mimeTypes[decoder.opts.outputFormat];
             this.decoder = decoder;
             this.connectAdapter(decoder);
@@ -70,32 +71,13 @@ class StreamerTSIntent extends StreamerBaseIntent {
             return { endpoint: this.endpoint, mimetype: this.mimetype };
         }
         this.mimetype = this.mimeTypes.mpegts;
-        this.endpoint = this.downloader.source.endpoint;
+        this.endpoint = this.downloader.endpoint;
         return { endpoint: this.endpoint, mimetype: this.mimetype };
     }
 }
+
 StreamerTSIntent.mediaType = 'live';
 StreamerTSIntent.supports = info => {
-    if (info.ext && ['mp4'].includes(info.ext)) { // mp4 files have been seen with video/MP2T contentType
-        return false;
-    }
-    if (info.headers && info.headers['content-length']) {
-        return false; // not live
-    }
-    if (info.contentType) {
-        let c = info.contentType;
-        if (c.includes('mpegurl')) { // is hls
-            return false;
-        }
-        if (c.includes('mp2t')) {
-            return true;
-        } else {
-            return false; // other video content type
-        }
-    }
-    if (info.ext && ['ts', 'mts', 'm2ts'].includes(info.ext)) {
-        return true;
-    }
-    return false;
+    return isMPEGTSFromInfo(info) === 'live';
 };
 export default StreamerTSIntent;

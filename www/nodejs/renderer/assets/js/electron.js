@@ -156,18 +156,18 @@ class WindowManagerCommon {
 		}
 		if(cmd.length){
 			cmd = cmd.pop()
-			if(cmd.length > 2 && !cmd.startsWith('-') && !cmd.includes('\\') && !cmd.includes('/nodejs')) {
-				cmd = cmd.replace(new RegExp('^"|"$', 'g'), '')
-				if(!cmd.match(new RegExp('^/[^/]'))){
-					console.log('cmdline*: ' + cmd)
-					let sharing = '/w/', pos = cmd.indexOf(sharing)
-					if(pos != -1) cmd = cmd.substr(pos + sharing.length)
-					if(!cmd.includes('//')) cmd = 'mega://'+ cmd
-					console.log('cmdline**: ' + cmd)
-					this.app.main.waitMain(() => {
-						this.app.main.emit('open-url', decodeURIComponent(cmd))
-					})
-				}
+			if(cmd.length > 2 && !cmd.startsWith('-')) {
+				console.log('cmdline*: ' + cmd)
+				if(cmd === 'debug') return
+				const txt = cmd.toLowerCase().replace(/\\/g, '/')
+				if(txt.endsWith('.exe') || txt.endsWith('/megacubo') || txt.endsWith('/electron') || txt.endsWith('/node')) return
+				let sharing = '/w/', pos = txt.indexOf(sharing)
+				if(pos != -1) cmd = cmd.substr(pos + sharing.length)
+				if(!cmd.includes('//')) cmd = 'mega://'+ cmd
+				console.log('cmdline**: ' + cmd)
+				this.app.main.waitMain(() => {
+					this.app.main.emit('open-url', decodeURIComponent(cmd))
+				})
 			}
 		}
 		if(api.tray.active){
@@ -460,7 +460,7 @@ class WindowManager extends WindowManagerCommon {
 		const args = [scr.availWidth - ww, scr.availHeight - h].map(n => parseInt(n))
 		console.warn('enterMiniPlayer', args, {scr, w, h}, scr.availWidth - ww, scr.availHeight - h)
 		api.window.setPosition(...args, false)
-		api.window.setSize(w, h, false)
+		api.window.setSize(parseInt(w), parseInt(h), true)
 	}
 	prepareLeaveMiniPlayer(){
 		console.warn('prepareLeaveMiniPlayer')

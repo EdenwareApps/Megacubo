@@ -77,7 +77,7 @@ class BitrateChecker extends EventEmitter {
             const stat = fs.promises.stat(file).catch(e => err = e);
             if (err || stat.size < this.minSampleSize) {
                 if (deleteFileAfterChecking) {
-                    await fs.promises.unlink(file).catch(console.error);
+                    await fs.promises.unlink(file).catch(err => console.error(err));
                 }
                 return false;
             }

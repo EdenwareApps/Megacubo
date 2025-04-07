@@ -41,12 +41,12 @@ class Promoter {
                 return;
             this.promoteDialogTime = now;
             this.promoteDialogPending = false;
-            this.offer('dialog').then(a => a && this.dialogOffer(a)).catch(console.error);
+            this.offer('dialog').then(a => a && this.dialogOffer(a)).catch(err => console.error(err));
         });
     }
     async promoteDialogSignal() {
         this.promoteDialogPending = true;
-        this.promoteDialog().catch(console.error);
+        this.promoteDialog().catch(err => console.error(err));
     }
     async offer(type, skipRequirements) {
         const atts = {
@@ -56,7 +56,7 @@ class Promoter {
             platform: process.platform,
             version: paths.manifest.version
         };
-        const c = await cloud.get('promos', {timeoutMs: 5000}).catch(console.error)
+        const c = await cloud.get('promos', {timeoutMs: 5000}).catch(err => console.error(err))
         if (!Array.isArray(c)) return
         const promos = c.filter(p => {
             if (p.type != type)
@@ -108,7 +108,7 @@ class Promoter {
                     o.url = o.url.replace('{name}', encodeURIComponent(name || ''));
                 }
                 if (o.confirmation) {
-                    osd.show(lang.PROCESSING, 'fas fa-circle-notch fa-spin', 'promoter', 'persistent');
+                    osd.show(lang.PROCESSING, 'fa-mega busy-x', 'promoter', 'persistent');
                     Download.get({
                         url: o.url,
                         retries: 10

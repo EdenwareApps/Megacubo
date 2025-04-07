@@ -5,6 +5,7 @@ import tools from "./tools.js";
 import MediaURLInfo from "../streamer/utils/media-url-info.js";
 import ParentalControl from "./parental-control.js";
 import options from "./options.json" with { type: 'json' }
+import ready from '../ready/ready.js'
 
 export class Fetcher extends EventEmitter {
     constructor(url, atts, master) {
@@ -14,74 +15,68 @@ export class Fetcher extends EventEmitter {
         this.url = url;
         this.playlists = [];
         this.master = master;
+        this.ready = ready()
         process.nextTick(() => {
             this.start().catch(err => {
                 if(!this.error) this.error = err
             }).finally(() => {
-                this.isReady = true
-                this.emit('ready')
+                this.ready.done()
             })
         })
     }
-    ready() {
-        return new Promise(resolve => {
-            if (this.isReady) {
-                resolve()
-            } else {
-                this.once('ready', resolve)
-            }
-        });
-    }
     async start() {
+        if(this.list) {
+            return this.ready()
+        }
         if(!this.master) {
             throw new Error('Fetcher master not set')
         }
+        if(!this.master.loader) {
+            throw new Error('Fetcher loader not set')
+        }
+        
+        console.log('Fetcher start', this.url)
         this.list = new List(this.url, this.master)
         try {
-            return await this.list.start()
-        } catch (err) {
-            if(!this.master.loader) {
-                throw new Error('Fetcher loader not set')
+            console.log('Fetcher ready', this.url)
+            await this.list.ready()
+            if (!this.list.length) {
+                throw new Error('List is empty')
             }
+        } catch (err) {
+            console.log('Fetcher error', this.url, err)
             try {
                 await this.master.loader.addListNow(this.url, this.atts)
                 try {
-                    return await this.list.start()
+                    console.log('Fetcher ready 2', this.url)
+                    this.list = new List(this.url, this.master)
+                    return this.list.ready()
                 } catch(e) { // will trigger outer catch
-                    console.error('Fetcher start error', e)
+                    console.log('Fetcher error 2', this.url, e)
                     throw err
                 }
             } catch(err) {
-                console.error('Fetcher start error *', err)
+                console.log('Fetcher error 3', this.url, err)
                 this.error = err
                 this.list.destroy()
                 throw err
             }
         }
+        console.log('Fetcher end', this.url)
     }
     validateCache(content) {
         return typeof(content) == 'string' && content.length >= this.minDataLength;
     }
-    isLocal(file) {
-        if (typeof(file) != 'string') {
-            return;
-        }
-        let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'));
-        if (m && m.length > 1 && (m[1].length == 1 || m[1].toLowerCase() == 'file')) { // drive letter or file protocol
-            return true;
-        } else {
-            if (file.length >= 2 && file.startsWith('/') && file.charAt(1) != '/') { // unix path
-                return true;
-            }
-        }
-    }
     async fetchAll() {
         await this.ready();
-        return await this.list.fetchAll();
+        if (this.error) {
+            throw this.error
+        }
+        return this.list.fetchAll();
     }
     async getMap(map) {
         await this.ready();
-        return await this.list.getMap(map);
+        return this.list.getMap(map);
     }
     async meta() {
         await this.ready();
@@ -189,18 +184,5 @@ export class Common extends EventEmitter {
         const meta = await this.getListMeta(url);
         meta[key] = value;
         await this.setListMeta(url, meta);
-    }
-    isLocal(file) {
-        if (typeof(file) != 'string') {
-            return
-        }
-        let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'));
-        if (m && m.length && (m[1].length == 1 || m[1].toLowerCase() == 'file')) { // drive letter or file protocol
-            return true
-        } else {
-            if (file.length >= 2 && file.startsWith('/') && file.charAt(1) != '/') { // unix path
-                return true
-            }
-        }
     }
 }

@@ -5,7 +5,7 @@ import fs from "fs";
 import FormData from "form-data";
 import http from "http";
 import cloud from "../cloud/cloud.js";
-import { prepare, stringify } from "../serialize/serialize.js";
+import { stringify } from "../serialize/serialize.js";
 
 class Crashlog {
     constructor() {
@@ -29,7 +29,7 @@ class Crashlog {
     async read() {        
         let content = '';
         for (let file of [this.crashFile, this.crashLogFile]) {
-            let text = await fs.promises.readFile(file).catch(console.error);
+            let text = await fs.promises.readFile(file).catch(err => console.error(err));
             if (text) { // filter "undefined"
                 content += text;
             }
@@ -62,7 +62,7 @@ class Crashlog {
                                     fs.unlink(this.crashFile, () => {})
                                 })
                             } else {
-                                moveFile(this.crashFile, this.crashLogFile).catch(console.error)
+                                moveFile(this.crashFile, this.crashLogFile).catch(err => console.error(err))
                             }
                         })
                         if (!resolved) {

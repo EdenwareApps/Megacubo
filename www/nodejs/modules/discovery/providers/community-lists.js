@@ -23,7 +23,7 @@ class CommunityLists extends EventEmitter {
             await Promise.allSettled(locs.map((loc, i) => {
                 return async () => {
                     const scoreLimit = 1 - (i * (1 / locs.length));
-                    let maxUsersCount = -1, lists = await cloud.get('sources/' + loc).catch(console.error);
+                    let maxUsersCount = -1, lists = await cloud.get('sources/' + loc).catch(err => console.error(err));
                     solved.push(loc)
                     if(Array.isArray(lists)) {
                         lists = lists.map(list => {
@@ -52,7 +52,7 @@ class CommunityLists extends EventEmitter {
             if (ret == 'know') {
                 renderer.ui.emit('open-external-url', 'https://megacubo.net/tos');
             }
-        }).catch(console.error);
+        }).catch(err => console.error(err));
     }
     async receivedListsEntries() {
         const info = await this.master.lists.info();
@@ -83,7 +83,7 @@ class CommunityLists extends EventEmitter {
                 fa: 'fas fa-satellite-dish',
                 type: 'group',
                 class: 'skip-testing',
-                renderer: this.master.lists.manager.listRenderer.bind(this.master.lists.manager)
+                renderer: this.master.lists.manager.renderList.bind(this.master.lists.manager)
             };
         }).filter(l => l)
         if (!entries.length) {

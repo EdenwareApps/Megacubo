@@ -1,7 +1,6 @@
 import { EventEmitter } from 'events';
-import parseRange from "range-parser";
 
-class DownloadStreamResponse extends EventEmitter {
+class StreamResponse extends EventEmitter {
     constructor(statusCode, headers) {
         super();
         this.statusCode = statusCode;
@@ -30,7 +29,8 @@ class DownloadStreamResponse extends EventEmitter {
         }
     }
 }
-class DownloadStream extends EventEmitter {
+
+class Stream extends EventEmitter {
     constructor(opts) {
         super();
         this.setMaxListeners(20);
@@ -45,21 +45,8 @@ class DownloadStream extends EventEmitter {
             this.opts.uid = parseInt(Math.random() * 10000000000000);
         }
         process.nextTick(() => {
-            this.start().catch(err => this.emitError(err, true));
+            this.start().catch(err => this.emitError(err));
         });
-    }
-    parseRange(range) {
-        const maxInt = Number.MAX_SAFE_INTEGER;
-        const ranges = parseRange(maxInt, range.replace('bytes ', 'bytes='));
-        if (Array.isArray(ranges)) { // TODO: enable multi-ranging support
-            let requestingRange = ranges[0];
-            if (typeof(requestingRange.end) != 'number') { // remove dummy value
-                delete requestingRange.end;
-            } else if (requestingRange.end >= (maxInt - 1)) { // remove dummy value
-                delete requestingRange.end;
-            }
-            return requestingRange;
-        }
     }
     extractMaxAge(headers) {
         if (typeof(headers['cache-control']) != 'undefined') {
@@ -78,10 +65,9 @@ class DownloadStream extends EventEmitter {
             }
         }, ms);
     }
-    emitError(error, report) {
+    emitError(error) {
         this.error = error;
-        report && !this.destroyed && this.type === 'hybrid' && console.warn('DownloadStream:' + this.type, this.opts.url, error);
-        this.listenerCount('error') && this.emit('error', error, report);
+        this.listenerCount('error') && this.emit('error', error);
         this.destroy();
     }
     end() {
@@ -102,5 +88,5 @@ class DownloadStream extends EventEmitter {
         }
     }
 }
-DownloadStream.Response = DownloadStreamResponse;
-export default DownloadStream;
+Stream.Response = StreamResponse;
+export default Stream;

@@ -30,8 +30,7 @@ class Config extends EventEmitter {
     }
     load(txt) {
         if (!this.loaded) {
-            if (txt || fs.existsSync(this.file)) {
-                this.loaded = true
+            try {
                 let data = typeof(txt) == 'string' ? txt : fs.readFileSync(this.file, 'utf8')
                 if (data) {
                     if (this.debug) {
@@ -45,7 +44,10 @@ class Config extends EventEmitter {
                         }
                     }
                 }
+            } catch (e) {
+                // first time on app?
             }
+            this.loaded = true
         }
     }
     extend(data) {

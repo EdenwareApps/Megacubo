@@ -1,4 +1,4 @@
-import { kbfmt } from '../utils/utils.js'
+import { isLocal, kbfmt } from '../utils/utils.js'
 import lang from '../lang/lang.js';
 import { EventEmitter } from 'events';
 import fs from 'fs';
@@ -9,6 +9,7 @@ import config from '../config/config.js'
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
 import AdmZip from 'adm-zip'
+import ready from '../ready/ready.js';
 
 let FFmpegControllerUIDIterator = 1;
 class FFmpegController extends EventEmitter {
@@ -306,7 +307,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
                 }
             });
         };
-        if (length || !this.isLocal(file)) {
+        if (length || !isLocal(file)) {
             next();
         } else {
             
@@ -319,20 +320,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
                 }
             });
         }
-    }
-    isLocal(file) {
-        if (typeof(file) != 'string') {
-            return;
-        }
-        let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'));
-        if (m && m.length && (m[1].length == 1 || m[1].toLowerCase() == 'file')) { // drive letter or file protocol
-            return true;
-        } else {
-            if (file.length >= 2 && file.startsWith('/') && file.charAt(1) != '/') { // unix path
-                return true;
-            }
-        }
-    }
+    }    
     ext(file) {
         const ext = String(file).split('?')[0].split('#')[0].split('.').pop().toLowerCase();
         return ext.length >= 2 && ext.length <= 4 ? ext : null;
@@ -372,6 +360,85 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
                 });
             }, inputOptions);
         }
+    }
+    async getThumbnail(file) {
+        const tempFile = temp + '/' + Math.random() + '.jpg';
+        this.exec(file, ['-frames:v', '1', '-vf', 'scale=iw:ih', '-q:v', '2', tempFile], (error, output) => {
+            fs.stat(tempFile, (err, stat) => {
+                cb({ error, output, size: stat ? stat.size : null, duration: seconds });
+            });
+        });    
+    }
+    
+    async thumbnail(file, outputFile, force){
+        const fallbackDuration = 30
+        const getDuration = new Promise((resolve, reject) => {
+            this.getFileDuration(file, (err, duration) => {
+                if(err) return reject(err)
+                resolve(duration)
+            })
+        })
+        const duration = await getDuration.catch(err => fallbackDuration)
+        const hash = file.toLowerCase().replace(/[^a-z0-9]/gi, '').substring(0, 32)
+        const sourceFileSize = await fs.promises.stat(file).then(stat => stat.size).catch(() => 0)
+        
+        outputFile = outputFile || paths.temp + '/' + hash + '.png'
+        const statFile = outputFile +'.json'
+
+        const alreadyExists = await fs.promises.access(outputFile, fs.constants.F_OK).then(() => true).catch(() => false)
+        if(alreadyExists && !force) {
+            try {
+                const originalSize = parseInt(await fs.promises.readFile(statFile, 'utf8'))
+                if(originalSize === sourceFileSize){
+                    return outputFile
+                }
+            } catch (err) {
+                console.error('Error while reading output file stat', statFile, err)
+            }
+        }
+
+        const ss = Math.ceil((duration || fallbackDuration) / 3)
+        const proc = this.create(file, { live: false }).
+            inputOptions('-ss', ss).
+            format('image2').
+            outputOptions('-an').
+            outputOptions('-sn').
+            outputOptions('-vf', 'scale=500:-1').
+            outputOptions('-vframes', '1').
+            outputOptions('-update', '1').
+            output(outputFile).
+            on('start', commandLine => {
+                if(this.debug){
+                    console.log('Spawned FFmpeg with command: ' + commandLine)
+                }
+            })
+        return new Promise((resolve, reject) => {
+            proc.on('error', err => {
+                if(this.debug){
+                    console.log('Error while saving output file.', outputFile, err)
+                }
+                reject(err)
+            }).once('end', () => {
+                fs.stat(outputFile, (err, stat) => {
+                    if(stat && stat.size){
+                        if(this.debug){
+                            console.log('Thumbnail generated', outputFile)
+                        }
+                        fs.promises.writeFile(statFile, sourceFileSize.toString()).then(() => resolve(outputFile)).catch(err => {
+                            reject('Error while saving output file stat: ' + err)
+                        })
+                    } else {
+                        if(!err){
+                            err = 'failed to generate thumbnail'
+                        }
+                        if(this.debug){
+                            console.log('Error generating thumbnail', outputFile, err)
+                        }
+                        reject(err)
+                    }
+                })
+            }).run()
+        })
     }
 }
 class FFMPEGDiagnostic extends FFMPEGMediaInfo {
@@ -482,17 +549,13 @@ class FFMPEGDiagnostic extends FFMPEGMediaInfo {
 class FFMPEG extends FFMPEGDiagnostic {
     constructor() {
         super();
+        this.ready = ready()
         if (!paths.android) {
             renderer.ui.on('ffmpeg-download', state => {
                 this.downloading = state;
-                state || this.emit('downloaded');
+                state || this.ready.done();
             })
         }
-    }
-    ready() {
-        return new Promise(resolve => {
-            this.downloading ? this.once('downloaded', resolve) : resolve();
-        });
     }
     create(input, opts) {
         const proc = new FFmpegController(input, this)
@@ -570,12 +633,16 @@ class FFmpegDownloader {
         const variant = osName + '-' + arch;
         const url = await this.getVariantURL(variant)
         if (!url) throw 'FFmpeg source binary URL not found'
-        osd.show(mask.replace('{0}', '0%'), 'fas fa-circle-notch fa-spin', 'ffmpeg-dl', 'persistent');
+        osd.show(mask.replace('{0}', '0%'), 'fa-mega busy-x', 'ffmpeg-dl', 'persistent');
         const tmpZipFile = await Download.file({
             url,
+            timeout: {
+                connect: 30,
+                read: 10
+            },
             file: path.join(target, 'ffmpeg.zip'),
             progress: p => {
-                osd.show(mask.replace('{0}', p + '%'), 'fas fa-circle-notch fa-spin', 'ffmpeg-dl', 'persistent');
+                osd.show(mask.replace('{0}', p + '%'), 'fa-mega busy-x', 'ffmpeg-dl', 'persistent');
             }
         });
         const zip = new AdmZip(tmpZipFile);
@@ -591,8 +658,7 @@ class FFmpegDownloader {
         try {
             await fs.promises.access(path.join(this.executableDir, this.executable), fs.constants.F_OK);
             return true;
-        }
-        catch (error) {
+        } catch (error) {
             try {
                 await fs.promises.access(path.join(folder, this.executable), fs.constants.F_OK);
                 this.executableDir = folder;
@@ -631,7 +697,7 @@ if(process.platform !== 'android') {
         console.log('ffmpeg-path ...')
         downloader.check().then(() => {
             renderer.ui.emit('ffmpeg-path', downloader.executableDir, downloader.executable)
-        }).catch(global.displayErr)
+        }).catch(global.menu.displayErr)
     })
 }
 

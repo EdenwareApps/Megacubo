@@ -5,12 +5,10 @@ import menu from '../menu/menu.js'
 import lang from '../lang/lang.js'
 import storage from '../storage/storage.js'
 import { EventEmitter } from 'events'
-import cloud from '../cloud/cloud.js'
 import mega from '../mega/mega.js'
 import Trending from '../trending/trending.js'
 import Bookmarks from '../bookmarks/bookmarks.js'
 import fs from 'fs'
-import pLimit from 'p-limit'
 import downloads from '../downloads/downloads.js'
 import icons from '../icon-server/icon-server.js'
 import config from '../config/config.js'
@@ -18,314 +16,10 @@ import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
 import { clone, insertEntry, parseCommaDelimitedURIs, moment, time, ts2clock } from '../utils/utils.js'
 import Search from '../search/search.js'
-import Limiter from '../limiter/limiter.js'
 import { parse } from '../serialize/serialize.js'
+import { ChannelsList } from './channel-list.js'
+import ready from '../ready/ready.js'
 
-class ChannelsList extends EventEmitter {
-    constructor(type, countries) {
-        super();
-        this.type = type
-        this.countries = countries
-        this.key = 'categories-' + countries.join('-')
-        this.isChannelCache = {}
-        this.channelsIndex = {}
-        this.categories = {}
-        this.key += '-' + this.type
-        this.epgAutoUpdateInterval = 600
-        this.limiter = new Limiter(async () => {
-            await this.load().catch(console.error)
-        }, 3000)
-        renderer.ready(() => {
-            const lcb = async () => {
-                if(this.type == 'lists') {
-                    await this.limiter.call()
-                }
-            }
-            const ecb = async () => {
-                if(this.type == 'epg') {
-                    await this.limiter.call()
-                }
-            }
-            global.lists.on('list-loaded', lcb)
-            global.lists.on('epg-loaded', ecb)
-            global.lists.on('satisfied', lcb)
-            this.limiter.call()
-        })
-    }
-    ready() {
-        return new Promise(resolve => {
-            if (this.loaded)
-                return resolve();
-            this.once('loaded', resolve);
-        });
-    }
-    async load(refresh) {
-        let fine, changed
-        let data = await storage.get(this.key).catch(console.error)
-        let len = data ? Object.keys(data).length : 0
-        if (data && len) {
-            this.categories = data
-            fine = true
-        }
-        if (!fine || refresh || this.type == 'epg') {
-            let err
-            data = await this.getActiveCategories().catch(e => err = e)
-            if (err) {
-                len = 0
-                console.error('channel.getActiveCategories error: ' + err)
-            } else {
-                len = Object.keys(data).length
-                this.channelsIndex = null
-                this.categories = data
-                await this.save(this.key)
-                fine = true
-                changed = true
-            }
-            if(this.type == 'epg' && len) {
-                this.schedule()
-            }
-        }
-        if(!len) {
-            this.schedule(15)
-        }
-        this.updateChannelsIndex(false)
-        if (!this.categories || typeof(this.categories) != 'object') {
-            this.categories = {}
-        }
-        this.loaded = true
-        this.emit('loaded', changed)
-    }
-    schedule(secs) {
-        if(!secs) {
-            secs = this.epgAutoUpdateInterval
-        }
-        this.epgAutoUpdateTimer && clearTimeout(this.epgAutoUpdateTimer)
-        this.epgAutoUpdateTimer = setTimeout(() => {
-            this.load().catch(console.error)
-        }, secs * 1000)
-    }
-    async reset() {
-        delete this.categories
-        await storage.delete(this.key).catch(console.error)
-        config.set('channel-grid', '')
-        await this.load(true)
-    }
-    async getAdultCategories() {
-        return await cloud.get('channels/adult')
-    }
-    async getEPGCategories() {
-        const data = await global.lists.epgLiveNowChannelsList()
-        return data.categories
-    }
-    async getPublicListsCategories() {
-        await global.lists.discovery.ready()
-        const ret = {}, limit = pLimit(2)
-        const groups = await global.lists.discovery.getProvider('public').entries(true, true)
-        const promises = groups.filter(g => g.renderer).map(g => {
-            return limit(async () => {
-                const entries = await g.renderer(g).catch(console.error)
-                if (Array.isArray(entries)) {
-                    ret[g.name] = [...new Set(entries.filter(e => e.name && e.type != 'action').map(e => e.name))]
-                }
-            })
-        })
-        await Promise.allSettled(promises)
-        return ret
-    }
-    async getListsCategories() {
-        const ret = {}        
-        let groups = await global.lists.groups(['live'], true)
-        if(!groups.length) {
-            groups = await global.lists.groups(['live'], false)
-        }
-        for (const group of groups) {
-            const entries = await global.lists.group(group).catch(console.error);
-            if (Array.isArray(entries)) {
-                let es = entries.map(e => {
-                    return e.name.split(' ').filter(w => {
-                        return w && !global.lists.tools.stopWords.has(w.toLowerCase());
-                    }).join(' ')
-                });
-                if (es.length)
-                    ret[group.name] = es;
-            }
-        }
-        return ret;
-    }
-    async getAppRecommendedCategories() {
-        let finished, received = 0
-        const limit = pLimit(2), data = {}, ret = {}
-        const maxChannelsToProcess = 1024
-        const maxChannelsPerCategory = 24
-        const minChannelsToCollect = maxChannelsToProcess / 3
-        const processCountry = async country => {
-            if (finished) return
-            let err
-            const priority = country == lang.countryCode
-            if (!priority && received >= maxChannelsToProcess) return
-            let map = await cloud.get('channels/'+ country).catch(e => err = e)
-            if (err) {
-                if(priority) {
-                    err = null
-                    map = await cloud.get('channels/'+ country, {
-                        bypassCache: true // force refresh
-                    }).catch(e => err = e)
-                }
-            }
-            if (err) return
-            data[country] = map
-            received += this.mapSize(map)
-        }
-        const promises = {}, promise = processCountry(this.countries[0])
-        await Promise.allSettled(this.countries.slice(1).map(country => {
-            promises[country] = limit(() => processCountry(country))
-            return promises[country]
-        }))
-        await promise
-        let size = 0
-        for (const country of this.countries) { // this.countries will be in the preferred order
-            const size = this.mapSize(ret)
-            if(promises[country] && size <= minChannelsToCollect) {
-                await promises[country].catch(console.error)
-            }
-            if(!data[country]) continue
-            await this.applyMapCategories(data[country], ret, maxChannelsPerCategory, country != lang.countryCode)
-        }
-        finished = true
-        return ret
-    }
-    updateChannelsIndex(refresh) {
-        if (refresh === true || !this.channelsIndex || !Object.keys(this.channelsIndex).length) {
-            let index = {};
-            this.getCategories().forEach(cat => {
-                cat.entries.forEach(e => {
-                    index[e.name] = e.terms.name;
-                });
-            });
-            let keys = Object.keys(index);
-            keys.sort((a, b) => { return index[a].length > index[b].length ? -1 : (index[a].length < index[b].length) ? 1 : 0; });
-            this.isChannelCache = {};
-            this.channelsIndex = {};
-            keys.forEach(k => this.channelsIndex[k] = index[k]);
-        }
-    }
-    mapSize(n) {
-        return Object.values(n).map(k => Array.isArray(k) ? k.length : 0).reduce((s, v) => s + v, 0);
-    }
-    applyMapCategories(map, target, maxChannelsPerCategory, weighted=false) {
-        const categories = Object.keys(target).concat(Object.keys(map).map(k => this.translateKey(k)).filter(k => !(k in target)))
-        for (const k of Object.keys(map)) {
-            const cat = this.translateKey(k)
-            if(!target[cat]) target[cat] = []
-            const left = maxChannelsPerCategory - target[cat].length
-            if (left > 0 && Array.isArray(map[k])) {
-                const slice = map[k].filter(s => !target[cat].includes(s)).slice(0, weighted ? left : undefined)
-                if (slice.length) {
-                    target[cat].push(...slice)
-                }
-            }
-        }
-        return target
-    }
-    translateKey(k) {
-        let lk = 'CATEGORY_' + k.replaceAll(' & ', ' ').replace(new RegExp(' +', 'g'), '_').toUpperCase();
-        let nk = lang[lk] || k;
-        return nk;
-    }
-    async getActiveCategories() {
-        switch (this.type) {
-            case 'public':
-                return await this.getPublicListsCategories();
-            case 'lists':
-                return await this.getListsCategories();
-            case 'xxx':
-                return await this.getAdultCategories();
-            case 'epg':
-                return await this.getEPGCategories();
-        }
-        return await this.getAppRecommendedCategories();
-    }
-    getCategories(compact) {
-        return compact ? this.categories : this.expand(this.categories);
-    }
-    async setCategories(data, silent) {
-        this.categories = data;
-        this.channelsIndex = null;
-        await this.save();
-        console.log('Categories file imported');
-        if (silent !== true) {
-            osd.show(lang.IMPORTED_FILE, 'fas fa-check-circle', 'options', 'normal');
-        }
-    }
-    compactName(name, terms) {
-        if (terms && terms.length > 1 && terms != name) {
-            name += ', ' + (typeof(terms) == 'string' ? terms : terms.join(' '));
-        }
-        return name;
-    }
-    expandName(name) {        
-        let terms
-        if (name.includes(',')) {
-            terms = name.split(',').map(s => s = s.trim());
-            name = terms.shift();
-            if (!terms.length) {
-                terms = name;
-            } else {
-                terms = terms.join(' ');
-            }
-        } else {
-            terms = name;
-        }
-        terms = global.lists.tools.terms(terms)
-        return { name, terms: { name: terms, group: [] } };
-    }
-    compact(data, withTerms) {
-        let ret = {};
-        data.forEach(c => {
-            ret[c.name] = c.entries.map(e => {
-                return this.compactName(e.name, withTerms ? e.terms : false);
-            });
-        });
-        return ret;
-    }
-    expand(data) {
-        return Object.keys(data).map(name => {
-            return {
-                name,
-                type: 'group',
-                group: name,
-                entries: data[name].map(name => {
-                    return Object.assign(this.expandName(name), { type: 'option' });
-                })
-            }
-        })
-    }
-    async save() {
-        let ordering = {};
-        Object.keys(this.categories).sort().forEach(k => {
-            if (!Array.isArray(this.categories[k]))
-                return;
-            ordering[k] = this.categories[k].map(String).sort((a, b) => {
-                let aa = a.indexOf(',');
-                let bb = b.indexOf(',');
-                aa = aa == -1 ? a : a.substr(0, aa);
-                bb = bb == -1 ? b : b.substr(0, bb);
-                return aa > bb ? 1 : -1;
-            });
-        });
-        this.categories = ordering;
-        this.updateChannelsIndex(true);
-        await storage.set(this.key, this.categories, {
-            permanent: true,
-            expiration: true
-        });
-    }
-    destroy() {
-        this.destroyed = true;
-        this.loaded = true;
-        this.emit('loaded');
-    }
-}
 class ChannelsData extends EventEmitter {
     constructor() {
         super();
@@ -336,21 +30,16 @@ class ChannelsData extends EventEmitter {
             class: 'entry-empty'
         }
         this.radioTerms = ['radio', 'fm', 'am']
+        this.ready = ready()
         renderer.ready(async () => {
-            this.load().catch(console.error)
+            this.load().catch(err => console.error(err))
             config.on('change', async (keys, data) => {
                 if (['parental-control', 'parental-control-terms', 'lists'].some(k => keys.includes(k))) {
                     await this.load(true);
                 }
             })
-            global.lists.on('list-loaded', () => this.load().catch(console.error))
-            global.lists.on('satisfied', () => this.load().catch(console.error))
-        })
-    }
-    ready() {
-        return new Promise(resolve => {
-            if (this.loaded) return resolve()
-            this.once('loaded', resolve)
+            global.lists.on('list-loaded', () => this.load().catch(err => console.error(err)))
+            global.lists.on('satisfied', () => this.load().catch(err => console.error(err)))
         })
     }
     async load(refresh) {
@@ -372,7 +61,8 @@ class ChannelsData extends EventEmitter {
         const changed = await this.channelList.load(refresh)
         this.loaded = true
         this.emit('loaded', changed)
-        typeChanged && await this.trending.update().catch(console.error);
+        this.ready.done()
+        typeChanged && await this.trending.update().catch(err => console.error(err));
         (typeChanged || changed) && renderer.ready(() => menu.updateHomeFilters())
     }
 }
@@ -409,7 +99,7 @@ class ChannelsEPG extends ChannelsData {
             }, async data => {
                 const name = data.originalName || data.name;
                 const category = this.getChannelCategory(name)
-                if (!global.lists.epg.loaded) {
+                if (!global.lists?.epg?.loaded) {
                     menu.displayErr(lang.EPG_DISABLED)
                 } else if (category) {
                     let err;
@@ -517,32 +207,28 @@ class ChannelsEPG extends ChannelsData {
         if (typeof(limit) != 'number')
             limit = 72;
         let data = this.epgPrepareSearch(e);
-        return await global.lists.epgChannelsList(data, limit);
+        return global.lists.epgChannelsList(data, limit);
     }
     async epgChannelEntries(e, limit, detached) {
         if (typeof(limit) != 'number') {
             limit = 72
         }
-        // console.log('EPG', {e, limit, detached})
         let data = this.epgPrepareSearch(e)
-        // console.log('EPG', {data})
         const epgData = await global.lists.epgChannelsList(data, limit)
         let centries = []
-        // console.log('EPG', {epgData})
         if (epgData) {
             if (typeof(epgData[0]) != 'string') {
                 centries = this.epgDataToEntries(epgData, data.name, data.terms)
-                if (!centries.length) {
-                    centries.push(menu.emptyEntry(lang.NOT_FOUND))
-                }
-                // console.log('EPG', {centries})
             }
+        }
+        if (!centries.length) {
+            centries.push(menu.emptyEntry(lang.NOT_FOUND))
         }
         centries.unshift(this.adjustEPGChannelEntry(e, detached))
         return centries
     }
     async epgChannelLiveNow(entry) {
-        if (!global.lists.epg.loaded) throw 'epg not loaded';
+        if (!global.lists?.epg?.loaded) throw 'epg not loaded';
         let channel = this.epgPrepareSearch(entry)
         let epgData = await global.lists.epgChannelsList(channel, 1)
         let ret = Object.values(epgData).shift()
@@ -558,7 +244,7 @@ class ChannelsEPG extends ChannelsData {
         return ret;
     }
     async epgChannelLiveNowAndNextInfo(entry) {
-        if (!global.lists.epg.loaded) throw 'epg not loaded'        
+        if (!global.lists?.epg?.loaded) throw 'epg not loaded'        
         let channel = this.epgPrepareSearch(entry)
         let epgData = await global.lists.epgChannelsList(channel, 2)
         if (typeof(epgData) == 'string') throw 'epg is loading'
@@ -581,7 +267,7 @@ class ChannelsEPG extends ChannelsData {
     }
     async epgChannelsLiveNow(entries) {
         let ret = {}
-        if(!entries.length || !global.lists.epg.loaded) {
+        if(!entries.length || !global.lists?.epg?.loaded) {
             return ret
         }  
         let chs = entries.map(e => this.epgPrepareSearch(e))
@@ -593,7 +279,7 @@ class ChannelsEPG extends ChannelsData {
         return ret
     }
     async epgChannelsAddLiveNow(entries) {
-        if (!global.lists.epg.loaded) return entries
+        if (!global.lists?.epg?.loaded) return entries
         let err
         const cs = entries.filter(e => e.terms || e.type == 'select').map(e => this.isChannel(e)).filter(e => e)
         const epg = await this.epgChannelsLiveNow(cs).catch(e => err = e)
@@ -618,10 +304,11 @@ class ChannelsEPG extends ChannelsData {
     adjustEPGChannelEntry(e, detached) {
         return {
             name: lang.SELECT,
-            fa: 'fas fa-th-large',
+            details: lang.CONFIGURE,
+            fa: 'fas fa-cog',
             type: 'group',
             renderer: async () => {
-                return await this.adjustEPGChannelEntryRenderer(e, detached);
+                return this.adjustEPGChannelEntryRenderer(e, detached);
             }
         };
     }
@@ -651,7 +338,7 @@ class ChannelsEPG extends ChannelsData {
                     }
                     config.set('epg-map', map);
                     if (detached) {                        
-                        global.streamer.aboutTrigger('epg-more').catch(console.error);
+                        global.streamer.aboutTrigger('epg-more').catch(err => console.error(err));
                     } else {
                         menu.back(null, true);
                     }
@@ -685,7 +372,7 @@ class ChannelsEPG extends ChannelsData {
                 { template: 'question', text: programme.t + ' &middot; ' + ch, fa: 'fas fa-calendar-alt' },
                 { template: 'message', text },
                 { template: 'option', id: 'ok', fa: 'fas fa-check-circle', text: 'OK' }
-            ], 'ok').catch(console.error);
+            ], 'ok').catch(err => console.error(err));
         } else if (start <= (now + 300)) { // if it will start in less than 5 min, open it anyway            
             let url = mega.build(ch, { terms });
             global.streamer.play({
@@ -705,7 +392,7 @@ class ChannelsEPG extends ChannelsData {
                 { template: 'question', text: programme.t + ' &middot; ' + ch, fa: 'fas fa-calendar-alt' },
                 { template: 'message', text },
                 { template: 'option', id: 'ok', fa: 'fas fa-check-circle', text: 'OK' }
-            ], 'ok').catch(console.error);
+            ], 'ok').catch(err => console.error(err));
         }
     }
 }
@@ -736,15 +423,15 @@ class ChannelsEditing extends ChannelsEPG {
                     details: o.name, type: 'group',
                     renderer: async () => {
                         let images = [];
-                        const ms = await icons.search(terms).catch(console.error);
+                        const ms = await icons.search(terms).catch(err => console.error(err));
                         Array.isArray(ms) && images.push(...ms.map(m => m.icon));
                         let ret = images.map((image, i) => {
                             const e = {
                                 name: String(i + 1) + String.fromCharCode(186),
                                 type: 'action',
                                 icon: image,
-                                class: 'entry-icon-no-fallback',
-                                fa: 'fa-mega spin-x-alt',
+                                class: 'entry-icon-no-fallback entry-busy-x',
+                                fa: 'fa-mega',
                                 iconFallback: 'fas fa-times-circle',
                                 action: async () => {
                                     let err;
@@ -814,7 +501,7 @@ class ChannelsEditing extends ChannelsEPG {
                                         console.log('opening', destPath);
                                         menu.refresh(true, destPath);
                                         osd.show(lang.CHANNEL_RENAMED, 'fas fa-check-circle', 'channels', 'normal');
-                                    }).catch(console.error);
+                                    }).catch(err => console.error(err));
                                 }
                             }
                         } },
@@ -991,7 +678,7 @@ class ChannelsKids extends ChannelsAutoWatchNow {
     constructor() {
         super()
         renderer.ready(() => {            
-            lang.ready().catch(console.error).finally(() => {
+            lang.ready().catch(err => console.error(err)).finally(() => {
                 menu.addFilter(async (entries, path) => {
                     const term = lang.CATEGORY_KIDS; // lang can change in runtime, check the term here so
                     if (path.endsWith(term)) {
@@ -1078,7 +765,7 @@ class Channels extends ChannelsKids {
             }
         }
         let url = 'https://www.google.com/search?btnI=1&lr=lang_{0}&q={1}'.format(lang.locale, encodeURIComponent('"' + name + '" site'));
-        const body = String(await Download.get({ url }).catch(console.error));
+        const body = String(await Download.get({ url }).catch(err => console.error(err)));
         const matches = body.match(new RegExp('href *= *["\']([^"\']*://[^"\']*)'));
         if (matches && matches[1] && !matches[1].includes('google.com')) {
             url = matches[1];
@@ -1181,9 +868,8 @@ class Channels extends ChannelsKids {
     }
     isChannel(terms) {        
         if(!this.channelList || !terms) return
-        if(terms.isChannel) {
-            return terms.isChannel
-        }
+        if(terms.isChannel) return terms.isChannel
+
         let tms, tmsKey, chs = this.channelList.channelsIndex || {};
         if (Array.isArray(terms)) {
             tms = terms;
@@ -1211,7 +897,7 @@ class Channels extends ChannelsKids {
         });
         if (chosenScore > 1) {
             if (typeof(this.channelList.isChannelCache[chosen]) == 'undefined') {
-                let alts = {}, excludes = [], chTerms = clone(chs[chosen]);
+                let alts = {}, excludes = [], chTerms = clone(chs[chosen]?.name || chs[chosen]);
                 Object.keys(chs).forEach(name => {
                     if (name == chosen)
                         return;
@@ -1270,7 +956,7 @@ class Channels extends ChannelsKids {
             type: 'live',
             limit: 1024
         })
-        await this.trending.order(entries).then(es => entries = es).catch(console.error);
+        await this.trending.order(entries).then(es => entries = es).catch(err => console.error(err));
         return entries;
     }
     searchChannels(terms, partial) {
@@ -1308,7 +994,7 @@ class Channels extends ChannelsKids {
                             }
                         }
                     }).filter(e => !!e);
-                }).catch(console.error).finally(() => {
+                }).catch(err => console.error(err)).finally(() => {
                     es.push(...epgEntries);
                     resolve(es);
                 });
@@ -1351,15 +1037,14 @@ class Channels extends ChannelsKids {
                 category = false;
             }
         }
-        let terms = this.entryTerms(e, true), streamsEntry, epgEntry, entries = [], moreOptions = [], url = e.url;
-        if (!url) {
-            let name = channelName;
-            let ch = this.isChannel(name);
+        let terms = this.entryTerms(e, true), streamsEntry, epgEntry, entries = [], moreOptions = [], url = e.url;       
+        let name = channelName
+        if(!url || !url.match(new RegExp('mediaType=(video|audio|all)'))) {
+            const ch = this.isChannel(name);
             if (ch) {
                 channelName = name = ch.name;
                 terms = ch.terms;
             }
-            
             e.url = url = mega.build(name, { terms });
         }
         const autoplay = this.autoplay(), streams = await this.get(terms);
@@ -1403,10 +1088,14 @@ class Channels extends ChannelsKids {
                     renderer: this.epgChannelEntries.bind(this, e)
                 }
             } else {
-                const name = global.lists.loaded(true) ? lang.NONE_STREAM_FOUND : lang.NO_LISTS_ADDED;
-                entries.push(Object.assign(this.emptyEntry, { name }));
+                const loaded = global.lists.loaded(true)
+                const name = loaded ? lang.NONE_STREAM_FOUND : lang.NO_LISTS_ADDED;
+                entries.push(Object.assign(this.emptyEntry, {
+                    name,
+                    fa: 'fas fa-exclamation-triangle faclr-darked'
+                }));
                 if (global.lists.activeLists.my.length) {
-                    global.lists.manager.checkListExpiral(global.lists.activeLists.my.map(source => ({ source }))).catch(console.error);
+                    global.lists.manager.checkListExpiral(global.lists.activeLists.my.map(source => ({ source }))).catch(err => console.error(err));
                 }
             }
         }
@@ -1548,7 +1237,7 @@ class Channels extends ChannelsKids {
     }
     async setGridType(type) {
         const busy = menu.setBusy(lang.LIVE +'/' + lang.CHOOSE_CHANNEL_GRID)
-        osd.show(lang.PROCESSING, 'fas fa-circle-notch fa-spin', 'channel-grid', 'persistent');
+        osd.show(lang.PROCESSING, 'fa-mega busy-x', 'channel-grid', 'persistent');
         config.set('channel-grid', type);
         let err;
         await this.load(true).catch(e => err = e);
@@ -1557,7 +1246,9 @@ class Channels extends ChannelsKids {
             return osd.show(err, 'fas fa-exclamation-triangle faclr-red', 'channel-grid', 'normal')
         }
         this.emit('channel-grid-updated')
-        await menu.open(lang.LIVE).catch(e => menu.displayErr(e))
+        const position = menu.path.indexOf(lang.EPG)
+        const target = (position != -1) ? menu.path.substring(0, position + lang.EPG.length) : lang.LIVE
+        await menu.open(target).catch(e => menu.displayErr(e))
         busy.release()
         osd.show('OK', 'fas fa-check-circle faclr-green', 'channel-grid', 'normal')
     }
@@ -1637,13 +1328,16 @@ class Channels extends ChannelsKids {
             renderer: async () => {
                 const def = config.get('channel-grid'), opts = [
                     { name: lang.AUTO + ' (' + lang.RECOMMENDED + ')', type: 'action', selected: !def, action: () => {
-                            this.setGridType('').catch(console.error);
+                            this.setGridType('').catch(err => console.error(err));
                         } },
                     { name: lang.DEFAULT, type: 'action', selected: def == 'app', action: () => {
-                            this.setGridType('app').catch(console.error);
+                            this.setGridType('app').catch(err => console.error(err));
                         } },
                     { name: lang.EPG, type: 'action', selected: def == 'epg', action: () => {
-                            this.setGridType('epg').catch(console.error);
+                            this.setGridType('epg').catch(err => console.error(err));
+                        } },
+                    { name: lang.PUBLIC_LISTS, type: 'action', selected: def == 'public', action: () => {
+                            this.setGridType('public').catch(err => console.error(err));
                         } }
                 ];
                 if (epgFocused !== true) {
@@ -1652,7 +1346,7 @@ class Channels extends ChannelsKids {
                             name: lang.MY_LISTS, type: 'action',
                             selected: def == 'lists',
                             action: () => {
-                                this.setGridType('lists').catch(console.error);
+                                this.setGridType('lists').catch(err => console.error(err));
                             }
                         });
                     }
@@ -1660,7 +1354,7 @@ class Channels extends ChannelsKids {
                 }
                 if (config.get('parental-control') != 'remove' && global.lists.parentalControl.lazyAuth()) {
                     opts.splice(opts.length - 2, 0, { name: lang.ADULT_CONTENT, type: 'action', selected: def == 'xxx', action: () => {
-                        this.setGridType('xxx').catch(console.error)
+                        this.setGridType('xxx').catch(err => console.error(err))
                     }})
                 }
                 return opts;
@@ -1762,7 +1456,7 @@ class Channels extends ChannelsKids {
                     type: 'action',
                     fa: 'fas fa-undo-alt',
                     action: async () => {
-                        osd.show(lang.PROCESSING, 'fa-mega spin-x-alt', 'options', 'persistent');
+                        osd.show(lang.PROCESSING, 'fa-mega busy-x', 'options', 'persistent');
                         await this.channelList.reset();
                         await this.load();
                         osd.show('OK', 'fas fa-check-circle faclr-green', 'options', 'normal');
@@ -1796,7 +1490,7 @@ class Channels extends ChannelsKids {
                     type: 'check',
                     action: (e, checked) => {
                         config.set('only-known-channels-in-trending', checked);
-                        this.trending.update().catch(console.error);
+                        this.trending.update().catch(err => console.error(err));
                     },
                     checked: () => {
                         return config.get('only-known-channels-in-trending');
@@ -1807,7 +1501,7 @@ class Channels extends ChannelsKids {
                     type: 'check',
                     action: (e, checked) => {
                         config.set('popular-searches-in-trending', checked);
-                        this.trending.update().catch(console.error);
+                        this.trending.update().catch(err => console.error(err));
                     },
                     checked: () => {
                         return config.get('popular-searches-in-trending');
@@ -1886,7 +1580,7 @@ class Channels extends ChannelsKids {
                 fa: isSeries ? 'fas fa-play-circle' : undefined,
                 renderer: async () => {
                     console.log({group})
-                    return await renderer(group)
+                    return renderer(group)
                 }
             };
         };
@@ -1918,7 +1612,7 @@ class Channels extends ChannelsKids {
                 }
                 gentries.push(...entries);
                 gentries = parentalFilter(gentries).sortByProp('name');
-                const deepEntries = await global.lists.tools.deepify(gentries, { source: group.url }).catch(console.error);
+                const deepEntries = await global.lists.tools.deepify(gentries, { source: group.url }).catch(err => console.error(err));
                 if (Array.isArray(deepEntries)) {
                     gentries = deepEntries;
                 }
@@ -1929,7 +1623,7 @@ class Channels extends ChannelsKids {
         };
         let pentries = parentalFilter(groups).map(group => groupToEntry(group));
         if (opts.deepify !== false) {
-            const deepEntries = await global.lists.tools.deepify(pentries).catch(console.error);
+            const deepEntries = await global.lists.tools.deepify(pentries).catch(err => console.error(err));
             if (Array.isArray(deepEntries)) {
                 pentries = deepEntries;
             }

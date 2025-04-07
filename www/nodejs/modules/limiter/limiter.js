@@ -35,7 +35,7 @@ class Limiter {
             this.lastCalled = now;
             this.isPending = false;
             this.timeoutId = null;
-            await this.run(...args).catch(console.error)
+            await this.run(...args).catch(err => console.error(err))
             this.lastCalled = Date.now()
         } else if (!this.timeoutId) {
             // Otherwise, schedule a call for when the time interval has elapsed
@@ -44,7 +44,7 @@ class Limiter {
                 this.lastCalled = now;
                 this.isPending = false;
                 this.timeoutId = null;
-                this.run(...args).catch(console.error).finally(() => {
+                this.run(...args).catch(err => console.error(err)).finally(() => {
                     this.lastCalled = Date.now()
                 })
             }, timeToWait)
@@ -70,12 +70,12 @@ class Limiter {
         const now = Date.now();
         const timeSinceLastCall = now - this.lastCalled;
         if (timeSinceLastCall >= this.intervalMs) {
-            this.call().catch(console.error)
+            this.call().catch(err => console.error(err))
         } else {
             const timeToWait = this.intervalMs - timeSinceLastCall;
             this.timeoutId = setTimeout(async () => {
                 this.timeoutId = null
-                this.call().catch(console.error)
+                this.call().catch(err => console.error(err))
             }, timeToWait);
         }
     }
@@ -87,7 +87,7 @@ class Limiter {
     // Call the function immediately and use current time as last called timestamp
     skip(...args) {
         this.lastCalled = 0;
-        this.call(...args).catch(console.error);
+        this.call(...args).catch(err => console.error(err));
     }
     // Destroy the limiter, cancel any scheduled function call
     destroy() {

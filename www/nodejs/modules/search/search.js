@@ -99,7 +99,7 @@ class Search extends EventEmitter {
             mediaType = 'all';
         }
         console.log('search-start', value);
-        osd.show(lang.SEARCHING, 'fas fa-search spin-x-alt', 'search', 'persistent');
+        osd.show(lang.SEARCHING, 'fas fa-search busy-x', 'search', 'persistent');
         this.searchMediaType = mediaType;
         let err;
         const rs = await this[mediaType == 'live' ? 'channelsResults' : 'results'](value).catch(e => err = e);
@@ -232,7 +232,7 @@ class Search extends EventEmitter {
             this.currentResults = es.slice(0)
             const minResultsWanted = 256
             if (config.get('search-youtube') && es.length < minResultsWanted) {
-                let ys = await this[this.searchMediaType == 'live' ? 'ytLiveResults' : 'ytResults'](terms).catch(console.error);
+                let ys = await this[this.searchMediaType == 'live' ? 'ytLiveResults' : 'ytResults'](terms).catch(err => console.error(err));
                 Array.isArray(ys) && es.push(...ys)
             }
             if (es.length) {
@@ -352,7 +352,7 @@ class Search extends EventEmitter {
 
         const minResultsWanted = 256
         if (config.get('search-youtube') && es.length < minResultsWanted) {
-            let ys = await this.ytLiveResults(terms).catch(console.error);
+            let ys = await this.ytLiveResults(terms).catch(err => console.error(err));
             if (Array.isArray(ys)) {
                 es.push(...ys.slice(0, minResultsWanted - es.length));
             }

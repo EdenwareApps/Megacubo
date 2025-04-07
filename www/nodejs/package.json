@@ -3,7 +3,7 @@
   "icon": "./default_icon.png",
   "version": "17.6.0",
   "megacubo": {
-    "revision": "17561"
+    "revision": "17563"
   },
   "main": "dist/main.js",
   "window": {

@@ -180,6 +180,7 @@
    "EPG_LOAD_FAILURE": "Не вдалося отримати телегіда",
    "EPG_LOAD_SUCCESS": "Телегід успішно завантажено",
    "EPG_OUTDATED": "Налаштований телегід застарів",
+   "EPG_SUGGESTED": "Load random EPG if none is configured",
    "EXIT": "Вихід",
    "EXIT_FS_HINT": "Натисніть клавішу {0}, щоб вийти з повноекранного режиму",
    "EXPORT": "Експорт",

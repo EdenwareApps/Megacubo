@@ -35,12 +35,12 @@ class Downloader extends StreamerAdapterBase {
             this.opts.errorLimit = Number.MAX_SAFE_INTEGER;
             this.opts.initialErrorLimit = Number.MAX_SAFE_INTEGER;
         }
-        const ms = (config.get('connect-timeout-secs') || 5) * 1000;
-        const pms = (7 * (24 * 3600)) * 1000;
+        const ms = (config.get('connect-timeout') || 15);
+        const rt = (config.get('read-timeout') || 10);
+        const pms = (7 * (24 * 3600));
         this.timeoutOpts = {
-            lookup: ms,
-            connect: opts.persistent ? pms : ms,
-            response: opts.persistent ? pms : ms
+            connect: ms,
+            response: opts.persistent ? pms : rt
         };
         this.type = 'downloader';
         this.internalErrorLevel = 0;
@@ -286,13 +286,8 @@ class Downloader extends StreamerAdapterBase {
             debug: this.opts.debugHTTP,
             headers: this.getDefaultRequestHeaders(),
             timeout: this.timeoutOpts,
-            compression: false
-        };
-        if (this.opts.persistent) {
-            Object.assign(opts, {
-                initialErrorLimit: Number.MAX_SAFE_INTEGER,
-                errorLimit: 1
-            });
+            decompress: false,
+            bypassCache: true
         }
         const download = this.currentRequest = new Download(opts);
         download.on('error', error => {

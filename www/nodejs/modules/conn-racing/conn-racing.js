@@ -17,7 +17,7 @@ class ConnRacing extends EventEmitter {
         this.uid = Math.floor(Math.random() * 1e11)
         this.exitListener = () => this.destroy()
         process.on('exit', this.exitListener)
-        this.start().catch(console.error)
+        this.start().catch(err => console.error(err))
         process.removeListener('exit', this.exitListener)
     }
 

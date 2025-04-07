@@ -29,7 +29,7 @@ class Xtr extends EventEmitter {
             keepalive: true,
             maxAuthErrors: 0,
             maxAbortErrors: 1,
-            redirectionLimit: 1
+            maxRedirects: 1
         }).catch(e => err = e);
         this.debugInfo && this.debugInfo.push({ url, data, err });
         if (err)

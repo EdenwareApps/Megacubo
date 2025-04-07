@@ -180,6 +180,7 @@
    "EPG_LOAD_FAILURE": "Kegagalan saat mendapatkan EPG",
    "EPG_LOAD_SUCCESS": "EPG berhasil dibebankan",
    "EPG_OUTDATED": "EPG yang dikonfigurasi sudah ketinggalan zaman",
+   "EPG_SUGGESTED": "Muat EPG acak jika tidak ada yang dikonfigurasi",
    "EXIT": "Untuk keluar",
    "EXIT_FS_HINT": "Tekan tombol {0} untuk keluar dari layar penuh",
    "EXPORT": "Ekspor",

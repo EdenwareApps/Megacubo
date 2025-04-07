@@ -11,7 +11,7 @@ import { parse } from '../serialize/serialize.js'
 
 class StorageTools extends EventEmitter {
     constructor(opts) {
-        super();
+        super()
         const { data } = paths;
         this.opts = {
             main: false,
@@ -66,7 +66,7 @@ class StorageTools extends EventEmitter {
                     await fs.promises.unlink(this.opts.folder +'/'+ file).catch(() => {})
                 }
             }
-            upgraded && rmdir(this.opts.folder + '/dlcache', true).catch(console.error)
+            upgraded && rmdir(this.opts.folder + '/dlcache', true).catch(err => console.error(err))
         }
     }
     async clear(force) {        
@@ -82,7 +82,7 @@ class StorageTools extends EventEmitter {
         this.saveLimiter.call()
     }
     async compress(data) {
-        return await new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             zlib.gzip(data, (err, result) => {
                 if (err)
                     return reject(err)
@@ -91,12 +91,17 @@ class StorageTools extends EventEmitter {
         });
     }
     async decompress(data) {
-        return await new Promise((resolve, reject) => {
-            zlib.gunzip(data, (err, result) => {
-                if (err)
-                    return reject(err)
-                resolve(result)
-            })
+        return new Promise((resolve, reject) => {
+            if (!data.length) return reject(new Error('Data is empty'));
+            try {
+                zlib.gunzip(data, (err, result) => {
+                    if (err)
+                        return reject(err)
+                    resolve(result)
+                })
+            } catch (err) {
+                reject(err)
+            }
         })
     }
     async upgrade(ofile) {
@@ -194,7 +199,7 @@ class StorageIndex extends StorageHolding {
             } catch (e) {
                 console.error(e)
             }
-            this.opts.main && this.cleanup().catch(console.error)
+            this.opts.main && this.cleanup().catch(err => console.error(err))
         }
     }
     mtime(key) {
@@ -202,7 +207,7 @@ class StorageIndex extends StorageHolding {
             const file = this.resolve(key)
             return (
                 async () => {
-                    const stat = await fs.promises.stat(file).catch(() => {})
+                    const stat = await fs.promises.stat(file).catch(() => false)
                     if (stat && typeof(stat.size) == 'number') {
                         const mtime = stat.mtimeMs / 1000
                         if(this.index[key]) {
@@ -215,7 +220,7 @@ class StorageIndex extends StorageHolding {
                     }                
                     return this.index[key] ? this.index[key].time : 0
                 }
-            )()
+            )().catch(err => console.error(err))
         } else {
             const lastTouchTime = Math.max(...Object.keys(this.index).map(key => this.index[key].time)) || 0
             return Math.max(lastTouchTime, this.lastAlignTime || 0)
@@ -226,11 +231,11 @@ class StorageIndex extends StorageHolding {
             return
         const tmp = this.opts.folder +'/'+ parseInt(Math.random() * 100000) +'.commit'
         this.lastSaveTime = (Date.now() / 1000)
-        await fs.promises.writeFile(tmp, JSON.stringify(this.index), 'utf8').catch(console.error)
+        await fs.promises.writeFile(tmp, JSON.stringify(this.index), 'utf8').catch(err => console.error(err))
         try {
             await moveFile(tmp, this.opts.folder +'/'+ this.indexFile)
         } catch (err) {
-            fs.promises.unlink(tmp).catch(console.error)
+            fs.promises.unlink(tmp).catch(err => console.error(err))
             throw err
         }
     }
@@ -374,31 +379,39 @@ class StorageIO extends StorageIndex {
     constructor(opts) {
         super(opts);
     }
-    async get(key, encoding) {
+    async get(key, opts={}) {
         key = this.prepareKey(key)
-        if (!this.index[key])
+        if (!this.index[key]) {
+            if(opts.throwIfMissing === true) {
+                throw new Error('Key not found: '+ key)
+            }
             return null
+        }
         const row = this.index[key]
         // grab this row to mem to avoid losing it due to its deletion in meanwhile, maybe using a lock() would be better
-        if (encoding !== null && typeof(encoding) != 'string') {
+        if (opts.encoding !== null && typeof(opts.encoding) != 'string') {
             if (row.compress) {
-                encoding = null
+                opts.encoding = null
             } else {
-                encoding = 'utf-8'
+                opts.encoding = 'utf-8'
             }
         }
         await this.touch(key, false) // wait writing on file to finish before to re-enable access
         await this.lock(key, false)
         const now = (Date.now() / 1000)
-        if (row.expiration < now)
-            return null        
+        if (row.expiration < now) {
+            if(opts.throwIfMissing === true) {
+                throw new Error('Key expired: '+ key)
+            }
+            return null
+        }
         const file = this.resolve(key);
         const stat = await fs.promises.stat(file).catch(() => {});
         const exists = stat && typeof(stat.size) == 'number';
         if (exists) {
             let err;
             await this.touch(key, { size: stat.size });
-            let content = await fs.promises.readFile(file, { encoding }).catch(e => err = e);
+            let content = await fs.promises.readFile(file, { encoding: opts.encoding }).catch(e => err = e);
             if (!err) {
                 if (row.compress) {
                     content = await this.decompress(content)
@@ -420,6 +433,9 @@ class StorageIO extends StorageIndex {
                     }
                 }
             }
+        }
+        if(opts.throwIfMissing === true) {
+            throw new Error('Key not found: '+ key)
         }
         return null;
     }
@@ -446,7 +462,7 @@ class StorageIO extends StorageIndex {
             content = JSON.stringify(content);
         if (atts.compress)
             content = await this.compress(content);
-        await this.write(file, content, atts.encoding).catch(console.error);
+        await this.write(file, content, atts.encoding).catch(err => console.error(err));
         await this.touch(key, Object.assign(atts, { size: content.length }));
         lock.release()
     }
@@ -523,7 +539,9 @@ class StorageIO extends StorageIndex {
 
 class Storage extends StorageIO {
     constructor(opts) {
-        super(opts)        
+        super(opts)
+        this.unlockListeners = {};
+        this.setMaxListeners(99)
         fs.access(this.opts.folder, err => {
             if (err) {
                 fs.mkdir(this.opts.folder, { recursive: true }, (err) => {
@@ -554,20 +572,30 @@ class Storage extends StorageIO {
     lock(key, write) {
         return new Promise((resolve, reject) => {
             if (this.locked[key]) {
-                this.once('unlock-' + key, () => {
-                    this.lock(key, write).then(resolve).catch(reject); // call again to prevent concurrent writing
-                });
+                if (this.unlockListeners[key]) {
+                    this.unlockListeners[key].push({ resolve, reject, write });
+                } else {
+                    this.unlockListeners[key] = [{ resolve, reject, write }];
+                }
             } else {
-                if (write)
+                if (write) {
                     this.locked[key] = true;
-                resolve({
-                    release: () => {
-                        if (write && this.locked[key]) {
-                            delete this.locked[key];
-                            this.emit('unlock-' + key);
+                }
+                const release = () => {
+                    if (write && this.locked[key]) {
+                        delete this.locked[key];
+                    }
+                    if (this.unlockListeners[key]) {
+                        const listener = this.unlockListeners[key].shift();
+                        if (listener) {
+                            this.lock(key, listener.write).then(ret => listener.resolve(ret)).catch(listener.reject);
+                        }
+                        if (this.unlockListeners[key].length === 0) {
+                            delete this.unlockListeners[key];
                         }
                     }
-                });
+                }
+                resolve({ release });
             }
         });
     }

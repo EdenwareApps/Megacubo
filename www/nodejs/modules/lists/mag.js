@@ -60,10 +60,10 @@ class Mag extends EventEmitter {
                 retries--;
                 if (String(err).toLowerCase().includes('method not allowed')) {
                     this.method = this.method == 'GET' ? 'POST' : 'GET';
-                    return await this.execute(atts, progress, endpoint, retries);
+                    return this.execute(atts, progress, endpoint, retries);
                 }
                 if (String(err).includes('end of JSON input')) {
-                    return await this.execute(atts, progress, endpoint, retries);
+                    return this.execute(atts, progress, endpoint, retries);
                 }
             }
             throw err;
@@ -111,7 +111,7 @@ class Mag extends EventEmitter {
                 action: 'get_genres',
                 p: 1,
                 JsHttpRequest: '1-xml'
-            }).catch(console.error);
+            }).catch(err => console.error(err));
             this.genres.live = {};
             if(genres && typeof(genres) == 'object') {
                 for (const genre of genres) {
@@ -167,7 +167,7 @@ class Mag extends EventEmitter {
                 cmd = ncmd;
             }
         }
-        return await this.getRedirectURL(cmd);
+        return this.getRedirectURL(cmd);
     }
     async getRedirectURL(url) {
         let err;

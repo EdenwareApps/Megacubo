@@ -180,6 +180,7 @@
    "EPG_LOAD_FAILURE": "Failed to get EPG",
    "EPG_LOAD_SUCCESS": "EPG loaded successfully",
    "EPG_OUTDATED": "The configured EPG is outdated",
+   "EPG_SUGGESTED": "Load random EPG if none is configured",
    "EXIT": "Exit",
    "EXIT_FS_HINT": "Press {0} key to exit fullscreen",
    "EXPORT": "Export",

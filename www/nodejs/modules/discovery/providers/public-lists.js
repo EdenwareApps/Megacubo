@@ -8,6 +8,7 @@ import renderer from '../../bridge/bridge.js';
 import storage from '../../storage/storage.js';
 import { insertEntry, kfmt, listNameFromURL } from '../../utils/utils.js';
 import pLimit from 'p-limit';
+import ready from '../../ready/ready.js';
 
 const FreeTVMap = {
     'al': ['playlist_albania.m3u8'],
@@ -97,8 +98,9 @@ class PublicLists extends EventEmitter {
         this.data = {}
         this.type = 'public'
         this.id = 'public-lists'
+        this.ready = ready()
         this.countries = new Countries()
-        this.load().catch(console.error)
+        this.load().catch(err => console.error(err))
         renderer.ready(async () => {
             global.menu.addFilter(this.hook.bind(this))
         })
@@ -113,28 +115,18 @@ class PublicLists extends EventEmitter {
                 }));
             });
             await cloud.get('configure').then(c => {
-                Object.keys(c['Free-IPTV-Extras']).forEach(code => {
+                c['Free-IPTV-Extras'] && Object.keys(c['Free-IPTV-Extras']).forEach(code => {
                     if (!this.data[code])
                         this.data[code] = [];
                     this.data[code].push(c['Free-IPTV-Extras'][code]);
                 });
-            }).catch(console.error);
+            }).catch(err => console.error(err));
         }
-        this.isReady = true;
-        this.emit('ready');
-    }
-    async ready() {
-        await new Promise(resolve => {
-            if (this.isReady) {
-                resolve()
-            } else {
-                this.once('ready', resolve)
-            }
-        })
+        this.ready.done()
     }
     async discovery(adder) {
         await this.ready()
-        let locs = await lang.getActiveCountries().catch(console.error);
+        let locs = await lang.getActiveCountries().catch(err => console.error(err));
         if (!Array.isArray(locs) || !locs.length) {
             locs = [lang.countryCode]
         }
@@ -150,12 +142,12 @@ class PublicLists extends EventEmitter {
             }))
         }
     }
-    async entries(local, silent) {
+    async entries(local, silent, flat = false) {
         await this.ready();
         let entries = Object.keys(this.data);
         entries.unshift(lang.countryCode);
         if (local === true) {
-            let locs = await lang.getActiveCountries().catch(console.error);
+            let locs = await lang.getActiveCountries().catch(err => console.error(err));
             entries = entries.filter(e => locs.includes(e));
         }
         entries = entries.unique().map(countryCode => {
@@ -170,7 +162,8 @@ class PublicLists extends EventEmitter {
                     const promises = this.data[countryCode].map(url => {
                         return limit(async () => {
                             if (finished) return
-                            let es = await this.master.lists.manager.listRenderer({url}, {
+                            let es = await this.master.lists.manager.renderList({url}, {
+                                flat,
                                 raw: true,
                                 fetch: true,
                                 expand: true,
@@ -185,7 +178,8 @@ class PublicLists extends EventEmitter {
                     finished = true
                     silent || osd.hide('list-open');
                     if (err) throw err;
-                    return this.master.lists.tools.sort(ret)
+                    const ret2 = this.master.lists.tools.sort(ret)
+                    return ret2
                 }
             };
         });
@@ -224,12 +218,12 @@ class PublicLists extends EventEmitter {
                                         if(n.value == 'only') {
                                             const prev = config.get('channel-grid')
                                             if(prev != 'xxx') {
-                                                await storage.set('previous-channel-grid', prev).catch(console.error)
-                                                await global.channels.setGridType('xxx').catch(console.error)
+                                                await storage.set('previous-channel-grid', prev).catch(err => console.error(err))
+                                                await global.channels.setGridType('xxx').catch(err => console.error(err))
                                             }
                                         } else if(config.get('channel-grid') == 'xxx') {
                                             const prev = await storage.get('previous-channel-grid')
-                                            await global.channels.setGridType(prev || '').catch(console.error)
+                                            await global.channels.setGridType(prev || '').catch(err => console.error(err))
                                         }
                                         process.nextTick(() => global.menu.refreshNow())
                                     }
@@ -299,7 +293,7 @@ class PublicLists extends EventEmitter {
                 fa: 'fas fa-satellite-dish',
                 type: 'group',
                 class: 'skip-testing',
-                renderer: this.master.lists.manager.listRenderer.bind(this.master.lists.manager)
+                renderer: this.master.lists.manager.renderList.bind(this.master.lists.manager)
             };
         }).filter(l => l)
         if (!entries.length) {
@@ -335,7 +329,7 @@ class PublicLists extends EventEmitter {
             if (ret == 'know') {
                 renderer.ui.emit('open-external-url', 'https://github.com/EdenwareApps/Free-IPTV-Extras');
             }
-        }).catch(console.error);
+        }).catch(err => console.error(err));
     }
 }
 export default PublicLists;

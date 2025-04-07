@@ -234,7 +234,7 @@ export class OMNI extends OMNIUtils {
                 }
             }
             main.emit('omni', this.typing, this.type)
-            this.updateIcon('fas fa-circle-notch fa-spin')
+            this.updateIcon('fa-mega busy-x')
         }
     }
 }

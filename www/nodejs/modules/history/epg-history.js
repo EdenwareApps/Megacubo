@@ -20,7 +20,7 @@ class EPGHistory extends EntriesGroup {
                 const data = this.currentStreamData()
                 const name = data.originalName || data.name
                 if (this.session && this.session.name != name) {
-                    await this.finishSession().catch(console.error)
+                    await this.finishSession().catch(err => console.error(err))
                 }
                 if (!global.streamer.active)
                     return
@@ -40,10 +40,10 @@ class EPGHistory extends EntriesGroup {
                 console.warn('Session finished')
                 this.finishSession()
             })
-            lang.ready().catch(console.error).finally(() => {
-                global.lists.epg.ready().then(() => { // we need to wait for the epg to be ready, it can be slow so do it as last
+            lang.ready().catch(err => console.error(err)).finally(() => {
+                global.lists.epgReady().then(() => { // we need to wait for the epg to be ready, it can be slow so do it as last
                     if (this.inSection()) menu.refresh()
-                }).catch(console.error)
+                }).catch(err => console.error(err))
             })
         })
     }
@@ -62,14 +62,14 @@ class EPGHistory extends EntriesGroup {
     async finishSession() {
         if (this.session) {
             clearInterval(this.session.timer)
-            await this.check().catch(console.error)
+            await this.check().catch(err => console.error(err))
             this.session = null
         }
     }
     startSessionTimer() {
         clearInterval(this.session.timer);
         this.session.timer = setInterval(() => {
-            this.check().catch(console.error)
+            this.check().catch(err => console.error(err))
         }, this.checkingInterval * 1000)
     }
     finishSessionTimer() {
@@ -219,10 +219,10 @@ class EPGHistory extends EntriesGroup {
         return new Promise((resolve, reject) => {
             if (this.isBusy) {
                 this.once('release', async () => {
-                    this.check().catch(console.error).finally(resolve);
+                    this.check().catch(err => console.error(err)).finally(resolve);
                 });
             } else {
-                this.check().catch(console.error).finally(resolve);
+                this.check().catch(err => console.error(err)).finally(resolve);
             }
         });
     }

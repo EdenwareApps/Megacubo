@@ -11,6 +11,8 @@ import { createRequire } from 'node:module'
 import { getFilename } from 'cross-dirname'
 import { prepare } from '../serialize/serialize.js'
 
+EventEmitter.defaultMaxListeners = 100
+
 class BaseChannel extends EventEmitter {
     constructor() {
         super()
@@ -234,11 +236,11 @@ class BridgeUtils extends BridgeServer {
         console.warn('!!! RESOLVE FILE !!!', data)
         if (data) {
             if (Array.isArray(data) && data.length) {
-                return await check(data[0])
+                return check(data[0])
             } else if (data.file && data.file.filepath && data.file.filepath) {
-                return await check(data.file.filepath)
+                return check(data.file.filepath)
             } else if (data.filename && data.filename.path) {
-                return await check(data.filename.path)
+                return check(data.filename.path)
             } else {
                 throw new Error('invalid file data')
             }
@@ -257,7 +259,7 @@ class BridgeUtils extends BridgeServer {
             await fs.promises.copyFile(resolveFile, target)
             return target
         } else {
-            return await fs.promises.readFile(resolveFile)
+            return fs.promises.readFile(resolveFile)
         }
     }
     setElectronWindow(win) {
@@ -268,14 +270,19 @@ class BridgeUtils extends BridgeServer {
 class Bridge extends BridgeUtils {
     constructor(opts) {
         super(opts)
-        const require = createRequire(getFilename())
-        const electron = require('electron')
-        if (paths.android) {
+        if (process.platform == 'android') {
             this.channel = new AndroidChannel()
-        } else if (electron?.BrowserWindow) {
-            this.channel = new ElectronChannel()
-        } else {
-            this.channel = new NodeChannel()
+        } else {                
+            try {
+                const require = createRequire(getFilename())
+                const electron = require('electron')
+                if(!electron?.BrowserWindow) {
+                    throw new Error('Electron is not installed')
+                }
+                this.channel = new ElectronChannel()
+            } catch (e) {
+                this.channel = new NodeChannel()
+            }
         }
         this.channel.setMaxListeners && this.channel.setMaxListeners(20)
     }
@@ -350,7 +357,7 @@ class BridgeController {
                 try {
                     const p = f()
                     if (p && typeof (p.catch) == 'function') {
-                        p.catch(console.error)
+                        p.catch(err => console.error(err))
                     }
                 }
                 catch (e) {

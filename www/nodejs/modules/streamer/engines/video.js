@@ -2,7 +2,7 @@ import StreamerBaseIntent from "./base.js";
 import downloads from "../../downloads/downloads.js";
 import StreamerProxy from "../utils/proxy.js";
 import config from "../../config/config.js"
-import { isPacketized } from "../../utils/utils.js";
+import { isMPEGTSFromInfo, VIDEO_FORMATS } from "../utils/media-url-info.js";
 
 class StreamerVideoIntent extends StreamerBaseIntent {
     constructor(data, opts, info) {
@@ -32,7 +32,7 @@ class StreamerVideoIntent extends StreamerBaseIntent {
             } else {
                 const adapter = new StreamerProxy(Object.assign({
                     authURL: this.data.authURL || this.data.source,
-                    timeout: config.get('read-timeout')
+                    timeout: 30
                 }, this.opts));
                 adapter.bitrateChecker.opts.minCheckSize = 6 * (1024 * 1024);
                 adapter.bitrateChecker.opts.maxCheckSize = 3 * adapter.bitrateChecker.opts.minCheckSize;
@@ -50,30 +50,17 @@ class StreamerVideoIntent extends StreamerBaseIntent {
 }
 StreamerVideoIntent.mediaType = 'video';
 StreamerVideoIntent.supports = info => {
-    if (info.ext) {
-        if (info.sample && isPacketized(info.sample)) {
-            return false; // is vod-ts
-        }
-        if (['mp4', 'mkv', 'm4v', 'mov', 'mpeg', 'webm', 'ogv', 'hevc', 'wmv', 'divx', 'avi', 'asf'].includes(info.ext)) {
-            return true;
-        }
+    if(isMPEGTSFromInfo(info)) {
+        return false;
     }
     if (info.isLocalFile) {
         return true;
     }
-    if (info.contentType) {
-        let c = info.contentType;
-        if (c.includes('mp2t') && (!info.headers || !info.headers['content-length'])) {
-            return false;
-        }
-        if (c.indexOf('video') == 0) {
-            return true;
-        }
+    if (VIDEO_FORMATS.includes(info.ext)) {
+        return true;
     }
-    if (info.ext) {
-        if (info.headers && info.headers['content-length'] && ['ts', 'mts', 'm2ts'].includes(info.ext)) { // not live
-            return true;
-        }
+    if (info?.contentType.includes('video/') && (info.headers['content-length'] || info.headers['last-modified'])) {
+        return true;
     }
     return false;
 };

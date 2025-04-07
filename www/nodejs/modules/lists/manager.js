@@ -5,63 +5,45 @@ import lang from "../lang/lang.js";
 import storage from '../storage/storage.js'
 import mega from "../mega/mega.js";
 import Xtr from "./xtr.js";
-import crashlog from "../crashlog/crashlog.js";
 import downloads from "../downloads/downloads.js";
 import Mag from "./mag.js";
 import config from "../config/config.js"
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
-import Limiter from '../limiter/limiter.js'
 import options from './options.json' with { type: 'json' };
+import Limiter from '../limiter/limiter.js'
 import { EventEmitter } from "events";
 import { promises as fsp } from "fs";
-import { basename, clone, forwardSlashes, getDomain, insertEntry, kfmt, LIST_DATA_KEY_MASK, listNameFromURL, parseCommaDelimitedURIs, validateURL, ucWords } from "../utils/utils.js";
+import { basename, clone, forwardSlashes, getDomain, isLocal, insertEntry, kfmt, LIST_DATA_KEY_MASK, listNameFromURL, parseCommaDelimitedURIs, validateURL, ucWords } from "../utils/utils.js";
 import { Fetcher } from './common.js';
 
 class ManagerEPG extends EventEmitter {
     constructor() {
         super()
         renderer.ready(() => {
-            menu.on('open', path => {
-                if (this.inEPGSelectionPath(path)) {
-                    if (!this.epgStatusTimer) {
-                        let currentHash
-                        const listener = () => {
-                            let entries
-                            this.epgOptionsEntries().then(es => {
-                                entries = es.map(e => {
-                                    if (e.name == lang.SYNC_EPG_CHANNELS) {
-                                        e.value = e.checked()
-                                    }
-                                    return e
-                                })
-                            }).catch(console.error).finally(() => {
-                                clearTimeout(this.epgStatusTimer)
-                                if(!this.inEPGSelectionPath(menu.path)) {
-                                    this.epgStatusTimer = null
-                                    return
-                                }
-                                if (Array.isArray(entries) && entries.length) {
-                                    const hash = entries.map(e => e.name + e.details + e.value).join('')
-                                    if (hash !== currentHash) {
-                                        currentHash = hash
-                                        menu.render(entries, this.epgSelectionPath(), {
-                                            icon: global.channels ? global.channels.epgIcon : '',
-                                            filter: true
-                                        })
-                                    }
-                                }
-                                this.epgStatusTimer = setTimeout(listener, 1000)
-                            })
-                        }
-                        clearTimeout(this.epgStatusTimer)
-                        this.epgStatusTimer = setTimeout(listener, 1000)
+            const updater = async () => {
+                let currentHash
+                const es = await this.epgOptionsEntries()
+                const entries = es.map(e => {
+                    if (e.name == lang.SYNC_EPG_CHANNELS) {
+                        e.value = e.checked()
                     }
-                } else {
-                    clearTimeout(this.epgStatusTimer)
-                    this.epgStatusTimer = null
+                    return e
+                })
+                if (Array.isArray(entries) && entries.length) {
+                    if(!this.inEPGSelectionPath(menu.path)) return
+                    const hash = entries.map(e => e.name + e.details + e.value).join('')
+                    if (hash !== currentHash) {
+                        currentHash = hash
+                        menu.render(entries, this.epgSelectionPath(), {
+                            icon: global.channels ? global.channels.epgIcon : '',
+                            filter: true
+                        })
+                    }
                 }
-            })
+            }
+            menu.setLiveSection(lang.MY_LISTS + '/' + lang.EPG + '/' + lang.SELECT, 1000, updater)
+            menu.setLiveSection(lang.EPG + '/' + lang.SELECT, 1000, updater)
         })
     }
     epgSelectionPath() {
@@ -97,10 +79,10 @@ class ManagerEPG extends EventEmitter {
     async epgOptionsEntries() {
         let epgs = new Set()
         const key = 'epg-'+ lang.locale
-        const states = await this.master.epg.getState()
+        const states = this.master.epg.state
         const actives = new Set(states.info.map(r => r.url))
         const options = (await this.master.searchEPGs(22, actives)).map(url => {
-            let details, state
+            let icon, details, state
             const isActive = actives.has(url), name = listNameFromURL(url)
             if (isActive) {
                 state = states.info.find(r => r.url == url)
@@ -110,6 +92,14 @@ class ManagerEPG extends EventEmitter {
                     details = lang.EPG_LOAD_SUCCESS
                 } else {
                     details = lang.PROCESSING + ' ' + (state.progress || 0) + '%'
+                }
+                icon = 'fa-mega busy-x'
+                switch(state.state) {
+                    case 'error':
+                        icon = 'fas fa-times-circle faclr-red'
+                        break
+                    case 'loaded':
+                        icon = 'fas fa-check-circle faclr-green'
                 }
             } else {
                 details = getDomain(url)
@@ -127,22 +117,30 @@ class ManagerEPG extends EventEmitter {
                     if(isChecked) {
                         if(has === -1) {
                             data.push({url, active: true})
-                            this.epgShowLoading(url).catch(console.error)
+                            this.epgShowLoading(url).catch(err => console.error(err))
                         }
                     } else {
                         if(has !== -1) {
                             data.splice(has, 1)
                         }
                     }
-                    console.log('EPG', {key, has, data, url})
                     config.set(key, data)
                     menu.refreshNow() // epg options path
                 },
                 checked,
-                prepend: isActive ? (state.state == 'error' ? '<i class="fas fa-times-circle faclr-red"></i> ' : '<i class="fas fa-check-circle faclr-green"></i> ') : '',
+                prepend: isActive ? '<i class="'+ icon +'" aria-hidden="true"></i> ' : undefined,
                 details
             };
         });
+        options.unshift({
+            name: lang.EPG_SUGGESTED,
+            type: 'check',
+            action: async (_, isChecked) => {
+                config.set('epg-suggestions', isChecked)
+                menu.refreshNow()
+            },
+            checked: () => config.get('epg-suggestions')
+        })
         options.unshift(this.addEPGEntry())
         return options
     }
@@ -165,7 +163,7 @@ class ManagerEPG extends EventEmitter {
                         data.push({url, active: true})
                         config.set(key, data)
                         menu.refreshNow() // epg options path
-                        this.epgShowLoading(url).catch(console.error)
+                        this.epgShowLoading(url).catch(err => console.error(err))
                     }
                 }
             }
@@ -174,10 +172,10 @@ class ManagerEPG extends EventEmitter {
     async epgShowLoading(url) {
         let lastProgress = -1, lastState = ''
         const uid = 'epg-add-'+ Math.random()
-        osd.show(lang.EPG_AVAILABLE_SOON, 'fas fa-circle-notch fa-spin', uid, 'persistent')
+        osd.show(lang.EPG_AVAILABLE_SOON, 'fa-mega busy-x', uid, 'persistent')
         await new Promise(resolve => setTimeout(resolve, 3000))
         while(true) {
-            const states = await this.master.epg.getState()
+            const states = this.master.epg.state
             const state = states.info.find(r => r.url == url)
             await new Promise(resolve => setTimeout(resolve, 500))
             if (state) {
@@ -190,10 +188,10 @@ class ManagerEPG extends EventEmitter {
                     osd.show(lang.EPG_LOAD_SUCCESS, 'fas fa-check-circle', uid, 'normal')
                     break
                 } else {
-                    osd.show(lang.PROCESSING + ' ' + (state.progress || 0) + '%', 'fas fa-circle-notch fa-spin', uid, 'persistent')
+                    osd.show(lang.PROCESSING + ' ' + (state.progress || 0) + '%', 'fa-mega busy-x', uid, 'persistent')
                 }
             } else {
-                osd.show(lang.EPG_LOAD_FAILURE + ': ' + state.error, 'fas fa-times-circle', uid, 'normal')
+                osd.show(lang.EPG_LOAD_FAILURE, 'fas fa-times-circle', uid, 'normal')
                 break
             }
         }
@@ -208,28 +206,45 @@ class ManagerEPG extends EventEmitter {
                 const entries = [
                     {
                         name: lang.SELECT,
+                        details: lang.CONFIGURE,
                         type: 'group',
                         fa: 'fas fa-cog',
                         renderer: this.epgOptionsEntries.bind(this)
                     }
                 ]
-                const states = await this.master.epg.getState()
-                if (states.info.length && states.state !== 'error') {
+                const states = this.master.epg.state
+                if (states.info.length) {
+                    const cl = global.channels.channelList
+                    let categories
+                    try {
+                        categories = await cl.getCategories()
+                    } catch(e) {
+                        categories = []
+                        console.error(e)
+                    }
                     entries.push(...[
                         global.channels.epgSearchEntry(),
                         global.channels.chooseChannelGridOption(true),
-                        ...global.channels.channelList.getCategories().map(category => {
+                        ...categories.map(category => {
                             const rawname = lang.CATEGORY_KIDS == category.name ? '[fun]' + category.name + '[|fun]' : category.name;
                             return {
                                 name: category.name,
                                 rawname,
                                 type: 'group',
                                 renderer: () => this.epgCategoryEntries(category)
-                            };
+                            }
                         })
-                    ]);
+                    ])
+                    if (!categories.length) {
+                        entries.push({
+                            name: lang.EPG_AVAILABLE_SOON,
+                            type: 'group',
+                            fa: 'fa-mega busy-x',
+                            renderer: () => []
+                        })
+                    }
                 } else {
-                    entries[0].details = states.state === 'error' ? lang.EPG_LOAD_FAILURE : lang.EPG_DISABLED
+                    entries[0].details = '<i class="fas fa-times-circle faclr-red"></i> '+ (states.state === 'error' ? lang.EPG_LOAD_FAILURE : lang.EPG_DISABLED)
                 }
                 return entries;
             }
@@ -251,11 +266,11 @@ class ManagerEPG extends EventEmitter {
                 fa: 'fas fa-play',
                 terms: c.terms, // allow EPG info inclusion
                 renderer: async () => {
-                    return await global.channels.epgChannelEntries(c)
+                    return global.channels.epgChannelEntries(c)
                 }
             };
         })
-        return await global.channels.epgChannelsAddLiveNow(chs, false)
+        return global.channels.epgChannelsAddLiveNow(chs, false)
     }
 }
 class ManagerFetch extends ManagerEPG {
@@ -263,23 +278,32 @@ class ManagerFetch extends ManagerEPG {
         super()
         this.fetchCache = {}
     }
-    async listRenderer(data, opts={}) {
+    async renderList(data, opts={}) {
         let v = Object.assign({}, data);
-        opts.silent || osd.show(lang.OPENING_LIST, 'fa-mega spin-x-alt', 'list-open', 'persistent');
-        let list = await this.fetch(v.url, {
+        opts.silent || osd.show(lang.OPENING_LIST, 'fa-mega busy-x', 'list-open', 'persistent');
+        const urls = Array.isArray(v.url) ? v.url : [v.url];
+        const tasks = urls.map(url => this.fetch(url, {
             fetch: opts.fetch,
             expand: opts.expand,
+            flat: opts.flat,
             progress: p => {
-                opts.silent || osd.show(lang.OPENING_LIST + ' ' + parseInt(p) + '%', 'fa-mega spin-x-alt', 'list-open', 'persistent');
+                opts.silent || osd.show(lang.OPENING_LIST + ' ' + parseInt(p) + '%', 'fa-mega busy-x', 'list-open', 'persistent');
             }
-        }).catch(err => {
+        }));
+        let err;
+        const ret = await Promise.allSettled(tasks);
+        let list = ret.map(r => {
+            if(r.status == 'fulfilled') {
+                return r.value;
+            } else {
+                err = r.reason || err;
+            }
+        }).filter(r => r).flat();
+        if(err) {
             const s = String(err.message || err)
             if(!s.includes('file not found or empty')) {
                 menu.displayErr(err)
             }
-        });
-        if (!Array.isArray(list)) {
-            list = [];
         }
         if (!list.length) {
             list.push({ name: lang.EMPTY, fa: 'fas fa-info-circle', type: 'action', class: 'entry-empty' });
@@ -306,14 +330,21 @@ class ManagerFetch extends ManagerEPG {
         }
 
         let source, entries
-        if (lists[url] && lists[url].fetchAll && (!opts.fetch || (lists[url].isReady && !lists[url].indexer.hasFailed))) { // if not loaded yet, fetch directly
-            source = lists[url]
-        } else if (opts.fetch) {
-            source = new Fetcher(url, {
-                progress: opts.progress
-            }, this.master)            
-        } else {
-            throw new Error('List not loaded');
+        if (lists[url] && lists[url].fetchAll && (!opts.fetch || lists[url].length)) { // if not loaded yet, fetch directly
+            const exists = await fsp.stat(lists[url].file).then(s => s.size > 0).catch(() => false)
+            if (exists) {
+                source = lists[url]
+            }
+        }
+        
+        if (!source) {
+            if (opts.fetch) {
+                source = new Fetcher(url, {
+                    progress: opts.progress
+                }, this.master)            
+            } else {
+                throw new Error('List not loaded');
+            }
         }
 
         await source.ready()
@@ -332,13 +363,15 @@ class ManagerFetch extends ManagerEPG {
             const size = entries.length
             entries = master.parentalControl.filter(entries, true);
             entries = master.prepareEntries(entries);
-            entries = await master.tools.deepify(entries, { source: url });
-            if (size >= options.offloadThreshold) {
-                // clone it to avoid modifying the cache
-                this.fetchCache[url] = {
-                    entries: entries.slice(0),
-                    time: now,
-                    size
+            if (!opts.flat) {
+                entries = await master.tools.deepify(entries, { source: url });
+                if (size >= options.offloadThreshold) {
+                    // clone it to avoid modifying the cache
+                    this.fetchCache[url] = {
+                        entries: entries.slice(0),
+                        time: now,
+                        size
+                    }
                 }
             }
         }
@@ -354,22 +387,29 @@ class Manager extends ManagerFetch {
         this.listFaIcon = 'fas fa-satellite-dish';
         this.key = 'lists';
         this.inputMemory = {}
-        this.master.on('status', this.updateProgress.bind(this))        
+
+        this.updateProgressLimiter = new Limiter(this.updateProgress.bind(this), 1000)
+        this.master.on('state', info => this.updateProgressLimiter.call(info))
+        this.master.on('satisfied', () => this.updateProgress(this.master.state))
+
         renderer.ready(async () => {
             renderer.ui.on('menu-back', () => osd.hide('list-open'))
-            global.streamer.on('hard-failure', es => this.checkListExpiral(es).catch(console.error))
+            global.streamer.on('hard-failure', es => this.checkListExpiral(es).catch(err => console.error(err)))
             menu.prependFilter(async (es, path) => {
                 es = await this.expandEntries(es, path)
                 return this.labelify(es)
             })
             await this.master.ready()
+
             const activeEPG = config.get('epg-' + lang.locale)
-            if (activeEPG === 'disabled') return
+            if (activeEPG === 'disabled' || !config.get('epg-suggestions')) return
             const suggest = !activeEPG || activeEPG === 'auto' || (Array.isArray(activeEPG) && !activeEPG.length)
+            console.log('shouldSuggest', suggest, activeEPG)
+
             if (!suggest) return
-            
             const urls = await this.master.searchEPGs()
-            await this.master.epg.suggest(urls)
+            console.log('suggest', urls)
+            urls.length && await this.master.epg.suggest(urls)
         })
     }
     async expandEntries(entries, path) {
@@ -434,7 +474,7 @@ class Manager extends ManagerFetch {
                 if (es.length > streamsCount) {
                     menu.refresh();
                 }
-            }).catch(console.error);
+            }).catch(err => console.error(err));
         }
     }
     get() {
@@ -461,7 +501,7 @@ class Manager extends ManagerFetch {
         if (url.startsWith('//')) {
             url = 'http:' + url;
         }
-        const isURL = validateURL(url), isFile = this.isLocal(url);
+        const isURL = validateURL(url), isFile = isLocal(url);
         if (!isFile && !isURL) {
             throw lang.INVALID_URL_MSG + ' Not a file or URL';
         }
@@ -476,13 +516,13 @@ class Manager extends ManagerFetch {
         const cacheFile = storage.resolve(LIST_DATA_KEY_MASK.format(url));
         const stat = await fsp.stat(cacheFile).catch(() => {});
         if (stat && stat.size && stat.size < 16384) {
-            await fsp.unlink(cacheFile).catch(console.error); // invalidate possibly bad caches
+            await fsp.unlink(cacheFile).catch(err => console.error(err)); // invalidate possibly bad caches
         }
         this.addingLists.add(url)
         const fetch = new Fetcher(url, {
             progress: p => {
                 if(p > 0) {
-                    osd.show(lang.RECEIVING_LIST + ' ' + p + '%', 'fa-mega spin-x-alt', 'add-list-progress-' + uid, 'persistent');
+                    osd.show(lang.RECEIVING_LIST + ' ' + p + '%', 'fa-mega busy-x', 'add-list-progress-' + uid, 'persistent');
                 }
             },
             timeout: Math.max(90, config.get('read-timeout')) // some servers take too long to respond with the list
@@ -490,7 +530,7 @@ class Manager extends ManagerFetch {
         let err, entries = await fetch.getMap().catch(e => err = e)
         this.addingLists.delete(url)
         menu.path.endsWith(lang.MY_LISTS) && menu.refreshNow()
-        this.master.status()
+        this.master.updateState() // update status
         if (Array.isArray(entries) && entries.length) {
             if (!name) {
                 let meta = await fetch.meta();
@@ -519,7 +559,7 @@ class Manager extends ManagerFetch {
     async addList(listUrl, name, fromCommunity) {
         let err;
         const uid = parseInt(Math.random() * 100000);
-        osd.show(lang.RECEIVING_LIST, 'fa-mega spin-x-alt', 'add-list-progress-' + uid, 'persistent');
+        osd.show(lang.RECEIVING_LIST, 'fa-mega busy-x', 'add-list-progress-' + uid, 'persistent');
         renderer.ui.emit('background-mode-lock', 'add-list');
         listUrl = forwardSlashes(listUrl);
         await this.add(listUrl, name, uid).catch(e => err = e);
@@ -530,7 +570,7 @@ class Manager extends ManagerFetch {
         } else {
             if (!paths.ALLOW_ADDING_LISTS) {                
                 paths.ALLOW_ADDING_LISTS = true;
-                await fsp.writeFile(paths.cwd + '/ALLOW_ADDING_LISTS.md', 'ok').catch(console.error);
+                await fsp.writeFile(paths.cwd + '/ALLOW_ADDING_LISTS.md', 'ok').catch(err => console.error(err));
                 menu.info(lang.LEGAL_NOTICE, lang.TOS_CONTENT);
             }
             osd.show(lang.LIST_ADDED, 'fas fa-check-circle', 'add-list', 'normal');
@@ -643,19 +683,6 @@ class Manager extends ManagerFetch {
         }
         return name;
     }
-    isLocal(file) {
-        if (typeof(file) != 'string') {
-            return;
-        }
-        let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'));
-        if (m && m.length && (m[1].length == 1 || m[1].toLowerCase() == 'file')) { // drive letter or file protocol
-            return true;
-        } else {
-            if (file.length >= 2 && file.startsWith('/') && file.charAt(1) != '/') { // unix path
-                return true;
-            }
-        }
-    }
     validate(content) {
         // technically, a m3u8 may contain one stream only, so it can be really small
         return typeof(content) == 'string' && content.length >= 32 && content.toLowerCase().includes('#ext');
@@ -714,55 +741,61 @@ class Manager extends ManagerFetch {
         });
     }
     updateProgress(info) {
-        const communityListsAmount = config.get('communitary-mode-lists-amount')
+        const communityListsAmount = this.master.communityListsAmount
         const progress = info.length ? info.progress : 0
-        let m, fa = 'fa-mega spin-x-alt', duration = 'persistent';
+        let m, fa = 'fa-mega busy-x', duration = 'persistent';
         if (this.master.satisfied) {
             if (info.length || !communityListsAmount) {
                 m = lang.LISTS_UPDATED;
+                fa = 'fas fa-check-circle';
+                duration = 'normal';
                 this.master.isFirstRun = false;
-                this.hideUpdateProgress()
+            } else if(this.master.loader.queue.size) {
+                m = communityListsAmount ? lang.SEARCH_COMMUNITY_LISTS : lang.STARTING_LISTS
             } else {
+                this.hideUpdateProgress()
                 m = -1; // do not show 'lists updated' message yet
             }
-            fa = 'fas fa-check-circle';
-            duration = 'normal';
         } else {
             if(progress) {
-                m = info.firstRun ? lang['STARTING_LISTS_FIRST_TIME_WAIT'] : lang['UPDATING_LISTS']
+                m = info.firstRun ? lang.STARTING_LISTS_FIRST_TIME_WAIT : lang.UPDATING_LISTS
                 m += ' ' + progress + '%'
             } else {
                 m = communityListsAmount ? lang.SEARCH_COMMUNITY_LISTS : lang.STARTING_LISTS
             }
         }
-        if (m != -1 && m != this.lastProgressMessage) { // if == -1 it's not complete yet, no lists
+        if (m != this.lastProgressMessage) { // if == -1 it's not complete yet, no lists
             this.lastProgressMessage = m
-            this.showUpdateProgress(m, fa, duration)
-        }
-        if (menu?.currentEntries) {
-            const updateBaseNames = [lang.TRENDING, lang.COMMUNITY_LISTS];
-            const updateEntryNames = [lang.PROCESSING, lang.UPDATING_LISTS, lang.STARTING_LISTS];
-            
-            if (basename(menu.path) == lang.RECEIVED_LISTS) {
-                menu.refresh()
-            } else if (updateBaseNames.includes(basename(menu.path)) ||
-                menu.currentEntries.some(e => updateEntryNames.includes(e.name))) {
-                if (m == -1) {
-                    menu.refreshNow()
-                } else {
+            m == -1 || this.showUpdateProgress(m, fa, duration)
+            if (menu?.currentEntries) {
+                const updateBaseNames = [lang.TRENDING, lang.COMMUNITY_LISTS];
+                const updateEntryNames = [lang.PROCESSING, lang.UPDATING_LISTS, lang.STARTING_LISTS];
+                if (basename(menu.path) == lang.RECEIVED_LISTS) {
                     menu.refresh()
+                } else if (updateBaseNames.includes(basename(menu.path)) ||
+                    menu.currentEntries.some(e => updateEntryNames.includes(e.name))) {
+                    if (m == -1) {
+                        menu.refreshNow()
+                    } else {
+                        menu.refresh()
+                    }
+                } else if (this.inChannelPage()) {
+                    this.maybeRefreshChannelPage()
                 }
-            } else if (this.inChannelPage()) {
-                this.maybeRefreshChannelPage()
             }
         }
     }
     showUpdateProgress(m, fa, duration) {
         this.updateProgressVisible = true
+        clearTimeout(this.updateProgressTimeout || 0)
+        if (duration == 'normal') {
+            this.updateProgressTimeout = setTimeout(() => {
+                this.updateProgressVisible = false
+            }, 5000)
+        }
         osd.show(m, fa, 'update-progress', duration)
     }
     hideUpdateProgress() {
-        if(!this.updateProgressVisible) return
         this.updateProgressVisible = false
         osd.hide('update-progress')
     }
@@ -778,7 +811,7 @@ class Manager extends ManagerFetch {
                     fa: 'fas fa-plus-square',
                     type: 'action',
                     action: () => {
-                        menu.open(lang.MY_LISTS).catch(console.error);
+                        menu.open(lang.MY_LISTS).catch(err => console.error(err));
                     }
                 };
             }
@@ -798,7 +831,7 @@ class Manager extends ManagerFetch {
     updatingListsEntry(name) {
         return {
             name: name || lang[this.master.isFirstRun ? 'STARTING_LISTS' : 'UPDATING_LISTS'],
-            fa: 'fa-mega spin-x-alt',
+            fa: 'fa-mega busy-x',
             type: 'action',
             action: () => {
                 menu.refresh();
@@ -835,26 +868,26 @@ class Manager extends ManagerFetch {
         if (!id) {
             throw 'No input';
         } else if (id == 'file') {
-            return await this.addListDialogFile()
+            return this.addListDialogFile()
         } else if (id == 'code') {
-            return await this.addListCredentialsDialog()
+            return this.addListCredentialsDialog()
         } else if (id == 'sh') {
             let active = await this.communityModeDialog()
             if (active) {
                 return true;
             } else {
-                return await this.addListDialog(offerCommunityMode)
+                return this.addListDialog(offerCommunityMode)
             }
         } else if (id == 'mac') {
-            return await this.addListMacDialog()
+            return this.addListMacDialog()
         } else {
             this.inputMemory['url'] = id
-            return await this.addList(id)
+            return this.addList(id)
         }
     }
     async addListDialogFile() {
         const file = await menu.chooseFile('audio/x-mpegurl')
-        return await this.addList(file)
+        return this.addList(file)
     }
     async communityModeDialog() {
         let choose = await menu.dialog([
@@ -870,7 +903,7 @@ class Manager extends ManagerFetch {
     }
     async addListCredentialsDialog() {
         const url = await this.askListCredentials();
-        return await this.addList(url);
+        return this.addList(url);
     }
     async askListCredentials() {
         let server = await menu.prompt({
@@ -908,8 +941,8 @@ class Manager extends ManagerFetch {
         });
         if (!pass) throw 'no pass provided'
         this.inputMemory['pass'] = pass
-        osd.show(lang.PROCESSING, 'fa-mega spin-x-alt', 'add-list-pre', 'persistent');
-        let url = await this.getM3UFromCredentials(server, user, pass).catch(console.error);
+        osd.show(lang.PROCESSING, 'fa-mega busy-x', 'add-list-pre', 'persistent');
+        let url = await this.getM3UFromCredentials(server, user, pass).catch(err => console.error(err));
         if (typeof(url) != 'string') {
             url = server.replace('//', '//' + user + ':' + pass + '@') + '#xtream';
             let chosen = await menu.dialog([
@@ -917,7 +950,7 @@ class Manager extends ManagerFetch {
                 { template: 'message', text: lang.INCLUDE_SERIES_CATALOG },
                 { template: 'option', text: lang.YES, id: 'yes', fa: 'fas fa-check-circle' },
                 { template: 'option', text: lang.NO, id: 'no', fa: 'fas fa-times-circle' }
-            ], 'yes').catch(console.error);
+            ], 'yes').catch(err => console.error(err));
             if (chosen == 'no')
                 url += '-all';
         }
@@ -990,12 +1023,12 @@ class Manager extends ManagerFetch {
         }
         this.inputMemory['server'] = server
         let err;
-        osd.show(lang.PROCESSING, 'fas fa-circle-notch fa-spin', 'add-list-mac', 'persistent');
+        osd.show(lang.PROCESSING, 'fa-mega busy-x', 'add-list-mac', 'persistent');
         const url = await this.getM3UPlaylistForMac(macAddress, server).catch(e => err = e);
         osd.hide('add-list-mac');
         if (err)
             throw err;
-        return await this.addList(url);
+        return this.addList(url);
     }
     formatMacAddress(str) {
         if (!str)
@@ -1128,15 +1161,13 @@ class Manager extends ManagerFetch {
                             }
                             if (manageOnly)
                                 return options;
-                            es = await this.listRenderer({ url }, {
+                            es = await this.renderList({ url }, {
                                 raw: true,
-                                fetch: false
+                                fetch: false,
+                                flat: false
                             }).catch(err => menu.displayErr(err));
                             if (!Array.isArray(es)) {
-                                es = [];
-                            } else if (es.length) {
-                                es = this.master.parentalControl.filter(es);
-                                es = await this.master.tools.deepify(es, { source: url });
+                                es = []
                             }
                             es.unshift({
                                 name: lang.OPTIONS,
@@ -1151,7 +1182,7 @@ class Manager extends ManagerFetch {
                 if (this.addingLists.size) {
                     ls.push({
                         name: lang.RECEIVING_LIST,
-                        fa: 'fa-mega spin-x-alt',
+                        fa: 'fa-mega busy-x',
                         type: 'action',
                         action: () => menu.refresh()
                     });
@@ -1249,7 +1280,7 @@ class Manager extends ManagerFetch {
                     fa: 'fas fa-plus-square',
                     name: lang.ADD_TO.format(lang.MY_LISTS),
                     action: () => {
-                        this.addList(url, '', true).catch(console.error).finally(() => {
+                        this.addList(url, '', true).catch(err => console.error(err)).finally(() => {
                             setTimeout(() => menu.refreshNow(), 100);
                         });
                     }
@@ -1266,7 +1297,7 @@ class Manager extends ManagerFetch {
         if (!es || !es.length)
             es = this.master.myLists.map(source => ({ source }));
         const now = (Date.now() / 1000);
-        const checkListExpiralInterval = this.master.activeLists.community.length ? 120 : 10;
+        const checkListExpiralInterval = this.master.activeLists.community.length ? 600 : 30;
         const myBadSources = es.map(e => e.source).filter(e => e).unique().filter(u => this.master.activeLists.my.includes(u));
         for (const source of myBadSources) {
             if (this.checkListExpiralTimes[source] && (now < (this.checkListExpiralTimes[source] + checkListExpiralInterval))) {
@@ -1306,7 +1337,7 @@ class Manager extends ManagerFetch {
                         fa: contactFa
                     });
                 } else {
-                    offer = await global.promo.offer('dialog', ['communitary']).catch(console.error);
+                    offer = await global.promo.offer('dialog', ['communitary']).catch(err => console.error(err));
                     if (offer && offer.type == 'dialog') {
                         opts.push({
                             template: 'option',

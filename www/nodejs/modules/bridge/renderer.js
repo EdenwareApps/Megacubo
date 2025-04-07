@@ -52,7 +52,7 @@ class BridgeClient extends EventEmitter {
 							eventName: 'message',
 							args
 						});
-					}).catch(console.error)
+					}).catch(err => console.error(err))
 				}
 			}
 			connect(){
@@ -112,8 +112,7 @@ class BridgeClient extends EventEmitter {
 				name: window.Intl.DateTimeFormat().resolvedOptions().timeZone,
 				minutes: (new Date()).getTimezoneOffset() * -1
 			},
-			window.navigator.userAgent, 
-			window.navigator.onLine
+			window.navigator.userAgent
 		)
 	}
     emit(...args) {

@@ -89,7 +89,6 @@ class Theme extends EventEmitter {
 		this.setCurtainsTransition(false, false)
 	}
     animateBackground(val) {
-        console.warn('animateBackground', val)
         var c = document.body.className || ''
         if(val.includes('-desktop')){
             if(window.capacitor){
@@ -120,7 +119,6 @@ class Theme extends EventEmitter {
         }
     }
     update(image, video, color, fontColor, animate) {
-        console.warn('theming', image, video, color, fontColor, animate);
         let data = localStorage.getItem('background-data')
         const bg = document.getElementById('background')
         const splash = document.getElementById('splash')
@@ -187,32 +185,31 @@ class Theme extends EventEmitter {
                 }
             }					
         }
-        if(!data.image && !data.video){
+        if(!data.image && !data.video) {
             data.image = defaultData.image;
         }
-        if(data.video){
+        if(data.video) {
             data.image = ''
         } else {
             data.video = defaultData.video;
         }
-        console.warn('theming pre renderbackground', data)
-        if(this.themeBackgroundReady === true){
+        if(this.themeBackgroundReady === true) {
             this.renderBackground(data)
         } else {
-            if(typeof(this.themeBackgroundReady) == 'undefined'){
+            if(typeof(this.themeBackgroundReady) == 'undefined') {
                 this.themeBackgroundReady = (data => {
                     this.themeBackgroundReady = true
                     this.renderBackground(data)
                 }).apply(this, [data])
             }
         }
-        if(splash){
+        if(splash) {
             splash.style.backgroundColor = data.color;
             splash.style.color = data.fontColor;
         }
         const systemFont = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif'
         let family = main.config['font-family']
-        if(!family){
+        if(!family) {
             family = systemFont
         } else if(!family.includes(systemFont)) {
             family += ','+ systemFont
@@ -224,7 +221,7 @@ class Theme extends EventEmitter {
         const fxNavIntensityStep = parseFloat(window.getComputedStyle(document.documentElement).getPropertyValue('--menu-fx-nav-intensity-step').trim())
         const fxNavIntensity = main.config['fx-nav-intensity'] * fxNavIntensityStep
         let fxNavDuration
-        if(!main.config['fx-nav-intensity']){
+        if(!main.config['fx-nav-intensity']) {
             fxNavDuration = 0
         } else {
             let min = 0.175, max = 1

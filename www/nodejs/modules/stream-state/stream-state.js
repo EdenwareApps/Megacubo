@@ -30,7 +30,7 @@ class StreamState extends EventEmitter {
             this.streamer.on('connecting', () => this.cancelTests());
             this.streamer.on('connecting-failure', data => {
                 data && this.set(data.url, 'offline', true, { source: data.source });
-                this.test(global.menu.currentStreamEntries()).catch(console.error);
+                this.test(global.menu.currentStreamEntries()).catch(err => console.error(err));
             });
             this.streamer.on('commit', intent => {
                 const url = intent.data.url;
@@ -51,7 +51,7 @@ class StreamState extends EventEmitter {
             this.streamer.on('stop', (err, e) => {
                 setTimeout(() => {
                     if (!this.streamer.active) {
-                        this.test(global.menu.currentStreamEntries()).catch(console.error);
+                        this.test(global.menu.currentStreamEntries()).catch(err => console.error(err));
                     }
                 }, 500);
             });
@@ -59,7 +59,7 @@ class StreamState extends EventEmitter {
             global.menu.on('render', entries => {
                 this.cancelTests();
                 if (entries.some(e => this.supports(e))) {
-                    this.test(entries).catch(console.error)
+                    this.test(entries).catch(err => console.error(err))
                 }
             });
             renderer.ui.on('state-atts', (url, atts) => {
@@ -184,7 +184,7 @@ class StreamState extends EventEmitter {
             const now = (Date.now() / 1000);
             this.lastSaveTime = now;
             this.trim();
-            storage.set(this.key, this.data, {expiration: true}).catch(console.error);
+            storage.set(this.key, this.data, {expiration: true}).catch(err => console.error(err));
             console.warn('STREAMSTATE SAVE*', now);
         }
     }
@@ -198,19 +198,6 @@ class StreamState extends EventEmitter {
             }
         } else {
             return this.minSaveIntervalSecs;
-        }
-    }
-    isLocalFile(file) {
-        if (typeof(file) != 'string') {
-            return;
-        }
-        let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'));
-        if (m && m.length > 1 && (m[1].length == 1 || m[1].toLowerCase() == 'file')) { // drive letter or file protocol
-            return true;
-        } else {
-            if (file.length >= 2 && file.startsWith('/') && file.charAt(1) != '/') { // unix path
-                return true;
-            }
         }
     }
     test(entries, name = '', force) {
@@ -234,7 +221,7 @@ class StreamState extends EventEmitter {
             let busy
             if (manuallyTesting) {
                 busy = global.menu.setBusy(global.menu.path +'/'+ lang.TESTING)
-                osd.show(lang.TESTING, 'fa-mega spin-x-alt', 'stream-state-tester', 'persistent')
+                osd.show(lang.TESTING, 'fa-mega busy-x', 'stream-state-tester', 'persistent')
             }
             const retest = [], syncData = {}            
             entries = entries.filter(e => {
@@ -292,7 +279,7 @@ class StreamState extends EventEmitter {
             if (!shouldTest)
                 return resolve(true);
             if (!entries.length) {
-                manuallyTesting && osd.show(lang.TESTING + ' 100%', 'fa-mega spin-x-alt', 'stream-state-tester', 'normal');
+                manuallyTesting && osd.show(lang.TESTING + ' 100%', 'fa-mega busy-x', 'stream-state-tester', 'normal');
                 return resolve(true);
             }
             this.testing = new Tuner(entries, { skipSample: true, shadow: true }, name);
@@ -300,7 +287,7 @@ class StreamState extends EventEmitter {
             this.testing.on('success', this.success.bind(this));
             this.testing.on('failure', this.failure.bind(this));
             this.testing.on('progress', i => {
-                manuallyTesting && osd.show(lang.TESTING + ' ' + i.progress + '%', 'fa-mega spin-x-alt', 'stream-state-tester', 'persistent');
+                manuallyTesting && osd.show(lang.TESTING + ' ' + i.progress + '%', 'fa-mega busy-x', 'stream-state-tester', 'persistent');
             });
             this.testing.on('finish', () => {
                 if (this.testing) {

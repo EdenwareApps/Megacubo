@@ -200,7 +200,7 @@ class Bookmarks extends EntriesGroup {
             let centries = []
             if (!paths.android && config.get('bookmarks-desktop-icons')) {
                 centries.push(...[
-                    { name: lang.BOOKMARK_ICONS_SYNC, fa: 'fas fa-sync-alt', type: 'action', action: () => this.desktopIconsSync().catch(console.error) },
+                    { name: lang.BOOKMARK_ICONS_SYNC, fa: 'fas fa-sync-alt', type: 'action', action: () => this.desktopIconsSync().catch(err => console.error(err)) },
                     { name: lang.BOOKMARK_CREATE_DESKTOP_ICONS, type: 'check',
                         action: (_, value) => config.set('bookmarks-desktop-icons', value),
                         checked: () => config.get('bookmarks-desktop-icons')
@@ -307,7 +307,8 @@ class Bookmarks extends EntriesGroup {
             Array.from(new Set(results.map(entry => { return entry.icon; }))).slice(0, 96).forEach((logoUrl, i) => {
                 entries.push({
                     name: lang.SELECT_ICON +' #'+ (i + 1),
-                    fa: 'fa-mega spin-x-alt',
+                    fa: 'fa-mega',
+                    class: 'entry-busy-x',
                     icon: logoUrl,
                     url: logoUrl,
                     value: logoUrl,
@@ -371,9 +372,9 @@ class Bookmarks extends EntriesGroup {
         return entries.slice(0).sortByProp('bookmarkId');
     }
     async desktopIconsSync() {
-        osd.show(lang.PROCESSING, 'fas fa-circle-notch fa-spin', 'bookmarks-desktop-icons', 'persistent');
+        osd.show(lang.PROCESSING, 'fa-mega busy-x', 'bookmarks-desktop-icons', 'persistent');
         for (const e of this.get()) {
-            await this.createDesktopShortcut(e).catch(console.error);
+            await this.createDesktopShortcut(e).catch(err => console.error(err));
         }
         osd.show('OK', 'fas fa-check-circle faclr-green', 'bookmarks-desktop-icons', 'normal');
     }
@@ -393,9 +394,11 @@ class Bookmarks extends EntriesGroup {
                 const desktopPath = desktopDir ? desktopDir[1] : null;
                 if (!desktopPath)
                     return reject('Folder not found');
-                if (!fs.existsSync(desktopPath))
-                    return reject('Folder not exists: ' + desktopPath);
-                resolve(desktopPath);
+                fs.promises.stat(desktopPath).then(stat => {
+                    if (!stat.isDirectory())
+                        return reject('Folder not exists: ' + desktopPath);
+                    resolve(desktopPath);
+                }).catch(e => reject(e));
             });
             child.stdout.setEncoding('binary');
             child.stderr.setEncoding('binary');
@@ -406,7 +409,7 @@ class Bookmarks extends EntriesGroup {
             return;
         let outputPath, icon = paths.cwd + '/default_icon.png';
         if (process.platform == 'win32') {
-            const folder = await this.getWindowsDesktop().catch(console.error);
+            const folder = await this.getWindowsDesktop().catch(err => console.error(err));
             if (typeof(folder) == 'string') {
                 outputPath = folder;
             }
@@ -451,8 +454,8 @@ class Bookmarks extends EntriesGroup {
     }
     add(entry) {
         super.add(entry);
-        this.createDesktopShortcut(entry).catch(console.error);
-        this.channels.updateUserTasks().catch(console.error);
+        this.createDesktopShortcut(entry).catch(err => console.error(err));
+        this.channels.updateUserTasks().catch(err => console.error(err));
     }
 }
 export default Bookmarks;

@@ -180,6 +180,7 @@
    "EPG_LOAD_FAILURE": "Impossibile ottenere EPG",
    "EPG_LOAD_SUCCESS": "EPG caricato correttamente",
    "EPG_OUTDATED": "L'EPG configurato non è aggiornato",
+   "EPG_SUGGESTED": "Carica EPG casuale se nessuno è configurato",
    "EXIT": "Esci",
    "EXIT_FS_HINT": "Premere il tasto {0} per uscire da schermo intero",
    "EXPORT": "Export",

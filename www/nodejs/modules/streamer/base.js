@@ -51,24 +51,11 @@ class StreamerTools extends EventEmitter {
             return true; // /^(?:(?:(?:https?|rt[ms]p[a-z]?):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i.test(value);
         }
     }
-    isLocalFile(file) {
-        if (typeof(file) != 'string') {
-            return;
-        }
-        let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'));
-        if (m && m.length > 1 && (m[1].length == 1 || m[1].toLowerCase() == 'file')) { // drive letter or file protocol
-            return true;
-        } else {
-            if (file.length >= 2 && file.startsWith('/') && file.charAt(1) != '/') { // unix path
-                return true;
-            }
-        }
-    }
     async info(url, retries = 2, entry = {}) {
         if (!url) {
             throw global.lang.INVALID_URL
         }
-        this.pingSource && await this.pingSource(entry.source).catch(console.error)
+        this.pingSource && await this.pingSource(entry.source).catch(err => console.error(err))
         let type = false;
         const now = time();
         const isMAG = url.includes('#mag-'); // MAG URLs should be revalidated
@@ -223,7 +210,7 @@ class StreamerBase extends StreamerTools {
             }
             throw err;
         }
-        return await this.intentFromInfo(data, opts, aside, nfo);
+        return this.intentFromInfo(data, opts, aside, nfo);
     }
     async intentFromInfo(data, opts, aside, nfo) {
         opts = Object.assign(Object.assign({}, this.opts), opts || {});
@@ -347,13 +334,11 @@ class StreamerBase extends StreamerTools {
             let data = this.active.data;
             const elapsed = time() - this.active.commitTime
             this.emit('streamer-disconnect', err);
-            console.log('STREAMER->STOP', err);
             if (!err && this.active.failed) {
                 err = 'failed';
             }
             if (!err) { // stopped with no error
                 let longWatchingThreshold = 15 * 60, watchingDuration = (time() - this.active.commitTime);
-                console.log('STREAMER->STOP', watchingDuration, this.active.commitTime);
                 if (this.active.commitTime && watchingDuration > longWatchingThreshold) {
                     renderer.ui.emit('streamer-long-watching', watchingDuration);
                     this.emit('streamer-long-watching', watchingDuration);
@@ -573,7 +558,7 @@ class StreamerTracks extends StreamerThrottling {
                 extraOpts
             });
         }
-        global.osd && global.osd.show(global.lang.SEARCHING, 'fas fa-circle-notch fa-spin', 'search-subs', 'persistent');
+        global.osd && global.osd.show(global.lang.SEARCHING, 'fa-mega busy-x', 'search-subs', 'persistent');
         const results = await this.subtitles.search(query).catch(e => err = e);
         global.osd && global.osd.hide('search-subs');
         if (err)

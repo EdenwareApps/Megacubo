@@ -1,143 +1,14 @@
 import menu from '../menu/menu.js'
-import lang from "../lang/lang.js"
+import lang from '../lang/lang.js'
 import storage from '../storage/storage.js'
-import mega from "../mega/mega.js"
-import config from "../config/config.js"
-import { ts2clock, time } from "../utils/utils.js"
-import { EventEmitter } from 'events'
+import mega from '../mega/mega.js'
+import config from '../config/config.js'
 import PQueue from 'p-queue'
 import renderer from '../bridge/bridge.js'
 import cloud from '../cloud/cloud.js'
-
-const TAGS_FILTER_REGEX = new RegExp('[a-z]', 'i')
-
-class Tags extends EventEmitter{
-    constructor() {
-        super()
-        this.caching = {programmes: {}, trending: {}}
-        this.defaultTagsCount = 256
-        this.queue = new PQueue({concurrency: 1})
-        global.channels.history.epg.on('change', () => this.historyUpdated(true))
-        global.channels.trending.on('update', () => this.trendingUpdated(true))
-        global.channels.on('loaded', () => this.reset())
-    }
-    async reset() {
-        if(this.queue.size) {
-            return await this.queue.onIdle()
-        }
-        return await this.queue.add(async () => {
-            await this.historyUpdated(false)
-            await this.trendingUpdated(true)
-        })
-    }
-    prepare(data, limit) {
-        const maxWords = 3
-        return Object.fromEntries(
-            Object.entries(data)
-                .filter(([key, value]) => key.split(' ').length <= maxWords)
-                .sort(([, valueA], [, valueB]) => valueB - valueA) 
-                .slice(0, limit)
-        )
-    }    
-    async historyUpdated(emit) {
-        const data = {}, data0 = {}
-        const historyData = global.channels.history.epg.data.slice(-6);
-
-        historyData.forEach(row => {
-            const name = row.originalName || row.name;
-            const category = global.channels.getChannelCategory(name);
-            if (category) {
-                data[category] = (data[category] || 0) + row.watched.time;
-            }
-
-            const cs = row.watched ? row.watched.categories : [];
-            if (category && !cs.includes(category)) {
-                cs.push(category);
-            }
-            if (row.groupName && !cs.includes(row.groupName)) {
-                cs.push(row.groupName);
-            }
-            cs.forEach(cat => {
-                if (cat) {
-                    const lc = cat.toLowerCase();
-                    data0[lc] = (data0[lc] || 0) + (row.watched ? row.watched.time : 180);
-                }
-            });
-        });
-
-        const pp = Math.max(...Object.values(data)) / 100;
-        Object.keys(data).forEach(k => data[k] = data[k] / pp);
-
-        const pp0 = Math.max(...Object.values(data0)) / 100;
-        Object.keys(data0).forEach(k => data0[k] = data0[k] / pp0);
-
-        for (const k in data) {
-            data0[k] = Math.max(data0[k] || 0, data[k]);
-        }
-
-        this.caching.programmes = await this.expand(data0);
-        emit && this.emit('updated');
-    }
-    async trendingUpdated(emit) {
-        let trendingPromise = true;
-        if (!global.channels.trending.currentRawEntries) {
-            trendingPromise = global.channels.trending.getRawEntries();
-        }
-        let searchPromise = this.searchSuggestionEntries || global.channels.search.searchSuggestionEntries().then(data => this.searchSuggestionEntries = data);
-        await Promise.allSettled([trendingPromise, searchPromise]).catch(console.error);
-
-        const map = {};
-        const addToMap = (terms, value) => {
-            terms.forEach(t => {
-                if (t.startsWith('-')) return;
-                map[t] = (map[t] || 0) + value;
-            });
-        };
-
-        if (Array.isArray(global.channels.trending.currentRawEntries)) {
-            global.channels.trending.currentRawEntries.forEach(e => addToMap(global.channels.entryTerms(e), e.users));
-        }
-
-        if (Array.isArray(this.searchSuggestionEntries)) {
-            this.searchSuggestionEntries.forEach(e => addToMap([e.search_term], e.cnt));
-        }
-
-        const pp = Math.max(...Object.values(map)) / 100;
-        Object.keys(map).forEach(k => map[k] = map[k] / pp);
-        this.caching.trending = await this.expand(map);
-        emit && this.emit('updated');
-    }
-    async expand(tags) {
-        let err, additionalTags = {}            
-        const limit = this.defaultTagsCount
-        const additionalLimit = limit - Object.keys(tags).length
-        const expandedTags = await global.lists.epg.expandTags(tags, {as: 'objects', amount: additionalLimit}).catch(e => err = e)
-        if (!err && expandedTags) {
-            expandedTags.forEach(t => {
-                if(tags[t.category]) {
-                    return
-                }
-                if(typeof(additionalTags[t.category]) == 'undefined') {
-                    additionalTags[t.category] = 0
-                }
-                additionalTags[t.category] += t.score
-            })
-            additionalTags = this.prepare(additionalTags, additionalLimit)
-            Object.assign(tags, additionalTags)
-        }
-        return tags
-    }
-    async get(limit) {
-        if(typeof(limit) != 'number') {
-            limit = this.defaultTagsCount
-        }
-        const programmeTags = this.prepare(this.caching.programmes, limit)
-        if (Object.keys(programmeTags).length < limit) {
-            Object.assign(programmeTags, this.caching.trending)
-        }
-        return this.prepare(programmeTags, limit)
-    }
-}
+import { ts2clock, time } from '../utils/utils.js'
+import { EventEmitter } from 'events'
+import { Tags } from './tags.js'
 
 class Recommendations extends EventEmitter {
     constructor() {
@@ -166,20 +37,20 @@ class Recommendations extends EventEmitter {
             global.lists.ready().then(async () => {
                 this.listsLoaded = true
                 this.scheduleUpdate()
-            }).catch(console.error)
+            }).catch(err => console.error(err))
             
-            lang.ready().catch(console.error).finally(() => {
-                global.lists.epg.ready().then(() => {
+            lang.ready().catch(err => console.error(err)).finally(() => {
+                global.lists.epgReady().then(() => {
                     this.epgLoaded || storage.delete(this.cacheKey)
                     this.epgLoaded = true
                     this.scheduleUpdate()
-                }).catch(console.error)
+                }).catch(err => console.error(err))
             })
         })
     }
     async scheduleUpdate() {
         return this.updaterQueue.size || this.updaterQueue.add(async () => {
-            await this.update().catch(console.error)
+            await this.update().catch(err => console.error(err))
         })
     }
     async validateChannels(data) {
@@ -234,14 +105,23 @@ class Recommendations extends EventEmitter {
         return results
     }
     async get(tags, amount=25) {
-        if(!global.lists.epg.loaded) return []
+        if(!global.lists?.epg?.loaded) return []
         const now = (Date.now() / 1000)
         const timeRange = 3 * 3600
         const timeRangeP = timeRange / 100
         const until = now + timeRange
+        const applyParentalControl = !global.lists.parentalControl.lazyAuth()
         if(!tags) {
             tags = await this.tags.get()
         }
+        if(applyParentalControl) {
+            for(const tag in tags) {
+                if (!global.lists.parentalControl.has(tag)) {
+                    delete tags[tag]
+                }
+            }
+        }
+
         const data = await global.lists.epg.getRecommendations(tags, until, amount * 4)
         const processing = this.processEPGRecommendations(data)
         const interests = new Set()
@@ -338,7 +218,15 @@ class Recommendations extends EventEmitter {
             results[i].score /= ppScore
         })
 
-        return results.sortByProp('score', true).slice(0, amount).sortByProp('st').map(r => {
+        const slice = []
+        results = results.sortByProp('score', true).sortByProp('st')
+        for(const r of results) {
+            if(!applyParentalControl || !global.lists.parentalControl.has(r.programme.t)) {
+                slice.push(r)
+                if(slice.length >= amount) break
+            }
+        }
+        return slice.map(r => {
             const entry = global.channels.toMetaEntry(r.channel)
             entry.programme = r.programme
             entry.name = r.programme.t
@@ -495,9 +383,9 @@ class Recommendations extends EventEmitter {
                 ])
                 if (ret == 'epg') {
                     if (paths.ALLOW_ADDING_LISTS) {
-                        menu.open(lang.MY_LISTS + '/' + lang.EPG).catch(console.error)
+                        menu.open(lang.MY_LISTS + '/' + lang.EPG).catch(err => console.error(err))
                     } else {
-                        menu.open(lang.OPTIONS + '/' + lang.MANAGE_CHANNEL_LIST + '/' + lang.EPG).catch(console.error)
+                        menu.open(lang.OPTIONS + '/' + lang.MANAGE_CHANNEL_LIST + '/' + lang.EPG).catch(err => console.error(err))
                     }
                 }
             }
@@ -506,13 +394,13 @@ class Recommendations extends EventEmitter {
         if(vod === true) {
             es = await global.lists.multiSearch(await this.tags.get(), {limit, type:'video', group: false, typeStrict: true})
         } else {
-            es = await this.get(null, limit).catch(console.error)
+            es = await this.get(null, limit).catch(err => console.error(err))
         }
         if (!Array.isArray(es)) {
             es = []
         }
         if (!es.length) {
-            if (global.lists.epg.loaded) {
+            if (global.lists?.epg?.loaded) {
                 if(vod) {
                     es.push(noRecommendations)
                 } else {
@@ -549,15 +437,14 @@ class Recommendations extends EventEmitter {
         return es
     }
     async update() {
-        const start = time()
         const amount = 48
         let es = [], tmpkey = this.cacheKey
         if(global.channels && global.channels.channelList) {
             tmpkey += global.channels.channelList.key
         }
         let tags, channels, timer
-        const collectFeaturedEntries = async channels => {
-            if(channels && (!this.featuredEntriesCache || channels.length)) {
+        const collectFeaturedEntries = async (channels, force) => {
+            if(channels && (force || !this.featuredEntriesCache?.data.length)) {
                 clearTimeout(timer)
                 this.featuredEntriesCache = {data: channels, key: tmpkey}
                 timer = setTimeout(() => {
@@ -565,7 +452,7 @@ class Recommendations extends EventEmitter {
                 }, 1000)
             }
         }
-        es = await storage.get(this.cacheKey).catch(console.error)
+        es = await storage.get(this.cacheKey).catch(err => console.error(err))
         if (es && es.length) {
             es = es.map(e => global.channels.toMetaEntry(e))
             collectFeaturedEntries(channels)
@@ -584,12 +471,12 @@ class Recommendations extends EventEmitter {
             }
 
             tags = await this.tags.get()
-            es = await this.get(tags, 3 * amount).catch(console.error)
+            es = await this.get(tags, 3 * amount).catch(err => console.error(err))
             if (Array.isArray(es) && es.length) {
                 if (es.some(n => n.programme.i)) { // prefer entries with icons
                     es = es.filter(n => n.programme.i)
                 }
-                collectFeaturedEntries(es)
+                collectFeaturedEntries(es, true)
                 storage.set(this.cacheKey, es, {ttl: this.updateIntervalSecs})
             } else {
                 es = []
@@ -601,35 +488,33 @@ class Recommendations extends EventEmitter {
             collectFeaturedEntries(es.concat(channels))
             channels = await global.channels.epgChannelsAddLiveNow(channels, false)
             es.push(...channels)
-            collectFeaturedEntries(es)
+            collectFeaturedEntries(es, true)
         }
-
-        /*
-        console.log('recommentations.update() '+ uid +' 7 '+ (time() - start) +'s')
-        if (es.length < amount) {
-            if(tags) {
-                tags = this.tags.prepare(tags, 24)
-            } else {
-                console.log('recommentations.update() '+ uid +' 7.5 '+ (time() - start) +'s')
-                tags = await this.tags.get(24)
-            }
-            console.log('recommentations.update() '+ uid +' 8 '+ (time() - start) +'s, '+ Object.keys(tags).length +' tags') 
-            const nwes = await global.lists.multiSearch(tags, {
-                group: false,
-                limit: amount - es.length,
-                type: 'video',
-                typeStrict: true
-            })
-            es.push(...nwes)
-            console.log('recommentations.update() '+ uid +' 9 '+ (time() - start) +'s')
-        }
-        */
      
-        console.log('recommentations.update() took '+ Math.round(time() - start) +'s')
         this.readyState = (this.epgLoaded && this.listsLoaded) ? 4 : 3
     }
     async featuredEntries(amount=5) {
-        return (this.featuredEntriesCache && this.featuredEntriesCache.data) ? this.featuredEntriesCache.data.slice(0, amount) : []
+        const results = []
+        if (amount && this.featuredEntriesCache && this.featuredEntriesCache.data) {
+            for (const entry of this.featuredEntriesCache.data) {
+                if (results.length >= amount) break
+                results.push(entry)
+            }
+        }
+        if (!results.length && this.readyState < 4) {
+            const emptyEntries = Array(amount - results.length).fill(null)
+            results.push(...emptyEntries.map((_, i) => {
+                return {
+                    name: ' &nbsp;',
+                    fa: 'fa-mega',
+                    type: 'action',
+                    class: 'entry-busy-x',
+                    id: 'recommendations-busy-'+ i, // for svelte to diff these empty entries
+                    action: () => {}
+                }
+            }))
+        }
+        return results
     }
     async hook(entries, path) {
         const hookId = 'recommendations'

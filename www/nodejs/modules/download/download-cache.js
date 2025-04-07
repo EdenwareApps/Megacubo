@@ -144,11 +144,10 @@ class DownloadCacheMap extends EventEmitter {
         ])
     }
     save(downloader, chunk, ended) {
-        if (!config.get('in-disk-caching-size'))
+        if (!config.get('in-disk-caching-size')) {
             return;
-        if (downloader.requestingRange &&
-            (downloader.requestingRange.start > 0 ||
-                (downloader.requestingRange.end && downloader.requestingRange.end < (downloader.totalContentLength - 1)))) { // partial content request, skip saving
+        }
+        if (downloader.requestHeaders['range']) { // partial content request, skip saving
             return;
         }
         const opts = downloader.opts;
@@ -158,15 +157,15 @@ class DownloadCacheMap extends EventEmitter {
             const huid = 'dch-' + uid.substr(4);
             const time = parseInt((Date.now() / 1000));
             let ttl = time + opts.cacheTTL;
-            if (downloader.lastHeadersReceived && typeof(downloader.lastHeadersReceived['x-cache-ttl']) != 'undefined') {
-                const rttl = parseInt(downloader.lastHeadersReceived['x-cache-ttl']);
+            if (downloader.responseHeaders && typeof(downloader.responseHeaders['x-cache-ttl']) != 'undefined') {
+                const rttl = parseInt(downloader.responseHeaders['x-cache-ttl']);
                 if (rttl < ttl) {
                     ttl = rttl;
                 }
             }
-            const headers = downloader.lastHeadersReceived ? Object.assign({}, downloader.lastHeadersReceived) : {};
+            const headers = downloader.responseHeaders ? Object.assign({}, downloader.responseHeaders) : {};
             const chunks = new DownloadCacheChunks(url);
-            chunks.on('error', err => console.error('DownloadCacheChunks error: ' + err));
+            chunks.on('error', err => console.error('DownloadCacheChunks error: '+ err));
             if (headers['content-encoding']) {
                 delete headers['content-encoding']; // already uncompressed
                 if (headers['content-length']) {
@@ -178,7 +177,7 @@ class DownloadCacheMap extends EventEmitter {
                 chunks,
                 time,
                 ttl,
-                status: downloader.lastStatusCodeReceived,
+                status: downloader.statusCode,
                 size: headers['content-length'] || false,
                 headers,
                 uid,

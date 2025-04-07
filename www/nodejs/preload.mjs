@@ -10,7 +10,7 @@ import Download from "./modules/download/download.js";
 import { prepare } from "./modules/serialize/serialize.js";
 
 function getElectron() {
-    const ret = {}, keys = ['contextBridge', 'webFrame', 'ipcRenderer', 'getGlobal', 'screen', 'app', 'shell', 'Tray', 'Menu'];
+    const ret = {}, keys = ['contextBridge', 'webFrame', 'webUtils', 'ipcRenderer', 'getGlobal', 'screen', 'app', 'shell', 'Tray', 'Menu'];
     const extract = electron => {
         keys.forEach(k => {
             if (electron[k])
@@ -33,39 +33,9 @@ function getElectron() {
     return ret;
 }
 
-const { contextBridge, webFrame, ipcRenderer, getGlobal, screen, app, shell, Tray, Menu } = getElectron();
+const { contextBridge, webFrame, webUtils, ipcRenderer, getGlobal, screen, app, shell, Tray, Menu } = getElectron();
 const paths = getGlobal('paths'), config = getGlobal('config');
-function download(opts) {
-    let _reject;
-    const dl = new Download(opts);
-    const promise = new Promise((resolve, reject) => {
-        _reject = reject;
-        dl.once('response', statusCode => {
-            if (statusCode < 200 && statusCode >= 400) {
-                dl.destroy();
-                reject('http error ' + statusCode);
-            }
-        });
-        dl.on('error', e => {
-            err = e;
-        });
-        dl.once('end', buf => {
-            dl.destroy();
-            resolve(buf);
-        });
-        if (opts.progress) {
-            dl.on('progress', opts.progress);
-        }
-        dl.start();
-    });
-    promise.cancel = () => {
-        if (dl && !dl.ended) {
-            _reject('Promise was cancelled');
-            dl.destroy();
-        }
-    };
-    return promise;
-}
+const download = Download.get.bind(Download);
 const window = getGlobal('window')
 class FFmpeg {
     constructor() {
@@ -81,9 +51,16 @@ class FFmpeg {
         }
         this.executable = path.basename(this.executable)
         this.tmpdir = paths.temp;
-        ['exec', 'cleanup', 'abort'].forEach(k => {
+        ['exec', 'cleanup', 'abort', 'setExecutable'].forEach(k => {
             this[k] = this[k].bind(this) // allow export on contextBridge
         })
+    }
+    setExecutable(executable) {
+        this.executableDir = path.dirname(executable)
+        this.executable = path.basename(executable)
+        if (this.executableDir.includes('resources/app')) {
+            this.executableDir = this.executableDir.split('resources/app').shift() + 'resources';
+        }
     }
     isMetadata(s) {
         return s.includes('Stream mapping:');
@@ -298,16 +275,22 @@ const getScreen = () => {
 };
 const restart = () => {
     setTimeout(() => {
-        app.relaunch();
-        app.quit();
-        setTimeout(() => app.exit(), 2000); // some deadline
-    }, 0);
+        app.relaunch()
+        app.quit()
+        setTimeout(() => {
+            app.relaunch()
+            app.exit()
+        }, 1000) // some deadline
+    }, 0)
 }
 const getResourceUsage = () => {
     return webFrame.getResourceUsage()
 }
 const clearCache = () => {
     webFrame.clearCache()
+}
+const showFilePath = file => {
+    return webUtils?.getPathForFile ? webUtils.getPathForFile(file) : file.path
 }
 if (parseFloat(process.versions.electron) < 22) {
     global.api = {
@@ -316,7 +299,7 @@ if (parseFloat(process.versions.electron) < 22) {
         openExternal: f => shell.openExternal(f),
         screenScaleFactor, externalPlayer, getScreen,
         download, restart, ffmpeg, paths, tray,
-        getResourceUsage, clearCache
+        getResourceUsage, clearCache, showFilePath
     };
 } else {
     // On older Electron version (9.1.1) exposing 'require' doesn't works as expected.
@@ -337,6 +320,7 @@ if (parseFloat(process.versions.electron) < 22) {
         restart,
         ffmpeg,
         paths,
-        tray
+        tray,
+        showFilePath
     });
 }

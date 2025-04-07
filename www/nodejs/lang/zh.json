@@ -180,6 +180,7 @@
    "EPG_LOAD_FAILURE": "获取EPG失败",
    "EPG_LOAD_SUCCESS": "EPG加载成功",
    "EPG_OUTDATED": "配置的EPG已过时",
+   "EPG_SUGGESTED": "加载随机EPG如果没有配置",
    "EXIT": "退出",
    "EXIT_FS_HINT": "按{0}键退出全屏",
    "EXPORT": "导出",

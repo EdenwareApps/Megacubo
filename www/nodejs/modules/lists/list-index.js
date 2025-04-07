@@ -1,15 +1,18 @@
 import fs from "fs";
 import ListIndexUtils from "./list-index-utils.js";
 import { Database } from "jexidb"
+import ready from '../ready/ready.js'
 
 export default class ListIndex extends ListIndexUtils {
     constructor(file, url) {
         super()
         this.url = url
         this.file = file
+        this.ready = ready()
+        this.ready.starter(() => this.init(), true)
     }
     fail(err) {
-        this.hasFailed = err;
+        this.error = err;
         if (this.listenerCount('error')) {
             this.emit('error', err)
         }
@@ -19,7 +22,7 @@ export default class ListIndex extends ListIndexUtils {
         await this.ready()
         await this.db.ready()
         if (!map) map = Array.from({ length: this.db.length }, (_, i) => i)
-        return await this.db.query(map)
+        return this.db.query(map)
     }
     async getMap(map) {
         await this.ready()
@@ -64,74 +67,41 @@ export default class ListIndex extends ListIndexUtils {
         }
         return structure
     }
-    async check() {
-        const db = new Database(this.file, {
-            index: {
-                length: 0,
-                uniqueStreamsLength: 0,
-                terms: {},
-                groups: {},
-                meta: {},
-                gids: {}
-            },
-            v8: false,
-            compressIndex: false
-        })
-        const ret = await db.check()
-        await db.destroy().catch(console.error)
-        return ret
-    }
-    async start() {
+    async init() {
         let err
         const stat = await fs.promises.stat(this.file).catch(e => err = e)
         if (stat && stat.size) {
-            if (!this.db) {
-                this.db = new Database(this.file, {
-                    index: {
-                        length: 0,
-                        uniqueStreamsLength: 0,
-                        terms: {},
-                        groups: {},
-                        meta: {},
-                        gids: {}
-                    },
-                    v8: false,
-                    compressIndex: false
-                })
+            this.db = new Database(this.file, {
+                index: {
+                    length: 0,
+                    uniqueStreamsLength: 0,
+                    terms: {},
+                    groups: {},
+                    meta: {},
+                    gids: {}
+                },
+                v8: false,
+                compressIndex: false
+            })
+            const ret = await this.db.init().catch(e => err = e)
+            if (this.destroyed) {
+                err = new Error('destroyed')
             }
-            const ret = await this.db.init()
-            this.isReady = true
-            this.emit('ready')
+            if (err) {
+                throw err
+            }
             return ret
         } else {
-            throw 'file not found or empty ' + this.file + ' ' + err
+            const err = new Error('file not found or empty ' + this.file)
+            throw err
         }
-    }
-    async ready() {
-        if (this.isReady) return
-        await new Promise(resolve => {
-            const clear = () => {
-                this.removeListener('ready', resolveListener)
-                this.removeListener('destroy', rejectListener)
-            }
-            const resolveListener = () => {
-                clear()
-                resolve()
-            }
-            const rejectListener = () => {
-                clear()
-                reject('destroyed')
-            }
-            this.once('ready', resolveListener)
-            this.once('destroy', rejectListener)
-        })
     }
     destroy() {
         if (!this.destroyed) {
             this.destroyed = true
             this.emit('destroy')
             this.removeAllListeners()
-            this.db && this.db.destroy()
+            this.db?.destroy()
             this._log = []
         }
     }

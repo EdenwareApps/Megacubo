@@ -7,6 +7,7 @@ import config from "../../config/config.js"
 import renderer from '../../bridge/bridge.js'
 import menu from '../../menu/menu.js'
 import Download from '../../download/download.js'
+import ready from '../../ready/ready.js'
 
 export default class CommunityListsIPTVORG extends EventEmitter {
     constructor(master) {
@@ -15,32 +16,23 @@ export default class CommunityListsIPTVORG extends EventEmitter {
         this.data = {}
         this.type = 'community'
         this.id = 'community-lists-iptv-org'
+        this.ready = ready()
         this.countries = new Countries();
-        this.load().catch(console.error);
+        this.load().catch(err => console.error(err));
         renderer.ready(() => menu.addFilter(this.hook.bind(this)));
     }
     async load() {
         if (!Object.keys(this.data).length) {
             await cloud.get('configure').then(c => {
                 this.data = c['sources'] || {};
-            }).catch(console.error);
+            }).catch(err => console.error(err));
         }
-        this.isReady = true;
-        this.emit('ready');
-    }
-    async ready() {
-        await new Promise((resolve, reject) => {
-            if (this.isReady) {
-                resolve();
-            } else {
-                this.once('ready', resolve);
-            }
-        });
+        this.ready.done()
     }
     async discovery(adder) {
         if (paths.ALLOW_COMMUNITY_LISTS) {
             await this.ready();
-            let locs = await lang.getActiveCountries().catch(console.error);
+            let locs = await lang.getActiveCountries().catch(err => console.error(err));
             if (Array.isArray(locs) || !locs.length) {
                 locs.push = [lang.countryCode];
             }
@@ -72,7 +64,7 @@ export default class CommunityListsIPTVORG extends EventEmitter {
                 countryCode,
                 renderer: async data => {
                     let err;
-                    let ret = await this.master.lists.manager.listRenderer(data, { fetch: true }).catch(e => err = e);
+                    let ret = await this.master.lists.manager.renderList(data, { fetch: true }).catch(e => err = e);
                     osd.hide('list-open');
                     if (err) throw err;
                     return ret;

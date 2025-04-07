@@ -91,7 +91,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
         let info = {}, tracks = {};
         if (this.prx.playlists) {
             if (includeBW) {
-                const ptracks = await this.trackSelector.getPlaylistTracks(this.data.url).catch(console.error);
+                const ptracks = await this.trackSelector.getPlaylistTracks(this.data.url).catch(err => console.error(err));
                 if (Array.isArray(ptracks)) {
                     ptracks.forEach(track => info[track.url] = track);
                 }
@@ -200,7 +200,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
         this.connectAdapter(this.prx);
         await this.prx.start();
         if (useff) {
-            const ret = await this.trackSelector.select(this.info.url || this.data.url).catch(console.error);
+            const ret = await this.trackSelector.select(this.info.url || this.data.url).catch(err => console.error(err));
             if (ret && ret.url) {
                 this.trackUrl = ret.url;
                 console.log('Track selected', this.trackUrl, ret, this.trackSelector.tracks);

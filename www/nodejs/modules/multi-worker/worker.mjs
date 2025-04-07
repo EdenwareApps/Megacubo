@@ -1,15 +1,21 @@
-import { moment } from '../utils/utils.js'
+import { moment, traceback } from '../utils/utils.js'
 import utilsSetup from './utils.js'
 import config from '../config/config.js'
 import storage from '../storage/storage.js'
 import crashlog from '../crashlog/crashlog.js'
 import { getFilename } from 'cross-dirname'  
 import { createRequire } from 'node:module'
+import { stringify } from "../serialize/serialize.js";
+import { EventEmitter } from 'events'
 import path from 'path'
 import 'bytenode'
 
-const { logErr, parentPort, loadGlobalVars } = utilsSetup(getFilename())
-const require = createRequire(getFilename())
+EventEmitter.defaultMaxListeners = 100
+
+const file = getFilename()
+const DEBUG = false
+const { logErr, parentPort, postMessage, loadGlobalVars } = utilsSetup(file)
+const require = createRequire(file)
 
 loadGlobalVars()
 
@@ -20,26 +26,41 @@ global.crashlog = crashlog
 lang.timezone && moment.tz.setDefault(lang.timezone.name)
 lang.locale && moment.locale([lang.locale +'-'+ lang.countryCode, lang.locale])
 
-process.on('warning', e => console.warn(e, e.stack))
+if (DEBUG) {
+    const OldPromise = global.Promise; 
+    global.Promise = class Promise extends OldPromise {
+        constructor(executor) {
+            super(executor);
+            this.$stack = traceback();
+        }
+    };
+}
+
+const red = '\x1b[31m%s\x1b[0m'
+const yellow = '\x1b[33m%s\x1b[0m'
+
+process.on('warning', e => {
+    console.warn(yellow, 'Process warning: ', e, e.stack)
+})
 process.on('unhandledRejection', (reason, promise) => {
-    const msg = 'Unhandled Rejection at: '+ String(promise)+ ', reason: '+ String(reason) + ' | ' + JSON.stringify(reason.stack)
-    console.error(msg, promise, 'reason:', reason)
-    crashlog.save('Unhandled Rejection at:', promise, 'reason:', reason)
+    const msg = 'Unhandled Rejection at: '+ promise+ ', reason: '+ (promise.$stack || reason.stack || '')
+    console.error(msg)
+    crashlog.save(msg)
     logErr(msg)
 })
-process.on('uncaughtException', (exception) => {
-    const msg = 'uncaughtException: '+ exception.name + ' | ' + exception.message + ' | ' + JSON.stringify(exception.stack)
-    console.error('uncaughtException', exception)
-    crashlog.save('uncaughtException', exception)
+process.on('uncaughtException', exception => {
+    const msg = 'uncaughtException: '+ exception.name + ' | ' + exception.message + ' | ' + stringify(exception.stack)
+    console.error(msg)
+    crashlog.save(msg)
     logErr(msg)
     return false
 })
 
 const touchListener = (key, entry) => {
-    parentPort.postMessage({id: 0, type: 'event', data: 'storage-touch:'+ JSON.stringify({key, entry})})
+    postMessage({id: 0, type: 'event', data: 'storage-touch:'+ JSON.stringify({key, entry})})
 }
 const changeListener = () => {
-    parentPort.postMessage({id: 0, type: 'event', data: 'config-change'})
+    postMessage({id: 0, type: 'event', data: 'config-change'})
 }
 config.on('change', changeListener)
 storage.on('touch', touchListener)
@@ -47,6 +68,7 @@ storage.on('touch', touchListener)
 const drivers = {}
 parentPort.on('message', msg => {
     if(msg.method == 'configChange'){
+        console.error('config-change', file, msg.args)
         config.removeListener('change', changeListener)
         config.reload(msg.args)
         config.on('change', changeListener)
@@ -57,7 +79,7 @@ parentPort.on('message', msg => {
     } else if(msg.method == 'storageTouch'){
         const changed = storage.validateTouchSync(msg.key, msg.entry)
         if (changed && changed.length) {
-            storage.touch(msg.key, msg.entry, true).catch(console.error)
+            storage.touch(msg.key, msg.entry, true).catch(err => console.error(err))
         }
     } else if(msg.method == 'loadWorker') {
         if(!drivers[msg.file]) {
@@ -74,18 +96,18 @@ parentPort.on('message', msg => {
         }
     } else if(msg.method == 'memoryUsage'){
         const data = {id: msg.id, type: 'resolve', data: process.memoryUsage()}
-        parentPort.postMessage(data)
+        postMessage(data)
     } else if(!drivers[msg.file]) {
         const data = {id: msg.id, type: 'reject', data: 'worker not found '+ JSON.stringify(msg) +', drivers: '+ Object.keys(drivers).join('|')}
-        parentPort.postMessage(data)
+        postMessage(data)
     } else if(typeof(drivers[msg.file][msg.method]) == 'undefined'){
         const data = {id: msg.id, type: 'reject', data: 'method not exists '+ JSON.stringify(msg)}
-        parentPort.postMessage(data)
+        postMessage(data)
     } else {
         let type, data = null
         const promise = drivers[msg.file][msg.method].apply(drivers[msg.file], msg.args)
         if(!promise || typeof(promise.then) == 'undefined'){
-            return parentPort.postMessage({id: -1, type: 'event', data: 'error: Not a promise ('+ msg.method +').'})
+            return postMessage({id: -1, type: 'event', data: 'error: Not a promise ('+ msg.method +').'})
         }
         promise.then(ret => {
             type = 'resolve'
@@ -96,7 +118,7 @@ parentPort.on('message', msg => {
         }).finally(() => {
             data = {id: msg.id, type, data}
             try {
-                parentPort.postMessage(data)
+                postMessage(data)
             } catch(e) {
                 console.error('Error on postMessage:', msg.file, msg.method, type, e)
             }

@@ -90,7 +90,7 @@ class Writer extends EventEmitter {
                 this.debug && console.log('writeat opened*', this.file, err);
                 if (err)
                     return this.fail(err);
-                this._write(this.fd).catch(console.error).finally(() => {
+                this._write(this.fd).catch(err => console.error(err)).finally(() => {
                     if (this.autoclose && this.fd) {                        
                         fs.close(this.fd, () => {})
                         this.fd = null;

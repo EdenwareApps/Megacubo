@@ -57,14 +57,10 @@ Object.assign(global, {
 })
 
 process.env.UV_THREADPOOL_SIZE = 16
-
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled rejection at:', promise, 'reason:', reason, reason.stack || '')
-    crashlog.save('Unhandled rejection at:', promise, 'reason:', reason)
-})
-process.on('uncaughtException', exception => {
-    console.error('uncaughtException: ' + stringify(exception), exception.stack)
-    crashlog.save('uncaughtException', exception)
+process.on('uncaughtException', (err, origin) => {
+    console.error({err, origin})
+    console.error('uncaughtException: ' + err.message, err.stack)
+    crashlog.save('uncaughtException', err)
     return false
 })
 onexit(() => {
@@ -78,6 +74,7 @@ onexit(() => {
         streamer.tuning = null
     }
     rmdirSync(paths.temp, false)
+    rmdirSync(streamer.opts.workDir, false)
     if (typeof(renderer) != 'undefined' && renderer) {
         renderer.ui.emit('exit', true)
         renderer.ui.destroy()
@@ -88,12 +85,15 @@ let originalConsole, initialized, isStreamerReady, playOnLoaded, tuningHintShown
 function enableConsole(enable) {
     let fns = ['log', 'warn']
     if (typeof(originalConsole) == 'undefined') { // initialize
-        originalConsole = {}
+        originalConsole = {
+            error: console.error.bind(console)
+        }
         fns.forEach(f => originalConsole[f] = console[f].bind(console))
         config.on('change', (keys, data) => keys.includes('enable-console') && enableConsole(data['enable-console']))
-        if (enable)
-            return // enabled by default, stop here
+        console.error = (...args) => originalConsole.error('\x1b[31m%s\x1b[0m', ...args)
+        if (enable) return // enabled by default, stop here
     }
+    enable = true
     if (enable) {
         fns.forEach(f => { console[f] = originalConsole[f] })
     } else {
@@ -115,14 +115,13 @@ const setupCompleted = () => {
     return fine
 }
 const setNetworkConnectionState = state => {
-    Download.setNetworkConnectionState(state)
     if (state && isStreamerReady) {
         lists.loader.reset()
     }
 }
 const callAction = (e, value) => {
     const ret = e.action?.(e, value)
-    ret?.catch(console.error)
+    ret?.catch(err => console.error(err))
 }
 const handleVideoError = async (type, errData) => {
     console.error('VIDEO ERROR', { type, errData })
@@ -163,14 +162,14 @@ const handleVideoError = async (type, errData) => {
                         const info = await streamer.info(data.url, 2, data).catch(e => {
                             type = 'request error'
                         })
-                        const ret = await streamer.typeMismatchCheck(info).catch(console.error)
+                        const ret = await streamer.typeMismatchCheck(info).catch(err => console.error(err))
                         if (ret === true)
                             return
                     }
                 }
                 if (!paths.android && type == 'playback') {
                     // skip if it's not a false positive due to tuning-blind-trust
-                    const openedExternal = await streamer.askExternalPlayer(active.codecData).catch(console.error)
+                    const openedExternal = await streamer.askExternalPlayer(active.codecData).catch(err => console.error(err))
                     if (openedExternal === true) return
                 }
                 streamer.handleFailure(null, type).catch(e => menu.displayErr(e))
@@ -217,7 +216,7 @@ const setupRendererHandlers = () => {
                     defaultValue: '',
                     callback: 'lists-manager',
                     fa: 'fas fa-cloud-download-alt'
-                }).catch(console.error)
+                }).catch(err => console.error(err))
                 break
             case 'back':
                 menu.refresh()
@@ -336,7 +335,7 @@ const setupRendererHandlers = () => {
         streamer.state.sync()
         renderer.ready() || renderer.ready(null, true)
         if (!streamer.active) {
-            await lists.ready().catch(console.error)
+            await lists.ready().catch(err => console.error(err))
             if (playOnLoaded) {
                 streamer.play(playOnLoaded)
             } else if (config.get('resume')) {
@@ -422,9 +421,13 @@ const initElectronWindow = async () => {
         })
     }
     const isLinux = process.platform == 'linux', appCmd = app.commandLine
-    await channels.updateUserTasks(app).catch(console.error)
+    await channels.updateUserTasks(app).catch(err => console.error(err))
+    let gpuFlags = config.get('gpu-flags')
     if (config.get('gpu')) {
-        config.get('gpu-flags').forEach(f => {
+        if (!gpuFlags) {
+            gpuFlags = Object.keys(options.availableGPUFlags.enable)
+        }
+        gpuFlags.forEach(f => {
             if (isLinux && f == 'in-process-gpu') {
                 // --in-process-gpu chromium flag is enabled by default to prevent IPC
                 // but it causes fatal error on Linux
@@ -433,6 +436,12 @@ const initElectronWindow = async () => {
             appCmd.appendSwitch(f)
         })
     } else {
+        if (!gpuFlags) {
+            gpuFlags = Object.keys(options.availableGPUFlags.disable)
+        }
+        gpuFlags.forEach(f => {
+            appCmd.appendSwitch(f)
+        })
         app.disableHardwareAcceleration()
     }
     appCmd.appendSwitch('no-zygote')
@@ -447,13 +456,14 @@ const initElectronWindow = async () => {
     appCmd.appendSwitch('enable-smooth-scrolling', 'true')
     appCmd.appendSwitch('enable-experimental-web-platform-features') // audioTracks support
     appCmd.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport') // TODO: Allow user to activate Metal (macOS) and VaapiVideoDecoder (Linux) features
-    appCmd.appendSwitch('disable-features', 'IsolateOrigins,SitePerProcess,NetworkPrediction')
+    appCmd.appendSwitch('disable-features', 'BackgroundSync,IsolateOrigins,SitePerProcess,NetworkPrediction,OpenVR')
     appCmd.appendSwitch("autoplay-policy", "no-user-gesture-required")
     appCmd.appendSwitch('disable-web-security')
     await app.whenReady()
     global.window = new BrowserWindow({
-        width: 320,
-        height: 240,
+        width: 240,
+        height: 180,
+        show: false,
         frame: false,
         maximizable: false,
         minimizable: false,
@@ -471,9 +481,11 @@ const initElectronWindow = async () => {
             preload: path.join(paths.cwd, 'dist/preload.js'),
             enableRemoteModule: true,
             experimentalFeatures: true,
+            navigateOnDragDrop: true,
             webSecurity: false // desabilita o webSecurity
         }
     })
+
     app.on('browser-window-focus', () => {
         // We'll use Ctrl+M to enable Miniplayer instead of minimizing
         globalShortcut.registerAll(['CommandOrControl+M'], () => { return })
@@ -493,10 +505,14 @@ const initElectronWindow = async () => {
     renderer.ui.setElectronWindow(window)
     renderer.bridgeReady((err, port) => {
         window.loadURL('http://127.0.0.1:'+ port +'/renderer/electron.html', { userAgent: renderer.ui.ua })
+        window.setAlwaysOnTop(true) // trick to take focus
+        window.focus()
+        window.setAlwaysOnTop(false)
     })
 }
 const init = async (locale, timezone) => {
     if (initialized) return
+    global?.window.show()
     initialized = true
     await lang.load(locale, config.get('locale'), paths.cwd + '/lang', timezone).catch(e => menu.displayErr(e))
     console.log('Language loaded.')
@@ -507,7 +523,6 @@ const init = async (locale, timezone) => {
     
     global.theme = new Theme()
     
-    rmdir(streamer.opts.workDir, false).catch(console.error)
     console.log('Initializing premium...')
 
     const Premium = await import('./modules/premium-helper/premium-helper.js')
@@ -532,54 +547,54 @@ const init = async (locale, timezone) => {
     menu.addOutputFilter(recommendations.hook.bind(recommendations))
     menu.on('render', icons.render.bind(icons))
     menu.on('action', async e => {
-        const busy = menu.setBusy(e.path)
-        if (typeof(e.type) == 'undefined') {
-            if (typeof(e.url) == 'string') {
-                e.type = 'stream'
-            } else if (typeof(e.action) == 'function') {
-                e.type = 'action'
+        await menu.withBusy(e.path, async () => {
+            if (typeof (e.type) == 'undefined') {
+                if (typeof (e.url) == 'string') {
+                    e.type = 'stream'
+                } else if (typeof (e.action) == 'function') {
+                    e.type = 'action'
+                }
             }
-        }
-        switch(e.type){
-            case 'stream':
-                if(streamer.tuning){
-                    streamer.tuning.destroy()
-                    streamer.tuning = null
-                }
-                streamer.zap.setZapping(false, null, true)
-                if(typeof(e.action) == 'function') { // execute action for stream, if any
-                    callAction(e)
-                } else {
-                    streamer.play(e)
-                }
-                break
-            case 'input':
-                if(typeof(e.action) == 'function') {
-                    let defaultValue = typeof(e.value) == 'function' ? e.value() : (e.value || undefined)
-                    let val = await menu.prompt({
-                        question: e.name,
-                        placeholder: '',
-                        defaultValue,
-                        multiline: e.multiline,
-                        fa: e.fa
-                    })
-                    callAction(e, val)
-                }
-                break
-            case 'action':
-                if(typeof(e.action) == 'function') {
-                    callAction(e)
-                } else if(e.url && mega.isMega(e.url)) {
-                    if(streamer.tuning){
+            switch (e.type) {
+                case 'stream':
+                    if (streamer.tuning) {
                         streamer.tuning.destroy()
                         streamer.tuning = null
                     }
                     streamer.zap.setZapping(false, null, true)
-                    streamer.play(e)
-                }
-                break
-        }
-        busy.release()
+                    if (typeof (e.action) == 'function') { // execute action for stream, if any
+                        callAction(e)
+                    } else {
+                        streamer.play(e)
+                    }
+                    break
+                case 'input':
+                    if (typeof (e.action) == 'function') {
+                        let defaultValue = typeof (e.value) == 'function' ? e.value() : (e.value || undefined)
+                        let val = await menu.prompt({
+                            question: e.name,
+                            placeholder: '',
+                            defaultValue,
+                            multiline: e.multiline,
+                            fa: e.fa
+                        })
+                        callAction(e, val)
+                    }
+                    break
+                case 'action':
+                    if (typeof (e.action) == 'function') {
+                        callAction(e)
+                    } else if (e.url && mega.isMega(e.url)) {
+                        if (streamer.tuning) {
+                            streamer.tuning.destroy()
+                            streamer.tuning = null
+                        }
+                        streamer.zap.setZapping(false, null, true)
+                        streamer.play(e)
+                    }
+                    break
+            }
+        })
     })
     setupRendererHandlers()
     options.on('devtools-open', () => {
@@ -634,7 +649,7 @@ const init = async (locale, timezone) => {
         }
         menu.addFilter(downloads.hook.bind(downloads))
         lists.loader.reset()
-        await crashlog.send().catch(console.error)
+        await crashlog.send().catch(err => console.error(err))
         await lists.ready()
         console.log('WaitListsReady resolved!')
         let err, c = await cloud.get('configure').catch(e => err = e) // all below in func depends on 'configure' data
@@ -681,7 +696,7 @@ renderer.ui.once('get-lang-callback', (locale, timezone, ua, online) => {
 if (paths.android) {
     renderer.ui.emit('get-lang')
 } else if (electron?.BrowserWindow) {
-    initElectronWindow().catch(console.error)
+    initElectronWindow().catch(err => console.error(err))
 }
 
 export {

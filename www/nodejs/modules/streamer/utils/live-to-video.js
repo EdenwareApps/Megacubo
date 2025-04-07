@@ -89,7 +89,7 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
             timeout: 60,
             videoCodec: 'libx264',
             audioCodec: 'aac',
-            debug: true
+            debug: false
         }
         this.folder = paths.temp + '/streamer/' + this.uid
         this.basename = 'output.mp4'
@@ -112,7 +112,7 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
         if(this.destroyed){
             fail('destroyed')
         } else {
-            this.prepareFile(file).then(stat => {
+            this.prepareFile(file).then(target => {
                 let headers = {
                     'access-control-allow-origin': '*',
                     'content-length': stat.size,
@@ -121,11 +121,11 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
                     'expires': '-1',
                     'pragma': 'no-cache'
                 }
-                let ctype = this.contentTypeFromExt(ext(file))
+                let ctype = this.contentTypeFromExt(ext(target))
                 if(ctype){
                     headers['content-type'] =  ctype
                 }
-                let ended, stream = fs.createReadStream(file)
+                let ended, stream = fs.createReadStream(target)
                 response.writeHead(200, headers)
                 const end = () => {
                     if(!ended){
@@ -326,7 +326,7 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
                 this.server.close()
                 delete this.server
             }
-            rmdir(this.folder).catch(console.error)
+            rmdir(this.folder).catch(err => console.error(err))
             this.removeAllListeners()
         }
     }

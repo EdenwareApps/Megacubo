@@ -7,10 +7,13 @@ import OpenSubtitles from "opensubtitles.com";
 import http from "http";
 import { URL } from "url";
 import config from "../config/config.js"
+import ready from '../ready/ready.js'
 
 class Subtitles extends EventEmitter {
     constructor() {
         super();
+        this.ready = ready()
+        this.ready.starter(() => this.load(), true)
         this.opts = {
             addr: '127.0.0.1',
             ua: 'Megacubo v17.2.9'
@@ -18,30 +21,9 @@ class Subtitles extends EventEmitter {
         this.os = new OpenSubtitles({ apikey: 'Jl8VNRL9aZQO0jPM2aaGG1NFD4SoHwR4' });
         this.os._settings.headers['User-Agent'] = this.opts.ua;
     }
-    ready() {
-        return new Promise((resolve, reject) => {
-            if (this.loaded)
-                return resolve();
-            if (this.loading) {
-                return this.once('ready', () => {
-                    if (this.token) {
-                        resolve();
-                    } else {
-                        reject('Could not get Opensubtitles token.');
-                    }
-                });
-            }
-            this.loading = true;
-            this.load().then(token => {
-                this.loaded = true;
-                resolve();
-            }).catch(reject).finally(() => {
-                this.loading = false;
-                this.emit('ready');
-            });
-        });
-    }
     async load() {
+        if (this.loaded) return
+        this.loaded = true
         await Promise.allSettled([
             this.autoLogin(),
             this.listen()
@@ -86,7 +68,7 @@ class Subtitles extends EventEmitter {
         await this.login(username, password).catch(e => err = e);
         if (err) {
             global.menu.displayErr(err);
-            return await this.askCredentials(username, password);
+            return this.askCredentials(username, password);
         }
         config.set('os-username', username);
         config.set('os-password', password);
@@ -116,7 +98,7 @@ class Subtitles extends EventEmitter {
                     const dl = async () => {
                         let err;
                         const cacheKey = 'os-sub-' + file_id;
-                        const cached = await storage.get(cacheKey).catch(console.error);
+                        const cached = await storage.get(cacheKey).catch(err => console.error(err));
                         if (cached && typeof(cached) == 'string')
                             return cached;
                         const ret = await this.os.download({ file_id }).catch(e => err = e);
@@ -139,7 +121,7 @@ class Subtitles extends EventEmitter {
                         response.write(body);
                         response.end();
                     };
-                    return dl().catch(console.error);
+                    return dl().catch(err => console.error(err));
                 }
                 fail('No ID specified');
             });
@@ -165,7 +147,7 @@ class Subtitles extends EventEmitter {
     }
     async search(query) {
         const cacheKey = 'os-search-' + query;
-        const cached = await storage.get(cacheKey).catch(console.error);
+        const cached = await storage.get(cacheKey).catch(err => console.error(err));
         if (Array.isArray(cached))
             return cached;
         await this.ready();

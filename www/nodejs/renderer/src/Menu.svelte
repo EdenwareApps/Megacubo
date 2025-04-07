@@ -13,7 +13,7 @@
             lang = main.lang
         })
         main.waitMain(() => {
-            initApp().catch(console.error).finally(() => {
+            initApp().catch(err => console.error(err)).finally(() => {
                 const wrap = document.querySelector('wrap')
                 main.menu.on('updated', () => {
                     path = main.menu.path
@@ -141,7 +141,7 @@
             <span class="menu-time" aria-hidden="true">
                 <time></time>
                 <span class="menu-busy">
-                    <i class="fas fa-mega spin-x-alt" aria-hidden="true"></i>
+                    <i class="fas fa-mega busy-x" aria-hidden="true"></i>
                 </span>
             </span>
         </div>
@@ -291,7 +291,7 @@ body.video:not(.menu-playing) .side-menu-out {
     position: fixed;
     left: var(--nav-width);
     top: 0;
-    background: linear-gradient(to bottom, var(--background-color) 70%, transparent 100%);
+    background: linear-gradient(to bottom, var(--shadow-background-color) 70%, transparent 100%);
     width: 100%;
     z-index: 2;
     justify-content: center;
@@ -310,7 +310,7 @@ body.video.menu-playing #menu .menu-omni {
     visibility: visible !important;
 }
 #menu .menu-omni > span {
-    background: linear-gradient(to bottom, var(--background-color) 0%, var(--shadow-background-color) 90%, rgba(0, 0, 0, 0.75) 90%, transparent 100%);
+    background: linear-gradient(to bottom, rgba(255,255,255, 1) 0%, rgba(255,255,255, 0.5) 100%);
     border-radius: var(--padding-2x);
     min-width: calc(var(--menu-entry-name-font-size) * 14);
     text-align: left;
@@ -320,7 +320,7 @@ body.video.menu-playing #menu .menu-omni {
     vertical-align: middle;
     display: flex;
     flex-direction: row;
-    margin: 10vmin 0 12vmin 0;
+    margin: 2vmin 0 4vmin 0;
 }
 #menu .menu-omni input {
     width: calc(100% - var(--menu-entry-name-font-size));    
@@ -390,7 +390,7 @@ body:not(.portrait) #menu content a.entry-2x {
     width: 100%;
 }
 #menu .menu-omni input, #menu .menu-omni i, #menu .menu-omni input::-webkit-input-placeholder {
-    color: var(--secondary-font-color);
+    color: var(--shadow-background-color);
     text-shadow: none;
 }
 #menu .menu-omni.selected > span {
@@ -579,13 +579,27 @@ div#home-arrows > div > * {
     grid-column-start: auto;
     grid-column-end: auto;
 }
-#menu wrap a.entry-busy .entry-wrapper > span {
-    animation: fading-pulse 1.5s infinite ease-out;
+.busy-x, #menu wrap a.entry-busy span.entry-icon-image i, #menu wrap a.entry-busy span.entry-icon-image img,
+#menu wrap a.entry-busy-x span.entry-icon-image i, #menu wrap a.entry-busy-x span.entry-icon-image img {
+    -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.3) 50%, rgba(0, 0, 0, 0.1) 100%);
+    mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.3) 50%, rgba(0, 0, 0, 0.1) 100%);
+    animation: shine-pulse 1.33s infinite;
+    -webkit-mask-size: 200% 100%;
+    mask-size: 200% 100%;
 }
-@keyframes fading-pulse {
-    0% { opacity: 0.5; }
-    50% { opacity: 1; }
-    100% { opacity: 0.5; }
+.busy-x {
+    -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 0.1) 100%);
+    mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 0.1) 100%);
+}
+@keyframes shine-pulse {
+    0% {
+        -webkit-mask-position: -200% 0;
+        mask-position: -200% 0;
+    }
+    100% {
+        -webkit-mask-position: 200% 0;
+        mask-position: 200% 0;
+    }
 }
 #menu .entry-icon-image i, #menu content a span.entry-name, #menu content a span.entry-details {
     display: block;
@@ -816,7 +830,7 @@ body.menu-playing #menu {
     width: 100vw;
 }
 body.video.menu-playing #main {
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.75) 0, rgba(0, 0, 0, 0.75) calc(100vh - var(--controls-height)), #000 100vh);
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.75) 0, rgba(0, 0, 0, 0.75) calc(100vh - var(--controls-height)), rgba(0, 0, 0, 0.8) 100vh);
     position: fixed;
     top: 0;
 }
@@ -923,7 +937,7 @@ div#modal > div {
     width: auto;
     height: auto;
     z-index: 4;
-    color: #000;
+    color: rgba(0, 0, 0, 0.8);
     box-sizing: border-box;
     top: calc(var(--menu-padding-top) + var(--padding));
     bottom: calc(var(--menu-padding-bottom) + var(--padding));
@@ -993,7 +1007,7 @@ span.modal-template-text, span.modal-template-textarea {
     border-bottom-right-radius: 0;
 }
 span.modal-template-text i, span.modal-template-textarea i {
-    color: #000;
+    color: rgba(0, 0, 0, 0.8);
     opacity: var(--opacity-level-2);
 }
 span.modal-template-text i {
@@ -1070,11 +1084,13 @@ a.modal-template-option.selected, a.modal-template-option-detailed.selected .mod
     font-weight: bold;
 }
 a.modal-template-option i, a.modal-template-option-detailed i {
-    margin-right: var(--padding);
+    position: relative;
+    top: calc(0.1* var(--menu-entry-name-font-size)) !important;
+    right: var(--padding);
 }
 a.modal-template-option.selected, a.modal-template-option-detailed.selected {
     background: linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(255,255,255,0.4) 100%);
-    border-color: rgba(0,0,0,0.3);
+    border-color: rgba(0,0,0,0.4);
     opacity: 1;
 }
 div.modal-template-option-detailed-name {

@@ -18,7 +18,7 @@ class EntriesGroup extends EventEmitter {
     }
     load() {
         let data;
-        this.retrieve().then(ret => data = ret).catch(console.error).finally(() => {
+        this.retrieve().then(ret => data = ret).catch(err => console.error(err)).finally(() => {
             if (!Array.isArray(data)) {
                 data = [];
             }
@@ -162,7 +162,7 @@ class EntriesGroup extends EventEmitter {
         if (this.storeInConfig) {
             return config.get(this.key);
         } else {
-            return await storage.get(this.key);
+            return storage.get(this.key);
         }
     }
 }

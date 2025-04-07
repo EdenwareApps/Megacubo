@@ -180,6 +180,7 @@
    "EPG_LOAD_FAILURE": "Dështoi në marrjen e EPG",
    "EPG_LOAD_SUCCESS": "EPG ngarkuar me sukses",
    "EPG_OUTDATED": "EPG konfiguruar është i vjetëruar",
+   "EPG_SUGGESTED": "Ngarkoni EPG të rastit nëse asnjë nuk është konfiguruar",
    "EXIT": "Dalje",
    "EXIT_FS_HINT": "Shtypni {0} kyç për të dalë me ekran të plotë",
    "EXPORT": "Eksport",

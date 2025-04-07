@@ -86,7 +86,7 @@ export class Parser extends EventEmitter {
         if (!this.opts.stream)
             throw 'Parser instance started with no stream set!';
         if (!this.opts.url)
-            throw 'Parser instance started with no stream set!';
+            throw 'Parser instance started with no url set!';
         this.liner = new LineReader(this.opts);
         let inExtInf,  g = '', a = {}, e = { url: '', icon: '' };
         this.liner.on('line', line => {
@@ -224,7 +224,7 @@ export class Parser extends EventEmitter {
             }
             this.emit('progress', this.readen);
         });
-        return await new Promise(resolve => {
+        return new Promise(resolve => {
             const close = () => {
                 this.close();
                 resolve(true);

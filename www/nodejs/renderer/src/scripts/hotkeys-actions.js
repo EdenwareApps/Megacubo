@@ -6,7 +6,7 @@ export const hotkeysActions = {
             if(main.menu.scrollTop()){
                 main.menu.scrollTop(0, true)
             } else {
-                main.menu.triggerAction('').catch(console.error)
+                main.menu.triggerAction('').catch(err => console.error(err))
             }
         }, 'up', true
     ],
@@ -109,22 +109,29 @@ export const hotkeysActions = {
     ],
     'OPENURL': [
         () => {
-            main.menu.triggerAction(main.lang.TOOLS, main.lang.OPEN_URL).catch(console.error)
+            main.menu.triggerAction(main.lang.TOOLS, main.lang.OPEN_URL).catch(err => console.error(err))
+        }, 'up', true
+    ],
+    'PASTEURL': [
+        () => {
+            main.menu.readClipboard().then(url => {
+                url && main.emit('open-url', url)
+            }).catch(err => console.error(err))
         }, 'up', true
     ],
     'HISTORY': [
         () => {
-            main.menu.triggerAction(main.lang.TOOLS, main.lang.KEEP_WATCHING).catch(console.error)
+            main.menu.triggerAction(main.lang.TOOLS, main.lang.KEEP_WATCHING).catch(err => console.error(err))
         }, 'up', true
     ],
     'BOOKMARKS': [
         () => {
-            main.menu.triggerAction(main.lang.BOOKMARKS).catch(console.error)
+            main.menu.triggerAction(main.lang.BOOKMARKS).catch(err => console.error(err))
         }, 'up', true
     ],
     'LANGUAGE': [
         () => {
-            main.menu.triggerAction(main.lang.OPTIONS, main.lang.LANGUAGE).catch(console.error)
+            main.menu.triggerAction(main.lang.OPTIONS, main.lang.LANGUAGE).catch(err => console.error(err))
         }, 'up', true
     ],
     'BOOKMARK': [
@@ -144,7 +151,7 @@ export const hotkeysActions = {
     ],
     'MINIPLAYER': [
         () => {
-            winActions.toggle().catch(console.error)
+            winActions.toggle().catch(err => console.error(err))
         }, 'up', true
     ],
     'RECORDING': [

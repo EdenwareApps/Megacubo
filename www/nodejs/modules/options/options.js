@@ -127,13 +127,15 @@ class PerformanceProfiles extends Timer {
                 'auto-test': false,
                 'autocrop-logos': true,
                 'broadcast-start-timeout': 40,
-                'connect-timeout-secs': 10,
+                'connect-timeout': 15,
+                'read-timeout': 10,
                 'ffmpeg-broadcast-pre-processing': 'auto',
                 'fx-nav-intensity': 2,
                 'hls-prefetching': true,
                 'in-disk-caching-size': 1024,
                 'live-window-time': 180,
                 'play-while-loading': true,
+                'epg-suggestions': true,
                 'search-missing-logos': true,
                 'show-logos': true,
                 'transcoding-resolution': '1080p',
@@ -147,7 +149,8 @@ class PerformanceProfiles extends Timer {
                 'auto-test': false,
                 'autocrop-logos': false,
                 'broadcast-start-timeout': 60,
-                'connect-timeout-secs': 12,
+                'connect-timeout': 20,
+                'read-timeout': 10,
                 'custom-background-video': '',
                 'epg': 'disabled',
                 'ffmpeg-broadcast-pre-processing': 'no',
@@ -158,6 +161,7 @@ class PerformanceProfiles extends Timer {
                 'live-window-time': 30,
                 'play-while-loading': false,
                 'resume': false,
+                'epg-suggestions': false,
                 'search-missing-logos': false,
                 'show-logos': false,
                 'transcoding-resolution': '480p',
@@ -207,6 +211,7 @@ class OptionsGPU extends PerformanceProfiles {
         super();
         this.availableGPUFlags = {
             enable: {
+                'use-gl': true,
                 'in-process-gpu': true,
                 'ignore-gpu-blacklist': true,
                 'enable-gpu-rasterization': true,
@@ -494,15 +499,15 @@ class Options extends OptionsExportImport {
         ].concat(options), def);
         if (locale == 'improve') {
             renderer.ui.emit('open-external-url', 'https://github.com/EdenwareApps/megacubo/tree/master/www/nodejs-project/lang');
-            return await this.showLanguageEntriesDialog();
+            return this.showLanguageEntriesDialog();
         }
         const _def = config.get('locale') || lang.locale;
         if (locale) {
             if (locale != _def) {
-                osd.show(lang.PROCESSING, 'fa-mega spin-x-alt', 'countries', 'persistent');
+                osd.show(lang.PROCESSING, 'fa-mega busy-x', 'countries', 'persistent');
                 config.set('countries', []);
                 config.set('locale', locale);
-                let texts = await lang.loadLanguage(locale).catch(console.error);
+                let texts = await lang.loadLanguage(locale).catch(err => console.error(err));
                 if (texts) {
                     lang.locale = locale;
                     lang.applyTexts(texts);
@@ -514,7 +519,7 @@ class Options extends OptionsExportImport {
             }
             const countries = lang.countries.getCountriesFromLanguage(locale);
             const pcountries = lang.countries.orderCodesBy(countries, 'population', true).slice(0, 4);
-            await this.country([...pcountries, ...countries.filter(c => !pcountries.includes(c))], true).catch(console.error);
+            await this.country([...pcountries, ...countries.filter(c => !pcountries.includes(c))], true).catch(err => console.error(err));
             restart && energy.restart();
         }
     }
@@ -539,7 +544,7 @@ class Options extends OptionsExportImport {
                 }));
                 ret = await menu.dialog(nopts);
             }
-            osd.show(lang.PROCESSING, 'fa-mega spin-x-alt', 'countries', 'persistent'); // update language of message
+            osd.show(lang.PROCESSING, 'fa-mega busy-x', 'countries', 'persistent'); // update language of message
             if (!ret && force) {
                 ret = suggestedCountries[0];
             }
@@ -687,7 +692,7 @@ class Options extends OptionsExportImport {
         renderer.ui.emit('share', ucWords(paths.manifest.name), ucWords(paths.manifest.name), 'https://megacubo.net/' + locale + '/');
     }
     async about() {        
-        let outdated, c = await cloud.get('configure').catch(console.error)
+        let outdated, c = await cloud.get('configure').catch(err => console.error(err))
         if (c) {
             console.log('checking update...');
             let vkey = 'version';
@@ -769,7 +774,7 @@ class Options extends OptionsExportImport {
                 console.error(e)
             }
             await storage.clear(true)
-            await fs.promises.unlink(config.file).catch(console.error)
+            await fs.promises.unlink(config.file).catch(err => console.error(err))
             energy.restart();
         }
     }
@@ -807,7 +812,7 @@ class Options extends OptionsExportImport {
     }
     async chooseExternalPlayer() {
         if (!this.availableExternalPlayers) {
-            return await new Promise((resolve, reject) => {
+            return new Promise((resolve, reject) => {
                 renderer.ui.once('external-players', players => {
                     this.availableExternalPlayers = players;
                     this.chooseExternalPlayer().then(resolve).catch(reject);
@@ -817,7 +822,7 @@ class Options extends OptionsExportImport {
         }
         const keys = Object.keys(this.availableExternalPlayers);
         if (!keys.length)
-            return await this.chooseExternalPlayerFile();
+            return this.chooseExternalPlayerFile();
         const opts = keys.map(name => {
             return { template: 'option', fa: 'fas fa-play-circle', text: name, id: name };
         });
@@ -825,7 +830,7 @@ class Options extends OptionsExportImport {
         opts.push({ template: 'option', fa: 'fas fa-folder-open', id: 'custom', text: lang.CUSTOMIZE });
         const chosen = await menu.dialog(opts, null, true);
         if (chosen == 'custom')
-            return await this.chooseExternalPlayerFile();
+            return this.chooseExternalPlayerFile();
         if (chosen && this.availableExternalPlayers[chosen])
             config.set('external-player', chosen);
         osd.show('OK', 'fas fa-check-circle faclr-green', 'external-player', 'normal');
@@ -978,9 +983,9 @@ class Options extends OptionsExportImport {
                 mask: 'time',
                 range: { start: 3, end: 60 },
                 action: (data, value) => {
-                    config.set('connect-timeout-secs', value);
+                    config.set('connect-timeout', value);
                 },
-                value: () => config.get('connect-timeout-secs')
+                value: () => config.get('connect-timeout')
             },
             {
                 name: lang.BROADCAST_START_TIMEOUT,
@@ -1159,8 +1164,8 @@ class Options extends OptionsExportImport {
             { template: 'option', text: lang.NO, id: 'no', fa: 'fas fa-times-circle' }
         ], 'no').then(ret => {
             if (ret == 'yes')
-                this.clearCache().catch(console.error);
-        }).catch(console.error);
+                this.clearCache().catch(err => console.error(err));
+        }).catch(err => console.error(err));
     }
     async developerEntries() {
         const opts = [
@@ -1173,7 +1178,7 @@ class Options extends OptionsExportImport {
                 action: (data, value) => {
                     config.set('in-disk-caching-size', value);
                     storage.opts.maxDiskUsage = value * (1024 * 1024);
-                    storage.alignLimiter.call().catch(console.error);
+                    storage.alignLimiter.call().catch(err => console.error(err));
                 },
                 value: () => config.get('in-disk-caching-size')
             },
@@ -1289,7 +1294,7 @@ class Options extends OptionsExportImport {
                 fa: 'fas fa-info-circle',
                 type: 'action',
                 action: async () => {
-                    diag.saveReport().catch(console.error);
+                    diag.saveReport().catch(err => console.error(err));
                 }
             },
             {
@@ -1307,8 +1312,8 @@ class Options extends OptionsExportImport {
                                 if (def == 0)
                                     return;
                                 config.set('communitary-mode-lists-amount', 0);
-                                await fs.promises.unlink(privateFile).catch(console.error);
-                                await fs.promises.unlink(communityFile).catch(console.error);
+                                await fs.promises.unlink(privateFile).catch(err => console.error(err));
+                                await fs.promises.unlink(communityFile).catch(err => console.error(err));
                                 config.set('communitary-mode-lists-amount', 0);
                                 menu.refreshNow();
                                 energy.askRestart();
@@ -1321,7 +1326,7 @@ class Options extends OptionsExportImport {
                                 if (def == 1)
                                     return;
                                 await fs.promises.writeFile(privateFile, 'OK');
-                                await fs.promises.unlink(communityFile).catch(console.error);
+                                await fs.promises.unlink(communityFile).catch(err => console.error(err));
                                 config.set('communitary-mode-lists-amount', 0);
                                 menu.refreshNow();
                                 await menu.info(lang.LEGAL_NOTICE, lang.TOS_CONTENT);
@@ -1359,7 +1364,7 @@ class Options extends OptionsExportImport {
                         cloud.testConfigServer(value).then(() => {
                             osd.show('OK', 'fas fa-check-circle faclr-green', 'config-server', 'persistent');
                             config.set('config-server', value);
-                            setTimeout(() => this.clearCache().catch(console.error), 2000); // allow user to see OK message
+                            setTimeout(() => this.clearCache().catch(err => console.error(err)), 2000); // allow user to see OK message
                         }).catch(e => menu.displayErr(e));
                     }
                 },
@@ -1380,7 +1385,7 @@ class Options extends OptionsExportImport {
         return opts;
     }
     async clearCache() {
-        osd.show(lang.CLEANING_CACHE, 'fa-mega spin-x-alt', 'clear-cache', 'persistent');
+        osd.show(lang.CLEANING_CACHE, 'fa-mega busy-x', 'clear-cache', 'persistent');
         global.streamer.stop();
         global.streamer.tuning && global.streamer.tuning.destroy();
         await storage.clear();
@@ -1614,7 +1619,7 @@ class Options extends OptionsExportImport {
                         ])
                     }
                     opts.push({ name: lang.ADVANCED, fa: 'fas fa-cogs', type: 'action', action: () => {
-                        global.menu.open(lang.OPTIONS +'/'+ lang.ADVANCED).catch(console.error)
+                        global.menu.open(lang.OPTIONS +'/'+ lang.ADVANCED).catch(err => console.error(err))
                     }})
                     return opts
                 } },

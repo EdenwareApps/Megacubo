@@ -88,7 +88,7 @@ class StreamerAbout extends StreamerBase {
         const { manager } = lists;
         try {
             const domain = getDomain(this.active.data.url)
-            const addr = await Download.stream.lookup.lookup(domain, {})
+            const addr = await Download.lookup(domain, {})
             countryCode = await cloud.getCountry(addr).catch(e => global.menu.displayErr(e))
             country = global.lang.countries.getCountryName(countryCode, global.lang.locale)
         } catch(e) {}
@@ -135,7 +135,7 @@ class StreamerAbout extends StreamerBase {
             }
         });
         if (!found && !more) {
-            return await this.aboutTrigger(id, true);
+            return this.aboutTrigger(id, true);
         }
         return found;
     }
@@ -388,7 +388,7 @@ class StreamerGoNext extends StreamerSpeedo {
         return new Promise(resolve => setTimeout(resolve, ms))
     }
     async getQueue() {
-        let entries = await global.storage.get('streamer-go-next-queue').catch(console.error)
+        let entries = await global.storage.get('streamer-go-next-queue').catch(err => console.error(err))
         return Array.isArray(entries) ? entries : ''
     }
     async getPrev(offset = 0) {
@@ -458,7 +458,7 @@ class StreamerGoNext extends StreamerSpeedo {
     async goPrev() {
         let offset = 0        
         const msg = global.lang.GOING_PREVIOUS;
-        this.opts.shadow || global.osd.show(msg, 'fa-mega spin-x-alt', 'go-next', 'persistent');
+        this.opts.shadow || global.osd.show(msg, 'fa-mega busy-x', 'go-next', 'persistent');
         this.goingNext = true;
         while (true) {
             const prev = await this.getPrev(offset), ret = {};
@@ -493,7 +493,7 @@ class StreamerGoNext extends StreamerSpeedo {
     async goNext(immediate) {
         let offset = 0, start = (Date.now() / 1000), delay = immediate ? 0 : 5        
         const msg = delay ? global.lang.GOING_NEXT_SECS_X.format(delay) : global.lang.GOING_NEXT;
-        this.opts.shadow || global.osd.show(msg, 'fa-mega spin-x-alt', 'go-next', 'persistent');
+        this.opts.shadow || global.osd.show(msg, 'fa-mega busy-x', 'go-next', 'persistent');
         this.goingNext = true;
         while (true) {
             const next = await this.getNext(offset), ret = {};
@@ -598,7 +598,7 @@ class Streamer extends StreamerGoNext {
         } else if (chosen == 'transcode') {
             if (!this.active) return true // already addressed
             if (this.active.isTranscoding()) return true
-            return await new Promise(resolve => this.transcode(null, err => resolve(!err))) // transcode(intent, _cb, silent)
+            return new Promise(resolve => this.transcode(null, err => resolve(!err))) // transcode(intent, _cb, silent)
         } else if (chosen == 'retry') {
             streamer.reload()
             return true
@@ -622,7 +622,7 @@ class Streamer extends StreamerGoNext {
                     followRedirect: true
                 }).catch(r => err = r);
                 if (typeof(err) != 'undefined') {
-                    console.warn('pingSource error?: ' + String(err));
+                    console.warn('pingSource error: ' + String(err));
                 } else {
                     console.log('pingSource: ok');
                     if (ret.statusCode < 200 || ret.statusCode >= 400) { // in case of error, renew after 5min
@@ -689,7 +689,7 @@ class Streamer extends StreamerGoNext {
                     }
                     if (!paths.android && !this.opts.shadow && !intent.isTranscoding()) {
                         if (codecData.video && codecData.video.match(new RegExp('(mpeg2video|mpeg4)')) && intent.opts.videoCodec != 'libx264') {
-                            const openedExternal = await this.askExternalPlayer(codecData).catch(console.error);
+                            const openedExternal = await this.askExternalPlayer(codecData).catch(err => console.error(err));
                             if (openedExternal !== true) {
                                 if (!this.tuning && !this.zap.isZapping) {
                                     this.transcode(null, err => {
@@ -702,7 +702,7 @@ class Streamer extends StreamerGoNext {
                         }
                     }
                 });
-                intent.on('streamer-connect', () => this.uiConnect().catch(console.error));
+                intent.on('streamer-connect', () => this.uiConnect().catch(err => console.error(err)));
                 if (intent.codecData) {
                     intent.emit('codecData', intent.codecData);
                 }
@@ -826,7 +826,7 @@ class Streamer extends StreamerGoNext {
         const loadingEntriesData = [global.lang.AUTO_TUNING, name];
         console.warn('playFromEntries', name, connectId, silent);
         const busies = [name, global.lang.AUTO_TUNING].map(n => global.menu.setBusy(global.menu.path +'/'+ n))
-        silent || (this.opts.shadow || global.osd.show(global.lang.TUNING_WAIT_X.format(name), 'fa-mega spin-x-alt', 'streamer', 'persistent'))
+        silent || (this.opts.shadow || global.osd.show(global.lang.TUNING_WAIT_X.format(name), 'fa-mega busy-x', 'streamer', 'persistent'))
         this.tuning && this.tuning.destroy();
         if (this.connectId != connectId) {
             throw 'another play intent in progress';
@@ -842,7 +842,7 @@ class Streamer extends StreamerGoNext {
         tuning.txt = txt;
         tuning.on('progress', i => {
             if (!silent && i.progress && !isNaN(i.progress)) {
-                this.opts.shadow || global.osd.show(global.lang.TUNING_WAIT_X.format(name) + ' ' + i.progress + '%', 'fa-mega spin-x-alt', 'streamer', 'persistent');
+                this.opts.shadow || global.osd.show(global.lang.TUNING_WAIT_X.format(name) + ' ' + i.progress + '%', 'fa-mega busy-x', 'streamer', 'persistent');
             }
         });
         tuning.on('finish', () => {
@@ -877,7 +877,7 @@ class Streamer extends StreamerGoNext {
         }
         if (this.tuning) {
             if (!this.tuning.destroyed && this.tuning.opts.megaURL && this.tuning.opts.megaURL == e.url) {
-                return await this.tune(e)
+                return this.tune(e)
             }
             this.tuning.destroy()
             this.tuning = null
@@ -890,7 +890,6 @@ class Streamer extends StreamerGoNext {
         const opts = isMega ? mega.parse(e.url) : { mediaType: 'live' }
         const loadingEntriesData = [e, global.lang.AUTO_TUNING]
         const busy = silent ? false : global.menu.setBusy(global.menu.path +'/'+ e.name)
-        console.warn('STREAMER INTENT', e, results)
         let succeeded
         this.emit('pre-play-entry', e);
         if (Array.isArray(results)) {
@@ -914,7 +913,7 @@ class Streamer extends StreamerGoNext {
                 name = opts.name
             }
             let terms = opts.terms || listsTools.terms(name)
-            silent || (this.opts.shadow || global.osd.show(global.lang.TUNING_WAIT_X.format(name), 'fa-mega spin-x-alt', 'streamer', 'persistent'))
+            silent || (this.opts.shadow || global.osd.show(global.lang.TUNING_WAIT_X.format(name), 'fa-mega busy-x', 'streamer', 'persistent'))
             const listsReady = await global.lists.ready(10)
             if (listsReady !== true) {
                 silent || (this.opts.shadow || global.osd.hide('streamer'))
@@ -958,16 +957,14 @@ class Streamer extends StreamerGoNext {
             if (opts.url) {
                 e = Object.assign(Object.assign({}, e), opts);
             }
-            console.warn('STREAMER INTENT', e);
             this.setTuneable(!this.streamInfo.mi.isVideo(e.url) && global.channels.isChannel(e))
-            silent || (this.opts.shadow || global.osd.show(global.lang.CONNECTING + ' ' + e.name + '...', 'fa-mega spin-x-alt', 'streamer', 'persistent'))
+            silent || (this.opts.shadow || global.osd.show(global.lang.CONNECTING + ' ' + e.name + '...', 'fa-mega busy-x', 'streamer', 'persistent'))
             let hasErr, intent = await this.intent(e).catch(r => hasErr = r);
             if (typeof(hasErr) != 'undefined') {
                 if (this.connectId != connectId) {
                     busy && busy.release()
                     throw 'another play intent in progress';
                 }
-                console.warn('STREAMER INTENT ERROR', hasErr);
                 renderer.ui.emit('sound', 'static', 25);
                 this.connectId = false;
                 this.emit('connecting-failure', e);
@@ -976,7 +973,6 @@ class Streamer extends StreamerGoNext {
                 if (intent.mediaType != 'live') {
                     this.setTuneable(false);
                 }
-                console.warn('STREAMER INTENT SUCCESS', intent.type, e);
                 succeeded = true;
             }
         }
@@ -1003,14 +999,12 @@ class Streamer extends StreamerGoNext {
                 e.name = ch.name
             }
             const same = this.tuning && !this.tuning.finished && !this.tuning.destroyed && (this.tuning.has(e.url) || this.tuning.opts.megaURL == e.url);
-            console.log('tuneEntry', e, same);
             if (same) {
                 let err
+                this.opts.shadow || global.osd.show(global.lang.TUNING_WAIT_X.format(e.name), 'fa-mega busy-x', 'streamer', 'persistent')
                 const busies = [e.name, global.lang.AUTO_TUNING].map(name => global.menu.setBusy(global.menu.path +'/'+ name))
-                this.opts.shadow || global.osd.show(global.lang.TUNING_WAIT_X.format(e.name), 'fa-mega spin-x-alt', 'streamer', 'persistent')
                 await this.tuning.tune().catch(e => err = e)
                 busies.forEach(b => b.release())
-                console.log('tunedEntry', e, err)
                 if (err) {
                     if (err != 'cancelled by user') {
                         this.emit('connecting-failure', e);

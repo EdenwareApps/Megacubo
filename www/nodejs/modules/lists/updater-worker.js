@@ -74,7 +74,7 @@ class UpdaterWorker extends Common {
 			if(this.debug) {
 				console.log('updater - should 2', url, should)
 			}
-			await this.setListMeta(url, updateMeta).catch(console.error)
+			await this.setListMeta(url, updateMeta).catch(err => console.error(err))
 			let ret
 			if(this.debug){
 				console.log('updater - should 3', url, should)
@@ -88,8 +88,8 @@ class UpdaterWorker extends Common {
 			if(typeof(updater.contentLength) == 'number'){
 				updateMeta.contentLength = updater.contentLength
 				updateMeta.updateAfter = now + (24 * 3600)
-				await this.setListMeta(url, updater.indexMeta).catch(console.error)
-				await this.setListMeta(url, updateMeta).catch(console.error)
+				await this.setListMeta(url, updater.indexMeta).catch(err => console.error(err))
+				await this.setListMeta(url, updateMeta).catch(err => console.error(err))
 				ret = true
 			}
 			updater.destroy()
@@ -107,9 +107,14 @@ class UpdaterWorker extends Common {
 		}
 	}
 	async validateIndex(url){
+		let err
 		const file = storage.resolve(LIST_DATA_KEY_MASK.format(url))
 		const list = new ListIndex(file, url)
-		const validated = (await list.check()) > 0
+		await list.ready().catch(e => err = e)
+		if (err) {
+			return false
+		}
+		const validated = list.length > 0
 		list.destroy()
 		return validated
 	}

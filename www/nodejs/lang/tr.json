@@ -180,6 +180,7 @@
    "EPG_LOAD_FAILURE": "EPG alamadım",
    "EPG_LOAD_SUCCESS": "EPG başarıyla yüklendi",
    "EPG_OUTDATED": "Yapılandırılmış EPG güncel değil",
+   "EPG_SUGGESTED": "Hiçbiri yapılandırılmadıysa rastgele EPG yükleyin",
    "EXIT": "Çıkış",
    "EXIT_FS_HINT": "Tam ekrandan çıkmak için {0} tuşuna basın.",
    "EXPORT": "Dışa Aktarım",

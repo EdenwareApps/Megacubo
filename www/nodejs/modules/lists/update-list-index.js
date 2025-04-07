@@ -79,7 +79,7 @@ class UpdateListIndex extends ListIndexUtils {
             this.indexMeta[name] = headers[k]            
         })
     }
-	fetch(path){
+	connect(path){
 		return new Promise((resolve, reject) => {
             if(path.match(new RegExp('^//[^/]+\\.'))){
                 path = 'http:' + path
@@ -96,7 +96,7 @@ class UpdateListIndex extends ListIndexUtils {
                         'accept-charset': 'utf-8, *;q=0.1'
                     },
                     timeout: this.timeout, // some servers will take too long to send the initial response
-                    downloadLimit: 200 * (1024 * 1024), // 200Mb
+                    maxContentLength: 200 * (1024 * 1024), // 200Mb
                     encoding: 'utf8'
                 }
                 this.stream = new Download(opts)
@@ -115,7 +115,6 @@ class UpdateListIndex extends ListIndexUtils {
                             this.stream.destroy()
                             resolve(false) // no need to update
                         } else {
-                            this.stream.pause()
                             resolve({
                                 stream: this.stream,
                                 url: this.stream.currentURL // use final URL for relative URLs normalization
@@ -172,9 +171,10 @@ class UpdateListIndex extends ListIndexUtils {
                 urls.unshift(alturl)
             }
         }
-        await fs.promises.mkdir(dirname(this.tmpOutputFile), {recursive: true}).catch(console.error)
+        await fs.promises.mkdir(dirname(this.tmpOutputFile), {recursive: true}).catch(err => console.error(err))
         const db = new Database(this.tmpOutputFile, {
             clear: true,
+            create: true,
             index: {
                 length: 0,
                 uniqueStreamsLength: 0,
@@ -184,7 +184,8 @@ class UpdateListIndex extends ListIndexUtils {
                 gids: {}
             },
             v8: false,
-            compressIndex: false
+            compressIndex: false,
+            maxMemoryUsage: 1024 * 1024 // 1MB
         })
         await db.init()
         db.on('before-save', () => {
@@ -220,7 +221,7 @@ class UpdateListIndex extends ListIndexUtils {
                 await this.mparse(url, db).catch(e => err = e)
                 if(this.indexateIterator) break
             } else {
-                const ret = await this.fetch(url).catch(e => err = e)
+                const ret = await this.connect(url).catch(e => err = e)
                 if(!err && ret){
                     await this.parse(ret, db).catch(e => err = e)
                     if(this.indexateIterator) break
@@ -228,20 +229,20 @@ class UpdateListIndex extends ListIndexUtils {
             }
         }
         let i = 0
-        while(i < this.playlists.length){ // new playlists can be live added in the loop fetch() call
+        while(i < this.playlists.length){ // new playlists can be live added in the loop connect() call
             let err
             const playlist = this.playlists[i]
             i++
-            const ret = await this.fetch(playlist.url).catch(e => err = e)
+            const ret = await this.connect(playlist.url).catch(e => err = e)
             console.error('PLAYLIST '+ playlist.url +' '+ this.indexateIterator +' '+ err)
             if(!err && ret){
-                await this.parse(ret, db, playlist).catch(console.error)
+                await this.parse(ret, db, playlist).catch(err => console.error(err))
             }
         }
         await db.save().catch(e => err = e)
         await db.destroy().catch(e => err = e)
         await moveFile(this.tmpOutputFile, this.file).catch(e => { if(!err) err = e })
-        if(err) {
+        if(!this.indexateIterator && err) {
             throw err
         }
         return true
@@ -253,7 +254,7 @@ class UpdateListIndex extends ListIndexUtils {
         xtr.on('meta', meta => {
             Object.assign(this.indexMeta, meta)
         })
-        xtr.on('entry', entry => db.insert(entry).catch(console.error))
+        xtr.on('entry', entry => db.insert(entry).catch(err => console.error(err)))
         await xtr.run().catch(e => err = e)
         xtr.destroy()
         if(err) {
@@ -268,7 +269,7 @@ class UpdateListIndex extends ListIndexUtils {
         mag.on('meta', meta => {
             Object.assign(this.indexMeta, meta)
         })
-        mag.on('entry', entry => db.insert(entry).catch(console.error))
+        mag.on('entry', entry => db.insert(entry).catch(err => console.error(err)))
         await mag.run().catch(e => err = e)
         mag.destroy()
         if(err) {
@@ -308,6 +309,12 @@ class UpdateListIndex extends ListIndexUtils {
                 this.emit('progress', progress, this.url)
             }
         })
+        this.parser.on('entry', entry => {
+            if(playlist){
+                entry.group = joinPath(joinPath(playlist.group, playlist.name), entry.group)
+            }
+            db.insert(entry).catch(err => console.error(err))
+        })
 		const ret = new Promise((resolve, reject) => {
             const destroyListener = () => {
                 if(!resolved){
@@ -315,19 +322,6 @@ class UpdateListIndex extends ListIndexUtils {
                     reject('destroyed')
                 }
             }
-			this.parser.on('entry', entry => {
-				if(this.destroyed){
-                    if(!resolved){
-                        resolved = true
-                        reject('destroyed')
-                    }
-                    return
-				}
-                if(playlist){
-                    entry.group = joinPath(joinPath(playlist.group, playlist.name), entry.group)
-                }
-                db.insert(entry).catch(console.error)
-			})
             this.once('destroy', destroyListener)
 			this.parser.once('finish', () => {
                 if(!resolved){
@@ -348,8 +342,7 @@ class UpdateListIndex extends ListIndexUtils {
 		})
         this.parser.start()
         this.stream.once('end', endListener)
-        this.stream.resume()
-        return await ret
+        return ret
 	}
     sniffGroupsTypes(groups){
         const ret = {live: [], vod: [], series: []}

@@ -81,7 +81,7 @@
 </div>
 <div id="loading-layer" class="control-layer" aria-hidden="true">
     <span class="control-layer-icon">
-        <i class="fas fa-circle-notch fa-spin"></i>
+        <i class="fa-mega busy-x"></i>
     </span>
     <span class="loading-layer-status">
         <span></span>

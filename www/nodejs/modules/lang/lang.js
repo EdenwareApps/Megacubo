@@ -4,21 +4,13 @@ import fs from "fs";
 import path from "path";
 import config from "../config/config.js"
 import { parse } from '../serialize/serialize.js'
+import ready from '../ready/ready.js'
 
 class Language extends EventEmitter {
     constructor() {
         super()
         this.countries = new Countries()
-        this.isReady = false
-    }
-    async ready() {
-        await new Promise(resolve => {
-            if (this.isReady) {
-                resolve();
-            } else {
-                this.on('ready', resolve);
-            }
-        })
+        this.ready = ready()
     }
     async findLanguages() {
         let files = await fs.promises.readdir(this.folder).catch(e => menu.displayErr(e));
@@ -118,14 +110,14 @@ class Language extends EventEmitter {
         }
         this.languageHint = languageHint
         this.timezone = timezone
-        await this.findLanguages().catch(console.error);
+        await this.findLanguages().catch(err => console.error(err));
         this.locale = 'en';
         let utexts, texts = await this.loadLanguage('en').catch(e => menu.displayErr(e)); // english will be a base/fallback language for any key missing in translation chosen
         if (!texts) texts = {}
         await this.asyncSome(this.userAvailableLocales || ['en'], async (loc) => {
             if (loc == 'en')
                 return true;
-            utexts = await this.loadLanguage(loc).catch(console.error);
+            utexts = await this.loadLanguage(loc).catch(err => console.error(err));
             if (utexts) {
                 this.locale = loc;
                 return true;
@@ -135,8 +127,7 @@ class Language extends EventEmitter {
         if (utexts)
             Object.assign(texts, utexts);
         this.applyTexts(texts);
-        this.isReady = true;
-        this.emit('ready');
+        this.ready.done()
         return texts;
     }
     applyTexts(texts) {
@@ -161,7 +152,7 @@ class Language extends EventEmitter {
             locales.splice(1, 0, 'en');
             locales = locales.unique();
             for (let loc of locales) {
-                let texts = await this.loadLanguage(loc).catch(console.error);
+                let texts = await this.loadLanguage(loc).catch(err => console.error(err));
                 if (texts) {
                     this._availableLocalesMap[loc] = texts.LANGUAGE_NAME || loc;
                 }
@@ -171,7 +162,7 @@ class Language extends EventEmitter {
     }
     async loadLanguage(locale) {        
         let file = path.join(this.folder, locale + '.json');
-        let stat = await fs.promises.stat(file).catch(console.error);
+        let stat = await fs.promises.stat(file).catch(err => console.error(err));
         if (stat && stat.size) {
             let obj, content = await fs.promises.readFile(file, 'utf8');
             try {

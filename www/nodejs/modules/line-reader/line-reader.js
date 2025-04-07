@@ -67,7 +67,13 @@ class LineReader extends EventEmitter {
     }
     destroy() {
         this.destroyed = true;
-        this.opts.stream && this.opts.stream.close();
+        if (this.opts.stream) {
+            if (this.opts.stream.destroy) {
+                this.opts.stream.destroy();
+            } else {
+                this.opts.stream.close();
+            }
+        }
         this.liner && this.liner.destroy();
         this.removeAllListeners();
     }

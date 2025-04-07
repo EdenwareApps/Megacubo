@@ -1023,8 +1023,7 @@ class MenuDialog extends MenuDialogQueue {
 		const paste = await this.readClipboard().catch(e => err = e)
 		if(err) {
 			console.error(err)
-		} else if(paste) {
-			if(String(input.getAttribute('data-pasted')) == paste) return
+		} else if(paste && String(input.getAttribute('data-pasted')) != paste) {
 			input.setAttribute('data-pasted', paste)
 			const mask = input.getAttribute('data-mask') || '(^.{0,6}//|[a-z]{3,6}?://)[^ ]+'
 			const regex = new RegExp(mask, 'i')
@@ -1034,7 +1033,7 @@ class MenuDialog extends MenuDialogQueue {
 				input.select()
 			}
 		}
-		input.focus()
+		document.activeElement == input || input.focus()
 	}
 	text2id(txt){
 		if(txt.match(new RegExp('^[A-Za-z0-9\\-_]+$', 'g'))){
@@ -2078,7 +2077,7 @@ export class Menu extends MenuNav {
 		if(typeof(e.prepend) != 'string') {
 			e.prepend = ''
 		}
-		e.key = ((e.path && e.path != ' ') ? e.path : String(Math.random())) + (e.url || '') // svelte id, added url to key to fix stream-state processing
+		e.key = e.path + (e.id || e.url || '') // svelte id, added url to key to fix stream-state processing
 		return e
 	}
 	createHiddenInput() {

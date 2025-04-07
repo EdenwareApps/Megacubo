@@ -19,12 +19,12 @@ class StreamerAdapterTS extends StreamerAdapterBase {
         } else if (policy == 1) {
             policy = (raw === true || paths.android || this.isTranscoding()) ? 3 : 4 // for Exoplayer and FFmpeg deliver the unaligned stream, which is meant for the mpegts.js on PC version
         }
-        this.source.setPacketFilterPolicy(policy).catch(console.error)
+        this.source.setPacketFilterPolicy(policy).catch(err => console.error(err))
     }
     start() {
         return new Promise((resolve, reject) => {
             this.setCallback(success => (success ? resolve : reject)());
-            const args = [this.url, this.opts];
+            const args = [this.url, this.opts]
             if (config.get('mpegts-packet-filter-policy') == -1) {
                 this.source = new Downloader(...args)
             } else {
@@ -35,7 +35,7 @@ class StreamerAdapterTS extends StreamerAdapterBase {
             this.connectable = false;
             this.connectAdapter(this.source);
             this.source.start(...args).then(endpoint => {
-                this.source.endpoint = endpoint;
+                this.endpoint = endpoint;
                 resolve(this.endpoint);
             }).catch(err => {
                 if (this.source.terminate) {

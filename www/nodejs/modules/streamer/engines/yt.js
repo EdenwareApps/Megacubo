@@ -102,7 +102,7 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
             return track.bitrate > bandwidth;
         });
 
-        const valid = await this.validateTrackConnectivity(chosen).catch(console.error);
+        const valid = await this.validateTrackConnectivity(chosen).catch(err => console.error(err));
         if (valid !== true) {
             const filtered = tracks.filter(t => t.url !== chosen);
             if (filtered.length) return this.selectTrackBW(filtered, bandwidth);

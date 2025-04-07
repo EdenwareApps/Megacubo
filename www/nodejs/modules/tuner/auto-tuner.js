@@ -332,14 +332,12 @@ class AutoTuner extends EventEmitter {
                 this.results[nid] = [true, intent.type];
                 this.succeededs[nid] = 2;
                 this.emit('success', intent);
-                console.error('DESTROYING OTHER INTENTS', nid);
+                // destroy other intents
                 this.intents.filter(nt => nt && nt.nid != nid).forEach(nt => {
                     if (nt.committed) {
                         menu.displayErr('DESTROYING COMMITTED INTENT?');
                     } else if (nt.destroyed) {
                         menu.displayErr('DESTROYING ALREADY DESTROYED INTENT?');
-                    } else {
-                        console.error('DESTROYING INTENT OTHER', nt.nid);
                     }
                     this.succeededs[nt.nid] = 0;
                     nt.destroy();

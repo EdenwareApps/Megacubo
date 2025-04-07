@@ -23,10 +23,8 @@ class AnalyticsBase extends EventEmitter {
         });
         return str.join('&');
     }
-    register(action, data) {
-        if (!data) {
-            data = {};
-        }
+    async register(action, data) {
+        if (!data) data = {};
         data.uiLocale = lang.locale;
         data.arch = process.arch;
         data.platform = process.platform;
@@ -41,40 +39,8 @@ class AnalyticsBase extends EventEmitter {
         if (data.source && lists.isPrivateList(data.source))
             data.source = ''; // Source URL not shareable.
         data.epg = global.lists.manager.EPGs(true, true).join(',')
-        const postData = this.toQS(data);
-        const opts = {
-            port: 443,
-            family: 4,
-            method: 'POST',
-            path: '/stats/' + action,
-            hostname: 'app.megacubo.net',
-            rejectUnauthorized: false,
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': postData.length,
-                'Cache-Control': 'no-cache'
-            }
-        };
-        if (this.debug) {
-            console.log('register', opts, postData);
-        }
-        const req = https.request(opts, res => {
-            res.setEncoding('utf8');
-            let data = '';
-            res.on('data', (d) => {
-                data += d;
-            });
-            res.once('end', () => {
-                if (this.debug) {
-                    console.log('register(' + action + ')', data);
-                }
-            });
-        });
-        req.on('error', (e) => {
-            console.error('Houve um erro', e);
-        });
-        isWritable(req) && req.write(postData);
-        req.end();
+
+        return cloud.register(action, data);
     }
     prepareEntry(entry) {
         if (!entry || typeof(entry) != 'object') {
@@ -88,6 +54,7 @@ class AnalyticsBase extends EventEmitter {
         return 'https://localhost/' + file;
     }
 }
+
 class AnalyticsEvents extends AnalyticsBase {
     constructor() {
         super();
@@ -119,6 +86,7 @@ class AnalyticsEvents extends AnalyticsBase {
         }
     }
 }
+
 class Analytics extends AnalyticsEvents {
     constructor() {
         super()
@@ -131,4 +99,5 @@ class Analytics extends AnalyticsEvents {
         })
     }
 }
+
 export default new Analytics();

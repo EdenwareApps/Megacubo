@@ -20,7 +20,7 @@ class StreamerFFmpeg extends EventEmitter {
         if (!['mpegts', 'hls'].includes(outputFormat)) {
             outputFormat = 'hls'; // compat
         }
-        this.timeout = Math.max(60, config.get('connect-timeout-secs') * 6);
+        this.timeout = Math.max(60, config.get('connect-timeout') * 6);
         this.started = false;
         this.source = source;
         this.type = 'ffmpeg';
@@ -215,7 +215,7 @@ class StreamerFFmpeg extends EventEmitter {
         return new Promise((resolve, reject) => {
             fs.stat(file, (err, stat) => {
                 if (stat && stat.size) {
-                    resolve(stat);
+                    resolve(file);
                 } else {
                     // is outdated file?
                     fs.readdir(this.opts.workDir + path.sep + this.uid, (err, files) => {
@@ -229,7 +229,7 @@ class StreamerFFmpeg extends EventEmitter {
                                 console.warn('File not ready??', basename, firstFile, files);
                                 this.waitFile(file, 10).then(() => {
                                     console.warn('File now ready', basename, firstFile, files);
-                                    resolve();
+                                    resolve(file);
                                 }).catch(err => {
                                     console.error(err);
                                     reject(err);
@@ -515,7 +515,7 @@ class StreamerFFmpeg extends EventEmitter {
                         console.warn('file ended ' + data);
                         if (this.opts.isLive) {
                             if (this.committed) {
-                                this.start(true).catch(console.error);
+                                this.start(true).catch(err => console.error(err));
                             } else {
                                 this.fail('media error');
                             }
@@ -667,7 +667,7 @@ class StreamerFFmpeg extends EventEmitter {
             console.log('ffmpeg destroy: ' + file);
             this.decoder.abort();
             this.decoder = null;
-            rmdir(this.opts.workDir, true).catch(console.error)
+            rmdir(this.opts.workDir, true).catch(err => console.error(err))
         }
         this.removeAllListeners();
     }

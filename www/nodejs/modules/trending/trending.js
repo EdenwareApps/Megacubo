@@ -18,14 +18,14 @@ export default class Trending extends EntriesGroup {
         this.updateIntervalSecs = cloud.expires.trending || 300;
         config.on('change', (keys, data) => {
             if (keys.includes('only-known-channels-in-trending') || keys.includes('popular-searches-in-trending') || keys.includes('parental-control') || keys.includes('parental-control-terms')) {
-                this.updating || this.update().catch(console.error)
+                this.updating || this.update().catch(err => console.error(err))
             }
         })
         storage.get('trending-current').then(async data => {
             await this.channels.ready()
             if (!this.currentRawEntries || !this.currentRawEntries.length) {
                 this.currentRawEntries = data;
-                this.updating || this.update(data).catch(console.error)
+                this.updating || this.update(data).catch(err => console.error(err))
             } else if (Array.isArray(data)) {
                 this.currentEntries && this.currentEntries.forEach((c, i) => {
                     data.forEach(e => {
@@ -37,7 +37,7 @@ export default class Trending extends EntriesGroup {
                 })
             }
             this.channels.on('loaded', changed => {
-                changed && !this.updating && this.update().catch(console.error)
+                changed && !this.updating && this.update().catch(err => console.error(err))
             }) // on each "loaded"
         }).catch(err => {
             console.error(err)
@@ -74,7 +74,7 @@ export default class Trending extends EntriesGroup {
         this.updating = false;
         this.emit('update');
         clearTimeout(this.timer); // clear again to be sure
-        this.timer = setTimeout(() => this.update().catch(console.error), this.updateIntervalSecs * 1000)
+        this.timer = setTimeout(() => this.update().catch(err => console.error(err)), this.updateIntervalSecs * 1000)
         let nxt = this.entry();
         if (this.showChannelOnHome() && menu.path == '' && (prv.details != nxt.details || prv.name != nxt.name)) {
             menu.updateHomeFilters()
@@ -153,7 +153,7 @@ export default class Trending extends EntriesGroup {
         const limit = pLimit(3)        
         const tasks = countries.map(country => {
             return async () => {
-                let es = await cloud.get('trending/'+ country, {shadow: false, validator}).catch(console.error);
+                let es = await cloud.get('trending/'+ country, {shadow: false, validator}).catch(err => console.error(err));
                 Array.isArray(es) && data.push(...es);
             };
         }).map(limit);
@@ -264,8 +264,8 @@ export default class Trending extends EntriesGroup {
         storage.set('trending-current', this.currentRawEntries, {
             permanent: true,
             expiration: true
-        }).catch(console.error); // do not await
-        this.channels.updateUserTasks().catch(console.error); // do not await
+        }).catch(err => console.error(err)); // do not await
+        this.channels.updateUserTasks().catch(err => console.error(err)); // do not await
         return data;
     }
     addTrendAttr(entries) {

@@ -1,4 +1,4 @@
-import { absolutize, isYT, validateURL } from '../../utils/utils.js'
+import { absolutize, isYT, validateURL, isLocal } from '../../utils/utils.js'
 import Download from '../../download/download.js'
 import lang from "../../lang/lang.js";
 import MediaURLInfo from "./media-url-info.js";
@@ -9,7 +9,7 @@ class StreamInfo {
     constructor() {
         this.opts = {
             debug: false,
-            probeSampleSize: 1024
+            probeSampleSize: 2048
         };
         this.mi = new MediaURLInfo();
     }
@@ -61,7 +61,6 @@ class StreamInfo {
                             const received = JSON.stringify(headers).length + this.len(sample);
                             const speed = received / ping;
                             const ret = { status, headers, sample, ping, speed, url, directURL: download.currentURL };
-                            // console.log('data', url, status, download.statusCode, ping, received, speed, ret)
                             resolve(ret);
                         };
                         if (download) {
@@ -127,8 +126,8 @@ class StreamInfo {
                     }
                     headers = responseHeaders;
                     status = statusCode;
-                    if (this.mi.isM3U8(download.currentURL, false, headers) && sampleSize < 2048) {
-                        sampleSize = 2048; // ensure segment testing
+                    if (this.mi.isM3U8(download.currentURL, false, headers) && sampleSize < this.opts.probeSampleSize) { // ensure sampleSize is not 0
+                        sampleSize = this.opts.probeSampleSize; // ensure segment testing
                     }
                     sampleSize || finish();
                 });
@@ -148,12 +147,12 @@ class StreamInfo {
         const fd = await fs.promises.open(filePath, 'r');
         const buffer = Buffer.alloc(length);
         const { bytesRead } = await fd.read(buffer, 0, length, 0).catch(e => err = e)
-        fd.close().catch(console.error)
+        fd.close().catch(err => console.error(err))
         if(err) throw err
         return buffer.slice(0, bytesRead);
     }
     async probe(url, retries = 2, opts = {}) {
-        const timeout = config.get('connect-timeout-secs') * 2;
+        const timeout = config.get('connect-timeout') * 2;
         const proto = this.mi.proto(url);
         if (proto.startsWith('http')) {
             if (opts.allowBlindTrust) {
@@ -188,7 +187,6 @@ class StreamInfo {
                                 directURL: url,
                                 ext
                             };
-                            // console.log('data', url, status, download.statusCode, ping, received, speed, ret)
                             return ret;
                         }
                     }
@@ -238,7 +236,7 @@ class StreamInfo {
             ret.directURL = url;
             ret.ext = this.mi.ext(url);
             return ret;
-        } else if (this.isLocalFile(url)) {
+        } else if (isLocal(url)) {
             let err;
             
             const stat = await fs.promises.stat(url).catch(e => err = e);
@@ -312,19 +310,6 @@ class StreamInfo {
             }
         }
         return !isAscii;
-    }
-    isLocalFile(file) {
-        if (typeof(file) != 'string') {
-            return;
-        }
-        let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'));
-        if (m && m.length > 1 && (m[1].length == 1 || m[1].toLowerCase() == 'file')) { // drive letter or file protocol
-            return true;
-        } else {
-            if (file.length >= 2 && file.startsWith('/') && file.charAt(1) != '/') { // unix path
-                return true;
-            }
-        }
     }
 }
 export default StreamInfo;
