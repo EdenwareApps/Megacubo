@@ -225,7 +225,7 @@ const outputs = [
     watch
   },
   {
-    input: { capacitor: 'capacitor.js' },
+    input: { capacitor: 'capacitor.mjs' },
     output: {
       dir: 'www/nodejs/renderer/dist',
       format: 'iife',

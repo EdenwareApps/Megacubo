@@ -512,7 +512,7 @@ const initElectronWindow = async () => {
 }
 const init = async (locale, timezone) => {
     if (initialized) return
-    global?.window.show()
+    global?.window?.show()
     initialized = true
     await lang.load(locale, config.get('locale'), paths.cwd + '/lang', timezone).catch(e => menu.displayErr(e))
     console.log('Language loaded.')
