@@ -160,7 +160,9 @@ class WindowManagerCommon {
 				console.log('cmdline*: ' + cmd)
 				if(cmd === 'debug') return
 				const txt = cmd.toLowerCase().replace(/\\/g, '/')
-				if(txt.endsWith('.exe') || txt.endsWith('/megacubo') || txt.endsWith('/electron') || txt.endsWith('/node')) return
+				if(txt.endsWith('.exe') || txt.endsWith('.js') || txt.endsWith('/megacubo') || txt.endsWith('/electron') || txt.endsWith('/node')) {
+					return
+				}
 				let sharing = '/w/', pos = txt.indexOf(sharing)
 				if(pos != -1) cmd = cmd.substr(pos + sharing.length)
 				if(!cmd.includes('//')) cmd = 'mega://'+ cmd

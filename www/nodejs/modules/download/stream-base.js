@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 
 class StreamResponse extends EventEmitter {
     constructor(statusCode, headers) {

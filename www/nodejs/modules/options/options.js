@@ -3,7 +3,7 @@ import menu from '../menu/menu.js'
 import lang from '../lang/lang.js';
 import storage from '../storage/storage.js'
 import { exec } from 'node:child_process';
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import energy from '../energy/energy.js';
 import fs from 'fs';
 import downloads from '../downloads/downloads.js';
@@ -142,7 +142,8 @@ class PerformanceProfiles extends Timer {
                 'mpegts-packet-filter-policy': 1,
                 'tune-concurrency': 8,
                 'tune-ffmpeg-concurrency': 3,
-                'ui-sounds': true
+                'ui-sounds': true,
+                'use-trias': true
             },
             low: {
                 'animate-background': 'none',
@@ -168,7 +169,8 @@ class PerformanceProfiles extends Timer {
                 'mpegts-packet-filter-policy': 1,
                 'tune-concurrency': 4,
                 'tune-ffmpeg-concurrency': 2,
-                'ui-sounds': false
+                'ui-sounds': false,
+                'use-trias': false
             }
         };
         this.profiles.high['epg-' + lang.locale] = '';
@@ -212,14 +214,14 @@ class OptionsGPU extends PerformanceProfiles {
         this.availableGPUFlags = {
             enable: {
                 'use-gl': true,
-                'in-process-gpu': true,
                 'ignore-gpu-blacklist': true,
                 'enable-gpu-rasterization': true,
                 'force-gpu-rasterization': false,
                 'enable-accelerated-video': true,
                 'enable-accelerated-video-decode': true,
                 'enable-accelerated-mjpeg-decode': true,
-                'enable-native-gpu-memory-buffers': true
+                'enable-native-gpu-memory-buffers': true,
+                'disable-direct-composition': true
             },
             disable: {
                 'disable-gpu': true,
@@ -231,9 +233,13 @@ class OptionsGPU extends PerformanceProfiles {
         this.originalGPUFlags = JSON.stringify(config.get('gpu-flags')); // never change it, will be used to detect config changes and ask for app restarting
     }
     gpuFlagsEntries() {
-        const state = config.get('gpu') ? 'enable' : 'disable';
+        const enabled = config.get('gpu');
+        const state = enabled ? 'enable' : 'disable';
+        const prepareName = (flag) => {
+            return ucFirst(flag.replaceAll('gl', 'GL').replaceAll('gpu', 'GPU').replaceAll('mjpeg', 'MJPEG').replaceAll('vaapi', 'VAAPI').replaceAll('metal', 'Metal').replaceAll('vulkan', 'Vulkan').split('-').join(' '), true);
+        }
         const opts = Object.keys(this.availableGPUFlags[state]).map(flag => {
-            const name = ucFirst(flag.replaceAll('gpu', 'GPU').replaceAll('mjpeg', 'MJPEG').split('-').join(' '), true);
+            const name = prepareName(flag);
             return {
                 name, type: 'check',
                 action: (_, checked) => {
@@ -258,6 +264,49 @@ class OptionsGPU extends PerformanceProfiles {
                 }
             };
         });
+        if (enabled) {
+            const forceFlags = ['vulkan']
+            if (process.platform == 'linux') {
+                forceFlags.push('vaapi')
+            } else if (process.platform == 'darwin') {
+                forceFlags.push('metal')
+            }
+            forceFlags.forEach(f => {
+                opts.push({
+                    name: 'Force '+ prepareName(f),
+                    type: 'check',
+                    action: (_, checked) => {
+                        config.set('use-' + f, checked);
+                        energy.askRestart();
+                    },
+                    checked: () => {
+                        return config.get('use-' + f);
+                    }
+                })
+            });
+            opts.push({
+                name: 'In-process GPU',
+                type: 'check',
+                action: (_, checked) => {
+                    config.set('in-process-gpu', checked);
+                    energy.askRestart();
+                },
+                checked: () => {
+                    return config.get('in-process-gpu');
+                }
+            });
+            opts.push({
+                name: 'Disable GPU Sandbox',
+                type: 'check',
+                action: (_, checked) => {
+                    config.set('disable-gpu-sandbox', checked);
+                    energy.askRestart();
+                },
+                checked: () => {
+                    return config.get('disable-gpu-sandbox');
+                }
+            })
+        }
         opts.push({
             name: lang.RESET,
             fa: 'fas fa-undo-alt',
@@ -1477,18 +1526,6 @@ class Options extends OptionsExportImport {
                             }
                         },
                         {
-                            name: lang.FOLDER_SIZE_LIMIT,
-                            fa: 'fas fa-folder',
-                            type: 'slider',
-                            range: { start: 8, end: 2048 },
-                            action: (data, value) => {
-                                config.set('folder-size-limit', value);
-                            },
-                            value: () => {
-                                return config.get('folder-size-limit');
-                            }
-                        },
-                        {
                             name: lang.TIMEOUT_SECS_ENERGY_SAVING,
                             fa: 'fas fa-leaf',
                             type: 'slider',
@@ -1530,10 +1567,10 @@ class Options extends OptionsExportImport {
                             checked: () => !config.get('hide-updates')
                         },
                         {
-                            name: lang.MATCH_ENTIRE_WORDS,
+                            name: 'Use Trias to improve recommendations',
                             type: 'check',
-                            action: (e, checked) => config.set('search-mode', checked ? 0 : 1),
-                            checked: () => config.get('search-mode') !== 1
+                            action: (e, checked) => config.set('use-trias', checked),
+                            checked: () => config.get('use-trias')
                         },
                         {
                             name: lang.SHOW_RECOMMENDATIONS_HOME,

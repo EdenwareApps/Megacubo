@@ -268,7 +268,6 @@
    "LOW_MEMORY_AVAILABLE": "デバイスのメモリが低い（{0}が利用可能）。 これは、アプリのパフォーマンスに影響を与える可能性があります。",
    "MAC_ADDRESS": "Macアドレス",
    "MANAGE_CHANNEL_LIST": "チャネルリストを管理します",
-   "MATCH_ENTIRE_WORDS": "検索時に単語全体を一致させます",
    "MAXIMIZE": "最大化します",
    "MINIMIZE": "最小化します",
    "MIUI_DARK_MODE_HINT": "オーディオが再生されているが画面が黒い場合は、デバイスでダークモードを無効にしてください。",

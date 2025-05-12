@@ -4,7 +4,7 @@ import osd from '../osd/osd.js'
 import menu from '../menu/menu.js'
 import lang from '../lang/lang.js'
 import storage from '../storage/storage.js'
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import mega from '../mega/mega.js'
 import Trending from '../trending/trending.js'
 import Bookmarks from '../bookmarks/bookmarks.js'
@@ -165,7 +165,6 @@ class ChannelsEPG extends ChannelsData {
         }
         const entries = []
         const epgData = await global.lists.epgSearch(terms, liveNow)
-        console.warn('epgSearch', epgData);
         Object.keys(epgData).forEach(ch => {
             let terms = global.lists.tools.terms(ch)
             entries.push(...this.epgDataToEntries(epgData[ch], ch, terms))

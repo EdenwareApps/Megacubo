@@ -1,5 +1,5 @@
 import renderer from '../bridge/bridge.js'
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 
 class OSD extends EventEmitter {
     constructor() {

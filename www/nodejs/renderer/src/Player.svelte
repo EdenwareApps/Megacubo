@@ -1,10 +1,13 @@
 <script>
+    import MediaPlayer from '../src/scripts/mediaplayer'
     import { onMount } from 'svelte'
     import { main } from '../../modules/bridge/renderer'
-	import MediaPlayer from '../src/scripts/mediaplayer'
-    import { StreamerClient } from '../../modules/streamer/renderer'
+	import { StreamerClient } from '../../modules/streamer/renderer'
+    let lang = $state({})
+    let playerElement, controlsElement
     const load = () => {
-        window.player = new MediaPlayer(document.querySelector('player'))
+        lang = main.lang
+        window.player = new MediaPlayer(playerElement)
         if(!window.capacitor){
             ['play', 'pause', 'seekbackward', 'seekforward', 'seekto', 'previoustrack', 'nexttrack', 'skipad'].forEach(n => {
                 // disable media keys
@@ -13,7 +16,7 @@
                 } catch(e){}
             })
         }
-        main.streamer = window.streamer = new StreamerClient(document.querySelector('controls'))
+        main.streamer = window.streamer = new StreamerClient(controlsElement)
         main.idle.on('away', () => {
             main.streamer.active || main.streamer.isTuning() || main.idle.energySaver.start()
         })
@@ -33,13 +36,13 @@
         }
 	})
 </script>
-<player>
+<player bind:this={playerElement}>
     <div>
         <video crossorigin plays-inline webkit-playsinline poster="./assets/images/blank.png"></video>
         <audio crossorigin plays-inline webkit-playsinline poster="./assets/images/blank.png"></audio>
     </div>
 </player>
-<controls>    
+<controls bind:this={controlsElement}>    
     <div id="streamer-info">
         <div></div>
     </div>
@@ -59,14 +62,14 @@
 </controls>
 <div class="curtain curtain-a"></div>
 <div class="curtain curtain-b"></div>
-<div id="paused-layer" class="control-layer" aria-hidden="true">
-    <button class="control-layer-icon cl-icon-play">
+<div id="paused-layer" class="control-layer">
+    <button aria-label="{lang.PLAY}" title="{lang.PLAY}" class="control-layer-icon cl-icon-play">
         <i class="fas fa-play"></i>
     </button>
-    <button class="control-layer-icon cl-icon-stop">
+    <button aria-label="{lang.STOP}" title="{lang.STOP}" class="control-layer-icon cl-icon-stop">
         <i class="fas fa-stop"></i>
     </button>
-    <button class="control-layer-icon cl-icon-menu">
+    <button aria-label="{lang.MENU}" title="{lang.MENU}" class="control-layer-icon cl-icon-menu">
         <i class="fas fa-th"></i>
     </button>
 </div>
@@ -159,7 +162,7 @@ body.modal #menu {
 body.video:not(.menu-playing) #menu header .menu-location,
 body.video-playing.idle:not(.menu-playing) #menu header .menu-time,
 body.video:not(.menu-playing) #menu .content-out,
-body.video:not(.menu-playing) #menu #home-arrows {
+body.video:not(.menu-playing) #menu #arrow {
     visibility: hidden;
 }
 

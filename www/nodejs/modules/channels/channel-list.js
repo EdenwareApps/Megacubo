@@ -1,7 +1,7 @@
 import osd from '../osd/osd.js'
 import lang from '../lang/lang.js'
 import storage from '../storage/storage.js'
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import cloud from '../cloud/cloud.js'
 import pLimit from 'p-limit'
 import Limiter from '../limiter/limiter.js'

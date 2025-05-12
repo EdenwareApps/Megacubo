@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { ESMitter as EventEmitter } from 'esm-itter'
 import { main } from '../../../modules/bridge/renderer'
 
 class WindowActions extends EventEmitter {

@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { ESMitter as EventEmitter } from 'esm-itter'
 
 export class MediaPlayerAdapter extends EventEmitter {
 	constructor(container){

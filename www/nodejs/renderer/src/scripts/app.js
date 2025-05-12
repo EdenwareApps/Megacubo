@@ -35,7 +35,7 @@ function hideBackButton(doHide) {
 function configUpdated() {
     menu.sounds.enabled = main.config['ui-sounds']
     const ms = main.config['view-size']
-    menu.setGridLayout(ms.landscape.x, ms.landscape.y, ms.portrait.x, ms.portrait.y)
+    menu.setGrid(ms.landscape.x, ms.landscape.y, ms.portrait.x, ms.portrait.y)
     hideBackButton(main.config['hide-back-button'])
     if (typeof(window['winActions']) == 'undefined' || !window['winActions']) {
         return
@@ -99,7 +99,7 @@ function handleSwipe(e) {
             case 'down': // go up
                 if (main.menu.inPlayer()) {
                     if (main.menu.isVisible()) {
-                        if (!main.menu.wrap.scrollTop) {
+                        if (!main.menu.scrollContainer.scrollTop) {
                             main.emit('menu-playing', true)
                             document.body.classList.remove('menu-playing')
                         }
@@ -271,116 +271,12 @@ export const initApp = async () => {
             }   
         } else {
             document.body.classList.add('home')    
-        }  
-        setTimeout(() => {
-            if (typeof(verticalArrowsUpdate) == 'function') {
-                verticalArrowsUpdate()
-            }
-        }, 0)
+        }
     })
 
     configUpdated([], main.config);
-    ([
-        {
-            level: 'default',
-            selector: ['#menu wrap a', 'body.video #menu-playing-close', '.menu-omni'],
-            condition: () => {
-                return menu.isVisible() && !menu.inSideMenu()
-            },
-            default: true,
-            overScrollAction: (direction, e) => {
-                if (direction == 'up' || direction == 'down') {
-                    let playing = menu.inPlayer()
-                    if (!playing) {
-                        let n
-                        if (e) {
-                            let entries = menu.entries(true, true), i = entries.indexOf(e)
-                            let rowSize = Math.floor(entries.length / menu.gridLayoutX)
-                            if(direction == 'up') {
-                                i += (entries.length * rowSize)
-                                if(entries[i]) {
-                                    n = entries[i]
-                                } else {
-                                    n = entries.pop()
-                                }
-                            } else {
-                                i -= (entries.length * rowSize)
-                                if(entries[i]) {
-                                    n = entries[i]
-                                } else {
-                                    n = entries.shift()
-                                }
-                            }
-                        }
-                        if (!n) {
-                            n = e
-                        }
-                        menu.focus(n)
-                        return true
-                    } else if(direction == 'up') {
-                        menu.showWhilePlaying(false)
-                    }
-                } else if(direction == 'left' && !menu.inSideMenu() && !menu.inModal()) {
-                    menu.sideMenu(true)
-                    return true
-                }
-            }
-        },
-        {
-            level: 'nav-menu',
-            selector: 'body.side-menu #menu nav a',
-            condition: () => {
-                const inp = menu.inPlayer()
-                return menu.inSideMenu() && !menu.inModal() && menu.isVisible()
-            },
-            overScrollAction: (direction, e) => {
-                if (direction == 'up' || direction == 'down') {
-                    let playing = menu.inPlayer()
-                    if (!playing) {
-                        let n = [...menu.container.querySelectorAll('entry-nav')][direction == 'down' ? 'shift' : 'pop']()
-                        menu.focus(n)
-                        return true
-                    } else if(direction == 'up' || direction == 'left') {
-                        menu.showWhilePlaying(false)
-                    }
-                } else if(direction == 'right') {
-                    menu.sideMenu(false)
-                    return true
-                }
-            }
-        },
-        {
-            level: 'modal',
-            selector: '#modal-content input, #modal-content textarea, #modal-content .button, #modal-content a',
-            condition: () => {
-                return menu?.inModal()
-            }
-        },
-        {
-            level: 'player',
-            selector: [
-                '.control-layer-icon',
-                'controls button, div#arrow-down-hint i',
-                'seekbar > div'
-            ], // use array to force selector to keep this auto focus order
-            condition: () => {
-                return menu.inPlayer() && !menu.inModal() && !menu.isVisible()
-            },
-            overScrollAction: direction => {
-                if (direction == 'down') {
-                    menu.showWhilePlaying(true)
-                    return true
-                } else if (direction == 'up') {
-                    menu.reset(true)
-                    main.idle.start()
-                    main.idle.lock(1)
-                    return true
-                }
-            }
-        }
-    ]).forEach(menu.addSpatialNavigationLayout.bind(menu))
     main.on('streamer-ready', () => {
-        const reset = () => menu.reset(true)
+        const reset = () => menu.emit('reset', true)
         main.streamer.on('streamer-pause', reset)
         main.streamer.on('start', () => {
             main.menu.showWhilePlaying(false)
@@ -389,14 +285,14 @@ export const initApp = async () => {
         main.streamer.on('show', reset)
         main.idle.on('active', () => {
             if (menu.inPlayer() && !menu.isVisible()) {
-                const selected = menu.selected()
+                const selected = menu.selectedElementX
                 console.warn('idle active', selected, selected?.parentNode?.tagName?.toLowerCase() || null)
                 if (selected?.parentNode?.tagName?.toLowerCase() == 'seekbar') {
                     reset()
                 }
             }
         })
-        main.menu.on('focus', e => {
+        main.menu.on('x-focus', (idx, e) => {
             if(e == main.streamer.seekbar.lastElementChild) {
                 main.streamer.setSeeking()
             } else {
@@ -417,7 +313,7 @@ export const initApp = async () => {
             )) {
                 menu.endModal()
             } else {
-                menu.selected(true)
+                menu.emit('reset', true)
             }
         })
         const buttons = {
@@ -505,23 +401,16 @@ export const initApp = async () => {
         parent.Manager && parent.Manager.appLoaded()
     })
     
-    menu.on('modal-start', () => menu.selected())
-    menu.on('pos-modal-end', () => menu.selected())
-    menu.on('arrow', (element, direction) => {
-        menu.sounds.play('menu', 7)
-        setTimeout(() => {
-            if (typeof(verticalArrowsUpdate) == 'function') {
-                verticalArrowsUpdate()
-            }
-        }, 0)
-    })
+    menu.on('modal-start', () => menu.reset())
+    menu.on('pos-modal-end', () => menu.reset())
+    menu.on('focus', () => menu.sounds.play('menu', 7))
     menu.on('menu-playing', enable => {
         main.emit('menu-playing', enable)
         main.idle.reset()
         main.idle.lock(0.1)
     })
 
-    menu.on('side-menu', () => menu.selected(true))
+    menu.on('side-menu', () => menu.reset(true))
     main.on('menu-playing', () => menu.showWhilePlaying(true))
     main.on('menu-playing-close', () => menu.showWhilePlaying(false))
 
@@ -536,85 +425,10 @@ export const initApp = async () => {
     })
 
     main.omni = new OMNI()
-    main.omni.on('left', () => menu.arrow('left'))
-    main.omni.on('right', () => menu.arrow('right'))
-    main.omni.on('down', () => menu.arrow('down'))
-    main.omni.on('up', () => menu.arrow('up'))
-
     main.omni.on('show', () => menu.sideMenu(false, 'instant'))
-    main.omni.on('hide', () => menu.selected())
+    main.omni.on('hide', () => menu.reset())
 
-    menu.on('scroll', y => {
-        menu.debug && console.log('menu scroll', y)
-        menuLocationShow()
-        verticalArrowsUpdate()
-    })
-
-    var menuLocation = document.querySelector('.menu-location-pagination'), menuLocationTxt = menuLocation.querySelector('span'), menuLocationTimer = 0, menuLocationDuration = 5000, menuLocationShown = false
-    const menuLocationShow = txt => {
-        clearTimeout(menuLocationTimer)
-        if (!menuLocationShown) {
-            menuLocationShown = true
-            menuLocation.style.display = 'inline-block'
-        }
-        if (typeof(txt) == 'string') {
-            menuLocationTxt.innerHTML = txt
-        }
-        if (menu.selectedIndex < 2) {
-            menuLocationTimer = setTimeout(() => {
-                if (menuLocationShown) {
-                    menuLocationShown = false
-                    menuLocation.style.display = 'none'
-                }
-            }, menuLocationDuration)
-        }
-    }
-    const menuLocationListener = () => {
-        let selected = menu.selectedIndex + 1, total = menu.currentElements.length
-        menuLocationShow(' ' + selected + '/' + total)
-    }
-    menu.on('arrow', menuLocationListener)
-    menu.on('focus', menuLocationListener)
-    menu.on('render', menuLocationListener)
-
-    var verticalArrowTop = document.querySelector('#home-arrows-top'), verticalArrowBottom = document.querySelector('#home-arrows-bottom')
-    verticalArrowTop.addEventListener('click', () => menu.arrow('up'))
-    verticalArrowBottom.addEventListener('click', () => menu.arrow('down'))
-
-    const wrap = document.querySelector('#menu wrap')
-    const verticalArrows = { bottom: null, top: null, timer: 0 };
-    window.verticalArrowsUpdate = () => {
-        const as = menu.currentElements
-        if (as.length > (menu.gridLayoutX * menu.gridLayoutY)) {
-            const lastY = Math.floor((as[as.length - 1].offsetTop + as[as.length - 1].offsetHeight) - wrap.scrollTop), firstY = as[0].offsetTop - wrap.scrollTop
-            if (lastY > wrap.parentNode.offsetHeight) {
-                if (verticalArrows.bottom !== true) {
-                    verticalArrows.bottom = true
-                    verticalArrowBottom.style.opacity = 'var(--opacity-level-3)'
-                }
-            } else {
-                if (verticalArrows.bottom !== false) {
-                    verticalArrows.bottom = false
-                    verticalArrowBottom.style.opacity = 0
-                }
-            }
-            if (firstY < 0) {
-                if (verticalArrows.top !== true) {
-                    verticalArrows.top = true
-                    verticalArrowTop.style.opacity = 'var(--opacity-level-3)'
-                }
-            } else {
-                if (verticalArrows.top !== false) {
-                    verticalArrows.top = false
-                    verticalArrowTop.style.opacity = 0
-                }
-            }
-        } else {
-            verticalArrows.top = verticalArrows.bottom = false
-            verticalArrowTop.style.opacity = 0
-            verticalArrowBottom.style.opacity = 0
-        }
-    }
+    const wrap = document.querySelector('svelte-virtual-grid-contents')
 
     configUpdated([], config)
 
@@ -625,8 +439,6 @@ export const initApp = async () => {
             main.hotkeys.start(c.hotkeys)
         }
     })
-
-    main.clock = new Clock(document.querySelector('.menu-time time'))
 
     var toggle = document.querySelector('.side-menu-toggle')
     if(window.capacitor) { // tapping
@@ -641,13 +453,18 @@ export const initApp = async () => {
         })
         wrap.addEventListener('mouseenter', () => menu.sideMenu(false))
 
-        let autoScrollInterval = 0, autoScrollDirection = 'down', autoScrollFn = () => menu.arrow(autoScrollDirection), autoScrollClearTimer = () => clearInterval(autoScrollInterval);
+        let autoScrollInterval = 0, autoScrollDirection = 'down'
+        const autoScrollFn = () => {
+            menu.emit('arrow', autoScrollDirection, true)
+        }
+        const autoScrollClearTimer = () => clearInterval(autoScrollInterval);
         for (const o of [
-            {element: verticalArrowTop, direction: 'up'},
-            {element: verticalArrowBottom, direction: 'down'}
+            { direction: 'up'},
+            { direction: 'down'}
         ]) {
-            o.element.addEventListener('mouseenter', () => {
-                o.element.addEventListener('mouseleave', autoScrollClearTimer)
+            const element = document.querySelector('#arrow-'+ o.direction)
+            element.addEventListener('mouseenter', () => {
+                element.addEventListener('mouseleave', autoScrollClearTimer)
                 autoScrollClearTimer()
                 autoScrollDirection = o.direction
                 autoScrollInterval = setInterval(autoScrollFn, 750)

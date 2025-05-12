@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import { basename, traceback } from '../utils/utils.js'
 import lang from '../lang/lang.js'
 import storage from '../storage/storage.js'
@@ -448,7 +448,7 @@ class Menu extends EventEmitter {
                 this.emit('action', this.pages[dir][i])
                 return true
             } else {
-                console.warn('ACTION ' + name + ' (' + tabindex + ') NOT FOUND IN ', { dir }, this.pages[dir])
+                console.error('ACTION ' + name + ' (' + tabindex + ') NOT FOUND IN ', { dir, destPath, keys: Object.keys(this.pages) }, this.pages[dir])
             }
         }
     }
@@ -751,7 +751,7 @@ class Menu extends EventEmitter {
                 name: lang.BACK,
                 type: 'back',
                 fa: this.backIcon,
-                path: backTo || this.dirname(path)
+                path: backTo || path
             }
             entries.unshift(backEntry)
             if (!config.get('auto-test')) {
@@ -761,6 +761,7 @@ class Menu extends EventEmitter {
                         name: lang.TEST_STREAMS,
                         fa: 'fas fa-satellite-dish',
                         type: 'action',
+                        path: path + '/' + lang.TEST_STREAMS,
                         action: async () => {
                             global.streamer.state.test(entries, '', true)
                         }

@@ -4,7 +4,7 @@ import storage from '../storage/storage.js'
 import fs from 'fs/promises'
 import config from '../config/config.js'
 import paths from '../paths/paths.js'
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import { getDomain } from '../utils/utils.js'
 
 class CloudConfiguration extends EventEmitter {
@@ -140,7 +140,7 @@ class CloudConfiguration extends EventEmitter {
 
     async register(endpoint, params) {
         const url = `${this.server}/${endpoint}`
-        const response = await Download.post({ url, responseType: 'text', post: params, debug: true })
+        const response = await Download.post({ url, responseType: 'text', post: params })
         return response
     }
 

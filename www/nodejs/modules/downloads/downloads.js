@@ -2,7 +2,7 @@ import Download from '../download/download.js'
 import { basename, decodeURIComponentSafe, prepareCORS } from "../utils/utils.js";
 import osd from '../osd/osd.js'
 import lang from "../lang/lang.js";
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import fs from "fs";
 import http from "http";
 import url from 'node:url';

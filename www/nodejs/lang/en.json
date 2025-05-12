@@ -268,7 +268,6 @@
    "LOW_MEMORY_AVAILABLE": "Your device is low on memory ({0} available). This may affect the app performance.",
    "MAC_ADDRESS": "MAC address",
    "MANAGE_CHANNEL_LIST": "Manage channel list",
-   "MATCH_ENTIRE_WORDS": "Match entire words when searching",
    "MAXIMIZE": "Maximize",
    "MINIMIZE": "Minimize",
    "MIUI_DARK_MODE_HINT": "If the audio plays but the screen is black, please disable Dark Mode on your device.",

@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { ESMitter as EventEmitter } from 'esm-itter'
 import { main } from '../bridge/renderer'
 
 class OMNIUtils extends EventEmitter {
@@ -42,12 +42,11 @@ export class OMNI extends OMNIUtils {
         document.addEventListener('keyup', this.eventHandler.bind(this))
     }
     bind(){
-        main.menu.on('focus', element => {
+        const listener = (idx, element) => {
             if(!this.visible) return
-            if(element != this.input && !element.contains(this.input)){
-                this.hide()
-            }
-        })
+            this.hide()
+        }
+        main.menu.on('focus', listener)
         main.on('omni-show', () => {
             main.menu.sideMenu(false, 'instant')
             setTimeout(() => this.show(true), 50)
@@ -228,7 +227,7 @@ export class OMNI extends OMNIUtils {
                         pos = main.menu.currentEntries.length - 1
                     }
                     if(pos > 0){
-                        main.menu.focus(main.menu.currentElements[pos])
+                        main.menu.emit('focus-index', pos)
                     }
                     return
                 }

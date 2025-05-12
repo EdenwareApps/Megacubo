@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import Countries from "../countries/countries.js";
 import fs from "fs";
 import path from "path";

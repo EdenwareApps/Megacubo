@@ -1,7 +1,7 @@
 import lang from "../../lang/lang.js";
 import pLimit from "p-limit";
 import cloud from "../../cloud/cloud.js";
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import { insertEntry, kfmt, listNameFromURL } from "../../utils/utils.js";
 import config from "../../config/config.js"
 import renderer from '../../bridge/bridge.js'

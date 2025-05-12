@@ -134,54 +134,49 @@ class IconSearch extends IconDefault {
                 console.log('is channel', ntms)
             }            
             let images = []
-            const next = () => {
-                lists.search(ntms, {
-                    type: 'live',
-                    safe: !lists.parentalControl.lazyAuth()
-                }).then(ret => {
+            lists.search(ntms, {
+                type: 'live',
+                safe: !lists.parentalControl.lazyAuth()
+            }).then(ret => {
+                if (this.opts.debug) {
+                    console.log('fetch from terms', ntms, liveOnly, JSON.stringify(ret));
+                }
+                if (ret.length) {
+                    const already = {}, alreadySources = {};
+                    ret = ret.filter(e => {
+                        return e.icon && e.icon.includes('//');
+                    });
                     if (this.opts.debug) {
-                        console.log('fetch from terms', ntms, liveOnly, JSON.stringify(ret));
+                        console.log('fetch from terms', JSON.stringify(ret));
                     }
-                    if (ret.length) {
-                        const already = {}, alreadySources = {};
-                        ret = ret.filter(e => {
-                            return e.icon && e.icon.includes('//');
-                        });
-                        if (this.opts.debug) {
-                            console.log('fetch from terms', JSON.stringify(ret));
-                        }
-                        ret = ret.map((e, i) => {
-                            if (typeof(already[e.icon]) == 'undefined') {
-                                already[e.icon] = i;
-                                alreadySources[e.icon] = [e.source];
-                                return {
-                                    icon: e.icon,
-                                    live: this.seemsLive(e) ? 1 : 0,
-                                    hits: 1,
-                                    trending: this.trendingIcons[e.icon] || 0,
-                                    epg: 0
-                                };
-                            } else {
-                                if (!alreadySources[e.icon].includes(e.source)) {
-                                    alreadySources[e.icon].push(e.source);
-                                    ret[already[e.icon]].hits++;
-                                }
-                                if (!ret[already[e.icon]].live && this.seemsLive(e)) {
-                                    ret[already[e.icon]].live = true;
-                                }
+                    ret = ret.map((e, i) => {
+                        if (typeof(already[e.icon]) == 'undefined') {
+                            already[e.icon] = i;
+                            alreadySources[e.icon] = [e.source];
+                            return {
+                                icon: e.icon,
+                                live: this.seemsLive(e) ? 1 : 0,
+                                hits: 1,
+                                trending: this.trendingIcons[e.icon] || 0,
+                                epg: 0
+                            };
+                        } else {
+                            if (!alreadySources[e.icon].includes(e.source)) {
+                                alreadySources[e.icon].push(e.source);
+                                ret[already[e.icon]].hits++;
                             }
-                        }).filter(e => !!e);
-                        ret = ret.sortByProp('hits', true).sortByProp('live', true); // gid here serves as a hint of a live stream
-                        if (this.opts.debug) {
-                            console.log('search() result', ret);
+                            if (!ret[already[e.icon]].live && this.seemsLive(e)) {
+                                ret[already[e.icon]].live = true;
+                            }
                         }
-                        images.push(...ret);
+                    }).filter(e => !!e);
+                    ret = ret.sortByProp('hits', true).sortByProp('live', true); // gid here serves as a hint of a live stream
+                    if (this.opts.debug) {
+                        console.log('search() result', ret);
                     }
-                }).catch(err => console.error(err)).finally(() => resolve(images));
-            }
-            lists.epgSearchChannelIcon(ntms).then(srcs => images = srcs.map(src => {
-                return { icon: src, live: true, hits: 1, trending: 1, epg: 1 };
-            })).catch(err => console.error(err)).finally(next)
+                    images.push(...ret);
+                }
+            }).catch(err => console.error(err)).finally(() => resolve(images));
         });
     }
 }

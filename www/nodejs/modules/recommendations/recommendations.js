@@ -7,7 +7,7 @@ import PQueue from 'p-queue'
 import renderer from '../bridge/bridge.js'
 import cloud from '../cloud/cloud.js'
 import { ts2clock, time } from '../utils/utils.js'
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import { Tags } from './tags.js'
 
 class Recommendations extends EventEmitter {

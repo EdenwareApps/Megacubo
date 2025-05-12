@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import http from 'http'
 import path from 'path'
 import fs from 'fs'
@@ -103,11 +103,11 @@ class BridgeServer extends EventEmitter {
         }
         this.setMaxListeners(20)
         this.server = http.createServer((req, response) => {
-            if (!this.checkUA(req.headers)) {
+            const parsedUrl = url.parse(req.url, false)
+            if (!parsedUrl.pathname.endsWith('.map') && !this.checkUA(req.headers)) {
                 response.writeHead(400, prepareCORS({ 'content-type': 'text/plain' }, req))
                 return response.end()
             }
-            const parsedUrl = url.parse(req.url, false)
             prepareCORS(response, req)
             response.setHeader('Connection', 'close')
             response.setHeader('Feature-Policy', 'clipboard-read; clipboard-write; fullscreen; autoplay;')

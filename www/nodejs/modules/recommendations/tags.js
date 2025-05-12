@@ -1,5 +1,4 @@
-import { EventEmitter } from 'events'
-import { Trias } from 'trias'
+import { EventEmitter } from 'node:events'
 import PQueue from 'p-queue'
 import fs from 'fs'
 import listsTools from '../lists/tools.js'
@@ -105,70 +104,29 @@ export class Tags extends EventEmitter{
             Object.entries(tags).sort(([, valueA], [, valueB]) => valueB - valueA).map(([key, value]) => [key, value / max])
         )
     }
-    async trias() {
-        const file = storage.resolve(lang.locale +'.trias')
-        const modelSize = await fs.promises.stat(file).catch(e => ({size: 0}))
-        if (modelSize.size == 0) {
-            throw new Error('Trias not ready')
-        }
-        if (this.triasInstance) {
-            if (this.triasModelSize == modelSize.size && this.triasInstance.totalDocuments) {
-                return this.triasInstance
-            } else {
-                this.triasInstance.reset()
-                this.triasInstance = null
-            }
-        }
-        try {
-            this.triasInstance = new Trias({
-                create: false,
-                file,
-                language: lang.locale,
-                capitalize: true,
-                autoImport: true,
-                excludes: ['separator', 'separador', 'hd', 'hevc', 'sd', 'fullhd', 'fhd', 'channels', 'canais', 'aberto', 'abertos', 'world', 'países', 'paises', 'countries', 'ww', 'live', 'ao vivo', 'en vivo', 'directo', 'en directo', 'unknown', 'other', 'others']
-            })
-            await this.triasInstance.initialized
-            if(!this.triasInstance?.addGravitationalGroups) {
-                throw new Error('Trias not ready')
-            }
-            this.triasModelSize = modelSize.size
-            this.triasInstance.addGravitationalGroups(gravitationalGroups)
-            return this.triasInstance
-        } catch(e) {
-            this.triasInstance = null
-            throw e
-        }
-    }
-    async reduce(tags, amount) {
-        const trias = await this.trias()
-        return trias.reduce(tags, {amount})
-    }
     async expand(tags) {
         let err, additionalTags = {}            
         const limit = this.defaultTagsCount
         const additionalLimit = limit - Object.keys(tags).length
-        try {
-            // try first using Trias module, preferred for better results
-            const trias = await this.trias()
-            const relatedCategories = await trias.related(tags, {as: 'objects', amount: additionalLimit})
-            if (!err && relatedCategories) {
-                relatedCategories.forEach(t => {
-                    t.category = t.category.toLowerCase()
-                    if(tags[t.category]) {
-                        return
-                    }
-                    if(typeof(additionalTags[t.category]) == 'undefined') {
-                        additionalTags[t.category] = 0
-                    }
-                    additionalTags[t.category] += t.score / 2 // divide by 2 to pump up the direct tags
-                })
-                additionalTags = this.prepare(additionalTags, additionalLimit)
-                Object.assign(tags, additionalTags)
-            }
-            trias.reset()
-        } catch(e) {
-            if(e.message.includes('Trias not ready')) {
+        if (additionalLimit > 0) {
+            try {
+                // try first using Trias module from epg worker, preferred for better results
+                const relatedCategories = await global.lists.epg.expandTags(tags, {as: 'objects', amount: additionalLimit})
+                if (!err && relatedCategories) {
+                    relatedCategories.forEach(t => {
+                        t.category = t.category.toLowerCase()
+                        if(tags[t.category]) {
+                            return
+                        }
+                        if(typeof(additionalTags[t.category]) == 'undefined') {
+                            additionalTags[t.category] = 0
+                        }
+                        additionalTags[t.category] += t.score / 2 // divide by 2 to pump up the direct tags
+                    })
+                    additionalTags = this.prepare(additionalTags, additionalLimit)
+                    Object.assign(tags, additionalTags)
+                }
+            } catch(e) {
                 console.error(e)
             }
         }

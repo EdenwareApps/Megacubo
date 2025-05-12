@@ -1,13 +1,14 @@
-<script type="text/javascript">
+<script>
+    import DragDrop from './DragDrop.svelte'
     import Player from './Player.svelte'
     import Theme from './Theme.svelte'
     import Menu from './Menu.svelte'
     import Osd from './Osd.svelte'
-    import DragDrop from './DragDrop.svelte'
 </script>
-<link rel="stylesheet" global href="./assets/css/all.min.css" />
-<link rel="stylesheet" global href="./assets/icons/icons.css" />
-<link rel="stylesheet" href="./dist/renderer.css" />
+<svelte:head>
+    <link rel="stylesheet" global href="./assets/css/all.min.css" />
+    <link rel="stylesheet" global href="./assets/icons/icons.css" />
+</svelte:head>
 <Theme />
 <Player />
 <div id="main">
@@ -133,7 +134,9 @@ body {
     overscroll-behavior-y: none; /* prevents scroll snap bug */
 }
 app {
-    max-height: 100vh; /* prevents positioning bug */
+    width: 100vw;
+    height: 100vh; /* prevents positioning bug */
+    overflow: hidden;
 }
 player {
     width: 100vw;
@@ -165,6 +168,9 @@ body:not(input):not(textarea) {
     width: 100%;
     height: 100%;
     display: flex;
+    top: 0;
+    left: 0;
+    position: absolute;
     justify-content: center;
     background-color: transparent;
 }

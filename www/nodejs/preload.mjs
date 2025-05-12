@@ -1,12 +1,11 @@
 import electron from "electron";
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import path from "path";
 import fs from "fs";
 import { spawn } from "child_process";
 import ExecFinder from 'exec-finder';
 import { getFilename } from "cross-dirname";
 import { createRequire } from 'node:module';
-import Download from "./modules/download/download.js";
 import { prepare } from "./modules/serialize/serialize.js";
 
 function getElectron() {
@@ -35,7 +34,6 @@ function getElectron() {
 
 const { contextBridge, webFrame, webUtils, ipcRenderer, getGlobal, screen, app, shell, Tray, Menu } = getElectron();
 const paths = getGlobal('paths'), config = getGlobal('config');
-const download = Download.get.bind(Download);
 const window = getGlobal('window')
 class FFmpeg {
     constructor() {
@@ -298,7 +296,7 @@ if (parseFloat(process.versions.electron) < 22) {
         window: windowProxy,
         openExternal: f => shell.openExternal(f),
         screenScaleFactor, externalPlayer, getScreen,
-        download, restart, ffmpeg, paths, tray,
+        restart, ffmpeg, paths, tray,
         getResourceUsage, clearCache, showFilePath
     };
 } else {
@@ -316,7 +314,6 @@ if (parseFloat(process.versions.electron) < 22) {
         getResourceUsage,
         clearCache,
         getScreen,
-        download,
         restart,
         ffmpeg,
         paths,

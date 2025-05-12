@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { ESMitter as EventEmitter } from 'esm-itter'
 import { main } from '../bridge/renderer'
 import { css, time, kbsfmt } from '../../renderer/src/scripts/utils'
 import { zapSetup } from '../../modules/zap/renderer'
@@ -6,7 +6,6 @@ import { zapSetup } from '../../modules/zap/renderer'
 class StreamerPlaybackTimeout extends EventEmitter {
     constructor(controls){
         super()
-        this.setMaxListeners(20)
         this.controls = controls
         this.playbackTimeout = 25000
         this.playbackTimeoutTimer = 0
@@ -1029,23 +1028,25 @@ class StreamerSeek extends StreamerButtonActionFeedback {
         }
     }
     setSeeking(){
-        const c = document.body.classList
-        if(!this.seeking) {
-            this.seeking = true
-            this.emit('seeking')
-            c.add('seeking')
+        if(this.active){
+            const c = document.body.classList
+            if(!this.seeking) {
+                this.seeking = true
+                this.emit('seeking')
+                c.add('seeking')
+            }
+            this.seekingTimer && clearTimeout(this.seekingTimer)
+            this.seekingTimer = setTimeout(() => this.unsetSeeking(), 2000)
+            main.menu.emit('focus', this.seekbar.lastElementChild)
         }
-        this.seekingTimer && clearTimeout(this.seekingTimer)
-        this.seekingTimer = setTimeout(() => this.unsetSeeking(), 2000)
-        main.menu.focus(this.seekbar.lastElementChild)
     }
     unsetSeeking(){
-        clearTimeout(this.seekingTimer)
-        this.seeking = false
-        this.emit('seeked')
-        document.body.classList.remove('seeking')
-        if(main.menu.selected() == this.seekbar.lastElementChild) {
-            
+        if(this.seeking || this.seekingTimer) {
+            clearTimeout(this.seekingTimer)
+            this.seekingTimer = 0
+            this.seeking = false
+            this.emit('seeked')
+            document.body.classList.remove('seeking')
         }
     }
 }
@@ -1393,7 +1394,7 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
         })
         this.once('start', () => this.volumeChanged())
         main.idle.on('idle', () => this.volumeBarHide())
-        main.menu.on('focus', e => {
+        main.menu.on('x-focus', (idx, e) => {
             if(e == this.volumeButton){
                 if(!this.volumeBarVisible()){
                     this.volumeLastClickTime = time()
@@ -1410,7 +1411,7 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
         }, {passive: true})
     }
     isVolumeButtonActive(){
-        let s = main.menu.selected()
+        let s = main.menu.selectedElementX
         return s && s.id && s.id == 'volume'
     }
     volumeUp(){
@@ -1511,7 +1512,7 @@ class StreamerClientControls extends StreamerAudioUI {
         }
         this.addPlayerButton('stream-info', 'ABOUT', 'fas fa-ellipsis-v', 12, () => main.emit('about'))
         this.controls.querySelectorAll('button').forEach(bt => {
-            bt.addEventListener('touchstart', () => main.menu.focus(bt), {passive: true})
+            bt.addEventListener('touchstart', () => main.menu.emit('focus', bt), {passive: true})
         })
         this.emit('draw')
         document.querySelector('#menu').addEventListener('click', e => {
@@ -1566,7 +1567,7 @@ class StreamerClientControls extends StreamerAudioUI {
         } else {
             container.insertBefore(bt, container.firstChild)
         }
-        let button = container.querySelector('#' + id)
+        let button = container.querySelector('#'+ id)
         if(typeof(action) == 'function'){
             button.addEventListener('click', action, {passive: true})
         } else {

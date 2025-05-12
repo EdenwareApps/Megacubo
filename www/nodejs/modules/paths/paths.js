@@ -5,7 +5,7 @@ import envPaths from "env-paths";
 import { getDirname, getFilename } from 'cross-dirname'
 import { workerData } from 'worker_threads'
 import { createRequire } from 'node:module';
-import mainPackageJson from '../../package.json' assert { type: 'json' };
+import mainPackageJson from '../../package.json' with { type: 'json' };
 
 const paths = {}
 paths.inWorker = workerData && Object.keys(workerData).length

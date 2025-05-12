@@ -268,7 +268,6 @@
    "LOW_MEMORY_AVAILABLE": "Pajisja juaj është e ulët në kujtesë ({0} në dispozicion). Kjo mund të ndikojë në performancën e aplikacionit.",
    "MAC_ADDRESS": "Adresa mac",
    "MANAGE_CHANNEL_LIST": "Menaxho listën e kanaleve",
-   "MATCH_ENTIRE_WORDS": "Përputhni fjalët e tëra kur kërkoni",
    "MAXIMIZE": "Maksimizoj",
    "MINIMIZE": "Minimizoj",
    "MIUI_DARK_MODE_HINT": "Nëse audio luan, por ekrani është i zi, ju lutemi çaktivizoni modalitetin e errët në pajisjen tuaj.",

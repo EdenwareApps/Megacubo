@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import closed from '../../on-closed/on-closed.js'
 import StreamerFFmpeg from '../utils/ffmpeg.js'
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import ffmpeg from '../../ffmpeg/ffmpeg.js'
 import config from "../../config/config.js"
 import { ext, rmdir } from '../utils/utils.js'

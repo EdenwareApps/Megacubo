@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import StreamInfo from './utils/stream-info.js'
 import Mag from '../lists/mag.js'
 import StreamerProxy from './utils/proxy.js'

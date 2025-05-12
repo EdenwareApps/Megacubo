@@ -1,8 +1,8 @@
-import { EventEmitter } from 'events'
 import { MediaPlayerAdapterHTML5Audio, MediaPlayerAdapterHTML5Video, MediaPlayerAdapterAndroidNative } from './mediaplayer-adapter'
-import MediaPlayerAdapterHTML5DASH from './mediaplayer-adapter-dash'
-import MediaPlayerAdapterHTML5HLS from './mediaplayer-adapter-hls'
 import MediaPlayerAdapterHTML5TS from './mediaplayer-adapter-ts'
+import MediaPlayerAdapterHTML5HLS from './mediaplayer-adapter-hls'
+import MediaPlayerAdapterHTML5DASH from './mediaplayer-adapter-dash'
+import { ESMitter as EventEmitter } from 'esm-itter'
 import { main } from '../../../modules/bridge/renderer'
 
 class MediaPlayer extends EventEmitter {

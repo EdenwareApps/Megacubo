@@ -1,5 +1,4 @@
 import {MediaPlayerAdapterHTML5Video} from './mediaplayer-adapter'
-import 'dashjs'
 
 class MediaPlayerAdapterHTML5DASH extends MediaPlayerAdapterHTML5Video {
     constructor(container) {

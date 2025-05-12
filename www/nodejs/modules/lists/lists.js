@@ -11,6 +11,7 @@ import Discovery from "../discovery/discovery.js";
 import config from "../config/config.js"
 import MultiWorker from '../multi-worker/multi-worker.js';  
 import lang from '../lang/lang.js';
+import energy from '../energy/energy.js';
 import { ready } from '../bridge/bridge.js'
 import { inWorker } from '../paths/paths.js'
 import { forwardSlashes, parseCommaDelimitedURIs, LIST_DATA_KEY_MASK } from "../utils/utils.js";
@@ -44,10 +45,12 @@ class ListsEPGTools extends Index {
                     const key = 'epg-'+ lang.locale
                     if(keys.includes(key) || keys.includes('locale')) {
                         this.epg.sync(config.get(key)).catch(err => console.error(err))
+                    } else if (keys.includes('use-trias')) {
+                        energy.askRestart()
                     }
                 })
                 const key = 'epg-'+ lang.locale
-                this.epg.start(config.get(key)).catch(err => console.error(err))
+                this.epg.start(config.get(key), config.get('use-trias')).catch(err => console.error(err))
             })
         })
     }
@@ -96,10 +99,6 @@ class ListsEPGTools extends Index {
         if (!this.epg.loaded) return {}
         return this.epg.searchChannel(this.tools.applySearchRedirects(terms), limit);
     }
-    async epgSearchChannelIcon(terms) {
-        if (!this.epg.loaded) return []
-        return this.epg.searchChannelIcon(this.tools.applySearchRedirects(terms));
-    }
     async epgLiveNowChannelsList() {
         
         const cacheKey = 'epg-live-now-channels-list'
@@ -118,7 +117,7 @@ class ListsEPGTools extends Index {
         if (data?.categories && Object.keys(data['categories']).length) {
             try {
                 let names = Object.keys(data['categories']).filter(c => c.length > 1).filter(c => this.parentalControl.allow(c))
-                const clusters = await global.recommendations.tags.reduce(names, 43)
+                const clusters = await this.epg.reduceTags(names, {amount: 43})
                 if (clusters && Object.keys(clusters).length) {
                     const categories = {}
                     for(const name in clusters) {

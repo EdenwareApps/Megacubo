@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import fs from "fs"
 import path from "path"
 import defaults from './defaults.json' with { type: 'json' }

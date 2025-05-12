@@ -1,6 +1,6 @@
 import { main } from '../bridge/renderer'
 import { detectFontSizeMultiplier } from '../../renderer/src/scripts/utils'
-import { EventEmitter } from 'events'
+import { ESMitter as EventEmitter } from 'esm-itter'
 
 const colorChannelMixer = (colorChannelA, colorChannelB, amountToMix) => {
     var channelA = colorChannelA*amountToMix
@@ -237,8 +237,8 @@ class Theme extends EventEmitter {
         let b = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.5)
         let c = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.55)
         let d = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.85)
-        let g = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.8)
-        let h = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.9)
+        let g = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.5)
+        let h = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.7)
 
         baseColor = [255, 255, 255]
         let e = hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, 0.32))
@@ -276,14 +276,6 @@ class Theme extends EventEmitter {
         body.video, html.curtains-closed body {
             --shadow-background-color: rgba(0, 0, 0, 0.8);
         }
-        body:not(.portrait) #menu content wrap {
-            grid-template-columns: repeat(${main.config['view-size'].landscape.x}, 1fr);
-            grid-template-rows: repeat(${main.config['view-size'].landscape.y}, 1fr);
-        }
-        body.portrait #menu content wrap {
-            grid-template-columns: repeat(${main.config['view-size'].portrait.x}, 1fr);
-            grid-template-rows: repeat(${main.config['view-size'].portrait.y}, 1fr);
-        }
         *:not(input):not(textarea) {
             text-transform: ${ucase};
         }
@@ -299,14 +291,6 @@ class Theme extends EventEmitter {
         }
         .modal-wrap > div {
             background: linear-gradient(to bottom, ${e} 0%, ${f} 100%) !important;
-        }
-        /* removed as bugfix
-        body.portrait .entry-2x {
-            grid-${p}-start: span 2 !important;
-        }
-        */
-        body:not(.portrait) .entry-2x {
-            grid-${l}-start: span 2 !important;
         }
         `
         main.css(cssCode, 'theme')

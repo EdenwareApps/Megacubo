@@ -1,4 +1,3 @@
-import Hls from './hls.mjs'
 import {MediaPlayerAdapterHTML5Video} from './mediaplayer-adapter'
 
 const { ErrorTypes, ErrorDetails, Events } = Hls

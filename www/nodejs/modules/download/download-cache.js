@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import fs from 'fs';
 import storage from '../storage/storage.js'
 import Reader from '../reader/reader.js';

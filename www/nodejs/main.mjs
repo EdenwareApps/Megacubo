@@ -30,7 +30,6 @@ import osd from './modules/osd/osd.js'
 import ffmpeg from './modules/ffmpeg/ffmpeg.js'
 import promo from './modules/promoter/promoter.js'
 import mega from './modules/mega/mega.js'
-import { stringify } from './modules/serialize/serialize.js'
 
 // set globally available objects
 Object.assign(global, {
@@ -101,7 +100,8 @@ function enableConsole(enable) {
     }
 }
 
-enableConsole(config.get('enable-console') || process.argv.includes('--inspect'))
+const debug = config.get('enable-console') || process.argv.includes('--inspect')
+enableConsole(debug)
 
 global.activeEPG = ''
 streamer.tuning = null
@@ -387,8 +387,67 @@ const updatePrompt = async (c) => {
     }
 }
 const initElectronWindow = async () => {
-    let remote
+    const { app, BrowserWindow, globalShortcut, Menu } = electron
+    const isLinux = process.platform == 'linux', appCmd = app.commandLine    
     const tcpFastOpen = config.get('tcp-fast-open') ? 'true' : 'false'
+
+    let remote    
+    let gpuFlags = config.get('gpu-flags')
+    if (config.get('gpu')) {
+        if (!gpuFlags) {
+            gpuFlags = Object.keys(options.availableGPUFlags.enable)
+        }
+        gpuFlags.forEach(f => {
+            if (f == 'use-gl') {
+                appCmd.appendSwitch(f, 'desktop')
+            } else {
+                appCmd.appendSwitch(f)
+            }
+        })
+    } else {
+        if (!gpuFlags) {
+            gpuFlags = Object.keys(options.availableGPUFlags.disable)
+        }
+        gpuFlags.forEach(f => {
+            appCmd.appendSwitch(f)
+        })
+        try {
+            app.disableHardwareAcceleration()
+        } catch (e) {
+            console.error('Error disabling hardware acceleration', e)
+        }
+    }
+
+    const features = ['SharedImageManager', 'PlatformHEVCDecoderSupport', 'VaapiVideoDecoder'];
+    ['in-process-gpu', 'disable-gpu-sandbox'].forEach(f => {
+        if(config.get(f) !== false) {
+            appCmd.appendSwitch(f)
+        }
+    })
+
+    if (process.platform == 'darwin' && config.get('use-metal')) {
+        features.unshift('Metal')
+    } else if (process.platform == 'linux' && config.get('use-vaapi')) {
+        features.unshift('VaapiVideoDecoder')
+    } else if (config.get('use-vulkan')) {
+        features.unshift('Vulkan')
+    }
+
+    appCmd.appendSwitch('password-store', 'basic')
+    appCmd.appendSwitch('enable-tcp-fast-open', tcpFastOpen) // networking environments that do not fully support the TCP Fast Open standard may have problems connecting to some websites
+    appCmd.appendSwitch('disable-transparency', 'true')
+    appCmd.appendSwitch('enable-smooth-scrolling', 'true')
+    appCmd.appendSwitch('enable-experimental-web-platform-features') // audioTracks support
+    appCmd.appendSwitch('enable-features', features.join(',')) // TODO: Allow user to activate Metal (macOS) and VaapiVideoDecoder (Linux) features
+    appCmd.appendSwitch('disable-features', 'IsolateOrigins,NetworkPrediction,OpenVR,UseSkiaRenderer')
+    appCmd.appendSwitch('autoplay-policy', 'no-user-gesture-required')
+    appCmd.appendSwitch('gtk-version', '4') // https://www.reddit.com/r/Gentoo/comments/yu2s3j/comment/l8pxlz7/
+
+    if(!app.requestSingleInstanceLock()) {
+        console.error('Already running.')
+        app.quit()
+    }
+    
     const contextIsolation = parseFloat(process.versions.electron) >= 22
     if(contextIsolation) {
         if(electron.remote) {
@@ -407,12 +466,6 @@ const initElectronWindow = async () => {
         }
         remote?.initialize()
     }
-
-    const { app, BrowserWindow, globalShortcut, Menu } = electron
-    if(!app.requestSingleInstanceLock()) {
-        console.error('Already running.')
-        app.quit()
-    }
     Menu.setApplicationMenu(null)
     onexit(() => app.quit())
     if (contextIsolation) {
@@ -420,45 +473,7 @@ const initElectronWindow = async () => {
             remote?.enable(window.webContents)
         })
     }
-    const isLinux = process.platform == 'linux', appCmd = app.commandLine
     await channels.updateUserTasks(app).catch(err => console.error(err))
-    let gpuFlags = config.get('gpu-flags')
-    if (config.get('gpu')) {
-        if (!gpuFlags) {
-            gpuFlags = Object.keys(options.availableGPUFlags.enable)
-        }
-        gpuFlags.forEach(f => {
-            if (isLinux && f == 'in-process-gpu') {
-                // --in-process-gpu chromium flag is enabled by default to prevent IPC
-                // but it causes fatal error on Linux
-                return
-            }
-            appCmd.appendSwitch(f)
-        })
-    } else {
-        if (!gpuFlags) {
-            gpuFlags = Object.keys(options.availableGPUFlags.disable)
-        }
-        gpuFlags.forEach(f => {
-            appCmd.appendSwitch(f)
-        })
-        app.disableHardwareAcceleration()
-    }
-    appCmd.appendSwitch('no-zygote')
-    appCmd.appendSwitch('no-sandbox')
-    appCmd.appendSwitch('no-prefetch')
-    appCmd.appendSwitch('disable-websql', 'true')
-    appCmd.appendSwitch('password-store', 'basic')
-    appCmd.appendSwitch('disable-http-cache', 'true')
-    appCmd.appendSwitch('enable-tcp-fast-open', tcpFastOpen) // networking environments that do not fully support the TCP Fast Open standard may have problems connecting to some websites
-    appCmd.appendSwitch('disable-transparency', 'true')
-    appCmd.appendSwitch('disable-site-isolation-trials')
-    appCmd.appendSwitch('enable-smooth-scrolling', 'true')
-    appCmd.appendSwitch('enable-experimental-web-platform-features') // audioTracks support
-    appCmd.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport') // TODO: Allow user to activate Metal (macOS) and VaapiVideoDecoder (Linux) features
-    appCmd.appendSwitch('disable-features', 'BackgroundSync,IsolateOrigins,SitePerProcess,NetworkPrediction,OpenVR')
-    appCmd.appendSwitch("autoplay-policy", "no-user-gesture-required")
-    appCmd.appendSwitch('disable-web-security')
     await app.whenReady()
     global.window = new BrowserWindow({
         width: 240,
@@ -482,6 +497,7 @@ const initElectronWindow = async () => {
             enableRemoteModule: true,
             experimentalFeatures: true,
             navigateOnDragDrop: true,
+            devTools: debug,
             webSecurity: false // desabilita o webSecurity
         }
     })
@@ -502,6 +518,7 @@ const initElectronWindow = async () => {
         }
     })
     window.once('closed', () => window.closed = true) // prevent bridge IPC error
+    debug && window.openDevTools()
     renderer.ui.setElectronWindow(window)
     renderer.bridgeReady((err, port) => {
         window.loadURL('http://127.0.0.1:'+ port +'/renderer/electron.html', { userAgent: renderer.ui.ua })

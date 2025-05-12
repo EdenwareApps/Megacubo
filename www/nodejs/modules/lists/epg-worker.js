@@ -9,7 +9,7 @@ import Mag from './mag.js'
 import { Trias } from 'trias'
 import { Database } from 'jexidb'
 import { Parser } from 'xmltv-stream'
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import { temp } from '../paths/paths.js'
 import { getFilename } from 'cross-dirname'
 import { basename, moveFile, parseCommaDelimitedURIs, time, traceback, ucWords } from '../utils/utils.js'
@@ -60,12 +60,16 @@ class EPGDataCompleter {
         }
         if(programme?.c?.length) {
             const txt = [programme.t, programme.desc, ...programme.c].filter(s => s).join(' ')
-            this.trias.train(txt, programme.c).catch(err => console.error(err))
+            this.trias?.train(txt, programme.c).catch(err => console.error(err))
         }
     }
     async extractCategories(programme){
-        const txt = [programme.t, programme.desc, ...programme.c].filter(s => s).join(' ')
-        return this.trias.predict(txt, {as: 'array', limit: 3})
+        if (this.trias) {
+            const txt = [programme.t, programme.desc, ...programme.c].filter(s => s).join(' ')
+            const c = await this.trias.predict(txt, {as: 'array', limit: 3})
+            programme.c = [...programme.c, ...c]
+        }
+        return programme.c || []
     }
     async apply(db) {
         const tmpFile = temp +'/'+ basename(db.fileHandler.file) +'.refine'
@@ -100,7 +104,7 @@ class EPGDataCompleter {
             rdb.indexManager.index = db.indexManager.index
             await rdb.save()
             await rdb.destroy()
-            await this.trias.save().catch(err => console.error(err))
+            await this.trias?.save().catch(err => console.error(err))
             await fs.promises.unlink(db.fileHandler.file).catch(() => {})
             await moveFile(tmpFile, db.fileHandler.file)
         } catch(e) {
@@ -112,8 +116,8 @@ class EPGDataCompleter {
     }
     destroy(){
         this.learning = {}
+        this.completer = null
         this.trias = null
-        this.completer = null        
     }
 }
 
@@ -168,22 +172,6 @@ class EPGPaginateChannelsList extends EventEmitter {
             }
         }
         return start == end ? ucWords(start) : lang.X_TO_Y.format(start.toUpperCase(), end.toUpperCase())
-    }	
-    paginateChannelList(snames){
-        let ret = {}, folderSizeLimit = config.get('folder-size-limit')
-        snames = snames.map(s => this.prepareChannelName(s)).sort().unique()
-        folderSizeLimit = Math.min(folderSizeLimit, snames.length / 8) // generate at least 8 pages to ease navigation
-        let nextName, lastName
-        for(let i=0; i<snames.length; i += folderSizeLimit){
-            let gentries = snames.slice(i, i + folderSizeLimit)
-            nextName = snames[i + folderSizeLimit] || null
-            let gname = this.getRangeName(gentries, lastName, nextName)
-            if(gentries.length){
-                lastName = gentries[gentries.length - 1]
-            }
-            ret[gname] = gentries
-        }
-        return ret
     }
 }
 
@@ -622,16 +610,19 @@ class EPGManager extends EPGPaginateChannelsList {
         this.epgs = {}
         this.config = []
         this.limit = pLimit(2)
-        this.trias = new Trias({
-            create: true,
-            file: storage.resolve(lang.locale +'.trias'),
-            language: lang.locale,
-            capitalize: true,
-            autoImport: true,
-            excludes: ['separator', 'separador', 'hd', 'hevc', 'sd', 'fullhd', 'fhd', 'channels', 'canais', 'aberto', 'abertos', 'world', 'países', 'paises', 'countries', 'ww', 'live', 'ao vivo', 'en vivo', 'directo', 'en directo', 'unknown', 'other', 'others']
-        })
     }
-    async start(config){
+    async start(config, useTrias){
+        if (useTrias === true) {                
+            this.trias = new Trias({
+                create: true,
+                size: (512 * 1024), // 512KB
+                file: storage.resolve(lang.locale +'.trias'),
+                language: lang.locale,
+                capitalize: true,
+                autoImport: true,
+                excludes: ['separator', 'separador', 'hd', 'hevc', 'sd', 'fullhd', 'fhd', 'channels', 'canais', 'aberto', 'abertos', 'world', 'países', 'paises', 'countries', 'ww', 'live', 'ao vivo', 'en vivo', 'directo', 'en directo', 'unknown', 'other', 'others']
+            })
+        }
         await this.sync(config)
     }
     EPGs() {
@@ -1044,20 +1035,41 @@ class EPGManager extends EPGPaginateChannelsList {
             if(this.epgs[url].readyState !== 'loaded') continue
             const db = this.epgs[url].db
             const query = {e: {'>': now}}
-            if(nowLive) query.start['<='] = now
-            const options = {scanTerms: terms}
+            if(nowLive) {
+                query.start = {'<=': now}
+            }
+            const options = {}
             for await (const programme of db.walk(query, options)) {
-                const ch = programme.ch
-                if(typeof(epgData[ch]) == 'undefined'){
-                    epgData[ch] = {}
+                const prgTerms = listsTools.terms(programme.t)
+                const score = listsTools.match(terms, prgTerms, true)
+                if (score) {
+                    const ch = programme.ch
+                    if(typeof(epgData[ch]) == 'undefined'){
+                        epgData[ch] = {}
+                    }
+                    epgData[ch][programme.start] = programme
                 }
-                epgData[ch][programme.start] = programme
             }
         }
         return epgData
     }
     async expandTags(tags, options){
+        if (!options.amount || options.amount < 1) {
+            throw new Error('Invalid amount')
+        }
+        if (!this.trias) {
+            return false
+        }
         return this.trias.related(tags, options)
+    }
+    async reduceTags(tags, options){
+        if (!options.amount || options.amount < 1) {
+            throw new Error('Invalid amount')
+        }
+        if (!this.trias) {
+            return false
+        }
+        return this.trias.reduce(tags, options)
     }
     async validateChannels(data) {
         const processed = {}
@@ -1080,8 +1092,7 @@ class EPGManager extends EPGPaginateChannelsList {
         return global.lang.countryCode || global.lang.locale
     }
 	async terminate(){
-        config.removeListener('change', this.changeListener)
-        this?.trias.destroy().catch(err => console.error(err))
+        this.trias?.destroy().catch(err => console.error(err))
     }
 }
 

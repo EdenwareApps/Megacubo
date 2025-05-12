@@ -6,7 +6,7 @@ import crashlog from '../crashlog/crashlog.js'
 import { getFilename } from 'cross-dirname'  
 import { createRequire } from 'node:module'
 import { stringify } from "../serialize/serialize.js";
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import path from 'path'
 import 'bytenode'
 
@@ -67,6 +67,14 @@ storage.on('touch', touchListener)
 
 const drivers = {}
 parentPort.on('message', msg => {
+    if(msg.file && !drivers[msg.file]) {
+        for(const file of Object.keys(drivers)) {
+            if(file.includes(msg.file)) {
+                msg.file = file
+                break
+            }
+        }
+    }
     if(msg.method == 'configChange'){
         console.error('config-change', file, msg.args)
         config.removeListener('change', changeListener)

@@ -7,6 +7,12 @@
         <meta name="theme-color" content="#100927" />
         <title>Megacubo</title>
         <style type="text/css">
+            html {
+                --nav-width: 30vmax;
+            }
+            body.portrait {
+                --nav-width: 77vw;
+            }
             html, body {
                 overflow: hidden;
                 width: 100vw;
@@ -124,7 +130,7 @@
                 }
             }
         </style>
-        <script type="text/javascript">
+        <script>
             var menu, config
             function chromeVersion() {     
                 var raw = navigator.userAgent.match(new RegExp('Chrom(e|ium)\/([0-9]+)\.'))
@@ -171,7 +177,11 @@
 			</div>
         </div>
         <App></App>
-		<script type="text/javascript">
+        <!-- Load MPEGTS.js and hls.js externally to prevent worker-related issues due to double bundling -->
+        <script src="./dist/mpegts.js"></script>
+        <script src="./dist/hls.min.js"></script>
+        <script src="./dist/dash.all.min.js"></script>
+        <script>
             const splashProgressDiv = document.querySelector('#splash-progress')
             const isAndroid = document.URL.endsWith('android');
             const loadScript = function (src, callback) {
@@ -200,8 +210,10 @@
                 splashMetrics(plugins.megacubo.metrics)
             }
             const load = () => {
-                loadScript('./dist/renderer.js', () => {
-                    new App({target: document.querySelector('App')})
+                loadScript('./dist/App.js', () => {
+                    const app = new App({
+                        target: document.querySelector('App')
+                    })
                 })
             }
             const loadCapacitor = callback => {

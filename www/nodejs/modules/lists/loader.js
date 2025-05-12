@@ -5,7 +5,7 @@ import Download from '../download/download.js';
 import osd from '../osd/osd.js';
 import lang from '../lang/lang.js';
 import storage from '../storage/storage.js';
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import PQueue from 'p-queue';
 import workers from '../multi-worker/main.js';
 import ConnRacing from '../conn-racing/conn-racing.js';

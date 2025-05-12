@@ -1,4 +1,4 @@
-import { traceback } from '../../renderer/src/scripts/utils'
+import { traceback } from '../../renderer/src/scripts/utils.js'
 import { stringify } from '../serialize/serialize.js'
 
 class Crashlog {

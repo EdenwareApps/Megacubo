@@ -1,6 +1,6 @@
 import lang from "../lang/lang.js";
 import storage from '../storage/storage.js'
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import Limiter from "../limiter/limiter.js";
 import PublicListsProvider from "./providers/public-lists.js";
 import CommunityListsProvider from "./providers/community-lists.js";

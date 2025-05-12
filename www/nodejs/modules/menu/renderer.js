@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { ESMitter as EventEmitter } from 'esm-itter'
 import { Sounds } from './sound'
 import { main } from '../bridge/renderer'
 
@@ -53,14 +53,12 @@ class MenuURLInputHelper {
 class MenuBase extends EventEmitter {
 	constructor(container){
 		super()
-		this.setMaxListeners(99)
-		console.log('Menu base', {container, main})		
 		this.sounds = new Sounds()
 		this.debug = false
 		this.path = ''
 		this.container = container
-		this.wrap = container.querySelector('wrap')
-		console.log('Menu base')
+		this.wrap = container.querySelector('svelte-virtual-grid-contents')
+		this.scrollContainer = this.wrap.parentNode
 		container.addEventListener('click', event => {
 			event.preventDefault()
 			const a = event.target.closest('a')
@@ -126,139 +124,13 @@ class MenuIcons extends MenuBase {
 			}
 			
 			if(changed) {
-				const entries = this.currentEntries.map(e => this.prepareEntry(e))
-				this.applyCurrentEntries(entries)
 				this.emit('updated')
 			}
 		})
 	}
 }
 
-class MenuSelectionMemory extends MenuIcons {
-	constructor(container){
-		super(container)
-		this.selectionMemory = {
-			'': {
-				default: {scroll: 0, index: 0}
-			}
-		}
-		this.on('open', () => this.save())
-		this.on('focus', () => this.save())
-		main.on('current-search', (terms, type) => {
-            this.currentSearch = JSON.stringify({terms, type})
-        })
-		this.once('render', () => {
-			this.scrollTop(0)
-			this.save()
-			let timer
-			this.wrap.addEventListener('scroll', () => {
-				if(!this.isScrolling) {
-					this.isScrolling = true
-					clearTimeout(timer)
-				}
-			})
-			this.wrap.addEventListener('scrollend', () => {
-				if(this.isScrolling) {
-					this.isScrolling = false
-					clearTimeout(timer)
-					timer = setTimeout(() => {
-						this.selected(true, true)
-					}, 400)
-				}
-			})
-		})
-	}
-	save(scrollTop) {
-		if(this.rendering) return
-		this.debug && console.error('save', this.wrap.scrollTop, this.selectedIndex, this.path)
-		const { level } = this.activeSpatialNavigationLayout(), entries = this.selectables()
-		if(!this.selectionMemory[this.path]) this.selectionMemory[this.path] = {}
-		if(!entries.includes(this.selected())) { // prevent looping
-			this.selected(true, true) // force a entry to be selected in current scroll view
-		}
-		this.selectionMemory[this.path][level] = {
-			scroll: level == 'default' ? (typeof(scrollTop) == 'number' ? scrollTop : this.wrap.scrollTop) : 0,
-			index: this.selectedIndex,
-			search: this.currentSearch
-		}
-	}
-    reset(force){
-		if(this.rendering) return
-		this.debug && console.log('reset', this.path)
-		const selected = this.selected()
-		if(selected && selected.id == 'menu-search') return
-		const selectables = this.selectables()
-		if(!selectables.length) return
-		const { level } = this.activeSpatialNavigationLayout()
-        const i = (level == 'default' && this.path) ? 1 : 0
-		if(force === true && level != 'default') {
-			return this.focus(selectables[0])
-		}
-		let remembered, data = {scroll: 0, index: i}
-		if(typeof(this.selectionMemory[this.path]) != 'undefined' && this.selectionMemory[this.path][level]) {
-			const inSearch = this.path.includes(main.lang.SEARCH) || this.path.includes(main.lang.MORE_RESULTS) || this.path.includes(main.lang.SEARCH_MORE)
-			const inSameSearch = inSearch && this.currentSearch == this.selectionMemory[this.path][level].search
-			if(!inSearch || inSameSearch) {
-				remembered = true
-				data = this.selectionMemory[this.path][level]
-			}
-        }
-		let ret
-        if(level == 'default' && this.currentElements[data.index] && remembered) {
-			const range = this.viewportRange(data.scroll)
-			if(data.index < range.start || data.index >= range.end) {
-				data.index = range.start
-			}
-			this.focus(this.currentElements[data.index], true)
-			const start = this.wrap.scrollTop, end = this.wrap.scrollTop + this.wrap.clientHeight
-        	if(data.scroll < start || data.scroll > end) {
-				this.scrollTop(data.scroll)
-			}
-			ret = true
-        } else if(!selectables.includes(selected)) {
-			this.focus(selectables[i])
-		}
-		return ret
-    }
-	scrollTop(y, animate){
-        if(typeof(y) == 'number' && this.wrap.scrollTop != y) {
-			this.wrap.scroll({
-				top: y,
-				left: 0,
-				behavior: animate ? 'smooth' : 'instant'
-			})
-		}
-		return this.wrap.scrollTop
-	}
-}
-
-class MenuMouseOver extends MenuSelectionMemory {
-	constructor(container){
-		super(container)
-		document.body.addEventListener('mousemove', () => { // is a mouse based navigation
-			if(this.listeningMouseOver) return
-			this.listeningMouseOver = true
-			document.body.addEventListener('mouseover', e => {
-				let focused = e?.target?.tagName?.toLowerCase() == 'a' ? e.target : (e.relatedTarget || e.target)
-				if(!focused) return
-				if(focused?.tagName?.toLowerCase() == 'input' && focused.parentNode) {
-					focused = focused.parentNode
-				}
-				if(focused?.tagName?.toLowerCase() == 'seekbar' && focused.lastElementChild) {
-					focused = focused.lastElementChild
-				}
-				const layout = this.activeSpatialNavigationLayout()
-				const closest = sel => focused.closest(sel)
-				const element = Array.isArray(layout.selector) ? layout.selector.map(closest).filter(e => e).shift() : closest(layout.selector)
-				if(element && this.isVisible(element)){
-					this.focus(element)
-				}
-			})
-		}, {once: true})
-	}
-}
-
-class MenuSpatialNavigation extends MenuMouseOver {
+class MenuScrolling extends MenuIcons {
     constructor(container){
         super(container)
 		this.layouts = []
@@ -268,31 +140,41 @@ class MenuSpatialNavigation extends MenuMouseOver {
         this.parentClassName = 'selected-parent'
         this.selectedIndex = 0
 		const scrollEndTrigger = () => {
-			if(this.rendering) return setTimeout(scrollEndTrigger, 100)
-			if(this.lastScrollTop !== this.wrap.scrollTop){
-				this.debug && console.log('menu.scroll', this.rendering, this.wrap.scrollTop)
-				this.lastScrollTop = this.wrap.scrollTop				
-				this.updateRange(this.wrap.scrollTop)
-				this.emit('scroll', this.wrap.scrollTop)
+			if(this.isScrolling) {
+				this.isScrolling = false
+				this.scrollContainer.style.scrollSnapType = 'y mandatory'
+			}
+			if(this.lastScrollTop !== this.scrollContainer.scrollTop){
+				this.lastScrollTop = this.scrollContainer.scrollTop				
+				this.emit('scroll', this.scrollContainer.scrollTop)
 			}
 		}
+		this.scrollendPolyfillElement(this.container)
+		this.scrollendPolyfillElement(this.scrollContainer)
 		for(const type of ['scrollend', 'resize']) {
 			// scroll was not always emitting on mobiles, scrollend is too new and not supported by all browsers
-			this.wrap.addEventListener(type, scrollEndTrigger, {capture: true, passive: true})
+			this.scrollContainer.addEventListener(type, scrollEndTrigger, {capture: true, passive: true})
 		}
-        this.wrap.addEventListener('touchstart', () => {
-			this.wrap.style.scrollSnapType = 'none'
+        this.scrollContainer.addEventListener('touchstart', () => {
+			this.scrollContainer.style.scrollSnapType = 'none'
 		})
-		this.wrap.addEventListener('touchend', () => {
-			this.wrap.style.scrollSnapType = 'y mandatory'
+		this.scrollContainer.addEventListener('touchend', () => {
+			this.scrollContainer.style.scrollSnapType = 'y mandatory'
 		})
+		this.scrollContainer.addEventListener('scroll', () => {
+			if(!this.isScrolling) {
+				this.isScrolling = true
+				this.scrollContainer.style.scrollSnapType = 'none'
+			}
+		})
+
 		const resizeListener = () => this.resize()
 		window.addEventListener('resize', resizeListener, { capture: true })
 		window.addEventListener('orientationchange', resizeListener, { capture: true })
 		screen.orientation && screen.orientation.addEventListener('change', resizeListener)
 		setTimeout(resizeListener, 0)
 		
-		this.wrap.addEventListener('touchstart', event => {
+		this.scrollContainer.addEventListener('touchstart', event => {
 			console.log('touchstart', event.target.tagName)
 			const t = event.target.tagName?.toLowerCase()
 			const e = t === 'a' ? event.target : event.target.closest('a')
@@ -304,7 +186,7 @@ class MenuSpatialNavigation extends MenuMouseOver {
 					console.log('hold')
 					const holdEvent = new CustomEvent('hold', {bubbles: false})
 					e.dispatchEvent(holdEvent)
-					this.focus(e)
+					this.emit('focus', e)
 				}, 500)
 			}
 			const cancel = () => {
@@ -318,7 +200,7 @@ class MenuSpatialNavigation extends MenuMouseOver {
 			document.addEventListener('touchmove', cancel)
 		})
 	}
-    setGridLayout(x, y, px, py){
+    setGrid(x, y, px, py){
         this._gridLayoutX = x
         this._gridLayoutY = y
         this._gridLayoutPortraitX = px
@@ -342,173 +224,19 @@ class MenuSpatialNavigation extends MenuMouseOver {
 		document.body.classList[verticalLayout ? 'add' : 'remove']('portrait')
 		this.sideMenuSync(true)
 	}
-    selector(s, ignoreViewport){
-        return [...document.querySelectorAll(s)].filter(e => this.isVisible(e, ignoreViewport))
-    }
-    updateElement(element){ // if layout has changed, find the actual corresponding element
-        if(!element.parentNode){
-            let prop, val;
-            ['title', 'data-path', 'id'].some(p => {
-                if(val = e.getAttribute(p) && !val.includes('"')){
-                    prop = p
-                    return true
-                }
-            })
-            let sel = e.tagName + (prop ? '[' + prop + '="' + val + '"]' : ''), n = document.querySelector(sel)
-            if(n){
-                element = n
-            }
-        }
-        return element
-    }
-    selectables(ignoreViewport){
-        let layout = this.activeSpatialNavigationLayout() // is any explicitly selected??
-		return layout ? this.entries(true, ignoreViewport) : []
-    }
-	updateSelectedElementClasses(element){
-		if(element && element.classList){
-			for(const e of document.querySelectorAll('.'+ this.className)) e.classList.remove(this.className)
-			for(const e of document.querySelectorAll('.'+ this.parentClassName)) e.classList.remove(this.parentClassName)
-			element.classList.add(this.className)
-			element.parentNode && element.parentNode.classList && element.parentNode.classList.add(this.parentClassName)
-		}
-	}
-	selected(force, preventScroll, animate){
-        const selectables = this.selectables() // check if is any explicitly selected??
-        let element = selectables.find(e => e.classList.contains(this.className)) || selectables[0] || null
-		if(element && element.id == 'menu-omni-input') {
-			element = element.parentNode
-		} else if(!element) {
-			this.debug && console.log('No selected element', {selectables, force})
-			const { level } = this.activeSpatialNavigationLayout()
-			if(this.selectionMemory[this.path] && this.selectionMemory[this.path][level]) {
-				const { index } = this.selectionMemory[this.path][level]
-				element = selectables.find(e => e.tabIndex == index)
-			}
-			if(!element) {
-				if (level !== 'default' || force) {
-					const i = (level == 'default' && this.path && !this.wrap.scrollTop) ? 1 : 0
-					element = selectables[i]
-				}
-			}
-		}
-        element && this.focus(element, preventScroll, animate)
-        return element
-    }
-    focus(a, preventScroll, animate){
-        this.debug && console.error('focus', a, this.wrap.scrollTop)
-        if(!a) return
-		if(!a.classList.contains(this.className)) {
-            if(this.debug){
-                console.log('FOCUSENTRY', a)
-            }
-            this.updateSelectedElementClasses(a)
-            const index = this.currentElements.indexOf(a)
-            if(index != -1) this.selectedIndex = index
-            if(document.activeElement && document.activeElement.tagName.toLowerCase() == 'input'){
-                // dirty hack to force input to lose focus
-                let t = document.activeElement
-                t.style.visibility = 'hidden'
-                a.focus({preventScroll: true})
-                t.style.visibility = 'inherit'
-            } else {
-                a.focus({preventScroll: true})
-            }
-			preventScroll || a.scrollIntoViewIfNeeded({
-				behavior: animate ? 'smooth' : 'instant',
-				block: 'nearest',
-				inline: 'nearest'
+	scrollTop(y, animate){
+        if(typeof(y) == 'number' && this.scrollContainer.scrollTop != y) {
+			this.scrollContainer.scroll({
+				top: y,
+				left: 0,
+				behavior: animate ? 'smooth' : 'instant'
 			})
-            const n = a.querySelector('input:not([type="range"]), textarea')
-            n && n.focus({preventScroll: true})
-            this.emit('focus', a, index)
-        } else {
-			this.debug && console.log('Already focused', {a, selected: document.querySelector('.'+ this.className), scrollLeft: this.container.scrollLeft, scrollTop: this.wrap.scrollTop})
 		}
-
-    }  
-    activeSpatialNavigationLayout(){
-        let ret = {selector: 'body', level: 'default'} // placeholder while no views are added
-        this.layouts.some(layout => {
-            if(!ret){
-                ret = layout
-            }
-            if(layout.condition()){
-                ret = layout
-                return true
-            }
-        })
-        return ret
-    }
-    entries(noAsides, ignoreViewport){
-		let e = [], layout = this.activeSpatialNavigationLayout(), sel = layout.selector
-        if(typeof(sel)=='function'){
-            sel = sel()
-        }
-        if(typeof(sel) == 'string'){
-            e.push(...this.selector(sel, ignoreViewport))
-        } else if(Array.isArray(sel)) {
-            e.push(...sel.map(e => {
-				if(typeof(e) == 'string'){
-					return this.selector(e, ignoreViewport)
-				} else {
-					return e
-				}
-			}).flat())
-        } else {
-			console.error('Bad layer selector')
-		}
-		e = e.filter(n => {
-            return !n.className || !String(n.className).includes('menu-not-navigable') // Uncaught TypeError: n.className.indexOf is not a function
-        })
-		if(layout.default === true && noAsides === true){
-			e = e.filter(n => n.parentNode && n.parentNode == this.wrap)
-		}
-		return e
-    }
-    addSpatialNavigationLayout(layout){
-        if(layout.default === true || !this.defaultNavGroup){
-            this.defaultNavGroup = layout.level
-        }
-        return this.layouts.push(layout) // add.selector can be a selector string, set of selectors or function returning elements
-    }
-    distance(c, e, m){
-        let r = Math.hypot(e.left - c.left, e.top - c.top)
-        if(m){
-            r += r * (this.angleWeight * m)
-        }
-        return r
-    }
-    angle(c, e){
-        let dy = e.top - c.top
-        let dx = e.left - c.left
-        let theta = Math.atan2(dy, dx) // range (-PI, PI]
-        theta *= 180 / Math.PI // rads to degs, range (-180, 180]
-        theta += 90
-        if(theta < 0){
-            theta = 360 + theta
-        }
-        return theta
-    }
-    isAngleWithinRange(angle, start, end){
-        if(end > start){
-            return angle >= start && angle <= end
-        } else {
-            return angle < end || angle > start
-        }
-    }
-    coords(element){
-        if(element && typeof(element.getBoundingClientRect) == 'function'){
-            let c = element.getBoundingClientRect()
-            return {
-                left: parseInt(c.left + (c.width / 2)), 
-                top: parseInt(c.top + (c.height / 2))
-            }
-        }
-    }
+		return this.scrollContainer.scrollTop
+	}
     opposite(selected, items, direction){
         let i, n = items.indexOf(selected), x = this.gridLayoutX, y = this.gridLayoutY
-        switch(direction){
+        switch(direction) {
             case 'down':
                 i = n % x
                 break
@@ -538,94 +266,12 @@ class MenuSpatialNavigation extends MenuMouseOver {
         }
         return items[i]
     }
-	angleCenter(angle1, angle2) {
-		const diff = (angle2 - angle1 + 360) % 360
-		const center = (angle1 + diff / 2) % 360
-		return center < 0 ? center + 360 : center
+	reset(force){
+		this.emit('reset', force)
 	}
-	angleDiff(angle1, angle2Start, angle2End){
-		const angle2 = this.angleCenter(angle2Start, angle2End)
-		const diff = Math.abs(angle1 - angle2)
-		return Math.min(diff, 360 - diff)
-	}
-    arrow(direction, noCycle){
-        let closer, closerDist, directionAngleStart, directionAngleEnd
-		let items = this.entries(true, true), layout = this.activeSpatialNavigationLayout(), e = this.selected()
-		if(!e) return this.selected(true, false, true) // if no element is selected, just select one
-		switch(direction){
-			case 'up':
-				directionAngleStart = 270
-				directionAngleEnd = 90
-				break
-			case 'right':
-				directionAngleStart = 0
-				directionAngleEnd = 180
-				break
-			case 'down':
-				directionAngleStart = 90
-				directionAngleEnd = 270
-				break
-			case 'left':
-				directionAngleStart = 180
-				directionAngleEnd = 360
-				break
-		}
-		const exy = this.coords(e)
-		if(exy) {
-			items.forEach(n => {
-				if(n != e) {
-					const nxy = this.coords(n)
-					if(nxy) {
-						if(['up', 'down'].includes(direction)) { // avoid bad horizontal moving
-							if(nxy.top == exy.top && n.offsetHeight == e.offsetHeight){
-								return
-							}
-						}
-						if(['left', 'right'].includes(direction)) { // avoid bad vertical moving
-							if(nxy.left == exy.left && n.offsetWidth == e.offsetWidth){
-								return
-							}
-						}
-						const angle = this.angle(exy, nxy)
-						if(this.isAngleWithinRange(angle, directionAngleStart, directionAngleEnd)){
-							const df = this.angleDiff(angle, directionAngleStart, directionAngleEnd)
-							const dist = this.distance(exy, nxy, df)
-							if(this.debug){
-								console.warn('POINTER', dist, {df, angle, directionAngleStart, directionAngleEnd}, direction, e, n, exy, nxy)
-							}
-							if(!closer || dist < closerDist || 
-								(n.parentNode == e.parentNode && closer.parentNode != e.parentNode)
-								){
-								closer = n
-								closerDist = dist
-							}
-						}
-					}
-				}
-			})
-		} else { // if none selected, pick anyone (first in items for now)
-			closer = items[0]
-			closerDist = 99999
-		}
-        if(!closer){
-            if(noCycle !== true && (typeof(layout.overScrollAction) != 'function' || layout.overScrollAction(direction, e) !== true)){
-                closer = this.opposite(e, items, direction)                
-                if(this.debug){
-                    console.log('opposite', e, items, direction, closer)
-                }
-            }
-        }
-        if(closer){
-            if(this.debug){
-                console.warn('POINTER', closer, closerDist)
-            }
-            this.focus(closer, false, true)
-        }
-        this.emit('arrow', closer, direction)
-    }
 }
 
-class MenuBBCode extends MenuSpatialNavigation {
+class MenuBBCode extends MenuScrolling {
 	constructor(container){
 		super(container)
 		this.funnyTextColors = ['#3F0', '#39F', '#8d45ff', '#ff02c9', '#e48610']
@@ -818,7 +464,9 @@ class MenuPlayer extends MenuModal {
 			const rect = element.getBoundingClientRect();
 			// when inViewport is true, more than 75% of the element should be visible in the viewport
 			if (ignoreViewport !== true) {
-				const parentElement = element.parentElement;
+				if (!element.parentElement) return false;
+
+				const parentElement = element.parentElement?.tagName?.toLowerCase() == 'svelte-virtual-grid-contents' ? element.parentElement.parentNode : element.parentElement;
 				if (!parentElement) return false;
 
 				const parentRect = parentElement.getBoundingClientRect();
@@ -863,55 +511,50 @@ class MenuFx extends MenuPlayer {
 		super(container)
 		this.fxNavTimer = 0
 		this.fxModalTimer = 0
-		this.on('pre-render', (newPath, oldPath) => {
-			if(typeof(oldPath) != 'string'){
-				oldPath = -1
-			}
-			if(newPath != oldPath){
-				if(oldPath == -1 || newPath.length >= oldPath.length){
-					this.fxNavIn()
-				} else {
-					this.fxNavOut()
-				}
+		this.on('before-navigate', (newPath, oldPath) => {
+			if(typeof(oldPath) != 'string' || newPath.length >= oldPath.length){
+				this.fxNavIn()
+			} else {
+				this.fxNavOut()
 			}
 		})
 		this.on('pre-modal-start', () => {
 			this.fxPromptIn()
 		})
 		setTimeout(() => {
-			this.wrap.parentNode.classList.add('effect-inflate-deflate-parent')
+			this.container.parentNode.classList.add('effect-inflate-deflate-parent')
 			this.modalContent.parentNode.classList.add('effect-inflate-deflate-parent')
 		})
 	}
 	fxNavIn(){
 		if(!main.config['fx-nav-intensity']) return
 		clearTimeout(this.fxNavTimer)
-		if(this.wrap.classList.contains('effect-inflate')){
-			this.wrap.classList.remove('effect-inflate')
+		if(this.container.classList.contains('effect-inflate')){
+			this.container.classList.remove('effect-inflate')
 			setTimeout(() => this.fxNavIn(), 0)
 		} else {
-			this.wrap.style.transition = 'none'
-			this.wrap.classList.remove('effect-deflate')
-			this.wrap.classList.add('effect-inflate')
+			this.container.style.transition = 'none'
+			this.container.classList.remove('effect-deflate')
+			this.container.classList.add('effect-inflate')
 			this.fxNavTimer = setTimeout(() => {
-				this.wrap.classList.remove('effect-inflate')
+				this.container.classList.remove('effect-inflate')
 			}, 1500)
 		}
 	}
 	fxNavOut(){
 		if(!main.config['fx-nav-intensity']) return
 		clearTimeout(this.fxNavTimer)
-		if(this.wrap.classList.contains('effect-deflate')){
-			this.wrap.classList.remove('effect-deflate')
+		if(this.container.classList.contains('effect-deflate')){
+			this.container.classList.remove('effect-deflate')
 			setTimeout(() => {
 				this.fxNavOut()
 			}, 0)
 		} else {
-			this.wrap.style.transition = 'none'
-			this.wrap.classList.remove('effect-inflate')
-			this.wrap.classList.add('effect-deflate')
+			this.container.style.transition = 'none'
+			this.container.classList.remove('effect-inflate')
+			this.container.classList.add('effect-deflate')
 			this.fxNavTimer = setTimeout(() => {
-				this.wrap.classList.remove('effect-deflate')
+				this.container.classList.remove('effect-deflate')
 			}, 1500)
 		}
 	}
@@ -1016,24 +659,22 @@ class MenuDialog extends MenuDialogQueue {
 		`
 	}
 	async inputPaste(input) {
-		if(input.value && input.value != input.getAttribute('data-default-value')) {
-			return
-		}
-		let err
-		const paste = await this.readClipboard().catch(e => err = e)
-		if(err) {
-			console.error(err)
-		} else if(paste && String(input.getAttribute('data-pasted')) != paste) {
-			input.setAttribute('data-pasted', paste)
-			const mask = input.getAttribute('data-mask') || '(^.{0,6}//|[a-z]{3,6}?://)[^ ]+'
-			const regex = new RegExp(mask, 'i')
-			const matched = paste.match(regex)
-			if(matched) {
-				input.value = matched[0]
-				input.select()
+		if(!input.value || input.value == input.getAttribute('data-default-value')) {
+			let err
+			const paste = await this.readClipboard().catch(e => err = e)
+			if(err) {
+				console.error(err)
+			} else if(paste && String(input.getAttribute('data-pasted')) != paste) {
+				input.setAttribute('data-pasted', paste)
+				const mask = input.getAttribute('data-mask') || '(^.{0,6}//|[a-z]{3,6}?://)[^ ]+'
+				const regex = new RegExp(mask, 'i')
+				const matched = paste.match(regex)
+				if(matched) {
+					input.value = matched[0]
+					input.select()
+				}
 			}
 		}
-		document.activeElement == input || input.focus()
 	}
 	text2id(txt){
 		if(txt.match(new RegExp('^[A-Za-z0-9\\-_]+$', 'g'))){
@@ -1524,7 +1165,7 @@ class MenuStatusFlags extends MenuSlider {
 	constructor(container){
 		super(container)
 		this.statusFlags = {}
-		this.on('render', this.processStatusFlags.bind(this))
+		this.on('changed', this.processStatusFlags.bind(this))
 		main.on('stream-state-set', (url, flag) => {
 			if(this.debug){
 				console.warn('SETFLAGEVT', url, flag)
@@ -1533,7 +1174,7 @@ class MenuStatusFlags extends MenuSlider {
 		})
 		main.on('stream-state-sync', data => {
 			if(this.debug){
-				console.warn('SYNCSTATUSFLAGS', data, this.wrap.scrollTop)
+				console.warn('SYNCSTATUSFLAGS', data, this.scrollContainer.scrollTop)
 			}
 			Object.keys(data).forEach(url => {
 				data[url] && this.setStatusFlag(url, data[url], true)
@@ -1621,9 +1262,9 @@ class MenuNav extends MenuStatusFlags {
 			isScrolling = setTimeout(dispatchScrollEndEvent, 150)
 		}, false)
 	}
-	inSideMenu() {
+	inSideMenu(strict=false) {
 		const w = this.getSideMenuWidth()
-		return this.container.scrollLeft <= (w / 2)
+		return strict ? this.container.scrollLeft < 10 : (this.container.scrollLeft <= (w / 2))
 	}
 	sideMenuSync(resized, inSideMenu) {
 		if(resized === true) {
@@ -1636,15 +1277,35 @@ class MenuNav extends MenuStatusFlags {
 			this.emit('side-menu', c)
 		}
 	}
+	sideMenuTransition() {
+		if (!this.sideMenuTransitionCache) {
+			this.sideMenuTransitionCache = window.getComputedStyle(this.container).getPropertyValue('transition') || 
+				'transform var(--menu-fx-nav-duration) ease-in-out 0s'
+		}
+		return this.sideMenuTransitionCache
+	}
 	sideMenu(enable, behavior='smooth') {
-		const prev = behavior == 'smooth'? '' : window.getComputedStyle(this.container).getPropertyValue('transition')
-		if(prev && prev != 'none') this.container.style.transition = 'none'
+		const transition = this.sideMenuTransition()
+		const left = enable ? 0 : this.getSideMenuWidth()
+		console.warn('sideMenu', {left, scrollLeft: Math.round(this.container.scrollLeft), transition: this.sideMenuTransitioning})
+		if (left == Math.round(this.container.scrollLeft)) {
+			this.sideMenuTransitioning = false
+			return
+		}
+		if (left === this.sideMenuTransitioning) { // strict comparison
+			return
+		}
+		this.sideMenuTransitioning = left
+		this.container.style.transition = behavior == 'smooth' ? transition : 'none'
+		this.container.addEventListener('scrollend', () => {
+			this.container.style.transition = transition
+			this.sideMenuTransitioning = false
+		}, {once: true})
 		this.container.scroll({
 			top: 0,
-			left: enable ? 0 : this.getSideMenuWidth(),
+			left,
 			behavior
 		})
-		if(prev && prev != 'none') this.container.style.transition = prev
 	}
 	getSideMenuWidth() {
 		if(this.sideMenuWidthCache) {
@@ -1655,9 +1316,10 @@ class MenuNav extends MenuStatusFlags {
 		l.style.boxSize = 'content-box' 
 		l.style.position = 'absolute'
 		l.style.maxHeight = 'none'
+		l.style.display = 'inline-block'
 		l.style.height = 'var(--nav-width)'
 		document.body.appendChild(l)
-		this.sideMenuWidthCache = l.clientHeight
+		this.sideMenuWidthCache = Math.round(l.clientHeight)
 		document.body.removeChild(l)
 		return this.sideMenuWidthCache
 	}
@@ -1665,13 +1327,11 @@ class MenuNav extends MenuStatusFlags {
 
 export class Menu extends MenuNav {
 	constructor(container){
-		console.log('menu init')
 		try {
 			super(container)
 		} catch(e) {
 			console.error(e)
 		}
-		console.log('menu init')
 		main.on('render', (entries, path, icon) => {
 			this.render(entries, path, icon)
 		})
@@ -1689,8 +1349,6 @@ export class Menu extends MenuNav {
 		})
 		main.on('prompt', atts => this.prompt(atts))
 		this.currentEntries = []
-		this.currentElements = []
-		this.range = {start: 0, end: 99}
 		main.on('trigger', data => {
 			if(this.debug){
 				console.warn('TRIGGER', data)
@@ -1706,14 +1364,13 @@ export class Menu extends MenuNav {
 			if(state) {
 				for(const path of state) {
 					this.get({path}).forEach(e => {
-						e.classList.add('entry-busy')
+						e?.classList.add('entry-busy')
 					})
 				}
 			} else {
 				this.wrap.querySelectorAll('.entry-busy').forEach(e => e.classList.remove('entry-busy'))
 			}
 		})
-		console.log('menu init')		                  
 	}
 	get(data){
 		let ss = []
@@ -1722,7 +1379,9 @@ export class Menu extends MenuNav {
 			if(ks.length){
 				this.currentEntries.forEach((e, i) => {
 					if(ks.every(k => data[k] == e[k])){
-						ss.push(this.currentElements[i])
+						const element = this.wrap.querySelector(`[tabindex="${e.tabindex}"]`)
+						console.log('get', data, e, element)
+						ss.push(element)
 					}
 				})
 			}
@@ -1740,115 +1399,32 @@ export class Menu extends MenuNav {
 		return diff
 	}
 	render(entries, path, icon){
-		this.debug && console.log('menu render1', path, this.wrap.scrollTop)
-		this.rendering = true
 		let prevPath = this.path, navigated = path !== this.path
-		this.debug && console.log('menu render2', path, this.wrap.scrollTop)
 		entries = entries.map(e => this.prepareEntry(e))
 		let changed = this.applyCurrentEntries(entries)
-		this.debug && console.log('menu render3', path, this.wrap.scrollTop)
-		this.emit('pre-render', path, this.path)
+		navigated && this.emit('before-navigate', path, this.path)
 		this.path = path
-		this.debug && console.log('menu render4', path, this.wrap.scrollTop)
-		let scrollTop = this.wrap.scrollTop
-		if (changed) {
-			if(navigated) {
-				scrollTop = this.selectionMemory?.[this.path]?.default?.scroll || 0
-				this.debug && console.log('menu render4.5', path, this.wrap.scrollTop)
-				this.scrollTop(scrollTop)
-			}
-			this.emit('updated')
-			this.updateRange(scrollTop)
-		}
-		const unscroll = event => {
-			if(event) {
-				event.stopPropagation()
-				event.preventDefault()
-			}
-			if (this.wrap.scrollTop != scrollTop) {
-				this.wrap.scrollTop = scrollTop
-			}
-		}
-		this.wrap.addEventListener('scroll', unscroll) // lock scrolling during html updates to prevent content jumping
-		this.debug && console.log('menu render5', path, this.wrap.scrollTop)
-		setTimeout(() => { // wait a bit to truste the browser to render the elements
-			this.wrap.removeEventListener('scroll', unscroll)
-			unscroll()
-			this.debug && console.log('menu render6', path, this.wrap.scrollTop)
-			this.currentElements = [...this.wrap.getElementsByTagName('a')]
-			this.has2xEntry = this.currentElements.slice(0, 2).some(e => e.classList.contains('entry-2x'))
-			this.rendering = false
-			this.emit('render', this.path, icon, prevPath)
-			this.debug && console.log('menu rendered7', path, this.wrap.scrollTop)
-		}, 0)
+		if (!changed) return
+		this.emit('changed')
+		this.emit('render', this.path, icon, prevPath)
+		navigated && this.emit('navigate', path, this.path)
 	}
 	applyCurrentEntries(entries) {
-		let changed
-		if(this.currentEntries.length > entries.length) {
-			changed = true
-			this.currentEntries.splice(entries.length, this.currentEntries.length - entries.length)
-		}
-		entries.forEach((e, i) => {
-			if(this.currentEntries[i]) {
-				const ek = Object.keys(e), ck = Object.keys(this.currentEntries[i])	
-				const excludes = ck.filter(k => !ek.includes(k))
-				for(const k of excludes) {
-					changed = true
-					delete this.currentEntries[i][k]
-				}
-				for(const k of ek) {
-					if(!this.currentEntries[i].hasOwnProperty(k) || this.currentEntries[i][k] !== entries[i][k]) {
-						changed = true
-						this.currentEntries[i][k] = entries[i][k]
+		let changed = this.currentEntries.length != entries.length
+		if(!changed) {
+			changed = entries.some((e, i) => {
+				for(const k of Object.keys(e)) {
+					if(this.currentEntries[i][k] !== e[k]) {
+						return true
 					}
 				}
-			} else {
-				changed = true
-				this.currentEntries[i] = entries[i]
-			}
-		})
+			})
+		}
+		if(changed) {
+			this.currentEntries = entries
+		}
 		return changed
 	}
-	viewportRange(scrollTop){
-		let limit = (this.gridLayoutX * this.gridLayoutY)
-		if(this.currentElements.length) { // without elements (not initialized), we can't calc the element height
-			if(typeof(scrollTop) != 'number') {
-				scrollTop = this.wrap.scrollTop
-			}
-			const entryHeight = this.currentElements[this.currentElements.length - 1].offsetHeight
-			let i = Math.round(scrollTop / entryHeight) * this.gridLayoutX
-			if(this.has2xEntry) {
-				if(i) {
-					i--
-				} else {
-					limit--
-				}				
-			}
-			const end = Math.max(i, Math.min(i + limit, this.currentElements.length - 1))
-			return {start: i, end}
-		} else {
-			return {start: 0, end: limit}
-		}
-	}
-	viewportEntries(){
-		let ret = [], as = this.currentElements
-		if(as.length){
-			let range = this.viewportRange()
-			ret = as.slice(range.start, range.end)
-		}
-		return ret
-	}
-    updateRange(targetScrollTop){
-		if(typeof(targetScrollTop) != 'number'){
-			targetScrollTop = this.wrap.scrollTop
-		}
-		this.ranging = false
-		const prevRange = Object.assign({}, this.range || {})
-		this.range = this.viewportRange(targetScrollTop)
-		if(this.range.start != prevRange.start || this.range.end != prevRange.end) {
-			main.emit('menu-update-range', this.range, this.path)
-		}
-    }
 	check(element){
 		this.sounds.play('switch', 65)
 		const i = element.tabIndex
@@ -1898,7 +1474,7 @@ export class Menu extends MenuNav {
 				}
 			}
 			this.lastSelectTriggerer && setTimeout(() => {
-				this.focus(this.lastSelectTriggerer)
+				this.emit('focus', this.lastSelectTriggerer)
 				this.lastSelectTriggerer = null
 			}, 50)
 		})
@@ -1926,8 +1502,8 @@ export class Menu extends MenuNav {
 				this.emit('updated')
 			}
 			setTimeout(() => {
-				console.warn('DELAYED FOCUS ON', i, this.currentElements[i])
-				this.focus(this.currentElements[i])
+				console.warn('DELAYED FOCUS ON', i, this.currentEntries[i])
+				this.emit('focus-index', i)
 			}, 50)
 		}, fa)
 	}
@@ -1957,7 +1533,7 @@ export class Menu extends MenuNav {
 			path = path.join('/')
 		}
 		if(this.debug){
-			console.warn('menu-open', path, type, tabindex || false)
+			console.warn('menu-open', {path, type, element, tabindex})
 		}
 		this.emit('open', type, path, element, tabindex || false)
 		if(type == 'action' || type == 'input'){
@@ -1974,7 +1550,7 @@ export class Menu extends MenuNav {
 	action(element){
 		let type = element.getAttribute('data-type')
 		console.log('action', type, element)
-		this.focus(element)
+		this.emit('focus', element)
 		switch(type){
 			case 'slider':
 				this.setupSlider(element)
@@ -2007,7 +1583,8 @@ export class Menu extends MenuNav {
 						}
 					})
 					if(n != -1){
-						this.currentElements[n].click()
+						this.emit('focus-index', n)
+						this.getIndex(n)?.click()
 						resolve(true)
 					} else {
 						reject('option not found')
@@ -2080,20 +1657,7 @@ export class Menu extends MenuNav {
 		e.key = e.path + (e.id || e.url || '') // svelte id, added url to key to fix stream-state processing
 		return e
 	}
-	createHiddenInput() {
-		if (this.cachedHiddenInput) {
-			return this.cachedHiddenInput
-		}
-		const input = document.createElement('textarea')
-		input.style.position = 'fixed'
-		input.style.opacity = '0'
-		input.style.pointerEvents = 'none'
-		input.style.left = '-9999px'
-		input.style.top = '0'
-		this.cachedHiddenInput = input
-		return input
-	}
-	readClipboard(timeout = 0) {
+	readClipboard() {
 		return new Promise((resolve, reject) => {
 			if(window.capacitor) {
 				return window.capacitor.clipboard().then(ret => {
@@ -2104,53 +1668,20 @@ export class Menu extends MenuNav {
 				return reject('Clipboard API not available.')
 			}	
 
-			let timeoutId, focusHandler = () => {
-				window.removeEventListener('focus', focusHandler)
-				handleClipboardRead(true)
-			}
-	
-			const originalFocus = document.activeElement, hiddenInput = this.createHiddenInput(), handleClipboardRead = async final => {
-				try {
-					hiddenInput.parentNode || document.body.appendChild(hiddenInput)
-					hiddenInput.focus()
-					hiddenInput.select()
-					const clipboardText = await navigator.clipboard.readText()
-					clearTimeout(timeoutId)
-					resolve(clipboardText.trim())
-				} catch (error) {
-					if(final) {
-						clearTimeout(timeoutId)
-						reject('Clipboard read error: '+ error.message)
-					} else {
-						throw 'Clipboard read error: '+ error.message
-					}
-				} finally {
-					if(final) {
-						originalFocus.focus()
-						hiddenInput.parentNode && document.body.removeChild(hiddenInput)
-					}
-				}
-			}
-	
-			handleClipboardRead(false).catch(err => {
-				if (document.hasFocus()) {
-					return reject(err)
-				}
-				try {
-					window.blur() && parent != window && parent.blur()
-				} finally {
-					window.addEventListener('focus', focusHandler, { once: true })
-					parent != window && parent.focus()
-					window.focus()
-				}
-			})
-	
-			if (timeout && timeout > 0) {
-				timeoutId = setTimeout(() => {
-					window.removeEventListener('focus', focusHandler)
-					handleClipboardRead(true).catch(reject)
-				}, timeout)
-			}
+			let timer, resolved = false
+			navigator.clipboard.readText().then(clipboardText => {
+				if(resolved) return
+				resolved = true
+				clearTimeout(timer)
+				resolve(clipboardText.trim())
+			}).catch(reject)
+
+			timer = setTimeout(() => {
+				if(resolved) return
+				resolved = true
+				console.warn('timeoutId', timeoutId)
+				reject('timeout')
+			}, 2000)
 		})
 	}
 }
