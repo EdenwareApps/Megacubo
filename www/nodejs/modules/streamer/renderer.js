@@ -39,11 +39,11 @@ class StreamerPlaybackTimeout extends EventEmitter {
         clearTimeout(this.playbackTimeoutTimer)
         this.playbackTimeoutTimer = 0
         if(this.isTryOtherDlgActive()){
-            main.menu.endModal()
+            main.menu.dialogs.end(true)
         }
     }
     isTryOtherDlgActive(){
-        return !!document.getElementById('modal-template-option-wait')
+        return !!document.getElementById('dialog-template-option-wait')
     }
     ended(){
         clearTimeout(this.playbackTimeoutTimer)
@@ -277,7 +277,7 @@ class StreamerState extends StreamerCasting {
         this.on('stop', () => this.stateListener(''))
         main.on('streamer-show-tune-hint', () => {
             const next = () => {
-                main.menu.dialog([
+                main.menu.dialogs.dialog([
                     {template: 'question', text: document.title, fa: 'fas fa-info-circle'},
                     {template: 'message', text: main.lang.TUNING_HINT.format('<i class=\'fas '+ main.config['tuning-icon'] +'\'></i>')},
                     {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
@@ -333,7 +333,7 @@ class StreamerState extends StreamerCasting {
                 }
                 if(position > (duration * 0.8)) {
                     player.pause()
-                    main.menu.dialog([
+                    main.menu.dialogs.dialog([
                         {template: 'question', text: main.lang.CONTINUE, fa: 'fas fa-redo-alt'},
                         {template: 'option', text: main.lang.RESUME_FROM_X.format(this.hmsSecondsToClock(position)), id: 'resume', fa: 'fas fa-redo-alt'},
                         {template: 'option', text: main.lang.PLAY_FROM_START, id: 'play', fa: 'fas fa-play'}
@@ -713,6 +713,7 @@ class StreamerSeek extends StreamerButtonActionFeedback {
         this.seekLastDuration = 0
         this.on('draw', () => {
             this.seekbar = this.controls.querySelector('seekbar')
+            this.seekbarInner = this.seekbar.querySelector('div')
             this.seekbarLabel = this.controls.querySelector('span.status')
             this.seekbarNput = this.seekbar.querySelector('input')
             this.seekbarNputVis = this.seekbar.querySelector('div > div')
@@ -765,7 +766,15 @@ class StreamerSeek extends StreamerButtonActionFeedback {
         player.on('play', () => {
             this.seekBarUpdate(true)
         })
-    }    
+    }
+    seekbarFocus(setFocused){
+        if(setFocused === true){
+            this.emit()
+            main.menu.emit('focus', this.seekbarInner)
+        } else {
+            return this.seekbarInner == document.activeElement || this.seekbarInner.classList.contains('selected')
+        }
+    }
     hmsPrependZero(n){
         if (n < 10){
             n = '0'+ n
@@ -1212,7 +1221,7 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
     }
     handleDarkModeInfoDialog(info){
         if(info.miui && info.mode && info.mode != 16){
-            main.menu.dialog([
+            main.menu.dialogs.dialog([
                 {template: 'question', text: document.title, fa: 'fas fa-info-circle'},
                 {template: 'message', text: main.lang.MIUI_DARK_MODE_HINT},
                 {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
@@ -1517,7 +1526,7 @@ class StreamerClientControls extends StreamerAudioUI {
         this.emit('draw')
         document.querySelector('#menu').addEventListener('click', e => {
             if(e.target.id == 'menu'){
-                if(this.active && !main.menu?.inModal() && !main.menu?.isVisible()){
+                if(this.active && !main.menu?.dialogs?.inDialog() && !main.menu?.isVisible()){
                     this.playOrPauseNotIdle()
                 }
             }
@@ -1648,7 +1657,7 @@ export class StreamerClient extends StreamerClientController {
     }
     errorCallback(src, mimetype){
         if(this.autoTuning && !this.transcodeStarting && this.stateListening && !mimetype.startsWith('video/')){ // seems live
-            main.menu.dialog([
+            main.menu.dialogs.dialog([
                 {template: 'question', text: '', fa: 'fas fa-question-circle'},
                 {template: 'option', text: main.lang.PLAY_ALTERNATE, id: 'tune', fa: main.config['tuning-icon']},
                 {template: 'option', text: main.lang.STOP, id: 'stop', fa: 'fas fa-stop-circle'},
@@ -1684,7 +1693,7 @@ export class StreamerClient extends StreamerClientController {
             this.transitioning = true
             this.bindStateListener()
             if(this.isTryOtherDlgActive()){
-                main.menu.endModal()
+                main.menu.dialogs.end(true)
             }
             this.data = data
             this.autoTuning = autoTuning

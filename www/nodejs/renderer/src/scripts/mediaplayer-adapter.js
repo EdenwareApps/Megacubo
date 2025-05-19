@@ -20,19 +20,31 @@ export class MediaPlayerAdapter extends EventEmitter {
 		this.mediatype = mediatype
 	}
 	reload(cb) {
+		const alive = this.active && this.object
 		const t = this.time()
 		const {currentSrc, currentMimetype, currentAdditionalSubtitles, cookie, mediatype} = this
 		this.suspendStateChangeReporting = true
 		this.unload()
-		setTimeout(() => {
-			this.suspendStateChangeReporting = false
-			this.setState('loading')
+		if(alive){
+			setTimeout(() => {
+				this.suspendStateChangeReporting = false
+				this.setState('loading')
 			this.load(currentSrc, currentMimetype, currentAdditionalSubtitles, cookie, mediatype)
 			if(t && this.mediatype == 'live') {
 				this.time(t + 0.5) // nudge a bit to skip any decoding error on part of the file
 			}
-			cb && cb()
-		}, 10)
+				cb && cb()
+			}, 10)
+		} else {
+			this.emit('error', 'Playback failure', true)
+			this.setState('')
+		}
+	}
+	destroy(){
+		this.active = false
+		this.object = null
+		this.unload()
+		this.removeAllListeners()
 	}
 }
 

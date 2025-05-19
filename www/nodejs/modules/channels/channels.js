@@ -1195,7 +1195,7 @@ class Channels extends ChannelsKids {
                     type: 'group',
                     class: 'entry-meta-stream',
                     fa: 'fas fa-play-circle',
-                    renderer: async () => {                        
+                    renderer: async () => {
                         let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.tools.terms(atts.name);
                         let es = await global.lists.search(terms, {
                             type: atts.mediaType,
@@ -1203,7 +1203,7 @@ class Channels extends ChannelsKids {
                             safe: !global.lists.parentalControl.lazyAuth(),
                             limit: 1024
                         });
-                        return global.lists.tools.paginateList(es);
+                        return es;
                     }
                 });
             } else {
@@ -1315,7 +1315,7 @@ class Channels extends ChannelsKids {
                 }
                 entries = await this.epgChannelsAddLiveNow(entries, true);
                 entries = global.lists.tools.sort(entries);
-                return global.lists.tools.paginateList(global.lists.tools.sort(entries));
+                return entries;
             }
         };
     }

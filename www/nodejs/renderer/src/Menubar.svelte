@@ -32,7 +32,7 @@
   };
 
   export function setIndex(index) {
-    if (!main?.menu.currentEntries?.length) return;
+    if (!main.menu?.currentEntries?.length) return;
     const total = main.menu.currentEntries.length;
     show(" " + (index + 1) + "/" + total);
   }

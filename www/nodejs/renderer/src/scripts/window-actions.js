@@ -30,7 +30,7 @@ class WindowActions extends EventEmitter {
 		if(this.canAutoRestart()){
 			opts.push({template: 'option', text: main.lang.RESTARTAPP, id: 'restart'})
 		}
-		main.menu.dialog(opts, c => {
+		main.menu.dialogs.dialog(opts, c => {
 			if(c == 'yes'){
 				this.exit()
 			} else if(c == 'restart'){
@@ -39,7 +39,7 @@ class WindowActions extends EventEmitter {
 		}, 'no')
 	}
 	askRestart(){
-		main.menu.dialog([
+		main.menu.dialogs.dialog([
 			{template: 'question', text: document.title, fa: 'fas fa-info-circle'},
 			{template: 'message', text: main.lang.SHOULD_RESTART},
 			{template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'},
@@ -83,7 +83,7 @@ class WindowActions extends EventEmitter {
 		if(this.canAutoRestart()){
 			next(true)
 		} else {
-			main.menu.dialog([
+			main.menu.dialogs.dialog([
 				{template: 'question', text: document.title, fa: 'fas fa-info-circle'},
 				{template: 'message', text: main.lang.SHOULD_RESTART},
 				{template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}

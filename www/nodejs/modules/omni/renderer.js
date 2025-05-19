@@ -160,8 +160,8 @@ export class OMNI extends OMNIUtils {
             console.warn('INPUT ignored')
             return
         }
-        if(main.menu?.inModal()){
-            var v = document.querySelector('#modal-content input[type="text"]')
+        if(main.menu?.dialogs?.inDialog()){
+            var v = document.querySelector('.dialog-content input[type="text"]')
             if(v){ // that's some input field on ui?
                 v.focus()
                 return

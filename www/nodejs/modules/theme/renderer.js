@@ -50,6 +50,18 @@ const hexToRgb = ohex => {
         b: parseInt(result[3], 16)
     } : ohex
 }
+function rgbToHex(r, g, b) {
+    if (typeof r === 'string') {
+        let values = r.match(new RegExp('(\\d+) *, *(\\d+) *, *(\\d+)'))
+        if (!values) {
+            throw new Error('Invalid RGB color: ' + r)
+        }
+        r = parseInt(values[1])
+        g = parseInt(values[2])
+        b = parseInt(values[3])
+    }
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)
+}
 
 class Theme extends EventEmitter {
     constructor(){
@@ -214,10 +226,12 @@ class Theme extends EventEmitter {
         } else if(!family.includes(systemFont)) {
             family += ','+ systemFont
         }
-        const sbg = colorMixer(Object.values(hexToRgb(main.config['background-color'])), [0, 0, 0], 0.675)
-        const mbg = hexToRGBA(main.config['background-color'], 0.5)
-        const bbg = hexToRGBA(main.config['background-color'], (100 - main.config['background-transparency']) / 100)
-        const sfg = colorMixer(Object.values(hexToRgb(main.config['font-color'])), [0, 0, 0], 0.75)
+        const shadowColor = colorMixer(Object.values(hexToRgb(main.config['background-color'])), [0, 0, 0], 0.675)
+        const dialogBackgoundLayerColor = hexToRGBA(rgbToHex(shadowColor), 0.75)
+        const backgroundColor = hexToRGBA(main.config['background-color'], (100 - main.config['background-transparency']) / 100)
+        const alphaBackgroundColor = hexToRGBA(rgbToHex(backgroundColor), 0.75)
+        const alphaShadowColor = hexToRGBA(rgbToHex(shadowColor), 0.75)
+        const secondaryFontColor = colorMixer(Object.values(hexToRgb(main.config['font-color'])), [0, 0, 0], 0.75)
         const fxNavIntensityStep = parseFloat(window.getComputedStyle(document.documentElement).getPropertyValue('--menu-fx-nav-intensity-step').trim())
         const fxNavIntensity = main.config['fx-nav-intensity'] * fxNavIntensityStep
         let fxNavDuration
@@ -241,8 +255,8 @@ class Theme extends EventEmitter {
         let h = setAlpha(hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, baseFactor)), 0.7)
 
         baseColor = [255, 255, 255]
-        let e = hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, 0.32))
-        let f = hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, 0.40))
+        let dialogBackgroundColorTop = hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, 0.375))
+        let dialogBackgroundColorBottom = hexToRgb(colorMixer(Object.values(hexToRgb(main.config['background-color'])), baseColor, 0.3))
 
         let l = main.config['view-size'].landscape.x > 1 ? 'column' : 'row'
         let p = main.config['view-size'].portrait.x > 1 ? 'column' : 'row'
@@ -251,11 +265,13 @@ class Theme extends EventEmitter {
         :root {
             --menu-fx-nav-duration: ${fxNavDuration}s;
             --font-color: ${main.config['font-color']};
-            --secondary-font-color: ${sfg};
+            --secondary-font-color: ${secondaryFontColor};
             --background-color: ${main.config['background-color']};
-            --modal-background-color: ${mbg};
-            --shadow-background-color: ${sbg};
-            --menu-fx-nav-intensity: ${fxNavIntensity};    
+            --dialog-background-color: ${dialogBackgoundLayerColor};
+            --alpha-background-color: ${alphaBackgroundColor};
+            --shadow-background-color: ${shadowColor};
+            --alpha-shadow-background-color: ${alphaShadowColor};
+            --menu-fx-nav-intensity: ${fxNavIntensity};
             --radius: ${radius};
         }
         @media (orientation: landscape) {
@@ -274,13 +290,14 @@ class Theme extends EventEmitter {
             font-family: ${family};
         }
         body.video, html.curtains-closed body {
-            --shadow-background-color: rgba(0, 0, 0, 0.8);
+            --shadow-background-color: rgba(0, 0, 0, 0.75);
+            --alpha-shadow-background-color: rgba(0, 0, 0, 0.75);
         }
         *:not(input):not(textarea) {
             text-transform: ${ucase};
         }
         div#background > div {
-            background-color: ${bbg};
+            background-color: ${backgroundColor};
         }
         #menu a span.entry-wrapper {
             background: linear-gradient(to top, ${g} 75%, ${h} 100%) !important;
@@ -289,8 +306,11 @@ class Theme extends EventEmitter {
         #menu content a.selected span.entry-wrapper {
             border: 1px solid ${d} !important;
         }
-        .modal-wrap > div {
-            background: linear-gradient(to bottom, ${e} 0%, ${f} 100%) !important;
+        .dialog-wrap {
+            background: transparent;
+        }
+        body.dialog .dialog-wrap {
+            background: linear-gradient(to bottom, ${dialogBackgroundColorTop} 0%, ${dialogBackgroundColorBottom} 100%) !important;
         }
         `
         main.css(cssCode, 'theme')

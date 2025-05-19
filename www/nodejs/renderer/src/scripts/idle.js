@@ -24,7 +24,8 @@ export class Idle extends EventEmitter {
         this.main = main
         this.timeout = 5000
         this.awayTimeout = 10000
-        this.lastIdleTime = Date.now() / 1000
+        this.lastActiveTime = this.now()
+        this.lastIdleTime = this.now()
         this.idle = false
         this.idleTimer = 0
         this.awayTimer = 0
@@ -41,6 +42,17 @@ export class Idle extends EventEmitter {
             })
         })
         window.addEventListener('blur', () => this.start())
+    }
+    now(){
+        return Date.now() / 1000
+    }
+    idleTime(){
+        if(!this.idle) return 0
+        return this.now() - this.lastActiveTime
+    }
+    activeTime(){
+        if(this.idle) return 0
+        return this.now() - this.lastIdleTime
     }
     setTimeoutAwayState(n){
         if(n > 5) {
@@ -59,7 +71,7 @@ export class Idle extends EventEmitter {
     }
     reset(){
         if(!this.locked) {
-            var now = parseInt(Date.now() / 1000)
+            var now = this.now()
             if(now <= this.lastResetTime) return // cap to 1 call/sec
             this.isAway = false
             this.lastResetTime = now
@@ -77,7 +89,7 @@ export class Idle extends EventEmitter {
     start(){
         if(!this.locked){
             if (!this.idle) {
-                this.idleTime = Date.now() / 1000
+                this.lastActiveTime = this.now()
                 this.isIdle = this.idle = true
                 this.emit('idle')
                 if(typeof(this.awayTimeout) == 'number') {

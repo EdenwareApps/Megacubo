@@ -2,6 +2,7 @@
 	import { onMount, tick } from "svelte";
 
 	let {
+		children,
 		items = $bindable(),
 		height = $bindable(),
 		width = $bindable(),
@@ -132,7 +133,7 @@
 		scrollHeight = y_positions[rows.length];
 	}
 
-	export async function scrollToIndex(index) {
+	export async function scrollToIndex(index) {		
 		const { rows, y_positions } = getItemsDimensionsMatrix();
 
 		let index_row = 0;
@@ -144,12 +145,10 @@
 		}
 
 		const top = y_positions[index_row];
-		console.error('scrollToIndex', index, {top, rows, y_positions, scrollTop, viewport_height})
 		if(top < scrollTop || top > (scrollTop + viewport_height)) {
 			let element;
 			while (!element) {
 				element = document.querySelector('[tabindex="'+ index +'"]')
-				console.log('waiting for tabindex="'+ index +'" '+ viewport.scrollTop +' => '+ top)
 				viewport.style.scrollSnapType = 'none'
 				viewport.scrollTop = scrollTop = top
 				await tick();
@@ -190,7 +189,7 @@
 		style="padding-top: {top}px; padding-bottom: {bottom}px;"
 	>
 		{#each visible as row (row.index)}
-			<slot item={row.data}></slot>
+			{@render children(row.data)}
 		{/each}
 	</svelte-virtual-grid-contents>
 </svelte-virtual-grid-viewport>

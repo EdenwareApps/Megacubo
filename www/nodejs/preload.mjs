@@ -1,11 +1,10 @@
 import electron from "electron";
+import remote from '@electron/remote';
 import { EventEmitter } from 'node:events';
 import path from "path";
 import fs from "fs";
 import { spawn } from "child_process";
 import ExecFinder from 'exec-finder';
-import { getFilename } from "cross-dirname";
-import { createRequire } from 'node:module';
 import { prepare } from "./modules/serialize/serialize.js";
 
 function getElectron() {
@@ -17,14 +16,7 @@ function getElectron() {
         });
     };
     extract(electron);
-    if (electron.remote) {
-        extract(electron.remote);
-    }
-    const require = createRequire(getFilename())
-    try {
-        const remote = require('@electron/remote')
-        extract(remote)
-    } catch (e) { }
+    extract(remote)
     keys.forEach(k => {
         if (!ret[k])
             ret[k] = null;

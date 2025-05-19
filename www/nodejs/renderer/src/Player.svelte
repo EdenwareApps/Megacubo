@@ -38,7 +38,9 @@
 </script>
 <player bind:this={playerElement}>
     <div>
-        <video crossorigin plays-inline webkit-playsinline poster="./assets/images/blank.png"></video>
+        <video crossorigin plays-inline webkit-playsinline poster="./assets/images/blank.png">
+            <track kind="captions" />
+        </video>
         <audio crossorigin plays-inline webkit-playsinline poster="./assets/images/blank.png"></audio>
     </div>
 </player>
@@ -151,11 +153,11 @@ html.curtains-closed .curtain-b {
     left: 101vw;
 }
 body.video {
-    --modal-background-color: rgba(0, 0, 0, 0.75);
+    --dialog-background-color: rgba(0, 0, 0, 0.8);
 }
 
 body.video #menu,
-body.modal #menu {
+body.dialog #menu {
     transform: scale(var(--menu-fx-nav-default-deflate));
 }
 
@@ -189,7 +191,7 @@ video {
     bottom: calc(var(--controls-height) + var(--seekbar-height));
     width: 100%;
     padding: calc(var(--padding) * 7) 0 var(--padding-2x) 0;
-    z-index: 4;
+    z-index: 3;
     box-sizing: border-box;
     pointer-events: none;
     align-items: center;
@@ -283,7 +285,7 @@ div#loading-layer>span.loading-layer-status {
 div#loading-layer>span.loading-layer-status>span {
     padding: calc(0.5 * var(--padding)) calc(1.5 * var(--padding));
     font-size: var(--menu-entry-name-font-size);
-    background: var(--modal-background-color);
+    background: var(--dialog-background-color);
     border-radius: 25vmin;
     position: relative;
     top: -2vmin;
@@ -371,7 +373,7 @@ div#streamer-info {
 }
 
 div#streamer-info > div {
-    background-color: var(--shadow-background-color);
+    background-color: var(--alpha-shadow-background-color);
     color: #fff;
     display: inline-flex;
     flex-direction: column;
@@ -475,7 +477,7 @@ body.video.video-loading:not(.miniplayer-android):not(.menu-playing):not(.idle) 
     transform: none;
 }
 
-body.modal controls {
+body.dialog controls {
     visibility: visible;
     transform: scale(var(--menu-fx-nav-default-deflate)) !important;
 }

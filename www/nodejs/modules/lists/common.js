@@ -35,34 +35,30 @@ export class Fetcher extends EventEmitter {
             throw new Error('Fetcher loader not set')
         }
         
-        console.log('Fetcher start', this.url)
         this.list = new List(this.url, this.master)
         try {
-            console.log('Fetcher ready', this.url)
             await this.list.ready()
             if (!this.list.length) {
                 throw new Error('List is empty')
             }
         } catch (err) {
-            console.log('Fetcher error', this.url, err)
+            console.error('Fetcher error', this.url, err)
             try {
                 await this.master.loader.addListNow(this.url, this.atts)
                 try {
-                    console.log('Fetcher ready 2', this.url)
                     this.list = new List(this.url, this.master)
                     return this.list.ready()
                 } catch(e) { // will trigger outer catch
-                    console.log('Fetcher error 2', this.url, e)
+                    console.error('Fetcher error 2', this.url, e)
                     throw err
                 }
             } catch(err) {
-                console.log('Fetcher error 3', this.url, err)
+                console.error('Fetcher error 3', this.url, err)
                 this.error = err
                 this.list.destroy()
                 throw err
             }
         }
-        console.log('Fetcher end', this.url)
     }
     validateCache(content) {
         return typeof(content) == 'string' && content.length >= this.minDataLength;

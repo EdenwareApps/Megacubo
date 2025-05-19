@@ -71,7 +71,7 @@ body.video #osd-root {
   font-size: var(--menu-entry-name-font-size);
   font-weight: 500;
   min-height: calc(1.5 * var(--menu-entry-name-font-size));
-  color: var(--shadow-background-color);
+  color: var(--alpha-shadow-background-color);
   display: flex;
   border-width: 0;
   margin-bottom: var(--padding);
@@ -89,7 +89,7 @@ body.video #osd-root {
 
 body.video #osd-root > div {
   color: var(--font-color);
-  background: rgba(0, 0, 0, 0.8) !important;
+  background: var(--alpha-shadow-background-color) !important;
   box-shadow: 0 0 var(--padding-2x) rgba(0, 0, 0, 0.5) !important;
 }
 
@@ -124,7 +124,7 @@ body:not(.video-loading) #osd-entry-debug-conn-err {
   display: none !important;
 }
 
-body.video:not(.modal) #osd-root {
+body.video:not(.dialog) #osd-root {
   transform: scaleY(var(--menu-fx-nav-default-deflate));
 }
 </style>

@@ -14,7 +14,6 @@ class MediaPlayer extends EventEmitter {
 			this.innerContainer = document.createElement('div')
 			this.container.appendChild(this.innerContainer)
 		}
-		this.adapters = {}
 		this.adapter = ''
 		this.current = null
 		this.state = ''
@@ -26,9 +25,9 @@ class MediaPlayer extends EventEmitter {
 		this.currentSubtitleTracks = null
 		main.on('config', () => {
 			this.config = main.config
-			Object.keys(this.adapters).forEach(k => {
-				this.adapters[k].config = main.config
-			})
+			if(this.current){
+				this.current.config = this.config
+			}
 		})
 	}
 	uiVisible(visible){
@@ -184,80 +183,84 @@ class MediaPlayer extends EventEmitter {
 		document.body.style.backgroundColor = 'transparent'
 		return current
 	}
-	setup(adapter, cls){
-		this.adapter = adapter
+	setup(adapterName, adapter){
+		this.adapter = adapterName
 		this.currentAudioTracks = []
 		this.currentSubtitleTracks = []
-		if(typeof(this.adapters[this.adapter]) == 'undefined'){
-			const a = new (cls)(this.innerContainer)
-			a.on('state', s => {
-				if(typeof(s) == 'undefined') return
-				if(!s && this.hasErr){
-					s = 'error'
-				}
-				if(!this.suspendStateChangeReporting) this.setState(s, this.hasErr)
-			})
-			a.on('setup-ratio', r => {
-				if(!this.current) return
-				this.emit('setup-ratio', r)
-			})
-			a.on('timeupdate', n => {
-				if(!this.current) return
-				this.emit('timeupdate', n)
-			})
-			a.on('durationchange', () => {
-				if(!this.current) return
-				this.emit('durationchange', this.uiVisibility)
-			})
-			a.on('audioTracks', tracks => {
-				if(!this.current) return
-				if(!this.equals(tracks, this.currentAudioTracks)){
-					this.currentAudioTracks = tracks
-					this.emit('audioTracks', tracks)
-				}
-			})
-			a.on('subtitleTracks', tracks => {
-				if(!this.current) return
-				if(!this.equals(tracks, this.currentSubtitleTracks)){
-					this.currentSubtitleTracks = tracks
-					this.emit('subtitleTracks', tracks)
-				}
-			})
-			a.on('error', (err, fatal) => {
-				if(!this.current){
-					try { // a.disconnect() is not a function
-						a.disconnect()
-						a.unload()
-					} catch(e) {}
-					return
-				}
-				if(this.clearErrTimer){
-					clearTimeout(this.clearErrTimer)
-				}
-				if(fatal === true){
-					this.state = 'error'
-					if(!this.suspendStateChangeReporting) this.emit('state', this.state, err)
-					a.unload()
-				} else {
-					this.hasErr = String(err)
-					this.clearErrTimer = setTimeout(() => {
-						this.hasErr = null
-					}, 5000)
-				}
-			})
-			a.on('ended', (err, fatal) => {
-				if(!this.current) return
-				this.suspendStateChangeReporting = true
-				this.pause()
-				setTimeout(() => {
-					this.suspendStateChangeReporting = false
-					this.setState('ended')
-				}, 0)
-			})
-			a.config = main.config
-			this.adapters[this.adapter] = a
+		if (this.current) {
+			this.current.destroy();
+			this.current = null;
 		}
-		return this.current = this.adapters[this.adapter]
+
+		const a = new adapter(this.innerContainer)
+		a.on('state', s => {
+			if(typeof(s) == 'undefined') return
+			if(!s && this.hasErr){
+				s = 'error'
+			}
+			if(!this.suspendStateChangeReporting) this.setState(s, this.hasErr)
+		})
+		a.on('setup-ratio', r => {
+			if(!this.current) return
+			this.emit('setup-ratio', r)
+		})
+		a.on('timeupdate', n => {
+			if(!this.current) return
+			this.emit('timeupdate', n)
+		})
+		a.on('durationchange', () => {
+			if(!this.current) return
+			this.emit('durationchange', this.uiVisibility)
+		})
+		a.on('audioTracks', tracks => {
+			if(!this.current) return
+			if(!this.equals(tracks, this.currentAudioTracks)){
+				this.currentAudioTracks = tracks
+				this.emit('audioTracks', tracks)
+			}
+		})
+		a.on('subtitleTracks', tracks => {
+			if(!this.current) return
+			if(!this.equals(tracks, this.currentSubtitleTracks)){
+				this.currentSubtitleTracks = tracks
+				this.emit('subtitleTracks', tracks)
+			}
+		})
+		a.on('error', (err, fatal) => {
+			if(!this.current){
+				try { // a.disconnect() is not a function
+					a.disconnect()
+					a.unload()
+				} catch(e) {}
+				return
+			}
+			if(this.clearErrTimer){
+				clearTimeout(this.clearErrTimer)
+			}
+			if(fatal === true){
+				this.state = 'error'
+				if(!this.suspendStateChangeReporting) this.emit('state', this.state, err)
+				a.unload()
+			} else {
+				this.hasErr = String(err)
+				this.clearErrTimer = setTimeout(() => {
+					this.hasErr = null
+				}, 5000)
+			}
+		})
+		a.on('ended', (err, fatal) => {
+			if(!this.current) return
+			this.suspendStateChangeReporting = true
+			this.pause()
+			setTimeout(() => {
+				this.suspendStateChangeReporting = false
+				this.setState('ended')
+			}, 0)
+		})
+		a.config = main.config
+		this.current = a
+			
+		return this.current
 	}
     equals(a, b){
 		return a && b && a.length == b.length ? a.every((r, i) => {

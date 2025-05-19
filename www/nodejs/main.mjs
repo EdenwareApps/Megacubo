@@ -1,5 +1,6 @@
 import paths from './modules/paths/paths.js'
 import electron from 'electron'
+import * as remote from '@electron/remote/main';
 import path from 'path'
 import crashlog from './modules/crashlog/crashlog.js'
 import onexit from 'node-cleanup'
@@ -22,14 +23,17 @@ import Download from './modules/download/download.js'
 import renderer from './modules/bridge/bridge.js'
 import storage from './modules/storage/storage.js'
 import channels from './modules/channels/channels.js'
-import { getFilename } from 'cross-dirname'
-import { createRequire } from 'node:module'
 import menu from './modules/menu/menu.js'
 import { moment, rmdir, rmdirSync, ucWords } from './modules/utils/utils.js'
 import osd from './modules/osd/osd.js'
 import ffmpeg from './modules/ffmpeg/ffmpeg.js'
 import promo from './modules/promoter/promoter.js'
 import mega from './modules/mega/mega.js'
+
+if (process.versions.electron && remote) {
+    console.log('Electron remote initialize')
+    remote.initialize()
+}
 
 // set globally available objects
 Object.assign(global, {
@@ -391,7 +395,6 @@ const initElectronWindow = async () => {
     const isLinux = process.platform == 'linux', appCmd = app.commandLine    
     const tcpFastOpen = config.get('tcp-fast-open') ? 'true' : 'false'
 
-    let remote    
     let gpuFlags = config.get('gpu-flags')
     if (config.get('gpu')) {
         if (!gpuFlags) {
@@ -447,34 +450,18 @@ const initElectronWindow = async () => {
         console.error('Already running.')
         app.quit()
     }
-    
-    const contextIsolation = parseFloat(process.versions.electron) >= 22
-    if(contextIsolation) {
-        if(electron.remote) {
-            remote = electron.remote
-        } else {
-            const require = createRequire(getFilename())
-            try {
-                remote = require('@electron/remote/main')
-            } catch (e) {
-                try {
-                    remote = require('@electron/remote')
-                } catch (e) {
-                    console.error('Error loading remote', e)
-                }
-            }
-        }
-        remote?.initialize()
-    }
+        
     Menu.setApplicationMenu(null)
     onexit(() => app.quit())
-    if (contextIsolation) {
-        app.once('browser-window-created', (_, window) => {
-            remote?.enable(window.webContents)
-        })
-    }
+        
     await channels.updateUserTasks(app).catch(err => console.error(err))
     await app.whenReady()
+
+    app.on('browser-window-created', (_, window) => {
+        console.log('Browser window created')
+        remote.enable(window.webContents)
+    })
+    
     global.window = new BrowserWindow({
         width: 240,
         height: 180,
@@ -486,7 +473,7 @@ const initElectronWindow = async () => {
         webPreferences: {
             cache: false,
             sandbox: false,
-            contextIsolation,
+            contextIsolation: true,
             fullscreenable: true,
             disablePreconnect: true,
             dnsPrefetchingEnabled: false,
@@ -494,7 +481,6 @@ const initElectronWindow = async () => {
             nodeIntegrationInWorker: false,
             nodeIntegrationInSubFrames: false,
             preload: path.join(paths.cwd, 'dist/preload.js'),
-            enableRemoteModule: true,
             experimentalFeatures: true,
             navigateOnDragDrop: true,
             devTools: debug,
@@ -518,7 +504,6 @@ const initElectronWindow = async () => {
         }
     })
     window.once('closed', () => window.closed = true) // prevent bridge IPC error
-    debug && window.openDevTools()
     renderer.ui.setElectronWindow(window)
     renderer.bridgeReady((err, port) => {
         window.loadURL('http://127.0.0.1:'+ port +'/renderer/electron.html', { userAgent: renderer.ui.ua })

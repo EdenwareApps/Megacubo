@@ -1,5 +1,6 @@
 import { traceback } from '../../renderer/src/scripts/utils.js'
 import { stringify } from '../serialize/serialize.js'
+import { main } from '../bridge/renderer.js'
 
 class Crashlog {
     constructor(){}

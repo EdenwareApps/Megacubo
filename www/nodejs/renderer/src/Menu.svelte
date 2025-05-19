@@ -7,11 +7,12 @@
 	import VirtualGrid from './VirtualGrid.svelte';
     import SpatialNavigation from './SpatialNavigation.svelte';
     import Menubar from './Menubar.svelte';
+    import Dialog from './Dialog.svelte'
 
     const transparentImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=';
 
     let items = $state([]);
-    let headerActions = $state([]);
+    let sideMenuItems = $state([]);
     let lang = $state({});
     let icons = $state({});
     let path = $state('');
@@ -27,14 +28,19 @@
     let spatialNavigation;
     let virtualGrid;
     let menubar;
+    let dialog;
 
     function setupNavigation() {
         ([
             {
-                level: 'default',
-                selector: ['#menu svelte-virtual-grid-contents a', 'body.video #menu-playing-close', '.menu-omni'],
+                name: 'default',
+                selector: [
+                    '#menu svelte-virtual-grid-contents a',
+                    'body.video #menu-playing-close',
+                    '.menu-omni'
+                ],
                 condition: () => {
-                    return main.menu.isVisible() && !main.menu.inSideMenu()
+                    return main.menu.isVisible() && !main.menu.inSideMenu() && !dialog.inDialog()
                 },
                 default: true,
                 overScrollAction: (direction, e) => {
@@ -89,21 +95,22 @@
                                 n = i
                             }
                             main.menu.emit('focus-index', n)
+                            main.menu.emit('x-select', null)
                             return true
                         } else if(direction == 'up') {
                             main.menu.showWhilePlaying(false)
                         }
-                    } else if(direction == 'left' && !main.menu.inSideMenu() && !main.menu.inModal()) {
+                    } else if(direction == 'left' && !main.menu.inSideMenu() && !dialog.inDialog()) {
                         main.menu.sideMenu(true)
                         return true
                     }
                 }
             },
             {
-                level: 'nav-menu',
+                name: 'nav-menu',
                 selector: 'body.side-menu #menu nav a',
                 condition: () => {
-                    return main.menu.inSideMenu() && !main.menu.inModal() && main.menu.isVisible()
+                    return main.menu.inSideMenu() && !dialog.inDialog() && main.menu.isVisible()
                 },
                 overScrollAction: (direction, e) => {
                     if (direction == 'up' || direction == 'down') {
@@ -122,31 +129,51 @@
                 }
             },
             {
-                level: 'modal',
-                selector: '#modal-content input, #modal-content textarea, #modal-content .button, #modal-content a',
+                name: 'dialog',
+                selector: '.dialog-content input, .dialog-content textarea, .dialog-content button, .dialog-content a',
                 condition: () => {
-                    return menu?.inModal()
+                    return dialog.inDialog()
+                },
+                overScrollAction: (direction, e) => {
+                    if (direction == 'left' || direction == 'right') {
+                        const element = document.querySelector('.dialog-template-slider-track:not(.selected)')
+                        if (element) {
+                            spatialNavigation.focus(element)
+                            return true
+                        }
+                    }
                 }
             },
             {
-                level: 'player',
+                name: 'player',
                 selector: [
                     'body.video-paused button.control-layer-icon',
                     'controls button, div#arrow-down-hint i',
                     'seekbar > div'
                 ], // use array to force selector to keep this auto focus order
                 condition: () => {
-                    return main.menu.inPlayer() && !main.menu.inModal() && !main.menu.isVisible()
+                    return main.menu.inPlayer() && !dialog.inDialog() && !main.menu.isVisible()
                 },
                 overScrollAction: direction => {
-                    console.log('overScrollAction', direction)
                     if (direction == 'down') {
-                        main.menu.showWhilePlaying(true)
+                        if (main.idle.activeTime() > 1) { // was idle, ignore initial focus on player
+                            main.menu.showWhilePlaying(true)
+                        } else {
+                            main.menu.reset()                            
+                        }
                         return true
                     } else if (direction == 'up') {
-                        main.menu.reset()
-                        main.idle.start()
-                        main.idle.lock(1)
+                        if (main.idle.activeTime() > 1) { // was idle, ignore initial focus on player
+                            if (main.streamer.seekbarFocus()) {
+                                main.menu.reset()
+                                main.idle.start()
+                                main.idle.lock(1)
+                            } else {
+                                main.streamer.seekbarFocus(true)
+                            }
+                        } else {
+                            main.menu.reset()
+                        }
                         return true
                     }
                 }
@@ -162,21 +189,34 @@
     function itemFocusCallback({ index, element }) {
         if (selectedIndex == index) return;
         selectedIndex = index;
-        menu.selectedElement = element;
-        menu.selectedElementX = element;
-        menu.selectedIndex = index;
+        main.menu.selectedElement = element;
+        main.menu.selectedElementX = element;
+        main.menu.selectedIndex = index;
+        main.menu.emit('select', element);
         menubar.setIndex(index);
     }
 
     function itemXFocusCallback({ index, element }) {
-        menu.selectedElementX = element;
+        main.menu.selectedElementX = element;
+        main.menu.emit('x-select', element);
+    }
+
+    function itemNavigateCallback(element) {
+        if (element) {
+            const key = main.menu.getKey(element);
+            if (key == main.menu.lastSelectedKey) return;
+            main.menu.lastSelectedKey = key;
+            main.menu.sounds.play('click-in', {volume: 30})
+        }
     }
 
     function updateViewSize() {
-        if (!main?.config) return;
+        if (!main.config) return;
         const portrait = window.innerWidth <= window.innerHeight;
-        Object.assign(viewSize, main.config['view-size'][portrait ? 'portrait' : 'landscape']);
-        viewSize.size = viewSize.x * viewSize.y;
+        if (main.config?.['view-size']) {
+            Object.assign(viewSize, main.config['view-size'][portrait ? 'portrait' : 'landscape']);
+            viewSize.size = viewSize.x * viewSize.y;
+        }
         const style = `
         body:not(.portrait) svelte-virtual-grid-contents {        
             grid-template-columns: repeat(auto-fit, calc(var(--menu-entry-width) - (0.25 * var(--menu-padding))));
@@ -265,25 +305,29 @@
             initApp().catch(err => console.error(err)).finally(() => {
                 const reset = async () => {
                     const {selectedIndex, scrollTop} = spatialNavigation.reset()
-                    await virtualGrid.scrollToIndex(selectedIndex)
-                    main.menu.scrollContainer.scrollTop = scrollTop
+                    if (spatialNavigation.inDefaultLayout()) {
+                        await virtualGrid.scrollToIndex(selectedIndex)
+                        main.menu.scrollContainer.scrollTop = scrollTop
+                    }
                     spatialNavigation.focusIndex(selectedIndex)
                 }
+                main.menu.navigation = spatialNavigation;
+                main.menu.dialogs = dialog;
                 main.menu.on('reset', reset);
                 main.menu.on('navigate', reset);
                 main.menu.on('updated', () => {
+                    lastRange = null;
                     path = main.menu.path;
                     icons = main.menu.icons;
                     items = main.menu.currentEntries;
                     if (!main.menu.path) {
-                        headerActions = main.menu.currentEntries.filter(e => e.side);
+                        sideMenuItems = main.menu.currentEntries.filter(e => e.side);
                     }
-                    window.viewSize = viewSize;
                     updateEntry2x();
                     refresh();
                 });
                 main.menu.on('arrow', (direction, notCyclic) => {
-                    spatialNavigation.arrow(direction, notCyclic)
+                    spatialNavigation.navigate(direction, notCyclic)
                 });
                 main.menu.on('focus-index', async index => {
                     await virtualGrid.scrollToIndex(index)
@@ -301,108 +345,109 @@
     $effect(() => {
         if (!lastRange || lastRange.start != range.start || lastRange.end != range.end) {
             lastRange = {start: range.start, end: range.end};
-            main?.emit('menu-update-range', lastRange, main.menu?.path)
+            main.emit('menu-update-range', lastRange, main.menu?.path)
         }
     });
 </script>
-<a href="#close-menu" aria-label="{lang.CLOSE}" title="{lang.CLOSE}" id="menu-playing-close">
-    <div>
-        <i class="fas fa-times-circle"></i>
-    </div>
-</a>
-<div id="menu">
-    <span class="menu-omni" style="flex: 1;">
-        <span id="menu-search">
-            <input type="text" id="menu-omni-input" placeholder="{lang.WHAT_TO_WATCH}" />
-            <div class="menu-omni-submit">
-                <i class="fas fa-search"></i>
-            </div>
+<div id="main">
+    <a href="#close-menu" aria-label="{lang.CLOSE}" title="{lang.CLOSE}" id="menu-playing-close">
+        <div>
+            <i class="fas fa-times-circle"></i>
+        </div>
+    </a>
+    <div id="menu">
+        <span class="menu-omni" style="flex: 1;">
+            <span id="menu-search">
+                <input type="text" id="menu-omni-input" placeholder="{lang.WHAT_TO_WATCH}" />
+                <div class="menu-omni-submit">
+                    <i class="fas fa-search"></i>
+                </div>
+            </span>
         </span>
-    </span>
-    <div class="side-menu-out">
-        <nav>
-            <div>
-                {#each headerActions as e (e.key)}
-                <a href="{e.url}" tabindex="{e.tabindex}" class="entry entry-nav" data-type="{e.type}" data-path="{e.path}" key="{e.key}" aria-label="{e.name}" data-original-icon="{e.originalIcon}" data-question="{e.question}" data-dialog-details="{e.dialogDetails}" draggable="false">
-                    <span class="entry-wrapper">
-                        <i class="{e.fa}"></i>
-                        <span>
-                            {@html e.prepend}
-                            {@html e.rawname || e.name}
-                        </span>
-                    </span>
-                </a>
-                {/each}
-            </div>
-            <div class="side-menu-toggle">
+        <div class="side-menu-out">
+            <nav>
                 <div>
-                    <span>
-                        <img src="assets/images/default_icon_white.png" alt="" style="width: 4vmax; height: 4vmax; margin: 0.5vmax 0;" loading="lazy" />
+                    {#each sideMenuItems as e (e.key)}
+                    <a href="{e.url}" tabindex="{e.tabindex}" class="entry entry-nav" data-type="{e.type}" data-path="{e.path}" key="{e.key}" aria-label="{e.name}" data-original-icon="{e.originalIcon}" data-question="{e.question}" data-dialog-details="{e.dialogDetails}" draggable="false">
+                        <span class="entry-wrapper">
+                            <i class="{e.fa}"></i>
+                            <span>
+                                {@html e.prepend}
+                                {@html e.rawname || e.name}
+                            </span>
+                        </span>
+                    </a>
+                    {/each}
+                </div>
+                <div class="side-menu-toggle">
+                    <div>
+                        <span>
+                            <img src="assets/images/default_icon_white.png" alt="" style="width: 4vmax; height: 4vmax; margin: 0.5vmax 0;" loading="lazy" />
+                        </span>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        <div class="content-out">
+            <content role="region" onmouseenter={() => main.menu.sideMenu(false)}>
+                <VirtualGrid width="var(--menu-width)" height="var(--menu-height)" items={items} let:item itemWidth={itemWidth} itemHeight={itemHeight} bind:this={virtualGrid} bind:range bind:isTop bind:isBottom bind:refresh>
+                    {#snippet children(item)}
+                    <a href="{item.url}" tabindex="{item.tabindex}" class="{item.class} {selectedIndex == item.tabindex ? 'selected' : ''}" title="{item.name}" aria-label="{item.name}" 
+                        data-type="{item.type}" data-path="{item.path}" key="{item.key}"  draggable="false" 
+                        data-range-start="{item.range ? item.range.start : 0}" data-range-end="{item.range ? item.range.end : 100}" 
+                        data-mask="{item.mask}" data-original-icon="{item.originalIcon}" data-question="{item.question}" data-dialog-details="{item.dialogDetails}"
+                        style="order: {item.tabindex};" onmouseenter={(event) => focusElement(event.target)}
+                        >
+                        <span class="{item.wrapperClass}">
+                            {#if item.cover}
+                                <div class="entry-cover-container" aria-hidden="true">
+                                    <img src="{icons[item.path].url}" alt="" draggable="false" />
+                                </div>
+                            {/if}
+                            <span class="entry-data-in">
+                                <span class="entry-name">
+                                    <span class="{item.statusFlagsClass}">{@html item.statusFlags}</span>
+                                    <span class="entry-name-label">
+                                        {@html item.prepend}
+                                        {@html item.rawname||item.name}
+                                    </span>
+                                </span>
+                                <span class="entry-details">{@html [item.details, item.maskText].filter(v => v).join(' &middot; ')}</span>
+                            </span>
+                            <span class="entry-icon-image">
+                                {#if (!icons[item.path] || item.type == 'back' || icons[item.path].url.startsWith('fa'))}
+                                    <i class="{item.fa}" style="{item.faStyle||''}" aria-hidden="true"></i>
+                                {:else}
+                                    {#if !item.cover}
+                                        <img src="{transparentImage}" draggable="false" alt="" style="background-image: url({icons[item.path].url})" aria-hidden="true" />
+                                    {/if}
+                                {/if}
+                            </span>
+                        </span>
+                    </a>
+                    {/snippet}
+                </VirtualGrid>
+            </content>
+            <div id="arrow" aria-hidden="true">
+                <div>
+                    <span id="arrow-up" style="opacity: {isTop ? '0' : '1'};">
+                        <i class="fas fa-chevron-up"></i>
+                    </span>
+                    <span style="flex-grow: 1;"></span>
+                    <span id="arrow-down" style="opacity: {isBottom ? '0' : '1'};">
+                        <i class="fas fa-chevron-down"></i>
                     </span>
                 </div>
             </div>
-        </nav>
-    </div>
-    <div class="content-out">
-        <content role="region" onmouseenter={() => main.menu.sideMenu(false)}>
-            <VirtualGrid width="var(--menu-width)" height="var(--menu-height)" items={items} let:item itemWidth={itemWidth} itemHeight={itemHeight} bind:this={virtualGrid} bind:range bind:isTop bind:isBottom bind:refresh>
-                <a href="{item.url}" tabindex="{item.tabindex}" class="{item.class} {selectedIndex == item.tabindex ? 'selected' : ''}" title="{item.name}" aria-label="{item.name}" 
-                data-type="{item.type}" data-path="{item.path}" key="{item.key}"  draggable="false" 
-                data-range-start="{item.range ? item.range.start : 0}" data-range-end="{item.range ? item.range.end : 100}" 
-                data-mask="{item.mask}" data-original-icon="{item.originalIcon}" data-question="{item.question}" data-dialog-details="{item.dialogDetails}"
-                style="order: {item.tabindex};" onmouseenter={(event) => focusElement(event.target)}
-                >
-                    <span class="{item.wrapperClass}">
-                        {#if item.cover}
-                            <div class="entry-cover-container" aria-hidden="true">
-                                <img src="{icons[item.path].url}" alt="" draggable="false" />
-                            </div>
-                        {/if}
-                        <span class="entry-data-in">
-                            <span class="entry-name">
-                                <span class="{item.statusFlagsClass}">{@html item.statusFlags}</span>
-                                <span class="entry-name-label">
-                                    {@html item.prepend}
-                                    {@html item.rawname||item.name}
-                                </span>
-                            </span>
-                            <span class="entry-details">{@html [item.details, item.maskText].filter(v => v).join(' &middot; ')}</span>
-                        </span>
-                        <span class="entry-icon-image">
-                            {#if (!icons[item.path] || item.type == 'back' || icons[item.path].url.startsWith('fa'))}
-                                <i class="{item.fa}" style="{item.faStyle||''}" aria-hidden="true"></i>
-                            {:else}
-                                {#if !item.cover}
-                                    <img src="{transparentImage}" draggable="false" alt="" style="background-image: url({icons[item.path].url})" aria-hidden="true" />
-                                {/if}
-                            {/if}
-                        </span>
-                    </span>
-                </a>
-            </VirtualGrid>
-        </content>
-        <div id="arrow" aria-hidden="true">
-            <div>
-                <span id="arrow-up" style="opacity: {isTop ? '0' : '1'};">
-                    <i class="fas fa-chevron-up"></i>
-                </span>
-                <span style="flex-grow: 1;"></span>
-                <span id="arrow-down" style="opacity: {isBottom ? '0' : '1'};">
-                    <i class="fas fa-chevron-down"></i>
-                </span>
-            </div>
-        </div>
-        <Menubar path={path} icons={icons} bind:this={menubar}></Menubar>
-        <SpatialNavigation debug={true} container={container} bind:this={spatialNavigation} bind:path onFocus={itemFocusCallback} onXFocus={itemXFocusCallback} />
-    </div>
-</div>
-<div id="modal">
-    <div>
-        <div>
-            <div id="modal-content"></div>
+            <Menubar path={path} icons={icons} bind:this={menubar}></Menubar>
+            <SpatialNavigation 
+                debug={false} container={container} bind:this={spatialNavigation} bind:path 
+                onFocus={itemFocusCallback} onXFocus={itemXFocusCallback} onNavigate={itemNavigateCallback} 
+            />
         </div>
     </div>
 </div>
+<Dialog bind:this={dialog}></Dialog>
 <style global>
 svelte-virtual-grid-viewport {
     -webkit-overflow-scrolling: touch;
@@ -430,6 +475,9 @@ svelte-virtual-grid-viewport {
 }
 #menu::-webkit-scrollbar {
     display: none;
+}
+div#arrow {
+    visibility: hidden;
 }
 .side-menu-toggle, .side-menu-toggle > div {
     width: 0 !important;
@@ -492,9 +540,6 @@ body.video #menubar  {
     width: var(--nav-width);
     max-height: var(--menu-height);
     padding-right: var(--padding-quarter); /* bugfix: avoid a white vertical line on menu-playing */
-}
-body.modal .side-menu-toggle {
-    opacity: 0.25;
 }
 body.video:not(.menu-playing) .side-menu-out {
     display: none;
@@ -696,13 +741,13 @@ body.side-menu svelte-virtual-grid-contents a .entry-wrapper span, body.side-men
     border-radius: var(--radius);
 }
 body.video #menu a span.entry-wrapper {
-    background: var(--shadow-background-color) !important;
+    background: var(--alpha-shadow-background-color) !important;
 }
 #menu nav a .entry-wrapper > span {
     margin-left: var(--padding-half);
     white-space: normal;
 }
-body.side-menu:not(.modal) #menu nav {
+body.side-menu:not(.dialog) #menu nav {
     display: flex;    
 }
 body.side-menu .side-menu-toggle {
@@ -911,6 +956,9 @@ seekbar div.selected {
 controls button.selected span.button-icon, a.control-layer-icon.selected, button.control-layer-icon.selected, div#arrow-down-hint i.selected {
     transform: scale(1.25);
 }
+div#arrow-down-hint.selected-parent {
+    filter: drop-shadow(0 0 1vmin #ffffff);
+}
 #menu content a span.entry-name, #menu content a span.entry-details {
     text-align: center;
     white-space: normal;
@@ -1094,7 +1142,7 @@ body.video.menu-playing #main {
 }
 .entry-cover-active .entry-data-in {
     top: 0 !important;
-    background: linear-gradient(to bottom, var(--shadow-background-color) -10%, transparent 100%);
+    background: linear-gradient(to bottom, var(--alpha-shadow-background-color) -10%, transparent 100%);
     padding-bottom: calc(var(--menu-entry-name-font-size) * 6);
 }
 .entry-cover-active .entry-name {
@@ -1118,273 +1166,6 @@ span.entry-status-flag-success {
 }
 span.entry-status-flag-failure {
     background: #f04;
-}
-div#modal {
-    position: fixed;
-    width: 100vw;
-    height: 100vh;
-    left: 0;
-    z-index: 8;
-    background: var(--modal-background-color);
-    top: 0;
-    left: 0;
-    opacity: 0;
-    pointer-events: none;
-}
-div#modal > div {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: auto;
-    height: auto;
-    z-index: 4;
-    color: rgba(0, 0, 0, 0.8);
-    box-sizing: border-box;
-    top: calc(var(--menu-padding-top) + var(--padding));
-    bottom: calc(var(--menu-padding-bottom) + var(--padding));
-    right: calc(var(--menu-padding-right) + var(--padding));
-    left: calc(var(--menu-padding-left) + var(--padding));
-    display: flex;
-    align-items: center;
-}
-div#modal > div > div {
-    display: table;
-    vertical-align: middle;
-    text-align: center;
-    height: var(--modal-height);
-}
-div#modal > div > div > div {
-    display: table-cell;
-    width: var(--menu-width);
-    vertical-align: middle;    
-    transform: scale(var(--menu-fx-nav-deflate));
-    transition: transform var(--menu-fx-nav-duration) ease-in-out 0s;    
-}
-body.modal div#modal > div > div > div {
-    transform: none;
-    pointer-events: initial;
-}
-body.modal div#arrow {
-    visibility: hidden;
-}
-body.modal svelte-virtual-grid-contents {
-    opacity: var(--opacity-level-2);
-}
-body.modal #modal {
-    opacity: 1;
-}
-span.modal-template-message {
-    font-size: var(--menu-entry-name-font-size);
-    margin-bottom: var(--padding);
-    padding: 1.5vmax var(--padding);
-    display: flex;
-    justify-content: center;
-    line-height: 175%;
-    flex-shrink: 999;
-    overflow: auto;
-    word-break: break-word;
-}
-span.modal-template-message font {
-    display: contents;
-}
-span.modal-template-spacer {
-    max-width: var(--menu-modal-option-min-width);
-    padding: var(--padding);
-    box-sizing: border-box;
-    display: block;
-    width: 100%;
-}
-span.modal-template-text, span.modal-template-textarea {
-    padding: 0 var(--padding);
-    display: flex;
-    max-width: var(--menu-modal-option-min-width);
-    width: 100%;
-    box-sizing: border-box;
-    align-items: center;    
-    font-size: var(--menu-entry-name-font-size);
-    background: linear-gradient(to top, rgba(255, 255, 255, 0.5), white);
-    border-radius: var(--radius);
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-}
-span.modal-template-text i, span.modal-template-textarea i {
-    color: rgba(0, 0, 0, 0.8);
-    opacity: var(--opacity-level-2);
-}
-span.modal-template-text i {
-    padding-right: var(--padding-half);
-}
-span.modal-template-textarea i {
-    padding-right: var(--padding);
-}
-span.modal-template-textarea {
-    margin-bottom: var(--padding);
-}
-span.modal-template-textarea, span.modal-template-textarea textarea {
-    min-height: 20vmax;
-}
-span.modal-template-text input, span.modal-template-textarea textarea {
-    opacity: var(--opacity-level-4);
-    background: transparent;
-    padding: 0;
-    width: inherit;
-    min-height: 7vmax;
-    border: 0;
-    outline: 0;
-    max-width: 97%;
-    display: inline-block;
-    font-size: var(--menu-entry-name-font-size);    
-    border-radius: var(--radius);
-}
-span.modal-template-textarea textarea {
-    min-height: 25vh;
-    padding: var(--padding);
-    line-height: 150%;
-}
-span.modal-template-question {
-    text-align: left;
-}
-span.modal-template-question i {
-    margin-right: var(--padding);
-}
-span.modal-template-question img {
-    height: 2.5vmax;
-    width: 2.5vmax;
-    background-size: contain;
-    background-position: center center;
-    margin-right: var(--padding);
-    background-repeat: no-repeat;
-}
-.modal-template-slider, .modal-template-option, .modal-template-option-detailed, .modal-template-question {
-    width: 100%;
-    display: flex;
-    min-height: 7vh;
-    align-items: center;
-    box-sizing: border-box;
-    font-size: var(--menu-entry-name-font-size);
-    max-width: var(--menu-modal-option-min-width);
-}
-.modal-template-question {
-    padding: 0 0 1.5vmax 0;
-}
-.modal-template-slider {
-    padding: 1.5vmax 0;
-}
-a.modal-template-option, a.modal-template-option-detailed {
-    justify-content: center;
-    background: linear-gradient(to bottom, rgba(255,255,255, 0.3) 0%, transparent 150%);
-    color: black;
-    border-width: 0 1px 1px 0;
-    border-style: solid;
-    border-color: rgba(0,0,0, 0.1);
-}
-a.modal-template-option > div, a.modal-template-option-detailed > div {
-    padding: 2.5vmax 0;
-}
-a.modal-template-option.selected, a.modal-template-option-detailed.selected .modal-template-option-detailed-name {
-    font-weight: bold;
-}
-a.modal-template-option i, a.modal-template-option-detailed i {
-    position: relative;
-    top: calc(0.1* var(--menu-entry-name-font-size)) !important;
-    right: var(--padding);
-}
-a.modal-template-option.selected, a.modal-template-option-detailed.selected {
-    background: linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(255,255,255,0.4) 100%);
-    border-color: rgba(0,0,0,0.4);
-    opacity: 1;
-}
-div.modal-template-option-detailed-name {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    margin-bottom: var(--padding-half);
-    justify-content: center;
-}
-div.modal-template-option-detailed-details {
-    display: block;
-    width: 100%;
-    font-size: var(--menu-entry-details-font-size);
-    opacity: var(--opacity-level-4);
-    height: auto;
-}
-span.modal-template-text.selected-parent i, span.modal-template-text.selected-parent input, 
-span.modal-template-textarea.selected-parent i, span.modal-template-textarea.selected-parent textarea, 
-span.modal-template-text input:focus, span.modal-template-textarea textarea:focus {
-    opacity: 1;
-}
-.modal-wrap {
-    max-height: var(--modal-height);
-    padding: 0;
-    border-radius: var(--radius);
-}
-.modal-wrap > div {
-    overflow: hidden;
-    max-height: var(--modal-height);
-    padding: var(--padding);
-    background: var(--secondary-font-color);
-    border-radius: var(--radius);
-    box-sizing: border-box;    
-    flex-direction: column;
-    display: flex;
-    color: black;
-}
-.modal-template-options {
-    box-sizing: border-box;
-    overflow: auto;
-    max-height: inherit;
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 1;
-    border-radius: var(--radius);    
-}
-@media only screen and (min-width: 321px) and (orientation:landscape) {
-    .modal-template-options.two-columns {
-        flex-direction: row;
-        flex-wrap: wrap;
-    }
-    .modal-template-options.two-columns a.modal-template-option, .modal-template-options.two-columns a.modal-template-option-detailed {
-        width: 50%;
-    }
-}
-span.modal-template-slider a:first-child, span.modal-template-slider a:last-child {
-    width: 4.9%;
-    display: inline-block;
-}
-span.modal-template-slider {
-    background: #fff;
-}
-span.modal-template-slider .modal-template-slider-track {
-    width: calc(100% - (8 * var(--padding)));
-    height: calc(4 * var(--padding));
-    display: inline-block;
-    margin: var(--padding);
-    vertical-align: sub;
-}
-input.modal-template-slider-track {
-    overflow: hidden;
-    width: 80px;
-    -webkit-appearance: none;
-    background: linear-gradient(to bottom, transparent -100%, var(--modal-background-color) 400%);
-    border-radius: var(--radius);
-}
-input.modal-template-slider-track::-webkit-slider-runnable-track {
-    height: 10px;
-    -webkit-appearance: none;
-    margin-top: -1px;
-    display: block;
-}
-input.modal-template-slider-track::-webkit-slider-thumb {
-    width: 10px;
-    -webkit-appearance: none;
-    height: 10px;
-    cursor: ew-resize;
-    background: var(--background-color);
-    box-shadow: calc(100vw * -1) 0 0 100vw var(--background-color);
-}
-span.modal-template-slider-left, span.modal-template-slider-right {
-    cursor: pointer;
-    font-size: calc(4 * var(--padding));
 }
 .entry-cover-container {    
     min-height: 100%;

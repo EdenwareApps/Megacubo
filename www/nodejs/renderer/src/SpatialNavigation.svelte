@@ -1,20 +1,27 @@
 <script>
-  const { container, debug = false, onFocus = null, onXFocus = null, path = null } = $props();
+  const { container, debug = false, onFocus = null, onXFocus = null, path = null, onNavigate = null } = $props();
 
   // Estado reativo
   const state = $state({
     layouts: [],
-    angleWeight: 0.2,
     className: 'selected',
     parentClassName: 'selected-parent',
     selectedIndex: 0,
     selectionMemory: {} // Adicionado para armazenar memória por path
   });
 
+  let lastSelected = null;
+
   // Função para salvar o estado da seleção
   function saveSelectionMemory() {
-    const currentPath = path;
-    const currentLayout = activeLayout().level;
+    const currentLayout = activeLayout().name;
+    const currentPath = currentLayout === 'default' ? path : '';
+    if (state.selectionMemory['']) {
+      for (const layoutName in state.selectionMemory['']) {
+        if (layoutName === 'default' || layoutName === currentLayout) continue;
+        delete state.selectionMemory[''][layoutName];
+      }
+    }
     if (!state.selectionMemory[currentPath]) {
       state.selectionMemory[currentPath] = {};
     }
@@ -22,6 +29,10 @@
       selectedIndex: state.selectedIndex,
       scrollTop: container.scrollTop
     };
+  }
+
+  export function memory() {
+    return Object.assign({}, state.selectionMemory);
   }
 
   // Função para disparar eventos personalizados
@@ -38,6 +49,7 @@
   function isVisible(element, ignoreViewport) {
     if (!element) return false;
     const rect = element.getBoundingClientRect();
+    if (!rect.width && !rect.height) return false;
     return ignoreViewport || (rect.top >= 0 && rect.bottom <= window.innerHeight && rect.left >= 0 && rect.right <= window.innerWidth);
   }
 
@@ -56,7 +68,10 @@
   }
 
   function selected(force, preventScroll, animate) {
-    const selectablesList = selectables(false);
+    if (lastSelected && lastSelected.name === activeLayout().name && isVisible(lastSelected.element, true)) {
+      return lastSelected.element;
+    }
+    const selectablesList = selectables(true);
     let element = selectablesList.find(e => e.classList.contains(state.className)) || selectablesList[0] || null;
     if (!element && force) {
       element = selectablesList[0];
@@ -66,9 +81,11 @@
   }
 
   export function focus(element, preventScroll, animate) {
-    if (!element || element.classList.contains(state.className)) return;
+    if (!element) return;
+    if (element.classList.contains(state.className) && (isDefault && state.selectedIndex == element.tabIndex)) return;
     let emit = true;
-    const isDefault = inDefaultLayout();
+    const layout = activeLayout();
+    const isDefault = layout.name === 'default';
     updateSelectedElementClasses(element);
     const index = element.tabIndex;
     if (index !== -1) {
@@ -79,6 +96,7 @@
         saveSelectionMemory(); // Salva o estado da seleção
       }
     }
+    lastSelected = {element, name: layout.name};
     element.focus({ preventScroll: true });
     if (!preventScroll) {
       element.scrollIntoViewIfNeeded({
@@ -98,8 +116,7 @@
 
   export function focusIndex(index) {
     const selectablesList = selectables(true);
-    const element = selectablesList.find(e => e.tabIndex == index);
-    console.error('focusIndex', index, {selectablesList, element})
+    const element = inDefaultLayout() ? selectablesList.find(e => e.tabIndex == index) : selectablesList[index];
     if (element) {
       focus(element, false, true);
     }
@@ -107,26 +124,35 @@
 
   export function reset() {
     const currentPath = path;
-    const currentLayout = activeLayout().level;
+    const currentLayout = activeLayout().name;
+    const isDefault = currentLayout === 'default';
     const memory = state.selectionMemory[currentPath]?.[currentLayout];
     if (memory) return memory;
     return {
-      selectedIndex: path ? 1 : 0,
+      selectedIndex: (path && isDefault) ? 1 : 0,
       scrollTop: 0
     }
   }
 
   function activeLayout() {
-    return state.layouts.find(layout => layout.condition()) || { selector: 'body', level: 'default' };
+    const layout = state.layouts.find(layout => layout.condition()) || { selector: 'body', name: 'default' }
+    if (layout.name === 'default') {
+      for (const layoutName in state.selectionMemory['']) {
+        if (layoutName === 'default' || layoutName === layout.name) continue;
+        delete state.selectionMemory[''][layoutName];
+      }
+    }
+    return layout;
   }
 
   export function inDefaultLayout() {
-    return activeLayout().level === 'default';
+    return activeLayout().name === 'default';
   }
 
   export function entries(noAsides, ignoreViewport) {
     let elements = [];
     const layout = activeLayout();
+    if (!layout) return [];
     let sel = layout.selector;
     if (typeof sel === 'function') sel = sel();
     if (typeof sel === 'string') {
@@ -148,10 +174,8 @@
     state.layouts = [...state.layouts, layout];
   }
 
-  function distance(c, e, m) {
-    let r = Math.hypot(e.left - c.left, e.top - c.top);
-    if (m) r += r * (state.angleWeight * m);
-    return r;
+  function distance(c, e) {
+    return Math.hypot(e.left - c.left, e.top - c.top);
   }
 
   function angle(c, e) {
@@ -159,8 +183,11 @@
     return theta < 0 ? 360 + theta : theta;
   }
 
-  function isAngleWithinRange(angle, start, end) {
-    return end > start ? angle >= start && angle <= end : angle < end || angle > start;
+  function angleDiff(angle, dest) {
+    let diff = (angle - dest) % 360;
+    if (diff < -180) diff += 360;
+    if (diff > 180) diff -= 360;
+    return Math.abs(diff);
   }
 
   function coords(element) {
@@ -169,24 +196,25 @@
     return { left: c.left + c.width / 2, top: c.top + c.height / 2 };
   }
 
-  function arrowMap(direction, notCyclic=false) {
-    let closer, closerDist;
+  function findNextElement(direction, notCyclic=false) {
+    let closer, closerScore;
     const items = entries(true, true);
     const current = selected();
     const layout = activeLayout();
     if (!current) return selected(true, false, true);
 
-    let directionAngleStart, directionAngleEnd;
+    let angleDest;
     switch (direction) {
-      case 'up': directionAngleStart = 270; directionAngleEnd = 90; break;
-      case 'right': directionAngleStart = 0; directionAngleEnd = 180; break;
-      case 'down': directionAngleStart = 90; directionAngleEnd = 270; break;
-      case 'left': directionAngleStart = 180; directionAngleEnd = 360; break;
+      case 'up': angleDest = 0; break;
+      case 'right': angleDest = 90; break;
+      case 'down': angleDest = 180; break;
+      case 'left': angleDest = 270; break;
     }
 
     const currentCoords = coords(current);
     if (!currentCoords) return null;
 
+    if (debug) console.log('scores from', current.title || current.id || current.className, current);
     items.forEach(item => {
       if (item !== current) {
         const itemCoords = coords(item);
@@ -194,11 +222,14 @@
           if (['up', 'down'].includes(direction) && itemCoords.top === currentCoords.top && item.offsetHeight === current.offsetHeight) return;
           if (['left', 'right'].includes(direction) && itemCoords.left === currentCoords.left && item.offsetWidth === current.offsetWidth) return;
           const angleVal = angle(currentCoords, itemCoords);
-          if (isAngleWithinRange(angleVal, directionAngleStart, directionAngleEnd)) {
-            const dist = distance(currentCoords, itemCoords, 0);
-            if (!closer || dist < closerDist) {
+          const angleDiffVal = angleDiff(angleVal, angleDest);
+          if (angleDiffVal < 60 && isVisible(item, true)) {
+            const dist = distance(currentCoords, itemCoords);
+            const score = dist + angleDiffVal
+            if (debug) console.log('score', item.title || item.id || item.className || item, score, {dist, angleDiffVal, closerScore});
+            if (!closer || score < closerScore) {
               closer = item;
-              closerDist = dist;
+              closerScore = score;
             }
           }
         }
@@ -206,8 +237,10 @@
     });
 
     if (!closer && typeof layout.overScrollAction === 'function' && !notCyclic) {
+      if (debug) console.log('overScrollAction', direction, current);
       const result = layout.overScrollAction(direction, current);
       if (result === true) {
+        if (debug) console.log('overScrollAction consumed', direction, current);
         return null; // overScrollAction consumiu a ação
       }
     }
@@ -215,30 +248,13 @@
     return closer;
   }
 
-  export function arrow(direction, notCyclic=false) {
-    const closer = arrowMap(direction, notCyclic);
+  export function navigate(direction, notCyclic=false) {
+    const closer = findNextElement(direction, notCyclic);
     if (closer) {
       if (debug) console.log('Navigating ', direction, closer);
+      onNavigate(closer);
       focus(closer, false, true);
     }
   }
 
-  window.SpatialNavigation = {
-    focus,
-    focusIndex,
-    arrow,
-    addLayout,
-    activeLayout,
-    inDefaultLayout,
-    selectables,
-    updateSelectedElementClasses,
-    selected,
-    distance,
-    angle,
-    isAngleWithinRange,
-    coords,
-    arrowMap,
-    state,
-    reset // Exposto para uso externo
-  };
 </script>

@@ -9,6 +9,8 @@ import swipey from 'swipey.js'
 import FFmpegController from '../../../modules/ffmpeg/renderer'
 import { ImageProcessor } from '../../../modules/icon-server/renderer'
 
+let menu;
+
 function openExternalFile(file, mimetype) {
 	console.log('openExternalFile', file);
 	if (window.capacitor) {
@@ -60,7 +62,7 @@ function configUpdated() {
 }
 
 function handleSwipe(e) {
-    if (!main.menu || main.menu.inModal()) return
+    if (!main.menu || main.menu?.dialogs.inDialog()) return
     console.log('swipey', e)
     let orientation = innerHeight > innerWidth ? 'portrait' : 'landscape'
     let swipeDist, swipeArea = ['up', 'down'].includes(e.direction) ? innerHeight : innerWidth
@@ -256,8 +258,7 @@ export const initApp = async () => {
     main.on('fontlist', () => main.emit('fontlist', getFontList()))
     main.on('css', (css, id) => main.css(css, id))
     console.log('load app')
-    menu = new Menu(document.querySelector('#menu'))
-    main.menu = menu
+    main.menu = menu = new Menu(document.querySelector('#menu'))
     main.on('sound', (n, v) => menu.sounds.play(n, v))
     menu.on('render', path => {   
         if(menu.lastNavPath !== path || menu.sideMenuPending) {
@@ -285,10 +286,8 @@ export const initApp = async () => {
         main.streamer.on('show', reset)
         main.idle.on('active', () => {
             if (menu.inPlayer() && !menu.isVisible()) {
-                const selected = menu.selectedElementX
-                console.warn('idle active', selected, selected?.parentNode?.tagName?.toLowerCase() || null)
-                if (selected?.parentNode?.tagName?.toLowerCase() == 'seekbar') {
-                    reset()
+                if (main.streamer?.seekbarFocus() && main.idle.idleTime() > 1) {
+                    main.menu.emit('focus-index', 0)
                 }
             }
         })
@@ -300,18 +299,19 @@ export const initApp = async () => {
             }
         })
         main.streamer.on('state', s => {
-            if (s == 'playing' && menu.modalContainer && menu.modalContainer.querySelector('#modal-template-option-wait')) {
-                menu.endModal()
+            if (s == 'playing' && menu.dialogs.container && menu.dialogs.container.querySelector('#dialog-template-option-wait')) {
+                menu.end()
             }
         })
         main.streamer.on('hide', () => {
+            menu.sounds.play('click-out', {volume: 30})
             menu.sideMenu(false, 'instant')
             menu.showWhilePlaying(false)
-            if (menu.modalContainer && (
-                menu.modalContainer.querySelector('#modal-template-option-wait') ||
-                menu.modalContainer.querySelector('#modal-template-option-resume')
+            if (menu.dialogs.container && (
+                menu.dialogs.container.querySelector('#dialog-template-option-wait') ||
+                menu.dialogs.container.querySelector('#dialog-template-option-resume')
             )) {
-                menu.endModal()
+                menu.dialogs.end(true)
             } else {
                 menu.emit('reset', true)
             }
@@ -339,9 +339,7 @@ export const initApp = async () => {
             buttons[k].setAttribute('aria-label', titles[k])
             buttons[k].addEventListener('click', actions[k])
         }
-        main.on('streamer-connect', () => {
-            menu.sideMenu(false, 'instant')
-        })
+        main.on('streamer-connect', () => menu.sideMenu(false, 'instant'))
         main.on('streamer-disconnect', () => menu.sideMenu(false, 'instant'))
         const WinActions = window.capacitor ? AndroidWinActions : ElectronWinActions
         window.winActions = new WinActions(main)
@@ -401,9 +399,15 @@ export const initApp = async () => {
         parent.Manager && parent.Manager.appLoaded()
     })
     
-    menu.on('modal-start', () => menu.reset())
-    menu.on('pos-modal-end', () => menu.reset())
-    menu.on('focus', () => menu.sounds.play('menu', 7))
+    menu.on('dialog-start', () => menu.reset())
+    menu.on('dialog-end', () => menu.reset())
+    menu.on('x-select', (element) => {
+        const key = element ? menu.getKey(element) : null;
+        if (key == main.menu.lastSelectedKey) return;
+        main.menu.lastSelectedKey = key;
+        main.menu.sounds.play('click-in', {volume: 30})
+    })
+    
     menu.on('menu-playing', enable => {
         main.emit('menu-playing', enable)
         main.idle.reset()
@@ -442,14 +446,13 @@ export const initApp = async () => {
 
     var toggle = document.querySelector('.side-menu-toggle')
     if(window.capacitor) { // tapping
-        menu.sideMenu(false, 'instant')
         toggle.addEventListener('click', () => {
-            menu.inSideMenu() || menu.inModal() || menu.sideMenu(true, 'smooth')
+            menu.inSideMenu() || menu.dialogs.inDialog() || menu.sideMenu(true, 'smooth')
         })
         swipey.add(document.body, handleSwipe, { diagonal: false })
     } else { // pc mouse hovering
         toggle.addEventListener('mouseenter', () => {
-            menu.inSideMenu() || menu.inModal() || menu.sideMenu(true)
+            menu.inSideMenu() || menu.dialogs.inDialog() || menu.sideMenu(true)
         })
         wrap.addEventListener('mouseenter', () => menu.sideMenu(false))
 
@@ -544,14 +547,14 @@ if (window.capacitor) {
 		adjustLayoutForKeyboard(false)
 	})
 	function adjustLayoutForKeyboard(keyboardHeight) {
-		const m = document.body.querySelector('div#modal > div > div')
+		const m = document.body.querySelector('div#dialog > div > div')
 		if (m) {
-			const mi = m.querySelector('.modal-wrap')
+			const mi = m.querySelector('.dialog-wrap')
 			if (keyboardHeight) {		
 				const h = window.innerHeight - keyboardHeight
 				m.style.height = h + 'px'
 				if (mi && mi.offsetHeight > h) {
-					var mq = mi.querySelector('span.modal-template-question')
+					var mq = mi.querySelector('span.dialog-template-question')
 					if (mq) {
 						mq.style.display = 'none'
 					}
@@ -559,7 +562,7 @@ if (window.capacitor) {
 			} else {
 				m.style.height = '100vh'
 				if (mi) {
-					mi.querySelector('span.modal-template-question').style.display = 'flex'
+					mi.querySelector('span.dialog-template-question').style.display = 'flex'
 				}
 			}
 		}

@@ -204,9 +204,9 @@ export class Hotkeys {
     }
     escapePressed() {
         console.log('Escape pressed')        
-        if (main.menu.inModal()) {
-            if (!main.menu.inModalMandatory()) {
-                main.menu.endModal()
+        if (main.menu.dialogs.inDialog()) {
+            if (!main.menu.dialogs.inDialogMandatory()) {
+                main.menu.dialogs.end(true)
             }
         } else {
             if (main.omni.active()) return main.omni.hide()
@@ -228,8 +228,6 @@ export class Hotkeys {
                     } else {
                         if(main.menu.inSideMenu()) {
                             main.menu.sideMenu(false)
-                        } else if(!main.menu.inModal()) {
-                            main.menu.sideMenu(true)
                         }
                     }
                 }
@@ -239,7 +237,7 @@ export class Hotkeys {
     arrowUpPressed(noNav) {
         if(!main.menu) return
         let playing = main.menu.inPlayer(), exploring = main.menu.isVisible()
-        if (!main.menu.inModal() && playing && !exploring) {
+        if (!main.menu.dialogs.inDialog() && playing && !exploring) {
             if (main.streamer.isVolumeButtonActive()) {
                 return main.streamer.volumeUp(1)
             }
@@ -248,7 +246,7 @@ export class Hotkeys {
     }
     arrowDownPressed(noNav) {
         if(!main.menu) return
-        if (!main.menu.inModal() && main.menu.inPlayer()) {
+        if (!main.menu.dialogs.inDialog() && main.menu.inPlayer()) {
             if (main.menu.isVisible()) {
                 noNav || main.menu.emit('arrow', 'down')
             } else {
@@ -275,15 +273,15 @@ export class Hotkeys {
         }
     }
     arrowRightPressed(noNav) {
-        if(!main.menu) return
+        if (!main.menu) return
         let playing = main.menu.inPlayer(), exploring = playing && main.menu.isVisible()
         if (playing && !exploring) {
-            if (main.menu.selectedElementX?.parentNode?.tagName?.toLowerCase() == 'seekbar') {
-                main.streamer.seekForward()
-            } else if (main.idle.isIdle || noNav) {
+            if (main.idle.idleTime() > 1 || noNav === true) {
                 main.streamer.seekForward()
                 main.idle.start()
                 main.idle.lock(1)
+            } else if (main.streamer.seekbarFocus()) {
+                main.streamer.seekForward()
             } else {
                 noNav || main.menu.emit('arrow', 'right')
             }
@@ -292,15 +290,15 @@ export class Hotkeys {
         }
     }
     arrowLeftPressed(noNav) {
-        if(!main.menu) return
+        if (!main.menu) return
         let playing = main.menu.inPlayer(), exploring = playing && main.menu.isVisible()
         if (playing && !exploring) {
-            if (main.menu.selectedElementX?.parentNode?.tagName?.toLowerCase() == 'seekbar') {
-                main.streamer.seekRewind()
-            } else if (main.idle.isIdle || noNav) {
+            if (main.idle.idleTime() > 1 || noNav === true) {
                 main.streamer.seekRewind()
                 main.idle.start()
                 main.idle.lock(1)
+            } else if (main.streamer.seekbarFocus()) {
+                main.streamer.seekRewind()
             } else {
                 noNav || main.menu.emit('arrow', 'left')
             }
@@ -308,17 +306,6 @@ export class Hotkeys {
             noNav || main.menu.emit('arrow', 'left')
         }
     }
-    arrowLeftPressed() {
-        if(main.menu) {
-            let playing = main.menu.inPlayer(), exploring = playing && main.menu.isVisible()
-            if (playing && !exploring) {
-                main.menu.emit('arrow', 'left')
-            } else {
-                main.menu.emit('arrow', 'left')
-            }
-        }
-    }
-    
     enterPressed() {
         if (main.menu.inPlayer()) {
             let e = main.menu.selectedElementX
@@ -326,6 +313,8 @@ export class Hotkeys {
                 // Enter ignored on idle out
                 return main.idle.reset()
             }
+        } else if (document.activeElement == document.body) {
+            main.menu.emit('reset')
         }
     }
 }

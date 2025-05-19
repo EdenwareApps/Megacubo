@@ -8,6 +8,7 @@
   },
   "description": "A intuitive, multi-language and cross-platform IPTV player.",
   "name": "megacubo",
+  "displayName": "Megacubo",
   "type": "module",
   "main": "./www/nodejs/dist/main.js",
   "module": "./www/nodejs/main.mjs",
@@ -23,7 +24,7 @@
     "url": "https://megacubo.tv"
   },
   "icon": "./default_icon.png",
-  "version": "17.6.0",
+  "version": "17.6.1",
   "dependencies": {
     "@babel/runtime": "^7.27.1",
     "@babel/runtime-corejs3": "^7.26.9",

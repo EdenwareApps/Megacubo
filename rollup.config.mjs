@@ -59,7 +59,6 @@ const rendererPlugins = [
 const watchOpts = { buildDelay: 3000, exclude: 'node_modules/**' };
 const external = [
   'electron',
-  /@?electron\/?/,
   /.+\.(node|native)$/,
   /premium\./
 ];
@@ -98,14 +97,14 @@ outputs.push(
     output: { dir: 'www/nodejs/renderer/dist', entryFileNames: 'App.js', format: 'iife', name: 'App', inlineDynamicImports: true, sourcemap: true },
     plugins: rendererPlugins,
     watch: watchOpts,
-    external: ['electron', /@?electron\/?/, /.+\.(node|native)$/]
+    external: ['electron', /.+\.(node|native)$/]
   },
   {
     input: { capacitor: 'capacitor.mjs' },
     output: { dir: 'www/nodejs/renderer/dist', entryFileNames: 'capacitor.js', format: 'iife', name: 'capacitor', inlineDynamicImports: true, sourcemap: true },
     plugins: rendererPlugins,
     watch: watchOpts,
-    external: ['electron', /@?electron\/?/, /.+\.(node|native)$/]
+    external: ['electron', /.+\.(node|native)$/]
   }
 );
 
@@ -147,7 +146,7 @@ if (fs.existsSync('www/nodejs/modules/premium/premium.js')) {
     input: 'www/nodejs/modules/premium/premium.js',
     output: { format: 'cjs', file: 'www/nodejs/dist/premium.js', inlineDynamicImports: true, sourcemap: true },
     babelOpts: baseBabelOpts,
-    externals: ['electron', /@?electron\/?/, /.+\.(node|native)$/]
+    externals: ['electron', /.+\.(node|native)$/]
   });
 }
 

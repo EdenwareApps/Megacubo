@@ -28,6 +28,8 @@ class EPGDataCompleter {
     constructor(trias){
         this.learning = {}
         this.readyListeners = []
+        this.triasQueueSize = 50
+        this.triasQueue = []
         this.trias = trias
     }
     format(t){
@@ -60,7 +62,11 @@ class EPGDataCompleter {
         }
         if(programme?.c?.length) {
             const txt = [programme.t, programme.desc, ...programme.c].filter(s => s).join(' ')
-            this.trias?.train(txt, programme.c).catch(err => console.error(err))
+            this.triasQueue.push({input: txt, output: programme.c})
+            if(this.triasQueue.length >= this.triasQueueSize) {
+                this.trias?.train(this.triasQueue).catch(err => console.error(err))
+                this.triasQueue = []
+            }
         }
     }
     async extractCategories(programme){
@@ -74,6 +80,10 @@ class EPGDataCompleter {
     async apply(db) {
         const tmpFile = temp +'/'+ basename(db.fileHandler.file) +'.refine'
         try {
+            if (this.triasQueue.length) {
+                await this.trias.train(this.triasQueue).catch(err => console.error(err))
+                this.triasQueue = []
+            }
             const rdb = new Database(tmpFile, Object.assign(Object.assign({}, DBOPTS), {clear: true, create: true}))
             await rdb.init()
             for await (const programme of db.walk()) {
