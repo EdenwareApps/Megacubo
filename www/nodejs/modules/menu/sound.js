@@ -16,6 +16,10 @@ class Sounds {
       'f_', 'g', 'g', 'e', 'f_', 'e', 'e', 'f_', 'g',
       'f_', 'g', 'f_', 'g', 'f_', 'e', 'c_', 'd', 'c_'
     ];
+    this.map = {
+      'click-in': 'e',
+      'click-out': 'd'
+    }
     if (this.audioContext.state === 'suspended') {
       document.addEventListener('click', () => this.audioContext.resume(), { once: true });
     }

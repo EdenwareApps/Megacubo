@@ -1,7 +1,6 @@
 <script>
     import { main } from "../../modules/bridge/renderer";
     import { onMount } from "svelte";
-    import sounds from "../../modules/menu/sound";
 
     let visible = $state(false);
     let content = $state({ entries: [], opts: [], defaultIndex: "", type: "", value: "" });
@@ -42,7 +41,7 @@
     }
 
     async function start() {
-        await sounds.play("warn", {
+        await main.menu?.sounds?.play("warn", {
             volume: 45,
             time: 275
         });
