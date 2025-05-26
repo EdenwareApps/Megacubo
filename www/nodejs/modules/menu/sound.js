@@ -12,6 +12,7 @@ class Sounds {
       // default click-out: d
       // default warn: a
       // avoid repetition of the 'click-in' sound by using a sequence of sounds
+      'e', 'e', 'g', // default + bridge
       'b', 'a_', 'b', 'c_', 'b', 'a_', 'b', 'f_', 'd', 
       'f_', 'g', 'g', 'e', 'f_', 'e', 'e', 'f_', 'g',
       'f_', 'g', 'f_', 'g', 'f_', 'e', 'c_', 'd', 'c_'
@@ -81,6 +82,10 @@ class Sounds {
     } else {
       // Non-click-in sound: no reset of lastClickIn to preserve sequence timing
       this.lastClickInSequence = -1; // Reset sequence index for next click-in
+    }
+
+    if (soundTag in this.map) {
+      soundTag = this.map[soundTag]
     }
 
     if (typeof this.buffers[soundTag] === 'undefined') {

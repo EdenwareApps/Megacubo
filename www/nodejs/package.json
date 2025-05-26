@@ -7,6 +7,7 @@
     "revision": "17565"
   },
   "main": "dist/main.js",
+  "type": "commonjs",
   "window": {
     "icon": "default_icon.png",
     "title": "Megacubo"

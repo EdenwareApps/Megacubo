@@ -408,7 +408,6 @@ class Manager extends ManagerFetch {
 
             if (!suggest) return
             const urls = await this.master.searchEPGs()
-            console.log('suggest', urls)
             urls.length && await this.master.epg.suggest(urls)
         })
     }

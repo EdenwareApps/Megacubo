@@ -193,10 +193,10 @@ class WindowManagerCommon {
 		this.openFileDialogChooser.onchange = evt => {
 			if(this.openFileDialogChooser.value){
 				const file = [...evt.target.files].shift()
-				if(file && file.path){
-					cb(null, file.path)
-				} else {
-					cb(null, this.openFileDialogChooser.value)
+				try {
+					cb(null, api.showFilePath(file))
+				} catch(e) {
+					cb('Bad file selected')
 				}
 			} else {
 				console.error('Bad file selected')

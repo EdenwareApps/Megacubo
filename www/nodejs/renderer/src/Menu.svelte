@@ -150,7 +150,7 @@
                     'body.video-paused button.control-layer-icon',
                     'controls button, div#arrow-down-hint i',
                     'seekbar > div'
-                ], // use array to force selector to keep this auto focus order
+                ],
                 condition: () => {
                     return main.menu.inPlayer() && !dialog.inDialog() && !main.menu.isVisible()
                 },
@@ -161,7 +161,6 @@
                         } else {
                             main.menu.reset()                            
                         }
-                        return true
                     } else if (direction == 'up') {
                         if (main.idle.activeTime() > 1) { // was idle, ignore initial focus on player
                             if (main.streamer.seekbarFocus()) {
@@ -174,8 +173,8 @@
                         } else {
                             main.menu.reset()
                         }
-                        return true
                     }
+                    return true
                 }
             }
         ]).forEach(spatialNavigation.addLayout.bind(spatialNavigation))
@@ -412,7 +411,7 @@
                                         {@html item.rawname||item.name}
                                     </span>
                                 </span>
-                                <span class="entry-details">{@html [item.details, item.maskText].filter(v => v).join(' &middot; ')}</span>
+                                <span class="entry-details">{@html [item.details, main.menu.maskValue(item.value, item.mask)].filter(v => v).join(' &middot; ')}</span>
                             </span>
                             <span class="entry-icon-image">
                                 {#if (!icons[item.path] || item.type == 'back' || icons[item.path].url.startsWith('fa'))}

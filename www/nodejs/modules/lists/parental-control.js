@@ -140,7 +140,7 @@ class ParentalControl extends EventEmitter {
         };
     }
     setupTerms(tms) {
-        this.terms = this.keywords(tms || config.get('parental-control-terms'));
+        this.terms = this.keywords(tms || config.get('parental-control-terms') || '');
         if (this.terms.length) {
             const rgx = this.terms.join('|').replace(new RegExp('\\+'), '\\+').replace(new RegExp('[\\^\\$]'), '(\\b|\\W)')
             try {

@@ -52,13 +52,13 @@ try {
     const is64 = process.arch.endsWith('64')
     const distFolder = paths.cwd +'/dist/'
     const distFiles = new Set(fs.readdirSync(distFolder))
-    const r = typeof(module) == 'undefined' ? createRequire(getFilename()) : require
+    const req = typeof(module) == 'undefined' ? createRequire(getFilename()) : require
     const candidates = ['premium.js', is64 ? 'premium-arm64.jsc' : 'premium-arm.jsc', 'premium.jsc']
     for(const file of candidates) {
         if(!distFiles.has(file)) continue
         try {
             console.log('Premium loading: '+ distFolder + file)
-            Premium = r(distFolder + file)
+            Premium = req(distFolder + file)
             console.log('Premium loaded')
             break
         } catch(e) {

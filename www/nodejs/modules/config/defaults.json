@@ -63,7 +63,7 @@
 		"Ctrl+D Ctrl+Shift+D": "BOOKMARK",
 		"F9 Ctrl+X": "RECORDING",
 		"F1 Ctrl+I": "ABOUT",
-		"F11 Alt+Enter": "FULLSCREEN",
+		"F11 Alt+Enter Backslash": "FULLSCREEN",
 		"F12 Ctrl+Shift+I": "DEVTOOLS"
 	},
 	"in-disk-caching-size": 1024,

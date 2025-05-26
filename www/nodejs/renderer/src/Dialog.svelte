@@ -4,6 +4,7 @@
 
     let visible = $state(false);
     let content = $state({ entries: [], opts: [], defaultIndex: "", type: "", value: "" });
+    let maskedValue = $state('');
     let mandatory = $state(false);
     let dialogQueue = $state([]);
     let currentCallback = $state(null);
@@ -20,7 +21,7 @@
         if (txt.match(/^[A-Za-z0-9\-_]+$/)) {
             return txt;
         }
-        return txt.toLowerCase().replace(/[^a-z0-9]+/gi, "");
+        return txt.toLowerCase().replace(/[^a-z0-9\-_]+/gi, "");
     }
 
     function replaceTags(text, replaces) {
@@ -65,11 +66,17 @@
     }
 
     export function end(cancel = false) {
+        if (!visible) return;
         visible = false;
-        if (cancel && currentCallback) {
-            currentCallback(null, true); // Call callback with null on cancel
+        if (currentCallback) {
+            try {
+                currentCallback(null, true); // Call callback with null on cancel
+            } catch (err) {
+                console.error('!!! dialog callback error', err);
+            }
         }
-        content = { entries: [], defaultIndex: "", type: "", value: "" };
+        content = { entries: [], opts: [], defaultIndex: "", type: "", value: "" };
+        maskedValue = '';
         mandatory = false;
         currentCallback = null;
         document.body.classList.remove("dialog");
@@ -103,27 +110,34 @@
         }
     }
 
+    function sendCallback(id, cb, cancel) {
+        if (cancel) id = null;
+        if (id === "submit") {
+            const input = container.querySelector("input, textarea");
+            if (input) id = content.value; // Use content.value for consistency
+        }
+        console.log('sendCallback '+ id +' - '+ cb)
+        if (typeof cb === "function") {
+            cb(id);
+        } else if (typeof cb === "string") {
+            main.emit(cb, id || ''); // emitting null causes error: An object could not be cloned.
+        } else if (Array.isArray(cb)) {
+            cb.push(id || ''); // emitting null causes error: An object could not be cloned.
+            main.emit(...cb);
+        }
+        end(); // Close dialog after any button click
+    }
+
     // Public functions maintaining the original interface
     export function dialog(entries, cb, defaultIndex, mandatoryParam) {
         console.log("dialog", { entries, cb, defaultIndex, mandatoryParam });
         queueDialog(
             { entries, defaultIndex, type: "dialog" },
             (id, cancel) => {
-                console.log("dialog callback", { id, cancel, cb });
-                if (cancel) id = null;
-                if (id === "submit") {
-                    const input = container.querySelector("input, textarea");
-                    if (input) id = content.value; // Use content.value for consistency
+                if (cancel) {
+                    id = null;
                 }
-                if (typeof cb === "function") {
-                    cb(id);
-                } else if (typeof cb === "string") {
-                    main.emit(cb, id);
-                } else if (Array.isArray(cb)) {
-                    cb.push(id);
-                    main.emit(...cb);
-                }
-                end(); // Close dialog after any button click
+                sendCallback(id, cb, cancel);
             },
             mandatoryParam
         );
@@ -146,10 +160,7 @@
         ];
         dialog(
             entries,
-            () => {
-                if (typeof cb === "function") cb();
-                end();
-            },
+            cb,
             "submit",
             false
         );
@@ -163,7 +174,7 @@
             ...entries.map((e) => {
                 e.template = "option";
                 e.text = String(e.name);
-                e.id = text2id(e.text);
+                e.id = e.id || text2id(e.text);
                 map[e.id] = e.text;
                 if (e.selected) {
                     e.fa = "fas fa-check-circle";
@@ -174,11 +185,7 @@
         );
         dialog(
             opts,
-            (k) => {
-                if (typeof map[k] !== "undefined") k = map[k];
-                callback(k);
-                end();
-            },
+            callback,
             def,
             false
         );
@@ -205,13 +212,7 @@
         });
         dialog(
             opts,
-            (id) => {
-                if (typeof atts.callback === "function") {
-                    if (atts.callback(id) !== false) end();
-                } else {
-                    end();
-                }
-            },
+            atts.callback,
             "submit",
             false
         );
@@ -222,21 +223,17 @@
         if (message && message !== question) {
             opts.push({ template: "message", text: message });
         }
-        opts.push({ template: "slider", id: "slider", range, value });
+        opts.push({ template: "slider", id: "slider", range, value, mask });
         opts.push({
             template: "option",
             text: "OK",
             id: "submit",
             fa: "fas fa-check-circle",
         });
+        maskedValue = mask ? main.menu.maskValue(value, mask) : '';
         dialog(
             opts,
-            (ret) => {
-                if (ret !== false) {
-                    ret = parseInt(content.value || value);
-                    if (callback(ret) !== false) end();
-                }
-            },
+            callback,
             "",
             false
         );
@@ -251,11 +248,16 @@
     }
 
     function handleOptionClick(id) {
-        if (currentCallback) currentCallback(id);
+        if (currentCallback) {
+            currentCallback(id);
+            currentCallback = null;
+        }
     }
 
     function handleInputChange(event) {
         content.value = event.target.value;
+        const mask = event.target.getAttribute('data-mask');
+        maskedValue = mask ? main.menu.maskValue(content.value, mask) : '';
     }
 
     function focusElement(element) {
@@ -310,6 +312,7 @@
                                             {/if}
                                         {/if}
                                         {@html entry.text}
+                                        <span style="position: absolute; right: var(--padding-2x);">{maskedValue}</span>
                                     </span>
                                 {:else if entry.template === "message"}
                                     <span class="dialog-template-message">{@html entry.text}</span>
@@ -318,7 +321,7 @@
                                         <input
                                             type={entry.isPassword ? "password" : "text"}
                                             placeholder={entry.placeholder}
-                                            bind:value={content.value}
+                                            value={entry.value} 
                                             onchange={handleInputChange}
                                             aria-label={entry.plainText || plainText(entry.text)}
                                         />
@@ -327,7 +330,7 @@
                                     <span class="dialog-template-textarea">
                                         <textarea
                                             placeholder={entry.placeholder}
-                                            bind:value={content.value}
+                                            value={entry.value} 
                                             onchange={handleInputChange}
                                             rows="3"
                                             aria-label={entry.plainText || plainText(entry.text)} 
@@ -344,15 +347,17 @@
                                             min={entry.range.start}
                                             max={entry.range.end}
                                             step="1"
-                                            bind:value={content.value}
-                                            onchange={handleInputChange}
+                                            value={entry.value}
+                                            data-mask={entry.mask||''} 
+                                            onchange={handleInputChange} 
+                                            oninput={handleInputChange} 
                                             class="dialog-template-slider-track selected"
                                             aria-label={entry.plainText || plainText(entry.text)}
                                         />
                                         <span class="dialog-template-slider-right">
                                             <i class="fas fa-caret-right"></i>
                                         </span>
-                                    </div>
+                                    </div>                                    
                                 {/if}
                             {/each}
                         </div>
@@ -361,7 +366,7 @@
                             {#each content.opts as option}
                                 {#if option.template === "option" || option.template === "option-detailed"}
                                     <button
-                                        id="dialog-template-option-{option.id}"
+                                        id="dialog-template-option-{text2id(option.id)}"
                                         title={option.text}
                                         aria-label={option.text}
                                         onclick={() => handleOptionClick(option.id)}
@@ -369,6 +374,7 @@
                                             ? "dialog-template-option-detailed"
                                             : "dialog-template-option"} 
                                         onmouseenter={(event) => focusElement(event.target)}
+                                        style={(content.opts.length > 3 && (content.opts.length % 2) == 1 && option == content.opts[content.opts.length - 1]) ? 'width: 100%;' : ''}
                                     >
                                         {#if option.fa}
                                             <i class={option.fa}></i>
@@ -451,6 +457,8 @@
     .dialog-wrap > div {
         width: 94vw;
         max-height: 80vh;
+        display: flex;
+        flex-direction: column;
     }
     .dialog-template-message {
         margin-bottom: var(--padding);
@@ -584,7 +592,7 @@
     .dialog-template-option.selected,
     .dialog-template-option-detailed.selected
         .dialog-template-option-detailed-name {
-        font-weight: bold;
+        text-shadow: 0 0 1px rgb(0, 0, 0);
     }
     .dialog-template-option i,
     .dialog-template-option-detailed i {

@@ -1,6 +1,6 @@
 import paths from './modules/paths/paths.js'
 import electron from 'electron'
-import * as remote from '@electron/remote/main';
+import * as remote from '@electron/remote/main'
 import path from 'path'
 import crashlog from './modules/crashlog/crashlog.js'
 import onexit from 'node-cleanup'
@@ -226,7 +226,7 @@ const setupRendererHandlers = () => {
                 menu.refresh()
                 break
             default:
-                lists.manager.addList(ret).catch(e => menu.displayErr(e))
+                lists.manager.addList(ret).catch(e => menu.displayErr('Error adding list: ' + e))
                 break
         }
     })

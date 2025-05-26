@@ -1165,7 +1165,6 @@ class StreamerClientTimeWarp extends StreamerLiveStreamClockTimer {
             // if(rate != this.currentPlaybackRate){
             if(Math.abs(rate - this.currentPlaybackRate) > 0.02) {            
                 this.currentPlaybackRate = rate
-                console.warn('PlaybackRate='+ rate +'x', 'remaining '+ parseInt(remaining) +' secs')
                 player.playbackRate(rate)
             }
         }

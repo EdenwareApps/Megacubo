@@ -234,7 +234,7 @@ export const initApp = async () => {
         document.querySelector('head, body').appendChild(s)
     })
     main.on('call-js', content => {
-        console.log('CALLJS')
+        console.log('Call JS')
         const s = document.createElement('script'), b = document.querySelector('head, body')
         s.textContent = content
         b.appendChild(s)
@@ -300,7 +300,7 @@ export const initApp = async () => {
         })
         main.streamer.on('state', s => {
             if (s == 'playing' && menu.dialogs.container && menu.dialogs.container.querySelector('#dialog-template-option-wait')) {
-                menu.end()
+                menu.dialogs.end(true)
             }
         })
         main.streamer.on('hide', () => {

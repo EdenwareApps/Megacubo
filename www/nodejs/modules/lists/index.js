@@ -677,7 +677,6 @@ class Index extends IndexMapUtils {
     }
     async group(group) {
         if (!this.lists[group.url]) {
-            menu.displayErr('GROUP=' + JSON.stringify(group));
             throw 'List not loaded';
         }
         /*

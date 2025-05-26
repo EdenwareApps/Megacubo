@@ -49,7 +49,8 @@ export class HotkeysHandler {
             'mediastop': 178,
             'mediaplaypause': 179,
             'mediaselect': 181, // enter
-            'mediaback': 182
+            'mediaback': 182,
+            'backslash': 220
         };
         this.lists = {};
         this.active = null;

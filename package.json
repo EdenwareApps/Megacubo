@@ -107,6 +107,7 @@
     "rimraf": "^5.0.10",
     "rollup": "^4.34.9",
     "rollup-plugin-copy": "^3.5.0",
+    "rollup-plugin-delete": "^3.0.1",
     "rollup-plugin-import-css": "^3.5.8",
     "rollup-plugin-node-builtins": "^2.1.2",
     "rollup-plugin-svelte": "^7.2.2",

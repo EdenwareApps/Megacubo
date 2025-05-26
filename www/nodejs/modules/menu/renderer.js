@@ -91,12 +91,6 @@ class MenuScrolling extends MenuIcons {
         for (const type of ['scrollend', 'resize']) {
             this.scrollContainer.addEventListener(type, scrollEndTrigger, {capture: true, passive: true})
         }
-        this.scrollContainer.addEventListener('touchstart', () => {
-            this.scrollContainer.style.scrollSnapType = 'none'
-        })
-        this.scrollContainer.addEventListener('touchend', () => {
-            this.scrollContainer.style.scrollSnapType = 'y mandatory'
-        })
         this.scrollContainer.addEventListener('scroll', () => {
             if (!this.isScrolling) {
                 this.isScrolling = true
@@ -219,6 +213,22 @@ class MenuBBCode extends MenuScrolling {
 			if (chr == ' ') chr = '&nbsp;';
             return '<font class="funny-text" style="color: '+ (oi == -1 ? 'white' : this.funnyTextColors[j]) +';transform: scale('+ scale +');">'+chr+'</font>'
         }).join('')
+    }
+    maskValue(value, mask) {
+        if (typeof(value) == 'boolean') {
+            return main.lang[value ? 'ENABLED' : 'DISABLED'];
+        }
+        if (typeof(mask) == 'string' && mask.length) {
+            if (mask == 'time') {
+                return main.clock?.humanize(value, true) || '';
+            }
+            let maskedValue = value;
+            if (maskedValue.length > 18) {
+                maskedValue = maskedValue.slice(0, 15) +'...'
+            }
+            return mask.replace('{0}', maskedValue);
+        }
+        return '';
     }
 }
 
@@ -552,20 +562,14 @@ export class Menu extends MenuNav {
                 }
             }
         }
-		console.log('setupSelect', entries, element, fa, '[data-path="'+ path.replaceAll('"', '"') +'"]');
-		console.log(this.spatialNavigation?.memory());
         if (!Array.isArray(entries)) return;
-        this.dialogs.select(path.split('/').pop(), entries, fa, retPath => {
-            if (retPath) {
-                let actionPath = path +'/'+ retPath
-                entries.some(e => {
-                    if (e.name == retPath) {
-                        if (e.path) actionPath = e.path
-                        return true
-                    }
-                })
-                main.emit('menu-open', actionPath)
-                if (element) element.setAttribute('data-default-value', retPath)
+        this.dialogs.select(path.split('/').pop(), entries, fa, ret => {
+            if (ret) {
+                const entry = entries.find(e => e.id == ret)
+                if (entry) {
+                    main.emit('menu-open', entry.path)
+                    if (element) element.setAttribute('data-default-value', ret)
+                }
             }
             this.lastSelectTriggerer && setTimeout(() => {
                 this.emit('focus', this.lastSelectTriggerer)
@@ -703,14 +707,6 @@ export class Menu extends MenuNav {
         }
         if (e.type == 'check') e.fa = 'fas fa-toggle-'+ (e.value ? 'on' : 'off')
         if (typeof(e.statusFlags) != 'string') e.statusFlags = ''
-        e.maskText = ''
-        if (e.mask && typeof(e.value) != 'undefined') {
-            if (e.mask === 'time') {
-                e.maskText = main.clock.humanize(e.value, true)
-            } else if (typeof(e.value) != 'boolean') {
-                e.maskText = e.mask.replace('{0}', e.value)
-            }
-        }
         if (e.rawname && e.rawname.includes('[')) e.rawname = this.parseBBCode(e.rawname)
         e.wrapperClass = 'entry-wrapper'
         if (!e.side && this.icons[e.path] && this.icons[e.path].cover && (main.config['stretch-logos'] || (e.class && e.class.includes('entry-force-cover')))) {

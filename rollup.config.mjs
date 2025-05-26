@@ -10,6 +10,7 @@ import replace from '@rollup/plugin-replace';
 import copy from 'rollup-plugin-copy';
 import { sveltePreprocess } from 'svelte-preprocess';
 import { babel, getBabelOutputPlugin } from '@rollup/plugin-babel';
+import deletePlugin from 'rollup-plugin-delete';
 
 // import config Babel via import ESM
 import babelConfig from './babel.config.json' with { type: 'json' };
@@ -124,6 +125,35 @@ makeNodeBundle({
       { src: 'node_modules/mpegts.js/dist/mpegts.js', dest: 'www/nodejs/renderer/dist' },
       { src: 'node_modules/dashjs/dist/dash.all.min.js', dest: 'www/nodejs/renderer/dist' }
     ] })
+  ]
+});
+
+const mainSourceFile = 'www/nodejs/main.mjs';
+const mainAndroidSourceFile = 'www/nodejs/main-android.mjs';
+try {
+  let content = fs.readFileSync(mainSourceFile, 'utf-8');
+  let prevSize = content.length
+  content = content.replace(/import[^\n]*(electron|remote)[^\n]*\n/gis, '');
+  if (content.length >= prevSize) {
+    console.error('It was not possible to remove the electron and remote imports')
+    process.exit(1)
+  }
+  fs.writeFileSync(mainAndroidSourceFile, content, 'utf-8');
+  console.log('File updated successfully!');
+} catch (error) {
+  console.error('Error processing the file:', error);
+  process.exit(1)
+}
+
+makeNodeBundle({
+  input: mainAndroidSourceFile,
+  output: { format: 'esm', file: 'www/nodejs/dist/main-android.js', inlineDynamicImports: true, sourcemap: true },
+  babelOpts: baseBabelOpts,
+  extraPlugins: [
+    deletePlugin({
+      targets: mainAndroidSourceFile,
+      hook: 'buildEnd'
+    })
   ]
 });
 

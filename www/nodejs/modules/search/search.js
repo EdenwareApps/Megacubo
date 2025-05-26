@@ -76,7 +76,10 @@ class Search extends EventEmitter {
                 es = parentalControl.filter(es, true);
                 es = this.addFixedEntries(this.currentSearchType, es);
                 resolve(es);
-            }).catch(e => menu.displayErr(e));
+            }).catch(err => {
+                console.error(err);
+                resolve(es || []);
+            });
         });
     }
     entries() {
