@@ -91,7 +91,7 @@ class ExternalPlayer {
 			})
 			opts.unshift({template: 'question', fa: 'fas fa-window-restore', text: this.context.main.lang.OPEN_EXTERNAL_PLAYER})
 			opts.push({template: 'option', fa: 'fas fa-times-circle', text: this.context.main.lang.CANCEL, id: 'cancel'})
-			this.context.menu.dialogs.dialog(opts, resolve, null, true)
+			this.context.main?.menu?.dialogs?.dialog(opts, resolve, null, true)
 		})
 	}
 }

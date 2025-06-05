@@ -101,9 +101,9 @@ export class HotkeysHandler {
     }
 
     checkIsInput(target) {
-        var name = target.tagName.toLowerCase();
+        var name = target.tagName;
         var type = target.type;
-        return (name === 'input' && ['text', 'password', 'file', 'search', 'range'].indexOf(type) > -1) || name === 'textarea';
+        return (name === 'INPUT' && ['text', 'password', 'file', 'search', 'range'].indexOf(type) > -1) || name === 'TEXTAREA';
     }
 
     run(type, e) {

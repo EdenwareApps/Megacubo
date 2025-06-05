@@ -117,7 +117,7 @@ export class OMNI extends OMNIUtils {
             }
         })
         this.element.addEventListener('click', event => {
-            if(!event.target.tagName || event.target.tagName.toLowerCase() != 'i' || !this.element.classList.contains('selected') || !this.submit()){
+            if(!event.target.tagName || event.target.tagName != 'I' || !this.element.classList.contains('selected') || !this.submit()){
                 this.focus(true)
             }
         })

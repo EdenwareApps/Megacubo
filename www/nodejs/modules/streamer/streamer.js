@@ -583,7 +583,7 @@ class Streamer extends StreamerGoNext {
         }
 
         const url = this.active.data.url
-        const text = Object.keys(codecData).map(k => ucWords(k) +': '+ codecData[k]).join('<br />')
+        const text = Object.keys(codecData || {}).map(k => ucWords(k) +': '+ codecData[k]).join('<br />')
         const chosen = await global.menu.dialog([
             { template: 'question', text: global.lang.OPEN_EXTERNAL_PLAYER_ASK, fa: 'fas fa-window-restore' },
             { template: 'message', text },

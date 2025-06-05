@@ -18,7 +18,6 @@ import babelRendererOutput from './babel.renderer-output.json' with { type: 'jso
 import babelRendererPolyfills from './babel.renderer-polyfills.json' with { type: 'json' };
 
 // determines environment
-const isProd = process.env.NODE_ENV === 'production';
 const baseResolveOpts = { browser: false, preferBuiltins: true };
 
 // common plugins
@@ -29,17 +28,9 @@ const replaceOpts = {
     'fs/promises")': 'fs").promises',
     "fs/promises')": "fs').promises",
     'getFilename()': '__filename',
-    'getDirname()': '__dirname',
-    'require("electron")': 'process.platform=="android"?{}:require("electron")'
+    'getDirname()': '__dirname'
   }
 }
-const commonPlugins = [
-  resolve(baseResolveOpts),
-  commonjs({ sourcemap: false }),
-  json({ compact: true }),
-  replace(replaceOpts),
-  terser({ ecma: 2018, maxWorkers: 4, keep_classnames: true, keep_fnames: true, output: { comments: false } })
-];
 
 // Svelte renderer plugins
 const rendererPlugins = [
@@ -57,6 +48,9 @@ const rendererPlugins = [
   terser()
 ];
 
+// Babel config import
+// bundles main, preload e workers
+const baseBabelOpts = babelConfig;
 const watchOpts = { buildDelay: 3000, exclude: 'node_modules/**' };
 const external = [
   'electron',
@@ -109,10 +103,6 @@ outputs.push(
   }
 );
 
-// Babel config import
-// bundles main, preload e workers
-const baseBabelOpts = babelConfig;
-
 makeNodeBundle({
   input: 'www/nodejs/main.mjs',
   output: { format: 'esm', file: 'www/nodejs/dist/main.js', inlineDynamicImports: true, sourcemap: true },
@@ -128,33 +118,11 @@ makeNodeBundle({
   ]
 });
 
-const mainSourceFile = 'www/nodejs/main.mjs';
-const mainAndroidSourceFile = 'www/nodejs/main-android.mjs';
-try {
-  let content = fs.readFileSync(mainSourceFile, 'utf-8');
-  let prevSize = content.length
-  content = content.replace(/import[^\n]*(electron|remote)[^\n]*\n/gis, '');
-  if (content.length >= prevSize) {
-    console.error('It was not possible to remove the electron and remote imports')
-    process.exit(1)
-  }
-  fs.writeFileSync(mainAndroidSourceFile, content, 'utf-8');
-  console.log('File updated successfully!');
-} catch (error) {
-  console.error('Error processing the file:', error);
-  process.exit(1)
-}
-
 makeNodeBundle({
-  input: mainAndroidSourceFile,
-  output: { format: 'esm', file: 'www/nodejs/dist/main-android.js', inlineDynamicImports: true, sourcemap: true },
+  input: 'www/nodejs/electron.mjs',
+  output: { format: 'cjs', file: 'www/nodejs/dist/electron.js', inlineDynamicImports: true, sourcemap: true },
   babelOpts: baseBabelOpts,
-  extraPlugins: [
-    deletePlugin({
-      targets: mainAndroidSourceFile,
-      hook: 'buildEnd'
-    })
-  ]
+  externals: ['electron', /.+\.(node|native)$/]
 });
 
 [
@@ -167,7 +135,8 @@ makeNodeBundle({
   makeNodeBundle({
     input: `www/nodejs/${file}`,
     output: { format: 'cjs', file: `www/nodejs/dist/${path.basename(file).replace('.mjs','.js')}`, inlineDynamicImports: true, sourcemap: true },
-    babelOpts: baseBabelOpts
+    babelOpts: baseBabelOpts,
+    externals: ['electron', /.+\.(node|native)$/]
   });
 });
 

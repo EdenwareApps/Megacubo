@@ -249,6 +249,10 @@
 
     function handleOptionClick(id) {
         if (currentCallback) {
+            if (id === 'submit') {
+                const input = container.querySelector("input, textarea");
+                if (input) id = input.value;
+            }
             currentCallback(id);
             currentCallback = null;
         }
@@ -264,6 +268,33 @@
         if (element) {
             element.focus();            
         }
+    }
+
+    async function maybePasteClipboard(element) {
+        if (element.tagName !== 'INPUT' && element.tagName !== 'TEXTAREA') {
+            return;
+        }
+        let mask = element.getAttribute('data-mask');
+        if(!mask) {
+            if (element.placeholder?.startsWith('http')) {
+                mask = 'url';
+            } else {
+                return;
+            }
+        }
+        const text = await main.menu.readClipboard();
+        if(text) {
+            if (mask === 'url') {
+                mask = '(https?|ftp|rtmp[s]?|rtsp[\\w-]*|mega)://([^\\s"\']*)';
+            }
+            const regex = new RegExp('('+ mask +')');
+            const matched = text.match(regex);
+            if(matched) {
+                element.value = matched[1];
+                element.select();
+            }
+        }
+        
     }
 
     onMount(() => {
@@ -300,7 +331,7 @@
                         role="button"
                         onmousedown={(e) => e.stopPropagation()}
                     >
-                        <div>
+                        <div style="overflow: auto;">
                             {#each content.entries as entry}
                                 {#if entry.template === "question"}
                                     <span class="dialog-template-question">
@@ -320,7 +351,9 @@
                                     <span class="dialog-template-text">
                                         <input
                                             type={entry.isPassword ? "password" : "text"}
-                                            placeholder={entry.placeholder}
+                                            onfocus={(e) => maybePasteClipboard(e.target)}
+                                            placeholder={entry.placeholder} 
+                                            data-mask={entry.mask||''} 
                                             value={entry.value} 
                                             onchange={handleInputChange}
                                             aria-label={entry.plainText || plainText(entry.text)}
@@ -332,6 +365,8 @@
                                             placeholder={entry.placeholder}
                                             value={entry.value} 
                                             onchange={handleInputChange}
+                                            onfocus={(e) => maybePasteClipboard(e.target)}
+                                            data-mask={entry.mask||''} 
                                             rows="3"
                                             aria-label={entry.plainText || plainText(entry.text)} 
                                             class="dialog-template-textarea"
@@ -362,7 +397,7 @@
                             {/each}
                         </div>
 
-                        <div class="dialog-template-options {content.opts.length == 2 || content.opts.length > 3 ? 'two-columns' : ''}">
+                        <div class="dialog-template-options {content.opts.length == 2 || content.opts.length > 3 ? 'two-columns' : ''} {content.entries && content.entries.findLastIndex(e => e.template.startsWith('text')) == (content.entries.length - 1) ? 'sharp-top' : ''}">
                             {#each content.opts as option}
                                 {#if option.template === "option" || option.template === "option-detailed"}
                                     <button
@@ -400,7 +435,7 @@
 
 <style global>
     #dialog ::-webkit-scrollbar-thumb {
-        background: var(--dialog-background-color);
+        background: rgba(0,0,0,0.25);
         box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
     }
     #dialog ::-webkit-slider-runnable-track {
@@ -562,7 +597,8 @@
     body.portrait .dialog-template-slider,
     body.portrait .dialog-template-option,
     body.portrait .dialog-template-option-detailed,
-    body.portrait .dialog-template-question {
+    body.portrait .dialog-template-question,
+    body.portrait .dialog-template-message {
         font-size: var(--menu-entry-details-font-size);
     }
     .dialog-template-question {
@@ -581,7 +617,7 @@
             transparent 150%
         );
         color: black;
-        border-width: 0 1px 1px 0;
+        border-width: 0 0 1px 0;
         border-style: solid;
         border-color: rgba(0, 0, 0, 0.1);
     }
@@ -649,6 +685,7 @@
         .dialog-template-options.two-columns
             .dialog-template-option-detailed {
             width: 50%;
+            border-width: 0 1px 1px 0;
         }
     }
     .dialog-template-slider a:first-child,
@@ -719,5 +756,9 @@
         color: #930d42 !important;
         filter: drop-shadow(0 0 0.4vmin #930d42);
         margin-right: 0.8vmin;
+    }
+    .sharp-top {
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
     }
 </style>

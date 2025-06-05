@@ -49,11 +49,21 @@ class PremiumHelper {
 
 try {
     let Premium
-    const is64 = process.arch.endsWith('64')
+    const isAndroidArm = process.platform == 'android' && process.arch.startsWith('arm')
     const distFolder = paths.cwd +'/dist/'
     const distFiles = new Set(fs.readdirSync(distFolder))
     const req = typeof(module) == 'undefined' ? createRequire(getFilename()) : require
-    const candidates = ['premium.js', is64 ? 'premium-arm64.jsc' : 'premium-arm.jsc', 'premium.jsc']
+    const candidates = ['premium.js']
+    if (isAndroidArm) {
+        const is64 = process.arch.endsWith('64')
+        if(is64) {
+            candidates.push('premium-arm64.jsc')
+        } else {
+            candidates.push('premium-arm.jsc')
+        }
+    } else {
+        candidates.push('premium.jsc')
+    }
     for(const file of candidates) {
         if(!distFiles.has(file)) continue
         try {

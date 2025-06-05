@@ -2,7 +2,6 @@ import electron from "electron";
 import remote from '@electron/remote';
 import { EventEmitter } from 'node:events';
 import path from "path";
-import fs from "fs";
 import { spawn } from "child_process";
 import ExecFinder from 'exec-finder';
 import { prepare } from "./modules/serialize/serialize.js";

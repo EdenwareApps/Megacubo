@@ -23,3 +23,16 @@
 -keepclasseswithmembers class * {
     native <methods>;
 }
+
+# Keep all classes and members from ffmpeg-kit
+-keep class com.arthenica.ffmpegkit.** { *; }
+
+# Keep all classes and members from smartexception
+-keep class com.arthenica.smartexception.** { *; }
+
+# Keep all classes and members from smartexception
+-keep class com.arthenica.smartexception.java.** { *; }
+
+# Avoid warnings related to ffmpeg-kit and smartexception
+-dontwarn com.arthenica.ffmpegkit.**
+-dontwarn com.arthenica.smartexception.**

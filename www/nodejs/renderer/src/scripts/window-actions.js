@@ -159,8 +159,13 @@ class WinActionsMiniplayer extends WindowActions {
 		const height = width / r
 		return { width, height }
 	}
-	enterIfPlaying(){
+	shouldEnter(){
 		if(this.enabled && this.supports() && main.streamer && (main.streamer.active || main.streamer.isTuning())) {
+			return true
+		}
+	}
+	enterIfPlaying(){
+		if(this.shouldEnter()) {
 			this.enter().catch(err => console.error('PIP FAILURE', err))
 			return true
 		}
@@ -216,24 +221,29 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 			const orientationListener = () => {
 				clearTimeout(orientationTimeout);
 				orientationTimeout = setTimeout(() => {
+					clearTimeout(orientationTimeout);
+					orientationTimeout = null;
 					if(main.streamer.active && !main.streamer.isAudio && document.visibilityState === 'visible') {
 						const ratio = player.videoRatio();
-						this.pip.autoPIP(true, (240 * ratio) || 320, 240);
+						this.pip.aspectRatio((240 * ratio) || 320, 240);
 					}
-				}, 3000);
+				}, 500);
 			};
 			
-			screen.orientation && screen.orientation.addEventListener('change', orientationListener)
+			screen.orientation?.addEventListener('change', orientationListener)
 			window.addEventListener('resize', orientationListener)
 			window.addEventListener('orientationchange', orientationListener)
 
+			let autoPIPTimer = null;
 			const stateListener = () => {
-				if(orientationTimeout) return;
-				
+				clearTimeout(autoPIPTimer)
+				console.log('stateListener', orientationTimeout, main.streamer.active, document.visibilityState)
 				const shouldAutoPIP = main.streamer.active && !main.streamer.isAudio && !main.streamer.casting;
 				if(shouldAutoPIP && document.visibilityState === 'visible') {
-					const ratio = player.videoRatio();
-					this.pip.autoPIP(true, (240 * ratio) || 320, 240);
+					autoPIPTimer = setTimeout(() => {
+						const ratio = player.videoRatio();
+						this.pip.autoPIP(true, (240 * ratio) || 320, 240);
+					}, 1000);
 				} else {
 					this.pip.autoPIP(false, 0, 0);
 				}
@@ -242,6 +252,7 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 			main.streamer.on('cast-start', stateListener)
 			main.streamer.on('cast-stop', stateListener)
 			main.streamer.on('codecData', stateListener) // isAudio updated
+
 			player.on('app-pause', screenOff => {
 				if(this.inPIP && !screenOff) return
 				this.appPaused = true
@@ -260,7 +271,7 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 								main.streamer.stop()
 							}
 						} else {
-							if(this.enterIfPlaying()) {
+							if(this.shouldEnter()) {
 								console.warn('app-pause', 'entered miniplayer')
 								keepInBackground = false // enter() already calls cordova.plugins.backgroundMode.enable() on prepare()
 							} else if(!keepPlaying) { // no reason to keep playing
@@ -282,9 +293,18 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 					this.observePIPLeave()
 				}
 			});
+
+			// Controle de rotação
+			let rotating = false;
+			window.addEventListener('orientationchange', () => {
+				rotating = true;
+				setTimeout(() => rotating = false, 1000);
+			});
+
 			const listener = () => {
+				if (rotating) return;
 				let seemsPIP = this.seemsPIP()
-				if(seemsPIP != this.inPIP){
+				if(seemsPIP != this.inPIP && (!seemsPIP || main.streamer.active || main.streamer.isTuning())) {
 					console.warn('miniplayer change on resize')
 					if(seemsPIP){
 						this.set(seemsPIP)
@@ -294,8 +314,7 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 				}
 			}
 			window.addEventListener('resize', listener)
-			window.addEventListener('orientationchange', listener, { capture: true })
-			screen.orientation && screen.orientation.addEventListener('change', listener)
+			screen.orientation.addEventListener('change', listener)
 			this.pip.isPipModeSupported(() => {}, err => {
 				console.error('PiP not supported', err)
 			})
@@ -356,7 +375,7 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 	seemsPIP(){
 		const threshold = 0.65;
 		return window.innerHeight < (screen.height * threshold) && 
-			   window.innerWidth < (screen.width * threshold);
+							  window.innerWidth < (screen.width * threshold);
 	}
     enter(){
         return new Promise((resolve, reject) => {
@@ -434,8 +453,7 @@ export class ElectronWinActions extends WinActionsMiniplayer {
 	seemsPIP(){
 		let dimensions = this.getLimits(); // default miniplayer size
 		['height', 'width'].forEach(m => dimensions[m] = dimensions[m] * 1.5) // magnetic margin to recognize miniplayer when resizing window
-		let seemsPIP = window.innerWidth <= dimensions.width && window.innerHeight <= dimensions.height
-		return seemsPIP
+		return window.innerWidth <= dimensions.width && window.innerHeight <= dimensions.height
 	}
     enter(){
         return new Promise((resolve, reject) => {

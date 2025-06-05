@@ -12,6 +12,7 @@ static def getVersionCodeFromVersionName(String versionName) {
 android {
     namespace "tv.megacubo.app"
     compileSdk rootProject.ext.compileSdk
+    ndkVersion "23.1.7779620"
     defaultConfig {
         applicationId "tv.megacubo.app"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -28,7 +29,7 @@ android {
     buildTypes {
         debug {
             ndk {
-                abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+                abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86_64'
             }
         }
         release {
@@ -37,20 +38,14 @@ android {
             }
             minifyEnabled true
             shrinkResources true
-            postprocessing {
-                proguardFiles = []
-                removeUnusedCode false
-                removeUnusedResources true
-                obfuscate false
-                optimizeCode true
-            }
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     splits {
         abi {
             enable false
             reset()
-            include 'armeabi-v7a', 'arm64-v8a', 'x86_64', 'x86'
+            include 'armeabi-v7a', 'arm64-v8a', 'x86_64'
             universalApk true
         }
     }

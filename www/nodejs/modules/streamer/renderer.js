@@ -1342,7 +1342,7 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
         }
     }
     volumeBarToggle(e){
-        if(e.target && e.target.tagName && ['button', 'volume-wrap', 'i'].includes(e.target.tagName.toLowerCase())){
+        if(e.target && e.target.tagName && ['BUTTON', 'VOLUME-WRAP', 'I'].includes(e.target.tagName)){
             if(this.volumeBarVisible()){
                 let now = time()
                 if(this.volumeLastClickTime < (now - 0.4)){
@@ -1392,7 +1392,7 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
         }
         this.volumeInput.addEventListener('touchstart', touchListener)
         this.volumeInput.addEventListener('click', event => {
-            if(!event.target || isTouchDevice || !['volume-wrap', 'i'].includes(event.target.tagName.toLowerCase())) return
+            if(!event.target || isTouchDevice || (event.target.tagName != 'VOLUME-WRAP' && event.target.tagName != 'I')) return
             const volume = parseFloat(this.volumeInput.value)
             if(volume){
                 this.volumeMute()

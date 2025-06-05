@@ -43,7 +43,7 @@
     "axios": "^1.8.4",
     "bl": "^6.0.12",
     "bytenode": "github:EdenwareApps/bytenode",
-    "capacitor-nodejs": "https://github.com/EdenwareApps/Capacitor-NodeJS/releases/download/v1.0.0-beta.7/capacitor6-nodejs.tgz",
+    "capacitor-nodejs": "https://github.com/hampoelz/capacitor-nodejs/releases/download/v1.0.0-beta.8/capacitor-nodejs.tgz",
     "check-disk-space": "^3.4.0",
     "cordova-androidx-build": "^1.0.4",
     "cordova-plugin-android-permissions": "^1.1.5",

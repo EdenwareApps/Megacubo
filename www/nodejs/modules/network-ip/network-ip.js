@@ -1,5 +1,6 @@
 import { networkInterfaces as osNetworkInterfaces } from "os";
 import { execSync } from "node:child_process";
+const { isIP } = require('node:net')
 
 class NetworkIP {
     constructor() {
@@ -52,7 +53,18 @@ class NetworkIP {
         };
     }
     androidIPCommand() {
-        return this.execSync('ip -4 r');
+        if (this.skipIPCommand !== true) {
+            try {
+                const output = this.execSync('ip -4 r');
+                this.skipIPCommand = false;
+                return output;
+            } catch (err) {
+                if (this.skipIPCommand !== false) { // only set to true if it didn't worked previously
+                    this.skipIPCommand = true;
+                }
+            }
+        }
+        return this.execSync('ip route get 8.8.8.8');
     }
     shouldPatchNetworkInterfaces() {
         if (process.platform === 'android') {
@@ -84,6 +96,10 @@ class NetworkIP {
                         iface = this.networkIpCache ? this.networkIpCache.iface : 'Wi-Fi';
                     }
                 } else {
+                    const ipMatch = output.match(/src +([0-9\.]+)/);
+                    if (ipMatch && isIP(ipMatch[1]) === 4) {
+                        addr = ipMatch[1];
+                    }
                     addr = this.networkIpCache ? this.networkIpCache.addr : '127.0.0.1';
                     iface = this.networkIpCache ? this.networkIpCache.iface : 'Wi-Fi';
                 }

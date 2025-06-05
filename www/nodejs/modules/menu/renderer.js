@@ -32,6 +32,22 @@ class MenuBase extends EventEmitter {
         wrap.innerHTML = code
         return wrap.firstElementChild
     }
+    async readClipboard() {
+        if (typeof(window.capacitor?.clipboard) === 'function') {
+            const ret = await window.capacitor.clipboard()
+            if (typeof(ret?.value) === 'string') {
+                return ret.value
+            }
+        }
+        return parent.api.readClipboard()
+    }
+    async writeClipboard(text) {
+        if (typeof(window.capacitor?.clipboard) === 'function') {
+            await window.capacitor.clipboard({value: text})
+        } else {
+            parent.api.writeClipboard(text)
+        }
+    }
 }
 
 class MenuIcons extends MenuBase {
@@ -89,7 +105,7 @@ class MenuScrolling extends MenuIcons {
         this.scrollendPolyfillElement(this.container)
         this.scrollendPolyfillElement(this.scrollContainer)
         for (const type of ['scrollend', 'resize']) {
-            this.scrollContainer.addEventListener(type, scrollEndTrigger, {capture: true, passive: true})
+            this.scrollContainer.addEventListener(type, scrollEndTrigger, {passive: true})
         }
         this.scrollContainer.addEventListener('scroll', () => {
             if (!this.isScrolling) {
@@ -98,9 +114,8 @@ class MenuScrolling extends MenuIcons {
             }
         })
         const resizeListener = () => this.resize()
-        window.addEventListener('resize', resizeListener, { capture: true })
-        window.addEventListener('orientationchange', resizeListener, { capture: true })
-        screen.orientation && screen.orientation.addEventListener('change', resizeListener)
+        window.addEventListener('resize', resizeListener)
+        screen.orientation?.addEventListener('change', resizeListener)
         setTimeout(resizeListener, 0)
     }
     setGrid(x, y, px, py) {
@@ -251,7 +266,7 @@ class MenuPlayer extends MenuBBCode {
             const rect = element.getBoundingClientRect()
             if (ignoreViewport !== true) {
                 if (!element.parentElement) return false
-                const parentElement = element.parentElement?.tagName?.toLowerCase() == 'svelte-virtual-grid-contents' ? element.parentElement.parentNode : element.parentElement
+                const parentElement = element.parentElement?.tagName == 'SVELTE-VIRTUAL-GRID-CONTENTS' ? element.parentElement.parentNode : element.parentElement
                 if (!parentElement) return false
                 const parentRect = parentElement.getBoundingClientRect()
                 const intersectionLeft = Math.max(rect.left, parentRect.left)
@@ -396,6 +411,8 @@ class MenuNav extends MenuStatusFlags {
         this.sideMenuSyncTimer = 0
         this.scrollendPolyfillElement(this.container)
         this.container.addEventListener('scrollend', () => this.sideMenuSync())
+        screen.orientation?.addEventListener('change', () => setTimeout(() => this.sideMenuync(true), 400))
+        window.addEventListener('resize', () => this.sideMenuSync(true))
 		this.on('before-navigate', () => this.sideMenu(false, 'instant'))
         this.sideMenu(false, 'instant')
     }
@@ -460,7 +477,7 @@ class MenuNav extends MenuStatusFlags {
         l.style.display = 'inline-block'
         l.style.height = 'var(--nav-width)'
         document.body.appendChild(l)
-        this.sideMenuWidthCache = Math.round(l.clientHeight)
+        this.sideMenuWidthCache = Math.ceil(l.clientHeight)
         document.body.removeChild(l)
         return this.sideMenuWidthCache
     }

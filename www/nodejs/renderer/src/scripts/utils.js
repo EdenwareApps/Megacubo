@@ -10,6 +10,21 @@ if (typeof Array.prototype.unique === 'undefined') {
     })
 }
 
+if (typeof Array.prototype.findLastIndex === 'undefined') {
+    Object.defineProperty(Array.prototype, 'findLastIndex', {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: function (callback, thisArg) {
+            for (let i = this.length - 1; i >= 0; i--) {
+                if (callback.call(thisArg, this[i], i, this))
+                    return i;
+            }
+            return -1;
+        }
+    });
+}
+
 if (typeof String.prototype.format === 'undefined') {
     Object.defineProperty(String.prototype, 'format', {
         enumerable: false,

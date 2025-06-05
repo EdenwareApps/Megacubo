@@ -117,8 +117,8 @@
 		range = {
 			renderStart: rows[render_row_start][0],
 			renderEnd: rows[render_row_end][rows[render_row_end].length - 1],
-			start: rows[row_start][0],
-			end: rows[row_end][rows[row_end].length - 1]
+			start: (rows[row_start] && rows[row_start].length) ? rows[row_start][0] : 0,
+			end: (rows[row_end] && rows[row_end].length) ? rows[row_end][rows[row_end].length - 1] : 0
 		};
 
 		top = y_positions[render_row_start];

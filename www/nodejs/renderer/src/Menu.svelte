@@ -742,6 +742,9 @@ body.side-menu svelte-virtual-grid-contents a .entry-wrapper span, body.side-men
 body.video #menu a span.entry-wrapper {
     background: var(--alpha-shadow-background-color) !important;
 }
+body.video #menu a.selected span.entry-wrapper {
+    background: black !important;
+}
 #menu nav a .entry-wrapper > span {
     margin-left: var(--padding-half);
     white-space: normal;

@@ -265,7 +265,7 @@ export class Hotkeys {
             }
         } else {
             let s = main.menu.selectedElementX
-            if (s && s.tagName.toLowerCase() == 'input' && s.id && s.id == 'menu-omni-input') {
+            if (s && s.tagName == 'INPUT' && s.id && s.id == 'menu-omni-input') {
                 main.menu.emit('focus-index', main.menu.selectedIndex)
             } else {
                 noNav || main.menu.emit('arrow', 'down')

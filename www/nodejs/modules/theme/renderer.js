@@ -227,7 +227,7 @@ class Theme extends EventEmitter {
             family += ','+ systemFont
         }
         const shadowColor = colorMixer(Object.values(hexToRgb(main.config['background-color'])), [0, 0, 0], 0.675)
-        const dialogBackgoundLayerColor = hexToRGBA(rgbToHex(shadowColor), 0.75)
+        const dialogBackgroundLayerColor = hexToRGBA(rgbToHex(shadowColor), 0.75)
         const backgroundColor = hexToRGBA(main.config['background-color'], (100 - main.config['background-transparency']) / 100)
         const alphaBackgroundColor = hexToRGBA(rgbToHex(backgroundColor), 0.75)
         const alphaShadowColor = hexToRGBA(rgbToHex(shadowColor), 0.75)
@@ -267,7 +267,7 @@ class Theme extends EventEmitter {
             --font-color: ${main.config['font-color']};
             --secondary-font-color: ${secondaryFontColor};
             --background-color: ${main.config['background-color']};
-            --dialog-background-color: ${dialogBackgoundLayerColor};
+            --dialog-background-color: ${dialogBackgroundLayerColor};
             --alpha-background-color: ${alphaBackgroundColor};
             --shadow-background-color: ${shadowColor};
             --alpha-shadow-background-color: ${alphaShadowColor};

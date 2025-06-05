@@ -199,25 +199,14 @@ export const initApp = async () => {
     window.main = main
     main.imp = new ImageProcessor(main)
     main.on('clipboard-write', (text, successMessage) => {
-        if(window.capacitor) {
-            return window.capacitor.clipboard(text).then(ret => {
-                successMessage && main.osd.show(successMessage, 'fas fa-check-circle faclr-green', 'clipboard', 'normal')
-            }).catch(err => {
-                main.osd.show(String(err.message || err), 'fas fa-exclamation-triangle faclr-red', 'clipboard', 'normal')
-            })
-        }
-        if (!top.navigator.clipboard) {
-            main.osd.show('Your webview doesn\'t supports copying to clipboard.', 'fas fa-exclamation-triangle faclr-red', 'clipboard', 'normal')
-            return
-        }
-        top.navigator.clipboard.writeText(text).then(() => {
+        main.menu.writeClipboard(text).then(() => {
             successMessage && main.osd.show(successMessage, 'fas fa-check-circle faclr-green', 'clipboard', 'normal')
         }).catch(err => {
             main.osd.show(String(err.message || err), 'fas fa-exclamation-triangle faclr-red', 'clipboard', 'normal')
         })
     })
-    main.on('clipboard-read', (callbackId, timeoutMs=0) => {
-        main.menu.readClipboard(timeoutMs).then(text => {
+    main.on('clipboard-read', (callbackId) => {
+        main.menu.readClipboard().then(text => {
             main.emit(callbackId, null, text)
         }).catch(err => {
             console.error(err)

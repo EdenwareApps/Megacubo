@@ -77,12 +77,6 @@ class MediaPlayerAdapterHTML5 extends MediaPlayerAdapter {
 	connect(){
 		this.object.currentTime = 0
 		this.object.textTracks.addEventListener('change', () => this.emit('subtitleTracks', this.subtitleTracks()))
-		this.object.addEventListener('click', event => {
-            let e = (event.target || event.srcElement)
-            if(e.tagName && e.tagName.toLowerCase() == tag){
-				this.emit('click')
-            }
-        })
 		const onerr = e => {
 			if(this.object.error){
 				e = this.object.error

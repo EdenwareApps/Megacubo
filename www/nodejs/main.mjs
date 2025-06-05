@@ -1,6 +1,4 @@
 import paths from './modules/paths/paths.js'
-import electron from 'electron'
-import * as remote from '@electron/remote/main'
 import path from 'path'
 import crashlog from './modules/crashlog/crashlog.js'
 import onexit from 'node-cleanup'
@@ -30,9 +28,11 @@ import ffmpeg from './modules/ffmpeg/ffmpeg.js'
 import promo from './modules/promoter/promoter.js'
 import mega from './modules/mega/mega.js'
 
-if (process.versions.electron && remote) {
-    console.log('Electron remote initialize')
-    remote.initialize()
+const electronDistFile = path.join(__dirname, 'electron.js')
+const electron = process.platform === 'android' ? {} : require(electronDistFile)
+
+if (electron.remote) {
+    electron.remote.initialize()
 }
 
 // set globally available objects
@@ -302,8 +302,8 @@ const setupRendererHandlers = () => {
         }
     })
     ui.on('open-url', url => {
-        console.log('OPENURL', url)
-        omni.open(url).catch(e => menu.displayErr(e))
+        console.log('OPENURL', {url})
+        url && omni.open(url).catch(e => menu.displayErr(e))
     })
     ui.on('open-name', name => {
         console.log('OPEN STREAM BY NAME', name)
@@ -459,7 +459,7 @@ const initElectronWindow = async () => {
 
     app.on('browser-window-created', (_, window) => {
         console.log('Browser window created')
-        remote.enable(window.webContents)
+        electron.remote.enable(window.webContents)
     })
     
     global.window = new BrowserWindow({
@@ -697,7 +697,7 @@ renderer.ui.once('get-lang-callback', (locale, timezone, ua, online) => {
 
 if (paths.android) {
     renderer.ui.emit('get-lang')
-} else if (electron?.BrowserWindow) {
+} else if (electron.remote) {
     initElectronWindow().catch(err => console.error(err))
 }
 
