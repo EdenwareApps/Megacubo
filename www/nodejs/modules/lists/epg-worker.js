@@ -81,7 +81,7 @@ class EPGDataCompleter {
         const tmpFile = temp +'/'+ basename(db.fileHandler.file) +'.refine'
         try {
             if (this.triasQueue.length) {
-                await this.trias.train(this.triasQueue).catch(err => console.error(err))
+                await this.trias?.train(this.triasQueue).catch(err => console.error(err))
                 this.triasQueue = []
             }
             const rdb = new Database(tmpFile, Object.assign(Object.assign({}, DBOPTS), {clear: true, create: true}))

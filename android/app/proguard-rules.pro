@@ -1,38 +1,31 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Keep all classes and members from Capacitor-NodeJS
+-keep class net.hampoelz.capacitor.nodejs.** { *; }
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Keep the NodeProcess class and its native methods
+-keep class net.hampoelz.capacitor.nodejs.NodeProcess {
+    public native void nativeReceive(java.lang.String, java.lang.String);
+    public native void nativeStart(java.lang.String[], java.lang.String[][], boolean);
+}
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
-
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
-
--keepclasseswithmembers class * {
+# Keep all classes and members from any native class used by the plugin
+-keepclasseswithmembernames class * {
     native <methods>;
 }
 
-# Keep all classes and members from ffmpeg-kit
+# Keep native libraries (.so) in the APK
+-keep class com.google.android.trichromelibrary.** { *; }
+
+# Keep FFmpegKit and SmartException (useful if using ffmpeg)
 -keep class com.arthenica.ffmpegkit.** { *; }
-
-# Keep all classes and members from smartexception
 -keep class com.arthenica.smartexception.** { *; }
-
-# Keep all classes and members from smartexception
 -keep class com.arthenica.smartexception.java.** { *; }
 
-# Avoid warnings related to ffmpeg-kit and smartexception
+# Prevent unnecessary warnings from these libraries
 -dontwarn com.arthenica.ffmpegkit.**
 -dontwarn com.arthenica.smartexception.**
+
+# Optional: preserve source code lines for debugging
+-keepattributes SourceFile,LineNumberTable
+
+# Optional: hide the original source file name (for maximum obfuscation)
+-renamesourcefileattribute SourceFile

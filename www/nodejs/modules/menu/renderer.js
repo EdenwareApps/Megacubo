@@ -411,7 +411,7 @@ class MenuNav extends MenuStatusFlags {
         this.sideMenuSyncTimer = 0
         this.scrollendPolyfillElement(this.container)
         this.container.addEventListener('scrollend', () => this.sideMenuSync())
-        screen.orientation?.addEventListener('change', () => setTimeout(() => this.sideMenuync(true), 400))
+        screen.orientation?.addEventListener('change', () => setTimeout(() => this.sideMenuSync(true), 400))
         window.addEventListener('resize', () => this.sideMenuSync(true))
 		this.on('before-navigate', () => this.sideMenu(false, 'instant'))
         this.sideMenu(false, 'instant')
