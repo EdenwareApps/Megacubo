@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import data from './countries.json' with {type: 'json'}
 
 class Countries extends EventEmitter {

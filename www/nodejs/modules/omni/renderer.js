@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { ESMitter as EventEmitter } from 'esm-itter'
 import { main } from '../bridge/renderer'
 
 class OMNIUtils extends EventEmitter {
@@ -42,12 +42,11 @@ export class OMNI extends OMNIUtils {
         document.addEventListener('keyup', this.eventHandler.bind(this))
     }
     bind(){
-        main.menu.on('focus', element => {
+        const listener = (idx, element) => {
             if(!this.visible) return
-            if(element != this.input && !element.contains(this.input)){
-                this.hide()
-            }
-        })
+            this.hide()
+        }
+        main.menu.on('focus', listener)
         main.on('omni-show', () => {
             main.menu.sideMenu(false, 'instant')
             setTimeout(() => this.show(true), 50)
@@ -118,7 +117,7 @@ export class OMNI extends OMNIUtils {
             }
         })
         this.element.addEventListener('click', event => {
-            if(!event.target.tagName || event.target.tagName.toLowerCase() != 'i' || !this.element.classList.contains('selected') || !this.submit()){
+            if(!event.target.tagName || event.target.tagName != 'I' || !this.element.classList.contains('selected') || !this.submit()){
                 this.focus(true)
             }
         })
@@ -161,8 +160,8 @@ export class OMNI extends OMNIUtils {
             console.warn('INPUT ignored')
             return
         }
-        if(main.menu?.inModal()){
-            var v = document.querySelector('#modal-content input[type="text"]')
+        if(main.menu?.dialogs?.inDialog()){
+            var v = document.querySelector('.dialog-content input[type="text"]')
             if(v){ // that's some input field on ui?
                 v.focus()
                 return
@@ -228,7 +227,7 @@ export class OMNI extends OMNIUtils {
                         pos = main.menu.currentEntries.length - 1
                     }
                     if(pos > 0){
-                        main.menu.focus(main.menu.currentElements[pos])
+                        main.menu.emit('focus-index', pos)
                     }
                     return
                 }

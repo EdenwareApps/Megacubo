@@ -4,7 +4,7 @@ import osd from '../osd/osd.js'
 import menu from '../menu/menu.js'
 import lang from '../lang/lang.js'
 import storage from '../storage/storage.js'
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import mega from '../mega/mega.js'
 import Trending from '../trending/trending.js'
 import Bookmarks from '../bookmarks/bookmarks.js'
@@ -165,7 +165,6 @@ class ChannelsEPG extends ChannelsData {
         }
         const entries = []
         const epgData = await global.lists.epgSearch(terms, liveNow)
-        console.warn('epgSearch', epgData);
         Object.keys(epgData).forEach(ch => {
             let terms = global.lists.tools.terms(ch)
             entries.push(...this.epgDataToEntries(epgData[ch], ch, terms))
@@ -1196,7 +1195,7 @@ class Channels extends ChannelsKids {
                     type: 'group',
                     class: 'entry-meta-stream',
                     fa: 'fas fa-play-circle',
-                    renderer: async () => {                        
+                    renderer: async () => {
                         let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.tools.terms(atts.name);
                         let es = await global.lists.search(terms, {
                             type: atts.mediaType,
@@ -1204,7 +1203,7 @@ class Channels extends ChannelsKids {
                             safe: !global.lists.parentalControl.lazyAuth(),
                             limit: 1024
                         });
-                        return global.lists.tools.paginateList(es);
+                        return es;
                     }
                 });
             } else {
@@ -1316,7 +1315,7 @@ class Channels extends ChannelsKids {
                 }
                 entries = await this.epgChannelsAddLiveNow(entries, true);
                 entries = global.lists.tools.sort(entries);
-                return global.lists.tools.paginateList(global.lists.tools.sort(entries));
+                return entries;
             }
         };
     }

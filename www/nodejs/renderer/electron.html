@@ -3,7 +3,7 @@
 	<head>
 		<meta name="color-scheme" content="light" />
 		<title>Megacubo</title>
-		<script type="text/javascript" src="./assets/custom-frame/custom-frame.js"></script>
+		<script src="./assets/custom-frame/custom-frame.js"></script>
         <style type="text/css">
 			html {
                 background-color: #100927;
@@ -57,11 +57,12 @@
     </head>
     <body>
 		<iframe src="about:blank" frameborder="0" scrolling="no" allow="fullscreen; autoplay" allowfullscreen></iframe>
-		<script type="text/javascript" src="./assets/js/electron.js"></script>
+		<script src="./assets/js/electron.js"></script>
 		<script>
 			const fr = document.querySelector('iframe')
 			fr.onload = () => {
 				fr.style.visibility = 'visible'
+				fr.focus()
 			}
 			var Manager = new WindowManager()
 		</script>

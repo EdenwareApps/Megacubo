@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import http from 'http'
 import path from 'path'
 import fs from 'fs'
@@ -103,11 +103,11 @@ class BridgeServer extends EventEmitter {
         }
         this.setMaxListeners(20)
         this.server = http.createServer((req, response) => {
-            if (!this.checkUA(req.headers)) {
+            const parsedUrl = url.parse(req.url, false)
+            if (!parsedUrl.pathname.endsWith('.map') && !this.checkUA(req.headers)) {
                 response.writeHead(400, prepareCORS({ 'content-type': 'text/plain' }, req))
                 return response.end()
             }
-            const parsedUrl = url.parse(req.url, false)
             prepareCORS(response, req)
             response.setHeader('Connection', 'close')
             response.setHeader('Feature-Policy', 'clipboard-read; clipboard-write; fullscreen; autoplay;')
@@ -208,11 +208,10 @@ class BridgeUtils extends BridgeServer {
     constructor(opts) {
         super(opts)
     }
-    async clipboard(text, successMessage, ms) {
+    async clipboard(text, successMessage) {
         if (typeof (text) == 'string') { // write
-            this.emit('clipboard-write', text, successMessage, ms)
+            this.emit('clipboard-write', text, successMessage)
         } else { // read
-            ms = text
             const uid = 'clipboard-read-' + Math.random().toString(36).substr(2, 9)
             const promise = new Promise((resolve, reject) => {
                 this.once(uid, (err, text) => {
@@ -223,7 +222,7 @@ class BridgeUtils extends BridgeServer {
                     resolve(text)
                 })
             })
-            this.emit('clipboard-read', uid, ms)
+            this.emit('clipboard-read', uid)
             const ret = await promise
             return ret
         }

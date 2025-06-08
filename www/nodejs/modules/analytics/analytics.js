@@ -1,6 +1,6 @@
 import channels from '../channels/channels.js'
 import lang from "../lang/lang.js";
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import options from "../options/options.js";
 import lists from "../lists/lists.js";
 import https from "https";

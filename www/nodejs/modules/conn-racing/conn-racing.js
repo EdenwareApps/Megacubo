@@ -1,5 +1,5 @@
 import Download from '../download/download.js'
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import pLimit from 'p-limit'
 
 class ConnRacing extends EventEmitter {

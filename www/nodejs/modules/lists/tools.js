@@ -268,100 +268,6 @@ class Tools extends TermsHandler {
             return entries.sort((a, b) => (a[key] > b[key] ? 1 : (a[key] < b[key] ? -1 : 1)));
         }
     }
-    paginateList(sentries, minPageCount) {
-        sentries = this.sort(sentries);
-        const folderSizeLimit = config.get('folder-size-limit');
-        if (sentries.length > (folderSizeLimit + options.folderSizeLimitTolerance)) {
-            if (!minPageCount) {
-                minPageCount = 8;
-            }
-            let expectedFolderSizeLimit = folderSizeLimit;
-            let n = Math.ceil(sentries.length / minPageCount);
-            if (n < expectedFolderSizeLimit) {
-                expectedFolderSizeLimit = n;
-            }
-            let group, nextName, lastName, entries = [], template = { type: 'group', fa: 'fas fa-box-open' };
-            for (let i = 0; i < sentries.length; i += expectedFolderSizeLimit) {
-                group = Object.assign({}, template);
-                let gentries = sentries.slice(i, i + expectedFolderSizeLimit);
-                nextName = sentries.slice(i + expectedFolderSizeLimit, i + expectedFolderSizeLimit + 1);
-                nextName = nextName.length ? nextName[0].name : null;
-                group.name = this.getRangeName(gentries, lastName, nextName);
-                if (group.name.includes('[')) {
-                    group.rawname = group.name;
-                    group.name = group.name.replace(this.regexes['between-brackets'], '');
-                }
-                if (gentries.length) {
-                    lastName = gentries[gentries.length - 1].name;
-                    group.details = this.groupDetails(gentries);
-                }
-                group.entries = gentries;
-                entries.push(group);
-                n++;
-            }
-            entries = entries.map((group, i) => {
-                if (i >= (entries.length - 1))
-                    return group;
-                const nextGroup = entries[i + 1].name;
-                group.entries.push({
-                    name: lang.MORE,
-                    details: nextGroup,
-                    type: 'action',
-                    fa: 'fas fa-chevron-right',
-                    action: () => {
-                        menu.open(menu.dirname(menu.path) + '/' + nextGroup).catch(e => menu.displayErr(e));
-                    }
-                });
-                return group;
-            });
-            sentries = entries;
-        }
-        return sentries;
-    }
-    getNameDiff(a, b) {
-        let c = '';
-        for (let i = 0; i < a.length; i++) {
-            if (a[i] && b && b[i] && a[i] == b[i]) {
-                c += a[i];
-            } else {
-                c += a[i];
-                if (this.isASCIIChar(a[i])) {
-                    break;
-                }
-            }
-        }
-        return c;
-    }
-    getRangeName(entries, lastName, nextName) {
-        var l, start = '0', end = 'Z', r = new RegExp('[a-z\\d]', 'i'), r2 = new RegExp('[^a-z\\d]+$', 'i');
-        for (var i = 0; i < entries.length; i++) {
-            if (lastName) {
-                l = this.getNameDiff(entries[i].name, lastName);
-            } else {
-                l = entries[i].name.charAt(0);
-            }
-            if (l.match(r)) {
-                start = l.replace(r2, '');
-                break;
-            }
-        }
-        for (var i = (entries.length - 1); i >= 0; i--) {
-            if (nextName) {
-                l = this.getNameDiff(entries[i].name, nextName);
-            } else {
-                l = entries[i].name.charAt(0);
-            }
-            if (l.match(r)) {
-                end = l.replace(r2, '');
-                break;
-            }
-        }
-        const t = {
-            s: '[alpha]',
-            e: '[|alpha]'
-        };
-        return start == end ? start : lang.X_TO_Y.format(start + t.s, t.e + end);
-    }
     mergeEntriesWithNoCollision(leveledIndex, leveledEntries) {
         var ok;
         if (Array.isArray(leveledIndex) && Array.isArray(leveledEntries)) {
@@ -442,11 +348,6 @@ class Tools extends TermsHandler {
         return list;
     }
     async deepify(entries, opts = {}) {
-        const folderSizeLimit = config.get('folder-size-limit')
-        if (entries.length <= folderSizeLimit) {
-            entries = this.shortenSingleFolders(entries)
-            return entries
-        }
         const shouldOffload = entries.length > 4096;
         let parsedGroups = {}, groupedEntries = [];
         for (let i = 0; i < entries.length; i++) {
@@ -478,9 +379,6 @@ class Tools extends TermsHandler {
         }
         groupedEntries = parsedGroups = null
         entries = this.shortenSingleFolders(entries)
-        entries = this.mapRecursively(entries, es => {
-            return this.paginateList(es, opts.minPageCount)
-        }, true)
         if (opts.source) {
             entries = this.mapRecursively(entries, list => {
                 if (list.length && !list[0].source) {

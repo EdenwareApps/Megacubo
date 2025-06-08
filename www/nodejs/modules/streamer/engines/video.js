@@ -59,7 +59,7 @@ StreamerVideoIntent.supports = info => {
     if (VIDEO_FORMATS.includes(info.ext)) {
         return true;
     }
-    if (info?.contentType.includes('video/') && (info.headers['content-length'] || info.headers['last-modified'])) {
+    if (info.contentType?.includes('video/') && (info.headers['content-length'] || info.headers['last-modified'])) {
         return true;
     }
     return false;

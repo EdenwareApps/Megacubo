@@ -1,6 +1,6 @@
 import osd from '../../osd/osd.js'
 import lang from "../../lang/lang.js";
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import Countries from "../../countries/countries.js";
 import cloud from "../../cloud/cloud.js";
 import config from "../../config/config.js"

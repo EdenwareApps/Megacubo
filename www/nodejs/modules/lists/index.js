@@ -484,20 +484,11 @@ class Index extends IndexMapUtils {
             });
             terms = this.tools.applySearchRedirects(terms);
             if (opts.partial) {
-                let filter;
-                if (config.get('search-mode') == 1) {
-                    filter = (term, t) => {
-                        if (term.includes(t) && t != term) {
-                            return true;
-                        }
-                    };
-                } else {
-                    filter = (term, t) => {
-                        if (term.startsWith(t) && t != term) {
-                            return true;
-                        }
-                    };
-                }
+                const filter = (term, t) => {
+                    if (term.startsWith(t) && t != term) {
+                        return true;
+                    }
+                };
                 const maxAliases = 6, aliasingTerms = {};
                 terms.forEach(t => aliasingTerms[t] = 0);
                 Object.keys(this.lists).forEach(listUrl => {
@@ -686,7 +677,6 @@ class Index extends IndexMapUtils {
     }
     async group(group) {
         if (!this.lists[group.url]) {
-            menu.displayErr('GROUP=' + JSON.stringify(group));
             throw 'List not loaded';
         }
         /*

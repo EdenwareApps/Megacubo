@@ -1,4 +1,4 @@
-import EventEmitter from 'events'
+import { ESMitter as EventEmitter } from 'esm-itter'
 import { Idle } from '../../renderer/src/scripts/idle'
 import { css } from '../../renderer/src/scripts/utils'
 

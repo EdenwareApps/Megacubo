@@ -43,13 +43,13 @@
                 [...event.dataTransfer.files].forEach((file) => {
                     main.waitMain(() => {
                         const path = top.api.showFilePath(file);
-                        main.emit('open-url', path);
+                        path && main.emit('open-url', path);
                     });
                 });
             } else {
                 const data = event.dataTransfer.getData('text/plain');
                 if (data) {
-                    main.waitMain(() => main.emit('open-url', data));
+                    main.waitMain(() => data && main.emit('open-url', data));
                 }
             }
         });

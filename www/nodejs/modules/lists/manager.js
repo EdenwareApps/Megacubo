@@ -408,7 +408,6 @@ class Manager extends ManagerFetch {
 
             if (!suggest) return
             const urls = await this.master.searchEPGs()
-            console.log('suggest', urls)
             urls.length && await this.master.epg.suggest(urls)
         })
     }
@@ -1245,9 +1244,9 @@ class Manager extends ManagerFetch {
     }
     async removeList(data) {
         const info = await this.master.info(true), key = 'epg-' + lang.locale;
-        if (info[data.url]?.epg) {
-            let data = this.EPGs()
+        if (info[data.url] && info[data.url].epg) {
             const urls = new Set(parseCommaDelimitedURIs(info[data.url].epg))
+            let data = this.EPGs()
             data = data.filter(e => !urls.has(e.url))
             config.set(key, data)
         }

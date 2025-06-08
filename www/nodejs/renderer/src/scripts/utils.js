@@ -1,51 +1,77 @@
-Object.defineProperty(Array.prototype, 'unique', {
-    enumerable: false,
-    configurable: false,
-    writable: false,
-    value: function() {
-        return [...new Set(this)]
-    }
-})
-Object.defineProperty(String.prototype, 'format', {
-    enumerable: false,
-    configurable: false,
-    writable: false,
-    value: function (){
-        var args = arguments;
-        return this.replace(/{(\d+)}/g, function(match, number) {
-        return typeof args[number] != 'undefined'
-            ? args[number]
-            : match
-        })
-    }
-})
-Object.defineProperty(String.prototype, 'replaceAll', {
-    enumerable: false,
-    configurable: false,
-    writable: false,
-    value: function(search, replacement) {
-        var target = this
-        if(target.includes(search)){
-            target = target.split(search).join(replacement)
-        }
-        return String(target)
-    }
-})
-if(typeof(Object.values) != 'function') {
-    Object.defineProperty(Object.prototype, 'values', {
+
+if (typeof Array.prototype.unique === 'undefined') {
+    Object.defineProperty(Array.prototype, 'unique', {
         enumerable: false,
         configurable: false,
         writable: false,
-        value: obj => {
-            let res = []
-            for (var i in obj) {
-                if (obj.hasOwnProperty(i)) {
-                    res.push(obj[i])
-                }
-            }
-            return res
+        value: function () {
+            return [...new Set(this)]
         }
     })
+}
+
+if (typeof Array.prototype.findLastIndex === 'undefined') {
+    Object.defineProperty(Array.prototype, 'findLastIndex', {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: function (callback, thisArg) {
+            for (let i = this.length - 1; i >= 0; i--) {
+                if (callback.call(thisArg, this[i], i, this))
+                    return i;
+            }
+            return -1;
+        }
+    });
+}
+
+if (typeof String.prototype.format === 'undefined') {
+    Object.defineProperty(String.prototype, 'format', {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: function () {
+            var args = arguments;
+            return this.replace(/{(\d+)}/g, function (match, number) {
+                return typeof args[number] != 'undefined'
+                    ? args[number]
+                    : match
+            })
+        }
+    })
+}
+
+if (typeof String.prototype.replaceAll === 'undefined' ) {
+    Object.defineProperty(String.prototype, 'replaceAll', {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: function (search, replacement) {
+            var target = this
+            if (target.includes(search)) {
+                target = target.split(search).join(replacement)
+            }
+            return String(target)
+        }
+    })
+}
+
+try {
+    if (typeof Object.values === 'undefined') {
+        Object.defineProperty(Object, 'values', {
+            enumerable: false,
+            configurable: true,
+            writable: true,
+            value: function (obj) {
+                if (obj === null || typeof obj !== 'object') {
+                    throw new TypeError('Object.values called on non-object');
+                }
+                return Object.keys(obj).map(key => obj[key]);
+            }
+        });
+    }
+} catch(e) {
+    console.error('Object.values is not supported', e)
 }
 
 export const css = (code, id, scope) => {

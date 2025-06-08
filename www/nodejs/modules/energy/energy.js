@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import renderer from '../bridge/bridge.js'
 
 class Energy extends EventEmitter {

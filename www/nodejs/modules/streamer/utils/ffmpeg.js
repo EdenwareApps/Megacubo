@@ -215,7 +215,7 @@ class StreamerFFmpeg extends EventEmitter {
         return new Promise((resolve, reject) => {
             fs.stat(file, (err, stat) => {
                 if (stat && stat.size) {
-                    resolve(file);
+                    resolve(stat);
                 } else {
                     // is outdated file?
                     fs.readdir(this.opts.workDir + path.sep + this.uid, (err, files) => {
@@ -227,9 +227,9 @@ class StreamerFFmpeg extends EventEmitter {
                                 reject(this.OUTDATED);
                             } else {
                                 console.warn('File not ready??', basename, firstFile, files);
-                                this.waitFile(file, 10).then(() => {
+                                this.waitFile(file, 10).then(stat => {
                                     console.warn('File now ready', basename, firstFile, files);
-                                    resolve(file);
+                                    resolve(stat);
                                 }).catch(err => {
                                     console.error(err);
                                     reject(err);

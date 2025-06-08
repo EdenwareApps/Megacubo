@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import { exec } from 'node:child_process';
 import { clone, kbfmt } from '../utils/utils.js';
 import { default as cds } from 'check-disk-space';

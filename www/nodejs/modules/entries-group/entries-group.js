@@ -1,6 +1,6 @@
 import lang from "../lang/lang.js";
 import storage from '../storage/storage.js'
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import config from "../config/config.js"
 
 class EntriesGroup extends EventEmitter {

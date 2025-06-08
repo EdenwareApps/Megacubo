@@ -583,7 +583,7 @@ class Streamer extends StreamerGoNext {
         }
 
         const url = this.active.data.url
-        const text = Object.keys(codecData).map(k => ucWords(k) +': '+ codecData[k]).join('<br />')
+        const text = Object.keys(codecData || {}).map(k => ucWords(k) +': '+ codecData[k]).join('<br />')
         const chosen = await global.menu.dialog([
             { template: 'question', text: global.lang.OPEN_EXTERNAL_PLAYER_ASK, fa: 'fas fa-window-restore' },
             { template: 'message', text },
@@ -949,7 +949,7 @@ class Streamer extends StreamerGoNext {
                         global.lang.NONE_STREAM_WORKED_X.format(name) :
                         ((global.lists && Object.keys(global.lists).length) ? global.lang.NO_LIST : global.lang.NO_LISTS_ADDED);
                     this.opts.shadow || global.osd.show(err, 'fas fa-exclamation-triangle faclr-red', 'streamer', 'normal');
-                    renderer.ui.emit('sound', 'static', 25);
+                    renderer.ui.emit('sound', 'failure', {volume: 7});
                     this.emit('hard-failure', entries);
                 }
             }
@@ -965,7 +965,7 @@ class Streamer extends StreamerGoNext {
                     busy && busy.release()
                     throw 'another play intent in progress';
                 }
-                renderer.ui.emit('sound', 'static', 25);
+                renderer.ui.emit('sound', 'failure', {volume: 7});
                 this.connectId = false;
                 this.emit('connecting-failure', e);
                 this.handleFailure(e, hasErr).catch(e => global.menu.displayErr(e));

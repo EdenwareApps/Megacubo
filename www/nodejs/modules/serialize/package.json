@@ -1,0 +1,15 @@
+{
+  "name": "serialize",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "exports": {
+    ".": "./serialize.js"
+  },
+  "main": "serialize.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

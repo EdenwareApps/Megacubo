@@ -1,5 +1,5 @@
 import channels from '../channels/channels.js'
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import pLimit from "p-limit";
 import mega from "../mega/mega.js";
 import lists from "../lists/lists.js";

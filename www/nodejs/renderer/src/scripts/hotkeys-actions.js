@@ -114,6 +114,10 @@ export const hotkeysActions = {
     ],
     'PASTEURL': [
         () => {
+            const focusedTag = document.activeElement.tagName;
+            if(focusedTag === 'INPUT' || focusedTag === 'TEXTAREA') {
+                return;
+            }
             main.menu.readClipboard().then(url => {
                 url && main.emit('open-url', url)
             }).catch(err => console.error(err))

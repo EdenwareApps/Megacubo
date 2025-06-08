@@ -1,10 +1,13 @@
 <script>
+    import MediaPlayer from '../src/scripts/mediaplayer'
     import { onMount } from 'svelte'
     import { main } from '../../modules/bridge/renderer'
-	import MediaPlayer from '../src/scripts/mediaplayer'
-    import { StreamerClient } from '../../modules/streamer/renderer'
+	import { StreamerClient } from '../../modules/streamer/renderer'
+    let lang = $state({})
+    let playerElement, controlsElement
     const load = () => {
-        window.player = new MediaPlayer(document.querySelector('player'))
+        lang = main.lang
+        window.player = new MediaPlayer(playerElement)
         if(!window.capacitor){
             ['play', 'pause', 'seekbackward', 'seekforward', 'seekto', 'previoustrack', 'nexttrack', 'skipad'].forEach(n => {
                 // disable media keys
@@ -13,7 +16,7 @@
                 } catch(e){}
             })
         }
-        main.streamer = window.streamer = new StreamerClient(document.querySelector('controls'))
+        main.streamer = window.streamer = new StreamerClient(controlsElement)
         main.idle.on('away', () => {
             main.streamer.active || main.streamer.isTuning() || main.idle.energySaver.start()
         })
@@ -33,13 +36,15 @@
         }
 	})
 </script>
-<player>
+<player bind:this={playerElement}>
     <div>
-        <video crossorigin plays-inline webkit-playsinline poster="./assets/images/blank.png"></video>
+        <video crossorigin plays-inline webkit-playsinline poster="./assets/images/blank.png">
+            <track kind="captions" />
+        </video>
         <audio crossorigin plays-inline webkit-playsinline poster="./assets/images/blank.png"></audio>
     </div>
 </player>
-<controls>    
+<controls bind:this={controlsElement}>    
     <div id="streamer-info">
         <div></div>
     </div>
@@ -59,14 +64,14 @@
 </controls>
 <div class="curtain curtain-a"></div>
 <div class="curtain curtain-b"></div>
-<div id="paused-layer" class="control-layer" aria-hidden="true">
-    <button class="control-layer-icon cl-icon-play">
+<div id="paused-layer" class="control-layer">
+    <button aria-label="{lang.PLAY}" title="{lang.PLAY}" class="control-layer-icon cl-icon-play">
         <i class="fas fa-play"></i>
     </button>
-    <button class="control-layer-icon cl-icon-stop">
+    <button aria-label="{lang.STOP}" title="{lang.STOP}" class="control-layer-icon cl-icon-stop">
         <i class="fas fa-stop"></i>
     </button>
-    <button class="control-layer-icon cl-icon-menu">
+    <button aria-label="{lang.MENU}" title="{lang.MENU}" class="control-layer-icon cl-icon-menu">
         <i class="fas fa-th"></i>
     </button>
 </div>
@@ -148,18 +153,18 @@ html.curtains-closed .curtain-b {
     left: 101vw;
 }
 body.video {
-    --modal-background-color: rgba(0, 0, 0, 0.75);
+    --dialog-background-color: rgba(0, 0, 0, 0.8);
 }
 
 body.video #menu,
-body.modal #menu {
+body.dialog #menu {
     transform: scale(var(--menu-fx-nav-default-deflate));
 }
 
 body.video:not(.menu-playing) #menu header .menu-location,
 body.video-playing.idle:not(.menu-playing) #menu header .menu-time,
 body.video:not(.menu-playing) #menu .content-out,
-body.video:not(.menu-playing) #menu #home-arrows {
+body.video:not(.menu-playing) #menu #arrow {
     visibility: hidden;
 }
 
@@ -186,7 +191,7 @@ video {
     bottom: calc(var(--controls-height) + var(--seekbar-height));
     width: 100%;
     padding: calc(var(--padding) * 7) 0 var(--padding-2x) 0;
-    z-index: 4;
+    z-index: 3;
     box-sizing: border-box;
     pointer-events: none;
     align-items: center;
@@ -280,7 +285,7 @@ div#loading-layer>span.loading-layer-status {
 div#loading-layer>span.loading-layer-status>span {
     padding: calc(0.5 * var(--padding)) calc(1.5 * var(--padding));
     font-size: var(--menu-entry-name-font-size);
-    background: var(--modal-background-color);
+    background: var(--dialog-background-color);
     border-radius: 25vmin;
     position: relative;
     top: -2vmin;
@@ -368,7 +373,7 @@ div#streamer-info {
 }
 
 div#streamer-info > div {
-    background-color: var(--shadow-background-color);
+    background-color: var(--alpha-shadow-background-color);
     color: #fff;
     display: inline-flex;
     flex-direction: column;
@@ -472,7 +477,7 @@ body.video.video-loading:not(.miniplayer-android):not(.menu-playing):not(.idle) 
     transform: none;
 }
 
-body.modal controls {
+body.dialog controls {
     visibility: visible;
     transform: scale(var(--menu-fx-nav-default-deflate)) !important;
 }

@@ -106,7 +106,7 @@ google-services.json
 /dist/
 www/.vscode
 premium.js
-www/nodejs/modules
+www/nodejs/modules/premium/
 www/nodejs/node_modules/
 www/nodejs/ffmpeg/*
 www/nodejs/.arch

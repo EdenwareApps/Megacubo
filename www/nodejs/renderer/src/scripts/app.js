@@ -9,6 +9,8 @@ import swipey from 'swipey.js'
 import FFmpegController from '../../../modules/ffmpeg/renderer'
 import { ImageProcessor } from '../../../modules/icon-server/renderer'
 
+let menu;
+
 function openExternalFile(file, mimetype) {
 	console.log('openExternalFile', file);
 	if (window.capacitor) {
@@ -35,7 +37,7 @@ function hideBackButton(doHide) {
 function configUpdated() {
     menu.sounds.enabled = main.config['ui-sounds']
     const ms = main.config['view-size']
-    menu.setGridLayout(ms.landscape.x, ms.landscape.y, ms.portrait.x, ms.portrait.y)
+    menu.setGrid(ms.landscape.x, ms.landscape.y, ms.portrait.x, ms.portrait.y)
     hideBackButton(main.config['hide-back-button'])
     if (typeof(window['winActions']) == 'undefined' || !window['winActions']) {
         return
@@ -60,7 +62,7 @@ function configUpdated() {
 }
 
 function handleSwipe(e) {
-    if (!main.menu || main.menu.inModal()) return
+    if (!main.menu || main.menu?.dialogs.inDialog()) return
     console.log('swipey', e)
     let orientation = innerHeight > innerWidth ? 'portrait' : 'landscape'
     let swipeDist, swipeArea = ['up', 'down'].includes(e.direction) ? innerHeight : innerWidth
@@ -99,7 +101,7 @@ function handleSwipe(e) {
             case 'down': // go up
                 if (main.menu.inPlayer()) {
                     if (main.menu.isVisible()) {
-                        if (!main.menu.wrap.scrollTop) {
+                        if (!main.menu.scrollContainer.scrollTop) {
                             main.emit('menu-playing', true)
                             document.body.classList.remove('menu-playing')
                         }
@@ -197,25 +199,14 @@ export const initApp = async () => {
     window.main = main
     main.imp = new ImageProcessor(main)
     main.on('clipboard-write', (text, successMessage) => {
-        if(window.capacitor) {
-            return window.capacitor.clipboard(text).then(ret => {
-                successMessage && main.osd.show(successMessage, 'fas fa-check-circle faclr-green', 'clipboard', 'normal')
-            }).catch(err => {
-                main.osd.show(String(err.message || err), 'fas fa-exclamation-triangle faclr-red', 'clipboard', 'normal')
-            })
-        }
-        if (!top.navigator.clipboard) {
-            main.osd.show('Your webview doesn\'t supports copying to clipboard.', 'fas fa-exclamation-triangle faclr-red', 'clipboard', 'normal')
-            return
-        }
-        top.navigator.clipboard.writeText(text).then(() => {
+        main.menu.writeClipboard(text).then(() => {
             successMessage && main.osd.show(successMessage, 'fas fa-check-circle faclr-green', 'clipboard', 'normal')
         }).catch(err => {
             main.osd.show(String(err.message || err), 'fas fa-exclamation-triangle faclr-red', 'clipboard', 'normal')
         })
     })
-    main.on('clipboard-read', (callbackId, timeoutMs=0) => {
-        main.menu.readClipboard(timeoutMs).then(text => {
+    main.on('clipboard-read', (callbackId) => {
+        main.menu.readClipboard().then(text => {
             main.emit(callbackId, null, text)
         }).catch(err => {
             console.error(err)
@@ -232,7 +223,7 @@ export const initApp = async () => {
         document.querySelector('head, body').appendChild(s)
     })
     main.on('call-js', content => {
-        console.log('CALLJS')
+        console.log('Call JS')
         const s = document.createElement('script'), b = document.querySelector('head, body')
         s.textContent = content
         b.appendChild(s)
@@ -256,8 +247,7 @@ export const initApp = async () => {
     main.on('fontlist', () => main.emit('fontlist', getFontList()))
     main.on('css', (css, id) => main.css(css, id))
     console.log('load app')
-    menu = new Menu(document.querySelector('#menu'))
-    main.menu = menu
+    main.menu = menu = new Menu(document.querySelector('#menu'))
     main.on('sound', (n, v) => menu.sounds.play(n, v))
     menu.on('render', path => {   
         if(menu.lastNavPath !== path || menu.sideMenuPending) {
@@ -271,116 +261,12 @@ export const initApp = async () => {
             }   
         } else {
             document.body.classList.add('home')    
-        }  
-        setTimeout(() => {
-            if (typeof(verticalArrowsUpdate) == 'function') {
-                verticalArrowsUpdate()
-            }
-        }, 0)
+        }
     })
 
     configUpdated([], main.config);
-    ([
-        {
-            level: 'default',
-            selector: ['#menu wrap a', 'body.video #menu-playing-close', '.menu-omni'],
-            condition: () => {
-                return menu.isVisible() && !menu.inSideMenu()
-            },
-            default: true,
-            overScrollAction: (direction, e) => {
-                if (direction == 'up' || direction == 'down') {
-                    let playing = menu.inPlayer()
-                    if (!playing) {
-                        let n
-                        if (e) {
-                            let entries = menu.entries(true, true), i = entries.indexOf(e)
-                            let rowSize = Math.floor(entries.length / menu.gridLayoutX)
-                            if(direction == 'up') {
-                                i += (entries.length * rowSize)
-                                if(entries[i]) {
-                                    n = entries[i]
-                                } else {
-                                    n = entries.pop()
-                                }
-                            } else {
-                                i -= (entries.length * rowSize)
-                                if(entries[i]) {
-                                    n = entries[i]
-                                } else {
-                                    n = entries.shift()
-                                }
-                            }
-                        }
-                        if (!n) {
-                            n = e
-                        }
-                        menu.focus(n)
-                        return true
-                    } else if(direction == 'up') {
-                        menu.showWhilePlaying(false)
-                    }
-                } else if(direction == 'left' && !menu.inSideMenu() && !menu.inModal()) {
-                    menu.sideMenu(true)
-                    return true
-                }
-            }
-        },
-        {
-            level: 'nav-menu',
-            selector: 'body.side-menu #menu nav a',
-            condition: () => {
-                const inp = menu.inPlayer()
-                return menu.inSideMenu() && !menu.inModal() && menu.isVisible()
-            },
-            overScrollAction: (direction, e) => {
-                if (direction == 'up' || direction == 'down') {
-                    let playing = menu.inPlayer()
-                    if (!playing) {
-                        let n = [...menu.container.querySelectorAll('entry-nav')][direction == 'down' ? 'shift' : 'pop']()
-                        menu.focus(n)
-                        return true
-                    } else if(direction == 'up' || direction == 'left') {
-                        menu.showWhilePlaying(false)
-                    }
-                } else if(direction == 'right') {
-                    menu.sideMenu(false)
-                    return true
-                }
-            }
-        },
-        {
-            level: 'modal',
-            selector: '#modal-content input, #modal-content textarea, #modal-content .button, #modal-content a',
-            condition: () => {
-                return menu?.inModal()
-            }
-        },
-        {
-            level: 'player',
-            selector: [
-                '.control-layer-icon',
-                'controls button, div#arrow-down-hint i',
-                'seekbar > div'
-            ], // use array to force selector to keep this auto focus order
-            condition: () => {
-                return menu.inPlayer() && !menu.inModal() && !menu.isVisible()
-            },
-            overScrollAction: direction => {
-                if (direction == 'down') {
-                    menu.showWhilePlaying(true)
-                    return true
-                } else if (direction == 'up') {
-                    menu.reset(true)
-                    main.idle.start()
-                    main.idle.lock(1)
-                    return true
-                }
-            }
-        }
-    ]).forEach(menu.addSpatialNavigationLayout.bind(menu))
     main.on('streamer-ready', () => {
-        const reset = () => menu.reset(true)
+        const reset = () => menu.emit('reset', true)
         main.streamer.on('streamer-pause', reset)
         main.streamer.on('start', () => {
             main.menu.showWhilePlaying(false)
@@ -389,14 +275,12 @@ export const initApp = async () => {
         main.streamer.on('show', reset)
         main.idle.on('active', () => {
             if (menu.inPlayer() && !menu.isVisible()) {
-                const selected = menu.selected()
-                console.warn('idle active', selected, selected?.parentNode?.tagName?.toLowerCase() || null)
-                if (selected?.parentNode?.tagName?.toLowerCase() == 'seekbar') {
-                    reset()
+                if (main.streamer?.seekbarFocus() && main.idle.idleTime() > 1) {
+                    main.menu.emit('focus-index', 0)
                 }
             }
         })
-        main.menu.on('focus', e => {
+        main.menu.on('x-focus', (idx, e) => {
             if(e == main.streamer.seekbar.lastElementChild) {
                 main.streamer.setSeeking()
             } else {
@@ -404,20 +288,21 @@ export const initApp = async () => {
             }
         })
         main.streamer.on('state', s => {
-            if (s == 'playing' && menu.modalContainer && menu.modalContainer.querySelector('#modal-template-option-wait')) {
-                menu.endModal()
+            if (s == 'playing' && menu.dialogs.container && menu.dialogs.container.querySelector('#dialog-template-option-wait')) {
+                menu.dialogs.end(true)
             }
         })
         main.streamer.on('hide', () => {
+            menu.sounds.play('click-out', {volume: 30})
             menu.sideMenu(false, 'instant')
             menu.showWhilePlaying(false)
-            if (menu.modalContainer && (
-                menu.modalContainer.querySelector('#modal-template-option-wait') ||
-                menu.modalContainer.querySelector('#modal-template-option-resume')
+            if (menu.dialogs.container && (
+                menu.dialogs.container.querySelector('#dialog-template-option-wait') ||
+                menu.dialogs.container.querySelector('#dialog-template-option-resume')
             )) {
-                menu.endModal()
+                menu.dialogs.end(true)
             } else {
-                menu.selected(true)
+                menu.emit('reset', true)
             }
         })
         const buttons = {
@@ -443,9 +328,7 @@ export const initApp = async () => {
             buttons[k].setAttribute('aria-label', titles[k])
             buttons[k].addEventListener('click', actions[k])
         }
-        main.on('streamer-connect', () => {
-            menu.sideMenu(false, 'instant')
-        })
+        main.on('streamer-connect', () => menu.sideMenu(false, 'instant'))
         main.on('streamer-disconnect', () => menu.sideMenu(false, 'instant'))
         const WinActions = window.capacitor ? AndroidWinActions : ElectronWinActions
         window.winActions = new WinActions(main)
@@ -455,32 +338,55 @@ export const initApp = async () => {
                     main.osd.show(String(err), 'fas fa-exclamation-triangle', 'menu', 'normal')
                     main.emit(callbackId, null)
                 }).finally(() => {
-                    winActions && winActions.backgroundModeUnlock('open-file')
+                    winActions.backgroundModeUnlock('open-file')
                 })
             }
             if (parent.Manager) {
                 parent.Manager.openFile(mimetypes, (err, file) => main.emit(callbackId, err ? null : [file]))
             } else {
-                window.capacitor && window.winActions && winActions.backgroundModeLock('open-file')
+                window.capacitor && winActions.backgroundModeLock('open-file')
                 next()
             }
         })
-        main.on('restart', () => winActions && winActions.restart())
-        main.on('ask-exit', () => winActions && winActions.askExit())
-        main.on('ask-restart', () => winActions && winActions.askRestart())
-        main.on('exit', force => winActions && winActions.exit(force))
+        main.on('restart', () => winActions.restart())
+        main.on('ask-exit', () => winActions.askExit())
+        main.on('ask-restart', () => winActions.askRestart())
+        main.on('exit', force => winActions.exit(force))
         main.on('background-mode-lock', name => {
-            if (player && winActions) winActions && winActions.backgroundModeLock(name)
+            if (player) winActions.backgroundModeLock(name)
         })
         main.on('background-mode-unlock', name => {
-            if (player && winActions) winActions && winActions.backgroundModeUnlock(name)
+            if (player) winActions.backgroundModeUnlock(name)
         });
 
         if (window.capacitor) {
-            winActions && winActions.setBackgroundMode(true) // enable once at startup to prevent service not registered crash
-            window.cordova.plugins.backgroundMode.disableBatteryOptimizations()
-            setTimeout(() => winActions && winActions.setBackgroundMode(false), 5000)
-            window.cordova.plugins.backgroundMode.setDefaults({
+            winActions.setBackgroundMode(true) // enable once at startup to prevent service not registered crash
+            window.capacitor.BackgroundMode.checkNotificationsPermission().then(result => {
+                console.log('Notifications permission check result', result)
+                if (!result.enabled) {
+                    window.capacitor.BackgroundMode.requestNotificationsPermission().then(result => {
+                        console.log('Notifications permission request result', result)
+                    }).catch(err => {
+                        console.error('Notifications permission request error', err)
+                    })
+                }
+            }).catch(err => {
+                console.error('Notifications permission check error', err)
+            })
+            window.capacitor.BackgroundMode.checkBatteryOptimizations().then(result => {
+                console.log('Battery optimizations check result', result)
+                if (result.enabled) {
+                    window.capacitor.BackgroundMode.requestDisableBatteryOptimizations().then(result => {
+                        console.log('Battery optimizations request result', result)
+                    }).catch(err => {
+                        console.error('Battery optimizations request error', err)
+                    })
+                }
+            }).catch(err => {
+                console.error('Battery optimizations check error', err)
+            })            
+            setTimeout(() => winActions.setBackgroundMode(false), 5000)
+            winActions.setBackgroundModeDefaults({
                 title: document.title,
                 text: main.lang.RUNNING_IN_BACKGROUND || '...',
                 icon: 'icon', // this will look for icon.png in platforms/android/res/drawable|mipmap
@@ -490,7 +396,6 @@ export const initApp = async () => {
                 silent: false,
                 allowClose: true,
                 closeTitle: main.lang.CLOSE || 'X'
-                //, bigText: Boolean
             })
         } else {
             document.body.addEventListener('dblclick', event => {
@@ -505,23 +410,22 @@ export const initApp = async () => {
         parent.Manager && parent.Manager.appLoaded()
     })
     
-    menu.on('modal-start', () => menu.selected())
-    menu.on('pos-modal-end', () => menu.selected())
-    menu.on('arrow', (element, direction) => {
-        menu.sounds.play('menu', 7)
-        setTimeout(() => {
-            if (typeof(verticalArrowsUpdate) == 'function') {
-                verticalArrowsUpdate()
-            }
-        }, 0)
+    menu.on('dialog-start', () => menu.reset())
+    menu.on('dialog-end', () => menu.reset())
+    menu.on('x-select', (element) => {
+        const key = element ? menu.getKey(element) : null;
+        if (key == main.menu.lastSelectedKey) return;
+        main.menu.lastSelectedKey = key;
+        main.menu.sounds.play('click-in', {volume: 30})
     })
+    
     menu.on('menu-playing', enable => {
         main.emit('menu-playing', enable)
         main.idle.reset()
         main.idle.lock(0.1)
     })
 
-    menu.on('side-menu', () => menu.selected(true))
+    menu.on('side-menu', () => menu.reset(true))
     main.on('menu-playing', () => menu.showWhilePlaying(true))
     main.on('menu-playing-close', () => menu.showWhilePlaying(false))
 
@@ -536,85 +440,10 @@ export const initApp = async () => {
     })
 
     main.omni = new OMNI()
-    main.omni.on('left', () => menu.arrow('left'))
-    main.omni.on('right', () => menu.arrow('right'))
-    main.omni.on('down', () => menu.arrow('down'))
-    main.omni.on('up', () => menu.arrow('up'))
-
     main.omni.on('show', () => menu.sideMenu(false, 'instant'))
-    main.omni.on('hide', () => menu.selected())
+    main.omni.on('hide', () => menu.reset())
 
-    menu.on('scroll', y => {
-        menu.debug && console.log('menu scroll', y)
-        menuLocationShow()
-        verticalArrowsUpdate()
-    })
-
-    var menuLocation = document.querySelector('.menu-location-pagination'), menuLocationTxt = menuLocation.querySelector('span'), menuLocationTimer = 0, menuLocationDuration = 5000, menuLocationShown = false
-    const menuLocationShow = txt => {
-        clearTimeout(menuLocationTimer)
-        if (!menuLocationShown) {
-            menuLocationShown = true
-            menuLocation.style.display = 'inline-block'
-        }
-        if (typeof(txt) == 'string') {
-            menuLocationTxt.innerHTML = txt
-        }
-        if (menu.selectedIndex < 2) {
-            menuLocationTimer = setTimeout(() => {
-                if (menuLocationShown) {
-                    menuLocationShown = false
-                    menuLocation.style.display = 'none'
-                }
-            }, menuLocationDuration)
-        }
-    }
-    const menuLocationListener = () => {
-        let selected = menu.selectedIndex + 1, total = menu.currentElements.length
-        menuLocationShow(' ' + selected + '/' + total)
-    }
-    menu.on('arrow', menuLocationListener)
-    menu.on('focus', menuLocationListener)
-    menu.on('render', menuLocationListener)
-
-    var verticalArrowTop = document.querySelector('#home-arrows-top'), verticalArrowBottom = document.querySelector('#home-arrows-bottom')
-    verticalArrowTop.addEventListener('click', () => menu.arrow('up'))
-    verticalArrowBottom.addEventListener('click', () => menu.arrow('down'))
-
-    const wrap = document.querySelector('#menu wrap')
-    const verticalArrows = { bottom: null, top: null, timer: 0 };
-    window.verticalArrowsUpdate = () => {
-        const as = menu.currentElements
-        if (as.length > (menu.gridLayoutX * menu.gridLayoutY)) {
-            const lastY = Math.floor((as[as.length - 1].offsetTop + as[as.length - 1].offsetHeight) - wrap.scrollTop), firstY = as[0].offsetTop - wrap.scrollTop
-            if (lastY > wrap.parentNode.offsetHeight) {
-                if (verticalArrows.bottom !== true) {
-                    verticalArrows.bottom = true
-                    verticalArrowBottom.style.opacity = 'var(--opacity-level-3)'
-                }
-            } else {
-                if (verticalArrows.bottom !== false) {
-                    verticalArrows.bottom = false
-                    verticalArrowBottom.style.opacity = 0
-                }
-            }
-            if (firstY < 0) {
-                if (verticalArrows.top !== true) {
-                    verticalArrows.top = true
-                    verticalArrowTop.style.opacity = 'var(--opacity-level-3)'
-                }
-            } else {
-                if (verticalArrows.top !== false) {
-                    verticalArrows.top = false
-                    verticalArrowTop.style.opacity = 0
-                }
-            }
-        } else {
-            verticalArrows.top = verticalArrows.bottom = false
-            verticalArrowTop.style.opacity = 0
-            verticalArrowBottom.style.opacity = 0
-        }
-    }
+    const wrap = document.querySelector('svelte-virtual-grid-contents')
 
     configUpdated([], config)
 
@@ -626,28 +455,30 @@ export const initApp = async () => {
         }
     })
 
-    main.clock = new Clock(document.querySelector('.menu-time time'))
-
     var toggle = document.querySelector('.side-menu-toggle')
     if(window.capacitor) { // tapping
-        menu.sideMenu(false, 'instant')
         toggle.addEventListener('click', () => {
-            menu.inSideMenu() || menu.inModal() || menu.sideMenu(true, 'smooth')
+            menu.inSideMenu() || menu.dialogs.inDialog() || menu.sideMenu(true, 'smooth')
         })
         swipey.add(document.body, handleSwipe, { diagonal: false })
     } else { // pc mouse hovering
         toggle.addEventListener('mouseenter', () => {
-            menu.inSideMenu() || menu.inModal() || menu.sideMenu(true)
+            menu.inSideMenu() || menu.dialogs.inDialog() || menu.sideMenu(true)
         })
         wrap.addEventListener('mouseenter', () => menu.sideMenu(false))
 
-        let autoScrollInterval = 0, autoScrollDirection = 'down', autoScrollFn = () => menu.arrow(autoScrollDirection), autoScrollClearTimer = () => clearInterval(autoScrollInterval);
+        let autoScrollInterval = 0, autoScrollDirection = 'down'
+        const autoScrollFn = () => {
+            menu.emit('arrow', autoScrollDirection, true)
+        }
+        const autoScrollClearTimer = () => clearInterval(autoScrollInterval);
         for (const o of [
-            {element: verticalArrowTop, direction: 'up'},
-            {element: verticalArrowBottom, direction: 'down'}
+            { direction: 'up'},
+            { direction: 'down'}
         ]) {
-            o.element.addEventListener('mouseenter', () => {
-                o.element.addEventListener('mouseleave', autoScrollClearTimer)
+            const element = document.querySelector('#arrow-'+ o.direction)
+            element.addEventListener('mouseenter', () => {
+                element.addEventListener('mouseleave', autoScrollClearTimer)
                 autoScrollClearTimer()
                 autoScrollDirection = o.direction
                 autoScrollInterval = setInterval(autoScrollFn, 750)
@@ -727,14 +558,14 @@ if (window.capacitor) {
 		adjustLayoutForKeyboard(false)
 	})
 	function adjustLayoutForKeyboard(keyboardHeight) {
-		const m = document.body.querySelector('div#modal > div > div')
+		const m = document.body.querySelector('div#dialog > div > div')
 		if (m) {
-			const mi = m.querySelector('.modal-wrap')
+			const mi = m.querySelector('.dialog-wrap')
 			if (keyboardHeight) {		
 				const h = window.innerHeight - keyboardHeight
 				m.style.height = h + 'px'
 				if (mi && mi.offsetHeight > h) {
-					var mq = mi.querySelector('span.modal-template-question')
+					var mq = mi.querySelector('span.dialog-template-question')
 					if (mq) {
 						mq.style.display = 'none'
 					}
@@ -742,7 +573,7 @@ if (window.capacitor) {
 			} else {
 				m.style.height = '100vh'
 				if (mi) {
-					mi.querySelector('span.modal-template-question').style.display = 'flex'
+					mi.querySelector('span.dialog-template-question').style.display = 'flex'
 				}
 			}
 		}

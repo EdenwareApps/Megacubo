@@ -1,6 +1,6 @@
 import { isLocal, kbfmt } from '../utils/utils.js'
 import lang from '../lang/lang.js';
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import fs from 'fs';
 import path from 'path';
 import Download from '../download/download.js';

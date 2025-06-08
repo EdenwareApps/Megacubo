@@ -20,14 +20,12 @@
 	"epg-suggestions": true,
 	"ffmpeg-broadcast-pre-processing": "auto",
 	"ffmpeg-crf": 18,
-	"folder-size-limit": 256,
 	"font-color": "#FFFFFF",
 	"font-family": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen-Sans, Ubuntu, Cantarell, \"Helvetica Neue\", sans-serif;",
 	"font-size": 3,
 	"fx-nav-intensity": 2,
 	"gpu": true,
 	"gpu-flags": [
-		"in-process-gpu",
 		"ignore-gpu-blacklist",
 		"enable-gpu-rasterization",
 		"enable-accelerated-video",
@@ -65,10 +63,11 @@
 		"Ctrl+D Ctrl+Shift+D": "BOOKMARK",
 		"F9 Ctrl+X": "RECORDING",
 		"F1 Ctrl+I": "ABOUT",
-		"F11 Alt+Enter": "FULLSCREEN",
+		"F11 Alt+Enter Backslash": "FULLSCREEN",
 		"F12 Ctrl+Shift+I": "DEVTOOLS"
 	},
 	"in-disk-caching-size": 1024,
+	"in-process-gpu": false,
 	"kids-fun-titles": true,
 	"lists": [],
 	"lists-loader-concurrency": 6,
@@ -104,8 +103,9 @@
 	"tuning-blind-trust": "live,video",
 	"tuning-icon": "fas fa-sync-alt",
 	"uppercase-menu": false,
-	"use-keepalive": true,
 	"user-agent": "VLC/3.0.8 LibVLC/3.0.8",
+	"use-keepalive": true,
+	"use-trias": true,
 	"view-size": {
 		"landscape": {
 			"x": 4,

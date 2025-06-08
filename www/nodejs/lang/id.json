@@ -268,7 +268,6 @@
    "LOW_MEMORY_AVAILABLE": "Perangkat Anda memiliki sedikit memori ({0} tersedia). Ini dapat memengaruhi kinerja aplikasi.",
    "MAC_ADDRESS": "Alamat MAC",
    "MANAGE_CHANNEL_LIST": "Kelola daftar saluran",
-   "MATCH_ENTIRE_WORDS": "Gabungkan seluruh kata saat mencari",
    "MAXIMIZE": "Maksimalkan",
    "MINIMIZE": "Memperkecil",
    "MIUI_DARK_MODE_HINT": "Jika audio mereproduksi tetapi layar menjadi hitam, nonaktifkan mode gelap pada perangkat Anda.",

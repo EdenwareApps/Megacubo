@@ -1,165 +1,456 @@
 <script>
-    import { onMount } from 'svelte'
-    import { initApp } from '../src/scripts/app'
-	import { main } from '../../modules/bridge/renderer'
-	import { setupCrashlog } from '../../modules/crashlog/renderer'
-    
-    const transparentImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII='
+    import { onMount } from 'svelte';
+    import { initApp } from '../src/scripts/app';
+    import { css } from '../src/scripts/utils';
+    import { main } from '../../modules/bridge/renderer';
+    import { setupCrashlog } from '../../modules/crashlog/renderer';
+	import VirtualGrid from './VirtualGrid.svelte';
+    import SpatialNavigation from './SpatialNavigation.svelte';
+    import Menubar from './Menubar.svelte';
+    import Dialog from './Dialog.svelte'
 
-    let entries = [], headerActions = [], lang = {}, icons = {}, path = ''
-    setupCrashlog(window)
-	onMount(async () => {
+    const transparentImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=';
+
+    let items = $state([]);
+    let sideMenuItems = $state([]);
+    let lang = $state({});
+    let icons = $state({});
+    let path = $state('');
+    let refresh = $state(() => {});
+    let viewSize = $state({ x: 0, y: 0, size: 1 });
+    let range = $state({start: 0, end: 0, renderStart: 0, renderEnd: 0});
+    let isTop = $state(false);
+    let isBottom = $state(false);    
+    let container = $state(document.documentElement);
+
+    let selectedIndex = $state(0);
+    let lastRange = null;
+    let spatialNavigation;
+    let virtualGrid;
+    let menubar;
+    let dialog;
+
+    function setupNavigation() {
+        ([
+            {
+                name: 'default',
+                selector: [
+                    '#menu svelte-virtual-grid-contents a',
+                    'body.video #menu-playing-close',
+                    '.menu-omni'
+                ],
+                condition: () => {
+                    return main.menu.isVisible() && !main.menu.inSideMenu() && !dialog.inDialog()
+                },
+                default: true,
+                overScrollAction: (direction, e) => {
+                    if (direction == 'up' || direction == 'down') {
+                        let playing = main.menu.inPlayer()
+                        if (!playing) {
+                            let n, i = main.menu.selectedIndex
+                            const x = main.menu.gridLayoutX, container = main.menu.scrollContainer
+                            const top = direction == 'up' ? 0 : container.scrollHeight - container.clientHeight
+                            container.scrollTop = top
+                            if (e) {
+                                let positionInRow = i, has2xEntry = items.slice(0, 2).some(item => item.class?.includes('entry-2x'))
+                                if (positionInRow >= x) {
+                                    positionInRow -= Math.floor(i / x) * x
+                                }
+                                if(positionInRow && has2xEntry && direction == 'down') {
+                                    positionInRow++
+                                }
+                                if (positionInRow === x) {
+                                    positionInRow = 0
+                                }
+                                if(direction == 'up') {
+                                    if (has2xEntry && positionInRow > 0 && positionInRow < (x - 1)) {
+                                        positionInRow++;
+                                    }
+                                    let floor  = (items.length % x) ? items.length : (items.length - 1)
+                                    floor = (Math.floor(floor / x) * x)
+                                    if (has2xEntry) floor--
+                                    i = positionInRow + floor
+                                    if(items[i]) {
+                                        n = i
+                                    } else {
+                                        n = items.length - 1
+                                    }
+                                } else {
+                                    if (positionInRow == 1) {
+                                        positionInRow = 0
+                                    } else if (positionInRow < (x - 1)) {
+                                        positionInRow--
+                                    } else {
+                                        positionInRow = 2
+                                    }
+                                    i = positionInRow
+                                    if(items[i]) {
+                                        n = i
+                                    } else {
+                                        n = 0
+                                    }
+                                }
+                            }
+                            if (typeof(n) !== 'number') {
+                                n = i
+                            }
+                            main.menu.emit('focus-index', n)
+                            main.menu.emit('x-select', null)
+                            return true
+                        } else if(direction == 'up') {
+                            main.menu.showWhilePlaying(false)
+                        }
+                    } else if(direction == 'left' && !main.menu.inSideMenu() && !dialog.inDialog()) {
+                        main.menu.sideMenu(true)
+                        return true
+                    }
+                }
+            },
+            {
+                name: 'nav-menu',
+                selector: 'body.side-menu #menu nav a',
+                condition: () => {
+                    return main.menu.inSideMenu() && !dialog.inDialog() && main.menu.isVisible()
+                },
+                overScrollAction: (direction, e) => {
+                    if (direction == 'up' || direction == 'down') {
+                        let playing = main.menu.inPlayer()
+                        if (!playing) {
+                            let n = [...main.menu.container.querySelectorAll('entry-nav')][direction == 'down' ? 'shift' : 'pop']()
+                            spatialNavigation.focus(n)
+                            return true
+                        } else if(direction == 'up' || direction == 'left') {
+                            main.menu.showWhilePlaying(false)
+                        }
+                    } else if(direction == 'right') {
+                        main.menu.sideMenu(false)
+                        return true
+                    }
+                }
+            },
+            {
+                name: 'dialog',
+                selector: '.dialog-content input, .dialog-content textarea, .dialog-content button, .dialog-content a',
+                condition: () => {
+                    return dialog.inDialog()
+                },
+                overScrollAction: (direction, e) => {
+                    if (direction == 'left' || direction == 'right') {
+                        const element = document.querySelector('.dialog-template-slider-track:not(.selected)')
+                        if (element) {
+                            spatialNavigation.focus(element)
+                            return true
+                        }
+                    }
+                }
+            },
+            {
+                name: 'player',
+                selector: [
+                    'body.video-paused button.control-layer-icon',
+                    'controls button, div#arrow-down-hint i',
+                    'seekbar > div'
+                ],
+                condition: () => {
+                    return main.menu.inPlayer() && !dialog.inDialog() && !main.menu.isVisible()
+                },
+                overScrollAction: direction => {
+                    if (direction == 'down') {
+                        if (main.idle.activeTime() > 1) { // was idle, ignore initial focus on player
+                            main.menu.showWhilePlaying(true)
+                        } else {
+                            main.menu.reset()                            
+                        }
+                    } else if (direction == 'up') {
+                        if (main.idle.activeTime() > 1) { // was idle, ignore initial focus on player
+                            if (main.streamer.seekbarFocus()) {
+                                main.menu.reset()
+                                main.idle.start()
+                                main.idle.lock(1)
+                            } else {
+                                main.streamer.seekbarFocus(true)
+                            }
+                        } else {
+                            main.menu.reset()
+                        }
+                    }
+                    return true
+                }
+            }
+        ]).forEach(spatialNavigation.addLayout.bind(spatialNavigation))
+    }
+
+    function focusElement(element) {
+        if (main.menu.sideMenuTransitioning) return
+        spatialNavigation.focus(element)
+    }
+
+    function itemFocusCallback({ index, element }) {
+        if (selectedIndex == index) return;
+        selectedIndex = index;
+        main.menu.selectedElement = element;
+        main.menu.selectedElementX = element;
+        main.menu.selectedIndex = index;
+        main.menu.emit('select', element);
+        menubar.setIndex(index);
+    }
+
+    function itemXFocusCallback({ index, element }) {
+        main.menu.selectedElementX = element;
+        main.menu.emit('x-select', element);
+    }
+
+    function itemNavigateCallback(element) {
+        if (element) {
+            const key = main.menu.getKey(element);
+            if (key == main.menu.lastSelectedKey) return;
+            main.menu.lastSelectedKey = key;
+            main.menu.sounds.play('click-in', {volume: 30})
+        }
+    }
+
+    function updateViewSize() {
+        if (!main.config) return;
+        const portrait = window.innerWidth <= window.innerHeight;
+        if (main.config?.['view-size']) {
+            Object.assign(viewSize, main.config['view-size'][portrait ? 'portrait' : 'landscape']);
+            viewSize.size = viewSize.x * viewSize.y;
+        }
+        const style = `
+        body:not(.portrait) svelte-virtual-grid-contents {        
+            grid-template-columns: repeat(auto-fit, calc(var(--menu-entry-width) - (0.25 * var(--menu-padding))));
+            grid-template-rows: repeat(auto-fit, calc(var(--menu-entry-height) - (0.25 * var(--menu-padding))));
+        }
+        body.portrait svelte-virtual-grid-contents {
+            grid-template-columns: repeat(auto-fit, calc(var(--menu-entry-width) - (0.25 * var(--menu-padding))));
+            grid-template-rows: repeat(auto-fit, calc(var(--menu-entry-height) - (0.25 * var(--menu-padding))));
+        }
+        body:not(.portrait) .entry-2x {
+            grid-column: span 2 !important;
+        }
+        body.portrait .entry-2x {
+            grid-row: span 2 !important;
+        }
+        `
+        css(style, 'update-view-size');
+        updateEntry2x();
+    }
+
+    function updateEntry2x() {
+        if (items.length > 0) {
+            let style = '';
+            const entry2xIndex = items.slice(0, viewSize.size).findIndex(entry => {
+                return entry?.class?.includes('entry-2x');
+            });
+            if (entry2xIndex > -1) {
+                if (window.innerWidth > window.innerHeight) {
+                    style = `
+                    svelte-virtual-grid-contents a.entry-2x {
+                        grid-column: span 2 !important;
+                    }
+                    `
+                } else {
+                    style = `
+                    svelte-virtual-grid-contents a.entry-2x {
+                        grid-row: span 2 !important;
+                    }
+                    `
+                }
+            } else {
+                style = `
+                /* empty style */
+                `
+            }
+            css(style, 'update-entry-2x');
+        }
+    }
+
+    const itemReference = document.createElement('div');
+    itemReference.style.cssText = `
+        width: var(--menu-entry-width);
+        height: var(--menu-entry-height);
+        display: inline-block;
+        position: fixed;
+        top: -100vh;
+        left: 0;
+    `;
+    document.body.appendChild(itemReference);
+
+    function itemWidth(row, index) {
+        if (!row) return itemReference.offsetWidth;
+        if (row?.class?.includes('entry-2x') && window.innerWidth > window.innerHeight) {
+            return itemReference.offsetWidth * 2;
+        }
+        return itemReference.offsetWidth;
+    }
+
+    function itemHeight(row, index) {
+        if (!row) return itemReference.offsetHeight;
+        if (row?.class?.includes('entry-2x') && window.innerWidth < window.innerHeight) {
+            return itemReference.offsetHeight * 2;
+        }
+        return itemReference.offsetHeight;
+    }
+
+    window.addEventListener('resize', updateViewSize);
+
+    setupCrashlog(window);
+    onMount(async () => {
         main.on('lang', () => {
-            lang = main.lang
-        })
+            lang = main.lang;
+        });
+        main.on('config', updateViewSize);
         main.waitMain(() => {
             initApp().catch(err => console.error(err)).finally(() => {
-                const wrap = document.querySelector('wrap')
-                main.menu.on('updated', () => {
-                    path = main.menu.path
-                    icons = main.menu.icons                
-                    const activeKeys = main.menu.currentEntries.map(e => e.key);
-                    [...wrap.getElementsByTagName('a')].forEach(e => {
-                        activeKeys.includes(e.getAttribute('key')) || wrap.removeChild(e)
-                    })
-                    entries = main.menu.currentEntries
-                    if(!main.menu.path) {
-                        headerActions = main.menu.currentEntries.filter(e => e.side)
+                const reset = async () => {
+                    const {selectedIndex, scrollTop} = spatialNavigation.reset()
+                    if (spatialNavigation.inDefaultLayout()) {
+                        await virtualGrid.scrollToIndex(selectedIndex)
+                        main.menu.scrollContainer.scrollTop = scrollTop
                     }
-                })
-            })
-        })
-    })
+                    spatialNavigation.focusIndex(selectedIndex)
+                }
+                main.menu.navigation = spatialNavigation;
+                main.menu.dialogs = dialog;
+                main.menu.on('reset', reset);
+                main.menu.on('navigate', reset);
+                main.menu.on('updated', () => {
+                    lastRange = null;
+                    path = main.menu.path;
+                    icons = main.menu.icons;
+                    items = main.menu.currentEntries;
+                    if (!main.menu.path) {
+                        sideMenuItems = main.menu.currentEntries.filter(e => e.side);
+                    }
+                    updateEntry2x();
+                    refresh();
+                });
+                main.menu.on('arrow', (direction, notCyclic) => {
+                    spatialNavigation.navigate(direction, notCyclic)
+                });
+                main.menu.on('focus-index', async index => {
+                    await virtualGrid.scrollToIndex(index)
+                    spatialNavigation.focusIndex(index)
+                });
+                main.menu.on('focus', element => {
+                    spatialNavigation.focus(element)
+                });
+                container = main.menu.scrollContainer;
+                setupNavigation();
+            });
+        });
+    });
+
+    $effect(() => {
+        if (!lastRange || lastRange.start != range.start || lastRange.end != range.end) {
+            lastRange = {start: range.start, end: range.end};
+            main.emit('menu-update-range', lastRange, main.menu?.path)
+        }
+    });
 </script>
-<a href="#close-menu" title="{lang.CLOSE}" id="menu-playing-close">
-    <div>
-        <i class="fas fa-times-circle"></i>
-    </div>
-</a>
-<div id="menu">
-    <span class="menu-omni" style="flex: 1;">
-        <span id="menu-search">
-            <input type="text" id="menu-omni-input" placeholder="{lang.WHAT_TO_WATCH}" />
-            <div class="menu-omni-submit">
-                <i class="fas fa-search"></i>
-            </div>
-        </span>
-    </span>
-    <div class="side-menu-out">
-        <nav>
-            <div>
-                {#each headerActions as e (e.key)}
-                <a href="{e.url}" tabindex="{e.tabindex}" class="entry entry-nav"data-type="{e.type}" data-path="{e.path}" key="{e.key}" aria-label="{e.name}" data-original-icon="{e.originalIcon}" data-question="{e.question}" data-dialog-details="{e.dialogDetails}" draggable="false">
-                    <span class="entry-wrapper">
-                        <i class="{e.fa}"></i> 
-                        <span>
-                            {@html e.prepend}
-                            {@html e.rawname||e.name}
-                        </span>
-                    </span>
-                </a>
-                {/each}
-            </div>
-            <div class="side-menu-toggle">
-                <div>
-                    <span>
-                        <img src="assets/images/default_icon_white.png" alt="" style="width: 4vmax; height: 4vmax; margin: 0.5vmax 0;" />
-                    </span>
+<div id="main">
+    <a href="#close-menu" aria-label="{lang.CLOSE}" title="{lang.CLOSE}" id="menu-playing-close">
+        <div>
+            <i class="fas fa-times-circle"></i>
+        </div>
+    </a>
+    <div id="menu">
+        <span class="menu-omni" style="flex: 1;">
+            <span id="menu-search">
+                <input type="text" id="menu-omni-input" placeholder="{lang.WHAT_TO_WATCH}" />
+                <div class="menu-omni-submit">
+                    <i class="fas fa-search"></i>
                 </div>
-            </div>
-        </nav>
-    </div>
-    <div class="content-out">
-        <content>
-            <wrap>
-                {#each entries as e (e.key)}
-                    <a href="{e.url}" tabindex="{e.tabindex}" class="{e.class}" title="{e.name}" aria-label="{e.name}" 
-                        data-type="{e.type}" data-path="{e.path}" key="{e.key}"  draggable="false" 
-                        data-range-start="{e.range ? e.range.start : 0}" data-range-end="{e.range ? e.range.end : 100}" 
-                        data-mask="{e.mask}" data-original-icon="{e.originalIcon}" data-question="{e.question}" data-dialog-details="{e.dialogDetails}" 
-                        style="order: {e.tabindex};">
-                        <span class="{e.wrapperClass}">
-                            {#if e.cover}
+            </span>
+        </span>
+        <div class="side-menu-out">
+            <nav>
+                <div>
+                    {#each sideMenuItems as e (e.key)}
+                    <a href="{e.url}" tabindex="{e.tabindex}" class="entry entry-nav" data-type="{e.type}" data-path="{e.path}" key="{e.key}" aria-label="{e.name}" data-original-icon="{e.originalIcon}" data-question="{e.question}" data-dialog-details="{e.dialogDetails}" draggable="false">
+                        <span class="entry-wrapper">
+                            <i class="{e.fa}"></i>
+                            <span>
+                                {@html e.prepend}
+                                {@html e.rawname || e.name}
+                            </span>
+                        </span>
+                    </a>
+                    {/each}
+                </div>
+                <div class="side-menu-toggle">
+                    <div>
+                        <span>
+                            <img src="assets/images/default_icon_white.png" alt="" style="width: 4vmax; height: 4vmax; margin: 0.5vmax 0;" loading="lazy" />
+                        </span>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        <div class="content-out">
+            <content role="region" onmouseenter={() => main.menu.sideMenu(false)}>
+                <VirtualGrid width="var(--menu-width)" height="var(--menu-height)" items={items} let:item itemWidth={itemWidth} itemHeight={itemHeight} bind:this={virtualGrid} bind:range bind:isTop bind:isBottom bind:refresh>
+                    {#snippet children(item)}
+                    <a href="{item.url}" tabindex="{item.tabindex}" class="{item.class} {selectedIndex == item.tabindex ? 'selected' : ''}" title="{item.name}" aria-label="{item.name}" 
+                        data-type="{item.type}" data-path="{item.path}" key="{item.key}"  draggable="false" 
+                        data-range-start="{item.range ? item.range.start : 0}" data-range-end="{item.range ? item.range.end : 100}" 
+                        data-mask="{item.mask}" data-original-icon="{item.originalIcon}" data-question="{item.question}" data-dialog-details="{item.dialogDetails}"
+                        style="order: {item.tabindex};" onmouseenter={(event) => focusElement(event.target)}
+                        >
+                        <span class="{item.wrapperClass}">
+                            {#if item.cover}
                                 <div class="entry-cover-container" aria-hidden="true">
-                                    <img src="{icons[e.path].url}" alt="" draggable="false" />
+                                    <img src="{icons[item.path].url}" alt="" draggable="false" />
                                 </div>
                             {/if}
                             <span class="entry-data-in">
                                 <span class="entry-name">
-                                    <span class="{e.statusFlagsClass}">{@html e.statusFlags}</span>
+                                    <span class="{item.statusFlagsClass}">{@html item.statusFlags}</span>
                                     <span class="entry-name-label">
-                                        {@html e.prepend}
-                                        {@html e.rawname||e.name}
+                                        {@html item.prepend}
+                                        {@html item.rawname||item.name}
                                     </span>
                                 </span>
-                                <span class="entry-details">{@html [e.details, e.maskText].filter(v => v).join(' &middot; ')}</span>
+                                <span class="entry-details">{@html [item.details, main.menu.maskValue(item.value, item.mask)].filter(v => v).join(' &middot; ')}</span>
                             </span>
                             <span class="entry-icon-image">
-                                {#if (!icons[e.path] || e.type == 'back' || icons[e.path].url.startsWith('fa'))}
-                                    <i class="{e.fa}" style="{e.faStyle||''}" aria-hidden="true"></i>
+                                {#if (!icons[item.path] || item.type == 'back' || icons[item.path].url.startsWith('fa'))}
+                                    <i class="{item.fa}" style="{item.faStyle||''}" aria-hidden="true"></i>
                                 {:else}
-                                    {#if !e.cover}
-                                        <img src="{transparentImage}" draggable="false" alt="" style="background-image: url({icons[e.path].url})" aria-hidden="true" />
+                                    {#if !item.cover}
+                                        <img src="{transparentImage}" draggable="false" alt="" style="background-image: url({icons[item.path].url})" aria-hidden="true" />
                                     {/if}
                                 {/if}
                             </span>
                         </span>
                     </a>
-                {/each}
-            </wrap>
-        </content>
-        <div id="home-arrows" aria-hidden="true">
-            <div>
-                <span id="home-arrows-top">
-                    <i class="fas fa-chevron-up"></i>
-                </span>
-                <span style="flex-grow: 1;"></span>
-                <span id="home-arrows-bottom">
-                    <i class="fas fa-chevron-down"></i>
-                </span>
-            </div>
-        </div>
-        <div id="menubar">
-            <span class="menu-location" aria-hidden="true">
-                <span class="menu-location-anchor">
-                    <span class="menu-location-icon">
-                        {#if icons[path]}
-                            {#if icons[path].url.startsWith('fa')}
-                                <i class="{icons[path].url}" aria-hidden="true"></i>
-                            {:else}
-                                <img src="{icons[path].url}" alt="" />
-                            {/if}
-                        {/if}
+                    {/snippet}
+                </VirtualGrid>
+            </content>
+            <div id="arrow" aria-hidden="true">
+                <div>
+                    <span id="arrow-up" style="opacity: {isTop ? '0' : '1'};">
+                        <i class="fas fa-chevron-up"></i>
                     </span>
-                    <span class="menu-location-text">{path.split('/').pop()}</span>
-                </span>
-                <span class="menu-location-pagination">
-                    <i class="fas fa-stream"></i>
-                    <span></span>
-                </span>
-            </span>
-            <span class="menu-time" aria-hidden="true">
-                <time></time>
-                <span class="menu-busy">
-                    <i class="fas fa-mega busy-x" aria-hidden="true"></i>
-                </span>
-            </span>
+                    <span style="flex-grow: 1;"></span>
+                    <span id="arrow-down" style="opacity: {isBottom ? '0' : '1'};">
+                        <i class="fas fa-chevron-down"></i>
+                    </span>
+                </div>
+            </div>
+            <Menubar path={path} icons={icons} bind:this={menubar}></Menubar>
+            <SpatialNavigation 
+                debug={false} container={container} bind:this={spatialNavigation} bind:path 
+                onFocus={itemFocusCallback} onXFocus={itemXFocusCallback} onNavigate={itemNavigateCallback} 
+            />
         </div>
     </div>
 </div>
-<div id="modal">
-    <div>
-        <div>
-            <div id="modal-content"></div>
-        </div>
-    </div>
-</div>
+<Dialog bind:this={dialog}></Dialog>
 <style global>
-html {
-    --nav-width: 30vmax;
-}
-body.portrait {
-    --nav-width: 77vw;
+svelte-virtual-grid-viewport {
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: y mandatory;
 }
 #menu {
     width: 100vw;
@@ -174,14 +465,18 @@ body.portrait {
     transition: transform var(--menu-fx-nav-duration) ease-in-out 0s;
     transform: none;    
     flex-direction: column;    
-    scroll-snap-type: x mandatory;
     overflow: scroll hidden;
-    padding-bottom: calc((var(--menu-scrollbar-width) * 4) + var(--menu-padding-bottom));
     position: fixed;
     top: 0;
+    left: 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
-#menu > * {
-    scroll-snap-align: start;
+#menu::-webkit-scrollbar {
+    display: none;
+}
+div#arrow {
+    visibility: hidden;
 }
 .side-menu-toggle, .side-menu-toggle > div {
     width: 0 !important;
@@ -235,27 +530,15 @@ body:not(.side-menu) .side-menu-toggle > div > span > img {
     98% { margin-left: 0.5vh; }
     100% { margin-left: 0vh; }
 }
-#menubar {
-    position: absolute;
-    width: var(--menu-width);
-    color: var(--font-color);
-    display: flex;
-    flex-direction: row;
-    font-size: var(--menu-entry-name-font-size);
-    box-sizing: border-box;
-}
 body.video #menubar  {
     display: none;
 }
-body .side-menu-out {
+.side-menu-out {
     transition: width 0.15s ease-in;
     display: flex; 
     width: var(--nav-width);
     max-height: var(--menu-height);
     padding-right: var(--padding-quarter); /* bugfix: avoid a white vertical line on menu-playing */
-}
-body.modal .side-menu-toggle {
-    opacity: 0.25;
 }
 body.video:not(.menu-playing) .side-menu-out {
     display: none;
@@ -279,19 +562,11 @@ body.video:not(.menu-playing) .side-menu-out {
     flex-basis: 100%;
     clear: both;
 }
-.menu-location {
-    background: var(--background-color);
-    padding: var(--padding-quarter) var(--padding) var(--padding-quarter) var(--padding-quarter);
-    border-top-right-radius: var(--radius);
-}
-.menu-location-pagination {
-    padding-left: var(--padding-2x);
-}
 #menu .menu-omni {
     position: fixed;
     left: var(--nav-width);
     top: 0;
-    background: linear-gradient(to bottom, var(--shadow-background-color) 70%, transparent 100%);
+    background: linear-gradient(to bottom, transparent 0%, var(--background-color) 2%, var(--background-color) 70%, transparent 100%);
     width: 100%;
     z-index: 2;
     justify-content: center;
@@ -315,7 +590,7 @@ body.video.menu-playing #menu .menu-omni {
     min-width: calc(var(--menu-entry-name-font-size) * 14);
     text-align: left;
     align-items: center;
-    margin-right: calc(var( --padding) * 2);
+    margin-right: calc( var(--padding) * 2);
     padding: var(--menu-padding) var(--menu-padding-2x);
     vertical-align: middle;
     display: flex;
@@ -412,18 +687,6 @@ body:not(.portrait) #menu content a.entry-2x {
     height: calc(var(--menu-entry-name-font-size) + var(--menu-padding-2x));
     padding: 0 var(--padding);
 }
-#menu .menu-location-icon img {
-    max-width: var(--padding-2x);
-    max-height: var(--padding-2x);
-    object-fit: contain;
-    object-position: center;
-    transform-origin: center;
-    height: var(--menu-entry-name-font-size);
-    vertical-align: bottom;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-}
 #menu nav {
     display: flex;
     align-self: start;
@@ -435,34 +698,35 @@ body:not(.portrait) #menu content a.entry-2x {
     background: rgba(0,0,0, 0.1);
     border-top-left-radius: var(--radius);
     border-bottom-left-radius: var(--radius);
-    max-height: var(--menu-height);
+    max-height: var(--menu-height);    
+    scroll-snap-type: y mandatory;
     overflow: hidden auto;
 }
 body.side-menu #menu .content-out {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
 }
-body.side-menu wrap a .entry-wrapper span, body.side-menu wrap a .entry-cover-container {
+body.side-menu svelte-virtual-grid-contents a .entry-wrapper span, body.side-menu svelte-virtual-grid-contents a .entry-cover-container {
     opacity: 0.333;
 }
 #menu nav > div {
     width: 100%;
-    box-sizing: border-box;
+    height: 100%;
     display: flex;
+    box-sizing: border-box;
     flex-direction: column;
 }
 #menu nav a {
     width: 100%;
     display: flex;
-    margin-bottom: var(--padding);
-    min-height: calc((var(--menu-height) / 10) - var(--padding));
+    margin-bottom: var(--menu-padding);
     box-sizing: border-box;
+    scroll-snap-align: start;
 }
 #menu nav a .entry-wrapper {
     display: block;
     color: var(--font-color);
-    height: calc(var(--padding) * 4);
-    padding: calc(1.34 * var(--padding)) 0;
+    height: calc((var(--menu-height) - (10 * var(--menu-padding))) / 10);
     font-size: var(--menu-entry-name-font-size);
     align-items: center;
     justify-content: center;
@@ -471,15 +735,21 @@ body.side-menu wrap a .entry-wrapper span, body.side-menu wrap a .entry-cover-co
     line-height: 100%; 
     box-sizing: border-box !important;
     white-space: pre-wrap;
+    flex-grow: 1;
+    overflow: hidden;
+    border-radius: var(--radius);
 }
 body.video #menu a span.entry-wrapper {
-    background: var(--shadow-background-color) !important;
+    background: var(--alpha-shadow-background-color) !important;
+}
+body.video #menu a.selected span.entry-wrapper {
+    background: black !important;
 }
 #menu nav a .entry-wrapper > span {
     margin-left: var(--padding-half);
     white-space: normal;
 }
-body.side-menu:not(.modal) #menu nav {
+body.side-menu:not(.dialog) #menu nav {
     display: flex;    
 }
 body.side-menu .side-menu-toggle {
@@ -492,22 +762,13 @@ body.side-menu .side-menu-toggle {
     filter: drop-shadow(var(--drop-shadow));
     flex-direction: column;
 }
-#menu .menu-time time {
-    background: var(--background-color);
-    padding: var(--padding-quarter) var(--padding-quarter) var(--padding-quarter) var(--padding);
-    border-top-left-radius: var(--radius);
-}
 .menu-busy {
     display: none;
     padding: var(--padding-half) var(--padding-half) var(--padding-half) var(--padding);
     font-size: calc(var(--menu-entry-name-font-size) * 2);
-    max-height: var(--menu-entry-name-font-size);
+    max-height: calc(var(--menu-entry-name-font-size) * 2);
 }
-.menu-busy i {
-    bottom: var(--menu-entry-name-font-size);
-    position: relative;
-}
-div#home-arrows {
+div#arrow {
     position: relative;
     left: calc(var(--menu-width) * -1);
     width: 100%;
@@ -515,7 +776,7 @@ div#home-arrows {
     z-index: 1;
     pointer-events: none;
 }
-div#home-arrows > div {
+div#arrow > div {
     width: var(--menu-width);
     height: var(--menu-height);  
     z-index: 0;
@@ -527,7 +788,7 @@ div#home-arrows > div {
     flex-direction: column;
     align-items: center;
 }
-div#home-arrows > div > * {
+div#arrow > div > * {
     color: white;
     pointer-events: all;
     font-size: 4vmin;
@@ -552,35 +813,27 @@ div#home-arrows > div > * {
     justify-content: left;
     transition: -webkit-mask-image 0.2s ease-in;
 }
-#menu content wrap {
-    overflow-x: hidden;
-    overflow-y: auto;
-    display: grid;
-    list-style-type: none;
-    box-sizing: border-box;
-    text-align: left;
-    font-size: 0;
+svelte-virtual-grid-contents {
+    display: grid !important;
     width: var(--menu-width);
-    height: inherit;
-    scroll-snap-type: y mandatory;
-    transition: transform var(--menu-fx-nav-duration) ease-in-out 0s;
+    min-height: var(--menu-height);
+    overflow: visible;
+    min-height: 100%;
+    padding: 0;
 }
-#menu content wrap a {
-    height: var(--menu-entry-height);
-    box-sizing: border-box;
-    padding: var(--menu-padding);
-    display: inline-flex;
+#menu content a {
+    display: flex;
     overflow: hidden;
-    color: var(--font-color);
     text-align: center;
+    position: relative;
+    box-sizing: border-box;
     scroll-snap-align: start;
-    grid-row-start: auto;
-    grid-row-end: auto;
-    grid-column-start: auto;
-    grid-column-end: auto;
+    color: var(--font-color);
+    padding: var(--menu-padding);
+    min-height: var(--menu-entry-height);
 }
-.busy-x, #menu wrap a.entry-busy span.entry-icon-image i, #menu wrap a.entry-busy span.entry-icon-image img,
-#menu wrap a.entry-busy-x span.entry-icon-image i, #menu wrap a.entry-busy-x span.entry-icon-image img {
+.busy-x, #menu svelte-virtual-grid-contents a.entry-busy span.entry-icon-image i, #menu svelte-virtual-grid-contents a.entry-busy span.entry-icon-image img,
+#menu svelte-virtual-grid-contents a.entry-busy-x span.entry-icon-image i, #menu svelte-virtual-grid-contents a.entry-busy-x span.entry-icon-image img {
     -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.3) 50%, rgba(0, 0, 0, 0.1) 100%);
     mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.3) 50%, rgba(0, 0, 0, 0.1) 100%);
     animation: shine-pulse 1.33s infinite;
@@ -595,6 +848,7 @@ div#home-arrows > div > * {
     0% {
         -webkit-mask-position: -200% 0;
         mask-position: -200% 0;
+        will-change: mask-position;
     }
     100% {
         -webkit-mask-position: 200% 0;
@@ -670,32 +924,28 @@ body.portrait #menu content a .entry-icon-image i {
     display: flex;
     justify-content: center;
 }
-#menu a span.entry-wrapper {
+#menu svelte-virtual-grid-contents a span.entry-wrapper {
     overflow: hidden;
-    position: relative;
+    position: absolute;
     display: inline-flex;    
     border-radius: var(--radius);
-    box-sizing: content-box;
+    box-sizing: border-box;
     border: 1px solid rgba(255, 255, 255, 0.009);
-    width: calc(100% - 2px);
-    height: calc(100% - 2px);
     transition: transform 0.1s ease-in;
-}
-#menu content a.entry-cover span.entry-wrapper {
-    border: 1px solid rgba(255,255,255,0.03) !important;
-    width: calc(100% - 2px);
-    height: calc(100% - 2px);
+    width: 98%;
+    height: 96%;
 }
 #menu a.selected span.entry-wrapper {
     border-color: rgba(255, 255, 255, 0.009);
     background: linear-gradient(to top, rgba(150, 150, 150, 0.5) 0%, rgba(150, 150, 150, 0.75) 75%, rgba(150, 150, 150, 1) 100%);
     box-shadow: 0 0 2px white;
+    z-index: 0;
 }
-wrap a.selected {
+svelte-virtual-grid-contents a.selected {
     overflow: visible !important;
 }
-wrap a.selected > span {
-    transform: scale(1.025);
+svelte-virtual-grid-contents a.selected > span {
+    transform: scale(1.01);
     transform-origin: center center;
 }
 controls button.selected span.button-icon, seekbar div.selected, a.control-layer-icon.selected, button.control-layer-icon.selected, div#arrow-down-hint i.selected {
@@ -707,6 +957,9 @@ seekbar div.selected {
 }
 controls button.selected span.button-icon, a.control-layer-icon.selected, button.control-layer-icon.selected, div#arrow-down-hint i.selected {
     transform: scale(1.25);
+}
+div#arrow-down-hint.selected-parent {
+    filter: drop-shadow(0 0 1vmin #ffffff);
 }
 #menu content a span.entry-name, #menu content a span.entry-details {
     text-align: center;
@@ -779,7 +1032,6 @@ div#arrow-down-hint i {
     cursor: pointer;
     padding: var(--padding);
 }
-
 span.entry-status-flags {
     line-height: 100%;    
 }
@@ -808,7 +1060,6 @@ body.portrait span.entry-status-flag i.fas.fa-play {
     margin: calc(var(--padding-quarter) * 0.5) 0 0 calc(var(--padding-quarter) * 1.25);
     font-size: calc(var(--menu-entry-name-font-size) - (4 * var(--padding-quarter)));
 }
-
 body:not(.menu-playing) #menu-playing-close {
     visibility: hidden;
 }
@@ -863,8 +1114,8 @@ body.video.menu-playing #main {
 }
 .entry-cover-active > div {
     position: absolute;
-    width: inherit;
-    height: inherit;
+    width: 100%;
+    height: 100%;
     z-index: 0;
     justify-content: center;
     align-items: center;
@@ -893,7 +1144,7 @@ body.video.menu-playing #main {
 }
 .entry-cover-active .entry-data-in {
     top: 0 !important;
-    background: linear-gradient(to bottom, var(--shadow-background-color) -10%, transparent 100%);
+    background: linear-gradient(to bottom, var(--alpha-shadow-background-color) -10%, transparent 100%);
     padding-bottom: calc(var(--menu-entry-name-font-size) * 6);
 }
 .entry-cover-active .entry-name {
@@ -918,276 +1169,6 @@ span.entry-status-flag-success {
 span.entry-status-flag-failure {
     background: #f04;
 }
-div#modal {
-    position: fixed;
-    width: 100vw;
-    height: 100vh;
-    left: 0;
-    z-index: 8;
-    background: var(--modal-background-color);
-    top: 0;
-    left: 0;
-    opacity: 0;
-    pointer-events: none;
-}
-div#modal > div {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: auto;
-    height: auto;
-    z-index: 4;
-    color: rgba(0, 0, 0, 0.8);
-    box-sizing: border-box;
-    top: calc(var(--menu-padding-top) + var(--padding));
-    bottom: calc(var(--menu-padding-bottom) + var(--padding));
-    right: calc(var(--menu-padding-right) + var(--padding));
-    left: calc(var(--menu-padding-left) + var(--padding));
-    display: flex;
-    align-items: center;
-}
-div#modal > div > div {
-    display: table;
-    vertical-align: middle;
-    text-align: center;
-    height: var(--modal-height);
-}
-div#modal > div > div > div {
-    display: table-cell;
-    width: var(--menu-width);
-    vertical-align: middle;    
-    transform: scale(var(--menu-fx-nav-deflate));
-    transition: transform var(--menu-fx-nav-duration) ease-in-out 0s;    
-}
-body.modal div#modal > div > div > div {
-    transform: none;
-    pointer-events: initial;
-}
-body.modal div#home-arrows {
-    visibility: hidden;
-}
-body.modal wrap {
-    opacity: var(--opacity-level-2);
-}
-body.modal #modal {
-    opacity: 1;
-}
-span.modal-template-message {
-    font-size: var(--menu-entry-name-font-size);
-    margin-bottom: var(--padding);
-    padding: 1.5vmax var(--padding);
-    display: flex;
-    justify-content: center;
-    line-height: 175%;
-    flex-shrink: 999;
-    overflow: auto;
-    word-break: break-word;
-}
-span.modal-template-message font {
-    display: contents;
-}
-span.modal-template-spacer {
-    max-width: var(--menu-modal-option-min-width);
-    padding: var(--padding);
-    box-sizing: border-box;
-    display: block;
-    width: 100%;
-}
-span.modal-template-text, span.modal-template-textarea {
-    padding: 0 var(--padding);
-    display: flex;
-    max-width: var(--menu-modal-option-min-width);
-    width: 100%;
-    box-sizing: border-box;
-    align-items: center;    
-    font-size: var(--menu-entry-name-font-size);
-    background: linear-gradient(to top, rgba(255, 255, 255, 0.5), white);
-    border-radius: var(--radius);
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-}
-span.modal-template-text i, span.modal-template-textarea i {
-    color: rgba(0, 0, 0, 0.8);
-    opacity: var(--opacity-level-2);
-}
-span.modal-template-text i {
-    padding-right: var(--padding-half);
-}
-span.modal-template-textarea i {
-    padding-right: var(--padding);
-}
-span.modal-template-textarea {
-    margin-bottom: var(--padding);
-}
-span.modal-template-textarea, span.modal-template-textarea textarea {
-    min-height: 20vmax;
-}
-span.modal-template-text input, span.modal-template-textarea textarea {
-    opacity: var(--opacity-level-4);
-    background: transparent;
-    padding: 0;
-    width: inherit;
-    min-height: 7vmax;
-    border: 0;
-    outline: 0;
-    max-width: 97%;
-    display: inline-block;
-    font-size: var(--menu-entry-name-font-size);    
-    border-radius: var(--radius);
-}
-span.modal-template-textarea textarea {
-    min-height: 25vh;
-    padding: var(--padding);
-    line-height: 150%;
-}
-span.modal-template-question {
-    text-align: left;
-}
-span.modal-template-question i {
-    margin-right: var(--padding);
-}
-span.modal-template-question img {
-    height: 2.5vmax;
-    width: 2.5vmax;
-    background-size: contain;
-    background-position: center center;
-    margin-right: var(--padding);
-    background-repeat: no-repeat;
-}
-.modal-template-slider, .modal-template-option, .modal-template-option-detailed, .modal-template-question {
-    width: 100%;
-    display: flex;
-    min-height: 7vh;
-    align-items: center;
-    box-sizing: border-box;
-    font-size: var(--menu-entry-name-font-size);
-    max-width: var(--menu-modal-option-min-width);
-}
-.modal-template-question {
-    padding: 0 0 1.5vmax 0;
-}
-.modal-template-slider {
-    padding: 1.5vmax 0;
-}
-a.modal-template-option, a.modal-template-option-detailed {
-    justify-content: center;
-    background: linear-gradient(to bottom, rgba(255,255,255, 0.3) 0%, transparent 150%);
-    color: black;
-    border-width: 0 1px 1px 0;
-    border-style: solid;
-    border-color: rgba(0,0,0, 0.1);
-}
-a.modal-template-option > div, a.modal-template-option-detailed > div {
-    padding: 2.5vmax 0;
-}
-a.modal-template-option.selected, a.modal-template-option-detailed.selected .modal-template-option-detailed-name {
-    font-weight: bold;
-}
-a.modal-template-option i, a.modal-template-option-detailed i {
-    position: relative;
-    top: calc(0.1* var(--menu-entry-name-font-size)) !important;
-    right: var(--padding);
-}
-a.modal-template-option.selected, a.modal-template-option-detailed.selected {
-    background: linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(255,255,255,0.4) 100%);
-    border-color: rgba(0,0,0,0.4);
-    opacity: 1;
-}
-div.modal-template-option-detailed-name {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    margin-bottom: var(--padding-half);
-    justify-content: center;
-}
-div.modal-template-option-detailed-details {
-    display: block;
-    width: 100%;
-    font-size: var(--menu-entry-details-font-size);
-    opacity: var(--opacity-level-4);
-    height: auto;
-}
-span.modal-template-text.selected-parent i, span.modal-template-text.selected-parent input, 
-span.modal-template-textarea.selected-parent i, span.modal-template-textarea.selected-parent textarea, 
-span.modal-template-text input:focus, span.modal-template-textarea textarea:focus {
-    opacity: 1;
-}
-.modal-wrap {
-    max-height: var(--modal-height);
-    padding: 0;
-    border-radius: var(--radius);
-}
-.modal-wrap > div {
-    overflow: hidden;
-    max-height: var(--modal-height);
-    padding: var(--padding);
-    background: var(--secondary-font-color);
-    border-radius: var(--radius);
-    box-sizing: border-box;    
-    flex-direction: column;
-    display: flex;
-    color: black;
-}
-.modal-template-options {
-    box-sizing: border-box;
-    overflow: auto;
-    max-height: inherit;
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 1;
-    border-radius: var(--radius);    
-}
-@media only screen and (min-width: 321px) and (orientation:landscape) {
-    .modal-template-options.two-columns {
-        flex-direction: row;
-        flex-wrap: wrap;
-    }
-    .modal-template-options.two-columns a.modal-template-option, .modal-template-options.two-columns a.modal-template-option-detailed {
-        width: 50%;
-    }
-}
-
-span.modal-template-slider a:first-child, span.modal-template-slider a:last-child {
-    width: 4.9%;
-    display: inline-block;
-}
-span.modal-template-slider {
-    background: #fff;
-}
-span.modal-template-slider .modal-template-slider-track {
-    width: calc(100% - (8 * var(--padding)));
-    height: calc(4 * var(--padding));
-    display: inline-block;
-    margin: var(--padding);
-    vertical-align: sub;
-}
-
-input.modal-template-slider-track {
-    overflow: hidden;
-    width: 80px;
-    -webkit-appearance: none;
-    background: linear-gradient(to bottom, transparent -100%, var(--modal-background-color) 400%);
-    border-radius: var(--radius);
-}
-input.modal-template-slider-track::-webkit-slider-runnable-track {
-    height: 10px;
-    -webkit-appearance: none;
-    margin-top: -1px;
-    display: block;
-}
-input.modal-template-slider-track::-webkit-slider-thumb {
-    width: 10px;
-    -webkit-appearance: none;
-    height: 10px;
-    cursor: ew-resize;
-    background: var(--background-color);
-    box-shadow: calc(100vw * -1) 0 0 100vw var(--background-color);
-}
-span.modal-template-slider-left, span.modal-template-slider-right {
-    cursor: pointer;
-    font-size: calc(4 * var(--padding));
-}
-
 .entry-cover-container {    
     min-height: 100%;
     display: flex;

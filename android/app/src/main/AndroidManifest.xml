@@ -9,6 +9,7 @@
         android:theme="@style/AppTheme"
         android:hardwareAccelerated="true"
         android:usesCleartextTraffic="true"
+        android:enableOnBackInvokedCallback="true"
         android:banner="@drawable/banner"
         android:isGame="false">
         <activity
@@ -36,7 +37,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:host="megacubo.tv" android:pathPrefix="/assistir/" android:scheme="https" />
             </intent-filter>
-            <intent-filter android:label="custom_protocol" android:autoVerify="true">
+            <intent-filter android:label="custom_protocol">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -51,29 +52,20 @@
             android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
-        <service
-            android:name="de.appplant.cordova.plugin.background.ForegroundService"
-            android:foregroundServiceType="dataSync"
-            android:exported="false"
-        />
-        <receiver
-            android:name="de.appplant.cordova.plugin.background.BackgroundMode"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.backgroundmode.closetv.megacubo.app" />
-            </intent-filter>
-        </receiver>
     </application>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.NEARBY_DEVICES" />
+    <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.hardware.microphone" android:required="false" />

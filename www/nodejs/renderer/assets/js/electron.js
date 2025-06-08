@@ -91,7 +91,7 @@ class ExternalPlayer {
 			})
 			opts.unshift({template: 'question', fa: 'fas fa-window-restore', text: this.context.main.lang.OPEN_EXTERNAL_PLAYER})
 			opts.push({template: 'option', fa: 'fas fa-times-circle', text: this.context.main.lang.CANCEL, id: 'cancel'})
-			this.context.menu.dialog(opts, resolve, null, true)
+			this.context.main?.menu?.dialogs?.dialog(opts, resolve, null, true)
 		})
 	}
 }
@@ -160,7 +160,9 @@ class WindowManagerCommon {
 				console.log('cmdline*: ' + cmd)
 				if(cmd === 'debug') return
 				const txt = cmd.toLowerCase().replace(/\\/g, '/')
-				if(txt.endsWith('.exe') || txt.endsWith('/megacubo') || txt.endsWith('/electron') || txt.endsWith('/node')) return
+				if(txt.endsWith('.exe') || txt.endsWith('.js') || txt.endsWith('/megacubo') || txt.endsWith('/electron') || txt.endsWith('/node')) {
+					return
+				}
 				let sharing = '/w/', pos = txt.indexOf(sharing)
 				if(pos != -1) cmd = cmd.substr(pos + sharing.length)
 				if(!cmd.includes('//')) cmd = 'mega://'+ cmd
@@ -191,10 +193,10 @@ class WindowManagerCommon {
 		this.openFileDialogChooser.onchange = evt => {
 			if(this.openFileDialogChooser.value){
 				const file = [...evt.target.files].shift()
-				if(file && file.path){
-					cb(null, file.path)
-				} else {
-					cb(null, this.openFileDialogChooser.value)
+				try {
+					cb(null, api.showFilePath(file))
+				} catch(e) {
+					cb('Bad file selected')
 				}
 			} else {
 				console.error('Bad file selected')

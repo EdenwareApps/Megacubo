@@ -1,20 +1,19 @@
-<script type="text/javascript">
+<script>
+    import DragDrop from './DragDrop.svelte'
     import Player from './Player.svelte'
     import Theme from './Theme.svelte'
     import Menu from './Menu.svelte'
     import Osd from './Osd.svelte'
-    import DragDrop from './DragDrop.svelte'
 </script>
-<link rel="stylesheet" global href="./assets/css/all.min.css" />
-<link rel="stylesheet" global href="./assets/icons/icons.css" />
-<link rel="stylesheet" href="./dist/renderer.css" />
+<svelte:head>
+    <link rel="stylesheet" global href="./assets/css/all.min.css" />
+    <link rel="stylesheet" global href="./assets/icons/icons.css" />
+</svelte:head>
 <Theme />
 <Player />
-<div id="main">
-    <Menu />
-    <Osd />
-    <DragDrop />
-</div>
+<Menu />
+<Osd />
+<DragDrop />
 <style global>
 :root {
     --font-size: 16px;
@@ -64,7 +63,7 @@
     --menu-padding-bottom: 0.5vmin;
     --menu-padding-right: 0.5vmin;
     --menu-padding-left: 0.5vmin;
-    --modal-height: calc(100vh - var(--menu-padding-top) - var(--menu-padding-bottom) - (2 * var(--padding)));
+    --dialog-height: calc(100vh - var(--menu-padding-top) - var(--menu-padding-bottom) - (2 * var(--padding)));
     --opacity-level-1: 0.075;
     --opacity-level-2: 0.25;
     --opacity-level-3: 0.5;
@@ -83,13 +82,6 @@
     border-radius: 1vmax;
     background: var(--menu-scrollbar-color);
     box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
-}
-#modal ::-webkit-scrollbar-thumb {
-    background: var(--modal-background-color);
-    box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
-}
-#modal ::-webkit-slider-runnable-track {
-    height: 100%;
 }
 * {
     outline: 0;
@@ -133,7 +125,9 @@ body {
     overscroll-behavior-y: none; /* prevents scroll snap bug */
 }
 app {
-    max-height: 100vh; /* prevents positioning bug */
+    width: 100vw;
+    height: 100vh; /* prevents positioning bug */
+    overflow: hidden;
 }
 player {
     width: 100vw;
@@ -165,34 +159,20 @@ body:not(input):not(textarea) {
     width: 100%;
     height: 100%;
     display: flex;
+    top: 0;
+    left: 0;
+    position: absolute;
     justify-content: center;
     background-color: transparent;
 }
 body:not(.video) #main {
-    background: linear-gradient(to bottom, transparent 0%, var(--modal-background-color) calc(var(--menu-header-height) + var(--menu-padding-top) + (var(--menu-padding) * 4)));
+    background: linear-gradient(to bottom, transparent 0%, var(--alpha-background-color) calc(var(--menu-header-height) + var(--menu-padding-top) + (var(--menu-padding) * 4)));
+}
+body.dialog .dialog-wrap {
+    transform: scale(var(--menu-fx-nav-inflate));
 }
 input {
     font-family: inherit;
-}
-.modal-template-message i.fa-circle.faclr-green {
-    color: #0f0 !important;
-    filter: drop-shadow(0 0 0.4vmin #0f0);
-    margin-right: 0.8vmin;
-}
-.modal-template-message i.fa-circle.faclr-orange {
-    color: #e0d213 !important;
-    filter: drop-shadow(0 0 0.4vmin #e0d213);
-    margin-right: 0.8vmin;
-}
-.modal-template-message i.fa-circle.faclr-red {
-    color: #f05 !important;
-    filter: drop-shadow(0 0 0.4vmin #f05);
-    margin-right: 0.8vmin;
-}
-.modal-template-message i.fa-circle.faclr-darkred {
-    color: #930d42 !important;
-    filter: drop-shadow(0 0 0.4vmin #930d42);
-    margin-right: 0.8vmin;
 }
 button.button-alpha i {
     opacity: var(--opacity-level-3);

@@ -6,7 +6,7 @@ import { absolutize, getDomain, parseRange, traceback, validateURL } from '../ut
 import StreamCache from './stream-cache.js';
 import cacheMap from './download-cache.js';
 import { temp } from '../paths/paths.js';
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import { HttpCookieAgent, HttpsCookieAgent } from 'http-cookie-agent/http';
 import { CookieJar } from 'tough-cookie';
 import qs from 'querystring';

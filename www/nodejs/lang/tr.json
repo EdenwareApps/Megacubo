@@ -268,7 +268,6 @@
    "LOW_MEMORY_AVAILABLE": "Cihazınız bellekte düşük ({0} Mevcut). Bu, uygulama performansını etkileyebilir.",
    "MAC_ADDRESS": "Mac Adresi",
    "MANAGE_CHANNEL_LIST": "Kanal listesini yönet",
-   "MATCH_ENTIRE_WORDS": "Arama yaparken tüm kelimeleri eşleştirin",
    "MAXIMIZE": "Maksimize",
    "MINIMIZE": "Küçült",
    "MIUI_DARK_MODE_HINT": "Sesli ancak ekran siyahsa, lütfen cihazınızda karanlık modu devre dışı bırakın.",

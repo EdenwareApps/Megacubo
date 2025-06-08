@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import StreamInfo from './utils/stream-info.js'
 import Mag from '../lists/mag.js'
 import StreamerProxy from './utils/proxy.js'
@@ -89,17 +89,17 @@ class StreamerTools extends EventEmitter {
                 }
             })
         }
-        if (type) {
-            if (type == 'ts' && !skipSample && !nfo.sample.length) {
-                console.error('empty response', entry, nfo, Object.keys(this.engines).slice(0), this.destroyed);
-                throw 'empty response';
-            }
+        const empty = !skipSample && !nfo.sample.length
+        if (type && (!empty || type != 'ts')) {
             nfo.type = type;
             nfo.until = now + 600;
             this.streamInfoCaching[cachingKey] = nfo;
             return nfo;
+        } else if (empty) {
+            console.error('empty response', nfo, this.destroyed);
+            throw 'empty response';
         } else {
-            console.error('unknown stream type', nfo, Object.keys(this.engines).slice(0), this.destroyed);
+            console.error('unknown stream type', nfo, this.destroyed);
             throw 'unknown stream type';
         }
     }

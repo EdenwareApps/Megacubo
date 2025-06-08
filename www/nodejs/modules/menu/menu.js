@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import { basename, traceback } from '../utils/utils.js'
 import lang from '../lang/lang.js'
 import storage from '../storage/storage.js'
@@ -346,7 +346,11 @@ class Menu extends EventEmitter {
             this.opts.debug && console.log('Menu filtering DONE '+ this.filters.length)
             const basePath = path ? path + '/' : ''
             for (let i = 0; i < entries.length; i++) {
-                entries[i].path = basePath + entries[i].name
+                if (entries[i].type == 'back') {
+                    entries[i].path = this.dirname(path)
+                } else {
+                    entries[i].path = basePath + entries[i].name
+                }
                 if (typeof(entries[i].checked) == 'function') {
                     entries[i].value = !!entries[i].checked(entries[i])
                 } else if (typeof(entries[i].value) == 'function') {
@@ -448,7 +452,7 @@ class Menu extends EventEmitter {
                 this.emit('action', this.pages[dir][i])
                 return true
             } else {
-                console.warn('ACTION ' + name + ' (' + tabindex + ') NOT FOUND IN ', { dir }, this.pages[dir])
+                console.error('ACTION ' + name + ' (' + tabindex + ') NOT FOUND IN ', { dir, destPath, keys: Object.keys(this.pages) }, this.pages[dir])
             }
         }
     }
@@ -747,13 +751,22 @@ class Menu extends EventEmitter {
             if (!entries.length) {
                 entries.push(this.emptyEntry())
             }
-            let backEntry = {
-                name: lang.BACK,
-                type: 'back',
-                fa: this.backIcon,
-                path: backTo || this.dirname(path)
+            if (backTo) {
+                let backEntry = {
+                    name: lang.BACK,
+                    type: 'back',
+                    fa: this.backIcon,
+                    path: backTo || this.dirname(path)
+                }
+                entries.unshift(backEntry)
+            } else if (!entries.length || entries[0].type != 'back') {
+                entries.unshift({
+                    name: lang.BACK,
+                    type: 'back',
+                    fa: this.backIcon,
+                    path: this.dirname(path)
+                })
             }
-            entries.unshift(backEntry)
             if (!config.get('auto-test')) {
                 let has = entries.some(e => e.name == lang.TEST_STREAMS)
                 if (!has && this.canApplyStreamTesting(entries)) {
@@ -761,6 +774,7 @@ class Menu extends EventEmitter {
                         name: lang.TEST_STREAMS,
                         fa: 'fas fa-satellite-dish',
                         type: 'action',
+                        path: path + '/' + lang.TEST_STREAMS,
                         action: async () => {
                             global.streamer.state.test(entries, '', true)
                         }
@@ -808,8 +822,12 @@ class Menu extends EventEmitter {
                 if (!es[i].type) {
                     es[i].type = 'stream'
                 }
-                if (typeof(es[i].path) !== 'string'){
-                    es[i].path = path +'/'+ es[i].name
+                if (typeof(es[i].path) !== 'string') {
+                    if (es[i].type == 'back') {
+                        es[i].path = this.dirname(path)
+                    } else {
+                        es[i].path = path +'/'+ es[i].name
+                    }
                 }
             }
             this.currentEntries = es.slice(0)
