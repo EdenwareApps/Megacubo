@@ -12,7 +12,6 @@ static def getVersionCodeFromVersionName(String versionName) {
 android {
     namespace "tv.megacubo.app"
     compileSdk rootProject.ext.compileSdk
-    ndkVersion "23.1.7779620"
     defaultConfig {
         applicationId "tv.megacubo.app"
         minSdkVersion rootProject.ext.minSdkVersion

@@ -338,32 +338,55 @@ export const initApp = async () => {
                     main.osd.show(String(err), 'fas fa-exclamation-triangle', 'menu', 'normal')
                     main.emit(callbackId, null)
                 }).finally(() => {
-                    winActions && winActions.backgroundModeUnlock('open-file')
+                    winActions.backgroundModeUnlock('open-file')
                 })
             }
             if (parent.Manager) {
                 parent.Manager.openFile(mimetypes, (err, file) => main.emit(callbackId, err ? null : [file]))
             } else {
-                window.capacitor && window.winActions && winActions.backgroundModeLock('open-file')
+                window.capacitor && winActions.backgroundModeLock('open-file')
                 next()
             }
         })
-        main.on('restart', () => winActions && winActions.restart())
-        main.on('ask-exit', () => winActions && winActions.askExit())
-        main.on('ask-restart', () => winActions && winActions.askRestart())
-        main.on('exit', force => winActions && winActions.exit(force))
+        main.on('restart', () => winActions.restart())
+        main.on('ask-exit', () => winActions.askExit())
+        main.on('ask-restart', () => winActions.askRestart())
+        main.on('exit', force => winActions.exit(force))
         main.on('background-mode-lock', name => {
-            if (player && winActions) winActions && winActions.backgroundModeLock(name)
+            if (player) winActions.backgroundModeLock(name)
         })
         main.on('background-mode-unlock', name => {
-            if (player && winActions) winActions && winActions.backgroundModeUnlock(name)
+            if (player) winActions.backgroundModeUnlock(name)
         });
 
         if (window.capacitor) {
-            winActions && winActions.setBackgroundMode(true) // enable once at startup to prevent service not registered crash
-            window.cordova.plugins.backgroundMode.disableBatteryOptimizations()
-            setTimeout(() => winActions && winActions.setBackgroundMode(false), 5000)
-            window.cordova.plugins.backgroundMode.setDefaults({
+            winActions.setBackgroundMode(true) // enable once at startup to prevent service not registered crash
+            window.capacitor.BackgroundMode.checkNotificationsPermission().then(result => {
+                console.log('Notifications permission check result', result)
+                if (!result.enabled) {
+                    window.capacitor.BackgroundMode.requestNotificationsPermission().then(result => {
+                        console.log('Notifications permission request result', result)
+                    }).catch(err => {
+                        console.error('Notifications permission request error', err)
+                    })
+                }
+            }).catch(err => {
+                console.error('Notifications permission check error', err)
+            })
+            window.capacitor.BackgroundMode.checkBatteryOptimizations().then(result => {
+                console.log('Battery optimizations check result', result)
+                if (result.enabled) {
+                    window.capacitor.BackgroundMode.requestDisableBatteryOptimizations().then(result => {
+                        console.log('Battery optimizations request result', result)
+                    }).catch(err => {
+                        console.error('Battery optimizations request error', err)
+                    })
+                }
+            }).catch(err => {
+                console.error('Battery optimizations check error', err)
+            })            
+            setTimeout(() => winActions.setBackgroundMode(false), 5000)
+            winActions.setBackgroundModeDefaults({
                 title: document.title,
                 text: main.lang.RUNNING_IN_BACKGROUND || '...',
                 icon: 'icon', // this will look for icon.png in platforms/android/res/drawable|mipmap
@@ -373,7 +396,6 @@ export const initApp = async () => {
                 silent: false,
                 allowClose: true,
                 closeTitle: main.lang.CLOSE || 'X'
-                //, bigText: Boolean
             })
         } else {
             document.body.addEventListener('dblclick', event => {

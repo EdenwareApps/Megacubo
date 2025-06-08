@@ -5,6 +5,7 @@ import { NativeFileDownloader } from '@eoscz/capacitor-plugin-native-file-downlo
 import { Keyboard } from '@capacitor/keyboard';
 import { Share } from '@capacitor/share';
 import { Clipboard } from '@capacitor/clipboard';
+import { BackgroundMode } from '@anuradev/capacitor-background-mode';
 
 const requestPermission = async perm => {
 	const permissions = cordova.plugins.permissions
@@ -42,5 +43,6 @@ window.capacitor = {
 	KeepAwake, Keyboard,
 	NativeFileDownloader,
 	requestPermission,
-	clipboard
+	clipboard,
+	BackgroundMode
 }

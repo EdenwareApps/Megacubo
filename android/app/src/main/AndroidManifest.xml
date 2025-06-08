@@ -9,6 +9,7 @@
         android:theme="@style/AppTheme"
         android:hardwareAccelerated="true"
         android:usesCleartextTraffic="true"
+        android:enableOnBackInvokedCallback="true"
         android:banner="@drawable/banner"
         android:isGame="false">
         <activity
@@ -36,7 +37,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:host="megacubo.tv" android:pathPrefix="/assistir/" android:scheme="https" />
             </intent-filter>
-            <intent-filter android:label="custom_protocol" android:autoVerify="true">
+            <intent-filter android:label="custom_protocol">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -51,19 +52,6 @@
             android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
-        <service
-            android:name="de.appplant.cordova.plugin.background.ForegroundService"
-            android:foregroundServiceType="dataSync"
-            android:exported="false"
-        />
-        <receiver
-            android:name="de.appplant.cordova.plugin.background.BackgroundMode"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.backgroundmode.closetv.megacubo.app" />
-            </intent-filter>
-        </receiver>
     </application>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />

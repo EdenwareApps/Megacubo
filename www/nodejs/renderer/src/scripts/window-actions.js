@@ -98,7 +98,7 @@ class WindowActions extends EventEmitter {
 		if(!force && this.backgroundModeLocks.length){
 			if(typeof(window.capacitor) != 'undefined'){
 				this.setBackgroundMode(true, true)
-				cordova.plugins.backgroundMode.moveToBackground()
+				capacitor.BackgroundMode.moveToBackground()
 			} else {
 				parent.api.tray.goToTray()
 			}
@@ -177,6 +177,7 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 		super(main)
 		this.pip = PictureInPicture
 		this.appPaused = false
+		this.backgroundModeDefaults = {}
 		this.setup()
 		this.on('enter', () => {
 			document.body.classList.add('miniplayer-android')
@@ -273,7 +274,7 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 						} else {
 							if(this.shouldEnter()) {
 								console.warn('app-pause', 'entered miniplayer')
-								keepInBackground = false // enter() already calls cordova.plugins.backgroundMode.enable() on prepare()
+								keepInBackground = false // enter() already calls capacitor.BackgroundMode.enable() on prepare()
 							} else if(!keepPlaying) { // no reason to keep playing
 								main.streamer.stop()
 							}
@@ -282,7 +283,7 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 				}
 				if(keepInBackground){
 					this.setBackgroundMode(true)
-					//cordova.plugins.backgroundMode.moveToBackground()
+					//capacitor.BackgroundMode.moveToBackground()
 				}
 			})
 			player.on('app-resume', () => {
@@ -320,6 +321,9 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 			})
 		}
 	}
+	setBackgroundModeDefaults(defaults){
+		this.backgroundModeDefaults = defaults
+	}
 	setBackgroundMode(state, force){
 		const minInterval = 5, now = (new Date()).getTime() / 1000
 		if(this.setBackgroundModeTimer){
@@ -330,9 +334,9 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 				this.lastSetBackgroundMode = now
 				this.currentBackgroundModeState = state
 				if(state) {
-					cordova.plugins.backgroundMode.enable()
+					capacitor.BackgroundMode.enable(this.backgroundModeDefaults)
 				} else {
-					cordova.plugins.backgroundMode.disable()
+					capacitor.BackgroundMode.disable()
 				}
 			}
 		} else {

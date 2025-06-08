@@ -9,6 +9,7 @@ android {
 
 apply from: "../capacitor-cordova-android-plugins/cordova.variables.gradle"
 dependencies {
+    implementation project(':anuradev-capacitor-background-mode')
     implementation project(':capacitor-community-keep-awake')
     implementation project(':capacitor-app')
     implementation project(':capacitor-clipboard')
@@ -16,9 +17,8 @@ dependencies {
     implementation project(':capacitor-share')
     implementation project(':eoscz-capacitor-plugin-native-file-downloader')
     implementation project(':capacitor-nodejs')
-    implementation "androidx.core:core:1.0.0"
+
 }
-apply from: "../../node_modules/cordova-androidx-build/src/android/cordova-androidx-build.gradle"
 apply from: "../../node_modules/tv.megacubo.ffmpeg/src/android/FFmpegKit.gradle"
 apply from: "../../node_modules/tv.megacubo.player/src/android/megacubo.gradle"
 
