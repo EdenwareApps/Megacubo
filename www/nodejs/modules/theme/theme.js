@@ -546,8 +546,7 @@ class Theme extends EventEmitter {
                                     fa: 'fas fa-font',
                                     renderer: () => {
                                         return new Promise(resolve => {
-                                            renderer.ui.on('fontlist', list => {
-                                                renderer.ui.removeAllListeners('fontlist');
+                                            renderer.ui.once('fontlist', list => {
                                                 resolve(list.map(name => {
                                                     return {
                                                         name, type: 'action',
@@ -561,6 +560,9 @@ class Theme extends EventEmitter {
                                             })
                                             renderer.ui.emit('fontlist')
                                         });
+                                    },
+                                    value: () => {
+                                        return global.config.get('font-family');
                                     }
                                 },
                                 {
@@ -811,19 +813,12 @@ class Theme extends EventEmitter {
         const current = global.config.get('theme-name')
         if (current) {
             const filename = sanitize(current) +'.theme.json', file = this.folder +'/'+ filename
-            return new Promise((resolve, reject) => {
-                const done = err => {
-                    if (err) {
-                        menu.displayErr(err)
-                        return reject(err)
-                    }
-                    moveFile(file +'.tmp', file).then(resolve).catch(err => {
-                        menu.displayErr(err)
-                        reject(err)
-                    })
-                }
-                options.prepareExportConfigFile(file + '.tmp', null, this.keys, done)
-            })
+            try {
+                await options.prepareExportConfigFile(file, null, this.keys)
+            } catch (err) {
+                console.error(err)
+                menu.displayErr(err)
+            }
         }
     }
     async hook(entries, path) {

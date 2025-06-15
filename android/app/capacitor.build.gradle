@@ -17,6 +17,7 @@ dependencies {
     implementation project(':capacitor-share')
     implementation project(':eoscz-capacitor-plugin-native-file-downloader')
     implementation project(':capacitor-nodejs')
+    implementation project(':tv.megacubo.pip')
 
 }
 apply from: "../../node_modules/tv.megacubo.ffmpeg/src/android/FFmpegKit.gradle"

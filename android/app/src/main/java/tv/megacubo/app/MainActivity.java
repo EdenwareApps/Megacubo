@@ -2,6 +2,7 @@ package tv.megacubo.app;
 
 import com.getcapacitor.BridgeActivity;
 import android.util.Log;
+import tv.megacubo.pip.PIPPlugin; // Add import
 
 public class MainActivity extends BridgeActivity {
     private Runnable onUserLeaveHintCallback;

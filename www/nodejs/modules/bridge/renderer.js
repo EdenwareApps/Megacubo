@@ -88,12 +88,12 @@ class BridgeClient extends EventEmitter {
 			constructor() {
 				super()
 				this.originalEmit = this.emit.bind(this)
-				this.emit = (...args) => parent.api.window.emit(...args)
+				this.emit = (...args) => parent.electron.window.emit(...args)
 				this.connect()
 			}
 			connect(){
 				if(this.connected) return
-				parent.api.window.on('message', args => bridge.localEmit(...args))
+				parent.electron.window.on('message', args => bridge.localEmit(...args))
 				this.connected = true
 			}
 			post(_, args) {

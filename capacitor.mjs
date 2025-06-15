@@ -6,28 +6,7 @@ import { Keyboard } from '@capacitor/keyboard';
 import { Share } from '@capacitor/share';
 import { Clipboard } from '@capacitor/clipboard';
 import { BackgroundMode } from '@anuradev/capacitor-background-mode';
-
-const requestPermission = async perm => {
-	const permissions = cordova.plugins.permissions
-	const has = await new Promise((resolve => {
-		permissions.hasPermission(permissions[perm], status => {
-			resolve(!!status.hasPermission)
-		}, () => {
-			resolve(false)
-		})
-	}))
-	if(!has) {
-		const got = await new Promise((resolve => {
-			permissions.requestPermission(permissions[perm], status => {
-				resolve(!!status.hasPermission)
-			}, () => {
-				resolve(false)
-			})
-		}))
-		return got
-	}
-	return has
-}
+import { PIP } from 'tv.megacubo.pip';
 
 const clipboard = async text => {
 	if(typeof text === 'string') {
@@ -42,7 +21,6 @@ window.capacitor = {
 	NodeJS, App, Share,
 	KeepAwake, Keyboard,
 	NativeFileDownloader,
-	requestPermission,
-	clipboard,
+	clipboard, PIP,
 	BackgroundMode
 }

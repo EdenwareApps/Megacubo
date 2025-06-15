@@ -233,7 +233,7 @@ class Theme extends EventEmitter {
         const alphaShadowColor = hexToRGBA(rgbToHex(shadowColor), 0.75)
         const secondaryFontColor = colorMixer(Object.values(hexToRgb(main.config['font-color'])), [0, 0, 0], 0.75)
         const fxNavIntensityStep = parseFloat(window.getComputedStyle(document.documentElement).getPropertyValue('--menu-fx-nav-intensity-step').trim())
-        const fxNavIntensity = main.config['fx-nav-intensity'] * fxNavIntensityStep
+        const fxNavIntensity = Math.min(0.14, main.config['fx-nav-intensity'] * fxNavIntensityStep)
         let fxNavDuration
         if(!main.config['fx-nav-intensity']) {
             fxNavDuration = 0

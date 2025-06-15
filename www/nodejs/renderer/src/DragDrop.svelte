@@ -42,7 +42,7 @@
             if (event.dataTransfer.files.length > 0) {
                 [...event.dataTransfer.files].forEach((file) => {
                     main.waitMain(() => {
-                        const path = top.api.showFilePath(file);
+                        const path = top.electron.showFilePath(file);
                         path && main.emit('open-url', path);
                     });
                 });

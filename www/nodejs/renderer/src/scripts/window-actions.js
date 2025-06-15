@@ -7,8 +7,8 @@ class WindowActions extends EventEmitter {
 		this.backgroundModeLocks = []
 	}
 	openExternalURL(url) {
-		if (parent.api) { // electron
-			parent.api.openExternal(url)
+		if (parent.electron) { // electron
+			parent.electron.openExternal(url)
 		} else {
 			window.open(url, '_system')
 		}
@@ -55,12 +55,12 @@ class WindowActions extends EventEmitter {
 	exitUI(cb){
 		console.log('exitUI()')
 		if(typeof(window.capacitor) != 'undefined'){
-			this.setBackgroundMode(false, true)
+			this.setBackgroundMode(false, true).catch((err) => console.error('Failed to disable background mode:', err))
 		}
 		try {
 			main.streamer.stop()
 		} catch(e) {
-			console.error(e)
+			console.error('Streamer stop error:', e)
 		}
 		main.localEmit('exit-ui')
 		cb && setTimeout(cb, 400)
@@ -74,7 +74,7 @@ class WindowActions extends EventEmitter {
 				if(typeof(plugins) != 'undefined' && plugins.megacubo){ // android
 					return plugins.megacubo.restartApp()
 				} else if(parent.Manager) {
-					parent.api.restart()
+					parent.electron.restart()
 					return
 				}
 			}
@@ -97,20 +97,19 @@ class WindowActions extends EventEmitter {
 		}
 		if(!force && this.backgroundModeLocks.length){
 			if(typeof(window.capacitor) != 'undefined'){
-				this.setBackgroundMode(true, true)
-				capacitor.BackgroundMode.moveToBackground()
+				this.setBackgroundMode(true, true, true).catch((err) => console.error('Failed to enable background mode:', err))
 			} else {
-				parent.api.tray.goToTray()
+				parent.electron.tray.goToTray()
 			}
 		} else {
 			if(window.capacitor){
-				this.setBackgroundMode(false, true)
+				this.setBackgroundMode(false, true).catch((err) => console.error('Failed to disable background mode:', err))
 			}
 			this.exitUI(() => {
 				main.emit('exit')
 				if(window.capacitor){
 					setTimeout(() => { // give some time to backgroundMode.disable() to remove the notification
-						window.capacitor.App.exitApp()
+						window.capacitor.App.exitApp().catch((err) => console.error('Failed to exit app:', err))
 					}, 400)
 				} else {
 					parent.Manager.close()
@@ -166,25 +165,28 @@ class WinActionsMiniplayer extends WindowActions {
 	}
 	enterIfPlaying(){
 		if(this.shouldEnter()) {
-			this.enter().catch(err => console.error('PIP FAILURE', err))
+			this.enter().catch(err => console.error('PIP FAILURE:', err))
 			return true
 		}
+		return false
 	}
 }
 
 export class AndroidWinActions extends WinActionsMiniplayer {
     constructor(main){
 		super(main)
-		this.pip = PictureInPicture
+		this.pip = window.capacitor?.PIP
+		this.backgroundModeInitiated = false
 		this.appPaused = false
 		this.backgroundModeDefaults = {}
+		this.backgroundListeners = []
 		this.setup()
 		this.on('enter', () => {
 			document.body.classList.add('miniplayer-android')
 		})
 		this.on('leave', () => {
-			this.enteredPipTimeMs = false
-			console.warn('leaved miniplayer')
+			this.enteredPipTimeMs = null
+			console.log('leaved miniplayer')
 			document.body.classList.remove('miniplayer-android')
 			if(this.appPaused){
 				clearTimeout(this.waitAppResumeTimer)
@@ -197,15 +199,14 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 		})
 	}
 	supports(){
-		return true // no way to detect here
+		return !!this.pip
 	}
 	observePIPLeave(){
-		if(this.observePIPLeaveTimer){
-			clearTimeout(this.observePIPLeaveTimer)
-		}
-		let ms = 2000, initialDelayMs = 7000
+		clearTimeout(this.observePIPLeaveTimer)
+		let ms = 2000
+		const initialDelayMs = 7000
 		if(this.enteredPipTimeMs){
-			const now = (new Date()).getTime()
+			const now = Date.now()
 			ms = Math.max(ms, (this.enteredPipTimeMs + initialDelayMs) - now)
 		}
 		this.observePIPLeaveTimer = setTimeout(() => {
@@ -217,199 +218,247 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 		console.log('observing PIP leave', ms, this.inPIP)
 	}
 	setup(){
-		if(this.pip){
-			let orientationTimeout = null;			
-			const orientationListener = () => {
-				clearTimeout(orientationTimeout);
-				orientationTimeout = setTimeout(() => {
-					clearTimeout(orientationTimeout);
-					orientationTimeout = null;
-					if(main.streamer.active && !main.streamer.isAudio && document.visibilityState === 'visible') {
-						const ratio = player.videoRatio();
-						this.pip.aspectRatio((240 * ratio) || 320, 240);
-					}
-				}, 500);
-			};
-			
-			screen.orientation?.addEventListener('change', orientationListener)
-			window.addEventListener('resize', orientationListener)
-			window.addEventListener('orientationchange', orientationListener)
+		if(!this.pip || !window.capacitor){
+			console.warn('Capacitor or PIP plugin not available')
+			return
+		}
 
-			let autoPIPTimer = null;
-			const stateListener = () => {
-				clearTimeout(autoPIPTimer)
-				console.log('stateListener', orientationTimeout, main.streamer.active, document.visibilityState)
-				const shouldAutoPIP = main.streamer.active && !main.streamer.isAudio && !main.streamer.casting;
-				if(shouldAutoPIP && document.visibilityState === 'visible') {
-					autoPIPTimer = setTimeout(() => {
-						const ratio = player.videoRatio();
-						this.pip.autoPIP(true, (240 * ratio) || 320, 240);
-					}, 1000);
-				} else {
-					this.pip.autoPIP(false, 0, 0);
+		let BackgroundMode = window.capacitor.BackgroundMode
+		if(!BackgroundMode){
+			console.warn('BackgroundMode plugin not available')
+			return
+		}
+
+		// Listen for app lifecycle events
+		this.backgroundListeners.push(
+			BackgroundMode.addListener('appInBackground', () => {
+				player.emit('app-pause', false)
+			}).promise
+		)
+		this.backgroundListeners.push(
+			BackgroundMode.addListener('appInForeground', () => {
+				player.emit('app-resume')
+			}).promise
+		)
+
+		const orientationListener = () => {
+			clearTimeout(this.orientationTimeout)
+			this.orientationTimeout = setTimeout(() => {
+				if(main.streamer.active && !main.streamer.isAudio && document.visibilityState === 'visible'){
+					const ratio = player.videoRatio() || (4 / 3)
+					if (!isNaN(ratio)){
+						console.log('setting PIP aspect ratio', ratio, 240 * ratio, 240)
+						this.pip.aspectRatio({width: 240 * ratio, height: 240}).catch((err) => console.error('Failed to set PIP aspect ratio:', err))
+					}
 				}
+			}, 500)
+		}
+
+		if(screen.orientation){
+			screen.orientation.addEventListener('change', orientationListener)
+		}
+		window.addEventListener('resize', orientationListener)
+		window.addEventListener('orientationchange', orientationListener)
+
+		const stateListener = () => {
+			clearTimeout(this.autoPIPTimer)
+			const shouldAutoPIP = main.streamer.active && !main.streamer.isAudio && !main.streamer.casting
+			if(shouldAutoPIP && document.visibilityState === 'visible'){
+				this.autoPIPTimer = setTimeout(() => {
+					const ratio = player.videoRatio() || 4 / 3
+					this.pip.autoPIP({
+						value: true,
+						width: 240 * ratio,
+						height: 240
+					}).catch((err) => console.error('Failed to set autoPIP:', err))
+				}, 1000)
+			} else {
+				this.pip.autoPIP({
+					value: false,
+					width: 0,
+					height: 0
+				}).catch((err) => console.error('Failed to disable autoPIP:', err))
 			}
-			main.streamer.on('state', stateListener)
-			main.streamer.on('cast-start', stateListener)
-			main.streamer.on('cast-stop', stateListener)
-			main.streamer.on('codecData', stateListener) // isAudio updated
+		}
 
-			player.on('app-pause', screenOff => {
-				if(this.inPIP && !screenOff) return
-				this.appPaused = true
-				let keepInBackground = this.backgroundModeLocks.length
-				let keepPlaying = this.backgroundModeLocks.filter(l => l != 'schedules').length
-				console.warn('app-pause', screenOff, keepInBackground, keepPlaying, this.inPIP)
-				if(main.streamer){
+		main.streamer.on('state', stateListener)
+		main.streamer.on('cast-start', stateListener)
+		main.streamer.on('cast-stop', stateListener)
+		main.streamer.on('codecData', stateListener)
+
+		player.on('app-pause', async screenOff => {
+			if(this.inPIP && !screenOff) return
+			this.appPaused = true
+			const keepInBackground = this.backgroundModeLocks.length
+			let keepPlaying = this.backgroundModeLocks.filter(l => l != 'schedules').length
+			console.log('app-pause', screenOff, keepInBackground, keepPlaying, this.inPIP)
+			if(main.streamer){
+				if(!keepPlaying){
+					keepPlaying = main.streamer.casting || main.streamer.isAudio
+				}
+				if(main.streamer.casting || main.streamer.isAudio){
+					await this.setBackgroundMode(true).catch((err) => console.error('Failed to enable background mode on app-pause:', err))
+				} else if(screenOff){
 					if(!keepPlaying){
-						keepPlaying = main.streamer.casting || main.streamer.isAudio
+						main.streamer.stop()
 					}
-					if(main.streamer.casting || main.streamer.isAudio){
-						keepInBackground = true
-					} else {
-						if(screenOff){ // skip miniplayer
-							if(!keepPlaying){ // not doing anything important
-								main.streamer.stop()
-							}
-						} else {
-							if(this.shouldEnter()) {
-								console.warn('app-pause', 'entered miniplayer')
-								keepInBackground = false // enter() already calls capacitor.BackgroundMode.enable() on prepare()
-							} else if(!keepPlaying) { // no reason to keep playing
-								main.streamer.stop()
-							}
-						}
-					}
+				} else if(this.shouldEnter()){
+					console.log('app-pause', 'entered miniplayer')
+					await this.enter().catch((err) => console.error('Failed to enter PIP on app-pause:', err))
+				} else if(!keepPlaying){
+					main.streamer.stop()
 				}
-				if(keepInBackground){
-					this.setBackgroundMode(true)
-					//capacitor.BackgroundMode.moveToBackground()
-				}
-			})
-			player.on('app-resume', () => {
-				console.warn('app-resume', this.inPIP)
-				this.appPaused = false
-				this.setBackgroundMode(false)
-				if(this.inPIP){
+			} else if(keepInBackground){
+				await this.setBackgroundMode(true).catch((err) => console.error('Failed to enable background mode on app-pause:', err))
+			}
+		})
+
+		player.on('app-resume', async () => {
+			console.log('app-resume', this.inPIP)
+			this.appPaused = false
+			await this.setBackgroundMode(false).catch((err) => console.error('Failed to disable background mode on app-resume:', err))
+			if(this.inPIP){
+				this.observePIPLeave()
+			}
+		})
+
+		let rotating = false
+		window.addEventListener('orientationchange', () => {
+			rotating = true
+			setTimeout(() => rotating = false, 1000)
+		})
+
+		const resizeListener = () => {
+			if(rotating) return
+			const seemsPIP = this.seemsPIP()
+			if(seemsPIP !== this.inPIP && (!seemsPIP || main.streamer.active || main.streamer.isTuning())) {
+				console.log('miniplayer change on resize')
+				if(seemsPIP){
+					this.set(seemsPIP)
+				} else {
 					this.observePIPLeave()
 				}
-			});
+			}
+		}
 
-			// Controle de rotação
-			let rotating = false;
-			window.addEventListener('orientationchange', () => {
-				rotating = true;
-				setTimeout(() => rotating = false, 1000);
-			});
+		window.addEventListener('resize', resizeListener)
+		screen.orientation.addEventListener('change', resizeListener)
 
-			const listener = () => {
-				if (rotating) return;
-				let seemsPIP = this.seemsPIP()
-				if(seemsPIP != this.inPIP && (!seemsPIP || main.streamer.active || main.streamer.isTuning())) {
-					console.warn('miniplayer change on resize')
-					if(seemsPIP){
-						this.set(seemsPIP)
+		this.pip.isPipModeSupported().then(() => {
+			this.pipSupported = true
+		}).catch((err) => {
+			console.error('PiP not supported:', err)
+			this.pipSupported = false
+		})
+	}
+	setBackgroundModeDefaults(defaults){
+		this.backgroundModeDefaults = defaults || {}
+	}
+	async setBackgroundMode(state, action = false){
+		let BackgroundMode = window.capacitor?.BackgroundMode
+		if(!BackgroundMode){
+			console.warn('BackgroundMode plugin not available')
+			return
+		}
+
+		try {
+			// Check if background mode state has changed
+			let { enabled } = await BackgroundMode.isEnabled()
+			if(state === enabled){
+				console.log(`Background mode already ${state ? 'enabled' : 'disabled'}`)
+				if(action){
+					if(state){
+						await BackgroundMode.moveToBackground()
 					} else {
-						this.observePIPLeave()
+						await BackgroundMode.moveToForeground()
+					}
+				}
+				return
+			}
+
+			// Check notification permission for Android 13+
+			if(state){
+				let { notifications } = await BackgroundMode.checkNotificationsPermission()
+				if(notifications !== 'granted'){
+					let { notifications: result } = await BackgroundMode.requestNotificationsPermission()
+					if(result !== 'granted'){
+						console.warn('Notification permission not granted, cannot enable background mode')
+						return
 					}
 				}
 			}
-			window.addEventListener('resize', listener)
-			screen.orientation.addEventListener('change', listener)
-			this.pip.isPipModeSupported(() => {}, err => {
-				console.error('PiP not supported', err)
-			})
-		}
-	}
-	setBackgroundModeDefaults(defaults){
-		this.backgroundModeDefaults = defaults
-	}
-	setBackgroundMode(state, force){
-		const minInterval = 5, now = (new Date()).getTime() / 1000
-		if(this.setBackgroundModeTimer){
-			clearTimeout(this.setBackgroundModeTimer)
-		}
-		if(force || !this.lastSetBackgroundMode || (now - this.lastSetBackgroundMode) >= minInterval) {
-			if(state !== this.currentBackgroundModeState) {
-				this.lastSetBackgroundMode = now
-				this.currentBackgroundModeState = state
-				if(state) {
-					capacitor.BackgroundMode.enable(this.backgroundModeDefaults)
-				} else {
-					capacitor.BackgroundMode.disable()
+
+			if(state){
+				this.backgroundModeInitiated = true
+				await BackgroundMode.enable(this.backgroundModeDefaults)
+				if(action){
+					await BackgroundMode.moveToBackground()
 				}
+			} else {
+				this.backgroundModeInitiated = false
+				if(action){
+					await BackgroundMode.moveToForeground()
+				}
+				await BackgroundMode.disable()
 			}
-		} else {
-			const delay = ((this.lastSetBackgroundMode + minInterval) - now) * 1000
-			this.setBackgroundModeTimer = setTimeout(() => {
-				this.setBackgroundMode(state, force)
-			}, delay)
+			console.log(`Background mode ${state ? 'enabled' : 'disabled'}`)
+		} catch(err) {
+			console.error(`Failed to set background mode (${state}):`, err)
 		}
 	}
-    prepare(){
-        return new Promise((resolve, reject) => {
-            if(this.pip){
-                if(typeof(this.pipSupported) == 'boolean'){					
-					this.setBackgroundMode(true)
-                    resolve(true)
-                } else {
-                    try {
-                        this.pip.isPipModeSupported(success => {
-							this.pipSupported = success
-                            if(success){
-								this.setBackgroundMode(true)
-                                resolve(true)
-                            } else {
-                                reject('pip mode not supported')
-                            }
-                        }, error => {
-                            console.error(error)
-                            reject('pip not supported: '+ String(error))
-                        })
-                    } catch(e) {
-                        console.error(e)
-                        reject('PIP error: '+ String(e))
-                    } 
-                }
-            } else {
-                reject('PIP unavailable')
-            }
-        })
+    async prepare(){
+		if(!this.pip){
+			throw new Error('PIP unavailable')
+		}
+		if(this.pipSupported === true){
+			await this.setBackgroundMode(true)
+			return true
+		}
+		if(this.pipSupported === false){
+			throw new Error('PIP mode not supported')
+		}
+		try {
+			await this.pip.isPipModeSupported()
+			this.pipSupported = true
+			await this.setBackgroundMode(true)
+			return true
+		} catch(err) {
+			this.pipSupported = false
+			console.error('PIP not supported:', err)
+			throw new Error('PIP error: ' + String(err))
+		} 
     }
 	seemsPIP(){
 		const threshold = 0.65;
-		return window.innerHeight < (screen.height * threshold) && 
-							  window.innerWidth < (screen.width * threshold);
+		return window.innerHeight < (screen.height * threshold) && window.innerWidth < (screen.width * threshold);
 	}
-    enter(){
-        return new Promise((resolve, reject) => {
-			if(!this.enabled){
-				return reject('miniplayer disabled')
+    async enter(){
+		if(!this.enabled){
+			throw new Error('miniplayer disabled')
+		}
+		if(!this.supports()){
+			throw new Error('PIP not supported')
+		}
+		await this.prepare()
+		console.log('ABOUT TO PIP', this.inPIP)
+		let success, m = this.getLimits()
+		try {
+			success = await this.pip.enter({width: m.width, height: m.height})
+			if(success){
+				this.enteredPipTimeMs = Date.now()
+				console.log('enter: '+ String(success))
+				this.set(true)
+				return success
+			} else {
+				console.error('pip.enter() failed to enter PIP mode')	
+				this.set(false)
+				throw new Error('Failed to enter PIP mode')
 			}
-			if(!this.supports()){
-				return reject('not supported')
-			}
-            this.prepare().then(() => {
-				console.warn('ABOUT TO PIP', this.inPIP)
-				let m = this.getLimits()
-                this.pip.enter(m.width, m.height, success => {
-                    if(success){
-						this.enteredPipTimeMs = (new Date()).getTime()
-                        console.log('enter: '+ String(success))
-                        this.set(true)
-                        resolve(success)
-                    } else {
-						console.error('pip.enter() failed to enter pip mode')	
-                        this.set(false)
-                        reject('failed to enter pip mode')
-                    }							
-                }, error => {
-                    this.set(false)
-                    console.error('pip.enter() error', error)
-                    reject(error)
-                })
-            }).catch(reject)
-        })
+		} catch(error){
+			this.set(false)
+			console.error('pip.enter() error:', error)
+			throw error
+		}
     }
 }
 
@@ -420,25 +469,27 @@ export class ElectronWinActions extends WinActionsMiniplayer {
 		this.setup()
     }
 	setup(){
-		if(this.pip){
-			this.pip.minimizeWindow = () => {
-				if(this.pip.miniPlayerActive){	// if already in miniplayer, minimize it				
-					this.pip.prepareLeaveMiniPlayer()
-					parent.api.window.hide()
-					parent.api.window.restore()
-					setTimeout(() => {
-						parent.api.window.show()
-						parent.api.window.minimize()
-					}, 0)
-				} else if(!this.enterIfPlaying()){
-					parent.api.window.minimize()
-				}
-			}
-			this.pip.closeWindow = () => this.exit()
-			this.pip.on('miniplayer-on', () => this.set(true))
-			this.pip.on('miniplayer-off', () => this.set(false))
-			window.addEventListener('resize', () => this.resize(), 150)
+		if(!this.pip){
+			console.warn('Electron Manager not available')
+			return
 		}
+		this.pip.minimizeWindow = () => {
+			if(this.pip.miniPlayerActive){	// if already in miniplayer, minimize it				
+				this.pip.prepareLeaveMiniPlayer()
+				parent.electron.window.hide()
+				parent.electron.window.restore()
+				setTimeout(() => {
+					parent.electron.window.show()
+					parent.electron.window.minimize()
+				}, 0)
+			} else if(!this.enterIfPlaying()){
+				parent.electron.window.minimize()
+			}
+		}
+		this.pip.closeWindow = () => this.exit()
+		this.pip.on('miniplayer-on', () => this.set(true))
+		this.pip.on('miniplayer-off', () => this.set(false))
+		window.addEventListener('resize', () => this.resize(), { passive: true })
 	}
 	resize() {
 		if(this.pip.resizeListenerDisabled !== false) return

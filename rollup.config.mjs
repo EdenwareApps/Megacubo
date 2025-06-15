@@ -10,7 +10,6 @@ import replace from '@rollup/plugin-replace';
 import copy from 'rollup-plugin-copy';
 import { sveltePreprocess } from 'svelte-preprocess';
 import { babel, getBabelOutputPlugin } from '@rollup/plugin-babel';
-import deletePlugin from 'rollup-plugin-delete';
 
 // import config Babel via import ESM
 import babelConfig from './babel.config.json' with { type: 'json' };
@@ -18,7 +17,7 @@ import babelRendererOutput from './babel.renderer-output.json' with { type: 'jso
 import babelRendererPolyfills from './babel.renderer-polyfills.json' with { type: 'json' };
 
 // determines environment
-const baseResolveOpts = { browser: false, preferBuiltins: true };
+const baseResolveOpts = { browser: false, exportConditions: ['node', 'svelte'], preferBuiltins: true };
 
 // common plugins
 const replaceOpts = {
@@ -40,7 +39,7 @@ const rendererPlugins = [
     compilerOptions: { css: 'injected', compatibility: { componentApi: 4 } }
   }),
   babel({ ...babelRendererPolyfills, babelHelpers: 'runtime', extensions: ['.js', '.svelte'], skipPreflightCheck: true }),
-  resolve({ browser: true, exportConditions: ['node','svelte'], extensions: ['.svelte'], preferBuiltins: false }),
+  resolve({ browser: true, exportConditions: ['node', 'svelte', 'import', 'default'], extensions: ['.svelte'], preferBuiltins: false }),
   commonjs({ sourcemap: true }),
   builtins(),
   getBabelOutputPlugin({ ...babelRendererOutput, allowAllFormats: true }),

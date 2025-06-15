@@ -7,7 +7,7 @@ import ExecFinder from 'exec-finder';
 import { prepare } from "./modules/serialize/serialize.js";
 
 function getElectron() {
-    const ret = {}, keys = ['contextBridge', 'webFrame', 'webUtils', 'ipcRenderer', 'getGlobal', 'screen', 'app', 'shell', 'Tray', 'Menu'];
+    const ret = {}, keys = ['clipboard', 'contextBridge', 'webFrame', 'webUtils', 'ipcRenderer', 'getGlobal', 'screen', 'app', 'shell', 'Tray', 'Menu'];
     const extract = electron => {
         keys.forEach(k => {
             if (electron[k])
@@ -23,7 +23,7 @@ function getElectron() {
     return ret;
 }
 
-const { contextBridge, webFrame, webUtils, ipcRenderer, getGlobal, screen, app, shell, Tray, Menu } = getElectron();
+const { clipboard, contextBridge, webFrame, webUtils, ipcRenderer, getGlobal, screen, app, shell, Tray, Menu } = getElectron();
 const paths = getGlobal('paths'), config = getGlobal('config');
 const window = getGlobal('window')
 class FFmpeg {
@@ -281,18 +281,25 @@ const clearCache = () => {
 const showFilePath = file => {
     return webUtils?.getPathForFile ? webUtils.getPathForFile(file) : file.path
 }
+const readClipboard = () => {
+    return clipboard.readText()
+}
+const writeClipboard = text => {
+    return clipboard.writeText(text)
+}
 if (parseFloat(process.versions.electron) < 22) {
-    global.api = {
+    global.electron = {
         platform: process.platform,
         window: windowProxy,
         openExternal: f => shell.openExternal(f),
         screenScaleFactor, externalPlayer, getScreen,
         restart, ffmpeg, paths, tray,
-        getResourceUsage, clearCache, showFilePath
+        getResourceUsage, clearCache, showFilePath,
+        readClipboard, writeClipboard
     };
 } else {
     // On older Electron version (9.1.1) exposing 'require' doesn't works as expected.
-    contextBridge.exposeInMainWorld('api', {
+    contextBridge.exposeInMainWorld('electron', {
         platform: process.platform,
         openExternal: f => shell.openExternal(f),
         window: windowProxy,
@@ -309,6 +316,7 @@ if (parseFloat(process.versions.electron) < 22) {
         ffmpeg,
         paths,
         tray,
-        showFilePath
+        showFilePath,
+        readClipboard, writeClipboard
     });
 }

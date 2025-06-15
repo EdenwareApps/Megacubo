@@ -39,13 +39,13 @@ class MenuBase extends EventEmitter {
                 return ret.value
             }
         }
-        return parent.api.readClipboard()
+        return parent.electron.readClipboard()
     }
     async writeClipboard(text) {
         if (typeof(window.capacitor?.clipboard) === 'function') {
             await window.capacitor.clipboard({value: text})
         } else {
-            parent.api.writeClipboard(text)
+            parent.electron.writeClipboard(text)
         }
     }
 }
@@ -568,6 +568,8 @@ export class Menu extends MenuNav {
         this.emit('updated')
     }
     setupSelect(entries, path, fa) {
+        if (!Array.isArray(entries)) return;
+        let def
         const element = this.wrap.querySelector('[data-path="'+ path.replaceAll('"', '"') +'"]')
         if (element) {
             const icon = element.querySelector('img')
@@ -578,14 +580,19 @@ export class Menu extends MenuNav {
                     if (match) fa = match[1]
                 }
             }
+            def = this.currentEntries[element.tabIndex]?.value
         }
-        if (!Array.isArray(entries)) return;
-        this.dialogs.select(path.split('/').pop(), entries, fa, ret => {
+        if (!def) {
+            def = entries.find(e => e.selected)?.id || entries[0]?.id
+        }
+        this.dialogs.select(path.split('/').pop(), entries, fa, def, ret => {
             if (ret) {
                 const entry = entries.find(e => e.id == ret)
                 if (entry) {
                     main.emit('menu-open', entry.path)
-                    if (element) element.setAttribute('data-default-value', ret)
+                }
+                if (element && this.currentEntries[element.tabIndex] && element.title == this.currentEntries[element.tabIndex].name) {
+                    this.currentEntries[element.tabIndex].value = ret
                 }
             }
             this.lastSelectTriggerer && setTimeout(() => {
@@ -599,16 +606,17 @@ export class Menu extends MenuNav {
         const start = parseInt(element.getAttribute('data-range-start') || 0)
         const end = parseInt(element.getAttribute('data-range-end') || 100)
         const mask = element.getAttribute('data-mask')
-        const def = this.currentEntries[element.tabIndex].value || ''
+        const def = Number(this.currentEntries[element.tabIndex]?.value) || 0
         const fa = element.getAttribute('data-original-icon') || ''
         const question = element.getAttribute('data-question') || element.getAttribute('title')
         const message = element.getAttribute('data-dialog-details')
         this.dialogs.slider(question, message, {start, end}, parseInt(def || 0), mask, value => {
             const i = element.tabIndex
-            if (value !== false) {
+            console.log('slider value', value);
+            if (value !== false && value !== null) {
                 main.emit('menu-input', path, value)
                 if (this.currentEntries[i]) {
-                    this.currentEntries[i].value = value
+                    this.currentEntries[i].value = Number(value)
                     this.prepareEntry(this.currentEntries[i], i)
                 }
                 this.emit('updated')

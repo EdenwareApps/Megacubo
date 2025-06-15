@@ -54,7 +54,6 @@
             document.body.classList.add("dialog");
             if (!main.menu) return;
             const defaultIndex = content.defaultIndex || content.opts[0].id;
-            console.log('content defaultIndex', defaultIndex, document.getElementById(`dialog-template-option-${defaultIndex}`));
             if(defaultIndex && (element=document.getElementById(`dialog-template-option-${defaultIndex}`))) {
                 const key = main.menu.getKey(element);
                 main.menu.lastSelectedKey = key;
@@ -111,12 +110,12 @@
     }
 
     function sendCallback(id, cb, cancel) {
+        console.log('sendCallback', id, cb, cancel);
         if (cancel) id = null;
         if (id === "submit") {
             const input = container.querySelector("input, textarea");
             if (input) id = content.value; // Use content.value for consistency
         }
-        console.log('sendCallback '+ id +' - '+ cb)
         if (typeof cb === "function") {
             cb(id);
         } else if (typeof cb === "string") {
@@ -131,9 +130,12 @@
     // Public functions maintaining the original interface
     export function dialog(entries, cb, defaultIndex, mandatoryParam) {
         console.log("dialog", { entries, cb, defaultIndex, mandatoryParam });
+        let done = false;
         queueDialog(
             { entries, defaultIndex, type: "dialog" },
             (id, cancel) => {
+                if(done) return;
+                done = true;
                 if (cancel) {
                     id = null;
                 }
@@ -166,9 +168,9 @@
         );
     }
 
-    export function select(question, entries, fa, callback) {
-        let def,
-            map = {};
+    export function select(question, entries, fa, def, callback) {
+        let map = {}
+        const selectedIcon = "fas fa-check-circle";
         const opts = [{ template: "question", text: question, fa }];
         opts.push(
             ...entries.map((e) => {
@@ -176,9 +178,10 @@
                 e.text = String(e.name);
                 e.id = e.id || text2id(e.text);
                 map[e.id] = e.text;
-                if (e.selected) {
-                    e.fa = "fas fa-check-circle";
-                    def = e.id;
+                if (def == e.id) {
+                    e.fa = selectedIcon;
+                } else if (e.fa == selectedIcon) {
+                    e.fa = ''
                 }
                 return e;
             })

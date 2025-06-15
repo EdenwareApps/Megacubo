@@ -25,3 +25,6 @@ project(':eoscz-capacitor-plugin-native-file-downloader').projectDir = new File(
 
 include ':capacitor-nodejs'
 project(':capacitor-nodejs').projectDir = new File('../node_modules/capacitor-nodejs/android')
+
+include ':tv.megacubo.pip'
+project(':tv.megacubo.pip').projectDir = new File('../node_modules/tv.megacubo.pip/android')

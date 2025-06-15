@@ -441,11 +441,13 @@ class OptionsExportImport extends OptionsGPU {
         }
         return natts;
     }
-    prepareExportConfigFile(file, atts, keysToExport, cb) {
-        
-        fs.writeFile(file, JSON.stringify(this.prepareExportConfig(atts, keysToExport), null, 3), { encoding: 'utf-8' }, err => {
-            cb(err, file);
-        });
+    async prepareExportConfigFile(file, atts, keysToExport) {
+        const content = JSON.stringify(this.prepareExportConfig(atts, keysToExport), null, 3);
+        if (fs.existsSync(file)) {
+            const existing = await fs.promises.readFile(file, { encoding: 'utf-8' });
+            if (existing == content) return;
+        }
+        await fs.promises.writeFile(file, content, { encoding: 'utf-8' });
     }
     async import(file) {
         if (file.endsWith('.json')) { // is json?            

@@ -3,7 +3,7 @@ import { Menu } from '../../../modules/menu/renderer'
 import { OMNI } from '../../../modules/omni/renderer'
 import { AndroidWinActions, ElectronWinActions} from './window-actions'
 import { Hotkeys } from './hotkeys'
-import { Clock } from './clock'
+import { getFontList } from './font-detector'
 import { css, traceback } from './utils'
 import swipey from 'swipey.js'
 import FFmpegController from '../../../modules/ffmpeg/renderer'
@@ -15,8 +15,8 @@ function openExternalFile(file, mimetype) {
 	console.log('openExternalFile', file);
 	if (window.capacitor) {
 		alert('Cannot open file: ' + file.split('/').pop())
-	} else if (parent.api) { // electron
-		parent.api.openExternal(file)
+	} else if (parent.electron) { // electron
+		parent.electron.openExternal(file)
 	} else {
 		window.open(file, '_system')
 	}
@@ -122,77 +122,6 @@ window.handleOpenURL = url => { // avoid local scoping
 			})
 		}
 	}, 0);
-}
-
-const setupFontDetector = () => {
-    if(typeof(window.isFontAvailable) != 'function'){
-        var width, body = document.body || document.querySelector('body')  
-        var container = document.createElement('span')
-        container.innerHTML = Array(100).join('wi')
-        container.style.cssText = [
-            'position:absolute',
-            'width:auto',
-            'font-size:128px',
-            'left:-99999px'
-        ].join(' !important;')
-        var getWidth = fontFamily => {
-            container.style.fontFamily = fontFamily.split(',').map(f => "'"+ f.trim() +"'").join(',')
-            body.appendChild(container)
-            width = container.clientWidth
-            body.removeChild(container)        
-            return width
-        }
-        // Pre compute the widths of monospace, serif & sans-serif
-        // to improve performance.
-        var monoWidth  = getWidth('monospace')
-        var serifWidth = getWidth('serif')
-        var sansWidth  = getWidth('sans-serif')  
-        window.isFontAvailable = font => {
-          return monoWidth !== getWidth(font + ',monospace') ||
-            sansWidth !== getWidth(font + ',sans-serif') ||
-            serifWidth !== getWidth(font + ',serif');
-        }
-    }
-}
-
-const getFontList = () => {
-    setupFontDetector()
-    return [
-        '-apple-system',
-        'Arial',
-        'BlinkMacSystemFont', 
-        'Calibri',
-        'Cantarell', 
-        'Century Gothic',
-        'Comic Sans',
-        'Consolas',
-        'Courier',
-        'Dejavu Sans',
-        'Dejavu Serif',
-        'Futura',
-        'Georgia',
-        'Gill Sans',
-        'Gotham',
-        'Helvetica',
-        'Helvetica Neue', 
-        'Impact',
-        'Lato',
-        'Lucida Sans',
-        'Myriad Pro',
-        'Netflix Sans',
-        'Open Sans',
-        'Oxygen-Sans', 
-        'Palatino',
-        'Roboto',
-        'Segoe UI', 
-        'sans-serif',
-        'Tahoma',
-        'Times New Roman',
-        'Trebuchet',
-        'Ubuntu', 
-        'Verdana',
-        'Zapfino'
-    ].filter(isFontAvailable)
 }
 
 export const initApp = async () => {
@@ -360,32 +289,6 @@ export const initApp = async () => {
         });
 
         if (window.capacitor) {
-            winActions.setBackgroundMode(true) // enable once at startup to prevent service not registered crash
-            window.capacitor.BackgroundMode.checkNotificationsPermission().then(result => {
-                console.log('Notifications permission check result', result)
-                if (!result.enabled) {
-                    window.capacitor.BackgroundMode.requestNotificationsPermission().then(result => {
-                        console.log('Notifications permission request result', result)
-                    }).catch(err => {
-                        console.error('Notifications permission request error', err)
-                    })
-                }
-            }).catch(err => {
-                console.error('Notifications permission check error', err)
-            })
-            window.capacitor.BackgroundMode.checkBatteryOptimizations().then(result => {
-                console.log('Battery optimizations check result', result)
-                if (result.enabled) {
-                    window.capacitor.BackgroundMode.requestDisableBatteryOptimizations().then(result => {
-                        console.log('Battery optimizations request result', result)
-                    }).catch(err => {
-                        console.error('Battery optimizations request error', err)
-                    })
-                }
-            }).catch(err => {
-                console.error('Battery optimizations check error', err)
-            })            
-            setTimeout(() => winActions.setBackgroundMode(false), 5000)
             winActions.setBackgroundModeDefaults({
                 title: document.title,
                 text: main.lang.RUNNING_IN_BACKGROUND || '...',
@@ -397,6 +300,8 @@ export const initApp = async () => {
                 allowClose: true,
                 closeTitle: main.lang.CLOSE || 'X'
             })
+            winActions.setBackgroundMode(true) // enable once at startup to prevent service not registered crash
+            setTimeout(() => winActions.setBackgroundMode(false), 5000)
         } else {
             document.body.addEventListener('dblclick', event => {
                 const valid = event.clientY < (window.innerHeight / 10)

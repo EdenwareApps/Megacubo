@@ -1,4 +1,4 @@
-var ffmpeg = api.ffmpeg
+var ffmpeg = electron.ffmpeg
 
 class ExitPage {
 	constructor(){
@@ -27,7 +27,7 @@ class ExitPage {
 		this.set('last-open', this.time())
 	}
 	open(){
-		this.allow() && api.openExternal(this.url)
+		this.allow() && electron.openExternal(this.url)
 	}
 	get(key){
 		return localStorage.getItem(key)
@@ -42,14 +42,14 @@ class ExternalPlayer {
 	setContext(context) {
 		this.context = context
 		this.context.main.on('get-external-players', async () => {
-			const results = await api.externalPlayer.available()
+			const results = await electron.externalPlayer.available()
 			this.context.main.emit('external-players', results)
 		})
 	}
 	async play(url) {
 		this.context.streamer.castUIStart()
 		if(!url) url = this.context.streamer.data.url
-		const availables = await api.externalPlayer.available()
+		const availables = await electron.externalPlayer.available()
 		const chosen = await this.ask(availables)
 		if(!chosen || !availables[chosen]) {
 			this.context.main.osd.hide('casting')
@@ -69,7 +69,7 @@ class ExternalPlayer {
 		} else {
 			exit()
 		}
-		api.externalPlayer.play(url, chosen)
+		electron.externalPlayer.play(url, chosen)
 		return true
 	}
 	ask(players) {
@@ -105,7 +105,7 @@ class WindowManagerCommon {
 		this.miniPlayerRightMargin = 18
 		this.initialSize = this.getDefaultWindowSize(true)
 		this.initialSizeUnscaled = this.screenScale(this.initialSize, true)
-		api.window.setSize(...this.initialSizeUnscaled, false)
+		electron.window.setSize(...this.initialSizeUnscaled, false)
 		this.centralizeWindow(...this.initialSizeUnscaled)
 		this.exitPage = new ExitPage()
 		this.externalPlayer = new ExternalPlayer()
@@ -117,7 +117,7 @@ class WindowManagerCommon {
 			frameTheme: './assets/custom-frame/custom-frame-theme.css',
 			frameIconSize: 21,
 			size: 30,
-			win: api.window,
+			win: electron.window,
 			details: {
 				title: 'Megacubo',
 				icon: './default_icon.png'
@@ -134,9 +134,9 @@ class WindowManagerCommon {
 		if(Array.isArray(v)){
 			return v.map(r => this.screenScale(r, reverse))
 		} else if(reverse) {
-			return Math.round(v / api.screenScaleFactor)
+			return Math.round(v / electron.screenScaleFactor)
 		} else {
-			return Math.round(v * api.screenScaleFactor)
+			return Math.round(v * electron.screenScaleFactor)
 		}
 	}
 	getDefaultWindowSize(real){
@@ -172,10 +172,10 @@ class WindowManagerCommon {
 				})
 			}
 		}
-		if(api.tray.active){
-			api.tray.restoreFromTray()
+		if(electron.tray.active){
+			electron.tray.restoreFromTray()
 		}
-		api.window.focus()
+		electron.window.focus()
 	}
 	openFile(accepts, cb){
 		if(!this.openFileDialogChooser){ // JIT
@@ -194,7 +194,7 @@ class WindowManagerCommon {
 			if(this.openFileDialogChooser.value){
 				const file = [...evt.target.files].shift()
 				try {
-					cb(null, api.showFilePath(file))
+					cb(null, electron.showFilePath(file))
 				} catch(e) {
 					cb('Bad file selected')
 				}
@@ -333,15 +333,15 @@ class WindowManager extends WindowManagerCommon {
 		let appStarted
 		this.fsapiLastState = this.fsapi = false
 		this.on('miniplayer-on', () => {
-			api.tray.setShowInTaskbar(false)
+			electron.tray.setShowInTaskbar(false)
 			this.fixMaximizeButton()
-			api.window.show()
+			electron.window.show()
 			appStarted && this.app.main.streamer.emit('miniplayer-on')
 			this.exitPage.open()
 		})
 		this.on('miniplayer-off', () => {
-			api.window.setAlwaysOnTop(false)
-			api.tray.setShowInTaskbar(true)
+			electron.window.setAlwaysOnTop(false)
+			electron.tray.setShowInTaskbar(true)
 			this.fixMaximizeButton()
 			appStarted && this.app.main.streamer.emit('miniplayer-off')
 		})
@@ -362,13 +362,13 @@ class WindowManager extends WindowManagerCommon {
 		})
 	}
 	getScreenSize(real){
-		const s = api.getScreen() || window.screen
+		const s = electron.getScreen() || window.screen
 		let {width, height, availWidth, availHeight} = s
-		if(real && api.screenScaleFactor){
-			width *= api.screenScaleFactor
-			height *= api.screenScaleFactor
-			availWidth *= api.screenScaleFactor
-			availHeight *= api.screenScaleFactor
+		if(real && electron.screenScaleFactor){
+			width *= electron.screenScaleFactor
+			height *= electron.screenScaleFactor
+			availWidth *= electron.screenScaleFactor
+			availHeight *= electron.screenScaleFactor
 		}
 		return {width, height, availWidth, availHeight}
 	}
@@ -403,7 +403,7 @@ class WindowManager extends WindowManagerCommon {
 				}
 			}
 		} else {
-			api.window.setFullScreen(enterFullscreen)
+			electron.window.setFullScreen(enterFullscreen)
 		}
 		if(enterFullscreen){
 			if(this.app){
@@ -422,15 +422,15 @@ class WindowManager extends WindowManagerCommon {
 				this.app.main.osd.hide('esc-to-exit')
 			}
 		}
-		api.window.show()
+		electron.window.show()
 		if(!this.cfHeader) this.cfHeader = document.querySelector('.cf')
 		this.cfHeader.style.display = enterFullscreen ? 'none' : 'block';
 		setTimeout(() => {
-			// if(enterFullscreen) api.window.blur()
+			// if(enterFullscreen) electron.window.blur()
 			this.updateTitlebarHeight()
 			this.fixMaximizeButton()
-			api.window.setAlwaysOnTop(enterFullscreen || this.miniPlayerActive)
-			api.window.focus()
+			electron.window.setAlwaysOnTop(enterFullscreen || this.miniPlayerActive)
+			electron.window.focus()
 		}, 400)
 	}
 	restore(){
@@ -439,11 +439,11 @@ class WindowManager extends WindowManagerCommon {
 			this.setFullScreen(false)
 		} else if(this.miniPlayerActive) {
 			this.leaveMiniPlayer()
-		} else if(api.window.isMaximized()) {
-			api.window.restore()
+		} else if(electron.window.isMaximized()) {
+			electron.window.restore()
 			const size = this.restoreSize || this.initialSize
 			console.warn('restore()', size)
-			api.window.setSize(size[0], size[1], false)
+			electron.window.setSize(size[0], size[1], false)
 			this.centralizeWindow.apply(this, size)
 		}
 		this.showMaximizeButton()
@@ -451,37 +451,37 @@ class WindowManager extends WindowManagerCommon {
 	centralizeWindow(w, h){
 		var s = this.getScreenSize(false), x = Math.round((s.availWidth - (w || window.outerWidth)) / 2)
 		var y = Math.round((s.availHeight - (h || window.outerHeight)) / 2)
-		api.window.setPosition(x, y, false)
+		electron.window.setPosition(x, y, false)
 	}
 	enterMiniPlayer(w, h){
 		console.warn('enterminiPlayer', w, h)
 		this.miniPlayerActive = true
 		this.emit('miniplayer-on')
 		let scr = this.getScreenSize()
-		const ww = (w + this.miniPlayerRightMargin) // * api.screenScaleFactor
+		const ww = (w + this.miniPlayerRightMargin) // * electron.screenScaleFactor
 		const args = [scr.availWidth - ww, scr.availHeight - h].map(n => parseInt(n))
 		console.warn('enterMiniPlayer', args, {scr, w, h}, scr.availWidth - ww, scr.availHeight - h)
-		api.window.setPosition(...args, false)
-		api.window.setSize(parseInt(w), parseInt(h), true)
+		electron.window.setPosition(...args, false)
+		electron.window.setSize(parseInt(w), parseInt(h), true)
 	}
 	prepareLeaveMiniPlayer(){
 		console.warn('prepareLeaveMiniPlayer')
 		this.miniPlayerActive = false
-		api.window.setAlwaysOnTop(false)
+		electron.window.setAlwaysOnTop(false)
 		this.emit('miniplayer-off')
 	}
 	leaveMiniPlayer(){
 		console.warn('leaveMiniPlayer')
 		this.prepareLeaveMiniPlayer()
-		api.window.setSize(...this.initialSizeUnscaled, false)
+		electron.window.setSize(...this.initialSizeUnscaled, false)
 		this.centralizeWindow(...this.initialSizeUnscaled)
 	}
 	size(){
-		const [width, height] = api.window.getSize()
+		const [width, height] = electron.window.getSize()
 		return {width, height}
 	}
 	isMaximized(){
-		const position = api.window.getPosition()
+		const position = electron.window.getPosition()
 		if(position.some(v => v > 0)) return false
 		var w = window, widthMargin = 6, heightMargin = 6, scr = this.getScreenSize()
 		return (w.outerWidth >= (scr.availWidth - widthMargin) && w.outerHeight >= (scr.availHeight - heightMargin))
@@ -492,20 +492,20 @@ class WindowManager extends WindowManagerCommon {
 				const ret = this.size()
 				ret && ret.width && (this.restoreSize = Object.values(ret))
 			}
-			api.window.maximize()
+			electron.window.maximize()
 			this.showRestoreButton()
 		}
 	}
 	minimizeWindow(){		
 		this.resizeListenerDisabled = true
-		api.window.show()
-		api.window.minimize()
+		electron.window.show()
+		electron.window.minimize()
 		setTimeout(() => {
 			this.resizeListenerDisabled = false
 		}, 500)
 	}
 	close(){
 		this.exitPage.open()
-		api.window.close()
+		electron.window.close()
 	}
 }

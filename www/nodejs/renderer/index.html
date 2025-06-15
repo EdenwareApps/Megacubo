@@ -156,7 +156,7 @@
                 alert(msg);
                 window.open(playStoreUrl, '_system')
             }
-			if (!window.top.api /* electron */ && !isUACompatible() /* capacitor */) {
+			if (!window.top.electron /* electron */ && !isUACompatible() /* capacitor */) {
 			    updateWebView()
                 document.documentElement.onclick = function () {
                     window.open('https://play.google.com/store/apps/details?id=com.google.android.webview', '_system')
