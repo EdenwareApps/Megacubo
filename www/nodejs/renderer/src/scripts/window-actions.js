@@ -366,12 +366,8 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 			let { enabled } = await BackgroundMode.isEnabled()
 			if(state === enabled){
 				console.log(`Background mode already ${state ? 'enabled' : 'disabled'}`)
-				if(action){
-					if(state){
-						await BackgroundMode.moveToBackground()
-					} else {
-						await BackgroundMode.moveToForeground()
-					}
+				if(action && state){
+					await BackgroundMode.moveToBackground()
 				}
 				return
 			}
@@ -396,9 +392,6 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 				}
 			} else {
 				this.backgroundModeInitiated = false
-				if(action){
-					await BackgroundMode.moveToForeground()
-				}
 				await BackgroundMode.disable()
 			}
 			console.log(`Background mode ${state ? 'enabled' : 'disabled'}`)

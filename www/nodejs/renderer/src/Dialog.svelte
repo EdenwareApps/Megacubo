@@ -110,7 +110,6 @@
     }
 
     function sendCallback(id, cb, cancel) {
-        console.log('sendCallback', id, cb, cancel);
         if (cancel) id = null;
         if (id === "submit") {
             const input = container.querySelector("input, textarea");
@@ -127,7 +126,6 @@
         end(); // Close dialog after any button click
     }
 
-    // Public functions maintaining the original interface
     export function dialog(entries, cb, defaultIndex, mandatoryParam) {
         console.log("dialog", { entries, cb, defaultIndex, mandatoryParam });
         let done = false;
@@ -334,7 +332,7 @@
                         role="button"
                         onmousedown={(e) => e.stopPropagation()}
                     >
-                        <div style="overflow: auto;">
+                        <div class="dialog-template-entries">
                             {#each content.entries as entry}
                                 {#if entry.template === "question"}
                                     <span class="dialog-template-question">
@@ -399,7 +397,6 @@
                                 {/if}
                             {/each}
                         </div>
-
                         <div class="dialog-template-options {content.opts.length == 2 || content.opts.length > 3 ? 'two-columns' : ''} {content.entries && content.entries.findLastIndex(e => e.template.startsWith('text')) == (content.entries.length - 1) ? 'sharp-top' : ''}">
                             {#each content.opts as option}
                                 {#if option.template === "option" || option.template === "option-detailed"}
@@ -591,11 +588,15 @@
     .dialog-template-question {
         width: 100%;
         display: flex;
-        min-height: 7vh;
+        min-height: 5vh;
         align-items: center;
         box-sizing: border-box;
         font-size: var(--menu-entry-name-font-size);
         max-width: var(--menu-dialog-option-min-width);
+    }
+    .dialog-template-entries {
+        overflow: auto;
+        min-height: 4vh;        
     }
     body.portrait .dialog-template-slider,
     body.portrait .dialog-template-option,
