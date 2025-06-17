@@ -513,8 +513,11 @@ class ChannelsEditing extends ChannelsEPG {
                             return t
                         }, action: async (entry, val) => {
                             const category = _category;
+                            if (!category || category == '__proto__' || category == 'constructor' || category == 'prototype') {
+                                return console.error('Invalid category name:', category);
+                            }
                             if (!this.channelList.categories[category])
-                                return console.error('Category not found');
+                                return console.error('Category not found:', category);
                             let i = -1;
                             this.channelList.categories[category].some((n, j) => {
                                 if (n.substr(0, name.length) == name) {

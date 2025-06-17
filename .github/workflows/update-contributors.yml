@@ -3,6 +3,9 @@ name: Add All Contributors
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   update-contributors:
     runs-on: ubuntu-latest

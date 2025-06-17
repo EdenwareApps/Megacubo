@@ -483,7 +483,8 @@ class IconServer extends IconServerStore {
                     response.end();
                     return;
                 }
-                let key = req.url.split('/').pop(), send = file => {
+                const key = req.url.split('/').pop()
+                const send = file => {
                     if (file) {
                         if (this.opts.debug) {
                             console.log('get() resolved', file);
@@ -511,7 +512,7 @@ class IconServer extends IconServerStore {
                         }, req));
                         response.end();
                     }
-                };
+                }
                 if (this.opts.debug) {
                     console.log('serving', req.url, key);
                 }
@@ -524,7 +525,7 @@ class IconServer extends IconServerStore {
                         'Connection': 'close',
                         'Cache-Control': 'max-age=0, no-cache, no-store'
                     }, req));
-                    response.end(err);
+                    response.end();
                 };
                 if (this.isHashKey(key)) {
                     this.checkCache(key).then(send).catch(onerr);

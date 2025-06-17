@@ -152,7 +152,7 @@ class Diagnostics extends EventEmitter {
                     if (err) {
                         return reject('checkMemory err:' + String(err))
                     }
-                    const freePages = stdout.match(new RegExp('Pages free:\s+([0-9]+)'))
+                    const freePages = stdout.match(new RegExp('Pages free:\\s+([0-9]+)'))
                     if (freePages && freePages.length > 1) {
                         const pageSize = 4096
                         resolve(parseInt(freePages[1]) * pageSize)

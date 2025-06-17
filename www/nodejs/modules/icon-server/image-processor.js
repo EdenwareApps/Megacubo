@@ -2,6 +2,7 @@ import fs from 'fs'
 import renderer from '../bridge/bridge.js'
 import downloads from '../downloads/downloads.js';
 import { temp } from '../paths/paths.js'
+import { randomBytes } from 'node:crypto'
 
 async function saveBase64Image(dataUrl, outputFilePath) {
     const base64Data = dataUrl.replace(/^data:image\/\w+;base64,/, "")
@@ -12,7 +13,7 @@ async function saveBase64Image(dataUrl, outputFilePath) {
 const imp = {}
 for (const method of ['transform', 'colors', 'resize']) {
     imp[method] = async (...args) => {
-        const uid = Math.random().toString(36).slice(2)
+        const uid = randomBytes(9).toString('hex')
         const file = args[0]
         await Promise.allSettled([
             downloads.serve(args[0]).then(a => args[0] = a),

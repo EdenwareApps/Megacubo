@@ -8,10 +8,10 @@ export const regexes = {
     'between-brackets': new RegExp('\\[[^\\]]*\\]', 'g'),
     'accents': new RegExp('[\\u0300-\\u036f]', 'g'),
     'plus-signal': new RegExp('\\+', 'g'),
-    'hyphen': new RegExp('\\-', 'g'),
-    'hyphen-not-modifier': new RegExp('(.)\\-', 'g'),
+    'hyphen': new RegExp('-', 'g'),
+    'hyphen-not-modifier': new RegExp('(.)-', 'g'),
     'spaces': new RegExp(' {2,}', 'g'),
-    'type-playlist': new RegExp('type[\s\'"]*=[\s\'"]*playlist[\s\'"]*'),
+    'type-playlist': new RegExp('type[\\s\'"]*=[\\s\'"]*playlist[\\s\'"]*'),
     'strip-query-string': new RegExp('\\?.*$'),
     'strip-proto': new RegExp('^[a-z]*://'),
     'm3u-url-params': new RegExp('.*\\|[A-Za-z0-9\\-]*=')
@@ -78,7 +78,7 @@ export class Parser extends EventEmitter {
     }
     generateAttrMapRegex(attrs) {
         return new RegExp('(' +
-            Object.keys(attrs).join('|').replace(new RegExp('-', 'g'), '\\-') +
+            Object.keys(attrs).join('|').replace(new RegExp('-', 'g'), '-') +
             ')\\s*=\\s*"([^\r\n"]+)', // always between DOUBLE quotes?!
         'g');
     }

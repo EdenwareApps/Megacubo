@@ -36,6 +36,7 @@
     "@capacitor/core": "^7.0.0",
     "@capacitor/keyboard": "^7.0.0",
     "@capacitor/share": "^7.0.0",
+    "@distube/ytdl-core": "^4.16.12",
     "@electron/remote": "^2.1.2",
     "@eoscz/capacitor-plugin-native-file-downloader": "github:EdenwareApps/capacitor-plugin-native-file-downloader#b27b60a10b6c4b04f0d455aad1f3fa4961d58940",
     "adm-zip": "github:EdenwareApps/adm-zip",
@@ -84,7 +85,6 @@
     "tv.megacubo.player": "github:EdenwareApps/tv.megacubo.player",
     "undici": "^6.21.2",
     "xmltv-stream": "^0.4.2",
-    "ytdl-core": "github:EdenwareApps/ytdl-core",
     "ytsr": "^3.8.4"
   },
   "devDependencies": {

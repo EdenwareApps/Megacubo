@@ -14,7 +14,6 @@ class ConnRacing extends EventEmitter {
         this.racingEnded = false
         this.processedCount = 0
         this.triggerInterval = opts.triggerInterval || 0
-        this.uid = Math.floor(Math.random() * 1e11)
         this.exitListener = () => this.destroy()
         process.on('exit', this.exitListener)
         this.start().catch(err => console.error(err))

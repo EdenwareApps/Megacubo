@@ -1,16 +1,16 @@
 import Download from '../../download/download.js'
-import StreamerHLSIntent from "./hls.js";
-import ytdl from "ytdl-core";
-import StreamerProxy from "../utils/proxy.js";
-import StreamerHLSProxy from "../utils/proxy-hls.js";
-import downloads from "../../downloads/downloads.js";
-import fs from "fs";
-import config from "../../config/config.js"
-import paths from "../../paths/paths.js";
-import { ext, getDomain } from "../../utils/utils.js";
+import StreamerHLSIntent from './hls.js';
+import ytdl from '@distube/ytdl-core';
+import StreamerProxy from '../utils/proxy.js';
+import StreamerHLSProxy from '../utils/proxy-hls.js';
+import downloads from '../../downloads/downloads.js';
+import fs from 'fs';
+import config from '../../config/config.js'
+import paths from '../../paths/paths.js';
+import { getDomain } from '../../utils/utils.js';
 
-const YTDomainRegex = new RegExp('youtube\.com|youtu\.be');
-const YTIDRegex = new RegExp('(v=|/v/|/embed/|\.be/)([A-Za-z0-9\-_]+)');
+const YTDomainRegex = new RegExp('^(youtu\\.be|youtube\\.com|[a-z]{1,6}\\.youtube\\.com)$');
+const YTIDRegex = new RegExp('(v=|/v/|/embed/|/shorts/|\.be/)([A-Za-z0-9\-_]+)');
 
 class StreamerYTHLSIntent extends StreamerHLSIntent {
     constructor(data, opts, info) {
@@ -178,7 +178,6 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
 }
 
 StreamerYTHLSIntent.mediaType = 'live';
-StreamerYTHLSIntent.supports = info => 
-    YTDomainRegex.test(getDomain(info.url));
+StreamerYTHLSIntent.supports = info => YTDomainRegex.test(getDomain(info.url));
 
 export default StreamerYTHLSIntent;

@@ -507,7 +507,7 @@ class StreamerTracks extends StreamerThrottling {
         let ret = await global.menu.dialog(opts, activeTrackId);
         console.warn('TRACK OPTS RET', ret, opts);
         if (ret) {
-            const n = ret.replace(new RegExp('^track\\-'), '');
+            const n = ret.replace(new RegExp('^track-'), '');
             this.active.audioTrack = n;
             renderer.ui.emit('streamer-audio-track', n);
         }
@@ -531,7 +531,7 @@ class StreamerTracks extends StreamerThrottling {
         if (ret == 'search') {
             await this.showSearchSubtitleTrackSelector();
         } else if (ret) {
-            const n = ret.replace(new RegExp('^track\\-'), '');
+            const n = ret.replace(new RegExp('^track-'), '');
             this.active.subtitleTrack = n;
             renderer.ui.emit('streamer-subtitle-track', n);
             config.set('subtitles', ret != '-1');

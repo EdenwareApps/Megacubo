@@ -144,6 +144,12 @@ class Downloads extends EventEmitter {
                     });
                     download.start();
                 } else {
+                    pathname = fs.realpathSync(path.resolve(paths.cwd, pathname))
+                    if (!pathname.startsWith(paths.cwd)) {
+                        res.statusCode = 403;
+                        res.end();
+                        return;
+                    }
                     fs.stat(pathname, (err, stat) => {
                         if (err) {
                             res.statusCode = 404;

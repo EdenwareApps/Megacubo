@@ -91,7 +91,8 @@ class Subtitles extends EventEmitter {
                 const file_id = parsedUrl.searchParams.get('id');
                 const fail = err => {
                     response.writeHead(500, resHeaders);
-                    response.write(String(err));
+                    console.error('Subtitles server error', err);
+                    response.write('Subtitles server error');
                     response.end();
                 };
                 if (file_id) {
@@ -137,7 +138,7 @@ class Subtitles extends EventEmitter {
     }
     language() {
         let langCode;
-        const matched = lang.languageHint.match(new RegExp(lang.locale + '\-[A-Z]{2}'));
+        const matched = lang.languageHint.match(new RegExp(lang.locale +'-[A-Z]{2}'));
         if (matched && matched.length) {
             langCode = matched[0];
         } else {

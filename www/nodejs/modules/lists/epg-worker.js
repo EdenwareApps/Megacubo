@@ -2,7 +2,7 @@ import fs from 'fs'
 import zlib from 'zlib'
 import pLimit from 'p-limit'
 import Download from '../download/download.js'
-import config from '../config/config.js'
+import { randomBytes } from 'node:crypto'
 import listsTools from '../lists/tools.js'
 import setupUtils from '../multi-worker/utils.js'
 import Mag from './mag.js'
@@ -489,7 +489,7 @@ class EPG extends EPGUpdater {
         super(url, trias)
         this.url = url
         this.file = storage.resolve('epg-'+ url)
-        this.tmpFile = storage.resolve('epg-'+ url) +'-'+ Math.random().toString(36).substring(7)
+        this.tmpFile = storage.resolve('epg-'+ url) +'-'+ randomBytes(7).toString('hex')
         this.debug = false
         this.errorCount = 0
         this.errorCountLimit = 3

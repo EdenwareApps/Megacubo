@@ -123,6 +123,9 @@ class StreamState extends EventEmitter {
                     this.data[url] = {};
                 }
                 Object.keys(atts).forEach(k => {
+                    if (k == 'constructor' || k == 'prototype' || k == '__proto__') {
+                        return;
+                    }
                     if (['position', 'duration'].includes(k)) {
                         const reset = k == 'position' && this.data[url] && this.data[url][k] && this.data[url][k] > (this.data[url].duration - 30); // user will watch again
                         if (!this.data[url][k] || reset || this.data[url][k] < atts[k]) {

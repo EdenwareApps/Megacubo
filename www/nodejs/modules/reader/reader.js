@@ -1,5 +1,6 @@
 import stream from "stream";
 import fs from "fs";
+
 // wrapper around fs.createReadStream to prevent fatal errors when file is deleted before opening
 const { Readable } = stream;
 class Reader extends Readable {
@@ -85,26 +86,12 @@ class Reader extends Readable {
             });
         });
     }
-    openFile() {
-        try {            
-            fs.access(this.file, fs.constants.R_OK, (err) => {
-                if (err) {
-                    console.error('Failed to access file:', err);
-                    this.emitError(err);
-                } else {
-                    fs.open(this.file, 'r', (err, fd) => {
-                        if (err) {
-                            console.error('Failed to open file:', err);
-                            this.emitError(err);
-                        } else {
-                            this.fd = fd;
-                            this.emit('open');
-                        }
-                    });
-                }
-            });
-        }
-        catch (err) {
+    async openFile() {
+        try {
+            this.fileHandle = await fs.promises.open(this.file, 'r');
+            this.fd = this.fileHandle.fd;
+            this.emit('open')
+        } catch (err) {
             console.error('Error opening file:', err);
             this.emitError(err);
         }
@@ -125,13 +112,18 @@ class Reader extends Readable {
                 this.destroy()
             }
             if (this.fd !== null) {            
-                fs.close(this.fd, err => {
+                this.fileHandle.close().then(err => {
                     if (err) {
                         console.error('Failed to close Reader file descriptor: ' + err)
                     }
                     done()
+                }).catch(err => {
+                    console.error('Failed to close Reader file descriptor: ' + err)
+                    done()
+                }).finally(() => {
+                    this.fd = null
+                    this.fileHandle = null
                 })
-                this.fd = null
             } else {
                 done()
             }

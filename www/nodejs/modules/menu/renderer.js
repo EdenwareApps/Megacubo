@@ -569,18 +569,22 @@ export class Menu extends MenuNav {
     }
     setupSelect(entries, path, fa) {
         if (!Array.isArray(entries)) return;
-        let def
-        const element = this.wrap.querySelector('[data-path="'+ path.replaceAll('"', '"') +'"]')
-        if (element) {
-            const icon = element.querySelector('img')
-            if (icon) {
-                const src = window.getComputedStyle(icon).getPropertyValue('background-image')
-                if (src) {
-                    const match = src.match(new RegExp('url\\([\'"]*([^\\)\'"]*)', 'i'))
-                    if (match) fa = match[1]
+        let def, element
+        try {
+            element = this.wrap.querySelector('[data-path="'+ path +'"]')
+            if (element) {
+                const icon = element.querySelector('img')
+                if (icon) {
+                    const src = window.getComputedStyle(icon).getPropertyValue('background-image')
+                    if (src) {
+                        const match = src.match(new RegExp('url\\([\'"]*([^\\)\'"]*)', 'i'))
+                        if (match) fa = match[1]
+                    }
                 }
+                def = this.currentEntries[element.tabIndex]?.value
             }
-            def = this.currentEntries[element.tabIndex]?.value
+        } catch (e) {
+            console.error('Error setting up select', e);
         }
         if (!def) {
             def = entries.find(e => e.selected)?.id || entries[0]?.id
@@ -740,7 +744,7 @@ export class Menu extends MenuNav {
         } else {
             if (e.cover) e.cover = false
             if (e.wrapperClass.includes('entry-cover-active')) {
-                e.wrapperClass = e.wrapperClass.replace(new RegExp(' *entry\-cover\-active *', 'g'), ' ')
+                e.wrapperClass = e.wrapperClass.replace(new RegExp(' *entry-cover-active *', 'g'), ' ')
             }
         }
         if (typeof(e.prepend) != 'string') e.prepend = ''

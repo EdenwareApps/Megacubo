@@ -55,7 +55,7 @@ class OMNI extends EventEmitter {
             if (info.sample) {
                 const sample = String(info.sample).substr(0, 128).toUpperCase()
                 const isM3U = sample.includes('#EXTM3U')
-                const isM3U8 = sample.match(new RegExp('#EXT\-X\-(TARGETDURATION|MEDIA\-SEQUENCE)'))
+                const isM3U8 = sample.match(new RegExp('#EXT-X-(TARGETDURATION|MEDIA-SEQUENCE)'))
                 const hasStreamNames = sample.match(new RegExp('#EXTINF:.+,.*[A-Z]+'))
                 if (isM3U && !isM3U8 && hasStreamNames) {
                     osd.hide('omni')

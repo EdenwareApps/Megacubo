@@ -354,7 +354,7 @@ StreamerBaseIntent.isVODM3U8 = (content, contentLength, headers) => {
     let sample = String(content).toLowerCase()
     if (sample.match(new RegExp('ext-x-playlist-type: *(vod|event)')))
         return true
-    if (sample.includes('#ext-x-media-sequence') && !sample.match(new RegExp('#ext\-x\-media\-sequence:[0-1][^0-9]')))
+    if (sample.includes('#ext-x-media-sequence') && !sample.match(new RegExp('#ext-x-media-sequence:[0-1][^0-9]')))
         return false
     if (headers) {
         if (headers['last-modified']) {

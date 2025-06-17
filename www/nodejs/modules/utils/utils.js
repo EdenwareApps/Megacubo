@@ -248,6 +248,17 @@ export const forwardSlashes = path => {
     }
     return path;
 }
+export const isUnderRootAsync = async (path, root) => {
+    path = await fs.promises.realpath(path)
+    return forwardSlashes(path).startsWith(forwardSlashes(root))
+}
+export const isUnderRoot = (path, root) => {
+    if (typeof(path) != 'string' || typeof(root) != 'string') {
+        return false
+    }
+    path = fs.realpathSync(path)
+    return forwardSlashes(path).startsWith(forwardSlashes(root))
+}
 export const getDomain = (u, includePort) => {
     let d = u;
     if (u && u.includes('//')) {
@@ -278,10 +289,11 @@ export const isLocal = file => {
 export const isYT = (url) => {
     if (url.includes('youtu')) {
         const d = getDomain(url)
-        if (d.includes('youtube.com') || d.includes('youtu.be')) {
+        if (d == 'youtube.com' || d == 'youtu.be' || d.endsWith('.youtube.com')) {
             return true
         }
     }
+    return false
 }
 export const basename = (str, rqs) => {
     str = String(str);
@@ -503,7 +515,7 @@ export const listNameFromURL = url => {
         });
     }
     if (!name && url.includes('@')) {
-        const m = url.match(new RegExp('//([^:]+):[^@]+@([^/#]+)'));
+        const m = url.match(new RegExp('//([^:@/]+):([^@]+)@([^/#]+)'));
         if (m) {
             name = m[2] + ' ' + m[1];
         }

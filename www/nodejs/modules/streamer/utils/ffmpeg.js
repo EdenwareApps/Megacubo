@@ -11,7 +11,7 @@ import ffmpeg from "../../ffmpeg/ffmpeg.js";
 import Downloader from "./downloader.js";
 import config from "../../config/config.js"
 import paths from '../../paths/paths.js'
-import { ext, forwardSlashes, prepareCORS, rmdir } from '../../utils/utils.js'
+import { ext, forwardSlashes, isUnderRootAsync, prepareCORS, rmdir } from '../../utils/utils.js'
 
 class StreamerFFmpeg extends EventEmitter {
     constructor(source, opts) {
@@ -85,11 +85,14 @@ class StreamerFFmpeg extends EventEmitter {
             }
         });
     }
-    waitFile(file, timeout, m3u8Verify) {
+    async waitFile(file, timeout, m3u8Verify) {
+        if (!file) {
+            throw new Error('no file specified');
+        }
+        if (!await isUnderRootAsync(file, this.opts.workDir)) {
+            throw new Error('File is not under root');
+        }
         return new Promise((resolve, reject) => {
-            if (!file) {
-                return reject('no file specified');
-            }
             let finished, watcher, timer = 0;
             const s = (Date.now() / 1000);
             const dir = path.dirname(file), basename = path.basename(file);
@@ -211,37 +214,30 @@ class StreamerFFmpeg extends EventEmitter {
         }
         return url;
     }
-    prepareFile(file) {
-        return new Promise((resolve, reject) => {
-            fs.stat(file, (err, stat) => {
-                if (stat && stat.size) {
-                    resolve(stat);
-                } else {
-                    // is outdated file?
-                    fs.readdir(this.opts.workDir + path.sep + this.uid, (err, files) => {
-                        if (Array.isArray(files)) {
-                            let basename = path.basename(file);
-                            let firstFile = files.sort().filter(f => !f.includes('m3u8')).shift();
-                            if (basename < firstFile) {
-                                console.warn('Outdated file', basename, firstFile, files);
-                                reject(this.OUTDATED);
-                            } else {
-                                console.warn('File not ready??', basename, firstFile, files);
-                                this.waitFile(file, 10).then(stat => {
-                                    console.warn('File now ready', basename, firstFile, files);
-                                    resolve(stat);
-                                }).catch(err => {
-                                    console.error(err);
-                                    reject(err);
-                                });
-                            }
-                        } else {
-                            reject('readdir failed');
-                        }
-                    });
-                }
-            });
-        });
+    async prepareFile(file) {
+        if (!await isUnderRootAsync(file, this.opts.workDir)) {
+            return reject('File is not under root');
+        }
+        const stat = await fs.promises.stat(file).catch(() => {})
+        if (stat && stat.size) {
+            return stat;
+        }
+        let err;
+        const files = await fs.promises.readdir(this.opts.workDir + path.sep + this.uid).catch(e => err = e)
+        if (err) {
+            throw err;
+        }
+        if (Array.isArray(files)) {
+            let basename = path.basename(file);
+            let firstFile = files.sort().filter(f => !f.includes('m3u8')).shift();
+            if (basename < firstFile) {
+                console.warn('Outdated file', basename, firstFile, files);
+                throw this.OUTDATED;
+            } else {
+                console.warn('File not ready??', basename, firstFile, files);
+                return this.waitFile(file, 10)
+            }
+        }
     }
     contentTypeFromExt(ext) {
         let ct = '';
@@ -309,8 +305,7 @@ class StreamerFFmpeg extends EventEmitter {
         if (this.destroyed) {
             fail('destroyed');
         } else {
-            this.prepareFile(file).then(stat => {
-                
+            this.prepareFile(file).then(stat => {                
                 let headers = prepareCORS({
                     'content-length': stat.size,
                     'connection': 'close',

@@ -309,8 +309,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
         };
         if (length || !isLocal(file)) {
             next();
-        } else {
-            
+        } else {            
             fs.stat(file, (err, stat) => {
                 if (err) {
                     cb('File not found or empty.', 0, false);

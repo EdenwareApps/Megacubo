@@ -2,7 +2,7 @@ import { EventEmitter } from 'node:events'
 import http from 'http'
 import path from 'path'
 import fs from 'fs'
-import { prepareCORS, traceback } from '../utils/utils.js'
+import { isUnderRootAsync, prepareCORS, traceback } from '../utils/utils.js'
 import url from 'node:url'
 import formidable from 'formidable'
 import closed from '../on-closed/on-closed.js'
@@ -10,6 +10,7 @@ import paths from '../paths/paths.js'
 import { createRequire } from 'node:module'
 import { getFilename } from 'cross-dirname'
 import { prepare } from '../serialize/serialize.js'
+import { randomBytes } from 'node:crypto'
 
 EventEmitter.defaultMaxListeners = 100
 
@@ -102,7 +103,7 @@ class BridgeServer extends EventEmitter {
             '.svg': 'image/svg+xml'
         }
         this.setMaxListeners(20)
-        this.server = http.createServer((req, response) => {
+        this.server = http.createServer(async (req, response) => {
             const parsedUrl = url.parse(req.url, false)
             if (!parsedUrl.pathname.endsWith('.map') && !this.checkUA(req.headers)) {
                 response.writeHead(400, prepareCORS({ 'content-type': 'text/plain' }, req))
@@ -132,26 +133,31 @@ class BridgeServer extends EventEmitter {
                 } else {
                     pathname = path.join(paths.cwd, pathname)
                 }
-                const ext = path.parse(pathname).ext
-                fs.access(pathname, err => {
-                    if (err) {
-                        response.statusCode = 404
-                        response.end(`File ${pathname} not found!`)
-                        return
+                if (!pathname || !await isUnderRootAsync(pathname, paths.cwd)) {
+                    response.statusCode = 403;
+                    response.end();
+                    return;
+                }
+                let err;
+                await fs.promises.access(pathname, fs.constants.R_OK).catch(e => err = e)
+                if (err) {
+                    response.statusCode = 404
+                    response.end(`File ${pathname} not found!`)
+                    return
+                }
+                const ext = path.parse(pathname).ext || ''
+                response.setHeader('Content-type', mimes[ext] || 'text/plain')
+                response.setHeader('Cache-Control', 'max-age=0, no-cache, no-store')
+                let stream = fs.createReadStream(pathname)
+                closed(req, response, stream, () => {
+                    console.log(`${req.method} ${req.url} CLOSED`)
+                    if (stream) {
+                        stream.destroy()
+                        stream = null
                     }
-                    response.setHeader('Content-type', mimes[ext] || 'text/plain')
-                    response.setHeader('Cache-Control', 'max-age=0, no-cache, no-store')
-                    let stream = fs.createReadStream(pathname)
-                    closed(req, response, stream, () => {
-                        console.log(`${req.method} ${req.url} CLOSED`)
-                        if (stream) {
-                            stream.destroy()
-                            stream = null
-                        }
-                        response.end()
-                    }, { closeOnError: true })
-                    stream.pipe(response)
-                })
+                    response.end()
+                }, { closeOnError: true })
+                stream.pipe(response)
             }
         })
         this.server.listen(0, this.opts.addr, err => {
@@ -168,13 +174,7 @@ class BridgeServer extends EventEmitter {
         })
     }
     secret(length) {
-        const charset = 'abcdefghijklmnopqrstuvwxyz0123456789'
-        let result = ''
-        for (let i = 0; i < length; i++) {
-            const randomIndex = Math.floor(Math.random() * charset.length)
-            result += charset.charAt(randomIndex)
-        }
-        return result
+        return randomBytes(length).toString('hex')
     }
     checkUA(headers) {
         if (paths.android)
@@ -212,7 +212,7 @@ class BridgeUtils extends BridgeServer {
         if (typeof (text) == 'string') { // write
             this.emit('clipboard-write', text, successMessage)
         } else { // read
-            const uid = 'clipboard-read-' + Math.random().toString(36).substr(2, 9)
+            const uid = 'clipboard-read-'+ this.secret(9)
             const promise = new Promise((resolve, reject) => {
                 this.once(uid, (err, text) => {
                     if (err) {

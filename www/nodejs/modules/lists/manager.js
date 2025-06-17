@@ -664,7 +664,7 @@ class Manager extends ManagerFetch {
     }
     nameFromContent(content) {
         if (content) {
-            let match = content.match(new RegExp('(iptv|pltv)\\-name *= *[\'"]([^\'"]+)'));
+            let match = content.match(new RegExp('(iptv|pltv)-name *= *[\'"]([^\'"]+)'));
             if (match) {
                 return match[2];
             }
