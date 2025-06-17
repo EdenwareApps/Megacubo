@@ -142,12 +142,16 @@ class ParentalControl extends EventEmitter {
     setupTerms(tms) {
         this.terms = this.keywords(tms || config.get('parental-control-terms') || '');
         if (this.terms.length) {
-            const rgx = this.terms.join('|').replace(new RegExp('\\+', 'g'), '\\+').replace(new RegExp('[\\^\\$]', 'g'), '(\\b|\\W)')
+            // Escape backslashes first, then other special characters
+            const rgx = this.terms
+                .map(term => term.replace(/\\/g, '\\\\')) // Escape backslashes
+                .join('|')
+                .replace(/\+/g, '\\+') // Escape +
+                .replace(/[\^\$]/g, '(\\b|\\W)') // Escape ^ and $
             try {
                 this.termsRegex = new RegExp(rgx, 'i')
-            } catch (e) {
-                console.error(e);
-                console.error('Parental control terms invalid regex: '+ rgx)
+            } catch (err) {
+                console.error('Parental control terms invalid regex: '+ rgx, err);
             }
         } else {
             this.termsRegex = false;

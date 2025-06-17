@@ -10,7 +10,7 @@ import paths from '../../paths/paths.js';
 import { getDomain } from '../../utils/utils.js';
 
 const YTDomainRegex = new RegExp('^(youtu\\.be|youtube\\.com|[a-z]{1,6}\\.youtube\\.com)$');
-const YTIDRegex = new RegExp('(v=|/v/|/embed/|/shorts/|\.be/)([A-Za-z0-9\-_]+)');
+const YTIDRegex = new RegExp('(v=|/v/|/embed/|/shorts/|\\.be/)([A-Za-z0-9\\-_]+)');
 
 class StreamerYTHLSIntent extends StreamerHLSIntent {
     constructor(data, opts, info) {

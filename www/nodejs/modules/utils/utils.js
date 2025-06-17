@@ -248,16 +248,10 @@ export const forwardSlashes = path => {
     }
     return path;
 }
-export const isUnderRootAsync = async (path, root) => {
-    path = await fs.promises.realpath(path)
-    return forwardSlashes(path).startsWith(forwardSlashes(root))
-}
-export const isUnderRoot = (path, root) => {
-    if (typeof(path) != 'string' || typeof(root) != 'string') {
-        return false
-    }
-    path = fs.realpathSync(path)
-    return forwardSlashes(path).startsWith(forwardSlashes(root))
+export const isUnderRootAsync = async (relPath, root) => {
+    const resolvedPath = path.resolve(root, relPath);
+    const normalizedPath = await fs.promises.realpath(resolvedPath);
+    return forwardSlashes(normalizedPath).startsWith(forwardSlashes(root));
 }
 export const getDomain = (u, includePort) => {
     let d = u;
@@ -493,33 +487,47 @@ export const prepareCORS = (headers, url, forceOrigin) => {
 export const isWritable = stream => {
     return (stream.writable || stream.writeable) && !stream.finished;
 }
-export const listNameFromURL = url => {
-    if (!url)
+export const listNameFromURL = (url) => {
+    if (!url) {
         return 'Untitled ' + parseInt(Math.random() * 9999);
+    }
+
+    // Input length validation to mitigate performance issues
+    if (url.length > 1000) {
+        console.error('URL too long, returning default name');
+        return 'Untitled ' + parseInt(Math.random() * 9999);
+    }
+
     let name, subName;
-    if (url.includes('?')) {
-        url.split('?')[1].split('&').forEach(s => {
-            s = s.split('=');
-            if (s.length > 1) {
-                if (['name', 'dn', 'title'].includes(s[0])) {
-                    if (!name || name.length < s[1].length) {
-                        name = s[1];
-                    }
+    let parsedUrl;
+    try {
+        parsedUrl = new URL(url.startsWith('//') ? `http:${url}` : url);
+        if (parsedUrl.search) {
+            const params = parsedUrl.searchParams;
+            ['name', 'dn', 'title'].forEach(key => {
+                const value = params.get(key);
+                if (value && (!name || value.length > name.length)) {
+                    name = value;
                 }
-                if (['user', 'username'].includes(s[0])) {
-                    if (!subName) {
-                        subName = s[1];
-                    }
+            });
+            ['user', 'username'].forEach(key => {
+                const value = params.get(key);
+                if (value && !subName) {
+                    subName = value;
                 }
-            }
-        });
-    }
-    if (!name && url.includes('@')) {
-        const m = url.match(new RegExp('//([^:@/]+):([^@]+)@([^/#]+)'));
-        if (m) {
-            name = m[2] + ' ' + m[1];
+            });
         }
+        if (!name && parsedUrl.username) {
+            const username = parsedUrl.username;
+            const hostname = parsedUrl.hostname;
+            if (username && hostname) {
+                name = `${username} ${hostname}`;
+            }
+        }
+    } catch (err) {
+        console.error('Error parsing URL:', err);
     }
+
     if (name) {
         name = decodeURIComponentSafe(name);
         if (!name.includes(' ') && name.includes('+')) {
@@ -527,13 +535,14 @@ export const listNameFromURL = url => {
         }
         return cleanListName(name);
     }
+
     if (!url.includes('//')) { // isLocal
         return cleanListName(url.split('/').pop());
     } else {
-        url = String(url).replace(new RegExp('^[a-z]*://', 'i'), '').split('/').filter(s => s.length);
+        url = String(url).replace(/^[a-z]*:\/\//i, '').split('/').filter((s) => s.length);
         if (!url.length) {
             return 'Untitled ' + parseInt(Math.random() * 9999);
-        } else if (url.length == 1) {
+        } else if (url.length === 1) {
             return cleanListName(url[0].split(':')[0]);
         } else {
             return cleanListName(url[0].split('.')[0] + ' ' + (subName || url[url.length - 1].substr(0, 24)));

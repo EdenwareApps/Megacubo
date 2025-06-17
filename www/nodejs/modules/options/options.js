@@ -890,7 +890,7 @@ class Options extends OptionsExportImport {
     async chooseExternalPlayerFile() {
         const file = await menu.chooseFile('*');
         if (file) {
-            const name = ucWords(path.basename(file).replace(new RegExp('\.[a-z]{2,4}$'), '').replaceAll('-', ' ').replaceAll('_', ' '));
+            const name = ucWords(path.basename(file).replace(new RegExp('\\.[a-z]{2,4}$'), '').replaceAll('-', ' ').replaceAll('_', ' '));
             config.set('external-player', [file, name]);
             osd.show('OK', 'fas fa-check-circle faclr-green', 'external-player', 'normal');
         }

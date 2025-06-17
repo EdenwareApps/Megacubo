@@ -235,17 +235,24 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
         return match && match.length ? match[0] : '';
     }
     rawBitrate(nfo) {
-        // bitrate: 1108 kb/s
+        if (nfo.length > 10000) {
+            console.error('FFmpeg output too long, truncating for safety');
+            nfo = nfo.slice(0, 10000);
+        }
         let bitrate = 0, lines = nfo.match(new RegExp('Stream #[^\n]+', 'g'));
         if (lines) {
             lines.forEach(line => {
-                let raw = line.match(new RegExp('([0-9\\.]+) ([a-z]+)/s'));
+                if (line.length > 1000) {
+                    console.error('Line too long, skipping');
+                    return;
+                }
+                let raw = line.match(new RegExp('([0-9]+(?:\\.[0-9]+)?) ([a-z]+)/s'));
                 if (raw) {
                     bitrate += this.parseBytes(raw[1], raw[2]);
                 }
             });
         }
-        let matches = nfo.matchAll(new RegExp('itrate(: |=)([0-9\\.]+) ?([a-z]+)/s', 'g'));
+        let matches = nfo.matchAll(new RegExp('itrate(: |=)([0-9]+(?:\\.[0-9]+)?) ?([a-z]+)/s', 'g'));
         for (let raw of matches) {
             let n = this.parseBytes(raw[2], raw[3]);
             if (!bitrate || n > bitrate) {

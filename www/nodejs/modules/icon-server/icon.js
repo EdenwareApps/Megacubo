@@ -9,8 +9,8 @@ import config from "../config/config.js"
 class IconFetcher extends EventEmitter {
     constructor() {
         super();
-        this.isAlphaRegex = new RegExp('\.png', 'i');
-        this.isNonAlphaRegex = new RegExp('\.(jpe?g|webp|gif)', 'i');
+        this.isAlphaRegex = new RegExp('\\.png', 'i');
+        this.isNonAlphaRegex = new RegExp('\\.(jpe?g|webp|gif)', 'i');
     }
     hasPriority(prevImage, nextImage, images) {
         if (!prevImage.alpha && nextImage.alpha) {

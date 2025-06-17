@@ -51,7 +51,7 @@ class History extends EntriesGroup {
                 }
                 return e;
             };
-            const rgx = new RegExp('^(http://127\.0\.0\.1:)[0-9]+(/[A-Za-z0-9,]+)$');
+            const rgx = new RegExp('^(http://127\\.0\\.0\\.1:)[0-9]+(/[A-Za-z0-9,]+)$');
             if (Array.isArray(ret)) {
                 ret = ret.map(fixIcon);
             } else {

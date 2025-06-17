@@ -22,7 +22,7 @@ class HLSJournal {
         this.currentMediaSequence = null;
         this.mediaSequence = {};
         this.regexes = {
-            unproxify: new RegExp('/127\.0\.0\.1:[0-9]+(/s/|/)'),
+            unproxify: new RegExp('/127\\.0\\.0\\.1:[0-9]+(/s/|/)'),
             protoNDomain: new RegExp('(https?://|//)[^/]+/'),
             tsBasename: new RegExp('[^/]*\\.(m4s|mts|m2ts|ts)', 'i'),
             ts: new RegExp('^[^\\\\?]*\\.(m4s|mts|m2ts|ts)', 'i')

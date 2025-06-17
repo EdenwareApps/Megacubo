@@ -130,9 +130,8 @@ class BridgeServer extends EventEmitter {
                 }
                 if (typeof (this.map[pathname]) != 'undefined') {
                     pathname = this.map[pathname]
-                } else {
-                    pathname = path.join(paths.cwd, pathname)
                 }
+                pathname = path.resolve(paths.cwd, pathname)
                 if (!pathname || !await isUnderRootAsync(pathname, paths.cwd)) {
                     response.statusCode = 403;
                     response.end();
@@ -185,7 +184,7 @@ class BridgeServer extends EventEmitter {
         if (fs.existsSync(file)) {
             let stat = fs.statSync(file)
             if (stat) {
-                let ext = file.match(new RegExp('\.[A-Za-z0-9]{0,5}$'))
+                const ext = file.match(new RegExp('\\.[A-Za-z0-9]{0,5}$'))
                 let path = './' + (stat ? stat.size : file.split('/').pop())
                 if (ext) {
                     path += ext[0]

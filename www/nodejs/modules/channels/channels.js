@@ -769,8 +769,11 @@ class Channels extends ChannelsKids {
         let url = 'https://www.google.com/search?btnI=1&lr=lang_{0}&q={1}'.format(lang.locale, encodeURIComponent('"' + name + '" site'));
         const body = String(await Download.get({ url }).catch(err => console.error(err)));
         const matches = body.match(new RegExp('href *= *["\']([^"\']*://[^"\']*)'));
-        if (matches && matches[1] && !matches[1].includes('google.com')) {
-            url = matches[1];
+        if (matches && matches[1]) {
+            const domain = getDomain(matches[1])
+            if (domain && domain !== 'google.com' && !domain.endsWith('.google.com')) {
+                url = matches[1];
+            }
         }
         renderer.ui.emit('open-external-url', url);
     }

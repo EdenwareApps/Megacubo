@@ -118,7 +118,7 @@ window.handleOpenURL = url => { // avoid local scoping
 	setTimeout(function() {
 		if (url && url.match('^[a-z]*:?//')) {
 			main.waitMain(() => {
-				channel.post('message', ['open-url', url.replace(new RegExp('.*megacubo\.tv/(w|assistir)/', ''), 'mega://')]);
+				channel.post('message', ['open-url', url.replace(new RegExp('.*megacubo\\.tv/(w|assistir)/', ''), 'mega://')]);
 			})
 		}
 	}, 0);

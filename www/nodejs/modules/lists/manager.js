@@ -12,6 +12,7 @@ import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
 import options from './options.json' with { type: 'json' };
 import Limiter from '../limiter/limiter.js'
+import { randomUUID } from 'node:crypto'
 import { EventEmitter } from "events";
 import { promises as fsp } from "fs";
 import { basename, clone, forwardSlashes, getDomain, isLocal, insertEntry, kfmt, LIST_DATA_KEY_MASK, listNameFromURL, parseCommaDelimitedURIs, validateURL, ucWords } from "../utils/utils.js";
@@ -171,7 +172,7 @@ class ManagerEPG extends EventEmitter {
     }
     async epgShowLoading(url) {
         let lastProgress = -1, lastState = ''
-        const uid = 'epg-add-'+ Math.random()
+        const uid = 'epg-add-'+ randomUUID()
         osd.show(lang.EPG_AVAILABLE_SOON, 'fa-mega busy-x', uid, 'persistent')
         await new Promise(resolve => setTimeout(resolve, 3000))
         while(true) {

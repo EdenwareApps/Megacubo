@@ -21,7 +21,7 @@ function loadGlobalVars() {
 }
 
 export default file => {
-    file = file.replace(new RegExp('\.jsc?$'), '')
+    file = file.replace(new RegExp('\\.jsc?$'), '')
     const emit = (type, content) => {
         postMessage({id: 0, file, type: 'event', data: type +':'+ JSON.stringify(content)})
     }    

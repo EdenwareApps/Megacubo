@@ -85,10 +85,11 @@ class StreamerFFmpeg extends EventEmitter {
             }
         });
     }
-    async waitFile(file, timeout, m3u8Verify) {
-        if (!file) {
+    async waitFile(filePath, timeout, m3u8Verify) {
+        if (!filePath) {
             throw new Error('no file specified');
         }
+        const file = path.resolve(this.opts.workDir, this.uid, filePath);
         if (!await isUnderRootAsync(file, this.opts.workDir)) {
             throw new Error('File is not under root');
         }
@@ -210,13 +211,18 @@ class StreamerFFmpeg extends EventEmitter {
                 url = decodeEntities(url)
             }
             url = url.split('?')[0].split('#')[0];
-            url = path.resolve(this.opts.workDir + path.sep + this.uid + path.sep + url);
+            const root = path.resolve(this.opts.workDir, this.uid);
+            const resolvedPath = path.resolve(root, url);
+            if (!resolvedPath.startsWith(root)) {
+                throw new Error('Invalid file path: outside of root directory');
+            }
+            url = resolvedPath;
         }
         return url;
     }
     async prepareFile(file) {
         if (!await isUnderRootAsync(file, this.opts.workDir)) {
-            return reject('File is not under root');
+            throw new Error('File is not under root');
         }
         const stat = await fs.promises.stat(file).catch(() => {})
         if (stat && stat.size) {
@@ -292,7 +298,8 @@ class StreamerFFmpeg extends EventEmitter {
         });
     }
     handleRequest(req, response) {
-        const file = this.unproxify(req.url.split('#')[0]), fail = err => {
+        const file = this.unproxify(req.url.split('#')[0])
+        const fail = err => {
             console.log('FFMPEG SERVE', err, file, this.destroyed);
             const headers = {
                 'content-length': 0,

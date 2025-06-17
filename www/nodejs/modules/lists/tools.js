@@ -12,7 +12,7 @@ class TermsHandler {
     constructor() {
         this.countryCodes = new Set(countryCodes.map(c => c.code)); // precompute country codes as Set
         this.regexes = regexes;
-        this.allowedCharsRegex = new RegExp('[^ a-z0-9\-\+\*@$]+', 'g') // remove chars not allowed
+        this.allowedCharsRegex = new RegExp('[^ a-z0-9\\-\\+\\*@$]+', 'g') // remove chars not allowed
         this.sanitizeName = sanitizeName;
         this.searchRedirects = [];
         this.stopWords = new Set(['sd', '4k', 'hd', 'h264', 'h.264', 'fhd', 'uhd']); // common words to ignore on searching

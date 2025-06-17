@@ -5,7 +5,7 @@ import { absolutize, listNameFromURL } from '../utils/utils.js'
 export const regexes = {
     'group-separators': new RegExp('( ?[\\\\|;] ?| /+|/+ )', 'g'),
     'notags': new RegExp('\\[[^\\]]*\\]', 'g'),
-    'between-brackets': new RegExp('\\[[^\\]]*\\]', 'g'),
+    'between-brackets': new RegExp('\\[[^\\]]*?\\]', 'g'), // Non-greedy
     'accents': new RegExp('[\\u0300-\\u036f]', 'g'),
     'plus-signal': new RegExp('\\+', 'g'),
     'hyphen': new RegExp('-', 'g'),

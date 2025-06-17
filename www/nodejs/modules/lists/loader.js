@@ -13,6 +13,7 @@ import config from '../config/config.js';
 import renderer from '../bridge/bridge.js';
 import paths from '../paths/paths.js';
 import { getDirname } from 'cross-dirname';
+import { randomUUID } from 'node:crypto'
 
 class ListsLoader extends EventEmitter {
     constructor(master, opts = {}) {
@@ -100,7 +101,7 @@ class ListsLoader extends EventEmitter {
         const minLists = Math.max(8, 2 * this.communityListsAmount);
         if (minLists <= this.master.processedLists.size) return;
 
-        const taskId = Math.random();
+        const taskId = randomUUID();
         this.currentTaskId = taskId;
         this.master.updaterFinished(false);
         const lists = await this.master.discovery.get(Math.max(16, 3 * this.communityListsAmount));
@@ -124,7 +125,7 @@ class ListsLoader extends EventEmitter {
 
     async prepareUpdater() {
         if (!this.updater || this.updater.finished) {
-            this.uid = this.uid || Math.floor(Math.random() * 1000000);
+            this.uid = this.uid || randomUUID();
             this.updater = workers.load(path.join(getDirname(), 'updater-worker.js'));
             if (!this.updater?.update) throw new Error('Failed to create updater worker');
             this.once('destroy', () => this.updater.terminate());
@@ -170,7 +171,7 @@ class ListsLoader extends EventEmitter {
     }
 
     async addListNow(url, { progress, timeout } = {}) {
-        const uid = Math.floor(Math.random() * 1000000);
+        const uid = randomUUID();
         const key = LIST_DATA_KEY_MASK.format(url);
         await this.prepareUpdater();
         progress && this.updater.on('progress', p => p.progressId === uid && progress(p.progress));
@@ -227,7 +228,7 @@ class ListsLoader extends EventEmitter {
     async reload(url) {
         const key = LIST_DATA_KEY_MASK.format(url);
         const file = storage.resolve(key);
-        const progressId = `reloading-${Math.floor(Math.random() * 1000000)}`;
+        const progressId = `reloading-${randomUUID()}`;
         const showProgress = p => p.progressId === progressId && osd.show(`${lang.RECEIVING_LIST} ${p.progress}%`, 'fa-mega busy-x', `progress-${progressId}`, 'persistent');
         
         await fs.promises.unlink(file).catch(() => {});

@@ -133,7 +133,7 @@
         <script>
             var menu, config
             function chromeVersion() {     
-                var raw = navigator.userAgent.match(new RegExp('Chrom(e|ium)\/([0-9]+)\.'))
+                var raw = navigator.userAgent.match(new RegExp('Chrom(e|ium)\\/([0-9]+)\\.'))
                 return raw ? parseInt(raw[2], 10) : 0
             }
             function isUACompatible() {     
