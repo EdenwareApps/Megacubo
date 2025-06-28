@@ -117,6 +117,7 @@ You can help us by [improving/creating translations](https://github.com/Edenware
 # Support
 
 For support and help:
-- **Email**: contact@megacubo.tv
+- **Issues section**: [github.com/EdenwareApps/Megacubo/issues](https://github.com/EdenwareApps/Megacubo/issues)
 - **Facebook Page**: [facebook.com/MegacuboTV](https://www.facebook.com/MegacuboTV)
 - **Website**: [megacubo.tv](https://megacubo.tv/en/english/)
+- **Email**: contact@megacubo.tv
