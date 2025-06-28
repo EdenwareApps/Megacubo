@@ -12,13 +12,35 @@ Megacubo is an intuitive, multi-language and cross-platform IPTV player with sup
 
 You can add as many IPTV lists you want (M3U format) and with Miniplayer mode, you can work or navigate on your PC while watching any broadcast.
 
-Available languages: English, Español, Português, عربي, বাংলা, Deutsch, Ελληνικά, Français, हिन्दी, Bahasa Indonesia, Italiano, 日本, ਪੰਜਾਬੀ, Polski, русский, Shqip, Kiswahili, తెలుగు, Türkçe, اردو and 普通话. You can help us adding [more languages](https://github.com/EdenwareApps/megacubo/tree/master/www/nodejs-project/lang)?
+<br/>
+
+# Releases
+Want to use the software, go to [our releases folder](https://github.com/EdenwareApps/megacubo/releases) to get it.
+
+<br/>
+
+<p align="center">
+  <img width="800" src="https://static.megacubo.tv/files/print-megacubo-en-1.jpg" alt="Megacubo UI screenshot" title="Megacubo UI screenshot" />
+</p>
+
+<p align="center">
+  <img  width="800" src="https://static.megacubo.tv/files/print-megacubo-en-2.jpg" alt="Megacubo player screenshot" title="Megacubo player screenshot" />
+</p>
+
+<br/>
+
+# Quick Start
+
+If you're new to Megacubo, we recommend following these steps:
+
+1. **Install** the app for your platform ([Installation Guide](./docs/installation.md))
+2. **Set up** your preferences using the setup wizard ([Setup Guide](./docs/setup-wizard.md))
+3. **Add** your first IPTV list ([IPTV Lists Guide](./docs/using-iptv-lists.md))
+4. **Start watching** live TV ([Watching Guide](./docs/watching-live-tv.md))
 
 <br/>
 
 # Documentation
-
-📚 **Complete documentation is available in the [`docs/`](./docs/) folder:**
 
 ## Getting Started
 - **[Introduction](./docs/introduction.md)** - What is Megacubo and main features
@@ -44,35 +66,26 @@ Available languages: English, Español, Português, عربي, বাংলা, D
 - **[Legal Notice](./docs/legal.md)** - Legal information and terms
 - **[Contributing](./docs/contributing.md)** - How to contribute to the project
 
-<br/>
+## Available Languages
 
-# Quick Start
+| Language | Code | Language | Code | Language | Code | Language | Code |
+|----------|------|----------|------|----------|------|----------|------|
+| Arabic | `ar` | Bengali | `bn` | Dutch | `nl` | English | `en` |
+| French | `fr` | German | `de` | Greek | `el` | Hindi | `hi` |
+| Indonesian | `id` | Italian | `it` | Japanese | `ja` | Polish | `pl` |
+| Portuguese | `pt` | Russian | `ru` | Spanish | `es` | Swahili | `sw` |
+| Albanian | `sq` | Turkish | `tr` | Ukrainian | `ua` | Urdu | `ur` |
+| Chinese | `zh` | Telugu | `te` | Punjabi | `pa` | - | - |
 
-If you're new to Megacubo, we recommend following these steps:
-
-1. **Install** the app for your platform ([Installation Guide](./docs/installation.md))
-2. **Set up** your preferences using the setup wizard ([Setup Guide](./docs/setup-wizard.md))
-3. **Add** your first IPTV list ([IPTV Lists Guide](./docs/using-iptv-lists.md))
-4. **Start watching** live TV ([Watching Guide](./docs/watching-live-tv.md))
-
-<br/>
-
-# Releases
-Want to use the software, go to [our releases folder](https://github.com/EdenwareApps/megacubo/releases) to get it.
+You can help us adding [more languages](https://github.com/EdenwareApps/megacubo/tree/master/www/nodejs-project/lang)?
 
 <br/>
 
-<p align="center">
-  <img width="800" src="https://static.megacubo.tv/files/print-megacubo-en-1.jpg" alt="Megacubo UI screenshot" title="Megacubo UI screenshot" />
-</p>
-
-<p align="center">
-  <img  width="800" src="https://static.megacubo.tv/files/print-megacubo-en-2.jpg" alt="Megacubo player screenshot" title="Megacubo player screenshot" />
-</p>
+[![Star History Chart](https://api.star-history.com/svg?repos=EdenwareApps/Megacubo&type=Date)](https://www.star-history.com/#EdenwareApps/Megacubo&Date)
 
 <br/>
 
-# Contributing ✨
+# Contributing
 
 Big thanks to these amazing folks who’ve rocked this project:
 
@@ -95,11 +108,11 @@ Big thanks to these amazing folks who’ve rocked this project:
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-Please, feel free to contribute to the project by opening a discussion under Issues section or [sending your PR](docs/contributing.md).
+Please, feel free to contribute to the project by opening a discussion under Issues section or [sending your PR](https://github.com/EdenwareApps/megacubo/blob/master/DEVELOPING.md).
 
 You can help us by [improving/creating translations](https://github.com/EdenwareApps/megacubo/tree/master/www/nodejs-project/lang) and the [known channel names list for your country](https://github.com/EdenwareApps/world-tv-channels).
 
-If you want to thank me for developing this software you can buy me a coffee via [PayPal](https://www.paypal.com/donate/?item_name=megacubo.tv&cmd=_donations&business=efox.web%40gmail.com).
+<br/>
 
 # Support
 
@@ -107,7 +120,3 @@ For support and help:
 - **Email**: contact@megacubo.tv
 - **Facebook Page**: [facebook.com/MegacuboTV](https://www.facebook.com/MegacuboTV)
 - **Website**: [megacubo.tv](https://megacubo.tv/en/english/)
-
-&nbsp; &nbsp;
-
-[![Star History Chart](https://api.star-history.com/svg?repos=EdenwareApps/Megacubo&type=Date)](https://www.star-history.com/#EdenwareApps/Megacubo&Date)

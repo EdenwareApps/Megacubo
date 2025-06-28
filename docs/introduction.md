@@ -1,5 +1,7 @@
 <!-- docs/introduction.md -->
 
+[🏠](/README.md) > [Introduction](introduction.md)
+
 # <span style="color: #2e86de;">Introduction</span>
 
 ## What is Megacubo?
@@ -45,3 +47,7 @@ The app requires the following permissions:
 - Network state access for connection monitoring on casting
 
 You can download the latest version of Megacubo from the official website or GitHub repository.
+
+---
+
+**Next:** [Installation](installation.md)
