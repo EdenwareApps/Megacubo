@@ -18,8 +18,6 @@ Available languages: English, Español, Português, عربي, বাংলা, D
 
 # Documentation
 
-📚 **Complete documentation is available in the [`docs/`](./docs/) folder:**
-
 ## Getting Started
 - **[Introduction](./docs/introduction.md)** - What is Megacubo and main features
 - **[Installation](./docs/installation.md)** - How to install on all platforms
@@ -104,9 +102,10 @@ If you want to thank me for developing this software you can buy me a coffee via
 # Support
 
 For support and help:
-- **Email**: contact@megacubo.tv
+- **Issues section**: [github.com/EdenwareApps/Megacubo/issues](https://github.com/EdenwareApps/Megacubo/issues)
 - **Facebook Page**: [facebook.com/MegacuboTV](https://www.facebook.com/MegacuboTV)
 - **Website**: [megacubo.tv](https://megacubo.tv/en/english/)
+- **Email**: contact@megacubo.tv
 
 &nbsp; &nbsp;
 
