@@ -154,7 +154,7 @@ class Theme extends EventEmitter {
             try {
                 localStorage.setItem('background-data', JSON.stringify(data));
             } catch(e) {
-                console.error(e);
+                console.error('Theme renderer error:', e.message || e)
                 data.video = '';
                 data.image = '';
                 localStorage.setItem('background-data', JSON.stringify(data));
@@ -188,7 +188,7 @@ class Theme extends EventEmitter {
                 try {
                     localStorage.setItem('background-data', JSON.stringify(data));
                 } catch(e) {
-                    console.error(e);
+                    console.error('Theme renderer error:', e.message || e)
                     data.image = '';
                     data.video = '';
                     localStorage.setItem('background-data', JSON.stringify(data));
@@ -468,7 +468,7 @@ main.waitRenderer(() => {
 main.on('theme-update', (image, video, color, fontColor, animate) => {
     try {
         theme.update(image, video, color, fontColor, animate)
-    } catch(e) {console.error(e)}
+    } catch(e) {console.error('Theme renderer error:', e.message || e)}
 })
 main.on('player-show', () => {
     theme.animateBackground('none')

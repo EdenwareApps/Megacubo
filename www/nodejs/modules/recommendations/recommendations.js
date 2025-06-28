@@ -508,7 +508,7 @@ class Recommendations extends EventEmitter {
                     name: ' &nbsp;',
                     fa: 'fa-mega',
                     type: 'action',
-                    class: 'entry-busy-x',
+                    class: 'entry-icon-no-fallback entry-busy-x',
                     id: 'recommendations-busy-'+ i, // for svelte to diff these empty entries
                     action: () => {}
                 }

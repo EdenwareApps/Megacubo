@@ -4,7 +4,7 @@
   "icon": "./default_icon.png",
   "version": "17.6.1",
   "megacubo": {
-    "revision": "17568"
+    "revision": "17569"
   },
   "main": "dist/main.js",
   "type": "commonjs",

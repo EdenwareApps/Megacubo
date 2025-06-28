@@ -65,9 +65,11 @@ class Joiner extends Downloader {
     flush(force) {        
         if (!this.processor) return; // discard so
         if (this.usingWorker) {
-            const data = Buffer.concat(this.workerMessageBuffer);
-            this.workerMessageBuffer = []
-            this.processor.push(data)
+            if (this.workerMessageBuffer.length > 0) {
+                const data = Buffer.concat(this.workerMessageBuffer);
+                this.workerMessageBuffer = []
+                this.processor.push(data)
+            }
         }
         this.processor.flush(force)
     }
@@ -116,6 +118,24 @@ class Joiner extends Downloader {
                 console.log('[' + this.type + '] delaying ' + ms + 'ms', 'now: ' + now, 'delayUntil: ' + this.delayUntil);
             }
         });
+    }
+    destroy() {
+        if (this.timer) {
+            clearTimeout(this.timer);
+            this.timer = null;
+        }
+        if (!this.joinerDestroyed) {
+            this.joinerDestroyed = true;
+            if (this.processor) {
+                this.processor.destroy();
+                this.processor = null;
+            }
+        }
+        if (this.worker && this.worker.terminate) {
+            this.worker.terminate();
+            this.worker = null;
+        }
+        super.destroy && super.destroy();
     }
 }
 export default Joiner;

@@ -8,6 +8,7 @@ import http from "http";
 import { URL } from "url";
 import config from "../config/config.js"
 import ready from '../ready/ready.js'
+import renderer from '../bridge/bridge.js';
 
 class Subtitles extends EventEmitter {
     constructor() {
@@ -42,19 +43,23 @@ class Subtitles extends EventEmitter {
         this.token = await this.os.login({ username, password });
     }
     async askCredentials(defaultUsername = '', defaultPassword = '') {
-        let extraOpts = [];
-        extraOpts.push({ template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle' });
-        extraOpts.push({ template: 'option', text: lang.REGISTER, id: 'register', fa: 'fas fa-plus' });
+        let extraOpts = [
+            { template: 'option', text: lang.REGISTER, id: 'register', fa: 'fas fa-plus' }
+        ];
         let username = await global.menu.prompt({
-            question: lang.OPENSUBTITLES_REGISTER.format(lang.REGISTER),
+            question: 'OpenSubtitles',
             fa: 'fas fa-user',
-            text: 'text',
-            message: 'message',
+            message: lang.OPENSUBTITLES_REGISTER.format(lang.REGISTER),
             defaultValue: defaultUsername,
-            placeholder: lang.USERNAME
+            placeholder: lang.USERNAME,
+            extraOpts
         });
-        if (!user)
+        if (!username) {
             throw 'No username provided';
+        } else if (username == 'register') {
+            renderer.ui.emit('open-external-url', 'https://www.opensubtitles.org/en/newuser');
+            return this.askCredentials(defaultUsername, defaultPassword);
+        }
         const password = await global.menu.prompt({
             question: lang.PASSWORD,
             placeholder: lang.PASSWORD,
@@ -106,6 +111,7 @@ class Subtitles extends EventEmitter {
                         if (err)
                             return fail(err);
                         let body = await Download.get({
+                            debug: false,
                             url: ret.link,
                             responseType: 'text',
                             headers: {

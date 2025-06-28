@@ -6,7 +6,9 @@ export const hotkeysActions = {
             if(main.menu.scrollTop()){
                 main.menu.scrollTop(0, true)
             } else {
-                main.menu.triggerAction('').catch(err => console.error(err))
+                main.menu.triggerAction('').catch(err => {
+                    console.error('Hotkey action failed:', err.message || err)
+                })
             }
         }, 'up', true
     ],
@@ -109,7 +111,9 @@ export const hotkeysActions = {
     ],
     'OPENURL': [
         () => {
-            main.menu.triggerAction(main.lang.TOOLS, main.lang.OPEN_URL).catch(err => console.error(err))
+            main.menu.triggerAction(main.lang.TOOLS, main.lang.OPEN_URL).catch(err => {
+                console.error('Open URL action failed:', err.message || err)
+            })
         }, 'up', true
     ],
     'PASTEURL': [
@@ -125,17 +129,23 @@ export const hotkeysActions = {
     ],
     'HISTORY': [
         () => {
-            main.menu.triggerAction(main.lang.TOOLS, main.lang.KEEP_WATCHING).catch(err => console.error(err))
+            main.menu.triggerAction(main.lang.TOOLS, main.lang.KEEP_WATCHING).catch(err => {
+                console.error('Keep watching action failed:', err.message || err)
+            })
         }, 'up', true
     ],
     'BOOKMARKS': [
         () => {
-            main.menu.triggerAction(main.lang.BOOKMARKS).catch(err => console.error(err))
+            main.menu.triggerAction(main.lang.BOOKMARKS).catch(err => {
+                console.error('Bookmarks action failed:', err.message || err)
+            })
         }, 'up', true
     ],
     'LANGUAGE': [
         () => {
-            main.menu.triggerAction(main.lang.OPTIONS, main.lang.LANGUAGE).catch(err => console.error(err))
+            main.menu.triggerAction(main.lang.OPTIONS, main.lang.LANGUAGE).catch(err => {
+                console.error('Language options action failed:', err.message || err)
+            })
         }, 'up', true
     ],
     'BOOKMARK': [
@@ -155,7 +165,9 @@ export const hotkeysActions = {
     ],
     'MINIPLAYER': [
         () => {
-            winActions.toggle().catch(err => console.error(err))
+            winActions.toggle().catch(err => {
+                console.error('Window actions toggle failed:', err.message || err)
+            })
         }, 'up', true
     ],
     'RECORDING': [

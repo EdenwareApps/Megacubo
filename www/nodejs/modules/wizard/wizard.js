@@ -11,7 +11,9 @@ class Wizard extends EventEmitter {
     constructor() {
         super();
         this.on('restart', () => {
-            this.init().catch(err => console.error(err));
+            this.init().catch(err => {
+                console.error('Wizard initialization failed:', err.message || err)
+            });
         });
     }
     isMobile() {
@@ -79,7 +81,10 @@ class Wizard extends EventEmitter {
         }
     }
     async performance() {
-        let ram = await diag.checkMemory().catch(err => console.error(err));
+        let ram = await diag.checkMemory().catch(err => {
+            console.error('Memory check failed:', err.message || err)
+            return null
+        });
         if (typeof(ram) == 'number' && (ram / 1024) >= 2048) { // at least 2G of RAM
             return true;
         }

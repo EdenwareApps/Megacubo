@@ -30,7 +30,9 @@ class StreamState extends EventEmitter {
             this.streamer.on('connecting', () => this.cancelTests());
             this.streamer.on('connecting-failure', data => {
                 data && this.set(data.url, 'offline', true, { source: data.source });
-                this.test(global.menu.currentStreamEntries()).catch(err => console.error(err));
+                this.test(global.menu.currentStreamEntries()).catch(err => {
+                    console.error('Stream state test failed:', err.message || err)
+                });
             });
             this.streamer.on('commit', intent => {
                 const url = intent.data.url;
@@ -322,6 +324,14 @@ class StreamState extends EventEmitter {
             }
             this.testing.finish();
         }
+    }
+    destroy() {
+        if (this.saveTimer) {
+            clearTimeout(this.saveTimer);
+            this.saveTimer = null;
+        }
+        this.cancelTests();
+        this.removeAllListeners();
     }
     isWatched(data) {
         if (!data)

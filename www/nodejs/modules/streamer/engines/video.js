@@ -1,7 +1,6 @@
 import StreamerBaseIntent from "./base.js";
 import downloads from "../../downloads/downloads.js";
 import StreamerProxy from "../utils/proxy.js";
-import config from "../../config/config.js"
 import { isMPEGTSFromInfo, VIDEO_FORMATS } from "../utils/media-url-info.js";
 
 class StreamerVideoIntent extends StreamerBaseIntent {

@@ -429,7 +429,7 @@ class ChannelsEditing extends ChannelsEPG {
                                 name: String(i + 1) + String.fromCharCode(186),
                                 type: 'action',
                                 icon: image,
-                                class: 'entry-icon-no-fallback entry-busy-x',
+                                class: 'entry-icon-no-fallback',
                                 fa: 'fa-mega',
                                 iconFallback: 'fas fa-times-circle',
                                 action: async () => {

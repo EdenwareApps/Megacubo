@@ -289,6 +289,10 @@ class StreamerAdapterBase extends EventEmitter {
         }
     }
     destroy() {
+        if (this.downloadLogCalcTimer) {
+            clearTimeout(this.downloadLogCalcTimer);
+            this.downloadLogCalcTimer = null;
+        }
         if (this.opts.debug) {
             console.log('[' + this.type + '] destroy');
         }

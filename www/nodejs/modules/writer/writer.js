@@ -90,13 +90,11 @@ class Writer extends EventEmitter {
                 this.debug && console.log('writeat opened*', this.file, err);
                 if (err)
                     return this.fail(err);
-                this._write(this.fd).catch(err => console.error(err)).finally(() => {
-                    if (this.autoclose && this.fd) {                        
-                        fs.close(this.fd, () => {})
-                        this.fd = null;
-                    }
-                    this.writing = false;
-                    this.emit('drain');
+                this._write(this.fd).catch(err => {
+                    console.error('Write operation failed:', err.message || err)
+                    this._cleanup()
+                }).finally(() => {
+                    this._cleanup()
                 });
             });
         });
@@ -128,6 +126,7 @@ class Writer extends EventEmitter {
             const writtenBytes = await this.fsWrite(fd, current.data, 0, len, current.position).catch(e => err = e);
             if (err) {
                 this.debug && console.error('writeat error: ' + String(err), err);
+                this._cleanup()
                 if (this.destroyed)
                     return;
                 let err;
@@ -173,6 +172,16 @@ class Writer extends EventEmitter {
         this.emit('close')
         this.emit('destroy')
         this.removeAllListeners()
+    }
+    _cleanup() {
+        if (this.fd && typeof this.fd.close === 'function') {
+            try {
+                this.fd.close()
+            } catch (err) {
+                console.error('Error closing file descriptor:', err.message || err)
+            }
+            this.fd = null
+        }
     }
 }
 export default Writer;

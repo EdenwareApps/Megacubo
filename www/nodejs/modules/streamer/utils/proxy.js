@@ -296,7 +296,7 @@ class StreamerProxy extends StreamerProxyBase {
             authURL: this.opts.authURL || false,
             keepalive,
             followRedirect: this.opts.followRedirect,
-            debug: this.opts.debug
+            debug: false
         });
         this.connections[uid] = { response, download };
         const end = data => {

@@ -307,7 +307,12 @@ export class Hotkeys {
         }
     }
     enterPressed() {
-        if (main.menu.inPlayer()) {
+        if (main.menu.dialogs?.inDialog()) {
+            const submit = document.querySelector('#dialog-template-option-submit')
+            if (submit) {
+                submit.click()
+            }
+        } else if (main.menu.inPlayer()) {
             let e = main.menu.selectedElementX
             if (e && main.idle.isIdle && main.streamer.state != 'paused') {
                 // Enter ignored on idle out
@@ -318,4 +323,3 @@ export class Hotkeys {
         }
     }
 }
-

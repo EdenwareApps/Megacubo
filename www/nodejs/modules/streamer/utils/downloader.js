@@ -78,6 +78,10 @@ class Downloader extends StreamerAdapterBase {
                     this.server.close();
                 }
                 this.currentRequest = null;
+                if (this.timer) {
+                    clearTimeout(this.timer);
+                    this.timer = null;
+                }
             }
         });
         process.nextTick(() => this.pump());

@@ -892,12 +892,15 @@ class Manager extends ManagerFetch {
     async communityModeDialog() {
         let choose = await menu.dialog([
             { template: 'question', text: lang.COMMUNITY_LISTS, fa: 'fas fa-users' },
-            { template: 'message', text: lang.SUGGEST_COMMUNITY_LIST + "\r\n" + lang.ASK_COMMUNITY_LIST },
+            { template: 'message', text: lang.SUGGEST_COMMUNITY_LIST +"\r\n\r\n"+ lang.ASK_COMMUNITY_LIST },
             { template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: lang.I_AGREE },
+            { template: 'option', id: 'fta', fa: 'fas fa-times-circle', text: lang.ONLY_FTA },
             { template: 'option', id: 'back', fa: 'fas fa-chevron-circle-left', text: lang.BACK }
         ], 'agree');
         if (choose == 'agree') {
             renderer.ui.localEmit('lists-manager', 'agree');
+            return true;
+        } else if (choose == 'fta') {
             return true;
         }
     }

@@ -124,15 +124,16 @@ class BridgeServer extends EventEmitter {
                     }
                 })
             } else {
-                let pathname = `.${parsedUrl.pathname}`
+                let mapped, pathname = `.${parsedUrl.pathname}`
                 if (pathname == './') {
                     pathname = './index.html'
                 }
                 if (typeof (this.map[pathname]) != 'undefined') {
                     pathname = this.map[pathname]
+                    mapped = true
                 }
                 pathname = path.resolve(paths.cwd, pathname)
-                if (!pathname || !await isUnderRootAsync(pathname, paths.cwd)) {
+                if (!pathname || (!mapped && !await isUnderRootAsync(pathname, paths.cwd))) {
                     response.statusCode = 403;
                     response.end();
                     return;

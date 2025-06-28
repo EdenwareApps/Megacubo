@@ -52,6 +52,10 @@ class ListsLoader extends EventEmitter {
     }
 
     adjustConcurrency(concurrency) {
+        const configConcurrency = config.get('lists-loader-concurrency');
+        if (configConcurrency && typeof configConcurrency === 'number') {
+            concurrency = configConcurrency;
+        }
         this.queue.concurrency = concurrency;
         this.process();
     }

@@ -626,7 +626,12 @@ class Streamer extends StreamerTracks {
         if ((r != null && typeof(r) != 'undefined') && (c != 'tune' || !e) && (silent !== true || c == 'stop' || !e)) {
             this.handleFailureMessage(r);
         }
-        console.error('handleFailure', r, c, e);
+        console.error('Streamer failure:', { 
+            reason: typeof r === 'string' ? r : 'unknown',
+            action: c,
+            hasEntry: !!e,
+            entryType: e ? e.type : 'none'
+        });
         
         const isMega = e && mega.isMega(e.url);
         if (!isMega && e) {

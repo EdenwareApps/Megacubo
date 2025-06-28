@@ -318,7 +318,7 @@ class IndexMapUtils extends Common {
 
     async fetchMap(smap, opts = {}, limit = 512) {
         let results = []
-        const limiter = pLimit(3)
+        const limiter = pLimit(config.get('lists-loader-concurrency') || 6)
         const already = new Set(), checkType = opts.type && opts.type != 'all'
         for (const listUrl of Object.keys(smap)) {
             if (Array.isArray(smap[listUrl])) continue
@@ -706,4 +706,5 @@ class Index extends IndexMapUtils {
         return entries;
     }
 }
+
 export default Index;

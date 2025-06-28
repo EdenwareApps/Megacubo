@@ -269,7 +269,11 @@ class MediaPlayerAdapterHTML5 extends MediaPlayerAdapter {
 			if(this.object.currentSrc) {
 				this.pause()
 				this._paused = false
-				this.object.innerHTML = '<source type="video/mp4" src="" />'
+				const source = document.createElement('source')
+				source.type = 'video/mp4'
+				source.src = ''
+				this.object.innerHTML = ''
+				this.object.appendChild(source)
 				this.object.removeAttribute('src')
 				this.object.load()
 			}

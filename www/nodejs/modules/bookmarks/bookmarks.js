@@ -308,7 +308,7 @@ class Bookmarks extends EntriesGroup {
                 entries.push({
                     name: lang.SELECT_ICON +' #'+ (i + 1),
                     fa: 'fa-mega',
-                    class: 'entry-busy-x',
+                    class: 'entry-icon-no-fallback',
                     icon: logoUrl,
                     url: logoUrl,
                     value: logoUrl,

@@ -4,7 +4,7 @@
 	"auto-test": false,
 	"autocrop-logos": true,
 	"background-color": "#110633",
-	"background-transparency": 50,
+	"background-transparency": 65,
 	"bookmarks-desktop-icons": true,
 	"broadcast-start-timeout": 40,
 	"channels-list-smart-sorting": 0,

@@ -155,17 +155,25 @@ export class OMNI extends OMNIUtils {
                 this.rinputLastKey = evt.key
             }
             return
-        }    
-        if(evt.target && evt.target.tagName.match(new RegExp('^(input|textarea)$', 'i')) && evt.target != this.rinput){
-            console.warn('INPUT ignored')
+        }
+        if (main.menu.dialogs?.inDialog()) {
+            if (evt.key === 'Enter' && !document.querySelector('#dialog textarea')) {
+                const submit = document.querySelector('#dialog-template-option-submit')
+                if (submit) {
+                    submit.click()
+                }
+            } else if (evt.key.length === 1) { // typing
+                const input = document.querySelector('#dialog input, #dialog textarea')
+                if (input && input !== document.activeElement) {
+                    input.focus()
+                    setTimeout(() => input.select(), 10)
+                }
+            }
             return
         }
-        if(main.menu?.dialogs?.inDialog()){
-            var v = document.querySelector('.dialog-content input[type="text"]')
-            if(v){ // that's some input field on ui?
-                v.focus()
-                return
-            }
+        if(evt.target && evt.target.tagName.match(new RegExp('^(input|textarea)$', 'i')) && evt.target != this.rinput) {
+            console.warn('INPUT ignored')
+            return
         }
         return true
     }

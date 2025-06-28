@@ -256,12 +256,17 @@ class StorageIndex extends StorageHolding {
         let left = this.opts.maxDiskUsage;
         const now = parseInt((Date.now() / 1000));
         this.lastAlignTime = now;
-        for(const key of Object.keys(this.index)) {
-            if(!this.index[key]) return // bad value or deleted in mean time
-            if(!this.index[key].time || (now - this.index[key].time) > this.opts.minIdleTime) {
-                await this.mtime(key) // read mtime again from file, for idle keys, to ensure sync with workers
-            }
+        
+        const idleKeys = Object.keys(this.index).filter(key => {
+            if(!this.index[key]) return false;
+            return !this.index[key].time || (now - this.index[key].time) > this.opts.minIdleTime;
+        });
+        
+        if (idleKeys.length > 0) {
+            const mtimePromises = idleKeys.map(key => this.mtime(key));
+            await Promise.allSettled(mtimePromises);
         }
+        
         const ordered = Object.keys(this.index).filter(a => {
             if (!this.index[a]) return // bad value or deleted in mean time
             if (this.index[a].permanent || this.locked[a]) {
@@ -290,15 +295,20 @@ class StorageIndex extends StorageHolding {
             }
             return false
         })
-        for (const key of removals) {
-            if(!this.index[key]) return // bad value or deleted in mean time
-            const file = this.resolve(key)
-            const size = this.index[key].size
-            const elapsed = now - this.index[key].time
-            const expired = this.index[key].expired ? ', expired' : ''
-            // console.log('LRU cache eviction '+ key +' ('+ size + expired +') after '+ elapsed +'s idle')
-            this.delete(key, file)
+        
+        if (removals.length > 0) {
+            const removalPromises = removals.map(async key => {
+                if(!this.index[key]) return; // bad value or deleted in mean time
+                const file = this.resolve(key)
+                const size = this.index[key].size
+                const elapsed = now - this.index[key].time
+                const expired = this.index[key].expired ? ', expired' : ''
+                // console.log('LRU cache eviction '+ key +' ('+ size + expired +') after '+ elapsed +'s idle')
+                await this.delete(key, file)
+            });
+            await Promise.allSettled(removalPromises);
         }
+        
         this.saveLimiter.call(); // always
     }
     validateTouchSync(key, atts) {

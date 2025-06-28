@@ -382,7 +382,7 @@ class MenuStatusFlags extends MenuFx {
                         if (main.config['status-flags-type']) txt = ' '+ status
                     }
                     content = '<i class="'+ icon +'" aria-hidden="true"></i>'+ txt
-                    if (main.config['status-flags-type']) content = ' '+ content +' '
+                    if (main.config['status-flags-type']) content = ' '+ content +' '
                 }
                 e.statusFlagsClass = cls
                 e.statusFlags = content
@@ -416,6 +416,18 @@ class MenuNav extends MenuStatusFlags {
 		this.on('before-navigate', () => this.sideMenu(false, 'instant'))
         this.sideMenu(false, 'instant')
     }
+    
+    destroy() {
+        if (this.sideMenuSyncTimer) {
+            clearTimeout(this.sideMenuSyncTimer);
+            this.sideMenuSyncTimer = 0;
+        }
+        this.container.removeEventListener('scrollend', this.sideMenuSync);
+        screen.orientation?.removeEventListener('change', this.sideMenuSync);
+        window.removeEventListener('resize', this.sideMenuSync);
+        this.removeAllListeners();
+    }
+    
     scrollendPolyfillElement(element) {
         if ('onscrollend' in window) return
         let isScrolling

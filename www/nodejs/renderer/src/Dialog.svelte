@@ -61,6 +61,12 @@
             } else {
                 main.menu.emit("reset")
             }
+            const input = container.querySelector("input, textarea");
+            if (input && input !== document.activeElement) {
+                input.focus();
+                await new Promise(resolve => setTimeout(resolve, 10));
+                input.select();
+            }
         }
     }
 
@@ -101,6 +107,11 @@
                     opts.push(e);
                 }
                 return !isOption;
+            }).map(e => {
+                if (e.text && e.text.includes('\n')) {
+                    e.text = e.text.replace(new RegExp('\r?\n', 'g'), '<br />');
+                }
+                return e;
             });
             content = { ...config, opts };
             currentCallback = callback;
@@ -211,6 +222,9 @@
             id: "submit",
             fa: "fas fa-check-circle",
         });
+        if (atts.extraOpts) {
+            opts.push(...atts.extraOpts);
+        }
         dialog(
             opts,
             atts.callback,

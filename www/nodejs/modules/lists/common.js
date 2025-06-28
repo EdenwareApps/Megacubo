@@ -19,6 +19,7 @@ export class Fetcher extends EventEmitter {
         process.nextTick(() => {
             this.start().catch(err => {
                 if(!this.error) this.error = err
+                console.error('Fetcher initialization error:', err)
             }).finally(() => {
                 this.ready.done()
             })
@@ -29,17 +30,23 @@ export class Fetcher extends EventEmitter {
             return this.ready()
         }
         if(!this.master) {
-            throw new Error('Fetcher master not set')
+            const error = new Error('Fetcher master not set - initialization failed')
+            this.error = error
+            throw error
         }
         if(!this.master.loader) {
-            throw new Error('Fetcher loader not set')
+            const error = new Error('Fetcher loader not set - master not properly initialized')
+            this.error = error
+            throw error
         }
         
         this.list = new List(this.url, this.master)
         try {
             await this.list.ready()
             if (!this.list.length) {
-                throw new Error('List is empty')
+                const error = new Error('List is empty - no content available')
+                this.error = error
+                throw error
             }
         } catch (err) {
             console.error('Fetcher error', this.url, err)
@@ -50,12 +57,15 @@ export class Fetcher extends EventEmitter {
                     return this.list.ready()
                 } catch(e) { // will trigger outer catch
                     console.error('Fetcher error 2', this.url, e)
+                    this.error = err
                     throw err
                 }
             } catch(err) {
                 console.error('Fetcher error 3', this.url, err)
                 this.error = err
-                this.list.destroy()
+                if (this.list) {
+                    this.list.destroy()
+                }
                 throw err
             }
         }

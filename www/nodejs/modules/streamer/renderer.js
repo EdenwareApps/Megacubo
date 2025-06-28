@@ -57,6 +57,11 @@ class StreamerPlaybackTimeout extends EventEmitter {
     time(){
         return Date.now() / 1000
     }
+    destroy() {
+        clearTimeout(this.playbackTimeoutTimer);
+        this.playbackTimeoutTimer = 0;
+        super.destroy && super.destroy();
+    }
 }
 
 class StreamerOSD extends StreamerPlaybackTimeout {
@@ -134,6 +139,11 @@ class StreamerOSD extends StreamerPlaybackTimeout {
             main.osd.hide(this.osdID)
         })
     }    
+    destroy() {
+        clearTimeout(this.transmissionNotWorkingHintTimer);
+        this.transmissionNotWorkingHintTimer = 0;
+        super.destroy && super.destroy();
+    }
 }
 
 class StreamerCasting extends StreamerOSD {
@@ -689,7 +699,12 @@ class StreamerButtonActionFeedback extends StreamerSpeedo {
             fa = 'fas fa-play'
         }
         clearTimeout(this.buttonActionFeedbackTimer)        
-        this.buttonActionFeedbackLayerInner.innerHTML = '<i class="'+ fa +'" style="transform: scale(1); opacity: 1;"></i>'
+        const icon = document.createElement('i')
+        icon.className = fa
+        icon.style.transform = 'scale(1)'
+        icon.style.opacity = '1'
+        this.buttonActionFeedbackLayerInner.textContent = ''
+        this.buttonActionFeedbackLayerInner.appendChild(icon)
         this.buttonActionFeedbackLayer.style.display = 'flex'
         const i = this.buttonActionFeedbackLayerInner.querySelector('i')
         i.style.transform = 'scale(1.5)'
@@ -1591,7 +1606,7 @@ class StreamerClientControls extends StreamerAudioUI {
         let button = this.getPlayerButton(id)
         if(!button) return console.error('Button #'+ id +' not found')
         if(name){
-            button.querySelector('.button-label > span > span').innerText = name
+            button.querySelector('.button-label > span > span').textContent = name
             button.setAttribute('title', name)
             button.setAttribute('aria-label', name)
         }

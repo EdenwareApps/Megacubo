@@ -176,7 +176,9 @@ class MediaPlayer extends EventEmitter {
 		current.errorsCount = 0
 		try {
 			current.load(src, mimetype, additionalSubtitles, cookie, mediatype)
-		} catch(err) {console.error(err)}
+		} catch(err) {
+			console.error('Media player error:', err.message || err)
+		}
 		this.current = current
 		this.show()
 		main.config && current.volume(main.config['volume'])

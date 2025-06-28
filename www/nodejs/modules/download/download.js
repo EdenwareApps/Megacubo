@@ -349,7 +349,7 @@ class Download extends EventEmitter {
                     const start = parseInt(match[1]);
                     const end = parseInt(match[2]);
                     this.totalContentLength = parseInt(match[3]);
-                    if (start !== this.received) {
+                    if (start !== (this.requestingRange?.start ?? 0)) {
                         this.endWithError('Range mismatch', 500);
                         return;
                     }
