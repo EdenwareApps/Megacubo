@@ -1,5 +1,7 @@
 <!-- docs/faq.md -->
 
+[🏠](/README.md) > [FAQ](faq.md)
+
 # <span style="color: #2e86de;">Frequently Asked Questions (FAQ)</span>
 
 ## General Questions
@@ -245,12 +247,10 @@ Megacubo uses a **Freemium model**:
 - **Chromecast support**: Cast to external devices
 - **Miniplayer mode**: Picture-in-Picture functionality
 - **Key mapping**: Custom keyboard shortcuts
-- **Priority support**: Enhanced customer support
-
-### Is there a refund policy?
-
-Yes, refund information is available at [megacubo.tv/refund](https://megacubo.tv/refund)
 
 ---
 
 *If you don't see your question answered here, please check our [Troubleshooting](troubleshooting.md) guide or contact our [Support](support.md) team.*
+
+**Next:** [Installation](installation.md)
+**Previous:** [Watching Live TV](watching-live-tv.md)

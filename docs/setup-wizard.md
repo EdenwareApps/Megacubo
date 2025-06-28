@@ -1,3 +1,5 @@
+[🏠](/README.md) > [Setup Wizard](setup-wizard.md)
+
 # <span style="color: #2e86de;">Initial Setup Wizard</span>
 
 When launching **Megacubo** for the first time, you'll be guided through a simple setup wizard to configure basic preferences.
@@ -74,3 +76,6 @@ If you encounter problems during setup:
 ---
 
 *The setup wizard is designed to get you started quickly. You can always modify these settings later in the Options menu.*
+
+**Next:** [User Interface Overview](ui-overview.md)
+**Previous:** [Recommendations System](recommendations.md)

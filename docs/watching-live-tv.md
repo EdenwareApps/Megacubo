@@ -1,5 +1,7 @@
 <!-- docs/watching-live-tv.md -->
 
+[🏠](/README.md) > [Watching Live TV](watching-live-tv.md)
+
 # <span style="color: #2e86de;">Watching Live TV</span>
 
 ## Playing a Channel
@@ -153,3 +155,6 @@ The first action shows the player controls, the second exits to the menu.
 ---
 
 *Enjoy your viewing experience! Remember to report any issues you encounter to help improve the service for everyone.*
+
+**Next:** [FAQ](faq.md)
+**Previous:** [Using IPTV Lists](using-iptv-lists.md)

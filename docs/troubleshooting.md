@@ -1,5 +1,7 @@
 <!-- docs/troubleshooting.md -->
 
+[🏠](/README.md) > [Troubleshooting](troubleshooting.md)
+
 # <span style="color: #2e86de;">Troubleshooting</span>
 
 ## Common Errors and Fixes
@@ -139,3 +141,6 @@ If the above solutions don't work:
 ---
 
 *Most issues can be resolved with these troubleshooting steps. If problems persist, please contact our support team with your diagnostic report.*
+
+**Next:** [Support & Contact](support.md)
+**Previous:** [Installation](installation.md)

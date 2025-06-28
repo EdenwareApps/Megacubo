@@ -1,5 +1,7 @@
 <!-- docs/recommendations.md -->
 
+[🏠](/README.md) > [Recommendations System](recommendations.md)
+
 # <span style="color: #2e86de;">Recommendations System</span>
 
 ## How Content Recommendations Work
@@ -114,3 +116,6 @@ Community lists are chosen based on:
 ---
 
 *The recommendation system improves over time as you use the app. The more you interact with content, the better your personalized suggestions will become.*
+
+**Next:** [Setup Wizard](setup-wizard.md)
+**Previous:** [Performance & Optimization](performance.md)

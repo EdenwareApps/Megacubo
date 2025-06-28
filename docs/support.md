@@ -1,5 +1,7 @@
 <!-- docs/support.md -->
 
+[🏠](/README.md) > [Support & Contact](support.md)
+
 # <span style="color: #2e86de;">Support & Contact</span>
 
 ## Where to Ask for Help
@@ -150,3 +152,6 @@ Premium users get:
 ---
 
 *We're here to help! The Megacubo community is friendly and supportive. Don't hesitate to reach out if you need assistance.*
+
+**Next:** [Contributing](contributing.md)
+**Previous:** [Troubleshooting](troubleshooting.md)

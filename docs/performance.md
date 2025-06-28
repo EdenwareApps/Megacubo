@@ -1,5 +1,7 @@
 <!-- docs/performance.md -->
 
+[🏠](/README.md) > [Performance & Optimization](performance.md)
+
 # <span style="color: #2e86de;">Performance and Optimization</span>
 
 ## Low-end Device Mode
@@ -126,3 +128,6 @@ If you experience lag or buffering:
 ---
 
 *These settings can significantly impact performance. Start with default settings and adjust based on your device capabilities and network conditions.*
+
+**Next:** [Recommendations System](recommendations.md)
+**Previous:** [Community Mode](community-mode.md)

@@ -1,5 +1,7 @@
 <!-- docs/community-mode.md -->
 
+[🏠](/README.md) > [Community Mode](community-mode.md)
+
 # <span style="color: #2e86de;">Community Mode</span>
 
 ## Enabling Community Mode
@@ -95,3 +97,8 @@ Set up content filtering in **Options** > **Parental Control**:
 ---
 
 *Community Mode is a collaborative feature that relies on user contributions. Please share only legal, high-quality content to help the community grow.*
+
+---
+
+**Next:** [Performance & Optimization](performance.md)
+**Previous:** [Legal Notice](legal.md)

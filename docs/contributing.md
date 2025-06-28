@@ -1,5 +1,7 @@
 <!-- docs/contributing.md -->
 
+[🏠](/README.md) > [Contributing](contributing.md)
+
 # <span style="color: #2e86de;">Contributing</span>
 
 Thank you for considering contributing to **Megacubo**! Your help is essential to keeping the project alive and improving it for everyone.
@@ -11,6 +13,15 @@ There are many ways to contribute, whether you're a developer, translator, desig
 ## Contributing Code
 
 Megacubo is an open-source project hosted on GitHub at [github.com/EdenwareApps/megacubo](https://github.com/EdenwareApps/megacubo). 
+
+### Understanding the Codebase
+
+Before contributing code, familiarize yourself with the project structure:
+
+- **Internal Modules**: Check out the [Internal Modules Documentation](../www/nodejs/modules/README.md) to understand how the different components work together
+- **Module Architecture**: Each module is self-contained with its own documentation
+- **Event-based Communication**: Modules communicate through Node.js EventEmitter
+- **Shared Configuration**: Common settings managed through the config module
 
 ### Requirements
 
@@ -37,9 +48,7 @@ To build Megacubo locally, you'll need:
 
 - **Follow existing code style** and conventions
 - **Write clear commit messages** in English
-- **Test your changes** on multiple platforms
 - **Update documentation** if needed
-- **Add tests** for new features
 
 ## Translating Megacubo
 
@@ -146,3 +155,6 @@ Need help contributing?
 ---
 
 *Every contribution, no matter how small, helps make Megacubo better for everyone. Thank you for your support!*
+
+**Next:** [Legal Notice](legal.md)
+**Previous:** [Support & Contact](support.md)

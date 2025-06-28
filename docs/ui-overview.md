@@ -1,5 +1,7 @@
 <!-- docs/ui-overview.md -->
 
+[🏠](/README.md) > [User Interface Overview](ui-overview.md)
+
 # <span style="color: #2e86de;">User Interface Overview</span>
 
 ## Main Menu Structure
@@ -154,3 +156,6 @@ Go to **Tools** > **Key Mapping** to customize these and other hotkeys.
 ---
 
 *The interface is designed to be intuitive and accessible. Take time to explore the different sections to discover all available features.*
+
+**Next:** [Using IPTV Lists](using-iptv-lists.md)
+**Previous:** [Setup Wizard](setup-wizard.md)

@@ -1,5 +1,7 @@
 <!-- docs/using-iptv-lists.md -->
 
+[🏠](/README.md) > [Using IPTV Lists](using-iptv-lists.md)
+
 # <span style="color: #2e86de;">Using IPTV Lists</span>
 
 ## Understanding M3U Files
@@ -116,3 +118,6 @@ The app automatically validates stream URLs to ensure they're accessible and pro
 ---
 
 *Proper list management ensures the best viewing experience. Regularly update your lists and report issues to help maintain quality.*
+
+**Next:** [Watching Live TV](watching-live-tv.md)
+**Previous:** [User Interface Overview](ui-overview.md)

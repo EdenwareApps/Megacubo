@@ -1,5 +1,7 @@
 <!-- docs/installation.md -->
 
+[🏠](/README.md) > [Installation](installation.md)
+
 # <span style="color: #2e86de;">Installation</span>
 
 This guide covers how to install **Megacubo** on various platforms.
@@ -147,3 +149,6 @@ After successful installation:
 ---
 
 *If you encounter any issues during installation, please check our [Troubleshooting](troubleshooting.md) guide, visit our [website](https://megacubo.tv/en/english/), or contact our support team at contact@megacubo.tv.*
+
+**Next:** [Troubleshooting](troubleshooting.md)
+**Previous:** [FAQ](faq.md)
