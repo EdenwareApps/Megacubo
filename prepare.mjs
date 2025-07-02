@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // Dynamically import the version from package.json
-const { default: { version: appVersion } } = await import('file://' + path.join(__dirname, 'package.json'), { assert: { type: 'json' } })
+const { default: { version: appVersion } } = await import('file://' + path.join(__dirname, 'package.json'), { with: { type: 'json' } })
 
 // Exit if appVersion is empty or invalid
 if (!appVersion || !/^[0-9]+(\.[0-9]+)*$/.test(appVersion)) {

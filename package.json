@@ -108,6 +108,7 @@
     "rollup": "^4.42.0",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-delete": "^3.0.1",
+    "rollup-plugin-gzip": "^3.1.2",
     "rollup-plugin-import-css": "^4.0.1",
     "rollup-plugin-node-builtins": "^2.1.2",
     "rollup-plugin-svelte": "^7.2.2",
@@ -127,6 +128,10 @@
     "clean": "cd android && gradlew clean",
     "prepare": "node prepare.mjs",
     "build": "node build.mjs",
-    "build:electron": "electron-packager ./www/nodejs"
+    "build:electron": "electron-packager ./www/nodejs",
+    "build:dev": "NODE_ENV=development node prepare.mjs",
+    "build:prod": "NODE_ENV=production node prepare.mjs",
+    "analyze": "npm run build:prod && echo 'Build completed. Check www/nodejs/dist/ for optimized bundles.'",
+    "bundle-size": "find www/nodejs/dist -name '*.js' -not -name '*.map' -exec ls -lh {} \\; | sort -k5 -hr"
   }
 }

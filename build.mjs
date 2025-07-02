@@ -18,7 +18,7 @@ const SIGNING_PROPERTIES_PATH = path.join(__dirname, "release-signing.properties
 
 // Function to retrieve the application version from package.json
 const getApplicationVersion = async () => {
-  const { default: { version } } = await import("file://" + PACKAGE_JSON_PATH, { assert: { type: "json" } });
+  const { default: { version } } = await import("file://" + PACKAGE_JSON_PATH, { with: { type: "json" } });
   return version || "";
 };
 
