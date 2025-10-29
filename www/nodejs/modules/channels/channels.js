@@ -121,12 +121,6 @@ class ChannelsEPG extends ChannelsData {
             }, null, true)
         });
     }
-    isEPGEnabled() {
-        let activeEPG = config.get('epg-' + lang.locale)
-        if(activeEPG && activeEPG !== 'disabled') {
-            return Array.isArray(activeEPG) ? activeEPG.filter(r => r.active).length : parseCommaDelimitedURIs(activeEPG).length
-        }
-    }
     clock(data, includeEnd) {
         let t = this.clockIcon + ts2clock(data.start)
         if (includeEnd) {
@@ -198,7 +192,7 @@ class ChannelsEPG extends ChannelsData {
         if (map[ret.name]) {
             ret.searchName = map[ret.name];
         }
-        ret.terms = e.terms && Array.isArray(e.terms) ? e.terms : this.entryTerms(e, true)
+        ret.terms = this.entryTerms(e, true)
         ret.terms = this.expandTerms(ret.terms)
         return ret;
     }
@@ -280,7 +274,8 @@ class ChannelsEPG extends ChannelsData {
     async epgChannelsAddLiveNow(entries) {
         if (!global.lists?.epg?.loaded) return entries
         let err
-        const cs = entries.filter(e => e.terms || e.type == 'select').map(e => this.isChannel(e)).filter(e => e)
+        const allowedTypes = ['select', 'action']
+        const cs = entries.filter(e => e.terms || allowedTypes.includes(e.type)).map(e => this.isChannel(e)).filter(e => e)
         const epg = await this.epgChannelsLiveNow(cs).catch(e => err = e)
         if (!err && epg) {
             //console.warn('epgChannelsAddLiveNow', cs, entries, epg)
@@ -362,6 +357,7 @@ class ChannelsEPG extends ChannelsData {
     }
     epgProgramAction(start, ch, programme, terms, icon) {
         const now = (Date.now() / 1000);
+        
         if (programme.e < now) { // missed
             let text = lang.START_DATE + ': ' + moment(start * 1000).format('L LT') + '<br />' + lang.ENDED + ': ' + moment(programme.e * 1000).format('L LT');
             if (programme.c && programme.c.length) {
@@ -529,7 +525,8 @@ class ChannelsEditing extends ChannelsEPG {
                                 this.channelList.channelsIndex = null;
                                 this.channelList.categories[category][i] = this.channelList.compactName(name, val.replaceAll(',', ' '))
                                 this.emit('edited', 'searchTerms', e, val)
-                                e.terms = o.terms = { name: global.lists.tools.terms(val), group: [] }
+                                e.terms = global.lists.tools.terms(val)
+                                o.terms = e.terms
                                 await this.channelList.save()
                                 menu.refreshNow()
                             }
@@ -717,46 +714,107 @@ class Channels extends ChannelsKids {
         if (process.platform != 'win32') return
         if (app) { // set from cache, Electron won't set after window is opened
             const tasks = await storage.get('user-tasks')
-            if (tasks && !app.setUserTasks(tasks)) {
-                throw 'Failed to set user tasks. ' + JSON.stringify(tasks)
+            if (tasks && Array.isArray(tasks) && tasks.length > 0) {
+                try {
+                    // Validate tasks before passing to setUserTasks
+                    const validTasks = tasks.filter(task => {
+                        return task && 
+                               typeof task === 'object' &&
+                               typeof task.arguments === 'string' &&
+                               typeof task.title === 'string' &&
+                               typeof task.description === 'string' &&
+                               typeof task.program === 'string' &&
+                               typeof task.iconPath === 'string' &&
+                               typeof task.iconIndex === 'number'
+                    })
+                    
+                    if (validTasks.length > 0 && !app.setUserTasks(validTasks)) {
+                        throw new Error('Failed to set user tasks. ' + JSON.stringify(validTasks))
+                    }
+                } catch (err) {
+                    console.error('Error setting user tasks:', err)
+                }
             }
             return
         }
         const limit = 12
         const entries = []
-        entries.push(...this.bookmarks.get().slice(0, limit))
-        if (entries.length < limit) {
-            for (const entry of this.history.get()) {
-                if (!entries.some(e => e.name == entry.name)) {
-                    entries.push(entry);
-                    if (entries.length == limit)
-                        break;
-                }
+        
+        // Safely get bookmarks
+        try {
+            const bookmarks = this.bookmarks.get()
+            if (Array.isArray(bookmarks)) {
+                entries.push(...bookmarks.slice(0, limit))
             }
-            if (entries.length < limit && Array.isArray(this.trending.currentEntries)) {
-                for (const entry of this.trending.currentEntries) {
-                    if (!entries.some(e => e.name == entry.name)) {
-                        entries.push(entry);
-                        if (entries.length == limit)
-                            break;
+        } catch (err) {
+            console.error('Error getting bookmarks:', err)
+        }
+        
+        if (entries.length < limit) {
+            // Safely get history
+            try {
+                const history = this.history.get()
+                if (Array.isArray(history)) {
+                    for (const entry of history) {
+                        if (entry && entry.name && !entries.some(e => e && e.name == entry.name)) {
+                            entries.push(entry);
+                            if (entries.length == limit)
+                                break;
+                        }
                     }
+                }
+            } catch (err) {
+                console.error('Error getting history:', err)
+            }
+            
+            // Safely get trending entries
+            if (entries.length < limit && this.trending && Array.isArray(this.trending.currentEntries)) {
+                try {
+                    for (const entry of this.trending.currentEntries) {
+                        if (entry && entry.name && !entries.some(e => e && e.name == entry.name)) {
+                            entries.push(entry);
+                            if (entries.length == limit)
+                                break;
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error getting trending entries:', err)
                 }
             }
         }
+        
         const tasks = entries.map(entry => {
+            // Validate entry data more thoroughly
+            if (!entry || 
+                typeof entry !== 'object' ||
+                !entry.url || 
+                typeof entry.url !== 'string' ||
+                !entry.name || 
+                typeof entry.name !== 'string') {
+                return null;
+            }
+            
+            // Ensure all required fields are properly formatted
             return {
-                arguments: '"' + entry.url + '"',
-                title: entry.name,
-                description: entry.name,
-                program: process.execPath,
-                iconPath: process.execPath,
+                arguments: '"' + String(entry.url).replace(/"/g, '\\"') + '"',
+                title: String(entry.name).substring(0, 100), // Limit title length
+                description: String(entry.name).substring(0, 100), // Limit description length
+                program: String(process.execPath),
+                iconPath: String(process.execPath),
                 iconIndex: 0
             }
-        })
-        await storage.set('user-tasks', tasks, {
-            expiration: true,
-            permanent: true
-        })
+        }).filter(task => task !== null); // Remove invalid tasks
+        
+        if (tasks.length > 0) {
+            try {
+                await storage.set('user-tasks', tasks, {
+                    expiration: true,
+                    permanent: true
+                })
+            } catch (err) {
+                console.error('Error saving user tasks:', err)
+            }
+        }
     }
     async goChannelWebsite(name) {
         if (!name) {            
@@ -809,6 +867,19 @@ class Channels extends ChannelsKids {
         // partial=true will match "starts with" terms too
         // the difference from global.lists.tools.match() is that cmatch will check partials from stackTerms instead
         //console.log(needleTerms, stackTerms)
+        
+        // Ensure needleTerms is an array
+        if (!Array.isArray(needleTerms)) {
+            console.warn('cmatch: needleTerms is not an array:', needleTerms);
+            return 0;
+        }
+        
+        // Ensure stackTerms is an array
+        if (!Array.isArray(stackTerms)) {
+            console.warn('cmatch: stackTerms is not an array:', stackTerms);
+            return 0;
+        }
+        
         if (needleTerms.includes('|')) {
             let needles = needleTerms.join(' ').split('|').map(s => s.trim()).filter(s => s).map(s => s.split(' '));
             let score = 0;
@@ -935,7 +1006,7 @@ class Channels extends ChannelsKids {
             if (tmsKey != chosen) {
                 this.channelList.isChannelCache[tmsKey] = this.channelList.isChannelCache[chosen]
             }
-            if(terms.name) {
+            if(typeof(terms) == 'object' && !Array.isArray(terms)) {
                 terms.isChannel = this.channelList.isChannelCache[chosen]
             }
             return this.channelList.isChannelCache[chosen]
@@ -969,11 +1040,33 @@ class Channels extends ChannelsKids {
             if (typeof(terms) == 'string') {                
                 terms = global.lists.tools.terms(terms)
             }
+            
+            // Ensure terms is an array
+            if (!Array.isArray(terms)) {
+                console.warn('searchChannels: terms is not an array after conversion:', terms);
+                terms = [];
+            }
             let epgEntries = [], entries = [], already = {};
             let matchAll = !terms.length || (terms.length == 1 && terms[0] == '*')
+            
+            // Ensure channelsIndex exists and is an object
+            if (!this.channelList || !this.channelList.channelsIndex || typeof this.channelList.channelsIndex !== 'object') {
+                console.warn('searchChannels: channelsIndex is not available');
+                resolve([]);
+                return;
+            }
+            
             Object.keys(this.channelList.channelsIndex).sort().forEach(name => {
                 if (typeof(already[name]) == 'undefined') {
-                    let score = matchAll ? 1 : this.cmatch(this.channelList.channelsIndex[name], terms, partial);
+                    let channelTerms = this.channelList.channelsIndex[name];
+                    
+                    // Ensure channelTerms is an array
+                    if (!Array.isArray(channelTerms)) {
+                        console.warn('searchChannels: channelTerms for', name, 'is not an array:', channelTerms);
+                        channelTerms = [];
+                    }
+                    
+                    let score = matchAll ? 1 : this.cmatch(channelTerms, terms, partial);
                     if (score) {
                         already[name] = null;
                         entries.push({
@@ -1008,10 +1101,10 @@ class Channels extends ChannelsKids {
     }
     entryTerms(e, expand) {
         let terms
-        if (Array.isArray(e.terms) && e.terms.length) {
+        if (typeof(e.nameTerms) != 'undefined' && Array.isArray(e.nameTerms) && e.nameTerms.length) {
+            terms = e.nameTerms
+        } else if (typeof(e.terms) != 'undefined' && Array.isArray(e.terms) && e.terms.length) { // channel entry
             terms = e.terms
-        } else if (typeof(e.terms) != 'undefined' && typeof(e.terms.name) != 'undefined' && Array.isArray(e.terms.name) && e.terms.name.length) {
-            terms = e.terms.name
         } else if (e.originalName) {
             terms = global.lists.tools.terms(e.originalName)
         } else {
@@ -1021,8 +1114,8 @@ class Channels extends ChannelsKids {
             terms = this.expandTerms(terms)
             e.expanded = true
         }
-        if(!e.terms) {
-            e.terms = { name: terms, group: [] }
+        if(!e.nameTerms) {
+            e.nameTerms = terms
         }
         return terms
     }
@@ -1202,10 +1295,10 @@ class Channels extends ChannelsKids {
                     class: 'entry-meta-stream',
                     fa: 'fas fa-play-circle',
                     renderer: async () => {
-                        let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.tools.terms(atts.name);
-                        let es = await global.lists.search(terms, {
+                        let tms = atts.terms && Array.isArray(atts.terms) ? atts.terms : terms(atts.name);
+                        let es = await global.lists.search(tms, {
                             type: atts.mediaType,
-                            group: true,
+                            group: false,
                             safe: !global.lists.parentalControl.lazyAuth(),
                             limit: 1024
                         });
@@ -1234,7 +1327,7 @@ class Channels extends ChannelsKids {
         if(this.channelList) {
             const data = await this.channelList.getAppRecommendedCategories().catch(e => err = e)
             if (!err) {
-                keywords.push(...Object.values(data).flat().map(n => this.channelList.expandName(n).terms.name).flat())
+                keywords.push(...Object.values(data).flat().map(n => this.channelList.expandName(n).terms).flat())
             }
             keywords = keywords.unique().filter(w => !badChrs.includes(w.charAt(0)))
         }
@@ -1559,22 +1652,51 @@ class Channels extends ChannelsKids {
         });
     }
     async groupsRenderer(type, opts = {}) {
-        
+        // Performance optimization: Early return for loading state
         if (!global.lists.loaded()) {
             return [global.lists.manager.updatingListsEntry()];
         }
+
         const isSeries = type == 'series';
+        const acpolicy = config.get('parental-control');
+
+        // Performance optimization: Async group loading
         let groups = await global.lists.groups(type ? [type] : ['series', 'vod'], opts.myListsOnly);
+        
         if (!groups.length && !global.lists.loaded(true)) {
             if (paths.ALLOW_ADDING_LISTS) {
                 return [global.lists.manager.noListsEntry()];
             }
             return [];
         }
-        const acpolicy = config.get('parental-control');
-        const groupToEntry = group => {
+
+        // Performance optimization: Apply parental filter early to reduce processing
+        groups = this.applyParentalFilter(groups, acpolicy);
+        
+        // Performance optimization: Async group processing with batching
+        const groupToEntry = (group) => {
             const name = group.name;
-            const details = group.group.split('/').filter(n => n != name).join(' &middot; ');
+            
+            // FIXED: Prevent recursive concatenation in details field
+            let details = '';
+            if (group.group && group.group !== name) {
+                // Split the group path and filter out the current name to avoid recursion
+                const pathParts = group.group.split('/');
+                const filteredParts = pathParts.filter(n => n && n !== name);
+                
+                // Remove duplicate consecutive parts to prevent recursive concatenation
+                const uniqueParts = [];
+                let lastPart = '';
+                for (const part of filteredParts) {
+                    if (part !== lastPart) {
+                        uniqueParts.push(part);
+                        lastPart = part;
+                    }
+                }
+                
+                details = uniqueParts.join(' &middot; ');
+            }
+            
             return {
                 name,
                 details,
@@ -1584,56 +1706,161 @@ class Channels extends ChannelsKids {
                 class: isSeries ? 'entry-cover' : undefined,
                 fa: isSeries ? 'fas fa-play-circle' : undefined,
                 renderer: async () => {
-                    console.log({group})
-                    return renderer(group)
+                    // Performance optimization: Lazy loading with error handling
+                    return this.renderGroupEntries(group, acpolicy, isSeries);
                 }
             };
         };
-        const parentalFilter = entries => {
-            if (acpolicy == 'block') {
-                entries = global.lists.parentalControl.filter(entries);
-            } else if (acpolicy == 'remove') {
-                entries = global.lists.parentalControl.filter(entries);
-            } else if (acpolicy == 'only') {
-                entries = global.lists.parentalControl.only(entries);
-            }
-            return entries;
-        };
-        const renderer = async group => {
-            let entries = await global.lists.group(group).catch(e => menu.displayErr(e));
-            if (Array.isArray(entries)) {
-                let gentries = (group.entries || []).map(g => groupToEntry(g));
-                while (entries.length == 1) {
-                    const entry = entries[0];
-                    if (entry.entries) {
-                        entries = entry.entries;
-                    } else if (typeof(entry.renderer) == 'function') {
-                        entries = await entry.renderer(entry);
-                    } else if (typeof(entry.renderer) == 'string') {
-                        entries = await storage.get(entry.renderer);
-                    } else {
-                        break;
-                    }
+
+        // Performance optimization: Process groups in batches to avoid blocking
+        const processGroupsBatch = async (groupsBatch) => {
+            const batchSize = 10; // Process 10 groups at a time
+            const results = [];
+            
+            for (let i = 0; i < groupsBatch.length; i += batchSize) {
+                const batch = groupsBatch.slice(i, i + batchSize);
+                const batchPromises = batch.map(group => 
+                    Promise.resolve(groupToEntry(group)).catch(err => {
+                        console.error('Error processing group:', group.name, err);
+                        return null;
+                    })
+                );
+                
+                const batchResults = await Promise.all(batchPromises);
+                results.push(...batchResults.filter(result => result !== null));
+                
+                // Performance optimization: Yield control to prevent blocking
+                if (i + batchSize < groupsBatch.length) {
+                    await new Promise(resolve => setTimeout(resolve, 0));
                 }
-                gentries.push(...entries);
-                gentries = parentalFilter(gentries).sortByProp('name');
-                const deepEntries = await global.lists.tools.deepify(gentries, { source: group.url }).catch(err => console.error(err));
-                if (Array.isArray(deepEntries)) {
-                    gentries = deepEntries;
-                }
-                return gentries;
-            } else {
-                return [];
             }
+            
+            return results;
         };
-        let pentries = parentalFilter(groups).map(group => groupToEntry(group));
+
+        // Performance optimization: Process all groups asynchronously
+        let pentries = await processGroupsBatch(groups);
+
+        // Performance optimization: Conditional deepify with error handling
         if (opts.deepify !== false) {
-            const deepEntries = await global.lists.tools.deepify(pentries).catch(err => console.error(err));
-            if (Array.isArray(deepEntries)) {
-                pentries = deepEntries;
+            try {
+                const deepEntries = await global.lists.tools.deepify(pentries).catch(err => {
+                    console.error('Deepify error:', err);
+                    return pentries; // Fallback to original entries
+                });
+                if (Array.isArray(deepEntries)) {
+                    pentries = deepEntries;
+                }
+            } catch (err) {
+                console.error('Deepify processing error:', err);
             }
         }
+
         return pentries;
+    }
+
+    // Performance optimization: Extracted parental filter function
+    applyParentalFilter(entries, acpolicy) {
+        if (acpolicy == 'block') {
+            return global.lists.parentalControl.filter(entries);
+        } else if (acpolicy == 'remove') {
+            return global.lists.parentalControl.filter(entries);
+        } else if (acpolicy == 'only') {
+            return global.lists.parentalControl.only(entries);
+        }
+        return entries;
+    }
+
+    // Performance optimization: Extracted group rendering function with async processing
+    async renderGroupEntries(group, acpolicy, isSeries) {
+        try {
+            let entries = await global.lists.group(group).catch(e => {
+                console.error('Error loading group entries:', e);
+                menu.displayErr(e);
+                return [];
+            });
+
+            if (!Array.isArray(entries) || entries.length === 0) {
+                return [];
+            }
+
+            console.warn('entries before chunking', entries.length);
+            
+            // Performance optimization: Process entries in smaller chunks
+            const CHUNK_SIZE = 20;
+            let processedEntries = [];
+
+            for (let i = 0; i < entries.length; i += CHUNK_SIZE) {
+                const chunk = entries.slice(i, i + CHUNK_SIZE);
+                
+                // Performance optimization: Process chunk asynchronously
+                const processedChunk = await this.processEntriesChunk(chunk, group, isSeries);
+                processedEntries.push(...processedChunk);
+                
+                // Performance optimization: Yield control between chunks
+                if (i + CHUNK_SIZE < entries.length) {
+                    await new Promise(resolve => setTimeout(resolve, 0));
+                }
+            }
+
+            console.warn('entries after chunking', processedEntries.length);
+
+            // Performance optimization: Apply filters and sorting
+            processedEntries = this.applyParentalFilter(processedEntries, acpolicy);
+            processedEntries = processedEntries.sortByProp('name');
+
+            console.warn('entries after filtering and sorting', processedEntries.length);
+
+            // Performance optimization: Conditional deepify
+            try {
+                const deepEntries = await global.lists.tools.deepify(processedEntries, { source: group.url }).catch(err => {
+                    console.error('Deepify error in renderGroupEntries:', err);
+                    return processedEntries;
+                });
+                if (Array.isArray(deepEntries)) {
+                    console.warn('entries after deepify', deepEntries.length, deepEntries);
+                    processedEntries = deepEntries.length === 1 ? deepEntries[0].entries : deepEntries;
+                }
+            } catch (err) {
+                console.error('Deepify processing error in renderGroupEntries:', err);
+            }
+
+            return processedEntries;
+        } catch (err) {
+            console.error('Error in renderGroupEntries:', err);
+            return [];
+        }
+    }
+
+    // Performance optimization: Process entries chunk with error handling
+    async processEntriesChunk(chunk, group, isSeries) {
+        const results = [];
+        
+        for (const entry of chunk) {
+            try {
+                let processedEntry = entry;
+                
+                // Performance optimization: Handle nested entries efficiently
+                if (entry.entries) {
+                    processedEntry = entry.entries;
+                } else if (typeof(entry.renderer) == 'function') {
+                    processedEntry = await entry.renderer(entry);
+                } else if (typeof(entry.renderer) == 'string') {
+                    processedEntry = await storage.get(entry.renderer);
+                }
+                
+                if (Array.isArray(processedEntry)) {
+                    results.push(...processedEntry);
+                } else if (processedEntry) {
+                    results.push(processedEntry);
+                }
+            } catch (err) {
+                console.error('Error processing entry:', entry.name, err);
+                // Continue processing other entries
+            }
+        }
+        
+        return results;
     }
     async hook(entries, path) {
         if (!path) {

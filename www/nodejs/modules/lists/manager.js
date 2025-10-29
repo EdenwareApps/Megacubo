@@ -2,7 +2,6 @@ import Download from '../download/download.js'
 import osd from '../osd/osd.js'
 import menu from '../menu/menu.js'
 import lang from "../lang/lang.js";
-import storage from '../storage/storage.js'
 import mega from "../mega/mega.js";
 import Xtr from "./xtr.js";
 import downloads from "../downloads/downloads.js";
@@ -15,15 +14,16 @@ import Limiter from '../limiter/limiter.js'
 import { randomUUID } from 'node:crypto'
 import { EventEmitter } from "events";
 import { promises as fsp } from "fs";
-import { basename, clone, forwardSlashes, getDomain, isLocal, insertEntry, kfmt, LIST_DATA_KEY_MASK, listNameFromURL, parseCommaDelimitedURIs, validateURL, ucWords } from "../utils/utils.js";
+import { basename, clone, forwardSlashes, getDomain, isLocal, insertEntry, kfmt, listNameFromURL, parseCommaDelimitedURIs, validateURL, ucWords, formatThousands } from "../utils/utils.js";
+import { resolveListDatabaseFile } from "./tools.js";
 import { Fetcher } from './common.js';
 
 class ManagerEPG extends EventEmitter {
     constructor() {
         super()
         renderer.ready(() => {
+            let currentHash
             const updater = async () => {
-                let currentHash
                 const es = await this.epgOptionsEntries()
                 const entries = es.map(e => {
                     if (e.name == lang.SYNC_EPG_CHANNELS) {
@@ -78,32 +78,32 @@ class ManagerEPG extends EventEmitter {
         return ret
     }
     async epgOptionsEntries() {
-        let epgs = new Set()
         const key = 'epg-'+ lang.locale
         const states = this.master.epg.state
-        const actives = new Set(states.info.map(r => r.url))
-        const options = (await this.master.searchEPGs(22, actives)).map(url => {
-            let icon, details, state
+        const actives = new Set(states.epgs.map(epg => epg.url)) // usar epgs em vez de info
+        const knownEPGs = await this.master.searchEPGs(22, actives)
+        const allEPGs = [...new Set([...actives, ...knownEPGs])].slice(0, 22)
+        const options = allEPGs.map(url => {
+            let icon, details = getDomain(url)
             const isActive = actives.has(url), name = listNameFromURL(url)
+            const state = states.epgs.find(epg => epg.url == url)
             if (isActive) {
-                state = states.info.find(r => r.url == url)
-                if (state.state == 'error') {
-                    details = lang[state.error] || state.error || 'Unknown error'
-                } else if (state.progress > 99) {
-                    details = lang.EPG_LOAD_SUCCESS
-                } else {
-                    details = lang.PROCESSING + ' ' + (state.progress || 0) + '%'
-                }
                 icon = 'fa-mega busy-x'
-                switch(state.state) {
-                    case 'error':
-                        icon = 'fas fa-times-circle faclr-red'
-                        break
-                    case 'loaded':
-                        icon = 'fas fa-check-circle faclr-green'
+                if (state?.readyState == 'error') {
+                    details = lang[state.error] || state.error || lang.NOT_FOUND
+                    icon = 'fas fa-times-circle faclr-red'
+                } else if (state && state.progress > 99) {
+                    const state = states?.epgs?.find(e => e.url == url)
+                    details = state ? lang.X_PROGRAMMES.format(formatThousands(state.databaseSize)) : lang.EPG_LOAD_SUCCESS
+                    icon = 'fas fa-check-circle faclr-green'
+                } else {
+                    details = lang.PROCESSING + ' ' + (state?.progress || 0) + '%'
                 }
             } else {
-                details = getDomain(url)
+                if (state?.readyState == 'error') {
+                    details = lang[state.error] || state.error || lang.NOT_FOUND
+                    icon = 'fas fa-times-circle faclr-red'
+                }
             }
             const checked = () => {
                 const data = this.EPGs()
@@ -140,7 +140,9 @@ class ManagerEPG extends EventEmitter {
                 config.set('epg-suggestions', isChecked)
                 menu.refreshNow()
             },
-            checked: () => config.get('epg-suggestions')
+            checked: () => {
+                return config.get('epg-suggestions') !== false
+            }
         })
         options.unshift(this.addEPGEntry())
         return options
@@ -175,24 +177,50 @@ class ManagerEPG extends EventEmitter {
         const uid = 'epg-add-'+ randomUUID()
         osd.show(lang.EPG_AVAILABLE_SOON, 'fa-mega busy-x', uid, 'persistent')
         await new Promise(resolve => setTimeout(resolve, 3000))
+        
+        // CRITICAL: Add timeout protection and instance validation
+        const maxWaitTime = 180000 // 3 minutes maximum wait
+        const startTime = Date.now()
+        
         while(true) {
-            const states = this.master.epg.state
-            const state = states.info.find(r => r.url == url)
-            await new Promise(resolve => setTimeout(resolve, 500))
-            if (state) {
-                if (state.progress == lastProgress && state.state == lastState) continue
-                menu.refresh()
-                if (state.state == 'error') {
-                    osd.show(lang.EPG_LOAD_FAILURE + ': ' + state.error, 'fas fa-times-circle', uid, 'normal')
-                    break
-                } else if (state.progress > 99) {
-                    osd.show(lang.EPG_LOAD_SUCCESS, 'fas fa-check-circle', uid, 'normal')
-                    break
+            // Check if we've exceeded maximum wait time
+            if (Date.now() - startTime > maxWaitTime) {
+                console.warn(`EPG loading timeout for ${url} after ${maxWaitTime}ms`)
+                osd.show(lang.EPG_LOAD_FAILURE + ': Timeout', 'fas fa-times-circle', uid, 'normal')
+                break
+            }
+            
+            try {
+                const states = this.master.epg.state
+                const state = states.epgs.find(epg => epg.url == url)
+                await new Promise(resolve => setTimeout(resolve, 500))
+                
+                if (state) {
+                    if (state.progress == lastProgress && state.readyState == lastState) continue
+                    menu.refresh()
+                    if (state.readyState == 'error') {
+                        osd.show(lang.EPG_LOAD_FAILURE + ': ' + state.error, 'fas fa-times-circle', uid, 'normal')
+                        break
+                    } else if (state.progress > 99) {
+                        osd.show(lang.EPG_LOAD_SUCCESS, 'fas fa-check-circle', uid, 'normal')
+                        break
+                    } else {
+                        osd.show(lang.PROCESSING + ' ' + (state.progress || 0) + '%', 'fa-mega busy-x', uid, 'persistent')
+                    }
                 } else {
-                    osd.show(lang.PROCESSING + ' ' + (state.progress || 0) + '%', 'fa-mega busy-x', uid, 'persistent')
+                    // CRITICAL: Check if EPG instance still exists before showing failure
+                    const epgInstance = this.master.epg.epgs?.[url]
+                    if (!epgInstance || epgInstance.destroyed) {
+                        console.warn(`EPG instance destroyed or not found for ${url}`)
+                        osd.show(lang.EPG_LOAD_FAILURE + ': Instance destroyed', 'fas fa-times-circle', uid, 'normal')
+                        break
+                    }
+                    osd.show(lang.EPG_LOAD_FAILURE, 'fas fa-times-circle', uid, 'normal')
+                    break
                 }
-            } else {
-                osd.show(lang.EPG_LOAD_FAILURE, 'fas fa-times-circle', uid, 'normal')
+            } catch (error) {
+                console.error(`Error in epgShowLoading for ${url}:`, error.message)
+                osd.show(lang.EPG_LOAD_FAILURE + ': ' + error.message, 'fas fa-times-circle', uid, 'normal')
                 break
             }
         }
@@ -214,7 +242,7 @@ class ManagerEPG extends EventEmitter {
                     }
                 ]
                 const states = this.master.epg.state
-                if (states.info.length) {
+                if (states.epgs.length) {
                     const cl = global.channels.channelList
                     let categories
                     try {
@@ -256,7 +284,7 @@ class ManagerEPG extends EventEmitter {
         let terms = {}, chs = category.entries.map(e => {
             const data = global.channels.isChannel(e.name)
             if (data) {
-                e.terms.name = terms[e.name] = data.terms
+                e.nameTerms = terms[e.name] = data.terms
                 return e
             }
         }).filter(e => e)
@@ -402,13 +430,30 @@ class Manager extends ManagerFetch {
             })
             await this.master.ready()
 
+            // Adicionar listener para recarregar sugestões quando necessário
+            this.master.epg.on('reload-suggestions', async () => {
+                console.log('🔄 Reloading EPG suggestions...')
+                const activeEPG = config.get('epg-' + lang.locale)
+                if (activeEPG === 'disabled' || config.get('epg-suggestions') === false) {
+                    console.log('EPG suggestions disabled, skipping reload')
+                    return
+                }
+                
+                const urls = await this.master.searchEPGs()
+                console.log('EPGS urls - MANAGER (reload)', urls)
+                if (urls.length > 0) {
+                    await this.master.epg.suggest(urls)
+                }
+            })
+
             const activeEPG = config.get('epg-' + lang.locale)
-            if (activeEPG === 'disabled' || !config.get('epg-suggestions')) return
-            const suggest = !activeEPG || activeEPG === 'auto' || (Array.isArray(activeEPG) && !activeEPG.length)
+            if (activeEPG === 'disabled' || config.get('epg-suggestions') === false) return
+            const suggest = !activeEPG || activeEPG === 'auto' || (Array.isArray(activeEPG) && activeEPG.length > 0)
             console.log('shouldSuggest', suggest, activeEPG)
 
             if (!suggest) return
             const urls = await this.master.searchEPGs()
+            console.log('EPGS urls - MANAGER', urls)
             urls.length && await this.master.epg.suggest(urls)
         })
     }
@@ -513,7 +558,7 @@ class Manager extends ManagerFetch {
             }
         }
         menu.path.endsWith(lang.MY_LISTS) && menu.refreshNow()
-        const cacheFile = storage.resolve(LIST_DATA_KEY_MASK.format(url));
+        const cacheFile = resolveListDatabaseFile(url)
         const stat = await fsp.stat(cacheFile).catch(() => {});
         if (stat && stat.size && stat.size < 16384) {
             await fsp.unlink(cacheFile).catch(err => console.error(err)); // invalidate possibly bad caches

@@ -61,9 +61,11 @@ class MediaPlayerAdapterHTML5 extends MediaPlayerAdapter {
 	}
 	setup(tag){
 		console.log('adapter setup')
-		this.object = this.container.querySelector(tag)
-		this.recycle() // force to clear tracks
-		this.patchPauseFn()
+		this.object = this.container ? this.container.querySelector(tag) : null
+		if (this.object) {
+			this.recycle() // force to clear tracks
+			this.patchPauseFn()
+		}
 	}
 	patchPauseFn(){		
 		if(typeof(this.object._pause) == 'undefined'){
@@ -333,7 +335,8 @@ class MediaPlayerAdapterHTML5 extends MediaPlayerAdapter {
             	}
             	this.ratioCSS.innerText = ''
             	this.ratioCSS.appendChild(document.createTextNode(css))
-            	document.querySelector("head, body").appendChild(this.ratioCSS)
+            	const target = document.querySelector("head, body")
+            	if (target) target.appendChild(this.ratioCSS)
 				console.log('ratioupdated', this.inPortrait)
 			}
 		}

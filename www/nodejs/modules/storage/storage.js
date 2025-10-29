@@ -25,12 +25,19 @@ class StorageTools extends EventEmitter {
         this.indexFile = 'storage-index.json';
         this.locked = {};
         this.index = {};
+        this.knownExtensions = ['offsets.jdb', 'idx.jdb', 'dat', 'jdb'] // do not include 'json', those are handled by upgrade()
+        
+        // Add write queue system for better concurrency control
+        this.writeQueue = new Map(); // key -> queue of write operations
+        this.writeQueueLocks = new Map(); // key -> lock for queue operations
+        
         this.load();
         if (!this.opts.main)
             return;
         this.lastSaveTime = (Date.now() / 1000)
-        this.saveLimiter = new Limiter(() => this.save(), 5000, true)
-        this.alignLimiter = new Limiter(() => this.align(), 5000, true)
+        // Increase save interval to reduce file handle usage
+        this.saveLimiter = new Limiter(() => this.save(), 10000, true) // increased from 5000 to 10000
+        this.alignLimiter = new Limiter(() => this.align(), 10000, true) // increased from 5000 to 10000
         process.nextTick(() => {
             onexit(() => this.saveSync());
         });
@@ -48,22 +55,40 @@ class StorageTools extends EventEmitter {
                 if (this.heldKeys.has(key)) {
                     continue
                 }
-                if (ext == 'dat') {
-                    continue // expired files are deleted in align()
+                if (this.knownExtensions.includes(ext)) {
+                    // Check if file is expired or not in index and older than 1 hour
+                    const ffile = this.opts.folder + '/' + file
+                    const stat = await fs.promises.stat(ffile).catch(() => {})
+                    if (stat && typeof(stat.size) == 'number') {
+                        const mtime = stat.mtimeMs / 1000;
+                        const oneHour = 3600; // 1 hour in seconds
+                        
+                        // Check if file is older than 1 hour
+                        if ((now - mtime) > oneHour) {
+                            // Check if file is in index and not expired
+                            const indexEntry = this.index[key];
+                            if (!indexEntry || (indexEntry.expiration && now > indexEntry.expiration)) {
+                                // File is not in index or has expired - delete it
+                                await fs.promises.unlink(ffile).catch(() => {})
+                            }
+                        }
+                    }
                 } else if (ext == 'commit') { // delete zombie commits
                     const ffile = this.opts.folder + '/' + file
                     const stat = await fs.promises.stat(ffile).catch(() => {})
                     if (stat && typeof(stat.size) == 'number') {
                         const mtime = stat.mtimeMs / 1000;
-                        if ((now - mtime) > this.opts.minIdleTime) {
-                            fs.promises.unlink(ffile, () => {}).catch(() => {})
+                        // Increase minimum idle time for commit files to 10 minutes (600s) to avoid race conditions
+                        const minCommitIdleTime = Math.max(this.opts.minIdleTime, 600)
+                        if ((now - mtime) > minCommitIdleTime) {
+                            fs.promises.unlink(ffile).catch(() => {})
                         }
                     }
-                } else if (ext == 'json') { // upgrade files
+                } else if (ext == 'json') { // upgrade files and index
                     upgraded = true
                     await this.upgrade(file)
                 } else {
-                    await fs.promises.unlink(this.opts.folder +'/'+ file).catch(() => {})
+                    await fs.promises.unlink(this.opts.folder +'/'+ file).catch(() => {}) // unexpected file format
                 }
             }
             upgraded && rmdir(this.opts.folder + '/dlcache', true).catch(err => console.error(err))
@@ -184,22 +209,32 @@ class StorageIndex extends StorageHolding {
         super(opts);
     }
     load() {
-        let index        
         try {
-            index = fs.readFileSync(this.opts.folder + '/' + this.indexFile, { encoding: 'utf8' })
-        } catch (e) {}
-        if (typeof(index) == 'string') {
-            try {
-                index = JSON.parse(index);
-                Object.keys(index).forEach(k => {
-                    if (!this.index[k] || this.index[k].time < index[k].time) {
-                        this.index[k] = index[k]
+            const indexPath = this.opts.folder +'/'+ this.indexFile
+            if (fs.existsSync(indexPath)) {
+                const content = fs.readFileSync(indexPath, 'utf8')
+                if (content && content.trim()) {
+                    try {
+                        this.index = JSON.parse(content)
+                    } catch (parseError) {
+                        console.error('Storage index JSON parse error, creating backup and resetting:', parseError.message)
+                        // Create backup of corrupted file
+                        const backupPath = indexPath + '.corrupted.' + Date.now()
+                        fs.copyFileSync(indexPath, backupPath)
+                        // Reset to empty index
+                        this.index = {}
+                        // Save the reset index
+                        this.save()
                     }
-                })
-            } catch (e) {
-                console.error(e)
+                } else {
+                    this.index = {}
+                }
+            } else {
+                this.index = {}
             }
-            this.opts.main && this.cleanup().catch(err => console.error(err))
+        } catch (err) {
+            console.error('Storage load error:', err)
+            this.index = {}
         }
     }
     mtime(key) {
@@ -229,14 +264,28 @@ class StorageIndex extends StorageHolding {
     async save() {
         if (this.mtime() < this.lastSaveTime)
             return
-        const tmp = this.opts.folder +'/'+ parseInt(Math.random() * 100000) +'.commit'
+        // Ensure directory exists
+        await fs.promises.mkdir(this.opts.folder, { recursive: true }).catch(() => {})
+        
+        // Use a more predictable filename to reduce file handle usage
+        const tmp = this.opts.folder +'/'+ 'temp_' + Date.now() +'.commit'
         this.lastSaveTime = (Date.now() / 1000)
-        await fs.promises.writeFile(tmp, JSON.stringify(this.index), 'utf8').catch(err => console.error(err))
         try {
+            await fs.promises.writeFile(tmp, JSON.stringify(this.index), 'utf8')
+            
+            // Verify temp file exists before moving
+            await fs.promises.access(tmp)
+            
             await moveFile(tmp, this.opts.folder +'/'+ this.indexFile)
         } catch (err) {
-            fs.promises.unlink(tmp).catch(err => console.error(err))
-            throw err
+            // Clean up temp file on error (check if it exists first)
+            try {
+                await fs.promises.access(tmp)
+                await fs.promises.unlink(tmp)
+            } catch (cleanupErr) {
+                // Temp file doesn't exist or can't be deleted, ignore
+            }
+            console.error('Storage save error:', err)
         }
     }
     saveSync() {
@@ -299,12 +348,11 @@ class StorageIndex extends StorageHolding {
         if (removals.length > 0) {
             const removalPromises = removals.map(async key => {
                 if(!this.index[key]) return; // bad value or deleted in mean time
-                const file = this.resolve(key)
                 const size = this.index[key].size
                 const elapsed = now - this.index[key].time
                 const expired = this.index[key].expired ? ', expired' : ''
-                // console.log('LRU cache eviction '+ key +' ('+ size + expired +') after '+ elapsed +'s idle')
-                await this.delete(key, file)
+                console.log('LRU cache eviction '+ key +' ('+ size + expired +') after '+ elapsed +'s idle')                
+                await this.delete(key)
             });
             await Promise.allSettled(removalPromises);
         }
@@ -383,6 +431,53 @@ class StorageIndex extends StorageHolding {
             }
         }
     }
+    
+    async touchFile(filePath, atts, doNotPropagate) {
+        // Extract key from file path for index management
+        const key = this.unresolve(filePath)
+        
+        if (atts && atts.delete === true) { // IPC sync only
+            if (this.index[key]) {
+                delete this.index[key]
+                this.emit('delete', key)
+            }
+            return
+        }
+        
+        const time = parseInt((Date.now() / 1000))
+        if (!this.index[key]) {
+            if (atts === false) return
+            this.index[key] = {}
+        }
+        
+        const entry = this.index[key]
+        if (!atts) atts = {}
+        const prevAtts = Object.assign({}, atts)        
+        atts = this.calcExpiration(atts || {}, entry)
+        if (typeof(atts.expiration) != 'number' || !atts.expiration) {
+            delete atts.expiration
+        }
+        atts.time = time
+        
+        if (atts.size === 'auto' || typeof(entry.size) == 'undefined') {            
+            const stat = await fs.promises.stat(filePath).catch(() => {})
+            if (stat && stat.size) {
+                atts.size = stat.size
+            } else {
+                delete atts.size
+            }
+        }
+        
+        const prevValues = Object.assign({}, entry)
+        this.index[key] = Object.assign(entry, atts)
+        
+        if(doNotPropagate !== true) { // IPC sync only
+            this.emit('touch', key, this.index[key])
+            if (this.opts.main) { // only main process should align/save index, worker will sync through IPC		
+                this.alignLimiter.call() // will call saver when done
+            }
+        }
+    }
 }
 
 class StorageIO extends StorageIndex {
@@ -407,74 +502,151 @@ class StorageIO extends StorageIndex {
             }
         }
         await this.touch(key, false) // wait writing on file to finish before to re-enable access
-        await this.lock(key, false)
-        const now = (Date.now() / 1000)
-        if (row.expiration < now) {
-            if(opts.throwIfMissing === true) {
-                throw new Error('Key expired: '+ key)
-            }
-            return null
-        }
-        const file = this.resolve(key);
-        const stat = await fs.promises.stat(file).catch(() => {});
-        const exists = stat && typeof(stat.size) == 'number';
-        if (exists) {
-            let err;
-            await this.touch(key, { size: stat.size });
-            let content = await fs.promises.readFile(file, { encoding: opts.encoding }).catch(e => err = e);
-            if (!err) {
-                if (row.compress) {
-                    content = await this.decompress(content)
+        
+        // Acquire lock and ensure it's released
+        const lock = await this.lock(key, false);
+        try {
+            const now = (Date.now() / 1000)
+            if (row.expiration < now) {
+                if(opts.throwIfMissing === true) {
+                    throw new Error('Key expired: '+ key)
                 }
-                if (row.raw) {
-                    return content;
-                } else {
-                    if (Buffer.isBuffer(content)) { // is buffer
-                        content = String(content);
+                return null
+            }
+            const file = this.resolve(key);
+            const stat = await fs.promises.stat(file).catch(() => {});
+            const exists = stat && typeof(stat.size) == 'number';
+            if (exists) {
+                let err;
+                await this.touch(key, { size: stat.size });
+                let content = await fs.promises.readFile(file, { encoding: opts.encoding }).catch(e => err = e);
+                if (!err) {
+                    if (row.compress) {
+                        content = await this.decompress(content)
                     }
-                    if (content != 'undefined') {
-                        try {
-                            let j = parse(content);
-                            if (j && j != null) {
-                                return j;
-                            }
+                    if (row.raw) {
+                        return content;
+                    } else {
+                        if (Buffer.isBuffer(content)) { // is buffer
+                            content = String(content);
                         }
-                        catch (e) {}
+                        if (content != 'undefined') {
+                            try {
+                                let j = parse(content);
+                                if (j && j != null) {
+                                    return j;
+                                }
+                            }
+                            catch (e) {}
+                        }
                     }
                 }
             }
+            if(opts.throwIfMissing === true) {
+                throw new Error('Key not found: '+ key)
+            }
+            return null;
+        } finally {
+            // Always release the lock
+            lock.release();
         }
-        if(opts.throwIfMissing === true) {
-            throw new Error('Key not found: '+ key)
-        }
-        return null;
     }
     async set(key, content, atts) {
         key = this.prepareKey(key);
-        const lock = await this.lock(key, true), t = typeof(atts);
-        if (t == 'boolean' || t == 'number') {
-            if (t == 'number') {
-                atts += (Date.now() / 1000);
+        
+        // Use write queue to prevent race conditions
+        return this.queueWrite(key, async () => {
+            const lock = await this.lock(key, true), t = typeof(atts);
+            if (t == 'boolean' || t == 'number') {
+                if (t == 'number') {
+                    atts += (Date.now() / 1000);
+                }
+                atts = { expiration: atts };
             }
-            atts = { expiration: atts };
+            if (atts.encoding !== null && typeof(atts.encoding) != 'string') {
+                if (atts.compress) {
+                    atts.encoding = null;
+                } else {
+                    atts.encoding = 'utf-8';
+                }
+            }
+            let file = this.resolve(key);
+            if (atts.raw && typeof(content) != 'string' && !Buffer.isBuffer(content))
+                atts.raw = false;
+            if (!atts.raw)
+                content = JSON.stringify(content);
+            if (atts.compress)
+                content = await this.compress(content);
+            await this.write(file, content, atts.encoding).catch(err => console.error(err));
+            await this.touch(key, Object.assign(atts, { size: content.length }));
+            lock.release()
+        });
+    }
+    
+    // Queue system for write operations
+    async queueWrite(key, writeOperation) {
+        // Get or create queue for this key
+        if (!this.writeQueue.has(key)) {
+            this.writeQueue.set(key, []);
         }
-        if (atts.encoding !== null && typeof(atts.encoding) != 'string') {
-            if (atts.compress) {
-                atts.encoding = null;
-            } else {
-                atts.encoding = 'utf-8';
+        const queue = this.writeQueue.get(key);
+        
+        // Get or create lock for this key's queue
+        if (!this.writeQueueLocks.has(key)) {
+            this.writeQueueLocks.set(key, false);
+        }
+        
+        return new Promise((resolve, reject) => {
+            const queueItem = { writeOperation, resolve, reject };
+            queue.push(queueItem);
+            
+            // Process queue if not already processing
+            if (!this.writeQueueLocks.get(key)) {
+                this.processWriteQueue(key);
+            }
+        });
+    }
+    
+    async processWriteQueue(key) {
+        const queue = this.writeQueue.get(key);
+        const lock = this.writeQueueLocks.get(key);
+        
+        if (!queue || queue.length === 0 || lock) {
+            return;
+        }
+        
+        // Set lock to prevent concurrent processing
+        this.writeQueueLocks.set(key, true);
+        
+        try {
+            while (queue.length > 0) {
+                const item = queue.shift();
+                const remainingItems = queue.length;
+                try {
+                    if (this.opts.debug) {
+                        console.log(`Processing write queue for key: ${key}, remaining items: ${remainingItems}`);
+                    }
+                    
+                    const result = await item.writeOperation();
+                    item.resolve(result);
+                } catch (error) {
+                    console.error(`Write operation failed for key ${key}:`, error);
+                    item.reject(error);
+                }
+            }
+        } finally {
+            // Release lock
+            this.writeQueueLocks.set(key, false);
+            
+            // Clean up empty queues
+            if (queue.length === 0) {
+                this.writeQueue.delete(key);
+                this.writeQueueLocks.delete(key);
+                if (this.opts.debug) {
+                    console.log(`Write queue cleaned up for key: ${key}`);
+                }
             }
         }
-        let file = this.resolve(key);
-        if (atts.raw && typeof(content) != 'string' && !Buffer.isBuffer(content))
-            atts.raw = false;
-        if (!atts.raw)
-            content = JSON.stringify(content);
-        if (atts.compress)
-            content = await this.compress(content);
-        await this.write(file, content, atts.encoding).catch(err => console.error(err));
-        await this.touch(key, Object.assign(atts, { size: content.length }));
-        lock.release()
     }
     calcExpiration(atts, prevAtts) {
         if (typeof(atts.expiration) == 'number') return atts
@@ -530,20 +702,80 @@ class StorageIO extends StorageIndex {
         if (typeof(content) == 'number') {
             content = String(content);
         }        
-        const tmpFile = path.join(path.dirname(file), String(parseInt(Math.random() * 1000000))) + '.commit';
-        await fs.promises.writeFile(tmpFile, content, enc);
-        await moveFile(tmpFile, file)
+        // Ensure directory exists
+        const dir = path.dirname(file)
+        await fs.promises.mkdir(dir, { recursive: true }).catch(() => {})
+        
+        // Use a more predictable filename to reduce file handle usage
+        const tmpFile = path.join(dir, 'temp_' + Date.now()) + '.commit';
+        
+        const maxRetries = 3;
+        let lastError;
+        
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+            try {
+                await fs.promises.writeFile(tmpFile, content, enc);
+                
+                // More robust verification that temp file exists and is readable
+                const exists = await fs.promises.access(tmpFile).then(() => true).catch(() => false);
+                if (!exists) {
+                    throw new Error('Temporary file was deleted before move operation');
+                }
+                
+                // Verify file has some content (but don't be too strict about exact size)
+                const stat = await fs.promises.stat(tmpFile);
+                if (stat.size === 0) {
+                    throw new Error('Temporary file is empty');
+                }
+                
+                await moveFile(tmpFile, file);
+                return; // Success
+                
+            } catch (err) {
+                lastError = err;
+                
+                // Clean up temp file on error (check if it exists first)
+                try {
+                    await fs.promises.access(tmpFile);
+                    await fs.promises.unlink(tmpFile);
+                } catch (cleanupErr) {
+                    // Temp file doesn't exist or can't be deleted, ignore
+                }
+                
+                // Retry logic for specific errors
+                if ((err.code === 'ENOENT' || err.message.includes('Temporary file') || err.message.includes('empty')) && attempt < maxRetries - 1) {
+                    console.warn(`Storage write attempt ${attempt + 1} failed, retrying...`, err.message);
+                    await new Promise(resolve => setTimeout(resolve, 100 * (attempt + 1))); // Exponential backoff
+                    continue;
+                }
+                
+                console.error('Storage write error:', err);
+                throw err;
+            }
+        }
+        
+        // If we get here, all retries failed
+        console.error('Storage write failed after all retries:', lastError);
+        throw lastError;
     }
     async delete(key, removeFile) {
-        key = this.prepareKey(key)        
-        const file = this.resolve(key) // before deleting from index
-        if (this.index[key])
-            delete this.index[key]
-        this.emit('touch', key, { delete: true }) // IPC notify
-        if (removeFile !== null)
-            await fs.promises.unlink(file).catch(() => {})
-        if (removeFile && removeFile != file)
+        key = this.prepareKey(key)
+        const files = []
+        for (const ext of this.knownExtensions) {
+            files.push(this.resolve(key, ext)) // before deleting from index
+        }
+        if (removeFile !== null) {
+            for (const file of files) {
+                await fs.promises.unlink(file).catch(() => {})
+            }
+        }
+        if (removeFile && !files.includes(removeFile)) {
             await fs.promises.unlink(removeFile).catch(() => {})
+        }
+        if (this.index[key]) {
+            delete this.index[key]
+        }
+        this.emit('touch', key, { delete: true }) // IPC notify
     }
 }
 
@@ -552,6 +784,28 @@ class Storage extends StorageIO {
         super(opts)
         this.unlockListeners = {};
         this.setMaxListeners(99)
+        
+        // Add lock cleanup interval to prevent orphaned locks
+        this.lockCleanupInterval = setInterval(() => {
+            this.cleanupOrphanedLocks();
+        }, 60000); // Clean up every minute
+        
+        // Add process exit handler for cleanup
+        process.on('exit', () => {
+            this.dispose();
+        });
+        
+        // Handle SIGINT and SIGTERM
+        process.on('SIGINT', () => {
+            this.dispose();
+            process.exit(0);
+        });
+        
+        process.on('SIGTERM', () => {
+            this.dispose();
+            process.exit(0);
+        });
+        
         fs.access(this.opts.folder, err => {
             if (err) {
                 fs.mkdir(this.opts.folder, { recursive: true }, (err) => {
@@ -562,42 +816,175 @@ class Storage extends StorageIO {
             }
         })
     }
-    resolve(key) {
-        key = this.prepareKey(key);
-        if (this.index[key]) {
-            if (this.index[key].file) { // still there?
-                return this.index[key].file;
+    
+    // Enable debug mode for troubleshooting
+    enableDebug() {
+        this.opts.debug = true;
+        console.log('Storage debug mode enabled');
+    }
+    
+    // Disable debug mode
+    disableDebug() {
+        this.opts.debug = false;
+        console.log('Storage debug mode disabled');
+    }
+    
+    // Get lock status for debugging
+    getLockStatus() {
+        const status = {
+            activeLocks: Object.keys(this.locked).length,
+            waitingQueues: Object.keys(this.unlockListeners).length,
+            writeQueues: this.writeQueue.size,
+            writeQueueLocks: this.writeQueueLocks.size,
+            details: {}
+        };
+        
+        // Add details for each active lock
+        for (const [key, lockTime] of Object.entries(this.locked)) {
+            const lockAge = Date.now() - lockTime;
+            const waitingCount = this.unlockListeners[key] ? this.unlockListeners[key].length : 0;
+            const hasWriteOperations = this.unlockListeners[key] && this.unlockListeners[key].some(l => l.write === true);
+            
+            status.details[key] = {
+                lockAge: Math.round(lockAge / 1000) + 's',
+                waitingCount,
+                hasWriteOperations,
+                isWriteLock: typeof lockTime === 'number'
+            };
+        }
+        
+        return status;
+    }
+    
+    // Print lock status for debugging
+    printLockStatus() {
+        const status = this.getLockStatus();
+        console.log('=== Storage Lock Status ===');
+        console.log(`Active locks: ${status.activeLocks}`);
+        console.log(`Waiting queues: ${status.waitingQueues}`);
+        console.log(`Write queues: ${status.writeQueues}`);
+        console.log(`Write queue locks: ${status.writeQueueLocks}`);
+        
+        if (Object.keys(status.details).length > 0) {
+            console.log('Lock details:');
+            for (const [key, detail] of Object.entries(status.details)) {
+                console.log(`  ${key}: age=${detail.lockAge}, waiting=${detail.waitingCount}, write=${detail.hasWriteOperations}`);
             }
         }
-        return this.opts.folder +'/'+ key +'.dat'
+        console.log('==========================');
     }
-    unresolve(file) {
-        const key = this.prepareKey(path.basename(file).replace(new RegExp('\\.(json|dat)$'), ''));
-        this.touch(key, false); // touch to update entry time and so warmp up our interest on it
-        return key;
+    
+    // Emergency cleanup - force clear all locks and queues
+    emergencyCleanup() {
+        console.warn('=== EMERGENCY STORAGE CLEANUP ===');
+        
+        const lockCount = Object.keys(this.locked).length;
+        const listenerCount = Object.keys(this.unlockListeners).length;
+        const queueCount = this.writeQueue.size;
+        const queueLockCount = this.writeQueueLocks.size;
+        
+        // Clear all locks
+        this.locked = {};
+        this.unlockListeners = {};
+        this.writeQueue.clear();
+        this.writeQueueLocks.clear();
+        
+        console.warn(`Cleared ${lockCount} locks, ${listenerCount} listeners, ${queueCount} write queues, ${queueLockCount} queue locks`);
+        console.warn('=== EMERGENCY CLEANUP COMPLETE ===');
     }
-    prepareKey(key) {
-        return String(key).replace(new RegExp('[^A-Za-z0-9\\._\\- ]', 'g'), '').substr(0, 128);
+    
+    // Clean up orphaned locks that might be stuck
+    cleanupOrphanedLocks() {
+        const now = Date.now();
+        const maxWriteLockAge = 120000; // 2 minutes for write locks
+        const maxReadLockAge = 300000;  // 5 minutes for read locks
+        
+        for (const [key, lockTime] of Object.entries(this.locked)) {
+            if (typeof lockTime === 'number') {
+                const lockAge = now - lockTime;
+                // Check if there are any write operations waiting in the queue
+                const hasWriteOperations = this.unlockListeners[key] && this.unlockListeners[key].some(l => l.write === true);
+                const maxAge = hasWriteOperations ? maxWriteLockAge : maxReadLockAge;
+                
+                if (lockAge > maxAge) {
+                    console.warn(`Cleaning up orphaned ${hasWriteOperations ? 'write' : 'read'} lock for key: ${key}, age: ${Math.round(lockAge/1000)}s`);
+                    delete this.locked[key];
+                    delete this.unlockListeners[key];
+                }
+            }
+        }
     }
+    
+    // Cleanup method to dispose of resources
+    dispose() {
+        if (this.lockCleanupInterval) {
+            clearInterval(this.lockCleanupInterval);
+            this.lockCleanupInterval = null;
+        }
+        
+        // Clear all locks and listeners
+        this.locked = {};
+        this.unlockListeners = {};
+        this.writeQueue.clear();
+        this.writeQueueLocks.clear();
+        
+        if (this.opts.debug) {
+            console.log('Storage resources cleaned up');
+        }
+    }
+    
+    // Override lock method to track lock times
     lock(key, write) {
-        return new Promise((resolve, reject) => {
+        const lockPromise = new Promise((resolve, reject) => {
+            // Reduced timeout values to prevent long waits
+            const timeoutMs = write ? 10000 : 15000; // 10s for writes, 15s for reads
+            
+            // Add timeout to prevent deadlocks
+            const timeout = setTimeout(() => {
+                console.error(`Lock timeout for key: ${key}, write: ${write}, timeout: ${timeoutMs}ms`);
+                // Don't reject immediately, try to clean up first
+                this.cleanupLock(key);
+                reject(new Error(`Mutex acquisition timeout after ${timeoutMs}ms`));
+            }, timeoutMs);
+            
             if (this.locked[key]) {
+                if (this.opts.debug) {
+                    console.log(`Lock waiting for key: ${key}, write: ${write}, current lock: ${this.locked[key]}`);
+                }
+                
                 if (this.unlockListeners[key]) {
-                    this.unlockListeners[key].push({ resolve, reject, write });
+                    // Add write operations to the front of the queue for priority
+                    const queueItem = { resolve, reject, write, timeout };
+                    if (write) {
+                        this.unlockListeners[key].unshift(queueItem);
+                    } else {
+                        this.unlockListeners[key].push(queueItem);
+                    }
                 } else {
-                    this.unlockListeners[key] = [{ resolve, reject, write }];
+                    this.unlockListeners[key] = [{ resolve, reject, write, timeout }];
                 }
             } else {
                 if (write) {
-                    this.locked[key] = true;
+                    this.locked[key] = Date.now(); // Track lock time
+                    if (this.opts.debug) {
+                        console.log(`Lock acquired for key: ${key}, write: ${write}`);
+                    }
                 }
+                
                 const release = () => {
+                    clearTimeout(timeout);
+                    
                     if (write && this.locked[key]) {
                         delete this.locked[key];
+                        if (this.opts.debug) {
+                            console.log(`Lock released for key: ${key}, write: ${write}`);
+                        }
                     }
+                    
                     if (this.unlockListeners[key]) {
                         const listener = this.unlockListeners[key].shift();
                         if (listener) {
+                            clearTimeout(listener.timeout);
                             this.lock(key, listener.write).then(ret => listener.resolve(ret)).catch(listener.reject);
                         }
                         if (this.unlockListeners[key].length === 0) {
@@ -605,10 +992,64 @@ class Storage extends StorageIO {
                         }
                     }
                 }
+                
                 resolve({ release });
             }
         });
+        
+        // Add error handling to prevent unhandled rejections
+        lockPromise.catch(err => {
+            if (err.message && err.message.includes('Mutex acquisition timeout')) {
+                console.warn(`Mutex timeout handled for key: ${key}, write: ${write}`);
+            }
+        });
+        
+        return lockPromise;
+    }
+    
+    // Cleanup method for stuck locks
+    cleanupLock(key) {
+        try {
+            // Clear any pending listeners for this key
+            if (this.unlockListeners[key]) {
+                this.unlockListeners[key].forEach(listener => {
+                    if (listener.timeout) {
+                        clearTimeout(listener.timeout);
+                    }
+                });
+                delete this.unlockListeners[key];
+            }
+            
+            // Force release the lock
+            if (this.locked[key]) {
+                delete this.locked[key];
+                if (this.opts.debug) {
+                    console.log(`Force released stuck lock for key: ${key}`);
+                }
+            }
+        } catch (err) {
+            console.error(`Error cleaning up lock for key ${key}:`, err);
+        }
+    }
+    
+    resolve(key, ext='dat') {
+        key = this.prepareKey(key);
+        if (this.index[key]) {
+            if (this.index[key].file) { // still there?
+                return this.index[key].file;
+            }
+        }
+        return this.opts.folder +'/'+ key +'.'+ ext
+    }
+    unresolve(file) {
+        const key = this.prepareKey(path.basename(file).replace(new RegExp('\\.(json|offsets\\.jdb|idx\\.jdb|dat|jdb)$'), ''));
+        this.touch(key, false); // touch to update entry time and so warmp up our interest on it
+        return key;
+    }
+    prepareKey(key) {
+        return String(key).replace(new RegExp('[^A-Za-z0-9\\._\\- ]', 'g'), '').substr(0, 128);
     }
 }
 
 export default new Storage({ main: !paths.inWorker })
+

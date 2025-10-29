@@ -1,19 +1,18 @@
 import fs from 'fs';
 import path from 'path';
-import { LIST_DATA_KEY_MASK } from '../utils/utils.js';
-import Download from '../download/download.js';
 import osd from '../osd/osd.js';
 import lang from '../lang/lang.js';
 import storage from '../storage/storage.js';
 import { EventEmitter } from 'node:events';
 import PQueue from 'p-queue';
+import pLimit from 'p-limit';
 import workers from '../multi-worker/main.js';
 import ConnRacing from '../conn-racing/conn-racing.js';
 import config from '../config/config.js';
 import renderer from '../bridge/bridge.js';
-import paths from '../paths/paths.js';
 import { getDirname } from 'cross-dirname';
 import { randomUUID } from 'node:crypto'
+import { resolveListDatabaseKey } from "./tools.js";
 
 class ListsLoader extends EventEmitter {
     constructor(master, opts = {}) {
@@ -101,9 +100,17 @@ class ListsLoader extends EventEmitter {
 
     async process(recursion = 0) {
         if (recursion > 2 || (!this.publicListsActive && !this.communityListsAmount)) return;
-        this.processes = this.processes.filter(p => p.started() && !p.done());
-        const minLists = Math.max(8, 2 * this.communityListsAmount);
-        if (minLists <= this.master.processedLists.size) return;
+        
+        // Prevent infinite recursion by checking if we're already processing
+        if (this.isProcessing) {
+            return;
+        }
+        this.isProcessing = true;
+        
+        try {
+            this.processes = this.processes.filter(p => p.started() && !p.done());
+            const minLists = Math.max(8, 2 * this.communityListsAmount);
+            if (minLists <= this.master.processedLists.size) return;
 
         const taskId = randomUUID();
         this.currentTaskId = taskId;
@@ -115,8 +122,22 @@ class ListsLoader extends EventEmitter {
         const cached = await this.master.filterCachedUrls(urls);
         if (this.currentTaskId !== taskId) return;
 
+        // Check for URLs with main files but missing meta files
+        const urlsWithMissingMeta = [];
+        const checkMetaLimit = pLimit(8);
+        const checkMetaTasks = urls.filter(u => !cached.includes(u)).map(url => {
+            return async () => {
+                const result = await this.master.checkListFiles(url);
+                if (result.hasMissingMeta) {
+                    urlsWithMissingMeta.push(url);
+                }
+            };
+        }).map(checkMetaLimit);
+        
+        await Promise.allSettled(checkMetaTasks).catch(err => console.error(err));
+
         this.master.loadCachedLists(cached).catch(console.error);
-        this.enqueue([...urls.filter(u => !cached.includes(u)), ...cached]);
+        this.enqueue([...urls.filter(u => !cached.includes(u) && !urlsWithMissingMeta.includes(u)), ...cached, ...urlsWithMissingMeta]);
         await this.queue.onIdle().catch(console.error);
         if (this.currentTaskId !== taskId || this.queue.size) return;
 
@@ -125,6 +146,9 @@ class ListsLoader extends EventEmitter {
 
         this.master.satisfied ? this.master.updaterFinished(true) : this.process(recursion + 1);
         this.master.updateState();
+        } finally {
+            this.isProcessing = false;
+        }
     }
 
     async prepareUpdater() {
@@ -132,20 +156,33 @@ class ListsLoader extends EventEmitter {
             this.uid = this.uid || randomUUID();
             this.updater = workers.load(path.join(getDirname(), 'updater-worker.js'));
             if (!this.updater?.update) throw new Error('Failed to create updater worker');
-            this.once('destroy', () => this.updater.terminate());
+            this.once('destroy', () => {
+                if (this.updater && !this.updater.terminated) {
+                    // Clear any pending timeout
+                    if (this.updater.terminating) {
+                        clearTimeout(this.updater.terminating);
+                        this.updater.terminating = null;
+                    }
+                    this.updater.terminate();
+                }
+            });
             this.updaterClients = 1;
             this.updater.on('progress', p => p?.url && this.emit('progresses', { ...this.progresses, [p.url]: p.progress }));
+            
             this.updater.close = () => {
                 if (--this.updaterClients <= 0 && !this.updater.terminating) {
                     this.updater.terminating = setTimeout(() => {
-                        this.debug && console.error('[listsLoader] Terminating updater');
-                        this.updater.terminate();
-                        this.updater = null;
+                        if (this.updater && !this.updater.terminated) {
+                            this.debug && console.error('[listsLoader] Terminating updater');
+                            this.updater.terminate();
+                            this.updater = null;
+                        }
                     }, 5000);
                 }
             };
-            const keywords = await this.master.relevantKeywords();
-            this.updater.setRelevantKeywords(keywords).catch(console.error);
+            // Get keywords with scores for better processing
+            const keywordsWithScores = await this.master.relevantKeywords(true);
+            this.updater.setRelevantKeywords(keywordsWithScores).catch(console.error);
         } else {
             this.updaterClients++;
             clearTimeout(this.updater.terminating);
@@ -176,7 +213,7 @@ class ListsLoader extends EventEmitter {
 
     async addListNow(url, { progress, timeout } = {}) {
         const uid = randomUUID();
-        const key = LIST_DATA_KEY_MASK.format(url);
+        const key = resolveListDatabaseKey(url);
         await this.prepareUpdater();
         progress && this.updater.on('progress', p => p.progressId === uid && progress(p.progress));
         const result = await this.updater.update(url, { uid, timeout }).catch(e => { throw e; });
@@ -197,7 +234,7 @@ class ListsLoader extends EventEmitter {
                 started = true;
                 await this.waitIfPaused();
                 if (cancel) return;
-                const key = LIST_DATA_KEY_MASK.format(url);
+                const key = resolveListDatabaseKey(url);
                 await this.prepareUpdater();
                 this.master.processedLists.set(url, null);
                 this.results[url] = await this.updater.update(url).catch(e => e);
@@ -230,7 +267,7 @@ class ListsLoader extends EventEmitter {
     }
 
     async reload(url) {
-        const key = LIST_DATA_KEY_MASK.format(url);
+        const key = resolveListDatabaseKey(url);
         const file = storage.resolve(key);
         const progressId = `reloading-${randomUUID()}`;
         const showProgress = p => p.progressId === progressId && osd.show(`${lang.RECEIVING_LIST} ${p.progress}%`, 'fa-mega busy-x', `progress-${progressId}`, 'persistent');

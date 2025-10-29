@@ -13,13 +13,50 @@ class Language extends EventEmitter {
         this.ready = ready()
     }
     async findLanguages() {
-        let files = await fs.promises.readdir(this.folder).catch(e => menu.displayErr(e));
+        if (!this.folder) {
+            console.error('❌ Language folder is undefined in findLanguages()')
+            this.availableLocales = []
+            this.hints = { langs: [], countries: [] }
+            this.userAvailableLocales = []
+            return []
+        }
+        
+        let files = await fs.promises.readdir(this.folder).catch(e => {
+            if (typeof menu !== 'undefined') {
+                menu.displayErr(e)
+            } else {
+                console.error(e)
+            }
+        });
+        
+        if (!Array.isArray(files)) {
+            console.error('❌ Failed to read language folder:', this.folder)
+            this.availableLocales = []
+            this.hints = { langs: [], countries: [] }
+            this.userAvailableLocales = []
+            return []
+        }
+        
         this.availableLocales = files.filter(f => f.substr(-5).toLowerCase() == '.json').map(f => f.split('.').shift());
         this.hints = this.parseLanguageHint(this.languageHint);
         this.userAvailableLocales = this.hints.langs.filter(l => this.availableLocales.includes(l));
         return this.hints.langs;
     }
     async findCountryCode(force) {
+        if (!this.timezone || !this.timezone.minutes) {
+            console.error('❌ Timezone is undefined or missing minutes property')
+            this.countryCode = 'us'
+            this.alternateCountries = []
+            return this.countryCode
+        }
+        
+        if (!this.hints || !Array.isArray(this.hints.countries)) {
+            console.error('❌ Hints or countries array is undefined')
+            this.countryCode = 'us'
+            this.alternateCountries = []
+            return this.countryCode
+        }
+        
         const countriesTz = this.countries.getCountriesFromTZ(this.timezone.minutes);
         const countriesHintsTz = this.hints.countries.filter(c => countriesTz.includes(c));
         if (force !== true) {
@@ -112,7 +149,13 @@ class Language extends EventEmitter {
         this.timezone = timezone
         await this.findLanguages().catch(err => console.error(err));
         this.locale = 'en';
-        let utexts, texts = await this.loadLanguage('en').catch(e => menu.displayErr(e)); // english will be a base/fallback language for any key missing in translation chosen
+        let utexts, texts = await this.loadLanguage('en').catch(e => {
+            if (typeof menu !== 'undefined') {
+                menu.displayErr(e)
+            } else {
+                console.error(e)
+            }
+        }); // english will be a base/fallback language for any key missing in translation chosen
         if (!texts) texts = {}
         await this.asyncSome(this.userAvailableLocales || ['en'], async (loc) => {
             if (loc == 'en')
@@ -127,7 +170,9 @@ class Language extends EventEmitter {
         if (utexts)
             Object.assign(texts, utexts);
         this.applyTexts(texts);
+        console.log('lang.load applyTexts done')
         this.ready.done()
+        console.log('lang.load done')
         return texts;
     }
     applyTexts(texts) {
@@ -178,4 +223,5 @@ class Language extends EventEmitter {
     }
 }
 
+export { Language }
 export default new Language()

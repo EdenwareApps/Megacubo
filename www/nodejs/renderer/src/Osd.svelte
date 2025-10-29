@@ -30,12 +30,16 @@
   })
 </script>
 <div id="osd-root">
-    {#each messages as message}
-        <div class="{message.classes.join(' ')}">
-            <div class="osd-icon">{@html message.icon}</div>
-            <div class="osd-text slide-in-from-left"><div>{@html message.text}</div></div>
-        </div>
-    {/each}
+    {#if messages && Array.isArray(messages)}
+        {#each messages as message}
+            {#if message && message.classes && message.icon !== undefined && message.text !== undefined}
+                <div class="{message.classes.join(' ')}">
+                    <div class="osd-icon">{@html message.icon}</div>
+                    <div class="osd-text slide-in-from-left"><div>{@html message.text}</div></div>
+                </div>
+            {/if}
+        {/each}
+    {/if}
 </div>
 <style global>
 #osd-root {

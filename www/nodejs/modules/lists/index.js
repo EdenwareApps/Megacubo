@@ -1,384 +1,20 @@
 import { Common } from "../lists/common.js";
 import pLimit from "p-limit";
 import config from "../config/config.js"
-import { clone, getDomain } from "../utils/utils.js";
+import { getDomain } from "../utils/utils.js";
 
-class MappingHelper {
-    /**
-     * Verifica se o mapa é um "flat map", ou seja, possui as chaves 'g' e 'n'.
-     * @param {Object} map 
-     * @returns {boolean}
-     */
-    static isFlat(map) {
-        return map &&
-            typeof map === 'object' &&
-            Object.prototype.hasOwnProperty.call(map, 'g') &&
-            Object.prototype.hasOwnProperty.call(map, 'n');
-    }
-
-    /**
-     * Calcula o tamanho do mapa.
-     * Para mapas flat, soma o tamanho dos arrays 'n' (e 'g', se group=true).
-     * Para mapas aninhados (chaveadas por URL), soma os tamanhos de cada entrada.
-     * @param {Object} map 
-     * @param {boolean} group - Se true, inclui também os arrays 'g'
-     * @returns {number}
-     */
-    static mapSize(map, group = false) {
-        if (MappingHelper.isFlat(map)) {
-            let count = Array.isArray(map.n) ? map.n.length : 0;
-            if (group && Array.isArray(map.g)) {
-                count += map.g.length;
-            }
-            return count;
-        } else if (map && typeof map === 'object') {
-            let count = 0;
-            Object.keys(map).forEach(key => {
-                const entry = map[key];
-                count += Array.isArray(entry.n) ? entry.n.length : 0;
-                if (group && Array.isArray(entry.g)) {
-                    count += entry.g.length;
-                }
-            });
-            return count;
-        }
-        return 0;
-    }
-
-    /**
-     * Clona o mapa.
-     * Para mapas flat, cria cópia dos arrays 'g' e 'n'.
-     * Para mapas aninhados, clona cada entrada individualmente.
-     * @param {Object} map 
-     * @returns {Object}
-     */
-    static clone(map) {
-        if (MappingHelper.isFlat(map)) {
-            return {
-                g: Array.isArray(map.g) ? map.g.slice() : map.g,
-                n: Array.isArray(map.n) ? map.n.slice() : map.n
-            };
-        } else if (map && typeof map === 'object') {
-            const clone = {};
-            Object.keys(map).forEach(key => {
-                const entry = map[key];
-                clone[key] = {
-                    g: Array.isArray(entry.g) ? entry.g.slice() : entry.g,
-                    n: Array.isArray(entry.n) ? entry.n.slice() : entry.n
-                };
-            });
-            return clone;
-        }
-        return map;
-    }
-
-    /**
-     * Função auxiliar para interseção de dois arrays.
-     * Se os arrays forem grandes, utiliza Set para otimização.
-     * @param {Array} arr1 
-     * @param {Array} arr2 
-     * @returns {Array}
-     */
-    static intersectArrays(arr1, arr2) {
-        if (!Array.isArray(arr1) || !Array.isArray(arr2)) return [];
-        if (arr1.length > arr2.length) return MappingHelper.intersectArrays(arr2, arr1);
-        const set2 = new Set(arr2);
-        return arr1.filter(x => set2.has(x));
-    }
-
-    /**
-     * Realiza a interseção de dois mapas.
-     * Se forem mapas flat, aplica a interseção nos arrays 'g' e 'n'.
-     * Se forem mapas aninhados, itera sobre as chaves comuns e intersecta cada par.
-     * Utiliza a função auxiliar intersectArrays para arrays grandes (tamanho > 512).
-     * @param {Object} a 
-     * @param {Object} b 
-     * @returns {Object}
-     */
-    static intersect(a, b) {
-        if (MappingHelper.isFlat(a) && MappingHelper.isFlat(b)) {
-            return {
-                g: (Array.isArray(a.g) && Array.isArray(b.g) && a.g.length > 512 && b.g.length > 512)
-                    ? MappingHelper.intersectArrays(a.g, b.g)
-                    : (Array.isArray(a.g) ? a.g.filter(x => b.g.includes(x)) : []),
-                n: (Array.isArray(a.n) && Array.isArray(b.n) && a.n.length > 512 && b.n.length > 512)
-                    ? MappingHelper.intersectArrays(a.n, b.n)
-                    : (Array.isArray(a.n) ? a.n.filter(x => b.n.includes(x)) : [])
-            };
-        } else if (a && typeof a === 'object' && b && typeof b === 'object') {
-            const result = {};
-            Object.keys(b).forEach(key => {
-                if (a[key] !== undefined) {
-                    const aEntry = a[key];
-                    const bEntry = b[key];
-                    result[key] = {
-                        g: (Array.isArray(aEntry.g) && Array.isArray(bEntry.g) && aEntry.g.length > 512 && bEntry.g.length > 512)
-                            ? MappingHelper.intersectArrays(aEntry.g, bEntry.g)
-                            : (Array.isArray(aEntry.g) ? aEntry.g.filter(x => bEntry.g.includes(x)) : []),
-                        n: (Array.isArray(aEntry.n) && Array.isArray(bEntry.n) && aEntry.n.length > 512 && bEntry.n.length > 512)
-                            ? MappingHelper.intersectArrays(aEntry.n, bEntry.n)
-                            : (Array.isArray(aEntry.n) ? aEntry.n.filter(x => bEntry.n.includes(x)) : [])
-                    };
-                }
-            });
-            return result;
-        }
-        return {};
-    }
-
-    /**
-     * Realiza a união de dois mapas, juntando os valores sem duplicatas.
-     * Para mapas flat, une os arrays 'g' e 'n'.
-     * Para mapas aninhados, itera sobre as chaves e une os arrays de cada entrada.
-     * @param {Object} a 
-     * @param {Object} b 
-     * @returns {Object}
-     */
-    static join(a, b) {
-        if (MappingHelper.isFlat(a) && MappingHelper.isFlat(b)) {
-            const joined = {
-                g: Array.isArray(a.g) ? a.g.slice() : [],
-                n: Array.isArray(a.n) ? a.n.slice() : []
-            };
-            const seenG = new Set(joined.g);
-            const seenN = new Set(joined.n);
-            (Array.isArray(b.g) && b.g.forEach(item => {
-                if (!seenG.has(item)) {
-                    seenG.add(item);
-                    joined.g.push(item);
-                }
-            }));
-            (Array.isArray(b.n) && b.n.forEach(item => {
-                if (!seenN.has(item)) {
-                    seenN.add(item);
-                    joined.n.push(item);
-                }
-            }));
-            return joined;
-        } else if (a && typeof a === 'object' && b && typeof b === 'object') {
-            const result = MappingHelper.clone(a);
-            Object.keys(b).forEach(key => {
-                if (!result[key]) {
-                    result[key] = { g: [], n: [] };
-                }
-                ['g', 'n'].forEach(type => {
-                    const seen = new Set(result[key][type]);
-                    (Array.isArray(b[key][type]) && b[key][type].forEach(item => {
-                        if (!seen.has(item)) {
-                            seen.add(item);
-                            result[key][type].push(item);
-                        }
-                    }));
-                });
-            });
-            return result;
-        }
-        return a;
-    }
-
-    /**
-     * Calcula a diferença entre dois mapas, removendo de 'a' os itens que aparecem em 'b'.
-     * Para mapas flat, opera sobre os arrays 'g' e 'n'.
-     * Para mapas aninhados, itera sobre as entradas compartilhadas.
-     * @param {Object} a 
-     * @param {Object} b 
-     * @returns {Object}
-     */
-    static diff(a, b) {
-        if (MappingHelper.isFlat(a) && MappingHelper.isFlat(b)) {
-            return {
-                g: Array.isArray(a.g) ? a.g.filter(x => !b.g.includes(x)) : [],
-                n: Array.isArray(a.n) ? a.n.filter(x => !b.n.includes(x)) : []
-            };
-        } else if (a && typeof a === 'object' && b && typeof b === 'object') {
-            const result = MappingHelper.clone(a);
-            Object.keys(b).forEach(key => {
-                if (a[key]) {
-                    result[key] = {
-                        g: Array.isArray(a[key].g) ? a[key].g.filter(x => !b[key].g.includes(x)) : [],
-                        n: Array.isArray(a[key].n) ? a[key].n.filter(x => !b[key].n.includes(x)) : []
-                    };
-                }
-            });
-            return result;
-        }
-        return a;
-    }
-}
-
-class IndexMapUtils extends Common {
-    constructor(opts) {
-        super(opts)
-        this.searchMapCache = {};
-    }
-
-    // calculates the size of the map, including group size if specified
-    mapSize(a, group) {
-        return MappingHelper.mapSize(a, group);
-    }    
-
-    searchMap(query, opts) {
-        let fullMap
-        this.debug && console.log('searchMap', query)
-        opts = this.optimizeSearchOpts(opts)
-        query.queries.forEach(q => {
-            let map = this.querySearchMap(q, query.excludes, opts)
-            fullMap = fullMap ? MappingHelper.join(fullMap, map) : map
-        });
-        this.debug && console.log('searchMap', opts)
-        return MappingHelper.clone(fullMap)
-    }
-
-    queryTermMap(terms) {
-        let key = 'qtm-' + terms.join(',')
-        if (typeof (this.searchMapCache[key]) != 'undefined') {
-            return MappingHelper.clone(this.searchMapCache[key]);
-        }
-        let tmap;
-        terms.forEach(term => {
-            let map = {};
-            if (this.debug) {
-                console.log('querying term map ' + term);
-            }
-            Object.keys(this.lists).forEach(listUrl => {
-                if (this.lists[listUrl].index.terms && typeof (this.lists[listUrl].index.terms[term]) != 'undefined') {
-                    map[listUrl] = this.lists[listUrl].index.terms[term];
-                }
-            });
-            if (tmap) {
-                if (this.debug) {
-                    console.log('joining map ' + term);
-                }
-                tmap = MappingHelper.intersect(tmap, map);
-            } else {
-                tmap = MappingHelper.clone(map);
-            }
-        });
-        if (this.debug) {
-            console.log('querying term map done');
-        }
-        this.searchMapCache[key] = MappingHelper.clone(tmap);
-        return tmap;
-    }
-
-    querySearchMap(terms, excludes = [], opts = {}) {
-        let smap;
-        let key = 'qsm-' + opts.group + '-' + terms.join(',') + '_' + excludes.join(',') + JSON.stringify(opts); // use _ to diff excludes from terms in key
-        if (typeof (this.searchMapCache[key]) != 'undefined') {
-            return MappingHelper.clone(this.searchMapCache[key]);
-        }
-        if (typeof (opts.type) != 'string') {
-            opts.type = false;
-        }
-        terms.some(term => {
-            let tms = [term];
-            if (this.debug) {
-                console.log('querying term map', tms);
-            }
-            let tmap = this.queryTermMap(tms);
-            //console.warn('TMAPSIZE', term, tmap ? this.mapSize(tmap) : 0)
-            //console.warn('SMAPSIZE', term, smap ? this.mapSize(smap) : 0)
-            if (tmap) {
-                if (smap) {
-                    if (this.debug) {
-                        console.log('intersecting term map');
-                    }
-                    smap = MappingHelper.intersect(smap, tmap);
-                } else {
-                    smap = tmap;
-                }
-            } else {
-                smap = false;
-                return true;
-            }
-        });
-        if (smap && this.mapSize(smap, opts.group)) {
-            if (excludes.length) {
-                if (this.debug) {
-                    console.log('processing search excludes');
-                }
-                excludes.some(xterm => {
-                    this.debug && console.error('before exclude ' + xterm + ': ' + this.mapSize(smap, opts.group));
-                    let xmap = this.queryTermMap([xterm]);
-                    smap = MappingHelper.diff(smap, xmap);
-                    const ms = this.mapSize(smap, opts.group);
-                    this.debug && console.error('after exclude ' + xterm + ': ' + ms);
-                    return !this.mapSize(smap, opts.group);
-                });
-            }
-            if (this.debug) {
-                console.log('done');
-            }
-            this.searchMapCache[key] = MappingHelper.clone(smap);
-            return smap;
-        }
-        this.searchMapCache[key] = {};
-        return {};
-    }
-
-    async fetchMap(smap, opts = {}, limit = 512) {
-        let results = []
-        const limiter = pLimit(config.get('lists-loader-concurrency') || 6)
-        const already = new Set(), checkType = opts.type && opts.type != 'all'
-        for (const listUrl of Object.keys(smap)) {
-            if (Array.isArray(smap[listUrl])) continue
-            let ls
-            if (opts.groupsOnly) {
-                ls = smap[listUrl]['g']
-            } else {
-                ls = smap[listUrl]['n']
-                if (opts.group) {
-                    ls.push(...smap[listUrl]['g'])
-                }
-            }
-            smap[listUrl] = ls
-        }
-        const tasks = [];
-        for (const listUrl of Object.keys(smap)) {
-            tasks.push(limiter(async () => {
-                this.debug && console.warn('lists.search() ITERATE LIST ' + listUrl, smap[listUrl]);
-                if (typeof (this.lists[listUrl]) == 'undefined' || !smap[listUrl].length) return
-                this.debug && console.warn('lists.search() WILL WALK ' + listUrl);
-                for await (const e of this.lists[listUrl].walk(smap[listUrl])) {
-                    this.debug && console.warn('lists.search() WALK ', e)
-                    if (already.has(e.url)) continue
-                    already.add(e.url)
-                    if (checkType) {
-                        if (this.validateType(e, opts.type, opts.typeStrict === true)) {
-                            e.source = listUrl;
-                            results.push(e);
-                            if (results.length == limit) break
-                        }
-                    } else {
-                        e.source = listUrl;
-                        results.push(e);
-                        if (results.length == limit) break
-                    }
-                }
-            }))
-        }
-        await Promise.allSettled(tasks)
-        if (this.debug) {
-            console.warn('lists.search() ITERATED ' + results.length)
-        }
-        results = this.prepareEntries(results);
-        if (opts.parentalControl !== false) {
-            results = this.parentalControl.filter(results, true)
-        }
-        return results
-    }
-}
-
-class Index extends IndexMapUtils {
+class Index extends Common {
     constructor(opts) {
         super(opts);
-        this.searchMapCache = {};
         this.defaultsSearchOpts = {
             group: undefined,
             type: undefined,
             typeStrict: undefined,
             partial: undefined
         };
+        // Cache for has() results with TTL
+        this.hasCache = new Map();
+        this.hasCacheTTL = 30000; // 30 seconds
     }
     optimizeSearchOpts(opts) {
         let nopts = {};
@@ -387,152 +23,336 @@ class Index extends IndexMapUtils {
         });
         return nopts;
     }
-    has(terms, opts) {
-        return new Promise((resolve, reject) => {
-            let ret = {}, results = {};
-            if (!terms.length) {
-                return resolve({});
+    async has(terms, opts) {
+        if (!terms.length) return {};
+        if (!opts) opts = {};
+        
+        const results = {};
+        
+        // ULTRA-OPTIMIZATION: Process terms in parallel for better performance
+        const limiter = pLimit(4);
+        const tasks = [];
+        
+        for (const term of terms) {
+            // Simple cache key: just the term
+            const cacheKey = `${term.name}:${JSON.stringify(term.terms)}`;
+            const cached = this.hasCache.get(cacheKey);
+            
+            if (cached && (Date.now() - cached.timestamp) < this.hasCacheTTL) {
+                // Reuse cache
+                results[term.name] = cached.result;
+            } else {
+                // ULTRA-OPTIMIZATION: Process term in parallel
+                tasks.push(limiter(async () => {
+                    const arrTerms = Array.isArray(term.terms) ? term.terms : this.tools.terms(term.terms);
+                    const query = this.parseQuery(arrTerms, opts);
+                    
+                    // ULTRA-OPTIMIZATION: Use find() with limit 1 instead of count() for better performance
+                    for (const url of Object.keys(this.lists)) {
+                        try {
+                            // Add null check for indexer to prevent TypeError
+                            if (!this.lists[url].indexer || !this.lists[url].indexer.db) {
+                                continue;
+                            }
+                            const ret = await this.lists[url].indexer.db.find(query, { limit: 1 });
+                            if (ret.length > 0) {
+                                results[term.name] = true;
+                                
+                                // Cache the result
+                                this.hasCache.set(cacheKey, {
+                                    result: true,
+                                    timestamp: Date.now()
+                                });
+                                return; // Early exit
+                            }
+                        } catch (error) {
+                            if (this.debug) {
+                                console.warn(`Has error in ${url}:`, error.message);
+                            }
+                        }
+                    }
+                    
+                    if (results[term.name] !== true) {
+                        results[term.name] = false;
+                        
+                        // Cache the result
+                        this.hasCache.set(cacheKey, {
+                            result: false,
+                            timestamp: Date.now()
+                        });
+                    }
+                }));
             }
-            terms.forEach(t => {
-                ret[t.name] = Array.isArray(t.terms) ? t.terms : this.tools.terms(t.terms);
-                results[t.name] = false;
-            });
-            if (!opts) {
-                opts = {};
+        }
+        
+        // ULTRA-OPTIMIZATION: Wait for all parallel tasks to complete
+        if (tasks.length > 0) {
+            await Promise.allSettled(tasks);
+        }
+        
+        // Clean old cache entries periodically
+        this.cleanupCache();
+        
+        return results;
+    }
+    
+    cleanupCache() {
+        // Cleanup every 10 calls to avoid overhead
+        if (!this.cleanupCounter) this.cleanupCounter = 0;
+        this.cleanupCounter++;
+        
+        if (this.cleanupCounter % 10 === 0) {
+            const now = Date.now();
+            for (const [key, value] of this.hasCache.entries()) {
+                if ((now - value.timestamp) > this.hasCacheTTL) {
+                    this.hasCache.delete(key);
+                }
             }
-            for (const k of Object.keys(ret)) {
-                const query = this.parseQuery(ret[k], opts);
-                let smap = this.searchMap(query, opts);
-                results[k] = this.mapSize(smap, opts.group) > 0;
-            }
-            resolve(results)
-        })
+        }
     }
     async multiSearch(terms, opts = {}) {
-        let results = {}
-        const rmap = {}, scores = {}, sep = "\n", limit = opts.limit || 256
-        const maps = Object.keys(terms).map(k => {
-            const query = this.parseQuery(k, opts)
-            return [this.searchMap(query, opts), terms[k]]
-        })
-        for (const result of maps) {
-            const score = result[1]
-            for (const url of Object.keys(result[0])) {
-                for (const type of Object.keys(result[0][url])) {
-                    for (const id of result[0][url][type]) {
-                        const uid = url + sep + type + sep + id
-                        if (!scores[uid]) {
-                            scores[uid] = 0
+        const limit = opts.limit || 256;
+        
+        if (!terms || !Object.keys(terms).length) {
+            return [];
+        }
+        
+        const limiter = pLimit(3);
+        const tasks = [];
+        const scores = {};
+        const references = new Set(); // Store unique references: listUrl + url + _
+        
+        // Process each term with its score
+        for (const [termName, score] of Object.entries(terms)) {
+            const query = this.parseQuery(termName, opts);
+            
+            // Search in all lists
+            for (const url of Object.keys(this.lists)) {
+                tasks.push(limiter(async () => {
+                    try {
+                        // Add null check for indexer to prevent TypeError
+                        if (!this.lists[url].indexer || !this.lists[url].indexer.db) {
+                            return;
                         }
-                        scores[uid] += score
+                        const ret = await this.lists[url].indexer.db.find(query, { 
+                            limit: 10000 // Higher limit for scoring phase
+                        });
+                        
+                        for (const entry of ret) {
+                            // Create unique identifier including listUrl, URL and line number
+                            const uid = url + '|' + entry.url + '|' + entry._;
+                            
+                            // Initialize score if not exists (based on URL only)
+                            if (!scores[entry.url]) {
+                                scores[entry.url] = 0;
+                            }
+                            
+                            // Add score for this term (URL-based scoring)
+                            scores[entry.url] += score;
+                            
+                            // Store reference for later fetching
+                            references.add(uid);
+                        }
+                    } catch (err) {
+                        console.error(`Error searching in list ${url}:`, err);
                     }
-                }
+                }));
             }
         }
-        Object.keys(scores).map(uid => {
-            return { uid, score: scores[uid] }
-        }).sortByProp('score', true).slice(0, limit).map(row => {
-            let parts = row.uid.split(sep)
-            if (!rmap[parts[0]]) rmap[parts[0]] = { n: [], g: [] }
-            rmap[parts[0]][parts[1]].push(parseInt(parts[2]))
-        });
-        results = await this.fetchMap(rmap, { group: opts.group }, limit)
-        for (let i = 0; i < results.length; i++) {
-            results[i].score = scores[results[i].source + sep + 'n' + sep + results[i]._] || scores[results[i].source + sep + 'g' + sep + results[i]._] || -1
+        
+        await Promise.allSettled(tasks);
+        
+        // Sort URLs by score and get top results
+        const topUrls = Object.entries(scores)
+            .map(([url, score]) => ({ url, score }))
+            .sort((a, b) => b.score - a.score)
+            .slice(0, limit);
+        
+        // Now fetch the complete entries for top URLs
+        const results = [];
+        const fetchTasks = [];
+        
+        for (const { url, score } of topUrls) {
+            // Find all references for this URL
+            const urlReferences = Array.from(references)
+                .filter(uid => uid.includes('|' + url + '|'))
+                .slice(0, 1); // Take only the first occurrence per URL
+            
+            for (const uid of urlReferences) {
+                const [listUrl, entryUrl, lineNumber] = uid.split('|');
+                const lineNum = parseInt(lineNumber);
+                
+                fetchTasks.push(limiter(async () => {
+                    try {
+                        // Add null check for indexer to prevent TypeError
+                        if (!this.lists[listUrl].indexer || !this.lists[listUrl].indexer.db) {
+                            return;
+                        }
+                        const entry = await this.lists[listUrl].indexer.db.find({ url: entryUrl, _: lineNum }, { limit: 1 });
+                        if (entry.length > 0) {
+                            entry[0].source = listUrl;
+                            entry[0].score = score;
+                            results.push(entry[0]);
+                        }
+                    } catch (err) {
+                        console.error(`Error fetching entry for ${entryUrl} from ${listUrl}:`, err);
+                    }
+                }));
+            }
         }
-        return results.sortByProp('score', true)
-    }
-    searchMapCacheInvalidate(url) {
-        if (!url) {
-            this.searchMapCache = {};
-        } else {
-            Object.keys(this.searchMapCache).forEach(k => {
-                if (typeof (this.searchMapCache[k][url]) != 'undefined') {
-                    delete this.searchMapCache[k][url];
-                }
-            });
-        }
+        
+        await Promise.allSettled(fetchTasks);
+        
+        // Sort by score and return
+        return results
+            .sort((a, b) => (b.score || 0) - (a.score || 0))
+            .slice(0, limit);
     }
     parseQuery(terms, opts) {
         if (!Array.isArray(terms)) {
             terms = this.tools.terms(terms);
         }
-        if (terms.includes('|')) {
-            let excludes = [], aterms = [];
-            terms.forEach(term => {
-                if (term.startsWith('-')) {
-                    excludes.push(term.substr(1));
-                } else {
-                    aterms.push(term);
-                }
-            });
-            const needles = aterms.join(' ').split(' | ').map(s => s.replaceAll('|', '').split(' '));
-            return {
-                excludes,
-                queries: needles.map(nterms => {
-                    return this.parseQuery(nterms, opts).queries.shift();
-                })
-            };
-        } else {
-            let aliases = {}, excludes = [];
-            terms = terms.filter(term => {
-                if (term.startsWith('-')) {
-                    excludes.push(term.substr(1));
-                    return false;
-                }
-                return true;
-            });
-            terms = this.tools.applySearchRedirects(terms);
-            if (opts.partial) {
-                const filter = (term, t) => {
-                    if (term.startsWith(t) && t != term) {
-                        return true;
-                    }
-                };
-                const maxAliases = 6, aliasingTerms = {};
-                terms.forEach(t => aliasingTerms[t] = 0);
-                Object.keys(this.lists).forEach(listUrl => {
-                    Object.keys(this.lists[listUrl].index.terms).forEach(term => {
-                        let from;
-                        terms.some(t => {
-                            if (aliasingTerms[t] < maxAliases && filter(term, t)) {
-                                from = t;
-                                return true;
-                            }
-                        });
-                        if (from) {
-                            if (typeof (aliases[from]) == 'undefined') {
-                                aliases[from] = [];
-                            }
-                            if (!aliases[from].includes(term)) {
-                                aliases[from].push(term);
-                                aliasingTerms[from]++;
-                            }
-                        }
-                    });
-                });
+        const excludes = [];
+        let i = 0, groups = [[]]
+        for (const term of terms) {
+            if (term == '|') {
+                i++
+                groups.push([])
+            } else if (term.startsWith('-')) {
+                excludes.push(term.substr(1));
+            } else {
+                groups[i].push(term);
             }
-            terms = terms.filter(t => !excludes.includes(t));
-            const queries = [terms];
-            Object.keys(aliases).forEach(from => {
-                const i = terms.indexOf(from);
-                if (i == -1)
-                    return;
-                queries.push(...aliases[from].map(alias => {
-                    const nterms = terms.slice(0);
-                    nterms[i] = alias;
-                    return nterms;
-                }));
-            });
-            return { queries, excludes };
         }
+        groups = groups.filter(g => g.length)
+        const query = {}
+        
+        // Helper function to create search conditions for nameTerms and optionally groupTerms
+        const createSearchConditions = (terms, useGroup = false, isPartial = false) => {
+            if (terms.length === 1) {
+                const term = terms[0];
+                
+                if (isPartial) {
+                    // Partial match - use regex for substring matching
+                    if (useGroup) {
+                        return {
+                            $or: [
+                                { nameTerms: new RegExp(term, 'i') },
+                                { groupTerms: new RegExp(term, 'i') }
+                            ]
+                        };
+                    } else {
+                        return { nameTerms: new RegExp(term, 'i') };
+                    }
+                } else {
+                    // Exact match - use direct equality (fastest)
+                    if (useGroup) {
+                        return {
+                            $or: [
+                                { nameTerms: term },
+                                { groupTerms: term }
+                            ]
+                        };
+                    } else {
+                        return { nameTerms: term };
+                    }
+                }
+            } else {
+                // Multiple terms - for partial search, each term should match partially
+                // For exact search, use $all for AND behavior
+                if (isPartial) {
+                    // For partial with multiple terms, each term should match partially
+                    const nameConditions = terms.map(term => ({ nameTerms: new RegExp(term, 'i') }));
+                    const groupConditions = terms.map(term => ({ groupTerms: new RegExp(term, 'i') }));
+                    
+                    if (useGroup) {
+                        return {
+                            $or: [
+                                { $and: nameConditions },
+                                { $and: groupConditions }
+                            ]
+                        };
+                    } else {
+                        return { $and: nameConditions };
+                    }
+                } else {
+                    // Exact match - use $all for AND behavior (more specific results)
+                    if (useGroup) {
+                        return {
+                            $or: [
+                                { nameTerms: { $all: terms } },
+                                { groupTerms: { $all: terms } }
+                            ]
+                        };
+                    } else {
+                        return { nameTerms: { $all: terms } };
+                    }
+                }
+            }
+        };
+        
+        if (groups.length > 1) {
+            // Multiple groups - use $or for better performance
+            query.$or = groups.map(g => createSearchConditions(g, opts.group, opts.partial));
+        } else if (groups.length === 1) {
+            // Single group - use helper function
+            Object.assign(query, createSearchConditions(groups[0], opts.group, opts.partial));
+        }
+        
+        // Add excludes if any
+        if (excludes.length > 0) {
+            // Create exclude conditions based on partial mode
+            let excludeConditions;
+            if (opts.partial) {
+                // For partial mode, use regex for excludes too
+                const nameExcludes = excludes.map(exclude => ({ nameTerms: new RegExp(exclude, 'i') }));
+                const groupExcludes = excludes.map(exclude => ({ groupTerms: new RegExp(exclude, 'i') }));
+                excludeConditions = { $or: [...nameExcludes, ...groupExcludes] };
+            } else {
+                // For exact mode, use $in for excludes
+                excludeConditions = { $or: [
+                    { nameTerms: { $in: excludes } },
+                    { groupTerms: { $in: excludes } }
+                ] };
+            }
+            
+            // Add exclusion conditions to the query
+            query.$not = excludeConditions;
+        }
+        
+        // Add icon filtering if withIconOnly is enabled
+        if (opts.withIconOnly) {
+            const iconConditions = [
+                { icon: { $exists: true } },
+                { icon: { $ne: '' } },
+                { icon: { $ne: null } }
+            ];
+            
+            // If query already has $and, add icon conditions to it
+            if (query.$and) {
+                query.$and.push(...iconConditions);
+            } else if (query.$or || query.nameTerms || Object.keys(query).length > 0) {
+                // If query has other conditions, wrap everything in $and
+                const originalQuery = { ...query };
+                query.$and = [originalQuery, ...iconConditions];
+                // Clean up the original conditions since they're now in $and
+                if (originalQuery.$or) delete query.$or;
+                if (originalQuery.nameTerms) delete query.nameTerms;
+                if (originalQuery.$not) delete query.$not;
+            } else {
+                // If query is empty, just use icon conditions
+                query.$and = iconConditions;
+            }
+        }
+        
+        return query;
     }
     async search(terms, opts = {}) {
         if (typeof (terms) == 'string') {
             terms = this.tools.terms(terms, false, true);
         }
-        let start = (Date.now() / 1000), results = []
-        const limit = opts.limit || 256, maxWorkingSetLimit = limit * 2;
+        let start = (Date.now() / 1000)
+        const limit = opts.limit || 256, maxWorkingSetLimit = parseInt(limit * 1.5);
         if (!terms) {
             return [];
         }
@@ -543,25 +363,89 @@ class Index extends IndexMapUtils {
         if (this.debug) {
             console.warn('lists.search() map searching', ((Date.now() / 1000) - start) + 's (pre time)', query);
         }
-        let smap = this.searchMap(query, opts)
+        const already = new Set();
+        const results = []
+        
+        // OPTIMIZATION: Increase concurrency limit for better parallelization
+        const limiter = pLimit(4) // Increased from 2 to 4
+        
+        // OPTIMIZATION: Use all available lists (no EPG lists in this module)
+        const sortedUrls = Object.keys(this.lists);
+        
+        const tasks = []
+        
+        // ULTRA-OPTIMIZATION: More aggressive early termination
+        let shouldStop = false;
+        
+        for (const url of sortedUrls) {
+            if (shouldStop) break;
+            
+            tasks.push(limiter(async () => {
+                if (shouldStop || results.length >= maxWorkingSetLimit) {
+                    return;
+                }
+                
+                try {
+                    // Add null check for indexer to prevent TypeError
+                    if (!this.lists[url].indexer || !this.lists[url].indexer.db) {
+                        return;
+                    }
+                    // ULTRA-OPTIMIZATION: Skip count() - go directly to find() with limit
+                    const queryOpts = {
+                        limit: Math.min(maxWorkingSetLimit - results.length, 50), // Smaller limit per database for faster results
+                        streaming: false // Disable streaming for faster small queries
+                    };
+                    
+                    const ret = await this.lists[url].indexer.db.find(query, queryOpts)
+                    
+                    // ULTRA-OPTIMIZATION: Process results more efficiently with early termination
+                    for (const r of ret) {
+                        if (shouldStop || results.length >= maxWorkingSetLimit) {
+                            shouldStop = true;
+                            break;
+                        }
+                        
+                        
+                        r.source = url
+                        if (already.has(r.url)) {
+                            continue;
+                        }
+                        
+                        already.add(r.url);
+                        results.push(r);
+                        
+                        // ULTRA-OPTIMIZATION: Immediate termination when we have enough results
+                        if (results.length >= maxWorkingSetLimit) {
+                            shouldStop = true;
+                            break;
+                        }
+                    }
+                } catch (error) {
+                    // ULTRA-OPTIMIZATION: Graceful error handling without blocking other searches
+                    if (this.debug) {
+                        console.warn(`Search error in ${url}:`, error.message);
+                    }
+                }
+            }))
+        }
+        
+        // ULTRA-OPTIMIZATION: Use Promise.allSettled with shorter timeout and early termination
+        const timeoutPromise = new Promise(resolve => setTimeout(resolve, 10000)); // Reduced from 30s to 10s
+        await Promise.race([
+            Promise.allSettled(tasks),
+            timeoutPromise
+        ]);
+        
         if (this.debug) {
-            console.warn('lists.search() parsing results', terms, opts, ((Date.now() / 1000) - start) + 's (pre time)');
+            console.warn('lists.search() RESULTS*', ((Date.now() / 1000) - start) + 's (total time)', terms);
         }
-        if (Object.keys(smap).length) {
-            if (this.debug) {
-                console.warn('lists.search() iterating lists', terms, opts, ((Date.now() / 1000) - start) + 's (pre time)');
-            }
-            const results = await this.fetchMap(smap, opts, maxWorkingSetLimit)
-            if (this.debug) {
-                console.warn('lists.search() RESULTS*', ((Date.now() / 1000) - start) + 's (total time)', terms);
-            }
-            return this.adjustSearchResults(results, opts, limit)
-        } else {
-            return []
-        }
+        
+        return this.adjustSearchResults(results, opts, limit)
     }
     adjustSearchResults(entries, opts, limit) {
         let map = {}, nentries = [];
+        
+        
         if (opts.type == 'live') {
             const livefmt = config.get('live-stream-fmt');
             switch (livefmt) {
@@ -574,6 +458,11 @@ class Index extends IndexMapUtils {
             }
         }
         entries.forEach(e => {
+            // Skip entries without valid URL
+            if (!e || !e.url || typeof e.url !== 'string') {
+                return;
+            }
+            
             let domain = getDomain(e.url);
             if (typeof (map[domain]) == 'undefined') {
                 map[domain] = [];
@@ -624,6 +513,9 @@ class Index extends IndexMapUtils {
         Object.keys(this.lists).forEach(url => {
             if (myListsOnly && !myListsOnly.includes(url))
                 return;
+            if (!this.lists[url] || !this.lists[url].index) {
+                return;
+            }
             let entries = this.lists[url].index.groupsTypes;
             types.forEach(type => {
                 if (!entries || !entries[type])
@@ -649,46 +541,41 @@ class Index extends IndexMapUtils {
             });
         });
         groups = this.tools.sort(groups);
-        const routerVar = {};
-        let ret = groups.filter((group, i) => {
-            return Object.keys(map).every(parentPath => {
-                let gname = parentPath.split('/').pop();
-                return map[parentPath].every(name => {
-                    const path = parentPath + '/' + name;
-                    if (group.group == path) {
-                        let ret = false;
-                        if (typeof (routerVar[parentPath]) == 'undefined') {
-                            routerVar[parentPath] = i;
-                            const ngroup = Object.assign({}, groups[i]);
-                            groups[i].name = gname;
-                            groups[i].group = parentPath;
-                            groups[i].entries = [ngroup];
-                            ret = true;
-                        } else {
-                            groups[routerVar[parentPath]].entries.push(group);
-                        }
-                        return ret;
-                    }
-                    return true;
-                });
-            });
+        
+        // FIXED: Simplified logic to prevent recursive concatenation and duplicates
+        const seenGroups = new Set();
+        const result = [];
+        
+        groups.forEach(group => {
+            // Use a unique key to prevent duplicates based on URL and group name
+            const groupKey = `${group.url}:${group.group}`;
+            
+            if (!seenGroups.has(groupKey)) {
+                seenGroups.add(groupKey);
+                result.push(group);
+            }
         });
-        return ret;
+        
+        return result;
     }
     async group(group) {
-        if (!this.lists[group.url]) {
+        const list = this.lists[group.url]
+        if (!list) {
             throw 'List not loaded';
         }
+        if (!list.index) {
+            throw 'List index not available';
+        }
         /*
-                let mmap, map = this.lists[group.url].index.groups[group.group].slice(0)
+                let mmap, map = list.index.groups[group.group].slice(0)
                 if(!map) map = []
-                Object.keys(this.lists[group.url].index.groups).forEach(s => {
+                Object.keys(list.index.groups).forEach(s => {
                     if(s != group.group && s.includes('/') && s.startsWith(group.group)){
                         if(!mmap) { // jit
                             mmap = new Map(map.map(m => [m, null]))
                             map = [] // freeup mem
                         }
-                        this.lists[group.url].index.groups[s].forEach(n => mmap.has(n) || mmap.set(n, null))
+                        list.index.groups[s].forEach(n => mmap.has(n) || mmap.set(n, null))
                     }
                 })
         
@@ -696,9 +583,16 @@ class Index extends IndexMapUtils {
                     map = Array.from(mmap, ([key]) => key)
                 }
         */
-        let entries = [], map = this.lists[group.url].index.groups[group.group] || [];
+        let groupKey = group.group || ''
+        if (!list.index.groups[groupKey]) {
+            groupKey = Object.keys(list.index.groups).filter(g => g.endsWith(group.group)).shift()
+        }
+        if (!groupKey) {
+            return [];
+        }
+        let entries = [], map = list.index.groups[groupKey] || [];
         if (map.length) {
-            entries = await this.lists[group.url].getEntries(map);
+            entries = await list.getEntries(map);
             return entries;
         }
         entries = this.parentalControl.filter(entries, true);

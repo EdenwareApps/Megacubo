@@ -2,7 +2,7 @@
 import { spawn } from "child_process";
 import path from "path";
 import fs from "fs";
-import { getDirname} from "cross-dirname";
+import { getDirname } from "cross-dirname";
 
 const __dirname = getDirname();
 const debug = process.argv.includes('debug') || process.argv.includes('--inspect');
@@ -54,7 +54,12 @@ findElectronExecutable().then(electronPath => {
                 '--remote-debugging-port=9222'
             ])
         }
+        const passedParamsOffset = process.argv.findLastIndex(arg => arg.includes('node') || arg.includes('megacubo')) + 1
         params.push(path.join(__dirname, 'www/nodejs/dist/main.js'));
+        if(passedParamsOffset && passedParamsOffset < process.argv.length) {
+            params.push('--')
+            params.push(...process.argv.slice(passedParamsOffset))
+        }
         const opts = debug ? {} : {
             detached: true,
             stdio: 'ignore',
@@ -62,10 +67,18 @@ findElectronExecutable().then(electronPath => {
         const child = spawn(electronPath, params, opts);
         if(debug) {                
             child.stdout.on('data', (data) => {
-                process.stdout.write(data);
+                if (process.stdout.writable) {
+                    process.stdout.write(data);
+                } else {
+                    console.error('Stdout não está pronto para escrita.\n', data);
+                }
             });
             child.stderr.on('data', (data) => {
-                process.stderr.write(data);
+                if (process.stderr.writable) {
+                    process.stderr.write(data);
+                } else {
+                    console.error('Stderr não está pronto para escrita.\n', data);
+                }
             });
             child.on('error', (error) => {
                 console.error(error);
@@ -79,7 +92,7 @@ findElectronExecutable().then(electronPath => {
             child.unref();
         }
     } else {
-        console.error('Electron executable not found. Use \'npm i electron@9.1.2\' to install it.');
+        console.error('Electron executable not found. Run \'npm i\' on Megacubo folder to install it.');
     }
     process.exit(0);
-}).catch(console.error);
+}).catch(err => console.error(err));

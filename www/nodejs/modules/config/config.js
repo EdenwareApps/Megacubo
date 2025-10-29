@@ -97,16 +97,16 @@ class Config extends EventEmitter {
         });
         return data
     }
-    get(key) {
+    get(key, defaultValue) {
         this.load()
         //console.log('DATAb', JSON.stringify(data))
         var t = typeof(this.data[key])
         if (t == 'undefined') {
-            this.data[key] = this.defaults[key]
+            this.data[key] = defaultValue || this.defaults[key]
             t = typeof(this.defaults[key])
         }
         if (t == 'undefined') {
-            return null
+            return defaultValue || null
         } else if (t == 'object') { // avoid referencing
             return clone(this.data[key])
         }

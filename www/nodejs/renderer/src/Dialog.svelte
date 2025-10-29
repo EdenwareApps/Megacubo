@@ -188,7 +188,9 @@
                 e.id = e.id || text2id(e.text);
                 map[e.id] = e.text;
                 if (def == e.id) {
-                    e.fa = selectedIcon;
+                    if (!e.fa) {
+                        e.fa = selectedIcon;
+                    }
                 } else if (e.fa == selectedIcon) {
                     e.fa = ''
                 }
@@ -320,7 +322,7 @@
     });
 
     $effect(() => {
-        if (visible) {
+        if (visible && container) {
             const defaultElement = container.querySelector(
                 `#dialog-template-option-${content.defaultIndex}`
             );

@@ -144,8 +144,9 @@ class Downloads extends EventEmitter {
                     });
                     download.start();
                 } else {
-                    pathname = fs.realpathSync(path.resolve(paths.cwd, pathname))
-                    if (!pathname.startsWith(paths.cwd)) {
+                    try {
+                        pathname = fs.realpathSync(path.resolve(paths.cwd, pathname))
+                    } catch (err) {
                         res.statusCode = 403;
                         res.end();
                         return;
@@ -242,6 +243,9 @@ class Downloads extends EventEmitter {
         })
     }
     async serve(file, triggerDownload, doImport, name) {
+        if (file.match(new RegExp('^(https?://|//|data:image)'))) {
+            return file
+        }
         await this.prepare();
         if (!name) {
             name = path.basename(file) || String(Math.random()).substr(2)
@@ -344,7 +348,13 @@ class Downloads extends EventEmitter {
                     global.menu.refresh()
                 }
             });
-            download.on('error', console.error);
+            download.on('error', (err) => {
+                console.error('Download error:', err);
+                // Ensure error is properly handled to prevent unhandled rejection
+                if (err && typeof err === 'object' && err.message) {
+                    console.error('Download failed:', err.message);
+                }
+            });
             download.on('data', chunk => writer.write(chunk));
             download.once('end', () => {
                 const finished = () => {

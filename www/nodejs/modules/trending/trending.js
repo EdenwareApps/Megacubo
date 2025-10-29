@@ -150,14 +150,23 @@ export default class Trending extends EntriesGroup {
         let data = []
         const countries = await lang.getActiveCountries()
         const validator = a => Array.isArray(a) && a.length
-        const limit = pLimit(3)        
+        const limit = pLimit(3)
+        const errors = []
         const tasks = countries.map(country => {
             return async () => {
-                let es = await cloud.get('trending/'+ country, {shadow: false, validator}).catch(err => console.error(err));
-                Array.isArray(es) && data.push(...es);
+                try {
+                    let es = await cloud.get('trending/'+ country, {shadow: false, validator});
+                    Array.isArray(es) && data.push(...es);
+                } catch (err) {
+                    // Log 404 errors for trending countries but don't fail the entire operation
+                    errors.push(err)
+                }
             };
         }).map(limit);
         await Promise.allSettled(tasks);
+        if (errors.length && !data.length) {
+            console.error('Trending data not available for any countries: ', errors.map(e => e.message).join(', '))
+        }
         data.forEach((e, i) => {
             if (e.logo && !e.icon) {
                 data[i].icon = e.logo;
@@ -209,10 +218,10 @@ export default class Trending extends EntriesGroup {
             })
         }
         data.forEach((entry, i) => {
-            let ch = this.channels.isChannel(entry.terms.name);
+            let ch = this.channels.isChannel(entry.nameTerms);
             if (popularSearches && !ch) {
                 searchTerms.some(terms => {
-                    if (lists.tools.match(terms, entry.terms.name)) {
+                    if (lists.tools.match(terms, entry.nameTerms)) {
                         const name = terms.join(' ');
                         gsearches.includes(name) || gsearches.push(name);
                         ch = { name };

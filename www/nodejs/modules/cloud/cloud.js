@@ -22,11 +22,102 @@ class CloudConfiguration extends EventEmitter {
         this.defaultServer = 'https://app.megacubo.net/stats'
         this.server = config.get('config-server') || this.defaultServer
         this.activeFetches = new Map() // Track active fetches by key
+        this.failed404Cache = new Map() // Track URLs that returned 404 errors
+        this.failed404TTL = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
+        
+        // Start periodic cleanup of stale fetches
+        this._cleanupInterval = setInterval(() => {
+            this._cleanupStaleFetches()
+        }, 60000) // Run every minute
+        
         Object.assign(this, opts)
     }
 
     get cachePrefix() {
         return `cloud-${lang.locale}-`
+    }
+
+    /**
+     * Check if a URL has failed with 404 error in the last 24 hours
+     * @param {string} url - The URL to check
+     * @returns {boolean} - True if URL should be skipped due to recent 404
+     */
+    isUrlRecentlyFailed(url) {
+        const failureInfo = this.failed404Cache.get(url)
+        if (!failureInfo) return false
+        
+        const now = Date.now()
+        const timeSinceFailure = now - failureInfo.timestamp
+        
+        // If more than 24 hours have passed, remove from cache
+        if (timeSinceFailure > this.failed404TTL) {
+            this.failed404Cache.delete(url)
+            this.debug && console.log(`🟢 404 Cache: Expired entry removed for ${url}`)
+            return false
+        }
+        
+        this.debug && console.log(`🔴 404 Cache: URL blocked due to recent 404: ${url}`)
+        return true
+    }
+
+    /**
+     * Mark a URL as failed with 404 error
+     * @param {string} url - The URL that failed
+     */
+    markUrlAsFailed(url) {
+        this.failed404Cache.set(url, {
+            timestamp: Date.now(),
+            error: '404 Not Found'
+        })
+        // Only log in debug mode to avoid cluttering logs
+        this.debug && console.log(`🔴 404 Cache: Added ${url} to failed cache for 24 hours`)
+    }
+
+    /**
+     * Clear expired entries from the 404 cache
+     */
+    cleanupFailed404Cache() {
+        const now = Date.now()
+        for (const [url, failureInfo] of this.failed404Cache.entries()) {
+            const timeSinceFailure = now - failureInfo.timestamp
+            if (timeSinceFailure > this.failed404TTL) {
+                this.failed404Cache.delete(url)
+            }
+        }
+    }
+
+    /**
+     * Clear all entries from the 404 cache
+     */
+    clearFailed404Cache() {
+        this.failed404Cache.clear()
+        this.debug && console.log('🧹 404 Cache: Cleared all entries')
+    }
+
+    /**
+     * Get statistics about the 404 cache
+     * @returns {Object} - Cache statistics
+     */
+    getFailed404CacheStats() {
+        const now = Date.now()
+        let expiredCount = 0
+        let activeCount = 0
+        
+        for (const [url, failureInfo] of this.failed404Cache.entries()) {
+            const timeSinceFailure = now - failureInfo.timestamp
+            if (timeSinceFailure > this.failed404TTL) {
+                expiredCount++
+            } else {
+                activeCount++
+            }
+        }
+        
+        return {
+            totalEntries: this.failed404Cache.size,
+            activeEntries: activeCount,
+            expiredEntries: expiredCount,
+            ttlHours: this.failed404TTL / (60 * 60 * 1000)
+        }
     }
 
     async getCountry(ip) {
@@ -59,6 +150,16 @@ class CloudConfiguration extends EventEmitter {
     async fetch(key, opts = {}) {
         const url = `${this.server}/data/${key}.json`
         this.debug && console.log(`Fetching URL: ${url}`)
+        
+        // Check if this URL recently failed with 404
+        if (this.isUrlRecentlyFailed(url)) {
+            this.debug && console.log(`Skipping URL due to recent 404 error: ${url}`)
+            throw new Error(`URL recently failed with 404 error: ${url}`)
+        }
+        
+        // Cleanup expired entries from 404 cache
+        this.cleanupFailed404Cache()
+        
         try {
             this.debug && console.log(`Starting fetch for ${key}`)
             const response = await Download.get({
@@ -78,13 +179,43 @@ class CloudConfiguration extends EventEmitter {
             return response
         } catch (error) {
             this.debug && console.log(`Fetch failed for ${key}`, error)
+            
+            // Check if the error is a 404 and mark URL as failed
+            if (error.status === 404 || 
+                error.statusCode === 404 ||
+                (error.message && (
+                    error.message.includes('404') || 
+                    error.message.includes('Not Found') ||
+                    error.message.includes('not found')
+                )) ||
+                (typeof error === 'string' && (
+                    error.includes('HTTP error 404') ||
+                    error.includes('404') ||
+                    error.includes('Not Found')
+                ))) {
+                this.markUrlAsFailed(url)
+            }
+            
             throw error
         }
     }
 
     async get(key, opts = {}) {
         const cacheKey = `${this.cachePrefix}${key}`
-        this.debug && console.log(`Reading cache for ${key}`)
+        const url = `${this.server}/data/${key}.json`
+        const isShadowMode = opts.shadow === true
+        this.debug && console.log(`Reading cache for ${key}${isShadowMode ? ' (shadow mode)' : ''}`)
+
+        // Check if this URL recently failed with 404
+        if (this.isUrlRecentlyFailed(url)) {
+            console.log(`Skipping URL due to recent 404 error: ${url}`)
+            // Try fallback first before throwing error
+            try {
+                return await this.readFallback(key)
+            } catch (fallbackError) {
+                throw new Error(`Unable to retrieve data for ${key}`)
+            }
+        }
 
         // Check cache with timeout
         let data = await Promise.race([
@@ -128,7 +259,18 @@ class CloudConfiguration extends EventEmitter {
             }
         })()
 
+        // Add global error handler to prevent unhandled rejections
+        fetchPromise.catch(err => {
+            this.debug && console.log(`Fetch promise error for ${key}:`, err.message)
+        })
+
         this.activeFetches.set(key, fetchPromise)
+
+        // Shadow mode: return immediately without waiting for fetch
+        if (isShadowMode) {
+            this.debug && console.log(`Shadow mode: returning immediately for ${key}, fetch running in background`)
+            return null // Return null when no cache available in shadow mode
+        }
 
         try {
             // Wait for the fetch or timeout
@@ -171,6 +313,38 @@ class CloudConfiguration extends EventEmitter {
         this.debug && console.log(`Saving ${key} to cache`, { cacheKey, ttl })
         await storage.set(cacheKey, data, { ttl, permanent: opts.permanent })
     }
+
+    // Cleanup method for stale fetches
+    _cleanupStaleFetches() {
+        const now = Date.now()
+        const staleThreshold = 30000 // 30 seconds
+        
+        for (const [key, promise] of this.activeFetches.entries()) {
+            // Check if promise has been pending too long
+            if (promise._startTime && (now - promise._startTime) > staleThreshold) {
+                this.debug && console.log(`Cleaning up stale fetch for ${key}`)
+                this.activeFetches.delete(key)
+            }
+        }
+    }
+
+    // Destroy method to clean up resources
+    destroy() {
+        // Clear cleanup interval
+        if (this._cleanupInterval) {
+            clearInterval(this._cleanupInterval)
+            this._cleanupInterval = null
+        }
+        
+        // Clear all active fetches
+        this.activeFetches.clear()
+        
+        // Remove all event listeners
+        this.removeAllListeners()
+        
+        this.debug && console.log('CloudConfiguration destroyed')
+    }
 }
 
+export { CloudConfiguration }
 export default new CloudConfiguration()

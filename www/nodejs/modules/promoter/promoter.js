@@ -56,7 +56,7 @@ class Promoter {
             platform: process.platform,
             version: paths.manifest.version
         };
-        const c = await cloud.get('promos', {timeoutMs: 5000}).catch(err => console.error(err))
+        const c = await cloud.get('promos', {shadow: true}).catch(() => {})
         if (!Array.isArray(c)) return
         const promos = c.filter(p => {
             if (p.type != type)

@@ -14,6 +14,7 @@
 		refresh = $bindable(() => {})
 	} = $props();
 
+	// Initialize with safe defaults to prevent context issues
 	let mounted = $state(false);
 	let scrollTop = $state(0);
 	let viewport_height = $state(0);
@@ -23,10 +24,22 @@
 	let bottom = $state(0);
 	let scrollHeight = $state(0);
 
+	// $bindable variables are initialized with default values
+
 	let viewport;
 	let contents;
 
 	function getItemsDimensionsMatrix() {
+		// Add safety checks for items
+		if (!items || !Array.isArray(items)) {
+			range = { start: 0, end: -1, renderStart: 0, renderEnd: 0 };
+			visible = [];
+			top = 0;
+			bottom = 0;
+			scrollHeight = 0;
+			return { rows: [], y_positions: [] };
+		}
+
 		const itemsLength = items.length;
 
 		if (itemsLength === 0) {
@@ -43,7 +56,7 @@
 		let cumulative_width = 0;
 
 		for (let i = 0; i < itemsLength; i++) {
-			const width = itemWidth(items[i], i) || 100;
+			const width = (typeof itemWidth === 'function' ? itemWidth(items[i], i) : 100) || 100;
 			cumulative_width += width;
 			if (cumulative_width > viewport_width) {
 				rows.push(currentRow);
@@ -56,7 +69,7 @@
 
 		const row_heights = rows.map((row) => {
 			return Math.max(
-				...row.map((index) => itemHeight(items[index], index) || 100),
+				...row.map((index) => (typeof itemHeight === 'function' ? itemHeight(items[index], index) : 100) || 100),
 			);
 		});
 		const y_positions = [0];
@@ -71,8 +84,30 @@
 
 	refresh = async () => {
 		await tick();
+		
+		// Add safety check for viewport
+		if (!viewport) {
+			console.warn('VirtualGrid: viewport not available during refresh');
+			return;
+		}
+		
+		// Add safety check for items
+		if (!items || !Array.isArray(items)) {
+			console.warn('VirtualGrid: items not available during refresh');
+			return;
+		}
+		
 		viewport_height = viewport.offsetHeight || viewport_height;
 		viewport_width = viewport.offsetWidth || viewport_width;
+
+		// Ensure scrollTop is always a valid number
+		if (!isFinite(scrollTop) || scrollTop < 0) {
+			console.warn('Invalid scrollTop in refresh:', scrollTop, 'resetting to 0');
+			scrollTop = 0;
+			if (viewport) {
+				viewport.scrollTop = 0;
+			}
+		}
 
 		if (!items || !Array.isArray(items)) {
 			console.log("Invalid or undefined items", { items });
@@ -114,6 +149,17 @@
 			return;
 		}
 
+		console.log('🔍 VirtualGrid: range calculated', {
+			rows,
+			render_row_start, render_row_end,
+			row_start, row_end,
+			scrollBottom,
+			scrollTop,
+			viewport_height,
+			tolerance,
+			y_positions,
+			visible
+		})
 		range = {
 			renderStart: rows[render_row_start][0],
 			renderEnd: rows[render_row_end][rows[render_row_end].length - 1],
@@ -133,7 +179,13 @@
 		scrollHeight = y_positions[rows.length];
 	}
 
-	export async function scrollToIndex(index) {		
+	export async function scrollToIndex(index) {
+		// Add safety checks
+		if (!viewport || typeof index !== 'number' || index < 0) {
+			console.warn('VirtualGrid: Invalid parameters for scrollToIndex', { viewport, index });
+			return false;
+		}
+		
 		const { rows, y_positions } = getItemsDimensionsMatrix();
 
 		let index_row = 0;
@@ -145,24 +197,49 @@
 		}
 
 		const top = y_positions[index_row];
+		// Ensure top is a valid number
+		if (!isFinite(top) || top < 0) {
+			console.warn('Invalid top value in scrollToIndex:', top, 'using 0');
+			return false;
+		}
+		
 		if(top < scrollTop || top > (scrollTop + viewport_height)) {
 			let element;
 			while (!element) {
 				element = document.querySelector('[tabindex="'+ index +'"]')
-				viewport.style.scrollSnapType = 'none'
-				viewport.scrollTop = scrollTop = top
+				if (viewport) {
+					viewport.style.scrollSnapType = 'none'
+					viewport.scrollTop = scrollTop = top
+				}
 				await tick();
 				await refresh();
 			}
 			setTimeout(() => {
-				viewport.style.scrollSnapType = 'y mandatory';
+				if (viewport) {
+					viewport.style.scrollSnapType = 'y mandatory';
+				}
 			}, 100);
 			return true;
 		}
 	}
 
 	async function handle_scroll() {
-		scrollTop = viewport.scrollTop;
+		// Add safety check for viewport
+		if (!viewport) {
+			console.warn('VirtualGrid: viewport not available during handle_scroll');
+			return;
+		}
+		
+		// Ensure scrollTop is always a valid number
+		const newScrollTop = viewport.scrollTop;
+		if (isFinite(newScrollTop) && newScrollTop >= 0) {
+			scrollTop = newScrollTop;
+		} else {
+			// Reset to 0 if invalid value detected
+			console.warn('Invalid scrollTop detected:', newScrollTop, 'resetting to 0');
+			scrollTop = 0;
+			viewport.scrollTop = 0;
+		}
 		await refresh();
 	}
 
@@ -173,7 +250,7 @@
 	});
 
 	$effect(() => {
-		if (mounted) {
+		if (mounted && viewport && items && Array.isArray(items)) {
 			refresh();
 		}
 	});

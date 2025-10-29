@@ -7,7 +7,7 @@ class AutoTuner extends EventEmitter {
     constructor(entries, opts) {
         super();
         opts.mediaType = opts.mediaType == 'audio' ? 'all' : opts.mediaType; // is we're searching a radio, no problem to return a radio studio webcam
-        this.opts = opts;
+        this.opts = opts || {};
         this.paused = false;
         this.headless = false;
         this.minProgress = 0;
@@ -16,7 +16,7 @@ class AutoTuner extends EventEmitter {
         this.commitResults = {};
         this.intents = [];
         this.succeededs = {}; // -1 = bad mediatype, 0 = initialized, 1 = intenting, 2 = committed, 3 = starting failed
-        this.entries = entries;
+        this.entries = entries
         this.ffmpegBasedTypes = ['ts', 'rtmp', 'dash', 'aac']
     }
     async start() {
@@ -116,36 +116,41 @@ class AutoTuner extends EventEmitter {
         return entries
     }
     pause() {
-        if (this.opts.debug) {
+        if (this.opts && this.opts.debug) {
             console.log('autotuner PAUSE');
         }
         this.paused = true;
-        if (!this.tuner.finished) {
+        if (this.tuner && !this.tuner.finished) {
             this.tuner.pause();
         }
         if (this.timer) {
             clearInterval(this.timer);
+            this.timer = null;
         }
     }
     resume() {
         if (!this.destroyed) {
-            if (this.opts.debug) {
+            if (this.opts && this.opts.debug) {
                 console.log('autotuner RESUME');
             }
             this.paused = false;
-            if (this.tuner.finished) {
-                this.pump();
-            } else {
-                this.tuner.resume();
+            if (this.tuner) {
+                if (this.tuner.finished) {
+                    this.pump();
+                } else {
+                    this.tuner.resume();
+                }
             }
             if (this.listenerCount('progress')) {
                 clearInterval(this.timer);
+                this.timer = null;
                 this.timer = setInterval(() => this.progress(), 2000);
             }
             return true;
         }
     }
     progress() {
+        if (!this.tuner) return;
         const stats = this.tuner.getStats();
         let pending = Object.values(this.succeededs).filter(i => i == 0 || i == 1);
         stats.successes -= pending.length;
@@ -161,7 +166,7 @@ class AutoTuner extends EventEmitter {
         }
     }
     tune() {
-        if (this.opts.debug) {
+        if (this.opts && this.opts.debug) {
             console.log('auto-tuner tune');
         }
         return new Promise((resolve, reject) => {
@@ -204,7 +209,7 @@ class AutoTuner extends EventEmitter {
                 };
                 const finishListener = () => {
                     removeListeners();
-                    if (this.opts.debug) {
+                    if (this.opts && this.opts.debug) {
                         console.log('auto-tuner tune finish');
                     }
                     this.pause();
@@ -262,16 +267,18 @@ class AutoTuner extends EventEmitter {
             }
             return true;
         });
-        if (this.tuner.finished) {
-            if (!index.length && !processingIndex.length) {
-                this.finish();
-                index.length = 0;
-            }
-        } else {
-            if (slotCount > 0) {
-                this.tuner.paused && this.tuner.resume();
+        if (this.tuner) {
+            if (this.tuner.finished) {
+                if (!index.length && !processingIndex.length) {
+                    this.finish();
+                    index.length = 0;
+                }
             } else {
-                !this.tuner.paused && this.tuner.pause();
+                if (slotCount > 0) {
+                    this.tuner.paused && this.tuner.resume();
+                } else {
+                    !this.tuner.paused && this.tuner.pause();
+                }
             }
         }
         return { index, busyDomains, slotCount, ffmpegBasedSlotCount };
@@ -313,14 +320,19 @@ class AutoTuner extends EventEmitter {
             busyDomains.push(domain);
             this.succeededs[nid] = 1;
             intent.once('destroy', () => {
-                setTimeout(() => {
-                    if (intent) {
+                const timeoutId = setTimeout(() => {
+                    if (intent && !this.destroyed) {
                         this.succeededs[nid] = 3;
                         this.intents = this.intents.filter(n => n.nid != nid);
                         intent = null;
                         this.pump();
                     }
                 }, 400);
+                
+                // Store timeout ID for potential cleanup
+                if (intent) {
+                    intent._timeoutId = timeoutId;
+                }
             });
             intent.start().then(() => {
                 if (this.paused) {
@@ -420,22 +432,39 @@ class AutoTuner extends EventEmitter {
         this.finished = true;
         this.emit('finish');
         this.timer && clearInterval(this.timer);
+        this.timer = null;
         this.intents.forEach(n => n.destroy());
         this.intents = [];
         this.destroy();
     }
     destroy() {
-        if (this.opts.debug) {
+        if (this.opts && this.opts.debug) {
             console.log('auto-tuner destroy');
         }
         this.paused = true;
         this.destroyed = true;
         this.emit('destroy');
-        this.intents.forEach(n => n.destroy());
+        this.intents.forEach(n => {
+            // Clear any pending timeouts
+            if (n._timeoutId) {
+                clearTimeout(n._timeoutId);
+                n._timeoutId = null;
+            }
+            n.destroy();
+        });
         this.intents = [];
         this.tuner && this.tuner.destroy();
+        this.tuner = null;
         this.removeAllListeners();
         this.timer && clearInterval(this.timer);
+        this.timer = null;
+        
+        // Clear all references to help garbage collection
+        this.entries = null;
+        this.results = null;
+        this.commitResults = null;
+        this.succeededs = null;
+        this.opts = null;
     }
 }
 export default AutoTuner;

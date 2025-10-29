@@ -1,29 +1,45 @@
-import { LIST_DATA_KEY_MASK } from "../utils/utils.js";
 import storage from '../storage/storage.js'
 import { EventEmitter } from "events";
 import ready from '../ready/ready.js'
 import ListIndex from "./list-index.js";
 import ConnRacing from "../conn-racing/conn-racing.js";
+import { resolveListDatabaseKey, resolveListDatabaseFile } from "./tools.js";
 
 class List extends EventEmitter {
-    constructor(url, masterOrKeywords) {
+    constructor(url, master) {
         super();
         this.debug = false;
         if (url.startsWith('//')) {
             url = 'http:' + url;
         }
-        if (Array.isArray(masterOrKeywords)) {
-            this.relevantKeywords = masterOrKeywords;
-        } else {
-            this.master = masterOrKeywords;
-        }
+        this.master = master;
         this.url = url
         this.relevance = {}
-        this.dataKey = LIST_DATA_KEY_MASK.format(url)
-        this.file = storage.resolve(this.dataKey)
+        this.dataKey = resolveListDatabaseKey(url)
+        this.file = resolveListDatabaseFile(url)
         this.constants = { BREAK: -1 }
         this._log = [this.url]
+        
+        // Create holds for both main file and metadata file
         this.hold = storage.hold(this.dataKey)
+        
+        // Also hold the metadata file to prevent cleanup from deleting it
+        // The metadata key should match what storage.unresolve() returns
+        // We need to find the actual metadata file name
+        const filename = this.file.split('/').pop().split('\\').pop(); // Get filename from path
+        const metaFilename = filename.replace('.jdb', '.meta.jdb');
+        const metaKey = storage.unresolve(metaFilename);
+        this.metaHold = storage.hold(metaKey)
+        
+        // Additional protection: also hold the meta file using its full path
+        // This ensures the meta file is protected even if the key resolution changes
+        const metaFileKey = storage.unresolve(metaFilename);
+        this.metaFileHold = storage.hold(metaFileKey)
+        
+        // Note: idx files share the same keys as main files, so they are already protected
+        // test-playlist.idx.jdb -> test-playlist (same as main file)
+        // test-playlist.meta.idx.jdb -> test-playlist.meta (same as metadata file)
+        
         this.ready = ready(this.url)
         this.ready.starter(() => this.init(), true)
     }
@@ -61,6 +77,12 @@ class List extends EventEmitter {
             return cached.result;
         }
         if (this.destroyed) throw new Error('destroyed')
+        // Add null check for indexer to prevent TypeError
+        if (!this.indexer) {
+            const err = 'indexer not available'
+            storage.set(cacheKey, { err }, atts).catch(err => console.error(err))
+            throw new Error(err)
+        }
         let len = this.indexer.length
         if (!len) {
             const err = 'insufficient streams ' + len
@@ -92,6 +114,63 @@ class List extends EventEmitter {
         throw err
     }
     async verify() {
+        await this.ready();
+        
+        // Wait for indexer to be available and ready
+        await this.indexer.ready()
+        
+        // NEW: Validate that groups in metadata match groups in loaded list
+        try {
+            const metaGroups = this.index?.groups || {}
+            const metaGroupsKeys = Object.keys(metaGroups)
+            
+            const listGroups = this.index?.groups || {}
+            const listGroupsKeys = Object.keys(listGroups)
+            
+            if (this.master?.debug) {
+                console.log('verify: checking groups match', {
+                    url: this.url,
+                    metaGroupsCount: metaGroupsKeys.length,
+                    listGroupsCount: listGroupsKeys.length,
+                    metaGroups: metaGroupsKeys,
+                    listGroups: listGroupsKeys
+                });
+            }
+            
+            // Check if groups match (order doesn't matter)
+            const metaGroupsSet = new Set(metaGroupsKeys)
+            const listGroupsSet = new Set(listGroupsKeys)
+            
+            if (metaGroupsSet.size !== listGroupsSet.size) {
+                if (this.master?.debug) {
+                    console.log('verify: groups count mismatch', {
+                        metaCount: metaGroupsSet.size,
+                        listCount: listGroupsSet.size
+                    });
+                }
+                throw new Error('groups count mismatch between metadata and list')
+            }
+            
+            // Check if all groups from metadata exist in list
+            for (const group of metaGroupsKeys) {
+                if (!listGroupsSet.has(group)) {
+                    if (this.master?.debug) {
+                        console.log('verify: group missing in list', group);
+                    }
+                    throw new Error(`group '${group}' missing in list`)
+                }
+            }
+            
+            if (this.master?.debug) {
+                console.log('verify: groups validation passed', this.url);
+            }
+        } catch (groupsErr) {
+            if (this.master?.debug) {
+                console.log('verify: groups validation failed', this.url, groupsErr.message);
+            }
+            throw new Error(`groups validation failed: ${groupsErr.message}`);
+        }
+        
         const index = this.index, values = {
             hits: 0
         };
@@ -100,25 +179,71 @@ class List extends EventEmitter {
             mtime: 0.25
         };
         // relevantKeywords (check user channels presence in these lists and list size by consequence)
-        let rks = this.master ? await this.master.relevantKeywords() : this.relevantKeywords;
+        let rksWithScores = null;
+        
+        if (this.master && this.master.relevantKeywords) {
+            try {
+                // Get keywords with scores
+                rksWithScores = await this.master.relevantKeywords(true);
+            } catch (err) {
+                console.warn('Failed to get keywords with scores:', err.message);
+                rksWithScores = null;
+            }
+        }
+        
+        // Extract array of terms from scores object
+        const rks = rksWithScores ? Object.keys(rksWithScores) : [];
+        
         if (!rks || !rks.length) {
             console.error('no parent keywords', rks);
-            values.relevantKeywords = 50;
+            values.relevantKeywords = 0;
         } else {
-            let hits = 0, presence = 0;
-            if(index.terms) {
-                rks.forEach(term => {
-                    if (typeof(index.terms[term]) != 'undefined') {
-                        hits++;
-                        presence += index.terms[term].n.length;
+            let presence = 0;
+            const termCounts = {};
+            const termScores = rksWithScores || {};
+            
+            try {
+                for (const term of rks) {
+                    // Add null check for indexer and db to prevent TypeError
+                    if (!this.indexer || !this.indexer.db) {
+                        console.error('indexer or db not available for term counting');
+                        break;
                     }
-                })
+                    const count = await this.indexer.db.count({ nameTerms: term });
+                    termCounts[term] = count;
+                }
+            } catch (err) {
+                console.error('error counting terms', err);
             }
-            presence /= Math.min(this.length, 1024); // to avoid too small lists
+            
+            const hits = Object.values(termCounts).filter(c => c > 0).length;
+            
+            // Use weighted presence calculation with scores
+            if (rksWithScores && Object.keys(rksWithScores).length > 0) {
+                let weightedPresence = 0;
+                let totalWeight = 0;
+                
+                for (const [term, count] of Object.entries(termCounts)) {
+                    const weight = termScores[term] || 1;
+                    weightedPresence += count * weight;
+                    totalWeight += weight;
+                }
+                
+                presence = totalWeight > 0 ? weightedPresence / totalWeight : 0;
+            } else {
+                // Fallback to simple average if no scores available
+                presence = rks.length > 0 ? Object.values(termCounts).reduce((acc, count) => acc + count, 0) / rks.length : 0;
+            }
+            
+            // Avoid division by zero if this.length is 0 or negative
+            const listLength = Math.max(this.length || 1, 1);
+            presence /= Math.min(listLength, 1024); // to avoid too small lists
             if (presence > 1)
                 presence = 1;
             // presence factor aims to decrease relevance of too big lists for the contents that we want
-            values.relevantKeywords = presence * (hits / (rks.length / 100));
+            // Avoid division by zero if rks.length is 0
+            const relevanceFactor = rks.length > 0 ? (hits / (rks.length / 100)) : 0;
+            values.relevantKeywords = presence * relevanceFactor;
         }
         const rangeSize = 30 * (24 * 3600), now = (Date.now() / 1000), deadline = now - rangeSize;
         if (!index.lastmtime || index.lastmtime < deadline) {
@@ -154,21 +279,51 @@ class List extends EventEmitter {
         return this.indexer.getMap(map);
     }
     async getEntries(map) {
+        // Add null check for indexer to prevent TypeError
+        if (!this.indexer) {
+            return [];
+        }
         return this.indexer.entries(map);
     }
     destroy() {
         if (!this.destroyed) {
             storage.touch(this.dataKey, { ttl: 24 * 3600 })
-            this.hold.release()
+            
+            // Release storage holds immediately to prevent memory leaks
+            if (this.hold) {
+                this.hold.release();
+                this.hold = null;
+            }
+            if (this.metaHold) {
+                this.metaHold.release();
+                this.metaHold = null;
+            }
+            if (this.metaFileHold) {
+                this.metaFileHold.release();
+                this.metaFileHold = null;
+            }
+            
             this.destroyed = true
+            
+            // Destroy indexer and clear references
             if (this.indexer) {
                 this.indexer.destroy();
                 this.indexer = null;
             }
+            
             this.emit('destroy');
             this.removeAllListeners();
+            
+            // Clear all references to help garbage collection
             this.master = null;
             this._log = [];
+            this.url = null;
+            this.dataKey = null;
+            this.file = null;
+            this.relevance = null;
+            this.constants = null;
+            
+            // Force garbage collection if available
         }
     }
     get walk() {

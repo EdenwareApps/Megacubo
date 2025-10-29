@@ -32,13 +32,12 @@ export class OMNI extends OMNIUtils {
         this.typing = ''
         this.defaultValue = ''
         this.element = document.querySelector('.menu-omni')
-        this.button = document.querySelector('.menu-omni .menu-omni-submit')
-        this.input = document.querySelector('.menu-omni input')
+        this.button = this.element.querySelector('.menu-omni-submit')
+        this.input = this.element.querySelector('input')
         this.rinput = this.input
         this.visible = false
         this.setup()
         this.bind()
-        this.element.style.display = 'none'
         document.addEventListener('keyup', this.eventHandler.bind(this))
     }
     bind(){
@@ -61,13 +60,13 @@ export class OMNI extends OMNIUtils {
         })
     }
     active() {
-        return this.element.offsetParent !== null
+        return this.element.offsetTop > -18
     }
     show(focus) {
         if(this.visible) return
+        document.body.classList.add('omni')
         this.emit('before-show')
         this.visible = true
-        this.element.style.display = 'inline-flex'
         if(window.innerHeight > window.innerWidth) {
             document.body.classList.add('portrait-search')
             this.input.addEventListener('blur', () => {
@@ -97,7 +96,7 @@ export class OMNI extends OMNIUtils {
     hide() {
         if(!this.visible) return
         this.visible = false
-        this.element.style.display = 'none'
+        document.body.classList.remove('omni')
         this.emit('hide')
     }
     submit(){
@@ -201,6 +200,7 @@ export class OMNI extends OMNIUtils {
                 if(main.menu.inPlayer() && !main.menu.isVisible()) {
                     main.menu.showWhilePlaying(true)
                 }
+                this.show(false)
                 this.focus(false)
                 this.update()
             }
@@ -242,6 +242,7 @@ export class OMNI extends OMNIUtils {
             }
             main.emit('omni', this.typing, this.type)
             this.updateIcon('fa-mega busy-x')
+            main.menu.showWhilePlaying(true)
         }
     }
 }

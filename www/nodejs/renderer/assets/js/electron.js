@@ -345,6 +345,16 @@ class WindowManager extends WindowManagerCommon {
 			this.fixMaximizeButton()
 			appStarted && this.app.main.streamer.emit('miniplayer-off')
 		})
+		// Listen for window restore to reactivate always on top if still in miniplayer size
+		electron.window.on('restore', () => {
+			console.log('Window restored, checking miniplayer state')
+			setTimeout(() => {
+				if(this.miniPlayerActive) {
+					console.log('Reactivating always on top for miniplayer')
+					electron.window.setAlwaysOnTop(true)
+				}
+			}, 100)
+		})
 		this.waitApp(() => {
 			appStarted = true
 			this.app.main.css(' :root { --menu-padding-top: 30px; } ', 'frameless-window')
@@ -456,22 +466,24 @@ class WindowManager extends WindowManagerCommon {
 	enterMiniPlayer(w, h){
 		console.warn('enterminiPlayer', w, h)
 		this.miniPlayerActive = true
-		this.emit('miniplayer-on')
 		let scr = this.getScreenSize()
 		const ww = (w + this.miniPlayerRightMargin) // * electron.screenScaleFactor
 		const args = [scr.availWidth - ww, scr.availHeight - h].map(n => parseInt(n))
 		console.warn('enterMiniPlayer', args, {scr, w, h}, scr.availWidth - ww, scr.availHeight - h)
 		electron.window.setPosition(...args, false)
 		electron.window.setSize(parseInt(w), parseInt(h), true)
+		this.emit('miniplayer-on')
 	}
 	prepareLeaveMiniPlayer(){
 		console.warn('prepareLeaveMiniPlayer')
+		if(!this.miniPlayerActive) return // already left
 		this.miniPlayerActive = false
 		electron.window.setAlwaysOnTop(false)
 		this.emit('miniplayer-off')
 	}
 	leaveMiniPlayer(){
 		console.warn('leaveMiniPlayer')
+		if(!this.miniPlayerActive) return // already left
 		this.prepareLeaveMiniPlayer()
 		electron.window.setSize(...this.initialSizeUnscaled, false)
 		this.centralizeWindow(...this.initialSizeUnscaled)

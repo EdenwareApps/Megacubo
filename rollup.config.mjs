@@ -31,6 +31,9 @@ const replaceOpts = {
   }
 }
 
+// Check if this is a production build
+const isProduction = process.env.NODE_ENV === 'production' || process.argv.includes('--production')
+
 // Svelte renderer plugins
 const rendererPlugins = [
   svelte({
@@ -44,7 +47,27 @@ const rendererPlugins = [
   builtins(),
   getBabelOutputPlugin({ ...babelRendererOutput, allowAllFormats: true }),
   json({ compact: true }),
-  terser()
+        ...(isProduction ? [terser({
+          ecma: 2020, // Use ECMAScript 2020 for better BigInt compatibility
+          maxWorkers: 2,
+          keep_classnames: true, // Keep class names to avoid BigInt issues
+          keep_fnames: true, // Keep function names to avoid BigInt issues
+          output: { comments: false },
+          compress: {
+            drop_console: true,
+            drop_debugger: true,
+            passes: 1, // Reduce passes to avoid BigInt issues
+            // ✅ APENAS as desativações essenciais para BigInt
+            reduce_vars: false,     // ← Principal: evita reescrita de vars com BigInt
+            evaluate: false,        // ← Principal: evita avaliação de expressões BigInt
+            // Manter outras otimizações
+            unsafe: false,
+            unsafe_comps: false,
+            unsafe_math: false,
+            unsafe_proto: false,
+            unsafe_regexp: false
+          }
+        })] : [])
 ];
 
 // Babel config import
@@ -59,28 +82,89 @@ const external = [
 const outputs = [];
 
 // helper for Node.js bundles
-function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals = null }) {
+function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals = null, isLargeFile = false, isMainProcess = false }) {
+  // Configurações específicas para main process
+  const mainProcessConfig = isMainProcess ? {
+    maxWorkers: 1, // Reduzir workers para economizar memória
+    keep_classnames: false, // Desabilitar para economizar memória
+    keep_fnames: false, // Desabilitar para economizar memória
+    compress: {
+      drop_console: true, // Remover console logs para economizar memória
+      drop_debugger: true,
+      passes: 1,
+      unsafe: true, // Otimizações mais agressivas
+      unsafe_comps: true,
+      unsafe_math: true
+    }
+  } : {
+    maxWorkers: 2,
+    keep_classnames: true,
+    keep_fnames: true,
+    compress: {
+      drop_console: false,
+      drop_debugger: false,
+      passes: 1
+    }
+  };
+
   const plugins = [
-    resolve(baseResolveOpts),
-    commonjs({ sourcemap: true }),
+    resolve({
+      ...baseResolveOpts,
+      // Configurações específicas para main process
+      ...(isMainProcess ? { dedupe: [] } : {})
+    }),
+    commonjs({ 
+      sourcemap: isMainProcess ? false : true, // Desabilitar sourcemap para main process
+      ...(isMainProcess ? { requireReturnsDefault: 'auto' } : {})
+    }),
     json({ compact: true }),
-    getBabelOutputPlugin(babelOpts),
+    getBabelOutputPlugin({
+      ...babelOpts,
+      // Otimizações de memória para main process
+      ...(isMainProcess ? { compact: true, minified: true } : {})
+    }),
     replace(replaceOpts),    
     ...extraPlugins,
-    terser({
-      ecma: 2023,
-      maxWorkers: 4,
-      keep_classnames: true,
-      keep_fnames: true,
-      output: { comments: false }
-    })
+    // Enable terser for production builds with BigInt-safe settings
+        ...(isProduction && !isLargeFile ? [terser({
+          ecma: 2020, // Use ECMAScript 2020 for better BigInt compatibility
+          maxWorkers: 1,
+          keep_classnames: true, // Keep class names to avoid BigInt issues
+          keep_fnames: true, // Keep function names to avoid BigInt issues
+          output: { comments: false },
+          compress: {
+            drop_console: true,
+            drop_debugger: true,
+            passes: 1, // Reduce passes to avoid BigInt issues
+            // ✅ APENAS as desativações essenciais para BigInt
+            reduce_vars: false,     // ← Principal: evita reescrita de vars com BigInt
+            evaluate: false,        // ← Principal: evita avaliação de expressões BigInt
+            // Manter outras otimizações
+            unsafe: false,
+            unsafe_comps: false,
+            unsafe_math: false,
+            unsafe_proto: false,
+            unsafe_regexp: false
+          }
+        })] : [])
   ];
   outputs.push({
     input,
     output,
     plugins,
     external: Array.isArray(externals) ? externals : external,
-    watch: watchOpts
+    watch: watchOpts,
+    maxParallelFileOps: isLargeFile || isMainProcess ? 1 : undefined, // Forçar 1 para main process
+    treeshake: isLargeFile || isMainProcess ? false : undefined, // Desabilitar para main process
+    // Configurações específicas para main process
+    ...(isMainProcess ? {
+      preserveEntrySignatures: 'allow-extension',
+      onwarn(warning, warn) {
+        // Suprimir warnings de dependências circulares para main process
+        if (warning.code === 'CIRCULAR_DEPENDENCY') return;
+        warn(warning);
+      }
+    } : {})
   });
 }
 
@@ -88,14 +172,28 @@ function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals
 outputs.push(
   {
     input: 'www/nodejs/renderer/src/App.svelte',
-    output: { dir: 'www/nodejs/renderer/dist', entryFileNames: 'App.js', format: 'iife', name: 'App', inlineDynamicImports: true, sourcemap: true },
+    output: { 
+      dir: 'www/nodejs/renderer/dist', 
+      entryFileNames: 'App.js', 
+      format: 'iife', 
+      name: 'App', 
+      inlineDynamicImports: true, 
+      sourcemap: true
+    },
     plugins: rendererPlugins,
     watch: watchOpts,
     external: ['electron', /.+\.(node|native)$/]
   },
   {
     input: { capacitor: 'capacitor.mjs' },
-    output: { dir: 'www/nodejs/renderer/dist', entryFileNames: 'capacitor.js', format: 'iife', name: 'capacitor', inlineDynamicImports: true, sourcemap: true },
+    output: { 
+      dir: 'www/nodejs/renderer/dist', 
+      entryFileNames: 'capacitor.js', 
+      format: 'iife', 
+      name: 'capacitor', 
+      inlineDynamicImports: true, 
+      sourcemap: true
+    },
     plugins: rendererPlugins,
     watch: watchOpts,
     external: ['electron', /.+\.(node|native)$/]
@@ -104,8 +202,9 @@ outputs.push(
 
 makeNodeBundle({
   input: 'www/nodejs/main.mjs',
-  output: { format: 'esm', file: 'www/nodejs/dist/main.js', inlineDynamicImports: true, sourcemap: true },
+  output: { format: 'cjs', file: 'www/nodejs/dist/main.js', inlineDynamicImports: true, sourcemap: false }, // Desabilitar sourcemap para main process
   babelOpts: baseBabelOpts,
+  isMainProcess: true, // Ativar otimizações específicas para main process
   extraPlugins: [
     copy({ targets: [
       { src: 'node_modules/dayjs/locale/*.js', dest: 'www/nodejs/dist/dayjs-locale' },
@@ -127,15 +226,18 @@ makeNodeBundle({
 [
   'preload.mjs',
   'modules/lists/updater-worker.js',
-  'modules/lists/epg-worker.js',
+  'modules/epg-worker/EPGManager.js',
   'modules/streamer/utils/mpegts-processor-worker.js',
   'modules/multi-worker/worker.mjs'
 ].forEach(file => {
+  const outputFile = path.basename(file).replace('.mjs','.js');
+  const isLargeFile = file.includes('EPGManager.js');
   makeNodeBundle({
     input: `www/nodejs/${file}`,
-    output: { format: 'cjs', file: `www/nodejs/dist/${path.basename(file).replace('.mjs','.js')}`, inlineDynamicImports: true, sourcemap: true },
+    output: { format: 'cjs', file: `www/nodejs/dist/${outputFile}`, inlineDynamicImports: true, sourcemap: true },
     babelOpts: baseBabelOpts,
-    externals: ['electron', /.+\.(node|native)$/]
+    externals: ['electron', /.+\.(node|native)$/],
+    isLargeFile
   });
 });
 

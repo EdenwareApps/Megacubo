@@ -24,7 +24,7 @@
     "url": "https://megacubo.tv"
   },
   "icon": "./default_icon.png",
-  "version": "17.6.1",
+  "version": "17.6.2",
   "dependencies": {
     "@anuradev/capacitor-background-mode": "^7.2.1",
     "@babel/runtime": "^7.27.6",
@@ -65,7 +65,7 @@
     "http-cookie-agent": "^6.0.8",
     "iconv-lite": "^0.6.3",
     "ionic-plugin-deeplinks": "^1.0.24",
-    "jexidb": "^1.1.0",
+    "jexidb": "^2.1.0",
     "m3u8-parser": "^7.1.0",
     "mpegts.js": "^1.8.0",
     "node-cleanup": "^2.1.2",
@@ -79,7 +79,6 @@
     "svelte": "^5.33.14",
     "swipey.js": "^1.0.3",
     "tough-cookie": "^4.1.4",
-    "trias": "^0.1.3",
     "tv.megacubo.ffmpeg": "github:EdenwareApps/tv.megacubo.ffmpeg",
     "tv.megacubo.pip": "^0.1.0",
     "tv.megacubo.player": "github:EdenwareApps/tv.megacubo.player",
@@ -102,6 +101,7 @@
     "@rollup/plugin-terser": "^0.4.4",
     "babel-plugin-transform-modules-iife": "^1.0.0",
     "core-js": "^3.41.0",
+    "cross-env": "^10.1.0",
     "electron": "^35.2.1",
     "postcss": "^8.5.3",
     "rimraf": "^6.0.1",
@@ -112,21 +112,24 @@
     "rollup-plugin-node-builtins": "^2.1.2",
     "rollup-plugin-svelte": "^7.2.2",
     "shx": "^0.4.0",
+    "stacktracey": "^2.1.8",
     "svelte-preprocess": "^6.0.3"
   },
   "bin": {
     "megacubo": "./bin.js"
   },
   "scripts": {
-    "start": "node bin.js",
+    "start": "node --max-old-space-size=4096 --expose-gc bin.js",
     "start:capacitor": "cap serve",
-    "debug": "node bin.js debug",
+    "debug": "node --max-old-space-size=4096 --expose-gc bin.js debug",
     "assets": "npx @capacitor/assets generate --android --iconBackgroundColor #4E2F8F --iconBackgroundColorDark #4E2F8F --splashBackgroundColor #200040 --splashBackgroundColorDark #200040",
     "cap": "node configure.mjs && cap sync",
     "capacitor:sync:after": "shx rm -rf android/app/src/main/assets/public/nodejs/node_modules/levelup/node_modules/semver/semver*.js.gz && shx rm -rf android/app/src/main/assets/public/nodejs/modules && shx rm -rf android/app/src/main/assets/public/nodejs/node_modules && shx rm -rf android/app/src/main/assets/public/nodejs/renderer/src && shx rm -f android/app/src/main/assets/public/nodejs/dist/windows.vbs",
     "clean": "cd android && gradlew clean",
-    "prepare": "node prepare.mjs",
-    "build": "node build.mjs",
+    "clean:cache": "node scripts/clear-rollup-cache.js",
+    "build": "cross-env NODE_ENV=production node --max-old-space-size=8192 build.mjs",
+    "build:dev": "cross-env NODE_ENV=development node --max-old-space-size=8192 build.mjs",
+    "build:android": "cross-env NODE_ENV=production npm run build && node --max-old-space-size=4096 build-android.mjs",
     "build:electron": "electron-packager ./www/nodejs"
   }
 }

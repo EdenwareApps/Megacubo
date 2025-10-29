@@ -3,12 +3,15 @@
   import Clock from "./Clock.svelte";
   import { main } from "../../modules/bridge/renderer";
 
+  // Initialize with safe defaults to prevent context issues
   let txt = $state("");
   let display = $state("none");
 	let {
-    path = $bindable(),
-		icons = $bindable()
+    path = $bindable(''),
+		icons = $bindable({})
 	} = $props();
+
+  // $bindable variables are initialized with default values
 
   let timer = 0, visible = false, duration = 5000;
 
@@ -53,15 +56,8 @@
   <span class="menu-location" aria-hidden="true">
     <span class="menu-location-anchor">
       <span class="menu-location-icon">
-        {#if icons[path]}
-          {#if icons[path].url.startsWith("fa")}
-            <i class={icons[path].url} aria-hidden="true"></i>
-          {:else}
-            <img src={icons[path].url} alt="" loading="lazy" />
-          {/if}
-        {/if}
       </span>
-      <span class="menu-location-text">{path.split("/").pop()}</span>
+      <span class="menu-location-text">{path ? path.split("/").pop() : ''}</span>
     </span>
     <span class="menu-location-pagination" style="display: {display}">
       <i class="fas fa-stream"></i>

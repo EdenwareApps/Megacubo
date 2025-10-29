@@ -68,8 +68,6 @@ This directory contains all the internal modules that power **Megacubo**. Each m
 
 - [Premium-Helper](./premium-helper/README.md): Premium feature management and activation.
 
-- [Profiles](./profiles/README.md): User profile management and authentication.
-
 - [Promoter](./promoter/README.md): Premium feature promotion and upgrade dialogs.
 
 - [Reader](./reader/README.md): File reading and streaming utilities.

@@ -143,7 +143,6 @@ class PerformanceProfiles extends Timer {
                 'tune-concurrency': 8,
                 'tune-ffmpeg-concurrency': 3,
                 'ui-sounds': true,
-                'use-trias': true
             },
             low: {
                 'animate-background': 'none',
@@ -170,7 +169,6 @@ class PerformanceProfiles extends Timer {
                 'tune-concurrency': 4,
                 'tune-ffmpeg-concurrency': 2,
                 'ui-sounds': false,
-                'use-trias': false
             }
         };
         this.profiles.high['epg-' + lang.locale] = '';
@@ -1568,12 +1566,7 @@ class Options extends OptionsExportImport {
                             action: (e, checked) => config.set('hide-updates', !checked),
                             checked: () => !config.get('hide-updates')
                         },
-                        {
-                            name: 'Use Trias to improve recommendations',
-                            type: 'check',
-                            action: (e, checked) => config.set('use-trias', checked),
-                            checked: () => config.get('use-trias')
-                        },
+                        // 'Use Trias' option removed - AI is already trained
                         {
                             name: lang.SHOW_RECOMMENDATIONS_HOME,
                             fa: 'fas fa-th',

@@ -1,5 +1,5 @@
 import Download from '../download/download.js'
-import { decodeURIComponentSafe, prepareCORS, sanitize, time } from '../utils/utils.js';
+import { decodeURIComponentSafe, prepareCORS, sanitize, time, forwardSlashes } from '../utils/utils.js';
 import osd from '../osd/osd.js'
 import menu from '../menu/menu.js'
 import storage from '../storage/storage.js'
@@ -125,59 +125,53 @@ class IconSearch extends IconDefault {
     seemsLive(e) {        
         return (e.gid || lists.mi.isLive(e.url)) ? 1 : 0; // gid here serves as a hint of a live stream
     }
-    search(ntms, liveOnly) {
+    async search(ntms) {
         if (this.opts.debug) {
             console.log('icons.search', ntms)
         }
-        return new Promise(resolve => {
-            if (this.opts.debug) {
-                console.log('is channel', ntms)
-            }            
-            let images = []
-            lists.search(ntms, {
-                type: 'live',
-                safe: !lists.parentalControl.lazyAuth()
-            }).then(ret => {
-                if (this.opts.debug) {
-                    console.log('fetch from terms', ntms, liveOnly, JSON.stringify(ret));
+        if (this.opts.debug) {
+            console.log('is channel', ntms)
+        }            
+        let images = []
+        let ret = await lists.search(ntms, {
+            type: 'live',
+            withIconOnly: true,
+            safe: !lists.parentalControl.lazyAuth()
+        })
+        if (this.opts.debug) {
+            console.log('fetch from terms', ntms, JSON.stringify(ret));
+        }
+        if (!ret.length) {
+            return [];
+        }
+        const already = {}, alreadySources = {};
+        ret = ret.map((e, i) => {
+            if (typeof(already[e.icon]) == 'undefined') {
+                already[e.icon] = i;
+                alreadySources[e.icon] = [e.source];
+                return {
+                    icon: e.icon,
+                    live: this.seemsLive(e) ? 1 : 0,
+                    hits: 1,
+                    trending: this.trendingIcons[e.icon] || 0,
+                    epg: 0
+                };
+            } else {
+                if (!alreadySources[e.icon].includes(e.source)) {
+                    alreadySources[e.icon].push(e.source);
+                    ret[already[e.icon]].hits++;
                 }
-                if (ret.length) {
-                    const already = {}, alreadySources = {};
-                    ret = ret.filter(e => {
-                        return e.icon && e.icon.includes('//');
-                    });
-                    if (this.opts.debug) {
-                        console.log('fetch from terms', JSON.stringify(ret));
-                    }
-                    ret = ret.map((e, i) => {
-                        if (typeof(already[e.icon]) == 'undefined') {
-                            already[e.icon] = i;
-                            alreadySources[e.icon] = [e.source];
-                            return {
-                                icon: e.icon,
-                                live: this.seemsLive(e) ? 1 : 0,
-                                hits: 1,
-                                trending: this.trendingIcons[e.icon] || 0,
-                                epg: 0
-                            };
-                        } else {
-                            if (!alreadySources[e.icon].includes(e.source)) {
-                                alreadySources[e.icon].push(e.source);
-                                ret[already[e.icon]].hits++;
-                            }
-                            if (!ret[already[e.icon]].live && this.seemsLive(e)) {
-                                ret[already[e.icon]].live = true;
-                            }
-                        }
-                    }).filter(e => !!e);
-                    ret = ret.sortByProp('hits', true).sortByProp('live', true); // gid here serves as a hint of a live stream
-                    if (this.opts.debug) {
-                        console.log('search() result', ret);
-                    }
-                    images.push(...ret);
+                if (!ret[already[e.icon]].live && this.seemsLive(e)) {
+                    ret[already[e.icon]].live = true;
                 }
-            }).catch(err => console.error(err)).finally(() => resolve(images));
-        });
+            }
+        }).filter(e => !!e);
+        ret = ret.sortByProp('hits', true).sortByProp('live', true); // gid here serves as a hint of a live stream
+        if (this.opts.debug) {
+            console.log('search() result', ret);
+        }
+        images.push(...ret);
+        return images
     }
 }
 class IconServerStore extends IconSearch {
@@ -193,9 +187,6 @@ class IconServerStore extends IconSearch {
     }
     isHashKey(key) {
         return key.length == 32 && !key.includes(',');
-    }
-    file(url, isKey) {
-        return this.opts.folder + '/logo-' + (isKey === true ? url : this.key(url)) + '.cache';
     }
     validate(content) {
         if (content && content.length > 25) {
@@ -214,15 +205,113 @@ class IconServerStore extends IconSearch {
             }
             const magic = content.toString('hex', 0, 4);
             if (magic === '89504e47') {
+                // PNG: 89 50 4E 47
                 const chunkType = content.toString('ascii', 12, 16);
                 if (chunkType === 'IHDR') {
                     const colorType = content.readUInt8(25);
-                    const hasAlpha = (colorType & 0x04) !== 0;
-                    if (hasAlpha) {
-                        return 2; // valid, has alpha
+                    const hasAlphaChannel = (colorType & 0x04) !== 0;
+                    if (hasAlphaChannel) {
+                        // PNG has alpha channel - check for actual transparency
+                        // Ultra-light check: look for tRNS chunk (transparency)
+                        if (content.includes(Buffer.from('tRNS'))) {
+                            return 2; // Has transparency chunk
+                        }
+                        
+                        // For PNG with alpha channel, assume NO transparency by default
+                        // Canvas detection will handle actual transparency checking
+                        return 1; // Valid PNG with alpha channel, but no transparency detected
                     }
                 }
                 return 1;
+            } else if (magic === '52494646') {
+                // RIFF format (WEBP, AVI, etc.): 52 49 46 46
+                const format = content.toString('ascii', 8, 12);
+                if (format === 'WEBP') {
+                    // WEBP can have alpha - check for VP8X chunk (extended format)
+                    if (content.length >= 30) {
+                        const chunkType = content.toString('ascii', 12, 16);
+                        if (chunkType === 'VP8X') {
+                            const flags = content.readUInt8(20);
+                            const hasAlpha = (flags & 0x10) !== 0; // Alpha bit
+                            if (hasAlpha) {
+                                return 2; // valid, has alpha
+                            }
+                        }
+                    }
+                    return 1; // WEBP without alpha
+                }
+                return 1; // Other RIFF formats are valid
+            } else if (magic === '424d') {
+                // BMP: 42 4D (BM)
+                return 1; // BMP is valid
+            } else if (magic === '47494638' || magic === '47494637') {
+                // GIF: 47 49 46 38 (GIF8) or 47 49 46 37 (GIF7)
+                // GIF can have transparency - check packed field
+                if (content.length >= 11) {
+                    const packed = content.readUInt8(10);
+                    const hasGlobalColorTable = (packed & 0x80) !== 0;
+                    const globalColorTableSize = 2 << (packed & 0x07);
+                    
+                    // Check if there's a transparent color index
+                    if (hasGlobalColorTable && content.length >= 14 + globalColorTableSize) {
+                        const transparentColorFlag = content.readUInt8(11);
+                        if ((transparentColorFlag & 0x01) !== 0) {
+                            return 2; // GIF with transparency
+                        }
+                    }
+                }
+                return 1; // GIF without transparency
+            } else if (magic === '49492a00' || magic === '4d4d002a') {
+                // TIFF: 49 49 2A 00 (little endian) or 4D 4D 00 2A (big endian)
+                // TIFF can have alpha - check photometric interpretation
+                if (content.length >= 20) {
+                    const isLittleEndian = magic === '49492a00';
+                    let ifdOffset;
+                    if (isLittleEndian) {
+                        ifdOffset = content.readUInt32LE(4);
+                    } else {
+                        ifdOffset = content.readUInt32BE(4);
+                    }
+                    
+                    if (ifdOffset && content.length >= ifdOffset + 12) {
+                        // Look for PhotometricInterpretation tag (tag 262)
+                        // This is a simplified check - full TIFF parsing is complex
+                        // For now, assume TIFF can have alpha if it's large enough
+                        if (content.length > 1000) {
+                            return 2; // Assume large TIFF might have alpha
+                        }
+                    }
+                }
+                return 1; // TIFF without alpha
+            } else if (content.length >= 4 && content.toString('ascii', 0, 4) === 'GIF8') {
+                // Alternative GIF detection - use same logic as above
+                if (content.length >= 11) {
+                    const packed = content.readUInt8(10);
+                    const hasGlobalColorTable = (packed & 0x80) !== 0;
+                    const globalColorTableSize = 2 << (packed & 0x07);
+                    
+                    if (hasGlobalColorTable && content.length >= 14 + globalColorTableSize) {
+                        const transparentColorFlag = content.readUInt8(11);
+                        if ((transparentColorFlag & 0x01) !== 0) {
+                            return 2; // GIF with transparency
+                        }
+                    }
+                }
+                return 1; // GIF without transparency
+        } else if (content.length >= 8 && content.toString('ascii', 1, 4) === 'PNG') {
+            // Alternative PNG detection (89 PNG) - use same logic as above
+            if (content.length >= 29) {
+                const colorType = content.readUInt8(25);
+                const hasAlpha = (colorType & 0x04) !== 0;
+                if (hasAlpha) {
+                    // Check for tRNS chunk for actual transparency
+                    if (content.includes(Buffer.from('tRNS'))) {
+                        return 2; // Has transparency chunk
+                    }
+                    return 1; // PNG with alpha channel, but no transparency detected
+                }
+            }
+            return 1; // PNG without alpha
             } else {
                 console.error('BAD MAGIC', magic, content);
             }
@@ -238,13 +327,20 @@ class IconServerStore extends IconSearch {
         if(err) throw err
         return this.validate(content.slice(0, bytesRead))
     }
-    resolve(key) {
-        return storage.resolve('icons-cache-' + key)
+    async serve(file) {
+        // Serve a local file through the icon server
+        // Extract the key from the file path instead of generating a new one
+        const filename = file.split('/').pop().split('\\').pop(); // Handle both / and \
+        const key = filename.replace('icons-cache-', '').replace('.dat', '');
+        const url = this.url + 'icons-cache-' + key + '.dat';
+        console.log('🔍 IconServer: serve() called for', file, 'extracted key:', key, 'url:', url);
+        return url;
     }
     async checkCache(key) {
         const has = await storage.exists('icons-cache-' + key)
         if (has !== false) {
-            return this.resolve(key)
+            const resolved = storage.resolve('icons-cache-' + key);
+            return resolved;
         }
         throw 'no http cache'
     }
@@ -265,11 +361,27 @@ class IconServerStore extends IconSearch {
         const suffix = 'data:image/png;base64,';
         if (String(url).startsWith(suffix)) {            
             const key = this.key(url);
-            const file = this.resolve(key);
-            await fs.promises.writeFile(file, Buffer.from(url.substr(suffix.length), 'base64'));
-            this.opts.debug && console.log('FETCHED ' + url + ' => ' + file);
-            const ret = await this.validateFile(file);
-            return { key, file, isAlpha: ret == 2 };
+            const buffer = Buffer.from(url.substr(suffix.length), 'base64');
+            const storageFile = storage.resolve('icons-cache-' + key);
+            
+            // Save buffer directly to file and register path in storage
+            await storage.set('icons-cache-' + key, buffer, {ttl: this.ttlCache });
+            this.opts.debug && console.log('FETCHED ' + url + ' => ' + storageFile);
+            const ret = await this.validateFile(storageFile);
+            
+            // Use canvas-based transparency detection for more accuracy
+            let alpha = ret == 2;
+            if (alpha && ret == 2) {
+                try {
+                    const canvasResult = await imp.hasTransparency(storageFile);
+                    alpha = canvasResult;
+                } catch (err) {
+                    console.log('Canvas transparency check failed, using file-based detection:', err.message);
+                    // Keep the file-based detection as fallback
+                }
+            }
+            
+            return { key, file: storageFile, alpha };
         }
         if (typeof(url) != 'string' || !url.includes('//')) {
             throw 'bad url ' + stringify(url);
@@ -284,27 +396,65 @@ class IconServerStore extends IconSearch {
             if (this.opts.debug) {
                 console.log('fetchURL', url, 'cached');
             }
-            const ret = await this.validateFile(cfile).catch(e => err = e);
+            const ret = await this.validateFile(cfile).catch(e => {
+                console.log('🔍 IconServer: validateFile failed for', cfile, 'error:', e);
+                err = e;
+            });
             if (!err) {
-                return { key, file: cfile, isAlpha: ret == 2 };
+                return { key, file: cfile, alpha: ret == 2 };
             }
         }
         if (this.opts.debug) {
             console.log('fetchURL', url, 'request', err);
         }
-        const file = this.resolve(key);
+        const storageFile = storage.resolve('icons-cache-' + key);
         err = null;
         await this.limiter.download(async () => {
             if(!this.activeDownloads[url]) {
+                // Try different header strategies for different domains
+                const urlObj = new URL(url);
+                const domain = urlObj.hostname;
+                
+                // Strategy 1: Full browser headers (default)
+                let headers = {
+                    'content-encoding': 'identity',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+                    'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+                    'Accept-Language': 'en-US,en;q=0.9,pt;q=0.8',
+                    'Accept-Encoding': 'gzip, deflate, br',
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache',
+                    'Sec-Fetch-Dest': 'image',
+                    'Sec-Fetch-Mode': 'no-cors',
+                    'Sec-Fetch-Site': 'cross-site',
+                    'Sec-Ch-Ua': '"Not A(Brand";v="99", "Google Chrome";v="121", "Chromium";v="121"',
+                    'Sec-Ch-Ua-Mobile': '?0',
+                    'Sec-Ch-Ua-Platform': '"Windows"',
+                    'DNT': '1',
+                    'Connection': 'keep-alive',
+                    'Upgrade-Insecure-Requests': '1'
+                };
+                
+                // Add referer for specific domains that need it
+                if (domain.includes('github.com') || domain.includes('raw.githubusercontent.com')) {
+                    headers['Referer'] = 'https://github.com/';
+                } else if (domain.includes('imgur.com') || domain.includes('i.imgur.com')) {
+                    headers['Referer'] = 'https://imgur.com/';
+                } else if (domain.includes('wikipedia.org') || domain.includes('wikimedia.org')) {
+                    headers['Referer'] = 'https://www.wikipedia.org/';
+                } else if (domain.includes('epg.best')) {
+                    headers['Referer'] = 'https://epg.best/';
+                } else {
+                    headers['Referer'] = urlObj.origin + '/';
+                }
+                
                 this.activeDownloads[url] = Download.file({
                     url,
-                    file,
+                    file: storageFile,
                     retries: 2,
-                    timeout: 10,
+                    timeout: 15,
                     maxContentLength: this.opts.maxContentLength,
-                    headers: {
-                        'content-encoding': 'identity'
-                    },
+                    headers,
                     cacheTTL: this.ttlBadCache
                 }).catch(e => err = e)
             }
@@ -313,15 +463,30 @@ class IconServerStore extends IconSearch {
         })
         if (err) {
             this.downloadErrors[url] = {error: String(err), ttl: time() + 60}
-            const exists = await fs.promises.access(file).catch(() => false);
+            const exists = await fs.promises.access(storageFile).catch(() => false);
             if (exists) {
-                await fs.promises.unlink(file).catch(err => console.error(err))
+                await fs.promises.unlink(storageFile).catch(err => console.error(err))
             }
             throw err
         }
+        // Register the downloaded file path in storage
+        await storage.touch('icons-cache-' + key, { ttl: this.ttlCache });
         await this.saveCacheExpiration(key, true);
-        const ret2 = await this.validateFile(file);
-        const atts = { key, file, isAlpha: ret2 == 2 };
+        const ret2 = await this.validateFile(storageFile);
+        
+        // Use canvas-based transparency detection for more accuracy
+        let alpha = ret2 == 2;
+        if (alpha && ret2 == 2) {
+            try {
+                const canvasResult = await imp.hasTransparency(storageFile);
+                alpha = canvasResult;
+            } catch (err) {
+                console.log('Canvas transparency check failed, using file-based detection:', err.message);
+                // Keep the file-based detection as fallback
+            }
+        }
+        
+        const atts = { key, file: storageFile, alpha };
         if (this.opts.debug) {
             console.log('fetchURL', url, 'validated');
         }
@@ -339,7 +504,7 @@ class IconServer extends IconServerStore {
             folder: data + '/icons',
             debug: false
         };
-        this.opts.folder = path.resolve(this.opts.folder);
+        this.opts.folder = forwardSlashes(path.resolve(this.opts.folder));
         
         fs.access(this.opts.folder, err => {
             if (err !== null) {
@@ -358,11 +523,6 @@ class IconServer extends IconServerStore {
     }
     get(e, j) {
         const icon = new Icon(e, this);
-        const promise = icon.get();
-        promise.icon = icon;
-        promise.entry = e;
-        promise.catch(err => console.error(err))
-        promise.destroy = () => icon.destroy()
 
         icon.on('result', ret => this.result(e, e.path, j, ret))
         if(e.iconFallback) {
@@ -372,25 +532,23 @@ class IconServer extends IconServerStore {
             })
         }
 
+        const promise = icon.get();
+        promise.catch(err => console.error(err))
+        promise.destroy = () => icon.destroy()
+        promise.icon = icon;
+        promise.entry = e;
+
         return promise
     }
     result(e, path, tabindex, ret) {
-        if (!this.destroyed && ret.url) {
-            if (this.opts.debug) {
-                console.error('ICON=' + e.path + ' (' + e.name + ', ' + tabindex + ') ' + ret.url)
-            }
-            if (path.endsWith(e.name) && tabindex != -1) {
-                path = path.substr(0, path.length - 1 - e.name.length)
-            }
-            renderer.ui.emit('icon', {
-                url: ret.url,
-                path,
-                tabindex,
-                name: e.name,
-                force: ret.force,
-                alpha: ret.alpha
-            });
+        if (this.destroyed || !ret.url) return;
+        if (this.opts.debug) {
+            console.error('ICON=' + (e.path || 'undefined') + ' (' + e.name + ', ' + tabindex + '), url=' + ret.url + ' alpha=' + ret.alpha)
         }
+        if (e.name && path?.endsWith(e.name) && tabindex != -1) {
+            path = path.substr(0, path.length - 1 - e.name.length)
+        }
+        renderer.ui.emit('icon', { ...ret, path: path || '', tabindex, name: e.name});
     }
     listsLoaded() {        
         return lists.loaded() && lists.activeLists.length;
@@ -402,7 +560,7 @@ class IconServer extends IconServerStore {
         if (!e || (e.class && e.class.includes('no-icon'))) {
             return false;
         }
-        if (e.icon || e.programme || e.side) {
+        if (e.icon || e.programme) {
             return true;
         }
         const t = e.type || 'stream';
@@ -440,7 +598,7 @@ class IconServer extends IconServerStore {
                 }
                 this.rendering = {}
                 this.renderingPath = path
-                menu.pages[path].filter(e => !e.side).slice(range.start, range.end).map((e, i) => {
+                menu.pages[path].slice(range.start, range.end).map((e, i) => {
                     const j = range.start + i
                     if (this.qualifyEntry(e)) {
                         this.rendering[j] = this.get(e, j) // do not use then directly to avoid losing destroy method
@@ -456,7 +614,7 @@ class IconServer extends IconServerStore {
                         delete this.rendering[i]
                     }
                 }
-                menu.pages[path].filter(e => !e.side).slice(range.start, range.end).map((e, i) => {
+                menu.pages[path].slice(range.start, range.end).map((e, i) => {
                     const j = range.start + i;
                     if ((!this.rendering[j] || this.rendering[j].entry.name != e.name) && this.qualifyEntry(e)) {
                         this.rendering[j] = this.get(e); // do not use then directly to avoid losing destroy method
@@ -471,10 +629,12 @@ class IconServer extends IconServerStore {
                 this.server.close();
             }
             this.server = http.createServer((req, response) => {
+                console.log('🔍 IconServer: Request received:', req.method, req.url, 'from:', req.headers['user-agent']);
                 if (this.opts.debug) {
                     console.log('req starting...', req.url);
                 }
-                if (req.method == 'OPTIONS' || this.closed) {
+                if (req.method == 'OPTIONS') {
+                    console.log('🔍 IconServer: OPTIONS request, returning 200');
                     response.writeHead(200, prepareCORS({
                         'Content-Length': 0,
                         'Connection': 'close',
@@ -483,7 +643,18 @@ class IconServer extends IconServerStore {
                     response.end();
                     return;
                 }
-                const key = req.url.split('/').pop()
+                if (this.closed) {
+                    console.log('🔍 IconServer: Server closed, returning 200');
+                    response.writeHead(200, prepareCORS({
+                        'Content-Length': 0,
+                        'Connection': 'close',
+                        'Cache-Control': 'max-age=0, no-cache, no-store'
+                    }, req));
+                    response.end();
+                    return;
+                }
+                const key = req.url.split('/').pop().split('.')[0].replace('icons-cache-', '');
+                // console.log('🔍 IconServer: Processing request for key:', key);
                 const send = file => {
                     if (file) {
                         if (this.opts.debug) {
@@ -516,11 +687,13 @@ class IconServer extends IconServerStore {
                 if (this.opts.debug) {
                     console.log('serving', req.url, key);
                 }
+                console.log('🔍 IconServer: Request for', req.url, 'key:', key, 'isHashKey:', this.isHashKey(key), 'key length:', key.length);
                 const onerr = err => {
                     console.error('icons.get() catch', err, req.url);
                     if (this.opts.debug) {
                         console.log('get() catch', err, req.url);
                     }
+                    // Return 404 for missing cache files, not 403
                     response.writeHead(404, prepareCORS({
                         'Connection': 'close',
                         'Cache-Control': 'max-age=0, no-cache, no-store'
@@ -539,6 +712,7 @@ class IconServer extends IconServerStore {
                 }
                 this.opts.port = this.server.address().port;
                 this.url = 'http://' + this.opts.addr + ':' + this.opts.port + '/';
+                console.log('🔍 IconServer: Server started on', this.url);
             });
         }
     }
@@ -552,10 +726,21 @@ class IconServer extends IconServerStore {
             console.log('closing...');
         }
         this.closed = true;
+        
+        // Clear all rendering icons
+        Object.values(this.rendering).forEach(r => r && r.destroy());
+        this.rendering = {};
+        this.renderingPath = null;
+        
         if (this.server) {
             this.server.close();
             this.server = null;
         }
+        
+        // Clear other references
+        this.opts = null;
+        this.url = null;
+        
         this.removeAllListeners();
     }
 }

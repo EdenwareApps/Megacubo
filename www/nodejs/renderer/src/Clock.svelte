@@ -15,8 +15,9 @@ export class Clock {
     update(){
         let time
         const date = new Date()
-        const locale = main.lang?.locale
-        const fullLocale = `${locale}-${main.lang.countryCode}`
+        const locale = main.lang?.locale || 'en'
+        const countryCode = main.lang?.countryCode || 'US'
+        const fullLocale = `${locale}-${countryCode}`
         const params = {hour: '2-digit', minute: '2-digit'}
         try {
             time = date.toLocaleTimeString(fullLocale, params)
@@ -70,9 +71,13 @@ export class Clock {
 }
 
 let element = null
-onMount(() => {
+let clockCreated = false
+
+// Create clock only once when element becomes available
+$: if (element && !clockCreated) {
     main.clock = new Clock(element)
-}) 
+    clockCreated = true
+} 
 </script>
 
 <style>

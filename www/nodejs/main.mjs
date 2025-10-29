@@ -1,5 +1,10 @@
 import paths from './modules/paths/paths.js'
 import path from 'path'
+import { fileURLToPath } from 'url'
+
+// Initialize paths immediately to avoid undefined __dirname
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 import crashlog from './modules/crashlog/crashlog.js'
 import onexit from 'node-cleanup'
 import streamer from './modules/streamer/main.js'
@@ -7,7 +12,7 @@ import lang from './modules/lang/lang.js'
 import lists from './modules/lists/lists.js'
 import Theme from './modules/theme/theme.js'
 import options from './modules/options/options.js'
-import recommendations from './modules/recommendations/recommendations.js'
+import recommendations from './modules/smart-recommendations/compatibility-wrapper.mjs'
 import icons from './modules/icon-server/icon-server.js'
 import np from './modules/network-ip/network-ip.js'
 import energy from './modules/energy/energy.js'
@@ -22,18 +27,61 @@ import renderer from './modules/bridge/bridge.js'
 import storage from './modules/storage/storage.js'
 import channels from './modules/channels/channels.js'
 import menu from './modules/menu/menu.js'
-import { moment, rmdir, rmdirSync, ucWords } from './modules/utils/utils.js'
+import { moment, forwardSlashes, rmdirSync, ucWords } from './modules/utils/utils.js'
 import osd from './modules/osd/osd.js'
 import ffmpeg from './modules/ffmpeg/ffmpeg.js'
 import promo from './modules/promoter/promoter.js'
 import mega from './modules/mega/mega.js'
 
-const electronDistFile = path.join(__dirname, 'electron.js')
-const electron = process.platform === 'android' ? {} : require(electronDistFile)
+const electronDistFile = path.join(__dirname, forwardSlashes(__dirname).includes('/dist') ? 'electron.js' : 'dist/electron.js')
+let electron = {}
 
-if (electron.remote) {
-    electron.remote.initialize()
+// Initialize electron module asynchronously
+async function initializeElectron() {
+    if (process.platform !== 'android') {
+        try {
+            console.log('🔄 Loading electron module...')
+            const electronModule = await import(electronDistFile)
+            electron = electronModule.default || electronModule
+            console.log('✅ Electron module loaded successfully')
+            
+            // Initialize electron window after module is loaded
+            if (electron.remote) {
+                console.log('🚀 Initializing Electron window...')
+                await initElectronWindow()
+            } else {
+                console.warn('⚠️ Electron remote not available')
+            }
+        } catch (error) {
+            console.warn('❌ Could not load electron module:', error.message)
+        }
+    }
 }
+
+// Initialize Electron - detect if running as main app or imported as library
+// Check multiple conditions to handle different execution contexts
+const isMainModule = (
+    // Direct execution
+    import.meta.url === `file://${process.argv[1]}` ||
+    // Via bin.js or similar launchers
+    process.argv[1]?.includes('bin.js') ||
+    process.argv[1]?.includes('main.mjs') ||
+    process.argv[1]?.includes('main.js') ||
+    // Command line arguments indicating app mode
+    process.argv.includes('debug') ||
+    process.argv.includes('start') ||
+    // Default: assume main module unless explicitly imported
+    !process.env.MEGACUBO_AS_LIBRARY
+)
+
+if (isMainModule) {
+    console.log('🚀 Running as main module, initializing Electron...')
+    initializeElectron().catch(err => console.warn('Electron initialization error:', err.message))
+} else {
+    console.log('📚 Running as imported library, skipping Electron initialization')
+}
+
+// Remote initialization moved to initElectronWindow function
 
 // set globally available objects
 Object.assign(global, {
@@ -64,11 +112,74 @@ process.on('uncaughtException', (err, origin) => {
     console.error({err, origin})
     console.error('uncaughtException: ' + err.message, err.stack)
     crashlog.save('uncaughtException', err)
+    
+    // Handle database operation errors gracefully
+    if (err && err.message && (
+        err.message.includes('Mutex acquisition timeout') ||
+        err.message.includes('file closed') ||
+        err.message.includes('Database is destroyed')
+    )) {
+        console.warn('Database operation error handled gracefully, continuing...')
+        return false // Don't crash the process
+    }
+    
+    // Handle file descriptor errors gracefully
+    if (err && err.code && (
+        err.code === 'EBADF' ||
+        err.code === 'ENOENT' ||
+        err.code === 'EACCES'
+    )) {
+        console.warn('File operation error handled gracefully:', err.message)
+        return false // Don't crash the process
+    }
+    
     return false
+})
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection:', reason)
+    crashlog.save('unhandledRejection', reason)
+    
+    // Handle HTTP 403 errors specifically
+    if (reason && typeof reason === 'string' && reason.includes('Access forbidden (403)')) {
+        console.warn('HTTP 403 error handled gracefully, continuing...')
+        return // Don't crash the process
+    }
+    
+    // Handle database operation errors gracefully
+    if (reason && reason.message && (
+        reason.message.includes('Mutex acquisition timeout') ||
+        reason.message.includes('file closed') ||
+        reason.message.includes('Database is destroyed')
+    )) {
+        console.warn('Database operation error handled gracefully, continuing...')
+        return // Don't crash the process
+    }
+    
+    // Handle file descriptor errors gracefully
+    if (reason && reason.code && (
+        reason.code === 'EBADF' ||
+        reason.code === 'ENOENT' ||
+        reason.code === 'EACCES'
+    )) {
+        console.warn('File operation error handled gracefully:', reason.message)
+        return // Don't crash the process
+    }
+    
+    // Handle network/HTTP errors gracefully
+    if (reason && (
+        (reason.message && reason.message.includes('HTTP error')) ||
+        (typeof reason === 'string' && reason.includes('HTTP error'))
+    )) {
+        console.warn('HTTP/Network error handled gracefully:', reason.message || reason)
+        return // Don't crash the process
+    }
 })
 onexit(() => {
     global.isExiting = true
     console.error('APP_EXIT')
+    
+    
     if (typeof(streamer) != 'undefined' && streamer.active) {
         streamer.stop()
     }
@@ -135,7 +246,7 @@ const handleVideoError = async (type, errData) => {
         if (type == 'timeout') {
             if (!showingSlowBroadcastDialog) {
                 let opts = [{ template: 'question', text: lang.SLOW_BROADCAST }], def = 'wait'
-                let isCH = streamer.active.type != 'video' && channels.isChannel(streamer.active.data.terms ? streamer.active.data.terms.name : streamer.active.data.name)
+                let isCH = streamer.active.type != 'video' && channels.isChannel(streamer.active.data.nameTerms || streamer.active.data.name)
                 if (isCH) {
                     opts.push({ template: 'option', text: lang.PLAY_ALTERNATE, fa: config.get('tuning-icon'), id: 'try-other' })
                     def = 'try-other'
@@ -246,7 +357,7 @@ const setupRendererHandlers = () => {
             return
         let opts = [{ template: 'question', text: lang.RELOAD }], def = 'retry'
         let isCH = streamer.active.type != 'video' &&
-            (channels.isChannel(streamer.active.data.terms ? streamer.active.data.terms.name : streamer.active.data.name)
+            (channels.isChannel(streamer.active.data.nameTerms || streamer.active.data.name)
             || mega.isMega(streamer.active.data.originalUrl || streamer.active.data.url))
         if (isCH) {
             opts.push({ template: 'option', text: lang.PLAY_ALTERNATE, fa: config.get('tuning-icon'), id: 'try-other' })
@@ -391,9 +502,21 @@ const updatePrompt = async (c) => {
     }
 }
 const initElectronWindow = async () => {
+    console.log('🪟 Starting Electron window initialization...')
     const { app, BrowserWindow, globalShortcut, Menu } = electron
+    
+    // Initialize remote before creating window
+    if (electron.remote) {
+        console.log('🔗 Initializing Electron remote...')
+        electron.remote.initialize()
+        console.log('✅ Electron remote initialized')
+    }
+    
     const isLinux = process.platform == 'linux', appCmd = app.commandLine    
     const tcpFastOpen = config.get('tcp-fast-open') ? 'true' : 'false'
+    
+    // Enable Remote Debugging for MCP Electron Desktop Automation
+    appCmd.appendSwitch('remote-debugging-port', '9222')
 
     let gpuFlags = config.get('gpu-flags')
     if (config.get('gpu')) {
@@ -460,7 +583,59 @@ const initElectronWindow = async () => {
     app.on('browser-window-created', (_, window) => {
         console.log('Browser window created')
         electron.remote.enable(window.webContents)
+        
+        // Capture renderer console logs and errors
+        window.webContents.on('console-message', (event, level, message, line, sourceId) => {
+            const levelName = ['debug', 'info', 'warning', 'error'][level] || 'unknown'
+            const sourceStr = sourceId ? `${sourceId}:${line}` : 'unknown'
+            console.log(`🖥️ [Renderer ${levelName}] ${message} ${sourceStr}`)            
+        })
+        
+        // Capture renderer errors
+        window.webContents.on('crashed', (event, killed) => {
+            console.error('💥 Renderer process crashed:', killed ? 'killed' : 'crashed')
+        })
+        
+        // Capture uncaught exceptions in renderer
+        window.webContents.on('unresponsive', () => {
+            console.warn('⚠️ Renderer process became unresponsive')
+        })
+        
+        window.webContents.on('responsive', () => {
+            console.log('✅ Renderer process became responsive again')
+        })
+        
+        // Capture preload script errors
+        window.webContents.on('preload-error', (event, preloadPath, error) => {
+            console.error('❌ Preload script error:', preloadPath)
+            console.error('   Error:', error.message)
+            console.error('   Stack:', error.stack)
+        })
+        
+        // Capture IPC errors
+        window.webContents.on('ipc-message', (event, channel, ...args) => {
+            if (channel === 'error' || channel === 'console-error') {
+                console.error('🖥️ [Renderer IPC Error]', ...args)
+            }
+        })
     })
+    
+    console.log('🪟 Creating BrowserWindow...')
+    
+    // Verify preload script exists
+    const preloadPath = path.join(paths.cwd, 'dist/preload.js')
+    console.log('📄 Preload script path:', preloadPath)
+    try {
+        const fs = require('fs')
+        const preloadExists = fs.existsSync(preloadPath)
+        console.log('📄 Preload script exists:', preloadExists)
+        if (preloadExists) {
+            const stats = fs.statSync(preloadPath)
+            console.log('📄 Preload script size:', stats.size, 'bytes')
+        }
+    } catch (error) {
+        console.error('❌ Error checking preload script:', error.message)
+    }
     
     global.window = new BrowserWindow({
         width: 240,
@@ -470,6 +645,7 @@ const initElectronWindow = async () => {
         maximizable: false,
         minimizable: false,
         titleBarStyle: 'hidden',
+        minimized: true,  // Start minimized
         webPreferences: {
             cache: false,
             sandbox: false,
@@ -487,6 +663,12 @@ const initElectronWindow = async () => {
             webSecurity: false // desabilita o webSecurity
         }
     })
+    console.log('✅ BrowserWindow created successfully')
+    
+    // Show window immediately after creation for debugging
+    console.log('🪟 Showing window immediately for debugging...')
+    window.show()
+    window.focus()
 
     app.on('browser-window-focus', () => {
         // We'll use Ctrl+M to enable Miniplayer instead of minimizing
@@ -506,15 +688,38 @@ const initElectronWindow = async () => {
     window.once('closed', () => window.closed = true) // prevent bridge IPC error
     renderer.ui.setElectronWindow(window)
     renderer.bridgeReady((err, port) => {
+        if (err) {
+            console.error('❌ Bridge ready error:', err)
+            return
+        }
+        console.log('🌉 Bridge ready, loading URL on port:', port)
         window.loadURL('http://127.0.0.1:'+ port +'/renderer/electron.html', { userAgent: renderer.ui.ua })
         window.setAlwaysOnTop(true) // trick to take focus
         window.focus()
         window.setAlwaysOnTop(false)
+        console.log('🌐 URL loaded, showing window again...')
+        window.show()
+        console.log('✅ Window should be visible now!')
     })
 }
 const init = async (locale, timezone) => {
     if (initialized) return
-    global?.window?.show()
+    
+    // Check startup window configuration
+    const startupWindow = config.get('startup-window')
+    console.log('🔧 Startup window configuration:', startupWindow)
+    if (startupWindow !== 'miniplayer') {
+        console.log('🪟 Showing window (not miniplayer mode)')
+        if (global?.window) {
+            global.window.show()
+            console.log('✅ Window shown successfully')
+        } else {
+            console.warn('⚠️ Global window not available')
+        }
+    } else {
+        console.log('📱 Starting in miniplayer mode')
+    }
+    
     initialized = true
     await lang.load(locale, config.get('locale'), paths.cwd + '/lang', timezone).catch(e => menu.displayErr(e))
     console.log('Language loaded.')
@@ -603,6 +808,14 @@ const init = async (locale, timezone) => {
         const { BrowserWindow } = electron
         BrowserWindow.getAllWindows().shift().openDevTools()
     })
+    recommendations.on('updated', () => {
+        console.log('🔄 Recommendations updated. Now: ' + parseInt(new Date().getTime()/1000))
+        setTimeout(() => {
+            if (!menu.path) {
+                menu.updateHomeFilters().catch(err => console.error(err))
+            }
+        }, 1000)
+    })
     streamer.on('streamer-connect', async (src, codecs, info) => {
         if (!streamer.active)
             return
@@ -654,6 +867,19 @@ const init = async (locale, timezone) => {
         await crashlog.send().catch(err => console.error(err))
         await lists.ready()
         console.log('WaitListsReady resolved!')
+        
+        // Initialize smart recommendations system AFTER lists are ready
+        console.log('🚀 Initializing Smart Recommendations...')
+        try {
+            const initialized = await recommendations.initialize()
+            if (initialized) {
+                console.log('✅ Smart Recommendations initialized successfully')
+            } else {
+                console.warn('⚠️ Smart Recommendations initialization failed (Trias may not be available)')
+            }
+        } catch (error) {
+            console.warn('❌ Smart Recommendations initialization error:', error.message)
+        }
         let err, c = await cloud.get('configure').catch(e => err = e) // all below in func depends on 'configure' data
         if (err) {
             console.error(err)
@@ -672,6 +898,7 @@ const init = async (locale, timezone) => {
     })
     console.warn('Prepared to connect.')
     renderer.ui.emit('main-ready', config.all(), lang.getTexts())
+    await storage.cleanup()
 }
 renderer.ui.once('get-lang-callback', (locale, timezone, ua, online) => {
     console.log('[main] get-lang-callback', timezone, ua, online)
@@ -697,9 +924,9 @@ renderer.ui.once('get-lang-callback', (locale, timezone, ua, online) => {
 
 if (paths.android) {
     renderer.ui.emit('get-lang')
-} else if (electron.remote) {
-    initElectronWindow().catch(err => console.error(err))
 }
+// Electron window initialization is now handled in initializeElectron() function
+
 
 export {
     channels, cloud, config, Download, downloads, energy, ffmpeg, icons, lang, lists, menu, moment, options, osd, 

@@ -29,27 +29,20 @@ class OMNI extends EventEmitter {
         } else if(validateURL(text) || isLocal(text)) {
             return this.openURL(text).catch(e => global.menu.displayErr(e))
         }
-        osd.show(lang.PROCESSING, 'fa-mega busy-x', 'omni', 'persistent')
+        // Don't show PROCESSING OSD here - let the search module handle its own OSD
         let err = null
         try {
-            let results = await global.channels.searchChannels(text, true)
-            osd.hide('omni')
-            if (Array.isArray(results) && results.length) {
-                global.channels.search.go(text, 'live');
-            } else {
-                global.channels.search.go(text, 'all');
-            }
+            await global.channels.search.go(text, 'live'); // will fallback live -> all automatically if no channels or groups were found
         } catch (e) {
             err = e
         }
-        osd.hide('omni')
         renderer.ui.emit('omni-callback', text, !err)
         if (err) {
-            throw err
+            console.error(err)
         }
     }
     async openURL(url) {
-        osd.show(lang.PROCESSING, 'fa-mega busy-x', 'omni', 'persistent')
+        osd.show(lang.SEARCHING, 'fa-mega busy-x', 'omni', 'persistent')
         try {
             const info = await global.streamer.streamInfo.probe(url)
             if (info.sample) {

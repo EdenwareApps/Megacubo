@@ -1,6 +1,6 @@
 import { networkInterfaces as osNetworkInterfaces } from "os";
 import { execSync } from "node:child_process";
-const { isIP } = require('node:net')
+import { isIP } from "node:net";
 
 class NetworkIP {
     constructor() {

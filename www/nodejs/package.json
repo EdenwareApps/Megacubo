@@ -2,9 +2,9 @@
   "name": "megacubo",
   "displayName": "Megacubo",
   "icon": "./default_icon.png",
-  "version": "17.6.1",
+  "version": "17.6.2",
   "megacubo": {
-    "revision": "17569"
+    "revision": "17570"
   },
   "main": "dist/main.js",
   "type": "commonjs",

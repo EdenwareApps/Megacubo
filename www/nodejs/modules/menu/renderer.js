@@ -138,14 +138,17 @@ class MenuScrolling extends MenuIcons {
         this.sideMenuSync(true)
     }
     scrollTop(y, animate) {
-        if (typeof(y) == 'number' && this.scrollContainer.scrollTop != y) {
+        // Ensure y is a valid number
+        if (typeof(y) == 'number' && isFinite(y) && y >= 0 && this.scrollContainer.scrollTop != y) {
             this.scrollContainer.scroll({
                 top: y,
                 left: 0,
                 behavior: animate ? 'smooth' : 'instant'
             })
         }
-        return this.scrollContainer.scrollTop
+        // Ensure returned value is valid
+        const currentScrollTop = this.scrollContainer.scrollTop;
+        return isFinite(currentScrollTop) && currentScrollTop >= 0 ? currentScrollTop : 0;
     }
     opposite(selected, items, direction) {
         let i, n = items.indexOf(selected), x = this.gridLayoutX
@@ -283,7 +286,7 @@ class MenuPlayer extends MenuBBCode {
         return !this.inPlayer() || document.body.classList.contains('menu-playing')
     }
     showWhilePlaying(enable) {
-        if (enable) {
+        if (enable && document.body.classList.contains('video')) {
             if (!document.body.classList.contains('menu-playing')) {
                 document.body.classList.add('menu-playing')
                 this.emit('menu-playing', true)
@@ -442,6 +445,9 @@ class MenuNav extends MenuStatusFlags {
     }
     inSideMenu(strict = false) {
         const w = this.getSideMenuWidth()
+        const classList = document.body.classList
+        const watching = classList.contains('video') && !classList.contains('menu-playing')
+        if (watching) return false
         return strict ? this.container.scrollLeft < 10 : (this.container.scrollLeft <= (w / 2))
     }
     sideMenuSync(resized, inSideMenu) {
@@ -497,11 +503,19 @@ class MenuNav extends MenuStatusFlags {
 
 export class Menu extends MenuNav {
     constructor(container) {
+        console.log('🏗️ Menu constructor called with container:', container);
         super(container)
         this.dialogs = {}
-        main.on('render', (entries, path, icon) => this.render(entries, path, icon))
-        main.on('menu-select', (entries, path, icon) => this.setupSelect(entries, path, icon))
         this.currentEntries = []
+        console.log('🎯 Menu: Setting up event listeners');
+        main.on('render', (entries, path, icon) => {
+            console.log('📨 Menu: Received render event from main:', { entries, path, icon });
+            this.render(entries, path, icon);
+        })
+        main.on('menu-select', (entries, path, icon) => {
+            console.log('📨 Menu: Received menu-select event from main:', { entries, path, icon });
+            this.setupSelect(entries, path, icon);
+        })
         main.on('trigger', data => {
             this.get(data).forEach(e => e.click())
         })
@@ -544,6 +558,11 @@ export class Menu extends MenuNav {
         return diff
     }
     render(entries, path, icon) {
+        if (!Array.isArray(entries)) {
+            console.error('❌ Menu.render: entries is not an array!', entries);
+            return;
+        }        
+        
         let prevPath = this.path, navigated = path !== this.path
         entries = entries.map(e => this.prepareEntry(e))
         let changed = this.applyCurrentEntries(entries)
@@ -558,6 +577,10 @@ export class Menu extends MenuNav {
         let changed = this.currentEntries.length != entries.length
         if (!changed) {
             changed = entries.some((e, i) => {
+                if (!this.currentEntries[i]) {
+                    console.log('🔄 Entry changed: missing current entry at index', i);
+                    return true;
+                }
                 for (const k of Object.keys(e)) {
                     if (this.currentEntries[i][k] !== e[k]) return true
                 }

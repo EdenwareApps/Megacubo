@@ -22,10 +22,16 @@ class StreamCache extends StreamBase {
         const url = this.opts.url
         const row = await cacheMap.info(url)
         if (!row || !row.status || row.dlid == this.opts.uid || row.file === undefined) {
-            throw new Error('Cache empty');
+            // Emit error instead of throwing
+            this.emit('error', new Error('Cache empty'));
+            return false;
         }
         const stat = await fs.promises.stat(row.file).catch(() => null)
-        if (!stat || !stat.size) throw new Error('Cache empty *')
+        if (!stat || !stat.size) {
+            // Emit error instead of throwing
+            this.emit('error', new Error('Cache empty *'));
+            return false;
+        }
         let range;
         const headers = Object.assign({}, row.headers) || {};
         const source = headers['x-megacubo-dl-source'];

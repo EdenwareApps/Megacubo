@@ -131,13 +131,60 @@
             }
         </style>
         <script>
+            // Polyfills for Android 7 compatibility
+            if (!Array.prototype.includes) {
+                Array.prototype.includes = function(searchElement, fromIndex) {
+                    if (this == null) throw new TypeError('"this" is null or not defined');
+                    var o = Object(this);
+                    var len = parseInt(o.length) || 0;
+                    if (len === 0) return false;
+                    var n = parseInt(fromIndex) || 0;
+                    var k = n >= 0 ? n : Math.max(len + n, 0);
+                    function sameValueZero(x, y) {
+                        return x === y || (typeof x === 'number' && typeof y === 'number' && isNaN(x) && isNaN(y));
+                    }
+                    for (; k < len; k++) {
+                        if (sameValueZero(o[k], searchElement)) return true;
+                    }
+                    return false;
+                };
+            }
+            
+            if (!Object.assign) {
+                Object.assign = function(target) {
+                    if (target == null) throw new TypeError('Cannot convert undefined or null to object');
+                    var to = Object(target);
+                    for (var index = 1; index < arguments.length; index++) {
+                        var nextSource = arguments[index];
+                        if (nextSource != null) {
+                            for (var nextKey in nextSource) {
+                                if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                                    to[nextKey] = nextSource[nextKey];
+                                }
+                            }
+                        }
+                    }
+                    return to;
+                };
+            }
+            
+            if (!Promise.prototype.finally) {
+                Promise.prototype.finally = function(callback) {
+                    var P = this.constructor;
+                    return this.then(
+                        function(value) { return P.resolve(callback()).then(function() { return value; }); },
+                        function(reason) { return P.resolve(callback()).then(function() { throw reason; }); }
+                    );
+                };
+            }
+            
             var menu, config
             function chromeVersion() {     
                 var raw = navigator.userAgent.match(new RegExp('Chrom(e|ium)\\/([0-9]+)\\.'))
                 return raw ? parseInt(raw[2], 10) : 0
             }
             function isUACompatible() {     
-                return chromeVersion() >= 68
+                return chromeVersion() >= 51
             }
             function updateWebView(){
                 var msg, playStoreUrl = 'market://details?id=com.google.android.webview';

@@ -10,9 +10,15 @@
                 },
                 "useBuiltIns": false,
                 "corejs": false,
-                "forceAllTransforms": true,
-                "bugfixes": true,
-                "exclude": ["transform-typeof-symbol"]
+                "forceAllTransforms": false,
+                "bugfixes": false,
+                "exclude": [
+                    "transform-typeof-symbol",
+                    "transform-for-of",
+                    "transform-destructuring",
+                    "transform-spread",
+                    "transform-parameters"
+                ]
             }
         ]
     ],

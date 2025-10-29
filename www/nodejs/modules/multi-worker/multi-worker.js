@@ -18,12 +18,15 @@ const TERMINATING = new Set(['destroy', 'terminate'])
 
 const getLangObject = () => {
     const ret = {}
-    if (typeof(lang) != 'undefined' && typeof(lang.getTexts) == 'function') {
-        Object.assign(ret, lang.getTexts())
-    }
-    ret.locale = lang.locale
-    ret.timezone = lang.timezone
-    ret.countryCode = lang.countryCode
+    
+    // Only include properties actually used in the worker
+    // These are the minimal properties needed for Language reconstruction
+    ret.locale = lang.locale || config.get('locale', 'en')
+    ret.timezone = lang.timezone || null
+    ret.countryCode = lang.countryCode || config.get('country', 'us')
+    ret.folder = lang.folder || null
+    ret.languageHint = lang.languageHint || config.get('locale', 'en')
+    
     return ret
 }
 
@@ -41,7 +44,8 @@ class WorkerDriver extends EventEmitter {
         if (this.instances[file]) {
             return this.instances[file];
         }
-        this.worker.postMessage({ method: 'loadWorker', file });
+        
+        // Always create the proxy immediately, even if worker is not ready
         const self = this;
         const instance = new Proxy(this, {
             get: (_, method) => {
@@ -59,6 +63,31 @@ class WorkerDriver extends EventEmitter {
                 }
                 return (...args) => {
                     return new Promise((resolve, reject) => {
+                        // If worker is not ready yet, queue the call
+                        if (!self.workerReady) {
+                            console.log(`🔄 Queuing worker call: ${file}.${method}`)
+                            self.callQueue.push({ file, method, args, resolve, reject })
+                            return
+                        }
+                        
+                        // If this is the first call to this file and worker is ready, send loadWorker
+                        if (self.worker && !self.loadWorkerSent.has(file)) {
+                            console.log(`🔄 Sending loadWorker for ${file}`)
+                            self.worker.postMessage({ method: 'loadWorker', file });
+                            self.loadWorkerSent.add(file)
+                            // Queue this call to be processed after driver is loaded
+                            console.log(`🔄 Queuing call ${file}.${method} until driver is loaded`)
+                            self.callQueue.push({ file, method, args, resolve, reject })
+                            return
+                        }
+                        
+                        // If driver is not loaded yet, queue the call
+                        if (self.worker && (!self.instances[file] || !self.instances[file]._driverLoaded)) {
+                            console.log(`🔄 Queuing call ${file}.${method} until driver is loaded`)
+                            self.callQueue.push({ file, method, args, resolve, reject })
+                            return
+                        }
+                        
                         if (self.finished) {
                             try {
                                 if (self.terminating[file]) {
@@ -100,6 +129,38 @@ class WorkerDriver extends EventEmitter {
             }
         });            
         this.instances[file] = instance;
+        
+        // Add console log listeners for all workers
+        this.instances[file].on('console-log', data => {
+            // Only log if worker logs are enabled
+            if (this.workerLogsEnabled) {
+                // Only log if it's not a debug message or if debug is enabled
+                if (!data.message.includes('[DEBUG]') || this.debug) {
+                    console.log(`[${file}] ${data.message}`);
+                }
+            }
+        });
+        this.instances[file].on('console-error', data => {
+            // Always log errors regardless of worker logs setting
+            console.error(`[${file}] ${data.message}`, data.stack);
+        });
+        this.instances[file].on('console-warn', data => {
+            // Always log warnings regardless of worker logs setting
+            console.warn(`[${file}] ${data.message}`);
+        });
+        this.instances[file].on('console-info', data => {
+            // Only log if worker logs are enabled
+            if (this.workerLogsEnabled) {
+                console.info(`[${file}] ${data.message}`);
+            }
+        });
+        this.instances[file].on('console-debug', data => {
+            // Only show debug messages if debug mode is enabled
+            if (this.debug) {
+                console.debug(`[${file}] ${data.message}`);
+            }
+        });
+        
         return instance;
     }
     rejectAll(file, err) {
@@ -120,17 +181,19 @@ class WorkerDriver extends EventEmitter {
         if (paths.inWorker) {
             throw 'Cannot load a worker inside another worker: ' + file +' '+ global.file
         }
-        if (this.worker) {
-            file = this.resolve(file)
-            if(exclusive !== true && this.instances[file]) {
-                return this.instances[file]
-            }
-            return this.proxy(file)
-        } else if(!global.isExiting) {
-            throw 'Worker already terminated: ' + file;
-        } else {
-            return {}
+        
+        file = this.resolve(file)
+        if(exclusive !== true && this.instances[file]) {
+            return this.instances[file]
         }
+
+        if(global.isExiting) {
+            throw 'Worker already terminated: '+ file
+        }
+        
+        // Always return a proxy immediately, even if worker is not ready
+        // The proxy will buffer calls until worker is ready
+        return this.proxy(file)
     }
     bindChangeListeners() {
         if(this.configChangeListener !== undefined) return
@@ -205,14 +268,133 @@ class WorkerDriver extends EventEmitter {
 export default class ThreadWorkerDriver extends WorkerDriver {
     constructor() {
         super()
-        //let file = paths.cwd +'/modules/multi-worker/worker.mjs'
-        const workerData = { paths, bytenode: true, android: !!paths.android, lang: getLangObject() }
-        const file = paths.cwd +'/dist/worker.js'
-        workerData.paths.android = !!paths.android
-        this.worker = new Worker(file, {
-            type: 'commonjs', // (file == distFile ? 'commonjs' : 'module'),
-            workerData // leave stdout/stderr undefined
-        })
+        this.worker = null
+        this.workerData = null
+        this.workerFile = null
+        this.workerReady = false
+        this.callQueue = [] // Buffer for calls made before worker is ready
+        this.loadWorkerSent = new Set() // Track which workers have had loadWorker sent
+        
+        // Initialize worker asynchronously after language is ready
+        this.initializeWorker()
+    }
+    
+    async initializeWorker() {
+        try {
+            // Wait for language to be ready before creating worker
+            console.log('🔧 Waiting for language to be ready before creating worker...')
+            await lang.ready()
+            console.log('🔧 Language is ready, creating worker...')
+            
+            // Check if worker was already terminated
+            if (this.finished) {
+                console.log('🔧 Worker already finished, skipping initialization')
+                return
+            }
+            
+            // Now create the worker with proper language data
+            this.workerData = { paths, bytenode: true, android: !!paths.android, '$lang': getLangObject() }
+            this.workerFile = paths.cwd +'/dist/worker.js'
+            this.workerData.paths.android = !!paths.android
+            
+            // Add configuration for worker logging
+            this.workerLogsEnabled = config.get('worker-logs-enabled', true)
+            this.debug = config.get('worker-debug-enabled', false)
+            
+            console.log('🔧 Creating worker with data:', { 
+                file: this.workerFile, 
+                hasLangData: !!this.workerData.$lang,
+                langData: this.workerData.$lang 
+            })
+            
+            this.worker = new Worker(this.workerFile, {
+                type: 'commonjs', // (file == distFile ? 'commonjs' : 'module'),
+                workerData: this.workerData // leave stdout/stderr undefined
+            })
+            
+            this.setupWorkerEventListeners()
+            this.bindChangeListeners()
+            
+            // Mark worker as ready
+            this.workerReady = true
+            
+            // Emit event that worker is ready
+            this.emit('worker-ready')
+            
+            // Process queued calls
+            console.log(`🔄 Processing ${this.callQueue.length} queued worker calls...`)
+            const queueCopy = [...this.callQueue]
+            this.callQueue = []
+            
+            // First, process all loadWorker calls
+            const loadWorkerCalls = queueCopy.filter(call => call.method === 'loadWorker')
+            const otherCalls = queueCopy.filter(call => call.method !== 'loadWorker')
+            
+            // Process loadWorker calls first
+            for (const { file, method, args, resolve, reject } of loadWorkerCalls) {
+                try {
+                    console.log(`🔄 Processing queued loadWorker: ${file}`)
+                    this.worker.postMessage({ method: 'loadWorker', file: args[0] })
+                    // Resolve immediately to unblock the queue
+                    resolve()
+                } catch (error) {
+                    reject(error)
+                }
+            }
+            
+            // Wait for drivers to load, then process other calls
+            if (otherCalls.length > 0) {
+                console.log(`🔄 Waiting 8 seconds for drivers to load, then processing ${otherCalls.length} calls...`)
+                setTimeout(() => {
+                    console.log('🔄 Processing queued calls after delay...')
+                                        
+                    // Check if worker still exists before processing
+                    if (!this.worker) {
+                        console.warn('⚠️ Worker was terminated before processing queued calls')
+                        for (const { reject } of otherCalls) {
+                            reject(new Error('Worker was terminated before processing queued calls'))
+                        }
+                        return
+                    }
+                    
+                    for (const { file, method, args, resolve, reject } of otherCalls) {
+                        try {
+                            console.log(`🔄 Processing queued call: ${file}.${method}`)
+                            const id = this.iterator++
+                            this.promises[id] = {
+                                resolve: ret => {
+                                    resolve(ret)
+                                    delete this.promises[id]
+                                },
+                                reject: err => {
+                                    reject(err)
+                                },
+                                file,
+                                method
+                            }
+                            this.worker.postMessage({ method, id, file, args })
+                        } catch (error) {
+                            reject(error)
+                        }
+                    }
+                }, 8000) // 8 second delay to ensure drivers are loaded
+            }
+            
+            console.log('✅ Worker initialized and ready')
+            
+            console.log('🔧 Worker created successfully with language data')
+        } catch (error) {
+            console.error('❌ Failed to initialize worker:', error.message)
+            // Reject all queued calls
+            while (this.callQueue.length > 0) {
+                const { reject } = this.callQueue.shift()
+                reject(new Error('Worker failed to initialize'))
+            }
+        }
+    }
+    
+    setupWorkerEventListeners() {
+        if (!this.worker) return
         this.worker.on('error', err => {
             let serr = String(err);
             this.err = err;
@@ -231,10 +413,62 @@ export default class ThreadWorkerDriver extends WorkerDriver {
         this.worker.on('exit', () => {
             this.finished = true;
             this.worker = null;
+            this.workerReady = false;
             console.error('Worker exited', this.err, Object.keys(this.instances));
             this.rejectAll(null, this.err || 'worker exited');
         });
         this.worker.on('message', ret => {
+            this.debug && console.log('🔍 MultiWorker: Received message:', { id: ret.id, file: ret.file, type: ret.type, dataLength: ret.data?.length })
+            
+            // Handle driver loading confirmations
+            if (ret.type === 'driver-loaded') {
+                console.log('✅ Driver loaded confirmation received:', ret.file)
+                // Mark the driver as loaded in instances (don't overwrite the instance object)
+                if (ret.file) {
+                    // Mark as loaded without overwriting the instance object
+                    this.instances[ret.file]._driverLoaded = true
+                    console.log('🔧 Updated instances:', Object.keys(this.instances))
+                    
+                    // Process queued calls for this specific driver
+                    const driverCalls = this.callQueue.filter(call => call.file === ret.file)
+                    if (driverCalls.length > 0) {
+                        console.log(`🔄 Processing ${driverCalls.length} queued calls for driver ${ret.file}`)
+                        // Remove processed calls from queue
+                        this.callQueue = this.callQueue.filter(call => call.file !== ret.file)
+                        
+                        // Process each queued call
+                        for (const { file, method, args, resolve, reject } of driverCalls) {
+                            try {
+                                console.log(`🔄 Executing queued call: ${file}.${method}`)
+                                const id = this.iterator++
+                                this.promises[id] = {
+                                    resolve: ret => {
+                                        resolve(ret)
+                                        delete this.promises[id]
+                                    },
+                                    reject: err => {
+                                        reject(err)
+                                        delete this.promises[id]
+                                    },
+                                    file,
+                                    method
+                                }
+                                this.worker.postMessage({ method, id, file, args })
+                            } catch (error) {
+                                console.error(`❌ Error processing queued call ${file}.${method}:`, error)
+                                reject(error)
+                            }
+                        }
+                    }
+                }
+                return
+            }
+            
+            if (ret.type === 'driver-load-error') {
+                console.error('❌ Driver load error:', ret.file, ret.error)
+                return
+            }
+            
             if (ret.id) {
                 if (ret.id && typeof(this.promises[ret.id]) != 'undefined') {
                     if (ret.type == 'reject') {
@@ -263,14 +497,50 @@ export default class ThreadWorkerDriver extends WorkerDriver {
                     args = [ret.data];
                 }
                 const name = this.resolve(ret.file)
+                this.debug && console.log('🔍 MultiWorker: Resolving event:', { name, hasInstance: !!this.instances[name], args })
                 if (name && this.instances[name]) {
+                    this.debug && console.log('🔍 MultiWorker: Emitting to instance:', name)
                     this.instances[name].emit(...args)
                 } else {
+                    this.debug && console.log('🔍 MultiWorker: Emitting to global')
                     this.emit(...args)
                 }
             }
         });
         this.bindChangeListeners();
+    }
+        
+    // Enable worker logs
+    enableWorkerLogs() {
+        this.workerLogsEnabled = true;
+        console.log('Worker logs enabled');
+    }
+    
+    // Disable worker logs
+    disableWorkerLogs() {
+        this.workerLogsEnabled = false;
+        console.log('Worker logs disabled');
+    }
+    
+    // Enable debug mode
+    enableDebug() {
+        this.debug = true;
+        console.log('Worker debug mode enabled');
+    }
+    
+    // Disable debug mode
+    disableDebug() {
+        this.debug = false;
+        console.log('Worker debug mode disabled');
+    }
+    
+    // Get current logging status
+    getLoggingStatus() {
+        return {
+            workerLogsEnabled: this.workerLogsEnabled,
+            debugEnabled: this.debug,
+            activeWorkers: Object.keys(this.instances).length
+        };
     }
 }
 

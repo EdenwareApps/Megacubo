@@ -467,14 +467,10 @@ export class ElectronWinActions extends WinActionsMiniplayer {
 			return
 		}
 		this.pip.minimizeWindow = () => {
-			if(this.pip.miniPlayerActive){	// if already in miniplayer, minimize it				
-				this.pip.prepareLeaveMiniPlayer()
-				parent.electron.window.hide()
-				parent.electron.window.restore()
-				setTimeout(() => {
-					parent.electron.window.show()
-					parent.electron.window.minimize()
-				}, 0)
+			if(this.pip.miniPlayerActive){	
+				// Just minimize without leaving miniplayer mode
+				// The state will be preserved and reactivated on restore
+				parent.electron.window.minimize()
 			} else if(!this.enterIfPlaying()){
 				parent.electron.window.minimize()
 			}
@@ -486,13 +482,17 @@ export class ElectronWinActions extends WinActionsMiniplayer {
 	}
 	resize() {
 		if(this.pip.resizeListenerDisabled !== false) return
-		if(this.seemsPIP()){
+		const isPIP = this.seemsPIP()
+		console.log('resize() called - isPIP:', isPIP, 'miniPlayerActive:', this.pip.miniPlayerActive, 'inPIP:', this.inPIP)
+		if(isPIP){
 			if(!this.pip.miniPlayerActive){
+				console.log('Activating miniplayer due to size detection')
 				this.pip.miniPlayerActive = true  
 				this.pip.emit('miniplayer-on')
 			}
 		} else {
 			if(this.pip.miniPlayerActive){
+				console.log('Deactivating miniplayer due to size detection')
 				this.pip.miniPlayerActive = false
 				this.pip.emit('miniplayer-off')
 			}

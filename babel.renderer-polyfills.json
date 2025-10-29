@@ -6,8 +6,8 @@
           "targets": {
             "browsers": ["chrome >= 68"]
           },
-          "useBuiltIns": "usage",
-          "corejs": "3",
+          "useBuiltIns": false,
+          "corejs": false,
           "modules": "auto",
           "exclude": ["transform-typeof-symbol"]
         }

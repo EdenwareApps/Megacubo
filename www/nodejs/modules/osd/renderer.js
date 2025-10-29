@@ -96,8 +96,12 @@ export class OSD extends EventEmitter {
         this.root = root
         this.messages = []
         this.timers = {}
-        main.on('osd-show', this.show.bind(this))
-        main.on('osd-hide', this.hide.bind(this))
+        
+        // Wait for main to be ready before setting up event listeners
+        main.waitMain(() => {
+            main.on('osd-show', this.show.bind(this))
+            main.on('osd-hide', this.hide.bind(this))
+        })
     }
 	show(text, icon, name, time){
         document.body.classList.add('osd')

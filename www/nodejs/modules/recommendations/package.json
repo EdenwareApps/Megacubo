@@ -1,6 +1,0 @@
-{
-    "type": "module",
-"exports": "./recommendations.js",
-    "name": "recommendations"
- }
- 

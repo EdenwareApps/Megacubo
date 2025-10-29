@@ -4,7 +4,7 @@ import Mag from '../lists/mag.js'
 import StreamerProxy from './utils/proxy.js'
 import mega from '../mega/mega.js'
 import Subtitles from '../subtitles/subtitles.js'
-import listsTools from '../lists/tools.js'
+import { terms } from '../lists/tools.js'
 import aac from './engines/aac.js'
 import hls from './engines/hls.js'
 import rtmp from './engines/rtmp.js'
@@ -543,7 +543,7 @@ class StreamerTracks extends StreamerThrottling {
         if (!this.subtitles)
             this.subtitles = new Subtitles();
         if (!query) {
-            query = listsTools.terms(this.active.data.name).join(' ');
+            query = terms(this.active.data.name).join(' ');
         }
         let err, hasActive, activeTrackId = '', cancelId = 'track--1';
         let extraOpts = [];
@@ -636,8 +636,8 @@ class Streamer extends StreamerTracks {
         const isMega = e && mega.isMega(e.url);
         if (!isMega && e) {
             if (c == 'stop') {
-                const terms = global.channels.entryTerms(e, true)
-                const ch = global.channels.isChannel(terms)
+                const tms = global.channels.entryTerms(e, true)
+                const ch = global.channels.isChannel(tms)
                 if (ch) {
                     const skips = [global.lang.STREAMS, global.lang.MY_LISTS, global.lang.CATEGORY_MOVIES_SERIES];
                     if (skips.every(s => !global.menu.path.includes(s))) {
@@ -709,6 +709,10 @@ class Streamer extends StreamerTracks {
                     case '401':
                     case '403':
                         msg = global.lang.PLAYBACK_PROTECTED_STREAM
+                        break
+                    case '458':
+                        msg = 'Content blocked - Check subscription or region'
+                        status = 'license restriction'
                         break
                     case '-1':
                     case '404':

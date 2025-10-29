@@ -23,6 +23,7 @@ function loadGlobalVars() {
 export default file => {
     file = file.replace(new RegExp('\\.jsc?$'), '')
     const emit = (type, content) => {
+        //console.log('🔍 MultiWorker Utils: Emitting event:', { type, file, contentSize: JSON.stringify(content).length })
         postMessage({id: 0, file, type: 'event', data: type +':'+ JSON.stringify(content)})
     }    
     const logErr = data => {

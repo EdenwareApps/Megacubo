@@ -136,6 +136,15 @@ class Download extends EventEmitter {
                 this.opts.post = qs.stringify(this.opts.post);
             }
         }
+        
+        // Add default error listener to prevent ERR_UNHANDLED_ERROR
+        this.setMaxListeners(20); // Increase max listeners to prevent warnings
+        this.on('error', (err) => {
+            // Default error handler - just log if debug is enabled
+            if (this.opts.debug) {
+                console.log('[download] Default error handler:', err);
+            }
+        });
     }
 
     async start() {
@@ -149,7 +158,16 @@ class Download extends EventEmitter {
 
         // Try using cache first
         if (this.opts.cacheTTL > 0 && !this.opts.bypassCache) {
-            await this.tryCache().catch(this.opts.debug ? console.error : () => {});
+            try {
+                const cacheSuccess = await this.tryCache();
+                if (cacheSuccess) {
+                    // Cache was successful, no need to connect
+                    return;
+                }
+            } catch (err) {
+                this.opts.debug && console.log('[download] tryCache error:', err.message);
+                // Continue with direct download on cache error
+            }
         }
         if (!this.ended) this.connect(); // Continue with remote request if cache fails
     }
@@ -199,29 +217,84 @@ class Download extends EventEmitter {
         const waiting = new Promise((resolve, reject) => {
             this.once('data', resolve);
             cacheStream.once('end', resolve);
-            cacheStream.once('error', reject);
-            setTimeout(() => reject(new Error('Timeout')), 5000);
+            cacheStream.once('error', (err) => {
+                // Don't reject, just resolve with error info
+                this.opts.debug && console.log('[download] tryCache stream error:', err.message);
+                resolve({ error: err });
+            });
+            // Add error handler for decompression errors
+            this.once('decompression-error', (err) => {
+                this.opts.debug && console.log('[download] tryCache decompression error:', err.message);
+                resolve({ decompressionError: err });
+            });
+            setTimeout(() => {
+                this.opts.debug && console.log('[download] tryCache timeout');
+                resolve({ timeout: true });
+            }, 5000);
         });
 
         let err;
-        await cacheStream.start().catch(e => err = e);
-        await waiting.catch(e => err = e);
+        try {
+            await cacheStream.start();
+            const result = await waiting;
+            if (result && (result.error || result.timeout || result.decompressionError)) {
+                err = result.error || result.decompressionError || new Error('Cache timeout');
+                
+                // If it's a decompression error, the cache is corrupted - invalidate it
+                if (result.decompressionError) {
+                    this.opts.debug && console.log('[download] tryCache: decompression error detected, invalidating corrupted cache');
+                    try {
+                        await Download.cache.invalidate(this.opts.url);
+                        this.opts.debug && console.log('[download] tryCache: corrupted cache invalidated successfully');
+                    } catch (invalidateErr) {
+                        this.opts.debug && console.log('[download] tryCache: failed to invalidate corrupted cache:', invalidateErr.message);
+                    }
+                }
+            }
+        } catch (e) {
+            err = e;
+            // Log the error but don't throw immediately
+            this.opts.debug && console.log('[download] tryCache failed:', e.message);
+        }
 
         if (this.received || redirected) {
             this.streamEnded = true;
             redirected || this.end();
+            return true; // Cache was successful
         } else {
-            throw err || new Error('Cache empty');
+            // Cache failed, but don't throw - let the caller handle it gracefully
+            this.opts.debug && console.log('[download] tryCache: no data received, cache miss');
+            this._cleanupResponseListeners();
+            return false; // Cache miss, should try direct download
         }
     }
 
     defaultAcceptLanguage() {
-        if (lang && lang.countryCode) {
-            const langs = [...new Set([lang.locale + '-' + lang.countryCode.toUpperCase(), lang.locale, 'en'])]
+        if (typeof global !== 'undefined' && global.lang && global.lang.countryCode) {
+            const langs = [...new Set([global.lang.locale + '-' + global.lang.countryCode.toUpperCase(), global.lang.locale, 'en'])]
             return langs.join(',') + ';q=1,*;q=0.7';
         } else {
             return '*';
         }
+    }
+
+    isSocketHangUpError(error) {
+        // Check for socket hang up errors
+        if (error.message && error.message.includes('socket hang up')) {
+            return true;
+        }
+        
+        // Check for ECONNRESET error code
+        if (error.code === 'ECONNRESET') {
+            return true;
+        }
+        
+        // Check for other connection-related errors that should be retried
+        if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+            return true;
+        }
+        
+        return false;
     }
 
     end() {
@@ -311,11 +384,38 @@ class Download extends EventEmitter {
                 if (error.code === 'ENOTFOUND' || error.code === 'EAI_AGAIN') {
                     ipPromise.then(ip => ip && resolver.defer(domain, ip));
                 }
+                
+                // Handle socket hang up errors automatically with retry logic
+                if (this.isSocketHangUpError(error)) {
+                    this.retryCount++;
+                    if (this.retryCount <= this.opts.retries) {
+                        // Use exponential backoff for socket hang up errors
+                        const backoffDelay = Math.min(this.retryDelay * Math.pow(2, this.retryCount - 1), 10000);
+                        this.opts.debug && console.log('[download] connect: socket hang up detected, retrying with backoff', this.retryCount, 'delay:', backoffDelay);
+                        setTimeout(() => {
+                            // Wrap connect() call to catch any unhandled rejections
+                            this.connect().catch(err => {
+                                this.opts.debug && console.error('[download] connect retry failed:', err);
+                                this.endWithError(`Retry failed: ${err.message}`, 500);
+                            });
+                        }, backoffDelay);
+                        return;
+                    } else {
+                        this.endWithError(`Max retries exceeded for socket hang up: ${error.message}`, 500);
+                        return;
+                    }
+                }
+                
                 if (this.received < this.totalContentLength && this.supportsRange) {
                     this.retryCount++;
                     if (this.retryCount <= this.opts.retries) {
                         this.opts.debug && console.log('[download] connect: retrying', this.retryCount);
-                        setTimeout(() => this.connect(), this.retryDelay);
+                        setTimeout(() => {
+                            this.connect().catch(err => {
+                                this.opts.debug && console.error('[download] connect retry failed:', err);
+                                this.endWithError(`Retry failed: ${err.message}`, 500);
+                            });
+                        }, this.retryDelay);
                     } else {
                         this.endWithError(`Max retries exceeded: ${error.message}`, 500);
                     }
@@ -337,7 +437,10 @@ class Download extends EventEmitter {
             if (this.redirectCount <= this.opts.maxRedirects) {
                 this.currentURL = absolutize(response.headers['location'], this.currentURL);
                 this.emit('redirect', this.currentURL, response.headers);
-                this.connect();
+                this.connect().catch(err => {
+                    this.opts.debug && console.error('[download] connect retry failed:', err);
+                    this.endWithError(`Connect retry failed: ${err.message}`, 500);
+                });
             } else {
                 this.endWithError('Redirection limit reached', 508);
             }
@@ -395,13 +498,38 @@ class Download extends EventEmitter {
                 this.end();
             });
             response.data.on('error', err => {
+                // Handle socket hang up errors in stream
+                if (this.isSocketHangUpError(err)) {
+                    this.retryCount++;
+                    if (this.retryCount <= this.opts.retries) {
+                        // Use exponential backoff for socket hang up errors
+                        const backoffDelay = Math.min(this.retryDelay * Math.pow(2, this.retryCount - 1), 10000);
+                        this.opts.debug && console.log('[download] stream: socket hang up detected, retrying with backoff', this.retryCount, 'delay:', backoffDelay);
+                        setTimeout(() => {
+                            this.connect().catch(err => {
+                                this.opts.debug && console.error('[download] connect retry failed:', err);
+                                this.endWithError(`Retry failed: ${err.message}`, 500);
+                            });
+                        }, backoffDelay);
+                        return;
+                    } else {
+                        this.endWithError(`Max retries exceeded for socket hang up: ${err.message}`, 500);
+                        return;
+                    }
+                }
+                
                 if (this.received && this.totalContentLength > 0) {
                     if (this.received >= this.totalContentLength) {
                         this.streamEnded = true;
                         this.end();
                     } else if (this.supportsRange && this.retryCount <= this.opts.retries) {
                         this.retryCount++;
-                        setTimeout(() => this.connect(), this.retryDelay);
+                        setTimeout(() => {
+                            this.connect().catch(err => {
+                                this.opts.debug && console.error('[download] connect retry failed:', err);
+                                this.endWithError(`Retry failed: ${err.message}`, 500);
+                            });
+                        }, this.retryDelay);
                     } else {
                         this.endWithError(err);
                     }
@@ -429,13 +557,36 @@ class Download extends EventEmitter {
             if (!finalize && this.retryCount <= this.opts.retries) {
                 if (authRequired && this.opts.authURL) {
                     Download.get({url: this.opts.authURL, retries: 0}).catch(err => console.error(err)).finally(() => {
-                        setTimeout(() => this.connect(), this.retryDelay);
+                        setTimeout(() => {
+                            this.connect().catch(err => {
+                                this.opts.debug && console.error('[download] connect retry failed:', err);
+                                this.endWithError(`Retry failed: ${err.message}`, 500);
+                            });
+                        }, this.retryDelay);
                     });
                 } else {
-                    setTimeout(() => this.connect(), this.retryDelay);
+                    setTimeout(() => {
+                        this.connect().catch(err => {
+                            this.opts.debug && console.error('[download] connect retry failed:', err);
+                            this.endWithError(`Retry failed: ${err.message}`, 500);
+                        });
+                    }, this.retryDelay);
                 }
             } else {
-                this.endWithError(`HTTP error ${response.status}`, response.status);
+                // Provide more specific error messages for common HTTP status codes
+                let errorMessage = `HTTP error ${response.status}`;
+                if (response.status === 458) {
+                    errorMessage = `License/Geographic restriction (458) - Content may be blocked in your region or requires valid subscription`;
+                } else if (response.status === 403) {
+                    errorMessage = `Access forbidden (403) - Check credentials or permissions`;
+                } else if (response.status === 401) {
+                    errorMessage = `Authentication required (401) - Invalid or expired credentials`;
+                } else if (response.status === 404) {
+                    errorMessage = `Content not found (404) - Stream may be unavailable`;
+                } else if (response.status === 503) {
+                    errorMessage = `Service unavailable (503) - Server may be under maintenance`;
+                }
+                this.endWithError(errorMessage, response.status);
             }
         }
     }
@@ -453,7 +604,16 @@ class Download extends EventEmitter {
         if (this.ended) return;
         this.errors.push(String(err));
         this.statusCode = statusCode;
-        this.listenerCount('error') && this.emit('error', err);
+        
+        if (!this.listenerCount('error')) {
+            this.on('error', err => console.log('[download] Error:', err));
+        }
+        try {
+            this.emit('error', err);
+        } catch (emitError) {
+            console.error('[download] Error emitting error event:', emitError);
+        }
+        
         this.opts.debug && console.error('[download] endWithError', err);
         this.end();
     }
@@ -465,8 +625,14 @@ class Download extends EventEmitter {
         }
         if (this.cancelTokenSource && !this.streamEnded) {
             this.cancelTokenSource.cancel('Request destroyed');
+            this.cancelTokenSource = null;
         }
-        this.cancelTokenSource = null;
+    }
+
+    _cleanupResponseListeners() {
+        // Remove any pending listeners that might cause memory leaks
+        this.removeAllListeners('decompression-error');
+        // Note: Don't remove 'data' listeners as they might be needed by caller
     }
 
     static prepareOutputData(data, responseType, urls) { // 'text', 'json' or empty (buffer)
@@ -488,7 +654,7 @@ class Download extends EventEmitter {
                             for (const url of urls) {
                                 Download.cache.invalidate(url)
                             }
-                            throw new Error(`JSON error: ${e.message}`);
+                            throw new Error(`JSON parsing error: ${e.message}`);
                         }
                         break;
                     default:

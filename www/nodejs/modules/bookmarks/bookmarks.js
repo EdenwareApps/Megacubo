@@ -4,7 +4,7 @@ import osd from '../osd/osd.js'
 import menu from '../menu/menu.js'
 import lang from '../lang/lang.js'
 import EntriesGroup from '../entries-group/entries-group.js'
-import listsTools from '../lists/tools.js'
+import { terms } from '../lists/tools.js'
 import mega from '../mega/mega.js'
 import fs from 'fs'
 import * as iconv from 'iconv-lite'
@@ -135,15 +135,6 @@ class Bookmarks extends EntriesGroup {
             url: e.originalUrl || e.url
         }
     }
-    search(terms) {
-        return new Promise((resolve, reject) => {
-            if (typeof(terms) == 'string') {
-                terms = listsTools.terms(terms);
-            }
-            this.get().forEach(e => {
-            });
-        });
-    }
     async entries() {        
         let es = [], current;
         if (streamer && global.streamer.active) {
@@ -178,7 +169,7 @@ class Bookmarks extends EntriesGroup {
                 if (atts.mediaType == 'live') {
                     return (epgAddLiveNowMap[i] = this.channels.toMetaEntry(e, false));
                 } else {                    
-                    let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : listsTools.terms(atts.name);
+                    let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : terms(atts.name);
                     e.url = mega.build(ucWords(terms.join(' ')), { terms, mediaType: 'video' });
                     e = this.channels.toMetaEntry(e);
                 }

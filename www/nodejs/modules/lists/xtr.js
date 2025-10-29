@@ -24,7 +24,7 @@ class Xtr extends EventEmitter {
         const url = this.addr + '/player_api.php?username=' + this.user + '&password=' + this.pass + '&action=' + action;
         const data = await Download.get({
             url,
-            timeout: 15,
+            timeout: 30,
             responseType: 'json',
             keepalive: true,
             maxAuthErrors: 0,

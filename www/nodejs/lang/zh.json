@@ -518,6 +518,7 @@
    "X_MINUTE": "{0}分钟",
    "X_MINUTES": "{0}分钟",
    "X_RESULTS": "{0}个结果",
+   "X_PROGRAMMES": "{0}个节目",
    "X_SECOND": "{0}秒",
    "X_SECONDS": "{0}秒",
    "X_TO_Y": "{0}到{1}",
@@ -527,5 +528,9 @@
    "YOUR_CONNECTION_IS_SLOW_TIP": "您的连接对于此广播而言速度较慢，点击{0}尝试其他频道",
    "ZAP": "随机切换",
    "ZAPPING": "随机切换中...",
-   "ZAP_DESCRIPTION": "随机浏览频道"
+   "ZAP_DESCRIPTION": "随机浏览频道",
+   "DID_YOU_MEAN": "您的意思是：\"{0}\"？",
+   "OR_MAYBE": "或者可能是：\"{0}\"",
+   "NO_RESULTS_FOUND": "未找到结果",
+   "TRY_DIFFERENT_TERMS": "尝试使用不同的术语或检查拼写"
 }

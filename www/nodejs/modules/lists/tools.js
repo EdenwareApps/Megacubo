@@ -1,21 +1,46 @@
 import lang from "../lang/lang.js";
 import storage from '../storage/storage.js'
 import pLimit from "p-limit";
-import config from "../config/config.js"
 import data from "./search-redirects.json" with {type: 'json'};
 import countryCodes from '../countries/countries.json' with {type: 'json'};
 import options from "./options.json" with { type: 'json' }
 import { basename, forwardSlashes } from "../utils/utils.js";
-import { regexes, sanitizeName } from "./parser.js";
+import { sanitizeName } from "./parser.js";
+
+// Define regexes locally to avoid circular import issues
+const regexes = {
+    'group-separators': new RegExp('( ?[\\\\|;] ?| /+|/+ )', 'g'),
+    'notags': new RegExp('\\[[^\\]]*\\]', 'g'),
+    'between-brackets': new RegExp('\\[[^\\]]*?\\]', 'g'), // Non-greedy
+    'accents': new RegExp('[\\u0300-\\u036f]', 'g'),
+    'plus-signal': new RegExp('\\+', 'g'),
+    'hyphen': new RegExp('-', 'g'),
+    'hyphen-not-modifier': new RegExp('(.)-', 'g'),
+    'spaces': new RegExp(' {2,}', 'g'),
+    'type-playlist': new RegExp('type[\\s\'"]*=[\\s\'"]*playlist[\\s\'"]*'),
+    'strip-query-string': new RegExp('\\?.*$'),
+    'strip-proto': new RegExp('^[a-z]*://'),
+    'm3u-url-params': new RegExp('.*\\|[A-Za-z0-9\\-]*=')
+};
+
+const LIST_DATA_KEY_MASK = 'list-data-1-{0}'
+
+export const resolveListDatabaseKey = url => {
+    return LIST_DATA_KEY_MASK.format(url)
+}
+
+export const resolveListDatabaseFile = (url, index = false) => {
+    return storage.resolve(resolveListDatabaseKey(url), index ? 'idx.jdb' : 'jdb')
+}
 
 class TermsHandler {
     constructor() {
         this.countryCodes = new Set(countryCodes.map(c => c.code)); // precompute country codes as Set
         this.regexes = regexes;
-        this.allowedCharsRegex = new RegExp('[^ a-z0-9\\-\\+\\*@$]+', 'g') // remove chars not allowed
+        this.allowedCharsRegex = new RegExp('[^ a-z0-9\\-\\+\\*@$|]+', 'g') // remove chars not allowed (keep | for OR logic)
         this.sanitizeName = sanitizeName;
         this.searchRedirects = [];
-        this.stopWords = new Set(['sd', '4k', 'hd', 'h264', 'h.264', 'fhd', 'uhd']); // common words to ignore on searching
+        this.stopWords = new Set(['sd', '4k', 'hd', 'h264', 'h.264', 'fhd', 'uhd', 'null', 'undefined']); // common words to ignore on searching
         this.loadSearchRedirects();
     }
     loadSearchRedirects() {
@@ -46,9 +71,7 @@ class TermsHandler {
         if (Array.isArray(e)) {
             return this.applySearchRedirects(e);
         } else if (e.terms) {
-            if (Array.isArray(e.terms.name)) {
-                e.terms.name = this.applySearchRedirects(e.terms.name);
-            } else if (Array.isArray(e.terms)) {
+            if (Array.isArray(e.terms)) {
                 e.terms = this.applySearchRedirects(e.terms);
             }
         }
@@ -57,6 +80,11 @@ class TermsHandler {
     terms(txt, noModifiers, keepStopWords) {
         if (!txt) return [];        
         if (Array.isArray(txt)) txt = txt.join(' ');
+
+        if (noModifiers && txt.includes('|')) {
+            txt = txt.split('|').shift();
+        }
+
         txt = txt
             .toLowerCase() // normalize to lowercase
             .normalize('NFD') // decompose accents
@@ -83,8 +111,9 @@ class TermsHandler {
                 if (noModifiers) return '';
                 s = s.replace(this.regexes['hyphen-not-modifier'], '$1');
                 return s.length > 1 ? s : '';
-            } else if (s === '|' && noModifiers) {
-                return '';
+            } else if (s === '|') {
+                if (noModifiers) return '';
+                return '|'; // Keep | when noModifiers is false
             }
             return s.replace(this.regexes['hyphen-not-modifier'], '$1');
         });
@@ -303,16 +332,243 @@ class Tools extends TermsHandler {
         return [structure];
     }
     mergeNames(a, b) {
-        var la = a.toLowerCase();
-        var lb = b.toLowerCase();
+        if (!a || !b) return a || b;
+        
+        var la = a.toLowerCase().trim();
+        var lb = b.toLowerCase().trim();
+        
+        // If one name is completely contained in the other, return the longer one
         if (la && la.includes(lb)) {
-            return a
+            return a;
         }
         if (lb && lb.includes(la)) {
-            return b
+            return b;
         }
-        return a + ' - ' + b
+        
+        // Enhanced substring detection for cases like "beIN Sports US" + "beIN Sports"
+        if (this.isSubstringMatch(la, lb)) {
+            return a; // Return the longer one
+        }
+        if (this.isSubstringMatch(lb, la)) {
+            return b; // Return the longer one
+        }
+        
+        // Special case: Check if one name is a prefix of the other with additional words
+        if (this.isPrefixMatch(la, lb)) {
+            return a; // Return the longer one
+        }
+        if (this.isPrefixMatch(lb, la)) {
+            return b; // Return the longer one
+        }
+        
+        // Split names into words for intelligent merging
+        const wordsA = a.trim().split(/\s+/);
+        const wordsB = b.trim().split(/\s+/);
+        
+        // Find common words between the two names (case-insensitive)
+        const commonWords = wordsA.filter(word => 
+            wordsB.some(bWord => 
+                word.toLowerCase() === bWord.toLowerCase()
+            )
+        );
+        
+        // If there are common words, merge intelligently
+        if (commonWords.length > 0) {
+            // Remove common words from both names
+            const uniqueWordsA = wordsA.filter(word => 
+                !commonWords.some(common => 
+                    word.toLowerCase() === common.toLowerCase()
+                )
+            );
+            const uniqueWordsB = wordsB.filter(word => 
+                !commonWords.some(common => 
+                    word.toLowerCase() === common.toLowerCase()
+                )
+            );
+            
+            // Combine unique words with common words (preserve original case)
+            const result = [...uniqueWordsA, ...commonWords, ...uniqueWordsB]
+                .filter(word => word.length > 0)
+                .join(' ');
+            
+            return result || a; // Fallback to original if result is empty
+        }
+        
+        // Check for quality indicators and merge them intelligently
+        const qualityResult = this.mergeQualityIndicators(wordsA, wordsB);
+        if (qualityResult) {
+            return qualityResult.join(' ');
+        }
+        
+        // Check for partial word matches (e.g., "TV" and "Television")
+        const partialMatches = this.findPartialMatches(wordsA, wordsB);
+        if (partialMatches.length > 0) {
+            // Use the longer/more complete version of partial matches
+            const mergedWords = this.mergePartialMatches(wordsA, wordsB, partialMatches);
+            return mergedWords.join(' ');
+        }
+        
+        // No common words or partial matches, use separator
+        return a + ' - ' + b;
     }
+    
+    findPartialMatches(wordsA, wordsB) {
+        const matches = [];
+        for (const wordA of wordsA) {
+            for (const wordB of wordsB) {
+                const la = wordA.toLowerCase();
+                const lb = wordB.toLowerCase();
+                
+                // Check if one word is a common abbreviation of another
+                if (this.isAbbreviation(la, lb) || this.isAbbreviation(lb, la)) {
+                    matches.push({ wordA, wordB, type: 'abbreviation' });
+                }
+                // Check if one word contains the other (but not exact match)
+                else if (la.includes(lb) && la !== lb && lb.length > 2) {
+                    matches.push({ wordA, wordB, type: 'contains' });
+                }
+                else if (lb.includes(la) && la !== lb && la.length > 2) {
+                    matches.push({ wordA, wordB, type: 'contains' });
+                }
+            }
+        }
+        return matches;
+    }
+    
+    isAbbreviation(short, long) {
+        const abbreviations = {
+            'tv': 'television',
+            'hd': 'high definition',
+            'fhd': 'full high definition',
+            'uhd': 'ultra high definition',
+            '4k': 'ultra high definition',
+            'sd': 'standard definition',
+            'fm': 'frequency modulation',
+            'am': 'amplitude modulation',
+            'dtv': 'digital television',
+            'hdtv': 'high definition television',
+            'fhd': 'full high definition'
+        };
+        
+        return abbreviations[short] === long || 
+               (short.length <= 3 && long.toLowerCase().startsWith(short.toLowerCase()));
+    }
+    
+    mergePartialMatches(wordsA, wordsB, partialMatches) {
+        const result = [...wordsA];
+        const usedWordsB = new Set();
+        
+        for (const match of partialMatches) {
+            const indexA = result.indexOf(match.wordA);
+            const indexB = wordsB.indexOf(match.wordB);
+            
+            if (indexA !== -1 && indexB !== -1 && !usedWordsB.has(match.wordB)) {
+                // Replace with the longer/more complete version
+                const replacement = match.wordA.length > match.wordB.length ? match.wordA : match.wordB;
+                result[indexA] = replacement;
+                usedWordsB.add(match.wordB);
+            }
+        }
+        
+        // Add remaining words from B that weren't matched
+        for (const wordB of wordsB) {
+            if (!usedWordsB.has(wordB)) {
+                result.push(wordB);
+            }
+        }
+        
+        return result;
+    }
+    
+    // Helper method to detect quality indicators and merge them intelligently
+    mergeQualityIndicators(wordsA, wordsB) {
+        const qualityPatterns = [
+            /\((\d+)p\)/i,  // (720p), (1080p), etc.
+            /\((\d+)k\)/i,  // (4k), (8k), etc.
+            /hd/i,          // HD
+            /fhd/i,         // FHD
+            /uhd/i,         // UHD
+            /sd/i           // SD
+        ];
+        
+        const hasQualityA = wordsA.some(word => qualityPatterns.some(pattern => pattern.test(word)));
+        const hasQualityB = wordsB.some(word => qualityPatterns.some(pattern => pattern.test(word)));
+        
+        if (hasQualityA && hasQualityB) {
+            // Both have quality indicators, keep the higher quality
+            return this.keepHigherQuality(wordsA, wordsB);
+        } else if (hasQualityA || hasQualityB) {
+            // Only one has quality indicator, keep it
+            return hasQualityA ? wordsA : wordsB;
+        }
+        
+        return null; // No quality indicators to merge
+    }
+    
+    keepHigherQuality(wordsA, wordsB) {
+        const getQualityValue = (words) => {
+            for (const word of words) {
+                const match = word.match(/\((\d+)p\)/i);
+                if (match) return parseInt(match[1]);
+            }
+            return 0;
+        };
+        
+        const qualityA = getQualityValue(wordsA);
+        const qualityB = getQualityValue(wordsB);
+        
+        return qualityA >= qualityB ? wordsA : wordsB;
+    }
+    
+    // Enhanced substring detection for better merging
+    isSubstringMatch(longer, shorter) {
+        if (!longer || !shorter) return false;
+        
+        // Direct substring check
+        if (longer.includes(shorter)) {
+            return true;
+        }
+        
+        // Check if shorter is a significant part of longer (at least 80% of words)
+        const longerWords = longer.split(/\s+/);
+        const shorterWords = shorter.split(/\s+/);
+        
+        if (shorterWords.length === 0) return false;
+        
+        // Count how many words from shorter are found in longer (exact match or contains)
+        const matchedWords = shorterWords.filter(shortWord => 
+            longerWords.some(longWord => 
+                longWord.toLowerCase() === shortWord.toLowerCase() || 
+                longWord.toLowerCase().includes(shortWord.toLowerCase())
+            )
+        );
+        
+        // If most words match, consider it a substring
+        const matchRatio = matchedWords.length / shorterWords.length;
+        return matchRatio >= 0.8; // 80% match threshold for better accuracy
+    }
+    
+    // Check if one name is a prefix of the other with additional words
+    isPrefixMatch(longer, shorter) {
+        if (!longer || !shorter) return false;
+        
+        const longerWords = longer.split(/\s+/);
+        const shorterWords = shorter.split(/\s+/);
+        
+        if (shorterWords.length === 0 || longerWords.length <= shorterWords.length) {
+            return false;
+        }
+        
+        // Check if all words from shorter are found at the beginning of longer
+        for (let i = 0; i < shorterWords.length; i++) {
+            if (longerWords[i].toLowerCase() !== shorterWords[i].toLowerCase()) {
+                return false;
+            }
+        }
+        
+        return true; // All words from shorter are at the beginning of longer
+    }
+    
     mergeEntries(a, b) {
         if (a.name != b.name || a.rawname != b.rawname) {
             const oaName = a.name
@@ -392,5 +648,94 @@ class Tools extends TermsHandler {
         }
         return entries
     }
+    
+    // Fase 1: Algoritmo de Similaridade para Correção de Busca
+    levenshteinDistance(str1, str2) {
+        const matrix = [];
+        const len1 = str1.length;
+        const len2 = str2.length;
+        
+        // Inicializar matriz
+        for (let i = 0; i <= len1; i++) {
+            matrix[i] = [i];
+        }
+        for (let j = 0; j <= len2; j++) {
+            matrix[0][j] = j;
+        }
+        
+        // Calcular distância
+        for (let i = 1; i <= len1; i++) {
+            for (let j = 1; j <= len2; j++) {
+                const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j] + 1,      // deleção
+                    matrix[i][j - 1] + 1,      // inserção
+                    matrix[i - 1][j - 1] + cost // substituição
+                );
+            }
+        }
+        
+        return matrix[len1][len2];
+    }
+    
+    calculateSimilarityScore(searchTerm, validTerm) {
+        if (!searchTerm || !validTerm) return 0;
+        
+        const distance = this.levenshteinDistance(searchTerm.toLowerCase(), validTerm.toLowerCase());
+        const maxLength = Math.max(searchTerm.length, validTerm.length);
+        const lengthRatio = Math.min(searchTerm.length, validTerm.length) / maxLength;
+        
+        // Score baseado na distância e proporção de tamanho
+        const distanceScore = 1 - (distance / maxLength);
+        const finalScore = (distanceScore * 0.7) + (lengthRatio * 0.3);
+        
+        return {
+            score: Math.max(0, finalScore),
+            term: validTerm,
+            distance: distance
+        };
+    }
+    
+    findSuggestions(searchTerm, validTerms, options = {}) {
+        const {
+            maxSuggestions = 3,
+            minSimilarityScore = 0.7,
+            maxDistance = 2
+        } = options;
+        
+        if (!searchTerm || !validTerms || validTerms.size === 0) {
+            return [];
+        }
+        
+        const suggestions = [];
+        
+        for (const validTerm of validTerms) {
+            // FP: Ignorar o próprio termo pesquisado (distância 0)
+            if (validTerm.toLowerCase() === searchTerm.toLowerCase()) {
+                continue;
+            }
+            
+            const result = this.calculateSimilarityScore(searchTerm, validTerm);
+            
+            // Filtrar por score mínimo e distância máxima
+            // FP: Garantir que há alguma diferença (distância > 0)
+            if (result.score >= minSimilarityScore && result.distance > 0 && result.distance <= maxDistance) {
+                suggestions.push(result);
+            }
+        }
+        
+        // Ordenar por score (maior primeiro) e limitar resultados
+        return suggestions
+            .sort((a, b) => b.score - a.score)
+            .slice(0, maxSuggestions);
+    }
 }
-export default new Tools();
+
+const tools = new Tools();
+export const terms = tools.terms.bind(tools);
+export const match = tools.match.bind(tools);
+export const sort = tools.sort.bind(tools);
+export const levenshteinDistance = tools.levenshteinDistance.bind(tools);
+export const calculateSimilarityScore = tools.calculateSimilarityScore.bind(tools);
+export const findSuggestions = tools.findSuggestions.bind(tools);
+export default tools;

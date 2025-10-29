@@ -837,7 +837,8 @@ class Menu extends EventEmitter {
             if (typeof(path) === 'string') this.path = path
             if (this.rendering) {
                 const icon = opts.icon || opts?.parent?.fa || 'fas fa-home'
-                renderer.ui.emit('render', this.cleanEntries(this.checkFlags(this.currentEntries), ['checked','users','terms']), path, icon)
+                const cleanedEntries = this.cleanEntries(this.checkFlags(this.currentEntries), ['checked','users','terms']);
+                renderer.ui.emit('render', cleanedEntries, path, icon)
                 this.emit('render', this.currentEntries, path)
                 this.syncPages()
             }

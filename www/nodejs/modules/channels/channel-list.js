@@ -198,7 +198,7 @@ export class ChannelsList extends EventEmitter {
             let index = {};
             this.getCategories().forEach(cat => {
                 cat.entries.forEach(e => {
-                    index[e.name] = e.terms.name;
+                    index[e.name] = e.terms;
                 });
             });
             let keys = Object.keys(index);
@@ -283,7 +283,7 @@ export class ChannelsList extends EventEmitter {
             terms = name;
         }
         terms = global.lists.tools.terms(terms)
-        return { name, terms: { name: terms, group: [] } };
+        return { name, terms };
     }
     compact(data, withTerms) {
         if (!Array.isArray(data)) {

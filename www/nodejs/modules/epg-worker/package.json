@@ -1,0 +1,21 @@
+{
+  "type": "module",
+  "name": "epg-worker",
+  "version": "1.0.0",
+  "description": "Modular EPG Worker with improved architecture",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./EPGManager": "./EPGManager.js",
+    "./EPG": "./EPG.js",
+    "./EPGUpdater": "./EPGUpdater.js",
+    "./EPGErrorHandler": "./EPGErrorHandler.js",
+    "./EPGStateMachine": "./EPGStateMachine.js",
+    "./config": "./config.js",
+    "./database/DatabaseFactory": "./database/DatabaseFactory.js",
+    "./parser/ParserFactory": "./parser/ParserFactory.js",
+    "./cache/CacheManager": "./cache/CacheManager.js",
+    "./memory/MemoryMonitor": "./memory/MemoryMonitor.js",
+    "./utils": "./utils/index.js"
+  }
+}

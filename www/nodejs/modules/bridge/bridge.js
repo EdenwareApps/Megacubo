@@ -370,11 +370,25 @@ class BridgeController {
         if (!global.bridgeInstance) {
             if (paths.inWorker) {
                 console.error('!!! Tried to create a Bridge instance from a worker !!!', traceback())
+                // Return a dummy EventEmitter-like object for workers
+                return {
+                    on: () => {},
+                    emit: () => {},
+                    once: () => {},
+                    removeListener: () => {},
+                    removeAllListeners: () => {}
+                }
             } else {
                 global.bridgeInstance = new Bridge()
             }
         }
-        return global.bridgeInstance || {}
+        return global.bridgeInstance || {
+            on: () => {},
+            emit: () => {},
+            once: () => {},
+            removeListener: () => {},
+            removeAllListeners: () => {}
+        }
     }
 }
 

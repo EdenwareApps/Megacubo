@@ -9,6 +9,7 @@ import storage from '../../storage/storage.js';
 import { insertEntry, kfmt, listNameFromURL } from '../../utils/utils.js';
 import pLimit from 'p-limit';
 import ready from '../../ready/ready.js';
+import list from 'postcss/lib/list';
 
 const FreeTVMap = {
     'al': ['playlist_albania.m3u8'],
@@ -218,7 +219,7 @@ class PublicLists extends EventEmitter {
                                         if(n.value == 'only') {
                                             const prev = config.get('channel-grid')
                                             if(prev != 'xxx') {
-                                                await storage.set('previous-channel-grid', prev).catch(err => console.error(err))
+                                                await storage.set('previous-channel-grid', prev, { permanent: true }).catch(err => console.error(err))
                                                 await global.channels.setGridType('xxx').catch(err => console.error(err))
                                             }
                                         } else if(config.get('channel-grid') == 'xxx') {
@@ -264,50 +265,66 @@ class PublicLists extends EventEmitter {
             renderer: this.entries.bind(this)
         };
     }
+    equalizeListsRelevance(lists) { // should return ordered array by relevance/score descending
+        if (!Object.keys(lists).length) return []
+        const max = Math.max(...Object.values(lists).map(l => l.score || 0))
+        return Object.entries(lists)
+            .sort(([, a], [, b]) => (b.score || 0) - (a.score || 0))
+            .map(([key, value]) => ({
+                key,
+                ...value,
+                score: value.score ? value.score / max : 0
+            }))
+    }
     async receivedListsEntries() {
-        const info = await this.master.lists.info();
-        let entries = Object.keys(info).filter(u => info[u].origin == 'public').sort((a, b) => {
-            if ([a, b].some(a => typeof(info[a].score) == 'undefined'))
-                return 0
-            if (info[a].score == info[b].score)
-                return 0
-            return info[a].score > info[b].score ? -1 : 1
-        }).map(url => {
-            let data = this.master.details(url)
-            if (!data) {
-                console.error('LIST NOT FOUND ' + url)
-                return;
-            }
-            //let health = this.master.averageHealth(data) || -1
-            let name = data.name || listNameFromURL(url)
-            let author = data.author || undefined
-            let icon = data.icon || undefined
-            let length = data.length || info[url].length || 0
-            let details = []
-            author && details.push(author)
-            details.push(lang.RELEVANCE + ': ' + parseInt((info[url].score || 0) * 100) + '%')
-            details.push('<i class="fas fa-play-circle" aria-label="hidden"></i> ' + kfmt(length, 1))
-            details = details.join(' &middot; ')
-            return {
-                name, url, icon, details,
-                fa: 'fas fa-satellite-dish',
-                type: 'group',
-                class: 'skip-testing',
-                renderer: this.master.lists.manager.renderList.bind(this.master.lists.manager)
-            };
-        }).filter(l => l)
-        if (!entries.length) {
+        const info = await this.master.lists.info()
+        const equalizedLists = this.equalizeListsRelevance(info)
+            .filter(list => list.origin === 'public')
+            .map(({ key: url, score, length }) => {
+                const data = this.master.details(url)
+                if (!data) {
+                    console.error('LIST NOT FOUND ' + url)
+                    return null
+                }
+
+                const name = data.name || listNameFromURL(url)
+                const details = [
+                    data.author,
+                    `${lang.RELEVANCE}: ${Math.round(score * 100)}%`,
+                    `<i class="fas fa-play-circle" aria-label="hidden"></i> ${kfmt(data.length || length || 0, 1)}`
+                ].filter(Boolean).join(' &middot; ')
+
+                return {
+                    name,
+                    url,
+                    icon: data.icon,
+                    details,
+                    fa: 'fas fa-satellite-dish',
+                    type: 'group', 
+                    class: 'skip-testing',
+                    renderer: this.master.lists.manager.renderList.bind(this.master.lists.manager)
+                }
+            })
+            .filter(Boolean)
+
+        if (!equalizedLists.length) {
             if (!this.master.lists.loaded()) {
-                entries = [this.master.lists.manager.updatingListsEntry()];
-            } else if(Object.keys(this.master.lists.lists).length) {
-                entries = [
-                    { name: lang.EMPTY, fa: 'fas fa-info-circle', type: 'action', class: 'entry-empty' }
-                ]
-            } else {
-                entries = [this.master.lists.manager.noListsRetryEntry()];
+                return [this.master.lists.manager.updatingListsEntry()]
             }
+            
+            if (Object.keys(this.master.lists.lists).length) {
+                return [{ 
+                    name: lang.EMPTY,
+                    fa: 'fas fa-info-circle',
+                    type: 'action',
+                    class: 'entry-empty'
+                }]
+            }
+
+            return [this.master.lists.manager.noListsRetryEntry()]
         }
-        return entries;
+
+        return equalizedLists
     }
     async hook(entries, path) {
         if (path.split('/').pop() == lang.MY_LISTS) {

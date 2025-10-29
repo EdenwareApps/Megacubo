@@ -1,5 +1,4 @@
 import Download from '../download/download.js'
-import lang from "../lang/lang.js";
 import { EventEmitter } from "events";
 
 class Mag extends EventEmitter {
@@ -200,15 +199,18 @@ class Mag extends EventEmitter {
     }
     emitEntries(streams, type) {
         if (Array.isArray(streams)) {
-            const category = type == 'live' ? lang.LIVE : lang.CATEGORY_MOVIES_SERIES;
+            const category = (type == 'live') ? (global.lang.LIVE || 'Live') : (global.lang.CATEGORY_MOVIES_SERIES || 'Movies & Series');
             for (const stream of streams) {
                 let cmd = stream.cmd.split(' ').pop();
                 if (!cmd.startsWith('http')) {
                     cmd = this.fakeHost + cmd;
                 }
+                const genreId = stream.tv_genre_id || stream.category_id || stream.genre_id;
+                const genreName = this.genres[type][genreId];
+                
                 const entry = {
                     name: stream.name,
-                    group: category + '/' + this.genres[type][stream.tv_genre_id || stream.category_id || stream.genre_id],
+                    group: genreName && genreName !== 'undefined' ? category + '/' + genreName : category,
                     icon: stream.screenshot_uri || stream.logo || '',
                     url: cmd + '#mag-' + type
                 };

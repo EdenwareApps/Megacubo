@@ -518,6 +518,7 @@
    "X_MINUTES": "{0} dakika",
    "X_RESULTS": "{0} Matokeo",
    "X_SECOND": "{0} pili",
+   "X_PROGRAMMES": "{0} programu",
    "X_SECONDS": "{0} sekunde",
    "X_TO_Y": "{0} kwa {1}",
    "X_WATCHING": "{0} Kuangalia",
@@ -526,5 +527,9 @@
    "YOUR_CONNECTION_IS_SLOW_TIP": "Uunganisho wako ni mwepesi kwa usafirishaji huu, bonyeza {0} kujaribu nyingine",
    "ZAP": "ZAP!",
    "ZAPPING": "Zaping...",
-   "ZAP_DESCRIPTION": "Bila mpangilio"
+   "ZAP_DESCRIPTION": "Bila mpangilio",
+   "DID_YOU_MEAN": "Je, ulimaanisha: \"{0}\"?",
+   "OR_MAYBE": "Au labda: \"{0}\"",
+   "NO_RESULTS_FOUND": "Hakuna matokeo yaliyopatikana",
+   "TRY_DIFFERENT_TERMS": "Jaribu kutumia maneno tofauti au angalia tahajia"
 }

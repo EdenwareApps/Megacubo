@@ -223,7 +223,7 @@ if (!global.String.prototype.replaceAll) {
     });
 }
 
-const DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS = 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Content-Range, Range, Vary, range, Authorization'
+const DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS = 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Content-Range, Range, Vary, range, Authorization, User-Agent, Referer, Accept-Language, Accept-Encoding, Sec-Fetch-Dest, Sec-Fetch-Mode, Sec-Fetch-Site, Sec-Ch-Ua, Sec-Ch-Ua-Mobile, Sec-Ch-Ua-Platform, DNT, Connection, Upgrade-Insecure-Requests'
 const trimExt = (text, exts) => {
     if (typeof(exts) == 'string') {
         exts = [exts]
@@ -241,7 +241,6 @@ const cleanListName = (name) => {
 }
 
 export const clone = (cloneModule?.default || cloneModule)
-export const LIST_DATA_KEY_MASK = 'list-data-1-{0}'
 export const forwardSlashes = path => {
     if (path && path.includes('\\')) {
         return path.replaceAll('\\', '/').replaceAll('//', '/');
@@ -249,22 +248,32 @@ export const forwardSlashes = path => {
     return path;
 }
 export const isUnderRootAsync = async (relPath, root) => {
-    const resolvedPath = path.resolve(root, relPath);
-    const normalizedPath = await fs.promises.realpath(resolvedPath);
-    return forwardSlashes(normalizedPath).startsWith(forwardSlashes(root));
+    try {
+        const resolvedPath = path.resolve(root, relPath);
+        const normalizedPath = await fs.promises.realpath(resolvedPath);
+        return forwardSlashes(normalizedPath).startsWith(forwardSlashes(root));
+    } catch (error) {
+        // If realpath fails (e.g., file doesn't exist), just check if the resolved path starts with root
+        const resolvedPath = path.resolve(root, relPath);
+        return forwardSlashes(resolvedPath).startsWith(forwardSlashes(root));
+    }
 }
 export const getDomain = (u, includePort) => {
+    if (!u || typeof u !== 'string') {
+        return '';
+    }
+    
     let d = u;
-    if (u && u.includes('//')) {
+    if (u.includes('//')) {
         d = u.split('//')[1].split('/')[0]
     }
-    if (d.includes('@')) {
+    if (d && d.includes('@')) {
         d = d.split('@')[1]
     }
-    if (d.includes(':') && !includePort) {
+    if (d && d.includes(':') && !includePort) {
         d = d.split(':')[0]
     }
-    return d
+    return d || '';
 }
 export const isLocal = file => {
     if (typeof(file) != 'string') {
@@ -289,21 +298,41 @@ export const isYT = (url) => {
     }
     return false
 }
-export const basename = (str, rqs) => {
+export const basename = (str, removeQueryString = false) => {
     str = String(str);
-    let qs = '', pos = str.indexOf('?')
-    if (pos != -1) {
-        qs = str.slice(pos + 1)
-        str = str.slice(0, pos)
-    }
+    
+    // Normalize path separators first
     str = forwardSlashes(str)
-    pos = str.lastIndexOf('/')
+    
+    // Only treat ? as query string if it's at the very end of the path (not in the middle)
+    let qs = ''
+    const lastSlash = str.lastIndexOf('/')
+    const pathAfterLastSlash = lastSlash !== -1 ? str.slice(lastSlash + 1) : str
+    const qPos = pathAfterLastSlash.indexOf('?')
+    
+    if (qPos !== -1) {
+        const afterQ = pathAfterLastSlash.slice(qPos + 1)
+        // Only treat as query string if there's content after ? and it looks like a query
+        if (afterQ && (afterQ.includes('=') || afterQ.includes('&'))) {
+            qs = afterQ
+            const pathWithoutQuery = lastSlash !== -1 ? 
+                str.slice(0, lastSlash + 1) + pathAfterLastSlash.slice(0, qPos) :
+                pathAfterLastSlash.slice(0, qPos)
+            str = pathWithoutQuery
+        }
+    }
+    
+    // Get the last part of the path (after the last slash)
+    const pos = str.lastIndexOf('/')
     if (pos != -1) {
         str = str.substring(pos + 1)
     }
-    if (!rqs && qs) {
+    
+    // Add back query string if requested
+    if (!removeQueryString && qs) {
         str += '?' + qs
     }
+    
     return str
 }
 export const ext = file => {
@@ -439,6 +468,19 @@ export const dirname = _path => {
     parts.pop()
     return parts.join('/')
 }
+export const decodeUnicodeEscapes = (str) => {
+    if (typeof str !== 'string') return str;
+    
+    // Decode Unicode escape sequences like u00e3 -> ã, u00c1 -> Á
+    return str.replace(/u([0-9a-fA-F]{4})/g, (match, hex) => {
+        try {
+            return String.fromCharCode(parseInt(hex, 16));
+        } catch (e) {
+            return match; // Return original if conversion fails
+        }
+    });
+}
+
 export const sanitize = (txt, keepAccents) => {
     let ret = txt;
     if (keepAccents !== true) {
@@ -466,7 +508,13 @@ export const prepareCORS = (headers, url, forceOrigin) => {
         }
         let pos = url.indexOf('//');
         if (!forceOrigin && pos != -1 && pos <= 5) {
-            origin = url.split('/').slice(0, 3).join('/');
+            const requestOrigin = url.split('/').slice(0, 3).join('/');
+            // Always allow localhost/127.0.0.1 origins
+            if (requestOrigin.includes('127.0.0.1') || requestOrigin.includes('localhost')) {
+                origin = '*';
+            } else {
+                origin = requestOrigin;
+            }
         }
     }
     if (headers.setHeader) { // response object
@@ -569,6 +617,40 @@ export const parseCommaDelimitedURIs = (url, pickFirst) => {
     }
     return pickFirst ? urls.shift() : urls
 }
+export const formatThousands = (strOrNumber, locale = null) => {
+    // format string or number thousands to locale-formatted string
+    // Supports multi-language formatting based on locale
+    
+    // Get current locale from global lang if not provided
+    if (!locale && typeof global !== 'undefined' && global.lang?.locale) {
+        locale = global.lang.locale;
+    }
+    
+    // Default locale fallbacks
+    const defaultLocale = locale || 'en';
+    
+    if (typeof strOrNumber === 'string') {
+        strOrNumber = parseInt(strOrNumber.replace(/[^0-9]/g, ''));
+    }
+    
+    if (typeof strOrNumber === 'number') {
+        // Format number according to locale conventions
+        try {
+            return strOrNumber.toLocaleString(defaultLocale, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+        } catch (e) {
+            // Fallback to default formatting if locale is not supported
+            return strOrNumber.toLocaleString('en', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+        }
+    }
+    
+    return strOrNumber;
+}
 export const kbfmt = (bytes, decimals = 2) => {
     if (isNaN(bytes) || typeof(bytes) != 'number')
         return 'N/A';
@@ -641,7 +723,13 @@ export const rmdirSync = (folder, itself) => {
 
     try {
         if (fs.existsSync(dir)) {
-            fs.rmdirSync(dir, { maxRetries: 10, retryDelay: 200, recursive: true });
+            // Use fs.rm instead of deprecated fs.rmdir
+            if (fs.rmSync) {
+                fs.rmSync(dir, { maxRetries: 10, retryDelay: 200, recursive: true, force: true });
+            } else {
+                // Fallback for older Node.js versions
+                fs.rmdirSync(dir, { maxRetries: 10, retryDelay: 200, recursive: true });
+            }
         }
     } catch (e) {
         console.error(e);
@@ -690,8 +778,19 @@ export const traceback = () => {
         const a = {}
         a.debug()
     } catch(ex) {
-        const piece = 'is not a function'
-        return ex.stack.split(piece).slice(1).join(piece).trim()
+        try {
+            const piece = 'is not a function'
+            if (!ex.stack || typeof ex.stack !== 'string') {
+                return 'No stack trace available'
+            }
+            const parts = ex.stack.split(piece)
+            if (!parts || parts.length < 2) {
+                return ex.stack || 'No stack trace available'
+            }
+            return parts.slice(1).join(piece).trim()
+        } catch (stackError) {
+            return 'Stack trace processing failed'
+        }
     }
 }
 

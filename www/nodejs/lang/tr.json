@@ -519,6 +519,7 @@
    "X_MINUTE": "{0} dakika",
    "X_MINUTES": "{0} dakika",
    "X_RESULTS": "{0} sonuçları",
+   "X_PROGRAMMES": "{0} programlar",
    "X_SECOND": "{0} saniye",
    "X_SECONDS": "{0} saniye",
    "X_TO_Y": "{0} ila {1}",
@@ -528,5 +529,9 @@
    "YOUR_CONNECTION_IS_SLOW_TIP": "Bağlantınız bu yayın için yavaş, başka birini denemek için {0} 'ı tıklayın.",
    "ZAP": "Rastgele",
    "ZAPPING": "Rastgele Kanal Açma...",
-   "ZAP_DESCRIPTION": "Rastgele kanalları aç"
+   "ZAP_DESCRIPTION": "Rastgele kanalları aç",
+   "DID_YOU_MEAN": "Demek istediğiniz: \"{0}\"?",
+   "OR_MAYBE": "Ya da belki: \"{0}\"",
+   "NO_RESULTS_FOUND": "Sonuç bulunamadı",
+   "TRY_DIFFERENT_TERMS": "Farklı terimler kullanmayı deneyin veya yazımı kontrol edin"
 }

@@ -5,7 +5,7 @@ import Zap from '../zap/zap.js'
 import AutoTuner from '../tuner/auto-tuner.js'
 import renderer from '../bridge/bridge.js'
 import mega from '../mega/mega.js'
-import listsTools from "../lists/tools.js"
+import { terms } from "../lists/tools.js"
 import config from "../config/config.js"
 import paths from '../paths/paths.js'
 import Limiter from '../limiter/limiter.js'
@@ -912,14 +912,14 @@ class Streamer extends StreamerGoNext {
             if (opts.name) {
                 name = opts.name
             }
-            let terms = opts.terms || listsTools.terms(name)
+            let tms = opts.terms || terms(name)
             silent || (this.opts.shadow || global.osd.show(global.lang.TUNING_WAIT_X.format(name), 'fa-mega busy-x', 'streamer', 'persistent'))
             const listsReady = await global.lists.ready(10)
             if (listsReady !== true) {
                 silent || (this.opts.shadow || global.osd.hide('streamer'))
                 throw global.lang.WAIT_LISTS_READY
             }
-            let entries = await global.lists.search(terms, {
+            let entries = await global.lists.search(tms, {
                 type: 'live',
                 safe: !global.lists.parentalControl.lazyAuth(),
                 limit: 1024
@@ -1021,9 +1021,9 @@ class Streamer extends StreamerGoNext {
                     e.url = mega.build(ch.name, { terms: ch.terms });
                 } else {
                     const name = e.originalName || e.name;
-                    let terms = listsTools.terms(name)
-                    if (Array.isArray(terms)) terms = terms.join(' ')
-                    e.url = mega.build(name, { terms });
+                    let tms = terms(name)
+                    if (Array.isArray(tms)) tms = tms.join(' ')
+                    e.url = mega.build(name, { terms: tms });
                 }
                 this.play(e)
             }

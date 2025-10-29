@@ -25,7 +25,10 @@ class Joiner extends Downloader {
             const workerPath = path.join(paths.cwd + '/modules/streamer/utils/mpegts-processor-worker.js')
             this.worker = new MultiWorker()
             this.processor = this.worker.load(workerPath, true)
-            this.worker.worker.on('exit', () => this.fail(-7))
+            
+            // Wait for worker to be ready before setting up event listeners
+            this.setupWorkerEventListeners()
+            
             this.once('destroy', () => {
                 const done = () => this.worker && this.worker.terminate()
                 if (this.processor) {
@@ -40,15 +43,52 @@ class Joiner extends Downloader {
         }
         this.processor.on('data', data => (data && this.output(data)));
         this.processor.on('fail', () => this.emit('fail'));
-        this.opts.debug = this.processor.debug  = false
-        this.once('destroy', () => {
-            if (!this.joinerDestroyed) {
-                this.joinerDestroyed = true
-                this.processor.destroy();
-                this.processor = null;
-            }
-        });
     }
+    
+    setupWorkerEventListeners() {
+        if (this.usingWorker && this.worker) {
+            // Use a Promise-based approach to wait for worker to be ready
+            this.waitForWorkerReady().then(() => {
+                if (this.worker && this.worker.worker) {
+                    this.worker.worker.on('exit', () => this.fail(-7))
+                }
+            }).catch(err => {
+                console.error('Failed to setup worker event listeners:', err)
+            })
+        }
+    }
+    
+    waitForWorkerReady() {
+        return new Promise((resolve, reject) => {
+            if (this.worker && this.worker.workerReady && this.worker.worker) {
+                // Worker is already ready
+                resolve()
+                return
+            }
+            
+            if (this.worker && this.worker.finished) {
+                reject(new Error('Worker was terminated before becoming ready'))
+                return
+            }
+            
+            // Listen for the worker-ready event
+            const onReady = () => {
+                this.worker.removeListener('worker-ready', onReady)
+                this.worker.removeListener('error', onError)
+                resolve()
+            }
+            
+            const onError = (error) => {
+                this.worker.removeListener('worker-ready', onReady)
+                this.worker.removeListener('error', onError)
+                reject(error)
+            }
+            
+            this.worker.on('worker-ready', onReady)
+            this.worker.on('error', onError)
+        })
+    }
+    
     async setPacketFilterPolicy(policy) {
         return this.processor.setPacketFilterPolicy(policy)
     }

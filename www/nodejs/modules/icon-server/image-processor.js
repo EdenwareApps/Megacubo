@@ -1,5 +1,6 @@
 import fs from 'fs'
 import renderer from '../bridge/bridge.js'
+import icons from './icon-server.js';
 import downloads from '../downloads/downloads.js';
 import { temp } from '../paths/paths.js'
 import { randomBytes } from 'node:crypto'
@@ -11,7 +12,7 @@ async function saveBase64Image(dataUrl, outputFilePath) {
 }
 
 const imp = {}
-for (const method of ['transform', 'colors', 'resize']) {
+for (const method of ['transform', 'colors', 'resize', 'hasTransparency']) {
     imp[method] = async (...args) => {
         const uid = randomBytes(9).toString('hex')
         const file = args[0]

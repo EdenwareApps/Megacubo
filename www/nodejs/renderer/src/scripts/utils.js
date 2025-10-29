@@ -78,7 +78,7 @@ export const css = (code, id, scope) => {
     if(!scope){
         scope = window
     }
-    if(scope && scope.document){
+    if(scope && scope.document && scope.document.body && scope.document.getElementById){
         try {
             //console.warn('style creating', code)
             var s = scope.document.getElementById('css-'+ id)

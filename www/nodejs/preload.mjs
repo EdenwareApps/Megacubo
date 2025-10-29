@@ -9,13 +9,26 @@ import { prepare } from "./modules/serialize/serialize.js";
 function getElectron() {
     const ret = {}, keys = ['clipboard', 'contextBridge', 'webFrame', 'webUtils', 'ipcRenderer', 'getGlobal', 'screen', 'app', 'shell', 'Tray', 'Menu'];
     const extract = electron => {
+        if (!electron) return;
         keys.forEach(k => {
-            if (electron[k])
-                ret[k] = electron[k];
+            try {
+                if (electron[k])
+                    ret[k] = electron[k];
+            } catch (error) {
+                console.warn(`Failed to extract ${k} from electron object:`, error.message);
+            }
         });
     };
     extract(electron);
-    extract(remote)
+    if (remote) {
+        try {
+            extract(remote);
+        } catch (error) {
+            console.warn('Failed to extract from remote:', error.message);
+        }
+    } else {
+        console.warn('Remote module not available');
+    }
     keys.forEach(k => {
         if (!ret[k])
             ret[k] = null;

@@ -9,8 +9,8 @@ import config from "../config/config.js"
 class IconFetcher extends EventEmitter {
     constructor() {
         super();
-        this.isAlphaRegex = new RegExp('\\.png', 'i');
-        this.isNonAlphaRegex = new RegExp('\\.(jpe?g|webp|gif)', 'i');
+        this.isAlphaRegex = new RegExp('\\.(png|webp|gif)', 'i');
+        this.isNonAlphaRegex = new RegExp('\\.(jpe?g)', 'i');
     }
     hasPriority(prevImage, nextImage, images) {
         if (!prevImage.alpha && nextImage.alpha) {
@@ -38,49 +38,72 @@ class IconFetcher extends EventEmitter {
         const results = {}, limit = pLimit(2);
         const tasks = images.map(image => {
             return async () => {
-                if (image.icon.match(this.isNonAlphaRegex) && !image.icon.match(this.isAlphaRegex)) {
-                    results[image.icon] = 'non alpha url'
-                    return false // non alpha url
-                }
-                if (done && !this.hasPriority(done.image, image, images)) {
-                    if (this.master.opts.debug) {
-                        console.log('ICON DOWNLOADING CANCELLED');
+                try {
+                    if (image.icon.match(this.isNonAlphaRegex) && !image.icon.match(this.isAlphaRegex)) {
+                        results[image.icon] = 'non alpha url'
+                        return false // non alpha url
                     }
-                    results[image.icon] = 'already found and processed another image for this channel'
+                    if (done?.alpha && !this.hasPriority(done.image, image, images)) {
+                        if (this.master.opts.debug) {
+                            console.log('ICON DOWNLOADING CANCELLED');
+                        }
+                        results[image.icon] = 'already found and processed another image for this channel'
+                        return false
+                    }
+                    if (this.master.opts.debug) {
+                        console.log('GOFETCH', image)
+                    }
+                    const ret = await this.master.fetchURL(image.icon);
+                    const key = ret.key;
+                    if (this.master.opts.debug) {
+                        console.log('GOFETCH', image, 'THEN', ret.file);
+                    }
+                    const type = await this.master.validateFile(ret.file);
+                    if (type === 0) {
+                        results[image.icon] = 'invalid image format'
+                        return false; // invalid image format
+                    }
+                    // Accept PNGs with or without alpha channel (type 1 or 2)
+                    if (type !== 1 && type !== 2) {
+                        results[image.icon] = 'unsupported image format'
+                        return false; // unsupported format
+                    }
+                    if (done?.alpha && !this.hasPriority(done.image, image, images)) {
+                        if (this.master.opts.debug) {
+                            console.warn('ICON ADJUSTING CANCELLED');
+                        }
+                        results[image.icon] = '** already found and processed another image for this channel'
+                        return false;
+                    }
+                    const ret2 = await this.master.adjust(ret.file, { shouldBeAlpha: true, minWidth: 75, minHeight: 75 });
+                    await this.master.saveCacheExpiration(key, true)
+                    image.alpha = ret2.alpha
+                    if (!done?.alpha || this.hasPriority(done.image, image, images)) {
+                        done = ret2
+                        if (!done.key) done.key = key
+                        done.image = image
+                        done.url = this.master.url + done.key
+                        this.succeeded = true
+                        this.result = done
+                        results[image.icon] = 'OK'
+                        console.log('ICON EMIT', this.terms.join(','), done)
+                        this.emit('result', done)
+                    }
+                } catch (error) {
+                    // Capture all errors including timeouts, download failures, etc.
+                    const errorMessage = error.message || error.toString() || 'Unknown error';
+                    results[image.icon] = `error: ${errorMessage}`;
+                    
+                    if (this.master.opts.debug) {
+                        console.log('ICON ERROR:', image.icon, error);
+                    }
+                    
+                    // Add delay for rate limiting errors
+                    if (errorMessage.includes('429') || errorMessage.includes('Forbidden')) {
+                        await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000)); // 2-5s delay
+                    }
+                    
                     return false
-                }
-                if (this.master.opts.debug) {
-                    console.log('GOFETCH', image)
-                }
-                const ret = await this.master.fetchURL(image.icon);
-                const key = ret.key;
-                if (this.master.opts.debug) {
-                    console.log('GOFETCH', image, 'THEN', ret.file);
-                }
-                const type = await this.master.validateFile(ret.file);
-                if (type != 2) {
-                    results[image.icon] = 'not an alpha png'
-                    return false; // not an alpha png
-                }
-                if (done && !this.hasPriority(done.image, image, images)) {
-                    if (this.master.opts.debug) {
-                        console.warn('ICON ADJUSTING CANCELLED');
-                    }
-                    results[image.icon] = '** already found and processed another image for this channel'
-                    return false;
-                }
-                const ret2 = await this.master.adjust(ret.file, { shouldBeAlpha: true, minWidth: 75, minHeight: 75 });
-                await this.master.saveCacheExpiration(key, true)
-                image.alpha = ret2.alpha
-                if (!done || this.hasPriority(done.image, image, images)) {
-                    done = ret2
-                    if (!done.key) done.key = key
-                    done.image = image
-                    done.url = this.master.url + done.key
-                    this.succeeded = true
-                    this.result = done
-                    results[image.icon] = 'OK'
-                    this.emit('result', done)
                 }
             }
         }).map(limit);
@@ -97,14 +120,14 @@ class IconFetcher extends EventEmitter {
             let err;
             const ret = await this.master.fetchURL(this.entry.programme.i).catch(e => err = e);
             if (!err) {
-                return [ret.key, true, ret.isAlpha]
+                return [ret.key, true, ret.alpha]
             }
         }
         if (this.entry.icon) {
             let err;
             const ret = await this.master.fetchURL(this.entry.icon).catch(e => err = e);
             if (!err) {
-                return [ret.key, true, ret.isAlpha]
+                return [ret.key, true, ret.alpha]
             } else if(this.entry.iconFallback) {
                 this.emit('failed')
             }
@@ -149,10 +172,10 @@ class IconFetcher extends EventEmitter {
                 if (this.master.opts.debug) {
                     console.log('get > fetch', this.terms, ret);
                 }
-                if (this.master.listsLoaded()) {
+                if (ret.alpha && this.master.listsLoaded()) {
                     await this.master.saveDefaultFile(this.terms, ret.file);
                 }
-                return [ret.key, false, ret.isAlpha];
+                return [ret.key, false, ret.alpha];
             }
         }
         throw 'icon not found';
@@ -195,6 +218,15 @@ class Icon extends IconFetcher {
     }
     destroy() {
         this.destroyed = true;
+        
+        // Clear all references to help garbage collection
+        this.master = null;
+        this.entry = null;
+        this.result = null;
+        this.terms = null;
+        
+        // Remove all event listeners
+        this.removeAllListeners();
     }
 }
 export default Icon;

@@ -134,6 +134,38 @@ class ParentalControl extends EventEmitter {
                         multiline: true,
                         safe: true
                     });
+                    
+                    // Age rating control
+                    opts.push({
+                        name: lang.AGE_RATING_MAXIMUM,
+                        details: lang.AGE_RATING_DESCRIPTION,
+                        type: 'select',
+                        fa: 'fas fa-calendar-alt',
+                        safe: true,
+                        renderer: async () => {
+                            await this.auth();
+                            const currentAge = config.get('parental-control-age', 0);
+                            const options = [
+                                { name: lang.AGE_RATING_0_PLUS, value: 0, fa: 'fas fa-check-circle' },
+                                { name: lang.AGE_RATING_7_PLUS, value: 7, fa: 'fas fa-child' },
+                                { name: lang.AGE_RATING_12_PLUS, value: 12, fa: 'fas fa-user' },
+                                { name: lang.AGE_RATING_13_PLUS, value: 13, fa: 'fas fa-user-friends' },
+                                { name: lang.AGE_RATING_16_PLUS, value: 16, fa: 'fas fa-user-tie' },
+                                { name: lang.AGE_RATING_18_PLUS, value: 18, fa: 'fas fa-user-secret' }
+                            ].map(opt => ({
+                                ...opt,
+                                selected: currentAge === opt.value,
+                                type: 'action',
+                                action: async () => {
+                                    await this.auth();
+                                    config.set('parental-control-age', opt.value);
+                                    this.emit('updated');
+                                    osd.show('OK', 'fas fa-check-circle faclr-green', 'options', 'normal');
+                                }
+                            }));
+                            return options;
+                        }
+                    });
                 }
                 return opts;
             }
@@ -200,14 +232,27 @@ class ParentalControl extends EventEmitter {
         if (entry.type && !['group', 'stream'].includes(entry.type)) {
             return true;
         }
+        
+        // Enhanced parental control with age rating support
         let str, allow = true;
         str = entry.name;
         if (entry.group) {
             str += ' ' + entry.group;
         }
+        
+        // Check age rating first (highest priority)
+        if (entry.age !== undefined && entry.age > 0) {
+            const parentalControlAge = config.get('parental-control-age', 0);
+            if (entry.age > parentalControlAge) {
+                allow = false;
+            }
+        }
+        
+        // Check traditional terms-based blocking
         if (str && this.has(str)) {
             allow = false;
         }
+        
         return allow;
     }
     filter(entries, skipProtect) {

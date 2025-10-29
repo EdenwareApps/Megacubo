@@ -11,6 +11,7 @@ import cloud from "../cloud/cloud.js";
 import ytsr from 'ytsr'
 import config from "../config/config.js"
 import renderer from '../bridge/bridge.js'
+import { match, terms, sort, findSuggestions } from '../lists/tools.js';
 
 class SearchTermsHistory {
     constructor() {
@@ -24,14 +25,13 @@ class SearchTermsHistory {
         }
         return ret;
     }
-    add(terms) {
-        if (!Array.isArray(terms)) {
-            terms = lists.tools.terms(terms);
+    add(tms) {
+        if (Array.isArray(tms)) {
+            tms = tms.join(' ');
         }
         this.get().then(vs => {
-            let tms = terms.join('');
-            vs = vs.filter(v => v.join('') != tms).slice((this.maxlength - 1) * -1);
-            vs.push(terms);
+            vs = vs.filter(v => v != tms).slice((this.maxlength - 1) * -1);
+            vs.push(tms);
             storage.set(this.key, vs, { expiration: true });
         });
     }
@@ -53,6 +53,18 @@ class Search extends EventEmitter {
         this.currentSearch = null;
         this.currentEntries = null;
         this.currentResults = [];
+        this.resultsAmountLimit = 256;
+        
+        // Fase 2: Cache e configurações para sugestões
+        this.suggestionCache = new Map();
+        this.validTermsCache = new Map();
+        this.suggestionConfig = {
+            maxSuggestions: 3,
+            minSimilarityScore: 0.7,
+            maxDistance: 2,
+            enableSubstringSearch: true,
+            cacheSize: 1000
+        };
     }
     entriesLive() {
         if (this.currentSearchType != 'live') {
@@ -95,37 +107,147 @@ class Search extends EventEmitter {
             resolve(this.addFixedEntries(this.currentSearchType, []));
         });
     }
-    async go(value, mediaType) {
+    async go(value, mediaType, excludeUrls) {
         if (!value)
             return false;
         if (!mediaType) {
             mediaType = 'all';
         }
-        console.log('search-start', value);
+        
         osd.show(lang.SEARCHING, 'fas fa-search busy-x', 'search', 'persistent');
-        this.searchMediaType = mediaType;
-        let err;
-        const rs = await this[mediaType == 'live' ? 'channelsResults' : 'results'](value).catch(e => err = e);
-        osd.hide('search');
-        if (Array.isArray(rs)) {
-            console.log('results', rs.length);
-            if (!rs.length && mediaType == 'live') {
-                return this.go(value, 'all');
+        
+        let allResults = [];
+        let searchSources = [];
+        
+        try {
+            // Estratégia de busca em camadas para maximizar resultados
+            // Camada 1: Busca Live (sempre tentar primeiro)
+            console.log('🔍 Layer 1: Searching live channels...');
+            const liveResults = mediaType == 'live' ? await this.channelsResults(value).catch(e => {
+                console.warn('Live search failed:', e);
+                return [];
+            }) : [];
+            
+            if (liveResults.length > 0) {
+                allResults.push(...liveResults);
+                searchSources.push(`Live: ${liveResults.length}`);
+                console.log(`✅ Live results: ${liveResults.length}, Total: ${allResults.length}`);
             }
+            
+            // Continuar buscando até atingir o limite máximo
+            if (allResults.length < this.resultsAmountLimit && mediaType == 'live') {
+                console.log('🔍 Layer 2: Searching EPG...');
+                const epgResults = await this.channels.epgSearch(value).catch(e => {
+                    console.warn('EPG search failed:', e);
+                    return [];
+                });
+                
+                if (epgResults.length > 0) {
+                    // FP: Evitar duplicatas entre live e EPG
+                    const uniqueEpgResults = epgResults.filter(epgItem => 
+                        !allResults.some(existingItem => 
+                            existingItem.url === epgItem.url || existingItem.name === epgItem.name
+                        )
+                    );
+                    
+                    if (uniqueEpgResults.length > 0) {
+                        // Limitar resultados se exceder o máximo
+                        const remainingSlots = this.resultsAmountLimit - allResults.length;
+                        const limitedEpgResults = uniqueEpgResults.slice(0, remainingSlots);
+                        
+                        allResults.push(...limitedEpgResults);
+                        searchSources.push(`EPG: ${limitedEpgResults.length}`);
+                        console.log(`✅ EPG results: ${limitedEpgResults.length}, Total: ${allResults.length}`);
+                    }
+                }
+            }
+            
+            // Continuar buscando se ainda há espaço
+            if (allResults.length < this.resultsAmountLimit) {
+                console.log('🔍 Layer 3: Searching all content...');
+                const allResults_search = await this.results(value, { type: mediaType, group: mediaType === 'all' }, excludeUrls).catch(e => {
+                    console.warn('All search failed:', e);
+                    return [];
+                });
+                
+                if (allResults_search.length > 0) {
+                    // FP: Evitar duplicatas
+                    const uniqueAllResults = allResults_search.filter(allItem => 
+                        !allResults.some(existingItem => 
+                            existingItem.url === allItem.url || existingItem.name === allItem.name
+                        ) && 
+                        (!excludeUrls || !excludeUrls.has(allItem.url))
+                    );
+                    
+                    if (uniqueAllResults.length > 0) {
+                        // Limitar resultados se exceder o máximo
+                        const remainingSlots = this.resultsAmountLimit - allResults.length;
+                        const limitedAllResults = uniqueAllResults.slice(0, remainingSlots);
+                        
+                        allResults.push(...limitedAllResults);
+                        searchSources.push(`All: ${limitedAllResults.length}`);
+                        console.log(`✅ All results: ${limitedAllResults.length}, Total: ${allResults.length}`);
+                    }
+                }
+            }
+            
+            // Adicionar sugestões se ainda há espaço e poucos resultados
+            if (allResults.length < this.resultsAmountLimit && allResults.length < 20) {
+                console.log('🔍 Layer 4: Adding suggestions...');
+                const suggestions = await this.searchWithSuggestions(value, { mediaType }).catch(e => {
+                    console.warn('Suggestions failed:', e);
+                    return [];
+                });
+                
+                if (suggestions.length > 0) {
+                    // Limitar sugestões se exceder o máximo
+                    const remainingSlots = this.resultsAmountLimit - allResults.length;
+                    const limitedSuggestions = suggestions.slice(0, remainingSlots);
+                    
+                    allResults.push(...limitedSuggestions);
+                    searchSources.push(`Suggestions: ${limitedSuggestions.length}`);
+                    console.log(`✅ Suggestions: ${limitedSuggestions.length}, Total: ${allResults.length}`);
+                }
+            }
+            
+            // Finalizar busca
+            osd.hide('search');
+            
+            console.log(`🎯 Final results: ${allResults.length}/${this.resultsAmountLimit} (sources: ${searchSources.join(', ')})`);
+            
+            // Emitir evento de busca
             this.emit('search', { query: value });
+            
+            // Configurar menu se necessário
             if (!menu.path) {
-                menu.path = lang.SEARCH
+                menu.path = lang.SEARCH;
             }
-            const resultsCount = rs.length
-            menu.render(this.addFixedEntries(mediaType, rs), menu.path, {
+            
+            // Renderizar resultados
+            const resultsCount = allResults.length;
+            menu.render(this.addFixedEntries(mediaType, allResults, excludeUrls), menu.path, {
                 icon: 'fas fa-search',
                 backTo: '/'
-            })
-            osd.show(lang.X_RESULTS.format(resultsCount), 'fas fa-check-circle', 'search', 'normal');
-        } else {
+            });
+            
+            // Mostrar notificação de resultados
+            if (resultsCount > 0) {
+                osd.show(lang.X_RESULTS.format(resultsCount), 'fas fa-check-circle', 'search', 'short');
+            } else {
+                osd.show(lang.NO_RESULTS_FOUND, 'fas fa-info-circle', 'search', 'normal');
+            }
+            
+            // Adicionar ao histórico
+            this.history.add(value);
+            return true;
+            
+        } catch (err) {
+            // Erro na busca
+            console.error('Search error:', err);
+            osd.hide('search');
             menu.displayErr(err);
+            return false;
         }
-        this.history.add(value)
     }
     refresh() {
         if (this.currentSearch) {
@@ -154,7 +276,7 @@ class Search extends EventEmitter {
             },
             placeholder: lang.SEARCH_PLACEHOLDER
         });
-        if (this.currentSearch) {
+        if (this.currentSearch && es.length >= this.resultsAmountLimit) {
             if (mediaType == 'live') {
                 es.push({
                     name: lang.MORE_RESULTS,
@@ -162,48 +284,230 @@ class Search extends EventEmitter {
                     type: 'action',
                     fa: 'fas fa-search-plus',
                     action: async () => {
-                        const opts = [
-                            { template: 'question', text: lang.SEARCH_MORE, fa: 'fas fa-search-plus' },
-                            { template: 'option', text: lang.EPG, details: lang.LIVE, fa: 'fas fa-th', id: 'epg' },
-                            { template: 'option', text: lang.IPTV_LISTS, details: lang.CATEGORY_MOVIES_SERIES, fa: 'fas fa-list', id: 'lists' }
-                        ], def = 'epg';
-                        let ret = await menu.dialog(opts, def)
-                        if (ret == 'epg') {
-                            this.channels.epgSearch(this.currentSearch.name).then(entries => {
-                                entries.unshift(this.channels.epgSearchEntry())
-                                let path = menu.path.split('/').filter(s => s != lang.SEARCH).join('/')
-                                menu.render(entries, path + '/' + lang.SEARCH, {
-                                    icon: 'fas fa-search',
-                                    backTo: path
-                                })
-                                this.history.add(this.currentSearch.name)
-                            }).catch(e => menu.displayErr(e))
-                        } else {
-                            this.go(this.currentSearch.name, 'all')
-                        }
+                        this.go(this.currentSearch.name, 'all', new Set(es.map(e => e.url)))
                     }
                 });
             }
         }
         return es;
     }
-    async searchGroups(terms) {
-        const map = {}, entries = []        
-        const es = await this.search(terms, {groupsOnly: true})
-        es.forEach(e => {
-            if (typeof(map[e.source]) == 'undefined')
-                map[e.source] = {}
-            if (typeof(map[e.source][e.groupName]) == 'undefined')
-                map[e.source][e.groupName] = {}
-        })
-        Object.keys(map).forEach(url => {
-            Object.keys(map[url]).forEach(name => {
-                entries.push({ name, type: 'group', renderer: () => lists.group({group: name, url}) });
-            })
-        })
-        return lists.tools.sort(entries)
+    
+    // Fase 2: Métodos para cache e sugestões
+    async getValidTermsForList(listUrl) {
+        if (this.validTermsCache.has(listUrl)) {
+            return this.validTermsCache.get(listUrl);
+        }
+        
+        try {
+            const list = lists.lists[listUrl];
+            if (list && list.indexer && list.indexer.db) {
+                const nameTerms = list.indexer.db.indexManager.readColumnIndex('nameTerms');
+                const groupTerms = list.indexer.db.indexManager.readColumnIndex('groupTerms');
+                
+                // Combinar termos únicos
+                const allTerms = new Set([...nameTerms, ...groupTerms]);
+                this.validTermsCache.set(listUrl, allTerms);
+                
+                // Limitar cache se necessário
+                if (this.validTermsCache.size > this.suggestionConfig.cacheSize) {
+                    const firstKey = this.validTermsCache.keys().next().value;
+                    this.validTermsCache.delete(firstKey);
+                }
+                
+                return allTerms;
+            }
+        } catch (err) {
+            console.warn('Error getting valid terms for list:', err);
+        }
+        
+        return new Set();
     }
-    async search(terms, atts = {}) {        
+    
+    async getAllValidTerms() {
+        const allTerms = new Set();
+        
+        for (const [url, list] of Object.entries(lists.lists || {})) {
+            try {
+                const terms = await this.getValidTermsForList(url);
+                terms.forEach(term => allTerms.add(term));
+            } catch (err) {
+                console.warn('Error getting terms from list:', url, err);
+            }
+        }
+        
+        return allTerms;
+    }
+    
+    getCachedSuggestions(searchTerm) {
+        return this.suggestionCache.get(searchTerm.toLowerCase());
+    }
+    
+    setCachedSuggestions(searchTerm, suggestions) {
+        // Limitar tamanho do cache
+        if (this.suggestionCache.size >= this.suggestionConfig.cacheSize) {
+            const firstKey = this.suggestionCache.keys().next().value;
+            this.suggestionCache.delete(firstKey);
+        }
+        
+        this.suggestionCache.set(searchTerm.toLowerCase(), suggestions);
+    }
+    
+    async findSuggestionsForTerm(searchTerm) {
+        // Verificar cache primeiro
+        const cached = this.getCachedSuggestions(searchTerm);
+        if (cached) {
+            return cached;
+        }
+        
+        try {
+            const validTerms = await this.getAllValidTerms();
+            
+            // Estratégia 1: Buscar sugestões para a frase completa
+            let suggestions = findSuggestions(searchTerm, validTerms, this.suggestionConfig);
+            
+            // Estratégia 2: Se não encontrou sugestões para a frase completa,
+            // tentar corrigir palavras individuais na frase
+            if (suggestions.length === 0 && searchTerm.includes(' ')) {
+                suggestions = await this.findWordCorrectionSuggestions(searchTerm, validTerms);
+            }
+            
+            // Cache das sugestões
+            this.setCachedSuggestions(searchTerm, suggestions);
+            
+            return suggestions;
+        } catch (err) {
+            console.warn('Error finding suggestions:', err);
+            return [];
+        }
+    }
+    
+    async findWordCorrectionSuggestions(searchTerm, validTerms) {
+        const words = searchTerm.split(' ');
+        const suggestions = [];
+        
+        // Para cada palavra na busca, tentar encontrar correções
+        for (let i = 0; i < words.length; i++) {
+            const word = words[i];
+            
+            // Buscar sugestões para esta palavra específica
+            const wordSuggestions = findSuggestions(word, validTerms, {
+                ...this.suggestionConfig,
+                maxSuggestions: 3
+            });
+            
+            // Para cada sugestão de palavra, criar uma sugestão de frase completa
+            for (const wordSuggestion of wordSuggestions) {
+                const correctedWords = [...words];
+                correctedWords[i] = wordSuggestion.term;
+                const correctedPhrase = correctedWords.join(' ');
+                
+                // Verificar se a frase corrigida não é idêntica à original
+                if (correctedPhrase.toLowerCase() !== searchTerm.toLowerCase()) {
+                    suggestions.push({
+                        score: wordSuggestion.score * 0.8, // Penalizar ligeiramente por ser correção parcial
+                        term: correctedPhrase,
+                        distance: wordSuggestion.distance,
+                        originalWord: word,
+                        correctedWord: wordSuggestion.term
+                    });
+                }
+            }
+        }
+        
+        // Ordenar por score e remover duplicatas
+        const uniqueSuggestions = [];
+        const seenTerms = new Set();
+        
+        suggestions
+            .sort((a, b) => b.score - a.score)
+            .forEach(suggestion => {
+                if (!seenTerms.has(suggestion.term.toLowerCase())) {
+                    seenTerms.add(suggestion.term.toLowerCase());
+                    uniqueSuggestions.push(suggestion);
+                }
+            });
+        
+        return uniqueSuggestions.slice(0, this.suggestionConfig.maxSuggestions);
+    }
+    
+    async searchWithSuggestions(terms, options = {}) {
+        // 1. Tentar busca normal primeiro
+        let results = await this.search(terms, options);
+        
+        // 2. Se não encontrou resultados, buscar sugestões
+        if (results.length === 0) {
+            const suggestions = await this.findSuggestionsForTerm(terms);
+            
+            if (suggestions.length > 0) {
+                // 3. Adicionar entrada de sugestão principal
+                const mainSuggestion = suggestions[0];
+                const suggestionEntry = {
+                    name: lang.DID_YOU_MEAN.format(mainSuggestion.term),
+                    details: mainSuggestion.originalWord ? 
+                        `"${mainSuggestion.originalWord}" → "${mainSuggestion.correctedWord}"` : 
+                        `Score: ${(mainSuggestion.score * 100).toFixed(1)}%`,
+                    type: 'action',
+                    action: () => this.go(mainSuggestion.term, options.mediaType || this.searchMediaType),
+                    fa: 'fas fa-lightbulb',
+                    prepend: '<i class="fas fa-lightbulb"></i> '
+                };
+                
+                results.unshift(suggestionEntry);
+                
+                // 4. Adicionar outras sugestões se existirem
+                for (let i = 1; i < Math.min(suggestions.length, this.suggestionConfig.maxSuggestions); i++) {
+                    const suggestion = suggestions[i];
+                    results.push({
+                        name: lang.OR_MAYBE.format(suggestion.term),
+                        details: suggestion.originalWord ? 
+                            `"${suggestion.originalWord}" → "${suggestion.correctedWord}"` : 
+                            `Score: ${(suggestion.score * 100).toFixed(1)}%`,
+                        type: 'action',
+                        action: () => this.go(suggestion.term, options.mediaType || this.searchMediaType),
+                        fa: 'fas fa-lightbulb',
+                        prepend: '<i class="fas fa-lightbulb"></i> '
+                    });
+                }
+            } else {
+                // 5. Se não há sugestões, mostrar mensagem amigável
+                results.push({
+                    name: lang.NO_RESULTS_FOUND,
+                    details: lang.TRY_DIFFERENT_TERMS,
+                    type: 'info',
+                    fa: 'fas fa-info-circle',
+                    prepend: '<i class="fas fa-info-circle"></i> '
+                });
+            }
+        }
+        
+        return results;
+    }
+    
+    async searchGroups(tms) {
+        if (!Array.isArray(tms)) {
+            tms = terms(tms)
+        }
+        const map = {}, entries = []        
+        const es = await this.search(tms, {groupsOnly: true})
+        for (const e of es) {
+            if (!Array.isArray(e.groupTerms) || !e.groupTerms.length || !match(tms, e.groupTerms)) {
+                continue;
+            }
+            if (typeof(map[e.source]) == 'undefined') {
+                map[e.source] = {};
+            }
+            if (typeof(map[e.source][e.groupName]) == 'undefined') {
+                map[e.source][e.groupName] = {};
+            }
+        }
+        for (const url of Object.keys(map)) {
+            for (const name of Object.keys(map[url])) {
+                entries.push({ name, type: 'group', renderer: () => lists.group({group: name, url}) });
+            }
+        }
+        return sort(entries)
+    }
+    async search(terms, atts = {}, excludeUrls) {        
         const policy = config.get('parental-control');
         const parentalControlActive = ['remove', 'block'].includes(policy);
         const isAdultQueryBlocked = policy == 'remove' && !lists.parentalControl.allow(terms);
@@ -215,9 +519,18 @@ class Search extends EventEmitter {
             parentalControl: policy == 'remove' ? false : undefined // allow us to count blocked results
         };
         Object.assign(opts, atts);
+        if (typeof(opts.limit) != 'number') {
+            opts.limit = 256
+        }
+        if (excludeUrls) {
+            opts.limit += excludeUrls.size
+        }
         console.log('will search', terms, opts);
         let es = await lists.search(terms, opts);
-        console.log('has searched', terms, es.length, parentalControlActive, isAdultQueryBlocked);
+        console.log('has searched', es.length, {terms, parentalControlActive, isAdultQueryBlocked, excludeUrls});
+        if (excludeUrls) {
+            es = es.filter(e => !excludeUrls.has(e.url));
+        }
         if (isAdultQueryBlocked) {
             es = [
                 {
@@ -242,16 +555,17 @@ class Search extends EventEmitter {
                 es = lists.parentalControl.filter(es);
             }
         }
+        console.log('search: results finished', es);
         return es;
     }
-    async results(terms) {
+    async results(terms, opts = {}, excludeUrls) {
         let u = ucWords(terms);
         this.currentSearch = {
             name: u,
             url: mega.build(u, { terms, mediaType: this.searchMediaType })
         };
         
-        const es = await this.search(terms);
+        const es = await this.search(terms, opts, excludeUrls);
         renderer.ui.emit('current-search', terms, this.searchMediaType);
         if (!lists.loaded(true)) {
             if (paths.ALLOW_ADDING_LISTS) {
@@ -295,14 +609,14 @@ class Search extends EventEmitter {
             };
         });
     }
-    async ytLiveResults(tms) {        
-        if (!Array.isArray(tms)) {
-            tms = lists.tools.terms(tms)
+    async ytLiveResults($tms) {        
+        if (!Array.isArray($tms)) {
+            $tms = terms($tms)
         }
-        let terms = tms.join(' ');
-        terms += ' (' + lang.LIVE + ' OR 24h)'
-        console.warn('YTSEARCH', terms);
-        const filters = await ytsr.getFilters(terms);
+        let tms = $tms.join(' ');
+        tms += ' (' + lang.LIVE + ' OR 24h)'
+        console.warn('YTSEARCH', tms);
+        const filters = await ytsr.getFilters(tms);
         const filter = filters.get('Type').get('Video');
         const filters2 = await ytsr.getFilters(filter.url);
         const filter2 = filters2.get('Features').get('Live');
@@ -321,25 +635,25 @@ class Search extends EventEmitter {
         };
         const results = await ytsr(filter2.url, options);
         results.items = results.items.filter(t => {
-            let ytms = lists.tools.terms(t.title);
-            console.warn('YTSEARCH', tms, ytms);
-            return lists.tools.match(tms, ytms, true);
+            let ytms = terms(t.title);
+            console.warn('YTSEARCH', $tms, ytms);
+            return match(tms, ytms, true);
         });
-        return results.items.map(t => {
-            let icon = t.thumbnails ? t.thumbnails.sortByProp('width').shift().url : undefined;
-            return {
-                name: this.fixYTTitles(t.title),
-                icon,
-                type: 'stream',
-                url: t.url
-            };
-        });
+        return results.items.map(t => this.channels.toMetaEntry({
+            name: this.fixYTTitles(t.title),
+            icon: t.thumbnails ? t.thumbnails.sortByProp('width').shift().url : undefined,
+            type: 'stream',
+            url: t.url
+        }));
     }
-    async channelsResults(terms) {        
-        let u = ucWords(terms)
+    async channelsResults($terms) {        
+        if (!Array.isArray($terms)) {
+            $terms = terms($terms)
+        }
+        let u = ucWords($terms.join(' '))
         this.currentSearch = {
             name: u,
-            url: mega.build(u, { terms, mediaType: this.searchMediaType })
+            url: mega.build(u, { terms: $terms, mediaType: this.searchMediaType })
         }        
         if (!lists.loaded()) {
             return [
@@ -347,15 +661,15 @@ class Search extends EventEmitter {
             ]
         }
 
-        let es = await this.channels.searchChannels(terms, this.searchInaccurate)
+        let es = await this.channels.searchChannels($terms, this.searchInaccurate)
         es = es.map(e => this.channels.toMetaEntry(e))
 
-        const gs = await this.searchGroups(terms)
+        const gs = await this.searchGroups($terms)
         es.push(...gs)
 
         const minResultsWanted = 256
         if (config.get('search-youtube') && es.length < minResultsWanted) {
-            let ys = await this.ytLiveResults(terms).catch(err => console.error(err));
+            let ys = await this.ytLiveResults($terms).catch(err => console.error(err));
             if (Array.isArray(ys)) {
                 es.push(...ys.slice(0, minResultsWanted - es.length));
             }
@@ -385,7 +699,11 @@ class Search extends EventEmitter {
     }
     termsFromEntry(entry, precision, searchSugEntries) {
         return new Promise((resolve, reject) => {
-            let nlc = (entry.originalName || entry.name).toLowerCase();
+            let name = entry.originalName || entry.name;
+            if (typeof name !== 'string') {
+                return resolve(false);
+            }
+            let nlc = name.toLowerCase();
             if (Array.isArray(searchSugEntries)) {
                 resolve(this.matchTerms(nlc, precision, searchSugEntries));
             } else {
@@ -511,6 +829,7 @@ class Search extends EventEmitter {
     }
     entry(mediaType = 'live') {
         this.searchMediaType = mediaType;
+        /*
         return {
             name: lang.SEARCH,
             details: this.mediaTypeName(),
@@ -524,6 +843,17 @@ class Search extends EventEmitter {
                 return this.defaultTerms();
             },
             placeholder: lang.SEARCH_PLACEHOLDER
+        };
+        */
+        return {
+            name: lang.SEARCH,
+            details: this.mediaTypeName(),
+            type: 'action',
+            fa: 'fas fa-search',
+            action: (e, value) => {
+                console.log('new search', e, value, mediaType);                
+                renderer.ui.emit('omni-show');
+            }
         };
     }
     async hook(entries, path) {

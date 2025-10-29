@@ -149,14 +149,17 @@ export const initApp = async () => {
         var s = document.createElement('script')
         s.src = src
         s.async = true
-        document.querySelector('head, body').appendChild(s)
+        const target = document.querySelector('head, body')
+        if (target) target.appendChild(s)
     })
     main.on('call-js', content => {
         console.log('Call JS')
         const s = document.createElement('script'), b = document.querySelector('head, body')
         s.textContent = content
-        b.appendChild(s)
-        setTimeout(() => b.removeChild(s), 100)
+        if (b) {
+            b.appendChild(s)
+            setTimeout(() => b.removeChild(s), 100)
+        }
     })
     main.on('download', async (url, name) => {
         console.log('download', url, name)
@@ -176,7 +179,13 @@ export const initApp = async () => {
     main.on('fontlist', () => main.emit('fontlist', getFontList()))
     main.on('css', (css, id) => main.css(css, id))
     console.log('load app')
-    main.menu = menu = new Menu(document.querySelector('#menu'))
+    const menuElement = document.querySelector('#menu')
+    if (menuElement) {
+        main.menu = menu = new Menu(menuElement)
+    } else {
+        console.error('Menu element not found')
+        return
+    }
     main.on('sound', (n, v) => menu.sounds.play(n, v))
     menu.on('render', path => {   
         if(menu.lastNavPath !== path || menu.sideMenuPending) {
@@ -337,12 +346,19 @@ export const initApp = async () => {
     main.localEmit('menu-ready')
     main.emit('menu-ready')
     
-    document.querySelector('#menu-playing-close').addEventListener('click', () => {
-        menu.showWhilePlaying(false)
-    })
-    document.querySelector('div#arrow-down-hint i').addEventListener('click', () => {
-        menu.showWhilePlaying(true)
-    })
+    const menuCloseBtn = document.querySelector('#menu-playing-close')
+    if (menuCloseBtn) {
+        menuCloseBtn.addEventListener('click', () => {
+            menu.showWhilePlaying(false)
+        })
+    }
+    
+    const arrowHintBtn = document.querySelector('div#arrow-down-hint i')
+    if (arrowHintBtn) {
+        arrowHintBtn.addEventListener('click', () => {
+            menu.showWhilePlaying(true)
+        })
+    }
 
     main.omni = new OMNI()
     main.omni.on('show', () => menu.sideMenu(false, 'instant'))
@@ -361,15 +377,18 @@ export const initApp = async () => {
     })
 
     var toggle = document.querySelector('.side-menu-toggle')
-    if(window.capacitor) { // tapping
+    if(toggle && window.capacitor) { // tapping
         toggle.addEventListener('click', () => {
             menu.inSideMenu() || menu.dialogs.inDialog() || menu.sideMenu(true, 'smooth')
         })
         swipey.add(document.body, handleSwipe, { diagonal: false })
-    } else { // pc mouse hovering
+    } else if(toggle) { // pc mouse hovering
         toggle.addEventListener('mouseenter', () => {
             menu.inSideMenu() || menu.dialogs.inDialog() || menu.sideMenu(true)
         })
+    }
+    
+    if (wrap) {
         wrap.addEventListener('mouseenter', () => menu.sideMenu(false))
 
         let autoScrollInterval = 0, autoScrollDirection = 'down'
@@ -382,13 +401,15 @@ export const initApp = async () => {
             { direction: 'down'}
         ]) {
             const element = document.querySelector('#arrow-'+ o.direction)
-            element.addEventListener('mouseenter', () => {
-                element.addEventListener('mouseleave', autoScrollClearTimer)
-                autoScrollClearTimer()
-                autoScrollDirection = o.direction
-                autoScrollInterval = setInterval(autoScrollFn, 750)
-                autoScrollFn()
-            })
+            if (element) {
+                element.addEventListener('mouseenter', () => {
+                    element.addEventListener('mouseleave', autoScrollClearTimer)
+                    autoScrollClearTimer()
+                    autoScrollDirection = o.direction
+                    autoScrollInterval = setInterval(autoScrollFn, 750)
+                    autoScrollFn()
+                })
+            }
         }
     }
 

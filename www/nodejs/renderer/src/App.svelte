@@ -1,19 +1,29 @@
 <script>
+    import { onMount } from 'svelte';
     import DragDrop from './DragDrop.svelte'
     import Player from './Player.svelte'
     import Theme from './Theme.svelte'
     import Menu from './Menu.svelte'
     import Osd from './Osd.svelte'
+    
+    // Ensure DOM is ready before rendering components
+    let mounted = $state(false);
+    
+    onMount(() => {
+        mounted = true;
+    });
 </script>
 <svelte:head>
     <link rel="stylesheet" global href="./assets/css/all.min.css" />
     <link rel="stylesheet" global href="./assets/icons/icons.css" />
 </svelte:head>
 <Theme />
+{#if mounted}
 <Player />
 <Menu />
 <Osd />
 <DragDrop />
+{/if}
 <style global>
 :root {
     --font-size: 16px;

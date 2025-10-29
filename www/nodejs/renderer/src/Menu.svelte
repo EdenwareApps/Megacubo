@@ -11,6 +11,7 @@
 
     const transparentImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=';
 
+    // Initialize with safe defaults to prevent context issues
     let items = $state([]);
     let sideMenuItems = $state([]);
     let lang = $state({});
@@ -20,14 +21,17 @@
     let viewSize = $state({ x: 0, y: 0, size: 1 });
     let range = $state({start: 0, end: 0, renderStart: 0, renderEnd: 0});
     let isTop = $state(false);
-    let isBottom = $state(false);    
+    let isBottom = $state(false);
+
+    // $state variables are already initialized with default values    
     let container = $state(document.documentElement);
 
     let selectedIndex = $state(0);
+    
     let lastRange = null;
-    let spatialNavigation;
-    let virtualGrid;
-    let menubar;
+    let spatialNavigation = $state(null);
+    let virtualGrid = $state(null);
+    let menubar = $state(null);
     let dialog;
 
     function setupNavigation() {
@@ -40,17 +44,21 @@
                     '.menu-omni'
                 ],
                 condition: () => {
-                    return main.menu.isVisible() && !main.menu.inSideMenu() && !dialog.inDialog()
+                    return main?.menu?.isVisible?.() && !main?.menu?.inSideMenu?.() && !dialog?.inDialog?.()
                 },
                 default: true,
                 overScrollAction: (direction, e) => {
                     if (direction == 'up' || direction == 'down') {
-                        let playing = main.menu.inPlayer()
+                        let playing = main?.menu?.inPlayer?.()
                         if (!playing) {
-                            let n, i = main.menu.selectedIndex
-                            const x = main.menu.gridLayoutX, container = main.menu.scrollContainer
-                            const top = direction == 'up' ? 0 : container.scrollHeight - container.clientHeight
-                            container.scrollTop = top
+                            let n, i = main?.menu?.selectedIndex || 0
+                            const x = main?.menu?.gridLayoutX || 0, container = main?.menu?.scrollContainer
+                            // Ensure valid scrollTop calculation
+                            if (container) {
+                                const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
+                                const top = direction == 'up' ? 0 : maxScrollTop;
+                                container.scrollTop = top
+                            }
                             if (e) {
                                 let positionInRow = i, has2xEntry = items.slice(0, 2).some(item => item.class?.includes('entry-2x'))
                                 if (positionInRow >= x) {
@@ -94,14 +102,16 @@
                             if (typeof(n) !== 'number') {
                                 n = i
                             }
-                            main.menu.emit('focus-index', n)
-                            main.menu.emit('x-select', null)
+                            if (main?.menu?.emit) {
+                                main.menu.emit('focus-index', n)
+                                main.menu.emit('x-select', null)
+                            }
                             return true
                         } else if(direction == 'up') {
-                            main.menu.showWhilePlaying(false)
+                            main?.menu?.showWhilePlaying?.(false)
                         }
-                    } else if(direction == 'left' && !main.menu.inSideMenu() && !dialog.inDialog()) {
-                        main.menu.sideMenu(true)
+                    } else if(direction == 'left' && !main?.menu?.inSideMenu?.() && !dialog?.inDialog?.()) {
+                        main?.menu?.sideMenu?.(true)
                         return true
                     }
                 }
@@ -110,20 +120,20 @@
                 name: 'nav-menu',
                 selector: 'body.side-menu #menu nav a',
                 condition: () => {
-                    return main.menu.inSideMenu() && !dialog.inDialog() && main.menu.isVisible()
+                    return main?.menu?.inSideMenu?.() && !dialog?.inDialog?.() && main?.menu?.isVisible?.()
                 },
                 overScrollAction: (direction, e) => {
                     if (direction == 'up' || direction == 'down') {
-                        let playing = main.menu.inPlayer()
+                        let playing = main?.menu?.inPlayer?.()
                         if (!playing) {
-                            let n = [...main.menu.container.querySelectorAll('entry-nav')][direction == 'down' ? 'shift' : 'pop']()
+                            let n = main?.menu?.container ? [...main.menu.container.querySelectorAll('entry-nav')][direction == 'down' ? 'shift' : 'pop']() : null
                             spatialNavigation.focus(n)
                             return true
                         } else if(direction == 'up' || direction == 'left') {
-                            main.menu.showWhilePlaying(false)
+                            main?.menu?.showWhilePlaying?.(false)
                         }
                     } else if(direction == 'right') {
-                        main.menu.sideMenu(false)
+                        main?.menu?.sideMenu?.(false)
                         return true
                     }
                 }
@@ -152,26 +162,26 @@
                     'seekbar > div'
                 ],
                 condition: () => {
-                    return main.menu.inPlayer() && !dialog.inDialog() && !main.menu.isVisible()
+                    return main?.menu?.inPlayer?.() && !dialog?.inDialog?.() && !main?.menu?.isVisible?.()
                 },
                 overScrollAction: direction => {
                     if (direction == 'down') {
-                        if (main.idle.activeTime() > 1) { // was idle, ignore initial focus on player
-                            main.menu.showWhilePlaying(true)
+                        if (main?.idle?.activeTime?.() > 1) { // was idle, ignore initial focus on player
+                            main?.menu?.showWhilePlaying?.(true)
                         } else {
-                            main.menu.reset()                            
+                            main?.menu?.reset?.()                            
                         }
                     } else if (direction == 'up') {
-                        if (main.idle.activeTime() > 1) { // was idle, ignore initial focus on player
-                            if (main.streamer.seekbarFocus()) {
-                                main.menu.reset()
-                                main.idle.start()
-                                main.idle.lock(1)
+                        if (main?.idle?.activeTime?.() > 1) { // was idle, ignore initial focus on player
+                            if (main?.streamer?.seekbarFocus?.()) {
+                                main?.menu?.reset?.()
+                                main?.idle?.start?.()
+                                main?.idle?.lock?.(1)
                             } else {
-                                main.streamer.seekbarFocus(true)
+                                main?.streamer?.seekbarFocus?.(true)
                             }
                         } else {
-                            main.menu.reset()
+                            main?.menu?.reset?.()
                         }
                     }
                     return true
@@ -181,31 +191,35 @@
     }
 
     function focusElement(element) {
-        if (main.menu.sideMenuTransitioning) return
+        if (main?.menu?.sideMenuTransitioning) return
         spatialNavigation.focus(element)
     }
 
     function itemFocusCallback({ index, element }) {
         if (selectedIndex == index) return;
         selectedIndex = index;
-        main.menu.selectedElement = element;
-        main.menu.selectedElementX = element;
-        main.menu.selectedIndex = index;
-        main.menu.emit('select', element);
+        if (main?.menu) {
+            main.menu.selectedElement = element;
+            main.menu.selectedElementX = element;
+            main.menu.selectedIndex = index;
+            main.menu.emit('select', element);
+        }
         menubar.setIndex(index);
     }
 
     function itemXFocusCallback({ index, element }) {
-        main.menu.selectedElementX = element;
-        main.menu.emit('x-select', element);
+        if (main?.menu) {
+            main.menu.selectedElementX = element;
+            main.menu.emit('x-select', element);
+        }
     }
 
     function itemNavigateCallback(element) {
-        if (element) {
-            const key = main.menu.getKey(element);
+        if (element && main?.menu) {
+            const key = main.menu.getKey?.(element);
             if (key == main.menu.lastSelectedKey) return;
             main.menu.lastSelectedKey = key;
-            main.menu.sounds.play('click-in', {volume: 30})
+            main.menu.sounds?.play?.('click-in', {volume: 30})
         }
     }
 
@@ -277,6 +291,7 @@
     document.body.appendChild(itemReference);
 
     function itemWidth(row, index) {
+        if (!itemReference || !itemReference.offsetWidth) return 100; // fallback
         if (!row) return itemReference.offsetWidth;
         if (row?.class?.includes('entry-2x') && window.innerWidth > window.innerHeight) {
             return itemReference.offsetWidth * 2;
@@ -285,6 +300,7 @@
     }
 
     function itemHeight(row, index) {
+        if (!itemReference || !itemReference.offsetHeight) return 100; // fallback
         if (!row) return itemReference.offsetHeight;
         if (row?.class?.includes('entry-2x') && window.innerWidth < window.innerHeight) {
             return itemReference.offsetHeight * 2;
@@ -306,45 +322,63 @@
                     const {selectedIndex, scrollTop} = spatialNavigation.reset()
                     if (spatialNavigation.inDefaultLayout()) {
                         await virtualGrid.scrollToIndex(selectedIndex)
-                        main.menu.scrollContainer.scrollTop = scrollTop
+                        // Ensure scrollTop is valid before setting it
+                        const validScrollTop = isFinite(scrollTop) && scrollTop >= 0 ? scrollTop : 0;
+                        if (main?.menu?.scrollContainer) {
+                            main.menu.scrollContainer.scrollTop = validScrollTop
+                        }
                     }
                     spatialNavigation.focusIndex(selectedIndex)
                 }
-                main.menu.navigation = spatialNavigation;
-                main.menu.dialogs = dialog;
-                main.menu.on('reset', reset);
-                main.menu.on('navigate', reset);
-                main.menu.on('updated', () => {
-                    lastRange = null;
-                    path = main.menu.path;
-                    icons = main.menu.icons;
-                    items = main.menu.currentEntries;
-                    if (!main.menu.path) {
-                        sideMenuItems = main.menu.currentEntries.filter(e => e.side);
-                    }
-                    updateEntry2x();
-                    refresh();
-                });
-                main.menu.on('arrow', (direction, notCyclic) => {
-                    spatialNavigation.navigate(direction, notCyclic)
-                });
-                main.menu.on('focus-index', async index => {
-                    await virtualGrid.scrollToIndex(index)
-                    spatialNavigation.focusIndex(index)
-                });
-                main.menu.on('focus', element => {
-                    spatialNavigation.focus(element)
-                });
-                container = main.menu.scrollContainer;
+                if (main?.menu) {
+                    main.menu.navigation = spatialNavigation;
+                    main.menu.dialogs = dialog;
+                    main.menu.on('reset', reset);
+                    main.menu.on('navigate', reset);
+                    main.menu.on('updated', () => {
+                        console.log('📨 Menu.svelte: Received updated event from main.menu:', {
+                            path: main?.menu?.path,
+                            iconsLength: main?.menu?.icons ? Object.keys(main.menu.icons).length : 0,
+                            currentEntriesLength: main?.menu?.currentEntries?.length,
+                            currentEntriesType: typeof main?.menu?.currentEntries
+                        });
+                        lastRange = null;
+                        path = main.menu.path;
+                        icons = main.menu.icons;
+                        items = main.menu.currentEntries;
+                        console.log('📋 Menu.svelte: Updated items:', items?.slice(0, 3));
+                        if (!main.menu.path) {
+                            sideMenuItems = main.menu.currentEntries.filter(e => e.side);
+                        }
+                        updateEntry2x();
+                        refresh();
+                    });
+                    main.menu.on('arrow', (direction, notCyclic) => {
+                        spatialNavigation.navigate(direction, notCyclic)
+                    });
+                    main.menu.on('focus-index', async index => {
+                        await virtualGrid.scrollToIndex(index)
+                        spatialNavigation.focusIndex(index)
+                    });
+                    main.menu.on('focus', element => {
+                        spatialNavigation.focus(element)
+                    });
+                    container = main.menu.scrollContainer;
+                }
                 setupNavigation();
             });
         });
     });
 
     $effect(() => {
-        if (!lastRange || lastRange.start != range.start || lastRange.end != range.end) {
-            lastRange = {start: range.start, end: range.end};
-            main.emit('menu-update-range', lastRange, main.menu?.path)
+        if (range && typeof range.start === 'number' && typeof range.end === 'number') {
+            if (!lastRange || lastRange.start != range.start || lastRange.end != range.end) {
+                lastRange = {start: range.start, end: range.end};
+                console.log('🔍 Menu: lastRange', {range, lastRange})
+                if (main && main.menu) {
+                    main.emit('menu-update-range', lastRange, main.menu.path)
+                }
+            }
         }
     });
 </script>
@@ -388,8 +422,8 @@
             </nav>
         </div>
         <div class="content-out">
-            <content role="region" onmouseenter={() => main.menu.sideMenu(false)}>
-                <VirtualGrid width="var(--menu-width)" height="var(--menu-height)" items={items} let:item itemWidth={itemWidth} itemHeight={itemHeight} bind:this={virtualGrid} bind:range bind:isTop bind:isBottom bind:refresh>
+            <content role="region" onmouseenter={() => main?.menu?.sideMenu(false)}>
+                <VirtualGrid width="var(--menu-width)" height="var(--menu-height)" items={items || []} let:item itemWidth={itemWidth} itemHeight={itemHeight} bind:this={virtualGrid} bind:range bind:isTop bind:isBottom bind:refresh>
                     {#snippet children(item)}
                     <a href="{item.url}" tabindex="{item.tabindex}" class="{item.class} {selectedIndex == item.tabindex ? 'selected' : ''}" title="{item.name}" aria-label="{item.name}" 
                         data-type="{item.type}" data-path="{item.path}" key="{item.key}"  draggable="false" 
@@ -398,7 +432,7 @@
                         style="order: {item.tabindex};" onmouseenter={(event) => focusElement(event.target)}
                         >
                         <span class="{item.wrapperClass}">
-                            {#if item.cover}
+                            {#if item.cover && icons && icons[item.path] && icons[item.path].url}
                                 <div class="entry-cover-container" aria-hidden="true">
                                     <img src="{icons[item.path].url}" alt="" draggable="false" />
                                 </div>
@@ -411,13 +445,13 @@
                                         {@html item.rawname||item.name}
                                     </span>
                                 </span>
-                                <span class="entry-details">{@html [item.details, main.menu.maskValue(item.value, item.mask)].filter(v => v).join(' &middot; ')}</span>
+                                <span class="entry-details">{@html [item.details, main?.menu?.maskValue?.(item.value, item.mask)].filter(v => v).join(' &middot; ')}</span>
                             </span>
                             <span class="entry-icon-image">
-                                {#if (!icons[item.path] || item.type == 'back' || icons[item.path].url.startsWith('fa'))}
+                                {#if (!icons || !icons[item.path] || item.type == 'back' || (icons[item.path].url && icons[item.path].url.startsWith('fa')))}
                                     <i class="{item.fa}" style="{item.faStyle||''}" aria-hidden="true"></i>
                                 {:else}
-                                    {#if !item.cover}
+                                    {#if !item.cover && icons && icons[item.path] && icons[item.path].url}
                                         <img src="{transparentImage}" draggable="false" alt="" style="background-image: url({icons[item.path].url})" aria-hidden="true" />
                                     {/if}
                                 {/if}
@@ -438,7 +472,9 @@
                     </span>
                 </div>
             </div>
-            <Menubar path={path} icons={icons} bind:this={menubar}></Menubar>
+            {#if path !== undefined && icons !== undefined}
+            <Menubar path={path || ''} icons={icons || {}} bind:this={menubar}></Menubar>
+            {/if}
             <SpatialNavigation 
                 debug={false} container={container} bind:this={spatialNavigation} bind:path 
                 onFocus={itemFocusCallback} onXFocus={itemXFocusCallback} onNavigate={itemNavigateCallback} 
@@ -562,11 +598,17 @@ body.video:not(.menu-playing) .side-menu-out {
     flex-basis: 100%;
     clear: both;
 }
+body.omni div#background {
+	background: var(--shadow-background-color) !important;
+}
+body.omni content {
+    opacity: var(--opacity-level-2);    
+}
 #menu .menu-omni {
     position: fixed;
     left: var(--nav-width);
-    top: 0;
-    background: linear-gradient(to bottom, transparent 0%, var(--background-color) 2%, var(--background-color) 70%, transparent 100%);
+    top: -30vh;
+    background: linear-gradient(to bottom, var(--background-color) -50%, var(--background-color) 36%, var(--shadow-background-color) 77.5%, transparent 100%);
     width: 100%;
     z-index: 2;
     justify-content: center;
@@ -577,12 +619,16 @@ body.video:not(.menu-playing) .side-menu-out {
     align-items: center;
     color: var(--font-color);
     font-size: var(--menu-entry-name-font-size);
+    transition: top 0.15s ease-in 0s;
+}
+body.omni .menu-omni {
+    top: 0 !important;
 }
 body.side-menu #menu .menu-omni {
     left: 0;
 }
 body.video.menu-playing #menu .menu-omni {
-    visibility: visible !important;
+    background: linear-gradient(to bottom, var(--shadow-background-color) -50%, #000 37%, var(--shadow-background-color) 77.5%, transparent 100%) !important;
 }
 #menu .menu-omni > span {
     background: linear-gradient(to bottom, rgba(255,255,255, 1) 0%, rgba(255,255,255, 0.5) 100%);

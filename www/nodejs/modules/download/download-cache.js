@@ -165,7 +165,9 @@ class DownloadCacheMap extends EventEmitter {
             }
             const headers = downloader.responseHeaders ? Object.assign({}, downloader.responseHeaders) : {};
             const chunks = new DownloadCacheChunks(url);
-            chunks.on('error', err => console.error('DownloadCacheChunks error: '+ err));
+            chunks.on('error', err => {
+                // console.error('DownloadCacheChunks error: '+ err)
+            });
             if (headers['content-encoding']) {
                 delete headers['content-encoding']; // already uncompressed
                 if (headers['content-length']) {
@@ -204,7 +206,14 @@ class DownloadCacheMap extends EventEmitter {
                         delete this.saving[url];
                     } else if (downloader.statusCode < 200 || downloader.statusCode > 400 || (downloader.errors.length && !downloader.received)) {
                         const err = 'Bad download. Status: ' + downloader.statusCode + ', received: ' + chunks.size;
-                        console.warn(err);
+                        /*
+                        console.warn('DownloadCacheChunks validation failed:', {
+                            statusCode: downloader.statusCode,
+                            received: chunks.size,
+                            errors: downloader.errors.length,
+                            url: url
+                        });
+                        */
                         chunks.fail(err);
                         delete this.saving[url];
                     } else {
@@ -216,7 +225,7 @@ class DownloadCacheMap extends EventEmitter {
                                 headers: this.saving[url].headers,
                                 compress: true,
                                 size
-                            }, { expiration: true });
+                            }, { ttl: 24 * 60 * 60 });
                             storage.touch(this.saving[url].uid, {
                                 raw: true,
                                 size,

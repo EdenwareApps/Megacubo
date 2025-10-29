@@ -228,9 +228,10 @@ export const isMPEGTSFromInfo = info => {
     }
 
     if (['ts', 'mts', 'm2ts'].includes(info.ext) && (!info.contentType || !info.contentType.includes('video/mp4'))) {
-        if (info.sample) {
+        if (info.sample && info.sample.length > 0) {
             return isPacketized(info.sample) ? mediaTypeFromInfo(info) : false
         }
+        // If sample is empty but we have a .ts extension and no conflicting content-type, assume it's MPEG-TS
         return mediaTypeFromInfo(info)
     }
 

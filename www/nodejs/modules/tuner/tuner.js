@@ -238,6 +238,10 @@ class TunerTask extends TunerUtils {
                 this.emit('abort');
             }
             this.finish();
+            
+            // Clear references to help garbage collection
+            this.entries = null;
+            this.results = null;
         }
     }
     finish() {
@@ -259,6 +263,11 @@ class TunerTask extends TunerUtils {
             this.emit('destroy');
             this.abort();
             this.removeAllListeners();
+            
+            // Clear all references to help garbage collection
+            this.entries = null;
+            this.results = null;
+            this.opts = null;
         }
     }
 }

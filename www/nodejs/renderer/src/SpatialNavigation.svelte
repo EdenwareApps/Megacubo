@@ -31,9 +31,17 @@
     if (!state.selectionMemory[currentPath]) {
       state.selectionMemory[currentPath] = {};
     }
+    
+    // Ensure scrollTop is always a valid number
+    let scrollTopValue = container.scrollTop;
+    if (!isFinite(scrollTopValue) || scrollTopValue < 0) {
+      console.warn('Invalid scrollTop in saveSelectionMemory:', scrollTopValue, 'using 0');
+      scrollTopValue = 0;
+    }
+    
     state.selectionMemory[currentPath][currentLayout] = {
       selectedIndex: state.selectedIndex,
-      scrollTop: container.scrollTop,
+      scrollTop: scrollTopValue,
     };
   }
 
@@ -48,9 +56,18 @@
   }
 
   function selector(s, ignoreViewport) {
-    return [...document.querySelectorAll(s)].filter((e) =>
-      isVisible(e, ignoreViewport),
-    );
+    if (!s || typeof s !== 'string') {
+      console.warn('SpatialNavigation: Invalid selector', s);
+      return [];
+    }
+    try {
+      return [...document.querySelectorAll(s)].filter((e) =>
+        isVisible(e, ignoreViewport),
+      );
+    } catch (error) {
+      console.warn('SpatialNavigation: Error querying selector', s, error);
+      return [];
+    }
   }
 
   function isVisible(element, ignoreViewport) {
@@ -73,14 +90,18 @@
 
   function updateSelectedElementClasses(element) {
     if (element && element.classList) {
-      document
-        .querySelectorAll("." + state.className)
-        .forEach((e) => e.classList.remove(state.className));
-      document
-        .querySelectorAll("." + state.parentClassName)
-        .forEach((e) => e.classList.remove(state.parentClassName));
-      element.classList.add(state.className);
-      element.parentNode?.classList?.add(state.parentClassName);
+      try {
+        document
+          .querySelectorAll("." + state.className)
+          .forEach((e) => e.classList.remove(state.className));
+        document
+          .querySelectorAll("." + state.parentClassName)
+          .forEach((e) => e.classList.remove(state.parentClassName));
+        element.classList.add(state.className);
+        element.parentNode?.classList?.add(state.parentClassName);
+      } catch (error) {
+        console.warn('SpatialNavigation: Error updating element classes', error);
+      }
     }
   }
 
@@ -106,6 +127,8 @@
 
   export function focus(element, preventScroll, animate) {
     if (!element) return;
+    const layout = activeLayout();
+    const isDefault = layout.name === "default";
     if (
       element.classList.contains(state.className) &&
       isDefault &&
@@ -113,8 +136,6 @@
     )
       return;
     let emit = true;
-    const layout = activeLayout();
-    const isDefault = layout.name === "default";
     updateSelectedElementClasses(element);
     const index = element.tabIndex;
     if (index !== -1) {

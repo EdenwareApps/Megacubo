@@ -7,7 +7,10 @@ class BridgeClient extends EventEmitter {
         super()
 		this.css = css
 		this.config = {}
-		this.lang = {}
+		this.lang = {
+			locale: 'en',
+			countryCode: 'US'
+		}
 		this.isReady = {renderer: false, main: false}
 		this.localEmit = (...args) => {
 			try {
