@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events'
-import { time } from '../utils/utils.js'
+import { time } from '../../utils/utils.js'
 import fs from 'node:fs/promises'
 
 // Use the safe wrapper instead of log directly
@@ -8,6 +8,7 @@ import { ParserFactory } from './parser/ParserFactory.js'
 import { CacheManager } from './cache/CacheManager.js'
 import { MemoryMonitor } from './memory/MemoryMonitor.js'
 import { EPG_CONFIG } from './config.js'
+import storage from '../../storage/storage.js'
 
 export class EPGUpdater extends EventEmitter {
   constructor(url, dependencies = {}) {
@@ -41,7 +42,15 @@ export class EPGUpdater extends EventEmitter {
     this._termsMap = new Map()
 
     // Configuration properties
-    this.debug = false
+    const envDebugValue = (typeof process !== 'undefined' ? process?.env?.MEGACUBO_EPG_DEBUG : undefined)
+    if (dependencies.debug !== undefined) {
+      this.debug = Boolean(dependencies.debug)
+    } else if (typeof envDebugValue === 'string') {
+      const normalized = envDebugValue.trim().toLowerCase()
+      this.debug = normalized !== '' && normalized !== '0' && normalized !== 'false' && normalized !== 'off'
+    } else {
+      this.debug = false
+    }
     this.errorCount = 0
     this.errorCountLimit = EPG_CONFIG.network.errorCountLimit
     this.acceptRanges = false
@@ -83,6 +92,59 @@ export class EPGUpdater extends EventEmitter {
     this.memoryMonitor.startMonitoring()
   }
 
+  setDebug(enabled) {
+    this.debug = Boolean(enabled)
+  }
+
+  debugLog(...args) {
+    if (!this.debug) {
+      return
+    }
+
+    try {
+      if (args.length === 1) {
+        globalThis.console.log(args[0])
+      } else {
+        globalThis.console.log(...args)
+      }
+    } catch {
+      // Ignore logging failures
+    }
+  }
+
+  async registerStorageArtifacts(ttlSeconds) {
+    const files = []
+
+    if (this.file) {
+      files.push(this.file, this.file.replace(/\.jdb$/i, '.idx.jdb'))
+    }
+    if (this.metaFile) {
+      files.push(this.metaFile, this.metaFile.replace(/\.jdb$/i, '.idx.jdb'))
+    }
+
+    for (const filePath of files) {
+      if (!filePath) {
+        continue
+      }
+
+      try {
+        await fs.access(filePath)
+      } catch {
+        continue
+      }
+
+      try {
+        await storage.registerFile(filePath, {
+          ttl: ttlSeconds,
+          size: 'auto',
+          raw: true
+        })
+      } catch (err) {
+        console.warn('Failed to register storage artifact:', filePath, err?.message || err)
+      }
+    }
+  }
+
   // Getters and setters for state management
   get isUpdating() { return this._state.updating }
   set isUpdating(value) { this._state.updating = value }
@@ -116,12 +178,14 @@ export class EPGUpdater extends EventEmitter {
     // CRITICAL: Remove .jdb extension before adding .tmp.jdb to avoid double .jdb
     const basePath = this.file.endsWith('.jdb') ? this.file.slice(0, -4) : this.file
     const tempPath = basePath + '.tmp.jdb'
+    this.debugLog(`Creating temporary programme database at: ${tempPath}`)
     const db = this.databaseFactory.createProgrammeDB(tempPath, {}, true)
+    this.debugLog(`Temporary programme database created: ${!!db}`)
 
     // CRITICAL: Initialize database before any operations
     try {
       await db.init()
-      // Temporary programme database initialized
+      this.debugLog('Temporary programme database initialized successfully')
     } catch (initErr) {
       console.error('Failed to initialize temporary programme database:', initErr.message)
       throw initErr
@@ -134,14 +198,14 @@ export class EPGUpdater extends EventEmitter {
     // CRITICAL: Remove .jdb extension before adding .tmp.jdb to avoid double .jdb
     const basePath = this.metaFile.endsWith('.jdb') ? this.metaFile.slice(0, -4) : this.metaFile
     const tempPath = basePath + '.tmp.jdb'
-    console.log(`Creating temporary metadata database at: ${tempPath}`)
+    this.debugLog(`Creating temporary metadata database at: ${tempPath}`)
     const db = this.databaseFactory.createMetadataDB(tempPath, {}, true)
-    console.log(`Temporary metadata database created: ${!!db}`)
+    this.debugLog(`Temporary metadata database created: ${!!db}`)
 
     // CRITICAL: Initialize database before any operations
     try {
       await db.init()
-      console.log('Temporary metadata database initialized')
+      this.debugLog('Temporary metadata database initialized')
     } catch (initErr) {
       console.error('Failed to initialize temporary metadata database:', initErr.message)
       throw initErr
@@ -152,8 +216,15 @@ export class EPGUpdater extends EventEmitter {
 
   async ensureMDB() {
     if (!this.mdb) {
-      console.error('Metadata DB not initialized')
+      // Don't log - this error will be handled by callers
       throw new Error('Metadata DB not initialized')
+    }
+
+    // Handle cases where the metadata DB was closed after initialization
+    // (e.g., due to memory pressure or explicit close operations)
+    if (this.mdb.closed) {
+      this.debugLog('Metadata DB is closed, resetting init state to allow reopen...')
+      this._state.mdbInit = false
     }
 
     // FIXED: Add protection against multiple concurrent initializations
@@ -163,7 +234,7 @@ export class EPGUpdater extends EventEmitter {
 
     // FIXED: Add mutex to prevent concurrent initialization
     if (this._state.mdbInitializing) {
-      console.log('Metadata DB initialization already in progress, waiting...')
+      this.debugLog('Metadata DB initialization already in progress, waiting...')
       // Wait for ongoing initialization to complete
       while (this._state.mdbInitializing && !this._state.mdbInit) {
         await new Promise(resolve => setTimeout(resolve, 10))
@@ -174,7 +245,7 @@ export class EPGUpdater extends EventEmitter {
     this._state.mdbInitializing = true
 
     try {
-      console.log('Initializing metadata DB...')
+      this.debugLog('Initializing metadata DB...')
       await this.databaseFactory.initializeDB(this.mdb)
 
       // Validate database after initialization
@@ -185,35 +256,35 @@ export class EPGUpdater extends EventEmitter {
       }
 
       this._state.mdbInit = true
-      console.log('Metadata DB initialized successfully')
-      console.log(`Metadata DB length: ${this.mdb.length}`)
+      this.debugLog('Metadata DB initialized successfully')
+      this.debugLog(`Metadata DB length: ${this.mdb.length}`)
     } catch (err) {
-        console.error('Error initializing metadata DB:', err)
+      console.error('Error initializing metadata DB:', err)
 
-        // If initialization fails due to corruption, try to recover
-        if (err.message.includes('Corrupted database') || err.message.includes('out of range')) {
-          console.log('Attempting database recovery...')
-          try {
-            await this.recoverMetadataDB()
-            // Try initialization again after recovery
-            await this.databaseFactory.initializeDB(this.mdb)
-            this._state.mdbInit = true
-            console.log('Metadata DB recovered and initialized successfully')
-          } catch (recoveryErr) {
-            console.error('Database recovery failed:', recoveryErr.message)
-            throw err // Re-throw original error if recovery fails
-          }
-        } else {
-          throw err
+      // If initialization fails due to corruption, try to recover
+      if (err.message.includes('Corrupted database') || err.message.includes('out of range')) {
+        this.debugLog('Attempting database recovery...')
+        try {
+          await this.recoverMetadataDB()
+          // Try initialization again after recovery
+          await this.databaseFactory.initializeDB(this.mdb)
+          this._state.mdbInit = true
+          this.debugLog('Metadata DB recovered and initialized successfully')
+        } catch (recoveryErr) {
+          console.error('Database recovery failed:', recoveryErr.message)
+          throw err // Re-throw original error if recovery fails
         }
-      } finally {
-        // FIXED: Always clear the initialization flag
-        this._state.mdbInitializing = false
+      } else {
+        throw err
       }
+    } finally {
+      // FIXED: Always clear the initialization flag
+      this._state.mdbInitializing = false
+    }
   }
 
   async recoverMetadataDB() {
-    console.log('Starting metadata DB recovery...')
+    this.debugLog('Starting metadata DB recovery...')
 
     try {
       // Destroy the corrupted database
@@ -235,10 +306,10 @@ export class EPGUpdater extends EventEmitter {
         throw new Error('No metadata path available for recovery')
       }
 
-      console.log('Recreating metadata DB at:', this.metaFile)
+      this.debugLog('Recreating metadata DB at:', this.metaFile)
       this.mdb = this.createMetadataDatabase(true) // clear: true
 
-      console.log('Metadata DB recovery completed')
+      this.debugLog('Metadata DB recovery completed')
 
     } catch (err) {
       console.error('Metadata DB recovery failed:', err.message)
@@ -247,7 +318,7 @@ export class EPGUpdater extends EventEmitter {
   }
 
   async reinitializeMetadataDB() {
-    console.log('Reinitializing metadata database...')
+    this.debugLog('Reinitializing metadata database...')
 
     try {
       // Reset state
@@ -270,7 +341,7 @@ export class EPGUpdater extends EventEmitter {
       await this.databaseFactory.initializeDB(this.mdb)
       this._state.mdbInit = true
 
-      console.log('Metadata database reinitialized successfully')
+      this.debugLog('Metadata database reinitialized successfully')
 
     } catch (err) {
       console.error('Failed to reinitialize metadata database:', err.message)
@@ -285,28 +356,58 @@ export class EPGUpdater extends EventEmitter {
 
     // Check if EPG is being destroyed or finalization is in progress
     if (this._state.destroyed || this._state.finalizationInProgress) {
-      console.log(`EPG destroyed or finalization started during channel processing, skipping upsert for: ${id} (destroyed: ${this._state.destroyed}, finalizing: ${this._state.finalizationInProgress})`)
+      this.debugLog(`EPG destroyed or finalization started during channel processing, skipping upsert for: ${id} (destroyed: ${this._state.destroyed}, finalizing: ${this._state.finalizationInProgress})`)
       return
     }
 
     try {
-      // Check cache first to avoid processing already processed channels
-      if (this.cacheManager.hasChannel(id)) {
-        return // Already processed this channel
+      // Normalize incoming data
+      const incomingName = String(name || '').trim()
+      const cachedChannel = this.cacheManager.getChannel(id)
+
+      // Determine if we should update existing cache entry
+      const shouldUpdateExisting = (() => {
+        if (!cachedChannel || !cachedChannel.name) {
+          return true
+        }
+
+        const cachedName = String(cachedChannel.name).trim()
+        if (!incomingName || incomingName === cachedName) {
+          return false
+        }
+
+        const incomingLooksBetter =
+          incomingName.length >= 2 &&
+          /[a-z]/i.test(incomingName) &&
+          (cachedName === id || !/[a-z]/i.test(cachedName) || incomingName.length > cachedName.length)
+
+        return incomingLooksBetter
+      })()
+
+      if (!shouldUpdateExisting) {
+        return
       }
 
       // Store channel in memory map instead of immediate DB operation
-      const channelData = { _type: 'channel', id, name, _created: time() }
+      const channelData = { _type: 'channel', id, name: incomingName, _created: time() }
       if (icon) channelData.icon = icon
 
       this._channelMap.set(id, channelData)
 
+      // Warn if _channelMap is growing too large (potential OOM risk)
+      const MAX_MAP_SIZE_WARN = 10000
+      if (this._channelMap.size >= MAX_MAP_SIZE_WARN) {
+        console.warn(`⚠️ [OOM Risk] _channelMap size is very large: ${this._channelMap.size} entries (EPG: ${this.url}, batch save may be needed)`)
+      } else if (this._channelMap.size >= MAX_MAP_SIZE_WARN * 0.8) {
+        console.warn(`⚠️ [Memory Warning] _channelMap size is high: ${this._channelMap.size} entries (EPG: ${this.url}, approaching limit)`)
+      }
+
       // Update cache
-      this.cacheManager.setChannel(id, { name, icon })
+      this.cacheManager.setChannel(id, { name: incomingName, icon })
 
       // Debug logging disabled to reduce verbosity
       // if (this._channelMap.size % 500 === 0) {
-      //   console.log(`Added channel ${id} to memory map (total: ${this._channelMap.size})`)
+      //   this.debugLog(`Added channel ${id} to memory map (total: ${this._channelMap.size})`)
       // }
 
     } catch (err) {
@@ -319,7 +420,7 @@ export class EPGUpdater extends EventEmitter {
 
     // Check if EPG is being destroyed or finalization is in progress
     if (this._state.destroyed || this._state.finalizationInProgress) {
-      console.log(`EPG destroyed or finalization started during terms processing, skipping upsert for: ${id} (destroyed: ${this._state.destroyed}, finalizing: ${this._state.finalizationInProgress})`)
+      this.debugLog(`EPG destroyed or finalization started during terms processing, skipping upsert for: ${id} (destroyed: ${this._state.destroyed}, finalizing: ${this._state.finalizationInProgress})`)
       return
     }
 
@@ -331,12 +432,20 @@ export class EPGUpdater extends EventEmitter {
 
       this._termsMap.set(id, termsData)
 
+      // Warn if _termsMap is growing too large (potential OOM risk)
+      const MAX_MAP_SIZE_WARN = 10000
+      if (this._termsMap.size >= MAX_MAP_SIZE_WARN) {
+        console.warn(`⚠️ [OOM Risk] _termsMap size is very large: ${this._termsMap.size} entries (EPG: ${this.url}, batch save may be needed)`)
+      } else if (this._termsMap.size >= MAX_MAP_SIZE_WARN * 0.8) {
+        console.warn(`⚠️ [Memory Warning] _termsMap size is high: ${this._termsMap.size} entries (EPG: ${this.url}, approaching limit)`)
+      }
+
       // Update cache
       this.cacheManager.setTerms(id, norm)
 
       // Debug logging disabled to reduce verbosity
       // if (this._termsMap.size % 500 === 0) {
-      //   console.log(`Added terms for ${id} to memory map (total: ${this._termsMap.size})`)
+      //   this.debugLog(`Added terms for ${id} to memory map (total: ${this._termsMap.size})`)
       // }
 
     } catch (err) {
@@ -349,10 +458,10 @@ export class EPGUpdater extends EventEmitter {
       return this.cacheManager.getAllTerms()
     }
 
-    console.log('getAllTerms() called, ensuring metadata DB...')
+    this.debugLog('getAllTerms() called, ensuring metadata DB...')
     await this.ensureMDB()
 
-    console.log('Querying terms from metadata DB...')
+    this.debugLog('Querying terms from metadata DB...')
 
     try {
       // CRITICAL: Validate database state before operations
@@ -379,7 +488,7 @@ export class EPGUpdater extends EventEmitter {
         return this.cacheManager.getAllTerms()
       }
 
-      console.log(`Found ${terms.length} terms in metadata DB`)
+      this.debugLog(`Found ${terms.length} terms in metadata DB`)
 
       // Populate cache
       for (const term of terms) {
@@ -389,7 +498,7 @@ export class EPGUpdater extends EventEmitter {
       }
 
       this.cacheManager.setAllTermsLoaded(true)
-      console.log(`Terms cache populated with ${this.cacheManager.getAllTerms().size} entries`)
+      this.debugLog(`Terms cache populated with ${this.cacheManager.getAllTerms().size} entries`)
 
       return this.cacheManager.getAllTerms()
 
@@ -398,7 +507,7 @@ export class EPGUpdater extends EventEmitter {
 
       // If query fails, try to recover by clearing the database
       try {
-        console.log('Attempting database recovery...')
+        this.debugLog('Attempting database recovery...')
         if (this.mdb) {
           await this.mdb.destroy()
           this.mdb = null
@@ -411,7 +520,7 @@ export class EPGUpdater extends EventEmitter {
         await this.databaseFactory.initializeDB(this.mdb)
         this._state.mdbInit = true
 
-        console.log('Database recovery completed, returning empty terms cache')
+        this.debugLog('Database recovery completed, returning empty terms cache')
         this.cacheManager.setAllTermsLoaded(true)
         return this.cacheManager.getAllTerms()
 
@@ -427,7 +536,7 @@ export class EPGUpdater extends EventEmitter {
   // ===== Parser Management Methods =====
 
   async setupMAGParser() {
-    console.log('Using MAG parser for:', this.url)
+    this.debugLog('Using MAG parser for:', this.url)
 
     const callbacks = {
       onProgramme: (programme) => this.programme(programme),
@@ -443,12 +552,27 @@ export class EPGUpdater extends EventEmitter {
     this.parser = this.parserInstance.parser
     this.request = this.parserInstance.request
 
+    // Listen to Download progress events to update state when integer percentage changes
+    if (this.request && typeof this.request.on === 'function') {
+      let lastIntProgress = -1
+      this.request.on('progress', (progress) => {
+        const currentIntProgress = Math.floor(progress)
+        if (currentIntProgress !== lastIntProgress) {
+          lastIntProgress = currentIntProgress
+          // Update state when integer progress percentage changes
+          if (this.updateState) {
+            this.updateState().catch(() => { }) // Don't block on state updates
+          }
+        }
+      })
+    }
+
     // Start the parser
     this.parserInstance.start()
   }
 
   async setupXMLParser(onErr, now) {
-    console.log('Setting up XML parser for:', this.url)
+    this.debugLog('Setting up XML parser for:', this.url)
 
     // Get last modified date for conditional request
     const { lastModifiedAt } = await this.getControlKeys()
@@ -460,19 +584,21 @@ export class EPGUpdater extends EventEmitter {
       onProgress: (received) => {
         this.received = received
         this.bytesDownloaded = received
+        // Note: Download already calculates and emits 'progress' event, 
+        // we listen to it separately to update state on integer percentage changes
       },
       onStatus: (statusCode) => {
         this.statusCode = statusCode
       },
       lastModified: lastModifiedAt, // Pass last modified for conditional request
       onEnd: () => {
-        console.log('🟣 Parser.onEnd() CALLED - Start of callback execution')
-        console.log(`🟣 onEnd: udb state AT ENTRY: exists=${!!this.udb}, destroyed=${this.udb?.destroyed}, length=${this.udb?.length || 0}`)
-        console.log('Parser ended, finalizing insert session and calling finalizeUpdate')
+        this.debugLog('🟣 Parser.onEnd() CALLED - Start of callback execution')
+        this.debugLog(`🟣 onEnd: udb state AT ENTRY: exists=${!!this.udb}, destroyed=${this.udb?.destroyed}, length=${this.udb?.length || 0}`)
+        this.debugLog('Parser ended, finalizing insert session and calling finalizeUpdate')
 
         // Capture the update ID at the time onEnd is called
         const updateId = this._currentUpdateId
-        console.log(`🟣 onEnd called for update session: ${updateId}`)
+        this.debugLog(`🟣 onEnd called for update session: ${updateId}`)
 
         // Wait for any pending channel processing to complete before finalizing
         const waitForPendingOperations = async () => {
@@ -483,15 +609,15 @@ export class EPGUpdater extends EventEmitter {
           }
 
           // Wait for parser to completely stop processing
-          console.log('Waiting for parser to completely stop processing...')
+          this.debugLog('Waiting for parser to completely stop processing...')
           if (this.parser) {
             if (this.parser.destroyed || this.parser.writableEnded) {
-              console.log('✅ Parser already ended (destroyed or writableEnded)')
+              this.debugLog('✅ Parser already ended (destroyed or writableEnded)')
             } else {
-              console.log('Parser still active, waiting for end event...')
+              this.debugLog('Parser still active, waiting for end event...')
               await new Promise((resolve) => {
                 const onEnd = () => {
-                  console.log('✅ Parser end event received')
+                  this.debugLog('✅ Parser end event received')
                   this.parser.removeListener('end', onEnd)
                   resolve()
                 }
@@ -499,49 +625,49 @@ export class EPGUpdater extends EventEmitter {
               })
             }
           } else {
-            console.log('✅ No parser to wait for')
+            this.debugLog('✅ No parser to wait for')
           }
 
           // Wait for ALL database operations (udb, umdb, db, mdb)
-          console.log('Waiting for all database operations to complete...')
-          
+          this.debugLog('Waiting for all database operations to complete...')
+
           if (this.udb && typeof this.udb.waitForOperations === 'function') {
-            console.log('Waiting for udb operations...')
+            this.debugLog('Waiting for udb operations...')
             await this.udb.waitForOperations()
-            console.log('✅ udb operations completed')
+            this.debugLog('✅ udb operations completed')
           }
-          
+
           if (this.umdb && typeof this.umdb.waitForOperations === 'function') {
-            console.log('Waiting for umdb operations...')
+            this.debugLog('Waiting for umdb operations...')
             await this.umdb.waitForOperations()
-            console.log('✅ umdb operations completed')
+            this.debugLog('✅ umdb operations completed')
           }
-          
+
           if (this.db && typeof this.db.waitForOperations === 'function') {
-            console.log('Waiting for db operations...')
+            this.debugLog('Waiting for db operations...')
             await this.db.waitForOperations()
-            console.log('✅ db operations completed')
+            this.debugLog('✅ db operations completed')
           }
-          
+
           if (this.mdb && typeof this.mdb.waitForOperations === 'function') {
-            console.log('Waiting for mdb operations...')
+            this.debugLog('Waiting for mdb operations...')
             await this.mdb.waitForOperations()
-            console.log('✅ mdb operations completed')
+            this.debugLog('✅ mdb operations completed')
           }
 
           // Wait for insertSession operations
           if (this.insertSession && typeof this.insertSession.waitForOperations === 'function') {
-            console.log('Waiting for insertSession operations...')
+            this.debugLog('Waiting for insertSession operations...')
             await this.insertSession.waitForOperations()
-            console.log('✅ InsertSession operations completed')
+            this.debugLog('✅ InsertSession operations completed')
           }
 
           // Finalize the insert session before finalizing the update
           if (this.insertSession && typeof this.insertSession.commit === 'function') {
             try {
-              console.log('🔵 onEnd: About to commit insertSession')
-              console.log(`🔵 onEnd: Update ID check - current: ${this._currentUpdateId}, onEnd: ${updateId}`)
-              console.log(`🔵 onEnd: udb state BEFORE checks: exists=${!!this.udb}, destroyed=${this.udb?.destroyed}, length=${this.udb?.length || 0}`)
+              this.debugLog('🔵 onEnd: About to commit insertSession')
+              this.debugLog(`🔵 onEnd: Update ID check - current: ${this._currentUpdateId}, onEnd: ${updateId}`)
+              this.debugLog(`🔵 onEnd: udb state BEFORE checks: exists=${!!this.udb}, destroyed=${this.udb?.destroyed}, length=${this.udb?.length || 0}`)
 
               // CRITICAL: Verify this is still the same update session
               if (this._currentUpdateId !== updateId) {
@@ -553,11 +679,11 @@ export class EPGUpdater extends EventEmitter {
               // CRITICAL: Set commit flag to prevent udb destruction
               this._state.commitInProgress = true
               this._state.commitStartTime = Date.now() // Track when commit started
-              console.log('🔵 Commit flag set - udb is now protected from destruction')
-              
+              this.debugLog('🔵 Commit flag set - udb is now protected from destruction')
+
               // CRITICAL: Only create InsertSession if we have data to commit
               if (!this.insertSession && this.udb && this.udb.length > 0) {
-                console.log('🔵 Creating InsertSession for commit - data available')
+                this.debugLog('🔵 Creating InsertSession for commit - data available')
                 this.insertSession = this.databaseFactory.createInsertSession(this.udb, this.umdb)
               }
 
@@ -587,29 +713,29 @@ export class EPGUpdater extends EventEmitter {
                 return
               }
 
-              console.log(`Before commit: udb.length=${this.udb?.length || 0}, insertSession.totalInserted=${this.insertSession.totalInserted || 0}`)
-              console.log(`Database state: exists=${!!this.udb}, destroyed=${this.udb?.destroyed}, initialized=${this.udb?.initialized}`)
+              this.debugLog(`Before commit: udb.length=${this.udb?.length || 0}, insertSession.totalInserted=${this.insertSession.totalInserted || 0}`)
+              this.debugLog(`Database state: exists=${!!this.udb}, destroyed=${this.udb?.destroyed}, initialized=${this.udb?.initialized}`)
 
               // Commit the insert session using JexiDB native methods
-              console.log('🔵 Starting commit process...')
-              
-              try {                
+              this.debugLog('🔵 Starting commit process...')
+
+              try {
                 // Now commit the session
                 await this.insertSession.commit()
-                console.log('✅ Commit completed successfully')
-                
+                this.debugLog('✅ Commit completed successfully')
+
                 // Clear commit flag after successful commit
                 this._state.commitInProgress = false
-                console.log('Commit flag cleared - finalization can now proceed')
-                
+                this.debugLog('Commit flag cleared - finalization can now proceed')
+
               } catch (commitErr) {
                 console.error('❌ Commit failed:', commitErr.message)
                 this._state.commitInProgress = false
                 throw commitErr
               }
 
-              console.log(`After commit: udb.length=${this.udb?.length || 0}, insertSession.totalInserted=${this.insertSession.totalInserted || 0}`)
-              console.log('Insert session committed successfully')
+              this.debugLog(`After commit: udb.length=${this.udb?.length || 0}, insertSession.totalInserted=${this.insertSession.totalInserted || 0}`)
+              this.debugLog('Insert session committed successfully')
 
               const newLastModified = this.parserInstance.getLastModified()
               await this.finalizeUpdate(newLastModified)
@@ -644,6 +770,21 @@ export class EPGUpdater extends EventEmitter {
     this.parser = parserInstance.parser
     this.request = parserInstance.request
     this.parserInstance = parserInstance // Store reference to access getLastModified
+
+    // Listen to Download progress events to update state when integer percentage changes
+    if (this.request && typeof this.request.on === 'function') {
+      let lastIntProgress = -1
+      this.request.on('progress', (progress) => {
+        const currentIntProgress = Math.floor(progress)
+        if (currentIntProgress !== lastIntProgress) {
+          lastIntProgress = currentIntProgress
+          // Update state when integer progress percentage changes
+          if (this.updateState) {
+            this.updateState().catch(() => { }) // Don't block on state updates
+          }
+        }
+      })
+    }
 
     // Start the parser
     parserInstance.start()
@@ -689,13 +830,14 @@ export class EPGUpdater extends EventEmitter {
     try {
       // Try to get control keys from metadata database
       if (this.mdb && this.mdb.initialized) {
-        const fetchControl = await this.mdb.find({ key: 'fetchCtrlKey' }, { limit: 1 })
-        const modifiedControl = await this.mdb.find({ key: 'lastmCtrlKey' }, { limit: 1 })
+        // OPTIMIZATION: Use findOne() instead of find() with limit: 1 for better performance
+        const fetchControl = await this.mdb.findOne({ key: 'fetchCtrlKey' })
+        const modifiedControl = await this.mdb.findOne({ key: 'lastmCtrlKey' })
 
-        const lastFetchedAt = fetchControl.length > 0 ? parseInt(fetchControl[0].value) : 0
-        const lastModifiedAt = modifiedControl.length > 0 ? modifiedControl[0].value : null
+        const lastFetchedAt = fetchControl ? parseInt(fetchControl.value) : 0
+        const lastModifiedAt = modifiedControl ? modifiedControl.value : null
 
-        console.log(`Control keys retrieved: lastFetchedAt=${lastFetchedAt}, lastModifiedAt=${lastModifiedAt}`)
+        this.debugLog(`Control keys retrieved: lastFetchedAt=${lastFetchedAt}, lastModifiedAt=${lastModifiedAt}`)
         return { lastFetchedAt, lastModifiedAt }
       }
     } catch (err) {
@@ -715,25 +857,25 @@ export class EPGUpdater extends EventEmitter {
 
     // Always update if no data exists
     if (!this.db || this.db.length < 36) {
-      console.log('Should update: No data exists')
+      this.debugLog('Should update: No data exists')
       return true
     }
 
     // Update if enough time has passed
     const shouldUpdateByTime = timeSinceLastUpdate > this.autoUpdateIntervalSecs
-    // console.log(`Update check: timeSinceLastUpdate=${timeSinceLastUpdate}s, autoUpdateIntervalSecs=${this.autoUpdateIntervalSecs}s, shouldUpdateByTime=${shouldUpdateByTime}`)
+    // this.debugLog(`Update check: timeSinceLastUpdate=${timeSinceLastUpdate}s, autoUpdateIntervalSecs=${this.autoUpdateIntervalSecs}s, shouldUpdateByTime=${shouldUpdateByTime}`)
 
     return shouldUpdateByTime
   }
 
   async setupUpdateEnvironment() {
-    console.log('Setting up update environment')
-    console.log(`Starting EPG update for: ${this.url}`)
-    console.log(`Current state: validEPG=${this.validEPG}, errorCount=${this.errorCount}`)
+    this.debugLog('Setting up update environment')
+    this.debugLog(`Starting EPG update for: ${this.url}`)
+    this.debugLog(`Current state: validEPG=${this.validEPG}, errorCount=${this.errorCount}`)
 
     // Create unique identifier for this update session
     this._currentUpdateId = Date.now() + Math.random()
-    console.log(`Update session ID: ${this._currentUpdateId}`)
+    this.debugLog(`Update session ID: ${this._currentUpdateId}`)
 
     // Create temporary databases for the update
     this.udb = await this.createTempProgrammeDatabase()
@@ -752,7 +894,7 @@ export class EPGUpdater extends EventEmitter {
     // Initialize temporary databases
     try {
       await this.databaseFactory.initializeDB(this.udb)
-      console.log('Temporary programme database initialized successfully')
+      this.debugLog('Temporary programme database initialized successfully')
     } catch (udbErr) {
       console.error('Failed to initialize temporary programme database:', udbErr.message)
       throw udbErr
@@ -760,7 +902,7 @@ export class EPGUpdater extends EventEmitter {
 
     try {
       await this.databaseFactory.initializeDB(this.umdb)
-      console.log('Temporary metadata database initialized successfully')
+      this.debugLog('Temporary metadata database initialized successfully')
     } catch (umdbErr) {
       console.error('Failed to initialize temporary metadata database:', umdbErr.message)
       throw umdbErr
@@ -772,7 +914,7 @@ export class EPGUpdater extends EventEmitter {
         batchSize: 500,
         enableAutoSave: true
       })
-      console.log('InsertSession initialized successfully')
+      this.debugLog('InsertSession initialized successfully')
     } catch (err) {
       console.error('Failed to initialize InsertSession:', err.message)
       this.insertSession = null
@@ -783,12 +925,12 @@ export class EPGUpdater extends EventEmitter {
     this.received = 0
     this.errorCount = 0
 
-    console.log('Update environment setup complete')
+    this.debugLog('Update environment setup complete')
   }
 
   async cleanCorruptedControls() {
     // Clean up any corrupted control data
-    console.log('Cleaning corrupted controls')
+    this.debugLog('Cleaning corrupted controls')
     // Implementation would check and clean corrupted database entries
   }
 
@@ -825,7 +967,7 @@ export class EPGUpdater extends EventEmitter {
         })
       }
 
-      console.log(`Control keys saved: fetchCtrlKey=${now}, lastmCtrlKey=${lastModifiedAt}`)
+      this.debugLog(`Control keys saved: fetchCtrlKey=${now}, lastmCtrlKey=${lastModifiedAt}`)
     } catch (err) {
       console.error('CRITICAL: Error saving control keys:', err.message)
       throw err // Don't silence the error - let it propagate to detect flow issues
@@ -833,7 +975,7 @@ export class EPGUpdater extends EventEmitter {
   }
 
   async doUpdate() {
-    console.log(`Starting update for: ${this.url}`)
+    this.debugLog(`Starting update for: ${this.url}`)
 
     if (!(await this.validatePreConditions())) return
 
@@ -845,21 +987,21 @@ export class EPGUpdater extends EventEmitter {
       const { lastFetchedAt, lastModifiedAt } = await this.getControlKeys()
 
       if (!this.shouldUpdate(lastFetchedAt)) {
-        console.log('Update not needed, skipping')
+        this.debugLog('Update not needed, skipping')
 
         // Check if we have valid data with sufficient future programmes
         if (this.db && this.db.length > 0) {
           const now = Date.now() / 1000
-          const futureCount = await this.db.count({ e: { '>': now } }).catch(() => 0)
-          console.log(`EPG has ${futureCount} future programmes`)
-          
+          const futureCount = await this.db.count({ end: { '>': now } }).catch(() => 0)
+          this.debugLog(`EPG has ${futureCount} future programmes`)
+
           if (futureCount >= 36) {
-            console.log('Sufficient future programmes, marking as loaded')
-            this.setReadyState('loaded')
+            this.debugLog('Sufficient future programmes, marking as loaded')
+            await this.setReadyState('loaded')
             this.error = null
             return
           } else {
-            console.log(`Insufficient future programmes (${futureCount} < 36), forcing update anyway`)
+            this.debugLog(`Insufficient future programmes (${futureCount} < 36), forcing update anyway`)
           }
         } else {
           // If no update needed but no data, force update anyway
@@ -877,6 +1019,41 @@ export class EPGUpdater extends EventEmitter {
         if (failed) return true
         this.errorCount++
         console.error('Update error:', err)
+        
+        // CRITICAL: Check if we have sufficient data in udb before marking as error
+        // If we have enough programmes (>= 36), finalize even with download errors
+        const minProgrammes = 36
+        const hasEnoughData = this.udb && !this.udb.destroyed && this.udb.initialized && this.udb.length >= minProgrammes
+        const hasExistingData = this.db && !this.db.destroyed && this.db.initialized && this.db.length >= minProgrammes
+        
+        if (hasEnoughData || hasExistingData || this.validEPG) {
+          this.debugLog(`✅ EPG has sufficient data despite error - udb.length: ${this.udb?.length || 0}, db.length: ${this.db?.length || 0}, validEPG: ${this.validEPG}`)
+          this.debugLog(`   Proceeding with finalization even though download error occurred`)
+          
+          // Force parser to end to trigger finalization
+          if (this.parser && typeof this.parser.end === 'function') {
+            try {
+              this.parser.end()
+            } catch (parseEndErr) {
+              console.warn('Error ending parser:', parseEndErr.message)
+            }
+          }
+          
+          // Trigger finalization manually if onEnd wasn't called
+          // This ensures data is saved even when download fails but we have enough programmes
+          // Use fire-and-forget to avoid blocking the error handler
+          if (hasEnoughData && !this._state.finalizationInProgress) {
+            this.debugLog('🔵 Forcing finalizeUpdate due to sufficient data in udb despite download error')
+            // Execute finalization asynchronously without blocking
+            this.finalizeUpdate(this.parserInstance?.getLastModified?.() || null).catch(finalizeErr => {
+              console.error('Error during forced finalizeUpdate:', finalizeErr)
+            })
+          }
+          
+          return true
+        }
+        
+        // Only mark as error if we don't have enough data
         if (this.errorCount >= this.errorCountLimit && !this.validEPG) {
           failed = true
           if (this.parser && typeof this.parser.end === 'function') {
@@ -893,17 +1070,19 @@ export class EPGUpdater extends EventEmitter {
               console.warn('EPG_BAD_FORMAT triggered - no database or empty database')
             }
 
-            console.log(`${errorType} Debug Info:`)
-            console.log(`  - URL: ${this.url}`)
-            console.log(`  - DB exists: ${!!this.db}`)
-            console.log(`  - DB length: ${this.db?.length || 0}`)
-            console.log(`  - Received bytes: ${this.received}`)
-            console.log(`  - Error count: ${this.errorCount}`)
-            console.log(`  - Error count limit: ${this.errorCountLimit}`)
-            console.log(`  - Valid EPG: ${this.validEPG}`)
-            console.log(`  - Is Network Error: ${!!err?.isNetworkError}`)
-            console.log(`  - Is HTTP Error: ${!!err?.isHttpError}`)
-            console.log(`  - Status Code: ${err?.statusCode || 'N/A'}`)
+            this.debugLog(`${errorType} Debug Info:`)
+            this.debugLog(`  - URL: ${this.url}`)
+            this.debugLog(`  - DB exists: ${!!this.db}`)
+            this.debugLog(`  - DB length: ${this.db?.length || 0}`)
+            this.debugLog(`  - UDB exists: ${!!this.udb}`)
+            this.debugLog(`  - UDB length: ${this.udb?.length || 0}`)
+            this.debugLog(`  - Received bytes: ${this.received}`)
+            this.debugLog(`  - Error count: ${this.errorCount}`)
+            this.debugLog(`  - Error count limit: ${this.errorCountLimit}`)
+            this.debugLog(`  - Valid EPG: ${this.validEPG}`)
+            this.debugLog(`  - Is Network Error: ${!!err?.isNetworkError}`)
+            this.debugLog(`  - Is HTTP Error: ${!!err?.isHttpError}`)
+            this.debugLog(`  - Status Code: ${err?.statusCode || 'N/A'}`)
 
             this.setReadyState('error')
             this.error = errorType
@@ -936,7 +1115,7 @@ export class EPGUpdater extends EventEmitter {
   }
 
   async performEPGUpdate(onErr, now) {
-    console.log('Starting EPG update process')
+    this.debugLog('Starting EPG update process')
 
     try {
       // Determine if this is a MAG or XML/XMLTV source
@@ -957,11 +1136,11 @@ export class EPGUpdater extends EventEmitter {
 
   async waitCommitToComplete() {
     const timeoutMs = 60000;
-    console.log('Waiting for commit to complete...')
+    this.debugLog('Waiting for commit to complete...')
     const startTime = Date.now();
     while (Date.now() - startTime < timeoutMs) {
       if (!this._state.commitInProgress) {
-        console.log('Commit completed, proceeding with finalize')
+        this.debugLog('Commit completed, proceeding with finalize')
         return true;
       }
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -971,12 +1150,12 @@ export class EPGUpdater extends EventEmitter {
   }
 
   async finalizeUpdate(newLastModified) {
-    console.log('🔵 finalizeUpdate() ENTRY POINT')
+    this.debugLog('🔵 finalizeUpdate() ENTRY POINT')
     const caller = new Error().stack.split('\n')[2]?.trim() || 'unknown'
-    console.log(`🔵 Starting finalizeUpdate... (called from: ${caller})`)
-    console.log(`🔵 Update session ID at finalizeUpdate: ${this._currentUpdateId}`)
-    console.log(`🔵 commitInProgress flag: ${this._state.commitInProgress}`)
-    console.log(`🔵 udb state: exists=${!!this.udb}, destroyed=${this.udb?.destroyed}, initialized=${this.udb?.initialized}, length=${this.udb?.length || 0}`)
+    this.debugLog(`🔵 Starting finalizeUpdate... (called from: ${caller})`)
+    this.debugLog(`🔵 Update session ID at finalizeUpdate: ${this._currentUpdateId}`)
+    this.debugLog(`🔵 commitInProgress flag: ${this._state.commitInProgress}`)
+    this.debugLog(`🔵 udb state: exists=${!!this.udb}, destroyed=${this.udb?.destroyed}, initialized=${this.udb?.initialized}, length=${this.udb?.length || 0}`)
 
     try {
       // CRITICAL: If commit is in progress, wait for it to complete
@@ -985,25 +1164,25 @@ export class EPGUpdater extends EventEmitter {
       // Check if we have new data in temporary databases
       const hasNewData = this.udb && this.udb.length > 0
 
-      console.log(`Finalization check: udb exists=${!!this.udb}, udb.length=${this.udb?.length || 0}, hasNewData=${hasNewData}`)
+      this.debugLog(`Finalization check: udb exists=${!!this.udb}, udb.length=${this.udb?.length || 0}, hasNewData=${hasNewData}`)
 
       if (hasNewData) {
-        console.log(`New EPG data available: ${this.udb.length} programmes`)
+        this.debugLog(`New EPG data available: ${this.udb.length} programmes`)
 
         // Mark finalization as in progress BEFORE waiting to prevent new operations
         this._state.finalizationInProgress = true
-        console.log('Finalization marked as in progress, preventing new operations')
+        this.debugLog('Finalization marked as in progress, preventing new operations')
 
         // Wait for database operations to complete
-        console.log('Waiting for all database operations to complete...')
+        this.debugLog('Waiting for all database operations to complete...')
         if (this.udb && typeof this.udb.waitForOperations === 'function') {
           await this.udb.waitForOperations()
-          console.log('✅ Database operations completed')
+          this.debugLog('✅ Database operations completed')
         }
 
         if (this.insertSession && typeof this.insertSession.waitForOperations === 'function') {
           await this.insertSession.waitForOperations()
-          console.log('✅ InsertSession operations completed')
+          this.debugLog('✅ InsertSession operations completed')
         }
 
         // Store old databases for later cleanup
@@ -1014,40 +1193,44 @@ export class EPGUpdater extends EventEmitter {
         // Use the actual file paths from the database instances
         const baseDbPath = this.file.endsWith('.jdb') ? this.file.slice(0, -4) : this.file
         const baseMdbPath = this.metaFile.endsWith('.jdb') ? this.metaFile.slice(0, -4) : this.metaFile
-        const tempDbPath = this.udb?.filePath || (baseDbPath + '.tmp.jdb')
-        const tempMdbPath = this.umdb?.filePath || (baseMdbPath + '.tmp.jdb')
-        const tempIdxDbPath = this.udb?.filePath?.replace('.jdb', '.idx.jdb') || (baseDbPath + '.tmp.idx.jdb')
-        const tempIdxMdbPath = this.umdb?.filePath?.replace('.jdb', '.idx.jdb') || (baseMdbPath + '.tmp.idx.jdb')
+        const udbFilePath = this.udb?.normalizedFile
+        const umdbFilePath = this.umdb?.normalizedFile
+        const tempDbPath = udbFilePath || (baseDbPath + '.tmp.jdb')
+        const tempMdbPath = umdbFilePath || (baseMdbPath + '.tmp.jdb')
+        const tempIdxDbPath = udbFilePath?.replace('.jdb', '.idx.jdb') || (baseDbPath + '.tmp.idx.jdb')
+        const tempIdxMdbPath = umdbFilePath?.replace('.jdb', '.idx.jdb') || (baseMdbPath + '.tmp.idx.jdb')
         const targetIdxDbPath = this.file.replace('.jdb', '.idx.jdb')
         const targetIdxMdbPath = this.metaFile.replace('.jdb', '.idx.jdb')
 
-        console.log(`BEFORE MOVE - Temp DB path: ${tempDbPath}`)
-        console.log(`BEFORE MOVE - Temp MDB path: ${tempMdbPath}`)
-        console.log(`BEFORE MOVE - Temp IDX DB path: ${tempIdxDbPath}`)
-        console.log(`BEFORE MOVE - Temp IDX MDB path: ${tempIdxMdbPath}`)
+        this.debugLog(`BEFORE MOVE - Temp DB path: ${tempDbPath}`)
+        this.debugLog(`BEFORE MOVE - Temp MDB path: ${tempMdbPath}`)
+        this.debugLog(`BEFORE MOVE - Temp IDX DB path: ${tempIdxDbPath}`)
+        this.debugLog(`BEFORE MOVE - Temp IDX MDB path: ${tempIdxMdbPath}`)
 
-        // CRITICAL FIX: Save temporary databases BEFORE moving to ensure files exist
-        if (this.udb && this.udb.length > 0) {
-          try {
-            await this.udb.save()
-          } catch (saveErr) {
-            console.warn('Failed to save temporary programme database:', saveErr.message)
-          }
-        }
+        // CRITICAL FIX: Save and close ALL 4 databases BEFORE rename to ensure files are fully written and handles released
+        // 1. Save and close temporary databases (udb, umdb)
+        await Promise.allSettled([
+          this.db?.waitForOperations(),
+          this.udb?.waitForOperations(),
+          this.mdb?.waitForOperations(),
+          this.umdb?.waitForOperations()
+        ]).catch((err) => {
+          console.warn('Failed to wait for operations on temporary databases:', err.message)
+        })
 
-        if (this.umdb && this.umdb.length > 0) {
-          try {
-            await this.umdb.save()
-          } catch (saveErr) {
-            console.warn('Failed to save temporary metadata database:', saveErr.message)
-          }
-        }
+        await Promise.allSettled([
+          this.db?.close(),
+          this.udb?.close(),
+          this.mdb?.close(),
+          this.umdb?.close()
+        ]).catch((err) => {
+          console.warn('Failed to close temporary databases:', err.message)
+        })
 
-        // Files should be created by save() operations above
+        this.debugLog('✅ All 4 databases closed (auto-saved) and file handles released')
 
-        // Move temporary databases to main locations
-        this.db = this.udb
-        this.mdb = this.umdb
+        this.db = null
+        this.mdb = null
         this.udb = null
         this.umdb = null
 
@@ -1116,28 +1299,33 @@ export class EPGUpdater extends EventEmitter {
           // Continue with the process even if rename fails
         }
 
-        // Recreate database instances to point to final files
-        try {
-          // Close old database instances
-          if (this.db && typeof this.db.close === 'function') {
-            await this.db.close()
-          }
-          if (this.mdb && typeof this.mdb.close === 'function') {
-            await this.mdb.close()
-          }
+        // CRITICAL: Wait for filesystem to sync after rename operations
+        // This ensures the renamed files are fully committed to disk before loading
+        this.debugLog('⏳ Waiting 1 second for filesystem sync after rename...')
+        await new Promise(resolve => setTimeout(resolve, 1000))
 
-          // Create new database instances pointing to final files
-          this.db = this.databaseFactory.createProgrammeDB(this.file, {}, false)
-          this.mdb = this.databaseFactory.createMetadataDB(this.metaFile, {}, false)
+        // Create new database instances pointing to final files
+        this.debugLog(`🔄 Creating new database instances for final files:`)
+        this.debugLog(`   Programme DB: ${this.file}`)
+        this.debugLog(`   Metadata DB: ${this.metaFile}`)
 
-          // Initialize the new databases
-          await this.databaseFactory.initializeDB(this.db)
-          await this.databaseFactory.initializeDB(this.mdb)
+        this.db = this.databaseFactory.createProgrammeDB(this.file, {}, false)
+        this.mdb = this.databaseFactory.createMetadataDB(this.metaFile, {}, false)
 
-          console.log('Database instances recreated and pointing to final files')
-        } catch (recreateErr) {
-          console.error('Error recreating database instances:', recreateErr.message)
-          // Continue with the process even if recreation fails
+        // Initialize the new databases
+        await this.databaseFactory.initializeDB(this.db)
+        await this.databaseFactory.initializeDB(this.mdb)
+
+        // CRITICAL: Verify that databases loaded correctly with data
+        const dbLength = this.db?.length || 0
+        const mdbLength = this.mdb?.length || 0
+        this.debugLog(`✅ Database instances recreated - Programme DB length: ${dbLength}, Metadata DB length: ${mdbLength}`)
+
+        if (dbLength === 0) {
+          console.error('⚠️ WARNING: Programme database is empty after recreation!')
+          console.error(`   File path: ${this.file}`)
+          const fileExists = await fs.access(this.file).then(() => true).catch(() => false)
+          console.error(`   File exists: ${fileExists}`)
         }
 
         // Clean up temporary files after successful rename
@@ -1157,6 +1345,7 @@ export class EPGUpdater extends EventEmitter {
             try {
               await fs.access(tempFile)
               await fs.unlink(tempFile)
+              this.debugLog(`✅ Temporary file ${tempFile} removed`)
               // File removed successfully
             } catch (unlinkErr) {
               // File might not exist or already removed
@@ -1180,33 +1369,39 @@ export class EPGUpdater extends EventEmitter {
         // NOTE: Do NOT close databases after update - keep them open for queries
         // JexiDB automatically persists data and doesn't need explicit close
         // Closing causes "Database is closed" errors when trying to query later
-        console.log('Update complete, keeping databases open for queries')
+        this.debugLog('Update complete, keeping databases open for queries')
 
         // JexiDB databases remain open and ready for immediate queries
 
         // CRITICAL: Validate database AFTER all finalization is complete
         // This ensures the database points to the final file, not the temporary one
-        console.log('🔍 Validating database after all finalization is complete...')
+        this.debugLog('🔍 Validating database after all finalization is complete...')
         const isValid = await this._validateDatabaseAfterParserComplete()
-        
+
         if (isValid) {
-          this.setReadyState('loaded')
+          await this.setReadyState('loaded')
           this.error = null
         } else {
-          this.setReadyState('error')
+          await this.setReadyState('error')
           this.error = 'EPG_NO_PROGRAMMES'
         }
+
+        const ttlSeconds = typeof this.dataLiveWindow === 'number' && this.dataLiveWindow > 0
+          ? this.dataLiveWindow
+          : 24 * 3600
+
+        await this.registerStorageArtifacts(ttlSeconds)
 
         // Reset finalization flag to allow new operations
         this._state.finalizationInProgress = false
 
-        console.log('Update completed successfully');
+        this.debugLog('Update completed successfully');
 
         // Clean up old databases after new ones are ready
         (async () => {
           try {
             // Wait much longer to ensure any pending save operations complete
-            console.log('Waiting before destroying old databases...')
+            this.debugLog('Waiting before destroying old databases...')
             await new Promise(resolve => setTimeout(resolve, 10000)) // 10 second delay
 
             // Wait for operations before destroying
@@ -1219,24 +1414,24 @@ export class EPGUpdater extends EventEmitter {
 
             // CRITICAL FIX: Don't destroy old databases immediately
             // Keep them available for query operations
-            console.log('Keeping old databases available for query operations')
+            this.debugLog('Keeping old databases available for query operations')
 
             // Use JexiDB native waitForOperations instead of manual writeBuffer checks
             if (oldDb) {
-              console.log('Waiting for old main database operations to complete...')
+              this.debugLog('Waiting for old main database operations to complete...')
               try {
                 await oldDb.waitForOperations()
-                console.log('Old main database operations completed')
+                this.debugLog('Old main database operations completed')
               } catch (err) {
                 console.warn('Error waiting for old main database operations:', err.message)
               }
             }
 
             if (oldMdb) {
-              console.log('Waiting for old metadata database operations to complete...')
+              this.debugLog('Waiting for old metadata database operations to complete...')
               try {
                 await oldMdb.waitForOperations()
-                console.log('Old metadata database operations completed')
+                this.debugLog('Old metadata database operations completed')
               } catch (err) {
                 console.warn('Error waiting for old metadata database operations:', err.message)
               }
@@ -1248,20 +1443,20 @@ export class EPGUpdater extends EventEmitter {
 
             // CRITICAL: Don't destroy databases immediately - keep them for queries
             if (canDestroyOldDb && oldDb && typeof oldDb.destroy === 'function') {
-              console.log('Skipping old main database destruction - keeping for queries')
+              this.debugLog('Skipping old main database destruction - keeping for queries')
               // Don't destroy - keep available for queries
             } else if (oldDb) {
               console.warn(`Skipping old main database destruction - isSaving: ${oldDb.isSaving}, writeBuffer: ${oldDb.writeBuffer.length}`)
             }
 
             if (canDestroyOldMdb && oldMdb && typeof oldMdb.destroy === 'function') {
-              console.log('Skipping old metadata database destruction - keeping for queries')
+              this.debugLog('Skipping old metadata database destruction - keeping for queries')
               // Don't destroy - keep available for queries
             } else if (oldMdb) {
               console.warn(`Skipping old metadata database destruction - isSaving: ${oldMdb.isSaving}, writeBuffer: ${oldMdb.writeBuffer.length}`)
             }
 
-            console.log('Old databases kept available for query operations')
+            this.debugLog('Old databases kept available for query operations')
           } catch (cleanupErr) {
             console.warn('Error cleaning up old databases:', cleanupErr.message)
           }
@@ -1270,24 +1465,24 @@ export class EPGUpdater extends EventEmitter {
         // Delayed destruction of old databases to allow queries to work
         (async () => {
           try {
-            console.log('Starting delayed destruction of old databases...')
+            this.debugLog('Starting delayed destruction of old databases...')
 
             // Use JexiDB native waitForOperations instead of manual writeBuffer checks
             if (oldDb) {
-              console.log('Waiting for old main database operations to complete before delayed destruction...')
+              this.debugLog('Waiting for old main database operations to complete before delayed destruction...')
               try {
                 await oldDb.waitForOperations()
-                console.log('Old main database operations completed before delayed destruction')
+                this.debugLog('Old main database operations completed before delayed destruction')
               } catch (err) {
                 console.warn('Error waiting for old main database operations before delayed destruction:', err.message)
               }
             }
 
             if (oldMdb) {
-              console.log('Waiting for old metadata database operations to complete before delayed destruction...')
+              this.debugLog('Waiting for old metadata database operations to complete before delayed destruction...')
               try {
                 await oldMdb.waitForOperations()
-                console.log('Old metadata database operations completed before delayed destruction')
+                this.debugLog('Old metadata database operations completed before delayed destruction')
               } catch (err) {
                 console.warn('Error waiting for old metadata database operations before delayed destruction:', err.message)
               }
@@ -1298,22 +1493,22 @@ export class EPGUpdater extends EventEmitter {
             const canDestroyOldMdb = !oldMdb || (!oldMdb.isSaving && oldMdb.writeBuffer.length === 0)
 
             if (canDestroyOldDb && oldDb && typeof oldDb.destroy === 'function') {
-              console.log('Destroying old main database after delay...')
+              this.debugLog('Destroying old main database after delay...')
               await oldDb.destroy()
-              console.log('Old main database destroyed successfully after delay')
+              this.debugLog('Old main database destroyed successfully after delay')
             } else if (oldDb) {
               console.warn(`Skipping delayed old main database destruction - isSaving: ${oldDb.isSaving}, writeBuffer: ${oldDb.writeBuffer.length}`)
             }
 
             if (canDestroyOldMdb && oldMdb && typeof oldMdb.destroy === 'function') {
-              console.log('Destroying old metadata database after delay...')
+              this.debugLog('Destroying old metadata database after delay...')
               await oldMdb.destroy()
-              console.log('Old metadata database destroyed successfully after delay')
+              this.debugLog('Old metadata database destroyed successfully after delay')
             } else if (oldMdb) {
               console.warn(`Skipping delayed old metadata database destruction - isSaving: ${oldMdb.isSaving}, writeBuffer: ${oldMdb.writeBuffer.length}`)
             }
 
-            console.log('Delayed old databases cleanup completed')
+            this.debugLog('Delayed old databases cleanup completed')
           } catch (delayedCleanupErr) {
             console.warn('Error in delayed cleanup of old databases:', delayedCleanupErr.message)
           }
@@ -1321,22 +1516,27 @@ export class EPGUpdater extends EventEmitter {
 
       } else {
         // No new data downloaded - check if we have existing valid data
-        console.log(`Checking existing data: db exists=${!!this.db}, db.length=${this.db?.length || 0}`)
+        this.debugLog(`Checking existing data: db exists=${!!this.db}, db.length=${this.db?.length || 0}`)
 
         if (this.db && this.db.length > 0) {
-          console.log('No new EPG data downloaded, but existing database has valid entries')
-          this.setReadyState('loaded')
+          this.debugLog('No new EPG data downloaded, but existing database has valid entries')
+          await this.setReadyState('loaded')
           this.error = null
+
+          const ttlSeconds = typeof this.dataLiveWindow === 'number' && this.dataLiveWindow > 0
+            ? this.dataLiveWindow
+            : 24 * 3600
+          await this.registerStorageArtifacts(ttlSeconds)
         } else {
           console.warn('No EPG data available (new or existing)')
-          console.log(`Setting error state: validEPG=${this.validEPG}`)
-          console.log(`EPG Debug Info:`)
-          console.log(`  - URL: ${this.url}`)
-          console.log(`  - DB exists: ${!!this.db}`)
-          console.log(`  - DB length: ${this.db?.length || 0}`)
-          console.log(`  - Received bytes: ${this.received}`)
-          console.log(`  - Error count: ${this.errorCount}`)
-          console.log(`  - Last error: ${this.error || 'none'}`)
+          this.debugLog(`Setting error state: validEPG=${this.validEPG}`)
+          this.debugLog(`EPG Debug Info:`)
+          this.debugLog(`  - URL: ${this.url}`)
+          this.debugLog(`  - DB exists: ${!!this.db}`)
+          this.debugLog(`  - DB length: ${this.db?.length || 0}`)
+          this.debugLog(`  - Received bytes: ${this.received}`)
+          this.debugLog(`  - Error count: ${this.errorCount}`)
+          this.debugLog(`  - Last error: ${this.error || 'none'}`)
 
           this.setReadyState('error')
           this.error = this.validEPG ? 'EPG_OUTDATED' : 'EPG_BAD_FORMAT'
@@ -1350,11 +1550,11 @@ export class EPGUpdater extends EventEmitter {
           console.warn('🟡 Commit is in progress, skipping temporary database destruction to prevent race condition')
         } else if (this.insertSession) {
           console.warn('🟡 InsertSession exists, delaying udb destruction to allow onEnd() callback to execute')
-          console.log(`🟡 Will destroy udb after 10 seconds to give onEnd() time to execute`)
+          this.debugLog(`🟡 Will destroy udb after 10 seconds to give onEnd() time to execute`)
           // Delay destruction to give onEnd() callback time to execute
           setTimeout(async () => {
             if (this.udb && !this._state.commitInProgress) {
-              console.log('🔴 Delayed: Destroying udb in finalizeUpdate (NO NEW DATA PATH)')
+              this.debugLog('🔴 Delayed: Destroying udb in finalizeUpdate (NO NEW DATA PATH)')
               try {
                 await this.udb.destroy()
                 this.udb = null
@@ -1363,7 +1563,7 @@ export class EPGUpdater extends EventEmitter {
               }
             }
             if (this.umdb && !this._state.commitInProgress) {
-              console.log('🔴 Delayed: Destroying umdb in finalizeUpdate (NO NEW DATA PATH)')
+              this.debugLog('🔴 Delayed: Destroying umdb in finalizeUpdate (NO NEW DATA PATH)')
               try {
                 await this.umdb.destroy()
                 this.umdb = null
@@ -1374,13 +1574,13 @@ export class EPGUpdater extends EventEmitter {
           }, 10000) // 10 second delay
         } else {
           if (this.udb) {
-            console.log('🔴 Destroying udb in finalizeUpdate (NO NEW DATA PATH - no insertSession)')
-            console.log(`🔴 Update ID: ${this._currentUpdateId}, commitInProgress: ${this._state.commitInProgress}`)
+            this.debugLog('🔴 Destroying udb in finalizeUpdate (NO NEW DATA PATH - no insertSession)')
+            this.debugLog(`🔴 Update ID: ${this._currentUpdateId}, commitInProgress: ${this._state.commitInProgress}`)
             await this.udb.destroy()
             this.udb = null
           }
           if (this.umdb) {
-            console.log('🔴 Destroying umdb in finalizeUpdate (NO NEW DATA PATH - no insertSession)')
+            this.debugLog('🔴 Destroying umdb in finalizeUpdate (NO NEW DATA PATH - no insertSession)')
             await this.umdb.destroy()
             this.umdb = null
           }
@@ -1390,12 +1590,12 @@ export class EPGUpdater extends EventEmitter {
       // Update last modified timestamp if provided
       if (newLastModified) {
         // Store this in database or storage for future reference
-        // console.log('Updating last modified timestamp:', newLastModified)
+        // this.debugLog('Updating last modified timestamp:', newLastModified)
       }
 
     } catch (err) {
       console.error('Error in finalizeUpdate:', err.message || err)
-      console.error(err.stack, typeof(console), typeof(console.error))
+      console.error(err.stack, typeof (console), typeof (console.error))
       console.error(err)
 
       // Set appropriate error state
@@ -1412,15 +1612,15 @@ export class EPGUpdater extends EventEmitter {
           console.warn('🟡 Commit is in progress in ERROR HANDLER, skipping temporary database destruction to prevent race condition')
         } else {
           if (this.udb) {
-            console.log('🔴 Destroying udb in finalizeUpdate ERROR HANDLER')
-            console.log(`🔴 Update ID: ${this._currentUpdateId}, commitInProgress: ${this._state.commitInProgress}`)
+            this.debugLog('🔴 Destroying udb in finalizeUpdate ERROR HANDLER')
+            this.debugLog(`🔴 Update ID: ${this._currentUpdateId}, commitInProgress: ${this._state.commitInProgress}`)
             // Wait a bit to ensure any pending save operations complete
             await new Promise(resolve => setTimeout(resolve, 1000))
             await this.udb.destroy()
             this.udb = null
           }
           if (this.umdb) {
-            console.log('🔴 Destroying umdb in finalizeUpdate ERROR HANDLER')
+            this.debugLog('🔴 Destroying umdb in finalizeUpdate ERROR HANDLER')
             // Wait a bit to ensure any pending save operations complete
             await new Promise(resolve => setTimeout(resolve, 1000))
             await this.umdb.destroy()
@@ -1439,156 +1639,70 @@ export class EPGUpdater extends EventEmitter {
   // ===== Batch Processing Methods =====
 
   async _saveChannelsAndTermsInBatch() {
-    // CRITICAL: Ensure we're using the final database, not the temporary one
-    let targetDb = this.mdb // Use main metadata database
+    // CRITICAL: finalizeUpdate() should have already ensured the database is ready
+    // This method only validates and saves, it doesn't fix/recreate anything
+    
+    const targetDb = this.mdb // Use main metadata database
 
+    // Validate database exists and is ready (should be after finalizeUpdate)
     if (!targetDb) {
-      throw new Error('CRITICAL: No metadata database available for batch save')
+      console.error('🚨 FLAG: No metadata database available for batch save')
+      console.error('🚨 This should not happen after finalizeUpdate() - database should exist')
+      throw new Error('CRITICAL: No metadata database available - finalizeUpdate() should have created it')
     }
 
-    // CRITICAL: Validate database state before operations
     if (targetDb.destroyed) {
-      console.error('CRITICAL: Metadata database is destroyed in _saveChannelsAndTermsInBatch')
-      console.error('Attempting to recreate metadata database...')
-
-      try {
-        // Recreate the metadata database
-        this.mdb = this.databaseFactory.createMetadataDB(this.metaFile, {}, false)
-        await this.databaseFactory.initializeDB(this.mdb)
-        targetDb = this.mdb
-        console.log('Metadata database recreated successfully')
-      } catch (recreateErr) {
-        throw new Error(`CRITICAL: Failed to recreate metadata database: ${recreateErr.message}`)
-      }
+      console.error('🚨 FLAG: Metadata database is destroyed in _saveChannelsAndTermsInBatch')
+      console.error('🚨 This should not happen after finalizeUpdate() - database should be valid')
+      throw new Error('CRITICAL: Metadata database is destroyed - finalizeUpdate() should have ensured valid database')
     }
 
     if (!targetDb.initialized) {
-      throw new Error('CRITICAL: Metadata database is not initialized in _saveChannelsAndTermsInBatch')
+      console.error('🚨 FLAG: Metadata database is not initialized in _saveChannelsAndTermsInBatch')
+      console.error('🚨 This should not happen after finalizeUpdate() - database should be initialized')
+      throw new Error('CRITICAL: Metadata database is not initialized - finalizeUpdate() should have initialized it')
     }
 
-    // CRITICAL: Always check and update filePath to point to final file
-    console.log(`Current database filePath: ${targetDb.filePath}`)
-    console.log(`Expected final file: ${this.metaFile}`)
-
-    // CRITICAL: Always ensure database is properly connected to final file
-    if (targetDb.filePath !== this.metaFile) {
-      console.log(`Updating database filePath from ${targetDb.filePath} to ${this.metaFile}`)
-      targetDb.filePath = this.metaFile
+    // Verify database is connected to correct file (should be after finalizeUpdate)
+    const targetDbFilePath = targetDb.normalizedFile
+    if (targetDbFilePath !== this.metaFile) {
+      console.warn(`⚠️ FLAG: Database file path mismatch: ${targetDbFilePath} !== ${this.metaFile}`)
+      console.warn('⚠️ This should not happen after finalizeUpdate() - database may be pointing to wrong file')
     }
 
-    // CRITICAL: Always recreate database to ensure it's properly connected
+    // Test database functionality (just to flag issues)
     try {
-      console.log('Recreating database to ensure proper connection...')
-      await targetDb.close()
-
-      // Create new database instance
-      const newDb = this.databaseFactory.createMetadataDB(this.metaFile, {}, false)
-      await this.databaseFactory.initializeDB(newDb)
-      this.mdb = newDb
-
-      // CRITICAL: Update targetDb reference to use the new database
-      targetDb = this.mdb
-
-      console.log('Database recreated successfully')
-    } catch (recreateErr) {
-      console.warn('Failed to recreate database:', recreateErr.message)
+      await targetDb.count()
+      this.debugLog('✅ Database functionality test passed')
+    } catch (testErr) {
+      console.error('🚨 FLAG: Database functionality test failed:', testErr.message)
+      console.error('🚨 This should not happen after finalizeUpdate() - database should be functional')
+      throw new Error(`CRITICAL: Database functionality test failed - finalizeUpdate() should have ensured valid database: ${testErr.message}`)
     }
 
     try {
-      console.log(`Saving ${this._channelMap.size} channels and ${this._termsMap.size} terms to database in batch...`)
-
-      // CRITICAL: Ensure database is properly initialized and accessible
-      if (!targetDb.initialized) {
-        console.warn('Target database not initialized, initializing...')
-        try {
-          await this.databaseFactory.initializeDB(targetDb)
-        } catch (initErr) {
-          console.error('Failed to initialize target database:', initErr.message)
-          return
-        }
-      }
-
-      // CRITICAL: Additional validation to ensure database is ready
-      if (!targetDb || typeof targetDb.insertBatch !== 'function') {
-        console.error('Target database is not properly initialized or insertBatch method is missing')
-        return
-      }
-
-      // CRITICAL: Check if database has the required methods
-      if (!targetDb.insert || typeof targetDb.insert !== 'function') {
-        console.error('Target database does not have insert method')
-        return
-      }
-
-      // CRITICAL: Validate database state
-      if (!targetDb.initialized) {
-        console.error('Target database is not initialized after initialization attempt')
-        return
-      }
-
-      // CRITICAL: Test database functionality before proceeding
-      try {
-        await targetDb.count()
-        console.log('Database functionality test passed')
-      } catch (testErr) {
-        console.error('Database functionality test failed:', testErr.message)
-        console.warn('Attempting to recreate database...')
-
-        try {
-          // Recreate the database
-          const newDb = this.databaseFactory.createMetadataDB(this.metaFile, {}, true)
-          await this.databaseFactory.initializeDB(newDb)
-          this.mdb = newDb
-          console.log('Database recreated successfully')
-        } catch (recreateErr) {
-          console.error('Failed to recreate database:', recreateErr.message)
-          return
-        }
-      }
+      this.debugLog(`Saving ${this._channelMap.size} channels and ${this._termsMap.size} terms to database in batch...`)
 
       // Process channels in batch
       if (this._channelMap.size > 0) {
         const channelsToProcess = Array.from(this._channelMap.values())
-        console.log(`Processing ${channelsToProcess.length} channels in batch...`)
-
-        // CRITICAL: Use the current targetDb (may have been recreated)
-        const currentTargetDb = this.mdb
-
-        if (!currentTargetDb || !currentTargetDb.initialized) {
-          console.error('Target database is not available or not initialized for channel processing')
-          return
-        }
+        this.debugLog(`Processing ${channelsToProcess.length} channels in batch...`)
 
         try {
-          // CRITICAL: Verify database is still valid before insertBatch
-          if (currentTargetDb.destroyed) {
-            throw new Error('Database is destroyed, cannot insert channels')
-          }
-          if (!currentTargetDb.initialized) {
-            throw new Error('Database is not initialized, cannot insert channels')
-          }
-
-          console.log(`Database state before insertBatch: destroyed=${currentTargetDb.destroyed}, initialized=${currentTargetDb.initialized}`)
-
-          // Use batch insert for better performance
-          await currentTargetDb.insertBatch(channelsToProcess)
-          console.log(`Batch inserted ${channelsToProcess.length} channels`)
+          await targetDb.insertBatch(channelsToProcess)
+          this.debugLog(`Batch inserted ${channelsToProcess.length} channels`)
         } catch (channelErr) {
-          console.error('Error inserting channels in batch:', channelErr.message)
-          // Try individual inserts as fallback
+          console.error('🚨 FLAG: Error inserting channels in batch:', channelErr.message)
+          console.error('🚨 This should not happen after finalizeUpdate() - database should be functional')
+          // Try individual inserts as fallback (shouldn't be needed, but helps diagnose)
           try {
             for (const channel of channelsToProcess) {
-              // Check database state before each insert
-              if (currentTargetDb.destroyed || !currentTargetDb.initialized) {
-                console.warn('Database became invalid during individual inserts, stopping')
-                break
-              }
-              await currentTargetDb.insert(channel)
+              await targetDb.insert(channel)
             }
-            console.log(`Fallback: Inserted ${channelsToProcess.length} channels individually`)
+            this.debugLog(`⚠️ Fallback: Inserted ${channelsToProcess.length} channels individually (batch insert failed)`)
           } catch (fallbackErr) {
-            console.error('Fallback channel insert also failed:', fallbackErr.message)
-            throw fallbackErr
+            console.error('🚨 FLAG: Fallback channel insert also failed:', fallbackErr.message)
+            throw new Error(`CRITICAL: Failed to insert channels - finalizeUpdate() should have ensured functional database: ${fallbackErr.message}`)
           }
         }
       }
@@ -1596,46 +1710,23 @@ export class EPGUpdater extends EventEmitter {
       // Process terms in batch
       if (this._termsMap.size > 0) {
         const termsToProcess = Array.from(this._termsMap.values())
-        console.log(`Processing ${termsToProcess.length} terms in batch...`)
-
-        // CRITICAL: Use the current targetDb (may have been recreated)
-        const currentTargetDb = this.mdb
-
-        if (!currentTargetDb || !currentTargetDb.initialized) {
-          console.error('Target database is not available or not initialized for terms processing')
-          return
-        }
+        this.debugLog(`Processing ${termsToProcess.length} terms in batch...`)
 
         try {
-          // CRITICAL: Verify database is still valid before insertBatch
-          if (currentTargetDb.destroyed) {
-            throw new Error('Database is destroyed, cannot insert terms')
-          }
-          if (!currentTargetDb.initialized) {
-            throw new Error('Database is not initialized, cannot insert terms')
-          }
-
-          console.log(`Database state before insertBatch: destroyed=${currentTargetDb.destroyed}, initialized=${currentTargetDb.initialized}`)
-
-          // Use batch insert for better performance
-          await currentTargetDb.insertBatch(termsToProcess)
-          console.log(`Batch inserted ${termsToProcess.length} terms`)
+          await targetDb.insertBatch(termsToProcess)
+          this.debugLog(`Batch inserted ${termsToProcess.length} terms`)
         } catch (termsErr) {
-          console.error('Error inserting terms in batch:', termsErr.message)
-          // Try individual inserts as fallback
+          console.error('🚨 FLAG: Error inserting terms in batch:', termsErr.message)
+          console.error('🚨 This should not happen after finalizeUpdate() - database should be functional')
+          // Try individual inserts as fallback (shouldn't be needed, but helps diagnose)
           try {
             for (const term of termsToProcess) {
-              // Check database state before each insert
-              if (currentTargetDb.destroyed || !currentTargetDb.initialized) {
-                console.warn('Database became invalid during individual inserts, stopping')
-                break
-              }
-              await currentTargetDb.insert(term)
+              await targetDb.insert(term)
             }
-            console.log(`Fallback: Inserted ${termsToProcess.length} terms individually`)
+            this.debugLog(`⚠️ Fallback: Inserted ${termsToProcess.length} terms individually (batch insert failed)`)
           } catch (fallbackErr) {
-            console.error('Fallback terms insert also failed:', fallbackErr.message)
-            throw fallbackErr
+            console.error('🚨 FLAG: Fallback terms insert also failed:', fallbackErr.message)
+            throw new Error(`CRITICAL: Failed to insert terms - finalizeUpdate() should have ensured functional database: ${fallbackErr.message}`)
           }
         }
       }
@@ -1644,7 +1735,7 @@ export class EPGUpdater extends EventEmitter {
       this._channelMap.clear()
       this._termsMap.clear()
 
-      console.log('Batch save completed successfully')
+      this.debugLog('Batch save completed successfully')
 
     } catch (err) {
       console.error('Error in batch save:', err.message)
@@ -1658,7 +1749,7 @@ export class EPGUpdater extends EventEmitter {
     if (this.readyState !== state) {
       const oldState = this.readyState
       this.readyState = state
-      console.log(`State changed from ${oldState} to ${state}`)
+      this.debugLog(`State changed from ${oldState} to ${state}`)
       this.emit('stateChange', { from: oldState, to: state })
     }
   }
@@ -1676,25 +1767,25 @@ export class EPGUpdater extends EventEmitter {
   // ===== Cleanup methods =====
 
   async cleanup() {
-    console.log('Cleaning up EPG resources...')
+    this.debugLog('Cleaning up EPG resources...')
 
     // Mark as destroyed to prevent new operations
     this._state.destroyed = true
 
     // CRITICAL: Stop parser and request FIRST to prevent new data insertion
-    console.log('🛑 Stopping parser and request to prevent new data insertion...')
+    this.debugLog('🛑 Stopping parser and request to prevent new data insertion...')
     if (this.parser && typeof this.parser.destroy === 'function') {
-      console.log('🛑 Destroying parser...')
+      this.debugLog('🛑 Destroying parser...')
       this.parser.destroy()
     }
     if (this.request && typeof this.request.destroy === 'function') {
-      console.log('🛑 Destroying request...')
+      this.debugLog('🛑 Destroying request...')
       this.request.destroy()
     }
 
     // Wait for any pending operations to complete
     if (this._state.updating) {
-      console.log('Waiting for ongoing update to complete...')
+      this.debugLog('Waiting for ongoing update to complete...')
       // Give a reasonable timeout for operations to complete
       const maxWait = 5000 // 5 seconds
       const start = Date.now()
@@ -1721,10 +1812,10 @@ export class EPGUpdater extends EventEmitter {
     for (const db of databases) {
       if (db && typeof db.save === 'function') {
         // Use JexiDB native waitForOperations instead of manual writeBuffer checks
-        console.log('Waiting for database operations to complete before cleanup...')
+        this.debugLog('Waiting for database operations to complete before cleanup...')
         try {
           await db.waitForOperations()
-          console.log('Database operations completed before cleanup')
+          this.debugLog('Database operations completed before cleanup')
         } catch (waitErr) {
           console.warn('Error waiting for database operations before cleanup:', waitErr.message)
         }
@@ -1750,35 +1841,35 @@ export class EPGUpdater extends EventEmitter {
     this.udb = null
     this.umdb = null
 
-    console.log('EPG cleanup completed')
+    this.debugLog('EPG cleanup completed')
   }
 
   async _validateDatabaseAfterParserComplete() {
-    console.log('🔍 Validating database after parser completion...')
-    
+    this.debugLog('🔍 Validating database after parser completion...')
+
     try {
       const now = Math.floor(Date.now() / 1000)
       console.debug('Checking database validity after parser complete, current timestamp:', now)
 
       // Ensure database is initialized before querying
       if (!this.db.initialized) {
-        console.log('Database not initialized, initializing now...')
+        this.debugLog('Database not initialized, initializing now...')
         await this.databaseFactory.initializeDB(this.db)
       }
 
       // Query for current and future programmes (not just future)
       // Accept programmes that end within the last 24 hours or in the future
-      const validCount = await this.db.count({ e: { '>': now } })
+      const validCount = await this.db.count({ end: { '>': now } })
       console.debug(`Found ${validCount} valid programmes (current and future) after parser complete`)
 
       // CRITICAL: Require minimum number of programmes to prevent premature finalization
       const minProgrammes = 36 // Minimum programmes required for valid EPG
-      
+
       if (validCount >= minProgrammes) {
-        console.log(`✅ Found ${validCount} valid programmes (>= ${minProgrammes}), EPG is valid`)
+        this.debugLog(`✅ Found ${validCount} valid programmes (>= ${minProgrammes}), EPG is valid`)
         return true
       } else if (validCount > 0) {
-        console.log(`❌ Found only ${validCount} valid programmes (< ${minProgrammes}), EPG is insufficient`)
+        this.debugLog(`❌ Found only ${validCount} valid programmes (< ${minProgrammes}), EPG is insufficient`)
         // Mark as error due to insufficient data
         this.setReadyState('error')
         this.error = 'EPG_NO_PROGRAMMES'
@@ -1790,10 +1881,10 @@ export class EPGUpdater extends EventEmitter {
         console.debug(`Total programmes in database after parser complete: ${totalCount}`)
 
         if (totalCount >= minProgrammes) {
-          console.log(`✅ Found ${totalCount} programmes (including past, >= ${minProgrammes}), EPG is valid`)
+          this.debugLog(`✅ Found ${totalCount} programmes (including past, >= ${minProgrammes}), EPG is valid`)
           return true
         } else if (totalCount > 0) {
-          console.log(`❌ Found only ${totalCount} programmes (< ${minProgrammes}), EPG is insufficient`)
+          this.debugLog(`❌ Found only ${totalCount} programmes (< ${minProgrammes}), EPG is insufficient`)
           // Mark as error due to insufficient data
           this.setReadyState('error')
           this.error = 'EPG_NO_PROGRAMMES'

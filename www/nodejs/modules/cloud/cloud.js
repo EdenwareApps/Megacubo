@@ -94,6 +94,42 @@ class CloudConfiguration extends EventEmitter {
         this.debug && console.log('🧹 404 Cache: Cleared all entries')
     }
 
+
+    /**
+     * Build a short description about the payload size
+     * @param {*} payload - The payload to be described
+     * @returns {string} - Human readable payload size
+     */
+    describePayloadSize(payload) {
+        if (Array.isArray(payload)) {
+            return `${payload.length} entries`
+        }
+        if (payload && typeof payload === 'object') {
+            return `${Object.keys(payload).length} keys`
+        }
+        if (typeof payload === 'string') {
+            return `${payload.length} characters`
+        }
+        if (payload === null || typeof payload === 'undefined') {
+            return '0'
+        }
+        return '1'
+    }
+
+    /**
+     * Log successful fetches for debugging purposes
+     * @param {string} key - Cache key
+     * @param {*} payload - Data fetched
+     * @param {string} origin - Source of the payload
+     */
+    logSuccessfulFetch(key, payload, origin) {
+        if (!key.startsWith('sources/')) {
+            return
+        }
+        const sizeDescription = this.describePayloadSize(payload)
+        console.info(`[cloud] sources "${key}" loaded (${sizeDescription}) via ${origin}`)
+    }
+
     /**
      * Get statistics about the 404 cache
      * @returns {Object} - Cache statistics
@@ -176,6 +212,7 @@ class CloudConfiguration extends EventEmitter {
                 throw new Error('Validation failed')
             }
             await this.saveToCache(key, response, opts)
+            this.logSuccessfulFetch(key, response, 'network')
             return response
         } catch (error) {
             this.debug && console.log(`Fetch failed for ${key}`, error)
@@ -208,7 +245,7 @@ class CloudConfiguration extends EventEmitter {
 
         // Check if this URL recently failed with 404
         if (this.isUrlRecentlyFailed(url)) {
-            console.log(`Skipping URL due to recent 404 error: ${url}`)
+            this.debug && console.log(`Skipping URL due to recent 404 error: ${url}`)
             // Try fallback first before throwing error
             try {
                 return await this.readFallback(key)
@@ -298,7 +335,9 @@ class CloudConfiguration extends EventEmitter {
         const filePath = paths.cwd + `/dist/defaults/${key}.json`
         try {
             const content = await fs.readFile(filePath, 'utf8')
-            return JSON.parse(content)
+            const parsed = JSON.parse(content)
+            this.logSuccessfulFetch(key, parsed, 'fallback')
+            return parsed
         } catch (error) {
             if (key === 'configure') {
                 console.error(`[cloud] No fallback found for ${key}`, error)

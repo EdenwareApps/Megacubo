@@ -2,6 +2,7 @@ import { Common } from "../lists/common.js";
 import pLimit from "p-limit";
 import config from "../config/config.js"
 import { getDomain } from "../utils/utils.js";
+import StreamClassifier from "./stream-classifier.js";
 
 class Index extends Common {
     constructor(opts) {
@@ -15,6 +16,8 @@ class Index extends Common {
         // Cache for has() results with TTL
         this.hasCache = new Map();
         this.hasCacheTTL = 30000; // 30 seconds
+        // Cache per list+term for permanent caching while list is loaded (immutable)
+        this.hasCachePerList = new Map(); // Map<listUrl, Map<termKey, result>>
     }
     optimizeSearchOpts(opts) {
         let nopts = {};
@@ -28,69 +31,170 @@ class Index extends Common {
         if (!opts) opts = {};
         
         const results = {};
-        
-        // ULTRA-OPTIMIZATION: Process terms in parallel for better performance
-        const limiter = pLimit(4);
+        const limiter = pLimit(8);
+        const listUrls = Object.keys(this.lists);
         const tasks = [];
         
         for (const term of terms) {
-            // Simple cache key: just the term
             const cacheKey = `${term.name}:${JSON.stringify(term.terms)}`;
             const cached = this.hasCache.get(cacheKey);
             
+            // Check global cache first (for backward compatibility)
             if (cached && (Date.now() - cached.timestamp) < this.hasCacheTTL) {
-                // Reuse cache
                 results[term.name] = cached.result;
-            } else {
-                // ULTRA-OPTIMIZATION: Process term in parallel
-                tasks.push(limiter(async () => {
-                    const arrTerms = Array.isArray(term.terms) ? term.terms : this.tools.terms(term.terms);
-                    const query = this.parseQuery(arrTerms, opts);
+                continue;
+            }
+            
+            const arrTerms = Array.isArray(term.terms) ? term.terms : this.tools.terms(term.terms);
+            // Extract excludes (terms starting with '-') and filter them from arrTerms
+            const excludes = [];
+            const filteredTerms = [];
+            for (const t of arrTerms) {
+                if (t.startsWith('-')) {
+                    excludes.push(t.substr(1)); // Remove '-' prefix
+                } else {
+                    filteredTerms.push(t);
+                }
+            }
+            // Use exists() for faster index-only check (no disk I/O)
+            const useAll = !opts.partial; // $all when partial is false
+            let found = false;
+            const termTasks = []; // Tasks for this specific term
+            const abortController = new AbortController(); // For early exit
+            
+            // Check per-list cache first (for loaded/immutable lists)
+            let foundInCache = false;
+            for (const url of listUrls) {
+                const list = this.lists[url];
+                if (!list || !list.indexer || !list.indexer.db) continue;
+                
+                // Check if list is loaded and immutable (not updating)
+                // List is considered loaded if it has indexer, db, and length > 0
+                const isListLoaded = list.indexer && list.indexer.db && list.length > 0 && !(this.isListUpdating && this.isListUpdating(url));
+                if (isListLoaded) {
+                    const listCache = this.hasCachePerList.get(url) || new Map();
+                    const termKey = `${term.name}:${JSON.stringify(term.terms)}`;
+                    const cachedResult = listCache.get(termKey);
                     
-                    // ULTRA-OPTIMIZATION: Use find() with limit 1 instead of count() for better performance
-                    for (const url of Object.keys(this.lists)) {
-                        try {
-                            // Add null check for indexer to prevent TypeError
-                            if (!this.lists[url].indexer || !this.lists[url].indexer.db) {
-                                continue;
-                            }
-                            const ret = await this.lists[url].indexer.db.find(query, { limit: 1 });
-                            if (ret.length > 0) {
-                                results[term.name] = true;
-                                
-                                // Cache the result
-                                this.hasCache.set(cacheKey, {
-                                    result: true,
-                                    timestamp: Date.now()
-                                });
-                                return; // Early exit
-                            }
-                        } catch (error) {
-                            if (this.debug) {
-                                console.warn(`Has error in ${url}:`, error.message);
+                    if (cachedResult !== undefined) {
+                        if (cachedResult === true) {
+                            found = true;
+                            foundInCache = true;
+                            results[term.name] = true;
+                            break; // Found in cache, no need to check other lists
+                        }
+                        // If cached as false, continue checking other lists
+                    }
+                }
+            }
+            
+            if (foundInCache) {
+                // Update global cache for backward compatibility
+                this.hasCache.set(cacheKey, {
+                    result: true,
+                    timestamp: Date.now()
+                });
+                continue;
+            }
+
+            // If not found in cache, search in lists
+            for (const url of listUrls) {
+                const task = limiter(async () => {
+                    // Early exit: if already found or aborted, skip
+                    if (found || abortController.signal.aborted) {
+                        return;
+                    }
+                    
+                    try {
+                        if (this.isListUpdating && this.isListUpdating(url)) {
+                            return;
+                        }
+                        const list = this.lists[url];
+                        if (!list || !list.indexer || !list.indexer.db) {
+                            return;
+                        }
+                        
+                        // Use exists() for ultra-fast index-only check (no disk I/O)
+                        // Prefer indexManager.exists() directly (synchronous, faster) if available
+                        // Build options object with excludes if any
+                        const existsOptions = { $all: useAll };
+                        if (excludes.length > 0) {
+                            existsOptions.excludes = excludes;
+                        }
+                        let ret = false;
+                        if (list.indexer.db.indexManager && typeof list.indexer.db.indexManager.exists === 'function') {
+                            // Direct synchronous call (fastest)
+                            ret = list.indexer.db.indexManager.exists('nameTerms', filteredTerms, existsOptions);
+                        } else {
+                            // Async wrapper (still fast, index-only)
+                            ret = await list.indexer.db.exists('nameTerms', filteredTerms, existsOptions);
+                        }
+                        
+                        if (ret) {
+                            found = true;
+                            abortController.abort(); // Cancel other tasks for this term
+                            
+                            // Cache result permanently for this list (since it's immutable)
+                            const isListLoaded = list.indexer && list.indexer.db && list.length > 0 && !(this.isListUpdating && this.isListUpdating(url));
+                            if (isListLoaded) {
+                                if (!this.hasCachePerList.has(url)) {
+                                    this.hasCachePerList.set(url, new Map());
+                                }
+                                const listCache = this.hasCachePerList.get(url);
+                                const termKey = `${term.name}:${JSON.stringify(term.terms)}`;
+                                listCache.set(termKey, true);
                             }
                         }
+                    } catch (error) {
+                        if (this.debug) {
+                            console.warn(`Has error in ${url}:`, error.message);
+                        }
                     }
-                    
-                    if (results[term.name] !== true) {
-                        results[term.name] = false;
-                        
-                        // Cache the result
-                        this.hasCache.set(cacheKey, {
-                            result: false,
-                            timestamp: Date.now()
-                        });
-                    }
-                }));
+                });
+                termTasks.push(task);
+                tasks.push(task);
             }
+
+            // Task to process results after all search tasks for this term complete
+            const resultTask = limiter(async () => {
+                await Promise.all(termTasks); // Wait only for this term's search tasks
+                if (found) {
+                    results[term.name] = true;
+                    this.hasCache.set(cacheKey, {
+                        result: true,
+                        timestamp: Date.now()
+                    });
+                } else {
+                    results[term.name] = false;
+                    this.hasCache.set(cacheKey, {
+                        result: false,
+                        timestamp: Date.now()
+                    });
+                    
+                    // Cache negative results per list too (for loaded lists)
+                    for (const url of listUrls) {
+                        const list = this.lists[url];
+                        if (!list || !list.indexer || !list.indexer.db) continue;
+                        
+                        const isListLoaded = list.ready && !(this.isListUpdating && this.isListUpdating(url));
+                        if (isListLoaded) {
+                            if (!this.hasCachePerList.has(url)) {
+                                this.hasCachePerList.set(url, new Map());
+                            }
+                            const listCache = this.hasCachePerList.get(url);
+                            const termKey = `${term.name}:${JSON.stringify(term.terms)}`;
+                            listCache.set(termKey, false);
+                        }
+                    }
+                }
+            });
+            tasks.push(resultTask);
         }
         
-        // ULTRA-OPTIMIZATION: Wait for all parallel tasks to complete
         if (tasks.length > 0) {
-            await Promise.allSettled(tasks);
+            await Promise.all(tasks);
         }
         
-        // Clean old cache entries periodically
         this.cleanupCache();
         
         return results;
@@ -110,103 +214,162 @@ class Index extends Common {
             }
         }
     }
-    async multiSearch(terms, opts = {}) {
-        const limit = opts.limit || 256;
-        
+    
+    /**
+     * Clear per-list cache when list is removed/updated
+     * @param {string} url - List URL to clear cache for
+     */
+    clearListCache(url) {
+        if (this.hasCachePerList && this.hasCachePerList.has(url)) {
+            this.hasCachePerList.delete(url);
+        }
+    }
+    async multiSearch(terms, opts = {}) {        
         if (!terms || !Object.keys(terms).length) {
             return [];
         }
-        
+
+        const limit = opts.limit || 256;
+        const limitPerList = opts.limitPerList || limit * 5;
         const limiter = pLimit(3);
         const tasks = [];
-        const scores = {};
-        const references = new Set(); // Store unique references: listUrl + url + _
+        const allResults = [];
+        const seenUrls = new Set(); // Track unique URLs across all lists
         
-        // Process each term with its score
-        for (const [termName, score] of Object.entries(terms)) {
-            const query = this.parseQuery(termName, opts);
+        // Pre-filter function for VOD and parental control
+        const shouldIncludeEntry = (entry) => {
+            // Pre-filter: discard entries blocked by parental control
+            if (!this.parentalControl.allow(entry)) {
+                return false;
+            }
             
-            // Search in all lists
-            for (const url of Object.keys(this.lists)) {
-                tasks.push(limiter(async () => {
-                    try {
-                        // Add null check for indexer to prevent TypeError
-                        if (!this.lists[url].indexer || !this.lists[url].indexer.db) {
-                            return;
-                        }
-                        const ret = await this.lists[url].indexer.db.find(query, { 
-                            limit: 10000 // Higher limit for scoring phase
+            // Pre-filter: discard non-VOD entries if searching for VOD with typeStrict
+            if (opts.type === 'vod') {
+                if (opts.typeStrict === true) {
+                    return StreamClassifier.clearlyVOD(entry);
+                } else {
+                    // Quando typeStrict=false, incluir seemsVOD OU null (unknown)
+                    // Otimização: classificar uma vez e reutilizar o resultado
+                    const classification = StreamClassifier.classify(entry);
+                    return classification === 'vod' || classification === 'seems-vod' || classification === null;
+                }
+            } else if (opts.type === 'live') {
+                if (opts.typeStrict === true) {
+                    return StreamClassifier.clearlyLive(entry);
+                } else {
+                    // Quando typeStrict=false, incluir seemsLive OU null (unknown)
+                    // Otimização: classificar uma vez e reutilizar o resultado
+                    const classification = StreamClassifier.classify(entry);
+                    return classification === 'live' || classification === 'seems-live' || classification === null;
+                }
+            }
+            
+            return true;
+        };
+        
+        // OPTIMIZATION: Use db.score() for efficient multi-term scoring
+        // Convert terms to a format suitable for score() method
+        // Score expects: { 'term1': score1, 'term2': score2, ... }
+        const scoreMap = {};
+        for (const [termName, score] of Object.entries(terms)) {
+            // Parse term to get individual search terms
+            const termArray = Array.isArray(termName) ? termName : this.tools.terms(termName);
+            // Add score for each individual term
+            for (const term of termArray) {
+                if (term && term !== '|' && !term.startsWith('-')) {
+                    // Accumulate scores if term appears multiple times
+                    scoreMap[term] = (scoreMap[term] || 0) + score;
+                }
+            }
+        }
+        
+        // Search in all lists using score() method
+        for (const url of Object.keys(this.lists)) {
+            tasks.push(limiter(async () => {
+                try {
+                    // Skip lists that are being updated
+                    if (this.isListUpdating && this.isListUpdating(url)) {
+                        return;
+                    }
+                    // Add null check for list and indexer to prevent TypeError
+                    if (!this.lists[url] || !this.lists[url].indexer || !this.lists[url].indexer.db) {
+                        return;
+                    }
+                    
+                    // OPTIMIZATION: Use score() method for faster multi-term search
+                    const scoredResults = await this.lists[url].indexer.db.score('nameTerms', scoreMap, {
+                        limit: limitPerList,
+                        sort: 'desc',
+                        includeScore: true
+                    });
+                    
+                    // Also check groupTerms if group search is enabled
+                    if (opts.group) {
+                        const groupScoredResults = await this.lists[url].indexer.db.score('groupTerms', scoreMap, {
+                            limit: limitPerList,
+                            sort: 'desc',
+                            includeScore: true
                         });
                         
-                        for (const entry of ret) {
-                            // Create unique identifier including listUrl, URL and line number
-                            const uid = url + '|' + entry.url + '|' + entry._;
-                            
-                            // Initialize score if not exists (based on URL only)
-                            if (!scores[entry.url]) {
-                                scores[entry.url] = 0;
+                        // Merge results, keeping highest score per entry
+                        const mergedResults = new Map();
+                        for (const entry of [...scoredResults, ...groupScoredResults]) {
+                            const key = entry.url + '|' + entry._;
+                            const existing = mergedResults.get(key);
+                            if (!existing || (entry.score || 0) > (existing.score || 0)) {
+                                mergedResults.set(key, entry);
+                            }
+                        }
+                        
+                        for (const entry of mergedResults.values()) {
+                            if (seenUrls.has(entry.url)) {
+                                continue;
                             }
                             
-                            // Add score for this term (URL-based scoring)
-                            scores[entry.url] += score;
+                            seenUrls.add(entry.url); // Mark as seen to prevent re-processing
                             
-                            // Store reference for later fetching
-                            references.add(uid);
+                            // Pre-filter: discard non-VOD entries if searching for VOD with typeStrict
+                            if (!shouldIncludeEntry(entry)) {
+                                continue;
+                            }
+                            
+                            entry.source = url;
+                            entry.score = entry.score || 0;
+                            allResults.push(entry);
                         }
-                    } catch (err) {
-                        console.error(`Error searching in list ${url}:`, err);
+                    } else {
+                        for (const entry of scoredResults) {
+                            if (seenUrls.has(entry.url)) {
+                                continue;
+                            }
+                            
+                            seenUrls.add(entry.url); // Mark as seen to prevent re-processing
+                            
+                            // Pre-filter: discard non-VOD entries if searching for VOD with typeStrict
+                            if (!shouldIncludeEntry(entry)) {
+                                continue;
+                            }
+                            
+                            entry.source = url;
+                            entry.score = entry.score || 0;
+                            allResults.push(entry);
+                        }
                     }
-                }));
-            }
+                } catch (err) {
+                    console.error(`Error searching in list ${url}:`, err);
+                }
+            }));
         }
         
         await Promise.allSettled(tasks);
         
-        // Sort URLs by score and get top results
-        const topUrls = Object.entries(scores)
-            .map(([url, score]) => ({ url, score }))
-            .sort((a, b) => b.score - a.score)
-            .slice(0, limit);
-        
-        // Now fetch the complete entries for top URLs
-        const results = [];
-        const fetchTasks = [];
-        
-        for (const { url, score } of topUrls) {
-            // Find all references for this URL
-            const urlReferences = Array.from(references)
-                .filter(uid => uid.includes('|' + url + '|'))
-                .slice(0, 1); // Take only the first occurrence per URL
-            
-            for (const uid of urlReferences) {
-                const [listUrl, entryUrl, lineNumber] = uid.split('|');
-                const lineNum = parseInt(lineNumber);
-                
-                fetchTasks.push(limiter(async () => {
-                    try {
-                        // Add null check for indexer to prevent TypeError
-                        if (!this.lists[listUrl].indexer || !this.lists[listUrl].indexer.db) {
-                            return;
-                        }
-                        const entry = await this.lists[listUrl].indexer.db.find({ url: entryUrl, _: lineNum }, { limit: 1 });
-                        if (entry.length > 0) {
-                            entry[0].source = listUrl;
-                            entry[0].score = score;
-                            results.push(entry[0]);
-                        }
-                    } catch (err) {
-                        console.error(`Error fetching entry for ${entryUrl} from ${listUrl}:`, err);
-                    }
-                }));
-            }
-        }
-        
-        await Promise.allSettled(fetchTasks);
-        
-        // Sort by score and return
-        return results
+        // Sort by score and get top results
+        const results = allResults
             .sort((a, b) => (b.score || 0) - (a.score || 0))
             .slice(0, limit);
+        
+        // Apply same type filtering as search() does in adjustSearchResults
+        return this.adjustSearchResults(results, opts, limit);
     }
     parseQuery(terms, opts) {
         if (!Array.isArray(terms)) {
@@ -386,8 +549,12 @@ class Index extends Common {
                 }
                 
                 try {
-                    // Add null check for indexer to prevent TypeError
-                    if (!this.lists[url].indexer || !this.lists[url].indexer.db) {
+                    // Skip lists that are being updated
+                    if (this.isListUpdating && this.isListUpdating(url)) {
+                        return;
+                    }
+                    // Add null check for list and indexer to prevent TypeError
+                    if (!this.lists[url] || !this.lists[url].indexer || !this.lists[url].indexer.db) {
                         return;
                     }
                     // ULTRA-OPTIMIZATION: Skip count() - go directly to find() with limit
@@ -396,6 +563,11 @@ class Index extends Common {
                         streaming: false // Disable streaming for faster small queries
                     };
                     
+                    // Allow non-indexed fields when withIconOnly is used (icon field is not indexed)
+                    if (opts.withIconOnly) {
+                        queryOpts.allowNonIndexed = true;
+                    }
+                    
                     const ret = await this.lists[url].indexer.db.find(query, queryOpts)
                     
                     // ULTRA-OPTIMIZATION: Process results more efficiently with early termination
@@ -403,8 +575,7 @@ class Index extends Common {
                         if (shouldStop || results.length >= maxWorkingSetLimit) {
                             shouldStop = true;
                             break;
-                        }
-                        
+                        }                        
                         
                         r.source = url
                         if (already.has(r.url)) {
@@ -444,18 +615,23 @@ class Index extends Common {
     }
     adjustSearchResults(entries, opts, limit) {
         let map = {}, nentries = [];
-        
-        
         if (opts.type == 'live') {
+            entries = StreamClassifier.filter(entries, 'live', opts.typeStrict === true);
+            // livefmt is about format preference (HLS vs MPEG-TS), not stream type
             const livefmt = config.get('live-stream-fmt');
             switch (livefmt) {
                 case 'hls':
-                    entries = this.isolateHLS(entries, true);
+                    entries = StreamClassifier.prioritizeExtensions(entries, ['m3u8'], []);
                     break;
                 case 'mpegts':
-                    entries = this.isolateHLS(entries, false);
+                    entries = StreamClassifier.prioritizeExtensions(entries, ['ts', 'mts'], []);
                     break;
             }
+        } else if (opts.type == 'vod') {
+            // Filter for VOD entries using StreamClassifier
+            // typeStrict determines if only clearly VOD or includes seems-vod
+            entries = StreamClassifier.filter(entries, 'vod', opts.typeStrict === true);
+            entries = StreamClassifier.prioritizeExtensions(entries, StreamClassifier.VIDEO_FORMATS, []);
         }
         entries.forEach(e => {
             // Skip entries without valid URL
@@ -490,21 +666,6 @@ class Index extends Common {
     ext(file) {
         return String(file).split('?')[0].split('#')[0].split('.').pop().toLowerCase();
     }
-    isolateHLS(entries, elevate) {
-        let notHLS = [];
-        entries = entries.filter(a => {
-            if (this.ext(a.url) == 'm3u8') {
-                return true;
-            }
-            notHLS.push(a);
-        });
-        if (elevate) {
-            entries.push(...notHLS);
-        } else {
-            entries = notHLS.push(...entries);
-        }
-        return entries;
-    }
     async groups(types, myListsOnly) {
         let groups = [], map = {};
         if (myListsOnly) {
@@ -513,6 +674,10 @@ class Index extends Common {
         Object.keys(this.lists).forEach(url => {
             if (myListsOnly && !myListsOnly.includes(url))
                 return;
+            // Skip lists that are being updated
+            if (this.isListUpdating && this.isListUpdating(url)) {
+                return;
+            }
             if (!this.lists[url] || !this.lists[url].index) {
                 return;
             }
@@ -559,6 +724,10 @@ class Index extends Common {
         return result;
     }
     async group(group) {
+        // Skip if list is being updated
+        if (this.isListUpdating && this.isListUpdating(group.url)) {
+            throw 'List is being updated';
+        }
         const list = this.lists[group.url]
         if (!list) {
             throw 'List not loaded';
@@ -566,38 +735,35 @@ class Index extends Common {
         if (!list.index) {
             throw 'List index not available';
         }
-        /*
-                let mmap, map = list.index.groups[group.group].slice(0)
-                if(!map) map = []
-                Object.keys(list.index.groups).forEach(s => {
-                    if(s != group.group && s.includes('/') && s.startsWith(group.group)){
-                        if(!mmap) { // jit
-                            mmap = new Map(map.map(m => [m, null]))
-                            map = [] // freeup mem
-                        }
-                        list.index.groups[s].forEach(n => mmap.has(n) || mmap.set(n, null))
-                    }
-                })
-        
-                if(mmap) {
-                    map = Array.from(mmap, ([key]) => key)
-                }
-        */
-        let groupKey = group.group || ''
-        if (!list.index.groups[groupKey]) {
-            groupKey = Object.keys(list.index.groups).filter(g => g.endsWith(group.group)).shift()
+        // Ensure indexer is ready before accessing the database
+        if (list.indexer && typeof list.indexer.ready === 'function') {
+            await list.indexer.ready()
         }
-        if (!groupKey) {
-            return [];
+
+        if (!list.indexer || !list.indexer.db || list.indexer.db.destroyed) {
+            throw 'List database not available';
         }
-        let entries = [], map = list.index.groups[groupKey] || [];
-        if (map.length) {
-            entries = await list.getEntries(map);
-            return entries;
+
+        const fetchEntries = async key => {
+            const trimmedKey = (key || '').trim()
+
+            const directMatches = await list.indexer.db.find({ group: trimmedKey })
+            if (Array.isArray(directMatches) && directMatches.length) {
+                return directMatches
+            }
+
+            return list.indexer.db.find({ groups: trimmedKey })
         }
+
+        const desiredGroup = (group.group || '').trim()
+
+        let entries = await fetchEntries(desiredGroup)
+        if (!entries.length) {
+            return []
+        }
+
         entries = this.parentalControl.filter(entries, true);
-        entries = this.tools.sort(entries);
-        return entries;
+        return this.tools.sort(entries);
     }
 }
 

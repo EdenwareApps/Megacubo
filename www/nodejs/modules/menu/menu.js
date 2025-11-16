@@ -7,6 +7,7 @@ import mega from '../mega/mega.js'
 import config from '../config/config.js'
 import renderer from '../bridge/bridge.js'
 import { inWorker } from '../paths/paths.js'
+import channelEpgPosFilter from '../epg/posfilter.js'
 
 class Menu extends EventEmitter {
     constructor(opts) {
@@ -23,7 +24,9 @@ class Menu extends EventEmitter {
         this.path = ''
         this.filters = []
         this.outputFilters = []
+        this.posFilters = []
         this.currentEntries = []
+        this.openToken = 0
         this.backIcon = 'fas fa-chevron-left'
         this.liveSections = []
         this.softRefreshLimiter = {
@@ -134,26 +137,117 @@ class Menu extends EventEmitter {
     setLiveSection(path, interval=1000, callback) {
         this.liveSections.push({path, interval, callback})
     }
-    setBusy(path, timeout=0) {
-        const uid = 'busy-' + Date.now()
-        if(typeof(this.busies) == 'undefined') this.busies = new Map()
+    setBusy(path, timeoutOrOpts = 0) {
+        const hasOptions = timeoutOrOpts && typeof timeoutOrOpts === 'object'
+        const opts = hasOptions ? {
+            timeout: 0,
+            icon: 'fa-mega busy-x',
+            ...timeoutOrOpts
+        } : {
+            timeout: Number(timeoutOrOpts) || 0,
+            icon: 'fa-mega busy-x'
+        }
+
+        opts.timeout = Number(opts.timeout) || 0
+        opts.icon = opts.icon || 'fa-mega busy-x'
+        const uid = opts.id || ('busy-' + Date.now())
+
+        if (typeof this.busies === 'undefined') {
+            this.busies = new Map()
+        }
         this.busies.set(uid, path)
         renderer.ui.emit('menu-busy', Array.from(this.busies.values()))
-        const release = () => {
+
+        const releaseHooks = []
+        let released = false
+        let timeoutId
+
+        const release = (reason = 'release') => {
+            if (released) {
+                return
+            }
+            released = true
+
+            if (timeoutId) {
+                clearTimeout(timeoutId)
+                timeoutId = null
+            }
+
             this.busies.delete(uid)
-            this.busies.size || renderer.ui.emit('menu-busy', false)
+            if (this.busies.size) {
+                renderer.ui.emit('menu-busy', Array.from(this.busies.values()))
+            } else {
+                renderer.ui.emit('menu-busy', false)
+            }
+
+            while (releaseHooks.length) {
+                const hook = releaseHooks.shift()
+                try {
+                    hook()
+                } catch (err) {
+                    console.error('menu.setBusy release hook failed:', err)
+                }
+            }
+
+            if (typeof opts.onRelease === 'function') {
+                try {
+                    opts.onRelease(reason)
+                } catch (err) {
+                    console.error('menu.setBusy onRelease failed:', err)
+                }
+            }
         }
-        timeout && setTimeout(release, timeout) // busy state blocks the menu, so we should release it after some time
-        return {release}
+
+        if (opts.message && global?.osd) {
+            const osdId = opts.osdId || uid
+            try {
+                global.osd.show(String(opts.message), opts.icon, osdId, 'persistent')
+                releaseHooks.push(() => {
+                    try {
+                        global.osd.hide(osdId)
+                    } catch (err) {
+                        console.error('menu.setBusy osd hide failed:', err)
+                    }
+                })
+            } catch (err) {
+                console.error('menu.setBusy osd show failed:', err)
+            }
+        }
+
+        if (opts.timeout > 0) {
+            timeoutId = setTimeout(() => {
+                timeoutId = null
+                if (typeof opts.onTimeout === 'function') {
+                    try {
+                        opts.onTimeout()
+                    } catch (err) {
+                        console.error('menu.setBusy onTimeout failed:', err)
+                    }
+                }
+                release('timeout')
+            }, opts.timeout)
+        }
+
+        return { release }
     }
-    async withBusy(path, fn, timeout = 0) {
-        const busy = this.setBusy(path, timeout);
+    async withBusy(path, fn, opts = 0) {
+        const hasOptions = opts && typeof opts === 'object'
+        const timeout = hasOptions ? (opts.timeout || 60000) : (Number(opts) || 60000) // Default 60s timeout
+        const busyOpts = hasOptions ? { ...opts, timeout } : { timeout }
+        const busy = this.setBusy(path, busyOpts)
         try {
             await fn();
         } catch (e) {
             this.displayErr(e);
         } finally {
             busy.release();
+        }
+    }
+    clearBusies() {
+        // Clear all pending busies (useful for cleanup after errors)
+        if (this.busies && this.busies.size > 0) {
+            this.busies.clear();
+            renderer.ui.emit('menu-busy', false);
         }
     }
     async updateHomeFilters() {
@@ -330,20 +424,24 @@ class Menu extends EventEmitter {
     addOutputFilter(f) {
         this.outputFilters.push(f)
     }
+    prependPosFilter(f) {
+        this.posFilters.unshift(f)
+    }
+    addPosFilter(f) {
+        this.posFilters.push(f)
+    }
     async applyFilters(entries, path) {
-        for(const filters of [this.filters, this.outputFilters]) {
-            for(let i=0; i<filters.length; i++) {
-                this.opts.debug && console.log('Menu filter '+ (i + 1) +'/'+ filters.length)
-                const es = await filters[i](entries, path).catch(err => console.error(err))
-                if (Array.isArray(es)) {
-                    entries = es
-                } else {
-                    this.opts.debug && console.log('Menu filter failure at filter #'+ i, filters[i], es)
-                }
+        for (let i = 0; i < this.filters.length; i++) {
+            this.opts.debug && console.log('Menu filter ' + (i + 1) + '/' + this.filters.length)
+            const es = await this.filters[i](entries, path).catch(err => console.error(err))
+            if (Array.isArray(es)) {
+                entries = es
+            } else {
+                this.opts.debug && console.log('Menu filter failure at filter #' + i, this.filters[i], es)
             }
         }
         if (Array.isArray(entries)) {
-            this.opts.debug && console.log('Menu filtering DONE '+ this.filters.length)
+            this.opts.debug && console.log('Menu filtering DONE ' + this.filters.length)
             const basePath = path ? path + '/' : ''
             for (let i = 0; i < entries.length; i++) {
                 if (entries[i].type == 'back') {
@@ -358,6 +456,34 @@ class Menu extends EventEmitter {
                 }
             }
             this.opts.debug && console.log('Menu filtering DONE* ', !!inWorker)
+        }
+        return entries || []
+    }
+    async applyOutputFilters(entries, path) {
+        if (!Array.isArray(entries) || !this.outputFilters.length) {
+            return entries || []
+        }
+        for (let i = 0; i < this.outputFilters.length; i++) {
+            this.opts.debug && console.log('Menu output filter ' + (i + 1) + '/' + this.outputFilters.length)
+            const es = await this.outputFilters[i](entries, path).catch(err => console.error(err))
+            if (Array.isArray(es)) {
+                entries = es
+            } else {
+                this.opts.debug && console.log('Menu output filter failure at filter #' + i, this.outputFilters[i], es)
+            }
+        }
+        return entries || []
+    }
+    async applyPosFilters(entries, path) {
+        if (!Array.isArray(entries) || !this.posFilters.length) {
+            return entries || []
+        }
+        for (let i = 0; i < this.posFilters.length; i++) {
+            this.opts.debug && console.log('Menu pos filter ' + (i + 1) + '/' + this.posFilters.length)
+            const es = await this.posFilters[i](entries, path).catch(err => console.error(err))
+            if (Array.isArray(es)) {
+                entries = es
+            }
         }
         return entries || []
     }
@@ -572,8 +698,30 @@ class Menu extends EventEmitter {
         if (this.opts.debug) {
             console.error('open', destPath, tabindex)
         }
+        const requestToken = ++this.openToken
         this.emit('open', destPath)
         let parentEntry, name = basename(destPath), parentPath = this.dirname(destPath)
+        const finish = async (es) => {
+            if (requestToken !== this.openToken) {
+                if (this.opts.debug) {
+                    console.log('open finish skipped (outdated)', { destPath, requestToken, currentToken: this.openToken })
+                }
+                return false
+            }
+            if (backInSelect && parentEntry && parentEntry.type == 'select') {
+                if (this.opts.debug) {
+                    console.log('backInSelect', backInSelect, parentEntry, destPath)
+                }
+                return this.open(this.dirname(destPath), -1, deep, isFolder, backInSelect)
+            }
+            if(!destPath || !parentEntry || parentEntry.type == 'group') {
+                this.path = destPath
+            }
+            es = this.addMetaEntries(es, destPath, parentPath)
+            this.pages[this.path] = es
+            await this.render(this.pages[this.path], this.path, { parent: parentEntry, openToken: requestToken })
+            return true
+        }
         if (this.opts.debug) {
             console.log('readen1', this.pages[parentPath], parentPath, name)
         }
@@ -592,7 +740,13 @@ class Menu extends EventEmitter {
                     }
                     let es = await this.readEntry(e, parentPath)
                     es = await this.applyFilters(es, destPath)
-                    return this.render(es, destPath, {parent: e})
+                    return this.render(es, destPath, { parent: e, openToken: requestToken })
+                } else if(e.type == 'group') {
+                    // Handle normal groups (like "Recomendado para você")
+                    parentEntry = e
+                    let es = await this.readEntry(e, parentPath)
+                    es = await this.applyFilters(es, destPath)
+                    return finish(es)
                 }
             }
         }
@@ -602,25 +756,17 @@ class Menu extends EventEmitter {
         }
         if (ret === -1 || ret === undefined) return
         parentEntry = ret.parent
-        let finish = async (es) => {
-            if (backInSelect && parentEntry && parentEntry.type == 'select') {
-                if (this.opts.debug) {
-                    console.log('backInSelect', backInSelect, parentEntry, destPath)
-                }
-                return this.open(this.dirname(destPath), -1, deep, isFolder, backInSelect)
-            }
-            if(!destPath || !parentEntry || parentEntry.type == 'group') {
-                this.path = destPath
-            }
-            es = this.addMetaEntries(es, destPath, parentPath)
-            this.pages[this.path] = es
-            await this.render(this.pages[this.path], this.path, {parent: parentEntry})
-            return true
-        }
         if (name) {
-            const e = this.findEntry(ret.entries, name, {
+            // Try to find entry in ret.entries first, but if not found, try in this.pages[parentPath]
+            // This handles cases where the entry was filtered out or the array was modified
+            let e = this.findEntry(ret.entries, name, {
                 tabindex, isFolder, fullPath: destPath
             })
+            if (!e && Array.isArray(this.pages[parentPath])) {
+                e = this.findEntry(this.pages[parentPath], name, {
+                    tabindex, isFolder, fullPath: destPath
+                })
+            }
             if (this.opts.debug) {
                 console.log('findEntry', destPath, ret.entries, name, tabindex, isFolder, e)
             }
@@ -653,7 +799,7 @@ class Menu extends EventEmitter {
             }
         } else {
             this.path = destPath
-            await this.render(this.pages[this.path], this.path, {parent: parentEntry})
+            await this.render(this.pages[this.path], this.path, { parent: parentEntry, openToken: requestToken })
             return true
         }
     }
@@ -747,45 +893,68 @@ class Menu extends EventEmitter {
         return entries.length && entries.some(e => e.url && (!e.type || e.type == 'stream') && !mega.isMega(e.url))
     }
     addMetaEntries(entries, path, backTo) {
-        if (path && (!entries.length || entries[0].type != 'back')) {
-            if (!entries.length) {
-                entries.push(this.emptyEntry())
-            }
-            if (backTo) {
-                let backEntry = {
-                    name: lang.BACK,
-                    type: 'back',
-                    fa: this.backIcon,
-                    path: backTo || this.dirname(path)
+        // Home path (empty) doesn't need back button
+        if (!path || path === '') {
+            // Remove any back entries from home (check only first 3 positions)
+            for (let i = Math.min(2, entries.length - 1); i >= 0; i--) {
+                if (entries[i].type === 'back' || entries[i].name === lang.BACK) {
+                    entries.splice(i, 1);
+                    break; // Only one back entry expected
                 }
-                entries.unshift(backEntry)
-            } else if (!entries.length || entries[0].type != 'back') {
-                entries.unshift({
-                    name: lang.BACK,
-                    type: 'back',
-                    fa: this.backIcon,
-                    path: this.dirname(path)
-                })
             }
-            if (!config.get('auto-test')) {
-                let has = entries.some(e => e.name == lang.TEST_STREAMS)
-                if (!has && this.canApplyStreamTesting(entries)) {
-                    entries.splice(1, 0, {
-                        name: lang.TEST_STREAMS,
-                        fa: 'fas fa-satellite-dish',
-                        type: 'action',
-                        path: path + '/' + lang.TEST_STREAMS,
-                        action: async () => {
-                            global.streamer.state.test(entries, '', true)
-                        }
-                    })
-                }
+            for (let i = 0; i < entries.length; i++) {
+                entries[i].tabindex = i
+            }
+            return entries
+        }
+        
+        // Check if first entry is already back (most common case)
+        if (entries.length > 0 && (entries[0].type === 'back' || entries[0].name === lang.BACK)) {
+            // Already correct, just set tabindex
+            for (let i = 0; i < entries.length; i++) {
+                entries[i].tabindex = i
+            }
+            return entries
+        }
+        
+        // Check only first 3 positions for back entry (never beyond that)
+        for (let i = Math.min(2, entries.length - 1); i >= 0; i--) {
+            if (entries[i].type === 'back' || entries[i].name === lang.BACK) {
+                entries.splice(i, 1);
+                break; // Only one back entry expected
             }
         }
-        entries = entries.map((e, i) => {
-            e.tabindex = i
-            return e
-        })
+        
+        // Add back button as first entry
+        if (!entries.length) {
+            entries.push(this.emptyEntry())
+        }
+        
+        entries.unshift({
+            name: lang.BACK,
+            type: 'back',
+            fa: this.backIcon,
+            path: backTo || this.dirname(path)
+        });
+        
+        if (!config.get('auto-test')) {
+            let has = entries.some(e => e.name == lang.TEST_STREAMS)
+            if (!has && this.canApplyStreamTesting(entries)) {
+                entries.splice(1, 0, {
+                    name: lang.TEST_STREAMS,
+                    fa: 'fas fa-satellite-dish',
+                    type: 'action',
+                    path: path + '/' + lang.TEST_STREAMS,
+                    action: async () => {
+                        global.streamer.state.test(entries, '', true)
+                    }
+                })
+            }
+        }
+        
+        for (let i = 0; i < entries.length; i++) {
+            entries[i].tabindex = i
+        }
         return entries
     }
     currentStreamEntries(includeMegaStreams) {        
@@ -796,53 +965,107 @@ class Menu extends EventEmitter {
         })
     }
     cleanEntries(entries, props) {
-        return entries.map(e => {
-            let n, started
-            for(const prop of props) {
-                if (typeof(e[prop]) != 'undefined') {
-                    if (!started) {
-                        n = Object.assign({}, e)
-                        started = true
+        return entries.map(entry => {
+            let clone
+            for (const prop of props) {
+                if (typeof entry[prop] !== 'undefined') {
+                    if (!clone) {
+                        clone = { ...entry }
                     }
-                    delete n[prop]
+                    delete clone[prop]
                 }
             }
-            return started ? n : e
+            return clone || entry
         })
     }
-    async render(es, path, opts={}) {
+    async render(entries, path, opts = {}) {
         if (this.opts.debug) {
-            console.log('render', es, path, opts)
+            console.log('render', entries, path, opts)
         }
-        if (Array.isArray(es)) {
-            if(opts.filter === true) {
-                es = await this.applyFilters(es, path)
-            }
-            for (let i = 0; i < es.length; i++) {
-                if (!es[i].type) {
-                    es[i].type = 'stream'
-                }
-                if (typeof(es[i].path) !== 'string') {
-                    if (es[i].type == 'back') {
-                        es[i].path = this.dirname(path)
-                    } else {
-                        es[i].path = path +'/'+ es[i].name
-                    }
-                }
-            }
-            this.currentEntries = es.slice(0)
-            this.currentEntries = this.addMetaEntries(this.currentEntries, path, opts.backTo)
-            this.pages[path] = this.currentEntries.slice(0)
-            this.currentEntries = this.cleanEntries(this.currentEntries, ['renderer','entries','action'])
-            if (typeof(path) === 'string') this.path = path
-            if (this.rendering) {
-                const icon = opts.icon || opts?.parent?.fa || 'fas fa-home'
-                const cleanedEntries = this.cleanEntries(this.checkFlags(this.currentEntries), ['checked','users','terms']);
-                renderer.ui.emit('render', cleanedEntries, path, icon)
-                this.emit('render', this.currentEntries, path)
-                this.syncPages()
-            }
+        if (!Array.isArray(entries)) {
+            return
         }
+        const { openToken } = opts
+        if (typeof openToken === 'number' && openToken !== this.openToken) {
+            if (this.opts.debug) {
+                console.log('render skipped (outdated)', { path, openToken, currentToken: this.openToken })
+            }
+            return
+        }
+        let processed = entries
+        if (opts.filter === true) {
+            processed = await this.applyFilters(processed, path)
+        }
+        if (typeof openToken === 'number' && openToken !== this.openToken) {
+            if (this.opts.debug) {
+                console.log('render skipped after filters (outdated)', { path, openToken, currentToken: this.openToken })
+            }
+            return
+        }
+        processed = await this.applyOutputFilters(processed, path)
+        if (typeof openToken === 'number' && openToken !== this.openToken) {
+            if (this.opts.debug) {
+                console.log('render skipped after output filters (outdated)', { path, openToken, currentToken: this.openToken })
+            }
+            return
+        }
+        const prepared = processed.map(entry => {
+            const item = { ...entry }
+            if (!item.type) {
+                if (item.name === lang.BACK) {
+                    item.type = 'back'
+                } else if (typeof item.renderer === 'function' || Array.isArray(item.entries)) {
+                    item.type = 'group'
+                } else if (typeof item.action === 'function' && !item.url) {
+                    item.type = 'action'
+                } else {
+                    item.type = 'stream'
+                }
+            }
+            if (typeof item.path !== 'string') {
+                item.path = item.type === 'back'
+                    ? this.dirname(path)
+                    : (path ? `${path}/${item.name}` : item.name)
+            }
+            return item
+        })
+        let withMeta = this.addMetaEntries(prepared, path, opts.backTo)
+        const emitEntries = entriesToEmit => {
+            if (!this.rendering) {
+                return
+            }
+            const icon = opts.icon || opts?.parent?.fa || 'fas fa-home'
+            const payload = this.cleanEntries(this.checkFlags(entriesToEmit), ['checked', 'users', 'terms'])
+            renderer.ui.emit('render', payload, path, icon)
+            this.emit('render', entriesToEmit, path)
+            this.syncPages()
+        }
+        if (typeof openToken === 'number' && openToken !== this.openToken) {
+            if (this.opts.debug) {
+                console.log('render skipped before pos filters (outdated)', { path, openToken, currentToken: this.openToken })
+            }
+            return
+        }
+        this.pages[path] = withMeta
+        this.currentEntries = withMeta
+        if (typeof path === 'string') {
+            this.path = path
+        }
+        emitEntries(withMeta)
+        if (!this.rendering || !this.posFilters.length) {
+            return
+        }
+        const enriched = await this.applyPosFilters(withMeta, path)
+        const finalEntries = Array.isArray(enriched) ? enriched : withMeta
+        if (typeof openToken === 'number' && openToken !== this.openToken) {
+            if (this.opts.debug) {
+                console.log('render skipped after pos filters (outdated)', { path, openToken, currentToken: this.openToken })
+            }
+            return
+        }
+        this.pages[path] = finalEntries
+        this.currentEntries = finalEntries
+        emitEntries(finalEntries)
     }
     suspendRendering() {
         this.rendering = false
@@ -874,4 +1097,12 @@ class Menu extends EventEmitter {
     }
 }
 
-export default (global.menu || (inWorker ? {} : (global.menu = new Menu({}))))
+const menuInstance = global.menu || (inWorker ? {} : (global.menu = new Menu({})))
+
+if (menuInstance && typeof menuInstance.addPosFilter === 'function' && !menuInstance._epgPosFilterRegistered) {
+    menuInstance.addPosFilter(channelEpgPosFilter)
+    menuInstance._epgPosFilterRegistered = true
+}
+
+export default menuInstance
+

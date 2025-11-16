@@ -188,7 +188,7 @@ button.button-alpha i {
     opacity: var(--opacity-level-3);
 }
 .faclr-green {
-    color: #094 !important;
+    color: #00978b !important;
 }
 .faclr-orange {
     color: #f50 !important;

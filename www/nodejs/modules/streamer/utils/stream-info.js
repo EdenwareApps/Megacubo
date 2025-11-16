@@ -4,6 +4,7 @@ import lang from "../../lang/lang.js";
 import MediaURLInfo from "./media-url-info.js";
 import fs from "fs";
 import config from "../../config/config.js"
+import { distinguishM3UType } from '../../lists/tools.js';
 
 class StreamInfo {
     constructor() {
@@ -68,7 +69,12 @@ class StreamInfo {
                         }
                         sample = Buffer.concat(sample);
                         let strSample = String(sample);
-                        if (strSample.toLowerCase().includes('#ext-x-stream-inf')) {
+                        
+                        // Distinguish between IPTV playlist and HLS transmission
+                        const m3uType = distinguishM3UType(strSample);
+                        
+                        if (m3uType.isHLSMasterPlaylist && strSample.toLowerCase().includes('#ext-x-stream-inf')) {
+                            // HLS Master Playlist - recurse into variant stream
                             let trackUrls = strSample.split("\n").map(s => s.trim()).filter(line => line.length > 3 && !line.startsWith('#'));
                             let trackUrl = this.takeMiddleValue(trackUrls); // get a middle track to try to prevent possibly offline tracks in m3u8
                             trackUrl = absolutize(trackUrl, download.currentURL);
@@ -81,7 +87,8 @@ class StreamInfo {
                                 console.error('HLSTRACKERR*', err, url, trackUrl);
                                 reject(err);
                             });
-                        } else if (strSample.toLowerCase().includes('#extinf')) {
+                        } else if (m3uType.isHLSTransmission && strSample.toLowerCase().includes('#extinf')) {
+                            // HLS Segment Playlist - recurse into segment
                             let segmentUrls = strSample.split("\n").map(s => s.trim()).filter(line => line.length > 3 && !line.startsWith('#'));
                             let segmentUrl = this.takeMiddleValue(segmentUrls); // get a middle segment to try to prevent possibly expiring segments in m3u8
                             segmentUrl = absolutize(segmentUrl, download.currentURL);
@@ -100,6 +107,7 @@ class StreamInfo {
                                 reject(err);
                             });
                         } else {
+                            // IPTV Playlist or other content - return directly without recursion
                             done();
                         }
                     }

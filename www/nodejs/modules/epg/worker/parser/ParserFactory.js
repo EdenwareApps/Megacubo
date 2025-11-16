@@ -1,10 +1,10 @@
 import { Parser } from 'xmltv-stream'
-import Download from '../../download/download.js'
-import Mag from '../../lists/mag.js'
+import Download from '../../../download/download.js'
+import Mag from '../../../lists/mag.js'
 import zlib from 'zlib'
 import { EPG_CONFIG } from '../config.js'
 import { EPGErrorHandler } from '../EPGErrorHandler.js'
-import { time } from '../../utils/utils.js'
+import { time } from '../../../utils/utils.js'
 
 export class ParserFactory {
   // Helper function to ensure errors are Error objects
@@ -26,12 +26,12 @@ export class ParserFactory {
     
     // Create download request configuration
     const req = {
-      debug,
+      debug: true,
       url,
       followRedirect: true,
       keepalive: false,
       retries: EPG_CONFIG.network.retries,
-      timeout: Math.max(EPG_CONFIG.network.timeout / 1000, 10),
+      timeout: EPG_CONFIG.network.timeout, // Timeout in seconds (already configured as seconds)
       headers: { 'accept-charset': 'utf-8, *;q=0.1' },
       encoding: 'utf8',
       cacheTTL: 0, // Cache disabled

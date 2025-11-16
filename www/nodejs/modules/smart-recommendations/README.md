@@ -293,7 +293,6 @@ smartRecommendations.updateConfig({
 
 ```javascript
 const debugMetrics = {
-    semanticScoreTime: smartRecommendations.getPerformanceMetrics().semanticScoreTime,
     expansionTime: smartRecommendations.getPerformanceMetrics().expansionTime,
     cacheHitRate: smartRecommendations.getPerformanceMetrics().cache.hitRate
 }

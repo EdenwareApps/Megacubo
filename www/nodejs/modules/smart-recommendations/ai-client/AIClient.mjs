@@ -3,7 +3,7 @@
  * HTTP client for AI recommendations server with caching and fallback
  */
 
-import { EPGErrorHandler } from '../../epg-worker/EPGErrorHandler.js';
+import { EPGErrorHandler } from '../../epg/worker/EPGErrorHandler.js';
 import { AICache } from './AICache.mjs';
 import { AIBatchProcessor } from './AIBatchProcessor.mjs';
 import { AIFallback } from './AIFallback.mjs';
@@ -28,6 +28,7 @@ export class AIClient {
         });
         
         this.fallback = new AIFallback();
+        this.disabledUntil = 0;
         
         // Statistics
         this.stats = {
@@ -51,13 +52,23 @@ export class AIClient {
         EPGErrorHandler.info('🤖 Initializing AI Client...');
         
         // Test connection
+        const now = Date.now();
+        if (this.disabledUntil && now < this.disabledUntil) {
+            const remaining = Math.ceil((this.disabledUntil - now) / 1000);
+            EPGErrorHandler.warn(`⚠️ AI Server temporarily disabled. Retrying in ${remaining}s.`);
+            this.initialized = true;
+            return;
+        }
+
         try {
-            await this.request('/api/recommendations/health', {}, { timeout: 5000, retries: 1 });
+            await this.request('/api/recommendations/health', {}, { timeout: 5000, retries: 1, method: 'GET' });
             EPGErrorHandler.info('✅ AI Server connection established');
             this.enabled = true;
+            this.disabledUntil = 0;
         } catch (error) {
             EPGErrorHandler.warn('⚠️ AI Server not available, using fallback mode:', error.message);
             this.enabled = false;
+            this.disabledUntil = Date.now() + 60000;
         }
         
         this.initialized = true;
@@ -83,30 +94,40 @@ export class AIClient {
     }
 
     // predict() and analyzeProgramme() removed - not needed!
-    // EPG programmes already have categories (programme.c)
+    // EPG programmes already have categories (programme.categories)
 
     /**
      * Expand tags
      */
     async expandTags(tags, options = {}) {
+        const { forceRefresh = false } = options;
         const locale = options.locale || lang.locale || 'pt';
         const cacheKey = this.cache.generateKey('expand', { tags, locale });
         
+        if (forceRefresh) {
+            await this.cache.delete(cacheKey).catch(err => EPGErrorHandler.warn('Cache delete failed:', err.message));
+        } else {
         // Check cache (only use if has expanded tags)
         const cached = await this.cache.get(cacheKey);
         if (cached && cached.expandedTags && Object.keys(cached.expandedTags).length > 0) {
             this.stats.cacheHits++;
             return { ...cached, cached: true, source: 'cache' };
+            }
         }
         
         this.stats.cacheMisses++;
         
-        // Use fallback if disabled
-        if (!this.enabled) {
+        // Handle cooldown state
+        const now = Date.now();
+        if (!this.enabled && this.disabledUntil && now >= this.disabledUntil) {
+            this.enabled = true;
+        }
+
+        // Use fallback if still disabled (cooldown active)
+        if (!this.enabled && this.disabledUntil && now < this.disabledUntil) {
             this.stats.fallbacks++;
-            const result = this.fallback.expandTags(tags, { locale, ...options });
-            // Only cache if has results
-            if (result.expandedTags && Object.keys(result.expandedTags).length > 0) {
+            const result = this.applyResponseNormalization(this.fallback.expandTags(tags, { locale, ...options }));
+            if (result.expandedTags && !result.fallback && Object.keys(result.expandedTags).length > 0) {
                 await this.cache.set(cacheKey, result);
             }
             return { ...result, source: 'fallback' };
@@ -134,17 +155,20 @@ export class AIClient {
             }
             
             
-            const response = await this.request('/api/recommendations/expand-tags', {
-                tags: normalizedTags,
+            const sanitizedTags = this.sanitizeTagsForRequest(normalizedTags);
+            const response = this.applyResponseNormalization(await this.request('/api/recommendations/expand-tags', {
+                tags: sanitizedTags,
                 locale: normalizedLocale,
                 limit: options.limit || 20,
                 threshold: options.threshold || 0.6
-            });
+            }));
             
             this.stats.successes++;
             
             // Cache result
-            await this.cache.set(cacheKey, response);
+            if (!response.fallback && response.expandedTags && Object.keys(response.expandedTags).length > 0) {
+                await this.cache.set(cacheKey, response);
+            }
             
             return { ...response, cached: false, source: 'server' };
             
@@ -154,8 +178,10 @@ export class AIClient {
             
             // Use fallback
             this.stats.fallbacks++;
-            const result = this.fallback.expandTags(tags, { locale, ...options });
-            await this.cache.set(cacheKey, result);
+            const result = this.applyResponseNormalization(this.fallback.expandTags(tags, { locale, ...options }));
+            if (!result.fallback && result.expandedTags && Object.keys(result.expandedTags).length > 0) {
+                await this.cache.set(cacheKey, result);
+            }
             return { ...result, source: 'fallback' };
         }
     }
@@ -176,8 +202,13 @@ export class AIClient {
         
         this.stats.cacheMisses++;
         
-        // Use fallback if disabled
-        if (!this.enabled) {
+        // Handle cooldown state
+        const now = Date.now();
+        if (!this.enabled && this.disabledUntil && now >= this.disabledUntil) {
+            this.enabled = true;
+        }
+
+        if (!this.enabled && this.disabledUntil && now < this.disabledUntil) {
             this.stats.fallbacks++;
             const result = this.fallback.clusterTags(tags, { locale, ...options });
             await this.cache.set(cacheKey, result);
@@ -220,28 +251,42 @@ export class AIClient {
     async request(endpoint, body = {}, options = {}) {
         const timeout = options.timeout || this.timeout;
         const retries = typeof options.retries !== 'undefined' ? options.retries : this.retries;
+        const method = options.method || 'POST';
         
         const url = `${this.serverUrl}${endpoint}`;
+        const cooldownActive = () => this.disabledUntil && Date.now() < this.disabledUntil;
+        if (cooldownActive()) {
+            throw new Error('AI client cooling down after previous failures');
+        }
         
         for (let attempt = 0; attempt <= retries; attempt++) {
             try {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), timeout);
                 
+                const headers = {
+                    'X-Megacubo-Client': 'megacubo-app',
+                    'X-Megacubo-Version': global.version || '1.0.0'
+                };
+
+                let payload;
+                if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+                    headers['Content-Type'] = 'application/json';
+                    payload = JSON.stringify(body);
+                }
+
+                console.log('🔄 Fetching:', url, 'with payload:', payload, { method, headers, body: payload, signal: controller.signal });
                 const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Megacubo-Client': 'megacubo-app',
-                        'X-Megacubo-Version': global.version || '1.0.0'
-                    },
-                    body: JSON.stringify(body),
+                    method,
+                    headers,
+                    body: payload,
                     signal: controller.signal
                 });
                 
                 clearTimeout(timeoutId);
                 
                 if (!response.ok) {
+                    console.log({ response });
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
                 
@@ -251,6 +296,8 @@ export class AIClient {
                     throw new Error(data.message || 'Server returned error');
                 }
                 
+                this.disabledUntil = 0;
+                this.enabled = true;
                 return data;
                 
             } catch (error) {
@@ -260,6 +307,8 @@ export class AIClient {
                     continue;
                 }
                 
+                this.disabledUntil = Date.now() + 60000;
+                this.enabled = false;
                 throw error;
             }
         }
@@ -287,11 +336,133 @@ export class AIClient {
     }
 
     /**
+     * Normalize expanded tags returned by AI server or fallback
+     * Removes accents, trims whitespace, lowercases and keeps highest score per tag
+     * @param {Object} expandedTags
+     * @returns {Object}
+     */
+    normalizeExpandedTags(expandedTags) {
+        if (!expandedTags || typeof expandedTags !== 'object') {
+            return {};
+        }
+
+        const normalized = {};
+
+        for (const [rawKey, rawValue] of Object.entries(expandedTags)) {
+            if (rawValue == null) {
+                continue;
+            }
+
+            const key = String(rawKey).trim().toLowerCase();
+            if (!key) {
+                continue;
+            }
+
+            // Remove accents and normalize spacing
+            const accentless = key
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+
+            if (!accentless) {
+                continue;
+            }
+
+            const numericValue = Number(rawValue);
+            if (!Number.isFinite(numericValue) || numericValue <= 0) {
+                continue;
+            }
+
+            normalized[accentless] = Math.max(normalized[accentless] || 0, numericValue);
+        }
+
+        return normalized;
+    }
+
+    /**
+     * Apply normalization to responses that contain expandedTags
+     * @param {Object} response
+     * @returns {Object}
+     */
+    applyResponseNormalization(response) {
+        if (response && typeof response === 'object' && response.expandedTags) {
+            response.expandedTags = this.normalizeExpandedTags(response.expandedTags);
+        }
+        return response;
+    }
+
+    /**
      * Enable/disable AI client
      */
     setEnabled(enabled) {
         this.enabled = enabled;
         EPGErrorHandler.info(`AI Client ${enabled ? 'enabled' : 'disabled'}`);
+    }
+
+    /**
+     * Normalize tag weights for server compatibility (0-1 range)
+     * @param {Object} sourceTags
+     * @returns {Object}
+     */
+    sanitizeTagsForRequest(sourceTags) {
+        if (!sourceTags || typeof sourceTags !== 'object' || Array.isArray(sourceTags)) {
+            return {};
+        }
+
+        const sanitized = {};
+        let maxWeight = 0;
+
+        for (const [rawKey, rawValue] of Object.entries(sourceTags)) {
+            if (!rawKey) {
+                continue;
+            }
+
+            const key = String(rawKey).trim().toLowerCase();
+            if (!key) {
+                continue;
+            }
+
+            let value = rawValue;
+
+            if (typeof value === 'boolean') {
+                value = value ? 1 : 0;
+            } else if (Array.isArray(value)) {
+                value = value.length;
+            } else if (typeof value === 'string') {
+                const numericValue = Number(value);
+                value = Number.isFinite(numericValue) ? numericValue : value.length;
+            }
+
+            if (typeof value !== 'number' || !Number.isFinite(value)) {
+                continue;
+            }
+
+            if (value <= 0) {
+                continue;
+            }
+
+            sanitized[key] = value;
+            if (value > maxWeight) {
+                maxWeight = value;
+            }
+        }
+
+        if (!Object.keys(sanitized).length) {
+            return {};
+        }
+
+        if (maxWeight > 1) {
+            for (const key of Object.keys(sanitized)) {
+                sanitized[key] = Number((sanitized[key] / maxWeight).toFixed(6));
+            }
+        } else {
+            for (const key of Object.keys(sanitized)) {
+                sanitized[key] = Number(Math.min(sanitized[key], 1).toFixed(6));
+            }
+        }
+
+        return sanitized;
     }
 }
 

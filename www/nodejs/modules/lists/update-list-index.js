@@ -1,9 +1,6 @@
 import { dirname, joinPath } from '../utils/utils.js';
 import Download from '../download/download.js'
-import ListIndexUtils from './list-index-utils.js'
 import fs from 'fs'
-import path from 'path'
-// randomUUID removed - training removed
 import MediaURLInfo from '../streamer/utils/media-url-info.js'
 import Xtr from './xtr.js'
 import Mag from './mag.js'
@@ -12,9 +9,14 @@ import config from '../config/config.js'
 import { Database } from 'jexidb';
 import storage from '../storage/storage.js';
 import { terms, match } from './tools.js'
-import { getListMeta, setListMeta } from "./common.js";
+import { getListMeta, setListMeta } from "./list-meta.js";
+import { EventEmitter } from "events";
+import { sniffStreamType } from './stream-classifier.js'
+import dbConfig from "./db-config.js";
 
-class UpdateListIndex extends ListIndexUtils {
+const LIST_STORAGE_TTL = 24 * 3600
+
+class UpdateListIndex extends EventEmitter {
     constructor(opts = {}) {
         super()
         this.url = opts.url
@@ -32,10 +34,8 @@ class UpdateListIndex extends ListIndexUtils {
         this.indexMeta = {}
         this.debug = opts.debug || true
         this.insertPromises = []
-        this._index = { groups: {}, meta: {}, gids: {}, groupsTypes: {}, uniqueStreamsLength: 0 }
+        this._index = { meta: {}, gids: {}, groupsTypes: {}, length: 0 }
         this.groups = {} // Initialize groups object
-        this.uniqueStreamsIndexate = new Set() // Initialize unique streams tracking
-        this.maxBatchSize = 100 // Process inserts in batches
         this.maxConcurrentInserts = 10 // Limit concurrent database operations
         this.activeInserts = 0
         this.cancelled = false // Flag to cancel all operations
@@ -45,8 +45,8 @@ class UpdateListIndex extends ListIndexUtils {
         // OPTIMIZATION: Initialize InsertSession properties for batch operations
         this.insertSession = null
 
-        // URL merging cache - stores entries by URL for merging
-        this.urlCache = new Map()
+        // Cache only the last processed entry to merge consecutive duplicates
+        this.lastCachedEntry = null
         this.lastURL = null
         this.reset()
     }
@@ -71,6 +71,39 @@ class UpdateListIndex extends ListIndexUtils {
 
         // If match score is low, it's likely sequential text
         return matchScore < 0.3
+    }
+
+
+    async registerStorageArtifacts(ttlSeconds) {
+        const metaIndexFile = this.metaFile.replace(/\.jdb$/i, '.idx.jdb')
+        const filesToRegister = [
+            this.file,
+            this.indexFile,
+            this.metaFile,
+            metaIndexFile
+        ]
+
+        for (const filePath of filesToRegister) {
+            if (!filePath) {
+                continue
+            }
+
+            try {
+                await fs.promises.access(filePath)
+                try {
+                    await storage.registerFile(filePath, {
+                        ttl: ttlSeconds,
+                        size: 'auto',
+                        raw: true
+                    })
+                } catch (err) {
+                    console.warn('Storage registration failed for file:', filePath, err?.message || err)
+                }
+            } catch {
+                continue
+            }
+
+        }
     }
 
 
@@ -193,14 +226,12 @@ class UpdateListIndex extends ListIndexUtils {
             return
         }
 
-        // Smart cache cleanup: clear when URL changes and cache is large
-        if (this.urlCache.size > 100 && e.url !== this.lastURL) {
-            this.urlCache.clear()
+        // URL MERGING LOGIC: only compare against the last cached entry
+        if (this.lastCachedEntry && this.lastCachedEntry.url !== e.url) {
+            this.lastCachedEntry = null
         }
-        this.lastURL = e.url
 
-        // URL MERGING LOGIC: Check if we already have an entry with this URL
-        const existingEntry = this.urlCache.get(e.url)
+        const existingEntry = this.lastCachedEntry && this.lastCachedEntry.url === e.url ? this.lastCachedEntry : null
         if (existingEntry) {
             // Merge names if they are different and not sequential
             const existingName = existingEntry.name.trim()
@@ -221,11 +252,10 @@ class UpdateListIndex extends ListIndexUtils {
             return // Don't insert duplicate URL
         }
 
-        // Store in cache for future merges
-        this.urlCache.set(e.url, { ...e })
-
-        // Use the cached entry (which may have been merged)
-        const entryToInsert = this.urlCache.get(e.url)
+        // Cache current entry for potential merge with the next item
+        const entryToInsert = { ...e }
+        this.lastCachedEntry = entryToInsert
+        this.lastURL = e.url
 
         // CRITICAL FIX: Increment foundStreams BEFORE using it as index
         // This ensures each entry gets a unique index
@@ -244,50 +274,47 @@ class UpdateListIndex extends ListIndexUtils {
             }
         }
         // Process groups
-        if (entryToInsert.group && entryToInsert.group !== 'undefined' && entryToInsert.group !== undefined) {
-            if (typeof (this._index.groups[entryToInsert.group]) == 'undefined') {
-                this._index.groups[entryToInsert.group] = []
+        const groupKey = entryToInsert.group && entryToInsert.group !== 'undefined' ? entryToInsert.group : ''
+        if (typeof this.groups[groupKey] === 'undefined') {
+            this.groups[groupKey] = {
+                names: [],
+                icon: null,
+                typeCounts: { live: 0, vod: 0, series: 0 }
             }
-            this._index.groups[entryToInsert.group].push(i)
-        } else {
-            // Handle entries without group - use empty string as default
-            const defaultGroup = ''
-            if (typeof (this._index.groups[defaultGroup]) == 'undefined') {
-                this._index.groups[defaultGroup] = []
-            }
-            this._index.groups[defaultGroup].push(i)
         }
 
-        if (entryToInsert.group && entryToInsert.group !== 'undefined' && entryToInsert.group !== undefined) { // collect some data to sniff after if each group seems live, serie or movie
-            if (typeof (this.groups[entryToInsert.group]) == 'undefined') {
-                this.groups[entryToInsert.group] = []
+        if (Array.isArray(this.groups[groupKey])) {
+            this.groups[groupKey] = {
+                names: this.groups[groupKey]
+                    .map(entry => (typeof entry === 'string' ? entry : entry?.name))
+                    .filter(name => typeof name === 'string')
+                    .slice(0, 20),
+                icon: null,
+                typeCounts: { live: 0, vod: 0, series: 0 }
             }
-            this.groups[entryToInsert.group].push({
-                name: entryToInsert.name,
-                url: entryToInsert.url,
-                icon: entryToInsert.icon
-            })
-        } else {
-            // Handle entries without group - use empty string as default
-            const defaultGroup = ''
-            if (typeof (this.groups[defaultGroup]) == 'undefined') {
-                this.groups[defaultGroup] = []
-            }
-            this.groups[defaultGroup].push({
-                name: entryToInsert.name,
-                url: entryToInsert.url,
-                icon: entryToInsert.icon
-            })
         }
 
-        // Add to unique streams set (initialized in constructor)
-        if (!this.uniqueStreamsIndexate.has(entryToInsert.url)) {
-            this.uniqueStreamsIndexate.add(entryToInsert.url)
+        const groupData = this.groups[groupKey]
+
+        if (entryToInsert.name && groupData.names.length < 20) {
+            groupData.names.push(entryToInsert.name)
+        }
+
+        if (!groupData.icon && typeof entryToInsert.icon === 'string' && entryToInsert.icon.length > 12) {
+            groupData.icon = entryToInsert.icon
+        }
+
+        const groupStreamType = sniffStreamType(entryToInsert)
+        if (groupStreamType && Object.prototype.hasOwnProperty.call(groupData.typeCounts, groupStreamType)) {
+            groupData.typeCounts[groupStreamType] += 1
         }
 
         // OPTIMIZATION: Initialize InsertSession if not already done
         if (!this.insertSession) {
-            this.insertSession = db.beginInsertSession()
+            this.insertSession = db.beginInsertSession({
+                batchSize: 500,
+                enableAutoSave: true
+            })
 
         }
 
@@ -299,6 +326,22 @@ class UpdateListIndex extends ListIndexUtils {
         } catch (error) {
             console.error('Error adding to InsertSession:', error)
             // Fallback to original batch processing if InsertSession fails
+        }
+    }
+    async flushInsertSession(db) {
+        if (!this.insertSession) {
+            return
+        }
+
+        try {
+            await this.insertSession.commit()
+            this._index.length = db.length
+        } catch (commitErr) {
+            this.insertsDisabled = true
+            console.error('❌ CRITICAL: Failed to commit InsertSession batch:', commitErr)
+            throw commitErr
+        } finally {
+            this.insertSession = null
         }
     }
     async start() {
@@ -315,53 +358,88 @@ class UpdateListIndex extends ListIndexUtils {
         }
         await fs.promises.mkdir(dirname(this.file), { recursive: true }).catch(err => console.error(err))
 
-        // Force delete existing data files to ensure clean start
-        try {
-            await fs.promises.unlink(this.file).catch(() => { });
-            await fs.promises.unlink(this.file.replace(/\.jdb$/i, '.idx.jdb')).catch(() => { });
-        } catch (err) {
-            // Ignore errors if files don't exist
+        const targetFile = this.file
+        const targetIndexFile = this.indexFile
+        const targetMetaFile = this.metaFile
+        const targetMetaIndexFile = this.metaFile.replace(/\.jdb$/i, '.idx.jdb')
+
+        const workingFile = targetFile.replace(/\.jdb$/i, '.updating.jdb')
+        const workingIndexFile = workingFile.replace(/\.jdb$/i, '.idx.jdb')
+        const workingMetaFile = targetMetaFile.replace(/\.jdb$/i, '.updating.jdb')
+        const workingMetaIndexFile = workingMetaFile.replace(/\.jdb$/i, '.idx.jdb')
+
+        const backupFile = targetFile.replace(/\.jdb$/i, '.backup.jdb')
+        const backupIndexFile = targetIndexFile.replace(/\.jdb$/i, '.backup.jdb')
+        const backupMetaFile = targetMetaFile.replace(/\.jdb$/i, '.backup.jdb')
+        const backupMetaIndexFile = targetMetaIndexFile.replace(/\.jdb$/i, '.backup.jdb')
+
+        const exists = async path => {
+            if (!path) return false
+            try {
+                await fs.promises.access(path)
+                return true
+            } catch {
+                return false
+            }
         }
 
-        const db = new Database(this.file, {
-            clear: true,
-            create: true,
-            integrityCheck: 'none', // Disable integrity check for performance
-            indexedQueryMode: 'loose', // Use loose mode to allow queries on non-indexed fields
-            mutexTimeout: 10000, // 10 seconds timeout for mutex operations
-            termMappingCleanup: true, // Enable term mapping cleanup
-            fields: {
-                url: 'string',              // Stream URL
-                name: 'string',             // Stream name
-                icon: 'string',             // Stream icon/logo
-                gid: 'string',             // TV guide ID
-                group: 'string',            // Group title
-                groups: 'array:string',     // Multiple groups
-                groupName: 'string',       // Group name
-                nameTerms: 'array:string',  // Search terms from name
-                groupTerms: 'array:string', // Search terms from group
-                lang: 'string',            // Language (tvg-language + detection)
-                country: 'string',          // Country (tvg-country + detection)
-                age: 'number',             // Age rating (0 = default, no restriction)
-                subtitle: 'string',        // Subtitle
-                userAgent: 'string',       // User agent (http-user-agent)
-                referer: 'string',         // Referer (http-referer)
-                author: 'string',          // Author (pltv-author)
-                site: 'string',            // Site (pltv-site)
-                email: 'string',           // Email (pltv-email)
-                phone: 'string',           // Phone (pltv-phone)
-                description: 'string',     // Description (pltv-description)
-                epg: 'string',             // EPG URL (url-tvg, x-tvg-url)
-                subGroup: 'string',        // Sub group (pltv-subgroup)
-                rating: 'string',          // Rating (rating, tvg-rating)
-                parental: 'string',        // Parental control (parental, censored)
-                genre: 'string',          // Genre (tvg-genre)
-                region: 'string',         // Region (region)
-                categoryId: 'string',     // Category ID (category-id)
-                ageRestriction: 'string'   // Age restriction (age-restriction)
-            },
-            indexes: ['nameTerms', 'groupTerms'] // Only the fields we want to index
-        })
+        const removeIfExists = async path => {
+            if (!path) return
+            await fs.promises.unlink(path).catch(() => { })
+        }
+
+        const cleanupArtifacts = async () => {
+            await Promise.all([
+                removeIfExists(workingFile),
+                removeIfExists(workingIndexFile),
+                removeIfExists(workingMetaFile),
+                removeIfExists(workingMetaIndexFile),
+                removeIfExists(backupFile),
+                removeIfExists(backupIndexFile),
+                removeIfExists(backupMetaFile),
+                removeIfExists(backupMetaIndexFile)
+            ])
+        }
+
+        const replaceTargetWithWorking = async (workingPath, targetPath) => {
+            if (!(await exists(workingPath))) {
+                return
+            }
+
+            const backupPath = `${targetPath}.backup`
+            const targetExists = await exists(targetPath)
+
+            if (await exists(backupPath)) {
+                await removeIfExists(backupPath)
+            }
+
+            if (targetExists) {
+                await fs.promises.rename(targetPath, backupPath)
+            }
+
+            try {
+                await fs.promises.rename(workingPath, targetPath)
+                await removeIfExists(backupPath)
+            } catch (renameErr) {
+                if (targetExists) {
+                    await fs.promises.rename(backupPath, targetPath).catch(() => { })
+                }
+                throw renameErr
+            }
+        }
+
+        await Promise.all([
+            removeIfExists(workingFile),
+            removeIfExists(workingIndexFile),
+            removeIfExists(workingMetaFile),
+            removeIfExists(workingMetaIndexFile),
+            removeIfExists(backupFile),
+            removeIfExists(backupIndexFile),
+            removeIfExists(backupMetaFile),
+            removeIfExists(backupMetaIndexFile)
+        ])
+
+        const db = new Database(workingFile, {...dbConfig, clear: true, create: true});
         // FIXED: Do NOT delete existing metadata file - preserve existing data
         // The metadata database will be updated with new data, preserving existing entries
 
@@ -371,11 +449,12 @@ class UpdateListIndex extends ListIndexUtils {
         const metaKey = storage.unresolve(metaFilename);
         const metaHold = storage.hold(metaKey);
 
-        const mdb = new Database(this.metaFile, {
+        const mdb = new Database(workingMetaFile, {
             clear: false, // Do not clear existing meta data
             create: true,
+            allowIndexRebuild: true,
             integrityCheck: 'none', // Disable integrity check for performance
-            indexedQueryMode: 'loose', // Use loose mode to allow queries on non-indexed fields
+            indexedQueryMode: 'permissive', //permissive mode to allow queries on non-indexed fields
             fields: {
                 name: 'string',
                 value: 'string'
@@ -390,188 +469,200 @@ class UpdateListIndex extends ListIndexUtils {
         // console.log(`DEBUG: Database initialized successfully - db.destroyed = ${db.destroyed}, mdb.destroyed = ${mdb.destroyed}`)
 
         // initialize in-memory index container
-        this._index = { groups: {}, meta: {}, gids: {}, groupsTypes: {}, uniqueStreamsLength: 0 }
+        this._index = { meta: {}, gids: {}, groupsTypes: {}, length: 0 }
 
         let err
-        for (let url of urls) {
-            // console.log(`DEBUG: Processing URL: ${url}`)
-            const hasCredentials = url.includes('@')
-            if (hasCredentials && url.includes('#xtream')) {
-                // console.log(`DEBUG: Using xparse for URL: ${url}`)
-                await this.xparse(url, db).catch(e => err = e)
-                if (this.foundStreams) break
-            } else if (hasCredentials && url.includes('#mag')) {
-                // console.log(`DEBUG: Using mparse for URL: ${url}`)
-                await this.mparse(url, db).catch(e => err = e)
-                if (this.foundStreams) break
-            } else {
-                // console.log(`DEBUG: Using connect+parse for URL: ${url}`)
-                const ret = await this.connect(url).catch(e => err = e)
-                if (!err && ret) {
-                    // console.log(`DEBUG: Connected successfully, parsing...`)
-                    await this.parse(ret, db).catch(e => err = e)
+        try {
+            for (let url of urls) {
+                // console.log(`DEBUG: Processing URL: ${url}`)
+                const hasCredentials = url.includes('@')
+                if (hasCredentials && url.includes('#xtream')) {
+                    // console.log(`DEBUG: Using xparse for URL: ${url}`)
+                    await this.xparse(url, db).catch(e => err = e)
+                    if (this.foundStreams) break
+                } else if (hasCredentials && url.includes('#mag')) {
+                    // console.log(`DEBUG: Using mparse for URL: ${url}`)
+                    await this.mparse(url, db).catch(e => err = e)
                     if (this.foundStreams) break
                 } else {
-                    // console.log(`DEBUG: Connection failed for URL: ${url}, error: ${err}`)
+                    // console.log(`DEBUG: Using connect+parse for URL: ${url}`)
+                    const ret = await this.connect(url).catch(e => err = e)
+                    if (!err && ret) {
+                        // console.log(`DEBUG: Connected successfully, parsing...`)
+                        await this.parse(ret, db).catch(e => err = e)
+                        if (this.foundStreams) break
+                    } else {
+                        // console.log(`DEBUG: Connection failed for URL: ${url}, error: ${err}`)
+                    }
                 }
             }
-        }
 
-        // Clear cache after main URL processing
-        this.urlCache.clear()
-        this.lastURL = null
+            // Clear cache after main URL processing
+            this.lastCachedEntry = null
+            this.lastURL = null
 
-        let i = 0
-        while (i < this.playlists.length) { // new playlists can be live added in the loop connect() call
-            let err
-            const playlist = this.playlists[i]
-            i++
-            const ret = await this.connect(playlist.url).catch(e => err = e)
-            if (!err && ret) {
-                await this.parse(ret, db, playlist).catch(err => console.error(err))
-                // Clear cache after each playlist
-                this.urlCache.clear()
-                this.lastURL = null
+            let i = 0
+            while (i < this.playlists.length) { // new playlists can be live added in the loop connect() call
+                let err
+                const playlist = this.playlists[i]
+                i++
+                const ret = await this.connect(playlist.url).catch(e => err = e)
+                if (!err && ret) {
+                    await this.parse(ret, db, playlist).catch(err => console.error(err))
+                    // Clear cache after each playlist
+                    this.lastCachedEntry = null
+                    this.lastURL = null
+                }
             }
-        }
 
 
-        // OPTIMIZATION: Commit InsertSession after all entries processed
-        if (this.insertSession) {
+            // Commit any remaining batch to disk
+            await this.flushInsertSession(db, { force: true, reason: 'final' })
 
-            const insertedCount = await this.insertSession.commit()
+            // Wait for all remaining inserts to complete with timeout (based on inactivity, not total time)
+            let lastActiveInserts = this.activeInserts
+            let lastActivityTime = Date.now()
+            const maxInactivityTime = 10000 // 10 seconds of inactivity max
 
-            this.insertSession = null
-        }
+            while (this.activeInserts > 0) {
+                // Check if activeInserts changed (progress made)
+                if (this.activeInserts !== lastActiveInserts) {
+                    lastActiveInserts = this.activeInserts
+                    lastActivityTime = Date.now() // Reset inactivity timer
+                }
+                
+                // Check if we've been inactive for too long
+                const inactivityTime = Date.now() - lastActivityTime
+                if (inactivityTime >= maxInactivityTime) {
+                    console.warn(`⚠️ Timeout: No progress on inserts for ${maxInactivityTime}ms. Active inserts: ${this.activeInserts}`)
+                    break
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 50))
+            }
 
+            if (this.activeInserts > 0) {
+                console.warn(`⚠️ Force stopping ${this.activeInserts} active inserts after inactivity timeout`)
+                this.insertsDisabled = true // Disable inserts instead of forcing stop
+            } else {
+                console.log('✅ All active inserts completed successfully')
+            }
 
+            // Fill index metadata and persist to metadata DB
+            // Merge with existing metadata to preserve important data (no overwrite)
+            if (this.indexMeta && Object.keys(this.indexMeta).length > 0) {
+                this._index.meta = { ...this._index.meta, ...this.indexMeta };
+            }
 
-        // Wait for all remaining inserts to complete with timeout
-        const startWaitTime = Date.now()
-        const maxWaitTime = 10000 // 10 seconds max wait
+            this._index.groupsTypes = this.sniffGroupsTypes(this.groups)
 
-        while (this.activeInserts > 0 && (Date.now() - startWaitTime) < maxWaitTime) {
-            await new Promise(resolve => setTimeout(resolve, 50))
-        }
-
-        if (this.activeInserts > 0) {
-            // console.warn(`Force stopping ${this.activeInserts} active inserts after timeout in start()`)
-            this.insertsDisabled = true // Disable inserts instead of forcing stop
-        } else {
-            // console.log('All active inserts completed successfully in start()')
-        }
-
-
-        // Fill index metadata and persist to metadata DB
-        // Merge with existing metadata to preserve important data (no overwrite)
-        if (this.indexMeta && Object.keys(this.indexMeta).length > 0) {
-            this._index.meta = { ...this._index.meta, ...this.indexMeta };
-        }
-
-        // Set uniqueStreamsLength AFTER all streams have been processed
-        this._index.uniqueStreamsLength = this.uniqueStreamsIndexate.size
-        this._index.groupsTypes = this.sniffGroupsTypes(this.groups)
-
-
-
-        // Save and close main database
-        try {
-
-            await db.close();
-
-        } catch (saveErr) {
-            console.error('Database save/close error:', saveErr)
-            err = saveErr
-        }
-
-        // Only save meta file if we actually found unique streams and have valid index data
-        if (this._index.uniqueStreamsLength > 0) {
+            // Save and close main database
             try {
-
-
-                // Get existing metadata to preserve important data
-                const existingMeta = await getListMeta(this.url);
-
-
-                // FIXED: Smart merge with existing metadata instead of overwriting
-                const indexData = {
-                    // don't need to read existing meta data, it's already in the db
-                    lastUpdate: Date.now(),
-                    updateCount: (existingMeta.updateCount || 0) + 1
-                };
-
-                // Merge complex objects intelligently
-                if (this._index.groups && Object.keys(this._index.groups).length > 0) {
-                    indexData.groups = this._index.groups;
-                }
-                if (this._index.meta && Object.keys(this._index.meta).length > 0) {
-                    indexData.meta = { ...existingMeta.meta, ...this._index.meta };
-                }
-                if (this._index.gids && Object.keys(this._index.gids).length > 0) {
-                    indexData.gids = this._index.gids;
-                }
-                if (this._index.groupsTypes && Object.keys(this._index.groupsTypes).length > 0) {
-                    indexData.groupsTypes = this._index.groupsTypes;
-                }
-                if (this._index.uniqueStreamsLength !== undefined) {
-                    indexData.uniqueStreamsLength = this._index.uniqueStreamsLength;
-                }
-
-
-
-                // Save with key-value structure (preserves existing data automatically)
-                const saveSuccess = await setListMeta(this.url, indexData);
-
-                if (saveSuccess) {
-
-                } else {
-                    console.error(`❌ Metadata database save failed for ${this.url}`);
-                    err = new Error('Meta file save failed');
-                }
-            } catch (metaErr) {
-                console.error('Metadata database error:', metaErr)
-                err = metaErr
+                await db.close()
+            } catch (saveErr) {
+                console.error('Database save/close error:', saveErr)
+                err = saveErr
             }
-        } else {
 
-            // FIXED: Do NOT delete existing meta file - preserve existing data even if no new streams found
-            // The existing metadata might contain important information from previous updates
+            try {
+                await mdb.close()
+            } catch (metaCloseErr) {
+                console.error('Metadata save/close error:', metaCloseErr)
+                if (!err) {
+                    err = metaCloseErr
+                }
+            }
 
+            // Only save meta file if we actually found unique streams and have valid index data
+            if (this._index.length > 0) {
+                try {
+                    // Get existing metadata to preserve important data
+                    const existingMeta = await getListMeta(this.url);
+
+                    // FIXED: Smart merge with existing metadata instead of overwriting
+                    const indexData = {
+                        // don't need to read existing meta data, it's already in the db
+                        lastUpdate: Date.now(),
+                        updateCount: (existingMeta.updateCount || 0) + 1
+                    };
+
+                    // Merge complex objects intelligently
+                    if (this._index.meta && Object.keys(this._index.meta).length > 0) {
+                        indexData.meta = { ...existingMeta.meta, ...this._index.meta };
+                    }
+                    if (this._index.gids && Object.keys(this._index.gids).length > 0) {
+                        indexData.gids = this._index.gids;
+                    }
+                    if (this._index.groupsTypes && Object.keys(this._index.groupsTypes).length > 0) {
+                        indexData.groupsTypes = this._index.groupsTypes;
+                    }
+                    indexData.length = this._index.length;
+
+                    // Save with key-value structure (preserves existing data automatically)
+                    const saveSuccess = await setListMeta(this.url, indexData);
+
+                    if (!saveSuccess) {
+                        console.error(`❌ Metadata database save failed for ${this.url}`);
+                        err = new Error('Meta file save failed');
+                    }
+                } catch (metaErr) {
+                    console.error('Metadata database error:', metaErr)
+                    err = metaErr
+                }
+            } else {
+                // FIXED: Do NOT delete existing meta file - preserve existing data even if no new streams found
+                // The existing metadata might contain important information from previous updates
+            }
+
+            try {
+                await replaceTargetWithWorking(workingFile, targetFile)
+                await replaceTargetWithWorking(workingIndexFile, targetIndexFile)
+                await replaceTargetWithWorking(workingMetaFile, targetMetaFile)
+                await replaceTargetWithWorking(workingMetaIndexFile, targetMetaIndexFile)
+            } catch (swapErr) {
+                console.error('Database swap error:', swapErr)
+                err = swapErr
+                throw swapErr
+            }
+
+            // Log debug information to a relative path instead of hardcoded absolute path
+            const logPath = joinPath(dirname(this.file), 'debug.log')
+            const dataFileSize = fs.statSync(targetFile).size
+            await fs.promises.appendFile(logPath, `${new Date().toISOString()} - ${db.length} - ${dataFileSize} - ${this.insertPromises.length} - ${err || 'success'}\n`).catch(() => { })
+            await fs.promises.appendFile(logPath, JSON.stringify(db.indexManager.index) + '\n').catch(() => { })
+
+            await this.registerStorageArtifacts(LIST_STORAGE_TTL)
+
+            // NOTE: Do NOT destroy databases here!
+            // Both main and metadata databases are persistent and used by ListIndex in main process
+            // The database instances will be garbage collected automatically
+
+            // Database references will be cleared by garbage collection
+            // Note: db and mdb are const variables, cannot be reassigned
+
+            // No need to move files since we're using the real files directly
+            if (this.invalidEntriesCount > 0) {
+                console.error('List ' + this.url + ' has ' + this.invalidEntriesCount + ' invalid entries')
+            }
+            if (!this.foundStreams && err) {
+                console.error('UpdateListIndex: No streams found and error occurred:', err)
+                throw err
+            }
+
+            // Reset after all operations are complete to prepare for next use
+            this.reset()
+
+            return true
+        } finally {
+            await cleanupArtifacts()
+            if (metaHold) {
+                try {
+                    metaHold.release()
+                } catch (releaseErr) {
+                    console.error('Failed to release meta hold:', releaseErr)
+                }
+            }
         }
-
-        // Log debug information to a relative path instead of hardcoded absolute path
-        const logPath = joinPath(dirname(this.file), 'debug.log')
-        const dataFileSize = fs.statSync(this.file).size
-        await fs.promises.appendFile(logPath, `${new Date().toISOString()} - ${db.length} - ${dataFileSize} - ${this.insertPromises.length} - ${err || 'success'}\n`).catch(() => { })
-        await fs.promises.appendFile(logPath, JSON.stringify(db.indexManager.index) + '\n').catch(() => { })
-
-
-        // NOTE: Do NOT destroy databases here!
-        // Both main and metadata databases are persistent and used by ListIndex in main process
-        // The database instances will be garbage collected automatically
-
-
-        // Database references will be cleared by garbage collection
-        // Note: db and mdb are const variables, cannot be reassigned
-
-        // No need to move files since we're using the real files directly
-        if (this.invalidEntriesCount > 0) {
-            console.error('List ' + this.url + ' has ' + this.invalidEntriesCount + ' invalid entries')
-        }
-        if (!this.foundStreams && err) {
-            console.error('UpdateListIndex: No streams found and error occurred:', err)
-            throw err
-        }
-
-        // Release the meta file hold
-        if (metaHold) {
-            metaHold.release();
-        }
-
-        // Reset after all operations are complete to prepare for next use
-        this.reset()
-
-        return true
     }
     async xparse(url, db) {
         let err
@@ -617,12 +708,24 @@ class UpdateListIndex extends ListIndexUtils {
             await mag.run()
         } catch (e) {
             err = e
+            // If we got some streams before the error, log warning instead of throwing
+            if (this.foundStreams > 0 && String(err).includes('JSON')) {
+                console.warn('MPARSE: JSON parsing error occurred but some streams were already processed:', err.message || err)
+                // Don't throw - allow partial success
+                err = null
+            }
         }
 
         mag.destroy()
         if (err) {
-            console.error('MPARSE ' + err)
-            throw err
+            // Only throw if no streams were found or it's a critical error
+            if (this.foundStreams === 0 || !String(err).includes('JSON')) {
+                console.error('MPARSE Error:', err)
+                throw err
+            } else {
+                // Log warning but don't throw for JSON parsing errors if we got some data
+                console.warn('MPARSE: JSON parsing error but some streams processed:', err.message || err)
+            }
         }
     }
     async parse(opts, db, playlist) {
@@ -698,6 +801,12 @@ class UpdateListIndex extends ListIndexUtils {
 
             if (!resolved) {
                 resolved = true
+                
+                // Verify if all entries were processed before closing
+                if (this.cancelled || this.insertsDisabled) {
+                    console.warn(`⚠️ WARNING: Processing was cancelled/disabled. Processed ${processedCount} entries but may have missed some.`)
+                }
+                
                 if (this.foundStreams) {
                     if (this.contentLength == this.defaultContentLength) {
                         this.contentLength = this.stream.received
@@ -739,42 +848,61 @@ class UpdateListIndex extends ListIndexUtils {
     sniffGroupsTypes(groups) {
         const ret = { live: [], vod: [], series: [] }
 
-        // groups is initialized in constructor, so it should always be an object
         Object.keys(groups).forEach(g => {
-            let icon
-            const isSeried = this.isGroupSeried(groups[g])
-            const types = groups[g].map(e => {
-                if (e.icon && !icon) {
-                    icon = e.icon
+            const groupData = groups[g] || {}
+            const names = Array.isArray(groupData.names)
+                ? groupData.names
+                : Array.isArray(groupData)
+                    ? groupData.map(entry => (typeof entry === 'string' ? entry : entry?.name)).filter(Boolean)
+                    : []
+
+            const iconCandidate = typeof groupData.icon === 'string' && groupData.icon.length > 12 ? groupData.icon : null
+            const isSeried = this.isGroupSeried(names)
+
+            let type = null
+            if (isSeried) {
+                type = 'series'
+            } else if (groupData.typeCounts && typeof groupData.typeCounts === 'object') {
+                const ranked = ['live', 'vod', 'series'].map(key => ({
+                    key,
+                    count: typeof groupData.typeCounts[key] === 'number' ? groupData.typeCounts[key] : 0
+                }))
+                const winner = ranked.reduce((acc, curr) => (curr.count > acc.count ? curr : acc), { key: null, count: 0 })
+                if (winner.count > 0) {
+                    type = winner.key
                 }
-                const streamType = isSeried ? 'series' : this.sniffStreamType(e)
-                return streamType
-            }).filter(s => s)
-
-            const type = this.mode(types)
-            if (type) {
-                // FIXED: Prevent recursive concatenation by using only the last part of the group path
-                // Split the group path and use only the last meaningful segment
-                const groupParts = g.split('/').filter(part => part && part.trim() !== '')
-                const cleanGroupName = groupParts.length > 0 ? groupParts[groupParts.length - 1] : g
-
-                ret[type].push({ name: cleanGroupName, icon })
             }
+
+            if (!type) {
+                return
+            }
+
+            const groupParts = g.split('/').filter(part => part && part.trim() !== '')
+            const cleanGroupName = groupParts.length > 0 ? groupParts[groupParts.length - 1] : g
+
+            ret[type].push({
+                name: cleanGroupName,
+                icon: iconCandidate || undefined
+            })
         })
 
         return ret
     }
-    isGroupSeried(es) {
-        if (es.length < 5) return false
+    isGroupSeried(entries) {
+        if (!Array.isArray(entries)) return false
+        const names = entries
+            .map(entry => (typeof entry === 'string' ? entry : entry?.name))
+            .filter(name => typeof name === 'string' && name.trim() !== '')
+
+        if (names.length < 5) return false
         const masks = {}
         const mask = n => n.replace(new RegExp('[0-9]+', 'g'), '*')
-        es.forEach(e => {
-            if (!e.name) return // Cannot read property 'replace' of null
-            const m = mask(e.name)
+        names.forEach(name => {
+            const m = mask(name)
             if (typeof (masks[m]) == 'undefined') masks[m] = 0
             masks[m]++
         })
-        return Object.values(masks).some(n => n >= (es.length * 0.7))
+        return Object.values(masks).some(n => n >= (names.length * 0.7))
     }
     mode(a) { // https://stackoverflow.com/a/65821663
         let obj = {}
@@ -793,8 +921,18 @@ class UpdateListIndex extends ListIndexUtils {
         // Clear large objects first to help GC
         if (this.groups && typeof this.groups === 'object') {
             Object.keys(this.groups).forEach(key => {
-                if (Array.isArray(this.groups[key])) {
-                    this.groups[key].length = 0
+                const data = this.groups[key]
+                if (data && typeof data === 'object') {
+                    if (Array.isArray(data.names)) {
+                        data.names.length = 0
+                    } else if (Array.isArray(data)) {
+                        data.length = 0
+                    }
+                    if (data.typeCounts && typeof data.typeCounts === 'object') {
+                        Object.keys(data.typeCounts).forEach(type => {
+                            data.typeCounts[type] = 0
+                        })
+                    }
                 }
                 delete this.groups[key]
             })
@@ -802,16 +940,8 @@ class UpdateListIndex extends ListIndexUtils {
         }
 
         // Clear Set completely
-        if (this.uniqueStreamsIndexate) {
-            this.uniqueStreamsIndexate.clear()
-        }
-        this.uniqueStreamsIndexate = new Set()
-
         // Clear URL cache for merging
-        if (this.urlCache) {
-            this.urlCache.clear()
-        }
-        this.urlCache = new Map()
+        this.lastCachedEntry = null
 
         // Clear index object
         if (this._index && typeof this._index === 'object') {
@@ -830,7 +960,7 @@ class UpdateListIndex extends ListIndexUtils {
                 }
                 delete this._index[key]
             })
-            this._index = { groups: {}, meta: {}, gids: {}, groupsTypes: {}, uniqueStreamsLength: 0 }
+            this._index = { groups: {}, meta: {}, gids: {}, groupsTypes: {}, length: 0 }
         }
 
         // Clear playlists array
@@ -850,6 +980,7 @@ class UpdateListIndex extends ListIndexUtils {
 
         // OPTIMIZATION: Reset InsertSession
         this.insertSession = null
+        this.lastCachedEntry = null
         this.lastURL = null
     }
     async destroy() {
@@ -919,18 +1050,23 @@ class UpdateListIndex extends ListIndexUtils {
 
             if (this.groups && typeof this.groups === 'object') {
                 Object.keys(this.groups).forEach(key => {
-                    if (Array.isArray(this.groups[key])) {
-                        this.groups[key].length = 0
+                    const data = this.groups[key]
+                    if (data && typeof data === 'object') {
+                        if (Array.isArray(data.names)) {
+                            data.names.length = 0
+                        } else if (Array.isArray(data)) {
+                            data.length = 0
+                        }
+                        if (data.typeCounts && typeof data.typeCounts === 'object') {
+                            Object.keys(data.typeCounts).forEach(type => {
+                                data.typeCounts[type] = 0
+                            })
+                        }
                     }
                     delete this.groups[key]
                 })
                 this.groups = null
             }
-
-            if (this.uniqueStreamsIndexate) {
-                this.uniqueStreamsIndexate.clear()
-            }
-            this.uniqueStreamsIndexate = null
 
             if (this.indexMeta && typeof this.indexMeta === 'object') {
                 Object.keys(this.indexMeta).forEach(key => {

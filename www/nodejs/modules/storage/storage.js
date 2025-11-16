@@ -66,10 +66,22 @@ class StorageTools extends EventEmitter {
                         // Check if file is older than 1 hour
                         if ((now - mtime) > oneHour) {
                             // Check if file is in index and not expired
-                            const indexEntry = this.index[key];
+                            let indexEntry = this.index[key];
+                            
+                            // Try auto-heal if not in index
+                            if (!indexEntry) {
+                                const healed = await this.tryAutoHealKey(key).catch(() => false);
+                                if (healed) {
+                                    indexEntry = this.index[key];
+                                }
+                            }
+                            
                             if (!indexEntry || (indexEntry.expiration && now > indexEntry.expiration)) {
-                                // File is not in index or has expired - delete it
+                                // File is not in index (even after auto-heal) or has expired - delete it
                                 await fs.promises.unlink(ffile).catch(() => {})
+                                // Also delete expiration sidecar if exists
+                                const expFile = ffile.replace(/\.dat$/, '.expires.json');
+                                await fs.promises.unlink(expFile).catch(() => {})
                             }
                         }
                     }
@@ -91,7 +103,6 @@ class StorageTools extends EventEmitter {
                     await fs.promises.unlink(this.opts.folder +'/'+ file).catch(() => {}) // unexpected file format
                 }
             }
-            upgraded && rmdir(this.opts.folder + '/dlcache', true).catch(err => console.error(err))
         }
     }
     async clear(force) {        
@@ -136,41 +147,99 @@ class StorageTools extends EventEmitter {
         const tfile = file.replace('.json', '.dat');
         const key = this.unresolve(tfile);
         const tstat = await fs.promises.stat(this.opts.folder + '/' + tfile).catch(() => {});
-        if (!tstat || typeof(tstat) != 'number') {
-            let expiration = parseInt(await fs.promises.readFile(this.opts.folder + '/' + efile).catch(() => {}));
-            if (!isNaN(expiration)) {
-                let err;
-                let content = await fs.promises.readFile(this.opts.folder + '/' + file).catch(e => err = e);
-                if (!err && content) {
-                    const movedToConfigKeys = ['bookmarks', 'history', 'epg-history'];
-                    let raw = true;
-                    try {
-                        let parsed = JSON.parse(content);
-                        content = parsed;
-                        raw = false;
+        
+        // If .dat file already exists, try to use expiration from .expires.json for auto-heal
+        if (tstat && typeof(tstat) == 'object') {
+            // .dat exists, try to read expiration from .expires.json and update index
+            if (ofile.endsWith('.expires.json')) {
+                let expiration = parseInt(await fs.promises.readFile(this.opts.folder + '/' + efile).catch(() => {}));
+                if (!isNaN(expiration) && expiration > 0) {
+                    // Use auto-heal to update index with expiration
+                    const healed = await this.tryAutoHealKey(key).catch(() => false);
+                    if (healed) {
+                        await fs.promises.unlink(this.opts.folder + '/' + efile).catch(() => {});
+                        return; // Successfully healed
                     }
-                    catch (e) {}
-                    if (movedToConfigKeys.includes(key)) {
-                        config.set(key, content);
-                    } else {
-                        await this.set(key, content, { expiration, raw });
-                    }
-                    await fs.promises.unlink(this.opts.folder + '/' + file).catch(() => {});
-                    await fs.promises.unlink(this.opts.folder + '/' + efile).catch(() => {});
-                    console.error('+++++++ UPGRADED ' + tfile);
-                    return; // upgraded
-                } else {
-                    reason = 'no content or error: ' + err;
                 }
-            } else {
-                reason = 'bad expiration value';
             }
-        } else {
-            reason = 'newer file exists';
+            // .dat already exists, skip upgrade and clean up old files
+            await fs.promises.unlink(this.opts.folder + '/' + file).catch(() => {});
+            await fs.promises.unlink(this.opts.folder + '/' + efile).catch(() => {});
+            return; // Skip upgrade, .dat already exists
         }
+        
+        // Check if .json file exists
+        const jsonStat = await fs.promises.stat(this.opts.folder + '/' + file).catch(() => null);
+        if (!jsonStat) {
+            // .json doesn't exist - check if .expires.json is orphaned
+            if (ofile.endsWith('.expires.json')) {
+                // Orphaned .expires.json - just delete it silently
+                await fs.promises.unlink(this.opts.folder + '/' + efile).catch(() => {});
+                return;
+            }
+            reason = 'source file not found';
+            await fs.promises.unlink(this.opts.folder + '/' + file).catch(() => {});
+            await fs.promises.unlink(this.opts.folder + '/' + efile).catch(() => {});
+            return;
+        }
+        
+        // At this point: .dat doesn't exist (checked above), .json exists (checked above)
+        // Proceed with migration from .json to .dat
+        let expiration = parseInt(await fs.promises.readFile(this.opts.folder + '/' + efile).catch(() => {}));
+        
+        // If no expiration found, use default (will be calculated by set())
+        const hasExpiration = !isNaN(expiration) && expiration > 0;
+        
+        let err;
+        let content = await fs.promises.readFile(this.opts.folder + '/' + file).catch(e => err = e);
+        if (!err && content) {
+            const movedToConfigKeys = ['bookmarks', 'history', 'epg-history'];
+            let raw = true;
+            try {
+                let parsed = JSON.parse(content);
+                content = parsed;
+                raw = false;
+            }
+            catch (e) {}
+            if (movedToConfigKeys.includes(key)) {
+                config.set(key, content);
+                // For config keys, delete old files since they're moved to config
+                await fs.promises.unlink(this.opts.folder + '/' + file).catch(() => {});
+                await fs.promises.unlink(this.opts.folder + '/' + efile).catch(() => {});
+            } else {
+                // Migrate .json → .dat, keeping expiration sidecar
+                const setOpts = hasExpiration ? { expiration, raw } : { raw };
+                await this.set(key, content, setOpts);
+                
+                // Verify new .expires.json was created before deleting old one
+                const newExpFile = tfile.replace(/\.dat$/, '.expires.json');
+                const newExpExists = await fs.promises.stat(this.opts.folder + '/' + newExpFile).catch(() => null);
+                
+                // Delete old .json file
+                await fs.promises.unlink(this.opts.folder + '/' + file).catch(() => {});
+                
+                // Only delete old .expires.json if it existed and new one was created successfully
+                if (hasExpiration && newExpExists) {
+                    await fs.promises.unlink(this.opts.folder + '/' + efile).catch(() => {});
+                } else if (hasExpiration && !newExpExists) {
+                    // If new .expires.json wasn't created but old one existed, keep old one as backup
+                    console.warn(`⚠️ Upgrade: New .expires.json not created for ${key}, keeping old one as backup`);
+                }
+                // If old .expires.json didn't exist, nothing to delete
+            }
+            console.error('+++++++ UPGRADED ' + tfile);
+            return; // upgraded
+        } else {
+            reason = 'no content or error: ' + (err?.message || String(err));
+        }
+        
+        // If we get here, upgrade failed
         await fs.promises.unlink(this.opts.folder + '/' + file).catch(() => {});
         await fs.promises.unlink(this.opts.folder + '/' + efile).catch(() => {});
-        console.error('+++++++ NOT UPGRADED ' + ofile + ' :: ' + reason);
+        // Only log error if it's a real upgrade attempt (not orphaned file)
+        if (!ofile.endsWith('.expires.json') || jsonStat) {
+            console.error('+++++++ NOT UPGRADED ' + ofile + ' :: ' + reason);
+        }
     }
     size() {
         let usage = 0;
@@ -215,7 +284,13 @@ class StorageIndex extends StorageHolding {
                 const content = fs.readFileSync(indexPath, 'utf8')
                 if (content && content.trim()) {
                     try {
-                        this.index = JSON.parse(content)
+                        const diskIndex = JSON.parse(content)
+                        // Merge with existing in-memory index if any
+                        if (Object.keys(this.index || {}).length > 0) {
+                            this.index = this.mergeIndexes(this.index, diskIndex)
+                        } else {
+                            this.index = diskIndex
+                        }
                     } catch (parseError) {
                         console.error('Storage index JSON parse error, creating backup and resetting:', parseError.message)
                         // Create backup of corrupted file
@@ -232,10 +307,71 @@ class StorageIndex extends StorageHolding {
             } else {
                 this.index = {}
             }
+            
+            // Setup watchFile for index reload in all processes
+            this.setupIndexWatch()
         } catch (err) {
             console.error('Storage load error:', err)
             this.index = {}
         }
+    }
+    
+    setupIndexWatch() {
+        if (this._indexWatchSetup) return; // Already setup
+        this._indexWatchSetup = true;
+        
+        const indexPath = this.opts.folder +'/'+ this.indexFile;
+        
+        const watchAndReload = async () => {
+            let reloadTimer = null;
+            const debounceMs = 500;
+            
+            const reloadIndex = async () => {
+                try {
+                    const content = await fs.promises.readFile(indexPath, 'utf8').catch(() => '{}');
+                    if (!content || !content.trim()) return;
+                    
+                    const diskIndex = JSON.parse(content);
+                    
+                    // Merge with current in-memory index (don't blindly replace)
+                    const mergedIndex = this.mergeIndexes(this.index, diskIndex);
+                    
+                    // Update in-memory index
+                    this.index = mergedIndex;
+                    
+                    // Update timestamps to prevent immediate save after reload
+                    this.lastSaveTime = (Date.now() / 1000);
+                    this.lastAlignTime = this.lastSaveTime;
+                    
+                } catch (err) {
+                    // Ignore reload errors silently
+                }
+            };
+            
+            fs.watchFile(indexPath, { interval: 1000 }, () => {
+                clearTimeout(reloadTimer);
+                reloadTimer = setTimeout(reloadIndex, debounceMs);
+            });
+        };
+        
+        // Try to setup watch immediately if file exists
+        if (fs.existsSync(indexPath)) {
+            watchAndReload();
+        } else {
+            // Poll for file creation, then setup watch
+            const checkInterval = setInterval(() => {
+                if (fs.existsSync(indexPath)) {
+                    clearInterval(checkInterval);
+                    watchAndReload();
+                }
+            }, 2000);
+            
+            // Stop polling after 60 seconds
+            setTimeout(() => clearInterval(checkInterval), 60000);
+        }
+        
+        // Store indexPath for cleanup in dispose
+        this._watchedIndexPath = indexPath;
     }
     mtime(key) {
         if(key) {
@@ -261,22 +397,101 @@ class StorageIndex extends StorageHolding {
             return Math.max(lastTouchTime, this.lastAlignTime || 0)
         }
     }
+    mergeIndexes(memoryIndex, diskIndex) {
+        const merged = { ...memoryIndex };
+        
+        // Merge disk index into memory index
+        for (const [key, diskEntry] of Object.entries(diskIndex)) {
+            const memEntry = merged[key];
+            
+            if (!memEntry) {
+                // Only in disk: add to merged (unless deleted without file)
+                if (diskEntry.delete === true) {
+                    const file = this.resolve(key);
+                    const hasFile = fs.existsSync(file);
+                    if (!hasFile) {
+                        continue; // Don't add deleted entries without files
+                    }
+                }
+                merged[key] = { ...diskEntry };
+            } else {
+                // In both: merge intelligently
+                // Prefer entry with higher time (more recent)
+                const memTime = memEntry.time || 0;
+                const diskTime = diskEntry.time || 0;
+                
+                if (diskTime > memTime) {
+                    // Disk is newer, but check if memory has newer expiration
+                    const memExp = memEntry.expiration || 0;
+                    const diskExp = diskEntry.expiration || 0;
+                    
+                    if (memExp > diskExp) {
+                        // Memory has newer expiration, merge both
+                        merged[key] = {
+                            ...diskEntry,
+                            expiration: memExp
+                        };
+                    } else {
+                        // Disk is fully newer
+                        merged[key] = { ...diskEntry };
+                    }
+                } else {
+                    // Memory is newer or equal, keep memory but check expiration
+                    const memExp = memEntry.expiration || 0;
+                    const diskExp = diskEntry.expiration || 0;
+                    if (diskExp > memExp) {
+                        merged[key] = {
+                            ...memEntry,
+                            expiration: diskExp
+                        };
+                    } else {
+                        // Keep memory as-is
+                        merged[key] = memEntry;
+                    }
+                }
+            }
+        }
+        
+        return merged;
+    }
+
     async save() {
         if (this.mtime() < this.lastSaveTime)
             return
         // Ensure directory exists
         await fs.promises.mkdir(this.opts.folder, { recursive: true }).catch(() => {})
         
+        // Read current index from disk and merge with memory
+        const indexPath = this.opts.folder +'/'+ this.indexFile;
+        let diskIndex = {};
+        try {
+            if (fs.existsSync(indexPath)) {
+                const content = await fs.promises.readFile(indexPath, 'utf8').catch(() => '{}');
+                if (content && content.trim()) {
+                    diskIndex = JSON.parse(content);
+                }
+            }
+        } catch (err) {
+            // Ignore errors reading disk index, use memory only
+            console.warn('Storage: Could not read disk index for merge:', err.message);
+        }
+        
+        // Merge indexes before saving
+        const mergedIndex = this.mergeIndexes(this.index, diskIndex);
+        
         // Use a more predictable filename to reduce file handle usage
         const tmp = this.opts.folder +'/'+ 'temp_' + Date.now() +'.commit'
         this.lastSaveTime = (Date.now() / 1000)
         try {
-            await fs.promises.writeFile(tmp, JSON.stringify(this.index), 'utf8')
+            await fs.promises.writeFile(tmp, JSON.stringify(mergedIndex), 'utf8')
             
             // Verify temp file exists before moving
             await fs.promises.access(tmp)
             
-            await moveFile(tmp, this.opts.folder +'/'+ this.indexFile)
+            await moveFile(tmp, indexPath);
+            
+            // Update in-memory index to reflect merged state
+            this.index = mergedIndex;
         } catch (err) {
             // Clean up temp file on error (check if it exists first)
             try {
@@ -291,12 +506,33 @@ class StorageIndex extends StorageHolding {
     saveSync() {
         if (this.mtime() < this.lastSaveTime)
             return
-        this.lastSaveTime = (Date.now() / 1000)        
-        const tmp = this.opts.folder + '/' + parseInt(Math.random() * 100000) + '.commit'
-        fs.writeFileSync(tmp, JSON.stringify(this.index), 'utf8')
+        this.lastSaveTime = (Date.now() / 1000)
+        
+        // Read current index from disk and merge with memory
+        const indexPath = this.opts.folder +'/'+ this.indexFile;
+        let diskIndex = {};
         try {
-            fs.unlinkSync(this.opts.folder + '/' + this.indexFile)
-            fs.renameSync(tmp, this.opts.folder + '/' + this.indexFile)
+            if (fs.existsSync(indexPath)) {
+                const content = fs.readFileSync(indexPath, 'utf8');
+                if (content && content.trim()) {
+                    diskIndex = JSON.parse(content);
+                }
+            }
+        } catch (err) {
+            // Ignore errors reading disk index, use memory only
+        }
+        
+        // Merge indexes before saving
+        const mergedIndex = this.mergeIndexes(this.index, diskIndex);
+        
+        const tmp = this.opts.folder + '/' + parseInt(Math.random() * 100000) + '.commit'
+        fs.writeFileSync(tmp, JSON.stringify(mergedIndex), 'utf8')
+        try {
+            fs.unlinkSync(indexPath)
+            fs.renameSync(tmp, indexPath)
+            
+            // Update in-memory index to reflect merged state
+            this.index = mergedIndex;
         } catch (e) {
             fs.unlinkSync(tmp)
         }
@@ -348,10 +584,10 @@ class StorageIndex extends StorageHolding {
         if (removals.length > 0) {
             const removalPromises = removals.map(async key => {
                 if(!this.index[key]) return; // bad value or deleted in mean time
-                const size = this.index[key].size
-                const elapsed = now - this.index[key].time
-                const expired = this.index[key].expired ? ', expired' : ''
-                console.log('LRU cache eviction '+ key +' ('+ size + expired +') after '+ elapsed +'s idle')                
+                // const size = this.index[key].size
+                // const elapsed = now - this.index[key].time
+                // const expired = this.index[key].expired ? ', expired' : ''
+                // console.log('LRU cache eviction '+ key +' ('+ size + expired +') after '+ elapsed +'s idle')                
                 await this.delete(key)
             });
             await Promise.allSettled(removalPromises);
@@ -424,6 +660,14 @@ class StorageIndex extends StorageHolding {
         }
         const prevValues = Object.assign({}, entry)
         this.index[key] = Object.assign(entry, atts)
+        
+        // Save expiration sidecar if expiration is present (only in main process to avoid race conditions)
+        if (this.opts.main && this.index[key]?.expiration) {
+            const file = this.resolve(key);
+            const expFile = file.replace(/\.dat$/, '.expires.json');
+            fs.promises.writeFile(expFile, String(this.index[key].expiration), 'utf8').catch(() => {});
+        }
+        
         if(doNotPropagate !== true) { // IPC sync only
             this.emit('touch', key, this.index[key])
             if (this.opts.main) { // only main process should align/save index, worker will sync through IPC		
@@ -471,12 +715,46 @@ class StorageIndex extends StorageHolding {
         const prevValues = Object.assign({}, entry)
         this.index[key] = Object.assign(entry, atts)
         
+        // Save expiration sidecar if expiration is present (only in main process to avoid race conditions)
+        if (this.opts.main && this.index[key]?.expiration) {
+            const expFile = filePath.replace(/\.dat$/, '.expires.json');
+            fs.promises.writeFile(expFile, String(this.index[key].expiration), 'utf8').catch(() => {});
+        }
+        
         if(doNotPropagate !== true) { // IPC sync only
             this.emit('touch', key, this.index[key])
             if (this.opts.main) { // only main process should align/save index, worker will sync through IPC		
                 this.alignLimiter.call() // will call saver when done
             }
         }
+    }
+
+    async registerFile(filePath, opts = {}) {
+        if (!filePath) {
+            return
+        }
+
+        const atts = {
+            size: typeof opts.size !== 'undefined' ? opts.size : 'auto'
+        }
+
+        if (opts.raw !== undefined) {
+            atts.raw = opts.raw
+        }
+
+        if (typeof opts.expiration === 'number') {
+            atts.expiration = opts.expiration
+        } else if (typeof opts.ttl === 'number') {
+            atts.ttl = opts.ttl
+        } else if (opts.permanent === true) {
+            atts.permanent = true
+        }
+
+        if (opts.compress === true) {
+            atts.compress = true
+        }
+
+        return this.touchFile(filePath, atts, opts.doNotPropagate)
     }
 }
 
@@ -487,10 +765,14 @@ class StorageIO extends StorageIndex {
     async get(key, opts={}) {
         key = this.prepareKey(key)
         if (!this.index[key]) {
-            if(opts.throwIfMissing === true) {
-                throw new Error('Key not found: '+ key)
+            // Try auto-heal if not in index
+            const healed = await this.tryAutoHealKey(key).catch(() => false);
+            if (!healed) {
+                if(opts.throwIfMissing === true) {
+                    throw new Error('Key not found: '+ key)
+                }
+                return null;
             }
-            return null
         }
         const row = this.index[key]
         // grab this row to mem to avoid losing it due to its deletion in meanwhile, maybe using a lock() would be better
@@ -578,7 +860,16 @@ class StorageIO extends StorageIndex {
             if (atts.compress)
                 content = await this.compress(content);
             await this.write(file, content, atts.encoding).catch(err => console.error(err));
+            
             await this.touch(key, Object.assign(atts, { size: content.length }));
+            
+            // Save expiration sidecar file AFTER touch() (which calculates expiration via calcExpiration)
+            const finalExp = this.index[key]?.expiration;
+            if (typeof finalExp === 'number' && finalExp > 0) {
+                const expFile = file.replace(/\.dat$/, '.expires.json');
+                await fs.promises.writeFile(expFile, String(finalExp), 'utf8').catch(() => {});
+            }
+            
             lock.release()
         });
     }
@@ -673,11 +964,48 @@ class StorageIO extends StorageIndex {
         expiration = (Date.now() / 1000) + expiration
         this.touch(key, { size: 'auto', expiration })
     }
+    async tryAutoHealKey(key) {
+        key = this.prepareKey(key);
+        const file = this.resolve(key);
+        
+        // Check if data file exists
+        const stat = await fs.promises.stat(file).catch(() => null);
+        if (!stat || typeof stat.size !== 'number') {
+            return false; // No data file, can't heal
+        }
+        
+        // Check for expiration sidecar
+        const expFile = file.replace(/\.dat$/, '.expires.json');
+        const expRaw = await fs.promises.readFile(expFile, 'utf8').catch(() => null);
+        
+        if (!expRaw) {
+            return false; // No expiration known, don't auto-heal
+        }
+        
+        const exp = parseInt(expRaw.trim());
+        if (isNaN(exp) || exp <= 0) {
+            return false; // Invalid expiration
+        }
+        
+        // Reindex with exact expiration
+        const now = (Date.now() / 1000);
+        const mtime = stat.mtimeMs / 1000;
+        
+        await this.touch(key, {
+            size: stat.size,
+            time: mtime,
+            expiration: exp
+        });
+        
+        return true;
+    }
+
     expiration(key) {
         key = this.prepareKey(key)
         if (this.index[key] && this.index[key].expiration) {
             return this.index[key].expiration
         }
+        // Note: Auto-heal is async, called from async methods (get/exists)
         return 0;
     }
     async exists(key) {
@@ -689,6 +1017,13 @@ class StorageIO extends StorageIndex {
                 return true;
             }
         }
+        
+        // Try auto-heal if not in index
+        const healed = await this.tryAutoHealKey(key).catch(() => false);
+        if (healed && this.index[key]) {
+            return true;
+        }
+        
         return false;
     }
     has(key) {
@@ -768,6 +1103,10 @@ class StorageIO extends StorageIndex {
             for (const file of files) {
                 await fs.promises.unlink(file).catch(() => {})
             }
+            // Also delete expiration sidecar if exists
+            const dataFile = this.resolve(key);
+            const expFile = dataFile.replace(/\.dat$/, '.expires.json');
+            await fs.promises.unlink(expFile).catch(() => {})
         }
         if (removeFile && !files.includes(removeFile)) {
             await fs.promises.unlink(removeFile).catch(() => {})
@@ -920,6 +1259,13 @@ class Storage extends StorageIO {
         if (this.lockCleanupInterval) {
             clearInterval(this.lockCleanupInterval);
             this.lockCleanupInterval = null;
+        }
+        
+        // Stop watching index file
+        if (this._indexWatchSetup && this._watchedIndexPath) {
+            fs.unwatchFile(this._watchedIndexPath);
+            this._indexWatchSetup = false;
+            this._watchedIndexPath = null;
         }
         
         // Clear all locks and listeners

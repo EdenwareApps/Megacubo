@@ -1,7 +1,6 @@
 import { EventEmitter } from 'node:events'
-import { EPGErrorHandler } from '../epg-worker/EPGErrorHandler.js'
+import { EPGErrorHandler } from '../epg/worker/EPGErrorHandler.js'
 import { EnhancedRecommendations } from './EnhancedRecommendations.mjs'
-import { AIRecommendationEngine } from './AIRecommendationEngine.mjs'
 import { AITagExpansion } from './AITagExpansion.mjs'
 import { SmartCache } from './SmartCache.mjs'
 
@@ -15,7 +14,6 @@ class SmartRecommendationsModule extends EventEmitter {
         this.readyState = 0
         this.aiClient = null
         this.enhancedRecommendations = null
-        this.aiEngine = null
         this.aiTagExpansion = null
         this.cache = null
         this.config = {
@@ -45,12 +43,10 @@ class SmartRecommendationsModule extends EventEmitter {
             }
 
             // Initialize components with AI Client (importing inline to avoid circular deps)
-            const { AIRecommendationEngine } = await import('./AIRecommendationEngine.mjs')
             const { AITagExpansion } = await import('./AITagExpansion.mjs')
             const { EnhancedRecommendations } = await import('./EnhancedRecommendations.mjs')
             
             this.enhancedRecommendations = new EnhancedRecommendations(this.aiClient)
-            this.aiEngine = new AIRecommendationEngine(this.aiClient)
             this.aiTagExpansion = new AITagExpansion(this.aiClient)
             // Learning removed - AI is already trained
             this.cache = new SmartCache({
@@ -197,7 +193,6 @@ class SmartRecommendationsModule extends EventEmitter {
 
         return {
             enhancedRecommendations: this.enhancedRecommendations.getPerformanceMetrics(),
-            aiEngine: this.aiEngine?.getStats?.() || {},
             aiTagExpansion: this.aiTagExpansion?.getStats?.() || {},
             cache: this.cache.getStats()
         }
@@ -214,7 +209,6 @@ class SmartRecommendationsModule extends EventEmitter {
             aiClientAvailable: !!this.aiClient,
             components: {
                 enhancedRecommendations: !!this.enhancedRecommendations,
-                aiEngine: !!this.aiEngine,
                 aiTagExpansion: !!this.aiTagExpansion,
                 cache: !!this.cache
             },
@@ -286,7 +280,6 @@ class SmartRecommendationsModule extends EventEmitter {
             }
             
             this.enhancedRecommendations = null
-            this.aiEngine = null
             this.aiTagExpansion = null
             this.cache = null
             this.aiClient = null

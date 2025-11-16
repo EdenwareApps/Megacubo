@@ -3,7 +3,7 @@
  * Provides offline functionality when server is unavailable
  */
 
-import { EPGErrorHandler } from '../../epg-worker/EPGErrorHandler.js';
+import { EPGErrorHandler } from '../../epg/worker/EPGErrorHandler.js';
 
 export class AIFallback {
     constructor() {

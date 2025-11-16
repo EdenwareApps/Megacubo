@@ -5,7 +5,66 @@ import data from "./search-redirects.json" with {type: 'json'};
 import countryCodes from '../countries/countries.json' with {type: 'json'};
 import options from "./options.json" with { type: 'json' }
 import { basename, forwardSlashes } from "../utils/utils.js";
-import { sanitizeName } from "./parser.js";
+
+// Regexes otimizadas para sanitizeName
+const SANITIZE_REGEXES = {
+    // Regex consolidada para caracteres de controle e quebras de linha
+    controlChars: new RegExp('[\\r\\n\\t\\x00-\\x1f\\x7f-\\x9f]', 'g'),
+    // Regex para aspas e barras invertidas
+    jsonChars: new RegExp('[\\"\\\\]', 'g'),
+    // Regex para múltiplos espaços
+    multipleSpaces: new RegExp('\\s+', 'g'),
+    // Regex para barras
+    slashes: new RegExp('/', 'g')
+};
+
+// Função otimizada de sanitização
+export const sanitizeName = s => {
+    // Early returns para casos comuns
+    if (s == null) return 'Untitled ' + Math.floor(Math.random() * 10000);
+    if (typeof s !== 'string') return 'Untitled ' + Math.floor(Math.random() * 10000);
+    if (s.length === 0) return 'Untitled ' + Math.floor(Math.random() * 10000);
+    
+    // Verificar caracteres de controle de forma mais eficiente
+    let hasControlChars = false;
+    for (let i = 0; i < s.length; i++) {
+        const code = s.charCodeAt(i);
+        if (code < 32 || code === 127 || (code >= 128 && code <= 159)) {
+            hasControlChars = true;
+            break;
+        }
+    }
+    
+    if (hasControlChars) {
+        s = s.replace(SANITIZE_REGEXES.controlChars, ' ');
+    }
+    
+    // Aplicar limpezas em sequência otimizada
+    s = s
+        .replace(SANITIZE_REGEXES.jsonChars, ' ')
+        .replace(SANITIZE_REGEXES.multipleSpaces, ' ')
+        .trim();
+    
+    // Se ficou vazio após limpeza, usar nome padrão
+    if (!s) {
+        return 'Untitled ' + Math.floor(Math.random() * 10000);
+    }
+    
+    // Tratar barras de forma otimizada - substituir por | para evitar problemas de navegação
+    if (s.includes('/')) {
+        if (s.includes('[/')) {
+            s = s.split('[/').join('[|');
+        }
+        s = s.replace(SANITIZE_REGEXES.slashes, ' | ');
+    }
+    
+    // Garantir que o nome não seja muito longo
+    if (s.length > 200) {
+        s = s.substring(0, 200) + '...';
+    }
+    
+    return s;
+};
 
 // Define regexes locally to avoid circular import issues
 const regexes = {
@@ -729,6 +788,118 @@ class Tools extends TermsHandler {
             .sort((a, b) => b.score - a.score)
             .slice(0, maxSuggestions);
     }
+    
+    /**
+     * Distinguishes between IPTV playlist and HLS transmission stream
+     * @param {string|Buffer} body - The M3U/M3U8 file content
+     * @returns {object} - { isIPTVPlaylist: boolean, isHLSTransmission: boolean, isHLSMasterPlaylist: boolean }
+     */
+    distinguishM3UType(body) {
+        if (!body) {
+            return { isIPTVPlaylist: false, isHLSTransmission: false, isHLSMasterPlaylist: false };
+        }
+        
+        // Convert to string if Buffer
+        const content = typeof body === 'string' ? body : String(body);
+        const contentLower = content.toLowerCase();
+        
+        // Must start with #EXTM3U to be a valid M3U file
+        if (!contentLower.includes('#extm3u')) {
+            return { isIPTVPlaylist: false, isHLSTransmission: false, isHLSMasterPlaylist: false };
+        }
+        
+        // HLS Master Playlist indicators (contains variant streams)
+        const hasHLSMasterIndicators = contentLower.includes('#ext-x-stream-inf');
+        
+        // HLS Transmission indicators (segment playlist)
+        const hasHLSTransmissionIndicators = 
+            contentLower.includes('#ext-x-version') ||
+            contentLower.includes('#ext-x-targetduration') ||
+            contentLower.includes('#ext-x-media-sequence') ||
+            contentLower.includes('#ext-x-playlist-type') ||
+            contentLower.includes('#ext-x-endlist') ||
+            contentLower.includes('#ext-x-key');
+        
+        // Check for HLS-specific EXTINF format (with numeric duration, not just -1)
+        // IPTV playlists typically use #EXTINF:-1 or #EXTINF:0
+        // HLS playlists use #EXTINF:10.5, #EXTINF:2.002, etc.
+        const extinfLines = content.match(/#extinf:\s*([^\n,]+)/gi) || [];
+        const hasHLSDurationFormat = extinfLines.some(line => {
+            const match = line.match(/#extinf:\s*([^\n,]+)/i);
+            if (!match) return false;
+            const duration = match[1].trim();
+            // HLS uses numeric durations (can be float), IPTV typically uses -1 or 0
+            return /^\d+\.?\d*$/.test(duration) && parseFloat(duration) > 0;
+        });
+        
+        // Check for segment URLs (HLS uses .ts segments or URLs without .m3u8 extension in segment playlists)
+        const lines = content.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+        const hasSegmentURLs = lines.some(line => {
+            // HLS segments are typically .ts files or URLs without .m3u8 in segment playlists
+            return line.match(/\.ts(?:\?|$|&)/i) || 
+                   (!line.includes('.m3u') && !line.includes('.m3u8') && line.match(/^https?:\/\//i));
+        });
+        
+        // Check if URLs are actually .ts segment files (stronger indicator than just any URL)
+        const hasTSSegments = lines.some(line => line.match(/\.ts(?:\?|$|&)/i));
+        
+        // IPTV Playlist indicators
+        // IPTV playlists have channel names after EXTINF (format: #EXTINF:-1,Channel Name)
+        const hasChannelNames = extinfLines.some(line => {
+            const match = line.match(/#extinf:[^,]+,\s*(.+)/i);
+            if (match) {
+                const channelName = match[1].trim();
+                // Channel names are typically longer and contain spaces or special chars
+                return channelName.length > 3 && (
+                    channelName.includes(' ') || 
+                    /[a-z]{3,}/i.test(channelName)
+                );
+            }
+            return false;
+        });
+        
+        // Determine type - BE MORE CONSERVATIVE: require strong HLS indicators
+        const isHLSMasterPlaylist = hasHLSMasterIndicators; // Very reliable - #EXT-X-STREAM-INF is definitive
+        
+        // Only classify as HLS transmission if we have STRONG indicators
+        // Require either:
+        // 1. Explicit HLS tags (most reliable - #EXT-X-VERSION, #EXT-X-TARGETDURATION, etc.), OR
+        // 2. BOTH numeric durations AND actual .ts segment files AND no channel names
+        // This prevents false positives where IPTV playlists point to streams (.m3u8 URLs)
+        const isHLSTransmission = hasHLSTransmissionIndicators || 
+                                  (hasHLSDurationFormat && hasTSSegments && !hasChannelNames);
+        
+        // IPTV playlist: not HLS master, not HLS transmission, and has some content
+        // More permissive: if it has EXTINF lines, assume IPTV unless proven otherwise
+        // This reduces false positives by defaulting to IPTV when unclear
+        const isIPTVPlaylist = !isHLSMasterPlaylist && !isHLSTransmission && 
+                               (hasChannelNames || extinfLines.length > 0 ||
+                                // If we have EXTINF but unclear, lean towards IPTV (less risky)
+                                (extinfLines.length > 0 && !hasHLSTransmissionIndicators));
+        
+        // Calculate confidence level
+        const confidence = hasHLSMasterIndicators || hasHLSTransmissionIndicators ? 'high' : 
+                          (hasChannelNames ? 'medium' : 
+                           (hasTSSegments ? 'medium' : 'low'));
+        
+        return {
+            isIPTVPlaylist,
+            isHLSTransmission,
+            isHLSMasterPlaylist,
+            // Additional info for debugging
+            indicators: {
+                hasHLSMasterIndicators,
+                hasHLSTransmissionIndicators,
+                hasHLSDurationFormat,
+                hasSegmentURLs,
+                hasTSSegments,
+                hasChannelNames,
+                extinfCount: extinfLines.length
+            },
+            // Add confidence level for better decision making
+            confidence
+        };
+    }
 }
 
 const tools = new Tools();
@@ -738,4 +909,5 @@ export const sort = tools.sort.bind(tools);
 export const levenshteinDistance = tools.levenshteinDistance.bind(tools);
 export const calculateSimilarityScore = tools.calculateSimilarityScore.bind(tools);
 export const findSuggestions = tools.findSuggestions.bind(tools);
+export const distinguishM3UType = tools.distinguishM3UType.bind(tools);
 export default tools;

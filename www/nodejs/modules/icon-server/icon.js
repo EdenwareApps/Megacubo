@@ -31,6 +31,9 @@ class IconFetcher extends EventEmitter {
         if (!this.terms || !this.terms.length)
             throw 'no terms, no url'
         let done;
+        if (this.master?.ensureReady) {
+            await this.master.ensureReady();
+        }
         const images = await this.master.search(this.terms);
         if (this.master.opts.debug) {
             console.log('GOFETCH', images);
@@ -82,6 +85,9 @@ class IconFetcher extends EventEmitter {
                         done = ret2
                         if (!done.key) done.key = key
                         done.image = image
+                        if (this.destroyed) {
+                            throw new Error('Icon is destroyed');
+                        }
                         done.url = this.master.url + done.key
                         this.succeeded = true
                         this.result = done
@@ -116,9 +122,12 @@ class IconFetcher extends EventEmitter {
         throw 'Couldn\'t find a logo for: ' + JSON.stringify(this.terms) +"\r\n"+ JSON.stringify(results, null, 3)
     }
     async resolve() {
-        if (this.entry.programme && this.entry.programme.i) {
+        if (!this.entry) {
+            throw new Error('Icon entry is null');
+        }
+        if (this.entry.programme && this.entry.programme.icon) {
             let err;
-            const ret = await this.master.fetchURL(this.entry.programme.i).catch(e => err = e);
+            const ret = await this.master.fetchURL(this.entry.programme.icon).catch(e => err = e);
             if (!err) {
                 return [ret.key, true, ret.alpha]
             }
@@ -138,7 +147,7 @@ class IconFetcher extends EventEmitter {
             this.isChannel = channels.isChannel(this.terms);
             if (this.isChannel) {
                 this.terms = this.isChannel.terms;
-            } else if (atts = mega.parse(this.entry.url)) {
+            } else if (this.entry && this.entry.url && (atts = mega.parse(this.entry.url))) {
                 if (!atts.terms) {
                     atts.terms = this.entry.name;
                 }
@@ -184,16 +193,33 @@ class IconFetcher extends EventEmitter {
 class Icon extends IconFetcher {
     constructor(entry, master) {
         super();
+        if (!master) {
+            throw new Error('Icon constructor: master is null');
+        }
+        if (!entry) {
+            throw new Error('Icon constructor: entry is null');
+        }
         this.master = master;
         this.entry = entry;
-        this.start().catch(err => console.error(err));
+        this.start().catch(err => {
+            if (!String(err).includes('destroyed')) {
+                console.error('Icon error:', err)
+            }
+            this.destroy()
+        });
     }
     async start() {
         let err;
+        if (this.master?.ensureReady) {
+            await this.master.ensureReady();
+        }
         const ret = await this.resolve().catch(e => err = e);
         this.succeeded = Array.isArray(ret);
         if (this.succeeded) {
             const key = ret[0];
+            if (this.destroyed) {
+                throw new Error('Icon is destroyed');
+            }
             const url = this.master.url + key;
             const force = ret[1];
             const alpha = ret[2];

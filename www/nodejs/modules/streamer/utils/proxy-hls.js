@@ -342,11 +342,34 @@ class HLSRequests extends StreamerProxyBase {
                         }
                     }
                     // Using nextTick to prevent "RangeError: Maximum call stack size exceeded"
-                    process.nextTick(() => (config.get('hls-prefetching') && this.prefetch(opts)))
+                    // Prefetch após download completar (para garantir que está no cache)
+                    process.nextTick(() => {
+                        if (config.get('hls-prefetching')) {
+                            this.prefetch(opts).catch(err => {
+                                this.debugConns && console.warn('Prefetch error in end():', err);
+                            });
+                        }
+                    });
                 }
             }
         };
         request.once('response', (status, headers) => {
+            // Iniciar prefetch mais cedo - assim que começar a receber dados
+            // Isso permite que o prefetch comece enquanto o segmento atual ainda está sendo baixado
+            if (this.activeManifest && this.committed && this.validateStatus(status)) {
+                const seg = this.isSegmentURL(url);
+                if (seg && !opts.shadowClient && config.get('hls-prefetching')) {
+                    // Usar setTimeout curto para dar tempo do request atual estar bem estabelecido
+                    // e evitar conflitos com o download atual
+                    setTimeout(() => {
+                        if (!this.destroyed) {
+                            this.prefetch(opts).catch(err => {
+                                this.debugConns && console.warn('Prefetch error in response():', err);
+                            });
+                        }
+                    }, 100); // Pequeno delay para garantir estabilidade
+                }
+            }
             if (this.validateStatus(status)) {
                 mediaType = 'video';
                 if (this.ext(request.currentURL) == 'm3u8' || (headers['content-type'] && headers['content-type'].match(this.mpegURLRegex))) {
@@ -375,18 +398,57 @@ class HLSRequests extends StreamerProxyBase {
     }
     async prefetch(opts) {
         if (this.destroyed) return
+        
         let next = await this.getNextInactiveSegment();
-        if (!next || Object.keys(this.activeRequests).length > 1) {
-            this.debugConns && console.warn('NOT PREFETCHING', Object.values(this.activeRequests).length, this.lastUserRequestedSegment);
+        if (!next) {
+            this.debugConns && console.warn('NOT PREFETCHING - no next segment', this.lastUserRequestedSegment);
             return
         }
+        
+        // Verificar se segmento está na janela ao vivo antes de prefetchar
+        if (!this.inLiveWindow(next)) {
+            this.debugConns && console.warn('NOT PREFETCHING - segment outside live window', next);
+            return
+        }
+        
+        // Contar apenas requests de segmentos do usuário (não playlists ou prefetches)
+        const userSegmentRequests = Object.keys(this.activeRequests).filter(url => {
+            const req = this.activeRequests[url];
+            return req && this.isSegmentURL(url) && (!req.opts || !req.opts.shadowClient);
+        }).length;
+        
+        if (userSegmentRequests > 0) {
+            this.debugConns && console.warn('NOT PREFETCHING - user segment request in progress', userSegmentRequests, this.lastUserRequestedSegment);
+            return
+        }
+        
+        // Verificar se já está sendo baixado (prefetch ou usuário)
+        if (this.activeRequests[next]) {
+            this.debugConns && console.warn('NOT PREFETCHING - segment already downloading', next);
+            return
+        }
+        
         this.debugConns && console.warn('PREFETCHING', this.lastUserRequestedSegment, '=>', next);
-        const nopts = opts;
+        
+        // Não modificar opts original - criar cópia
+        const nopts = Object.assign({}, opts);
         nopts.url = next;
         nopts.cachedOnly = false;
         nopts.shadowClient = true;
-        const dl = await this.download(nopts);
-        dl.start()
+        
+        try {
+            const dl = await this.download(nopts);
+            dl.start()
+            
+            // Adicionar tratamento de erro - prefetch é opcional, não propagar erros
+            dl.on('error', err => {
+                this.debugConns && console.warn('PREFETCH ERROR', next, err.message || err);
+                // Não propagar erro - prefetch é opcional e não deve afetar playback
+            })
+        } catch (err) {
+            this.debugConns && console.warn('PREFETCH FAILED', next, err.message || err);
+            // Não propagar erro - prefetch é opcional
+        }
     }
     debugActiveRequests() {
         if (Download.debugConns) {

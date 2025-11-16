@@ -5,6 +5,7 @@ import path from "path";
 import config from "../config/config.js"
 import { parse } from '../serialize/serialize.js'
 import ready from '../ready/ready.js'
+import { moment } from '../utils/utils.js'
 
 class Language extends EventEmitter {
     constructor() {
@@ -43,11 +44,22 @@ class Language extends EventEmitter {
         return this.hints.langs;
     }
     async findCountryCode(force) {
-        if (!this.timezone || !this.timezone.minutes) {
-            console.error('❌ Timezone is undefined or missing minutes property')
-            this.countryCode = 'us'
-            this.alternateCountries = []
-            return this.countryCode
+        if (!this.timezone || typeof this.timezone.minutes !== 'number') {
+            try {
+                const tzName = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
+                const minutesOffset = -new Date().getTimezoneOffset()
+                console.warn('⚠️ Timezone missing, auto-detected:', tzName, minutesOffset)
+                this.timezone = {
+                    name: tzName,
+                    minutes: minutesOffset,
+                    offset: minutesOffset / 60
+                }
+            } catch (error) {
+                console.error('❌ Failed to auto-detect timezone:', error.message)
+                this.countryCode = config.get('country') || 'us'
+                this.alternateCountries = []
+                return this.countryCode
+            }
         }
         
         if (!this.hints || !Array.isArray(this.hints.countries)) {
@@ -65,7 +77,7 @@ class Language extends EventEmitter {
                 this.isTrusted = true;
                 this.alternateCountries = countriesHintsTz.filter(c => c != country);
                 this.countryCode = country;
-                return;
+                return this.countryCode;
             }
         }
         if (countriesHintsTz.length) { // country in navigator hints, right timezone
@@ -167,6 +179,22 @@ class Language extends EventEmitter {
             }
         });
         await this.findCountryCode();
+        if (moment?.tz?.setDefault && this.timezone?.name) {
+            moment.tz.setDefault(this.timezone.name);
+        }
+        if (moment && typeof moment.locale === 'function') {
+            const localeCandidates = [];
+            if (this.locale) {
+                if (this.countryCode) {
+                    localeCandidates.push(`${this.locale}-${this.countryCode}`);
+                }
+                localeCandidates.push(this.locale);
+            }
+            const uniqueCandidates = [...new Set(localeCandidates)].filter(Boolean);
+            if (uniqueCandidates.length) {
+                moment.locale(uniqueCandidates);
+            }
+        }
         if (utexts)
             Object.assign(texts, utexts);
         this.applyTexts(texts);

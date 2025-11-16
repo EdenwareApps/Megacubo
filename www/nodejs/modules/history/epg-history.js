@@ -84,7 +84,7 @@ class EPGHistory extends EntriesGroup {
             info = Object.values(info)
             if (this.session && this.session.lastInfo) {
                 this.session.lastInfo.forEach(inf => {
-                    if (!info.some(f => f.t == inf.t)) {
+                    if (!info.some(f => f.title == inf.title)) {
                         info.unshift(inf)
                     }
                 })
@@ -123,7 +123,7 @@ class EPGHistory extends EntriesGroup {
                     }
                 }
                 ;
-                [f.start, f.e].forEach(s => {
+                [f.start, f.end].forEach(s => {
                     if (s > now && (!nextRunTime || s < nextRunTime)) {
                         nextRunTime = s
                     }
@@ -137,13 +137,13 @@ class EPGHistory extends EntriesGroup {
     getWatchingTime(epgEntry) {
         if (this.session) {
             const start = Math.max(this.session.startTime, epgEntry.start);
-            const end = Math.min((Date.now() / 1000), epgEntry.e);
+            const end = Math.min((Date.now() / 1000), epgEntry.end);
             return {
                 start, end,
                 time: Math.max(0, end - start),
-                name: epgEntry.t,
-                icon: epgEntry.i,
-                categories: epgEntry.c.unique()
+                name: epgEntry.title,
+                icon: epgEntry.icon,
+                categories: epgEntry.categories.unique()
             };
         }
         return null;
@@ -175,7 +175,7 @@ class EPGHistory extends EntriesGroup {
                 delete e.icon;
             }
             e.name = e.watched.name;
-            e.details += ' <i class="fas fa-clock"></i> ' + ts2clock(e.watched.start) + '-' + ts2clock(e.watched.end); // [e.category].concat(e.programme.c).join(', ') + ''            
+            e.details += ' <i class="fas fa-clock"></i> ' + ts2clock(e.watched.start) + '-' + ts2clock(e.watched.end); // [e.category].concat(e.programme.categories).join(', ') + ''            
             e.type = 'action';
             e.action = () => {
                 this.remove(o);
@@ -195,10 +195,10 @@ class EPGHistory extends EntriesGroup {
                 e.icon = e.watched.icon;
             }
             e.name = e.watched.name;
-            e.details += ' <i class="fas fa-clock"></i> ' + ts2clock(e.watched.start) + '-' + ts2clock(e.watched.end); // [e.category].concat(e.programme.c).join(', ') + ''            
+            e.details += ' <i class="fas fa-clock"></i> ' + ts2clock(e.watched.start) + '-' + ts2clock(e.watched.end); // [e.category].concat(e.programme.categories).join(', ') + ''            
             e.type = 'action';
             e.action = () => {
-                this.channels.epgProgramAction(e.watched.start, e.originalName, { t: e.watched.name, e: e.watched.end, c: e.watched.categories.unique() }, e.terms);
+                this.channels.epgProgramAction(e.watched.start, e.originalName, { title: e.watched.name, end: e.watched.end, categories: e.watched.categories.unique() }, e.terms);
             };
             e.fa = 'fas fa-history';
             delete e.url;

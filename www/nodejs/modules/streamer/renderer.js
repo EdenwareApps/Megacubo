@@ -7,19 +7,54 @@ class StreamerPlaybackTimeout extends EventEmitter {
     constructor(controls){
         super()
         this.controls = controls
-        this.playbackTimeout = 25000
+        this.playbackTimeout = 25000 // Default
         this.playbackTimeoutTimer = 0
+        this.lastProgressCheck = 0
+        this.lastProgressValue = 0
+        
         this.on('state', s => {
             if(s == 'loading'){
                 if(!this.playbackTimeoutTimer){
-                    this.playbackTimeoutTimer = setTimeout(() => {
-                        console.warn('STUCK')
-                        this.emit('stuck')
-                        clearTimeout(this.playbackTimeoutTimer)
-                        player.current && player.current.reload()
-                        this.playbackTimeoutTimer = 0
-                        main.emit('video-error', 'timeout', 'client playback timeout')
-                    }, this.playbackTimeout)
+                    // Timeout adaptativo baseado no tipo de stream
+                    const isLive = window.player?.current?.mediatype === 'live'
+                    const timeout = isLive ? 45000 : 30000 // 45s para live, 30s para VOD
+                    
+                    this.lastProgressCheck = Date.now()
+                    this.lastProgressValue = window.player?.current?.time() || 0
+                    
+                    const checkStuck = () => {
+                        // Verificar se player ainda está disponível
+                        if (!window.player?.current) {
+                            this.cancelTimeout()
+                            return
+                        }
+                        
+                        // Verificar se realmente não há progresso antes de considerar travado
+                        const currentTime = window.player.current?.time?.() || 0
+                        const timeSinceCheck = Date.now() - this.lastProgressCheck
+                        const progressMade = Math.abs(currentTime - this.lastProgressValue) >= 0.5
+                        
+                        if (!progressMade && timeSinceCheck > 20000) {
+                            console.warn('STUCK - No progress detected')
+                            this.emit('stuck')
+                            clearTimeout(this.playbackTimeoutTimer)
+                            window.player?.current?.reload()
+                            this.playbackTimeoutTimer = 0
+                            main.emit('video-error', 'timeout', 'client playback timeout')
+                        } else if (progressMade) {
+                            // Se houve algum progresso, resetar timer
+                            clearTimeout(this.playbackTimeoutTimer)  // Cancelar antes de criar novo
+                            this.lastProgressCheck = Date.now()
+                            this.lastProgressValue = currentTime
+                            this.playbackTimeoutTimer = setTimeout(checkStuck, timeout)
+                        } else {
+                            // Ainda não chegou no threshold, continuar aguardando
+                            clearTimeout(this.playbackTimeoutTimer)  // Cancelar antes de criar novo
+                            this.playbackTimeoutTimer = setTimeout(checkStuck, timeout)
+                        }
+                    }
+                    
+                    this.playbackTimeoutTimer = setTimeout(checkStuck, timeout)
                 }
             } else {
                 this.cancelTimeout()
@@ -1243,8 +1278,19 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
         }
     }
     updateAfterLeaveAndroidMiniPlayer(){
-        if(screen.width == window.outerWidth && screen.height == window.outerHeight && this.active){
-            this.enterFullScreen()
+        // Prevent recursive calls
+        if(this._updatingAfterLeavePip) return
+        this._updatingAfterLeavePip = true
+        
+        try {
+            if(screen.width == window.outerWidth && screen.height == window.outerHeight && this.active && !this.inFullScreen){
+                this.enterFullScreen()
+            }
+        } finally {
+            // Clear flag after a delay to allow fullscreen transition to complete
+            setTimeout(() => {
+                this._updatingAfterLeavePip = false
+            }, 500)
         }
     }
     enterFullScreen(){
@@ -1673,7 +1719,7 @@ export class StreamerClient extends StreamerClientController {
         if(this.autoTuning && !this.transcodeStarting && this.stateListening && !mimetype.startsWith('video/')){ // seems live
             main.menu.dialogs.dialog([
                 {template: 'question', text: '', fa: 'fas fa-question-circle'},
-                {template: 'option', text: main.lang.PLAY_ALTERNATE, id: 'tune', fa: main.config['tuning-icon']},
+                {template: 'option', text: main.lang.PLAY_ALTERNATE, id: 'tune', fa: main.config['tuning-icon'] +' faclr-green'},
                 {template: 'option', text: main.lang.STOP, id: 'stop', fa: 'fas fa-stop-circle'},
                 {template: 'option', text: main.lang.RETRY, id: 'retry', fa: 'fas fa-sync'}
             ], choose => {

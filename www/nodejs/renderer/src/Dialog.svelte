@@ -24,23 +24,6 @@
         return txt.toLowerCase().replace(/[^a-z0-9\-_]+/gi, "");
     }
 
-    function replaceTags(text, replaces) {
-        if (replaces["name"] && !replaces["rawname"]) {
-            replaces["rawname"] = replaces["name"];
-        }
-        Object.keys(replaces).forEach((before) => {
-            let t = typeof replaces[before];
-            if (["string", "number", "boolean"].includes(t)) {
-                let to = String(replaces[before]).replaceAll('"', '"');
-                text = text.split("{" + before + "}").join(to);
-                if (text.includes("\r\n")) {
-                    text = text.replace(/\r\n/g, "<br />");
-                }
-            }
-        });
-        return text.replace(/\{[a-z\-]+\}/g, "");
-    }
-
     async function start() {
         await main.menu?.sounds?.play("warn", {
             volume: 45,
@@ -235,19 +218,22 @@
         );
     }
 
-    export function slider(question, message, range, value, mask, callback, fa) {
+    export function slider(question, message, range, value, mask, callback, fa, extraOpts = []) {
         let opts = [{ template: "question", text: question, fa }];
         if (message && message !== question) {
             opts.push({ template: "message", text: message });
         }
-        opts.push({ template: "slider", id: "slider", range, value, mask });
+        opts.push({ template: "slider", id: "slider", range, value, mask, step: range?.step });
         opts.push({
             template: "option",
             text: "OK",
             id: "submit",
             fa: "fas fa-check-circle",
         });
-        maskedValue = mask ? main.menu.maskValue(value, mask) : '';
+        if (Array.isArray(extraOpts) && extraOpts.length) {
+            opts.push(...extraOpts);
+        }
+        maskedValue = mask ? main.menu.maskValue(String(value ?? ''), mask) : String(value ?? '');
         dialog(
             opts,
             callback,
@@ -278,7 +264,7 @@
     function handleInputChange(event) {
         content.value = event.target.value;
         const mask = event.target.getAttribute('data-mask');
-        maskedValue = mask ? main.menu.maskValue(content.value, mask) : '';
+        maskedValue = mask ? main.menu.maskValue(content.value, mask) : event.target.value;
     }
 
     function focusElement(element) {
@@ -398,7 +384,7 @@
                                             type="range"
                                             min={entry.range.start}
                                             max={entry.range.end}
-                                            step="1"
+                                            step={entry.range?.step || entry.step || 1}
                                             value={entry.value}
                                             data-mask={entry.mask||''} 
                                             onchange={handleInputChange} 

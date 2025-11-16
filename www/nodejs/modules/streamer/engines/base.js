@@ -130,6 +130,15 @@ class StreamerBaseIntent extends EventEmitter {
                 this.emit('bitrate', this.bitrate, this.currentSpeed);
             }
         });
+        
+        // Handle static stream detection
+        adapter.on('static-stream-detected', (result) => {
+            if (result.isStatic && result.confidence >= 0.7) {
+                console.warn('[StreamerBaseIntent] Static stream detected:', result);
+                this.fail('static stream detected');
+            }
+        });
+        
         adapter.committed = this.committed;
         if (adapter.bitrate) {
             this.bitrate = adapter.bitrate;
@@ -138,7 +147,7 @@ class StreamerBaseIntent extends EventEmitter {
     }
     disconnectAdapter(adapter) {
         adapter.removeListener('fail', this.failListener);
-        ['dimensions', 'codecData', 'bitrate', 'type-mismatch', 'speed', 'commit', 'uncommit'].forEach(n => adapter.removeAllListeners(n));
+        ['dimensions', 'codecData', 'bitrate', 'type-mismatch', 'speed', 'commit', 'uncommit', 'static-stream-detected'].forEach(n => adapter.removeAllListeners(n));
         let pos = this.adapters.indexOf(adapter);
         if (pos != -1) {
             this.adapters.splice(pos, 1);

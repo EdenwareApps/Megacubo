@@ -87,13 +87,11 @@
 		
 		// Add safety check for viewport
 		if (!viewport) {
-			console.warn('VirtualGrid: viewport not available during refresh');
 			return;
 		}
 		
 		// Add safety check for items
 		if (!items || !Array.isArray(items)) {
-			console.warn('VirtualGrid: items not available during refresh');
 			return;
 		}
 		
@@ -149,17 +147,6 @@
 			return;
 		}
 
-		console.log('🔍 VirtualGrid: range calculated', {
-			rows,
-			render_row_start, render_row_end,
-			row_start, row_end,
-			scrollBottom,
-			scrollTop,
-			viewport_height,
-			tolerance,
-			y_positions,
-			visible
-		})
 		range = {
 			renderStart: rows[render_row_start][0],
 			renderEnd: rows[render_row_end][rows[render_row_end].length - 1],
@@ -182,7 +169,6 @@
 	export async function scrollToIndex(index) {
 		// Add safety checks
 		if (!viewport || typeof index !== 'number' || index < 0) {
-			console.warn('VirtualGrid: Invalid parameters for scrollToIndex', { viewport, index });
 			return false;
 		}
 		
@@ -226,7 +212,6 @@
 	async function handle_scroll() {
 		// Add safety check for viewport
 		if (!viewport) {
-			console.warn('VirtualGrid: viewport not available during handle_scroll');
 			return;
 		}
 		

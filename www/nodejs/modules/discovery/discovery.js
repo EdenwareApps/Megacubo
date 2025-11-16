@@ -43,8 +43,7 @@ class ListsDiscovery extends EventEmitter {
                 [new PublicListsProvider(this), 'public'],
                 [new CommunityListsProvider(this), 'community'],
                 [new CommunityListsIPTVOrgProvider(this), 'community']
-            ].forEach(row => this.register(...row));
-            global.menu.addFilter(this.hook.bind(this))
+            ].forEach(row => this.register(...row))
         })
     }
     getProvider(type, id) {
@@ -239,29 +238,6 @@ class ListsDiscovery extends EventEmitter {
             this.knownLists.splice(this.opts.limit);
         }
     }
-    async hook(entries, path) {
-        if (path.split('/').pop() == lang.MY_LISTS) {
-            entries.push({
-                name: lang.INTERESTS,
-                details: lang.SEPARATE_WITH_COMMAS,
-                type: 'input',
-                fa: 'fas fa-edit',
-                action: (e, v) => {
-                    if (v !== false && v != config.get('interests')) {
-                        config.set('interests', v);
-                        renderer.ui.emit('ask-restart');
-                    }
-                },
-                value: () => {
-                    return config.get('interests');
-                },
-                placeholder: lang.INTERESTS_HINT,
-                multiline: true,
-                safe: true
-            });
-        }
-        return entries;
-    }
     async interests() {
         const badTerms = ['m3u8', 'ts', 'mp4', 'tv', 'channel'];
         let terms = [], addTerms = (tms, score) => {
@@ -303,18 +279,44 @@ class ListsDiscovery extends EventEmitter {
         }
         addTerms(await global.channels.keywords());
         const max = Math.max(...terms.map(t => t.score));
-        let cterms = config.get('interests');
-        if (cterms) { // user specified interests
-            cterms = this.lists.tools.terms(cterms, true).filter(c => c[0] != '-');
-            if (cterms.length) {
-                addTerms(cterms, max);
-            }
+        const manualInterests = this.getInterestsTerms();
+        if (manualInterests.length) {
+            addTerms(manualInterests, max);
         }
         terms = terms.sortByProp('score', true).map(t => t.term);
         if (terms.length > 24) {
             terms = terms.slice(0, 24);
         }
         return terms;
+    }
+    getInterestsRaw() {
+        return config.get('interests');
+    }
+    getInterestsString() {
+        const raw = this.getInterestsRaw();
+        if (!raw) {
+            return '';
+        }
+        if (typeof raw === 'string') {
+            return raw;
+        }
+        if (typeof raw === 'object') {
+            return Object.keys(raw).sort().join(', ');
+        }
+        return '';
+    }
+    getInterestsTerms() {
+        const raw = this.getInterestsRaw();
+        if (!raw) {
+            return [];
+        }
+        if (typeof raw === 'string') {
+            return this.lists.tools.terms(raw, true).filter(c => c && c[0] !== '-');
+        }
+        if (typeof raw === 'object') {
+            return Object.keys(raw).filter(Boolean);
+        }
+        return [];
     }
 }
 export default ListsDiscovery;

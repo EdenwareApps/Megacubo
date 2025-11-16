@@ -4,7 +4,7 @@ import osd from '../../osd/osd.js'
 import lang from "../../lang/lang.js";
 import http from "http";
 import StreamerAdapterBase from "../adapters/base.js";
-import MultiBuffer from "./multibuffer.js";
+import FileWarmCache from "./file-warm-cache.js";
 import stoppable from "stoppable";
 import fs from "fs";
 import paths from "../../paths/paths.js";
@@ -56,11 +56,33 @@ class Downloader extends StreamerAdapterBase {
         this.ext = 'ts';
         this.currentDownloadUID = undefined;
         if (this.opts.warmCache) {
-            this.warmCache = new MultiBuffer()
+            this.warmCache = new FileWarmCache({
+                tempDir: paths.temp,
+                warmCacheMaxSize: this.opts.warmCacheMaxSize,
+                warmCacheMaxMaxSize: this.opts.warmCacheMaxMaxSize,
+                bitrateChecker: this.bitrateChecker,
+                onDestroy: () => {
+                    this.warmCache = null;
+                }
+            });
             this.on('bitrate', bitrate => {
-                const newMaxSize = Math.min(Math.max(this.opts.warmCacheMinSize, bitrate * this.opts.warmCacheSeconds), this.opts.warmCacheMaxMaxSize);
-                if (typeof(newMaxSize) == 'number' && !isNaN(newMaxSize)) {
-                    this.opts.warmCacheMaxSize = newMaxSize;
+                if (this.warmCache) {
+                    this.warmCache.updateMaxSize(
+                        bitrate,
+                        this.opts.warmCacheSeconds,
+                        this.opts.warmCacheMinSize,
+                        this.opts.warmCacheMaxMaxSize
+                    );
+                }
+            });
+            this.on('commit', () => {
+                if (this.warmCache) {
+                    this.warmCache.setCommitted(true);
+                }
+            });
+            this.on('uncommit', () => {
+                if (this.warmCache) {
+                    this.warmCache.setCommitted(false);
                 }
             });
             this.on('destroy', () => this.destroyWarmCache());
@@ -109,13 +131,16 @@ class Downloader extends StreamerAdapterBase {
                     }, req));
                     let finished;
                     const uid = parseInt(Math.random() * 1000000);
+                    // Send warmCache data (read from file asynchronously)
                     if (this.warmCache && this.warmCache.length) {
-                        let buf = this.warmCache.slice()
-                        if(!Buffer.isBuffer(buf)) {
-                            buf = Buffer.from(buf)
-                        }
-                        buf && buf.length && response.write(buf)
-                        console.warn('SENT WARMCACHE', this.warmCache.length)
+                        this.warmCache.getSlice().then(buf => {
+                            if (buf && buf.length && !finished) {
+                                response.write(buf);
+                                console.warn('SENT WARMCACHE', buf.length);
+                            }
+                        }).catch(err => {
+                            console.error('Error reading warmCache:', err.message);
+                        });
                     }
                     if (this.connected === false) {
                         this.connected = {};
@@ -160,7 +185,11 @@ class Downloader extends StreamerAdapterBase {
                 this.opts.port = this.server.address().port;
                 this.endpoint = 'http://127.0.0.1:' + this.opts.port + '/stream';
                 resolve(this.endpoint);
-                const getBitrate = () => this.bitrateChecker.addSample(this.endpoint);
+                const getBitrate = () => {
+                    if (this.bitrateChecker) {
+                        this.bitrateChecker.addSample(this.endpoint);
+                    }
+                };
                 if (this.warmCache && this.warmCache.length) {
                     getBitrate();
                 } else {
@@ -170,22 +199,10 @@ class Downloader extends StreamerAdapterBase {
         });
     }
     rotateWarmCache() {
-        if (this.warmCache.length < this.opts.warmCacheMaxSize) return true
-        const desiredSize = this.opts.warmCacheMaxSize * 0.75 // avoid to run it too frequently
-        const startPosition = this.warmCache.length - desiredSize
-        const currentSize = this.warmCache.length
-        if (this.committed && this.bitrateChecker.acceptingSamples(currentSize)) {
-            const file = paths.temp + '/' + parseInt(Math.random() * 1000000) + '.ts'
-            fs.writeFile(file, this.warmCache.slice(), () => this.bitrateChecker.addSample(file, currentSize, true))
-        }
-        const syncBytePosition = findSyncBytePosition(this.warmCache, startPosition)
-        if (syncBytePosition == -1) {
-            menu.displayErr('!!! SYNC_BYTE não encontrado')
-            this.warmCache.clear()
-        } else {
-            this.warmCache.consume(syncBytePosition)
-            const newSyncBytePosition = findSyncBytePosition(this.warmCache)
-            if(newSyncBytePosition !== 0) menu.displayErr('!!! SYNC_BYTE not found, this may indicate a Multibuffer error. =O')
+        // Rotation is now handled internally by FileWarmCache
+        // This method is kept for compatibility but rotation happens automatically
+        if (this.warmCache) {
+            this.warmCache.rotate()
         }
         return true
     }
@@ -241,21 +258,8 @@ class Downloader extends StreamerAdapterBase {
         this.emit('data', this.url, data, len);
         if (this.warmCache) {
             this.warmCache.append(data);
-            const currentSize = this.warmCache.length;
-            if (!this.minimalWarmCacheBitrateCheck && this.committed && this.bitrateChecker.acceptingSamples(currentSize)) {
-                this.minimalWarmCacheBitrateCheck = true;
-                
-                const { temp } = paths;
-                const file = temp + '/' + parseInt(Math.random() * 1000000) + '.ts';
-                fs.writeFile(file, this.warmCache.slice(), () => {
-                    if (this.destroyed) {
-                        return fs.unlink(file, () => {}); // late for the party
-                    }
-                    this.bitrateChecker.addSample(file, this.warmCache.length, true);
-                });
-            } else {
-                this.rotateWarmCache();
-            }
+            // FileWarmCache handles rotation and bitrate sampling internally
+            // No need for manual rotation calls here
         }
     }
     afterDownload(err, callback, data) {

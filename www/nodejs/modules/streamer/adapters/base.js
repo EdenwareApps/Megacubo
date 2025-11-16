@@ -1,6 +1,9 @@
 import { EventEmitter } from "events";
-import BitrateChecker from "../utils/bitrate-checker.js";
+import StreamQualityAnalyzer from "../utils/stream-quality-analyzer.js";
 import crypto from 'crypto'
+
+// Backward compatibility
+const BitrateChecker = StreamQualityAnalyzer;
 
 class StreamerAdapterBase extends EventEmitter {
     constructor(url, opts, data) {
@@ -21,10 +24,23 @@ class StreamerAdapterBase extends EventEmitter {
         this.connectable = false;
         this.adapters = [];
         this.bitrate = false;
-        this.bitrateChecker = new BitrateChecker();
+        this.bitrateChecker = new StreamQualityAnalyzer(opts);
+        this.bitrateChecker.url = this.url;
+        this.bitrateChecker.type = this.type;
         this.bitrateChecker.on('bitrate', (...args) => this.emit('bitrate', ...args));
         this.bitrateChecker.on('codecData', this.addCodecData.bind(this));
         this.bitrateChecker.on('dimensions', (...args) => this.emit('dimensions', ...args));
+        
+        // Handle static stream detection
+        this.bitrateChecker.on('static-stream-detected', (result) => {
+            if (result.isStatic && result.confidence >= 0.7) {
+                this.emit('static-stream-detected', result);
+            }
+        });
+        
+        this.bitrateChecker.on('static-stream-fail', (result) => {
+            this.fail('static stream detected');
+        });
         this.extAsURLParam = new RegExp('[#&\\?]ext=([^&]+)');
         this.errors = [];
         this.type = 'base';

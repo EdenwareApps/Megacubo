@@ -3,7 +3,7 @@ import { EventEmitter } from "events";
 import ready from '../ready/ready.js'
 import ListIndex from "./list-index.js";
 import ConnRacing from "../conn-racing/conn-racing.js";
-import { resolveListDatabaseKey, resolveListDatabaseFile } from "./tools.js";
+import { terms, resolveListDatabaseKey, resolveListDatabaseFile } from "./tools.js";
 
 class List extends EventEmitter {
     constructor(url, master) {
@@ -50,11 +50,20 @@ class List extends EventEmitter {
         this._log.push(args);
     }
     async init() {
-        this.indexer = new ListIndex(this.file, this.url)
         try {
+            this.indexer = new ListIndex(this.file, this.url)
             await this.indexer.ready()
             this.ready.done()
         } catch (err) {
+            // Clean up indexer if initialization failed
+            if (this.indexer) {
+                try {
+                    await this.indexer.destroy().catch(() => {})
+                } catch (destroyErr) {
+                    // Ignore destroy errors during failed init
+                }
+                this.indexer = null
+            }
             this.ready.done(err)
             throw err
         }
@@ -116,53 +125,53 @@ class List extends EventEmitter {
     async verify() {
         await this.ready();
         
+        // Verify that indexer exists and is available
+        if (!this.indexer) {
+            throw new Error('List indexer not available - initialization may have failed')
+        }
+        
         // Wait for indexer to be available and ready
         await this.indexer.ready()
         
         // NEW: Validate that groups in metadata match groups in loaded list
         try {
-            const metaGroups = this.index?.groups || {}
-            const metaGroupsKeys = Object.keys(metaGroups)
-            
-            const listGroups = this.index?.groups || {}
-            const listGroupsKeys = Object.keys(listGroups)
-            
+            const metaGroupsTypes = this.index?.groupsTypes || {}
+            const metaGroupsSet = new Set()
+            Object.values(metaGroupsTypes).forEach(groups => {
+                if (!Array.isArray(groups)) return
+                groups.forEach(item => {
+                    if (item && typeof item.name === 'string' && item.name.trim()) {
+                        metaGroupsSet.add(item.name.trim().toLowerCase())
+                    }
+                })
+            })
+
+            const listGroupsSet = new Set()
+            if (this.indexer && this.indexer.db && !this.indexer.db.destroyed) {
+                for await (const entry of this.indexer.db.walk({})) {
+                    const groupPath = (entry.group || '').trim()
+                    if (!groupPath) continue
+                    const segments = groupPath.split('/').filter(Boolean)
+                    if (!segments.length) continue
+                    const finalName = segments[segments.length - 1].trim().toLowerCase()
+                    if (finalName) {
+                        listGroupsSet.add(finalName)
+                    }
+                }
+            }
+
             if (this.master?.debug) {
                 console.log('verify: checking groups match', {
                     url: this.url,
-                    metaGroupsCount: metaGroupsKeys.length,
-                    listGroupsCount: listGroupsKeys.length,
-                    metaGroups: metaGroupsKeys,
-                    listGroups: listGroupsKeys
+                    metaGroups: Array.from(metaGroupsSet),
+                    listGroups: Array.from(listGroupsSet)
                 });
             }
-            
-            // Check if groups match (order doesn't matter)
-            const metaGroupsSet = new Set(metaGroupsKeys)
-            const listGroupsSet = new Set(listGroupsKeys)
-            
-            if (metaGroupsSet.size !== listGroupsSet.size) {
-                if (this.master?.debug) {
-                    console.log('verify: groups count mismatch', {
-                        metaCount: metaGroupsSet.size,
-                        listCount: listGroupsSet.size
-                    });
+
+            for (const groupName of metaGroupsSet) {
+                if (!listGroupsSet.has(groupName)) {
+                    throw new Error(`group '${groupName}' missing in list`)
                 }
-                throw new Error('groups count mismatch between metadata and list')
-            }
-            
-            // Check if all groups from metadata exist in list
-            for (const group of metaGroupsKeys) {
-                if (!listGroupsSet.has(group)) {
-                    if (this.master?.debug) {
-                        console.log('verify: group missing in list', group);
-                    }
-                    throw new Error(`group '${group}' missing in list`)
-                }
-            }
-            
-            if (this.master?.debug) {
-                console.log('verify: groups validation passed', this.url);
             }
         } catch (groupsErr) {
             if (this.master?.debug) {
@@ -179,71 +188,38 @@ class List extends EventEmitter {
             mtime: 0.25
         };
         // relevantKeywords (check user channels presence in these lists and list size by consequence)
-        let rksWithScores = null;
-        
-        if (this.master && this.master.relevantKeywords) {
-            try {
-                // Get keywords with scores
-                rksWithScores = await this.master.relevantKeywords(true);
-            } catch (err) {
-                console.warn('Failed to get keywords with scores:', err.message);
-                rksWithScores = null;
-            }
+        if (!this.master?.relevantKeywords) {
+            values.relevantKeywords = 0;
+            const rangeSize = 30 * (24 * 3600), now = (Date.now() / 1000), deadline = now - rangeSize;
+            values.mtime = (!index.lastmtime || index.lastmtime < deadline)
+                ? 0
+                : (index.lastmtime - deadline) / (rangeSize / 100);
+            values.total = (values.mtime * factors.mtime) / (factors.relevantKeywords + factors.mtime);
+            values.debug = { values, factors };
+            this.relevance = values;
+            this.verified = true;
+            return values;
         }
         
-        // Extract array of terms from scores object
-        const rks = rksWithScores ? Object.keys(rksWithScores) : [];
+        const channelsIndex = await this.master.relevantKeywords();        
         
-        if (!rks || !rks.length) {
-            console.error('no parent keywords', rks);
+        if (!channelsIndex || !channelsIndex.length) {
+            console.error('no parent keywords', channelsIndex);
             values.relevantKeywords = 0;
         } else {
-            let presence = 0;
-            const termCounts = {};
-            const termScores = rksWithScores || {};
+            // Filter out coverage groups that don't have at least one term
+            const validChannelsIndex = channelsIndex.filter(group => 
+                Array.isArray(group.terms) && group.terms.length > 0
+            );
             
-            try {
-                for (const term of rks) {
-                    // Add null check for indexer and db to prevent TypeError
-                    if (!this.indexer || !this.indexer.db) {
-                        console.error('indexer or db not available for term counting');
-                        break;
-                    }
-                    const count = await this.indexer.db.count({ nameTerms: term });
-                    termCounts[term] = count;
-                }
-            } catch (err) {
-                console.error('error counting terms', err);
-            }
-            
-            const hits = Object.values(termCounts).filter(c => c > 0).length;
-            
-            // Use weighted presence calculation with scores
-            if (rksWithScores && Object.keys(rksWithScores).length > 0) {
-                let weightedPresence = 0;
-                let totalWeight = 0;
-                
-                for (const [term, count] of Object.entries(termCounts)) {
-                    const weight = termScores[term] || 1;
-                    weightedPresence += count * weight;
-                    totalWeight += weight;
-                }
-                
-                presence = totalWeight > 0 ? weightedPresence / totalWeight : 0;
+            if (!validChannelsIndex || !validChannelsIndex.length) {
+                console.warn('no valid keywords after filtering', channelsIndex);
+                values.relevantKeywords = 0;
             } else {
-                // Fallback to simple average if no scores available
-                presence = rks.length > 0 ? Object.values(termCounts).reduce((acc, count) => acc + count, 0) / rks.length : 0;
+                const coverage = await this.indexer.db.coverage('nameTerms', validChannelsIndex);
+                console.log('coverage', coverage);
+                values.relevantKeywords = coverage; // Scale to 0-100 range for consistence
             }
-            
-            // Avoid division by zero if this.length is 0 or negative
-            const listLength = Math.max(this.length || 1, 1);
-            presence /= Math.min(listLength, 1024); // to avoid too small lists
-            if (presence > 1)
-                presence = 1;
-            // presence factor aims to decrease relevance of too big lists for the contents that we want
-            // Avoid division by zero if rks.length is 0
-            const relevanceFactor = rks.length > 0 ? (hits / (rks.length / 100)) : 0;
-            values.relevantKeywords = presence * relevanceFactor;
         }
         const rangeSize = 30 * (24 * 3600), now = (Date.now() / 1000), deadline = now - rangeSize;
         if (!index.lastmtime || index.lastmtime < deadline) {

@@ -337,7 +337,7 @@ class MediaPlayerAdapterHTML5 extends MediaPlayerAdapter {
             	this.ratioCSS.appendChild(document.createTextNode(css))
             	const target = document.querySelector("head, body")
             	if (target) target.appendChild(this.ratioCSS)
-				console.log('ratioupdated', this.inPortrait)
+				console.log('ratioupdated', this.inPortrait ?? false)
 			}
 		}
 		return this._ratio

@@ -75,6 +75,7 @@ class WorkerDriver extends EventEmitter {
                             console.log(`🔄 Sending loadWorker for ${file}`)
                             self.worker.postMessage({ method: 'loadWorker', file });
                             self.loadWorkerSent.add(file)
+                            
                             // Queue this call to be processed after driver is loaded
                             console.log(`🔄 Queuing call ${file}.${method} until driver is loaded`)
                             self.callQueue.push({ file, method, args, resolve, reject })
@@ -309,7 +310,11 @@ export default class ThreadWorkerDriver extends WorkerDriver {
             
             this.worker = new Worker(this.workerFile, {
                 type: 'commonjs', // (file == distFile ? 'commonjs' : 'module'),
-                workerData: this.workerData // leave stdout/stderr undefined
+                workerData: this.workerData, // leave stdout/stderr undefined
+                resourceLimits: {
+                    maxOldGenerationSizeMb: 1024, // 1GB limit for old generation heap (increased for EPG processing)
+                    maxYoungGenerationSizeMb: 128  // 128MB limit for young generation heap (increased)
+                }
             })
             
             this.setupWorkerEventListeners()
@@ -425,9 +430,19 @@ export default class ThreadWorkerDriver extends WorkerDriver {
                 console.log('✅ Driver loaded confirmation received:', ret.file)
                 // Mark the driver as loaded in instances (don't overwrite the instance object)
                 if (ret.file) {
+                    // Ensure instance exists (create proxy if it doesn't exist yet)
+                    if (!this.instances[ret.file]) {
+                        console.log('🔧 Creating proxy for driver:', ret.file)
+                        this.proxy(ret.file)
+                    }
+                    
                     // Mark as loaded without overwriting the instance object
-                    this.instances[ret.file]._driverLoaded = true
-                    console.log('🔧 Updated instances:', Object.keys(this.instances))
+                    if (this.instances[ret.file]) {
+                        this.instances[ret.file]._driverLoaded = true
+                        console.log('🔧 Updated instances:', Object.keys(this.instances))
+                    } else {
+                        console.error('❌ Failed to create instance for:', ret.file)
+                    }
                     
                     // Process queued calls for this specific driver
                     const driverCalls = this.callQueue.filter(call => call.file === ret.file)

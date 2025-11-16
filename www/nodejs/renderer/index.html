@@ -131,7 +131,51 @@
             }
         </style>
         <script>
-            // Polyfills for Android 7 compatibility
+            // CRITICAL: Early shims - MUST execute before any other code
+            // These prevent crashes when native code fires events before JS is ready
+            
+            // 1. Shim for window.Capacitor.triggerEvent (prevent native crash)
+            (function(){
+                'use strict';
+                var defineCapacitorShim = function(global) {
+                    if (!global) return;
+                    if (!global.Capacitor) {
+                        global.Capacitor = {};
+                    }
+                    if (typeof global.Capacitor.triggerEvent !== 'function') {
+                        global.Capacitor.triggerEvent = function(){
+                            // Silent no-op: will be replaced by native-bridge.js when it loads
+                        };
+                    }
+                };
+                // Try multiple global objects (for maximum compatibility)
+                try { defineCapacitorShim((function(){ return this; })()); } catch(e) {}
+                try { defineCapacitorShim(window); } catch(e) {}
+                try { defineCapacitorShim(self); } catch(e) {}
+                try { defineCapacitorShim(globalThis); } catch(e) {}
+            })();
+            
+            // 2. Shim for globalThis (Chrome 68 doesn't support it, added in Chrome 71)
+            if (typeof globalThis === 'undefined') {
+                (function() {
+                    if (typeof self !== 'undefined') {
+                        self.globalThis = self;
+                    } else if (typeof window !== 'undefined') {
+                        window.globalThis = window;
+                    } else if (typeof global !== 'undefined') {
+                        global.globalThis = global;
+                    } else {
+                        // Fallback: create it
+                        (function() {
+                            var g = this;
+                            if (typeof g !== 'undefined') {
+                                g.globalThis = g;
+                            }
+                        })();
+                    }
+                })();
+            }
+            
             if (!Array.prototype.includes) {
                 Array.prototype.includes = function(searchElement, fromIndex) {
                     if (this == null) throw new TypeError('"this" is null or not defined');
@@ -184,19 +228,19 @@
                 return raw ? parseInt(raw[2], 10) : 0
             }
             function isUACompatible() {     
-                return chromeVersion() >= 51
+                return chromeVersion() >= 68
             }
             function updateWebView(){
                 var msg, playStoreUrl = 'market://details?id=com.google.android.webview';
                 switch(navigator.language.substr(0, 2)){
                     case 'pt':
-                        msg = 'Voce precisa atualizar o Google Chrome de seu sistema para rodar este aplicativo.';
+                        msg = 'Voce precisa atualizar o Android WebView para rodar este aplicativo.';
                         break;
                     case 'es':
-                        msg = 'Debe actualizar el Google Chrome de su sistema para ejecutar esta aplicacion.';
+                        msg = 'Debe actualizar el Android WebView para ejecutar esta aplicacion.';
                         break;
                     default:
-                        msg = 'You need to update your system\'s Google Chrome in order to run this app.';
+                        msg = 'You need to update Android WebView in order to run this app.';
                         break;
                 }
                 msg += '\n\nInstalled version: ' + chromeVersion() + '\nRequired version: 68';
@@ -227,7 +271,6 @@
         <!-- Load MPEGTS.js and hls.js externally to prevent worker-related issues due to double bundling -->
         <script src="./dist/mpegts.js"></script>
         <script src="./dist/hls.min.js"></script>
-        <script src="./dist/dash.all.min.js"></script>
         <script>
             const splashProgressDiv = document.querySelector('#splash-progress')
             const isAndroid = document.URL.endsWith('android');

@@ -332,9 +332,7 @@ class IconServerStore extends IconSearch {
         // Extract the key from the file path instead of generating a new one
         const filename = file.split('/').pop().split('\\').pop(); // Handle both / and \
         const key = filename.replace('icons-cache-', '').replace('.dat', '');
-        const url = this.url + 'icons-cache-' + key + '.dat';
-        console.log('🔍 IconServer: serve() called for', file, 'extracted key:', key, 'url:', url);
-        return url;
+        return this.url + 'icons-cache-' + key + '.dat';
     }
     async checkCache(key) {
         const has = await storage.exists('icons-cache-' + key)
@@ -397,7 +395,7 @@ class IconServerStore extends IconSearch {
                 console.log('fetchURL', url, 'cached');
             }
             const ret = await this.validateFile(cfile).catch(e => {
-                console.log('🔍 IconServer: validateFile failed for', cfile, 'error:', e);
+                this.opts.debug && console.warn('Icon server validateFile failed', cfile, e);
                 err = e;
             });
             if (!err) {
@@ -519,9 +517,26 @@ class IconServer extends IconServerStore {
         };
         this.rendering = {};
         this.renderingPath = null;
+        this._ready = new Promise(resolve => {
+            this._resolveReady = resolve;
+        });
         this.listen();
     }
+    async ensureReady() {
+        if (this.destroyed) {
+            throw new Error('IconServer is destroyed');
+        }
+        return this._ready;
+    }
     get(e, j) {
+        if (!e) {
+            console.error('[IconServer] get() called with null entry');
+            return Promise.reject(new Error('Entry is null'));
+        }
+        if (this.destroyed) {
+            console.error('[IconServer] get() called on destroyed IconServer');
+            return Promise.reject(new Error('IconServer is destroyed'));
+        }
         const icon = new Icon(e, this);
 
         icon.on('result', ret => this.result(e, e.path, j, ret))
@@ -541,7 +556,7 @@ class IconServer extends IconServerStore {
         return promise
     }
     result(e, path, tabindex, ret) {
-        if (this.destroyed || !ret.url) return;
+        if (this.destroyed || !ret || !ret.url) return;
         if (this.opts.debug) {
             console.error('ICON=' + (e.path || 'undefined') + ' (' + e.name + ', ' + tabindex + '), url=' + ret.url + ' alpha=' + ret.alpha)
         }
@@ -629,12 +644,12 @@ class IconServer extends IconServerStore {
                 this.server.close();
             }
             this.server = http.createServer((req, response) => {
-                console.log('🔍 IconServer: Request received:', req.method, req.url, 'from:', req.headers['user-agent']);
+                this.opts.debug && console.log('Icon server request received', req.method, req.url, 'from', req.headers['user-agent']);
                 if (this.opts.debug) {
                     console.log('req starting...', req.url);
                 }
                 if (req.method == 'OPTIONS') {
-                    console.log('🔍 IconServer: OPTIONS request, returning 200');
+                    this.opts.debug && console.log('Icon server OPTIONS request, returning 200');
                     response.writeHead(200, prepareCORS({
                         'Content-Length': 0,
                         'Connection': 'close',
@@ -644,7 +659,7 @@ class IconServer extends IconServerStore {
                     return;
                 }
                 if (this.closed) {
-                    console.log('🔍 IconServer: Server closed, returning 200');
+                    this.opts.debug && console.log('Icon server already closed, returning 200');
                     response.writeHead(200, prepareCORS({
                         'Content-Length': 0,
                         'Connection': 'close',
@@ -654,7 +669,6 @@ class IconServer extends IconServerStore {
                     return;
                 }
                 const key = req.url.split('/').pop().split('.')[0].replace('icons-cache-', '');
-                // console.log('🔍 IconServer: Processing request for key:', key);
                 const send = file => {
                     if (file) {
                         if (this.opts.debug) {
@@ -687,7 +701,7 @@ class IconServer extends IconServerStore {
                 if (this.opts.debug) {
                     console.log('serving', req.url, key);
                 }
-                console.log('🔍 IconServer: Request for', req.url, 'key:', key, 'isHashKey:', this.isHashKey(key), 'key length:', key.length);
+                this.opts.debug && console.log('Icon server request for', req.url, 'key', key, 'isHashKey', this.isHashKey(key), 'key length', key.length);
                 const onerr = err => {
                     console.error('icons.get() catch', err, req.url);
                     if (this.opts.debug) {
@@ -712,7 +726,11 @@ class IconServer extends IconServerStore {
                 }
                 this.opts.port = this.server.address().port;
                 this.url = 'http://' + this.opts.addr + ':' + this.opts.port + '/';
-                console.log('🔍 IconServer: Server started on', this.url);
+                this.opts.debug && console.log('Icon server started on', this.url);
+                if (this._resolveReady) {
+                    this._resolveReady();
+                    this._resolveReady = null;
+                }
             });
         }
     }
@@ -740,6 +758,10 @@ class IconServer extends IconServerStore {
         // Clear other references
         this.opts = null;
         this.url = null;
+        if (this._resolveReady) {
+            this._resolveReady();
+            this._resolveReady = null;
+        }
         
         this.removeAllListeners();
     }

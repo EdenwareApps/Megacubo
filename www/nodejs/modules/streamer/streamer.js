@@ -611,7 +611,6 @@ class Streamer extends StreamerGoNext {
         if (validateURL(url) && !url.match(new RegExp('#(xtr|mag)'))) {
             let now = (Date.now() / 1000);
             if (!this._streamerPingSourceTTLs[url] || this._streamerPingSourceTTLs[url] < now) {
-                console.log('pingSource', this._streamerPingSourceTTLs[url], now);
                 this._streamerPingSourceTTLs[url] = now + 60; // lock while connecting
                 let err;
                 const ret = await Download.head({
@@ -624,7 +623,6 @@ class Streamer extends StreamerGoNext {
                 if (typeof(err) != 'undefined') {
                     console.warn('pingSource error: ' + String(err));
                 } else {
-                    console.log('pingSource: ok');
                     if (ret.statusCode < 200 || ret.statusCode >= 400) { // in case of error, renew after 5min
                         this._streamerPingSourceTTLs[url] = now + 300;
                     } else { // in case of success, renew after 10min

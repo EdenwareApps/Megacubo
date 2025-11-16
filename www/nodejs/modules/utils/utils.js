@@ -2,7 +2,6 @@ import sanitizeFilename from 'sanitize-filename'
 import np from '../network-ip/network-ip.js'
 import os from 'os'
 import { URL } from 'node:url'
-import { inWorker } from '../paths/paths.js'
 import fs from 'fs'
 import vm from 'vm'
 import path from 'path'
@@ -14,6 +13,7 @@ import relativeTime from 'dayjs/plugin/relativeTime.js'
 import localizedFormat from 'dayjs/plugin/localizedFormat.js'
 import { getDirname } from 'cross-dirname'
 import rangeParser from 'range-parser';
+import paths from '../paths/paths.js'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -21,11 +21,19 @@ dayjs.extend(relativeTime)
 dayjs.extend(localizedFormat)
 
 const originalLocale = dayjs.locale.bind(dayjs)
-dayjs.locale = async locales => {
-    if (typeof(locales) == 'string') {
-        locales = [locales]
-    }
+dayjs.locale = locales => {
+    const list = typeof locales === 'string' ? [locales] : Array.isArray(locales) ? locales : []
     const dir = getDirname()
+    const candidateDirs = [
+        path.join(dir, 'dayjs-locale'),
+        path.join(dir, '..', 'dayjs-locale'),
+        path.join(dir, '..', '..', 'dayjs-locale'),
+        path.join(dir, 'dist', 'dayjs-locale'),
+        path.join(dir, '..', 'dist', 'dayjs-locale'),
+        path.join(paths?.cwd || dir, 'dayjs-locale'),
+        path.join(paths?.cwd || dir, 'dist', 'dayjs-locale')
+    ].map(p => path.normalize(p))
+    const searchDirs = Array.from(new Set(candidateDirs))
     const run = (content, varName) => {
         const context = {
             global: {
@@ -39,28 +47,38 @@ dayjs.locale = async locales => {
             const script = new vm.Script(content)
             script.runInNewContext(context)
             return context.output || context.global[varName] || context[varName] || null
-        } catch(err) {
+        } catch (err) {
             return null
         }
     }
-    for (const locale of locales) {
-        const file = path.join(dir, 'dayjs-locale', locale +'.js')
-        const stat = await fs.promises.stat(file).catch(() => {})
-        if (!stat || !stat.size) continue
-    
-        const varName = 'dayjs_locale_' + locale.replace('-', '_')
-        const scriptContent = await fs.promises.readFile(file, 'utf8')
-        let trimmedScriptContent = 'output='+ scriptContent.
-            replace(new RegExp('(^.*|,)[a-z] ?=', 'm'), '').
-            replace(new RegExp(';[^;]*return.*$', 'm'), '')
-        const ret = run(trimmedScriptContent, varName) || run(scriptContent, varName)
-        if(!ret) {
-            console.error(`Error loading locale ${locale} from ${file}`)
-            continue
+    for (const locale of list) {
+        for (const baseDir of searchDirs) {
+            if (!baseDir) continue
+            const file = path.join(baseDir, locale + '.js')
+            if (!fs.existsSync(file)) {
+                continue
+            }
+            console.warn(`[dayjs-locale] Loading locale "${locale}" from ${file}`)
+            let scriptContent
+            try {
+                scriptContent = fs.readFileSync(file, 'utf8')
+            } catch (err) {
+                console.error(`Error reading locale ${locale} from ${file}:`, err)
+                continue
+            }
+            const varName = 'dayjs_locale_' + locale.replace('-', '_')
+            const trimmedScriptContent = 'output=' + scriptContent
+                .replace(new RegExp('(^.*|,)[a-z] ?=', 'm'), '')
+                .replace(new RegExp(';[^;]*return.*$', 'm'), '')
+            const ret = run(trimmedScriptContent, varName) || run(scriptContent, varName)
+            if (!ret) {
+                console.error(`Error loading locale ${locale} from ${file}`)
+                continue
+            }
+            return originalLocale(ret)
         }
-        originalLocale(ret)
-        break
     }
+    return originalLocale(locales)
 }
 
 export const moment = dayjs
@@ -223,7 +241,7 @@ if (!global.String.prototype.replaceAll) {
     });
 }
 
-const DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS = 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Content-Range, Range, Vary, range, Authorization, User-Agent, Referer, Accept-Language, Accept-Encoding, Sec-Fetch-Dest, Sec-Fetch-Mode, Sec-Fetch-Site, Sec-Ch-Ua, Sec-Ch-Ua-Mobile, Sec-Ch-Ua-Platform, DNT, Connection, Upgrade-Insecure-Requests'
+const DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS = 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Content-Range, Range, Vary, range, Authorization, User-Agent, Referer, Accept-Language, Accept-Encoding, Sec-Fetch-Dest, Sec-Fetch-Mode, Sec-Fetch-Site, Sec-Ch-Ua, Sec-Ch-Ua-Mobile, Sec-Ch-Ua-Platform, DNT, Connection, Upgrade-Insecure-Requests, Pragma'
 const trimExt = (text, exts) => {
     if (typeof(exts) == 'string') {
         exts = [exts]
@@ -437,6 +455,7 @@ export const insertEntry = (entry, entries, before, after) => {
 }
 
 const allowedProtocols = new Set(['http:', 'https:', 'ftp:', 'rtmp:', 'rtmps:', 'rtmpt:', 'rtmpts:', 'rtmpe:', 'rtmpte:', 'rtmp://', 'rtmps://', 'rtmpt://', 'rtmpts://', 'rtmpe://', 'rtmpte://', 'rtp://', 'udp://', 'rtsp:', 'rtsps:', 'rtsp://', 'rtsps://', 'mms:', 'mmsh:', 'mmst:', 'mmsh://', 'mmst://', 'mega://', 'srt://', 'srtp://', 'tls://', 'tcp://'])
+
 export const validateURL = url => {
     if (!url || url.length < 2) return false;
     try {
@@ -444,6 +463,9 @@ export const validateURL = url => {
         const parsedUrl = new URL(formattedUrl);
         return allowedProtocols.has(parsedUrl.protocol);
     } catch (err) {
+        if (process?.env?.NODE_ENV === 'development') {
+            console.debug('Invalid URL skipped:', url, err?.message || err);
+        }
         return false;
     }
 }
@@ -461,7 +483,11 @@ export const ts2clock = time => {
         time = parseInt(time)
     }
     time = moment(time * 1000)
-    return time.format('LT')
+    let formatted = time.format('LT')
+    if (typeof formatted !== 'string' || formatted.length > 12) {
+        formatted = time.format('HH:mm')
+    }
+    return formatted
 }
 export const dirname = _path => {
     let parts = _path.replace(new RegExp('\\\\', 'g'), '/').split('/')
@@ -498,21 +524,27 @@ export const prepareCORS = (headers, url, forceOrigin) => {
     let origin = typeof(forceorigin) == 'string' ? forceOrigin : '*';
     if (url) {
         if (typeof(url) != 'string') { // is req object
-            if (url.headers.origin) {
-                url = url.headers.origin;
+            const requestOrigin = url.headers && url.headers.origin;
+            if (requestOrigin) {
+                // Return the exact origin from request (required for credentials support)
+                // This allows cross-requests between localhost and 127.0.0.1
+                origin = requestOrigin;
+                url = requestOrigin; // Set url to string for further processing
             } else {
-                const scheme = url.connection.encrypted ? 'https' : 'http';
-                const host = url.headers.host;
-                url = scheme + '://' + host + url.url;
+                // Build URL from request object
+                const scheme = url.connection && url.connection.encrypted ? 'https' : 'http';
+                const host = url.headers && url.headers.host ? url.headers.host : 'localhost';
+                const path = url.url || '';
+                url = scheme + '://' + host + path;
             }
         }
-        let pos = url.indexOf('//');
-        if (!forceOrigin && pos != -1 && pos <= 5) {
-            const requestOrigin = url.split('/').slice(0, 3).join('/');
-            // Always allow localhost/127.0.0.1 origins
-            if (requestOrigin.includes('127.0.0.1') || requestOrigin.includes('localhost')) {
-                origin = '*';
-            } else {
+        // Ensure url is a string before calling indexOf
+        if (typeof(url) == 'string') {
+            let pos = url.indexOf('//');
+            if (!forceOrigin && pos != -1 && pos <= 5) {
+                const requestOrigin = url.split('/').slice(0, 3).join('/');
+                // Return specific origin (required for credentials support)
+                // This allows cross-requests between localhost and 127.0.0.1 when the request reaches the server
                 origin = requestOrigin;
             }
         }

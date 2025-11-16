@@ -22,12 +22,12 @@ class TunerUtils extends EventEmitter {
             allowedTypes: null
         };
         this.name = name ? ucWords(name) : (entries.length ? entries[0].name : '');
-        if (opts) {
-            this.setOpts(opts);
-        }
+        // Always ensure opts is an object to reduce checks throughout the code
+        this.setOpts(opts || {});
     }
     setOpts(opts) {
-        if (opts && typeof(opts) == 'object') {
+        // opts is guaranteed to be an object (defaults to {} in constructor)
+        if (typeof(opts) == 'object' && opts !== null) {
             Object.keys(opts).forEach((k) => {
                 if (!['debug'].includes(k) && typeof(opts[k]) == 'function') {
                     this.on(k, opts[k]);
@@ -267,7 +267,7 @@ class TunerTask extends TunerUtils {
             // Clear all references to help garbage collection
             this.entries = null;
             this.results = null;
-            this.opts = null;
+            this.opts = {};
         }
     }
 }
@@ -279,7 +279,7 @@ class Tuner extends TunerTask {
         this.on('resume', this.pump.bind(this));
     }
     async start() {
-        if (this.started)
+        if (this.started || this.destroyed)
             return;
         this.paused = false;
         this.started = true;

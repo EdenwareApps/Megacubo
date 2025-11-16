@@ -43,7 +43,7 @@ export class EPGCurator {
           console.warn('Database became invalid during duplicate detection, stopping...')
           break
         }
-        const normalizedTitle = this.normalizeTitle(programme.t)
+        const normalizedTitle = this.normalizeTitle(programme.title)
         
         if (!titleMap.has(normalizedTitle)) {
           titleMap.set(normalizedTitle, [])
@@ -101,16 +101,16 @@ export class EPGCurator {
         
         // Keep the first programme, merge data from others
         const firstProgramme = programmes[0]
-        const mergedCategories = [...new Set(programmes.flatMap(p => p.c || []))]
-        const mergedIcons = [...new Set(programmes.map(p => p.i).filter(Boolean))]
+        const mergedCategories = [...new Set(programmes.flatMap(p => p.categories || []))]
+        const mergedIcons = [...new Set(programmes.map(p => p.icon).filter(Boolean))]
         
         // Update first programme with merged data
         const updateData = {}
         if (mergedCategories.length > 0) {
-          updateData.c = mergedCategories
+          updateData.categories = mergedCategories
         }
         if (mergedIcons.length > 0) {
-          updateData.i = mergedIcons[0] // Use first available icon
+          updateData.icon = mergedIcons[0] // Use first available icon
         }
         
         if (Object.keys(updateData).length > 0) {
@@ -120,7 +120,7 @@ export class EPGCurator {
             break
           }
           await db.update(
-            { t: firstProgramme.t, ch: firstProgramme.ch, start: firstProgramme.start },
+            { title: firstProgramme.title, channel: firstProgramme.channel, start: firstProgramme.start },
             updateData
           )
           // Updated programme with merged data
@@ -135,8 +135,8 @@ export class EPGCurator {
           }
           const duplicateProgramme = programmes[i]
           await db.delete({ 
-            t: duplicateProgramme.t, 
-            ch: duplicateProgramme.ch, 
+            title: duplicateProgramme.title, 
+            channel: duplicateProgramme.channel, 
             start: duplicateProgramme.start 
           })
           batchRemoved++
@@ -180,37 +180,126 @@ export class EPGCurator {
    * @returns {Object} Curation results
    */
   async performCuration(db) {
-    // CRITICAL: Check if database is still valid before curation
+    // Icons-only fallback curation
     if (!db || db.destroyed || !db.initialized) {
       console.warn('Skipping curation - database destroyed or not initialized')
-      return { duplicatesRemoved: 0 }
+      return { iconsFilled: 0 }
     }
 
-    console.log('🎨 Starting EPG data curation...')
-    
-    const results = {
-      duplicatesRemoved: 0
-    }
-    
+    console.log('🎨 Starting EPG data curation (icons only)...')
+    const localIndex = new Map()
+
     try {
-      // Detect and merge duplicates
-      // Detecting and merging duplicate programmes...
-      results.duplicatesRemoved = await this.detectAndMergeDuplicateProgrammes(db)
-      
-      // 3. Save changes
-      // CRITICAL: Check database state before final save
-      if (!db || db.destroyed || !db.initialized) {
-        console.warn('Database became invalid before final save, skipping...')
-        return results
+      // Build local index (title -> icons) as fallback
+      for await (const p of db.walk()) {
+        const key = this.normalizeTitle(p.title)
+        if (!key) continue
+        if (!localIndex.has(key)) localIndex.set(key, new Set())
+        if (p?.icon) localIndex.get(key).add(p.icon)
       }
-      await db.save()
-      
-      console.log('✅ EPG data curation completed')
-      return results
-      
+
+      const iconsFilled = await this.fillMissingIcons(db, localIndex)
+      return { iconsFilled }
     } catch (err) {
-      console.error('❌ Error during data curation:', err)
+      console.error('❌ Error during icons-only curation:', err)
       throw err
     }
+  }
+
+  async fillMissingIcons(db, crossIconIndex, filePath = null) {
+    if (!db || db.destroyed || !db.initialized) return 0
+    
+    // CRITICAL: Log initial state
+    const initialFilePath = db.normalizedFile || filePath || undefined
+    const initialLength = db.length
+    console.log(`🔍 fillMissingIcons START: length=${initialLength}, filePath=${initialFilePath || 'undefined'}, initialized=${db.initialized}`)
+    
+    let iconsFilled = 0
+    let processedCount = 0
+    try {
+      // CRITICAL: Check database state before iterate
+      if (!db || db.destroyed || !db.initialized) {
+        console.error('🚨 FLAG: Database invalid before iterate()')
+        return 0
+      }
+      
+      // Use iterate() instead of walk() + update() for better performance
+      for await (const p of db.iterate({ icon: '' })) {
+        // CRITICAL: Check database state during iteration
+        if (!db || db.destroyed || !db.initialized) {
+          console.error('🚨 FLAG: Database became invalid during iterate() iteration')
+          break
+        }
+        
+        processedCount++
+        
+        // CRITICAL: Check if length changed during iteration
+        const currentLength = db.length
+        if (currentLength !== initialLength) {
+          console.error(`🚨 FLAG: Database length changed during iterate()! ${initialLength} → ${currentLength}`)
+          const currentFilePath = db.normalizedFile || filePath
+          console.error(`🚨 FLAG: filePath=${currentFilePath}, expected=${initialFilePath}`)
+          if (currentFilePath !== initialFilePath) {
+            console.error('🚨 FLAG: Database file path changed during iterate()!')
+          }
+        }
+        
+        const key = this.normalizeTitle(p.title)
+        if (!key) continue
+        
+        const set = crossIconIndex?.get(key)
+        const icon = set && set.size ? [...set][0] : ''
+        
+        if (icon) {
+          // Direct modification with iterate() - no db.update() call needed
+          p.icon = icon
+          iconsFilled++
+        }
+      }
+
+      // CRITICAL: Only save if we actually made changes AND database has valid file path
+      const currentFilePath = filePath || db.normalizedFile
+      if (iconsFilled > 0 && currentFilePath) {
+        const beforeSaveLength = db.length
+        if (!db || db.destroyed || !db.initialized) {
+          console.error('🚨 FLAG: Database invalid before save()')
+          return iconsFilled
+        }
+        
+        console.log(`🔍 fillMissingIcons BEFORE save: length=${beforeSaveLength} (was ${initialLength}), iconsFilled=${iconsFilled}`)
+        
+        try {
+          await db.save()
+          
+          // CRITICAL: Check database state after save
+          const afterSaveLength = db.length
+          const afterSaveFilePath = filePath || db.normalizedFile || undefined
+          console.log(`🔍 fillMissingIcons AFTER save: length=${afterSaveLength} (was ${initialLength}), filePath=${afterSaveFilePath || 'undefined'}`)
+          
+          if (afterSaveLength !== initialLength) {
+            console.error(`🚨 FLAG: Database length changed after save()! ${initialLength} → ${afterSaveLength}`)
+            console.error(`🚨 FLAG: filePath changed? ${initialFilePath} → ${afterSaveFilePath}`)
+          }
+          
+          if (afterSaveFilePath && afterSaveFilePath !== initialFilePath) {
+            console.error(`🚨 FLAG: Database filePath changed after save()! ${initialFilePath} → ${afterSaveFilePath}`)
+          }
+        } catch (saveErr) {
+          console.error('🚨 FLAG: Error during db.save():', saveErr.message)
+          // Don't throw - icons were already updated in memory
+        }
+      } else {
+        if (!currentFilePath) {
+          console.warn(`⚠️ Skipping db.save() - database has no filePath (may be finalized database)`)
+        } else if (iconsFilled === 0) {
+          console.log(`ℹ️ No icons filled, skipping db.save()`)
+        }
+      }
+      
+    } catch (err) {
+      console.error('🚨 FLAG: Error filling missing icons:', err)
+      console.error(`🚨 FLAG: Database state at error: initialized=${db?.initialized}, destroyed=${db?.destroyed || false}, length=${db?.length}`)
+    }
+    return iconsFilled
   }
 }

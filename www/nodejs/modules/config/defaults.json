@@ -70,7 +70,7 @@
 	"in-process-gpu": false,
 	"kids-fun-titles": true,
 	"lists": [],
-	"lists-loader-concurrency": 3,
+	"lists-loader-concurrency": 2,
 	"live-window-time": 180,
 	"live-stream-fmt": "auto",
 	"locale": "",

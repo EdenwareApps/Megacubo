@@ -13,7 +13,11 @@ class CommunityLists extends EventEmitter {
         this.master = master
         this.type = 'community'
         this.id = 'community-lists'
+        this.forceRefreshFlag = false
         renderer.ready(() => menu.addFilter(this.hook.bind(this)));
+    }
+    setForceRefresh(enable = true) {
+        this.forceRefreshFlag = enable === true
     }
     async discovery(adder) {
         if (paths.ALLOW_COMMUNITY_LISTS) {
@@ -23,7 +27,8 @@ class CommunityLists extends EventEmitter {
             await Promise.allSettled(locs.map((loc, i) => {
                 return async () => {
                     const scoreLimit = 1 - (i * (1 / locs.length));
-                    let maxUsersCount = -1, lists = await cloud.get('sources/' + loc).catch(err => console.error(err));
+                    const cloudOpts = this.forceRefreshFlag ? { bypassCache: true } : undefined
+                    let maxUsersCount = -1, lists = await cloud.get('sources/'+ loc, cloudOpts).catch(err => console.error(err));
                     solved.push(loc)
                     if(Array.isArray(lists)) {
                         lists = lists.map(list => {
@@ -40,6 +45,7 @@ class CommunityLists extends EventEmitter {
                 }
             }).map(limit))
         }
+        this.forceRefreshFlag = false
         return []
     }
     showInfo() {

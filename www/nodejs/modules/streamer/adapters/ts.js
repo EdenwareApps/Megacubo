@@ -24,6 +24,10 @@ class StreamerAdapterTS extends StreamerAdapterBase {
     start() {
         return new Promise((resolve, reject) => {
             this.setCallback(success => (success ? resolve : reject)());
+            // Ensure mediaType is set for Joiner to properly configure live stream processing
+            if (!this.opts.mediaType) {
+                this.opts.mediaType = 'live'; // TS streams are typically live
+            }
             const args = [this.url, this.opts]
             if (config.get('mpegts-packet-filter-policy') == -1) {
                 this.source = new Downloader(...args)

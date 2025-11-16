@@ -31,6 +31,9 @@ class MPEGTSProcessorWorker {
 	async setPacketFilterPolicy(...args) {
 		this.processor.setPacketFilterPolicy(...args)
 	}
+	async setLive(isLive) {
+			this.processor.setLive(isLive)
+	}
 	async terminate() {
 		await this.destroy()
 	}

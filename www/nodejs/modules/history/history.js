@@ -96,14 +96,13 @@ class History extends EntriesGroup {
         return entries
     }
     async entries(e) {        
-        const epgAddLiveNowMap = {}
         let gentries = this.get().map((e, i) => {
             e.details = ucFirst(moment(e.historyTime * 1000).fromNow(), true);
             const isMega = e.url && mega.isMega(e.url);
             if (isMega) {
                 let atts = mega.parse(e.url)
                 if (atts.mediaType == 'live') {
-                    return (epgAddLiveNowMap[i] = this.channels.toMetaEntry(e, false))
+                    return this.channels.toMetaEntry(e, false)
                 } else {
                     e.type = 'group'
                     e.renderer = async () => {
@@ -120,11 +119,6 @@ class History extends EntriesGroup {
             }
             return e
         });
-        let entries = await this.channels.epgChannelsAddLiveNow(Object.values(epgAddLiveNowMap), true).catch(err => console.error(err));
-        if (Array.isArray(entries)) {
-            const ks = Object.keys(epgAddLiveNowMap);
-            entries.forEach((e, i) => gentries[ks[i]] = e);
-        }
         if (gentries.length) {
             gentries.push({ name: lang.REMOVE, fa: 'fas fa-trash', type: 'group', renderer: this.removalEntries.bind(this) });
         }

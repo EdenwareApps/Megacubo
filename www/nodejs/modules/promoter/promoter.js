@@ -10,10 +10,9 @@ import menu from '../menu/menu.js'
 
 class Promoter {
     constructor() {
-        if (!this.originalApplyFilters) {
-            this.originalApplyFilters = menu.applyFilters.bind(menu);
-            menu.applyFilters = this.applyFilters.bind(this);
-        }
+        // Don't register output filter here - it will be registered after recommendations
+        // to ensure it runs last (after recommendations adds "Recomendado para Você")
+        this._outputFilterRegistered = false
         this.startTime = (Date.now() / 1000);
         this.promoteDialogTime = 0;
         this.promoteDialogInterval = 1800;
@@ -133,8 +132,7 @@ class Promoter {
         if (typeof(callbacks[id]) == 'function')
             await callbacks[id]();
     }
-    async applyFilters(entries, path) {
-        entries = await this.originalApplyFilters(entries, path)
+    async applyOutputFilter(entries, path) {
         if (Array.isArray(entries) && entries.length) {
             const chosen = entries[0].type == 'back' ? 1 : 0
             entries = entries.filter(e => e.hookId != 'promoter')
@@ -144,8 +142,8 @@ class Promoter {
                 }
             })
             if (!path) { // move entries with icon to top on home
-                const hasProgrammeIcon = e => e.programme && e.programme.i;
-                const hasProgramme = e => e.programme && e.programme.t;
+                const hasProgrammeIcon = e => e.programme && e.programme.icon;
+                const hasProgramme = e => e.programme && e.programme.title;
                 const hasIcon = e => e.icon && !e.icon.startsWith('http://127.0.0.1:');
                 const getScore = e => {
                     let score = 0;
@@ -180,7 +178,7 @@ class Promoter {
                     entries.splice(chosen, 0, Object.assign({}, promo))
                 }
             }
-            const hasIcon = entries[chosen].icon || (entries[chosen].programme && entries[chosen].programme.i)
+            const hasIcon = entries[chosen].icon || (entries[chosen].programme && entries[chosen].programme.icon)
             if (!path || entries.length == (chosen + 1) || hasIcon) {
                 if (typeof(entries[chosen].class) == 'undefined') {
                     entries[chosen].class = ''

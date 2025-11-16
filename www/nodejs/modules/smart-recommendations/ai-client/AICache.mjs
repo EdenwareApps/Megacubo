@@ -4,7 +4,7 @@
  */
 
 import storage from '../../storage/storage.js';
-import { EPGErrorHandler } from '../../epg-worker/EPGErrorHandler.js';
+import { EPGErrorHandler } from '../../epg/worker/EPGErrorHandler.js';
 
 export class AICache {
     constructor(options = {}) {
@@ -141,6 +141,24 @@ export class AICache {
         if (!entry || !entry.timestamp) return false;
         if (entry.ttl === Infinity) return true;
         return (Date.now() - entry.timestamp) < entry.ttl;
+    }
+
+    /**
+     * Delete cache entry
+     */
+    async delete(key) {
+        const entry = this.memoryCache.get(key)
+        if (entry) {
+            this.memoryCache.delete(key)
+            this.currentMemorySize = Math.max(0, this.currentMemorySize - entry.size)
+        }
+        try {
+            await storage.delete(key)
+        } catch (error) {
+            if (error?.code !== 'ENOENT') {
+                EPGErrorHandler.warn('Cache delete error:', error.message)
+            }
+        }
     }
 
     /**

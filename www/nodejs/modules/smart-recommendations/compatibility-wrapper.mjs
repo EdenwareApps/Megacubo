@@ -1,6 +1,6 @@
 import { EventEmitter } from 'node:events'
 import smartRecommendations from './index.mjs'
-import { EPGErrorHandler } from '../epg-worker/EPGErrorHandler.js'
+import { EPGErrorHandler } from '../epg/worker/EPGErrorHandler.js'
 import storage from '../storage/storage.js'
 import lang from '../lang/lang.js'
 import { Tags } from './tags.mjs'
@@ -8,6 +8,7 @@ import { ready } from '../bridge/bridge.js'
 import PQueue from 'p-queue'
 import { terms, match } from '../lists/tools.js'
 import { AIClient } from './ai-client/AIClient.mjs'
+import Limiter from '../limiter/limiter.js'
 
 /**
  * Compatibility Wrapper for Smart Recommendations
@@ -24,6 +25,7 @@ class SmartRecommendationsCompatibility extends EventEmitter {
         this.epgLoaded = false
         this.someListLoaded = false
         this.listsLoaded = false
+        this.initializationTime = Date.now() / 1000
 
         // Storage-based cache system
         this.cacheKey = 'smart-recommendations-cache'
@@ -41,6 +43,16 @@ class SmartRecommendationsCompatibility extends EventEmitter {
             intervalCap: 1
         })
 
+        // Periodic update limiter (ensures at least one update every 5 minutes, max once per 3 seconds)
+        this.updateLimiter = new Limiter(
+            () => this.scheduleUpdate(),
+            3000,  // Minimum 3 seconds between updates (prevents too frequent calls)
+            true    // async
+        )
+        
+        // Periodic interval to ensure updates at least every 5 minutes
+        this.periodicUpdateInterval = null
+
         // UI update system
         this.latestEntries = []
         this.ensuredInitialUIUpdate = false
@@ -49,6 +61,19 @@ class SmartRecommendationsCompatibility extends EventEmitter {
 
         // Initialize tags system
         this.tags = new Tags()
+        this.manualInterestRange = { start: 0.1, end: 2, step: 0.1 }
+        this.ignoreExternalTrendsKey = 'smart-recommendations-ignore-external-trends'
+        this.tags.on('manualTagsChanged', () => {
+            try {
+                this.invalidateRecommendationCaches('manual-tags-changed')
+                this.scheduleUpdate()
+                this.refreshRecommendationsForManualTags().catch(err => {
+                    EPGErrorHandler.warn('Failed to refresh recommendations after manual tags change:', err?.message || err)
+                })
+            } catch (err) {
+                EPGErrorHandler.warn('Manual tags change handler failed:', err?.message || err)
+            }
+        })
         ready(() => {
             this.ensureInitialUIUpdate()
         })
@@ -81,13 +106,16 @@ class SmartRecommendationsCompatibility extends EventEmitter {
                 ready(() => {
                     // Set up event listeners
                     try {
-                        this.setupEventListeners()
+                        this.setupEventListeners().catch(err => EPGErrorHandler.warn('Failed to setup event listeners:', err.message))
                     } catch (error) {
                         EPGErrorHandler.warn('⚠️ Failed to setup event listeners:', error.message)
                     }
                     resolve()
                 })
             })
+
+            // Start periodic update interval (guarantees update at least every 5 minutes)
+            this.startPeriodicUpdates()
 
             EPGErrorHandler.info('✅ Smart Recommendations Compatibility Wrapper initialized')
             return true
@@ -132,7 +160,7 @@ class SmartRecommendationsCompatibility extends EventEmitter {
     /**
      * Set up event listeners
      */
-    setupEventListeners() {
+    async setupEventListeners() {
         // Listen for EPG updates - check if global.lists has EventEmitter methods
         global.lists.on('list-loaded', () => {
             if (!this.someListLoaded && this.readyState < 4) {
@@ -142,30 +170,31 @@ class SmartRecommendationsCompatibility extends EventEmitter {
         })
 
         global.lists.on('epg-update', () => {
-            this.epgLoaded || this.clearCache()
-            this.epgLoaded = true
-            this.maybeUpdateCache().catch(err => EPGErrorHandler.warn('Failed to maybe update cache:', err.message))
-        })
-
-        global.lists.ready().then(async () => {
-            this.listsLoaded = true
-            this.maybeUpdateCache().catch(err => EPGErrorHandler.warn('Failed to maybe update cache:', err.message))
-        }).catch(err => EPGErrorHandler.warn('Failed to wait for lists ready:', err.message))
-
-        // Listen for language ready
-        global.lang.ready().catch(err => EPGErrorHandler.warn('Failed to wait for lang ready:', err.message)).finally(() => {
-            global.lists.epgReady().then(() => {
-                this.epgLoaded || this.clearCache()
+            if(this.epgLoaded) {
+                this.clearCache()
+            } else {
                 this.epgLoaded = true
-                this.scheduleUpdate()
-            }).catch(err => console.error(err))
+            }
+            this.maybeUpdateCache().catch(err => EPGErrorHandler.warn('Failed to maybe update cache:', err.message))
         })
 
-        // Listen for channels ready
-        global.channels.ready().then(() => {
-            EPGErrorHandler.info('📺 Channels loaded, scheduling smart recommendations update')
-            this.maybeUpdateCache()
-        }).catch(err => EPGErrorHandler.warn('Failed to wait for channels ready:', err.message))
+        await global.lists.ready()
+        await global.lang.ready()
+        this.listsLoaded = true
+
+        await this.maybeUpdateCache().catch(err => EPGErrorHandler.warn('Failed to maybe update cache:', err.message))
+        await global.lists.epgReady()
+                
+        if(this.epgLoaded) {
+            this.clearCache()
+        } else {
+            this.epgLoaded = true
+        }
+        this.scheduleUpdate()
+
+        await global.channels.ready()
+        EPGErrorHandler.info('📺 Channels loaded, scheduling smart recommendations update')
+        await this.maybeUpdateCache().catch(err => EPGErrorHandler.warn('Failed to maybe update cache:', err.message))
     }
 
     epgEnabled() {
@@ -211,8 +240,12 @@ class SmartRecommendationsCompatibility extends EventEmitter {
         const { type = 'live', includeSemantic = true, includeTraditional = true, group = false, typeStrict = false } = options
 
         // Check if EPG is loaded (loaded can be an array of URLs or boolean)
+        // Allow fallback entries even if EPG is not fully loaded - don't return empty here
+        // The caller (getEntriesWithSpecials) will handle fallback entries
         const epgLoaded = global.lists?.epg?.loaded
-        if (!epgLoaded || (Array.isArray(epgLoaded) && epgLoaded.length === 0)) {
+        if (!Array.isArray(epgLoaded) || epgLoaded.length === 0) {
+            // Return empty to trigger fallback in getEntriesWithSpecials, but log for debugging
+            EPGErrorHandler.debug('EPG not loaded, will use fallback entries')
             return []
         }
 
@@ -251,7 +284,16 @@ class SmartRecommendationsCompatibility extends EventEmitter {
             // Transform to expected format
             const transformed = this.transformRecommendations(recommendations)
 
-            return transformed
+            if (options.sort === 'score') {
+                return transformed.sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+            }
+
+            return transformed.sort((a, b) => {
+                if (!a.programme || !b.programme) {
+                    return 0
+                }
+                return a.programme.start - b.programme.start
+            })
 
         } catch (error) {
             EPGErrorHandler.warn('Smart recommendations failed:', error.message)
@@ -396,8 +438,14 @@ class SmartRecommendationsCompatibility extends EventEmitter {
                 entries.unshift(this.getImproveEntry())
             }
 
+            const interestsGroup = await this.buildManualInterestsGroupEntry()
             if (type !== 'vod' && entries.length) {
+                if (interestsGroup) {
+                    entries.push(interestsGroup)
+                }
                 entries.push(this.getWatchedEntry())
+            } else if (interestsGroup) {
+                entries.push(interestsGroup)
             }
 
             return entries
@@ -410,19 +458,12 @@ class SmartRecommendationsCompatibility extends EventEmitter {
 
     /**
      * Update recommendations (queued using p-queue to prevent simultaneous updates)
-     * If there's already an item waiting in queue, skip and return immediately
+     * Uses limiter to prevent too frequent updates (max 1 every 3 seconds)
      */
     async update() {
-        // Check if there's already an item waiting in queue (size > 0 means items waiting)
-        if (this.updateQueue.size > 0) {
-            // Return a resolved promise instead of undefined
-            return Promise.resolve()
-        }
-
         try {
-            return await this.updateQueue.add(async () => {
-                return this.performUpdate()
-            })
+            // Use limiter to respect minimum interval between updates (3 seconds)
+            await this.updateLimiter.call()
         } catch (error) {
             EPGErrorHandler.warn('Smart recommendations update failed:', error.message)
             throw error
@@ -494,60 +535,95 @@ class SmartRecommendationsCompatibility extends EventEmitter {
             }
         }
 
-        // Cache the results
-        await this.setCache(entries)
+        // Filter available channels BEFORE caching (non-intrusive test here)
+        if (entries.length > 0) {
+            const channelsToTest = {}
+            for (const entry of entries) {
+                const name = entry?.programme?.channel || entry?.name
+                const channel = global.channels.isChannel(name)
+                if (channel && typeof(channelsToTest[channel.name]) === 'undefined') {
+                    channelsToTest[channel.name] = channel
+                }
+            }
+
+            // Test availability for channels (limit to 32 to avoid blocking)
+            const availableChannels = await global.lists.has(Object.values(channelsToTest).slice(0, 32))
+            
+            // Separate available and non-available entries
+            const availableResults = []
+            const nonAvailableResults = []
+            
+            for (const entry of entries) {
+                const name = entry?.programme?.channel || entry?.name
+                const channel = global.channels.isChannel(name)
+                if (channel) {
+                    const isAvailable = availableChannels[channel.name]
+                    if (isAvailable) {
+                        availableResults.push(entry)
+                        continue
+                    }
+                }
+                nonAvailableResults.push(entry)
+            }
+            
+            // Cache with available entries first, then non-available as fallback
+            entries = [...availableResults, ...nonAvailableResults]
+        }
+
+        // Cache the results (already filtered by availability)
+        entries.length && (await this.setCache(entries))
         this.readyState = ((this.epgLoaded || !this.isEPGEnabled()) && this.listsLoaded) ? 4 : 3
 
     }
 
     /**
-     * Get featured entries
+     * Get featured entries (non-intrusive - only uses cached data)
      * @param {number} amount - Number of entries
      * @returns {Promise<Array>} Featured entries
      */
     async featuredEntries(amount = 5) {
-        // Try to get from cache first (without availability filter)
-        let results = await this.getCache()
+        // Non-intrusive: only use cached data, don't generate or test
+        const results = await this.getCache()
 
-        // If no cache, generate more entries than needed to account for filtering
-        if (!results) {
-            // Generate 3x more entries to ensure we have enough after filtering
-            const bufferAmount = Math.max(amount * 3, 256)
-            results = await this.generateFeaturedEntries(bufferAmount)
-            await this.setCache(results)
-        }
+        // If no cache exists or results is null/empty, try fallback from latestEntries
+        if ((!results || !Array.isArray(results) || results.length === 0) &&
+            Array.isArray(this.latestEntries) && this.latestEntries.length > 0 &&
+            this.initialized && this.epgLoaded && this.listsLoaded) {
 
-        // Filter only available channels (test availability each time)
-        const channelsToTest = {}
-        for (const entry of results) {
-            const name = entry?.programme?.ch || entry?.name
-            const channel = global.channels.isChannel(name)
-            if (channel && typeof(channelsToTest[channel.name]) === 'undefined') {
-                channelsToTest[channel.name] = channel
-            }
-        }
-
-        const availableResults = [], nonAvailableResults = []
-        const availableChannels = await global.lists.has(Object.values(channelsToTest))
-        for (const entry of results) {
-            const name = entry?.programme?.ch || entry?.name
-            const channel = global.channels.isChannel(name)
-            if (channel) {
-                const isAvailable = availableChannels[channel.name]
-                if (isAvailable) {
-                    availableResults.push(entry)
-                    continue
+            const fromLatest = [...this.latestEntries]
+            return fromLatest.sort((a, b) => {
+                if (!a.programme || !b.programme) {
+                    return 0
                 }
-            }
-            nonAvailableResults.push(entry)
+                return a.programme.start - b.programme.start
+            }).slice(0, amount)
         }
 
-        // Return requested amount of available entries
-        const result = [...availableResults.slice(0, amount)]
-        if (result.length < amount) {
-            result.push(...nonAvailableResults.slice(0, amount - result.length))
+        // If still no cache, show placeholders during initialization; otherwise keep non-intrusive and return empty
+        if (!results || !Array.isArray(results) || results.length === 0) {
+            if (!this.initialized || !this.epgLoaded || !this.listsLoaded || ((Date.now() / 1000) - this.initializationTime) < 30) {
+                // Show busy placeholders when no cache is available
+                const emptyEntries = Array(amount).fill(null)
+                return emptyEntries.map((_, i) => ({
+                    name: ' &nbsp;',
+                    fa: 'fa-mega',
+                    type: 'action',
+                    class: 'entry-icon-no-fallback entry-busy-x',
+                    id: 'recommendations-busy-'+ i,
+                    action: () => { }
+                }))
+            }
+            // If initialized but no cache and no latestEntries fallback, return empty array
+            return []
         }
-        return result
+
+        // Return requested amount from cached results (already filtered by availability)
+        return results.sort((a, b) => {
+            if (!a.programme || !b.programme) {
+                return 0
+            }
+            return a.programme.start - b.programme.start
+        }).slice(0, amount)
     }
 
     /**
@@ -594,19 +670,8 @@ class SmartRecommendationsCompatibility extends EventEmitter {
             results.push(...channels)
         }
 
-        // Only show placeholders if system is not initialized AND no channels available
-        if (results.length === 0 && !this.initialized) {
-            const emptyEntries = Array(amount).fill(null)
-            results.push(...emptyEntries.map((_, i) => ({
-                name: ' &nbsp;',
-                fa: 'fa-mega',
-                type: 'action',
-                class: 'entry-icon-no-fallback entry-busy-x',
-                id: 'recommendations-busy-' + i,
-                action: () => { }
-            })))
-        }
-
+        // Placeholders are now handled in featuredEntries() when no cache is available
+        // Only return actual results or empty array
         return results
     }
 
@@ -620,10 +685,10 @@ class SmartRecommendationsCompatibility extends EventEmitter {
         const hookId = this.hookId
         if (path === global.lang.LIVE) {
             const entry = {
-                name: global.lang.RECOMMENDED_FOR_YOU || 'Recommended for You',
+                name: global.lang.RECOMMENDED_FOR_YOU,
                 fa: 'fas fa-solid fa-thumbs-up',
                 type: 'group',
-                details: global.lang.LIVE || 'Live',
+                details: global.lang.LIVE,
                 hookId,
                 renderer: this.getEntriesWithSpecials.bind(this, null, 25, { type: 'live' })
             }
@@ -634,10 +699,10 @@ class SmartRecommendationsCompatibility extends EventEmitter {
             entries.unshift(entry)
         } else if (path === global.lang.CATEGORY_MOVIES_SERIES) {
             const entry = {
-                name: global.lang.RECOMMENDED_FOR_YOU || 'Recommended for You',
+                name: global.lang.RECOMMENDED_FOR_YOU,
                 fa: 'fas fa-solid fa-thumbs-up',
                 type: 'group',
-                details: global.lang.CATEGORY_MOVIES_SERIES || 'Movies & Series',
+                details: global.lang.CATEGORY_MOVIES_SERIES,
                 hookId,
                 renderer: this.getEntriesWithSpecials.bind(this, null, 25, { type: 'vod' })
             }
@@ -745,6 +810,403 @@ class SmartRecommendationsCompatibility extends EventEmitter {
         return relevanceScore
     }
 
+    clampInterestWeight(weight) {
+        const numeric = Number(weight)
+        if (!Number.isFinite(numeric)) {
+            return 1
+        }
+        const clamped = Math.min(2, Math.max(0.1, numeric))
+        return Math.round(clamped * 100) / 100
+    }
+
+    formatInterestWeight(weight) {
+        return this.clampInterestWeight(weight).toFixed(2)
+    }
+
+    resolveConfig() {
+        if (typeof config !== 'undefined') {
+            return config
+        }
+        return global?.config
+    }
+
+    shouldIgnoreExternalTrends() {
+        const cfg = this.resolveConfig()
+        return cfg?.get?.(this.ignoreExternalTrendsKey) === true
+    }
+
+    async setIgnoreExternalTrends(enabled) {
+        const cfg = this.resolveConfig()
+        cfg?.set?.(this.ignoreExternalTrendsKey, !!enabled)
+
+        await this.tags.clearCache().catch(err =>
+            EPGErrorHandler.warn('Failed to clear tags cache after toggling external trends flag:', err?.message || err)
+        )
+
+        this.invalidateRecommendationCaches('ignore-external-trends-toggle')
+        this.scheduleUpdate()
+
+        if (global.menu?.refreshNow) {
+            setTimeout(() => global.menu.refreshNow(), 10)
+        }
+    }
+
+    buildAddInterestEntry() {
+        return {
+            name: global.lang.ADD || 'Add',
+            fa: 'fas fa-plus',
+            type: 'action',
+            action: async () => {
+                await this.promptAddManualInterest()
+            }
+        }
+    }
+
+    async buildManualInterestsGroupEntry() {
+        try {
+            const entries = await this.getManualInterestEntries()
+            return {
+                name: global.lang.INTERESTS,
+                fa: 'fas fa-sliders-h',
+                details: lang.CONFIGURE,
+                type: 'group',
+                renderer: async () => entries
+            }
+        } catch (error) {
+            EPGErrorHandler.warn('Failed to build manual interests group:', error?.message || error)
+            return null
+        }
+    }
+
+    async getManualInterestEntries() {
+        const manualTags = this.tags.getManualTags()
+        const existingTerms = manualTags.map(({ term }) => term)
+        const entries = manualTags.map(({ term, weight }) => {
+            const formattedWeight = this.formatInterestWeight(weight)
+            return {
+                id: `manual-interest-${term}`,
+                name: term,
+                type: 'slider',
+                fa: 'fas fa-sliders-h',
+                details: `${lang.ENABLED} &middot; ${lang.RELEVANCE}: ${formattedWeight}`,
+                range: this.manualInterestRange,
+                value: this.clampInterestWeight(weight),
+                question: `${global.lang.INTERESTS}: ${term}`,
+                extraOptions: [{
+                    template: 'option',
+                    text: (lang.REMOVE) || 'Remove',
+                    id: 'remove',
+                    fa: 'fas fa-trash-alt'
+                }],
+                action: async (entry, value) => {
+                    await this.handleManualInterestAction(entry, value, term)
+                }
+            }
+        })
+
+        const suggestions = await this.getInterestSuggestions(existingTerms)
+        if (suggestions.length) {
+            entries.push(...suggestions)
+        }
+
+        entries.push(this.buildAddInterestEntry())
+
+        const ignoreLabel =
+            global.lang.IGNORE_EXTERNAL_TRENDS ||
+            global.lang.IGNORE_SOCIAL_TRENDS ||
+            'Ignore external trends'
+
+        entries.push({
+            id: 'manual-interest-ignore-external-trends',
+            name: ignoreLabel,
+            type: 'check',
+            checked: () => this.shouldIgnoreExternalTrends(),
+            action: async (_, isChecked) => {
+                await this.setIgnoreExternalTrends(isChecked)
+            }
+        })
+
+        return entries
+    }
+
+    async getInterestSuggestions(excludeTerms = []) {
+        if (!global.lists?.relevantKeywords) {
+            return []
+        }
+        try {
+            const tags = await this.tags.get(12)
+            return Object.entries(tags || {}).map(([term, weight]) => ({
+                id: `manual-interest-suggestion-${term}`,
+                name: term,
+                type: 'slider',
+                fa: 'fas fa-lightbulb',
+                details: lang.SUGGESTED,
+                range: this.manualInterestRange,
+                value: weight,
+                question: `${lang.INTERESTS}: ${term}`,
+                action: async (entry, value) => {
+                    await this.handleSuggestedInterestAction(entry, value, term, weight)
+                }
+            }))
+        } catch (error) {
+            EPGErrorHandler.warn('Failed to get interest suggestions:', error?.message || error)
+            return []
+        }
+    }
+
+    async handleSuggestedInterestAction(entry, value, term, fallbackWeight) {
+        try {
+            if (value === 'remove') {
+                if (entry) {
+                    entry.value = fallbackWeight
+                    entry.details = `${lang.SUGGESTED} - ${this.formatInterestWeight(fallbackWeight)}`
+                }
+                return
+            }
+
+            const numericValue = Number(value)
+            if (!Number.isFinite(numericValue)) {
+                return
+            }
+
+            const normalized = this.clampInterestWeight(numericValue)
+            const added = await this.addManualInterest(term, normalized)
+
+            if (!added && entry) {
+                entry.value = fallbackWeight
+                entry.details = `${lang.SUGGESTED} - ${this.formatInterestWeight(fallbackWeight)}`
+            }
+        } catch (error) {
+            EPGErrorHandler.warn('Failed to handle suggested interest action:', error?.message || error)
+            if (entry) {
+                entry.value = fallbackWeight
+                entry.details = `${lang.SUGGESTED} - ${this.formatInterestWeight(fallbackWeight)}`
+            }
+        }
+    }
+
+    async handleManualInterestAction(entry, value, term) {
+        try {
+            if (value === 'remove') {
+                const removed = await this.removeManualInterest(term)
+                if (removed && global.menu?.refreshNow) {
+                    setTimeout(() => global.menu.refreshNow(), 10)
+                }
+                return
+            }
+
+            const numericValue = Number(value)
+            if (!Number.isFinite(numericValue)) {
+                return
+            }
+
+            const normalized = this.clampInterestWeight(numericValue)
+            await this.updateManualInterest(term, normalized)
+            if (entry) {
+                entry.value = normalized
+                entry.details = this.formatInterestWeight(normalized)
+            }
+        } catch (error) {
+            EPGErrorHandler.warn('Failed to handle manual interest action:', error?.message || error)
+        }
+    }
+
+    async promptAddManualInterest() {
+        if (!global.menu?.prompt) {
+            return
+        }
+        try {
+            const response = await global.menu.prompt({
+                question: global.lang.INTERESTS || 'Interests',
+                message: global.lang.INTERESTS_HINT || '',
+                placeholder: global.lang.INTERESTS_HINT || '',
+                callback: 'manual-interest-add'
+            })
+
+            if (typeof response !== 'string') {
+                return
+            }
+
+            const trimmed = response.trim()
+            if (!trimmed) {
+                return
+            }
+
+            const delimiter = ','
+            const partialTerms = trimmed
+                .split(delimiter)
+                .map(term => term.trim())
+                .filter(Boolean)
+
+            const termsToAdd = new Set()
+            const candidates = partialTerms.length ? partialTerms : [trimmed]
+
+            for (const manualTerm of candidates) {
+                const flatTerms = terms(manualTerm, true, false)
+                if (Array.isArray(flatTerms) && flatTerms.length) {
+                    flatTerms.forEach(token => termsToAdd.add(token))
+                } else {
+                    termsToAdd.add(manualTerm)
+                }
+            }
+
+            const addedTerms = []
+            for (const manualTerm of termsToAdd) {
+                const addedTerm = await this.addManualInterest(manualTerm)
+                if (addedTerm) {
+                    addedTerms.push(addedTerm)
+                }
+            }
+
+            if (!addedTerms.length && global.menu?.info) {
+                global.menu.info(
+                    global.lang.INTERESTS || 'Interests',
+                    global.lang.INVALID || 'Invalid value',
+                    'fas fa-exclamation-circle'
+                )
+            }
+        } catch (error) {
+            EPGErrorHandler.warn('Failed to add manual interest:', error?.message || error)
+        }
+    }
+
+    createManualInterestBusy(message = lang.PROCESSING) {
+        if (!global?.menu?.setBusy) {
+            return null
+        }
+        try {
+            return global.menu.setBusy(`${lang.RECOMMENDED_FOR_YOU}/${lang.INTERESTS}`, {
+                message,
+                icon: 'fa-mega busy-x',
+                osdId: 'manual-interests'
+            })
+        } catch (error) {
+            EPGErrorHandler.warn('Failed to create manual interest busy lock:', error?.message || error)
+            return null
+        }
+    }
+
+    async addManualInterest(term, weight = 1) {
+        const busy = this.createManualInterestBusy()
+        try {
+            const added = await this.tags.addManualTag(term, this.clampInterestWeight(weight))
+            if (added) {
+                this.scheduleUpdate()
+                await this.refreshRecommendationsForManualTags()
+                await this.openManualInterestSlider(added)
+            }
+            return added
+        } finally {
+            if (busy && typeof busy.release === 'function') {
+                try {
+                    busy.release()
+                } catch (err) {
+                    console.error('Failed to release manual interest busy lock:', err)
+                }
+            }
+        }
+    }
+
+    async updateManualInterest(term, weight) {
+        const busy = this.createManualInterestBusy()
+        try {
+            const updated = await this.tags.updateManualTag(term, this.clampInterestWeight(weight))
+            if (updated) {
+                this.scheduleUpdate()
+                await this.refreshRecommendationsForManualTags()
+            }
+            return updated
+        } finally {
+            if (busy && typeof busy.release === 'function') {
+                try {
+                    busy.release()
+                } catch (err) {
+                    console.error('Failed to release manual interest busy lock:', err)
+                }
+            }
+        }
+    }
+
+    async removeManualInterest(term) {
+        const busy = this.createManualInterestBusy()
+        try {
+            const removed = await this.tags.removeManualTag(term)
+            if (removed) {
+                this.scheduleUpdate()
+                await this.refreshRecommendationsForManualTags()
+            }
+            return removed
+        } finally {
+            if (busy && typeof busy.release === 'function') {
+                try {
+                    busy.release()
+                } catch (err) {
+                    console.error('Failed to release manual interest busy lock:', err)
+                }
+            }
+        }
+    }
+
+    async refreshRecommendationsForManualTags() {
+        try {
+            await this.update()
+        } catch (error) {
+            EPGErrorHandler.warn('Manual tag change update failed:', error?.message || error)
+        }
+        if (global.menu?.refreshNow) {
+            setTimeout(() => global.menu.refreshNow(), 10)
+        }
+    }
+
+    async openManualInterestSlider(term) {
+        if (!global?.menu || typeof global.menu.get !== 'function') {
+            return
+        }
+
+        const normalizedTerm = typeof term === 'string' ? term : ''
+        if (!normalizedTerm) {
+            return
+        }
+
+        const path = global.menu.path
+        const attemptOpen = () => {
+            const matches = global.menu.get({ name: normalizedTerm, type: 'slider' })
+            if (matches && matches.length) {
+                const element = matches[0]
+                element?.click()
+                return true
+            }
+            return false
+        }
+
+        if (attemptOpen()) {
+            return
+        }
+
+        await new Promise(resolve => {
+            let timeoutId
+            const cleanup = () => {
+                clearTimeout(timeoutId)
+                if (typeof global.menu.off === 'function') {
+                    global.menu.off('render', handler)
+                }
+                resolve()
+            }
+            const handler = (renderPath) => {
+                if (path && renderPath !== path) {
+                    return
+                }
+                if (attemptOpen()) {
+                    cleanup()
+                }
+            }
+            if (typeof global.menu.on === 'function') {
+                global.menu.on('render', handler)
+            }
+            timeoutId = setTimeout(cleanup, 1000)
+        })
+    }
+
     /**
      * Helper function to calculate term similarity between channels (Jaccard + name similarity)
      * @param {Object} channel1 - First channel object
@@ -824,12 +1286,57 @@ class SmartRecommendationsCompatibility extends EventEmitter {
      * @returns {Array} Transformed recommendations
      */
     transformRecommendations(recommendations) {
-        // Check if toMetaEntry is available once (performance optimization)
-        if (!global.channels?.toMetaEntry) {
-            return []
-        }
-
         return recommendations.map((rec, index) => {
+            // VOD entries: return directly without toMetaEntry transformation
+            if (rec.type === 'vod' && rec.entry) {
+                // Return the original entry directly, just add metadata
+                const entry = { ...rec.entry };
+                
+                // Add recommendation metadata
+                entry.source = rec.source || entry.source || 'smart-recommendations';
+                entry.score = (typeof rec.finalScore === 'number'
+                    ? rec.finalScore
+                    : (typeof rec.score === 'number' ? rec.score : entry.score)) || 0;
+                entry.normalizedScore = typeof rec.normalizedScore === 'number'
+                    ? rec.normalizedScore
+                    : entry.normalizedScore;
+                entry.timingScore = typeof rec.timingScore === 'number'
+                    ? rec.timingScore
+                    : entry.timingScore;
+                entry.finalScore = typeof rec.finalScore === 'number'
+                    ? rec.finalScore
+                    : entry.finalScore;
+                
+                // Remove type if it's 'vod' (type has special meaning for Streamer and Menu)
+                if (entry.type === 'vod') {
+                    delete entry.type;
+                } else if (!entry.type) {
+                    entry.type = 'stream';
+                }
+                
+                // Preserve title/name
+                if (rec.title && entry.name !== rec.title) {
+                    entry.name = rec.title;
+                }
+                
+                // Preserve icon
+                if (rec.icon && !entry.icon) {
+                    entry.icon = rec.icon;
+                }
+                
+                // Preserve group/category
+                if (rec.channel && !entry.group) {
+                    entry.group = rec.channel;
+                }
+                
+                return entry;
+            }
+            
+            // Live entries: use toMetaEntry transformation
+            // Check if toMetaEntry is available
+            if (!global.channels?.toMetaEntry) {
+                return null;
+            }
 
             // Handle different channel data formats
             let channelName, channelObj
@@ -844,17 +1351,17 @@ class SmartRecommendationsCompatibility extends EventEmitter {
                 channelObj = { name: channelName }
             }
 
-            // Create entry using global.channels.toMetaEntry (already checked above)
+            // Create entry using global.channels.toMetaEntry
             const entry = global.channels.toMetaEntry(channelObj)
 
             // Add programme information
             if (rec.programme) {
                 entry.programme = rec.programme
-                // Use programme title (t) if available, otherwise fall back to channel name
-                entry.name = rec.programme.t || rec.t || entry.name
-            } else if (rec.t) {
+                // Use programme title (title) if available, otherwise fall back to channel name
+                entry.name = rec.programme.title || rec.title || entry.name
+            } else if (rec.title) {
                 // If no programme object but we have title directly (EPG data structure)
-                entry.name = rec.t
+                entry.name = rec.title
                 entry.programme = rec // Store the full programme data
             }
 
@@ -865,8 +1372,8 @@ class SmartRecommendationsCompatibility extends EventEmitter {
             }
 
             // Set icon
-            if (rec.programme?.i || rec.i) {
-                entry.icon = rec.programme?.i || rec.i
+            if (rec.programme?.icon || rec.icon) {
+                entry.icon = rec.programme?.icon || rec.icon
             }
 
             if (typeof entry.details !== 'string') {
@@ -896,10 +1403,33 @@ class SmartRecommendationsCompatibility extends EventEmitter {
             entry.och = rec.och
             entry.details = (entry.details ? entry.details + ' &middot; ' : '') + channelName
             entry.source = 'smart-recommendations'
-            entry.confidence = rec.confidence || 0.5
+            const finalScore = typeof rec.finalScore === 'number'
+                ? rec.finalScore
+                : (typeof rec.score === 'number'
+                    ? rec.score
+                    : (typeof rec.programme?.score === 'number' ? rec.programme.score : 0))
+            entry.score = finalScore
+            entry.finalScore = finalScore
+            entry.normalizedScore = typeof rec.normalizedScore === 'number'
+                ? rec.normalizedScore
+                : entry.normalizedScore
+            entry.timingScore = typeof rec.timingScore === 'number'
+                ? rec.timingScore
+                : entry.timingScore
+
+            if (entry.programme) {
+                entry.programme.score = finalScore
+                entry.programme.finalScore = finalScore
+                if (typeof entry.normalizedScore === 'number') {
+                    entry.programme.normalizedScore = entry.normalizedScore
+                }
+                if (typeof entry.timingScore === 'number') {
+                    entry.programme.timingScore = entry.timingScore
+                }
+            }
 
             return entry
-        })
+        }).filter(entry => entry !== null) // Remove any null entries (when toMetaEntry not available)
     }
 
     /**
@@ -932,7 +1462,11 @@ class SmartRecommendationsCompatibility extends EventEmitter {
     async getUserTags() {
         try {
             if (this.tags) {
-                const tags = await this.tags.get()
+                const ignoreExternal = this.shouldIgnoreExternalTrends()
+                const tags = await this.tags.get(undefined, ignoreExternal)
+                if (ignoreExternal && (!tags || !Object.keys(tags).length)) {
+                    EPGErrorHandler.info('Ignore external trends enabled, but no manual tags found.')
+                }
                 if (tags && typeof tags === 'object') {
                     // Keep numeric tags as-is for precise scoring
                     const numericTags = {}
@@ -980,13 +1514,13 @@ class SmartRecommendationsCompatibility extends EventEmitter {
                     let t
                     for (const programme of data[ch]) {
                         if (!t) {
-                            t = programme.t
+                            t = programme.title
                             if (already.has(t)) return // prevent same program on diff channels
                             already.add(t)
                         }
                         results.push({
                             channel,
-                            labels: programme.c,
+                            labels: programme.categories,
                             programme,
                             start: parseInt(programme.start),
                             och: ch
@@ -1017,10 +1551,10 @@ class SmartRecommendationsCompatibility extends EventEmitter {
                         chs[channel.name].candidates = []
                     }
                     for (const p in data[ch]) {
-                        if (parseInt(p) <= now && data[ch][p].e < now) {
+                        if (parseInt(p) <= now && data[ch][p].end < now) {
                             chs[channel.name].candidates.push({
-                                t: data[ch][p].t,
-                                ch
+                                title: data[ch][p].title,
+                                channel: ch
                             })
                             break
                         }
@@ -1134,13 +1668,51 @@ class SmartRecommendationsCompatibility extends EventEmitter {
         // Check if we should update based on satisfyAmount conditions
         if (this.shouldUpdate()) {
             EPGErrorHandler.info('🔄 Smart Recommendations: Scheduling update due to system readiness')
-            this.update()
-                .then(() => {
-                    EPGErrorHandler.info('✅ Smart Recommendations: Auto-update completed')
-                })
-                .catch(err => {
-                    EPGErrorHandler.warn('⚠️ Smart Recommendations: Auto-update failed:', err.message)
-                })
+            
+            // Add to queue (limiter already handles minimum interval)
+            return this.updateQueue.add(async () => {
+                return this.performUpdate()
+            }).then(() => {
+                EPGErrorHandler.info('✅ Smart Recommendations: Auto-update completed')
+            }).catch(err => {
+                EPGErrorHandler.warn('⚠️ Smart Recommendations: Auto-update failed:', err.message)
+                throw err
+            })
+        }
+    }
+
+    /**
+     * Start periodic updates using setInterval (guarantees at least one update every 5 minutes)
+     */
+    startPeriodicUpdates() {
+        // Clear any existing interval
+        if (this.periodicUpdateInterval) {
+            clearInterval(this.periodicUpdateInterval)
+        }
+
+        // Set interval to trigger update check at least every 5 minutes
+        const intervalMs = this.updateIntervalSecs * 1000 // 300000 ms = 5 minutes
+        this.periodicUpdateInterval = setInterval(() => {
+            // Use limiter to prevent too frequent updates (respects 3 seconds minimum)
+            this.updateLimiter.call().catch(err => {
+                EPGErrorHandler.warn('Periodic update check failed:', err.message)
+            })
+        }, intervalMs)
+
+        EPGErrorHandler.info(`⏰ Started periodic updates: at least once every ${this.updateIntervalSecs} seconds`)
+    }
+
+    /**
+     * Stop periodic updates
+     */
+    stopPeriodicUpdates() {
+        if (this.periodicUpdateInterval) {
+            clearInterval(this.periodicUpdateInterval)
+            this.periodicUpdateInterval = null
+            EPGErrorHandler.info('⏰ Stopped periodic updates')
+        }
+        if (this.updateLimiter) {
+            this.updateLimiter.destroy()
         }
     }
 
@@ -1228,7 +1800,7 @@ class SmartRecommendationsCompatibility extends EventEmitter {
     }
 
     isCacheRich(cacheData) {
-        return cacheData && this.isCacheValid(cacheData) && cacheData.featured.some(e => !!e?.programme?.ch)
+        return cacheData && this.isCacheValid(cacheData) && cacheData.featured.some(e => !!e?.programme?.channel)
     }
 
     /**
@@ -1240,23 +1812,29 @@ class SmartRecommendationsCompatibility extends EventEmitter {
             const cacheData = await storage.get(this.cacheKey)
 
             if (this.isCacheValid(cacheData)) {
-
-                // Check if cache contains only busy entries
-                const hasBusyEntries = cacheData.featured?.some(e => e?.id?.startsWith('recommendations-busy-'))
-                const hasRealEntries = cacheData.featured?.some(e => !e?.id?.startsWith('recommendations-busy-'))
-
-                // If system is initialized and lists are loaded, invalidate cache if it only has busy entries
-                if (this.initialized && this.listsLoaded && hasBusyEntries && !hasRealEntries) {
-                    EPGErrorHandler.debug('getCache: Invalidating cache with only busy entries (system ready, should have real channels)')
-                    return null
-                }
+                // Don't invalidate cache with busy entries - allow them to be shown until real recommendations are available
+                // The cache will be naturally replaced when generateFeaturedEntries creates real recommendations
+                // This prevents the UI from being empty during the transition period
 
                 cacheData.featured = cacheData.featured.map(e => {
                     // Skip toMetaEntry for placeholder entries
                     if (e && e.name === ' &nbsp;' && e.class && e.class.includes('entry-busy-x')) {
                         return e // Return placeholder entry as-is
                     }
-                    return global.channels?.toMetaEntry(e) || e
+                    // Preserve icon and programme.icon before calling toMetaEntry
+                    // toMetaEntry may overwrite these, so we need to restore them
+                    const preservedIcon = e?.icon
+                    const preservedProgrammeIcon = e?.programme?.icon
+                    const metaEntry = global.channels?.toMetaEntry(e) || e
+                    // Always restore icon if it was set (toMetaEntry may have overwritten it)
+                    if (preservedIcon) {
+                        metaEntry.icon = preservedIcon
+                    }
+                    // Always restore programme.icon if it was set
+                    if (preservedProgrammeIcon && metaEntry.programme) {
+                        metaEntry.programme.icon = preservedProgrammeIcon
+                    }
+                    return metaEntry
                 })
                 return cacheData.featured
             }
@@ -1291,16 +1869,99 @@ class SmartRecommendationsCompatibility extends EventEmitter {
         }
     }
 
+    invalidateRecommendationCaches(reason = 'manual') {
+        const context = `Smart Recommendations cache invalidation (${reason})`
+
+        try {
+            this.clearCache().catch(err => {
+                EPGErrorHandler.warn(`${context}: storage cache clear failed`, err?.message || err)
+            })
+        } catch (err) {
+            EPGErrorHandler.warn(`${context}: storage cache clear threw`, err?.message || err)
+        }
+
+        if (!this.initialized || !this.smartRecommendations) {
+            return
+        }
+
+        const userId = this.getCurrentUserId()
+
+        try {
+            this.smartRecommendations.cache?.invalidateByUser(userId)
+            this.smartRecommendations.cache?.invalidateByTags?.(['recommendations'])
+        } catch (err) {
+            EPGErrorHandler.warn(`${context}: smartRecommendations cache invalidation failed`, err?.message || err)
+        }
+
+        try {
+            const enhancedCache = this.smartRecommendations.enhancedRecommendations?.cache
+            enhancedCache?.invalidateByUser?.(userId)
+            enhancedCache?.invalidateByTags?.(['recommendations', 'tags', 'expansion'])
+        } catch (err) {
+            EPGErrorHandler.warn(`${context}: enhanced recommendations cache invalidation failed`, err?.message || err)
+        }
+    }
+
     /**
      * Clear cache from storage
      */
     async clearCache() {
         try {
-            await storage.set(this.cacheKey, null, { ttl: 0 })
-            EPGErrorHandler.info('🗑️ Smart recommendations cache cleared from storage')
+            // Instead of dropping cached entries completely, preserve them but mark as expired.
+            // This allows featuredEntries() to still use in-memory fallbacks and avoids
+            // the home screen going empty after EPG/list updates.
+            const cacheData = await storage.get(this.cacheKey)
+            if (cacheData && Array.isArray(cacheData.featured) && cacheData.featured.length) {
+                cacheData.timestamp = 0
+                await storage.set(this.cacheKey, cacheData, { ttl: 300 })
+                EPGErrorHandler.info('🗑️ Smart recommendations cache timestamp invalidated (entries preserved)')
+            } else {
+                await storage.set(this.cacheKey, null, { ttl: 0 })
+                EPGErrorHandler.info('🗑️ Smart recommendations cache cleared from storage (no entries to preserve)')
+            }
         } catch (error) {
             EPGErrorHandler.warn('Failed to clear cache from storage:', error.message)
         }
+    }
+
+    /**
+     * Clear all recommendation caches (storage + in-memory)
+     * @param {string} reason - Optional reason for logging
+     */
+    async clear(reason = 'manual') {
+        const context = `Smart Recommendations full cache clear (${reason})`
+
+        await this.clearCache().catch(err => {
+            EPGErrorHandler.warn(`${context}: storage cache clear failed`, err?.message || err)
+        })
+
+        const tasks = []
+
+        if (this.tags?.clearCache) {
+            tasks.push(
+                this.tags.clearCache().catch(err =>
+                    EPGErrorHandler.warn(`${context}: tags cache clear failed`, err?.message || err)
+                )
+            )
+        }
+
+        try {
+            this.smartRecommendations?.cache?.clear?.()
+        } catch (err) {
+            EPGErrorHandler.warn(`${context}: smartRecommendations cache clear failed`, err?.message || err)
+        }
+
+        try {
+            this.smartRecommendations?.enhancedRecommendations?.cache?.clear?.()
+        } catch (err) {
+            EPGErrorHandler.warn(`${context}: enhanced recommendations cache clear failed`, err?.message || err)
+        }
+
+        if (tasks.length) {
+            await Promise.allSettled(tasks)
+        }
+
+        this.latestEntries = []
     }
 
 
@@ -1450,6 +2111,18 @@ class SmartRecommendationsCompatibility extends EventEmitter {
         const union = new Set([...chars1, ...chars2]).size
         
         return union > 0 ? intersection / union : 0
+    }
+
+    /**
+     * Destroy the compatibility wrapper instance
+     */
+    destroy() {
+        // Stop periodic updates
+        this.stopPeriodicUpdates()
+        
+        // Clear any pending updates in the queue
+        this.updateQueue.clear()
+        this.updateUIQueue.clear()
     }
 }
 

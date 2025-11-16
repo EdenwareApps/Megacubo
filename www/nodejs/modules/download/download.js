@@ -339,6 +339,7 @@ class Download extends EventEmitter {
             validateStatus: () => true,
             data: this.opts.post || undefined,
             maxContentLength: this.opts.maxContentLength,
+            timeout: 0, // Desabilita timeout do axios - Download controla via cancelToken
             cancelToken: this.cancelTokenSource.token,
             decompress: this.opts.decompress,
             insecureHTTPParser: true,

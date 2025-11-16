@@ -644,7 +644,7 @@ class Streamer extends StreamerTracks {
                         const chosen = await global.menu.dialog([
                             { template: 'question', text: global.lang.PLAYBACK_OFFLINE_STREAM, fa: 'fas fa-exclamation-triangle faclr-red' },
                             { template: 'message', text: global.lang.PLAY_ALTERNATE_ASK },
-                            { template: 'option', text: global.lang.YES, id: 'yes', fa: 'fas fa-check-circle' },
+                            { template: 'option', text: global.lang.YES, id: 'yes', fa: 'fas fa-check-circle faclr-green' },
                             { template: 'option', text: global.lang.NO, id: 'no', fa: 'fas fa-times-circle' },
                             { template: 'option', text: global.lang.RETRY, id: 'retry', fa: 'fas fa-redo' }
                         ], 'yes')

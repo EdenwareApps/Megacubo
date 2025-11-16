@@ -159,7 +159,6 @@ class Bookmarks extends EntriesGroup {
             })
         }
         es.push({ name: lang.ADD_BY_NAME, fa: 'fas fa-star', type: 'group', renderer: this.addByNameEntries.bind(this) });
-        const epgAddLiveNowMap = {};
         let gentries = this.get().map((e, i) => {
             const isMega = e.url && mega.isMega(e.url);
             e.fa = 'fas fa-star';
@@ -167,7 +166,7 @@ class Bookmarks extends EntriesGroup {
             if (isMega) {
                 let atts = mega.parse(e.url);
                 if (atts.mediaType == 'live') {
-                    return (epgAddLiveNowMap[i] = this.channels.toMetaEntry(e, false));
+                    return this.channels.toMetaEntry(e, false);
                 } else {                    
                     let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : terms(atts.name);
                     e.url = mega.build(ucWords(terms.join(' ')), { terms, mediaType: 'video' });
@@ -178,14 +177,6 @@ class Bookmarks extends EntriesGroup {
             }
             return e;
         }).sortByProp('bookmarkId')
-        let err;
-        const entries = await this.channels.epgChannelsAddLiveNow(Object.values(epgAddLiveNowMap), false).catch(e => err = e);
-        if (!err) {
-            const ks = Object.keys(epgAddLiveNowMap);
-            entries.forEach((e, i) => {
-                gentries[ks[i]] = e;
-            });
-        }
         es.push(...gentries);
         if (gentries.length) {
             let centries = []

@@ -223,8 +223,10 @@ streamer.tuning = null
 
 const setupCompleted = () => {
     const l = config.get('lists')
-    const fine = (l && l.length) || config.get('communitary-mode-lists-amount')
-    if (fine != config.get('setup-completed')) {
+    const fine = Boolean((l && l.length) || config.get('communitary-mode-lists-amount'))
+    const current = config.get('setup-completed')
+    console.log('setupCompleted', { fine, current })
+    if (fine !== current) {
         config.set('setup-completed', fine)
     }
     return fine
@@ -584,11 +586,15 @@ const initElectronWindow = async () => {
         console.log('Browser window created')
         electron.remote.enable(window.webContents)
         
-        // Capture renderer console logs and errors
+        // Capture renderer console logs and errors (only warnings and errors by default)
         window.webContents.on('console-message', (event, level, message, line, sourceId) => {
-            const levelName = ['debug', 'info', 'warning', 'error'][level] || 'unknown'
-            const sourceStr = sourceId ? `${sourceId}:${line}` : 'unknown'
-            console.log(`🖥️ [Renderer ${levelName}] ${message} ${sourceStr}`)            
+            // Only log warnings and errors, skip info and debug messages
+            if (level >= 2) { // 2 = warning, 3 = error
+                const levelName = ['debug', 'info', 'warning', 'error'][level] || 'unknown'
+                const sourceStr = sourceId ? `${sourceId}:${line}` : 'unknown'
+                const logFn = level === 3 ? console.error : console.warn
+                logFn(`🖥️ [Renderer ${levelName}] ${message} ${sourceStr}`)
+            }
         })
         
         // Capture renderer errors
@@ -752,6 +758,12 @@ const init = async (locale, timezone) => {
     menu.addFilter(theme.hook.bind(theme))
     menu.addFilter(channels.search.hook.bind(channels.search))
     menu.addOutputFilter(recommendations.hook.bind(recommendations))
+    // Register promoter output filter AFTER recommendations to ensure it runs last
+    // (promoter needs to see the complete list including "Recomendado para Você")
+    if (!promo._outputFilterRegistered) {
+        menu.addOutputFilter(promo.applyOutputFilter.bind(promo))
+        promo._outputFilterRegistered = true
+    }
     menu.on('render', icons.render.bind(icons))
     menu.on('action', async e => {
         await menu.withBusy(e.path, async () => {
@@ -859,6 +871,17 @@ const init = async (locale, timezone) => {
     renderer.ready(async () => {
         const setupComplete = setupCompleted()
         if (!setupComplete) {
+            // Ensure menu is ready before starting wizard
+            await new Promise(resolve => {
+                if (menu && menu.dialogs && menu.dialogs.dialog) {
+                    resolve()
+                } else {
+                    renderer.ui.once('menu-ready', () => {
+                        // Give menu a moment to fully initialize
+                        setTimeout(resolve, 100)
+                    })
+                }
+            })
             const wizard = new Wizard()
             await wizard.init()
         }

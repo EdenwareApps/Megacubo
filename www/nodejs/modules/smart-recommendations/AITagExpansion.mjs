@@ -4,7 +4,7 @@
  */
 
 import { EventEmitter } from 'node:events';
-import { EPGErrorHandler } from '../epg-worker/EPGErrorHandler.js';
+import { EPGErrorHandler } from '../epg/worker/EPGErrorHandler.js';
 
 export class AITagExpansion extends EventEmitter {
     constructor(aiClient) {

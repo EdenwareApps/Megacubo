@@ -1,10 +1,10 @@
 import storage from '../storage/storage.js'
-import { Common, getListMeta, setListMeta, resolveListDatabaseFile } from './common.js'
+import { Common } from './common.js'
+import { getListMeta, setListMeta, resolveListDatabaseFile } from './list-meta.js'
 import setupUtils from '../multi-worker/utils.js'
 import UpdateListIndex from './update-list-index.js'
 import ListIndex from './list-index.js'
 import { getFilename } from 'cross-dirname'
-import fs from 'fs'
 
 const utils = setupUtils(getFilename())
 
@@ -12,7 +12,7 @@ class UpdaterWorker extends Common {
 	constructor() {
 		super()
 		this.debug = false
-		this.relevantKeywords = {}
+		this._relevantKeywords = {}
 		this.info = {}
 		this.maxInfoEntries = 100 // Limit info entries to prevent memory accumulation
 		this.cleanupInterval = null
@@ -38,27 +38,14 @@ class UpdaterWorker extends Common {
 		}
 	}
 	async setRelevantKeywords(relevantKeywords) {
-		// Store keywords - receives a object with scores
-		// Limit size to prevent memory issues (max 500 terms)
-		const maxKeywords = 500
-		if (relevantKeywords && typeof relevantKeywords === 'object') {
-			const keys = Object.keys(relevantKeywords)
-			if (keys.length > maxKeywords) {
-				// Sort by score and keep only top N
-				const sorted = keys.sort((a, b) => (relevantKeywords[b] || 0) - (relevantKeywords[a] || 0))
-				const limited = {}
-				sorted.slice(0, maxKeywords).forEach(key => {
-					limited[key] = relevantKeywords[key]
-				})
-				this.relevantKeywords = limited
-				console.log(`Limited relevantKeywords from ${keys.length} to ${maxKeywords} terms`)
-			} else {
-				this.relevantKeywords = relevantKeywords
-			}
-		} else {
-			this.relevantKeywords = {}
+		if (Array.isArray(relevantKeywords) && relevantKeywords.length) {
+			this._relevantKeywords = relevantKeywords
+			return true
 		}
-		return true
+		return false
+	}
+	async relevantKeywords() {
+		return this._relevantKeywords
 	}
 	async getInfo() {
 		return this.info
@@ -111,9 +98,14 @@ class UpdaterWorker extends Common {
 		const now = (Date.now() / 1000)
 
 		if (should) {
+			// Emitir evento de início de atualização ANTES de começar
+			utils.emit('update-start', { url })
+			
 			const updateMeta = {}
 			const file = resolveListDatabaseFile(url)
 			let updater = null
+			let updateSucceeded = false
+			
 			try {
 				updater = new UpdateListIndex({
 					url,
@@ -136,11 +128,12 @@ class UpdaterWorker extends Common {
 
 				let result
 				try {
-
 					result = await updater.start()
-
+					updateSucceeded = true
 				} catch (err) {
 					console.error('updater - error during update:', err)
+					// Emitir erro específico
+					utils.emit('update-error', { url, error: err })
 					// Ensure proper cleanup on error
 					if (updater) {
 						await updater.destroy().catch(cleanupErr => console.error('Error during updater cleanup:', cleanupErr))
@@ -168,12 +161,15 @@ class UpdaterWorker extends Common {
 				}
 
 
-				storage.touchFile(file, {
+				await storage.registerFile(file, {
+					ttl: 24 * 3600,
 					size: 'auto',
-					raw: true,
-					expiration: true
+					raw: true
 				})
 
+				// Emitir evento de fim de atualização (sucesso)
+				utils.emit('update-end', { url, succeeded: updateSucceeded })
+				
 				return ret ? result : false
 			} finally {
 				// Ensure cleanup even if something goes wrong
@@ -185,8 +181,15 @@ class UpdaterWorker extends Common {
 					}
 					updater = null
 				}
+				
+				// Garantir que sempre emitimos update-end, mesmo em caso de erro
+				if (!updateSucceeded && should) {
+					utils.emit('update-end', { url, succeeded: false })
+				}
 			}
 		} else {
+			// Não precisa atualizar - emitir evento de fim imediatamente
+			utils.emit('update-end', { url, succeeded: false, skipped: true })
 			return false // no need to update, by updateAfter
 		}
 	}
@@ -194,100 +197,53 @@ class UpdaterWorker extends Common {
 		let err
 		const file = resolveListDatabaseFile(url)
 		const list = new ListIndex(file, url)
+		let validated = false
 
 		try {
-			await list.ready()
-		} catch (e) {
-			err = e
-		}
+			try {
+				await list.ready()
+			} catch (e) {
+				err = e
+			}
 
-		if (err) {
-			// Check if the error is specifically about missing meta file
-			if (String(err).includes('meta file not found or empty')) {
-
-				// Return false to trigger update, but don't treat as validation error
-				try {
-					await list.destroy();
-				} catch (destroyErr) {
-					console.error('updater validateIndex: error destroying list:', destroyErr);
+			if (err) {
+				// Check if the error is specifically about missing meta file
+				if (String(err).includes('meta file not found or empty')) {
+					// Return false to trigger update, but don't treat as validation error
+					return false;
 				}
+				return false
+			}
+
+			// Check if the list has a meta file error even after successful init
+			if (list.indexError && String(list.indexError).includes('meta file not found or empty')) {
 				return false;
 			}
+
+
+			// Validate only if nameTerms index is not empty AND groups match
 			try {
-				await list.destroy();
-			} catch (destroyErr) {
-				console.error('updater validateIndex: error destroying list after error:', destroyErr);
+				const nameTermsValid = list.db && list.db.indexManager &&
+					list.db.indexManager.index &&
+					list.db.indexManager.index.data &&
+					list.db.indexManager.index.data.nameTerms &&
+					Object.keys(list.db.indexManager.index.data.nameTerms).length > 0
+
+				validated = nameTermsValid
+
+			} catch (validationErr) {
+				console.error('updater validateIndex: error during validation:', validationErr);
+				validated = false
 			}
-			return false
-		}
-
-		// Check if the list has a meta file error even after successful init
-		if (list.indexError && String(list.indexError).includes('meta file not found or empty')) {
-
+		} finally {
+			// Garantir que o ListIndex sempre seja destruído, mesmo em caso de erro
 			try {
-				await list.destroy();
-			} catch (destroyErr) {
-				console.error('updater validateIndex: error destroying list with index error:', destroyErr);
-			}
-			return false;
-		}
-
-		// NEW: Check if groups in metadata match groups in loaded list
-		let groupsValid = true
-		try {
-			// Get groups from metadata
-			const metaData = await getListMeta(url)
-			const metaGroups = metaData.groups || {}
-			const metaGroupsKeys = Object.keys(metaGroups)
-
-			// Get groups from loaded list
-			const listGroups = list.groups || {}
-			const listGroupsKeys = Object.keys(listGroups)
-
-
-
-			// Check if groups match (order doesn't matter)
-			const metaGroupsSet = new Set(metaGroupsKeys)
-			const listGroupsSet = new Set(listGroupsKeys)
-
-			if (metaGroupsSet.size !== listGroupsSet.size) {
-				groupsValid = false
-
-			} else {
-				// Check if all groups from metadata exist in list
-				for (const group of metaGroupsKeys) {
-					if (!listGroupsSet.has(group)) {
-						groupsValid = false
-
-						break
-					}
+				if (list && !list.destroyed) {
+					await list.destroy()
 				}
+			} catch (destroyErr) {
+				console.error('updater validateIndex: error destroying list in finally:', destroyErr);
 			}
-		} catch (groupsErr) {
-			console.error('updater validateIndex: error checking groups:', groupsErr);
-			groupsValid = false
-		}
-
-		// Validate only if nameTerms index is not empty AND groups match
-		let validated = false
-		try {
-			const nameTermsValid = list.db && list.db.indexManager &&
-				list.db.indexManager.index &&
-				list.db.indexManager.index.data &&
-				list.db.indexManager.index.data.nameTerms &&
-				Object.keys(list.db.indexManager.index.data.nameTerms).length > 0
-
-			validated = nameTermsValid && groupsValid
-
-		} catch (validationErr) {
-			console.error('updater validateIndex: error during validation:', validationErr);
-			validated = false
-		}
-
-		try {
-			await list.destroy()
-		} catch (destroyErr) {
-			console.error('updater validateIndex: error destroying list after validation:', destroyErr);
 		}
 
 		return validated
@@ -333,8 +289,7 @@ class UpdaterWorker extends Common {
 			// Additional check: verify meta file contains valid data
 			try {
 				const metaData = await getListMeta(url);
-				if (!metaData || !metaData.uniqueStreamsLength || metaData.uniqueStreamsLength === 0) {
-
+				if (!metaData || typeof metaData.length !== 'number' || metaData.length === 0) {
 					return true
 				}
 			} catch (err) {
@@ -359,7 +314,7 @@ class UpdaterWorker extends Common {
 		this.info = {}
 		
 		// Clear relevantKeywords to free memory
-		this.relevantKeywords = {}
+		this._relevantKeywords = {}
 	}
 }
 

@@ -77,12 +77,128 @@ class StreamerProxy extends StreamerProxyBase {
         if (typeof(url) == 'string') {
             if (url.substr(0, 3) == '/s/') {
                 url = 'https://' + url.substr(3)
+            } else if (url.substr(0, 2) == 's/') {
+                // Handle case where URL starts with 's/' (without leading /)
+                // This happens when protocol/host is removed: http://127.0.0.1:PORT/s/... -> s/...
+                url = 'https://' + url.substr(2)
             } else if (url.startsWith('/') && url.charAt(1) != '/') {
                 url = 'http://' + url.substr(1)
-            } else if (this.opts.addr && url.includes('//')) {
-                if (url.includes(this.addr + ':' + this.opts.port + '/')) {
-                    url = url.replace(new RegExp('^(http://|//)' + this.addr.replaceAll('.', '\\.') + ':' + this.opts.port + '/', 'g'), '$1')
-                    url = url.replace('://s/', 's://')
+            } else if (url.includes('//')) {
+                // Strategy 1: Always try to remove this proxy's own address:port first (safest)
+                if (this.opts.addr && this.opts.port && url.includes(this.opts.addr + ':' + this.opts.port + '/')) {
+                    url = url.replace(new RegExp('^(https?://)' + this.opts.addr.replaceAll('.', '\\.') + ':' + this.opts.port + '/', 'g'), '$1')
+                    // Handle /s/ prefix for HTTPS (if it was https proxified as http://host:port/s/...)
+                    if (url.startsWith('http://s/')) {
+                        url = url.replace('http://s/', 'https://')
+                    }
+                                } else {
+                    // Strategy 2: Only check for other proxies if not this proxy
+                    // Strategy 3: Only 127.0.0.1 (never localhost)
+                    // Strategy 4: Only port range 49152-65535 (dynamic/ephemeral ports used by Node.js listen(0))
+                    // Strategy 5: Only remove if next segment is a valid domain (not IP:port)
+                    // Strategy 6: Handle /s/ prefix for HTTPS proxification
+                    
+                    // First check if URL has /s/ after 127.0.0.1:PORT (HTTPS proxified)
+                    const httpsProxyPattern = new RegExp('^(https?://)127\\.0\\.0\\.1:([0-9]+)/s/([^/]+)')
+                    const httpsMatch = httpsProxyPattern.exec(url)
+                    if (httpsMatch) {
+                        const port = parseInt(httpsMatch[2])
+                        const domain = httpsMatch[3].split('/')[0]
+                        
+                        const isDynamicPort = port >= 49152 && port <= 65535
+                        const isIPPort = /^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+):([0-9]+)/.test(domain)
+                        const isDomain = /^[a-zA-Z0-9][a-zA-Z0-9.-]*[a-zA-Z0-9]$/.test(domain) &&
+                                       domain.includes('.') &&
+                                       /[a-zA-Z]/.test(domain)
+                        
+                        if (isDynamicPort && isDomain && !isIPPort) {
+                            // Remove 127.0.0.1:PORT/s/ and restore https://
+                            url = url.replace(httpsProxyPattern, 'https://$3')
+                        }
+                    } else {
+                        // Check for normal HTTP proxification
+                        const otherProxyPattern = new RegExp('^(https?://)127\\.0\\.0\\.1:([0-9]+)/([^/]+)')
+                        const match = otherProxyPattern.exec(url)
+                        if (match) {
+                            const port = parseInt(match[2])
+                            const nextSegment = match[3].split('/')[0] // Get first segment only
+
+                            // Check if port is in dynamic/ephemeral range (49152-65535)
+                            const isDynamicPort = port >= 49152 && port <= 65535
+
+                            // Check if next segment is another IP:port pattern (legitimate URL - DO NOT REMOVE)
+                            const isIPPort = /^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+):([0-9]+)/.test(nextSegment)
+
+                            // Check if next segment looks like a valid domain (has letters, contains dot, not just numbers)       
+                            const isDomain = /^[a-zA-Z0-9][a-zA-Z0-9.-]*[a-zA-Z0-9]$/.test(nextSegment) &&
+                                           nextSegment.includes('.') &&
+                                           /[a-zA-Z]/.test(nextSegment) // Must contain at least one letter
+
+                            // Only remove if ALL conditions are met:
+                            // 1. Port is in dynamic range (49152-65535)
+                            // 2. Next segment is a domain (not IP:port)
+                            // 3. It's clearly a proxified URL
+                            if (isDynamicPort && isDomain && !isIPPort) {
+                                // Likely another proxy, remove it
+                                url = url.replace(otherProxyPattern, '$1$3')
+                                // Handle /s/ prefix for HTTPS
+                                if (url.startsWith('http://s/')) {
+                                    url = url.replace('http://s/', 'https://')
+                                }
+                            }
+                            // If any condition fails, assume it's a legitimate URL and don't touch it
+                        }
+                    }
+                }
+                        } else if (!url.includes('://')) {
+                // Handle URLs without protocol
+                // Apply same strategies: only 127.0.0.1, only dynamic ports, only if next segment is domain
+                
+                // First check if URL has /s/ after 127.0.0.1:PORT (HTTPS proxified)
+                const httpsPattern = /^(127\.0\.0\.1):([0-9]+)\/s\/([^/]+)/
+                const httpsMatch = httpsPattern.exec(url)
+                if (httpsMatch) {
+                    const port = parseInt(httpsMatch[2])
+                    const domain = httpsMatch[3].split('/')[0]
+                    
+                    const isDynamicPort = port >= 49152 && port <= 65535
+                    const isIPPort = /^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+):([0-9]+)/.test(domain)
+                    const isDomain = /^[a-zA-Z0-9][a-zA-Z0-9.-]*[a-zA-Z0-9]$/.test(domain) &&
+                                   domain.includes('.') &&
+                                   /[a-zA-Z]/.test(domain)
+                    
+                    if (isDynamicPort && isDomain && !isIPPort) {
+                        // Remove 127.0.0.1:PORT/s/ and restore https://
+                        url = url.replace(httpsPattern, 'https://$3')
+                    } else {
+                        // Not a proxy, add http:// to the whole thing
+                        url = 'http://' + url
+                    }
+                } else {
+                    // Check for normal HTTP proxification
+                    const ipPortPattern = /^(127\.0\.0\.1):([0-9]+)\/([^/]+)/
+                    const match = ipPortPattern.exec(url)
+                    if (match) {
+                        const port = parseInt(match[2])
+                        const nextSegment = match[3].split('/')[0]
+                        const isDynamicPort = port >= 49152 && port <= 65535
+                        const isIPPort = /^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+):([0-9]+)/.test(nextSegment)
+                        const isDomain = /^[a-zA-Z0-9][a-zA-Z0-9.-]*[a-zA-Z0-9]$/.test(nextSegment) &&
+                                       nextSegment.includes('.') &&
+                                       /[a-zA-Z]/.test(nextSegment)
+
+                        // Only treat as proxy if ALL conditions met
+                        if (isDynamicPort && isDomain && !isIPPort) {
+                            // Remove IP:port prefix and add http://
+                            url = url.replace(ipPortPattern, 'http://$3')
+                        } else {
+                            // Not a proxy, add http:// to the whole thing
+                            url = 'http://' + url
+                        }
+                    } else if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                        // If no protocol and no IP:port pattern, add http://
+                        url = 'http://' + url
+                    }
                 }
             }
             if (url.includes(';') && url.includes('&')) {
@@ -94,6 +210,10 @@ class StreamerProxy extends StreamerProxyBase {
     proxifyM3U8(body, url) {
         if (!this.isM3U8Content(body))
             return body;
+        if (!url || typeof url !== 'string') {
+            console.error('[Proxy] proxifyM3U8: url is null or invalid', url);
+            return body;
+        }
         body = body.replace(new RegExp('^ +', 'gm'), '');
         body = body.replace(new RegExp(' +$', 'gm'), '');
         let parser = new ManifestParser(), replaces = {}, u;
@@ -268,6 +388,9 @@ class StreamerProxy extends StreamerProxyBase {
         const uid = this.uid();
         const keepalive = this.committed && config.get('use-keepalive');
         let ended, url = this.unproxify(req.url);
+        if (this.opts.debug || this.opts.agnostic) {
+            console.error('[Proxy] Request:', req.url, '-> unproxified:', url, 'uid:', uid, 'addr:', this.opts.addr, 'port:', this.opts.port)
+        }
         let reqHeaders = req.headers;
         reqHeaders = this.removeHeaders(reqHeaders, ['cookie', 'referer', 'origin', 'user-agent']);
         if (this.type == 'network-proxy') {
@@ -338,8 +461,8 @@ class StreamerProxy extends StreamerProxyBase {
             if (this.opts.forceExtraHeaders) {
                 Object.assign(headers, this.opts.forceExtraHeaders);
             }
-            if (this.opts.debug) {
-                console.log('download response', statusCode, headers, uid);
+            if (this.opts.debug || this.opts.agnostic) {
+                console.error('[Proxy] Response:', statusCode, 'url:', url, 'content-type:', headers['content-type'], 'content-length:', headers['content-length'], 'uid:', uid)
             }
             headers['connection'] = 'close';
             if (!statusCode || [-1, 0].includes(statusCode)) {
@@ -370,14 +493,26 @@ class StreamerProxy extends StreamerProxyBase {
                     end();
                 } else {
                     const mediaType = this.opts.agnostic ? '' : this.getMediaType(headers, url);
+                    if (this.opts.debug || this.opts.agnostic) {
+                        console.error('[Proxy] MediaType detection:', 'agnostic:', this.opts.agnostic, 'detected:', mediaType, 'url ext:', this.ext(url), 'content-type:', headers['content-type'])
+                    }
                     switch (mediaType) {
                         case 'meta':
+                            if (this.opts.debug || this.opts.agnostic) {
+                                console.error('[Proxy] Handling as META (m3u8)')
+                            }
                             this.handleMetaResponse(download, statusCode, headers, response, end, url);
                             break;
                         case 'video':
+                            if (this.opts.debug || this.opts.agnostic) {
+                                console.error('[Proxy] Handling as VIDEO (TS)')
+                            }
                             this.handleVideoResponse(download, statusCode, headers, response, end, url, uid);
                             break;
                         default:
+                            if (this.opts.debug || this.opts.agnostic) {
+                                console.error('[Proxy] Handling as GENERIC')
+                            }
                             this.handleGenericResponse(download, statusCode, headers, response, end);
                     }
                 }
@@ -427,7 +562,15 @@ class StreamerProxy extends StreamerProxyBase {
                 if (isSRT) {
                     data = this.srt2vtt(String(data));
                 } else {
-                    data = this.proxifyM3U8(String(data), download.currentURL);
+                    const currentURL = download?.currentURL || download?.opts?.url || url || '';
+                    if (!currentURL) {
+                        console.error('[Proxy] handleMetaResponse: No URL available for proxifyM3U8', download);
+                        if (!response.headersSent) {
+                            response.writeHead(500, headers);
+                        }
+                        return end();
+                    }
+                    data = this.proxifyM3U8(String(data), currentURL);
                 }
                 if (this.disabled) {
                     data += "\r\n#EXT-X-ENDLIST";
@@ -521,6 +664,28 @@ class StreamerProxy extends StreamerProxyBase {
         download.ended && onend();
     }
     handleGenericResponse(download, statusCode, headers, response, end) {
+        // Even in agnostic mode, we need to process m3u8 content to fix relative URLs
+        if (!download || !download.opts) {
+            console.error('[Proxy] handleGenericResponse: download or download.opts is null', download);
+            if (!response.headersSent) {
+                response.writeHead(500, headers);
+            }
+            return end();
+        }
+        const url = download.opts.url || download.currentURL;
+        const mightBeM3U8 = this.ext(url) == 'm3u8' || 
+                           (headers['content-type'] && headers['content-type'].toLowerCase().includes('mpegurl')) ||
+                           (headers['content-type'] && headers['content-type'].toLowerCase().startsWith('text/') && !headers['content-length']) ||
+                           (!headers['content-type'] && this.ext(url) == 'm3u8');
+        
+        if (mightBeM3U8) {
+            // Handle as m3u8 even in agnostic mode
+            if (this.opts.debug || this.opts.agnostic) {
+                console.error('[Proxy] Generic response detected as M3U8, processing...')
+            }
+            return this.handleMetaResponse(download, statusCode, headers, response, end, url);
+        }
+        
         if (!response.headersSent) {
             response.writeHead(statusCode, headers);
             if (this.opts.debug) {

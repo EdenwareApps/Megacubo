@@ -1,6 +1,7 @@
 import { EventEmitter } from "events";
 import LineReader from "../line-reader/line-reader.js";
 import { absolutize, listNameFromURL } from '../utils/utils.js'
+import { distinguishM3UType, sanitizeName } from './tools.js'
 
 // Object Pool para reutilizar objetos e reduzir pressão no GC
 class ObjectPool {
@@ -33,66 +34,6 @@ export const regexes = {
     'strip-query-string': new RegExp('\\?.*$'),
     'strip-proto': new RegExp('^[a-z]*://'),
     'm3u-url-params': new RegExp('.*\\|[A-Za-z0-9\\-]*=')
-};
-
-// Regexes otimizadas para sanitizeName
-const SANITIZE_REGEXES = {
-    // Regex consolidada para caracteres de controle e quebras de linha
-    controlChars: new RegExp('[\\r\\n\\t\\x00-\\x1f\\x7f-\\x9f]', 'g'),
-    // Regex para aspas e barras invertidas
-    jsonChars: new RegExp('[\\"\\\\]', 'g'),
-    // Regex para múltiplos espaços
-    multipleSpaces: new RegExp('\\s+', 'g'),
-    // Regex para barras
-    slashes: new RegExp('/', 'g')
-};
-
-// Função otimizada de sanitização
-export const sanitizeName = s => {
-    // Early returns para casos comuns
-    if (s == null) return 'Untitled ' + Math.floor(Math.random() * 10000);
-    if (typeof s !== 'string') return 'Untitled ' + Math.floor(Math.random() * 10000);
-    if (s.length === 0) return 'Untitled ' + Math.floor(Math.random() * 10000);
-    
-    // Verificar caracteres de controle de forma mais eficiente
-    let hasControlChars = false;
-    for (let i = 0; i < s.length; i++) {
-        const code = s.charCodeAt(i);
-        if (code < 32 || code === 127 || (code >= 128 && code <= 159)) {
-            hasControlChars = true;
-            break;
-        }
-    }
-    
-    if (hasControlChars) {
-        s = s.replace(SANITIZE_REGEXES.controlChars, ' ');
-    }
-    
-    // Aplicar limpezas em sequência otimizada
-    s = s
-        .replace(SANITIZE_REGEXES.jsonChars, ' ')
-        .replace(SANITIZE_REGEXES.multipleSpaces, ' ')
-        .trim();
-    
-    // Se ficou vazio após limpeza, usar nome padrão
-    if (!s) {
-        return 'Untitled ' + Math.floor(Math.random() * 10000);
-    }
-    
-    // Tratar barras de forma otimizada - substituir por | para evitar problemas de navegação
-    if (s.includes('/')) {
-        if (s.includes('[/')) {
-            s = s.split('[/').join('[|');
-        }
-        s = s.replace(SANITIZE_REGEXES.slashes, ' | ');
-    }
-    
-    // Garantir que o nome não seja muito longo
-    if (s.length > 200) {
-        s = s.substring(0, 200) + '...';
-    }
-    
-    return s;
 };
 
 export class Parser extends EventEmitter {
@@ -161,6 +102,10 @@ export class Parser extends EventEmitter {
         this.readen = 0;
         this.ended = false;
         this.destroyed = false;
+        this.isIPTVPlaylist = null; // null = not determined yet, true = IPTV, false = HLS transmission
+        this.initialBuffer = []; // Buffer to accumulate initial lines for type detection
+        this.bufferMaxLines = 50; // Maximum lines to buffer before determining type
+        this.typeDetermined = false; // Track if we've determined the playlist type
     }
     
     generateAttrMapRegex(attrs) {
@@ -516,6 +461,12 @@ export class Parser extends EventEmitter {
         // Set up line event handler
         this.liner.on('line', (line) => {
             this.readen += (line.length + 1);
+            
+            // Accumulate initial lines for type detection if not yet determined
+            if (!this.typeDetermined && this.initialBuffer.length < this.bufferMaxLines) {
+                this.initialBuffer.push(line);
+            }
+            
             lineQueue.push(line);
             if (pump) {
                 pump();
@@ -554,6 +505,49 @@ export class Parser extends EventEmitter {
                     throw error;
                 }
                 
+                // Determine playlist type if we have enough buffer and haven't determined yet
+                if (!this.typeDetermined && (this.initialBuffer.length >= 10 || isFinished)) {
+                    const bufferContent = this.initialBuffer.join('\n');
+                    const m3uType = distinguishM3UType(bufferContent);
+                    
+                    // Only reject if we're VERY confident it's HLS transmission
+                    // Use high confidence indicators to avoid false positives
+                    // Require explicit HLS tags (most reliable) rather than just pattern matching
+                    const highConfidenceHLS = m3uType.isHLSMasterPlaylist || 
+                                             (m3uType.isHLSTransmission && 
+                                              (m3uType.indicators.hasHLSTransmissionIndicators || 
+                                               m3uType.confidence === 'high'));
+                    
+                    if (highConfidenceHLS) {
+                        // This is definitely an HLS transmission playlist
+                        this.isIPTVPlaylist = false;
+                        this.typeDetermined = true;
+                        const err = new Error('Parser only supports IPTV playlists, not HLS transmission playlists. This appears to be an HLS stream playlist.');
+                        this.emit('error', err);
+                        throw err;
+                    } else if (m3uType.isIPTVPlaylist || 
+                               (bufferContent.toLowerCase().includes('#extm3u') && 
+                                bufferContent.toLowerCase().includes('#extinf'))) {
+                        // Likely IPTV playlist - be permissive to avoid false positives
+                        // Default to allowing if we have EXTINF lines (common in IPTV)
+                        this.isIPTVPlaylist = true;
+                        this.typeDetermined = true;
+                    } else {
+                        // Unclear - default to allowing (better to allow than block valid IPTV)
+                        // This prevents false positives that would block legitimate IPTV playlists
+                        this.isIPTVPlaylist = true;
+                        this.typeDetermined = true;
+                    }
+                    
+                    // Clear buffer after type determination
+                    this.initialBuffer = null;
+                }
+                
+                // If type was determined to be HLS transmission, stop processing
+                if (this.typeDetermined && this.isIPTVPlaylist === false) {
+                    break;
+                }
+                
                 // Process all available lines
                 while (lineQueue.length > 0) {
                     const line = lineQueue.shift();
@@ -570,6 +564,15 @@ export class Parser extends EventEmitter {
                         if (this.isExtM3U(sig)) {
                             this.handleExtM3U(line);
                         } else if (this.isExtInf(sig)) {
+                            // Additional check: if we detect HLS transmission indicators during parsing, stop
+                            if (!this.typeDetermined && (line.includes('#EXT-X-VERSION') || 
+                                line.includes('#EXT-X-TARGETDURATION') || 
+                                line.includes('#EXT-X-MEDIA-SEQUENCE'))) {
+                                const err = new Error('Parser only supports IPTV playlists, not HLS transmission playlists.');
+                                this.emit('error', err);
+                                throw err;
+                            }
+                            
                             const result = this.handleExtInf(line, g, a, e);
                             inExtInf = true;
                             g = result.g;
@@ -590,6 +593,14 @@ export class Parser extends EventEmitter {
                         e = result.e;
                         
                         // Only yield if we have a valid entry with both name and URL
+                        // AND only if this is confirmed to be an IPTV playlist (or not yet determined)
+                        if (this.typeDetermined && this.isIPTVPlaylist === false) {
+                            // Skip this entry - it's an HLS transmission
+                            e = this.createEntry();
+                            g = '';
+                            continue;
+                        }
+                        
                         if (e && e.name && e.name.trim().length > 0 && e.url && e.url.trim().length > 0) {
                             if (this.expectingPlaylist) {
                                 yield { type: 'playlist', entry: e };

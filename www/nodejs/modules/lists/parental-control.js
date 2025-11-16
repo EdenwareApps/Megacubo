@@ -5,7 +5,8 @@ import { EventEmitter } from "events";
 import cloud from "../cloud/cloud.js";
 import crypto from 'crypto'
 import config from "../config/config.js"
-import renderer from '../bridge/bridge.js'                                     
+import renderer from '../bridge/bridge.js'
+import { getDomain } from "../utils/utils.js";                                     
                                         
 class ParentalControl extends EventEmitter {
     constructor() {
@@ -15,7 +16,7 @@ class ParentalControl extends EventEmitter {
         this.on('updated', () => {
             process.nextTick(() => menu.refreshNow())
         })
-        config.on('change', keys => {
+        config.on('change', (keys, data) => {
             if(keys.includes('parental-control-terms')) {
                 this.setTerms();
             }
@@ -229,22 +230,79 @@ class ParentalControl extends EventEmitter {
         if (typeof(entry) == 'string') {
             return !this.has(entry);
         }
+        
+        // Check for adult domains in URL FIRST (before type check)
+        // This applies to all types including VOD, and handles both entry.url and entry.entry.url
+        const urlToCheck = entry.url || entry.entry?.url;
+        if (urlToCheck) {
+            const domain = getDomain(urlToCheck);
+            const adultDomains = ['adultiptv.net', 'redtraffic.xyz'];
+            // Check if domain ends with any adult domain
+            const isAdultDomain = adultDomains.some(adultDomain => 
+                domain === adultDomain || domain.endsWith('.' + adultDomain)
+            );
+            if (isAdultDomain) {
+                return false;
+            }
+        }
+        
         if (entry.type && !['group', 'stream'].includes(entry.type)) {
             return true;
         }
         
         // Enhanced parental control with age rating support
         let str, allow = true;
-        str = entry.name;
-        if (entry.group) {
-            str += ' ' + entry.group;
+        str = entry.name || entry.title || entry.entry?.name;
+        if (entry.group || entry.entry?.group) {
+            str += ' ' + (entry.group || entry.entry?.group);
         }
         
         // Check age rating first (highest priority)
-        if (entry.age !== undefined && entry.age > 0) {
+        // Check both entry.age and entry.programme.age for EPG data
+        const age = entry.age !== undefined ? entry.age : (entry.programme?.age || 0)
+        if (age > 0) {
             const parentalControlAge = config.get('parental-control-age', 0);
-            if (entry.age > parentalControlAge) {
+            if (age > parentalControlAge) {
                 allow = false;
+            }
+        }
+        
+        // Check parental control flags from EPG programme data
+        if (entry.programme) {
+            // Check explicit parental control flags (unified field)
+            if (entry.programme.parental === 'yes' || entry.programme.parental === 'true') {
+                allow = false;
+            }
+            
+            // Check rating system (BR, MPAA, TVPG, etc.)
+            if (entry.programme.rating) {
+                const rating = entry.programme.rating.toLowerCase();
+                // Adult ratings
+                if (rating.includes('18') || rating.includes('adult') || rating.includes('r-rated') || 
+                    rating.includes('nc-17') || rating.includes('xxx')) {
+                    allow = false;
+                }
+                // Teen ratings above parental control age
+                else if (rating.includes('16') || rating.includes('pg-16') || rating.includes('tv-ma')) {
+                    const parentalControlAge = config.get('parental-control-age', 0);
+                    if (parentalControlAge < 16) {
+                        allow = false;
+                    }
+                }
+                // 13+ ratings
+                else if (rating.includes('13') || rating.includes('pg-13') || rating.includes('tv-14')) {
+                    const parentalControlAge = config.get('parental-control-age', 0);
+                    if (parentalControlAge < 13) {
+                        allow = false;
+                    }
+                }
+                // 12+ ratings
+                else if (rating.includes('12') || rating.includes('pg-12')) {
+                    const parentalControlAge = config.get('parental-control-age', 0);
+                    if (parentalControlAge < 12) {
+                        allow = false;
+                    }
+                }
             }
         }
         

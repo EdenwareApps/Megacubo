@@ -65,7 +65,7 @@
     "http-cookie-agent": "^6.0.8",
     "iconv-lite": "^0.6.3",
     "ionic-plugin-deeplinks": "^1.0.24",
-    "jexidb": "^2.1.0",
+    "jexidb": "latest",
     "m3u8-parser": "^7.1.0",
     "mpegts.js": "^1.8.0",
     "node-cleanup": "^2.1.2",
@@ -79,9 +79,9 @@
     "svelte": "^5.33.14",
     "swipey.js": "^1.0.3",
     "tough-cookie": "^4.1.4",
-    "tv.megacubo.ffmpeg": "github:EdenwareApps/tv.megacubo.ffmpeg",
-    "tv.megacubo.pip": "^0.1.0",
-    "tv.megacubo.player": "github:EdenwareApps/tv.megacubo.player",
+    "tv.megacubo.ffmpeg": "latest",
+    "tv.megacubo.pip": "latest",
+    "tv.megacubo.player": "latest",
     "undici": "^6.21.2",
     "xmltv-stream": "^0.4.2",
     "ytsr": "^3.8.4"
@@ -103,7 +103,9 @@
     "core-js": "^3.41.0",
     "cross-env": "^10.1.0",
     "electron": "^35.2.1",
+    "patch-package": "^8.0.1",
     "postcss": "^8.5.3",
+    "postinstall-postinstall": "^2.1.0",
     "rimraf": "^6.0.1",
     "rollup": "^4.42.0",
     "rollup-plugin-copy": "^3.5.0",
@@ -119,6 +121,7 @@
     "megacubo": "./bin.js"
   },
   "scripts": {
+    "postinstall": "patch-package",
     "start": "node --max-old-space-size=4096 --expose-gc bin.js",
     "start:capacitor": "cap serve",
     "debug": "node --max-old-space-size=4096 --expose-gc bin.js debug",
@@ -128,8 +131,10 @@
     "clean": "cd android && gradlew clean",
     "clean:cache": "node scripts/clear-rollup-cache.js",
     "build": "cross-env NODE_ENV=production node --max-old-space-size=8192 build.mjs",
-    "build:dev": "cross-env NODE_ENV=development node --max-old-space-size=8192 build.mjs",
+    "build:debug": "cross-env NODE_ENV=development node --max-old-space-size=8192 build.mjs",
     "build:android": "cross-env NODE_ENV=production npm run build && node --max-old-space-size=4096 build-android.mjs",
+    "build:android:debug": "cross-env NODE_ENV=development DEBUG=true npm run build:debug && cross-env DEBUG=true node --max-old-space-size=4096 build-android.mjs",
+    "build:android:release": "cross-env NODE_ENV=production npm run build && node --max-old-space-size=4096 build-android.mjs",
     "build:electron": "electron-packager ./www/nodejs"
   }
 }

@@ -23,7 +23,7 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
         vectorDrawables.useSupportLibrary = true
-        resConfigs "en"
+        resourceConfigurations += ['en']
     }
     buildTypes {
         debug {

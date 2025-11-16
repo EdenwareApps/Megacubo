@@ -1,5 +1,5 @@
 // Centralized error handling and logging
-import { stringify } from '../serialize/serialize.js'
+import { stringify } from '../../serialize/serialize.js'
 
 export class EPGErrorHandler {
   static debugMode = false

@@ -15,7 +15,7 @@ The EPG worker has been refactored from a monolithic structure into a modular, m
 ## Directory Structure
 
 ```
-epg-worker/
+epg/worker/
 ├── index.js                     # Main entry point
 ├── config.js                    # Centralized configuration
 ├── EPGManager.js                 # Main EPG manager (orchestrator)
@@ -126,7 +126,7 @@ Performance monitoring and benchmarking tools. Provides:
 
 ### Basic Usage (Backwards Compatible)
 ```javascript
-import EPGManager from './epg-worker/index.js'
+import EPGManager from './index.js'
 
 const epgManager = new EPGManager()
 await epgManager.start(config, true) // true for Trias support
@@ -134,7 +134,7 @@ await epgManager.start(config, true) // true for Trias support
 
 ### Advanced Usage with Dependency Injection
 ```javascript
-import { EPG, CacheManager, MemoryMonitor } from './epg-worker/index.js'
+import { EPG, CacheManager, MemoryMonitor } from './index.js'
 
 // Custom dependencies
 const customCache = new CacheManager({ maxCacheSize: 10000 })
@@ -148,7 +148,7 @@ const epg = new EPG('http://example.com/epg.xml', null, {
 
 ### Using Individual Components
 ```javascript
-import { DatabaseFactory, ParserFactory, EPGValidator, PerformanceMonitor } from './epg-worker/index.js'
+import { DatabaseFactory, ParserFactory, EPGValidator, PerformanceMonitor } from './index.js'
 
 // Create specialized databases
 const db = DatabaseFactory.createProgrammeDB('/path/to/db')
@@ -176,7 +176,7 @@ The modular architecture makes unit testing much easier:
 
 ```javascript
 // Example test with mocked dependencies
-import { EPGUpdater } from './epg-worker/EPGUpdater.js'
+import { EPGUpdater } from './EPGUpdater.js'
 
 const mockDatabase = {
   createProgrammeDB: jest.fn(),
@@ -208,9 +208,9 @@ import EPGManager from '../lists/epg-worker.js'
 
 ### New Way
 ```javascript
-import EPGManager from './epg-worker/index.js'
+import EPGManager from '../epg/index.js'
 // or
-import { EPGManager, EPG, CacheManager } from './epg-worker/index.js'
+import { EPGManager, EPG, CacheManager } from '../epg/index.js'
 ```
 
 ## 📊 Configuration
@@ -242,7 +242,7 @@ export const EPG_CONFIG = {
 All errors are handled consistently through `EPGErrorHandler`:
 
 ```javascript
-import { EPGErrorHandler } from './epg-worker/EPGErrorHandler.js'
+import { EPGErrorHandler } from './EPGErrorHandler.js'
 
 EPGErrorHandler.setDebugMode(true)
 EPGErrorHandler.info('Operation started')
@@ -259,7 +259,7 @@ const result = await EPGErrorHandler.safeExecute(async () => {
 Memory and performance monitoring is built-in:
 
 ```javascript
-import { MemoryMonitor } from './epg-worker/memory/MemoryMonitor.js'
+import { MemoryMonitor } from './memory/MemoryMonitor.js'
 
 const monitor = new MemoryMonitor()
 monitor.onHighMemory((memInfo) => {

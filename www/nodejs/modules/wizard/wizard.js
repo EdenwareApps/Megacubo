@@ -26,10 +26,66 @@ class Wizard extends EventEmitter {
         await this.lists();
         await this.performance();
         this.active = false;
-        config.set('setup-completed', true);
+        // Only mark as completed if there are actually lists configured
+        const hasLists = (config.get('lists') && config.get('lists').length) || config.get('communitary-mode-lists-amount') || config.get('public-lists') === 'only';
+        if (hasLists) {
+            config.set('setup-completed', true);
+        } else {
+            config.set('setup-completed', false);
+        }
     }
     async lists() {
         this.active = true;
+		const waitForAutoRetry = async () => {
+			const manager = lists?.manager;
+			const shouldDelay = () => {
+				const current = manager?.noListsAutoRetryState;
+				if (!current || current.exhausted) {
+					return false;
+				}
+				return Boolean(current.timer || current.awaitingResult || current.attempts === 0);
+			};
+			if (!shouldDelay()) {
+				return;
+			}
+			await new Promise(resolve => {
+				let finished = false;
+				const cleanup = () => {
+					if (finished) return;
+					finished = true;
+					clearTimeout(maxWait);
+					clearInterval(tick);
+					if (typeof lists.off === 'function') {
+						lists.off('state', onState);
+					} else if (typeof lists.removeListener === 'function') {
+						lists.removeListener('state', onState);
+					}
+					resolve();
+				};
+				const check = () => {
+					if (!shouldDelay() || lists.loaded()) {
+						cleanup();
+					}
+				};
+				const onState = info => {
+					if (info?.length) {
+						cleanup();
+					} else {
+						check();
+					}
+				};
+				const tick = setInterval(check, 200);
+				const maxWait = setTimeout(cleanup, 4000);
+				if (typeof lists.on === 'function') {
+					lists.on('state', onState);
+				}
+				check();
+			});
+		};
+		await waitForAutoRetry();
+		if (lists.loaded(true)) {
+			return true;
+		}
         if (!paths.ALLOW_ADDING_LISTS) {
             if (!config.get('legal-notice-shown')) {
                 config.set('legal-notice-shown', true);
@@ -79,6 +135,7 @@ class Wizard extends EventEmitter {
         if (ret !== true) {
             return this.lists();
         }
+        return ret;
     }
     async performance() {
         let ram = await diag.checkMemory().catch(err => {

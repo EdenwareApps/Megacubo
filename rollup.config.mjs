@@ -13,6 +13,7 @@ import { babel, getBabelOutputPlugin } from '@rollup/plugin-babel';
 
 // import config Babel via import ESM
 import babelConfig from './babel.config.json' with { type: 'json' };
+import babelNodeOutput from './babel.node-output.json' with { type: 'json' };
 import babelRendererOutput from './babel.renderer-output.json' with { type: 'json' };
 import babelRendererPolyfills from './babel.renderer-polyfills.json' with { type: 'json' };
 
@@ -41,8 +42,14 @@ const rendererPlugins = [
     preprocess: sveltePreprocess(),
     compilerOptions: { css: 'injected', compatibility: { componentApi: 4 } }
   }),
-  babel({ ...babelRendererPolyfills, babelHelpers: 'runtime', extensions: ['.js', '.svelte'], skipPreflightCheck: true }),
-  resolve({ browser: true, exportConditions: ['node', 'svelte', 'import', 'default'], extensions: ['.svelte'], preferBuiltins: false }),
+  babel({ ...babelRendererPolyfills, babelHelpers: 'bundled', extensions: ['.js', '.svelte'], skipPreflightCheck: true }),
+  resolve({ 
+    browser: true, 
+    exportConditions: ['svelte', 'node', 'import', 'default'], 
+    extensions: ['.js', '.mjs', '.json', '.svelte'], 
+    preferBuiltins: false,
+    resolveOnly: [] // Allow all modules to be resolved
+  }),
   commonjs({ sourcemap: true }),
   builtins(),
   getBabelOutputPlugin({ ...babelRendererOutput, allowAllFormats: true }),
@@ -73,6 +80,7 @@ const rendererPlugins = [
 // Babel config import
 // bundles main, preload e workers
 const baseBabelOpts = babelConfig;
+const nodeBabelOpts = babelNodeOutput;
 const watchOpts = { buildDelay: 3000, exclude: 'node_modules/**' };
 const external = [
   'electron',
@@ -80,6 +88,53 @@ const external = [
   /premium\./
 ];
 const outputs = [];
+
+// Plugin to resolve node:sqlite to a mock module (prevents external dependency warning)
+function sqliteResolvePlugin() {
+  return {
+    name: 'sqlite-resolve',
+    resolveId(source) {
+      // Intercept node:sqlite and return virtual module ID
+      if (source === 'node:sqlite') {
+        return '\0node:sqlite'; // Virtual module ID (null-byte prefix)
+      }
+      return null;
+    },
+    load(id) {
+      // Return mock module when virtual ID is loaded
+      // This replaces require('node:sqlite') with a mock implementation
+      if (id === '\0node:sqlite') {
+        return `
+// Mock module for node:sqlite (not available on Android)
+class DatabaseSync {
+  constructor() {}
+  close() {}
+  prepare() {
+    return {
+      run: () => {},
+      get: () => null,
+      all: () => []
+    };
+  }
+}
+
+class StatementSync {}
+
+function openSync() {
+  throw new Error('SQLite not available on Android');
+}
+
+// Support both ESM and CommonJS
+exports.DatabaseSync = DatabaseSync;
+exports.StatementSync = StatementSync;
+exports.openSync = openSync;
+module.exports = { DatabaseSync, StatementSync, openSync };
+`;
+      }
+      return null;
+    }
+  };
+}
 
 // helper for Node.js bundles
 function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals = null, isLargeFile = false, isMainProcess = false }) {
@@ -108,6 +163,7 @@ function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals
   };
 
   const plugins = [
+    sqliteResolvePlugin(), // Resolve node:sqlite to mock module (must be before resolve)
     resolve({
       ...baseResolveOpts,
       // Configurações específicas para main process
@@ -155,7 +211,26 @@ function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals
     external: Array.isArray(externals) ? externals : external,
     watch: watchOpts,
     maxParallelFileOps: isLargeFile || isMainProcess ? 1 : undefined, // Forçar 1 para main process
-    treeshake: isLargeFile || isMainProcess ? false : undefined, // Desabilitar para main process
+    treeshake: isLargeFile ? false : (isMainProcess ? {
+      // Tree shaking habilitado para main.js com configurações conservadoras
+      moduleSideEffects: (id) => {
+        // Preservar módulos que podem ter side effects importantes
+        if (id.includes('analytics.js') || 
+            id.includes('crashlog.js') ||
+            id.includes('node-cleanup') ||
+            id.includes('onexit')) {
+          return true; // Preservar side effects
+        }
+        // Para módulos próprios, assumir que podem ter side effects (conservador)
+        if (id.includes('www/nodejs/modules/') && !id.includes('node_modules')) {
+          return true; // Preservar módulos próprios por segurança
+        }
+        // Para node_modules, tentar tree shaking (mais seguro)
+        return false; // Permitir tree shaking em node_modules
+      },
+      propertyReadSideEffects: false, // Propriedades podem ser tree-shaken
+      tryCatchDeoptimization: false // Não desotimizar try-catch
+    } : undefined),
     // Configurações específicas para main process
     ...(isMainProcess ? {
       preserveEntrySignatures: 'allow-extension',
@@ -203,7 +278,7 @@ outputs.push(
 makeNodeBundle({
   input: 'www/nodejs/main.mjs',
   output: { format: 'cjs', file: 'www/nodejs/dist/main.js', inlineDynamicImports: true, sourcemap: false }, // Desabilitar sourcemap para main process
-  babelOpts: baseBabelOpts,
+  babelOpts: nodeBabelOpts,
   isMainProcess: true, // Ativar otimizações específicas para main process
   extraPlugins: [
     copy({ targets: [
@@ -211,7 +286,6 @@ makeNodeBundle({
       { src: 'node_modules/create-desktop-shortcuts/src/windows.vbs', dest: 'www/nodejs/dist' },
       { src: 'node_modules/hls.js/dist/hls.min.js', dest: 'www/nodejs/renderer/dist' },
       { src: 'node_modules/mpegts.js/dist/mpegts.js', dest: 'www/nodejs/renderer/dist' },
-      { src: 'node_modules/dashjs/dist/dash.all.min.js', dest: 'www/nodejs/renderer/dist' }
     ] })
   ]
 });
@@ -219,14 +293,14 @@ makeNodeBundle({
 makeNodeBundle({
   input: 'www/nodejs/electron.mjs',
   output: { format: 'cjs', file: 'www/nodejs/dist/electron.js', inlineDynamicImports: true, sourcemap: true },
-  babelOpts: baseBabelOpts,
+  babelOpts: nodeBabelOpts,
   externals: ['electron', /.+\.(node|native)$/]
 });
 
 [
   'preload.mjs',
   'modules/lists/updater-worker.js',
-  'modules/epg-worker/EPGManager.js',
+  'modules/epg/worker/EPGManager.js',
   'modules/streamer/utils/mpegts-processor-worker.js',
   'modules/multi-worker/worker.mjs'
 ].forEach(file => {
@@ -235,7 +309,7 @@ makeNodeBundle({
   makeNodeBundle({
     input: `www/nodejs/${file}`,
     output: { format: 'cjs', file: `www/nodejs/dist/${outputFile}`, inlineDynamicImports: true, sourcemap: true },
-    babelOpts: baseBabelOpts,
+    babelOpts: nodeBabelOpts,
     externals: ['electron', /.+\.(node|native)$/],
     isLargeFile
   });
@@ -245,7 +319,7 @@ if (fs.existsSync('www/nodejs/modules/premium/premium.js')) {
   makeNodeBundle({
     input: 'www/nodejs/modules/premium/premium.js',
     output: { format: 'cjs', file: 'www/nodejs/dist/premium.js', inlineDynamicImports: true, sourcemap: true },
-    babelOpts: baseBabelOpts,
+    babelOpts: nodeBabelOpts,
     externals: ['electron', /.+\.(node|native)$/]
   });
 }

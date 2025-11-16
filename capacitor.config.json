@@ -6,7 +6,8 @@
   "appName": "Megacubo",
   "webDir": "www",
   "server": {
-    "androidScheme": "http"
+    "androidScheme": "http",
+    "appStartPath": "/nodejs/renderer/index.html?android"
   },
   "plugins": {
     "CapacitorNodeJS": {

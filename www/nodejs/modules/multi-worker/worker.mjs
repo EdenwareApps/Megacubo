@@ -67,8 +67,6 @@ let langListeners = []
 // This integrates with getLangObject() from multi-worker.js
 async function setupLanguage() {
     try {
-        console.log('🔧 Reconstructing Language...')
-        
         // Validate required data
         if (!global.$lang) {
             console.error('❌ global.$lang is undefined')
@@ -86,8 +84,6 @@ async function setupLanguage() {
             return false
         }
         
-        console.log(`🔧 Language data: hint=${languageHint}, locale=${locale}, folder=${folder} ${JSON.stringify(global.$lang)}`)
-        
         await lang.load(languageHint, locale, folder, timezone)
         
         if (timezone && timezone.name) {
@@ -96,8 +92,6 @@ async function setupLanguage() {
         if (locale && global.$lang.countryCode) {
             moment.locale([locale + '-' + global.$lang.countryCode, locale])
         }
-
-        console.log(`📊 Reconstructed lang: locale=${lang.locale}, countryCode=${lang.countryCode}, ready=${lang.ready}`)
         
         // Verify that lang was properly initialized
         if (!lang.locale || !lang.countryCode) {
@@ -190,21 +184,17 @@ const onMessage = msg => {
         global.lang.locale && moment.locale([global.lang.locale + '-' + global.lang.countryCode, global.lang.locale])
 
         // CRITICAL FIX: Reconstruct Language instance when language changes
-        console.log('🔄 Language updated in worker', global.lang.locale, global.lang.countryCode, global.lang.timezone)
     } else if (msg.method == 'storageTouch') {
         const changed = storage.validateTouchSync(msg.key, msg.entry)
         if (changed && changed.length) {
             storage.touch(msg.key, msg.entry, true).catch(err => console.error(err))
         }
     } else if (msg.method == 'loadWorker') {
-        console.log('🔧 Loading worker:', msg.file)
         if (!drivers[msg.file]) {
             const distFile = paths.cwd + '/dist/' + path.basename(msg.file).replace(new RegExp('\\.m?js$'), '.js')
-            console.log('🔧 Dist file path:', distFile)
             try {
                 const Driver = require(distFile)
                 drivers[msg.file] = new Driver()
-                console.log('✅ Worker loaded successfully:', msg.file)
                 if (typeof (drivers[msg.file].terminate) != 'function') {
                     console.error('Warning: worker ' + msg.file + ' has no terminate() method.')
                 }
@@ -218,7 +208,6 @@ const onMessage = msg => {
                 postMessage({ type: 'driver-load-error', file: msg.file, error: e.message })
             }
         } else {
-            console.log('🔧 Worker already loaded:', msg.file)
             // Send confirmation back to main process
             postMessage({ type: 'driver-loaded', file: msg.file })
         }
@@ -265,19 +254,11 @@ const onMessage = msg => {
 parentPort.on('message', onMessage)
 
 // Initialize language reconstruction
-console.log('🔧 Starting language reconstruction...')
-
 // Wait for language to be ready before setting up
 async function initializeLanguage() {
     try {
         // Check if global.$lang has valid data
         if (!global.$lang || !global.$lang.folder) {
-            console.log('🔧 Language data not ready, waiting for lang.ready()...')
-            
-            // Wait for language to be ready in the main process
-            // This is a fallback mechanism - the main process should ensure $lang is populated
-            console.log('🔧 Attempting to wait for language data...')
-            
             // Try to wait a bit for the main process to populate $lang
             await new Promise(resolve => setTimeout(resolve, 1000))
             
@@ -288,7 +269,6 @@ async function initializeLanguage() {
             }
         }
         
-        console.log('🔧 Language data available, proceeding with setup...')
         return await setupLanguage()
     } catch (error) {
         console.error('❌ Error during language initialization:', error.message)
@@ -298,9 +278,7 @@ async function initializeLanguage() {
 
 initializeLanguage().finally(() => {
     // Process pending language listeners safely
-    console.log('🔧 Processing pending language listeners...', typeof langListeners)
     if (Array.isArray(langListeners)) {
-        console.log(`🔧 Processing ${langListeners.length} pending language listeners`)
         const listeners = [...langListeners]
         langListeners = null
         while (listeners.length) {
@@ -313,6 +291,5 @@ initializeLanguage().finally(() => {
                 console.error('Error on langListeners:', e.message || e, msg)
             }
         }
-        console.log('🔧 Pending language listeners processed')
     }
 })

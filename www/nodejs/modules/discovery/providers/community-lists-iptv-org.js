@@ -18,15 +18,26 @@ export default class CommunityListsIPTVORG extends EventEmitter {
         this.id = 'community-lists-iptv-org'
         this.ready = ready()
         this.countries = new Countries();
+        this.forceRefreshFlag = false;
         this.load().catch(err => console.error(err));
         renderer.ready(() => menu.addFilter(this.hook.bind(this)));
     }
-    async load() {
-        if (!Object.keys(this.data).length) {
-            await cloud.get('configure').then(c => {
+    setForceRefresh(enable = true) {
+        if (enable) {
+            this.forceRefreshFlag = true;
+            this.data = {};
+            this.ready = ready();
+            this.load(true).catch(err => console.error(err));
+        }
+    }
+    async load(force = false) {
+        if (!Object.keys(this.data).length || force || this.forceRefreshFlag) {
+            const cloudOpts = (force || this.forceRefreshFlag) ? { bypassCache: true } : undefined;
+            await cloud.get('configure', cloudOpts).then(c => {
                 this.data = c['sources'] || {};
             }).catch(err => console.error(err));
         }
+        this.forceRefreshFlag = false;
         this.ready.done()
     }
     async discovery(adder) {

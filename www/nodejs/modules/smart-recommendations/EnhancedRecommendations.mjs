@@ -1,6 +1,5 @@
 import { EventEmitter } from 'node:events'
-import { EPGErrorHandler } from '../epg-worker/EPGErrorHandler.js'
-import { AIRecommendationEngine } from './AIRecommendationEngine.mjs'
+import { EPGErrorHandler } from '../epg/worker/EPGErrorHandler.js'
 import { AITagExpansion } from './AITagExpansion.mjs'
 import { SmartCache } from './SmartCache.mjs'
 
@@ -12,7 +11,6 @@ export class EnhancedRecommendations extends EventEmitter {
     constructor(aiClient) {
         super()
         this.aiClient = aiClient
-        this.aiEngine = new AIRecommendationEngine(aiClient)
         this.aiTagExpansion = new AITagExpansion(aiClient)
         // SemanticContentDiscovery removed - not used
         // TriasLearningSystem removed - learning not needed with AI
@@ -29,11 +27,11 @@ export class EnhancedRecommendations extends EventEmitter {
             traditionalWeight: 0.4
         }
         this.readyState = 0
+        this.normalizedScoreWeight = 3
         this.performanceMetrics = {
             requestCount: 0,
             averageResponseTime: 0,
             cacheHitRate: 0,
-            semanticScoreTime: [],
             expansionTime: []
         }
     }
@@ -84,7 +82,8 @@ export class EnhancedRecommendations extends EventEmitter {
 
         } catch (error) {
             EPGErrorHandler.error('Enhanced recommendations failed:', error)
-            return await this.getFallbackRecommendations(userContext)
+            const fallback = await this.getFallbackRecommendations(userContext)
+            return this.applyAdvancedFilters(fallback, userContext, this.config.defaultLimit)
         }
     }
 
@@ -120,32 +119,31 @@ export class EnhancedRecommendations extends EventEmitter {
             
             this.performanceMetrics.expansionTime.push(Date.now() - expansionStart)
 
-            // 2. Get EPG data with semantic filtering
-            const epgData = await this.getSemanticEPGData(expandedTags, userContext)
+            // 2. Get data with semantic filtering (EPG for live, multiSearch for VOD)
+            let epgData
+            if (options.type === 'video' || options.type === 'vod') {
+                // Use multiSearch for VOD content
+                epgData = await this.getSemanticVODData(expandedTags, userContext, {...options, group: false, typeStrict: true})
+            } else {
+                // Use EPG for live content
+                epgData = await this.getSemanticEPGData(expandedTags, userContext)
+            }
 
-            // 3. Calculate semantic scores for all programmes
-            const scoredRecommendations = await this.calculateSemanticScores(
-                epgData,
-                expandedTags,
-                userContext
-            )
+            // 3. Base scoring using the raw values provided by JexiDB/list sources
+            const scoredRecommendations = (Array.isArray(epgData) ? epgData : []).map(programme => ({
+                ...programme,
+                score: typeof programme.score === 'number' ? programme.score : 0
+            }))
 
-            // 4. Apply diversity and quality filters
+            // 4. Apply filters and scoring adjustments
+            const targetAmount = options.limit || options.amount || this.config.defaultLimit;
             const filteredRecommendations = this.applyAdvancedFilters(
                 scoredRecommendations,
-                userContext
+                userContext,
+                targetAmount
             )
 
-            // Semantic discovery removed - not needed with term-based matching
-            const diverseRecommendations = filteredRecommendations
-
-            // 6. Final ranking and selection
-            const finalRecommendations = this.finalRanking(
-                diverseRecommendations,
-                options
-            )
-
-            return finalRecommendations
+            return filteredRecommendations
 
         } catch (error) {
             EPGErrorHandler.warn('Recommendation generation failed:', error.message)
@@ -154,181 +152,78 @@ export class EnhancedRecommendations extends EventEmitter {
     }
 
     /**
-     * Calculate semantic scores for programmes
-     * @param {Array} epgData - EPG programme data
-     * @param {Object} expandedTags - Expanded user tags
-     * @param {Object} userContext - User context
-     * @returns {Promise<Array>} Scored recommendations
-     */
-    async calculateSemanticScores(epgData, expandedTags, userContext) {
-        const scoredProgrammes = []
-
-        for (const programme of epgData) {
-            try {
-                const semanticStart = Date.now()
-
-                // Calculate semantic score using AI
-                const semanticScore = await this.aiEngine.calculateSemanticScore(
-                    programme,
-                    expandedTags,
-                    userContext
-                )
-
-                this.performanceMetrics.semanticScoreTime.push(Date.now() - semanticStart)
-
-                // Score already combines semantic + traditional internally
-                const finalScore = semanticScore
-
-                scoredProgrammes.push({
-                    ...programme,
-                    semanticScore,
-                    finalScore,
-                    confidence: semanticScore // Confidence = score itself
-                })
-
-            } catch (error) {
-                EPGErrorHandler.warn(`Semantic scoring failed for programme: ${programme.t}`, error.message)
-                // Fallback to neutral score
-                scoredProgrammes.push({
-                    ...programme,
-                    semanticScore: 0.5,
-                    finalScore: 0.5,
-                    confidence: 0.3
-                })
-            }
-        }
-
-        return scoredProgrammes
-    }
-
-    // addSemanticDiscovery() removed - SemanticContentDiscovery not used
-
-    /**
-     * Combine semantic and traditional scores
-     * @param {number} semanticScore - Semantic score
-     * @param {number} traditionalScore - Traditional score
-     * @param {Object} weights - Personalized weights
-     * @returns {number} Combined score
-     */
-    combineScores(semanticScore, traditionalScore, weights) {
-        const semanticWeight = weights.semanticRelevance || this.config.semanticWeight
-        const traditionalWeight = weights.userPreference || this.config.traditionalWeight
-
-        return (semanticScore * semanticWeight) + (traditionalScore * traditionalWeight)
-    }
-
-    /**
-     * Calculate confidence score
-     * @param {number} semanticScore - Semantic score
-     * @param {number} traditionalScore - Traditional score
-     * @returns {number} Confidence score
-     */
-    calculateConfidence(semanticScore, traditionalScore) {
-        // High confidence when both scores agree
-        const scoreDifference = Math.abs(semanticScore - traditionalScore)
-        const averageScore = (semanticScore + traditionalScore) / 2
-
-        if (scoreDifference < 0.2 && averageScore > 0.6) {
-            return 0.9 // High confidence
-        } else if (scoreDifference < 0.4 && averageScore > 0.4) {
-            return 0.7 // Medium confidence
-        } else {
-            return 0.5 // Low confidence
-        }
-    }
-
-    /**
-     * Calculate traditional score based on category matching
-     * @param {Object} programme - Programme data
-     * @param {Object} userTags - User tags
-     * @returns {number} Traditional score
-     */
-    calculateTraditionalScore(programme, userTags) {
-        if (!programme.c || !Array.isArray(programme.c)) return 0
-
-        let totalScore = 0
-        let matches = 0
-
-        programme.c.forEach(category => {
-            const normalizedCategory = category.toLowerCase()
-            if (userTags[normalizedCategory]) {
-                totalScore += userTags[normalizedCategory]
-                matches++
-            }
-        })
-
-        return matches > 0 ? totalScore / matches : 0
-    }
-
-    /**
      * Apply advanced filters to recommendations
      * @param {Array} recommendations - Scored recommendations
      * @param {Object} userContext - User context
+     * @param {number} targetAmount - Target amount to return (priority)
      * @returns {Array} Filtered recommendations
      */
-    applyAdvancedFilters(recommendations, userContext) {
-        // Filter by confidence threshold
-        let filtered = recommendations.filter(r => r.confidence >= 0.3)
+    applyAdvancedFilters(recommendations, userContext, targetAmount = null) {
+        let filtered = Array.isArray(recommendations) ? recommendations.slice() : []
 
-        // Apply parental control if needed
         if (userContext.applyParentalControl) {
             filtered = this.applyParentalControl(filtered, userContext.userId)
         }
 
-        // Apply diversity filter
-        filtered = this.ensureDiversity(filtered, userContext.diversityTarget || 0.7)
+        filtered = filtered.filter(rec => typeof rec.score === 'number' && !Number.isNaN(rec.score))
 
-        // Sort by final score
-        return filtered.sort((a, b) => b.finalScore - a.finalScore)
-    }
-
-    /**
-     * Ensure diversity in recommendations
-     * @param {Array} recommendations - Recommendations
-     * @param {number} targetDiversity - Target diversity score
-     * @returns {Array} Diverse recommendations
-     */
-    ensureDiversity(recommendations, targetDiversity = 0.7) {
-        const categories = new Map()
-        const channels = new Set()
-        const diverseRecommendations = []
-
-        for (const rec of recommendations) {
-            const category = rec.c?.[0] || 'other'
-            const channel = rec.ch
-
-            // Check if adding this recommendation maintains diversity
-            const categoryCount = categories.get(category) || 0
-            const channelCount = Array.from(channels).filter(c => c === channel).length
-
-            if (this.shouldIncludeForDiversity(categoryCount, channelCount, diverseRecommendations.length)) {
-                diverseRecommendations.push(rec)
-                categories.set(category, categoryCount + 1)
-                channels.add(channel)
-            }
+        if (!filtered.length) {
+            return filtered
         }
 
-        return diverseRecommendations
-    }
+        const now = Date.now() / 1000
+        const scores = filtered.map(rec => rec.score ?? 0)
+        const minScore = Math.min(...scores)
+        const maxScore = Math.max(...scores)
 
-    /**
-     * Check if recommendation should be included for diversity
-     * @param {number} categoryCount - Current category count
-     * @param {number} channelCount - Current channel count
-     * @param {number} totalCount - Total recommendations
-     * @returns {boolean} Should include
-     */
-    shouldIncludeForDiversity(categoryCount, channelCount, totalCount) {
-        // Allow more variety in early recommendations
-        if (totalCount < 5) return true
+        const timingDiffs = filtered
+            .map(rec => {
+                const start = typeof rec.start === 'number'
+                    ? rec.start
+                    : (typeof rec.programme?.start === 'number' ? rec.programme.start : null)
+                if (start === null) return null
+                return Math.abs(start - now)
+            })
+            .filter(diff => diff !== null)
 
-        // Limit same category to 2 items
-        if (categoryCount >= 2) return false
+        const minDiff = timingDiffs.length ? Math.min(...timingDiffs) : null
+        const maxDiff = timingDiffs.length ? Math.max(...timingDiffs) : null
 
-        // Limit same channel to 3 items
-        if (channelCount >= 3) return false
+        filtered = filtered.map(rec => {
+            const rawScore = rec.score ?? 0
+            const normalizedScore = maxScore > minScore
+                ? (rawScore - minScore) / (maxScore - minScore)
+                : 1
 
-        return true
+            const start = typeof rec.start === 'number'
+                ? rec.start
+                : (typeof rec.programme?.start === 'number' ? rec.programme.start : null)
+
+            let timingScore = 0
+            if (start !== null && minDiff !== null && maxDiff !== null) {
+                const diff = Math.abs(start - now)
+                timingScore = maxDiff > minDiff
+                    ? 1 - ((diff - minDiff) / (maxDiff - minDiff))
+                    : 1
+            }
+
+            const finalScore = ((normalizedScore * this.normalizedScoreWeight) + timingScore) / (this.normalizedScoreWeight + 1)
+
+            return {
+                ...rec,
+                normalizedScore,
+                timingScore,
+                finalScore
+            }
+        })
+
+        filtered.sort((a, b) => (b.finalScore ?? 0) - (a.finalScore ?? 0))
+
+        if (targetAmount && filtered.length > targetAmount) {
+            filtered = filtered.slice(0, targetAmount)
+        }
+
+        return filtered
     }
 
     /**
@@ -344,27 +239,6 @@ export class EnhancedRecommendations extends EventEmitter {
     }
 
     /**
-     * Final ranking and selection
-     * @param {Array} recommendations - Recommendations
-     * @param {Object} options - Options
-     * @returns {Array} Final recommendations
-     */
-    finalRanking(recommendations, options) {
-        const limit = options.limit || this.config.defaultLimit
-
-        // Sort by final score and confidence
-        const ranked = recommendations.sort((a, b) => {
-            const scoreDiff = b.finalScore - a.finalScore
-            if (Math.abs(scoreDiff) < 0.1) {
-                return b.confidence - a.confidence
-            }
-            return scoreDiff
-        })
-
-        return ranked.slice(0, limit)
-    }
-
-    /**
      * Get semantic EPG data
      * @param {Object} expandedTags - Expanded tags
      * @param {Object} userContext - User context
@@ -374,7 +248,7 @@ export class EnhancedRecommendations extends EventEmitter {
         try {
             // Check if EPG is available and has data
             const epgManager = global.lists?.epg
-            if (!epgManager) {
+            if (!epgManager || !epgManager.loaded?.length) {
                 EPGErrorHandler.warn('EPG Manager not available, cannot get semantic data')
                 return []
             }
@@ -407,22 +281,101 @@ export class EnhancedRecommendations extends EventEmitter {
             const epgRecommendations = await global.lists.epg.getRecommendations(
                 categories,
                 null, // until - use default (6 hours from now)
-                256,  // limit - get more results for better selection
-                null  // chList - opcional, sem filtragem de canais para debug
+                256  // limit - get more results for better selection
             )
 
             // Transform EPG recommendations to our format
             const programmes = epgRecommendations.map(programme => ({
                 ...programme,
-                channel: programme.ch, // Use ch field as channel name
-                start: programme.start
+                channel: programme.channel,
+                start: programme.start,
+                score: typeof programme.score === 'number' ? programme.score : 0
             }))
 
             EPGErrorHandler.debug(`Found ${programmes.length} programmes from EPG system using ${Object.keys(categories).length} categories`)
-            return programmes
+            return this.applyAdvancedFilters(programmes, userContext, this.config.defaultLimit)
 
         } catch (error) {
             EPGErrorHandler.warn('Failed to get semantic EPG data: '+ String(error))
+            return []
+        }
+    }
+
+    /**
+     * Get VOD content from lists using multiSearch
+     * @param {Object} expandedTags - Expanded tags
+     * @param {Object} userContext - User context
+     * @param {Object} options - Options
+     * @returns {Promise<Array>} VOD entries in EPG-compatible format
+     */
+    async getSemanticVODData(expandedTags, userContext, options = {}) {
+        try {
+            // Check if lists are available
+            if (!global.lists || typeof global.lists.multiSearch !== 'function') {
+                EPGErrorHandler.warn('Lists multiSearch not available, cannot get VOD data')
+                return []
+            }
+
+            // Build score map from tags (same format as multiSearch expects)
+            const scoreMap = {}
+
+            // 1. Add user's original tags with full weight
+            if (userContext.tags) {
+                Object.entries(userContext.tags).forEach(([tag, weight]) => {
+                    scoreMap[tag] = weight
+                })
+            }
+
+            // 2. Add expanded tags with reduced weight to broaden search
+            if (expandedTags) {
+                Object.entries(expandedTags).forEach(([tag, weight]) => {
+                    // Accumulate scores if tag appears multiple times
+                    const currentWeight = weight * 0.7 // Reduce weight for expanded tags
+                    scoreMap[tag] = (scoreMap[tag] || 0) + currentWeight
+                })
+            }
+
+            if (Object.keys(scoreMap).length === 0) {
+                EPGErrorHandler.warn('No tags provided for VOD search')
+                return []
+            }
+
+            // Use multiSearch to get VOD entries from lists
+            const searchOpts = {
+                limit: options.limit || 256,
+                type: 'vod', // VOD content
+                group: options.group === true, // Search in groups if group is true
+                typeStrict: options.typeStrict !== false // Search strictly if typeStrict is not false
+            }
+
+            EPGErrorHandler.debug(`Calling multiSearch for VOD with ${Object.keys(scoreMap).length} tags, limit: ${searchOpts.limit}`)
+            console.log('multiSearch', scoreMap, searchOpts);
+            const vodEntries = await global.lists.multiSearch(scoreMap, searchOpts)
+
+            EPGErrorHandler.debug(`Found ${vodEntries.length} VOD entries from lists using ${Object.keys(scoreMap).length} tags`)
+            
+            // Transform to EPG-compatible format (similar to EPG programmes format)
+            const programmes = vodEntries.map(entry => ({
+                title: entry.name || '',
+                desc: entry.description || '',
+                channel: entry.group || '',
+                categories: entry.group ? [entry.group] : [],
+                icon: entry.icon || '',
+                url: entry.url || '',
+                source: entry.source || '',
+                score: typeof entry.score === 'number' ? entry.score : 0,
+                // Add fields for compatibility with EPG format
+                start: 0, // VOD doesn't have start time
+                end: 0,   // VOD doesn't have end time
+                type: 'vod',
+                // Preserve original entry data
+                entry: entry
+            }))
+
+            return programmes
+
+        } catch (error) {
+            EPGErrorHandler.warn('Failed to get semantic VOD data: '+ String(error))
             return []
         }
     }
@@ -483,8 +436,9 @@ export class EnhancedRecommendations extends EventEmitter {
             // Transform EPG recommendations to our format
             const programmes = epgRecommendations.map(programme => ({
                 ...programme,
-                channel: programme.ch, // Use ch field as channel name
-                start: programme.start
+                channel: programme.channel,
+                start: programme.start,
+                score: typeof programme.score === 'number' ? programme.score : 0
             }))
 
             EPGErrorHandler.debug(`Found ${programmes.length} relevant programmes for user interests`)
@@ -514,19 +468,15 @@ export class EnhancedRecommendations extends EventEmitter {
             const epgRecommendations = await global.lists.epg.getRecommendations(
                 categories,
                 null, // until - use default
-                25,   // limit
-                Object.values(global.channels.channelList.channelsIndex)
+                25   // limit
             )
 
             // Transform to our format
             const programmes = epgRecommendations.map(programme => ({
                 ...programme,
-                channel: programme.ch, // Use ch field as channel name
+                channel: programme.channel,
                 start: programme.start,
-                traditionalScore: 0.8, // High score for fallback
-                semanticScore: 0.5,    // Medium semantic score
-                finalScore: 0.7,       // Combined score
-                confidence: 0.6,       // Medium confidence
+                score: typeof programme.score === 'number' ? programme.score : 0,
                 fallback: true
             }))
 
@@ -537,22 +487,6 @@ export class EnhancedRecommendations extends EventEmitter {
             EPGErrorHandler.warn('Fallback recommendations failed:', error.message)
             return []
         }
-    }
-
-    /**
-     * Record user feedback for learning
-     * @param {string} userId - User ID
-     * @param {Object} recommendation - Recommendation
-     * @param {string} action - User action
-     * @param {Object} context - Context
-     */
-    async recordUserFeedback(userId, recommendation, action, context) {
-        await this.learning.recordUserFeedback(userId, recommendation, action, context)
-
-        // Invalidate user-specific cache
-        this.cache.invalidateByUser(userId)
-
-        this.emit('feedbackRecorded', { userId, action, recommendation })
     }
 
     /**
@@ -576,9 +510,27 @@ export class EnhancedRecommendations extends EventEmitter {
      * @returns {string} Cache key
      */
     generateCacheKey(userContext, options) {
-        const tagsKey = Object.keys(userContext.tags).sort().join(',')
-        const optionsKey = JSON.stringify(options)
-        return `rec:${userContext.userId}:${tagsKey}:${optionsKey}`
+        const entries = Object.entries(userContext.tags || {})
+        const serializedTags = entries.length
+            ? entries
+                .map(([key, value]) => {
+                    let formatted = '1.0000'
+                    if (typeof value === 'number' && Number.isFinite(value)) {
+                        formatted = Number(value).toFixed(4)
+                    } else if (typeof value === 'boolean') {
+                        formatted = value ? 'true' : 'false'
+                    } else if (value != null) {
+                        formatted = String(value)
+                    } else {
+                        formatted = 'null'
+                    }
+                    return `${key}:${formatted}`
+                })
+                .sort()
+                .join('|')
+            : '__no_tags__'
+        const optionsKey = JSON.stringify(options || {})
+        return `rec:${userContext.userId}:${serializedTags}:${optionsKey}`
     }
 
     /**
@@ -599,8 +551,7 @@ export class EnhancedRecommendations extends EventEmitter {
     getPerformanceMetrics() {
         return {
             ...this.performanceMetrics,
-            cacheStats: this.cache.getStats(),
-            learningStats: this.learning.getLearningStats()
+            cacheStats: this.cache.getStats()
         }
     }
 
@@ -611,8 +562,7 @@ export class EnhancedRecommendations extends EventEmitter {
     getHealthStatus() {
         return {
             readyState: this.readyState,
-            cacheHealthy: this.cache.getStats().validEntries > 0,
-            learningActive: this.learning.getLearningStats().totalFeedback > 0
+            cacheHealthy: this.cache.getStats().validEntries > 0
         }
     }
 
@@ -622,8 +572,26 @@ export class EnhancedRecommendations extends EventEmitter {
      * @returns {string} Cache key
      */
     generateTagCacheKey(userTags) {
-        const sortedTags = Object.keys(userTags).sort().join(',')
-        return `tags:${sortedTags}`
+        const entries = Object.entries(userTags || {})
+        const serialized = entries.length
+            ? entries
+                .map(([key, value]) => {
+                    let formatted = '1.0000'
+                    if (typeof value === 'number' && Number.isFinite(value)) {
+                        formatted = Number(value).toFixed(4)
+                    } else if (typeof value === 'boolean') {
+                        formatted = value ? 'true' : 'false'
+                    } else if (value != null) {
+                        formatted = String(value)
+                    } else {
+                        formatted = 'null'
+                    }
+                    return `${key}:${formatted}`
+                })
+                .sort()
+                .join('|')
+            : '__no_tags__'
+        return `tags:${serialized}`
     }
 
     /**

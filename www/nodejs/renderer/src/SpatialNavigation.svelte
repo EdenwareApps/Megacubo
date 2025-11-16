@@ -213,11 +213,9 @@
     if (typeof sel === "string") {
       elements.push(...selector(sel, ignoreViewport));
     } else if (Array.isArray(sel)) {
-      elements.push(
-        ...sel
-          .map((s) => (typeof s === "string" ? selector(s, ignoreViewport) : s))
-          .flat(),
-      );
+      const mapped = sel.map((s) => (typeof s === "string" ? selector(s, ignoreViewport) : s));
+      // Use concat instead of flat() for compatibility with older JavaScript engines
+      elements.push(...[].concat(...mapped));
     } else {
       console.error("Bad layer selector");
     }

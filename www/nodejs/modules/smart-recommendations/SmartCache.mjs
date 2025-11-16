@@ -1,5 +1,4 @@
 import { EventEmitter } from 'node:events'
-import { EPGErrorHandler } from '../epg-worker/EPGErrorHandler.js'
 
 /**
  * Smart Cache System

@@ -126,6 +126,12 @@ class WinActionsMiniplayer extends WindowActions {
 		this.enabled = true
         this.pipSupported = null
         this.inPIP = false
+		this.on('enter', () => {
+			document.body.classList.add('miniplayer')
+		})
+		this.on('leave', () => {
+			document.body.classList.remove('miniplayer')
+		})
 	}
 	supports(){
 		return true
@@ -188,6 +194,17 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 			this.enteredPipTimeMs = null
 			console.log('leaved miniplayer')
 			document.body.classList.remove('miniplayer-android')
+			
+			// Force landscape orientation when leaving PiP if video is playing
+			if(window.capacitor && main.streamer && main.streamer.active && !main.streamer.isAudio) {
+				// Call player plugin to force landscape orientation
+				if(window.plugins && window.plugins.megacubo) {
+					setTimeout(() => {
+						window.plugins.megacubo.updateScreenOrientation()
+					}, 300) // Small delay to allow PiP transition to complete
+				}
+			}
+			
 			if(this.appPaused){
 				clearTimeout(this.waitAppResumeTimer)
 				this.waitAppResumeTimer = setTimeout(() => {
@@ -260,19 +277,59 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 		window.addEventListener('resize', orientationListener)
 		window.addEventListener('orientationchange', orientationListener)
 
+		// Track when channel starts to prevent autoPIP during initialization
+		let channelStartTime = null
+		main.streamer.on('start', () => {
+			channelStartTime = Date.now()
+			// Clear any pending resize checks when a new channel starts
+			if(this.resizeCheckTimer) {
+				clearTimeout(this.resizeCheckTimer)
+				this.resizeCheckTimer = null
+			}
+		})
+		main.streamer.on('stop', () => {
+			// Clear channel start time and any pending timers when channel stops
+			channelStartTime = null
+			if(this.resizeCheckTimer) {
+				clearTimeout(this.resizeCheckTimer)
+				this.resizeCheckTimer = null
+			}
+		})
+
 		const stateListener = () => {
 			clearTimeout(this.autoPIPTimer)
 			const shouldAutoPIP = main.streamer.active && !main.streamer.isAudio && !main.streamer.casting
-			if(shouldAutoPIP && document.visibilityState === 'visible'){
-				this.autoPIPTimer = setTimeout(() => {
-					const ratio = player.videoRatio() || 4 / 3
-					this.pip.autoPIP({
-						value: true,
-						width: 240 * ratio,
-						height: 240
-					}).catch((err) => console.error('Failed to set autoPIP:', err))
-				}, 1000)
+			
+			// IMPORTANT: Only activate autoPIP if app is visible AND not already in PiP
+			// AND enough time has passed since channel start (to avoid activation during initialization)
+			const timeSinceStart = channelStartTime ? Date.now() - channelStartTime : Infinity
+			const minTimeSinceStart = 2500 // 2.5 seconds minimum after channel starts
+			
+			if(shouldAutoPIP && document.visibilityState === 'visible' && !this.inPIP){
+				if(timeSinceStart >= minTimeSinceStart){
+					// Conditions met - activate autoPIP after delay
+					this.autoPIPTimer = setTimeout(() => {
+						// Double-check conditions before activating (may have changed during delay)
+						if(main.streamer.active && !main.streamer.isAudio && !main.streamer.casting && 
+						   document.visibilityState === 'visible' && !this.inPIP) {
+							const ratio = player.videoRatio() || 4 / 3
+							this.pip.autoPIP({
+								value: true,
+								width: 240 * ratio,
+								height: 240
+							}).catch((err) => console.error('Failed to set autoPIP:', err))
+						}
+					}, 3000) // Increased from 1000ms to 3000ms to avoid activation during transitions
+				} else {
+					// Time minimum not reached yet - schedule check for when it will be reached
+					const timeRemaining = minTimeSinceStart - timeSinceStart
+					this.autoPIPTimer = setTimeout(() => {
+						// Recursively call stateListener after minimum time has passed
+						stateListener()
+					}, timeRemaining + 100) // +100ms buffer to ensure time has passed
+				}
 			} else {
+				// Conditions not met - disable autoPIP
 				this.pip.autoPIP({
 					value: false,
 					width: 0,
@@ -330,6 +387,32 @@ export class AndroidWinActions extends WinActionsMiniplayer {
 
 		const resizeListener = () => {
 			if(rotating) return
+			
+			// Ignore resize during first few seconds after channel starts (avoid false positives during initialization)
+			if(main.streamer && main.streamer.active && channelStartTime) {
+				const timeSinceStart = Date.now() - channelStartTime
+				const minTimeSinceStart = 2500 // 2.5 seconds minimum after channel starts
+				if(timeSinceStart < minTimeSinceStart) {
+					// Time minimum not reached yet - schedule check for when it will be reached
+					// Clear any existing scheduled check to avoid duplicates
+					if(this.resizeCheckTimer) {
+						clearTimeout(this.resizeCheckTimer)
+					}
+					const timeRemaining = minTimeSinceStart - timeSinceStart
+					this.resizeCheckTimer = setTimeout(() => {
+						// Call resizeListener again after minimum time has passed
+						resizeListener()
+					}, timeRemaining + 100) // +100ms buffer to ensure time has passed
+					return
+				}
+			}
+			
+			// Clear scheduled check if it exists (conditions are now met)
+			if(this.resizeCheckTimer) {
+				clearTimeout(this.resizeCheckTimer)
+				this.resizeCheckTimer = null
+			}
+			
 			const seemsPIP = this.seemsPIP()
 			if(seemsPIP !== this.inPIP && (!seemsPIP || main.streamer.active || main.streamer.isTuning())) {
 				console.log('miniplayer change on resize')

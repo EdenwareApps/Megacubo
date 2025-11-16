@@ -490,6 +490,10 @@ body.miniplayer-android div#paused-layer {
     padding: 0;
 }
 
+body.miniplayer controls span.status {
+    display: none;
+}
+
 div#paused-layer span {
     cursor: pointer;
 }

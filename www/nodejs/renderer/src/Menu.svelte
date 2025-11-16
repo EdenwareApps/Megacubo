@@ -336,17 +336,10 @@
                     main.menu.on('reset', reset);
                     main.menu.on('navigate', reset);
                     main.menu.on('updated', () => {
-                        console.log('📨 Menu.svelte: Received updated event from main.menu:', {
-                            path: main?.menu?.path,
-                            iconsLength: main?.menu?.icons ? Object.keys(main.menu.icons).length : 0,
-                            currentEntriesLength: main?.menu?.currentEntries?.length,
-                            currentEntriesType: typeof main?.menu?.currentEntries
-                        });
                         lastRange = null;
                         path = main.menu.path;
                         icons = main.menu.icons;
                         items = main.menu.currentEntries;
-                        console.log('📋 Menu.svelte: Updated items:', items?.slice(0, 3));
                         if (!main.menu.path) {
                             sideMenuItems = main.menu.currentEntries.filter(e => e.side);
                         }
@@ -374,7 +367,6 @@
         if (range && typeof range.start === 'number' && typeof range.end === 'number') {
             if (!lastRange || lastRange.start != range.start || lastRange.end != range.end) {
                 lastRange = {start: range.start, end: range.end};
-                console.log('🔍 Menu: lastRange', {range, lastRange})
                 if (main && main.menu) {
                     main.emit('menu-update-range', lastRange, main.menu.path)
                 }
@@ -401,7 +393,7 @@
             <nav>
                 <div>
                     {#each sideMenuItems as e (e.key)}
-                    <a href="{e.url}" tabindex="{e.tabindex}" class="entry entry-nav" data-type="{e.type}" data-path="{e.path}" key="{e.key}" aria-label="{e.name}" data-original-icon="{e.originalIcon}" data-question="{e.question}" data-dialog-details="{e.dialogDetails}" draggable="false">
+                    <a href="{e.url}" tabindex="{e.tabindex}" class="entry entry-nav" data-type="{e.type}" data-path="{e.path}" key="{e.key}" aria-label="{e.name}" data-original-icon="{e.originalIcon}" data-question="{e.question}" draggable="false">
                         <span class="entry-wrapper">
                             <i class="{e.fa}"></i>
                             <span>
@@ -427,8 +419,8 @@
                     {#snippet children(item)}
                     <a href="{item.url}" tabindex="{item.tabindex}" class="{item.class} {selectedIndex == item.tabindex ? 'selected' : ''}" title="{item.name}" aria-label="{item.name}" 
                         data-type="{item.type}" data-path="{item.path}" key="{item.key}"  draggable="false" 
-                        data-range-start="{item.range ? item.range.start : 0}" data-range-end="{item.range ? item.range.end : 100}" 
-                        data-mask="{item.mask}" data-original-icon="{item.originalIcon}" data-question="{item.question}" data-dialog-details="{item.dialogDetails}"
+                        data-range-start="{item.range ? item.range.start : 0}" data-range-end="{item.range ? item.range.end : 100}" data-range-step="{item.range ? item.range.step || 1 : 1}" 
+                        data-mask="{item.mask}" data-original-icon="{item.originalIcon}" data-question="{item.question}" 
                         style="order: {item.tabindex};" onmouseenter={(event) => focusElement(event.target)}
                         >
                         <span class="{item.wrapperClass}">

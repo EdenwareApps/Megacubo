@@ -1,7 +1,40 @@
 import { EPGUpdater } from './EPGUpdater.js'
 import { EPGMetadataDetector } from './parsers/EPGMetadataDetector.js'
-import storage from '../storage/storage.js'
-import { terms, resolveListDatabaseFile, match } from '../lists/tools.js'
+import storage from '../../storage/storage.js'
+import { terms, resolveListDatabaseFile, match } from '../../lists/tools.js'
+
+const EPG_LOOKUP_CACHE_SIZE = 386
+const CACHE_MISS_ENTRY = Object.freeze({ miss: true, programmes: [] })
+
+class LRUCache {
+  constructor(limit) {
+    this.limit = limit
+    this.map = new Map()
+  }
+
+  get(key) {
+    if (!this.map.has(key)) return undefined
+    const value = this.map.get(key)
+    this.map.delete(key)
+    this.map.set(key, value)
+    return value
+  }
+
+  set(key, value) {
+    if (this.map.has(key)) {
+      this.map.delete(key)
+    }
+    this.map.set(key, value)
+    if (this.map.size > this.limit) {
+      const oldestKey = this.map.keys().next().value
+      this.map.delete(oldestKey)
+    }
+  }
+
+  clear() {
+    this.map.clear()
+  }
+}
 
 export class EPG extends EPGUpdater {
   constructor(url, dependencies = {}) {
@@ -21,6 +54,7 @@ export class EPG extends EPGUpdater {
     this.state = { progress: 0, state: this.readyState, error: null }
     this.error = null
     this.destroyed = false
+    this.lookupCache = new LRUCache(EPG_LOOKUP_CACHE_SIZE)
 
     // Debug properties for diagnostics
     this.bytesDownloaded = 0
@@ -62,6 +96,29 @@ export class EPG extends EPGUpdater {
   }
 
   _initializeDatabases() {
+    // CRITICAL: Don't recreate databases if they already exist and have correct file path
+    // This prevents losing database references after finalizeUpdate()
+    const dbFilePath = this.db?.normalizedFile
+    if (this.db && dbFilePath === this.file && this.db.initialized) {
+      this.debug && console.log('Database already initialized with correct file path, skipping recreation')
+      return
+    }
+    
+    const mdbFilePath = this.mdb?.normalizedFile
+    if (this.mdb && mdbFilePath === this.metaFile && this.mdb.initialized) {
+      this.debug && console.log('Metadata database already initialized with correct file path, skipping recreation')
+      // Only recreate programme DB if needed
+      if (!this.db || dbFilePath !== this.file || !this.db.initialized) {
+        try {
+          this.db = this.createProgrammeDatabase(false)
+        } catch (err) {
+          console.error('Failed to create programme database instance:', err)
+          this.db = this.createProgrammeDatabase(true)
+        }
+      }
+      return
+    }
+    
     try {
       this.db = this.createProgrammeDatabase(false)
       this.mdb = this.createMetadataDatabase(false)
@@ -80,20 +137,37 @@ export class EPG extends EPGUpdater {
 
   // ===== State Management =====
 
-  setReadyState(state) {
+  async setReadyState(state) {
     if (this.readyState !== state) {
       const oldState = this.readyState
       this.readyState = state
+      
+      // Track error timestamp for cleanup
+      if (state === 'error') {
+        this.errorTimestamp = Date.now()
+      } else if (state !== 'error') {
+        // Clear error timestamp when recovering from error
+        this.errorTimestamp = undefined
+      }
       
       // Calculate _programmeCounts when transitioning to 'loaded' state
       if (state === 'loaded') {
         if (!this.db || !this.db.initialized) {
           throw new Error('Database loaded but not initialized?!')
         }
-        this._calculateProgrammeCounts()
+        await this._calculateProgrammeCounts()
+        
+        // Update parent state after counts are calculated
+        if (this.parent && this.parent.updateState) {
+          await this.parent.updateState()
+        }
+      }
+
+      if (state === 'loaded' || state === 'error') {
+        this.clearLookupCache()
       }
       
-      this.updateState()
+      await this.updateState()
       console.debug(`State changed from ${oldState} to ${state} for ${this.url}`)
       this.emit('stateChange', { from: oldState, to: state })
     }
@@ -101,22 +175,58 @@ export class EPG extends EPGUpdater {
 
   async _calculateProgrammeCounts() {
     try {
+      // Check if db is available before proceeding
+      if (!this.db || !this.db.initialized) {
+        console.warn(`Cannot calculate programme counts for ${this.url}: database not available or not initialized`)
+        this._programmeCounts = {
+          total: 0,
+          future: 0,
+          past: 0,
+          current: 0
+        }
+        return
+      }
+
+      // Verificar se db.count existe e é uma função
+      if (!this.db.count || typeof this.db.count !== 'function') {
+        console.warn(`Cannot calculate programme counts for ${this.url}: db.count is not available`)
+        this._programmeCounts = {
+          total: (this.db && typeof this.db.length === 'number') ? this.db.length : 0,
+          future: 0,
+          past: 0,
+          current: 0
+        }
+        return
+      }
+
+      // Verificar se db foi destruído ou fechado
+      if (this.db.destroyed || this.db.closed) {
+        console.warn(`Cannot calculate programme counts for ${this.url}: database is destroyed or closed`)
+        this._programmeCounts = {
+          total: 0,
+          future: 0,
+          past: 0,
+          current: 0
+        }
+        return
+      }
+
       const now = Date.now() / 1000
-      const futureCount = await this.db.count({ e: { '>': now } }).catch(() => 0)
-      const pastCount = await this.db.count({ e: { '<': now } }).catch(() => 0)
+      const futureCount = await this.db.count({ end: { '>': now } }).catch(() => 0)
+      const pastCount = await this.db.count({ end: { '<': now } }).catch(() => 0)
       const currentCount = await this.db.count({ 
-        start: { '<=': now },  // Fixed: use 'start' instead of 's'
-        e: { '>': now } 
+        start: { '<=': now },
+        end: { '>': now } 
       }).catch(() => 0)
 
       this._programmeCounts = {
-        total: this.db.length,
+        total: (this.db && this.db.length) ? this.db.length : 0,
         future: futureCount,
         past: pastCount,
         current: currentCount
       }
       
-      console.log(`📊 EPG ${this.url}: Calculated counts - total=${this._programmeCounts.total}, future=${this._programmeCounts.future}, past=${this._programmeCounts.past}, current=${this._programmeCounts.current}`)
+      this.debug && console.log(`📊 EPG ${this.url}: Calculated counts - total=${this._programmeCounts.total}, future=${this._programmeCounts.future}, past=${this._programmeCounts.past}, current=${this._programmeCounts.current}`)
       
       // Validate counts make sense
       if (this._programmeCounts.future > this._programmeCounts.total) {
@@ -126,12 +236,236 @@ export class EPG extends EPGUpdater {
     } catch (err) {
       console.warn(`Failed to calculate programme counts for ${this.url}:`, err)
       this._programmeCounts = {
-        total: this.db.length || 0,
+        total: (this.db && this.db.length) ? this.db.length : 0,
         future: 0,
         past: 0,
         current: 0
       }
     }
+  }
+
+  // ===== Lookup & Caching Helpers =====
+
+  clearLookupCache() {
+    this.lookupCache = new LRUCache(EPG_LOOKUP_CACHE_SIZE)
+  }
+
+  _prepareLookupDescriptor(channelDescriptor) {
+    if (!channelDescriptor) return null
+
+    if (typeof channelDescriptor === 'string') {
+      const normalizedTerms = terms(channelDescriptor)
+      return {
+        name: channelDescriptor,
+        searchName: channelDescriptor,
+        terms: normalizedTerms
+      }
+    }
+
+    const prepared = { ...channelDescriptor }
+
+    if (!prepared.name && prepared.searchName) {
+      prepared.name = prepared.searchName
+    } else if (!prepared.searchName && prepared.name) {
+      prepared.searchName = prepared.name
+    }
+
+    if (!Array.isArray(prepared.terms) || prepared.terms.length === 0) {
+      const base = prepared.searchName || prepared.name || ''
+      prepared.terms = terms(base)
+    }
+
+    return prepared
+  }
+
+  _normalizeLookupTerms(input) {
+    let collected = []
+
+    if (!input) {
+      return ''
+    }
+
+    if (Array.isArray(input)) {
+      collected = input
+    } else if (input?.terms && Array.isArray(input.terms)) {
+      collected = input.terms
+    } else if (typeof input === 'string') {
+      collected = terms(input)
+    }
+
+    if (!Array.isArray(collected)) {
+      collected = []
+    }
+
+    return collected
+      .map(term => (typeof term === 'string' ? term.trim().toLowerCase() : ''))
+      .filter(Boolean)
+      .sort()
+      .join('|')
+  }
+
+  _getCachedLookupEntry(termsKey) {
+    if (!termsKey || !this.lookupCache) return undefined
+    return this.lookupCache.get(termsKey)
+  }
+
+  _setCachedLookupEntry(termsKey, value) {
+    if (!termsKey || !this.lookupCache) return
+    this.lookupCache.set(termsKey, value)
+  }
+
+  _cacheLookupMiss(termsKey) {
+    if (!termsKey || !this.lookupCache) return
+    this.lookupCache.set(termsKey, CACHE_MISS_ENTRY)
+  }
+
+  async resolveLiveNowAndNext(channelDescriptor, options = {}) {
+    const prepared = options.prepared
+      ? channelDescriptor
+      : this._prepareLookupDescriptor(channelDescriptor)
+
+    if (!prepared || prepared.searchName === '-') {
+      return CACHE_MISS_ENTRY
+    }
+
+    const searchTerms = Array.isArray(prepared.terms)
+      ? prepared.terms
+      : terms(prepared.searchName || prepared.name || '')
+
+    if (!searchTerms.length) {
+      return CACHE_MISS_ENTRY
+    }
+
+    const termsKey = this._normalizeLookupTerms(searchTerms)
+    if (!termsKey) {
+      return CACHE_MISS_ENTRY
+    }
+
+    if (
+      this.readyState !== 'loaded' ||
+      !this.db ||
+      !this.db.initialized ||
+      this.db.destroyed ||
+      this.db.closed
+    ) {
+      this._cacheLookupMiss(termsKey)
+      return CACHE_MISS_ENTRY
+    }
+
+    const cached = this._getCachedLookupEntry(termsKey)
+    if (cached) {
+      return cached
+    }
+
+    let termMap
+    try {
+      termMap = await this.getAllTerms()
+    } catch (err) {
+      console.error(`Error retrieving term map for ${this.url}:`, err)
+      this._cacheLookupMiss(termsKey)
+      return CACHE_MISS_ENTRY
+    }
+
+    if (!termMap || typeof termMap.entries !== 'function' || termMap.size === 0) {
+      this._cacheLookupMiss(termsKey)
+      return CACHE_MISS_ENTRY
+    }
+
+    let bestScore = 0
+    const candidateIds = []
+
+    for (const [name, nameTerms] of termMap.entries()) {
+      if (!Array.isArray(nameTerms) || nameTerms.length === 0) continue
+      const score = match(searchTerms, nameTerms, false)
+      if (!score) continue
+
+      if (score > bestScore) {
+        bestScore = score
+        candidateIds.length = 0
+      }
+
+      if (score === bestScore) {
+        candidateIds.push(name)
+      }
+    }
+
+    if (candidateIds.length === 0) {
+      this._cacheLookupMiss(termsKey)
+      return CACHE_MISS_ENTRY
+    }
+
+    const now = typeof options.now === 'number' ? options.now : (Date.now() / 1000)
+    const fetchLimit = Math.max(2, options.limit || 2)
+    const queryBase = { end: { '>': now } }
+
+    let bestCandidate = null
+
+    for (const candidateId of candidateIds) {
+      const query = { ...queryBase, channel: candidateId }
+      let programmes = []
+
+      try {
+        programmes = await this.db.find(query, { limit: fetchLimit, sort: { start: 1 } })
+      } catch (err) {
+        console.error(`Error fetching programmes for ${candidateId} in ${this.url}:`, err)
+        continue
+      }
+
+      if (!Array.isArray(programmes) || programmes.length === 0) {
+        continue
+      }
+
+      const trimmed = programmes.slice(0, fetchLimit)
+      const candidateStart = trimmed[0]?.start ?? Number.MAX_SAFE_INTEGER
+
+      if (
+        !bestCandidate ||
+        trimmed.length > bestCandidate.programmes.length ||
+        (
+          trimmed.length === bestCandidate.programmes.length &&
+          candidateStart < (bestCandidate.programmes[0]?.start ?? Number.MAX_SAFE_INTEGER)
+        )
+      ) {
+        bestCandidate = {
+          channel: candidateId,
+          programmes: trimmed
+        }
+      }
+    }
+
+    if (!bestCandidate) {
+      this._cacheLookupMiss(termsKey)
+      return CACHE_MISS_ENTRY
+    }
+
+    let icon = ''
+    let displayName = ''
+
+    if (typeof this.getChannelById === 'function') {
+      try {
+        const info = await this.getChannelById(bestCandidate.channel)
+        if (info && typeof info === 'object') {
+          displayName = info.name || ''
+          icon = info.icon || ''
+        }
+      } catch (err) {
+        console.warn(`Failed to get channel metadata for ${bestCandidate.channel} in ${this.url}:`, err.message)
+      }
+    }
+
+    if (!displayName) {
+      displayName = String(bestCandidate.channel)
+    }
+
+    const entry = {
+      channel: bestCandidate.channel,
+      name: displayName,
+      icon: icon || bestCandidate.programmes[0]?.icon || '',
+      programmes: bestCandidate.programmes.slice(0, 2)
+    }
+
+    this._setCachedLookupEntry(termsKey, entry)
+    return entry
   }
 
   calculateProgress() {
@@ -188,11 +522,16 @@ export class EPG extends EPGUpdater {
       error: this.error
     }
 
-    if (state.progress !== this.state.progress || state.state !== this.state.state || state.error !== this.state.error) {
+    // Calculate integer progress percentage
+    const currentIntProgress = Math.floor(state.progress)
+    const previousIntProgress = this.state?.progress ? Math.floor(this.state.progress) : -1
+    const intProgressChanged = currentIntProgress !== previousIntProgress
+
+    if (state.progress !== this.state.progress || state.state !== this.state.state || state.error !== this.state.error || intProgressChanged) {
       this.emit('state', state)
       this.state = state
 
-      // Always emit update event via parent when state changes (including errors)
+      // Always emit update event via parent when state changes (including errors or integer progress change)
       if (this.parent && this.parent.updateState) {
         await this.parent.updateState()
       }
@@ -263,7 +602,11 @@ export class EPG extends EPGUpdater {
         return result
       }
     } catch (err) {
-      console.error(`Error getting channel ${id}:`, err)
+      // Only log non-expected errors to reduce log noise
+      // "Metadata DB not initialized" is expected in some scenarios and handled gracefully
+      if (err.message && !err.message.includes('Metadata DB not initialized')) {
+        console.error(`Error getting channel ${id}:`, err)
+      }
       // Always return a valid object, even on error
       const result = { name: id, icon: '' }
       this.cacheManager.setChannel(id, result)
@@ -391,12 +734,12 @@ export class EPG extends EPGUpdater {
     const now = Date.now() / 1000
     if (endTimestamp < now) {
       // Programme has already ended, skip it
-      console.log(`⏭️ Skipping past programme: ${t} (ended at ${new Date(endTimestamp * 1000).toLocaleString()})`)
+      this.debug && console.log(`⏭️ Skipping past programme: ${t} (ended at ${new Date(endTimestamp * 1000).toLocaleString()})`)
       return
     }
 
     // Extract categories from title if no categories provided
-    let categories = programme.c || programme.category || programme.categories || []
+    let categories = programme.category || programme.categories || []
 
     // If no categories, try to extract from title
     if (!categories || categories.length === 0) {
@@ -417,45 +760,40 @@ export class EPG extends EPGUpdater {
 
     const row = {
       start: startTimestamp,
-      e: endTimestamp,
-      t,
-      i,
+      end: endTimestamp,
+      title: t,
+      icon: i,
       desc,
-      ch: cleanChannelName,
-      c: categories,
+      channel: cleanChannelName,
+      categories: categories,
       // Initialize EPG metadata fields with defaults
       age: 0,
       lang: '',
       country: '',
       rating: '',
       parental: 'no',
-      genre: '',
-      contentType: '',
-      parentalLock: 'false',
-      geo: '',
-      ageRestriction: ''
+      contentType: ''
     }
 
-    // Categories already come from EPG data (programme.c and programme.category)
+    // Categories already come from EPG data (programme.category from XMLTV parser)
     // No need for AI extraction - EPG data is already categorized
 
     // Add comprehensive search terms (programme title + channel name + categories)
-    const programmeTerms = terms(row.t)
+    const programmeTerms = terms(row.title)
     const channelTerms = terms(cleanChannelName)
-    const categoryTerms = Array.isArray(row.c) ? row.c.flatMap(cat => terms(cat)) : []
+    const categoryTerms = Array.isArray(row.categories) ? row.categories.flatMap(cat => terms(cat)) : []
 
     // Create flat array with all terms for better content discovery
     row.terms = [...new Set([...programmeTerms, ...channelTerms, ...categoryTerms])]
 
     // Enhanced metadata detection from EPG
     try {
-      // Create a programme object for the detector
+      // Create a programme object for the detector (using short field names for legacy detector compatibility)
       const programmeForDetection = {
-        t: row.t,
+        title: row.title,
         desc: row.desc,
-        ch: cleanChannelName,
-        c: categories,
-        ageRestriction: '',
+        channel: cleanChannelName,
+        categories: categories,
         rating: '',
         parental: '',
         parentalLock: '',
@@ -469,11 +807,10 @@ export class EPG extends EPGUpdater {
       row.age = enhancedProgramme.age
       row.lang = enhancedProgramme.lang
       row.country = enhancedProgramme.country
-      row.genre = enhancedProgramme.genre
       row.parental = enhancedProgramme.parental
       row.contentType = enhancedProgramme.contentType
 
-      // console.debug(`Enhanced metadata for "${row.t}": age=${row.age}, lang=${row.lang}, country=${row.country}`)
+      // console.debug(`Enhanced metadata for "${row.title}": age=${row.age}, lang=${row.lang}, country=${row.country}`)
     } catch (err) {
       console.error('Error in metadata detection:', err.message)
     }
@@ -504,7 +841,7 @@ export class EPG extends EPGUpdater {
     // Mark as having valid EPG data
     if (!this.validEPG) {
       this.validEPG = true
-      console.log('First valid programme received, marking EPG as valid')
+      this.debug && console.log('First valid programme received, marking EPG as valid')
     }
   }
 
@@ -526,73 +863,39 @@ export class EPG extends EPGUpdater {
       const hasSpaces = (str) => str && typeof str === 'string' && str.includes(' ')
       const hasDots = (str) => str && typeof str === 'string' && str.includes('.')
 
-      let channelId, name
+      const rawIdValue = channel.id ?? channel.channelId ?? channel.cid ?? channel.name
+      const displayValue = channel.displayName ?? channel.fullName ?? null
 
-      // If both id and name exist, prefer the one with spaces as name
-      if (channel.id && channel.name) {
-        const idHasSpaces = hasSpaces(channel.id)
-        const nameHasSpaces = hasSpaces(channel.name)
+      const normalizedId = rawIdValue ? this.fixSlashes(String(rawIdValue)) : null
+      const normalizedDisplay = displayValue ? this.fixSlashes(String(displayValue)) : null
 
-        if (idHasSpaces && !nameHasSpaces) {
-          // ID has spaces (likely a name), name doesn't (likely an ID)
-          name = this.fixSlashes(channel.id)
-          channelId = this.fixSlashes(channel.name)
-        } else if (!idHasSpaces && nameHasSpaces) {
-          // ID doesn't have spaces (likely real ID), name has spaces (likely real name)
-          channelId = this.fixSlashes(channel.id)
-          name = this.fixSlashes(channel.name)
-        } else {
-          // Both or neither have spaces - use dots as tiebreaker
-          const idHasDots = hasDots(channel.id)
-          const nameHasDots = hasDots(channel.name)
-
-          if (idHasDots && !nameHasDots) {
-            // ID has dots (likely a CID like "ESPN.br"), name doesn't (likely a real name)
-            channelId = this.fixSlashes(channel.id)
-            name = this.fixSlashes(channel.name)
-          } else if (!idHasDots && nameHasDots) {
-            // ID doesn't have dots (likely a real name), name has dots (likely a CID)
-            name = this.fixSlashes(channel.id)
-            channelId = this.fixSlashes(channel.name)
-          } else {
-            // Both or neither have dots - use original mapping
-            channelId = this.fixSlashes(channel.id)
-            name = this.fixSlashes(channel.name)
-          }
-        }
-      } else if (channel.displayName || channel.name) {
-        // Only name/displayName available
-        const candidateName = this.fixSlashes(channel.displayName || channel.name)
-        if (hasSpaces(candidateName)) {
-          // Has spaces - treat as name, use as ID too
-          name = candidateName
-          channelId = candidateName
-        } else if (hasDots(candidateName)) {
-          // Has dots (likely a CID like "ESPN.br") - treat as ID, use as name too
-          channelId = candidateName
-          name = candidateName
-        } else {
-          // No spaces or dots - treat as name (more likely to be a real name)
-          name = candidateName
-          channelId = candidateName
-        }
-      } else if (channel.id) {
-        // Only ID available
-        const candidateId = this.fixSlashes(channel.id)
-        if (hasSpaces(candidateId)) {
-          // ID has spaces - treat as name
-          name = candidateId
-          channelId = candidateId
-        } else if (hasDots(candidateId)) {
-          // ID has dots (likely a CID like "ESPN.br") - treat as real ID
-          channelId = candidateId
-          name = candidateId
-        } else {
-          // No spaces or dots - treat as name (more likely to be a real name)
-          name = candidateId
-          channelId = candidateId
-        }
+      const looksLikeIdentifier = (value) => {
+        if (!value) return true
+        const trimmed = value.trim()
+        if (!trimmed) return true
+        if (/^[0-9]+$/.test(trimmed)) return true
+        if (!/[a-z]/i.test(trimmed)) return true
+        return false
       }
+
+      let channelId = normalizedId || normalizedDisplay
+      let name = normalizedDisplay || normalizedId
+
+      if (!name) {
+        name = channelId
+      }
+      if (!channelId) {
+        channelId = name
+      }
+
+      // If the name still looks like a raw identifier but we have a display value, prefer the display
+      if (looksLikeIdentifier(name) && normalizedDisplay && !looksLikeIdentifier(normalizedDisplay)) {
+        name = normalizedDisplay
+      }
+
+      // Ensure both are cleaned
+      channelId = channelId ? channelId.trim() : ''
+      name = name ? name.trim() : ''
 
       if (!name || !channelId) {
         return
@@ -606,7 +909,23 @@ export class EPG extends EPGUpdater {
       }
 
       // Insert with proper ID -> name mapping
-      await this.upsertChannel(channelId, name, channel.icon)
+      const incomingName = String(name || '').trim()
+      const cachedChannel = this.cacheManager.getChannel(channelId)
+
+      if (cachedChannel && cachedChannel.name) {
+        const cachedName = String(cachedChannel.name).trim()
+        const isIncomingBetter =
+          incomingName &&
+          incomingName !== cachedName &&
+          incomingName.length >= 2 &&
+          /[a-z]/i.test(incomingName) && 
+          !cachedName.match(/^[a-z]/i)
+        if (isIncomingBetter) {
+          await this.upsertChannel(channelId, incomingName, channel.icon)
+        }
+      } else {
+        await this.upsertChannel(channelId, incomingName, channel.icon)
+      }
 
       // Add pending terms for this channel
       this.cacheManager.addPendingTerm(name)
@@ -643,7 +962,6 @@ export class EPG extends EPGUpdater {
     try {
       // Use pre-calculated counts if available, otherwise calculate
       if (this._programmeCounts && 'future' in this._programmeCounts) {
-        console.log(`📊 Using pre-calculated counts for validation: future=${this._programmeCounts.future}, total=${this._programmeCounts.total}`)
         return {
           hasSufficient: this._programmeCounts.future >= 36,
           futureCount: this._programmeCounts.future,
@@ -653,14 +971,22 @@ export class EPG extends EPGUpdater {
       }
       
       // Fallback to database query if _programmeCounts not available
-      console.log(`📊 _programmeCounts not available, calculating from database...`)
+      if (!this.db || !this.db.initialized) {
+        return {
+          hasSufficient: false,
+          futureCount: 0,
+          totalCount: 0,
+          error: 'Database not available or not initialized'
+        }
+      }
+      
       const now = Date.now() / 1000
-      const futureCount = await this.db.count({ e: { '>': now } }).catch(() => 0)
+      const futureCount = await this.db.count({ end: { '>': now } }).catch(() => 0)
       
       return {
         hasSufficient: futureCount >= 36,
         futureCount: futureCount,
-        totalCount: this.db.length,
+        totalCount: (this.db && this.db.length) ? this.db.length : 0,
         error: null
       }
     } catch (err) {
@@ -676,18 +1002,18 @@ export class EPG extends EPGUpdater {
   // ===== Main Update Logic =====
 
   async update() {
-    console.log('EPG.update() called for:', this.url)
+    this.debug && console.log('EPG.update() called for:', this.url)
 
     if (this.isUpdating) {
-      console.log('Already updating, skipping')
+      this.debug && console.log('Already updating, skipping')
       return
     }
 
-    console.log('Starting update process...')
+    this.debug && console.log('Starting update process...')
 
     try {
       await this.doUpdate()
-      console.log('Update process completed')
+      this.debug && console.log('Update process completed')
     } catch (err) {
       console.error('Update process failed:', err)
       this.setReadyState('error')
@@ -723,7 +1049,7 @@ export class EPG extends EPGUpdater {
             this.databaseFactory.initializeDB(this.db),
             this.databaseFactory.initializeDB(this.mdb)
           ]).then(() => {
-            console.log('Recreated databases initialized and saved successfully')
+            this.debug && console.log('Recreated databases initialized and saved successfully')
           }).catch(err => {
             console.error('Failed to recreate database instances:', err)
             this.error = err
@@ -751,60 +1077,76 @@ export class EPG extends EPGUpdater {
   }
 
   async start() {
-    console.log('EPG.start() called for URL:', this.url)
+    this.debug && console.log('EPG.start() called for URL:', this.url)
 
     if (this.destroyed) {
-      console.log('Already destroyed, skipping start')
+      this.debug && console.log('Already destroyed, skipping start')
       return Promise.resolve()
     }
 
     this.setReadyState('loading')
 
     try {
-      // Ensure databases are properly initialized before proceeding
-      if (!this.db || !this.mdb) {
-        console.log('Recreating database instances...')
+      // CRITICAL: Only recreate databases if they don't exist or have wrong file path
+      // After finalizeUpdate(), databases should already exist with correct file path
+      const dbFilePath = this.db?.normalizedFile
+      const mdbFilePath = this.mdb?.normalizedFile
+      const needsRecreation = !this.db || !this.mdb || 
+                              !dbFilePath || !mdbFilePath ||
+                              dbFilePath !== this.file || mdbFilePath !== this.metaFile
+      
+      if (needsRecreation) {
+        this.debug && console.log('Recreating database instances...')
+        this.debug && console.log(`  Current db: ${this.db ? `normalizedFile=${this.db.normalizedFile || 'undefined'}, filePath=${dbFilePath}, expected=${this.file}` : 'null'}`)
+        this.debug && console.log(`  Current mdb: ${this.mdb ? `normalizedFile=${this.mdb.normalizedFile || 'undefined'}, filePath=${mdbFilePath}, expected=${this.metaFile}` : 'null'}`)
         this._initializeDatabases()
+      } else {
+        this.debug && console.log('Databases already exist with correct file path, skipping recreation')
       }
 
       // Initialize databases if not already initialized
       if (!this.db.initialized) {
-        console.log('Initializing programme database...')
+        this.debug && console.log('Initializing programme database...')
         await this.databaseFactory.initializeDB(this.db)
       }
 
       if (!this.mdb.initialized) {
-        console.log('Initializing metadata database...')
+        this.debug && console.log('Initializing metadata database...')
         await this.databaseFactory.initializeDB(this.mdb)
       }
 
       try {
         await this._calculateProgrammeCounts()
-        console.log(`📊 Recalculated _programmeCounts after start databases for ${this.url}:`, this._programmeCounts)
+        this.debug && console.log(`📊 Recalculated _programmeCounts after start databases for ${this.url}:`, this._programmeCounts)
+        
+        // Update parent state after counts are calculated
+        if (this.parent && this.parent.updateState) {
+          await this.parent.updateState()
+        }
       } catch (err) {
         console.warn(`Failed to recalculate _programmeCounts after start databases for ${this.url}:`, err)
       }
 
-      console.log('Databases initialized, proceeding with update...')
+      this.debug && console.log('Databases initialized, proceeding with update...')
 
       // Check if we already have valid data before updating
       if (this.db && this.db.length > 0) {
-        console.log('Database already has data, checking if update is needed...')
+        this.debug && console.log('Database already has data, checking if update is needed...')
         const now = Date.now() / 1000
-        const futureCount = await this.db.count({ e: { '>': now } }).catch(() => 0)
-        console.log(`Found ${futureCount} future programmes in existing database`)
+        const futureCount = await this.db.count({ end: { '>': now } }).catch(() => 0)
+        this.debug && console.log(`Found ${futureCount} future programmes in existing database`)
         
         if (futureCount >= 36) {
-          console.log('Valid data found with sufficient future programmes, marking as loaded')
-          this.setReadyState('loaded')
+          this.debug && console.log('Valid data found with sufficient future programmes, marking as loaded')
+          await this.setReadyState('loaded')
           this.error = null
         } else {
-          console.log(`Insufficient future programmes (${futureCount} < 36), forcing update`)
+          this.debug && console.log(`Insufficient future programmes (${futureCount} < 36), forcing update`)
         }
       }
 
       await this.update()
-      console.log('Update completed')
+      this.debug && console.log('Update completed')
 
       // CRITICAL FIX: init() already guarantees database is ready when it returns
 
@@ -814,10 +1156,10 @@ export class EPG extends EPGUpdater {
       console.debug('Database initialized:', this.db?.initialized)
 
       if (this.db && !this.db.initialized) {
-        console.log('Database not initialized, attempting initialization...')
+        this.debug && console.log('Database not initialized, attempting initialization...')
         try {
           await this.databaseFactory.initializeDB(this.db)
-          console.log('Database initialized successfully after update')
+          this.debug && console.log('Database initialized successfully after update')
         } catch (initError) {
           console.error('Failed to initialize database after update:', initError)
         }
@@ -825,22 +1167,22 @@ export class EPG extends EPGUpdater {
 
       // CRITICAL: Wait for parser to complete before returning
       // This ensures the EPG is fully processed when add() returns
-      console.log('Update process completed - waiting for parser to finish before validation')
+      this.debug && console.log('Update process completed - waiting for parser to finish before validation')
       
       // Wait for parser to complete if it exists
       if (this.parser) {
-        console.log('Waiting for parser to complete...')
+        this.debug && console.log('Waiting for parser to complete...')
         try {
           // Check if parser is already finished
           if (this.parser.destroyed || this.parser.writableEnded) {
-            console.log('✅ Parser already finished (destroyed or writableEnded)')
+            this.debug && console.log('✅ Parser already finished (destroyed or writableEnded)')
           } else {
-            console.log('Parser still active, waiting for end event...')
+            this.debug && console.log('Parser still active, waiting for end event...')
             
             // Wait for parser end event (xmltv-stream emits 'end' when done)
             await new Promise((resolve) => {
               const onEnd = () => {
-                console.log('✅ Parser end event received')
+                this.debug && console.log('✅ Parser end event received')
                 this.parser.removeListener('end', onEnd)
                 this.parser.removeListener('error', onEnd)
                 resolve()
@@ -853,72 +1195,91 @@ export class EPG extends EPGUpdater {
           console.warn('Error waiting for parser:', parserErr.message)
         }
       } else {
-        console.log('✅ No parser to wait for')
+        this.debug && console.log('✅ No parser to wait for')
       }
       
 
-      console.log('✅ Parser completed, EPG is ready')
+      this.debug && console.log('✅ Parser completed, EPG is ready')
       if (this.insertSession) {
-        console.log('🔍 Debug: insertSession exists, waiting for operations...')
+        this.debug && console.log('🔍 Debug: insertSession exists, waiting for operations...')
         await this.insertSession.commit()
       }
       await this.db.waitForOperations()
       await this.mdb.waitForOperations()
       
       // CRITICAL FIX: Calculate future programmes to prevent false EPG_OUTDATED errors
-      console.log('🔍 Debug: db.initialized=', this.db.initialized, 'db.length=', this.db.length)
+      if (!this.db || !this.db.initialized) {
+        this.debug && console.log('🔍 Debug: Database not available or not initialized')
+        return
+      }
+      
+      this.debug && console.log('🔍 Debug: db.initialized=', this.db.initialized, 'db.length=', this.db?.length || 0)
       if (this.db.initialized && this.db.length > 0) {
         try {
+          // Verificar se db.count existe e é uma função
+          if (!this.db.count || typeof this.db.count !== 'function') {
+            console.warn(`Cannot calculate programme counts for ${this.url}: db.count is not available`)
+            this.debug && console.log(`📊 EPG ${this.url}: Counts will be calculated when state changes to 'loaded'`)
+            return Promise.resolve()
+          }
+
+          // Verificar se db foi destruído ou fechado
+          if (this.db.destroyed || this.db.closed) {
+            console.warn(`Cannot calculate programme counts for ${this.url}: database is destroyed or closed`)
+            this.debug && console.log(`📊 EPG ${this.url}: Counts will be calculated when state changes to 'loaded'`)
+            return Promise.resolve()
+          }
+
           const now = Date.now() / 1000
-          const futureCount = await this.db.count({ e: { '>': now } }).catch(() => 0)
-          const pastCount = await this.db.count({ e: { '<': now } }).catch(() => 0)
+          const futureCount = await this.db.count({ end: { '>': now } }).catch(() => 0)
+          const pastCount = await this.db.count({ end: { '<': now } }).catch(() => 0)
           const currentCount = await this.db.count({ 
             start: { '<=': now }, 
-            e: { '>': now } 
+            end: { '>': now } 
           }).catch(() => 0)
           
-          console.log(`📊 EPG ${this.url}: total=${this.db.length}, future=${futureCount}, past=${pastCount}, current=${currentCount}`)
-          console.log(`🔍 Debug: now=${now} (${new Date(now * 1000).toLocaleString()})`)
-          console.log(`🔍 Debug: future query = { e: { '>': ${now} } }`)
+          this.debug && console.log(`📊 EPG ${this.url}: total=${this.db.length}, future=${futureCount}, past=${pastCount}, current=${currentCount}`)
+          this.debug && console.log(`🔍 Debug: now=${now} (${new Date(now * 1000).toLocaleString()})`)
+          this.debug && console.log(`🔍 Debug: future query = { end: { '>': ${now} } }`)
           
           // Debug: Test a few records to see their structure
           if (this.db.length > 0) {
             try {
               const sampleRecords = await this.db.find({}, { limit: 3 })
-              console.log(`🔍 Debug: Sample records structure:`)
+              this.debug && console.log(`🔍 Debug: Sample records structure:`)
               sampleRecords.forEach((record, index) => {
-                console.log(`   Record ${index + 1}: keys=${Object.keys(record).join(', ')}`)
-                if (record.start) console.log(`     start: ${record.start} (${new Date(record.start * 1000).toLocaleString()})`)
-                if (record.e) console.log(`     e: ${record.e} (${new Date(record.e * 1000).toLocaleString()})`)
-                if (record.t) console.log(`     t: ${record.t}`)
+                this.debug && console.log(`   Record ${index + 1}: keys=${Object.keys(record).join(', ')}`)
+                if (record.start) this.debug && console.log(`     start: ${record.start} (${new Date(record.start * 1000).toLocaleString()})`)
+                if (record.end) this.debug && console.log(`     end: ${record.end} (${new Date(record.end * 1000).toLocaleString()})`)
+                if (record.title) this.debug && console.log(`     title: ${record.title}`)
               })
             } catch (debugErr) {
-              console.log(`🔍 Debug: Error getting sample records: ${debugErr.message}`)
+              this.debug && console.log(`🔍 Debug: Error getting sample records: ${debugErr.message}`)
             }
           }
           
           // Debug: Let's check a few sample records to understand the data structure
           try {
             const sampleRecords = await this.db.find({}, { limit: 3 })
-            console.log(`🔍 Debug: Sample records structure:`)
+            this.debug && console.log(`🔍 Debug: Sample records structure:`)
             sampleRecords.forEach((record, index) => {
-              console.log(`  Record ${index + 1}: start=${record.start}, e=${record.e}, t=${record.t}`)
-              if (record.start) console.log(`    start date: ${new Date(record.start * 1000).toLocaleString()}`)
-              if (record.e) console.log(`    end date: ${new Date(record.e * 1000).toLocaleString()}`)
+                this.debug && console.log(`  Record ${index + 1}: start=${record.start}, end=${record.end}, title=${record.title}`)
+              if (record.start) this.debug && console.log(`    start date: ${new Date(record.start * 1000).toLocaleString()}`)
+              if (record.end) this.debug && console.log(`    end date: ${new Date(record.end * 1000).toLocaleString()}`)
             })
           } catch (debugErr) {
-            console.log(`🔍 Debug: Error getting sample records: ${debugErr.message}`)
+            this.debug && console.log(`🔍 Debug: Error getting sample records: ${debugErr.message}`)
           }
           
           // Note: _programmeCounts will be calculated automatically in setReadyState('loaded')
-          console.log(`📊 EPG ${this.url}: Counts will be calculated when state changes to 'loaded'`)
+          this.debug && console.log(`📊 EPG ${this.url}: Counts will be calculated when state changes to 'loaded'`)
         } catch (err) {
           console.warn(`Failed to calculate programme counts for ${this.url}:`, err)
           // Note: _programmeCounts will be calculated automatically in setReadyState('loaded')
         }
       } else {
         // Database is empty or not initialized
-        console.log(`📊 EPG ${this.url}: Database empty, counts will be calculated when state changes to 'loaded'`)
+        this.debug && console.log(`📊 EPG ${this.url}: Database empty, counts will be calculated when state changes to 'loaded'`)
       }
       
       return Promise.resolve()
@@ -943,8 +1304,8 @@ export class EPG extends EPGUpdater {
       return
     }
 
-    if (Array.isArray(data.c)) {
-      data.c = data.c.map(c => {
+    if (Array.isArray(data.categories)) {
+      data.categories = data.categories.map(c => {
         if (typeof c === 'string') {
           return c.split(' ').map(word =>
             word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
@@ -1012,7 +1373,7 @@ export class EPG extends EPGUpdater {
 
       // Double-check before adding to prevent null reference error
       if (this._pendingTerms && typeof this._pendingTerms.add === 'function') {
-        this._pendingTerms.add(data.ch)
+        this._pendingTerms.add(data.channel)
       } else {
         console.error('_pendingTerms is still null or invalid after reinitialization, skipping add operation')
         console.error('_pendingTerms type:', typeof this._pendingTerms, 'value:', this._pendingTerms)
@@ -1020,15 +1381,13 @@ export class EPG extends EPGUpdater {
 
       // Update progress state every 1000 records (without logging)
       if (afterLength % 1000 === 0) {
-        // Update progress state
-        if (this.parent) {
-          this.parent.updateState()
-        }
+        // Update progress state - this will check for integer progress changes and update parent
+        await this.updateState().catch(() => {}) // Don't block on state updates
       }
 
       // Log first few insertions for debugging
       if (afterLength <= 5) {
-        console.debug(`Inserted programme ${afterLength}: ${data.t} on ${data.ch} (length: ${beforeLength} -> ${afterLength})`)
+        console.debug(`Inserted programme ${afterLength}: ${data.title} on ${data.channel} (length: ${beforeLength} -> ${afterLength})`)
       }
     } catch (error) {
       console.error('Error in indexate:', error)
@@ -1036,42 +1395,43 @@ export class EPG extends EPGUpdater {
   }
 
   async destroy() {
-    console.log('Destroying EPG instance for:', this.url)
+    this.debug && console.log('Destroying EPG instance for:', this.url)
 
     this.destroyed = true
     this.readyState = 'destroyed'
 
     // CRITICAL: Wait for any pending commit to complete before destroying
     if (this._state.commitInProgress) {
-      console.log('🟡 Waiting for commit to complete before destroying EPG...')
+      this.debug && console.log('🟡 Waiting for commit to complete before destroying EPG...')
 
       try {
         // Use JexiDB native waitForOperations instead of polling
         if (this.udb) {
-          console.log('🟡 Waiting for database operations to complete...')
+          this.debug && console.log('🟡 Waiting for database operations to complete...')
           await this.udb.waitForOperations()
-          console.log('✅ Database operations completed')
+          this.debug && console.log('✅ Database operations completed')
         }
         
         // Clear commit flag after operations complete
         this._state.commitInProgress = false
-        console.log('✅ Commit completed, proceeding with destruction')
+        this.debug && console.log('✅ Commit completed, proceeding with destruction')
         
       } catch (waitErr) {
         console.warn(`⚠️ Wait timeout for database operations: ${waitErr.message}`)
         // Force clear the flag to prevent infinite waiting
         this._state.commitInProgress = false
-        console.log('✅ Forcing destruction after timeout')
+        this.debug && console.log('✅ Forcing destruction after timeout')
       }
     }
 
     // Stop memory monitoring
     this.memoryMonitor.stopMonitoring()
+    this.clearLookupCache()
 
     // Call parent cleanup
     await this.cleanup()
 
-    console.log('EPG instance destroyed for:', this.url)
+    this.debug && console.log('EPG instance destroyed for:', this.url)
   }
 
 }

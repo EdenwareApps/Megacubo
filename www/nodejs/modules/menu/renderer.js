@@ -64,9 +64,10 @@ class MenuIcons extends MenuBase {
             'group': 'fas fa-box-open'
         }
         main.on('icon', data => {
+            console.log('icon', data);
             if (data.tabIndex == -1) return
             const fullPath = [data.path, data.name].filter(v => v).join('/')
-            if (typeof(this.icons[fullPath]) == 'undefined') {
+            if (!this.icons[fullPath]) {
                 this.icons[fullPath] = {}
             }
             let changed
@@ -507,13 +508,10 @@ export class Menu extends MenuNav {
         super(container)
         this.dialogs = {}
         this.currentEntries = []
-        console.log('🎯 Menu: Setting up event listeners');
         main.on('render', (entries, path, icon) => {
-            console.log('📨 Menu: Received render event from main:', { entries, path, icon });
             this.render(entries, path, icon);
         })
         main.on('menu-select', (entries, path, icon) => {
-            console.log('📨 Menu: Received menu-select event from main:', { entries, path, icon });
             this.setupSelect(entries, path, icon);
         })
         main.on('trigger', data => {
@@ -621,9 +619,18 @@ export class Menu extends MenuNav {
         } catch (e) {
             console.error('Error setting up select', e);
         }
+        console.log('setupSelect', {entries, def});
         if (!def) {
-            def = entries.find(e => e.selected)?.id || entries[0]?.id
+            console.log('setupSelect no def', {entries});
+            const entry = entries.find(e => e.selected) || entries[0]
+            if (entry && !entry.id) {
+                entry.id = entry.name.toLowerCase().replace(/[^a-z0-9\-_]+/gi, "");
+            }
+            if (entry) {
+                def = entry.id
+            }
         }
+        console.log('setupSelect after', {entries, def});
         this.dialogs.select(path.split('/').pop(), entries, fa, def, ret => {
             if (ret) {
                 const entry = entries.find(e => e.id == ret)
@@ -642,26 +649,40 @@ export class Menu extends MenuNav {
     }
     setupSlider(element) {
         const path = element.getAttribute('data-path')
-        const start = parseInt(element.getAttribute('data-range-start') || 0)
-        const end = parseInt(element.getAttribute('data-range-end') || 100)
+        const start = parseFloat(element.getAttribute('data-range-start') || '0')
+        const end = parseFloat(element.getAttribute('data-range-end') || '100')
+        const step = parseFloat(element.getAttribute('data-range-step') || '1')
         const mask = element.getAttribute('data-mask')
-        const def = Number(this.currentEntries[element.tabIndex]?.value) || 0
+        const currentValue = Number(this.currentEntries[element.tabIndex]?.value)
+        const def = Number.isFinite(currentValue) ? currentValue : start
         const fa = element.getAttribute('data-original-icon') || ''
         const question = element.getAttribute('data-question') || element.getAttribute('title')
-        const message = element.getAttribute('data-dialog-details')
-        this.dialogs.slider(question, message, {start, end}, parseInt(def || 0), mask, value => {
+        const entry = this.currentEntries[element.tabIndex]
+        const message = entry?.details || ''
+        const extraOptions = entry?.extraOptions
+        this.dialogs.slider(question, message, {start, end, step}, def, mask, value => {
             const i = element.tabIndex
             console.log('slider value', value);
+            if (value === 'remove') {
+                main.emit('menu-input', path, 'remove')
+                setTimeout(() => this.emit('focus-index', i), 50)
+                return
+            }
             if (value !== false && value !== null) {
-                main.emit('menu-input', path, value)
+                const numericValue = Number(value)
+                if (Number.isNaN(numericValue)) {
+                    setTimeout(() => this.emit('focus-index', i), 50)
+                    return
+                }
+                main.emit('menu-input', path, numericValue)
                 if (this.currentEntries[i]) {
-                    this.currentEntries[i].value = Number(value)
+                    this.currentEntries[i].value = numericValue
                     this.prepareEntry(this.currentEntries[i], i)
                 }
                 this.emit('updated')
             }
             setTimeout(() => this.emit('focus-index', i), 50)
-        }, fa)
+        }, fa, extraOptions)
     }
     getKey(element) {
         const type = element.getAttribute('data-type');
@@ -758,7 +779,7 @@ export class Menu extends MenuNav {
         if (!e.type) e.type = typeof(e.url) ? 'stream' : 'action'
         if (e.type != 'back') {
             if (!e.fa) {
-                if (this.icons[e.path] && this.icons[e.path].url.startsWith('fa')) {
+                if (this.icons[e.path] && this.icons[e.path].url && this.icons[e.path].url.startsWith('fa')) {
                     e.fa = this.icons[e.path].url
                 }
                 if (!e.icon || !e.icon.startsWith('fa')) {

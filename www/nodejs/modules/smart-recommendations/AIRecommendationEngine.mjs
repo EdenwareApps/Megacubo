@@ -4,7 +4,7 @@
  */
 
 import { EventEmitter } from 'node:events';
-import { EPGErrorHandler } from '../epg-worker/EPGErrorHandler.js';
+import { EPGErrorHandler } from '../epg/worker/EPGErrorHandler.js';
 
 export class AIRecommendationEngine extends EventEmitter {
     constructor(aiClient) {
@@ -27,7 +27,7 @@ export class AIRecommendationEngine extends EventEmitter {
     async calculateSemanticScore(programme, expandedUserTags, context) {
         try {
             // Get programme terms from EPG (includes title + channel + categories!)
-            const programmeTerms = programme.terms || programme.c || [];
+            const programmeTerms = programme.terms || programme.categories || [];
             
             if (programmeTerms.length === 0) {
                 // No terms/categories, use traditional scoring

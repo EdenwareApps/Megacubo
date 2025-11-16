@@ -9,12 +9,13 @@ class ConnRacing extends EventEmitter {
         this.opts = opts
         this.results = []
         this.callbacks = []
-        this.downloads = []
+        this.activeDownloads = new Set()
         this.ended = false
         this.racingEnded = false
         this.processedCount = 0
         this.triggerInterval = opts.triggerInterval || 0
         this.exitListener = () => this.destroy()
+        this.pendingDestroy = false
         process.on('exit', this.exitListener)
         this.start().catch(err => console.error(err))
         process.removeListener('exit', this.exitListener)
@@ -50,7 +51,7 @@ class ConnRacing extends EventEmitter {
 
     async validateUrl(url, index, attempt, succeeded) {
         if (this.ended || succeeded.has(url)) return this.markAsProcessed(url, 200)
-        if (!/^https?:\/\//.test(url)) throw new Error('URL não testável')
+        if (!/^https?:\/\//.test(url)) throw new Error('URL not testable')
         if (this.triggerInterval && index > 0) await this.wait(index * this.triggerInterval)
 
         const start = Date.now() / 1000
@@ -62,12 +63,35 @@ class ConnRacing extends EventEmitter {
             retries: 1,
             timeout: attempt * this.opts.timeout,
         })
+        this.activeDownloads.add(download)
 
-        this.downloads.push(download)
-        const response = await download.catch(() => null) // Suprime erros de download
+        let response
+        let error
+        try {
+            response = await download
+        } catch (err) {
+            error = err
+        }
 
         this.processedCount++
-        return response ? this.handleDownloadResponse(url, response, start, succeeded) : false
+        if (response) {
+            this.activeDownloads.delete(download)
+            return this.handleDownloadResponse(url, response, start, succeeded)
+        }
+
+        const result = {
+            time: Date.now() / 1000 - start,
+            url,
+            valid: false,
+            status: error?.statusCode || error?.status || error?.response?.status || null,
+            error: error?.message || 'REQUEST_FAILED'
+        }
+
+        this.results.push(result)
+        this.results.sort((a, b) => a.time - b.time)
+        this.activeDownloads.delete(download)
+        this.pump()
+        return result.status
     }
 
     handleDownloadResponse(url, response, start, succeeded) {
@@ -81,6 +105,7 @@ class ConnRacing extends EventEmitter {
         }
 
         this.results.push(result)
+        this.results.sort((a, b) => a.time - b.time)
         if (isValid) succeeded.add(url)
 
         this.pump()
@@ -100,6 +125,10 @@ class ConnRacing extends EventEmitter {
             const callback = this.callbacks.shift()
             const result = this.results.shift()
             callback(result)
+        }
+
+        if (this.pendingDestroy && this.results.length === 0 && this.callbacks.length === 0) {
+            this.finalize()
         }
 
         if (this.ended || (this.racingEnded && this.results.length === 0)) {
@@ -127,7 +156,11 @@ class ConnRacing extends EventEmitter {
             this.ended = true
             this.pump()
             this.emit('end')
-            this.destroy()
+            if (this.results.length === 0 && this.callbacks.length === 0) {
+                this.finalize()
+            } else {
+                this.pendingDestroy = true
+            }
         }
     }
 
@@ -135,16 +168,46 @@ class ConnRacing extends EventEmitter {
         return (this.processedCount / this.urls.length) * 100
     }
 
-    destroy() {
-        if (!this.destroyed) {
-            this.ended = true
-            this.destroyed = true
-            this.results = []
-            this.callbacks = []
-            this.downloads.forEach(download => download.cancel())
-            this.downloads = []
-            this.removeAllListeners()
+    cancelActiveDownloads() {
+        if (!this.activeDownloads?.size) return
+        for (const download of this.activeDownloads) {
+            try {
+                download?.cancel?.()
+            } catch (err) {
+                console.warn('Failed to cancel download:', err?.message || err)
+            }
         }
+        this.activeDownloads.clear()
+    }
+
+    finalize() {
+        if (this.destroyed) return
+        this.pendingDestroy = false
+        this.cancelActiveDownloads()
+        this.callbacks = []
+        this.results = []
+        this.destroyed = true
+        if (this.exitListener) {
+            process.removeListener('exit', this.exitListener)
+            this.exitListener = null
+        }
+        this.removeAllListeners()
+    }
+
+    destroy() {
+        if (this.destroyed) return
+        this.pendingDestroy = false
+        this.ended = true
+        this.cancelActiveDownloads()
+        this.callbacks.forEach(callback => callback(false))
+        this.callbacks = []
+        this.results = []
+        this.destroyed = true
+        if (this.exitListener) {
+            process.removeListener('exit', this.exitListener)
+            this.exitListener = null
+        }
+        this.removeAllListeners()
     }
 }
 

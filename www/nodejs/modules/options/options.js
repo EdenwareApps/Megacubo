@@ -816,6 +816,8 @@ class Options extends OptionsExportImport {
             { template: 'option', text: lang.YES, fa: 'fas fa-check-circle', id: 'yes' }, { template: 'option', text: lang.NO, fa: 'fas fa-times-circle', id: 'no' }
         ], 'no');
         if (ret == 'yes') {
+            // Explicitly clear setup-completed before clearing config
+            config.set('setup-completed', false);
             try {
                 rmdirSync(paths.data, false)
                 rmdirSync(paths.temp, false)

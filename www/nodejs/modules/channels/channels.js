@@ -14,7 +14,7 @@ import icons from '../icon-server/icon-server.js'
 import config from '../config/config.js'
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
-import { clone, insertEntry, parseCommaDelimitedURIs, moment, time, ts2clock } from '../utils/utils.js'
+import { clone, insertEntry, moment, ts2clock } from '../utils/utils.js'
 import Search from '../search/search.js'
 import { parse } from '../serialize/serialize.js'
 import { ChannelsList } from './channel-list.js'
@@ -124,7 +124,7 @@ class ChannelsEPG extends ChannelsData {
     clock(data, includeEnd) {
         let t = this.clockIcon + ts2clock(data.start)
         if (includeEnd) {
-            t += ' - ' + ts2clock(data.e)
+            t += ' - ' + ts2clock(data.end)
         }
         return t
     }
@@ -170,19 +170,28 @@ class ChannelsEPG extends ChannelsData {
     epgDataToEntries(epgData, ch, terms) {
         const now = (Date.now() / 1000)
         const at = p => {
-            if (p.start <= now && p.e >= now) {
+            if (p.start <= now && p.end >= now) {
                 return lang.LIVE
             }
             return this.clock(p, true)
         }
-        return (Array.isArray(epgData) ? epgData : Object.values(epgData)).filter(p => p.e > now).map(p => {
-            const epgIcon = (p.i && p.i.includes('//')) ? p.i : ''
+        return (Array.isArray(epgData) ? epgData : Object.values(epgData)).filter(p => p.end > now).map(p => {
+            const epgIcon = (p.icon && p.icon.includes('//')) ? p.icon : ''
             return {
-                name: p.t,
+                name: p.title,
                 details: ch + ' | ' + at(p),
                 type: 'action',
                 fa: 'fas fa-play-circle',
-                programme: { start: p.start, ch, i: epgIcon },
+                programme: { 
+                    start: p.start, 
+                    channel: ch, 
+                    icon: epgIcon,
+                    age: p.age || 0,
+                    parental: p.parental || 'no',
+                    rating: p.rating || '',
+                    contentType: p.contentType || '',
+                    title: p.title
+                },
                 action: this.epgProgramAction.bind(this, p.start, ch, p, terms, epgIcon)
             }
         })
@@ -222,53 +231,64 @@ class ChannelsEPG extends ChannelsData {
     }
     async epgChannelLiveNow(entry) {
         if (!global.lists?.epg?.loaded) throw 'epg not loaded';
-        let channel = this.epgPrepareSearch(entry)
-        let epgData = await global.lists.epgChannelsList(channel, 1)
-        let ret = Object.values(epgData).shift()
-        if (ret) {
-            return ret.t
-        } else {
+        const channel = this.epgPrepareSearch(entry)
+        const info = await global.lists.getLiveNowAndNext(channel, { limit: 2 })
+        if (!info || !Array.isArray(info.programmes) || !info.programmes.length) {
             throw 'not found 2'
         }
+        const nowTs = Date.now() / 1000
+        const current = info.programmes.find(p => p && p.start <= nowTs && p.end > nowTs) || info.programmes[0]
+        if (current && current.title) {
+            return current.title
+        }
+        throw 'not found 2'
     }
     async epgChannelLiveNowAndNext(entry) {
         let ret = await this.epgChannelLiveNowAndNextInfo(entry);
-        Object.keys(ret).forEach(k => ret[k] = ret[k].t);
+        Object.keys(ret).forEach(k => ret[k] = ret[k].title);
         return ret;
     }
     async epgChannelLiveNowAndNextInfo(entry) {
         if (!global.lists?.epg?.loaded) throw 'epg not loaded'        
-        let channel = this.epgPrepareSearch(entry)
-        let epgData = await global.lists.epgChannelsList(channel, 2)
-        if (typeof(epgData) == 'string') throw 'epg is loading'
-        if (!Array.isArray(epgData)) throw 'not found 1'
-        let now = epgData.shift()
-        if (now && now.t) {
-            let ret = { now }
-            if (epgData.length) {
-                let s = time()
-                let next = epgData.filter(n => n && (n.start > s)).shift()
-                if(!next) throw 'not found 3'
-                let start = moment(next.start * 1000).fromNow()
-                start = start.charAt(0).toUpperCase() + start.slice(1)
-                ret[start] = next
-            }
-            return ret
-        } else {
+        const channel = this.epgPrepareSearch(entry)
+        const info = await global.lists.getLiveNowAndNext(channel, { limit: 2 })
+        if (!info || !Array.isArray(info.programmes) || !info.programmes.length) {
+            throw 'not found 1'
+        }
+        const nowTs = Date.now() / 1000
+        const current = info.programmes.find(p => p && p.start <= nowTs && p.end > nowTs) || info.programmes[0]
+        if (!current || !current.title) {
             throw 'not found 2'
         }
+        const ret = { now: current }
+        const nextProgramme = info.programmes.find(p => p && p.start > nowTs)
+        if (nextProgramme) {
+            let start = moment(nextProgramme.start * 1000).fromNow()
+            start = start.charAt(0).toUpperCase() + start.slice(1)
+            ret[start] = nextProgramme
+        } else {
+            throw 'not found 3'
+        }
+        return ret
     }
     async epgChannelsLiveNow(entries) {
         let ret = {}
         if(!entries.length || !global.lists?.epg?.loaded) {
             return ret
         }  
-        let chs = entries.map(e => this.epgPrepareSearch(e))
-        let epgData = await global.lists.epgChannelsList(chs, 1)
-        Object.keys(epgData).forEach(ch => {
-            ret[ch] = epgData[ch] ? epgData[ch].shift() : false
-            if (!ret[ch] && ret[ch] !== false) ret[ch] = false
-        })
+        const chs = entries.map(e => this.epgPrepareSearch(e))
+        const epgData = await global.lists.getLiveNowAndNext(chs, { limit: 2 })
+        const nowTs = Date.now() / 1000
+        for (const ch of chs) {
+            const key = ch.name
+            const info = epgData ? epgData[key] : null
+            if (!info || !Array.isArray(info?.programmes)) {
+                ret[key] = false
+                continue
+            }
+            const current = info.programmes.find(p => p && p.start <= nowTs && p.end > nowTs) || info.programmes[0] || null
+            ret[key] = current || false
+        }
         return ret
     }
     async epgChannelsAddLiveNow(entries) {
@@ -278,16 +298,15 @@ class ChannelsEPG extends ChannelsData {
         const cs = entries.filter(e => e.terms || allowedTypes.includes(e.type)).map(e => this.isChannel(e)).filter(e => e)
         const epg = await this.epgChannelsLiveNow(cs).catch(e => err = e)
         if (!err && epg) {
-            //console.warn('epgChannelsAddLiveNow', cs, entries, epg)
             entries.forEach((e, i) => {
                 const name = e.isChannel ? e.isChannel.name : (e.originalName || e.name)
-                if (typeof(epg[name]) != 'undefined' && epg[name].t) {
+                if (typeof(epg[name]) != 'undefined' && epg[name].title) {
                     if (entries[i].details) {
-                        if (!entries[i].details.includes(epg[name].t)) {
-                            entries[i].details += ' &middot; ' + epg[name].t
+                        if (!entries[i].details.includes(epg[name].title)) {
+                            entries[i].details += ' &middot; ' + epg[name].title
                         }
                     } else {
-                        entries[i].details = epg[name].t
+                        entries[i].details = epg[name].title
                     }
                     entries[i].programme = epg[name]
                 }
@@ -309,19 +328,18 @@ class ChannelsEPG extends ChannelsData {
     async adjustEPGChannelEntryRenderer(e, detached) {        
         const terms = this.entryTerms(e).filter(t => !t.startsWith('-'));
         const options = [], results = await global.lists.epgSearchChannel(terms, 99)
-        //console.log('adjustEPGChannelEntryRenderer', e, terms, results)
         Object.keys(results).forEach(name => {
             let keys = Object.keys(results[name]);
             if (!keys.length)
                 return;
-            let details = results[name][keys[0]].t;
+            let details = results[name][keys[0]].title;
             details += '&nbsp;<span style="opacity: var(--opacity-level-3);">&middot;</span> <i class="fas fa-th" aria-hidden="true"></i> '+ keys.length
             options.push({
                 name,
                 details,
                 fa: 'fas fa-th-large',
                 type: 'action',
-                icon: results[name][keys[0]].i,
+                icon: results[name][keys[0]].icon,
                 action: () => {
                     console.log('adjustEPGChannelEntryRenderer RESULT', e.name, name);
                     let map = config.get('epg-map') || {};
@@ -345,26 +363,24 @@ class ChannelsEPG extends ChannelsData {
             fa: 'fas fa-ban',
             type: 'action',
             action: () => {
-                //console.log('adjustEPGChannelEntryRenderer RESULT', e.name, '-')
                 let map = config.get('epg-map') || {};
                 map[e.name] = '-';
                 config.set('epg-map', map);
                 menu.back(null, true);
             }
         });
-        //console.log('adjustEPGChannelEntryRenderer', options)
         return options;
     }
     epgProgramAction(start, ch, programme, terms, icon) {
         const now = (Date.now() / 1000);
         
-        if (programme.e < now) { // missed
-            let text = lang.START_DATE + ': ' + moment(start * 1000).format('L LT') + '<br />' + lang.ENDED + ': ' + moment(programme.e * 1000).format('L LT');
-            if (programme.c && programme.c.length) {
-                text += '<br />' + lang.CATEGORIES + ': ' + programme.c.join(', ');
+        if (programme.end < now) { // missed
+            let text = lang.START_DATE + ': ' + moment(start * 1000).format('L LT') + '<br />' + lang.ENDED + ': ' + moment(programme.end * 1000).format('L LT');
+            if (programme.categories && programme.categories.length) {
+                text += '<br />' + lang.CATEGORIES + ': ' + programme.categories.join(', ');
             }
             menu.dialog([
-                { template: 'question', text: programme.t + ' &middot; ' + ch, fa: 'fas fa-calendar-alt' },
+                { template: 'question', text: programme.title + ' &middot; ' + ch, fa: 'fas fa-calendar-alt' },
                 { template: 'message', text },
                 { template: 'option', id: 'ok', fa: 'fas fa-check-circle', text: 'OK' }
             ], 'ok').catch(err => console.error(err));
@@ -380,11 +396,11 @@ class ChannelsEPG extends ChannelsData {
             });
         } else {
             let text = lang.START_DATE + ': ' + moment(start * 1000).format('L LT');
-            if (programme.c && programme.c.length) {
-                text += '<br />' + lang.CATEGORIES + ': ' + programme.c.join(', ');
+            if (programme.categories && programme.categories.length) {
+                text += '<br />' + lang.CATEGORIES + ': ' + programme.categories.join(', ');
             }
             menu.dialog([
-                { template: 'question', text: programme.t + ' &middot; ' + ch, fa: 'fas fa-calendar-alt' },
+                { template: 'question', text: programme.title + ' &middot; ' + ch, fa: 'fas fa-calendar-alt' },
                 { template: 'message', text },
                 { template: 'option', id: 'ok', fa: 'fas fa-check-circle', text: 'OK' }
             ], 'ok').catch(err => console.error(err));
@@ -1035,69 +1051,63 @@ class Channels extends ChannelsKids {
         await this.trending.order(entries).then(es => entries = es).catch(err => console.error(err));
         return entries;
     }
-    searchChannels(terms, partial) {
-        return new Promise((resolve, reject) => {
-            if (typeof(terms) == 'string') {                
-                terms = global.lists.tools.terms(terms)
-            }
-            
-            // Ensure terms is an array
-            if (!Array.isArray(terms)) {
-                console.warn('searchChannels: terms is not an array after conversion:', terms);
-                terms = [];
-            }
-            let epgEntries = [], entries = [], already = {};
-            let matchAll = !terms.length || (terms.length == 1 && terms[0] == '*')
-            
-            // Ensure channelsIndex exists and is an object
-            if (!this.channelList || !this.channelList.channelsIndex || typeof this.channelList.channelsIndex !== 'object') {
-                console.warn('searchChannels: channelsIndex is not available');
-                resolve([]);
-                return;
-            }
-            
-            Object.keys(this.channelList.channelsIndex).sort().forEach(name => {
-                if (typeof(already[name]) == 'undefined') {
-                    let channelTerms = this.channelList.channelsIndex[name];
-                    
-                    // Ensure channelTerms is an array
-                    if (!Array.isArray(channelTerms)) {
-                        console.warn('searchChannels: channelTerms for', name, 'is not an array:', channelTerms);
-                        channelTerms = [];
-                    }
-                    
-                    let score = matchAll ? 1 : this.cmatch(channelTerms, terms, partial);
-                    if (score) {
-                        already[name] = null;
-                        entries.push({
-                            name,
-                            terms: { name: this.channelList.channelsIndex[name] }
-                        });
-                    }
+    async searchChannels(terms, partial) {
+        if (typeof (terms) == 'string') {
+            terms = global.lists.tools.terms(terms)
+        }
+
+        if (!Array.isArray(terms)) {
+            console.warn('searchChannels: terms is not an array after conversion:', terms)
+            terms = []
+        }
+
+        const entries = []
+        const already = {}
+        const matchAll = !terms.length || (terms.length == 1 && terms[0] == '*')
+
+        if (!this.channelList || !this.channelList.channelsIndex || typeof this.channelList.channelsIndex !== 'object') {
+            console.warn('searchChannels: channelsIndex is not available')
+            return []
+        }
+
+        Object.keys(this.channelList.channelsIndex).sort().forEach(name => {
+            if (typeof (already[name]) === 'undefined') {
+                let channelTerms = this.channelList.channelsIndex[name]
+                if (!Array.isArray(channelTerms)) {
+                    console.warn('searchChannels: channelTerms for', name, 'is not an array:', channelTerms)
+                    channelTerms = []
                 }
-            });
-            console.log(clone(entries));
-            this.epgChannelsAddLiveNow(entries, true).then(es => {
-                this.epgSearch(terms, true).then(ees => {
-                    epgEntries = ees.map(e => {
-                        let ch = this.isChannel(e.programme.ch);
-                        if (ch) {
-                            if (typeof(already[ch.name]) == 'undefined') {
-                                already[ch.name] = null;
-                                if (e.details) {
-                                    e.details = e.details.replace(e.programme.ch, ch.name);
-                                }
-                                e.programme.ch = ch.name;
-                                return e;
-                            }
-                        }
-                    }).filter(e => !!e);
-                }).catch(err => console.error(err)).finally(() => {
-                    es.push(...epgEntries);
-                    resolve(es);
-                });
-            }).catch(reject);
-        });
+                const score = matchAll ? 1 : this.cmatch(channelTerms, terms, partial)
+                if (score) {
+                    already[name] = null
+                    entries.push({
+                        name,
+                        terms: { name: this.channelList.channelsIndex[name] }
+                    })
+                }
+            }
+        })
+        console.log(clone(entries))
+
+        let epgEntries = []
+        try {
+            const epgResults = await this.epgSearch(terms, true)
+            epgEntries = epgResults.map(e => {
+                const ch = this.isChannel(e.programme.channel)
+                if (ch && typeof (already[ch.name]) === 'undefined') {
+                    already[ch.name] = null
+                    if (e.details) {
+                        e.details = e.details.replace(e.programme.channel, ch.name)
+                    }
+                    e.programme.channel = ch.name
+                    return e
+                }
+            }).filter(e => !!e)
+        } catch (err) {
+            console.error(err)
+        }
+
+        return entries.concat(epgEntries)
     }
     entryTerms(e, expand) {
         let terms
@@ -1108,7 +1118,7 @@ class Channels extends ChannelsKids {
         } else if (e.originalName) {
             terms = global.lists.tools.terms(e.originalName)
         } else {
-            terms = global.lists.tools.terms(e.programme ? e.programme.ch : e.name);
+            terms = global.lists.tools.terms(e.programme ? e.programme.channel : e.name);
         }
         if(expand && !e.expanded) {
             terms = this.expandTerms(terms)
@@ -1120,7 +1130,7 @@ class Channels extends ChannelsKids {
         return terms
     }
     async toMetaEntryRenderer(e, _category, epgNow) {
-        let category, channelName = e.originalName || (e.programme ? e.programme.ch : e.name);
+        let category, channelName = e.originalName || (e.programme ? e.programme.channel : (e.originalName || e.name));
         if (_category === false) {
             category = false;
         } else if (_category && typeof(_category) == 'string') {
@@ -1164,7 +1174,7 @@ class Channels extends ChannelsKids {
                 entries.push({
                     name: call,
                     type: 'action',
-                    fa: 'fas fa-play-circle',
+                    fa: 'fas fa-play-circle faclr-green',
                     url,
                     group: category,
                     action: data => {                        
@@ -1190,7 +1200,7 @@ class Channels extends ChannelsKids {
                 const name = loaded ? lang.NONE_STREAM_FOUND : lang.NO_LISTS_ADDED;
                 entries.push(Object.assign(this.emptyEntry, {
                     name,
-                    fa: 'fas fa-exclamation-triangle faclr-darked'
+                    fa: 'fas fa-exclamation-triangle faclr-red'
                 }));
                 if (global.lists.activeLists.my.length) {
                     global.lists.manager.checkListExpiral(global.lists.activeLists.my.map(source => ({ source }))).catch(err => console.error(err));
@@ -1273,8 +1283,8 @@ class Channels extends ChannelsKids {
         let meta = Object.assign({}, e), terms = this.entryTerms(e, true)
         if (typeof(meta.url) == 'undefined') {
             let name = e.name
-            if (e.programme && e.programme.ch) {
-                name = e.programme.ch
+            if (e.programme && e.programme.channel) {
+                name = e.programme.channel
             }
             const ch = this.isChannel(name)
             if (ch && ch.name) {
@@ -1369,20 +1379,50 @@ class Channels extends ChannelsKids {
                 const ret = await global.lists.has(chs, { partial: false });
                 let entries = categories[category].entries.filter(e => ret[e.name]);
                 entries = entries.map(e => this.toMetaEntry(e, categories[category]));
-                entries = await this.epgChannelsAddLiveNow(entries, true);
                 list.push(...entries);
             }
             list = global.lists.tools.sort(list);
         } else {
             list = categories.map(category => {
                 category.renderer = async (c, e) => {
+                    const start = Date.now();
+                    console.log('category.renderer', category.name, Date.now() - start);
                     let chs = category.entries.map(e => this.isChannel(e.name)).filter(e => !!e);
-                    const ret = await global.lists.has(chs, { partial: false });
+                    
+                    // Add timeout to prevent hanging on slow lists.has() calls
+                    let ret = {};
+                    try {
+                        const timeoutPromise = new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error(`lists.has timeout for category ${category.name}`)), 30000)
+                        );
+                        ret = await Promise.race([
+                            global.lists.has(chs, { partial: false }),
+                            timeoutPromise
+                        ]);
+                    } catch (err) {
+                        const isTimeout = err.message && err.message.includes('timeout');
+                        const errorMsg = isTimeout 
+                            ? `Timeout checking availability of channels in category "${category.name}". The operation took more than 30 seconds.`
+                            : `Error checking availability of channels in category "${category.name}": ${err.message}`;
+                        
+                        console.warn(`category.renderer timeout/error for ${category.name}:`, err.message);
+                        
+                        // Show informative error message to user
+                        global.menu.displayErr(errorMsg);
+                        
+                        // Return empty result on timeout/error to prevent hanging
+                        ret = {};
+                    }
+                    
+                    console.log('global.lists.has', category.name, Date.now() - start);
                     let entries = category.entries.filter(e => ret[e.name]);
+                    console.log('category.entries.filter', category.name, Date.now() - start);
                     entries = entries.map(e => this.toMetaEntry(e, category));
-                    entries = await this.epgChannelsAddLiveNow(entries, true);
+                    console.log('toMetaEntry', category.name, Date.now() - start);
                     entries = this.sortCategoryEntries(entries);
+                    console.log('sortCategoryEntries', category.name, Date.now() - start);
                     editable && entries.push(this.editCategoryEntry(c));
+                    console.log('editCategoryEntry', category.name, Date.now() - start);
                     return entries;
                 };
                 return category;
@@ -1412,7 +1452,6 @@ class Channels extends ChannelsKids {
                         entries.push(entry);
                     });
                 }
-                entries = await this.epgChannelsAddLiveNow(entries, true);
                 entries = global.lists.tools.sort(entries);
                 return entries;
             }
@@ -1463,12 +1502,12 @@ class Channels extends ChannelsKids {
         entries = global.lists.tools.sort(entries);
         const policy = config.get('channels-list-smart-sorting')
         const adjust = e => {
-            if(e.programme && e.programme.t) {
+            if(e.programme && e.programme.title) {
                 if(!e.originalName) {
                     e.originalName = e.name
                 }
                 e.details = e.name
-                e.name = e.programme.t
+                e.name = e.programme.title
             }
             return e
         }

@@ -24,23 +24,27 @@ class ManagerEPG extends EventEmitter {
         renderer.ready(() => {
             let currentHash
             const updater = async () => {
-                const es = await this.epgOptionsEntries()
-                const entries = es.map(e => {
-                    if (e.name == lang.SYNC_EPG_CHANNELS) {
-                        e.value = e.checked()
+                try {
+                    const es = await this.epgOptionsEntries()
+                    const entries = es.map(e => {
+                        if (e.name == lang.SYNC_EPG_CHANNELS) {
+                            e.value = e.checked()
+                        }
+                        return e
+                    })
+                    if (Array.isArray(entries) && entries.length) {
+                        if(!this.inEPGSelectionPath(menu.path)) return
+                        const hash = entries.map(e => e.name + e.details + e.value).join('')
+                        if (hash !== currentHash) {
+                            currentHash = hash
+                            menu.render(entries, this.epgSelectionPath(), {
+                                icon: global.channels ? global.channels.epgIcon : '',
+                                filter: true
+                            })
+                        }
                     }
-                    return e
-                })
-                if (Array.isArray(entries) && entries.length) {
-                    if(!this.inEPGSelectionPath(menu.path)) return
-                    const hash = entries.map(e => e.name + e.details + e.value).join('')
-                    if (hash !== currentHash) {
-                        currentHash = hash
-                        menu.render(entries, this.epgSelectionPath(), {
-                            icon: global.channels ? global.channels.epgIcon : '',
-                            filter: true
-                        })
-                    }
+                } catch (error) {
+                    console.error('Error in epgOptionsEntries:', error)
                 }
             }
             menu.setLiveSection(lang.MY_LISTS + '/' + lang.EPG + '/' + lang.SELECT, 1000, updater)
@@ -87,14 +91,20 @@ class ManagerEPG extends EventEmitter {
             let icon, details = getDomain(url)
             const isActive = actives.has(url), name = listNameFromURL(url)
             const state = states.epgs.find(epg => epg.url == url)
+            const checked = () => {
+                const data = this.EPGs()
+                return data.some(r => r.url == url)
+            }
             if (isActive) {
                 icon = 'fa-mega busy-x'
                 if (state?.readyState == 'error') {
                     details = lang[state.error] || state.error || lang.NOT_FOUND
                     icon = 'fas fa-times-circle faclr-red'
-                } else if (state && state.progress > 99) {
-                    const state = states?.epgs?.find(e => e.url == url)
-                    details = state ? lang.X_PROGRAMMES.format(formatThousands(state.databaseSize)) : lang.EPG_LOAD_SUCCESS
+                } else if (state?.readyState == 'loaded') {
+                    details = lang.X_PROGRAMMES.format(formatThousands(state.databaseSize))
+                    if (!checked()) {
+                        details += ' &middot; '+ lang.SUGGESTED
+                    }
                     icon = 'fas fa-check-circle faclr-green'
                 } else {
                     details = lang.PROCESSING + ' ' + (state?.progress || 0) + '%'
@@ -104,10 +114,6 @@ class ManagerEPG extends EventEmitter {
                     details = lang[state.error] || state.error || lang.NOT_FOUND
                     icon = 'fas fa-times-circle faclr-red'
                 }
-            }
-            const checked = () => {
-                const data = this.EPGs()
-                return data.some(r => r.url == url)
             }
             return {
                 name,
@@ -299,7 +305,12 @@ class ManagerEPG extends EventEmitter {
                 }
             };
         })
-        return global.channels.epgChannelsAddLiveNow(chs, false)
+        // Reordena as entradas para que os que possuam 'programme' fiquem na frente
+        const allEntries = await global.channels.epgChannelsAddLiveNow(chs, false);
+        return [
+            ...allEntries.filter(entry => !!entry.programme),
+            ...allEntries.filter(entry => !entry.programme)
+        ];
     }
 }
 class ManagerFetch extends ManagerEPG {
@@ -359,7 +370,7 @@ class ManagerFetch extends ManagerEPG {
         }
 
         let source, entries
-        if (lists[url] && lists[url].fetchAll && (!opts.fetch || lists[url].length)) { // if not loaded yet, fetch directly
+        if (lists[url] && lists[url].getMap && (!opts.fetch || lists[url].length)) { // if not loaded yet, fetch directly
             const exists = await fsp.stat(lists[url].file).then(s => s.size > 0).catch(() => false)
             if (exists) {
                 source = lists[url]
@@ -416,6 +427,18 @@ class Manager extends ManagerFetch {
         this.listFaIcon = 'fas fa-satellite-dish';
         this.key = 'lists';
         this.inputMemory = {}
+        this.communityRetryPromptOpen = false;
+		this.noListsAutoRetryState = {
+			attempts: 0,
+			timer: null,
+			awaitingResult: false,
+			exhausted: false
+		};
+
+        this.communityPromptGraceUntil = Date.now() + 10000;
+        this.communityAutoRetryAttempts = 0;
+        this.communityAutoRetryLimit = 3;
+        this.communityAutoRetryInFlight = false;
 
         this.updateProgressLimiter = new Limiter(this.updateProgress.bind(this), 1000)
         this.master.on('state', info => this.updateProgressLimiter.call(info))
@@ -428,34 +451,50 @@ class Manager extends ManagerFetch {
                 es = await this.expandEntries(es, path)
                 return this.labelify(es)
             })
-            await this.master.ready()
-
-            // Adicionar listener para recarregar sugestões quando necessário
-            this.master.epg.on('reload-suggestions', async () => {
-                console.log('🔄 Reloading EPG suggestions...')
-                const activeEPG = config.get('epg-' + lang.locale)
-                if (activeEPG === 'disabled' || config.get('epg-suggestions') === false) {
-                    console.log('EPG suggestions disabled, skipping reload')
-                    return
-                }
-                
-                const urls = await this.master.searchEPGs()
-                console.log('EPGS urls - MANAGER (reload)', urls)
-                if (urls.length > 0) {
-                    await this.master.epg.suggest(urls)
-                }
-            })
-
-            const activeEPG = config.get('epg-' + lang.locale)
-            if (activeEPG === 'disabled' || config.get('epg-suggestions') === false) return
-            const suggest = !activeEPG || activeEPG === 'auto' || (Array.isArray(activeEPG) && activeEPG.length > 0)
-            console.log('shouldSuggest', suggest, activeEPG)
-
-            if (!suggest) return
-            const urls = await this.master.searchEPGs()
-            console.log('EPGS urls - MANAGER', urls)
-            urls.length && await this.master.epg.suggest(urls)
         })
+    }
+    async onCommunityIdle(info = {}) {
+        if (this.communityRetryPromptOpen) {
+            return;
+        }
+        if (this.master.communityRetryDismissed) {
+            return;
+        }
+        if (!paths.ALLOW_COMMUNITY_LISTS) {
+            return;
+        }
+        if (this.master.communityListsAmount <= 0) {
+            return;
+        }
+
+        const autoRetryContext = this.shouldAutoHandleCommunityRetry();
+        if (autoRetryContext) {
+            await this.handleCommunityAutoRetry(autoRetryContext.reason);
+            return;
+        }
+
+        this.communityRetryPromptOpen = true;
+        try {
+            const choice = await menu.dialog([
+                { template: 'question', text: lang.COMMUNITY_LISTS, fa: 'fas fa-users' },
+                { template: 'message', text: lang.NO_COMMUNITY_LISTS_FOUND },
+                { template: 'option', text: lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle' },
+                { template: 'option', text: lang.RETRY, id: 'retry', fa: 'fas fa-sync-alt' }
+            ], 'retry');
+
+            if (choice === 'retry') {
+                this.master.setCommunityRetryDismissed(false);
+                osd.show(lang.SEARCH_COMMUNITY_LISTS, 'fa-mega busy-x', 'community-retry', 'persistent');
+                await this.master.retryCommunityLists({ bypassCache: true });
+            } else {
+                this.master.setCommunityRetryDismissed(true);
+            }
+        } catch (err) {
+            console.error('community idle dialog failed:', err);
+        } finally {
+            osd.hide('community-retry');
+            this.communityRetryPromptOpen = false;
+        }
     }
     async expandEntries(entries, path) {
         let shouldExpand = entries.some(e => typeof(e._) == 'number' && !e.url);
@@ -474,7 +513,12 @@ class Manager extends ManagerFetch {
                     await fetch.ready();
                     list = fetch.list;
                 }
-                entries = await list.indexer.expandMap(entries)
+                // Add null check for list and indexer to prevent TypeError
+                if (list && list.indexer && typeof list.indexer.expandMap === 'function') {
+                    entries = await list.indexer.expandMap(entries)
+                } else {
+                    console.error(`Error fetching entry from ${source}: list or indexer not available`);
+                }
             }
         }
         return entries;
@@ -829,6 +873,108 @@ class Manager extends ManagerFetch {
                 }
             }
         }
+        this.handleNoListsAutoRetry(info)
+    }
+    handleNoListsAutoRetry(info = {}) {
+        if (!this.noListsAutoRetryState) {
+            return;
+        }
+        if (info.length > 0) {
+            this.resetNoListsAutoRetryState();
+            this.resetCommunityAutoRetryAttempts();
+            return;
+        }
+        const loader = this.master?.loader;
+        if (!loader) {
+            return;
+        }
+        const hasQueue = Boolean(loader.queue?.size);
+        const hasRunningProcess = Array.isArray(loader.processes) && loader.processes.some(p => {
+            return typeof p?.done === 'function' ? !p.done() : true;
+        });
+        const hasPendingRequests = this.master && typeof this.master.requesting === 'object'
+            ? Object.values(this.master.requesting).some(status => {
+                if (!status) {
+                    return false;
+                }
+                const normalized = String(status);
+                return normalized !== 'cached, not added';
+            })
+            : false;
+        const loaderBusy = hasQueue || hasRunningProcess || hasPendingRequests;
+        const state = this.noListsAutoRetryState;
+
+        if (state.attempts > 0 && state.awaitingResult && !loaderBusy) {
+            state.awaitingResult = false;
+            state.exhausted = true;
+            return;
+        }
+        if (state.exhausted || loaderBusy || state.timer || state.awaitingResult || state.attempts > 0) {
+            return;
+        }
+        state.timer = setTimeout(async () => {
+            state.timer = null;
+            state.attempts = 1;
+            state.awaitingResult = true;
+            console.warn('[lists.manager] No lists detected after startup; retrying discovery automatically');
+            try {
+                await this.master.discovery.reset();
+            } catch (err) {
+                console.error('[lists.manager] Auto retry discovery reset failed:', err);
+            }
+            try {
+                this.master.loader.reset();
+            } catch (err) {
+                console.error('[lists.manager] Auto retry loader reset failed:', err);
+            }
+        }, 2000);
+    }
+    resetNoListsAutoRetryState() {
+        if (!this.noListsAutoRetryState) {
+            return;
+        }
+        const state = this.noListsAutoRetryState;
+        if (state.timer) {
+            clearTimeout(state.timer);
+        }
+        state.attempts = 0;
+        state.timer = null;
+        state.awaitingResult = false;
+        state.exhausted = false;
+    }
+    resetCommunityAutoRetryAttempts() {
+        this.communityAutoRetryAttempts = 0;
+    }
+    shouldAutoHandleCommunityRetry() {
+        if (this.communityRetryPromptOpen || this.communityAutoRetryInFlight) {
+            return null;
+        }
+        const now = Date.now();
+        if (now < this.communityPromptGraceUntil) {
+            return { reason: 'startup-grace' };
+        }
+        if (this.communityAutoRetryAttempts < this.communityAutoRetryLimit) {
+            return { reason: 'auto-attempt' };
+        }
+        return null;
+    }
+    async handleCommunityAutoRetry(reason) {
+        if (this.communityAutoRetryInFlight) {
+            return;
+        }
+        this.communityAutoRetryInFlight = true;
+        this.communityAutoRetryAttempts += 1;
+        if (this.debug) {
+            console.log('[lists.manager] Auto community retry', { reason, attempt: this.communityAutoRetryAttempts });
+        }
+        try {
+            this.master.setCommunityRetryDismissed(false);
+            await this.master.retryCommunityLists({ bypassCache: true });
+        } catch (err) {
+            console.error('[lists.manager] Auto community retry failed:', err);
+        } finally {
+            this.communityAutoRetryInFlight = false;
+        }
     }
     showUpdateProgress(m, fa, duration) {
         this.updateProgressVisible = true
@@ -851,6 +997,12 @@ class Manager extends ManagerFetch {
             if (this.addingLists.size) {
                 return this.updatingListsEntry();
             } else {
+                const state = this.noListsAutoRetryState;
+                if (state && !state.exhausted) {
+                    if (state.timer || state.awaitingResult || state.attempts === 0) {
+                        return this.updatingListsEntry();
+                    }
+                }
                 return {
                     name: lang.NO_LISTS_ADDED,
                     fa: 'fas fa-plus-square',
@@ -938,14 +1090,15 @@ class Manager extends ManagerFetch {
         let choose = await menu.dialog([
             { template: 'question', text: lang.COMMUNITY_LISTS, fa: 'fas fa-users' },
             { template: 'message', text: lang.SUGGEST_COMMUNITY_LIST +"\r\n\r\n"+ lang.ASK_COMMUNITY_LIST },
-            { template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: lang.I_AGREE },
-            { template: 'option', id: 'fta', fa: 'fas fa-times-circle', text: lang.ONLY_FTA },
+            { template: 'option', id: 'agree', fa: 'fas fa-check-circle faclr-green', text: lang.I_AGREE },
+            { template: 'option', id: 'fta', fa: 'fas fa-exclamation-triangle', text: lang.ONLY_FTA },
             { template: 'option', id: 'back', fa: 'fas fa-chevron-circle-left', text: lang.BACK }
         ], 'agree');
         if (choose == 'agree') {
             renderer.ui.localEmit('lists-manager', 'agree');
             return true;
         } else if (choose == 'fta') {
+            config.set('public-lists', 'only');
             return true;
         }
     }
@@ -1384,16 +1537,6 @@ class Manager extends ManagerFetch {
                         id: 'contact',
                         fa: contactFa
                     });
-                } else {
-                    offer = await global.promo.offer('dialog', ['communitary']).catch(err => console.error(err));
-                    if (offer && offer.type == 'dialog') {
-                        opts.push({
-                            template: 'option',
-                            text: offer.title,
-                            id: 'offer',
-                            fa: offer.fa
-                        });
-                    }
                 }
                 const ret = await menu.dialog(opts);
                 if (ret == 'contact') {

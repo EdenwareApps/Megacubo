@@ -3,6 +3,8 @@ import { isLocal, listNameFromURL, validateURL } from '../utils/utils.js'
 import osd from '../osd/osd.js'
 import lang from "../lang/lang.js";
 import renderer from '../bridge/bridge.js'
+import { distinguishM3UType } from '../lists/tools.js'
+import config from '../config/config.js'
 
 class OMNI extends EventEmitter {
     constructor() {
@@ -46,15 +48,15 @@ class OMNI extends EventEmitter {
         try {
             const info = await global.streamer.streamInfo.probe(url)
             if (info.sample) {
-                const sample = String(info.sample).substr(0, 128).toUpperCase()
-                const isM3U = sample.includes('#EXTM3U')
-                const isM3U8 = sample.match(new RegExp('#EXT-X-(TARGETDURATION|MEDIA-SEQUENCE)'))
-                const hasStreamNames = sample.match(new RegExp('#EXTINF:.+,.*[A-Z]+'))
-                if (isM3U && !isM3U8 && hasStreamNames) {
+                // Use distinguishM3UType to properly identify IPTV playlists
+                const m3uType = distinguishM3UType(info.sample)
+                if (m3uType.isIPTVPlaylist) {
                     osd.hide('omni')
                     return global.lists.manager.addList(url)
                 }
             } else if (info.ext == 'm3u') {
+                // If extension is .m3u, try to verify it's an IPTV playlist
+                // If we don't have sample, assume it's an IPTV playlist for .m3u files
                 osd.hide('omni')
                 return global.lists.manager.addList(url)
             }
@@ -71,7 +73,7 @@ class OMNI extends EventEmitter {
                 }
             };
             config.set('open-url', url);
-            await lists.ready()
+            await global.lists.ready()
             osd.hide('omni')
             await global.streamer.play(e)
         } catch (e) {

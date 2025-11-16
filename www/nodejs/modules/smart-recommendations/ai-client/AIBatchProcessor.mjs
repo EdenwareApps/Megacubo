@@ -3,7 +3,7 @@
  * Batches multiple requests into single API calls for efficiency
  */
 
-import { EPGErrorHandler } from '../../epg-worker/EPGErrorHandler.js';
+import { EPGErrorHandler } from '../../epg/worker/EPGErrorHandler.js';
 
 export class AIBatchProcessor {
     constructor(aiClient, options = {}) {

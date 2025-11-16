@@ -77,17 +77,31 @@ export class CacheManager {
     if (!data.name) {
       data.name = String(id || 'unknown')
     }
+    
+    // Normalize id and name for case-insensitive comparisons
+    const normalizedId = String(id || '').trim()
+    const normalizedName = String(data.name || '').trim()
+    const previous = this.channelsCache.get(normalizedId)
+    const previousName = previous?.data?.name ? String(previous.data.name).trim() : ''
+    
+    // If name is unchanged (case-insensitive), keep original casing to avoid churn
+    if (previous && previousName && normalizedName.toLowerCase() === previousName.toLowerCase()) {
+      data.name = previous.data.name
+    } else {
+      data.name = normalizedName || String(id || 'unknown')
+    }
+    
     if (!data.icon) {
       data.icon = ''
     }
     
     // Prevent cache from growing too large
     if (this.channelsCache.size >= this.maxSize) {
-      console.warn('Channels cache size limit reached, clearing cache...')
+      console.warn('Channels cache size limit reached, evicting oldest 20%...')
       this._evictOldestEntries(this.channelsCache, Math.floor(this.maxSize * 0.2))
     }
 
-    this.channelsCache.set(id, {
+    this.channelsCache.set(normalizedId, {
       data,
       timestamp: Date.now()
     })
@@ -102,7 +116,29 @@ export class CacheManager {
 
   getTerms(id) {
     this._ensureTermsCache()
-    return this.termsCache.get(id)
+    const entry = this.termsCache.get(id)
+    
+    if (!entry) {
+      this.metrics.misses++
+      return undefined
+    }
+    
+    // Retornar apenas os terms se entry for um objeto com timestamp
+    if (entry && typeof entry === 'object' && 'terms' in entry) {
+      // Verificar TTL
+      if (this._isExpired(entry.timestamp)) {
+        this.termsCache.delete(id)
+        this.metrics.evictions++
+        this.metrics.misses++
+        return undefined
+      }
+      this.metrics.hits++
+      return entry.terms
+    }
+    
+    // Compatibilidade: se for apenas terms (formato antigo), retornar diretamente
+    this.metrics.hits++
+    return entry
   }
 
   setTerms(id, terms) {
@@ -110,16 +146,36 @@ export class CacheManager {
     
     // Prevent cache from growing too large
     if (this.termsCache.size >= this.maxSize) {
-      console.warn('Terms cache size limit reached, clearing cache...')
-      this.termsCache.clear()
+      // MODIFICADO: Usar eviction parcial ao invés de clear completo
+      // Remove apenas 20% das entradas mais antigas (mais seguro durante parsing)
+      console.warn('Terms cache size limit reached, evicting oldest 20%...')
+      this._evictOldestEntries(this.termsCache, Math.floor(this.maxSize * 0.2))
     }
 
-    this.termsCache.set(id, terms)
+    // Armazenar com timestamp para permitir eviction baseada em idade
+    this.termsCache.set(id, {
+      terms,
+      timestamp: Date.now()
+    })
   }
 
   getAllTerms() {
     this._ensureTermsCache()
-    return this.termsCache
+    // Retornar um Map transformado que mapeia diretamente para os terms
+    // (compatibilidade com código que espera receber terms diretamente)
+    const termsMap = new Map()
+    for (const [id, entry] of this.termsCache.entries()) {
+      if (entry && typeof entry === 'object' && 'terms' in entry) {
+        // Verificar TTL antes de incluir
+        if (!this._isExpired(entry.timestamp)) {
+          termsMap.set(id, entry.terms)
+        }
+      } else {
+        // Compatibilidade: formato antigo (apenas terms)
+        termsMap.set(id, entry)
+      }
+    }
+    return termsMap
   }
 
   setAllTermsLoaded(loaded = true) {

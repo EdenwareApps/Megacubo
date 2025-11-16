@@ -14,12 +14,8 @@ export class EPGMetadataDetector {
       lang: '',         // No language detected
       country: '',      // No country detected
       rating: '',       // No rating
-      parental: 'no',   // No parental control
-      genre: '',        // No genre
-      contentType: '',  // No content type
-      parentalLock: 'false', // No parental lock
-      geo: '',          // No geographic region
-      ageRestriction: '' // No age restriction
+      parental: 'no',   // No parental control (yes/no/true/false unified)
+      contentType: ''   // No content type
     }
   }
 
@@ -40,14 +36,11 @@ export class EPGMetadataDetector {
     // Country detection
     metadata.country = this.detectCountryFromProgramme(programme)
     
-    // Genre detection
-    metadata.genre = this.detectGenreFromCategories(programme.c || programme.category || [])
-    
-    // Parental control detection
-    metadata.parental = this.detectParentalControl(metadata.age, metadata.genre)
+    // Parental control detection (handles both parental and parentalLock)
+    metadata.parental = this.detectParentalControl(programme, metadata.age)
     
     // Content type detection
-    metadata.contentType = this.detectContentType(metadata.genre, metadata.age)
+    metadata.contentType = this.detectContentType(metadata.age)
 
     return metadata
   }
@@ -73,8 +66,9 @@ export class EPGMetadataDetector {
       if (rating.includes('0+') || rating.includes('all')) return 0
     }
 
-    // Priority 3: Parental control attributes
-    if (programme.parental === 'yes' || programme.parental === '1' || programme.parental === 'true' || programme.parentalLock === 'true') {
+    // Priority 3: Parental control attributes (handles both parental and parentalLock)
+    if (programme.parental === 'yes' || programme.parental === '1' || programme.parental === 'true' || 
+        (programme.parentalLock && programme.parentalLock === 'true')) {
       return 18 // Assume adult content if parental control is enabled
     }
 
@@ -93,7 +87,7 @@ export class EPGMetadataDetector {
     }
 
     // Priority 5: Title/Description detection
-    const text = `${programme.t || ''} ${programme.desc || ''}`.toLowerCase()
+    const text = `${programme.title || ''} ${programme.desc || ''}`.toLowerCase()
     const ageMatch = text.match(/\[\s*(\d+)\+\]|\[\s*(pg-\d+)\s*\]|\[\s*(adult)\s*\]/i)
     if (ageMatch) {
       if (ageMatch[1]) return parseInt(ageMatch[1])
@@ -126,7 +120,7 @@ export class EPGMetadataDetector {
     }
 
     // Priority 3: Title/Description text detection
-    const text = `${programme.t || ''} ${programme.desc || ''}`
+    const text = `${programme.title || ''} ${programme.desc || ''}`
     const langMatch = text.match(/\[(\w{2}(-\w{2})?)\]/i)
     if (langMatch) {
       return langMatch[1].toLowerCase()
@@ -160,7 +154,7 @@ export class EPGMetadataDetector {
     }
 
     // Priority 3: Channel name/Title detection
-    const text = `${programme.ch || ''} ${programme.t || ''}`.toLowerCase()
+    const text = `${programme.channel || ''} ${programme.title || ''}`.toLowerCase()
     const countryMatch = text.match(/\[(\w{2})\]/i)
     if (countryMatch) {
       return countryMatch[1].toUpperCase()
@@ -182,35 +176,25 @@ export class EPGMetadataDetector {
   }
 
   /**
-   * Detect genre from categories
+   * Detect parental control (handles both parental and parentalLock)
    */
-  detectGenreFromCategories(categories) {
-    if (!categories) return ''
+  detectParentalControl(programme, age) {
+    // Check explicit parental control from input
+    if (programme.parental === 'yes' || programme.parental === '1' || programme.parental === 'true') return 'yes'
+    if (programme.parentalLock === 'true' || programme.parentalLock === '1') return 'yes'
     
-    if (Array.isArray(categories)) {
-      return categories.length > 0 ? categories.join(', ') : ''
-    } else if (typeof categories === 'string') {
-      return categories
-    }
-    
-    return ''
-  }
-
-  /**
-   * Detect parental control
-   */
-  detectParentalControl(age, genre) {
+    // Infer from age rating
     if (age >= 18) return 'yes'
-    if (genre && typeof genre === 'string' && genre.toLowerCase().includes('adult')) return 'yes'
+    
     return 'no'
   }
 
   /**
    * Detect content type
    */
-  detectContentType(genre, age) {
+  detectContentType(age) {
     if (age >= 18) return 'adult'
-    if (age === 0 && genre && typeof genre === 'string' && genre.toLowerCase().includes('kids')) return 'kids'
+    if (age === 0) return 'kids'
     if (age >= 13) return 'teen'
     return ''
   }

@@ -89,7 +89,6 @@ class Reader extends Readable {
             
             // FIXED: Add additional validation to prevent reading beyond file size
             if (position >= stat.size) {
-                console.log(`READER: Position ${position} >= file size ${stat.size}, ending read`);
                 return done();
             }
             if (readSize < 0) {

@@ -1,8 +1,8 @@
 import { EventEmitter } from 'node:events'
 import PQueue from 'p-queue'
-import fs from 'fs'
-import path from 'path'
 import { terms } from '../lists/tools.js'
+import storage from '../storage/storage.js'
+import config from '../config/config.js'
 // Remove direct import to avoid circular dependency
 // import smartRecommendations from './index.mjs'
 
@@ -10,29 +10,163 @@ export class Tags extends EventEmitter{
     constructor() {
         super()
         this.caching = {programmes: {}, trending: {}}
-        this.defaultTagsCount = 256
+        this.defaultTagsCount = 128
         this.queue = new PQueue({concurrency: 1})
+        this.manualTagsKey = 'interests'
+        this.manualTags = {}
         
         // Smart cache for expanded tags
         this.expandedTagsCache = new Map()
-        this.cacheTTL = 24 * 60 * 60 * 1000 // 24 hours
-        this.cacheFile = path.join(process.cwd(), 'db', 'expanded-tags-cache.json')
+        this.cacheTTL = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
+        this.cacheTTLSeconds = 24 * 60 * 60 // 24 hours in seconds (for storage TTL)
+        this.cacheKey = 'expanded-tags-cache'
         
         // Background expansion queue
         this.backgroundQueue = new PQueue({concurrency: 1})
         
         // Load cache on startup
         this.loadCache()
+        this.loadManualTags()
         
         global.channels.history.epg.on('change', () => this.historyUpdated(true))
         global.channels.trending.on('update', () => this.trendingUpdated(true))
         global.channels.on('loaded', () => this.reset())
+    }
+    loadManualTags() {
+        const stored = config.get(this.manualTagsKey)
+        const parsed = this.parseManualTagsRaw(stored)
+        this.manualTags = parsed || {}
+
+        if (!parsed && typeof stored === 'string' && stored && stored.trim()) {
+            this.saveManualTags()
+        }
+    }
+    saveManualTags() {
+        config.set(this.manualTagsKey, this.manualTags)
+    }
+    parseManualTagsRaw(raw) {
+        if (!raw) {
+            return null
+        }
+        if (typeof raw === 'string') {
+            const rawTerms = terms(raw, true, false)
+            if (!Array.isArray(rawTerms) || !rawTerms.length) {
+                return null
+            }
+            const parsed = {}
+            rawTerms.forEach(term => {
+                const normalizedTerm = this.sanitizeManualTagTerm(term)
+                if (normalizedTerm && !parsed[normalizedTerm]) {
+                    parsed[normalizedTerm] = 1
+                }
+            })
+            return Object.keys(parsed).length ? parsed : null
+        }
+        if (typeof raw === 'object' && !Array.isArray(raw)) {
+            const parsed = {}
+            for (const [term, weight] of Object.entries(raw)) {
+                const normalizedTerm = this.sanitizeManualTagTerm(term)
+                const normalizedWeight = this.normalizeManualWeight(weight)
+                if (normalizedTerm && normalizedWeight) {
+                    parsed[normalizedTerm] = normalizedWeight
+                }
+            }
+            return Object.keys(parsed).length ? parsed : null
+        }
+        return null
+    }
+    async setManualTags(raw) {
+        return this.queue.add(async () => {
+            const parsed = this.parseManualTagsRaw(raw) || {}
+            this.manualTags = parsed
+            this.saveManualTags()
+            await this.clearCache().catch(err => console.warn('Failed to clear expanded tags cache after setManualTags:', err?.message || err))
+            this.emit('manualTagsChanged', this.getManualTags())
+            this.emit('updated')
+            return this.manualTags
+        })
+    }
+    sanitizeManualTagTerm(term) {
+        if (typeof term !== 'string') {
+            return null
+        }
+        const parsedTerms = terms(term, true, false)
+        if (!Array.isArray(parsedTerms) || !parsedTerms.length) {
+            return null
+        }
+        const normalizedTerm = parsedTerms.find(t => this.isValidTag(t))
+        return normalizedTerm || null
+    }
+    normalizeManualWeight(weight) {
+        const numeric = Number(weight)
+        if (!Number.isFinite(numeric)) {
+            return null
+        }
+        const clamped = Math.min(2, Math.max(0.1, numeric))
+        return Math.round(clamped * 100) / 100
+    }
+    getManualTags(limit) {
+        const entries = Object.entries(this.manualTags)
+            .map(([term, weight]) => ({ term, weight }))
+            .sort((a, b) => b.weight - a.weight)
+        if (typeof limit === 'number' && limit > 0) {
+            return entries.slice(0, limit)
+        }
+        return entries
+    }
+    async addManualTag(rawTerm, weight = 1) {
+        return this.queue.add(async () => {
+            const term = this.sanitizeManualTagTerm(rawTerm)
+            const normalizedWeight = this.normalizeManualWeight(weight)
+            if (!term || !normalizedWeight) {
+                return null
+            }
+            this.manualTags[term] = normalizedWeight
+            this.saveManualTags()
+            await this.clearCache().catch(err => console.warn('Failed to clear expanded tags cache after addManualTag:', err?.message || err))
+            this.emit('manualTagsChanged', this.getManualTags())
+            this.emit('updated')
+            return term
+        })
+    }
+    async updateManualTag(rawTerm, weight) {
+        return this.queue.add(async () => {
+            const term = this.sanitizeManualTagTerm(rawTerm)
+            const normalizedWeight = this.normalizeManualWeight(weight)
+            if (!term || !normalizedWeight) {
+                return null
+            }
+            if (!this.manualTags[term]) {
+                return null
+            }
+            this.manualTags[term] = normalizedWeight
+            this.saveManualTags()
+            await this.clearCache().catch(err => console.warn('Failed to clear expanded tags cache after updateManualTag:', err?.message || err))
+            this.emit('manualTagsChanged', this.getManualTags())
+            this.emit('updated')
+            return term
+        })
+    }
+    async removeManualTag(rawTerm) {
+        return this.queue.add(async () => {
+            const term = this.sanitizeManualTagTerm(rawTerm)
+            if (!term || !this.manualTags[term]) {
+                return false
+            }
+            delete this.manualTags[term]
+            this.saveManualTags()
+            await this.clearCache().catch(err => console.warn('Failed to clear expanded tags cache after removeManualTag:', err?.message || err))
+            this.emit('manualTagsChanged', this.getManualTags())
+            this.emit('updated')
+            return true
+        })
     }
     async reset() {
         if(this.queue.size) {
             return this.queue.onIdle()
         }
         return this.queue.add(async () => {
+            await this.channelsUpdated(false)
             await this.historyUpdated(false)
             await this.trendingUpdated(true)
         })
@@ -40,7 +174,7 @@ export class Tags extends EventEmitter{
     // Helper method to check if a tag is valid
     isValidTag(tag) {
         // Skip URLs
-        if (tag.includes('://') || tag.includes('www.')) {
+        if (tag.includes('://') || tag.includes('www.') || tag.includes(' ')) {
             return false
         }
         
@@ -50,12 +184,7 @@ export class Tags extends EventEmitter{
         }
         
         // Skip terms that are too long
-        if (tag.length > 50) {
-            return false
-        }
-        
-        // Skip terms with too many words
-        if (tag.split(' ').length > 3) {
+        if (tag.length > 30) {
             return false
         }
         
@@ -68,35 +197,88 @@ export class Tags extends EventEmitter{
     }
 
     prepare(data, limit) {
-        const maxWords = 3
-        
-        // Filter out invalid tags that don't match EPG categories AND invalid values
-        const filteredData = Object.fromEntries(
-            Object.entries(data)
-                .filter(([key, value]) => 
-                    this.isValidTag(key) && 
-                    value != null && 
-                    !isNaN(value) && 
-                    typeof value === 'number'
-                )
-        )
+        // Validate input - return empty object if data is null, undefined, or not an object
+        if (!data || typeof data !== 'object' || Array.isArray(data)) {
+            return {}
+        }
+
+        const filteredData = {}
+        for (const [key, value] of Object.entries(data)) {
+            if (value != null && !isNaN(value) && typeof value === 'number') {
+                const normalizedKey = typeof key === 'string' ? key.trim().toLowerCase() : ''
+                if (!normalizedKey) {
+                    continue
+                }
+
+                if (this.isValidTag(normalizedKey)) {
+                    filteredData[normalizedKey] = Math.max(filteredData[normalizedKey] || 0, value)
+                }
+
+                const keyParts = normalizedKey.split(/\s+/).filter(Boolean)
+                if (keyParts.length > 1) {
+                    const distributedValue = value / keyParts.length
+                    keyParts.forEach(part => {
+                        if (this.isValidTag(part)) {
+                            filteredData[part] = Math.max(filteredData[part] || 0, distributedValue)
+                        }
+                    })
+                }
+            }
+        }
         
         return Object.fromEntries(
             Object.entries(filteredData)
                 .sort(([, valueA], [, valueB]) => valueB - valueA) 
                 .slice(0, limit)
         )
-    }    
+    }
+    async channelsUpdated(emit) {
+        const channelsTags = {}
+        const badTerms = new Set(['m3u8', 'ts', 'mp4', 'tv', 'sd', 'hd', 'am', 'fm', 'channel'])
+        
+        // Validate that channelsIndex exists and is iterable
+        if (global.channels?.channelList?.channelsIndex) {
+            const values = Object.values(global.channels.channelList.channelsIndex)
+            for (const terms of values) {
+                if (Array.isArray(terms)) {
+                    for (const term of terms) {
+                        if (term && typeof term === 'string') {
+                            if (term.startsWith('-') || badTerms.has(term)) {
+                                continue
+                            }
+                            channelsTags[term] = Math.max(channelsTags[term] || 0, 1)
+                        }
+                    }
+                }
+            }
+        }
+        
+        this.caching.channels = this.equalize(channelsTags)
+        emit && this.emit('updated')
+    }
     async historyUpdated(emit) {
         let data0 = {}, data = {}
+        
+        // Validate that history.epg.data exists and is an array
+        if (!global.channels?.history?.epg?.data || !Array.isArray(global.channels.history.epg.data)) {
+            this.caching.programmes = {}
+            emit && this.emit('updated')
+            return
+        }
+        
         const historyData = global.channels.history.epg.data.slice(-6);
 
         historyData.forEach(row => {
+            if (!row) return // Skip null/undefined rows
+            
             const name = row.originalName || row.name;
-            const category = global.channels.getChannelCategory(name);
+            if (!name) return // Skip rows without name
+            
+            const category = global.channels.getChannelCategory?.(name);
             if (category) {
                 const lcCategory = category.toLowerCase();
-                data[lcCategory] = (data[lcCategory] || 0) + row.watched.time;
+                const watchedTime = row.watched?.time || 180
+                data[lcCategory] = (data[lcCategory] || 0) + watchedTime;
             }
 
             const cs = row.watched?.categories || [];
@@ -107,15 +289,20 @@ export class Tags extends EventEmitter{
                 cs.push(row.groupName);
             }            
             if(row?.watched?.name) {
-                const tms = terms(row.watched.name, true, false)
-                // Filter out invalid terms before adding to categories
-                const validTerms = tms.filter(t => this.isValidTag(t))
-                cs.push(...validTerms)
+                try {
+                    const tms = terms(row.watched.name, true, false)
+                    // Filter out invalid terms before adding to categories
+                    const validTerms = tms.filter(t => this.isValidTag(t))
+                    cs.push(...validTerms)
+                } catch (err) {
+                    // Ignore errors in term extraction
+                }
             }
             cs.forEach(cat => {
-                if (cat) {
+                if (cat && typeof cat === 'string') {
                     const lc = cat.toLowerCase();
-                    data0[lc] = (data0[lc] || 0) + (row.watched ? row.watched.time : 180);
+                    const watchedTime = row.watched ? (row.watched.time || 180) : 180
+                    data0[lc] = (data0[lc] || 0) + watchedTime;
                 }
             });
         });
@@ -123,7 +310,7 @@ export class Tags extends EventEmitter{
         data = this.equalize(data)
         data0 = this.equalize(data0)        
         for (const k in data) {
-            data0[k] = Math.max(data0[k] || 0, data[k]);
+            data0[k] = (data0[k] || 0) + data[k]
         }
 
         this.caching.programmes = await this.expand(data0);
@@ -131,37 +318,78 @@ export class Tags extends EventEmitter{
     }
     async trendingUpdated(emit) {
         let trendingPromise = true;
-        if (!global.channels.trending.currentRawEntries) {
-            trendingPromise = global.channels.trending.getRawEntries();
+        if (global.channels?.trending && !global.channels.trending.currentRawEntries) {
+            try {
+                trendingPromise = global.channels.trending.getRawEntries?.();
+            } catch (err) {
+                console.error('Error getting trending entries:', err.message)
+                trendingPromise = Promise.resolve()
+            }
         }
-        let searchPromise = this.searchSuggestionEntries || global.channels.search.searchSuggestionEntries().then(data => this.searchSuggestionEntries = data);
+        
+        let searchPromise = Promise.resolve()
+        if (this.searchSuggestionEntries) {
+            searchPromise = Promise.resolve()
+        } else if (global.channels?.search?.searchSuggestionEntries) {
+            try {
+                searchPromise = global.channels.search.searchSuggestionEntries().then(data => this.searchSuggestionEntries = data).catch(err => {
+                    console.error('Error getting search suggestions:', err.message)
+                    return []
+                })
+            } catch (err) {
+                console.error('Error calling searchSuggestionEntries:', err.message)
+            }
+        }
+        
         await Promise.allSettled([trendingPromise, searchPromise]).catch(err => console.error(err));
 
         const map = {};
         const addToMap = (tms, value) => {
+            if (!Array.isArray(tms)) return
             tms.forEach(t => {
+                if (!t || typeof t !== 'string') return
+                
                 // Skip terms that start with dash (already filtered)
                 if (t.startsWith('-')) return;
                 
                 // Use the reusable validation method
                 if (this.isValidTag(t)) {
-                    map[t] = (map[t] || 0) + value;
+                    map[t] = (map[t] || 0) + (value || 1);
                 }
             });
         };
 
-        if (Array.isArray(global.channels.trending.currentRawEntries)) {
-            global.channels.trending.currentRawEntries.forEach(e => addToMap(global.channels.entryTerms(e), e.users));
+        if (Array.isArray(global.channels?.trending?.currentRawEntries)) {
+            global.channels.trending.currentRawEntries.forEach(e => {
+                if (!e) return
+                try {
+                    const entryTerms = global.channels.entryTerms?.(e)
+                    if (Array.isArray(entryTerms)) {
+                        addToMap(entryTerms, e.users || 1)
+                    }
+                } catch (err) {
+                    // Ignore errors in entryTerms extraction
+                }
+            })
         }
 
         if (Array.isArray(this.searchSuggestionEntries)) {
-            this.searchSuggestionEntries.forEach(e => addToMap([e.search_term], e.cnt));
+            this.searchSuggestionEntries.forEach(e => {
+                if (e && e.search_term && typeof e.search_term === 'string') {
+                    addToMap([e.search_term], e.cnt || 1)
+                }
+            })
         }
 
         this.caching.trending = await this.expand(this.equalize(map));
         emit && this.emit('updated');
     }
-    equalize(tags) {
+    equalize(tags, factor=1) {
+        // Validate input - return empty object if tags is null, undefined, or not an object
+        if (!tags || typeof tags !== 'object' || Array.isArray(tags)) {
+            return {}
+        }
+        
         // Filter out invalid values (null, undefined, NaN) before calculating max
         const validValues = Object.values(tags).filter(v => v != null && !isNaN(v) && typeof v === 'number')
         
@@ -170,17 +398,17 @@ export class Tags extends EventEmitter{
             return {}
         }
         
-        const max = Math.max(...validValues)
+        const maxValue = Math.max(...validValues)
         
         return Object.fromEntries(
             Object.entries(tags)
                 .filter(([, value]) => value != null && !isNaN(value) && typeof value === 'number')
                 .sort(([, valueA], [, valueB]) => valueB - valueA)
-                .map(([key, value]) => [key, value / max])
+                .map(([key, value]) => [key, (value / maxValue) * factor])
         )
     }
-    async expand(tags, options = {}) {
-        let additionalTags = {}            
+    async expand(oTags, options = {}) {
+        let additionalTags = {}, tags = Object.assign({}, oTags);            
         const limit = options.amount || this.defaultTagsCount
         const additionalLimit = limit - Object.keys(tags).length
         
@@ -190,45 +418,97 @@ export class Tags extends EventEmitter{
             const cachedExpansion = this.getExpandedTagsFromCache(cacheKey)
             
             if (cachedExpansion) {
-                // Use cached expanded tags immediately
-                Object.keys(cachedExpansion).forEach(category => {
-                    const lowerCategory = category.toLowerCase()
-                    if (!tags[lowerCategory]) {
-                        additionalTags[lowerCategory] = cachedExpansion[category] / 2
-                    }
-                })
-                additionalTags = this.prepare(additionalTags, additionalLimit)
-                Object.assign(tags, additionalTags)
-                
-                // Schedule background refresh for cache update
-                this.scheduleBackgroundExpansion(tags, options)
-                return tags
+                if (!this.hasMeaningfulExpansion(tags, cachedExpansion)) {
+                    this.expandedTagsCache.delete(cacheKey)
+                    this.saveCache().catch(err => console.warn('Failed to persist cache cleanup:', err?.message || err))
+                } else {
+                    // Use cached expanded tags immediately
+                    Object.keys(cachedExpansion).forEach(category => {
+                        const lowerCategory = category.toLowerCase()
+                        if (!tags[lowerCategory]) {
+                            additionalTags[lowerCategory] = cachedExpansion[category] / 2
+                        }
+                    })
+                    additionalTags = this.prepare(additionalTags, additionalLimit)
+                    Object.assign(tags, additionalTags)
+                    
+                    // Schedule background refresh for cache update
+                    this.scheduleBackgroundExpansion(tags, options)
+                    return tags
+                }
             }
             
+            // Attempt immediate expansion via AI client when cache is empty
+            const immediateExpansion = await this.tryImmediateAiExpansion(tags, options, cacheKey, additionalLimit)
+            if (immediateExpansion) {
+                return immediateExpansion
+            }
+
             // No cache available - return original tags immediately and update cache in background
             console.log('📚 Cache miss - using original tags, updating cache in background')
             this.scheduleBackgroundExpansion(tags, options)
         }
         return tags
     }
-    async get(limit) {
-        if(typeof(limit) != 'number') {
+    async get(limit, ignoreExternalTrends = false) {
+        if (typeof limit !== 'number') {
             limit = this.defaultTagsCount
         }
-        const programmeTags = this.prepare(this.caching.programmes, limit)
-        if (Object.keys(programmeTags).length < limit) {
-            Object.assign(programmeTags, this.caching.trending)
+        // Ensure caching objects exist before using them
+        let manualTags = {}
+        const initialTags = this.equalize(this.manualTags || {}, 1)
+        if (Object.keys(initialTags).length) {
+            let expandedTags = await this.expand(initialTags, { amount: limit }).catch(err => console.warn('Failed to expand manual tags:', err?.message || err))
+            if (expandedTags && typeof expandedTags === 'object' && !Array.isArray(expandedTags)) {
+                expandedTags = this.equalize(expandedTags, 0.75)
+                for (const [key, value] of Object.entries(expandedTags)) {
+                    manualTags[key] = Math.max(manualTags[key] || 0, value)
+                }
+            }
         }
-        return this.prepare(programmeTags, limit)
+        for (const [key, value] of Object.entries(initialTags)) {
+            manualTags[key] = Math.max(manualTags[key] || 0, value)
+        }
+        manualTags = this.equalize(manualTags, 1)
+
+        const shouldIncludeAdditionalSources = !ignoreExternalTrends && Object.keys(manualTags).length < limit
+
+        if (shouldIncludeAdditionalSources) {
+            const channelsTags = this.equalize(this.caching.channels || {}, 0.1)
+            const trendingTags = this.equalize(this.caching.trending || {}, 0.2)
+            const programmeTags = this.equalize(this.caching.programmes || {}, 1)
+            const allTags = this.equalize(this.mergeTags(channelsTags, this.mergeTags(programmeTags, trendingTags, 'sum'), 'sum'), 0.25)
+            return this.equalize(this.prepare(this.mergeTags(manualTags, allTags, 'max'), limit))
+        }
+        return this.prepare(manualTags, limit)
+    }
+    mergeTags(tags1, tags2, mode = 'max') {
+        const tags3 = {}
+        
+        // Validate inputs - use empty objects if null/undefined
+        const validTags1 = (tags1 && typeof tags1 === 'object' && !Array.isArray(tags1)) ? tags1 : {}
+        const validTags2 = (tags2 && typeof tags2 === 'object' && !Array.isArray(tags2)) ? tags2 : {}
+        
+        for (const [key, value] of Object.entries(validTags1)) {
+            tags3[key] = value
+        }
+        for (const [key, value] of Object.entries(validTags2)) {
+            if (mode === 'sum') {
+                tags3[key] = (tags3[key] || 0) + value
+            } else { // max mode
+                tags3[key] = Math.max(tags3[key] || 0, value)
+            }
+        }
+        return tags3
     }
 
     /**
-     * Load expanded tags cache from disk
+     * Load expanded tags cache from storage
      */
-    loadCache() {
+    async loadCache() {
         try {
-            if (fs.existsSync(this.cacheFile)) {
-                const cacheData = JSON.parse(fs.readFileSync(this.cacheFile, 'utf8'))
+            const cacheData = await storage.get(this.cacheKey)
+            if (cacheData && typeof cacheData === 'object') {
                 const now = Date.now()
                 
                 // Load valid cache entries
@@ -241,21 +521,24 @@ export class Tags extends EventEmitter{
                 console.log(`📚 Loaded ${this.expandedTagsCache.size} cached expanded tags`)
             }
         } catch (error) {
-            console.warn('Failed to load expanded tags cache:', error.message)
+            // Cache doesn't exist or is invalid - this is normal on first run
+            if (error.message && !error.message.includes('not found')) {
+                console.warn('Failed to load expanded tags cache:', error.message)
+            }
         }
     }
 
     /**
-     * Save expanded tags cache to disk
+     * Save expanded tags cache to storage
      */
-    saveCache() {
+    async saveCache() {
         try {
             const cacheData = {}
             for (const [key, entry] of this.expandedTagsCache.entries()) {
                 cacheData[key] = entry
             }
             
-            fs.writeFileSync(this.cacheFile, JSON.stringify(cacheData, null, 2))
+            await storage.set(this.cacheKey, cacheData, { ttl: this.cacheTTLSeconds })
         } catch (error) {
             console.warn('Failed to save expanded tags cache:', error.message)
         }
@@ -265,12 +548,82 @@ export class Tags extends EventEmitter{
      * Generate cache key for tags and options
      */
     generateCacheKey(tags, options) {
-        const sortedTags = Object.keys(tags)
-            .sort()
-            .slice(0, 10)
-            .join(',')
+        const entries = Object.entries(tags || {})
+        const sortedTags = entries.length
+            ? entries
+                .map(([key, value]) => {
+                    let formatted = '1.0000'
+                    if (typeof value === 'number' && Number.isFinite(value)) {
+                        formatted = Number(value).toFixed(4)
+                    } else if (typeof value === 'boolean') {
+                        formatted = value ? 'true' : 'false'
+                    } else if (value != null) {
+                        formatted = String(value)
+                    } else {
+                        formatted = 'null'
+                    }
+                    return `${key}:${formatted}`
+                })
+                .sort()
+                .slice(0, 10)
+                .join('|')
+            : '__no_tags__'
         const optionsKey = `${options.threshold || 0.6}:${options.diversityBoost !== false}`
         return `${sortedTags}:${optionsKey}`
+    }
+
+    hasMeaningfulExpansion(baseTags, expandedTags) {
+        if (!expandedTags || typeof expandedTags !== 'object') {
+            return false
+        }
+
+        const baseMap = new Map()
+
+        Object.entries(baseTags || {}).forEach(([key, value]) => {
+            if (!key) {
+                return
+            }
+            const lower = key.trim().toLowerCase()
+            if (!lower) {
+                return
+            }
+
+            let numeric = Number(value)
+            if (!Number.isFinite(numeric)) {
+                if (typeof value === 'boolean') {
+                    numeric = value ? 1 : 0
+                } else {
+                    return
+                }
+            }
+
+            if (numeric > 0) {
+                baseMap.set(lower, numeric)
+            }
+        })
+
+        for (const [key, value] of Object.entries(expandedTags)) {
+            if (!key) {
+                continue
+            }
+
+            const lower = key.trim().toLowerCase()
+            if (!lower) {
+                continue
+            }
+
+            const numeric = Number(value)
+            if (!Number.isFinite(numeric) || numeric <= 0) {
+                continue
+            }
+
+            const current = baseMap.get(lower)
+            if (typeof current !== 'number' || numeric > current) {
+                return true
+            }
+        }
+
+        return false
     }
 
     /**
@@ -298,10 +651,125 @@ export class Tags extends EventEmitter{
             timestamp: Date.now()
         })
         
-        // Save to disk periodically
+        // Save to storage periodically
         if (this.expandedTagsCache.size % 10 === 0) {
-            this.saveCache()
+            this.saveCache().catch(err => console.warn('Failed to save cache:', err.message))
         }
+    }
+
+    async tryImmediateAiExpansion(tags, options, cacheKey, additionalLimit) {
+        try {
+            const { default: smartRecommendations } = await import('./index.mjs')
+            const aiClient = smartRecommendations?.aiClient
+            if (!aiClient) {
+                return null
+            }
+
+            if (!aiClient.initialized) {
+                await aiClient.initialize().catch(err => console.warn('AI client init failed:', err?.message || err))
+            }
+
+            if (!aiClient.enabled) {
+                return null
+            }
+
+            const locale = options.locale || global?.lang?.locale || 'pt'
+
+            const response = await aiClient.expandTags(tags, {
+                limit: options.amount || this.defaultTagsCount,
+                threshold: options.threshold || 0.6,
+                locale,
+                diversityBoost: options.diversityBoost !== false
+            })
+
+            if (!response || response.fallback || !response.expandedTags || !Object.keys(response.expandedTags).length) {
+                return null
+            }
+
+            const { mergedTags, hasNewInformation } = this.applyExpandedTags(tags, response.expandedTags, additionalLimit)
+
+            if (!hasNewInformation) {
+                return null
+            }
+
+            this.cacheExpandedTags(cacheKey, response.expandedTags)
+            await this.saveCache()
+
+            console.log('✨ Immediate AI tag expansion completed')
+            return mergedTags
+        } catch (error) {
+            console.warn('Immediate tag expansion failed:', error.message)
+            return null
+        }
+    }
+
+    applyExpandedTags(baseTags, expandedTags, additionalLimit) {
+        const normalizedBase = {}
+        let hasDifference = false
+
+        const originalMap = new Map()
+
+        Object.entries(baseTags).forEach(([key, value]) => {
+            if (!key) return
+            const lower = key.trim().toLowerCase()
+            if (!lower) {
+                return
+            }
+            let numeric = Number(value)
+            if (!Number.isFinite(numeric)) {
+                if (typeof value === 'boolean') {
+                    numeric = value ? 1 : 0
+                } else {
+                    return
+                }
+            }
+            normalizedBase[lower] = numeric
+            originalMap.set(lower, numeric)
+        })
+
+        const additional = {}
+
+        Object.entries(expandedTags).forEach(([key, value]) => {
+            if (!key) return
+            const lower = key.trim().toLowerCase()
+            if (!lower) return
+            const numeric = Number(value)
+            if (!Number.isFinite(numeric)) return
+
+            if (typeof normalizedBase[lower] === 'number') {
+                if (numeric > normalizedBase[lower]) {
+                    normalizedBase[lower] = numeric
+                    hasDifference = true
+                }
+            } else if (additionalLimit > 0) {
+                additional[lower] = numeric / 2
+                hasDifference = true
+            }
+        })
+
+        if (additionalLimit > 0 && Object.keys(additional).length) {
+            const preparedAdditional = this.prepare(additional, additionalLimit)
+            Object.assign(normalizedBase, preparedAdditional)
+            if (Object.keys(preparedAdditional).length) {
+                hasDifference = true
+            }
+        }
+
+        Object.keys(baseTags).forEach(key => delete baseTags[key])
+        Object.entries(normalizedBase).forEach(([key, value]) => {
+            baseTags[key] = value
+        })
+
+        if (!hasDifference) {
+            const normalizedKeys = Object.keys(normalizedBase)
+            if (normalizedKeys.length !== originalMap.size) {
+                hasDifference = true
+            } else {
+                hasDifference = normalizedKeys.some(key => !originalMap.has(key) || normalizedBase[key] !== originalMap.get(key))
+            }
+        }
+
+        return { mergedTags: baseTags, hasNewInformation: hasDifference }
     }
 
     /**
@@ -316,11 +784,14 @@ export class Tags extends EventEmitter{
                 
                 // Skip if already cached (unless it's old)
                 const existingCache = this.getExpandedTagsFromCache(cacheKey)
-                if (existingCache) {
-                    console.log('📚 Cache already exists, skipping background expansion')
+                if (existingCache && this.hasMeaningfulExpansion(tags, existingCache)) {
                     return
                 }
-                
+
+                if (existingCache) {
+                    this.expandedTagsCache.delete(cacheKey)
+                }
+
                 console.log('🔄 Starting background tag expansion...')
                 
                 // Use dynamic import to avoid circular dependency
@@ -331,15 +802,15 @@ export class Tags extends EventEmitter{
                     diversityBoost: options.diversityBoost !== false
                 })
                 
-                if (expandedTags && typeof expandedTags === 'object') {
+                if (expandedTags && typeof expandedTags === 'object' && this.hasMeaningfulExpansion(tags, expandedTags)) {
                     this.cacheExpandedTags(cacheKey, expandedTags)
-                    this.saveCache()
+                    await this.saveCache()
                     console.log('✅ Background tag expansion completed and cached')
                     
                     // Schedule update after successful expansion
                     this.scheduleUpdate()
                 } else {
-                    console.warn('⚠️ Background expansion returned invalid data')
+                    console.warn('⚠️ Background expansion returned invalid or non-meaningful data', expandedTags)
                 }
             } catch (error) {
                 console.warn('Background tag expansion failed:', error.message)
@@ -358,17 +829,19 @@ export class Tags extends EventEmitter{
         return {
             totalEntries: this.expandedTagsCache.size,
             validEntries: validEntries.length,
-            cacheFile: this.cacheFile
+            cacheKey: this.cacheKey
         }
     }
 
     /**
      * Clear cache
      */
-    clearCache() {
+    async clearCache() {
         this.expandedTagsCache.clear()
-        if (fs.existsSync(this.cacheFile)) {
-            fs.unlinkSync(this.cacheFile)
+        try {
+            await storage.delete(this.cacheKey)
+        } catch (error) {
+            // Ignore errors if cache doesn't exist
         }
         console.log('🗑️ Expanded tags cache cleared')
     }

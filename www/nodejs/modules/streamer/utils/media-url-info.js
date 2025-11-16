@@ -232,7 +232,12 @@ export const isMPEGTSFromInfo = info => {
             return isPacketized(info.sample) ? mediaTypeFromInfo(info) : false
         }
         // If sample is empty but we have a .ts extension and no conflicting content-type, assume it's MPEG-TS
-        return mediaTypeFromInfo(info)
+        // For .ts streams without sample, default to 'live' since most TS streams are live broadcasts
+        // This is especially important for Android where skipSample is often true
+        const mediaType = mediaTypeFromInfo(info);
+        // If headers suggest VOD but we have .ts extension without sample, prefer live for TS streams
+        // as TS format is typically used for live streaming, not VOD
+        return mediaType === 'vod' && (!info.sample || info.sample.length === 0) ? 'live' : mediaType;
     }
 
     return false;

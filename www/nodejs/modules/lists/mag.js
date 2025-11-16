@@ -61,9 +61,20 @@ class Mag extends EventEmitter {
                     this.method = this.method == 'GET' ? 'POST' : 'GET';
                     return this.execute(atts, progress, endpoint, retries);
                 }
-                if (String(err).includes('end of JSON input')) {
+                // Handle JSON parsing errors (truncated, malformed, etc.)
+                if (String(err).includes('end of JSON input') || 
+                    String(err).includes('JSON parsing error') ||
+                    String(err).includes('Unexpected end of JSON') ||
+                    (String(err).includes('Expected') && String(err).includes('JSON'))) {
+                    // Retry on JSON parsing errors
                     return this.execute(atts, progress, endpoint, retries);
                 }
+            }
+            // Wrap JSON parsing errors with more context
+            if (String(err).includes('JSON') && String(err).includes('parsing')) {
+                const jsonErr = new Error(`JSON parsing error: ${err.message || err} at ${options.url}`);
+                jsonErr.originalError = err;
+                throw jsonErr;
             }
             throw err;
         }

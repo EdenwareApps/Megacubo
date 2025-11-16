@@ -1,5 +1,4 @@
 import fs from "fs";
-import path from 'path'
 import storage from '../storage/storage.js'
 import Index from "./index.js";
 import pLimit from "p-limit";
@@ -9,19 +8,18 @@ import Manager from "./manager.js";
 import List from "./list.js";
 import Discovery from "../discovery/discovery.js";
 import config from "../config/config.js"
-import MultiWorker from '../multi-worker/multi-worker.js';  
+import { getEPGInstance } from '../epg/index.js';
 import lang from '../lang/lang.js';
 import { resolveListDatabaseFile } from "./tools.js";
 import { ready } from '../bridge/bridge.js'
 import { inWorker } from '../paths/paths.js'
 import { forwardSlashes, parseCommaDelimitedURIs } from "../utils/utils.js";
-import { getDirname } from 'cross-dirname';
-
 class ListsEPGTools extends Index {
     constructor(opts) {
         super(opts)
-        this.epgWorker = new MultiWorker()
-        this.epg = this.epgWorker.load(path.join(getDirname(), 'EPGManager.js')) // from dist/ folder, wait lang to be loaded
+        const { worker: epgWorker, epg } = getEPGInstance()
+        this.epgWorker = epgWorker
+        this.epg = epg
         
         this.epg.loaded = null
         this.epg.state = {
@@ -47,8 +45,6 @@ class ListsEPGTools extends Index {
             }
         }
         this.epg.on('state', state => {
-            console.error('@@@@@@@@@@@@@@@@@@@@@@@@@@@ EPG STATE', state)
-            // Usar o novo formato
             const loaded = state.epgs.filter(epg => epg.readyState === 'loaded').map(epg => epg.url)
             this.epg.state = state
             this.epg.loaded = loaded.length ? loaded : null
@@ -58,59 +54,175 @@ class ListsEPGTools extends Index {
             listeners.forEach(resolve => resolve(true))
         })
         this.epgReadyListeners = []
+        // Protection against infinite loops when loading additional EPGs
+        this.loadingAdditionalEPGs = false
+        this.additionalEPGsAttempts = 0
+        this.lastAdditionalEPGsAttempt = 0
+        this.maxAdditionalEPGsAttempts = 3 // Maximum attempts to load additional EPGs
+        this.additionalEPGsCooldown = 30000 // 30 seconds cooldown between attempts
+        this.initializeEPG().catch(err => console.error('❌ Error initializing EPG:', err))
+    }
+    
+    async initializeEPG() {
+
+        // Wait for both lang and EPG worker to be ready before starting        
+        await lang.ready()
+        await global.channels.ready()
+        await global.lists.ready()
         
-        // Wait for both lang and EPG worker to be ready before starting
-        lang.ready().catch(err => console.error(err)).finally(() => {
-            // Wait for EPG worker to be fully loaded before calling start()
-            const startEPG = () => {
-                const key = 'epg-'+ lang.locale
-                const epgConfig = config.get(key)
-                console.log('🔍 EPG Config loaded:', epgConfig)
-                console.log('🚀 Starting EPG...')
-                this.epg.start(epgConfig).catch(err => {
-                    console.error('❌ EPG start error:', err)
-                    console.error('❌ EPG config was:', epgConfig)
-                })
-            }
-            
+        // Set channel terms index when EPG starts
+        await this.epg.setChannelTermsIndex(global.channels.channelList.channelsIndex)
+
+        // Wait for EPG worker to be fully loaded before calling start()
+        await new Promise(resolve => {
             // Check if worker is already ready, otherwise wait for event
             if (this.epgWorker.workerReady) {
                 // Worker already ready, start after a small delay to ensure driver loads
-                setTimeout(startEPG, 2000)
+                resolve()
             } else {
                 // Wait for worker-ready event
                 this.epgWorker.once('worker-ready', () => {
-                    setTimeout(startEPG, 2000)
+                    resolve()
                 })
             }
-            
-            // Set channel terms index when EPG starts
-            global.channels.ready(() => {
-                // Only set channel terms index if EPG is enabled
-                const activeEPG = config.get('epg-' + lang.locale)
-                if (activeEPG !== 'disabled' && config.get('epg-suggestions') !== false && global.channels?.channelList?.channelsIndex) {
-                    this.epg.setChannelTermsIndex(global.channels.channelList.channelsIndex)
-                }
-            })
-            
-            ready(() => {
-                config.on('change', keys => {
-                    const key = 'epg-'+ lang.locale
-                    if(keys.includes(key) || keys.includes('locale')) {
-                        this.epg.sync(config.get(key) || []).catch(err => console.error(err))
-                    }
-                    
-                    // Detectar mudanças na configuração epg-suggestions
-                    if (keys.includes('epg-suggestions')) {
-                        const suggestionsEnabled = config.get('epg-suggestions') !== false
-                        console.log('🔄 EPG suggestions setting changed, updating EPGs...')
-                        this.epg.toggleSuggestedEPGs(suggestionsEnabled).catch(err => {
-                            console.error('❌ Error toggling suggested EPGs:', err)
-                        })
-                    }
-                })
-            })
         })
+        
+        const key = 'epg-'+ lang.locale
+        const epgConfig = config.get(key)
+        console.log('🔍 EPG Config loaded:', epgConfig)
+        console.log('🚀 Starting EPG...')
+        this.epg.start(epgConfig).catch(err => {
+            console.error('❌ EPG start error:', err)
+            console.error('❌ EPG config was:', epgConfig)
+        })
+
+        // Add listener to reload suggestions when needed
+        this.epg.on('reload-suggestions', async () => {
+            console.log('🔄 Reloading EPG suggestions...')
+            const activeEPG = config.get('epg-' + lang.locale)
+            if (activeEPG === 'disabled' || config.get('epg-suggestions') === false) {
+                console.log('EPG suggestions disabled, skipping reload')
+                return
+            }
+            
+            const urls = await this.searchEPGs()
+            console.log('EPGS urls - EPG (reload)', urls)
+            if (urls.length > 0) {
+                await this.epg.suggest(urls)
+            }
+        })
+
+        // Add listener to load more EPGs when needed to reach minimum
+        this.epg.on('needMoreEPGs', async ({ needed, current }) => {
+            console.log(`🔔 needMoreEPGs event: need ${needed} more EPG(s), currently have ${current}`)
+            
+            // Protection against infinite loops
+            const now = Date.now()
+            
+            // Check if already loading additional EPGs
+            if (this.loadingAdditionalEPGs) {
+                console.log('🔔 Already loading additional EPGs, skipping duplicate request')
+                return
+            }
+            
+            // Check cooldown period
+            if (now - this.lastAdditionalEPGsAttempt < this.additionalEPGsCooldown) {
+                console.log(`🔔 Cooldown active (${Math.round((this.additionalEPGsCooldown - (now - this.lastAdditionalEPGsAttempt)) / 1000)}s remaining), skipping`)
+                return
+            }
+            
+            // Check maximum attempts limit
+            if (this.additionalEPGsAttempts >= this.maxAdditionalEPGsAttempts) {
+                console.log(`🔔 Maximum attempts (${this.maxAdditionalEPGsAttempts}) reached, stopping additional EPG loading`)
+                return
+            }
+            
+            const activeEPG = config.get('epg-' + lang.locale)
+            if (activeEPG === 'disabled' || config.get('epg-suggestions') === false) {
+                console.log('EPG suggestions disabled, skipping additional EPG load')
+                return
+            }
+            
+            // Set flag to prevent concurrent requests
+            this.loadingAdditionalEPGs = true
+            this.additionalEPGsAttempts++
+            this.lastAdditionalEPGsAttempt = now
+            
+            try {
+                console.log(`🔔 Attempting to load additional EPGs (attempt ${this.additionalEPGsAttempts}/${this.maxAdditionalEPGsAttempts})...`)
+                const urls = await this.searchEPGs()
+                console.log('🔔 EPGS urls for additional load:', urls)
+                if (urls.length > 0) {
+                    const loadedCount = await this.epg.suggest(urls)
+                    console.log(`🔔 suggest() returned: loaded ${loadedCount} EPG(s)`)
+                    
+                    // If successfully loaded at least one EPG, reset attempts counter after a delay
+                    if (loadedCount > 0) {
+                        // Reset attempts after cooldown to allow future retries if needed
+                        setTimeout(() => {
+                            this.additionalEPGsAttempts = 0
+                            console.log('🔔 Reset additional EPGs attempts counter after successful load')
+                        }, this.additionalEPGsCooldown)
+                    }
+                } else {
+                    console.log('🔔 No EPG URLs available to load')
+                }
+            } catch (err) {
+                console.error('🔔 Error loading additional EPGs:', err)
+            } finally {
+                // Always clear the loading flag
+                this.loadingAdditionalEPGs = false
+            }
+        })
+        
+        config.on('change', keys => {
+            const key = 'epg-'+ lang.locale
+            if(keys.includes(key) || keys.includes('locale')) {
+                this.epg.sync(config.get(key) || []).catch(err => console.error(err))
+                // Reapply channel terms index on EPG config/locale change
+                const idx = global.channels?.channelList?.channelsIndex
+                if (idx) {
+                    this.epg.setChannelTermsIndex(idx)
+                }
+            }
+            
+            // Detectar mudanças na configuração epg-suggestions
+            if (keys.includes('epg-suggestions')) {
+                const suggestionsEnabled = config.get('epg-suggestions') !== false
+                console.log('🔄 EPG suggestions setting changed, updating EPGs...')
+                this.epg.toggleSuggestedEPGs(suggestionsEnabled).catch(err => {
+                    console.error('❌ Error toggling suggested EPGs:', err)
+                })
+                // Reapply channel terms index when suggestions setting changes
+                const idx = global.channels?.channelList?.channelsIndex
+                if (idx) {
+                    this.epg.setChannelTermsIndex(idx)
+                }
+                if (suggestionsEnabled) {
+                    this.epgSuggest().catch(err => console.error('❌ Error suggesting EPGs:', err))
+                }
+            }
+        })
+
+        // Reapply terms whenever channels finish loading (covers auto grid switching public/community)
+        global.channels.on('loaded', () => {
+            const idx = global.channels?.channelList?.channelsIndex
+            if (idx) {
+                this.epg.setChannelTermsIndex(idx)
+            }
+        })
+
+        return await this.epgSuggest()
+    }
+    async epgSuggest() {
+        const activeEPG = config.get('epg-' + lang.locale)
+        if (activeEPG === 'disabled' || config.get('epg-suggestions') === false) return
+        const suggest = !activeEPG || activeEPG === 'auto' || (Array.isArray(activeEPG) && activeEPG.length > 0)
+        console.log('shouldSuggest', suggest, activeEPG)
+        if (!suggest) return
+        const urls = await this.searchEPGs()
+        console.log('EPGS urls - EPG', urls)
+        urls.length && await this.epg.suggest(urls)
     }
     epgReady() {
         return new Promise(resolve => {
@@ -131,8 +243,8 @@ class ListsEPGTools extends Index {
     }
     async epgChannelsList(channelsList, limit) {
         let data, ret = this.epg.state
-        if (ret.errorEPGs > 0 || !this.epg.loaded) {
-            // Usar o novo formato
+        if (!this.epg.loaded?.length) {
+            // 'loading' state response format
             data = [ret.summary.activeEPGs > 0 ? 'loaded' : 'loading']
             if (ret.errorEPGs > 0) {
                 data.push(`Failed EPGs: ${ret.errorEPGs}/${ret.totalEPGs}`)
@@ -149,6 +261,58 @@ class ListsEPGTools extends Index {
             }
         }
         return data
+    }
+    async getLiveNowAndNext(channelOrList, opts = {}) {
+        const limit = Math.max(1, Number(opts.limit) || 2)
+        const now = opts.now
+
+        const prepareDescriptor = (input, index) => {
+            if (input == null) {
+                return {
+                    name: `channel-${index}`,
+                    searchName: '-',
+                    terms: []
+                }
+            }
+
+            if (typeof input === 'string') {
+                return this.tools.applySearchRedirectsOnObject({
+                    name: input,
+                    searchName: input,
+                    terms: this.tools.terms(input)
+                })
+            }
+
+            const descriptor = { ...input }
+            if (!descriptor.name && descriptor.searchName) {
+                descriptor.name = descriptor.searchName
+            } else if (!descriptor.searchName && descriptor.name) {
+                descriptor.searchName = descriptor.name
+            }
+
+            if (!Array.isArray(descriptor.terms) || descriptor.terms.length === 0) {
+                const base = descriptor.searchName || descriptor.name || ''
+                descriptor.terms = this.tools.terms(base)
+            }
+
+            return this.tools.applySearchRedirectsOnObject(descriptor)
+        }
+
+        if (!this.epg.loaded?.length) {
+            return Array.isArray(channelOrList) ? {} : null
+        }
+
+        if (Array.isArray(channelOrList)) {
+            const preparedList = channelOrList.map((item, index) => prepareDescriptor(item, index))
+            return this.epg.getLiveNowAndNext(preparedList, { limit, now })
+        }
+
+        const prepared = prepareDescriptor(channelOrList, 0)
+        if (!prepared || prepared.searchName === '-') {
+            return null
+        }
+
+        return this.epg.getLiveNowAndNext(prepared, { limit, now })
     }
     async epgSearch(terms, nowLive) {
         if (!this.epg.loaded) return []
@@ -271,7 +435,7 @@ class ListsEPGTools extends Index {
             epgs.push(...c.filter(e => e.active && !epgs.includes(e.url)).map(e => e.url))
         }
 
-        const o = await cloud.get('configure', {shadow: false})
+        const o = await cloud.get('configure', {shadow: false}).catch(() => null)
         if(o?.epg) {
             for(const code of activeCountries) {
                 if (o.epg[code] && !epgs.includes(o.epg[code])) {
@@ -340,7 +504,7 @@ class Lists extends ListsEPGTools {
         this.queue = new PQueue({concurrency: 4});
         config.on('change', (keys, data) => {
             if (keys.includes('lists')) {
-                this.handleListsChange(data);
+                this.handleListsChange();
             }
             if (keys.includes('communitary-mode-lists-amount')) {
                 this.handleCommunityListsAmountChange(data);
@@ -349,11 +513,8 @@ class Lists extends ListsEPGTools {
         ready(async () => {
             global.channels.on('channel-grid-updated', keys => {
                 this._relevantKeywords = null
-                // Update channel terms index in EPG when channel list changes (only if EPG is enabled)
-                const activeEPG = config.get('epg-' + lang.locale)
-                if (activeEPG !== 'disabled' && config.get('epg-suggestions') !== false && global.channels?.channelList?.channelsIndex) {
-                    this.epg.setChannelTermsIndex(global.channels.channelList.channelsIndex)
-                }
+                // Update channel terms index in EPG when channel list changes
+                this.epg.setChannelTermsIndex(global.channels.channelList.channelsIndex)
             })
         });
         this.on('satisfied', () => {
@@ -370,9 +531,18 @@ class Lists extends ListsEPGTools {
         this.discovery = new Discovery(this)
         this.loader = new Loader(this)
         this.manager = new Manager(this)
+        this.communityRetryDismissed = false
+        this.loader.on('community-idle', info => {
+            if (this.manager && typeof this.manager.onCommunityIdle === 'function') {
+                this.manager.onCommunityIdle(info)
+            }
+        })
         this.handleListsChange()     
         this.updateState()   
         this.emit('unsatisfied')
+        
+        // Set para rastrear listas que estão sendo atualizadas
+        this.updatingLists = new Set()
         
         // Initial check for loaded lists with missing meta files
         setTimeout(async () => {
@@ -431,7 +601,7 @@ class Lists extends ListsEPGTools {
         }
         return listUrl;
     }
-    handleListsChange(data) {
+    handleListsChange() {
         const myLists = config.get('lists').map(l => l[1]);
         const newLists = myLists.filter(u => !this.myLists.includes(u));
         const rmLists = this.myLists.filter(u => !myLists.includes(u));
@@ -445,6 +615,25 @@ class Lists extends ListsEPGTools {
             // Force trim to remove community lists if quota is now 0
             this.trim();
         }
+    }
+    setCommunityRetryDismissed(dismissed = true) {
+        this.communityRetryDismissed = dismissed === true;
+    }
+    async retryCommunityLists(opts = {}) {
+        const { bypassCache = false } = opts;
+        if (bypassCache) {
+            const communityProvider = this.discovery.getProvider('community', 'community-lists');
+            communityProvider?.setForceRefresh?.(true);
+            const communityOrgProvider = this.discovery.getProvider('community', 'community-lists-iptv-org');
+            communityOrgProvider?.setForceRefresh?.(true);
+        }
+        this.loader.resetCommunityIdle();
+        try {
+            await this.discovery.reset();
+        } catch (err) {
+            console.error('lists.retryCommunityLists discovery reset failed:', err);
+        }
+        this.loader.reset();
     }
     async checkListFiles(url) {
         const file = resolveListDatabaseFile(url)
@@ -597,114 +786,22 @@ class Lists extends ListsEPGTools {
         }
         return this.isUpdaterFinished;
     }
-    async relevantKeywords(withScores = false) {
-        // Check cache first - if we have cached data, return in requested format
-        if (this._relevantKeywords && Object.keys(this._relevantKeywords).length > 0) {
-            if (withScores) {
-                return this._relevantKeywords // Already an object with scores
+    async relevantKeywords() {
+        const channelsIndex = []
+        Object.values(global.channels?.channelList?.channelsIndex || {}).map(tms => {
+            const entries = []
+            if (tms.includes('|')) {
+                entries.push(...tms.join(' ').split('|').map(s => s.trim().split(' ')))
             } else {
-                return Object.keys(this._relevantKeywords) // Convert to array of terms
+                entries.push(tms)
             }
-        }
-        
-        try {
-            // Use the recommendations system for better tag quality
-            // Only if EPG is enabled (recommendations system may use EPG data)
-            const activeEPG = config.get('epg-' + lang.locale)
-            const epgEnabled = activeEPG !== 'disabled' && config.get('epg-suggestions') !== false
-            
-            if (epgEnabled && global.recommendations?.tags?.get) {
-                const tagsObject = await global.recommendations.tags.get(24)
-                
-                // Apply legacy filters for compatibility
-                const badTerms = ['m3u8', 'ts', 'mp4', 'tv', 'channel']
-                const filteredTags = {}
-                
-                for (const [term, score] of Object.entries(tagsObject)) {
-                    if (!badTerms.includes(term)) {
-                        filteredTags[term] = score
-                    }
-                }
-                
-                // Store in cache as object with scores
-                this._relevantKeywords = filteredTags
-                
-                // Return based on withScores parameter
-                return withScores ? filteredTags : Object.keys(filteredTags)
+            for (const entry of entries) {
+                const excludes = entry.filter(t => t.startsWith('-')).map(t => t.slice(1));
+                const terms = entry.filter(t => !t.startsWith('-'));
+                channelsIndex.push({ terms, excludes })
             }
-        } catch (err) {
-            console.warn('Failed to get tags from recommendations system, falling back to legacy method:', err.message)
-        }
-        
-        // Fallback to legacy method if recommendations system fails
-        const badTerms = ['m3u8', 'ts', 'mp4', 'tv', 'channel']
-        let terms = [], addTerms = (tms, score) => {
-            if (typeof(score) != 'number') {
-                score = 1
-            }
-            tms.forEach(term => {
-                if (badTerms.includes(term)) {
-                    return
-                }
-                const has = terms.some((r, i) => {
-                    if (r.term == term) {
-                        terms[i].score += score
-                        return true
-                    }
-                })
-                if (!has) {
-                    terms.push({ term, score })
-                }
-            })
-        }
-        await ready(true)
-        const searchHistoryPromise = global.channels.search.history.terms().then(sterms => {
-            if (sterms.length) { // searching terms history
-                sterms = sterms.slice(-24)
-                sterms = sterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-')
-                addTerms(sterms)
-            }
-        }).catch(err => {
-            console.error('Error loading search history terms:', err)
-        })
-        const channelsPromise = global.channels.keywords().then(addTerms).catch(err => {
-            console.error('Error loading channel keywords:', err)
-        })
-        let bterms = global.channels.bookmarks.get()
-        if (bterms.length) { // bookmarks terms
-            bterms = bterms.slice(-24)
-            bterms = bterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-')
-            addTerms(bterms)
-        }
-        let hterms = global.channels.history.get()
-        if (hterms.length) { // user history terms
-            hterms = hterms.slice(-24)
-            hterms = hterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-')
-            addTerms(hterms)
-        }
-        const max = Math.max(...terms.map(t => t.score))
-        let cterms = config.get('interests')
-        if (cterms) { // user specified interests
-            cterms = this.tools.terms(cterms, true).filter(c => c[0] != '-')
-            cterms.length && addTerms(cterms, max)
-        }
-        await Promise.allSettled([searchHistoryPromise, channelsPromise])
-        
-        // Sort and limit terms
-        const sortedTerms = terms.sortByProp('score', true)
-        if (sortedTerms.length > 24) {
-            sortedTerms.splice(24)
-        }
-        
-        // Convert to object with scores and store in cache
-        const termsWithScores = {}
-        sortedTerms.forEach(({ term, score }) => {
-            termsWithScores[term] = score
-        })
-        this._relevantKeywords = termsWithScores
-        
-        // Return based on withScores parameter
-        return withScores ? termsWithScores : Object.keys(termsWithScores)
+        });
+        return channelsIndex;
     }
     async loadCachedLists(lists) {
         let hits = 0;
@@ -715,6 +812,7 @@ class Lists extends ListsEPGTools {
         
         // filterCachedUrls already checks for complete files (main + meta)
         lists = await this.filterCachedUrls(lists)
+        
         this.trim(); // helps to avoid too many lists in memory
         
         // Load lists that passed the filter (they have both main and meta files)
@@ -723,6 +821,14 @@ class Lists extends ListsEPGTools {
             return async () => {
                 if (typeof(this.lists[url]) != 'undefined') {
                     return; // Already loaded
+                }
+                
+                // Verificar se não está sendo atualizada antes de carregar (evita race conditions)
+                if (this.isListUpdating(url)) {
+                    if (this.debug) {
+                        console.log(`Skipping ${url} - update in progress`)
+                    }
+                    return
                 }
                 
                 try {
@@ -749,6 +855,43 @@ class Lists extends ListsEPGTools {
         }
         return hits;
     }
+    
+    /**
+     * Marca uma lista como sendo atualizada (ou não)
+     * @param {string} url - URL da lista
+     * @param {boolean} isUpdating - true se está sendo atualizada, false caso contrário
+     */
+    markListUpdating(url, isUpdating) {
+        if (isUpdating) {
+            this.updatingLists.add(url)
+            // Se a lista já está carregada, marcar como "suspended" para evitar conflitos
+            if (this.lists[url]) {
+                if (this.debug) {
+                    console.log(`Suspending list during update: ${url}`)
+                }
+                // Não remover completamente, apenas marcar como "suspended"
+                if (this.lists[url]) {
+                    this.lists[url]._suspendedForUpdate = true
+                }
+            }
+        } else {
+            this.updatingLists.delete(url)
+            // Remover marcação de suspensão se a lista existe
+            if (this.lists[url]) {
+                this.lists[url]._suspendedForUpdate = false
+            }
+        }
+    }
+    
+    /**
+     * Verifica se uma lista está sendo atualizada
+     * @param {string} url - URL da lista
+     * @returns {boolean} true se está sendo atualizada
+     */
+    isListUpdating(url) {
+        return this.updatingLists.has(url)
+    }
+    
     updateState() {
         let progress = 0, satisfyAmount = this.myLists.length
         const isUpdatingFinished = this.isUpdaterFinished && !this.queue.size
@@ -883,7 +1026,12 @@ class Lists extends ListsEPGTools {
         this.lists[url] = list;
         try {
             await list.ready()
-            await list.verify()
+            try {
+                await list.verify()
+            } catch (e) {
+                console.error('List verify error:', url, e);
+                throw e
+            }
         } catch (e) {
             list.verifyError = e
             err = e
@@ -1117,7 +1265,15 @@ class Lists extends ListsEPGTools {
         if (!url || !this.lists[url] || !this.lists[url].index || this.myLists.includes(url)) {
             return
         }
+        // Skip if list is being updated
+        if (this.isListUpdating(url)) {
+            return
+        }
         for(const k in this.lists) {
+            // Skip lists that are being updated
+            if (this.isListUpdating(k)) {
+                continue
+            }
             if (k == url || !this.lists[k].index) {
                 continue
             }
@@ -1142,7 +1298,8 @@ class Lists extends ListsEPGTools {
             }
         }
         const minQuota = list.length * 0.6;
-        if (list.index.uniqueStreamsLength < 128 && list.index.uniqueStreamsLength < minQuota) {
+        const indexLength = list.index?.length ?? 0;
+        if (indexLength < 128 && indexLength < minQuota) {
             return true;
         }
     }
@@ -1167,6 +1324,10 @@ class Lists extends ListsEPGTools {
             const limit = pLimit(3);
             const tasks = Object.keys(this.lists).map(url => {
                 return async () => {
+                    // Skip lists that are being updated
+                    if (this.isListUpdating(url)) {
+                        return
+                    }
                     if (!alreadyLoaded && url != list.url && this.lists[url] && this.lists[url].length == listIndexLength) {
                         let err;
                         const f = this.lists[url].file;
@@ -1271,24 +1432,24 @@ class Lists extends ListsEPGTools {
         const communityListsQuota = Math.max(communityListsAmount - this.myLists.length, 0);
         const loadedCommunityCount = this.loadedListsCount('community');
         
-        console.log(`🔧 trim() called - communityListsAmount: ${communityListsAmount}, myLists: ${this.myLists.length}, quota: ${communityListsQuota}, loaded: ${loadedCommunityCount}`);
-        
         // Remove community lists if quota is exceeded
         if (loadedCommunityCount > communityListsQuota) {
             const urlsToRemove = this.sortCommunityLists().slice(communityListsQuota)
-            console.log(`🗑️ Removing excess community lists: ${urlsToRemove.length} lists (keeping ${communityListsQuota} for myLists: ${this.myLists.length})`);
+            if (this.debug) {
+                console.log(`🗑️ Removing excess community lists: ${urlsToRemove.length} lists (keeping ${communityListsQuota} for myLists: ${this.myLists.length})`);
+            }
             for(const url of urlsToRemove) {
                 if (this.lists[url]) {
                     this.requesting[url] = 'destroyed on delimiting (relevance: '+ (this.lists[url].relevance?.total || 0) +')'
                     this.remove(url)
                 }
             }
-        } else {
-            console.log(`✅ Community lists within quota: ${loadedCommunityCount} <= ${communityListsQuota} (myLists: ${this.myLists.length})`);
         }
         if (!publicListsActive) {
             const publicUrls = Object.keys(this.lists).filter(url => !this.myLists.includes(url) && this.lists[url].origin == 'public');
-            console.log(`🗑️ Removing public lists (disabled): ${publicUrls.length} lists`);
+            if (this.debug && publicUrls.length > 0) {
+                console.log(`🗑️ Removing public lists (disabled): ${publicUrls.length} lists`);
+            }
             for(const url of publicUrls) {
                 this.requesting[url] = 'destroyed on delimiting (public lists disabled)';
                 this.remove(url);
@@ -1298,10 +1459,18 @@ class Lists extends ListsEPGTools {
     remove(u) {
         if (typeof(this.lists[u]) != 'undefined') {
             const list = this.lists[u];
-            console.log(`🗑️ Removing list: ${u}`);
-            console.log(`📊 List has indexer: ${!!list.indexer}`);
-            console.log(`📊 List has database: ${!!(list.indexer && list.indexer.db)}`);
-            console.log(`📊 Database destroyed: ${list.indexer && list.indexer.db ? list.indexer.db.destroyed : 'N/A'}`);
+            
+            if (this.debug) {
+                console.log(`🗑️ Removing list: ${u}`);
+                console.log(`📊 List has indexer: ${!!list.indexer}`);
+                console.log(`📊 List has database: ${!!(list.indexer && list.indexer.db)}`);
+                console.log(`📊 Database destroyed: ${list.indexer && list.indexer.db ? list.indexer.db.destroyed : 'N/A'}`);
+            }
+            
+            // Clear per-list cache when list is removed
+            if (this.index && typeof this.index.clearListCache === 'function') {
+                this.index.clearListCache(u);
+            }
             
             list.destroy();
             delete this.lists[u];
@@ -1379,7 +1548,8 @@ class Lists extends ListsEPGTools {
             } else if (list && list.indexer && list.indexer.index) {
                 // Also check for empty indexes (meta file exists but is empty)
                 const index = list.indexer.index;
-                if (index.uniqueStreamsLength === 0 && list.indexer.length > 0) {
+                const indexLength = index?.length ?? 0;
+                if (indexLength === 0 && list.indexer.length > 0) {
                     // Database has content but index is empty - meta file corruption
                     listsWithMissingMeta.push(url);
                     if (this.debug) {
@@ -1439,12 +1609,12 @@ class Lists extends ListsEPGTools {
             const list = this.lists[url];
             const index = await list.index;
             
-            if (index.uniqueStreamsLength === 0) {
+            if ((index.length ?? 0) === 0) {
                 console.log(`❌ Empty list found: ${url}`);
                 console.log(`   Index: ${JSON.stringify(index)}`);
                 emptyLists.push(url);
             } else {
-                console.log(`✅ List OK: ${url} (${index.uniqueStreamsLength} streams)`);
+                console.log(`✅ List OK: ${url} (${index.length ?? 0} streams)`);
             }
         }
         
@@ -1490,7 +1660,7 @@ class Lists extends ListsEPGTools {
                 const list = this.lists[url];
                 if (list) {
                     const index = await list.index;
-                    console.log(`${url}: ${index.uniqueStreamsLength} streams`);
+                    console.log(`${url}: ${index.length ?? 0} streams`);
                 }
             }
             

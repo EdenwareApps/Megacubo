@@ -1,10 +1,10 @@
-import fs from "fs";
-import ListIndexUtils from "./list-index-utils.js";
+import { EventEmitter } from "events";
 import { Database } from "jexidb"
 import ready from '../ready/ready.js'
-import { getListMeta } from "./common.js";
+import { getListMeta } from "./list-meta.js";
+import dbConfig from "./db-config.js";
 
-export default class ListIndex extends ListIndexUtils {
+export default class ListIndex extends EventEmitter {
     constructor(file, url) {
         super()
         this.url = url
@@ -21,10 +21,23 @@ export default class ListIndex extends ListIndexUtils {
     }
     async entries(map) {
         await this.ready()
-        // JexiDB v2: fetch all records and select by positions when a map (array of indices) is provided
-        const all = await this.db.find({})
-        if (!map) return all
-        return map.map(i => all[i]).filter(e => typeof e !== 'undefined')
+
+        // No map provided: return every entry walking the database sequentially
+        if (!Array.isArray(map)) {
+            return this.db.find({})
+        }
+
+        let smap = new Set(map);
+        let results = [];
+        let currentIndex = 0;
+        for await (const entry of this.db.walk({})) {
+            currentIndex++
+            if (smap.has(currentIndex)) {
+                results.push(entry)
+            }
+        }
+
+        return results.filter(e => typeof e !== 'undefined')
     }
     async getMap(map) {
         await this.ready()
@@ -88,44 +101,7 @@ export default class ListIndex extends ListIndexUtils {
     async init() {
         let err
         try {
-            this.db = new Database(this.file, {
-                create: false, // Read-only for existing lists
-                fields: {
-                    url: 'string',              // Stream URL
-                    name: 'string',             // Stream name
-                    icon: 'string',             // Stream icon/logo
-                    gid: 'string',             // TV guide ID
-                    group: 'string',            // Group title
-                    groups: 'array:string',     // Multiple groups
-                    groupName: 'string',       // Group name
-                    nameTerms: 'array:string',  // Search terms from name
-                    groupTerms: 'array:string', // Search terms from group
-                    lang: 'string',            // Language (tvg-language + detection)
-                    country: 'string',          // Country (tvg-country + detection)
-                    age: 'number',             // Age rating (0 = default, no restriction)
-                    subtitle: 'string',        // Subtitle
-                    userAgent: 'string',       // User agent (http-user-agent)
-                    referer: 'string',         // Referer (http-referer)
-                    author: 'string',          // Author (pltv-author)
-                    site: 'string',            // Site (pltv-site)
-                    email: 'string',           // Email (pltv-email)
-                    phone: 'string',           // Phone (pltv-phone)
-                    description: 'string',     // Description (pltv-description)
-                    epg: 'string',             // EPG URL (url-tvg, x-tvg-url)
-                    subGroup: 'string',        // Sub group (pltv-subgroup)
-                    rating: 'string',          // Rating (rating, tvg-rating)
-                    parental: 'string',        // Parental control (parental, censored)
-                    genre: 'string',          // Genre (tvg-genre)
-                    region: 'string',         // Region (region)
-                    categoryId: 'string',     // Category ID (category-id)
-                    ageRestriction: 'string'   // Age restriction (age-restriction)
-                },
-                indexes: ['nameTerms', 'groupTerms'], // Only the fields we want to index
-                integrityCheck: 'none', // Skip integrity check for speed
-                streamingThreshold: 0.8, // Higher threshold for lists (80% of data)
-                indexedQueryMode: 'loose', // Loose mode to allow queries on non-indexed fields
-                debugMode: false, // Disable debug mode for production
-            })
+            this.db = new Database(this.file, {...dbConfig, create: false});
             const ret = await this.db.init().catch(e => err = e)
             if (this.destroyed) {
                 err = new Error('destroyed')
@@ -144,28 +120,29 @@ export default class ListIndex extends ListIndexUtils {
         }
     }
     async loadMeta() {
-        const meta = await getListMeta(this.url);
-        
-        if (meta.uniqueStreamsLength > 0) {
-            this.indexError = null // No error, valid meta data
-            this._index = meta
-        } else if (!this?._index?.uniqueStreamsLength) {
-            this.indexError = new Error('meta file exists but contains no valid data')
-            this._index = {
-                groups: {},
-                meta: {},
-                gids: {},
-                groupsTypes: {},
-                uniqueStreamsLength: 0
+        const meta = await getListMeta(this.url)
+        const dbLength = this.length
+
+        this._index = {
+            meta: meta.meta || {},
+            gids: meta.gids || {},
+            groupsTypes: meta.groupsTypes || {},
+            length: typeof meta.length === 'number' ? meta.length : 0
+        }
+
+        if (dbLength > 0) {
+            this.indexError = null
+            if (this._index.length !== dbLength) {
+                this._index.length = dbLength
             }
+        } else if (this._index.length > 0) {
+            this.indexError = null
+        } else {
+            this.indexError = new Error('meta file exists but contains no valid data')
         }
     }
     destroy() {
         if (!this.destroyed) {
-            console.log(`🗑️ Destroying ListIndex for: ${this.url}`);
-            console.log(`📊 Database exists: ${!!this.db}`);
-            console.log(`📊 Database already destroyed: ${this.db ? this.db.destroyed : 'N/A'}`);
-            
             this.destroyed = true
             this.emit('destroy')
             this.removeAllListeners()
@@ -180,10 +157,8 @@ export default class ListIndex extends ListIndexUtils {
                         destroyResult.catch(err => {
                             console.error(`❌ Error destroying database for ${this.url}:`, err);
                         });
-                        console.log(`✅ Database destroy initiated for: ${this.url}`);
                     } else {
                         this.db = null;
-                        console.log(`✅ Database destroyed (sync) and nullified for: ${this.url}`);
                     }
                 } catch (err) {
                     console.error(`❌ Error calling database destroy for ${this.url}:`, err);
@@ -191,7 +166,6 @@ export default class ListIndex extends ListIndexUtils {
                 }
             } else {
                 this.db = null;
-                console.log(`⚠️ Database was already destroyed or null for: ${this.url}`);
             }
             
             // Clear all references to help garbage collection

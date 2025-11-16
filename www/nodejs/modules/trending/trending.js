@@ -123,19 +123,19 @@ export default class Trending extends EntriesGroup {
         }
         this.currentTopProgrammeEntry = false;
         list = this.prepare(list);
-        const es = await this.channels.epgChannelsAddLiveNow(list, false);
-        if (es.length) {
-            es.some(e => {
-                if (e.programme && e.programme.i) {
-                    this.currentTopProgrammeEntry = e;
-                    return true;
-                }
-            });
-        }
         if (paths.ALLOW_ADDING_LISTS && !lists.loaded(true)) {
-            es.unshift(lists.manager.noListsEntry());
+            list.unshift(lists.manager.noListsEntry());
         }
-        return es;
+        return list;
+    }
+    updateTopProgramme(entries) {
+        if (!Array.isArray(entries) || !entries.length) {
+            return;
+        }
+        const topEntry = entries.find(e => e && e.programme && e.programme.icon);
+        if (topEntry) {
+            this.currentTopProgrammeEntry = topEntry;
+        }
     }
     applyUsersPercentages(entries) {
         let totalUsersCount = 0;
