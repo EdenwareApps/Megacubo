@@ -23,6 +23,8 @@ export class Tags extends EventEmitter{
         
         // Background expansion queue
         this.backgroundQueue = new PQueue({concurrency: 1})
+        // Track pending/active background expansions to avoid duplicates
+        this.pendingExpansions = new Set()
         
         // Load cache on startup
         this.loadCache()
@@ -162,6 +164,8 @@ export class Tags extends EventEmitter{
         })
     }
     async reset() {
+        // Clear pending expansions to allow fresh expansions after reset
+        this.pendingExpansions.clear()
         if(this.queue.size) {
             return this.queue.onIdle()
         }
@@ -776,19 +780,33 @@ export class Tags extends EventEmitter{
      * Schedule background expansion for future use
      */
     scheduleBackgroundExpansion(tags, options) {
-        // Always schedule background expansion, even if one is running
-        // This ensures cache gets updated for future requests
+        const cacheKey = this.generateCacheKey(tags, options)
+        
+        // Skip if already pending or in progress for the same cache key
+        if (this.pendingExpansions.has(cacheKey)) {
+            return // Already scheduled or in progress
+        }
+        
+        // Skip if already cached (unless it's old)
+        const existingCache = this.getExpandedTagsFromCache(cacheKey)
+        if (existingCache && this.hasMeaningfulExpansion(tags, existingCache)) {
+            return // Already cached and valid
+        }
+        
+        // Mark as pending
+        this.pendingExpansions.add(cacheKey)
+        
+        // Schedule background expansion
         this.backgroundQueue.add(async () => {
             try {
-                const cacheKey = this.generateCacheKey(tags, options)
-                
-                // Skip if already cached (unless it's old)
-                const existingCache = this.getExpandedTagsFromCache(cacheKey)
-                if (existingCache && this.hasMeaningfulExpansion(tags, existingCache)) {
+                // Double-check cache after queue wait (might have been cached by another request)
+                const existingCacheAfterWait = this.getExpandedTagsFromCache(cacheKey)
+                if (existingCacheAfterWait && this.hasMeaningfulExpansion(tags, existingCacheAfterWait)) {
+                    this.pendingExpansions.delete(cacheKey)
                     return
                 }
 
-                if (existingCache) {
+                if (existingCacheAfterWait) {
                     this.expandedTagsCache.delete(cacheKey)
                 }
 
@@ -796,24 +814,87 @@ export class Tags extends EventEmitter{
                 
                 // Use dynamic import to avoid circular dependency
                 const { default: smartRecommendations } = await import('./index.mjs')
-                const expandedTags = await smartRecommendations.expandUserTags(tags, {
+                const mergedTags = await smartRecommendations.expandUserTags(tags, {
                     maxExpansions: options.amount || this.defaultTagsCount,
                     similarityThreshold: options.threshold || 0.6,
                     diversityBoost: options.diversityBoost !== false
                 })
                 
-                if (expandedTags && typeof expandedTags === 'object' && this.hasMeaningfulExpansion(tags, expandedTags)) {
-                    this.cacheExpandedTags(cacheKey, expandedTags)
-                    await this.saveCache()
-                    console.log('✅ Background tag expansion completed and cached')
-                    
-                    // Schedule update after successful expansion
-                    this.scheduleUpdate()
-                } else {
-                    console.warn('⚠️ Background expansion returned invalid or non-meaningful data', expandedTags)
+                // Validate merged tags structure
+                if (!mergedTags || typeof mergedTags !== 'object' || Array.isArray(mergedTags)) {
+                    console.log('ℹ️ Background expansion returned invalid data structure')
+                    return
                 }
+                
+                // Check if expansion actually produced new meaningful tags
+                // expandUserTags returns merged tags (original + expanded), so we check if it's meaningful
+                const isMeaningful = this.hasMeaningfulExpansion(tags, mergedTags)
+                
+                if (!isMeaningful) {
+                    // No meaningful expansion - likely returned original tags only or no new tags
+                    console.log('ℹ️ Background expansion returned no meaningful new tags')
+                    return
+                }
+                
+                // Extract only the new expanded tags (not in original tags) for caching
+                // This ensures we only cache the new tags, not the merged result
+                const expandedTags = {}
+                const baseTagsLower = new Map()
+                
+                // Build normalized base tags map
+                Object.entries(tags || {}).forEach(([key, value]) => {
+                    if (key && typeof key === 'string') {
+                        const lower = key.trim().toLowerCase()
+                        if (lower) {
+                            const numValue = Number(value)
+                            if (Number.isFinite(numValue) && numValue > 0) {
+                                baseTagsLower.set(lower, numValue)
+                            }
+                        }
+                    }
+                })
+                
+                // Extract new tags from merged result
+                Object.entries(mergedTags).forEach(([key, value]) => {
+                    if (!key || typeof key !== 'string') return
+                    
+                    const lower = key.trim().toLowerCase()
+                    if (!lower) return
+                    
+                    const numValue = Number(value)
+                    if (!Number.isFinite(numValue) || numValue <= 0) return
+                    
+                    const baseValue = baseTagsLower.get(lower)
+                    
+                    // Include if it's a new tag (not in base) or has a significantly higher value
+                    // Use a small threshold to account for floating point precision
+                    if (typeof baseValue !== 'number') {
+                        // New tag - include it
+                        expandedTags[key] = numValue
+                    } else if (numValue > baseValue * 1.01) {
+                        // Value is at least 1% higher - include it
+                        expandedTags[key] = numValue
+                    }
+                })
+                
+                // Validate extracted tags
+                if (Object.keys(expandedTags).length === 0) {
+                    console.log('ℹ️ Background expansion produced no extractable new tags')
+                    return
+                }
+                
+                // Cache the extracted new tags
+                this.cacheExpandedTags(cacheKey, expandedTags)
+                await this.saveCache()
+                console.log(`✅ Background tag expansion completed and cached (${Object.keys(expandedTags).length} new tags)`)
+                
+                // Schedule update after successful expansion
+                this.scheduleUpdate()
             } catch (error) {
                 console.warn('Background tag expansion failed:', error.message)
+            } finally {
+                // Always remove from pending set when done (success or failure)
+                this.pendingExpansions.delete(cacheKey)
             }
         })
     }

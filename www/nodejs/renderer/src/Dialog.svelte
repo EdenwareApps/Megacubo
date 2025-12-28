@@ -201,12 +201,20 @@
             isPassword: atts.isPassword,
             placeholder: atts.placeholder,
         });
-        opts.push({
-            template: "option",
-            text: "OK",
-            id: "submit",
-            fa: "fas fa-check-circle",
-        });
+        
+        // Check if extraOpts already contains a 'submit' button
+        const hasSubmitButton = atts.extraOpts?.some(opt => opt.id === "submit");
+        
+        // Only add default OK button if not already present in extraOpts
+        if (!hasSubmitButton) {
+            opts.push({
+                template: "option",
+                text: "OK",
+                id: "submit",
+                fa: "fas fa-check-circle",
+            });
+        }
+        
         if (atts.extraOpts) {
             opts.push(...atts.extraOpts);
         }

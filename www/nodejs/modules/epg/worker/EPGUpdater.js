@@ -40,6 +40,15 @@ export class EPGUpdater extends EventEmitter {
     // Initialize in-memory maps for batch processing
     this._channelMap = new Map()
     this._termsMap = new Map()
+    
+    // Track IDs that have been saved to database to avoid duplicates during periodic flush
+    this._savedChannelIds = new Set()
+    this._savedTermIds = new Set()
+    
+    // Configuration for periodic flush
+    this._BATCH_FLUSH_THRESHOLD = 10000 // Flush when map reaches this size
+    this._BATCH_FLUSH_INTERVAL = 5000   // Or when this many new entries added since last flush
+    this._lastBatchFlush = { channels: 0, terms: 0 }
 
     // Configuration properties
     const envDebugValue = (typeof process !== 'undefined' ? process?.env?.MEGACUBO_EPG_DEBUG : undefined)
@@ -389,6 +398,7 @@ export class EPGUpdater extends EventEmitter {
       }
 
       // Store channel in memory map instead of immediate DB operation
+      // Always update Map to keep latest version (flush will filter duplicates)
       const channelData = { _type: 'channel', id, name: incomingName, _created: time() }
       if (icon) channelData.icon = icon
 
@@ -400,6 +410,26 @@ export class EPGUpdater extends EventEmitter {
         console.warn(`⚠️ [OOM Risk] _channelMap size is very large: ${this._channelMap.size} entries (EPG: ${this.url}, batch save may be needed)`)
       } else if (this._channelMap.size >= MAX_MAP_SIZE_WARN * 0.8) {
         console.warn(`⚠️ [Memory Warning] _channelMap size is high: ${this._channelMap.size} entries (EPG: ${this.url}, approaching limit)`)
+      }
+      
+      // Periodic flush to prevent OOM (saves but keeps Map intact)
+      const channelCount = this._channelMap.size
+      const unsavedChannelCount = channelCount - this._savedChannelIds.size
+      const channelsSinceLastFlush = channelCount - this._lastBatchFlush.channels
+      
+      // Flush if map is too large OR if there are many unsaved items OR if many new items added
+      if ((channelCount >= this._BATCH_FLUSH_THRESHOLD || 
+           unsavedChannelCount >= this._BATCH_FLUSH_INTERVAL ||
+           channelsSinceLastFlush >= this._BATCH_FLUSH_INTERVAL) &&
+          this.mdb && this.mdb.initialized && !this.mdb.destroyed &&
+          !this._state.destroyed && !this._state.finalizationInProgress) {
+        try {
+          await this._flushChannelsAndTermsPartial('channels')
+          // Track total map size for threshold checks
+          this._lastBatchFlush.channels = channelCount
+        } catch (err) {
+          console.warn('Periodic channel flush failed, will retry at final save:', err.message)
+        }
       }
 
       // Update cache
@@ -428,6 +458,7 @@ export class EPGUpdater extends EventEmitter {
       const norm = (terms || []).map(String)
 
       // Store terms in memory map instead of immediate DB operation
+      // Always update Map to keep latest version (flush will filter duplicates)
       const termsData = { _type: 'terms', id, terms: norm, _created: time() }
 
       this._termsMap.set(id, termsData)
@@ -438,6 +469,26 @@ export class EPGUpdater extends EventEmitter {
         console.warn(`⚠️ [OOM Risk] _termsMap size is very large: ${this._termsMap.size} entries (EPG: ${this.url}, batch save may be needed)`)
       } else if (this._termsMap.size >= MAX_MAP_SIZE_WARN * 0.8) {
         console.warn(`⚠️ [Memory Warning] _termsMap size is high: ${this._termsMap.size} entries (EPG: ${this.url}, approaching limit)`)
+      }
+      
+      // Periodic flush to prevent OOM (saves but keeps Map intact)
+      const termsCount = this._termsMap.size
+      const unsavedTermsCount = termsCount - this._savedTermIds.size
+      const termsSinceLastFlush = termsCount - this._lastBatchFlush.terms
+      
+      // Flush if map is too large OR if there are many unsaved items OR if many new items added
+      if ((termsCount >= this._BATCH_FLUSH_THRESHOLD || 
+           unsavedTermsCount >= this._BATCH_FLUSH_INTERVAL ||
+           termsSinceLastFlush >= this._BATCH_FLUSH_INTERVAL) &&
+          this.mdb && this.mdb.initialized && !this.mdb.destroyed &&
+          !this._state.destroyed && !this._state.finalizationInProgress) {
+        try {
+          await this._flushChannelsAndTermsPartial('terms')
+          // Track total map size for threshold checks
+          this._lastBatchFlush.terms = termsCount
+        } catch (err) {
+          console.warn('Periodic terms flush failed, will retry at final save:', err.message)
+        }
       }
 
       // Update cache
@@ -1638,6 +1689,62 @@ export class EPGUpdater extends EventEmitter {
 
   // ===== Batch Processing Methods =====
 
+  /**
+   * Periodic flush that saves to database but keeps Map intact
+   * This prevents OOM while avoiding duplicates by tracking saved IDs
+   */
+  async _flushChannelsAndTermsPartial(type = 'both') {
+    if (!this.mdb || !this.mdb.initialized || this.mdb.destroyed) {
+      return // Skip if database not ready
+    }
+    
+    if (this._state.destroyed || this._state.finalizationInProgress) {
+      return // Skip if EPG is being destroyed
+    }
+    
+    try {
+      const shouldFlushChannels = (type === 'channels' || type === 'both') && this._channelMap.size > 0
+      const shouldFlushTerms = (type === 'terms' || type === 'both') && this._termsMap.size > 0
+      
+      if (shouldFlushChannels) {
+        // Only flush channels that haven't been saved yet
+        const channelsToFlush = Array.from(this._channelMap.values())
+          .filter(ch => !this._savedChannelIds.has(ch.id))
+        
+        if (channelsToFlush.length > 0) {
+          await this.mdb.insertBatch(channelsToFlush)
+          
+          // Mark as saved only after successful insertion
+          for (const channelData of channelsToFlush) {
+            this._savedChannelIds.add(channelData.id)
+          }
+          
+          this.debugLog(`Periodic flush: saved ${channelsToFlush.length} channels (${this._channelMap.size - channelsToFlush.length} already saved)`)
+        }
+      }
+      
+      if (shouldFlushTerms) {
+        // Only flush terms that haven't been saved yet
+        const termsToFlush = Array.from(this._termsMap.values())
+          .filter(t => !this._savedTermIds.has(t.id))
+        
+        if (termsToFlush.length > 0) {
+          await this.mdb.insertBatch(termsToFlush)
+          
+          // Mark as saved only after successful insertion
+          for (const termData of termsToFlush) {
+            this._savedTermIds.add(termData.id)
+          }
+          
+          this.debugLog(`Periodic flush: saved ${termsToFlush.length} terms (${this._termsMap.size - termsToFlush.length} already saved)`)
+        }
+      }
+    } catch (err) {
+      console.warn('Periodic flush error:', err.message)
+      // Don't throw - allow retry at final save
+    }
+  }
+
   async _saveChannelsAndTermsInBatch() {
     // CRITICAL: finalizeUpdate() should have already ensured the database is ready
     // This method only validates and saves, it doesn't fix/recreate anything
@@ -1683,57 +1790,103 @@ export class EPGUpdater extends EventEmitter {
     try {
       this.debugLog(`Saving ${this._channelMap.size} channels and ${this._termsMap.size} terms to database in batch...`)
 
-      // Process channels in batch
+      // Process channels in batch (only those not already saved)
       if (this._channelMap.size > 0) {
         const channelsToProcess = Array.from(this._channelMap.values())
-        this.debugLog(`Processing ${channelsToProcess.length} channels in batch...`)
+          .filter(ch => !this._savedChannelIds.has(ch.id))
+        this.debugLog(`Processing ${channelsToProcess.length} channels in batch (${this._channelMap.size - channelsToProcess.length} already saved)...`)
 
-        try {
-          await targetDb.insertBatch(channelsToProcess)
-          this.debugLog(`Batch inserted ${channelsToProcess.length} channels`)
-        } catch (channelErr) {
-          console.error('🚨 FLAG: Error inserting channels in batch:', channelErr.message)
-          console.error('🚨 This should not happen after finalizeUpdate() - database should be functional')
-          // Try individual inserts as fallback (shouldn't be needed, but helps diagnose)
+        if (channelsToProcess.length > 0) {
           try {
-            for (const channel of channelsToProcess) {
-              await targetDb.insert(channel)
+            await targetDb.insertBatch(channelsToProcess)
+            this.debugLog(`Batch inserted ${channelsToProcess.length} channels`)
+            
+            // Mark as saved only after successful insertion
+            for (const channelData of channelsToProcess) {
+              this._savedChannelIds.add(channelData.id)
             }
-            this.debugLog(`⚠️ Fallback: Inserted ${channelsToProcess.length} channels individually (batch insert failed)`)
-          } catch (fallbackErr) {
-            console.error('🚨 FLAG: Fallback channel insert also failed:', fallbackErr.message)
-            throw new Error(`CRITICAL: Failed to insert channels - finalizeUpdate() should have ensured functional database: ${fallbackErr.message}`)
+          } catch (channelErr) {
+            console.error('🚨 FLAG: Error inserting channels in batch:', channelErr.message)
+            console.error('🚨 This should not happen after finalizeUpdate() - database should be functional')
+            // Try individual inserts as fallback (shouldn't be needed, but helps diagnose)
+            try {
+              const successfullyInserted = []
+              for (const channel of channelsToProcess) {
+                try {
+                  await targetDb.insert(channel)
+                  successfullyInserted.push(channel)
+                } catch (individualErr) {
+                  console.error(`Failed to insert individual channel ${channel.id}:`, individualErr.message)
+                  // Continue with others
+                }
+              }
+              // Mark only successfully inserted channels
+              for (const channelData of successfullyInserted) {
+                this._savedChannelIds.add(channelData.id)
+              }
+              this.debugLog(`⚠️ Fallback: Inserted ${successfullyInserted.length}/${channelsToProcess.length} channels individually (batch insert failed)`)
+              if (successfullyInserted.length < channelsToProcess.length) {
+                console.warn(`⚠️ Some channels failed to insert: ${channelsToProcess.length - successfullyInserted.length} failed`)
+              }
+            } catch (fallbackErr) {
+              console.error('🚨 FLAG: Fallback channel insert also failed:', fallbackErr.message)
+              throw new Error(`CRITICAL: Failed to insert channels - finalizeUpdate() should have ensured functional database: ${fallbackErr.message}`)
+            }
           }
         }
       }
 
-      // Process terms in batch
+      // Process terms in batch (only those not already saved)
       if (this._termsMap.size > 0) {
         const termsToProcess = Array.from(this._termsMap.values())
-        this.debugLog(`Processing ${termsToProcess.length} terms in batch...`)
+          .filter(t => !this._savedTermIds.has(t.id))
+        this.debugLog(`Processing ${termsToProcess.length} terms in batch (${this._termsMap.size - termsToProcess.length} already saved)...`)
 
-        try {
-          await targetDb.insertBatch(termsToProcess)
-          this.debugLog(`Batch inserted ${termsToProcess.length} terms`)
-        } catch (termsErr) {
-          console.error('🚨 FLAG: Error inserting terms in batch:', termsErr.message)
-          console.error('🚨 This should not happen after finalizeUpdate() - database should be functional')
-          // Try individual inserts as fallback (shouldn't be needed, but helps diagnose)
+        if (termsToProcess.length > 0) {
           try {
-            for (const term of termsToProcess) {
-              await targetDb.insert(term)
+            await targetDb.insertBatch(termsToProcess)
+            this.debugLog(`Batch inserted ${termsToProcess.length} terms`)
+            
+            // Mark as saved only after successful insertion
+            for (const termData of termsToProcess) {
+              this._savedTermIds.add(termData.id)
             }
-            this.debugLog(`⚠️ Fallback: Inserted ${termsToProcess.length} terms individually (batch insert failed)`)
-          } catch (fallbackErr) {
-            console.error('🚨 FLAG: Fallback terms insert also failed:', fallbackErr.message)
-            throw new Error(`CRITICAL: Failed to insert terms - finalizeUpdate() should have ensured functional database: ${fallbackErr.message}`)
+          } catch (termsErr) {
+            console.error('🚨 FLAG: Error inserting terms in batch:', termsErr.message)
+            console.error('🚨 This should not happen after finalizeUpdate() - database should be functional')
+            // Try individual inserts as fallback (shouldn't be needed, but helps diagnose)
+            try {
+              const successfullyInserted = []
+              for (const term of termsToProcess) {
+                try {
+                  await targetDb.insert(term)
+                  successfullyInserted.push(term)
+                } catch (individualErr) {
+                  console.error(`Failed to insert individual term ${term.id}:`, individualErr.message)
+                  // Continue with others
+                }
+              }
+              // Mark only successfully inserted terms
+              for (const termData of successfullyInserted) {
+                this._savedTermIds.add(termData.id)
+              }
+              this.debugLog(`⚠️ Fallback: Inserted ${successfullyInserted.length}/${termsToProcess.length} terms individually (batch insert failed)`)
+              if (successfullyInserted.length < termsToProcess.length) {
+                console.warn(`⚠️ Some terms failed to insert: ${termsToProcess.length - successfullyInserted.length} failed`)
+              }
+            } catch (fallbackErr) {
+              console.error('🚨 FLAG: Fallback terms insert also failed:', fallbackErr.message)
+              throw new Error(`CRITICAL: Failed to insert terms - finalizeUpdate() should have ensured functional database: ${fallbackErr.message}`)
+            }
           }
         }
       }
 
-      // Clear memory maps after successful batch save
+      // Clear memory maps and saved IDs tracking after successful batch save
       this._channelMap.clear()
       this._termsMap.clear()
+      this._savedChannelIds.clear()
+      this._savedTermIds.clear()
 
       this.debugLog('Batch save completed successfully')
 
@@ -1800,9 +1953,11 @@ export class EPGUpdater extends EventEmitter {
     // Clear all caches
     this.cacheManager.destroy()
 
-    // Clear memory maps
+    // Clear memory maps and saved IDs tracking
     this._channelMap.clear()
     this._termsMap.clear()
+    this._savedChannelIds.clear()
+    this._savedTermIds.clear()
 
     // Stop memory monitoring
     this.memoryMonitor.destroy()

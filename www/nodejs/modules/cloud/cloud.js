@@ -254,22 +254,27 @@ class CloudConfiguration extends EventEmitter {
             }
         }
 
-        // Check cache with timeout
-        let data = await Promise.race([
-            storage.get(cacheKey),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Storage timeout')), 5000))
-        ]).catch(err => {
-            this.debug && console.log(`Storage error for ${key}`, err)
-            return null
-        })
+        // Check cache with timeout (skip if bypassCache is true)
+        let data = null
+        if (!opts.bypassCache) {
+            data = await Promise.race([
+                storage.get(cacheKey),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Storage timeout')), 5000))
+            ]).catch(err => {
+                this.debug && console.log(`Storage error for ${key}`, err)
+                return null
+            })
 
-        if (data) {
-            this.debug && console.log(`Cache hit for ${key}`)
-            return data
+            if (data) {
+                this.debug && console.log(`Cache hit for ${key}`)
+                return data
+            }
+        } else {
+            this.debug && console.log(`Bypassing cache for ${key} (bypassCache: true)`)
         }
 
-        // Check if there is an ongoing fetch for this key
-        if (this.activeFetches.has(key)) {
+        // Check if there is an ongoing fetch for this key (skip if bypassCache is true)
+        if (!opts.bypassCache && this.activeFetches.has(key)) {
             this.debug && console.log(`Waiting for ongoing fetch for ${key}`)
             return this.activeFetches.get(key) // Return the shared fetch promise
         }

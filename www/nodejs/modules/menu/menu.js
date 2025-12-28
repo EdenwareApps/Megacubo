@@ -142,10 +142,12 @@ class Menu extends EventEmitter {
         const opts = hasOptions ? {
             timeout: 0,
             icon: 'fa-mega busy-x',
+            lock: false,
             ...timeoutOrOpts
         } : {
             timeout: Number(timeoutOrOpts) || 0,
-            icon: 'fa-mega busy-x'
+            icon: 'fa-mega busy-x',
+            lock: false
         }
 
         opts.timeout = Number(opts.timeout) || 0

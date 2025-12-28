@@ -62,9 +62,12 @@ If you're new to Megacubo, we recommend following these steps:
 - **[FAQ](./docs/faq.md)** - Frequently asked questions
 - **[Support & Contact](./docs/support.md)** - Getting help and support
 
-## Legal & Contributing
-- **[Legal Notice](./docs/legal.md)** - Legal information and terms
+## Development & Build
+- **[Building Linux Installers](./BUILD_LINUX.md)** - How to build AppImage, Flatpak and Snap packages
 - **[Contributing](./docs/contributing.md)** - How to contribute to the project
+
+## Legal
+- **[Legal Notice](./docs/legal.md)** - Legal information and terms
 
 ## Available Languages
 
@@ -117,7 +120,6 @@ You can help us by [improving/creating translations](https://github.com/Edenware
 # Support
 
 For support and help:
-- **Issues section**: [github.com/EdenwareApps/Megacubo/issues](https://github.com/EdenwareApps/Megacubo/issues)
+- **Email**: contact@megacubo.tv
 - **Facebook Page**: [facebook.com/MegacuboTV](https://www.facebook.com/MegacuboTV)
 - **Website**: [megacubo.tv](https://megacubo.tv/en/english/)
-- **Email**: contact@megacubo.tv

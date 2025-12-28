@@ -339,9 +339,10 @@ class ManagerFetch extends ManagerEPG {
                 err = r.reason || err;
             }
         }).filter(r => r).flat();
-        if(err) {
+        if (err) {
             const s = String(err.message || err)
-            if(!s.includes('file not found or empty')) {
+            // Only display error when renderList was triggered by explicit user interaction
+            if (!opts.silent && !s.includes('file not found or empty')) {
                 menu.displayErr(err)
             }
         }

@@ -1,5 +1,4 @@
 import fs from "fs";
-import "bytenode";
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
 import lang from "../lang/lang.js";
@@ -7,6 +6,17 @@ import menu from '../menu/menu.js'
 import { getFilename } from 'cross-dirname'
 import { createRequire } from 'node:module'
 import { insertEntry } from '../utils/utils.js'
+
+// Check if bytenode is available at runtime
+let bytenodeAvailable = false;
+try {
+    const req = createRequire(getFilename());
+    req('bytenode');
+    bytenodeAvailable = true;
+    console.log('Bytenode loaded successfully');
+} catch (e) {
+    console.warn('Bytenode not available:', e.message);
+}
 
 class PremiumHelper {
     constructor() {
@@ -51,7 +61,17 @@ try {
     let Premium
     const isAndroidArm = process.platform == 'android' && process.arch.startsWith('arm')
     const distFolder = paths.cwd +'/dist/'
-    const distFiles = new Set(fs.readdirSync(distFolder))
+    console.log('Premium helper: checking dist folder:', distFolder)
+    
+    let distFiles;
+    try {
+        distFiles = new Set(fs.readdirSync(distFolder))
+        console.log('Premium helper: dist files found:', Array.from(distFiles).filter(f => f.includes('premium')))
+    } catch (e) {
+        console.error('Premium helper: cannot read dist folder:', distFolder, e.message)
+        throw e
+    }
+    
     const req = typeof(module) == 'undefined' ? createRequire(getFilename()) : require
     const candidates = ['premium.js']
     if (isAndroidArm) {
@@ -64,20 +84,37 @@ try {
     } else {
         candidates.push('premium.jsc')
     }
+    
     for(const file of candidates) {
-        if(!distFiles.has(file)) continue
+        if(!distFiles.has(file)) {
+            console.log('Premium helper: file not found:', file)
+            continue
+        }
+        
+        // Skip .jsc files if bytenode is not available
+        if(file.endsWith('.jsc') && !bytenodeAvailable) {
+            console.warn('Premium helper: skipping', file, '- bytenode not available')
+            continue
+        }
+        
         try {
             console.log('Premium loading: '+ distFolder + file)
             Premium = req(distFolder + file)
-            console.log('Premium loaded')
+            console.log('Premium loaded successfully from:', file)
             break
         } catch(e) {
-            console.error('Premium load error: '+ e)
+            console.error('Premium load error for', file + ':', e.message, e.stack)
         }
     }
-    if(Premium) PremiumHelper = Premium
+    if(Premium) {
+        PremiumHelper = Premium
+        console.log('Premium helper initialized successfully')
+    } else {
+        console.warn('Premium helper: no premium module could be loaded')
+    }
 } catch(e) {
-    console.error('Premium not loaded: '+ e, e)
+    console.error('Premium not loaded: '+ e.message, e.stack)
 }
 
 export default PremiumHelper;
+

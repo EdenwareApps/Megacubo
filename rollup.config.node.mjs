@@ -1,21 +1,17 @@
 import fs from 'fs';
 import path from 'path';
 import terser from '@rollup/plugin-terser';
-import svelte from 'rollup-plugin-svelte';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import builtins from 'rollup-plugin-node-builtins';
 import json from '@rollup/plugin-json';
 import replace from '@rollup/plugin-replace';
 import copy from 'rollup-plugin-copy';
-import { sveltePreprocess } from 'svelte-preprocess';
-import { babel, getBabelOutputPlugin } from '@rollup/plugin-babel';
+import { getBabelOutputPlugin } from '@rollup/plugin-babel';
+import gcPlugin from './scripts/rollup-gc-plugin.mjs';
 
 // import config Babel via import ESM
 import babelConfig from './babel.config.json' with { type: 'json' };
 import babelNodeOutput from './babel.node-output.json' with { type: 'json' };
-import babelRendererOutput from './babel.renderer-output.json' with { type: 'json' };
-import babelRendererPolyfills from './babel.renderer-polyfills.json' with { type: 'json' };
 
 // determines environment
 const baseResolveOpts = { browser: false, exportConditions: ['node', 'svelte'], preferBuiltins: true };
@@ -34,48 +30,6 @@ const replaceOpts = {
 
 // Check if this is a production build
 const isProduction = process.env.NODE_ENV === 'production' || process.argv.includes('--production')
-
-// Svelte renderer plugins
-const rendererPlugins = [
-  svelte({
-    emitCss: false,
-    preprocess: sveltePreprocess(),
-    compilerOptions: { css: 'injected', compatibility: { componentApi: 4 } }
-  }),
-  babel({ ...babelRendererPolyfills, babelHelpers: 'bundled', extensions: ['.js', '.svelte'], skipPreflightCheck: true }),
-  resolve({ 
-    browser: true, 
-    exportConditions: ['svelte', 'node', 'import', 'default'], 
-    extensions: ['.js', '.mjs', '.json', '.svelte'], 
-    preferBuiltins: false,
-    resolveOnly: [] // Allow all modules to be resolved
-  }),
-  commonjs({ sourcemap: true }),
-  builtins(),
-  getBabelOutputPlugin({ ...babelRendererOutput, allowAllFormats: true }),
-  json({ compact: true }),
-        ...(isProduction ? [terser({
-          ecma: 2020, // Use ECMAScript 2020 for better BigInt compatibility
-          maxWorkers: 2,
-          keep_classnames: true, // Keep class names to avoid BigInt issues
-          keep_fnames: true, // Keep function names to avoid BigInt issues
-          output: { comments: false },
-          compress: {
-            drop_console: true,
-            drop_debugger: true,
-            passes: 1, // Reduce passes to avoid BigInt issues
-            // ✅ APENAS as desativações essenciais para BigInt
-            reduce_vars: false,     // ← Principal: evita reescrita de vars com BigInt
-            evaluate: false,        // ← Principal: evita avaliação de expressões BigInt
-            // Manter outras otimizações
-            unsafe: false,
-            unsafe_comps: false,
-            unsafe_math: false,
-            unsafe_proto: false,
-            unsafe_regexp: false
-          }
-        })] : [])
-];
 
 // Babel config import
 // bundles main, preload e workers
@@ -185,7 +139,7 @@ function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals
     // Enable terser for production builds with BigInt-safe settings
         ...(isProduction && !isLargeFile ? [terser({
           ecma: 2020, // Use ECMAScript 2020 for better BigInt compatibility
-          maxWorkers: 1,
+          maxWorkers: 0, // Disable workers to prevent hanging
           keep_classnames: true, // Keep class names to avoid BigInt issues
           keep_fnames: true, // Keep function names to avoid BigInt issues
           output: { comments: false },
@@ -203,7 +157,8 @@ function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals
             unsafe_proto: false,
             unsafe_regexp: false
           }
-        })] : [])
+        })] : []),
+    gcPlugin() // Add GC plugin at the end to run after bundle is written
   ];
   outputs.push({
     input,
@@ -244,38 +199,7 @@ function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals
   });
 }
 
-// App.svelte and capacitor
-outputs.push(
-  {
-    input: 'www/nodejs/renderer/src/App.svelte',
-    output: { 
-      dir: 'www/nodejs/renderer/dist', 
-      entryFileNames: 'App.js', 
-      format: 'iife', 
-      name: 'App', 
-      inlineDynamicImports: true, 
-      sourcemap: true
-    },
-    plugins: rendererPlugins,
-    watch: watchOpts,
-    external: ['electron', /.+\.(node|native)$/]
-  },
-  {
-    input: { capacitor: 'capacitor.mjs' },
-    output: { 
-      dir: 'www/nodejs/renderer/dist', 
-      entryFileNames: 'capacitor.js', 
-      format: 'iife', 
-      name: 'capacitor', 
-      inlineDynamicImports: true, 
-      sourcemap: true
-    },
-    plugins: rendererPlugins,
-    watch: watchOpts,
-    external: ['electron', /.+\.(node|native)$/]
-  }
-);
-
+// Node.js bundles only
 makeNodeBundle({
   input: 'www/nodejs/main.mjs',
   output: { format: 'cjs', file: 'www/nodejs/dist/main.js', inlineDynamicImports: true, sourcemap: false }, // Desabilitar sourcemap para main process
@@ -287,6 +211,7 @@ makeNodeBundle({
       { src: 'node_modules/create-desktop-shortcuts/src/windows.vbs', dest: 'www/nodejs/dist' },
       { src: 'node_modules/hls.js/dist/hls.min.js', dest: 'www/nodejs/renderer/dist' },
       { src: 'node_modules/mpegts.js/dist/mpegts.js', dest: 'www/nodejs/renderer/dist' },
+      { src: 'node_modules/bytenode/**/*', dest: 'www/nodejs/dist/node_modules/bytenode' },
     ] })
   ]
 });
@@ -326,3 +251,6 @@ if (fs.existsSync('www/nodejs/modules/premium/premium.js')) {
 }
 
 export default outputs;
+
+
+

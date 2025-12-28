@@ -7,6 +7,7 @@ import { EventEmitter } from 'node:events';
 import PQueue from 'p-queue';
 import pLimit from 'p-limit';
 import workers from '../multi-worker/main.js';
+import MultiWorker from '../multi-worker/multi-worker.js';
 import ConnRacing from '../conn-racing/conn-racing.js';
 import config from '../config/config.js';
 import renderer from '../bridge/bridge.js';
@@ -59,7 +60,10 @@ class ListsLoader extends EventEmitter {
         }
 
         const updateKeywords = async () => {
-            if (!this.updater || this.updater.finished || this.updater.terminated) {
+            if (!this.updater || 
+                !this.updaterWorkerInstance || 
+                this.updaterWorkerInstance.finished || 
+                (this.updater && this.updater.finished)) {
                 return;
             }
 
@@ -233,18 +237,60 @@ class ListsLoader extends EventEmitter {
     }
 
     async prepareUpdater() {
-        if (!this.updater || this.updater.finished) {
+        // Verifica se precisa recriar: se não existe, se o worker instance está finished, ou se o updater está finished
+        const needsRecreate = !this.updater || 
+                              !this.updaterWorkerInstance || 
+                              this.updaterWorkerInstance.finished || 
+                              this.updater.finished;
+        
+        if (needsRecreate) {
+            // Limpa a referência anterior do worker instance se existir
+            if (this.updaterWorkerInstance) {
+                try {
+                    this.updaterWorkerInstance.terminate();
+                } catch (e) {
+                    // Ignore errors if already terminated
+                }
+                this.updaterWorkerInstance = null;
+            }
+            
+            // Limpa timeout anterior se existir
+            if (this.updaterTerminatingTimeout) {
+                clearTimeout(this.updaterTerminatingTimeout);
+                this.updaterTerminatingTimeout = null;
+            }
+            
             this.uid = this.uid || randomUUID();
-            this.updater = workers.load(path.join(getDirname(), 'updater-worker.js'));
+            // Cria uma instância dedicada do MultiWorker apenas para o updater
+            const updaterWorker = new MultiWorker();
+            this.updater = updaterWorker.load(path.join(getDirname(), 'updater-worker.js'));
             if (!this.updater?.update) throw new Error('Failed to create updater worker');
+            
+            // Armazena a referência do worker para poder terminá-lo completamente
+            this.updaterWorkerInstance = updaterWorker;
+            
             this.once('destroy', () => {
-                if (this.updater && !this.updater.terminated) {
-                    // Clear any pending timeout
-                    if (this.updater.terminating) {
-                        clearTimeout(this.updater.terminating);
-                        this.updater.terminating = null;
+                // Clear any pending timeout
+                if (this.updaterTerminatingTimeout) {
+                    clearTimeout(this.updaterTerminatingTimeout);
+                    this.updaterTerminatingTimeout = null;
+                }
+                // Termina o worker instance completamente
+                if (this.updaterWorkerInstance && !this.updaterWorkerInstance.finished) {
+                    try {
+                        this.updaterWorkerInstance.terminate();
+                    } catch (e) {
+                        // Ignore errors if already terminated
                     }
-                    this.updater.terminate();
+                    this.updaterWorkerInstance = null;
+                }
+                if (this.updater) {
+                    try {
+                        this.updater.terminate();
+                    } catch (e) {
+                        // Ignore errors if already terminated
+                    }
+                    this.updater = null;
                 }
             });
             this.updaterClients = 1;
@@ -281,13 +327,28 @@ class ListsLoader extends EventEmitter {
             })
             
             this.updater.close = () => {
-                if (--this.updaterClients <= 0 && !this.updater.terminating) {
-                    this.updater.terminating = setTimeout(() => {
-                        if (this.updater && !this.updater.terminated) {
+                if (--this.updaterClients <= 0 && !this.updaterTerminatingTimeout) {
+                    this.updaterTerminatingTimeout = setTimeout(() => {
+                        if (this.updaterWorkerInstance && !this.updaterWorkerInstance.finished) {
                             this.debug && console.error('[listsLoader] Terminating updater');
-                            this.updater.terminate();
-                            this.updater = null;
+                            // Termina o worker instance completamente
+                            try {
+                                this.updaterWorkerInstance.terminate();
+                            } catch (e) {
+                                // Ignore errors if already terminated
+                            }
+                            this.updaterWorkerInstance = null;
+                            
+                            if (this.updater) {
+                                try {
+                                    this.updater.terminate();
+                                } catch (e) {
+                                    // Ignore errors if already terminated
+                                }
+                                this.updater = null;
+                            }
                         }
+                        this.updaterTerminatingTimeout = null;
                     }, 5000);
                 }
             };
@@ -296,8 +357,11 @@ class ListsLoader extends EventEmitter {
             this.updater.setRelevantKeywords(channelsIndex).catch(console.error);
         } else {
             this.updaterClients++;
-            clearTimeout(this.updater.terminating);
-            this.updater.terminating = null;
+            // Limpa timeout de terminação se existir
+            if (this.updaterTerminatingTimeout) {
+                clearTimeout(this.updaterTerminatingTimeout);
+                this.updaterTerminatingTimeout = null;
+            }
         }
     }
 

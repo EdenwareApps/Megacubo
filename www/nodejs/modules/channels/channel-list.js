@@ -176,20 +176,28 @@ export class ChannelsList extends EventEmitter {
             received += this.mapSize(map)
         }
         const promises = {}, promise = processCountry(this.countries[0])
-        await Promise.allSettled(this.countries.slice(1).map(country => {
+        for (const country of this.countries.slice(1)) {
             promises[country] = limit(() => processCountry(country))
-            return promises[country]
-        }))
+        }
         await promise
-        let size = 0
+
+        let retriableCountries = []
         for (const country of this.countries) { // this.countries will be in the preferred order
             const size = this.mapSize(ret)
             if(promises[country] && size <= minChannelsToCollect) {
                 await promises[country].catch(err => console.error(err))
             }
+            if(!data[country]) {
+                retriableCountries.push(country)
+                continue
+            }
+            await this.applyMapCategories(data[country], ret, maxChannelsPerCategory, country != lang.countryCode)
+        }
+        for (const country of retriableCountries) { // second pass required to collect remaining channels
             if(!data[country]) continue
             await this.applyMapCategories(data[country], ret, maxChannelsPerCategory, country != lang.countryCode)
         }
+        
         finished = true
         return ret
     }
@@ -212,7 +220,6 @@ export class ChannelsList extends EventEmitter {
         return Object.values(n).map(k => Array.isArray(k) ? k.length : 0).reduce((s, v) => s + v, 0);
     }
     applyMapCategories(map, target, maxChannelsPerCategory, weighted=false) {
-        const categories = Object.keys(target).concat(Object.keys(map).map(k => this.translateKey(k)).filter(k => !(k in target)))
         for (const k of Object.keys(map)) {
             const cat = this.translateKey(k)
             if(!target[cat]) target[cat] = []

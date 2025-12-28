@@ -519,6 +519,11 @@ export class Menu extends MenuNav {
         })
         main.on('menu-busy', state => {
             this.busy = state !== false
+            if (this.busy) {
+                this.multiClickPreventionDeadline = Date.now() + 3000
+            } else {
+                this.multiClickPreventionDeadline = null
+            }
             document.querySelector('.menu-busy').style.display = this.busy ? 'flex' : 'none'
             document.querySelector('.menu-time time').style.display = this.busy ? 'none' : 'flex'
             if (state) {
@@ -690,7 +695,7 @@ export class Menu extends MenuNav {
     }
     async open(element) {
         let path = element.getAttribute('data-path'), type = element.getAttribute('data-type'), tabindex = element.tabIndex || 0
-        if (this.busy) return
+        if (this.multiClickPreventionDeadline && Date.now() < this.multiClickPreventionDeadline) return
         
         const key = this.getKey(element);
         if (key != this.lastSelectedKey) {

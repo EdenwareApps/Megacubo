@@ -121,7 +121,7 @@ html {
     height: 100vh;
     margin: 0;
     padding: 0;
-    background-color: #100927;
+    background-color: #160630;
 }
 body {
     position: fixed; /* prevents scroll bug */
