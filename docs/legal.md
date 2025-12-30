@@ -1,6 +1,6 @@
 <!-- docs/legal.md -->
 
-[🏠](/README.md) > [Legal Notice](legal.md)
+[🏠](/README.md) > Legal Notice
 
 # <span style="color: #2e86de;">Legal Notice</span>
 
@@ -168,7 +168,7 @@ For copyright holders:
 
 **Last updated**: [Current Date]
 **Contact**: contact@megacubo.tv
-**Facebook**: [facebook.com/MegacuboTV](https://www.facebook.com/MegacuboTV)
+**Email**: contact@megacubo.tv
 
 **Next:** [Community Mode](community-mode.md)
 **Previous:** [Contributing](contributing.md)

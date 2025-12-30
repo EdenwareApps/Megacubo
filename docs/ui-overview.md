@@ -1,8 +1,14 @@
+---
+title: "Megacubo IPTV Player User Interface & Navigation Guide"
+description: "Complete user interface overview for Megacubo IPTV player - master navigation, controls, menus, and streaming app features guide"
+keywords: "IPTV player interface, Megacubo UI guide, streaming player controls, IPTV app navigation, TV player interface, streaming app UI"
+---
+
 <!-- docs/ui-overview.md -->
 
-[🏠](/README.md) > [User Interface Overview](ui-overview.md)
+[🏠](/README.md) > IPTV Player Interface
 
-# <span style="color: #2e86de;">User Interface Overview</span>
+# <span style="color: #2e86de;">IPTV Player Interface Overview</span>
 
 ## Main Menu Structure
 
@@ -155,7 +161,14 @@ Go to **Tools** > **Key Mapping** to customize these and other hotkeys.
 
 ---
 
-*The interface is designed to be intuitive and accessible. Take time to explore the different sections to discover all available features.*
+*The interface is designed to be intuitive and accessible. Take time to explore the different sections to discover all available features. You can customize many aspects in the [settings](configuring.md).*
 
-**Next:** [Using IPTV Lists](using-iptv-lists.md)
-**Previous:** [Setup Wizard](setup-wizard.md)
+## See Also
+
+- **[Hotkeys](hotkeys.md)** - Keyboard shortcuts and controls
+- **[Configuring](configuring.md)** - App settings and preferences
+- **[Setup Wizard](setup-wizard.md)** - First-time configuration
+
+---
+
+[🏠](/README.md) | [User Guide](introduction.md) | [Setup Wizard](setup-wizard.md)

@@ -1,12 +1,18 @@
+---
+title: "How to Use M3U IPTV Playlists in Megacubo Player"
+description: "Master M3U IPTV playlists in Megacubo - complete guide to adding, managing, and troubleshooting IPTV streaming lists for live TV channels"
+keywords: "M3U playlist player, IPTV lists guide, M3U IPTV player, IPTV playlist manager, streaming lists setup, IPTV channels, live TV playlists"
+---
+
 <!-- docs/using-iptv-lists.md -->
 
-[🏠](/README.md) > [Using IPTV Lists](using-iptv-lists.md)
+[🏠](/README.md) > Using IPTV Lists
 
-# <span style="color: #2e86de;">Using IPTV Lists</span>
+# <span style="color: #2e86de;">Using IPTV Lists - M3U Playlists Guide</span>
 
-## Understanding M3U Files
+## Understanding M3U IPTV Playlist Files
 
-M3U files are plain text playlists containing links to live TV streams. They look like this:
+**M3U files** are the standard format for **IPTV playlists** containing links to **live TV streams**. These text-based files are widely used for **IPTV streaming** and contain channel information in a simple, readable format. A typical M3U IPTV playlist looks like this:
 
 ```
 #EXTM3U
@@ -38,6 +44,23 @@ When adding a list, if the app doesn't detect username and password in the URL, 
 - You can disable sharing at any time
 
 > **Note**: For detailed information about Community Mode, see [Community Mode](community-mode.md).
+
+## IPTV List Types & Sources
+
+### Free IPTV Sources
+- **Community shared lists** - User-contributed IPTV playlists
+- **Public IPTV directories** - Online databases of free IPTV channels
+- **Official broadcaster streams** - Legal IPTV feeds from content providers
+
+### Premium IPTV Services
+- **Paid IPTV subscriptions** - Commercial IPTV providers
+- **Cable company IPTV** - Traditional cable operators offering IPTV
+- **Satellite IPTV feeds** - Satellite service providers
+
+### Custom IPTV Playlists
+- **Self-hosted IPTV servers** - Personal or local network IPTV
+- **Raspberry Pi IPTV** - DIY IPTV streaming servers
+- **Home media server IPTV** - Plex, Emby, or Jellyfin IPTV plugins
 
 ## Editing or Removing Existing Lists
 
@@ -110,7 +133,7 @@ To associate an EPG file:
 2. **Test URLs** in a web browser
 3. **Check file encoding** in text editor
 4. **Contact list provider** for support
-5. **Disable sharing** if causing access issues
+5. **Disable sharing** if causing access issues (see [Community Mode](community-mode.md))
 
 ### URL Validation
 The app automatically validates stream URLs to ensure they're accessible and properly formatted.

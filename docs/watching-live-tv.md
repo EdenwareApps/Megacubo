@@ -1,10 +1,16 @@
+---
+title: "How to Watch Live TV Streaming in Megacubo IPTV Player"
+description: "Master live TV streaming in Megacubo IPTV player - complete guide to controls, hotkeys, playback features, and IPTV channel navigation"
+keywords: "watch live TV streaming, IPTV player controls, live TV channels, IPTV streaming guide, TV player hotkeys, IPTV playback, streaming controls"
+---
+
 <!-- docs/watching-live-tv.md -->
 
-[🏠](/README.md) > [Watching Live TV](watching-live-tv.md)
+[🏠](/README.md) > Watching Live TV
 
-# <span style="color: #2e86de;">Watching Live TV</span>
+# <span style="color: #2e86de;">Watching Live TV Streaming</span>
 
-## Playing a Channel
+## Playing IPTV Channels
 
 1. Navigate to **Live** or **Recommended for You**.
 2. Select a channel.
@@ -151,6 +157,8 @@ The first action shows the player controls, the second exits to the menu.
 | Seek Forward/Backward | Right/Left Arrow (hide controls first) |
 | Volume | Arrow Up/Down |
 | Exit | Escape or Back |
+
+See [hotkeys](hotkeys.md) for complete keyboard shortcuts reference.
 
 ---
 

@@ -1,20 +1,26 @@
+---
+title: "Install Megacubo IPTV Player - Setup Guide"
+description: "Complete installation guide for Megacubo IPTV player on Windows, macOS, Linux, Android, and TV Boxes with M3U playlist support"
+keywords: "install IPTV player, Megacubo setup, IPTV app installation, M3U player download, Android IPTV install"
+---
+
 <!-- docs/installation.md -->
 
-[🏠](/README.md) > [Installation](installation.md)
+[🏠](/README.md) > Installation
 
-# <span style="color: #2e86de;">Installation</span>
+# <span style="color: #2e86de;">Install Megacubo IPTV Player</span>
 
-This guide covers how to install **Megacubo** on various platforms.
+This guide covers how to **install IPTV streaming app** on various platforms including **Windows IPTV player**, **Android IPTV app**, and **Linux IPTV software**.
 
-## Installing on Windows
+## Install IPTV Player on Windows
 
-1. Visit [megacubo.tv](https://megacubo.tv). 
-2. Download the latest `.exe` installer for your system:
-   - **Windows x64**: `Megacubo_X.X.X_win_x64.exe`
-   - **Windows x86**: `Megacubo_X.X.X_win_x86.exe`
-   - **Windows ARM64**: `Megacubo_X.X.X_win_arm64.exe`
-3. Run the installer and follow the instructions.
-4. Launch Megacubo after installation completes.
+1. Visit [megacubo.tv](https://megacubo.tv)
+2. Download the latest **Windows IPTV installer** for your system:
+   - **Windows x64 IPTV Player**: `Megacubo_X.X.X_win_x64.exe`
+   - **Windows x86 IPTV App**: `Megacubo_X.X.X_win_x86.exe`
+   - **Windows ARM64 IPTV Software**: `Megacubo_X.X.X_win_arm64.exe`
+3. Run the IPTV installer and follow the setup instructions
+4. Launch **Megacubo IPTV player** after installation completes
 
 ### Portable Mode (Windows/Linux)
 
@@ -24,12 +30,12 @@ To run Megacubo in portable mode:
 
 Portable mode allows you to run the app from USB drives or external storage without installation.
 
-## Installing on macOS
+## Install IPTV Player on macOS
 
-1. Go to [megacubo.tv](https://megacubo.tv). 
-2. Download the `.dmg` file (`Megacubo_X.X.X_macos.dmg`).
-3. Drag the app into your Applications folder.
-4. Open the app from Finder or Launchpad.
+1. Visit [megacubo.tv](https://megacubo.tv)
+2. Download the **macOS IPTV player** `.dmg` file (`Megacubo_X.X.X_macos.dmg`)
+3. Drag the IPTV app into your Applications folder
+4. Open the **Megacubo IPTV player** from Finder or Launchpad
 
 ### macOS Security Notes
 
@@ -43,30 +49,35 @@ For detailed instructions, see:
 - [How to Open an Unsigned App](https://www.howtogeek.com/205393/gatekeeper-101-why-your-mac-only-allows-apple-approved-software-by-default/)
 - [Apple Support Guide (Portuguese)](https://support.apple.com/pt-br/guide/mac-help/mh40616/mac)
 
-> **Note**: For some releases, Mac versions may not be available due to signing issues. Check the download page for the latest available version.
+> **Note**: For some releases, Mac versions may not be available. Check the download page for the latest available version.
 
-## Installing on Linux
+## Install IPTV Player on Linux
 
-### Quick Installation (Recommended)
+### Quick IPTV Installation (Recommended)
 
-Run this command in your terminal:
+Run this command in your terminal to install the Linux IPTV player:
 
 ```bash
 wget -qO- https://megacubo.tv/install.sh | bash
 ```
 
-### Manual Installation
+### Manual IPTV Installation
 
-1. Download the appropriate `.tar.gz` file:
-   - **Linux x64**: `Megacubo_X.X.X_linux_x64.tar.gz`
-   - **Linux ARM64**: `Megacubo_X.X.X_linux_arm64.tar.gz`
+1. Download the appropriate **Linux IPTV player** `.tar.gz` file:
+   - **Linux x64 IPTV**: `Megacubo_X.X.X_linux_x64.tar.gz`
+   - **Linux ARM64 IPTV**: `Megacubo_X.X.X_linux_arm64.tar.gz`
 2. Extract the archive:
    ```bash
    tar -xzf Megacubo_X.X.X_linux_x64.tar.gz
    ```
-3. Run the executable:
+3. Run the install:
    ```bash
-   ./Megacubo
+   chmod +x install.sh
+   sudo ./install.sh
+   ```
+4. Run the executable:
+   ```bash
+   ./megacubo
    ```
 
 ### Uninstalling on Linux
@@ -81,13 +92,13 @@ wget -qO- https://megacubo.tv/uninstall.sh | bash
 
 Some releases include `.AppImage` files for easier installation on Linux distributions.
 
-## Installing on Android / TV Box
+## Install IPTV Player on Android / TV Box
 
-1. Enable **Unknown Sources** in your device settings.
+1. Enable **Unknown Sources** in your device settings
 2. Use the Downloader app to access: https://megacubo.tv/
-3. Download the `.apk` file (`Megacubo_X.X.X_android.apk`).
-4. Install the APK file.
-5. Launch the app and begin setup.
+3. Download the **Android IPTV player** `.apk` file (`Megacubo_X.X.X_android.apk`)
+4. Install the IPTV APK file
+5. Launch the **Megacubo IPTV app** and begin setup
 
 ### Android Installation Notes
 
@@ -149,6 +160,8 @@ After successful installation:
 ---
 
 *If you encounter any issues during installation, please check our [Troubleshooting](troubleshooting.md) guide, visit our [website](https://megacubo.tv/en/english/), or contact our support team at contact@megacubo.tv.*
+
+**For developers:** See [development setup](developing.md) to build from source.
 
 **Next:** [Troubleshooting](troubleshooting.md)
 **Previous:** [FAQ](faq.md)

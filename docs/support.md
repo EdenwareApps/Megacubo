@@ -1,16 +1,22 @@
+---
+title: "Megacubo IPTV Player Support & Help Center"
+description: "Get help and support for Megacubo IPTV player - contact information, community resources, documentation, and multiple support channels for live TV streaming"
+keywords: "IPTV player support, Megacubo help, streaming app contact, IPTV customer support, live TV streaming help, IPTV app assistance"
+---
+
 <!-- docs/support.md -->
 
-[🏠](/README.md) > [Support & Contact](support.md)
+[🏠](/README.md) > IPTV Support
 
-# <span style="color: #2e86de;">Support & Contact</span>
+# <span style="color: #2e86de;">IPTV Player Support & Contact</span>
 
 ## Where to Ask for Help
 
 If you need assistance using Megacubo:
 
 - **Email us** at **contact@megacubo.tv**
-- **Facebook Page**: [facebook.com/MegacuboTV](https://www.facebook.com/MegacuboTV)
-- **Facebook Messenger**: [facebook.com/messages/t/MegacuboTV](https://www.facebook.com/messages/t/MegacuboTV)
+- **GitHub Discussions**: Technical discussions and help
+- **GitHub Issues**: Report bugs and request features
 - **Post questions** on GitHub Discussions
 
 Please check the documentation and FAQ before contacting support.
@@ -115,8 +121,8 @@ Premium users get:
 
 ### General Support
 - **Email**: contact@megacubo.tv
-- **Facebook Page**: [facebook.com/MegacuboTV](https://www.facebook.com/MegacuboTV)
-- **Facebook Messenger**: [facebook.com/messages/t/MegacuboTV](https://www.facebook.com/messages/t/MegacuboTV)
+- **GitHub Discussions**: Technical discussions and help
+- **GitHub Issues**: Report bugs and request features
 - **GitHub**: [github.com/EdenwareApps/megacubo](https://github.com/EdenwareApps/megacubo)
 
 ### Business Inquiries

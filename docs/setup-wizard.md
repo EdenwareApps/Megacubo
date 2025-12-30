@@ -1,6 +1,12 @@
-[🏠](/README.md) > [Setup Wizard](setup-wizard.md)
+---
+title: "Megacubo IPTV Player First Time Setup Wizard Guide"
+description: "Step-by-step guide to Megacubo IPTV player initial setup wizard - configure language, add IPTV lists, and start streaming live TV"
+keywords: "IPTV player setup, Megacubo first setup, IPTV configuration wizard, streaming app initial setup, IPTV first run, live TV setup"
+---
 
-# <span style="color: #2e86de;">Initial Setup Wizard</span>
+[🏠](/README.md) > IPTV Setup Wizard
+
+# <span style="color: #2e86de;">IPTV Player Initial Setup Wizard</span>
 
 When launching **Megacubo** for the first time, you'll be guided through a simple setup wizard to configure basic preferences.
 
@@ -70,7 +76,7 @@ If you encounter problems during setup:
 2. **Verify M3U file format** if adding manually
 3. **Try Community Mode** if manual lists fail
 4. **Restart the app** if settings don't apply
-5. **Check the troubleshooting guide** for more help
+5. **Check the [troubleshooting guide](troubleshooting.md)** for more help
 6. **Run megacubo-debug** for detailed logs (Windows/Linux)
 
 ---

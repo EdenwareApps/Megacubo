@@ -1,6 +1,6 @@
 <!-- docs/recommendations.md -->
 
-[🏠](/README.md) > [Recommendations System](recommendations.md)
+[🏠](/README.md) > Recommendations System
 
 # <span style="color: #2e86de;">Recommendations System</span>
 

@@ -1,6 +1,6 @@
 <!-- docs/performance.md -->
 
-[🏠](/README.md) > [Performance & Optimization](performance.md)
+[🏠](/README.md) > Performance & Optimization
 
 # <span style="color: #2e86de;">Performance and Optimization</span>
 

@@ -1,8 +1,14 @@
+---
+title: "Contribute to Megacubo Open Source IPTV Player Project"
+description: "Learn how to contribute to Megacubo open source IPTV player project - code development, bug reports, translations, and community involvement in live TV streaming app"
+keywords: "IPTV player contribution, Megacubo open source, streaming app development, IPTV project contribution, open source IPTV, live TV app community"
+---
+
 <!-- docs/contributing.md -->
 
-[🏠](/README.md) > [Contributing](contributing.md)
+[🏠](/README.md) > IPTV Contribution
 
-# <span style="color: #2e86de;">Contributing</span>
+# <span style="color: #2e86de;">Contributing to IPTV Player Project</span>
 
 Thank you for considering contributing to **Megacubo**! Your help is essential to keeping the project alive and improving it for everyone.
 
@@ -23,26 +29,66 @@ Before contributing code, familiarize yourself with the project structure:
 - **Event-based Communication**: Modules communicate through Node.js EventEmitter
 - **Shared Configuration**: Common settings managed through the config module
 
-### Requirements
+### IPTV Development Requirements
 
-To build Megacubo locally, you'll need:
+To **build IPTV player** from source locally, you'll need:
 - Node.js (v14 or higher)
 - Git installed and configured
+- For builds: system dependencies and build instructions (see [building.md](building.md))
+
+### Setup Development Environment
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/EdenwareApps/Megacubo.git
+   cd Megacubo
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Prepare the project** (compiles and bundles the code):
+   ```bash
+   npm run prepare
+   ```
+   See [development setup](developing.md#setup-development-environment) for more details.
+
+4. **Test your changes**:
+   ```bash
+   npm run debug  # Development mode
+   ```
+
+### Build Commands
+
+#### Optimized Builds (Recommended - Smaller size, premium protection):
+```bash
+npm run build:electron:linux    # Linux: AppImage, Snap, Flatpak (~84MB)
+npm run build:electron:win      # Windows: NSIS, MSI (~84MB)
+npm run build:electron:mac      # macOS: DMG (~84MB)
+npm run build:electron:all      # All platforms
+```
+
+#### Traditional Builds (Includes all dependencies):
+```bash
+npm run build:electron:linux              # Linux installers (~1.3GB+)
+npm run build:electron:win                # Windows installers (~1.3GB+)
+npm run build:electron:mac                # macOS installers (~1.3GB+)
+```
 
 ### Steps to Contribute
 
 1. **Fork the repository** on GitHub.
-2. **Clone your fork**:
-   ```bash
-   git clone https://github.com/EdenwareApps/Megacubo.git
-   ```
+2. **Clone your fork** and set up the development environment (see above).
 3. **Create a feature branch**:
    ```bash
    git checkout -b feature/your-feature-name
    ```
 4. **Make your changes** and test thoroughly.
-5. **Commit your changes** with clear commit messages.
-6. **Push to your fork** and create a pull request.
+5. **Build and test installers** to ensure compatibility.
+6. **Commit your changes** with clear commit messages.
+7. **Push to your fork** and create a pull request.
 
 ### Development Guidelines
 
@@ -149,7 +195,6 @@ Need help contributing?
 - **Read the documentation** thoroughly
 - **Ask questions** on GitHub Discussions
 - **Email us** at contact@megacubo.tv
-- **Facebook Page**: [facebook.com/MegacuboTV](https://www.facebook.com/MegacuboTV)
 - **Contact maintainers** for guidance
 
 ---

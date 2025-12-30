@@ -1,10 +1,16 @@
+---
+title: "Megacubo Community Mode - Shared IPTV Lists & Collaboration"
+description: "Discover Community Mode in Megacubo IPTV player - access thousands of shared M3U playlists, community IPTV lists, and collaborative live TV streaming"
+keywords: "IPTV community mode, shared IPTV lists, community M3U playlists, IPTV list sharing, collaborative streaming, IPTV community, shared TV channels"
+---
+
 <!-- docs/community-mode.md -->
 
-[🏠](/README.md) > [Community Mode](community-mode.md)
+[🏠](/README.md) > Community Mode
 
-# <span style="color: #2e86de;">Community Mode</span>
+# <span style="color: #2e86de;">IPTV Community Mode - Shared Lists</span>
 
-## Enabling Community Mode
+## Enabling IPTV Community Mode
 
 1. Go to **My Lists** > **Community Mode**.
 2. Toggle **Enable Community Mode**.
@@ -12,7 +18,7 @@
 
 ## How Shared Lists Work
 
-- Users anonymously share their M3U playlists.
+- Users anonymously share their M3U playlists URL.
 - These playlists URLs are made available to others.
 - Lists are selected automatically to ensure quality.
 - **Important**: Only M3U playlist URLs are shared through an automated system without human moderation. The app does not host, distribute, or verify the content accessed through these URLs.
@@ -63,7 +69,6 @@ Set up content filtering in **Options** > **Parental Control**:
 - All shared lists are anonymous
 - No personal information is collected
 - You can disable Community Mode at any time
-- Report inappropriate content to help maintain quality
 - Your viewing history remains private and local
 
 ## Limitations and Considerations
@@ -98,7 +103,12 @@ Set up content filtering in **Options** > **Parental Control**:
 
 *Community Mode is a collaborative feature that relies on user contributions. Please share only legal, high-quality content to help the community grow.*
 
+## See Also
+
+- **[Using IPTV Lists](using-iptv-lists.md)** - How to add and manage your own lists
+- **[Watching Live TV](watching-live-tv.md)** - Basic usage guide
+- **[Legal Notice](legal.md)** - Important legal information
+
 ---
 
-**Next:** [Performance & Optimization](performance.md)
-**Previous:** [Legal Notice](legal.md)
+[🏠](/README.md) | [User Guide](introduction.md) | [Legal Notice](legal.md)

@@ -1,8 +1,14 @@
+---
+title: "Megacubo IPTV Player FAQ - Complete Frequently Asked Questions"
+description: "Comprehensive FAQ for Megacubo IPTV player - answers to common questions about installation, M3U playlists, live TV streaming, troubleshooting, and features"
+keywords: "IPTV player FAQ, Megacubo questions, streaming app help, IPTV troubleshooting FAQ, M3U playlist questions, live TV FAQ"
+---
+
 <!-- docs/faq.md -->
 
-[🏠](/README.md) > [FAQ](faq.md)
+[🏠](/README.md) > IPTV FAQ
 
-# <span style="color: #2e86de;">Frequently Asked Questions (FAQ)</span>
+# <span style="color: #2e86de;">IPTV Player Frequently Asked Questions</span>
 
 ## General Questions
 
@@ -14,7 +20,8 @@ Yes, **Megacubo is completely free to use**. There is also a Premium version tha
 
 Yes. Megacubo does **not host or distribute copyrighted content**. It only plays IPTV lists added by users. This makes it compliant with most laws regarding streaming software.
 
-When using Community Mode, the app only shares M3U playlist URLs through an automated system without human moderation. Megacubo does not host, distribute or verify the content accessed through these URLs. Users are solely responsible for ensuring they have proper rights to access any content and must comply with applicable laws and regulations in their jurisdiction. The developers are not liable for any unauthorized or illegal use of shared playlist URLs.
+When using Community Mode, the app only shares M3U playlist URLs through an automated system without human moderation. Megacubo does not host, distribute or verify the content accessed through these URLs. Users are solely responsible for ensuring they have proper rights to access any content and must compl-+.
+y with applicable laws and regulations in their jurisdiction. The developers are not liable for any unauthorized or illegal use of shared playlist URLs.
 
 ### Can I use Megacubo on mobile devices?
 
@@ -209,8 +216,8 @@ There are many ways to contribute:
 
 - **Check this FAQ** and documentation
 - **Email support** at contact@megacubo.tv
-- **Facebook Page**: [facebook.com/MegacuboTV](https://www.facebook.com/MegacuboTV)
-- **Facebook Messenger**: [facebook.com/messages/t/MegacuboTV](https://www.facebook.com/messages/t/MegacuboTV)
+- **Contact support** at contact@megacubo.tv
+- **GitHub Issues**: Report bugs and request features
 - **Post on GitHub Discussions**
 - **Visit our website**: [megacubo.tv](https://megacubo.tv/en/english/)
 
