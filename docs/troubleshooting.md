@@ -1,9 +1,3 @@
----
-title: "Fix Megacubo IPTV Player Issues - Complete Troubleshooting Guide"
-description: "Comprehensive troubleshooting guide for Megacubo IPTV player - fix streaming issues, M3U playlist problems, installation errors, and common IPTV playback issues"
-keywords: "IPTV player troubleshooting, Megacubo fix issues, streaming problems, IPTV error solutions, M3U playlist problems, live TV streaming issues"
----
-
 <!-- docs/troubleshooting.md -->
 
 [🏠](/README.md) > IPTV Troubleshooting

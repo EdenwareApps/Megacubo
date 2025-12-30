@@ -1,9 +1,3 @@
----
-title: "How to Use M3U IPTV Playlists in Megacubo Player"
-description: "Master M3U IPTV playlists in Megacubo - complete guide to adding, managing, and troubleshooting IPTV streaming lists for live TV channels"
-keywords: "M3U playlist player, IPTV lists guide, M3U IPTV player, IPTV playlist manager, streaming lists setup, IPTV channels, live TV playlists"
----
-
 <!-- docs/using-iptv-lists.md -->
 
 [🏠](/README.md) > Using IPTV Lists

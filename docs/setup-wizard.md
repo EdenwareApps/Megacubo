@@ -1,9 +1,3 @@
----
-title: "Megacubo IPTV Player First Time Setup Wizard Guide"
-description: "Step-by-step guide to Megacubo IPTV player initial setup wizard - configure language, add IPTV lists, and start streaming live TV"
-keywords: "IPTV player setup, Megacubo first setup, IPTV configuration wizard, streaming app initial setup, IPTV first run, live TV setup"
----
-
 [🏠](/README.md) > IPTV Setup Wizard
 
 # <span style="color: #2e86de;">IPTV Player Initial Setup Wizard</span>

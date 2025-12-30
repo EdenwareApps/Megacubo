@@ -1,9 +1,3 @@
----
-title: "Megacubo IPTV Player User Interface & Navigation Guide"
-description: "Complete user interface overview for Megacubo IPTV player - master navigation, controls, menus, and streaming app features guide"
-keywords: "IPTV player interface, Megacubo UI guide, streaming player controls, IPTV app navigation, TV player interface, streaming app UI"
----
-
 <!-- docs/ui-overview.md -->
 
 [🏠](/README.md) > IPTV Player Interface

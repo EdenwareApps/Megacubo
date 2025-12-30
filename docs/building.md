@@ -1,9 +1,3 @@
----
-title: "Build Megacubo IPTV Player From Source - Development Guide"
-description: "Complete guide to building Megacubo IPTV player from source code. Create Windows, Linux, and macOS installers with electron-builder for cross-platform IPTV streaming app"
-keywords: "build IPTV player, Megacubo development, cross platform IPTV build, M3U player build, electron IPTV builder, IPTV app development, streaming player source code"
----
-
 <!-- docs/building.md -->
 
 [🏠](/README.md) > [Development](developing.md) > Building

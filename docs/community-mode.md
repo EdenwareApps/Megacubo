@@ -1,9 +1,3 @@
----
-title: "Megacubo Community Mode - Shared IPTV Lists & Collaboration"
-description: "Discover Community Mode in Megacubo IPTV player - access thousands of shared M3U playlists, community IPTV lists, and collaborative live TV streaming"
-keywords: "IPTV community mode, shared IPTV lists, community M3U playlists, IPTV list sharing, collaborative streaming, IPTV community, shared TV channels"
----
-
 <!-- docs/community-mode.md -->
 
 [🏠](/README.md) > Community Mode

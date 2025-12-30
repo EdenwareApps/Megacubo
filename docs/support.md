@@ -1,9 +1,3 @@
----
-title: "Megacubo IPTV Player Support & Help Center"
-description: "Get help and support for Megacubo IPTV player - contact information, community resources, documentation, and multiple support channels for live TV streaming"
-keywords: "IPTV player support, Megacubo help, streaming app contact, IPTV customer support, live TV streaming help, IPTV app assistance"
----
-
 <!-- docs/support.md -->
 
 [🏠](/README.md) > IPTV Support

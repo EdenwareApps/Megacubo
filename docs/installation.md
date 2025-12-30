@@ -1,9 +1,3 @@
----
-title: "Install Megacubo IPTV Player - Setup Guide"
-description: "Complete installation guide for Megacubo IPTV player on Windows, macOS, Linux, Android, and TV Boxes with M3U playlist support"
-keywords: "install IPTV player, Megacubo setup, IPTV app installation, M3U player download, Android IPTV install"
----
-
 <!-- docs/installation.md -->
 
 [🏠](/README.md) > Installation

@@ -1,9 +1,3 @@
----
-title: "Megacubo IPTV Player - Free Live TV Streaming App"
-description: "Discover Megacubo - the ultimate free open source IPTV player for watching live TV channels worldwide with M3U playlists. Supports Windows, macOS, Linux, Android & TV Boxes"
-keywords: "IPTV player introduction, live TV streaming app, M3U playlist player, free IPTV software, cross platform streaming, live TV channels, IPTV app features"
----
-
 <!-- docs/introduction.md -->
 
 [🏠](/README.md) > Introduction

@@ -1,9 +1,3 @@
----
-title: "Configure Megacubo IPTV Player Settings & Preferences"
-description: "Complete guide to customizing Megacubo IPTV player settings, streaming preferences, interface options, and advanced configuration features"
-keywords: "IPTV player settings, Megacubo configuration, IPTV app preferences, streaming player customization, IPTV player options, TV streaming settings"
----
-
 <!-- docs/configuring.md -->
 
 [🏠](/README.md) > [User Guide](introduction.md) > Configuring

@@ -1,9 +1,3 @@
----
-title: "How to Watch Live TV Streaming in Megacubo IPTV Player"
-description: "Master live TV streaming in Megacubo IPTV player - complete guide to controls, hotkeys, playback features, and IPTV channel navigation"
-keywords: "watch live TV streaming, IPTV player controls, live TV channels, IPTV streaming guide, TV player hotkeys, IPTV playback, streaming controls"
----
-
 <!-- docs/watching-live-tv.md -->
 
 [🏠](/README.md) > Watching Live TV

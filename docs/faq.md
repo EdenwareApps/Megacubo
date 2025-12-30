@@ -1,9 +1,3 @@
----
-title: "Megacubo IPTV Player FAQ - Complete Frequently Asked Questions"
-description: "Comprehensive FAQ for Megacubo IPTV player - answers to common questions about installation, M3U playlists, live TV streaming, troubleshooting, and features"
-keywords: "IPTV player FAQ, Megacubo questions, streaming app help, IPTV troubleshooting FAQ, M3U playlist questions, live TV FAQ"
----
-
 <!-- docs/faq.md -->
 
 [🏠](/README.md) > IPTV FAQ

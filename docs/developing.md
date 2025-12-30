@@ -1,10 +1,4 @@
 
----
-title: "Develop Megacubo IPTV Player From Source - Open Source Guide"
-description: "Complete development setup guide for Megacubo IPTV player - build from source, contribute to open source IPTV project, and join streaming app development"
-keywords: "IPTV player development, Megacubo build setup, open source IPTV contribution, streaming app development, IPTV source code, live TV app development"
----
-
 <!-- docs/developing.md -->
 
 [🏠](/README.md) > IPTV Development

@@ -1,9 +1,3 @@
----
-title: "Contribute to Megacubo Open Source IPTV Player Project"
-description: "Learn how to contribute to Megacubo open source IPTV player project - code development, bug reports, translations, and community involvement in live TV streaming app"
-keywords: "IPTV player contribution, Megacubo open source, streaming app development, IPTV project contribution, open source IPTV, live TV app community"
----
-
 <!-- docs/contributing.md -->
 
 [🏠](/README.md) > IPTV Contribution
