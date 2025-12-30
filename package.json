@@ -6,7 +6,7 @@
   "bugs": {
     "url": "https://github.com/EdenwareApps/Megacubo/issues"
   },
-  "description": "A intuitive, multi-language and cross-platform IPTV player.",
+  "description": "An intuitive, multi-language and cross-platform IPTV player.",
   "name": "megacubo",
   "displayName": "Megacubo",
   "type": "module",
@@ -119,41 +119,27 @@
     "svelte-preprocess": "^6.0.3"
   },
   "bin": {
-    "megacubo": "./bin.js"
+    "megacubo": "./scripts/bin.js"
   },
   "scripts": {
     "postinstall": "patch-package",
     "prepare": "npm run build",
-    "start": "node --max-old-space-size=4096 --expose-gc bin.js",
+    "start": "node --max-old-space-size=4096 --expose-gc scripts/bin.js",
     "start:capacitor": "cap serve",
-    "debug": "node --max-old-space-size=4096 --expose-gc bin.js debug",
+    "debug": "node --max-old-space-size=4096 --expose-gc scripts/bin.js debug",
     "assets": "npx @capacitor/assets generate --android --iconBackgroundColor #4E2F8F --iconBackgroundColorDark #4E2F8F --splashBackgroundColor #200040 --splashBackgroundColorDark #200040",
     "cap": "node configure.mjs && cap sync",
     "capacitor:sync:after": "shx rm -rf android/app/src/main/assets/public/nodejs/node_modules/levelup/node_modules/semver/semver*.js.gz && shx rm -rf android/app/src/main/assets/public/nodejs/modules && shx rm -rf android/app/src/main/assets/public/nodejs/node_modules && shx rm -rf android/app/src/main/assets/public/nodejs/renderer/src && shx rm -f android/app/src/main/assets/public/nodejs/dist/windows.vbs",
     "clean": "cd android && gradlew clean",
     "clean:cache": "node scripts/clear-rollup-cache.js",
-    "build": "cross-env NODE_ENV=production node --max-old-space-size=8192 build.mjs",
-    "build:debug": "cross-env NODE_ENV=development node --max-old-space-size=8192 build.mjs",
+    "build": "cross-env NODE_ENV=production node --max-old-space-size=8192 prepare.mjs",
+    "build:debug": "cross-env NODE_ENV=development node --max-old-space-size=8192 prepare.mjs",
     "build:android": "cross-env NODE_ENV=production npm run build && node --max-old-space-size=4096 build-android.mjs",
     "build:android:debug": "cross-env NODE_ENV=development DEBUG=true npm run build:debug && cross-env DEBUG=true node --max-old-space-size=4096 build-android.mjs",
     "build:android:release": "cross-env NODE_ENV=production npm run build && node --max-old-space-size=4096 build-android.mjs",
-    "build:electron": "npm run prepare && electron-builder",
-    "build:electron:linux": "npm run prepare && electron-builder --linux",
-    "build:electron:linux:appimage": "npm run prepare && electron-builder --linux AppImage",
-    "build:electron:linux:flatpak": "npm run prepare && electron-builder --linux flatpak",
-    "build:electron:linux:snap": "npm run prepare && electron-builder --linux snap",
-    "build:electron:linux:deb": "npm run prepare && electron-builder --linux deb",
-    "build:electron:linux:rpm": "npm run prepare && electron-builder --linux rpm",
-    "build:electron:win": "npm run prepare && electron-builder --win",
-    "build:electron:win:nsis": "npm run prepare && electron-builder --win nsis",
-    "build:electron:win:msi": "npm run prepare && electron-builder --win msi",
-    "build:electron:mac": "npm run prepare && electron-builder --mac",
-    "build:electron:mac:dmg": "npm run prepare && electron-builder --mac dmg",
-    "build:electron:all": "npm run prepare && electron-builder --linux --win --mac",
-    "build:electron:publish": "npm run prepare && electron-builder --publish=always",
-    "build:electron:optimized": "node scripts/optimized-build.mjs win",
-    "build:electron:optimized:linux": "node scripts/optimized-build.mjs linux",
-    "build:electron:optimized:mac": "node scripts/optimized-build.mjs mac",
-    "build:electron:optimized:all": "node scripts/optimized-build.mjs all"
+    "build:electron:win": "node scripts/build-electron.mjs win",
+    "build:electron:linux": "node scripts/build-electron.mjs linux",
+    "build:electron:mac": "node scripts/build-electron.mjs mac",
+    "build:electron:all": "node scripts/build-electron.mjs all"
   }
 }

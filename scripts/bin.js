@@ -2,14 +2,15 @@
 import { spawn } from "child_process";
 import path from "path";
 import fs from "fs";
-import { getDirname } from "cross-dirname";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-const __dirname = getDirname();
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const debug = process.argv.includes('debug') || process.argv.includes('--inspect');
 
 async function findElectronExecutable() {
     const relativePaths = [
-        'node_modules/electron/dist/electron',
+        '../node_modules/electron/dist/electron',
         '../electron/dist/electron'
     ];
     for (const relativePath of relativePaths) {
@@ -55,7 +56,7 @@ findElectronExecutable().then(electronPath => {
             ])
         }
         const passedParamsOffset = process.argv.findLastIndex(arg => arg.includes('node') || arg.includes('megacubo')) + 1
-        params.push(path.join(__dirname, 'www/nodejs/dist/main.js'));
+        params.push(path.join(__dirname, '../www/nodejs/dist/main.js'));
         if(passedParamsOffset && passedParamsOffset < process.argv.length) {
             params.push('--')
             params.push(...process.argv.slice(passedParamsOffset))

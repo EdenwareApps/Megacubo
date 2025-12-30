@@ -38,6 +38,34 @@ If you're new to Megacubo, we recommend following these steps:
 3. **Add** your first IPTV list ([IPTV Lists Guide](./docs/using-iptv-lists.md))
 4. **Start watching** live TV ([Watching Guide](./docs/watching-live-tv.md))
 
+# Development
+
+## Getting Started with Development
+
+To contribute or build Megacubo from source:
+
+```bash
+# Clone the repository
+git clone https://github.com/EdenwareApps/Megacubo.git
+cd Megacubo
+
+# Install dependencies
+npm install
+
+# Prepare the project (compile and bundle)
+npm run prepare
+
+# Run in development mode
+npm run debug
+
+# Build optimized installers
+npm run build:electron:linux    # Linux (AppImage, Snap, Flatpak)
+npm run build:electron:win      # Windows (NSIS, MSI)
+npm run build:electron:mac      # macOS (DMG)
+```
+
+> **Note:** See [DEVELOPING.md](DEVELOPING.md) and [BUILDING.md](BUILDING.md) for detailed build instructions.
+
 <br/>
 
 # Documentation
@@ -63,7 +91,7 @@ If you're new to Megacubo, we recommend following these steps:
 - **[Support & Contact](./docs/support.md)** - Getting help and support
 
 ## Development & Build
-- **[Building Linux Installers](./BUILD_LINUX.md)** - How to build AppImage, Flatpak and Snap packages
+- **[Building](./BUILDING.md)** - How to build installers for Windows, Linux and macOS
 - **[Contributing](./docs/contributing.md)** - How to contribute to the project
 
 ## Legal
@@ -120,6 +148,6 @@ You can help us by [improving/creating translations](https://github.com/Edenware
 # Support
 
 For support and help:
-- **Email**: contact@megacubo.tv
-- **Facebook Page**: [facebook.com/MegacuboTV](https://www.facebook.com/MegacuboTV)
+- **Issues section**: [github.com/EdenwareApps/Megacubo/issues](https://github.com/EdenwareApps/Megacubo/issues)
 - **Website**: [megacubo.tv](https://megacubo.tv/en/english/)
+- **Email**: contact@megacubo.tv
