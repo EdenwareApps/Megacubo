@@ -1,0 +1,17 @@
+diff --git a/node_modules/app-builder-lib/out/targets/FlatpakTarget.js b/node_modules/app-builder-lib/out/targets/FlatpakTarget.js
+index 26dd070..640d41e 100644
+--- a/node_modules/app-builder-lib/out/targets/FlatpakTarget.js
++++ b/node_modules/app-builder-lib/out/targets/FlatpakTarget.js
+@@ -111,10 +111,10 @@ class FlatpakTarget extends core_1.Target {
+ exports.default = FlatpakTarget;
+ const flatpakBuilderDefaults = {
+     runtime: "org.freedesktop.Platform",
+-    runtimeVersion: "20.08",
++    runtimeVersion: "24.08",
+     sdk: "org.freedesktop.Sdk",
+     base: "org.electronjs.Electron2.BaseApp",
+-    baseVersion: "20.08",
++    baseVersion: "24.08",
+     finishArgs: [
+         // Wayland/X11 Rendering
+         "--socket=wayland",

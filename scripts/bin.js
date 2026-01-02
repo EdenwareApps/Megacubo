@@ -50,6 +50,7 @@ findElectronExecutable().then(electronPath => {
         if(debug) {
             params.push(...[
                 '--inspect',
+                '--no-sandbox',
                 '--enable-logging=stderr',
                 '--trace-warnings',
                 '--remote-debugging-port=9222'
@@ -71,14 +72,14 @@ findElectronExecutable().then(electronPath => {
                 if (process.stdout.writable) {
                     process.stdout.write(data);
                 } else {
-                    console.error('Stdout não está pronto para escrita.\n', data);
+                    console.error('Stdout is not ready for writing.\n', data);
                 }
             });
             child.stderr.on('data', (data) => {
                 if (process.stderr.writable) {
                     process.stderr.write(data);
                 } else {
-                    console.error('Stderr não está pronto para escrita.\n', data);
+                    console.error('Stderr is not ready for writing.\n', data);
                 }
             });
             child.on('error', (error) => {

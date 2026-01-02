@@ -244,7 +244,7 @@ To learn more about the app's default [hotkeys](hotkeys.md) or [user interface](
 - **unpause-jumpback**: `5`  
   *Time in seconds to jump back when unpausing.*
 
-- **use-local-time-counter**: `false`
+- **use-local-time-counter**: `false`  
   *Determines whether to use a local time counter.*
 
 ## See Also

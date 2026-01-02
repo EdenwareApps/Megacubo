@@ -9,6 +9,7 @@
   "description": "An intuitive, multi-language and cross-platform IPTV player.",
   "name": "megacubo",
   "displayName": "Megacubo",
+  "category": "Video",
   "type": "module",
   "main": "./www/nodejs/dist/main.js",
   "module": "./www/nodejs/main.mjs",
@@ -23,32 +24,21 @@
     "email": "contact@megacubo.tv",
     "url": "https://megacubo.tv"
   },
-  "icon": "./default_icon.png",
+  "icon": "./www/nodejs/default_icon.png",
   "version": "17.6.2",
   "dependencies": {
-    "@anuradev/capacitor-background-mode": "^7.2.1",
     "@babel/runtime": "^7.27.6",
     "@babel/runtime-corejs3": "^7.26.9",
-    "@capacitor-community/keep-awake": "^7.0.0",
-    "@capacitor/android": "^7.3.0",
-    "@capacitor/app": "^7.0.0",
-    "@capacitor/clipboard": "^7.0.0",
     "@capacitor/core": "^7.0.0",
-    "@capacitor/keyboard": "^7.0.0",
-    "@capacitor/share": "^7.0.0",
     "@distube/ytdl-core": "^4.16.12",
     "@electron/remote": "^2.1.2",
-    "@eoscz/capacitor-plugin-native-file-downloader": "github:EdenwareApps/capacitor-plugin-native-file-downloader#b27b60a10b6c4b04f0d455aad1f3fa4961d58940",
     "adm-zip": "github:EdenwareApps/adm-zip",
     "agentkeepalive": "^4.5.0",
     "async": "^3.2.5",
     "axios": "^1.8.4",
     "bl": "^6.0.12",
     "bytenode": "github:EdenwareApps/bytenode",
-    "capacitor-nodejs": "https://github.com/EdenwareApps/capacitor-nodejs/releases/download/v1.0.0-beta.9/capacitor-nodejs.tgz",
     "check-disk-space": "^3.4.0",
-    "cordova-plugin-android-permissions": "^1.1.5",
-    "cordova-plugin-device": "^3.0.0",
     "create-desktop-shortcuts": "^1.11.0",
     "cross-dirname": "^0.1.0",
     "dashjs": "^5.0.3",
@@ -79,14 +69,25 @@
     "svelte": "^5.33.14",
     "swipey.js": "^1.0.3",
     "tough-cookie": "^4.1.4",
-    "tv.megacubo.ffmpeg": "latest",
-    "tv.megacubo.pip": "latest",
-    "tv.megacubo.player": "latest",
     "undici": "^6.21.2",
     "xmltv-stream": "^0.4.2",
     "ytsr": "^3.8.4"
   },
   "devDependencies": {
+    "@anuradev/capacitor-background-mode": "^7.2.1",
+    "@capacitor/app": "^7.0.0",
+    "@capacitor/clipboard": "^7.0.0",
+    "@capacitor/keyboard": "^7.0.0",
+    "@capacitor/share": "^7.0.0",
+    "@capacitor-community/keep-awake": "^7.0.0",
+    "@capacitor/android": "^7.3.0",
+    "tv.megacubo.ffmpeg": "latest",
+    "tv.megacubo.pip": "latest",
+    "tv.megacubo.player": "latest",
+    "cordova-plugin-device": "^3.0.0",
+    "@eoscz/capacitor-plugin-native-file-downloader": "github:EdenwareApps/capacitor-plugin-native-file-downloader#b27b60a10b6c4b04f0d455aad1f3fa4961d58940",
+    "capacitor-nodejs": "https://github.com/EdenwareApps/capacitor-nodejs/releases/download/v1.0.0-beta.9/capacitor-nodejs.tgz",
+    "cordova-plugin-android-permissions": "^1.1.5",
     "@babel/core": "^7.27.1",
     "@babel/plugin-syntax-import-attributes": "^7.26.0",
     "@babel/plugin-transform-runtime": "^7.27.1",
@@ -103,7 +104,7 @@
     "core-js": "^3.41.0",
     "cross-env": "^10.1.0",
     "electron": "^35.2.1",
-    "electron-builder": "^24.13.3",
+    "electron-builder": "^26.0.12",
     "patch-package": "^8.0.1",
     "postcss": "^8.5.3",
     "postinstall-postinstall": "^2.1.0",
@@ -121,6 +122,274 @@
   "bin": {
     "megacubo": "./scripts/bin.js"
   },
+  "build": {
+    "appId": "tv.megacubo.app",
+    "productName": "Megacubo",
+    "copyright": "Copyright © 2025 megacubo.tv",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "www/nodejs/dist/main.js",
+      "www/nodejs/dist/electron.js",
+      "www/nodejs/dist/preload.js",
+      "www/nodejs/dist/worker.js",
+      "www/nodejs/dist/updater-worker.js",
+      "www/nodejs/dist/EPGManager.js",
+      "www/nodejs/dist/mpegts-processor-worker.js",
+      "www/nodejs/dist/premium.js",
+      "www/nodejs/dist/App.js",
+      "www/nodejs/dist/capacitor.js",
+      "www/nodejs/dist/dayjs-locale/**",
+      "www/nodejs/dist/defaults/**",
+      "www/nodejs/main.mjs",
+      "www/nodejs/package.json",
+      "www/nodejs/lang/**/*",
+      "www/nodejs/modules/**/*",
+      "www/nodejs/renderer/**/*",
+      "!www/nodejs/dist/electron.js.map",
+      "!www/nodejs/dist/main.js.map",
+      "!www/nodejs/dist/preload.js.map",
+      "!www/nodejs/dist/*.worker.js.map",
+      "!www/nodejs/modules/smart-recommendations/trias/**/*",
+      "!android/**",
+      "!**/android/**",
+      "!releases/**",
+      "!premium_files/**",
+      "!dist_optimized/**",
+      "!patches/**",
+      "!assets/**",
+      "!build/**",
+      "!build/cast_channel.proto",
+      "!build/ffmpeg/**",
+      "!**/*.so",
+      "!**/*.dylib",
+      "!**/*.dll",
+      "!**/*.a",
+      "!**/*.lib",
+      "!node_modules/**",
+      "!**/build/**",
+      "!www/nodejs/dist/node_modules/**",
+      "!**/*.map",
+      "!**/*.ts",
+      "!**/*.test.*",
+      "!docs/**",
+      "!*.md",
+      "!*.cmd",
+      "!*.bat",
+      "!*.log",
+      "!*.txt",
+      "!*.aar",
+      "!*.apk",
+      "!*.zip",
+      "!*.exe",
+      "!fmpeg-kit-16KB-6.0.aar",
+      "!fnr.exe"
+    ],
+    "appImage": {
+      "category": "Video;AudioVideo"
+    },
+    "flatpak": {
+      "runtimeVersion": "24.08",
+      "baseVersion": "24.08",
+      "base": "org.electronjs.Electron2.BaseApp",
+      "sdk": "org.freedesktop.Sdk",
+      "finishArgs": [
+        "--share=ipc",
+        "--socket=x11",
+        "--socket=wayland",
+        "--device=dri",
+        "--share=network",
+        "--filesystem=host",
+        "--filesystem=home",
+        "--filesystem=xdg-config",
+        "--filesystem=xdg-cache",
+        "--filesystem=xdg-data",
+        "--filesystem=xdg-documents",
+        "--filesystem=xdg-download",
+        "--filesystem=xdg-music",
+        "--filesystem=xdg-pictures",
+        "--filesystem=xdg-videos",
+        "--filesystem=~/.config/megacubo:create",
+        "--filesystem=~/.megacubo:create",
+        "--talk-name=org.freedesktop.Notifications",
+        "--talk-name=org.freedesktop.PowerManagement",
+        "--talk-name=org.freedesktop.ScreenSaver",
+        "--talk-name=org.gnome.SessionManager",
+        "--talk-name=org.kde.StatusNotifierWatcher",
+        "--system-talk-name=org.freedesktop.UDisks2",
+        "--system-talk-name=org.freedesktop.UPower",
+        "--system-talk-name=org.freedesktop.login1"
+      ],
+      "modules": [
+        {
+          "name": "ffmpeg",
+          "sources": [
+            {
+              "type": "archive",
+              "url": "https://ffmpeg.org/releases/ffmpeg-6.0.tar.xz",
+              "sha256": "57be87c22d9b49c112f26be5d4ae2d3143bd41c6c2fb1fd4c0b8c0e3b9dc5cd8b2"
+            }
+          ]
+        }
+      ]
+    },
+    "snap": {
+      "category": "Video;AudioVideo",
+      "confinement": "strict",
+      "grade": "stable",
+      "summary": "An intuitive, multi-language and cross-platform IPTV player",
+      "description": "An intuitive, multi-language and cross-platform IPTV player",
+      "plugs": [
+        "default",
+        "audio-playback",
+        "audio-record",
+        "avahi-control",
+        "bluetooth-control",
+        "bluez",
+        "browser-support",
+        "camera",
+        "cups-control",
+        "desktop",
+        "desktop-legacy",
+        "gsettings",
+        "hardware-observe",
+        "home",
+        "locale-control",
+        "mount-observe",
+        "network",
+        "network-bind",
+        "network-control",
+        "network-manager",
+        "network-manager-observe",
+        "network-status",
+        "opengl",
+        "pulseaudio",
+        "removable-media",
+        "screen-inhibit-control",
+        "shutdown",
+        "system-observe",
+        "unity7",
+        "upower-observe",
+        "x11"
+      ],
+      "slots": [
+        {
+          "megacubo-config": {
+            "interface": "content",
+            "content": "megacubo-config",
+            "read": [
+              "$SNAP_COMMON",
+              "$SNAP_DATA"
+            ]
+          }
+        }
+      ]
+    },
+    "deb": {
+      "depends": [
+        "libnss3-dev",
+        "libatk-bridge2.0-dev",
+        "libdrm2",
+        "libxkbcommon-dev",
+        "libxcomposite-dev",
+        "libxdamage-dev",
+        "libxrandr-dev",
+        "libgbm-dev",
+        "libxss1",
+        "libasound2-dev",
+        "libgtk-3-dev",
+        "libgconf-2-4"
+      ]
+    },
+    "rpm": {
+      "depends": [
+        "nss",
+        "atk",
+        "drm-utils",
+        "xorg-x11-server-Xvfb",
+        "gtk3",
+        "libXScrnSaver",
+        "alsa-lib",
+        "GConf2"
+      ]
+    },
+    "linux": {
+      "category": "Video;AudioVideo",
+      "synopsis": "An intuitive, multi-language and cross-platform IPTV player",
+      "description": "An intuitive, multi-language and cross-platform IPTV player",
+      "asarUnpack": [
+        "node_modules/@electron/remote/**"
+      ],
+      "extraResources": [
+        {
+          "from": "build/electron-args-linux.txt",
+          "to": "electron-args-linux.txt"
+        }
+      ]
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        },
+        {
+          "target": "msi",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        }
+      ],
+      "verifyUpdateCodeSignature": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true,
+      "include": null,
+      "script": null
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "www/nodejs/default_icon.icns",
+      "category": "public.app-category.video",
+      "darkModeSupport": true,
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "EdenwareApps",
+      "repo": "Megacubo",
+      "releaseType": "release"
+    },
+    "buildVersion": "17.6.2",
+    "compression": "maximum",
+    "electronVersion": "35.2.1"
+  },
   "scripts": {
     "postinstall": "patch-package",
     "prepare": "npm run build",
@@ -132,6 +401,7 @@
     "capacitor:sync:after": "shx rm -rf android/app/src/main/assets/public/nodejs/node_modules/levelup/node_modules/semver/semver*.js.gz && shx rm -rf android/app/src/main/assets/public/nodejs/modules && shx rm -rf android/app/src/main/assets/public/nodejs/node_modules && shx rm -rf android/app/src/main/assets/public/nodejs/renderer/src && shx rm -f android/app/src/main/assets/public/nodejs/dist/windows.vbs",
     "clean": "cd android && gradlew clean",
     "clean:cache": "node scripts/clear-rollup-cache.js",
+    "logcat": "node scripts/logcat.mjs",
     "build": "cross-env NODE_ENV=production node --max-old-space-size=8192 prepare.mjs",
     "build:debug": "cross-env NODE_ENV=development node --max-old-space-size=8192 prepare.mjs",
     "build:android": "cross-env NODE_ENV=production npm run build && node --max-old-space-size=4096 build-android.mjs",

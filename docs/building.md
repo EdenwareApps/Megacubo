@@ -204,7 +204,7 @@ dist/
 dist/
 ├── Megacubo-17.6.2.AppImage          # AppImage (recommended)
 ├── megacubo_17.6.2_amd64.snap        # Snap
-├── tv.megacubo.megacubo.flatpak      # Flatpak
+├── tv.megacubo.app.flatpak      # Flatpak
 ├── megacubo_17.6.2_amd64.deb         # Debian/Ubuntu
 └── megacubo-17.6.2.x86_64.rpm        # Fedora/RHEL
 ```
