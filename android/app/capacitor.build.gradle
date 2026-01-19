@@ -16,7 +16,6 @@ dependencies {
     implementation project(':capacitor-keyboard')
     implementation project(':capacitor-share')
     implementation project(':eoscz-capacitor-plugin-native-file-downloader')
-    implementation project(':capacitor-nodejs')
     implementation project(':tv.megacubo.pip')
 
 }
