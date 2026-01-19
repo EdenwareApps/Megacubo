@@ -550,7 +550,7 @@ export class ElectronWinActions extends WinActionsMiniplayer {
 			return
 		}
 		this.pip.minimizeWindow = () => {
-			if(this.pip.miniPlayerActive){	
+			if(this.pip.miniPlayerActive){
 				// Just minimize without leaving miniplayer mode
 				// The state will be preserved and reactivated on restore
 				parent.electron.window.minimize()
@@ -570,7 +570,7 @@ export class ElectronWinActions extends WinActionsMiniplayer {
 		if(isPIP){
 			if(!this.pip.miniPlayerActive){
 				console.log('Activating miniplayer due to size detection')
-				this.pip.miniPlayerActive = true  
+				this.pip.miniPlayerActive = true
 				this.pip.emit('miniplayer-on')
 			}
 		} else {
@@ -599,13 +599,163 @@ export class ElectronWinActions extends WinActionsMiniplayer {
 			resolve(true)
         })
     }
-    leave(){	
-        return new Promise((resolve, reject) => {	
+    leave(){
+        return new Promise((resolve, reject) => {
 			if(this.inPIP){
 				this.pip.leaveMiniPlayer()
 				this.set(false)
 			}
 			resolve(true)
 		})
+	}
+}
+
+// Web browser window actions
+export class WebWinActions extends WinActionsMiniplayer {
+	constructor(main) {
+		super(main)
+		this.inFullScreen = false
+		this.pipSupported = 'pictureInPictureEnabled' in document
+		this.setup()
+	}
+	setup() {
+		// Listen for fullscreen changes
+		document.addEventListener('fullscreenchange', () => {
+			this.inFullScreen = !!document.fullscreenElement
+			if (this.main.streamer) {
+				this.main.streamer.emit('fullscreenchange', this.inFullScreen)
+			}
+		})
+
+		// Listen for visibility changes (tab switching)
+		document.addEventListener('visibilitychange', () => {
+			if (document.hidden) {
+				// Page is hidden - could enter PiP if playing
+				if (this.shouldEnter() && this.pipSupported) {
+					this.enter().catch(err => console.log('Auto PiP not available:', err.message))
+				}
+			}
+		})
+
+		// Handle keyboard shortcuts
+		document.addEventListener('keydown', (e) => {
+			// F11 for fullscreen toggle
+			if (e.key === 'F11') {
+				e.preventDefault()
+				this.toggleFullScreen()
+			}
+		})
+	}
+	supports() {
+		return this.pipSupported
+	}
+	openExternalURL(url) {
+		window.open(url, '_blank')
+	}
+	canAutoRestart() {
+		return false // Web apps can't auto-restart
+	}
+	restart() {
+		// Reload the page for web
+		window.location.reload()
+	}
+	exit(force) {
+		console.log('exit(' + force + ') - web mode')
+		if (this.main.streamer && this.main.streamer.active) {
+			this.main.streamer.stop()
+		}
+		this.exitUI(() => {
+			main.emit('exit')
+			// In web mode, we can't really exit - just show a message
+			if (!force && this.backgroundModeLocks.length) {
+				console.log('App running in background mode')
+			} else {
+				// Close the tab/window if possible
+				window.close()
+			}
+		})
+	}
+	toggleFullScreen() {
+		if (this.inFullScreen) {
+			this.exitFullScreen()
+		} else {
+			this.enterFullScreen()
+		}
+	}
+	async enterFullScreen() {
+		try {
+			const elem = document.documentElement
+			if (elem.requestFullscreen) {
+				await elem.requestFullscreen()
+			} else if (elem.webkitRequestFullscreen) {
+				await elem.webkitRequestFullscreen()
+			} else if (elem.msRequestFullscreen) {
+				await elem.msRequestFullscreen()
+			}
+			this.inFullScreen = true
+		} catch (err) {
+			console.error('Failed to enter fullscreen:', err)
+		}
+	}
+	async exitFullScreen() {
+		try {
+			if (document.exitFullscreen) {
+				await document.exitFullscreen()
+			} else if (document.webkitExitFullscreen) {
+				await document.webkitExitFullscreen()
+			} else if (document.msExitFullscreen) {
+				await document.msExitFullscreen()
+			}
+			this.inFullScreen = false
+		} catch (err) {
+			console.error('Failed to exit fullscreen:', err)
+		}
+	}
+	async enter() {
+		// Use Picture-in-Picture API if available
+		if (!this.pipSupported) {
+			throw new Error('PiP not supported in this browser')
+		}
+		if (!this.enabled) {
+			throw new Error('miniplayer disabled')
+		}
+		try {
+			const video = document.querySelector('player video')
+			if (video && document.pictureInPictureEnabled && !document.pictureInPictureElement) {
+				await video.requestPictureInPicture()
+				this.set(true)
+				return true
+			}
+			throw new Error('No video element available for PiP')
+		} catch (err) {
+			console.error('PiP enter error:', err)
+			throw err
+		}
+	}
+	async leave() {
+		try {
+			if (document.pictureInPictureElement) {
+				await document.exitPictureInPicture()
+				this.set(false)
+			}
+			return true
+		} catch (err) {
+			console.error('PiP leave error:', err)
+			throw err
+		}
+	}
+	setBackgroundMode(state) {
+		// Web doesn't have background mode like mobile apps
+		// But we can use service workers or notifications in the future
+		return Promise.resolve()
+	}
+	setBackgroundModeDefaults(defaults) {
+		// No-op for web
+	}
+	backgroundModeLock(name) {
+		super.backgroundModeLock(name)
+	}
+	backgroundModeUnlock(name) {
+		super.backgroundModeUnlock(name)
 	}
 }

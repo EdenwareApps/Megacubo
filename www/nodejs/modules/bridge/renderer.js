@@ -37,8 +37,11 @@ class BridgeClient extends EventEmitter {
 		})
 		if (window.capacitor) {
 			this.configureAndroidChannel()
-		} else {
+		} else if (window.parent && window.parent.electron) {
 			this.configureElectronChannel()
+		} else {
+			// Web mode - use WebSocket
+			this.configureWebChannel()
 		}
 		this.channelGetLangCallback()
 		this.idle = new Idle(this)
@@ -105,6 +108,94 @@ class BridgeClient extends EventEmitter {
 			}
 		}
 		this.channel = new ElectronChannel()
+	}
+	configureWebChannel() {
+		const bridge = this
+		class WebSocketChannel extends EventEmitter {
+			constructor() {
+				super()
+				this.originalEmit = this.emit.bind(this)
+				this.messageQueue = []
+				this.reconnectAttempts = 0
+				this.maxReconnectAttempts = 10
+				this.reconnectDelay = 1000
+				this.connect()
+			}
+			connect() {
+				if (this.connected && this.ws && this.ws.readyState === WebSocket.OPEN) return
+
+				// Determine WebSocket URL from current location
+				const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+				const host = window.location.host
+				const wsUrl = `${protocol}//${host}/ws`
+
+				console.log('[WebChannel] Connecting to:', wsUrl)
+
+				try {
+					this.ws = new WebSocket(wsUrl)
+
+					this.ws.onopen = () => {
+						console.log('[WebChannel] Connected')
+						this.connected = true
+						this.reconnectAttempts = 0
+
+						// Send any queued messages
+						while (this.messageQueue.length > 0) {
+							const msg = this.messageQueue.shift()
+							this.ws.send(msg)
+						}
+					}
+
+					this.ws.onmessage = (event) => {
+						try {
+							const data = JSON.parse(event.data)
+							if (data.type === 'message' && Array.isArray(data.args)) {
+								bridge.localEmit(...data.args)
+							}
+						} catch (e) {
+							console.error('[WebChannel] Parse error:', e)
+						}
+					}
+
+					this.ws.onclose = () => {
+						console.log('[WebChannel] Disconnected')
+						this.connected = false
+						this.attemptReconnect()
+					}
+
+					this.ws.onerror = (err) => {
+						console.error('[WebChannel] Error:', err)
+					}
+				} catch (e) {
+					console.error('[WebChannel] Connection error:', e)
+					this.attemptReconnect()
+				}
+			}
+			attemptReconnect() {
+				if (this.reconnectAttempts < this.maxReconnectAttempts) {
+					this.reconnectAttempts++
+					const delay = this.reconnectDelay * Math.pow(1.5, this.reconnectAttempts - 1)
+					console.log(`[WebChannel] Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`)
+					setTimeout(() => this.connect(), delay)
+				} else {
+					console.error('[WebChannel] Max reconnection attempts reached')
+				}
+			}
+			emit(...args) {
+				const message = JSON.stringify({ type: 'message', args })
+				if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+					this.ws.send(message)
+				} else {
+					// Queue message for when connection is established
+					this.messageQueue.push(message)
+					this.connect()
+				}
+			}
+			post(_, args) {
+				this.emit(...args)
+			}
+		}
+		this.channel = new WebSocketChannel()
 	}
 	channelGetLangCallback(){
 		const lng = window.navigator.userLanguage || window.navigator.language

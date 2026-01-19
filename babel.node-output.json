@@ -1,0 +1,28 @@
+{
+    "presets": [
+        [
+            "@babel/preset-env",
+            {
+                "targets": {
+                    "node": "18"
+                },
+                "useBuiltIns": false,
+                "corejs": false,
+                "forceAllTransforms": false,
+                "bugfixes": false,
+                "modules": false,
+                "exclude": [
+                    "transform-typeof-symbol",
+                    "transform-for-of",
+                    "transform-destructuring",
+                    "transform-spread",
+                    "transform-parameters"
+                ]
+            }
+        ]
+    ],
+    "plugins": [
+        "@babel/plugin-transform-class-properties",
+        "@babel/plugin-transform-private-methods"
+    ]
+}

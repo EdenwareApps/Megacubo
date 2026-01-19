@@ -1,7 +1,7 @@
 import { main } from '../../../modules/bridge/renderer';
 import { Menu } from '../../../modules/menu/renderer'
 import { OMNI } from '../../../modules/omni/renderer'
-import { AndroidWinActions, ElectronWinActions} from './window-actions'
+import { AndroidWinActions, ElectronWinActions, WebWinActions } from './window-actions'
 import { Hotkeys } from './hotkeys'
 import { getFontList } from './font-detector'
 import { css, traceback } from './utils'
@@ -43,7 +43,9 @@ function configUpdated() {
         return
     }
     window['winActions'].enabled = main.config['miniplayer-auto']
-    if (!window.capacitor) {
+    // Check if we're in Electron mode (has parent.Manager)
+    const isElectron = window.parent && window.parent.Manager
+    if (!window.capacitor && isElectron) {
         parent.Manager.fsapi = !!main.config['fsapi']
         if (!window.configReceived) { // run once
             window.configReceived = true
@@ -51,6 +53,21 @@ function configUpdated() {
                 case 'fullscreen':
                     if (parent.Manager && parent.Manager.setFullScreen) {
                         parent.Manager.setFullScreen(true)
+                    }
+                    break
+                case 'miniplayer':
+                    window['winActions'].enter()
+                    break
+            }
+        }
+    } else if (!window.capacitor && !isElectron) {
+        // Web mode - handle startup-window config
+        if (!window.configReceived) {
+            window.configReceived = true
+            switch (main.config['startup-window']) {
+                case 'fullscreen':
+                    if (window['winActions'] && window['winActions'].enterFullScreen) {
+                        window['winActions'].enterFullScreen()
                     }
                     break
                 case 'miniplayer':
@@ -268,7 +285,16 @@ export const initApp = async () => {
         }
         main.on('streamer-connect', () => menu.sideMenu(false, 'instant'))
         main.on('streamer-disconnect', () => menu.sideMenu(false, 'instant'))
-        const WinActions = window.capacitor ? AndroidWinActions : ElectronWinActions
+        // Select appropriate WinActions based on platform
+        let WinActions
+        if (window.capacitor) {
+            WinActions = AndroidWinActions
+        } else if (window.parent && window.parent.electron) {
+            WinActions = ElectronWinActions
+        } else {
+            // Web mode
+            WinActions = WebWinActions
+        }
         window.winActions = new WinActions(main)
         main.on('open-file', (uploadURL, callbackId, mimetypes) => {
             const next = () => {

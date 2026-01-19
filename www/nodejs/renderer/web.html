@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" name="viewport" />
+        <meta name="color-scheme" content="light" />
+        <meta name="theme-color" content="#160630" />
+        <title>Megacubo</title>
+        <style type="text/css">
+            html {
+                --nav-width: 30vmax;
+            }
+            body.portrait {
+                --nav-width: 77vw;
+            }
+            html, body {
+                overflow: hidden;
+                width: 100vw;
+                height: 100vh;
+            }
+            div#splash {
+                width: 100vw;
+                height: 100vh;
+                display: flex;
+                z-index: 99999;
+                overflow: hidden;
+                align-items: center;
+                justify-content: center;
+                background-color: #160630;
+                transition: background-color 1.5s ease-in 0s;
+				position: fixed;
+                top: 0;
+                left: 0;
+            }
+			div#splash-progress {
+				width: 100vw;
+				height: 1.5vh;
+				background: rgba(255, 255, 255, 0.075);
+				position: fixed;
+				bottom: 0;
+                left: 0;
+			}
+			div#splash-progress > div {
+				width: 0%;
+				background: rgba(255, 255, 255, 0.33);
+				display: inline-block;
+				height: inherit;
+				position: inherit;
+                left: 0;
+				transition: width 0.2s ease-in-out 0s;
+				overflow: hidden;
+			}
+			div#splash-progress > div > div {
+				background: linear-gradient(to right, transparent, white, transparent);
+				height: 100%;
+				width: 10vw;
+				animation-name: splash-progress-spinner;
+				animation-duration: 14s;
+				animation-timing-function: ease-in-out;
+				animation-iteration-count: infinite;
+			}
+            div.splash-logo {
+                width: 100vw;
+                height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            div.splash-logo > div {
+                width: 25vmin;
+                height: 25vmin;
+                background-image: url(./assets/images/default_icon_white.png);
+                background-position: center center;
+                background-repeat: no-repeat;
+                background-size: 25vmin 25vmin;
+                -webkit-animation-duration: 2s;
+                animation-duration: 2s;
+                -webkit-animation-fill-mode: both;
+                animation-fill-mode: both;
+                opacity: 0;
+            }
+
+            @keyframes flipInX {
+                0% {
+                    transform: perspective(400px) rotateX(180deg);
+                    -webkit-transform: perspective(400px) rotateX(180deg);
+                    opacity: 0;
+                }
+
+                100% {
+                    transform: perspective(400px) rotateX(0deg);
+                    -webkit-transform: perspective(400px) rotateX(0deg);
+                    opacity: 1;
+                }
+            }
+
+            .splash-logo-animate {
+                -webkit-backface-visibility: visible !important;
+                -webkit-animation-name: flipInX;
+                backface-visibility: visible !important;
+                animation-name: flipInX;
+            }
+
+			@keyframes splash-progress-spinner {
+				0% {
+					transform: translateX(-10vw) scaleX(0.1);
+				}
+				49.99% {
+					transform: translateX(100vw) scaleX(3);
+				}
+				50% {
+					transform: translateX(-10vw) scaleX(3);
+				}
+				100% {
+					transform: translateX(100vw) scaleX(0.1);
+				}
+			}
+            @media (prefers-reduced-motion) {
+                * {
+                    animation: none !important;
+                    transition: none !important;
+                }
+            }
+        </style>
+        <script>
+            // Mark this as web mode
+            window.MEGACUBO_WEB_MODE = true;
+
+            // Shim for globalThis (older browsers)
+            if (typeof globalThis === 'undefined') {
+                (function() {
+                    if (typeof self !== 'undefined') {
+                        self.globalThis = self;
+                    } else if (typeof window !== 'undefined') {
+                        window.globalThis = window;
+                    }
+                })();
+            }
+
+            if (!Array.prototype.includes) {
+                Array.prototype.includes = function(searchElement, fromIndex) {
+                    if (this == null) throw new TypeError('"this" is null or not defined');
+                    var o = Object(this);
+                    var len = parseInt(o.length) || 0;
+                    if (len === 0) return false;
+                    var n = parseInt(fromIndex) || 0;
+                    var k = n >= 0 ? n : Math.max(len + n, 0);
+                    function sameValueZero(x, y) {
+                        return x === y || (typeof x === 'number' && typeof y === 'number' && isNaN(x) && isNaN(y));
+                    }
+                    for (; k < len; k++) {
+                        if (sameValueZero(o[k], searchElement)) return true;
+                    }
+                    return false;
+                };
+            }
+
+            if (!Object.assign) {
+                Object.assign = function(target) {
+                    if (target == null) throw new TypeError('Cannot convert undefined or null to object');
+                    var to = Object(target);
+                    for (var index = 1; index < arguments.length; index++) {
+                        var nextSource = arguments[index];
+                        if (nextSource != null) {
+                            for (var nextKey in nextSource) {
+                                if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                                    to[nextKey] = nextSource[nextKey];
+                                }
+                            }
+                        }
+                    }
+                    return to;
+                };
+            }
+
+            if (!Promise.prototype.finally) {
+                Promise.prototype.finally = function(callback) {
+                    var P = this.constructor;
+                    return this.then(
+                        function(value) { return P.resolve(callback()).then(function() { return value; }); },
+                        function(reason) { return P.resolve(callback()).then(function() { throw reason; }); }
+                    );
+                };
+            }
+
+            var menu, config
+            function chromeVersion() {
+                var raw = navigator.userAgent.match(new RegExp('Chrom(e|ium)\\/([0-9]+)\\.'))
+                return raw ? parseInt(raw[2], 10) : 0
+            }
+            function firefoxVersion() {
+                var raw = navigator.userAgent.match(new RegExp('Firefox\\/([0-9]+)\\.'))
+                return raw ? parseInt(raw[1], 10) : 0
+            }
+            function safariVersion() {
+                var raw = navigator.userAgent.match(new RegExp('Version\\/([0-9]+)\\.[0-9]+ Safari'))
+                return raw ? parseInt(raw[1], 10) : 0
+            }
+            function isBrowserCompatible() {
+                // Chrome 68+, Firefox 60+, Safari 12+
+                return chromeVersion() >= 68 || firefoxVersion() >= 60 || safariVersion() >= 12
+            }
+            function showIncompatibleBrowser() {
+                var msg;
+                switch(navigator.language.substr(0, 2)){
+                    case 'pt':
+                        msg = 'Seu navegador precisa ser atualizado para rodar este aplicativo. Por favor, use Chrome 68+, Firefox 60+, ou Safari 12+.';
+                        break;
+                    case 'es':
+                        msg = 'Su navegador necesita ser actualizado para ejecutar esta aplicacion. Por favor, use Chrome 68+, Firefox 60+, o Safari 12+.';
+                        break;
+                    default:
+                        msg = 'Your browser needs to be updated to run this app. Please use Chrome 68+, Firefox 60+, or Safari 12+.';
+                        break;
+                }
+                alert(msg);
+            }
+            if (!isBrowserCompatible()) {
+                showIncompatibleBrowser();
+            }
+        </script>
+    </head>
+    <body>
+        <div id="splash">
+            <div class="splash-logo">
+                <div></div>
+            </div>
+			<div id="splash-progress">
+				<div>
+					<div></div>
+				</div>
+			</div>
+        </div>
+        <App></App>
+        <!-- Load MPEGTS.js and hls.js externally to prevent worker-related issues due to double bundling -->
+        <script src="./dist/mpegts.js"></script>
+        <script src="./dist/hls.min.js"></script>
+        <script>
+            const splashProgressDiv = document.querySelector('#splash-progress')
+            const loadScript = function (src, callback) {
+                const script = document.createElement('script')
+                script.type = 'text/javascript'
+                script.src = src
+                script.onload = callback
+                document.head.appendChild(script)
+            }
+			const setupSplashScreen = function () {
+                let splashProgress = 0
+                const splashEstimatedTime = parseInt(localStorage.getItem('splash-time-hint')) || 24000
+                const splashProgressBar = splashProgressDiv.firstElementChild
+                const splashTimer = setInterval(() => {
+                    splashProgress++
+                    splashProgressBar.style.width = splashProgress +'%'
+                    splashProgress >= 100 && clearInterval(splashTimer)
+                }, splashEstimatedTime / 100)
+            }
+            const load = () => {
+                loadScript('./dist/App.js', () => {
+                    const app = new App({
+                        target: document.querySelector('App')
+                    })
+                })
+            }
+
+            // start splash animation
+            document.addEventListener('DOMContentLoaded', setupSplashScreen)
+            setTimeout(() => document.querySelector('.splash-logo > div').classList.add('splash-logo-animate'), 150)
+
+            // load app directly for web mode
+            load()
+		</script>
+    </body>
+</html>

@@ -10,9 +10,206 @@ import paths from '../paths/paths.js'
 import { createRequire } from 'node:module'
 import { getFilename } from 'cross-dirname'
 import { prepare } from '../serialize/serialize.js'
-import { randomBytes } from 'node:crypto'
+import { randomBytes, createHash } from 'node:crypto'
 
 EventEmitter.defaultMaxListeners = 100
+
+// WebSocket implementation for web mode
+class WebSocketServer {
+    constructor(httpServer, bridge) {
+        this.bridge = bridge
+        this.clients = new Set()
+        this.setupWebSocketUpgrade(httpServer)
+    }
+
+    setupWebSocketUpgrade(httpServer) {
+        httpServer.on('upgrade', (request, socket, head) => {
+            const pathname = url.parse(request.url).pathname
+            if (pathname === '/ws') {
+                this.handleUpgrade(request, socket, head)
+            } else {
+                socket.destroy()
+            }
+        })
+    }
+
+    handleUpgrade(request, socket, head) {
+        const key = request.headers['sec-websocket-key']
+        if (!key) {
+            socket.destroy()
+            return
+        }
+
+        // Generate accept key
+        const acceptKey = createHash('sha1')
+            .update(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11')
+            .digest('base64')
+
+        // Send upgrade response
+        const responseHeaders = [
+            'HTTP/1.1 101 Switching Protocols',
+            'Upgrade: websocket',
+            'Connection: Upgrade',
+            `Sec-WebSocket-Accept: ${acceptKey}`,
+            '',
+            ''
+        ].join('\r\n')
+
+        socket.write(responseHeaders)
+
+        // Create WebSocket client wrapper
+        const client = new WebSocketClient(socket, this)
+        this.clients.add(client)
+
+        console.log('[WebSocket] Client connected, total:', this.clients.size)
+
+        socket.on('close', () => {
+            this.clients.delete(client)
+            console.log('[WebSocket] Client disconnected, total:', this.clients.size)
+        })
+
+        socket.on('error', (err) => {
+            console.error('[WebSocket] Socket error:', err.message)
+            this.clients.delete(client)
+        })
+    }
+
+    broadcast(data) {
+        const message = JSON.stringify(data)
+        for (const client of this.clients) {
+            try {
+                client.send(message)
+            } catch (e) {
+                console.error('[WebSocket] Broadcast error:', e.message)
+            }
+        }
+    }
+}
+
+class WebSocketClient {
+    constructor(socket, server) {
+        this.socket = socket
+        this.server = server
+        this.buffer = Buffer.alloc(0)
+        this.setupDataHandler()
+    }
+
+    setupDataHandler() {
+        this.socket.on('data', (data) => {
+            this.buffer = Buffer.concat([this.buffer, data])
+            this.processBuffer()
+        })
+    }
+
+    processBuffer() {
+        while (this.buffer.length >= 2) {
+            const firstByte = this.buffer[0]
+            const secondByte = this.buffer[1]
+
+            const opcode = firstByte & 0x0f
+            const isMasked = (secondByte & 0x80) !== 0
+            let payloadLength = secondByte & 0x7f
+
+            let offset = 2
+
+            // Handle extended payload lengths
+            if (payloadLength === 126) {
+                if (this.buffer.length < 4) return
+                payloadLength = this.buffer.readUInt16BE(2)
+                offset = 4
+            } else if (payloadLength === 127) {
+                if (this.buffer.length < 10) return
+                payloadLength = Number(this.buffer.readBigUInt64BE(2))
+                offset = 10
+            }
+
+            // Get masking key if present
+            let maskingKey = null
+            if (isMasked) {
+                if (this.buffer.length < offset + 4) return
+                maskingKey = this.buffer.slice(offset, offset + 4)
+                offset += 4
+            }
+
+            // Check if we have the full payload
+            if (this.buffer.length < offset + payloadLength) return
+
+            // Extract payload
+            let payload = this.buffer.slice(offset, offset + payloadLength)
+
+            // Unmask if necessary
+            if (maskingKey) {
+                for (let i = 0; i < payload.length; i++) {
+                    payload[i] ^= maskingKey[i % 4]
+                }
+            }
+
+            // Remove processed data from buffer
+            this.buffer = this.buffer.slice(offset + payloadLength)
+
+            // Handle opcodes
+            switch (opcode) {
+                case 0x1: // Text frame
+                    this.handleTextMessage(payload.toString('utf8'))
+                    break
+                case 0x8: // Close
+                    this.socket.end()
+                    break
+                case 0x9: // Ping
+                    this.sendPong(payload)
+                    break
+                case 0xa: // Pong
+                    break
+            }
+        }
+    }
+
+    handleTextMessage(text) {
+        try {
+            const data = JSON.parse(text)
+            if (data.type === 'message' && Array.isArray(data.args)) {
+                // Forward message to bridge
+                this.server.bridge.onMessage(data.args)
+            }
+        } catch (e) {
+            console.error('[WebSocket] Parse error:', e.message)
+        }
+    }
+
+    send(message) {
+        const payload = Buffer.from(message, 'utf8')
+        let frame
+
+        if (payload.length < 126) {
+            frame = Buffer.alloc(2 + payload.length)
+            frame[0] = 0x81 // FIN + text opcode
+            frame[1] = payload.length
+            payload.copy(frame, 2)
+        } else if (payload.length < 65536) {
+            frame = Buffer.alloc(4 + payload.length)
+            frame[0] = 0x81
+            frame[1] = 126
+            frame.writeUInt16BE(payload.length, 2)
+            payload.copy(frame, 4)
+        } else {
+            frame = Buffer.alloc(10 + payload.length)
+            frame[0] = 0x81
+            frame[1] = 127
+            frame.writeBigUInt64BE(BigInt(payload.length), 2)
+            payload.copy(frame, 10)
+        }
+
+        this.socket.write(frame)
+    }
+
+    sendPong(payload) {
+        const frame = Buffer.alloc(2 + payload.length)
+        frame[0] = 0x8a // FIN + pong opcode
+        frame[1] = payload.length
+        payload.copy(frame, 2)
+        this.socket.write(frame)
+    }
+}
 
 class BaseChannel extends EventEmitter {
     constructor() {
@@ -71,6 +268,18 @@ class NodeChannel extends BaseChannel {
     }
 }
 
+class WebChannel extends BaseChannel {
+    constructor(wsServer) {
+        super()
+        this.wsServer = wsServer
+    }
+    customEmit(...args) {
+        if (this.wsServer) {
+            this.wsServer.broadcast({ type: 'message', args: prepare(args) })
+        }
+    }
+}
+
 class BridgeServer extends EventEmitter {
     constructor(opts) {
         super()
@@ -81,7 +290,8 @@ class BridgeServer extends EventEmitter {
         this.map = {}
         this.opts = {
             addr: '127.0.0.1',
-            port: 0
+            port: 0,
+            webMode: false // Enable web mode to allow external connections
         }
         if (opts) {
             Object.keys(opts).forEach((k) => {
@@ -100,18 +310,27 @@ class BridgeServer extends EventEmitter {
             '.wav': 'audio/wav',
             '.mp3': 'audio/mpeg',
             '.mp4': 'video/mp4',
-            '.svg': 'image/svg+xml'
+            '.svg': 'image/svg+xml',
+            '.woff': 'font/woff',
+            '.woff2': 'font/woff2',
+            '.ttf': 'font/ttf',
+            '.eot': 'application/vnd.ms-fontobject',
+            '.m3u8': 'application/vnd.apple.mpegurl',
+            '.ts': 'video/mp2t',
+            '.m3u': 'audio/x-mpegurl'
         }
         this.setMaxListeners(20)
         this.server = http.createServer(async (req, response) => {
             const parsedUrl = url.parse(req.url, false)
-            if (!parsedUrl.pathname.endsWith('.map') && !this.checkUA(req.headers)) {
+            // In web mode, skip UA check for web browser clients
+            if (!this.opts.webMode && !parsedUrl.pathname.endsWith('.map') && !this.checkUA(req.headers)) {
                 response.writeHead(400, prepareCORS({ 'content-type': 'text/plain' }, req))
                 return response.end()
             }
             prepareCORS(response, req)
             response.setHeader('Connection', 'close')
             response.setHeader('Feature-Policy', 'clipboard-read; clipboard-write; fullscreen; autoplay;')
+            response.setHeader('Permissions-Policy', 'clipboard-read=*, clipboard-write=*, fullscreen=*, autoplay=*')
             if (parsedUrl.pathname == '/upload') {
                 const form = formidable({ multiples: true })
                 form.parse(req, (err, fields, files) => {
@@ -125,8 +344,9 @@ class BridgeServer extends EventEmitter {
                 })
             } else {
                 let mapped, pathname = `.${parsedUrl.pathname}`
+                // Handle both / and /renderer/ for web mode
                 if (pathname == './') {
-                    pathname = './index.html'
+                    pathname = this.opts.webMode ? './renderer/web.html' : './index.html'
                 }
                 if (typeof (this.map[pathname]) != 'undefined') {
                     pathname = this.map[pathname]
@@ -160,15 +380,24 @@ class BridgeServer extends EventEmitter {
                 stream.pipe(response)
             }
         })
-        this.server.listen(0, this.opts.addr, err => {
+        // In web mode, bind to all interfaces; otherwise localhost only
+        const bindAddr = this.opts.webMode ? '0.0.0.0' : this.opts.addr
+        const bindPort = this.opts.webMode ? (this.opts.port || 8080) : 0
+        this.server.listen(bindPort, bindAddr, err => {
             if (!err && !this.serve) {
                 err = new Error('Bridge server not started')
             }
             if (err) console.error(err)
             if (this.server) {
                 this.opts.port = this.server.address().port
-                console.log('Bridge server started', err)
+                console.log('Bridge server started on', bindAddr + ':' + this.opts.port, this.opts.webMode ? '(web mode)' : '')
                 this.uploadURL = 'http://' + this.opts.addr + ':' + this.opts.port + '/upload'
+
+                // Initialize WebSocket server in web mode
+                if (this.opts.webMode) {
+                    this.wsServer = new WebSocketServer(this.server, this)
+                    console.log('WebSocket server initialized')
+                }
             }
             this.emit('connected', err, this.opts.port)
         })
@@ -269,9 +498,16 @@ class BridgeUtils extends BridgeServer {
 class Bridge extends BridgeUtils {
     constructor(opts) {
         super(opts)
-        if (process.platform == 'android') {
+        if (this.opts.webMode) {
+            // Web mode - use WebSocket channel
+            this.channel = new WebChannel(this.wsServer)
+            // Connect WebSocket server's onMessage to the bridge channel
+            this.onMessage = (args) => {
+                this.channel.onMessage(args)
+            }
+        } else if (process.platform == 'android') {
             this.channel = new AndroidChannel()
-        } else {                
+        } else {
             try {
                 const require = createRequire(getFilename())
                 const electron = require('electron')
