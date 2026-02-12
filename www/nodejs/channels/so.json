@@ -1,0 +1,165 @@
+{
+  "Entertainment": [
+    {
+      "name": "Horn Cable",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kalsan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Somali National",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Somali cable",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Arlaadi",
+      "isFree": true,
+      "website": "https://arlaadimedia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Asal",
+      "isFree": true,
+      "website": "https://asaltv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Banaadir",
+      "isFree": true,
+      "website": "https://bra.gov.so/",
+      "priority": 5
+    },
+    {
+      "name": "Bulsho",
+      "isFree": true,
+      "website": "https://bulshotv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Dalka",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gobanimo",
+      "isFree": true,
+      "website": "https://5f36f55e11f20.site123.me/",
+      "priority": 5
+    },
+    {
+      "name": "Hirshabelle",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Iftiin",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Jubbaland",
+      "isFree": true,
+      "website": "http://jubalandtv.net/",
+      "priority": 5
+    },
+    {
+      "name": "KGS",
+      "isFree": true,
+      "website": "https://kgstv.wordpress.com/",
+      "priority": 5
+    },
+    {
+      "name": "Maan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Puntland",
+      "isFree": true,
+      "website": "https://www.puntlandtvradio.net/",
+      "priority": 5
+    },
+    {
+      "name": "Saab",
+      "isFree": true,
+      "website": "http://www.saabtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sahan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SBC",
+      "isFree": true,
+      "website": "https://allsbc.com/",
+      "priority": 5
+    },
+    {
+      "name": "SNTV 2",
+      "isFree": true,
+      "website": "https://sntv.so/",
+      "priority": 5
+    },
+    {
+      "name": "SNTV Daljir",
+      "isFree": true,
+      "website": "https://sntv.so/",
+      "priority": 5
+    },
+    {
+      "name": "Somaliland National",
+      "isFree": true,
+      "website": "http://www.slntv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "STV Somalia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Voice of Somali",
+      "isFree": true,
+      "website": "http://www.vossomali.net/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Codka Bariga Afrika",
+      "isFree": true,
+      "website": "https://cbatv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Goobjoog",
+      "isFree": true,
+      "website": "https://goobjoog.com/",
+      "priority": 5
+    },
+    {
+      "name": "SMS",
+      "isFree": true,
+      "website": "https://somalisms.com/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Rejo Sports",
+      "isFree": true,
+      "priority": 10
+    }
+  ]
+}

@@ -1,0 +1,961 @@
+{
+  "Religious": [
+    {
+      "name": "Iglesia de Cristo Ebenezer",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Activa",
+      "isFree": true,
+      "website": "https://activatvhn.com/",
+      "priority": 4
+    },
+    {
+      "name": "Choluteca",
+      "isFree": true,
+      "website": "http://www.lametrohn.com/Choluteca-TV",
+      "priority": 4
+    },
+    {
+      "name": "Dios Te Ve",
+      "isFree": true,
+      "keywords": "dios te ve -kids",
+      "website": "https://www.diosteve.org/",
+      "priority": 4
+    },
+    {
+      "name": "Dios Te Ve Kids",
+      "isFree": true,
+      "website": "https://www.diosteve.org/",
+      "priority": 4
+    },
+    {
+      "name": "Dios Tv Talanga",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Emanuel",
+      "isFree": true,
+      "website": "https://radiotrujillohn.com/",
+      "priority": 4
+    },
+    {
+      "name": "EN",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Inmaculada",
+      "isFree": true,
+      "website": "https://inmaculadatv.jimdofree.com/",
+      "priority": 4
+    },
+    {
+      "name": "Jehova",
+      "isFree": true,
+      "website": "https://jehovatelevision.com/",
+      "priority": 4
+    },
+    {
+      "name": "MVC",
+      "isFree": true,
+      "website": "https://www.canalmvc.com/",
+      "priority": 4
+    },
+    {
+      "name": "Radio Fiesta de Milagros",
+      "isFree": true,
+      "website": "https://radiofiestademilagros.com/",
+      "priority": 4
+    },
+    {
+      "name": "Suyapa",
+      "isFree": true,
+      "website": "https://suyapamedios.hn/suyapa-tv/",
+      "priority": 4
+    },
+    {
+      "name": "TDV",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Televida",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Estrella",
+      "isFree": true,
+      "website": "https://www.tvestrella.com/",
+      "priority": 4
+    },
+    {
+      "name": "Uncion",
+      "isFree": true,
+      "website": "https://www.multicablemas.com/video-page6.html",
+      "priority": 4
+    },
+    {
+      "name": "JBN",
+      "isFree": true,
+      "website": "http://jbntv.org/",
+      "priority": 4
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "AZA",
+      "isFree": true,
+      "website": "https://www.azatvhdhn.com/",
+      "priority": 5
+    },
+    {
+      "name": "Alsacias",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Aviva",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CCI",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Campus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 5",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal SiTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Catavisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ceibavisión Canal 36",
+      "isFree": true,
+      "shortName": "CC 3",
+      "priority": 5
+    },
+    {
+      "name": "Cholusat Sur 36",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EDN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ebenezer",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Globo",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "HCH Hable",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HCH Honduras",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kerusso",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lenca Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Metro",
+      "isFree": true,
+      "keywords": "metro tv | metrotv",
+      "shortName": "MetroTV",
+      "priority": 5
+    },
+    {
+      "name": "Mi Viña",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Roatán Hable Claro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sercano",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TEN Canal 10",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TSI",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Copán",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleProgreso",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Television Comayagua Canal 40",
+      "isFree": true,
+      "shortName": "TCC 4",
+      "priority": 5
+    },
+    {
+      "name": "UNAH UTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Waldivisión Internacional",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Alfa & Omega Vision",
+      "isFree": true,
+      "website": "https://www.aovision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Alsacias Television",
+      "isFree": true,
+      "website": "https://www.atv.hn/",
+      "priority": 5
+    },
+    {
+      "name": "Azteca Honduras",
+      "isFree": true,
+      "website": "http://azteca.com.hn/",
+      "priority": 5
+    },
+    {
+      "name": "Bay Islands Entertainment",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 11",
+      "isFree": true,
+      "website": "https://canal11.hn/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 12 Guaimaca",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 12",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 15 DTP",
+      "isFree": true,
+      "website": "https://channelstore.roku.com/details/0ac4aefcf5dd97a2381d32b3f3744c7f/canal-15-dtp",
+      "priority": 5
+    },
+    {
+      "name": "Canal 22 Telenerema",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 24",
+      "isFree": true,
+      "website": "https://tvmar24.wixsite.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 32 STO",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Victoria",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 51",
+      "isFree": true,
+      "website": "https://cn51hn.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 El Lider",
+      "isFree": true,
+      "website": "https://www.televicentro.hn/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 6",
+      "isFree": true,
+      "website": "https://canal6hn.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 7 Talanga Vision",
+      "isFree": true,
+      "website": "https://www.talangavision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 8",
+      "isFree": true,
+      "website": "https://tnh.gob.hn/",
+      "priority": 5
+    },
+    {
+      "name": "Caribe TV Roatan",
+      "isFree": true,
+      "website": "http://caribetvroatan.com/",
+      "priority": 5
+    },
+    {
+      "name": "Catavision",
+      "isFree": true,
+      "website": "https://catavisionlive.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ceiba Vision Canal 36",
+      "isFree": true,
+      "website": "http://www.ceibavision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Choluvision Canal 27",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CHTV",
+      "isFree": true,
+      "website": "http://chtv.hn/",
+      "priority": 5
+    },
+    {
+      "name": "CR Television Choluteca",
+      "isFree": true,
+      "website": "https://www.crtvcholuteca.com/",
+      "priority": 5
+    },
+    {
+      "name": "CTV Internacional",
+      "isFree": true,
+      "website": "https://canal20copanruinas.com/",
+      "priority": 5
+    },
+    {
+      "name": "CVA",
+      "isFree": true,
+      "website": "https://www.cvahn.com/",
+      "priority": 5
+    },
+    {
+      "name": "DTV",
+      "isFree": true,
+      "website": "https://oncenoticias.hn/",
+      "priority": 5
+    },
+    {
+      "name": "ENTV Canal 13 Danli",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Galaxia TV Rocas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Girasol",
+      "isFree": true,
+      "website": "https://girasolmultimedios.com/portal/",
+      "priority": 5
+    },
+    {
+      "name": "Go",
+      "isFree": true,
+      "website": "https://www.gotv.hn/",
+      "priority": 5
+    },
+    {
+      "name": "GRT Canal 31",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Guaimaca",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Guayape",
+      "isFree": true,
+      "website": "https://guayapetv.hn/",
+      "priority": 5
+    },
+    {
+      "name": "Hondured 13",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Junco",
+      "isFree": true,
+      "website": "https://multicablemedios.hn/juncotv",
+      "priority": 5
+    },
+    {
+      "name": "La Nueva Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Liber Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lider",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Litoral Atlantico",
+      "isFree": true,
+      "website": "https://litoralatlanticohd.net/",
+      "priority": 5
+    },
+    {
+      "name": "Mas Television de Colon",
+      "isFree": true,
+      "website": "http://colonaldia.hn/",
+      "priority": 5
+    },
+    {
+      "name": "Megavision Canal 28",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Multicable TV Las Vegas",
+      "isFree": true,
+      "website": "https://www.multicablemas.com/video-page2.html",
+      "priority": 5
+    },
+    {
+      "name": "Multicable TV Morazan",
+      "isFree": true,
+      "website": "https://www.multicablemas.com/video-page5.html",
+      "priority": 5
+    },
+    {
+      "name": "Multicable TV Rio Lindo",
+      "isFree": true,
+      "website": "https://www.multicablemas.com/video-page4.html",
+      "priority": 5
+    },
+    {
+      "name": "Multicable TV San Antonio",
+      "isFree": true,
+      "website": "https://www.multicablemas.com/video-page3.html",
+      "priority": 5
+    },
+    {
+      "name": "Multi TV Choloma",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Olanchito TV Canal 23",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Oriente Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Paradise",
+      "isFree": true,
+      "website": "https://paradisetvhn.com/",
+      "priority": 5
+    },
+    {
+      "name": "Patepluma Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Porvenir",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Puringla",
+      "isFree": true,
+      "website": "https://www.puringlatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Q'hubo",
+      "isFree": true,
+      "website": "https://qhubotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Omega",
+      "isFree": true,
+      "website": "https://omegaturadio.com/",
+      "priority": 5
+    },
+    {
+      "name": "RHC",
+      "isFree": true,
+      "website": "https://roatanhableclaro.com/",
+      "priority": 5
+    },
+    {
+      "name": "Roatan Infoinsular",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Roatan Travel Network",
+      "isFree": true,
+      "website": "https://roatantravelnetwork.com/",
+      "priority": 5
+    },
+    {
+      "name": "RSV Honduras",
+      "isFree": true,
+      "website": "https://www.rsvhonduras.com/",
+      "priority": 5
+    },
+    {
+      "name": "RTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "San Ignacio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Santa Barbara Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SiTV",
+      "isFree": true,
+      "website": "https://sitvhn.com/",
+      "priority": 5
+    },
+    {
+      "name": "SMY 29",
+      "isFree": true,
+      "website": "http://smyhn.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sula",
+      "isFree": true,
+      "website": "https://www.multicablemas.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sur",
+      "isFree": true,
+      "website": "https://www.surtvhn.com/",
+      "priority": 5
+    },
+    {
+      "name": "Talanga TV Canal 39",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TCtv Honduras",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telavision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telecadena 7 y 4",
+      "isFree": true,
+      "website": "https://www.televicentro.hn/",
+      "priority": 5
+    },
+    {
+      "name": "Telecaes 49",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Teleceiba",
+      "isFree": true,
+      "website": "http://teleceiba.com/",
+      "priority": 5
+    },
+    {
+      "name": "TeleDanli",
+      "isFree": true,
+      "website": "https://teledanli.net/",
+      "priority": 5
+    },
+    {
+      "name": "Teledisa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleMarcovia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telemar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telemas",
+      "isFree": true,
+      "website": "https://www.telemas.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Telerayo",
+      "isFree": true,
+      "website": "https://www.telerayo.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Telesistema 3 y 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telesur Canal 33",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Television de Tocoa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Television Metropolis 19.",
+      "isFree": true,
+      "website": "https://comunicacionesmetropolis.com/",
+      "priority": 5
+    },
+    {
+      "name": "Television Metropolis 19. 2",
+      "isFree": true,
+      "website": "https://comunicacionesmetropolis.com/",
+      "priority": 5
+    },
+    {
+      "name": "Television Olanchana",
+      "isFree": true,
+      "website": "https://televisionolanchana.com/",
+      "priority": 5
+    },
+    {
+      "name": "Television Oriental",
+      "isFree": true,
+      "website": "https://www.multimediostvo.hn/",
+      "priority": 5
+    },
+    {
+      "name": "Thunder Sports",
+      "isFree": true,
+      "website": "https://thundersports.hn/tv/",
+      "priority": 10
+    },
+    {
+      "name": "TV Centro 27. 2",
+      "isFree": true,
+      "website": "https://centroradialhn.net/",
+      "priority": 5
+    },
+    {
+      "name": "TV Centro",
+      "isFree": true,
+      "website": "https://centroradialhn.net/",
+      "priority": 5
+    },
+    {
+      "name": "TV Copan",
+      "isFree": true,
+      "website": "https://www.tvcopan.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVES",
+      "isFree": true,
+      "website": "https://www.tves.hn/",
+      "priority": 5
+    },
+    {
+      "name": "TV MAS",
+      "isFree": true,
+      "website": "https://tvmashd.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVO Canal 43",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV San Marcos",
+      "isFree": true,
+      "website": "http://www.tvsanmarcoshn.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVS Canal 42",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UNE",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vallevision",
+      "isFree": true,
+      "website": "https://www.multicablemedios.hn/",
+      "priority": 5
+    },
+    {
+      "name": "Villavision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Viva TV Canal 45",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VTV",
+      "isFree": true,
+      "website": "https://www.vtv.com.hn/",
+      "priority": 5
+    },
+    {
+      "name": "Waldivision Internacional",
+      "isFree": true,
+      "website": "https://tnnwaldivision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Yojoa TV Canal 12",
+      "isFree": true,
+      "website": "https://cableyojoatv.com/",
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Radio Ideal 104.7 FM",
+      "isFree": true,
+      "shortName": "RI1F",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "45",
+      "isFree": true,
+      "website": "https://45tvhn.com/",
+      "priority": 5
+    },
+    {
+      "name": "Buendia",
+      "isFree": true,
+      "website": "https://www.btvhn.com",
+      "priority": 5
+    },
+    {
+      "name": "Canal Uno Choluteca",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HCH",
+      "isFree": true,
+      "keywords": "hch -hable -honduras",
+      "website": "https://hch.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ICN Digital",
+      "isFree": true,
+      "website": "https://icndigital.com/",
+      "priority": 5
+    },
+    {
+      "name": "Lenca",
+      "isFree": true,
+      "website": "http://www.lencatelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mas Noticias Television",
+      "isFree": true,
+      "website": "https://mntv.hn/",
+      "priority": 5
+    },
+    {
+      "name": "Maya",
+      "isFree": true,
+      "website": "https://mayatv.hn/",
+      "priority": 5
+    },
+    {
+      "name": "RCV",
+      "isFree": true,
+      "website": "https://www.rcv.hn/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Avance",
+      "isFree": true,
+      "website": "https://avancehd.tv/",
+      "priority": 5
+    },
+    {
+      "name": "SPDH",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "STVE Telebasica",
+      "isFree": true,
+      "website": "https://www.stvetelebasica.com/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Deportes TVC",
+      "isFree": true,
+      "website": "https://www.deportestvc.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tigo Sports",
+      "isFree": true,
+      "website": "http://www.tigosports.com.hn/",
+      "priority": 10
+    },
+    {
+      "name": "Todo Deportes",
+      "isFree": true,
+      "website": "https://tododeportestv.com/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Imagen FM 105.",
+      "isFree": true,
+      "website": "https://www.imagenfm105-1.com/",
+      "priority": 5
+    },
+    {
+      "name": "La 98.",
+      "isFree": true,
+      "website": "https://www.la98.hn/",
+      "priority": 5
+    },
+    {
+      "name": "La Top 102. 9",
+      "isFree": true,
+      "website": "https://www.latop.hn/",
+      "priority": 5
+    },
+    {
+      "name": "La Top 107. 7",
+      "isFree": true,
+      "website": "https://www.latop.hn/",
+      "priority": 5
+    },
+    {
+      "name": "Picosa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Ideal",
+      "isFree": true,
+      "keywords": "radio ideal -104 -7 -fm",
+      "website": "http://www.idealfm104-7.com/",
+      "priority": 5
+    }
+  ]
+}

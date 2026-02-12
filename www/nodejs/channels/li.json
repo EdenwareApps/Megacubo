@@ -1,0 +1,37 @@
+{
+  "Entertainment": [
+    {
+      "name": "Kommu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "1FL",
+      "isFree": true,
+      "website": "https://1fl.li/wp/",
+      "priority": 5
+    },
+    {
+      "name": "Landeskanal",
+      "isFree": true,
+      "website": "https://www.landeskanal.li/tv.aspx?d=0",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Arcadia",
+      "isFree": true,
+      "website": "https://www.arcadiatelevision.com/",
+      "priority": 5
+    }
+  ],
+  "Shop": [
+    {
+      "name": "MediaShop",
+      "isFree": true,
+      "website": "https://www.mediashop.tv/",
+      "priority": 4
+    }
+  ]
+}

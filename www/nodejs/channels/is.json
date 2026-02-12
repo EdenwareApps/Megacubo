@@ -1,0 +1,249 @@
+{
+  "Entertainment": [
+    {
+      "name": "KVF Faroe Island",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "N 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Althingi",
+      "isFree": true,
+      "website": "https://www.althingi.is/",
+      "priority": 5
+    },
+    {
+      "name": "Hringbraut",
+      "isFree": true,
+      "website": "https://hringbraut.frettabladid.is/sjonvarp/",
+      "priority": 5
+    },
+    {
+      "name": "RUV",
+      "isFree": true,
+      "keywords": "ruv -2",
+      "website": "https://www.ruv.is/ruv/",
+      "priority": 5
+    },
+    {
+      "name": "RUV 2",
+      "isFree": true,
+      "website": "https://www.ruv.is/ruv2/",
+      "priority": 5
+    },
+    {
+      "name": "Sjonvarp Simans",
+      "isFree": true,
+      "website": "https://www.siminn.is/",
+      "priority": 5
+    },
+    {
+      "name": "Skjar",
+      "isFree": true,
+      "website": "https://skjar1.is/",
+      "priority": 5
+    },
+    {
+      "name": "Stod 2",
+      "isFree": true,
+      "keywords": "stod 2 -bio -esport -fjolskylda -golf -sport -2 -3 -4 -5 -6",
+      "website": "https://stod2.is/",
+      "priority": 5
+    },
+    {
+      "name": "Stod 2 Bio",
+      "isFree": true,
+      "website": "https://stod2.is/",
+      "priority": 5
+    },
+    {
+      "name": "Stod 2 Fjolskylda",
+      "isFree": true,
+      "website": "https://stod2.is/",
+      "priority": 5
+    },
+    {
+      "name": "ÍNN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "iSTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NFS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Stöð",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Stöð 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Stöð 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Stöð 2 Extra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nova",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RÚV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sýn",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sýn Sport",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Síminn",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Politics of Iceland",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Omega Kristniboðskirkja",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sýn Sport 2",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sýn Sport 3",
+      "isFree": true,
+      "priority": 10
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Eidfaxi",
+      "isFree": true,
+      "website": "https://www.eidfaxitv.is/",
+      "priority": 5
+    },
+    {
+      "name": "Siminn Sport",
+      "isFree": true,
+      "keywords": "siminn sport -2",
+      "website": "https://www.siminn.is/siminn-sport",
+      "priority": 10
+    },
+    {
+      "name": "Siminn Sport 2",
+      "isFree": true,
+      "website": "https://www.siminn.is/siminn-sport",
+      "priority": 10
+    },
+    {
+      "name": "Stod 2 Esport",
+      "isFree": true,
+      "website": "https://stod2.is/",
+      "priority": 10
+    },
+    {
+      "name": "Stod 2 Golf",
+      "isFree": true,
+      "website": "https://stod2.is/",
+      "priority": 5
+    },
+    {
+      "name": "Stod 2 Sport",
+      "isFree": true,
+      "keywords": "stod 2 sport -2 -3 -4 -5 -6",
+      "website": "https://stod2.is/",
+      "priority": 10
+    },
+    {
+      "name": "Stod 2 Sport 2",
+      "isFree": true,
+      "website": "https://stod2.is/",
+      "priority": 10
+    },
+    {
+      "name": "Stod 2 Sport 3",
+      "isFree": true,
+      "website": "https://stod2.is/",
+      "priority": 10
+    },
+    {
+      "name": "Stod 2 Sport 4",
+      "isFree": true,
+      "website": "https://stod2.is/",
+      "priority": 10
+    },
+    {
+      "name": "Stod 2 Sport 5",
+      "isFree": true,
+      "website": "https://stod2.is/",
+      "priority": 10
+    },
+    {
+      "name": "Stod 2 Sport 6",
+      "isFree": true,
+      "website": "https://stod2.is/",
+      "priority": 10
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Gospel Channel Scandinavia",
+      "isFree": true,
+      "website": "https://www.gospel.tv/contact",
+      "priority": 4
+    },
+    {
+      "name": "Hope Channel Iceland",
+      "isFree": true,
+      "website": "https://hopechannel.is/",
+      "priority": 4
+    },
+    {
+      "name": "Omega",
+      "isFree": true,
+      "website": "https://omega.is/",
+      "priority": 4
+    }
+  ],
+  "Music Videos": [],
+  "News": [
+    {
+      "name": "Visir",
+      "isFree": true,
+      "website": "https://www.visir.is/",
+      "priority": 5
+    }
+  ]
+}

@@ -1,10 +1,24 @@
 import paths from './modules/paths/paths.js'
 import path from 'path'
+import fs from 'fs'
 import { fileURLToPath } from 'url'
 
 // Initialize paths immediately to avoid undefined __dirname
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+
+// Injected by Rollup replace in production/debug builds.
+globalThis.__MEGACUBO_BUILD_MODE__ = __BUILD_MODE__
+
+// Ensure storage folder exists before any module writes (avoids ENOENT on first write when packaged)
+if (paths.data) {
+    try {
+        fs.mkdirSync(path.join(paths.data, 'storage'), { recursive: true })
+    } catch (e) {
+        console.warn('Storage folder creation:', e?.message)
+    }
+}
+
 import crashlog from './modules/crashlog/crashlog.js'
 import onexit from 'node-cleanup'
 import streamer from './modules/streamer/main.js'
@@ -27,11 +41,14 @@ import renderer from './modules/bridge/bridge.js'
 import storage from './modules/storage/storage.js'
 import channels from './modules/channels/channels.js'
 import menu from './modules/menu/menu.js'
-import { moment, forwardSlashes, rmdirSync, ucWords } from './modules/utils/utils.js'
+import { moment, forwardSlashes, rmdirSync, ucWords, enablePromiseTracking } from './modules/utils/utils.js'
 import osd from './modules/osd/osd.js'
 import ffmpeg from './modules/ffmpeg/ffmpeg.js'
 import promo from './modules/promoter/promoter.js'
 import mega from './modules/mega/mega.js'
+import ConnRacing from '@edenware/conn-racing'
+import { resolveListDatabaseKey } from './modules/lists/tools.js'
+import { argv } from 'process'
 
 const electronDistFile = path.join(__dirname, forwardSlashes(__dirname).includes('/dist') ? 'electron.js' : 'dist/electron.js')
 let electron = {}
@@ -60,18 +77,21 @@ async function initializeElectron() {
 
 // Initialize Electron - detect if running as main app or imported as library
 // Check multiple conditions to handle different execution contexts
-const isMainModule = (
+const argv1 = forwardSlashes(process.argv.filter(a => {
+    return !a.startsWith('-') && a.includes('.js')
+}).shift() || '')
+
+const isMainModule = !process.env.MEGACUBO_AS_LIBRARY && !globalThis.MEGACUBO_AS_MODULE && (
     // Direct execution
-    import.meta.url === `file://${process.argv[1]}` ||
+    import.meta.url === `file://${argv1}` || 
+    import.meta.url === `file:///${argv1}` ||
+
     // Via bin.js or similar launchers
-    process.argv[1]?.includes('bin.js') ||
-    process.argv[1]?.includes('main.mjs') ||
-    process.argv[1]?.includes('main.js') ||
+    argv1.includes('bin.js') ||
+    argv1.includes('dist/main.js') ||
+    
     // Command line arguments indicating app mode
-    process.argv.includes('debug') ||
-    process.argv.includes('start') ||
-    // Default: assume main module unless explicitly imported
-    !process.env.MEGACUBO_AS_LIBRARY
+    (process.argv.includes('npm') && process.argv.includes('start'))
 )
 
 if (isMainModule) {
@@ -81,10 +101,24 @@ if (isMainModule) {
     console.log('📚 Running as imported library, skipping Electron initialization')
 }
 
+console.log('isMainModule', {
+    isMainModule,
+    importMetaUrl: import.meta.url,
+    argv1,
+    envFlags: {
+        MEGACUBO_AS_LIBRARY: Boolean(process.env.MEGACUBO_AS_LIBRARY),
+        MEGACUBO_AS_MODULE: Boolean(globalThis.MEGACUBO_AS_MODULE)
+    },
+    argv: process.argv,
+    electronDistFile
+})
+
 // Remote initialization moved to initElectronWindow function
 
-// set globally available objects
+// set globally available objects (including debug helpers)
 Object.assign(global, {
+    ConnRacing,
+    resolveListDatabaseKey,
     channels,
     cloud,
     config,
@@ -108,6 +142,7 @@ Object.assign(global, {
 })
 
 process.env.UV_THREADPOOL_SIZE = 16
+
 process.on('uncaughtException', (err, origin) => {
     console.error({err, origin})
     console.error('uncaughtException: ' + err.message, err.stack)
@@ -194,29 +229,34 @@ onexit(() => {
         renderer.ui.destroy()
     }
 })
+console.log('App started')
+let initialized, isStreamerReady, playOnLoaded, tuningHintShown, showingSlowBroadcastDialog
 
-let originalConsole, initialized, isStreamerReady, playOnLoaded, tuningHintShown, showingSlowBroadcastDialog
-function enableConsole(enable) {
-    let fns = ['log', 'warn']
-    if (typeof(originalConsole) == 'undefined') { // initialize
-        originalConsole = {
-            error: console.error.bind(console)
-        }
-        fns.forEach(f => originalConsole[f] = console[f].bind(console))
-        config.on('change', (keys, data) => keys.includes('enable-console') && enableConsole(data['enable-console']))
-        console.error = (...args) => originalConsole.error('\x1b[31m%s\x1b[0m', ...args)
-        if (enable) return // enabled by default, stop here
+const debug = !isMainModule || process.argv.includes('--inspect')
+
+if (debug) {
+    const originalConsole = {
+        error: console.error.bind(console),
+        warn: console.warn.bind(console),
+        log: console.log.bind(console),
+        info: console.info.bind(console),
+        debug: console.debug.bind(console)
     }
-    enable = true
-    if (enable) {
-        fns.forEach(f => { console[f] = originalConsole[f] })
-    } else {
-        fns.forEach(f => { console[f] = () => {} })
-    }
+    console.error = originalConsole.error.bind(originalConsole)
+    console.warn = originalConsole.warn.bind(originalConsole)
+    console.log = originalConsole.log.bind(originalConsole)
+    console.info = originalConsole.info.bind(originalConsole)
+    console.debug = originalConsole.debug.bind(originalConsole)
+    
+    // Enable global promise tracking to detect orphaned promises (only in debug mode)
+    // Checks every 60 seconds and alerts if promises are pending for more than 5 minutes
+    enablePromiseTracking(60000, 300000)
+} else {
+    console.log = () => {}
+    console.warn = () => {}
+    console.info = () => {}
+    console.debug = () => {}
 }
-
-const debug = config.get('enable-console') || process.argv.includes('--inspect')
-enableConsole(debug)
 
 global.activeEPG = ''
 streamer.tuning = null
@@ -450,7 +490,11 @@ const setupRendererHandlers = () => {
     ui.once('streamer-ready', async () => {
         isStreamerReady = true
         streamer.state.sync()
+
+        // Aguardar tanto streamer quanto lang estarem prontos
+        await lang.ready().catch(console.error)
         renderer.ready() || renderer.ready(null, true)
+
         if (!streamer.active) {
             await lists.ready().catch(err => console.error(err))
             if (playOnLoaded) {
@@ -516,7 +560,7 @@ const initElectronWindow = async () => {
     
     const isLinux = process.platform == 'linux', appCmd = app.commandLine    
     const tcpFastOpen = config.get('tcp-fast-open') ? 'true' : 'false'
-    
+
     // Enable Remote Debugging for MCP Electron Desktop Automation
     appCmd.appendSwitch('remote-debugging-port', '9222')
 
@@ -708,6 +752,7 @@ const initElectronWindow = async () => {
         console.log('✅ Window should be visible now!')
     })
 }
+console.log('Main module loaded.')
 const init = async (locale, timezone) => {
     if (initialized) return
     
@@ -756,7 +801,7 @@ const init = async (locale, timezone) => {
     menu.addFilter(lists.manager.hook.bind(lists.manager))
     menu.addFilter(options.hook.bind(options))
     menu.addFilter(theme.hook.bind(theme))
-    menu.addFilter(channels.search.hook.bind(channels.search))
+    menu.addFilter(channels.search.getMenuHook.bind(channels.search))
     menu.addOutputFilter(recommendations.hook.bind(recommendations))
     // Register promoter output filter AFTER recommendations to ensure it runs last
     // (promoter needs to see the complete list including "Recomendado para Você")
@@ -824,9 +869,10 @@ const init = async (locale, timezone) => {
         console.log('🔄 Recommendations updated. Now: ' + parseInt(new Date().getTime()/1000))
         setTimeout(() => {
             if (!menu.path) {
+                // Update home filters first
                 menu.updateHomeFilters().catch(err => console.error(err))
             }
-        }, 1000)
+        }, 500)
     })
     streamer.on('streamer-connect', async (src, codecs, info) => {
         if (!streamer.active)
@@ -883,31 +929,20 @@ const init = async (locale, timezone) => {
                 }
             })
             const wizard = new Wizard()
+            global.wizard = wizard
             await wizard.init()
         }
         menu.addFilter(downloads.hook.bind(downloads))
         lists.loader.reset()
         await crashlog.send().catch(err => console.error(err))
-        await lists.ready()
+
+        let c = {}
+        const promises = []
+        promises.push(lists.ready())
+        promises.push(recommendations.initialize())
+        promises.push(cloud.get('configure').then(n => c = n).catch(e => err = e))
+        await Promise.allSettled(promises)
         console.log('WaitListsReady resolved!')
-        
-        // Initialize smart recommendations system AFTER lists are ready
-        console.log('🚀 Initializing Smart Recommendations...')
-        try {
-            const initialized = await recommendations.initialize()
-            if (initialized) {
-                console.log('✅ Smart Recommendations initialized successfully')
-            } else {
-                console.warn('⚠️ Smart Recommendations initialization failed (Trias may not be available)')
-            }
-        } catch (error) {
-            console.warn('❌ Smart Recommendations initialization error:', error.message)
-        }
-        let err, c = await cloud.get('configure').catch(e => err = e) // all below in func depends on 'configure' data
-        if (err) {
-            console.error(err)
-            c = {}
-        }
         console.log('checking update...')
         if (!config.get('hide-updates')) {
             if (c.version > paths.manifest.version) {
@@ -945,11 +980,10 @@ renderer.ui.once('get-lang-callback', (locale, timezone, ua, online) => {
     }
 })
 
-if (paths.android) {
+if (isMainModule && paths.android) {
     renderer.ui.emit('get-lang')
 }
 // Electron window initialization is now handled in initializeElectron() function
-
 
 export {
     channels, cloud, config, Download, downloads, energy, ffmpeg, icons, lang, lists, menu, moment, options, osd, 

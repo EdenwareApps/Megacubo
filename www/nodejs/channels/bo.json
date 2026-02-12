@@ -1,0 +1,1239 @@
+{
+  "Entertainment": [
+    {
+      "name": "ATB",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bolivia",
+      "isFree": true,
+      "keywords": "bolivia tv -7 -2",
+      "priority": 5
+    },
+    {
+      "name": "Bolivia TV 7. 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MegaTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTP",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Red Uno",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Latina Canal 42",
+      "isFree": true,
+      "shortName": "TLC 4",
+      "priority": 5
+    },
+    {
+      "name": "TVU",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "XTOTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ABE TV Internacional",
+      "isFree": true,
+      "website": "https://www.abe.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Abya Yala",
+      "isFree": true,
+      "website": "https://abyayala.tv.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Activa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Agro",
+      "isFree": true,
+      "website": "https://agro-tv.teleestrella.tv.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Aiquilena Radio y Television",
+      "isFree": true,
+      "website": "https://aiquileradiotelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "America TV Gigavision Tarija",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Andina",
+      "isFree": true,
+      "website": "https://www.redandinaoruro.com/",
+      "priority": 5
+    },
+    {
+      "name": "ATB Cochabamba",
+      "isFree": true,
+      "website": "https://www.atb.com.bo/",
+      "priority": 5
+    },
+    {
+      "name": "ATB La Paz",
+      "isFree": true,
+      "website": "https://www.atb.com.bo/",
+      "priority": 5
+    },
+    {
+      "name": "ATB Santa Cruz",
+      "isFree": true,
+      "website": "https://www.atb.com.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Atesur",
+      "isFree": true,
+      "website": "https://atesurplus.com/",
+      "priority": 5
+    },
+    {
+      "name": "AYNI",
+      "isFree": true,
+      "website": "https://aynitv.com.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Benitv",
+      "isFree": true,
+      "website": "https://beni-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bolivia Punto",
+      "isFree": true,
+      "website": "https://www.boliviapuntotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bolivia Radio",
+      "isFree": true,
+      "website": "https://boliviaradiotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bolivision",
+      "isFree": true,
+      "website": "https://www.redbolivision.tv.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Bo Plus",
+      "isFree": true,
+      "website": "https://boplus.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Borjana de Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cadena A",
+      "isFree": true,
+      "website": "http://www.cadenaa.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 10 Challapata",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 10 TV Reyes",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 11 COSMON",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 11 Minerena de Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 13 Chimore",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 13 San Jose",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 13 TV Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 14 Valle Alto Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 15 Teleor",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 18 Betania Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 25 Bermejo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 28 Master Vision del Norte",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 29 RTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 33 Coteor",
+      "isFree": true,
+      "website": "https://coteor.com.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 33 Televista",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 35 TV Camargo",
+      "isFree": true,
+      "website": "https://tvcamargo.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 38 Red TDT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Mundo Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 50 RTVE",
+      "isFree": true,
+      "website": "https://www.redencuentro.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 52 Valle Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 56 Flatel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 56 Quiero",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 6 Master TV Carapari",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Vision Cruz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Rural Bolivia",
+      "isFree": true,
+      "website": "https://unitel.bo/canal-rural",
+      "priority": 5
+    },
+    {
+      "name": "Canal Trece UTV",
+      "isFree": true,
+      "website": "https://municipiouyuni.gob.bo/",
+      "priority": 5
+    },
+    {
+      "name": "CCA Canal 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CEACOM",
+      "isFree": true,
+      "website": "https://www.ceacomtv.com",
+      "priority": 5
+    },
+    {
+      "name": "Chapaca de Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cinerama Television",
+      "isFree": true,
+      "website": "https://cineramatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Clitel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Coloso",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Continental Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Coral",
+      "isFree": true,
+      "website": "https://alfasistemas.com/coraltv/",
+      "priority": 5
+    },
+    {
+      "name": "Cotes",
+      "isFree": true,
+      "website": "https://cotes.net.bo/",
+      "priority": 5
+    },
+    {
+      "name": "CTV",
+      "isFree": true,
+      "keywords": "ctv -canal -38 -digital",
+      "website": "https://ctvbolivia.com/",
+      "priority": 5
+    },
+    {
+      "name": "CTV Canal 38",
+      "isFree": true,
+      "keywords": "ctv canal 38 -digital",
+      "website": "https://www.canal38viacha.com/",
+      "priority": 5
+    },
+    {
+      "name": "Delta",
+      "isFree": true,
+      "website": "https://institutodeltabolivia.org/delta-tv/",
+      "priority": 5
+    },
+    {
+      "name": "F 10",
+      "isFree": true,
+      "website": "https://f10.tv.bo/",
+      "priority": 5
+    },
+    {
+      "name": "FAP",
+      "isFree": true,
+      "website": "https://faptv.bo/",
+      "priority": 5
+    },
+    {
+      "name": "FB",
+      "isFree": true,
+      "website": "https://fb.tv.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Fedecomin",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Fides",
+      "isFree": true,
+      "website": "https://www.radiofides.com/",
+      "priority": 5
+    },
+    {
+      "name": "Fortaleza TV Cueto",
+      "isFree": true,
+      "website": "https://fortalezatvcueto.com/",
+      "priority": 5
+    },
+    {
+      "name": "Gigavision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GoGoPlayTV",
+      "isFree": true,
+      "website": "https://www.gogoplayplus.com/",
+      "priority": 5
+    },
+    {
+      "name": "GoLochTel",
+      "isFree": true,
+      "website": "https://golochtel.com/",
+      "priority": 5
+    },
+    {
+      "name": "GTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Imagen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Imperial",
+      "isFree": true,
+      "website": "https://imperialradiotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Interactivo Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "IN",
+      "isFree": true,
+      "website": "https://in.tv.bo/",
+      "priority": 5
+    },
+    {
+      "name": "KEMA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La Exitosa TV Riberalta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La Kalle",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Marvision",
+      "isFree": true,
+      "website": "https://marvisiontv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MegaTV Yacuiba",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Megavision",
+      "isFree": true,
+      "website": "https://tvmegavision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Neo",
+      "isFree": true,
+      "website": "https://neotvbolivia.com/en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "Neox Studio",
+      "isFree": true,
+      "website": "https://neoxstudio.jimdofree.com/",
+      "priority": 5
+    },
+    {
+      "name": "ONCE",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Palenque",
+      "isFree": true,
+      "website": "https://redpalenque.com/",
+      "priority": 5
+    },
+    {
+      "name": "Pando Vision Canal 45",
+      "isFree": true,
+      "website": "https://pandovisioncanal45.home.blog/",
+      "priority": 5
+    },
+    {
+      "name": "PAT La Paz",
+      "isFree": true,
+      "website": "https://www.redpat.tv/",
+      "priority": 5
+    },
+    {
+      "name": "PAT Plus",
+      "isFree": true,
+      "website": "https://www.redpat.tv/patplus/",
+      "priority": 5
+    },
+    {
+      "name": "PAT Santa Cruz",
+      "isFree": true,
+      "website": "https://www.redpat.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Plus TLT",
+      "isFree": true,
+      "website": "https://plustlt.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Posdata",
+      "isFree": true,
+      "website": "http://www.radiotvbinacional.com/",
+      "priority": 5
+    },
+    {
+      "name": "Potosi TV Satelital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Provinciana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PTV",
+      "isFree": true,
+      "website": "https://ptvbolivia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Mega TV Amazonia",
+      "isFree": true,
+      "website": "https://radiomegatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Television Caranavi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Television Ichilo",
+      "isFree": true,
+      "website": "https://radiotvichilo.sdb.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Radio TV Mega",
+      "isFree": true,
+      "website": "https://radiotvmega.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio TV Tropical",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Uno PST",
+      "isFree": true,
+      "website": "https://pst.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Radio y Television San Ignacio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RA Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RED 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RedADvenir",
+      "isFree": true,
+      "website": "http://redadvenir.org/",
+      "priority": 5
+    },
+    {
+      "name": "Red America",
+      "isFree": true,
+      "website": "https://redamerica.tv.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Red CCTV",
+      "isFree": true,
+      "website": "https://red-cctv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Red DTV",
+      "isFree": true,
+      "website": "https://dtv.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Red Rubi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Red Sudamericana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Red Uno Cochabamba",
+      "isFree": true,
+      "website": "https://www.reduno.com.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Red Uno La Paz",
+      "isFree": true,
+      "website": "https://www.reduno.com.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Red Uno Santa Cruz",
+      "isFree": true,
+      "website": "https://www.reduno.com.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Reflejos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Renueva Digital",
+      "isFree": true,
+      "website": "https://renuevadigital.com.bo/",
+      "priority": 5
+    },
+    {
+      "name": "RIO TV Red Amazonica",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Norte",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SABCO Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "San Cristobal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SATEL Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SCM TV HD 32.",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SEO TV 1 FHD",
+      "isFree": true,
+      "website": "https://live.seo.tv.bo/seo.html",
+      "priority": 5
+    },
+    {
+      "name": "SEO TV 6",
+      "isFree": true,
+      "website": "https://live.seo.tv.bo/TV.html",
+      "priority": 5
+    },
+    {
+      "name": "SEO TV 7",
+      "isFree": true,
+      "website": "https://live.seo.tv.bo/TV2.html",
+      "priority": 5
+    },
+    {
+      "name": "Siglo XXI",
+      "isFree": true,
+      "website": "https://redsigloxxibolivia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sitel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SKO Television",
+      "isFree": true,
+      "website": "https://www.skotelevision.net/",
+      "priority": 5
+    },
+    {
+      "name": "Sol",
+      "isFree": true,
+      "website": "https://soltv.com.bo/",
+      "priority": 5
+    },
+    {
+      "name": "SPC Canal 15",
+      "isFree": true,
+      "website": "https://spccanal15.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sucremanta",
+      "isFree": true,
+      "website": "https://sucremantatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "SURTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TDT Multimedia",
+      "isFree": true,
+      "website": "https://tdtmultimedia.com/",
+      "priority": 5
+    },
+    {
+      "name": "TELE 6",
+      "isFree": true,
+      "website": "https://tele6.tv.bo/",
+      "priority": 5
+    },
+    {
+      "name": "TeleC",
+      "isFree": true,
+      "website": "https://telec.com.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Telecentro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Chaco",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Fe Bolivia",
+      "isFree": true,
+      "website": "https://teleestrella.tv.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Telefuturo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Television Amazonica Canal 9",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Television Azanaque",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Television Cristal",
+      "isFree": true,
+      "website": "https://televisioncristal.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tiki Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TL Estrella",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tunari",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tupiza",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Turbion Digital",
+      "isFree": true,
+      "website": "https://turbiondigital.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tu",
+      "isFree": true,
+      "website": "https://tutv.com.bo/",
+      "priority": 5
+    },
+    {
+      "name": "TVA",
+      "isFree": true,
+      "website": "https://elandaluz.com.bo/",
+      "priority": 5
+    },
+    {
+      "name": "TV Culturas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Latina",
+      "isFree": true,
+      "keywords": "tv latina -canal -42",
+      "website": "https://www.audiokiss.com/tvlatina/",
+      "priority": 5
+    },
+    {
+      "name": "TV Municipal Huanuni",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Norte",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV OFF",
+      "isFree": true,
+      "website": "https://tvoff.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Show Oruro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Universitaria",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVU Sucre",
+      "isFree": true,
+      "website": "https://tvusucre.com/vivo.html",
+      "priority": 5
+    },
+    {
+      "name": "Unica",
+      "isFree": true,
+      "website": "https://www.unicatvbolivia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Unifranz",
+      "isFree": true,
+      "website": "https://unifranz.edu.bo/unifranz-streaming/",
+      "priority": 5
+    },
+    {
+      "name": "Unitel Cochabamba",
+      "isFree": true,
+      "website": "https://unitel.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Unitel La Paz",
+      "isFree": true,
+      "website": "https://unitel.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Unitel Santa Cruz",
+      "isFree": true,
+      "website": "https://unitel.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Univalle Television",
+      "isFree": true,
+      "website": "https://univalletelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Unovision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UPEA",
+      "isFree": true,
+      "website": "https://tv.upea.bo/live",
+      "priority": 5
+    },
+    {
+      "name": "UPP",
+      "isFree": true,
+      "website": "https://www.redbolivision.tv.bo/programa/upp-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Villazon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vision TV Bolivia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zoy",
+      "isFree": true,
+      "keywords": "zoy tv -music -sports -1 -2 -3 -4 -5 -turcas",
+      "website": "https://www.tucableip.com/tv.php?llave=zoytv",
+      "priority": 5
+    },
+    {
+      "name": "ZoyTV Plus",
+      "isFree": true,
+      "website": "https://tv.zoymilton.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zoy TV Turcas",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Local": [
+    {
+      "name": "CTV Canal 38 Digital",
+      "isFree": true,
+      "shortName": "CC3D",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "SEO TV Kids",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SEO TV 2 Kids",
+      "isFree": true,
+      "website": "https://live.seo.tv.bo/kids.html",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Alegria",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tv Carigso",
+      "isFree": true,
+      "website": "https://tvcarigso.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV HD Tropical",
+      "isFree": true,
+      "website": "https://tvhdtropical.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zoy TV Music",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Radio TV Binacional",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Agenda Minera",
+      "isFree": true,
+      "website": "https://www.agendaminera.com/",
+      "priority": 5
+    },
+    {
+      "name": "ANTv",
+      "isFree": true,
+      "website": "https://antarija.com/",
+      "priority": 5
+    },
+    {
+      "name": "BN Noticias",
+      "isFree": true,
+      "website": "https://bnnoticiastv.com/",
+      "priority": 5
+    },
+    {
+      "name": "CN3 Television",
+      "isFree": true,
+      "website": "https://cn3.tv.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Contacto Bolivia",
+      "isFree": true,
+      "website": "https://www.contactobolivia.com.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Erbol",
+      "isFree": true,
+      "website": "https://erbol.com.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Metro",
+      "isFree": true,
+      "website": "https://metrotv.com.bo/",
+      "priority": 5
+    },
+    {
+      "name": "SNTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UMSA TVU LP",
+      "isFree": true,
+      "website": "https://tvu.umsa.bo/tvu-en-vivo-2-",
+      "priority": 5
+    },
+    {
+      "name": "Zuraca",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "ABE Educativo",
+      "isFree": true,
+      "website": "https://www.abe.bo/",
+      "priority": 5
+    },
+    {
+      "name": "RTVU",
+      "isFree": true,
+      "website": "https://rtvu.uto.edu.bo/",
+      "priority": 5
+    },
+    {
+      "name": "Television Educativa Plurinacional",
+      "isFree": true,
+      "website": "https://tv.egpp.gob.bo/",
+      "priority": 5
+    },
+    {
+      "name": "UMSA TVU Internacional",
+      "isFree": true,
+      "website": "https://tvu.umsa.bo/tvu-internacional",
+      "priority": 5
+    },
+    {
+      "name": "Yungas",
+      "isFree": true,
+      "website": "https://yungastv.com/",
+      "priority": 5
+    },
+    {
+      "name": "ZoyTV Bolivia",
+      "isFree": true,
+      "website": "https://tv.zoymilton.com/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Canal 29 TVA",
+      "isFree": true,
+      "website": "https://canal29tva.com.bo/",
+      "priority": 4
+    },
+    {
+      "name": "Catolica",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "CVC",
+      "isFree": true,
+      "website": "http://virgendecopacabana.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Poder de Dios",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Solidaria TV Bolivia",
+      "isFree": true,
+      "website": "https://www.solidariatvbolivia.com/",
+      "priority": 4
+    },
+    {
+      "name": "VTV Canal 17",
+      "isFree": true,
+      "website": "https://vtvcanal17.com/",
+      "priority": 4
+    }
+  ],
+  "Sports": [
+    {
+      "name": "DT Play",
+      "isFree": true,
+      "website": "https://deportetotal.com.bo/dtplay/",
+      "priority": 5
+    },
+    {
+      "name": "FTV",
+      "isFree": true,
+      "website": "https://www.facetas-deportivas.com.bo/facetas-tv-al-vuvo/",
+      "priority": 5
+    },
+    {
+      "name": "FutbolCanal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SEO TV 5 Deportes",
+      "isFree": true,
+      "website": "https://live.seo.tv.bo/TDA.html",
+      "priority": 5
+    },
+    {
+      "name": "Tigo Sports",
+      "isFree": true,
+      "website": "http://www.tigosports.com.bo/",
+      "priority": 10
+    },
+    {
+      "name": "Zoy TV Sports",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Zoy TV Sports 2",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Zoy TV Sports 3",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Zoy TV Sports 4",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Zoy TV Sports 5",
+      "isFree": true,
+      "priority": 10
+    }
+  ],
+  "Shop": [
+    {
+      "name": "Red TV Shop",
+      "isFree": true,
+      "website": "https://www.redtvshop.com/",
+      "priority": 4
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "SEO TV 3 Novelas",
+      "isFree": true,
+      "website": "https://live.seo.tv.bo/nvls.html",
+      "priority": 5
+    },
+    {
+      "name": "SEO TV 4 Peliculas",
+      "isFree": true,
+      "website": "https://live.seo.tv.bo/peliculas.html",
+      "priority": 5
+    }
+  ]
+}

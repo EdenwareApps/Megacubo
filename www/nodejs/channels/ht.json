@@ -1,0 +1,336 @@
+{
+  "Religious": [
+    {
+      "name": "Radio Tele 4VEH",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Radio Tele Full Gospel",
+      "isFree": true,
+      "website": "https://ejcfg.com/",
+      "priority": 4
+    },
+    {
+      "name": "Radio Tele Pitit Manman Mari",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Radio Tele Victoire",
+      "isFree": true,
+      "website": "https://victoirehaiti.org/",
+      "priority": 4
+    },
+    {
+      "name": "TEFROREV Chaine 48",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Tele Soleil",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Television SNL",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "NETALKOLE",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Louange",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Télé Conscience Haïtienne",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Bleu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal+ Haiti",
+      "isFree": true,
+      "website": "https://www.canalplus-haiti.com/contacts",
+      "priority": 5
+    },
+    {
+      "name": "Haiti Web Television",
+      "isFree": true,
+      "website": "https://tv.haitiwebradio.com/",
+      "priority": 5
+    },
+    {
+      "name": "ON TV 46",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Planet Haiti",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Tele 6 Univers",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Tele Caramel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Tele Eclair",
+      "isFree": true,
+      "website": "https://radioteleeclair.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Tele Galaxie",
+      "isFree": true,
+      "website": "https://radiogalaxiehaiti.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Tele Ginen",
+      "isFree": true,
+      "website": "https://www.rtghaiti.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Tele Scoop",
+      "isFree": true,
+      "website": "https://www.scoopfmhaiti.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Tele Stanne Charitab",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Tele SuperStar",
+      "isFree": true,
+      "website": "https://www.superstarhaiti.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Television Caraibes",
+      "isFree": true,
+      "website": "https://www.radiotelecaraibes.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Television Espace",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Television Hirondelle",
+      "isFree": true,
+      "website": "https://radiotelehirondelle.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Television Shilo",
+      "isFree": true,
+      "website": "https://www.radioteleshilo.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Television Sky",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Tele Yaguana",
+      "isFree": true,
+      "website": "http://www.radioyaguana.com/",
+      "priority": 5
+    },
+    {
+      "name": "Storm",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TCH",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele 20",
+      "isFree": true,
+      "website": "http://www.tele20.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Amani-Y",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Haiti",
+      "isFree": true,
+      "website": "https://telehaiti.ht/",
+      "priority": 5
+    },
+    {
+      "name": "Tele La Brise",
+      "isFree": true,
+      "website": "http://www.telelabrise.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Pacific",
+      "isFree": true,
+      "website": "https://www.radiotelepacific.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Pluriel",
+      "isFree": true,
+      "website": "https://teleplurielhaiti.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Variete",
+      "isFree": true,
+      "website": "https://televariete.com/",
+      "priority": 5
+    },
+    {
+      "name": "TNH",
+      "isFree": true,
+      "website": "http://www.rtnh.ht/",
+      "priority": 5
+    },
+    {
+      "name": "TV Panou",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Radio Tele Amen FM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Tele Planet Compas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Tele Shalom",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Télé 4VEH",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Télé Eclair",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Télé Pitit Manman Mari",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Télévision Caraïbes",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Télévision Hirondelle",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Haiti Viral News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Haiti News",
+      "isFree": true,
+      "website": "https://haitinewstv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Tele Monopole",
+      "isFree": true,
+      "website": "https://radiotelemonopole.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Signal",
+      "isFree": true,
+      "website": "https://signalfmhaiti.com/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Haiti Sports TV",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Haiti Sports TV 2",
+      "isFree": true,
+      "priority": 10
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Metropole",
+      "isFree": true,
+      "website": "https://metropole.ht/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Tele Controle",
+      "isFree": true,
+      "website": "https://radiotelecontrole.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Tele Hit",
+      "isFree": true,
+      "website": "http://www.hitfmhaiti.com/tele-hit/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Tele Skyway",
+      "isFree": true,
+      "website": "https://www.radioteleskyway.com/skyway-tv/",
+      "priority": 5
+    },
+    {
+      "name": "VA Studio",
+      "isFree": true,
+      "priority": 5
+    }
+  ]
+}

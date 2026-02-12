@@ -93,8 +93,7 @@ await smartRecommendations.initialize(triasInstance, {
     semanticWeight: 0.6,
     traditionalWeight: 0.4,
     maxRecommendations: 50,
-    cacheSize: 2000,
-    learningEnabled: true
+    cacheSize: 2000
 })
 ```
 

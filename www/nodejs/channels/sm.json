@@ -1,0 +1,16 @@
+{
+  "Sports": [
+    {
+      "name": "San Marino RTV Sport",
+      "priority": 10
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "San Marino RTV",
+      "isFree": true,
+      "keywords": "san marino rtv -sport",
+      "priority": 5
+    }
+  ]
+}

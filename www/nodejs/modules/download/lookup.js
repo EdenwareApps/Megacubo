@@ -11,7 +11,9 @@ class Lookup {
     this.data = {};
     this.ttlData = {};
     this.promises = {};    
-    this.limiter = new Limiter(() => this._save(), 10000);
+    // OPTIMIZATION: Increased save interval from 10s to 60s to reduce storage write frequency
+    // This prevents lock timeouts on 'global/lookup' key
+    this.limiter = new Limiter(() => this._save(), 60000);
 
     // Create custom resolvers
     this.resolvers = Object.keys(servers).map(key => {
@@ -29,7 +31,8 @@ class Lookup {
   /**
    * Returns the DNS resolution for the specified hostname.
    * If the cache is valid, returns the cached result.
-   * Otherwise, uses a Promise.race for fast response and updates the cache in the background.
+   * Otherwise, returns on first valid result (or waits for second at most) and caches immediately.
+   * All DNS resolvers continue testing in background to consolidate and update cache with mature result.
    *
    * @param {string} hostname - The domain to be resolved.
    * @param {object} options - Additional options. If options.family is not provided,
@@ -82,46 +85,159 @@ class Lookup {
       });
     });
   
-    // Fast response: uses Promise.any to get the first valid result, ignoring failures
-    let fastResult;
-    try {
-      fastResult = await Promise.any(tasks);
-    } catch (e) {
-      fastResult = [];
-    }
+    // Fast response: return on first valid result, or wait for second at maximum
+    // All tasks continue in background for consolidation (not cancelled)
+    let fastResult = [];
+    let validResultCount = 0;
+    let completedCount = 0;
+    let failureCount = 0;
+    const maxWaitForResults = 2; // Wait for up to 2 valid results before returning
+    const minFailuresForQuickReturn = 3; // Return immediately if this many resolvers fail quickly without success
+    const quickFailureThreshold = 500; // Consider failures within this time as "quick failures"
+    
+    const fastResultPromise = new Promise((resolveFast) => {
+      const collectedResults = [];
+      let resolved = false;
+      const startTime = Date.now();
+      const quickFailures = []; // Track failures that happened quickly
+      
+      tasks.forEach((task) => {
+        task
+          .then(result => {
+            completedCount++;
+            if (result && Array.isArray(result) && result.length > 0) {
+              validResultCount++;
+              collectedResults.push(...result);
+              
+              // Return immediately on first valid result
+              if (!resolved && validResultCount === 1) {
+                resolved = true;
+                fastResult = [...new Set(collectedResults)];
+                // Cache immediately with fast result
+                if (fastResult.length || !this.data?.[hostname]) {
+                  this.data[hostname] = fastResult;
+                }
+                this.ttlData[hostname] = fastResult.length ? now + this.ttl : now + this.failureTTL;
+                resolveFast(fastResult);
+              }
+              // Or return after second valid result (at most)
+              else if (!resolved && validResultCount === maxWaitForResults) {
+                resolved = true;
+                fastResult = [...new Set(collectedResults)];
+                if (fastResult.length || !this.data[hostname]) {
+                  this.data[hostname] = fastResult;
+                }
+                this.ttlData[hostname] = fastResult.length ? now + this.ttl : now + this.failureTTL;
+                resolveFast(fastResult);
+              }
+            }
+            
+            // If all tasks completed and no valid result, return empty
+            if (!resolved && completedCount === tasks.length && validResultCount === 0) {
+              resolved = true;
+              resolveFast([]);
+            }
+          })
+          .catch(() => {
+            completedCount++;
+            failureCount++;
+            const elapsed = Date.now() - startTime;
+            
+            // Track quick failures (failures that happen quickly)
+            if (elapsed < quickFailureThreshold) {
+              quickFailures.push(elapsed);
+            }
+            
+            // If multiple resolvers failed quickly without any success, return immediately
+            if (!resolved && quickFailures.length >= minFailuresForQuickReturn && validResultCount === 0) {
+              resolved = true;
+              resolveFast([]);
+            }
+            
+            // If all tasks failed and we have no result, resolve with empty
+            if (!resolved && completedCount === tasks.length && validResultCount === 0) {
+              resolved = true;
+              resolveFast([]);
+            }
+          });
+      });
+      
+      // Shorter timeout for failures: if no success after 1 second and multiple failures, return
+      setTimeout(() => {
+        if (!resolved && validResultCount === 0 && failureCount >= minFailuresForQuickReturn) {
+          resolved = true;
+          resolveFast([]);
+        }
+      }, 1000); // Quick timeout for failures
+      
+      // Safety timeout: return after reasonable time even if we don't have 2 results
+      setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          if (collectedResults.length > 0) {
+            fastResult = [...new Set(collectedResults)];
+            if (fastResult.length || !this.data[hostname]) {
+              this.data[hostname] = fastResult;
+            }
+            this.ttlData[hostname] = fastResult.length ? now + this.ttl : now + this.failureTTL;
+            resolveFast(fastResult);
+          } else {
+            resolveFast([]);
+          }
+        }
+      }, 2000); // Reduced from 3s to 2s for faster failure detection
+    });
+    
+    // Wait for fast result (first valid or second at most)
+    await fastResultPromise;
   
-    // In background: collects all responses and updates the cache with the best result
+    // In background: continue collecting all responses and update cache with consolidated result
+    // This doesn't block the return, runs in parallel
     Promise.allSettled(tasks)
       .then(results => {
         if (options.debug) {
-          console.log('lookup*', hostname, results);
+          console.log('lookup* background consolidation', hostname, results);
         }
         const fulfilledValues = results
           .filter(r => r.status === 'fulfilled')
           .flatMap(r => r.value);
-        const counts = fulfilledValues.reduce((acc, ip) => {
-          acc[ip] = (acc[ip] || 0) + 1;
-          return acc;
-        }, {});
-        const ips = Object.entries(counts)
-          .sort((a, b) => b[1] - a[1])
-          .map(([ip]) => ip);
-        if (ips.length || !this.data?.[hostname]?.length) {
-          this.data[hostname] = ips;
+        
+        if (fulfilledValues.length > 0) {
+          // Consolidate: count IP occurrences across all resolvers
+          const counts = fulfilledValues.reduce((acc, ip) => {
+            acc[ip] = (acc[ip] || 0) + 1;
+            return acc;
+          }, {});
+          
+          // Sort by frequency (most common IPs first)
+          const consolidatedIps = Object.entries(counts)
+            .sort((a, b) => b[1] - a[1])
+            .map(([ip]) => ip);
+          
+          // Update cache with consolidated result (overwrites fast result)
+          this.data[hostname] = consolidatedIps;
+          this.ttlData[hostname] = now + this.ttl;
+          // OPTIMIZATION: Use save() instead of _save() to respect limiter and reduce write frequency
+          this.save();
+          
+          if (options.debug) {
+            console.log('lookup* consolidated result', hostname, consolidatedIps);
+          }
+        } else {
+          // All resolvers failed - mark as failure in cache
+          if (!this.data[hostname]?.length) {
+            this.data[hostname] = [];
+            this.ttlData[hostname] = now + this.failureTTL;
+            // OPTIMIZATION: Use save() instead of _save() to respect limiter and reduce write frequency
+            this.save();
+          }
         }
-        this.ttlData[hostname] = this.data[hostname]?.length ? now + this.ttl : now + this.failureTTL;
-        this._save();
       })
       .catch(err => console.error('Error in DNS resolution in background:', err));
   
-    // Prepare the fast result, removing duplicates
+    // Prepare the fast result for return, removing duplicates
     let resultArray = Array.isArray(fastResult) ? fastResult : [fastResult];
     resultArray = [...new Set(resultArray)];
-  
-    if (resultArray.length || !this.data[hostname]) {
-      this.data[hostname] = resultArray;
-    }
-    this.ttlData[hostname] = now + this.failureTTL;
 
     this.promises[hostname].resolve();
     delete this.promises[hostname];
@@ -155,7 +271,8 @@ class Lookup {
     if (this.data?.[hostname]?.length && this.data[hostname].includes(ip)) {
       this.data[hostname] = this.data[hostname].filter(ip => ip !== ip);
       this.data[hostname].push(ip);
-      this._save();
+      // OPTIMIZATION: Use save() instead of _save() to respect limiter and reduce write frequency
+      this.save();
     }
   }
 

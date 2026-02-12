@@ -1,14 +1,16 @@
 import { EventEmitter } from 'node:events'
 import PQueue from 'p-queue'
 import { terms } from '../lists/tools.js'
+import { inWorker } from '../paths/paths.js'
 import storage from '../storage/storage.js'
 import config from '../config/config.js'
 // Remove direct import to avoid circular dependency
 // import smartRecommendations from './index.mjs'
 
 export class Tags extends EventEmitter{
-    constructor() {
+    constructor(smartRecommendations) {
         super()
+        this.smartRecommendations = smartRecommendations
         this.caching = {programmes: {}, trending: {}}
         this.defaultTagsCount = 128
         this.queue = new PQueue({concurrency: 1})
@@ -25,14 +27,22 @@ export class Tags extends EventEmitter{
         this.backgroundQueue = new PQueue({concurrency: 1})
         // Track pending/active background expansions to avoid duplicates
         this.pendingExpansions = new Set()
-        
+        // Global flag to prevent multiple concurrent expansions across instances
+        if (!global.backgroundExpansionInProgress) {
+            global.backgroundExpansionInProgress = false
+        }       
+        if (inWorker) {
+            console.log('ℹ️ Skipping tag expansion in worker context')
+            console.trace()
+            return
+        }
         // Load cache on startup
         this.loadCache()
         this.loadManualTags()
         
         global.channels.history.epg.on('change', () => this.historyUpdated(true))
         global.channels.trending.on('update', () => this.trendingUpdated(true))
-        global.channels.on('loaded', () => this.reset())
+        global.channels.on('loaded', changed => changed && this.reset())
     }
     loadManualTags() {
         const stored = config.get(this.manualTagsKey)
@@ -334,14 +344,14 @@ export class Tags extends EventEmitter{
         let searchPromise = Promise.resolve()
         if (this.searchSuggestionEntries) {
             searchPromise = Promise.resolve()
-        } else if (global.channels?.search?.searchSuggestionEntries) {
+        } else if (global.channels?.search?.getPopularSearchTerms) {
             try {
-                searchPromise = global.channels.search.searchSuggestionEntries().then(data => this.searchSuggestionEntries = data).catch(err => {
+                searchPromise = global.channels.search.getPopularSearchTerms().then(data => this.searchSuggestionEntries = data).catch(err => {
                     console.error('Error getting search suggestions:', err.message)
                     return []
                 })
             } catch (err) {
-                console.error('Error calling searchSuggestionEntries:', err.message)
+                console.error('Error calling getPopularSearchTerms:', err.message)
             }
         }
         
@@ -412,10 +422,10 @@ export class Tags extends EventEmitter{
         )
     }
     async expand(oTags, options = {}) {
-        let additionalTags = {}, tags = Object.assign({}, oTags);            
+        let additionalTags = {}, tags = Object.assign({}, oTags);
         const limit = options.amount || this.defaultTagsCount
         const additionalLimit = limit - Object.keys(tags).length
-        
+
         if (additionalLimit > 0) {
             // Try to get expanded tags from cache first
             const cacheKey = this.generateCacheKey(tags, options)
@@ -442,14 +452,7 @@ export class Tags extends EventEmitter{
                 }
             }
             
-            // Attempt immediate expansion via AI client when cache is empty
-            const immediateExpansion = await this.tryImmediateAiExpansion(tags, options, cacheKey, additionalLimit)
-            if (immediateExpansion) {
-                return immediateExpansion
-            }
-
-            // No cache available - return original tags immediately and update cache in background
-            console.log('📚 Cache miss - using original tags, updating cache in background')
+            // No cache available - return original tags immediately and schedule expansion in background
             this.scheduleBackgroundExpansion(tags, options)
         }
         return tags
@@ -661,51 +664,6 @@ export class Tags extends EventEmitter{
         }
     }
 
-    async tryImmediateAiExpansion(tags, options, cacheKey, additionalLimit) {
-        try {
-            const { default: smartRecommendations } = await import('./index.mjs')
-            const aiClient = smartRecommendations?.aiClient
-            if (!aiClient) {
-                return null
-            }
-
-            if (!aiClient.initialized) {
-                await aiClient.initialize().catch(err => console.warn('AI client init failed:', err?.message || err))
-            }
-
-            if (!aiClient.enabled) {
-                return null
-            }
-
-            const locale = options.locale || global?.lang?.locale || 'pt'
-
-            const response = await aiClient.expandTags(tags, {
-                limit: options.amount || this.defaultTagsCount,
-                threshold: options.threshold || 0.6,
-                locale,
-                diversityBoost: options.diversityBoost !== false
-            })
-
-            if (!response || response.fallback || !response.expandedTags || !Object.keys(response.expandedTags).length) {
-                return null
-            }
-
-            const { mergedTags, hasNewInformation } = this.applyExpandedTags(tags, response.expandedTags, additionalLimit)
-
-            if (!hasNewInformation) {
-                return null
-            }
-
-            this.cacheExpandedTags(cacheKey, response.expandedTags)
-            await this.saveCache()
-
-            console.log('✨ Immediate AI tag expansion completed')
-            return mergedTags
-        } catch (error) {
-            console.warn('Immediate tag expansion failed:', error.message)
-            return null
-        }
-    }
 
     applyExpandedTags(baseTags, expandedTags, additionalLimit) {
         const normalizedBase = {}
@@ -780,11 +738,24 @@ export class Tags extends EventEmitter{
      * Schedule background expansion for future use
      */
     scheduleBackgroundExpansion(tags, options) {
+        // Skip expansion entirely when running in a worker
+        if (inWorker) {
+            console.log('ℹ️ Skipping tag expansion in worker context')
+            console.trace()
+            return
+        }
+
         const cacheKey = this.generateCacheKey(tags, options)
-        
+
         // Skip if already pending or in progress for the same cache key
         if (this.pendingExpansions.has(cacheKey)) {
             return // Already scheduled or in progress
+        }
+
+        // Skip if another background expansion is already in progress globally
+        if (global.backgroundExpansionInProgress) {
+            console.log('ℹ️ Skipping background expansion - another expansion already in progress')
+            return
         }
         
         // Skip if already cached (unless it's old)
@@ -796,9 +767,14 @@ export class Tags extends EventEmitter{
         // Mark as pending
         this.pendingExpansions.add(cacheKey)
         
+
+        console.log('🔄 Scheduling background expansion for cache key:', cacheKey, 'pending expansions:', this.pendingExpansions.size)
         // Schedule background expansion
         this.backgroundQueue.add(async () => {
             try {
+                // Set global flag to prevent concurrent expansions
+                global.backgroundExpansionInProgress = true
+                
                 // Double-check cache after queue wait (might have been cached by another request)
                 const existingCacheAfterWait = this.getExpandedTagsFromCache(cacheKey)
                 if (existingCacheAfterWait && this.hasMeaningfulExpansion(tags, existingCacheAfterWait)) {
@@ -813,8 +789,7 @@ export class Tags extends EventEmitter{
                 console.log('🔄 Starting background tag expansion...')
                 
                 // Use dynamic import to avoid circular dependency
-                const { default: smartRecommendations } = await import('./index.mjs')
-                const mergedTags = await smartRecommendations.expandUserTags(tags, {
+                const mergedTags = await this.smartRecommendations.expandUserTags(tags, {
                     maxExpansions: options.amount || this.defaultTagsCount,
                     similarityThreshold: options.threshold || 0.6,
                     diversityBoost: options.diversityBoost !== false
@@ -895,6 +870,8 @@ export class Tags extends EventEmitter{
             } finally {
                 // Always remove from pending set when done (success or failure)
                 this.pendingExpansions.delete(cacheKey)
+                // Clear global flag
+                global.backgroundExpansionInProgress = false
             }
         })
     }

@@ -1,0 +1,191 @@
+{
+  "Entertainment": [
+    {
+      "name": "Chamber",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTL",
+      "isFree": true,
+      "keywords": "rtl -2 -tele -letzeburg",
+      "priority": 5
+    },
+    {
+      "name": "RTL 2 Tele Letzeburg",
+      "isFree": true,
+      "shortName": "R2TL",
+      "priority": 5
+    },
+    {
+      "name": "RTL Tele Letzeburg",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTL 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "eldo.TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "apart",
+      "isFree": true,
+      "website": "https://www.apart-tv.lu/",
+      "priority": 5
+    },
+    {
+      "name": "Direct One",
+      "isFree": true,
+      "website": "https://www.directone.hu/",
+      "priority": 5
+    },
+    {
+      "name": "Dudelange",
+      "isFree": true,
+      "website": "https://www.dudelange.lu/",
+      "priority": 5
+    },
+    {
+      "name": "Esch",
+      "isFree": true,
+      "website": "https://esch.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Hesper",
+      "isFree": true,
+      "website": "https://www.hesperange.lu/lu/medias/hesper-tv",
+      "priority": 5
+    },
+    {
+      "name": "Jasmin",
+      "isFree": null,
+      "website": "http://www.jasmin.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Luxe",
+      "isFree": true,
+      "website": "https://luxe.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Mamer",
+      "isFree": true,
+      "website": "https://mamer.lu/media-centre/mamer-tv/",
+      "priority": 5
+    },
+    {
+      "name": "MierschTV",
+      "isFree": true,
+      "website": "https://mersch.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Nordliicht",
+      "isFree": true,
+      "website": "https://www.nordliicht.lu/",
+      "priority": 5
+    },
+    {
+      "name": "Petange Info",
+      "isFree": true,
+      "website": "https://petange.lu/mediatheque/petange-info-tv/",
+      "priority": 5
+    },
+    {
+      "name": "RTL 9",
+      "isFree": true,
+      "website": "http://www.rtl9.com/",
+      "priority": 5
+    },
+    {
+      "name": "RTL Tele Letzebuerg",
+      "isFree": true,
+      "website": "https://www.rtl.lu/tele",
+      "priority": 5
+    },
+    {
+      "name": "RTL Web Radio",
+      "isFree": true,
+      "website": "https://play.rtl.lu/live/radio",
+      "priority": 5
+    },
+    {
+      "name": "RTL Zwee",
+      "isFree": true,
+      "website": "http://www.rtl.lu/tele/",
+      "priority": 5
+    },
+    {
+      "name": "Satisfaction",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Televisioun Steesel",
+      "isFree": true,
+      "website": "https://www.steinsel.lu/televisioun-steesel/",
+      "priority": 5
+    },
+    {
+      "name": "UHD",
+      "isFree": true,
+      "website": "http://www.hd-plus.de/uhd/ultra-hd-demokanal-uhd1/",
+      "priority": 5
+    },
+    {
+      "name": "Apart TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Club RTL",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Plug RTL",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lucky Jack",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Eldoradio",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Lucky Jack.tv",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "RTL Gold",
+      "isFree": true,
+      "website": "https://play.rtl.lu/live/rtl-gold",
+      "priority": 5
+    },
+    {
+      "name": "Today Radio",
+      "isFree": true,
+      "website": "https://today.rtl.lu/radio",
+      "priority": 5
+    }
+  ]
+}

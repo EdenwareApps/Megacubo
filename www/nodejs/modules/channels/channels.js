@@ -14,7 +14,7 @@ import icons from '../icon-server/icon-server.js'
 import config from '../config/config.js'
 import renderer from '../bridge/bridge.js'
 import paths from '../paths/paths.js'
-import { clone, insertEntry, moment, ts2clock } from '../utils/utils.js'
+import { clone, getDomain, insertEntry, moment, ts2clock, trackPromise } from '../utils/utils.js'
 import Search from '../search/search.js'
 import { parse } from '../serialize/serialize.js'
 import { ChannelsList } from './channel-list.js'
@@ -33,8 +33,8 @@ class ChannelsData extends EventEmitter {
         this.ready = ready()
         renderer.ready(async () => {
             this.load().catch(err => console.error(err))
-            config.on('change', async (keys, data) => {
-                if (['parental-control', 'parental-control-terms', 'lists'].some(k => keys.includes(k))) {
+            config.on('change', async (keys) => {
+                if (['parental-control', 'parental-control-terms', 'lists', 'public-lists', 'communitary-mode-lists-amount', 'countries'].some(k => keys.includes(k))) {
                     await this.load(true);
                 }
             })
@@ -43,34 +43,34 @@ class ChannelsData extends EventEmitter {
         })
     }
     async load(refresh) {
-        const hasOwnLists = config.get('lists').length
-        const publicMode = config.get('public-lists') && !global.lists.loaded(true) // no list available on index beyound public lists
+        const publicMode = config.get('public-lists') && !config.get('lists').length && !config.get('communitary-mode-lists-amount')
         const countries = await lang.getActiveCountries()
-        const parentalControlActive = ['remove', 'block'].includes(config.get('parental-control'))
-        let type = config.get('channel-grid'), typeChanged
-        if (!type || (type == 'lists' && !hasOwnLists) || (type == 'xxx' && parentalControlActive)) {
-            type = hasOwnLists ? 'lists' : (publicMode ? 'public' : 'app')
-        }
+        const includeAdult = !!global.lists?.parentalControl?.lazyAuth?.()
+        const onlyFree = publicMode
+        let listChanged = false
         if (!this.channelList ||
-            this.channelList.type != type ||
-            JSON.stringify(this.channelList.countries) != JSON.stringify(countries)) {
-            typeChanged = true
+            JSON.stringify(this.channelList.countries) !== JSON.stringify(countries) ||
+            this.channelList.onlyFree !== onlyFree ||
+            this.channelList.includeAdult !== includeAdult) {
+            listChanged = true
             this.channelList && this.channelList.destroy()
-            this.channelList = new ChannelsList(type, countries)
+            this.channelList = new ChannelsList(countries, { onlyFree, includeAdult })
         }
         const changed = await this.channelList.load(refresh)
         this.loaded = true
         this.emit('loaded', changed)
         this.ready.done()
-        typeChanged && await this.trending.update().catch(err => console.error(err));
-        (typeChanged || changed) && renderer.ready(() => menu.updateHomeFilters())
+        if (listChanged || changed) {
+            await this.trending.update().catch(err => console.error(err))
+            renderer.ready(() => menu.updateHomeFilters())
+        }
     }
 }
 class ChannelsEPG extends ChannelsData {
     constructor() {
         super();
         this.epgStatusTimer = false;
-        this.epgIcon = 'fas fa-th';
+        this.epgIcon = 'fas fa-calendar-alt';
         this.clockIcon = '<i class="fas fa-clock"></i> ';
         renderer.ready(() => {
             const aboutInsertEPGTitle = async (data) => {
@@ -110,7 +110,7 @@ class ChannelsEPG extends ChannelsData {
                     if (!err) {
                         const entries = await this.epgChannelEntries({ name }, null, true)
                         menu.render(entries, lang.EPG, {
-                            icon: 'fas fa-plus', 
+                            icon: 'fas fa-plus',
                             backTo: '/'
                         })
                         renderer.ui.emit('menu-playing')
@@ -140,7 +140,7 @@ class ChannelsEPG extends ChannelsData {
                         let path = menu.path.split('/').filter(s => s != lang.SEARCH).join('/');
                         entries.unshift(this.epgSearchEntry())
                         menu.render(entries, path + '/' + lang.SEARCH, {
-                            icon: 'fas fa-search', 
+                            icon: 'fas fa-search',
                             backTo: path
                         })
                         this.search.history.add(value)
@@ -154,7 +154,7 @@ class ChannelsEPG extends ChannelsData {
         }
     }
     async epgSearch(terms, liveNow) {
-        if (typeof(terms) == 'string') {
+        if (typeof (terms) == 'string') {
             terms = global.lists.tools.terms(terms)
         }
         const entries = []
@@ -182,9 +182,9 @@ class ChannelsEPG extends ChannelsData {
                 details: ch + ' | ' + at(p),
                 type: 'action',
                 fa: 'fas fa-play-circle',
-                programme: { 
-                    start: p.start, 
-                    channel: ch, 
+                programme: {
+                    start: p.start,
+                    channel: ch,
                     icon: epgIcon,
                     age: p.age || 0,
                     parental: p.parental || 'no',
@@ -205,21 +205,21 @@ class ChannelsEPG extends ChannelsData {
         ret.terms = this.expandTerms(ret.terms)
         return ret;
     }
-    async epgChannel(e, limit) {        
-        if (typeof(limit) != 'number')
+    async epgChannel(e, limit) {
+        if (typeof (limit) != 'number')
             limit = 72;
         let data = this.epgPrepareSearch(e);
         return global.lists.epgChannelsList(data, limit);
     }
     async epgChannelEntries(e, limit, detached) {
-        if (typeof(limit) != 'number') {
+        if (typeof (limit) != 'number') {
             limit = 72
         }
         let data = this.epgPrepareSearch(e)
         const epgData = await global.lists.epgChannelsList(data, limit)
         let centries = []
         if (epgData) {
-            if (typeof(epgData[0]) != 'string') {
+            if (typeof (epgData[0]) != 'string') {
                 centries = this.epgDataToEntries(epgData, data.name, data.terms)
             }
         }
@@ -249,7 +249,7 @@ class ChannelsEPG extends ChannelsData {
         return ret;
     }
     async epgChannelLiveNowAndNextInfo(entry) {
-        if (!global.lists?.epg?.loaded) throw 'epg not loaded'        
+        if (!global.lists?.epg?.loaded) throw 'epg not loaded'
         const channel = this.epgPrepareSearch(entry)
         const info = await global.lists.getLiveNowAndNext(channel, { limit: 2 })
         if (!info || !Array.isArray(info.programmes) || !info.programmes.length) {
@@ -273,9 +273,9 @@ class ChannelsEPG extends ChannelsData {
     }
     async epgChannelsLiveNow(entries) {
         let ret = {}
-        if(!entries.length || !global.lists?.epg?.loaded) {
+        if (!entries.length || !global.lists?.epg?.loaded) {
             return ret
-        }  
+        }
         const chs = entries.map(e => this.epgPrepareSearch(e))
         const epgData = await global.lists.getLiveNowAndNext(chs, { limit: 2 })
         const nowTs = Date.now() / 1000
@@ -300,7 +300,7 @@ class ChannelsEPG extends ChannelsData {
         if (!err && epg) {
             entries.forEach((e, i) => {
                 const name = e.isChannel ? e.isChannel.name : (e.originalName || e.name)
-                if (typeof(epg[name]) != 'undefined' && epg[name].title) {
+                if (typeof (epg[name]) != 'undefined' && epg[name].title) {
                     if (entries[i].details) {
                         if (!entries[i].details.includes(epg[name].title)) {
                             entries[i].details += ' &middot; ' + epg[name].title
@@ -325,7 +325,7 @@ class ChannelsEPG extends ChannelsData {
             }
         };
     }
-    async adjustEPGChannelEntryRenderer(e, detached) {        
+    async adjustEPGChannelEntryRenderer(e, detached) {
         const terms = this.entryTerms(e).filter(t => !t.startsWith('-'));
         const options = [], results = await global.lists.epgSearchChannel(terms, 99)
         Object.keys(results).forEach(name => {
@@ -333,7 +333,7 @@ class ChannelsEPG extends ChannelsData {
             if (!keys.length)
                 return;
             let details = results[name][keys[0]].title;
-            details += '&nbsp;<span style="opacity: var(--opacity-level-3);">&middot;</span> <i class="fas fa-th" aria-hidden="true"></i> '+ keys.length
+            details += '&nbsp;<span style="opacity: var(--opacity-level-3);">&middot;</span> <i class="fas fa-th" aria-hidden="true"></i> ' + keys.length
             options.push({
                 name,
                 details,
@@ -349,7 +349,7 @@ class ChannelsEPG extends ChannelsData {
                         delete map[e.name];
                     }
                     config.set('epg-map', map);
-                    if (detached) {                        
+                    if (detached) {
                         global.streamer.aboutTrigger('epg-more').catch(err => console.error(err));
                     } else {
                         menu.back(null, true);
@@ -373,7 +373,7 @@ class ChannelsEPG extends ChannelsData {
     }
     epgProgramAction(start, ch, programme, terms, icon) {
         const now = (Date.now() / 1000);
-        
+
         if (programme.end < now) { // missed
             let text = lang.START_DATE + ': ' + moment(start * 1000).format('L LT') + '<br />' + lang.ENDED + ': ' + moment(programme.end * 1000).format('L LT');
             if (programme.categories && programme.categories.length) {
@@ -487,7 +487,8 @@ class ChannelsEditing extends ChannelsEPG {
             if (category) {
                 const name = o.originalName || o.name;
                 entries.push(...[
-                    { name: lang.RENAME, type: 'input', details: name, value: name, action: (data, val) => {
+                    {
+                        name: lang.RENAME, type: 'input', details: name, value: name, action: (data, val) => {
                             const category = _category;
                             const name = o.originalName || o.name;
                             console.warn('RENAME', name, 'TO', val, category);
@@ -515,11 +516,13 @@ class ChannelsEditing extends ChannelsEPG {
                                     }).catch(err => console.error(err));
                                 }
                             }
-                        } },
-                    { name: lang.SEARCH_TERMS, type: 'input', value: () => {
+                        }
+                    },
+                    {
+                        name: lang.SEARCH_TERMS, type: 'input', value: () => {
                             let t = (o.terms || e.terms || terms)
-                            if(t && t.name) {
-                                t = t.name    
+                            if (t && t.name) {
+                                t = t.name
                             }
                             t = Array.isArray(t) ? t.join(' ') : name
                             return t
@@ -546,8 +549,10 @@ class ChannelsEditing extends ChannelsEPG {
                                 await this.channelList.save()
                                 menu.refreshNow()
                             }
-                        } },
-                    { name: lang.REMOVE, fa: 'fas fa-trash', type: 'action', details: o.name, action: async () => {
+                        }
+                    },
+                    {
+                        name: lang.REMOVE, fa: 'fas fa-trash', type: 'action', details: o.name, action: async () => {
                             const category = _category;
                             console.warn('REMOVE', name);
                             if (!this.channelList.categories[category]) {
@@ -560,7 +565,8 @@ class ChannelsEditing extends ChannelsEPG {
                             await this.channelList.save();
                             menu.refresh(true, menu.dirname(menu.dirname(menu.path)));
                             osd.show(lang.CHANNEL_REMOVED, 'fas fa-check-circle', 'channels', 'normal');
-                        } }
+                        }
+                    }
                 ]);
             }
             return entries;
@@ -572,7 +578,8 @@ class ChannelsEditing extends ChannelsEPG {
         return e;
     }
     getCategoryEntry() {
-        return { name: lang.ADD_CATEGORY, fa: 'fas fa-plus-square', type: 'input', action: async (data, val) => {
+        return {
+            name: lang.ADD_CATEGORY, fa: 'fas fa-plus-square', type: 'input', action: async (data, val) => {
                 let categories = this.channelList.getCategories();
                 if (val && !categories.map(c => c.name).includes(val)) {
                     console.warn('ADD', val);
@@ -582,7 +589,8 @@ class ChannelsEditing extends ChannelsEPG {
                     delete menu.pages[lang.LIVE];
                     menu.open(lang.LIVE + '/' + val + '/' + lang.EDIT_CATEGORY + '/' + lang.EDIT_CHANNELS).catch(e => menu.displayErr(e));
                 }
-            } };
+            }
+        };
     }
     editCategoriesEntry() {
         return {
@@ -605,7 +613,8 @@ class ChannelsEditing extends ChannelsEPG {
             this.disableWatchNowAuto = true;
             let entries = [
                 this.addChannelEntry(category, false),
-                { name: lang.EDIT_CHANNELS, fa: 'fas fa-th', details: cat.name, type: 'group', renderer: () => {
+                {
+                    name: lang.EDIT_CHANNELS, fa: 'fas fa-th', details: cat.name, type: 'group', renderer: () => {
                         return new Promise((resolve, reject) => {
                             let entries = c.entries.map(e => {
                                 return this.editChannelEntry(e, cat.name, {});
@@ -613,10 +622,12 @@ class ChannelsEditing extends ChannelsEPG {
                             entries.unshift(this.addChannelEntry(cat));
                             resolve(entries);
                         });
-                    } },
-                { name: lang.RENAME_CATEGORY, fa: 'fas fa-edit', type: 'input', details: cat.name, value: cat.name, action: async (e, val) => {
+                    }
+                },
+                {
+                    name: lang.RENAME_CATEGORY, fa: 'fas fa-edit', type: 'input', details: cat.name, value: cat.name, action: async (e, val) => {
                         console.warn('RENAME', cat.name, 'TO', val);
-                        if (val && val != cat.name && typeof(this.channelList.categories[val]) == 'undefined') {
+                        if (val && val != cat.name && typeof (this.channelList.categories[val]) == 'undefined') {
                             let o = this.channelList.categories[cat.name];
                             delete this.channelList.categories[cat.name];
                             this.channelList.categories[val] = o;
@@ -625,13 +636,16 @@ class ChannelsEditing extends ChannelsEPG {
                             menu.refresh(true, destPath);
                             osd.show(lang.CATEGORY_RENAMED, 'fas fa-check-circle', 'channels', 'normal');
                         }
-                    } },
-                { name: lang.REMOVE_CATEGORY, fa: 'fas fa-trash', type: 'action', details: cat.name, action: async () => {
+                    }
+                },
+                {
+                    name: lang.REMOVE_CATEGORY, fa: 'fas fa-trash', type: 'action', details: cat.name, action: async () => {
                         delete this.channelList.categories[cat.name];
                         await this.channelList.save();
                         menu.open(lang.LIVE).catch(e => menu.displayErr(e));
                         osd.show(lang.CATEGORY_REMOVED, 'fas fa-check-circle', 'channels', 'normal');
-                    } }
+                    }
+                }
             ];
             console.warn('editcat entries', entries);
             return entries;
@@ -692,28 +706,26 @@ class ChannelsAutoWatchNow extends ChannelsEditing {
 class ChannelsKids extends ChannelsAutoWatchNow {
     constructor() {
         super()
-        renderer.ready(() => {            
-            lang.ready().catch(err => console.error(err)).finally(() => {
-                menu.addFilter(async (entries, path) => {
-                    const term = lang.CATEGORY_KIDS; // lang can change in runtime, check the term here so
-                    if (path.endsWith(term)) {
-                        entries = entries.map(e => {
-                            if (!(e.rawname || e.name).includes('[') && ((!e.type || e.type == 'stream') ||
-                                (e.class && e.class.includes('entry-meta-stream')))) {
-                                e.rawname = '[fun]' + e.name + '[|fun]';
-                            }
-                            return e;
-                        });
-                    } else if ([lang.LIVE, lang.CATEGORY_MOVIES_SERIES].includes(path)) {
-                        entries = entries.map(e => {
-                            if (!(e.rawname || e.name).includes('[') && e.name == term) {
-                                e.rawname = '[fun]' + e.name + '[|fun]';
-                            }
-                            return e;
-                        });
-                    }
-                    return entries;
-                });
+        renderer.ready(() => {
+            menu.addFilter(async (entries, path) => {
+                const term = lang.CATEGORY_KIDS; // lang can change in runtime, check the term here so
+                if (path.endsWith(term)) {
+                    entries = entries.map(e => {
+                        if (!(e.rawname || e.name).includes('[') && ((!e.type || e.type == 'stream') ||
+                            (e.class && e.class.includes('entry-meta-stream')))) {
+                            e.rawname = '[fun]' + e.name + '[|fun]';
+                        }
+                        return e;
+                    });
+                } else if ([lang.LIVE, lang.CATEGORY_MOVIES_SERIES].includes(path)) {
+                    entries = entries.map(e => {
+                        if (!(e.rawname || e.name).includes('[') && e.name == term) {
+                            e.rawname = '[fun]' + e.name + '[|fun]';
+                        }
+                        return e;
+                    });
+                }
+                return entries;
             });
         });
     }
@@ -734,16 +746,16 @@ class Channels extends ChannelsKids {
                 try {
                     // Validate tasks before passing to setUserTasks
                     const validTasks = tasks.filter(task => {
-                        return task && 
-                               typeof task === 'object' &&
-                               typeof task.arguments === 'string' &&
-                               typeof task.title === 'string' &&
-                               typeof task.description === 'string' &&
-                               typeof task.program === 'string' &&
-                               typeof task.iconPath === 'string' &&
-                               typeof task.iconIndex === 'number'
+                        return task &&
+                            typeof task === 'object' &&
+                            typeof task.arguments === 'string' &&
+                            typeof task.title === 'string' &&
+                            typeof task.description === 'string' &&
+                            typeof task.program === 'string' &&
+                            typeof task.iconPath === 'string' &&
+                            typeof task.iconIndex === 'number'
                     })
-                    
+
                     if (validTasks.length > 0 && !app.setUserTasks(validTasks)) {
                         throw new Error('Failed to set user tasks. ' + JSON.stringify(validTasks))
                     }
@@ -755,7 +767,7 @@ class Channels extends ChannelsKids {
         }
         const limit = 12
         const entries = []
-        
+
         // Safely get bookmarks
         try {
             const bookmarks = this.bookmarks.get()
@@ -765,7 +777,7 @@ class Channels extends ChannelsKids {
         } catch (err) {
             console.error('Error getting bookmarks:', err)
         }
-        
+
         if (entries.length < limit) {
             // Safely get history
             try {
@@ -782,7 +794,7 @@ class Channels extends ChannelsKids {
             } catch (err) {
                 console.error('Error getting history:', err)
             }
-            
+
             // Safely get trending entries
             if (entries.length < limit && this.trending && Array.isArray(this.trending.currentEntries)) {
                 try {
@@ -798,18 +810,18 @@ class Channels extends ChannelsKids {
                 }
             }
         }
-        
+
         const tasks = entries.map(entry => {
             // Validate entry data more thoroughly
-            if (!entry || 
+            if (!entry ||
                 typeof entry !== 'object' ||
-                !entry.url || 
+                !entry.url ||
                 typeof entry.url !== 'string' ||
-                !entry.name || 
+                !entry.name ||
                 typeof entry.name !== 'string') {
                 return null;
             }
-            
+
             // Ensure all required fields are properly formatted
             return {
                 arguments: '"' + String(entry.url).replace(/"/g, '\\"') + '"',
@@ -820,12 +832,13 @@ class Channels extends ChannelsKids {
                 iconIndex: 0
             }
         }).filter(task => task !== null); // Remove invalid tasks
-        
+
         if (tasks.length > 0) {
             try {
                 await storage.set('user-tasks', tasks, {
                     expiration: true,
-                    permanent: true
+                    permanent: true,
+                    personal: true  // mark as personal to avoid sync issues between users on the same machine
                 })
             } catch (err) {
                 console.error('Error saving user tasks:', err)
@@ -833,7 +846,7 @@ class Channels extends ChannelsKids {
         }
     }
     async goChannelWebsite(name) {
-        if (!name) {            
+        if (!name) {
             if (global.streamer.active) {
                 name = global.streamer.active.data.originalName || global.streamer.active.data.name
             } else {
@@ -883,19 +896,19 @@ class Channels extends ChannelsKids {
         // partial=true will match "starts with" terms too
         // the difference from global.lists.tools.match() is that cmatch will check partials from stackTerms instead
         //console.log(needleTerms, stackTerms)
-        
+
         // Ensure needleTerms is an array
         if (!Array.isArray(needleTerms)) {
             console.warn('cmatch: needleTerms is not an array:', needleTerms);
             return 0;
         }
-        
+
         // Ensure stackTerms is an array
         if (!Array.isArray(stackTerms)) {
             console.warn('cmatch: stackTerms is not an array:', stackTerms);
             return 0;
         }
-        
+
         if (needleTerms.includes('|')) {
             let needles = needleTerms.join(' ').split('|').map(s => s.trim()).filter(s => s).map(s => s.split(' '));
             let score = 0;
@@ -958,9 +971,9 @@ class Channels extends ChannelsKids {
         }
         return 0;
     }
-    isChannel(terms) {        
-        if(!this.channelList || !terms) return
-        if(terms.isChannel) return terms.isChannel
+    isChannel(terms) {
+        if (!this.channelList || !terms) return
+        if (terms.isChannel) return terms.isChannel
 
         let tms, tmsKey, chs = this.channelList.channelsIndex || {};
         if (Array.isArray(terms)) {
@@ -969,11 +982,11 @@ class Channels extends ChannelsKids {
             if (this.channelList.isChannelCache[tmsKey])
                 return this.channelList.isChannelCache[tmsKey];
         } else {
-            tms = typeof(terms) == 'string' ? global.lists.tools.terms(terms) : this.entryTerms(terms, true)
+            tms = typeof (terms) == 'string' ? global.lists.tools.terms(terms) : this.entryTerms(terms, true)
             tmsKey = tms.join(' ')
             if (this.channelList.isChannelCache[tmsKey])
                 return this.channelList.isChannelCache[tmsKey]; // before terms()
-            if (typeof(chs[terms]) != 'undefined') {
+            if (typeof (chs[terms]) != 'undefined') {
                 tms = chs[terms]
             }
         }
@@ -988,8 +1001,9 @@ class Channels extends ChannelsKids {
             }
         });
         if (chosenScore > 1) {
-            if (typeof(this.channelList.isChannelCache[chosen]) == 'undefined') {
+            if (typeof (this.channelList.isChannelCache[chosen]) == 'undefined') {
                 let alts = {}, excludes = [], chTerms = clone(chs[chosen]?.name || chs[chosen]);
+                if (!Array.isArray(chTerms)) chTerms = [];
                 Object.keys(chs).forEach(name => {
                     if (name == chosen)
                         return;
@@ -1000,36 +1014,40 @@ class Channels extends ChannelsKids {
                 });
                 const skipChrs = ['-', '|'];
                 Object.keys(alts).forEach(n => {
-                    excludes.push(...alts[n].filter(t => {
-                        return !skipChrs.includes(t.charAt(0)) && !chTerms.includes(t);
-                    }));
+                    if (alts[n] && Array.isArray(alts[n])) {
+                        excludes.push(...alts[n].filter(t => {
+                            return !skipChrs.includes(t.charAt(0)) && !chTerms.includes(t);
+                        }));
+                    }
                 });
                 excludes = excludes.unique();
                 const seemsRadio = chTerms.some(c => this.radioTerms.includes(c));
-                chTerms = chTerms.join(' ').split(' | ').map(s => s.split(' ')).filter(s => s).map(t => {
-                    t.push(...excludes.map(s => '-' + s));
-                    if (!seemsRadio) {
-                        this.radioTerms.forEach(rterm => {
-                            if (!t.some(cterm => cterm.substr(0, rterm.length) == rterm)) { // this radio term can mess with our search (specially AM)
-                                t.push('-' + rterm);
-                            }
-                        });
-                    }
-                    return t;
-                }).map(s => s.join(' ')).join(' | ').split(' ');
+                if (chTerms.length > 0) {
+                    chTerms = chTerms.join(' ').split(' | ').map(s => s.split(' ')).filter(s => s).map(t => {
+                        t.push(...excludes.map(s => '-' + s));
+                        if (!seemsRadio) {
+                            this.radioTerms.forEach(rterm => {
+                                if (!t.some(cterm => cterm.substr(0, rterm.length) == rterm)) { // this radio term can mess with our search (specially AM)
+                                    t.push('-' + rterm);
+                                }
+                            });
+                        }
+                        return t;
+                    }).map(s => s.join(' ')).join(' | ').split(' ');
+                }
                 this.channelList.isChannelCache[chosen] = { name: chosen, terms: chTerms, alts, excludes };
             }
             if (tmsKey != chosen) {
                 this.channelList.isChannelCache[tmsKey] = this.channelList.isChannelCache[chosen]
             }
-            if(typeof(terms) == 'object' && !Array.isArray(terms)) {
+            if (typeof (terms) == 'object' && !Array.isArray(terms)) {
                 terms.isChannel = this.channelList.isChannelCache[chosen]
             }
             return this.channelList.isChannelCache[chosen]
         }
     }
     expandTerms(terms) {
-        if (typeof(terms) == 'string') {
+        if (typeof (terms) == 'string') {
             terms = global.lists.tools.terms(terms)
         }
         let ch = this.isChannel(terms)
@@ -1038,18 +1056,21 @@ class Channels extends ChannelsKids {
         }
         return terms;
     }
-    async get(terms) {        
-        if (typeof(terms) == 'string') {
-            terms = global.lists.tools.terms(terms);
-        }
-        console.warn('channels.get', terms);
-        let entries = await global.lists.search(terms, {
-            safe: !global.lists.parentalControl.lazyAuth(),
-            type: 'live',
-            limit: 1024
-        })
-        await this.trending.order(entries).then(es => entries = es).catch(err => console.error(err));
-        return entries;
+    async get(terms) {
+        // Track channels.get() to detect hangs - this is called when opening metaEntry dialog
+        return trackPromise((async () => {
+            if (typeof (terms) == 'string') {
+                terms = global.lists.tools.terms(terms);
+            }
+            console.warn('channels.get', terms);
+            let entries = await global.lists.search(terms, {
+                safe: !global.lists.parentalControl.lazyAuth(),
+                type: 'live',
+                limit: 1024
+            })
+            await this.trending.order(entries).then(es => entries = es).catch(err => console.error(err));
+            return entries;
+        })(), `channels.get(${typeof terms === 'string' ? terms : 'terms'})`, 15000)
     }
     async searchChannels(terms, partial) {
         if (typeof (terms) == 'string') {
@@ -1111,177 +1132,189 @@ class Channels extends ChannelsKids {
     }
     entryTerms(e, expand) {
         let terms
-        if (typeof(e.nameTerms) != 'undefined' && Array.isArray(e.nameTerms) && e.nameTerms.length) {
+        if (typeof (e.nameTerms) != 'undefined' && Array.isArray(e.nameTerms) && e.nameTerms.length) {
             terms = e.nameTerms
-        } else if (typeof(e.terms) != 'undefined' && Array.isArray(e.terms) && e.terms.length) { // channel entry
+        } else if (typeof (e.terms) != 'undefined' && Array.isArray(e.terms) && e.terms.length) { // channel entry
             terms = e.terms
         } else if (e.originalName) {
             terms = global.lists.tools.terms(e.originalName)
         } else {
             terms = global.lists.tools.terms(e.programme ? e.programme.channel : e.name);
         }
-        if(expand && !e.expanded) {
+        if (expand && !e.expanded) {
             terms = this.expandTerms(terms)
             e.expanded = true
         }
-        if(!e.nameTerms) {
+        if (!e.nameTerms) {
             e.nameTerms = terms
         }
         return terms
     }
     async toMetaEntryRenderer(e, _category, epgNow) {
-        let category, channelName = e.originalName || (e.programme ? e.programme.channel : (e.originalName || e.name));
-        if (_category === false) {
-            category = false;
-        } else if (_category && typeof(_category) == 'string') {
-            category = _category;
-        } else if (_category && typeof(_category) == 'object') {
-            category = _category.name;
-        } else {
-            let c = this.getChannelCategory(e.originalName || e.name);
-            if (c) {
-                category = c;
-            } else {
+        // Track toMetaEntryRenderer() to detect hangs - this opens the metaEntry dialog
+        // Get channelName before wrapping to use in tracking name
+        const channelNameForTracking = e.originalName || (e.programme ? e.programme.channel : (e.originalName || e.name));
+        return trackPromise((async () => {
+            let category, channelName = channelNameForTracking;
+            if (_category === false) {
                 category = false;
-            }
-        }
-        let terms = this.entryTerms(e, true), streamsEntry, epgEntry, entries = [], moreOptions = [], url = e.url;       
-        let name = channelName
-        if(!url || !url.match(new RegExp('mediaType=(video|audio|all)'))) {
-            const ch = this.isChannel(name);
-            if (ch) {
-                channelName = name = ch.name;
-                terms = ch.terms;
-            }
-            e.url = url = mega.build(name, { terms });
-        }
-        const autoplay = this.autoplay(), streams = await this.get(terms);
-        streams.forEach((e, i) => {
-            if (!streams[i].group) {
-                streams[i].group = category;
-            }
-        });
-        if (autoplay) {
-            if (streams.length) {                
-                global.streamer.play(e, streams);
-                return -1;
+            } else if (_category && typeof (_category) == 'string') {
+                category = _category;
+            } else if (_category && typeof (_category) == 'object') {
+                category = _category.name;
             } else {
-                throw lang.NONE_STREAM_FOUND;
-            }
-        } else {            
-            if (streams.length) {
-                let call = global.lists.mi.isRadio(channelName + ' ' + category) ? lang.LISTEN_NOW : lang.WATCH_NOW;
-                entries.push({
-                    name: call,
-                    type: 'action',
-                    fa: 'fas fa-play-circle faclr-green',
-                    url,
-                    group: category,
-                    action: data => {                        
-                        data.name = e.name;
-                        global.streamer.play(data, streams);
-                        this.watchNowAuto = menu.path;
-                    }
-                })
-                streamsEntry = {
-                    name: lang.STREAMS + ' (' + streams.length + ')',
-                    type: 'group',
-                    renderer: async () => streams
-                }
-                epgEntry = {
-                    name: lang.EPG,
-                    type: 'group',
-                    fa: this.epgIcon,
-                    details: (epgNow && epgNow != category) ? epgNow : '',
-                    renderer: this.epgChannelEntries.bind(this, e)
-                }
-            } else {
-                const loaded = global.lists.loaded(true)
-                const name = loaded ? lang.NONE_STREAM_FOUND : lang.NO_LISTS_ADDED;
-                entries.push(Object.assign(this.emptyEntry, {
-                    name,
-                    fa: 'fas fa-exclamation-triangle faclr-red'
-                }));
-                if (global.lists.activeLists.my.length) {
-                    global.lists.manager.checkListExpiral(global.lists.activeLists.my.map(source => ({ source }))).catch(err => console.error(err));
+                let c = this.getChannelCategory(e.originalName || e.name);
+                if (c) {
+                    category = c;
+                } else {
+                    category = false;
                 }
             }
-        }
-        if (entries.length) {
-            let bookmarkable = { name: channelName, type: 'stream', label: e.group || '', url };
-            if (this.bookmarks.has(bookmarkable)) {
-                entries.push({
-                    type: 'action',
-                    fa: 'fas fa-star-half',
-                    name: lang.REMOVE_FROM.format(lang.BOOKMARKS),
-                    action: () => {
-                        this.bookmarks.remove(bookmarkable);
-                        menu.refreshNow();
-                        osd.show(lang.BOOKMARK_REMOVED.format(bookmarkable.name), 'fas fa-star-half', 'bookmarks', 'normal');
-                    }
-                });
+            let terms = this.entryTerms(e, true), streamsEntry, epgEntry, entries = [], moreOptions = [], url = e.url;
+            let name = channelName
+            if (!url || !url.match(new RegExp('mediaType=(video|audio|all)'))) {
+                const ch = this.isChannel(name);
+                if (ch) {
+                    channelName = name = ch.name;
+                    terms = ch.terms;
+                }
+                e.url = url = mega.build(name, { terms });
+            }
+            const autoplay = this.autoplay()
+
+            // Track channels.get() which can be slow
+            const streams = await trackPromise(this.get(terms), `channels.get(${name})`, 15000);
+            streams.forEach((e, i) => {
+                if (!streams[i].group) {
+                    streams[i].group = category;
+                }
+            });
+            if (autoplay) {
+                if (streams.length) {
+                    global.streamer.play(e, streams);
+                    return -1;
+                } else {
+                    throw lang.NONE_STREAM_FOUND;
+                }
             } else {
-                entries.push({
-                    type: 'action',
-                    fa: 'fas fa-star',
-                    name: lang.ADD_TO.format(lang.BOOKMARKS),
-                    action: () => {
-                        this.bookmarks.add(bookmarkable);
-                        menu.refreshNow();
-                        osd.show(lang.BOOKMARK_ADDED.format(bookmarkable.name), 'fas fa-star', 'bookmarks', 'normal');
+                if (streams.length) {
+                    let call = global.lists.mi.isRadio(channelName + ' ' + category) ? lang.LISTEN_NOW : lang.WATCH_NOW;
+                    entries.push({
+                        name: call,
+                        type: 'action',
+                        fa: 'fas fa-play-circle faclr-green',
+                        url,
+                        group: category,
+                        action: data => {
+                            data.name = e.name;
+                            global.streamer.play(data, streams);
+                            this.watchNowAuto = menu.path;
+                        }
+                    })
+                    streamsEntry = {
+                        name: lang.STREAMS + ' (' + streams.length + ')',
+                        type: 'group',
+                        fa: 'fas fa-broadcast-tower',
+                        renderer: async () => streams
                     }
-                });
-            }
-        }
-        if (epgEntry) {
-            entries.push(epgEntry);
-        }
-        if (streamsEntry) {
-            moreOptions.push(this.shareChannelEntry(e));
-            moreOptions.push(streamsEntry);
-        }
-        if (!config.get('channel-grid') && config.get('allow-edit-channel-list')) {
-            const editEntry = this.editChannelEntry(e, category, { name: category ? lang.EDIT_CHANNEL : lang.EDIT, details: undefined, class: 'no-icon', fa: 'fas fa-edit', users: undefined, usersPercentage: undefined, path: undefined, url: undefined });
-            moreOptions.push(editEntry);
-        }
-        moreOptions.push({
-            type: 'action',
-            fa: 'fas fa-globe',
-            name: lang.CHANNEL_WEBSITE,
-            action: () => {
-                this.goChannelWebsite(channelName).catch(e => menu.displayErr(e));
-            }
-        });
-        entries.push({ name: lang.MORE_OPTIONS, type: 'select', fa: 'fas fa-ellipsis-v', entries: moreOptions });
-        return entries.map(e => {
-            if (e.renderer || e.entries) {
-                let originalRenderer = e.renderer || e.entries;
-                e.renderer = data => {
-                    if (data.name != lang.WATCH_NOW) {
-                        this.disableWatchNowAuto = true; // learn that the user is interested in other functions instead of watchNow directly
+                    epgEntry = {
+                        name: lang.EPG,
+                        type: 'group',
+                        fa: this.epgIcon,
+                        details: (epgNow && epgNow != category) ? epgNow : '',
+                        renderer: this.epgChannelEntries.bind(this, e)
                     }
-                    if (Array.isArray(originalRenderer)) {
-                        return new Promise(resolve => resolve(originalRenderer));
-                    } else {
-                        return originalRenderer(data);
+                } else {
+                    const loaded = global.lists.loaded(true)
+                    const name = loaded ? lang.NONE_STREAM_FOUND : lang.NO_LISTS_ADDED;
+                    entries.push(Object.assign(this.emptyEntry, {
+                        name,
+                        fa: 'fas fa-exclamation-triangle faclr-red'
+                    }));
+                    if (global.lists.activeLists.my.length) {
+                        global.lists.manager.checkListExpiral(global.lists.activeLists.my.map(source => ({ source }))).catch(err => console.error(err));
                     }
-                };
+                }
             }
-            if (e.action) {
-                let originalAction = e.action;
-                e.action = data => {
-                    if (data.name != lang.WATCH_NOW) {
-                        this.disableWatchNowAuto = true; // learn that the user is interested in other functions instead of watchNow directly
-                    }
-                    return originalAction(data);
-                };
+            if (entries.length) {
+                let bookmarkable = { name: channelName, type: 'stream', label: e.group || '', url };
+                if (this.bookmarks.has(bookmarkable)) {
+                    entries.push({
+                        type: 'action',
+                        fa: 'fas fa-heart-broken',
+                        name: lang.REMOVE_FROM.format(lang.BOOKMARKS),
+                        action: () => {
+                            this.bookmarks.remove(bookmarkable);
+                            menu.refreshNow();
+                            osd.show(lang.BOOKMARK_REMOVED.format(bookmarkable.name), 'fas fa-heart-broken', 'bookmarks', 'normal');
+                        }
+                    });
+                } else {
+                    entries.push({
+                        type: 'action',
+                        fa: 'fas fa-heart',
+                        name: lang.ADD_TO.format(lang.BOOKMARKS),
+                        action: () => {
+                            this.bookmarks.add(bookmarkable);
+                            menu.refreshNow();
+                            osd.show(lang.BOOKMARK_ADDED.format(bookmarkable.name), 'fas fa-heart', 'bookmarks', 'normal');
+                        }
+                    });
+                }
             }
-            return e;
-        });
+            if (epgEntry) {
+                entries.push(epgEntry);
+            }
+            if (streamsEntry) {
+                moreOptions.push(this.shareChannelEntry(e));
+                moreOptions.push(streamsEntry);
+            }
+            if (config.get('allow-edit-channel-list')) {
+                const editEntry = this.editChannelEntry(e, category, { name: category ? lang.EDIT_CHANNEL : lang.EDIT, details: undefined, class: 'no-icon', fa: 'fas fa-edit', users: undefined, usersPercentage: undefined, path: undefined, url: undefined });
+                moreOptions.push(editEntry);
+            }
+            moreOptions.push({
+                type: 'action',
+                fa: 'fas fa-globe',
+                name: lang.CHANNEL_WEBSITE,
+                action: () => {
+                    this.goChannelWebsite(channelName).catch(e => menu.displayErr(e));
+                }
+            });
+            entries.push({ name: lang.MORE_OPTIONS, type: 'select', fa: 'fas fa-ellipsis-v', entries: moreOptions });
+            return entries.map(e => {
+                if (e.renderer || e.entries) {
+                    let originalRenderer = e.renderer || e.entries;
+                    e.renderer = data => {
+                        if (data.name != lang.WATCH_NOW) {
+                            this.disableWatchNowAuto = true; // learn that the user is interested in other functions instead of watchNow directly
+                        }
+                        if (Array.isArray(originalRenderer)) {
+                            return new Promise(resolve => resolve(originalRenderer));
+                        } else {
+                            return originalRenderer(data);
+                        }
+                    };
+                }
+                if (e.action) {
+                    let originalAction = e.action;
+                    e.action = data => {
+                        if (data.name != lang.WATCH_NOW) {
+                            this.disableWatchNowAuto = true; // learn that the user is interested in other functions instead of watchNow directly
+                        }
+                        return originalAction(data);
+                    };
+                }
+                return e;
+            });
+        })(), `channels.toMetaEntryRenderer(${channelNameForTracking})`, 20000)
     }
     toMetaEntry(e, category, details) {
+        if (!e || typeof e !== 'object') {
+            return { name: 'Invalid Entry', type: 'action', fa: 'fas fa-exclamation-triangle' };
+        }
         let meta = Object.assign({}, e), terms = this.entryTerms(e, true)
-        if (typeof(meta.url) == 'undefined') {
+        if (typeof (meta.url) == 'undefined') {
             let name = e.name
             if (e.programme && e.programme.channel) {
                 name = e.programme.channel
@@ -1305,14 +1338,23 @@ class Channels extends ChannelsKids {
                     class: 'entry-meta-stream',
                     fa: 'fas fa-play-circle',
                     renderer: async () => {
-                        let tms = atts.terms && Array.isArray(atts.terms) ? atts.terms : terms(atts.name);
-                        let es = await global.lists.search(tms, {
-                            type: atts.mediaType,
-                            group: false,
-                            safe: !global.lists.parentalControl.lazyAuth(),
-                            limit: 1024
-                        });
-                        return es;
+                        try {
+                            const timeoutPromise = new Promise((_, reject) =>
+                                setTimeout(() => reject(new Error('Search timeout')), 10000)
+                            );
+                            return await Promise.race([
+                                global.lists.search(tms, {
+                                    type: atts.mediaType,
+                                    group: false,
+                                    safe: !global.lists.parentalControl.lazyAuth(),
+                                    limit: 1024
+                                }),
+                                timeoutPromise
+                            ]);
+                        } catch (error) {
+                            ErrorHandler.warn('Search failed in toMetaEntry renderer:', error.message);
+                            return []; // Return empty array to prevent hanging
+                        }
                     }
                 });
             } else {
@@ -1334,8 +1376,8 @@ class Channels extends ChannelsKids {
     }
     async keywords() {
         let err, keywords = [], badChrs = ['|', '-']
-        if(this.channelList) {
-            const data = await this.channelList.getAppRecommendedCategories().catch(e => err = e)
+        if (this.channelList) {
+            const data = await this.channelList.get().catch(e => err = e)
             if (!err) {
                 keywords.push(...Object.values(data).flat().map(n => this.channelList.expandName(n).terms).flat())
             }
@@ -1343,35 +1385,17 @@ class Channels extends ChannelsKids {
         }
         return keywords
     }
-    async setGridType(type) {
-        const busy = menu.setBusy(lang.LIVE +'/' + lang.CHOOSE_CHANNEL_GRID)
-        osd.show(lang.PROCESSING, 'fa-mega busy-x', 'channel-grid', 'persistent');
-        config.set('channel-grid', type);
-        let err;
-        await this.load(true).catch(e => err = e);
-        if (err) {
-            busy.release()
-            return osd.show(err, 'fas fa-exclamation-triangle faclr-red', 'channel-grid', 'normal')
-        }
-        this.emit('channel-grid-updated')
-        const position = menu.path.indexOf(lang.EPG)
-        const target = (position != -1) ? menu.path.substring(0, position + lang.EPG.length) : lang.LIVE
-        await menu.open(target).catch(e => menu.displayErr(e))
-        busy.release()
-        osd.show('OK', 'fas fa-check-circle faclr-green', 'channel-grid', 'normal')
-    }
     async entries() {
         if (!global.lists.loaded()) {
             return [global.lists.manager.updatingListsEntry()];
         }
-        if(!this.channelList) {
+        if (!this.channelList) {
             throw new Error('Channel list not loaded')
         }
         let list
-        const publicMode = config.get('public-lists') && !(paths.ALLOW_ADDING_LISTS && global.lists.loaded(true)); // no list available on index beyound public lists
-        const type = publicMode ? 'public' : config.get('channel-grid');
-        const editable = !type && config.get('allow-edit-channel-list');
-        const categories = await this.channelList.getCategories();
+        const publicMode = config.get('public-lists') && !(paths.ALLOW_ADDING_LISTS && global.lists.loaded(true))
+        const editable = config.get('allow-edit-channel-list')
+        const categories = await this.channelList.getCategories()
         if (publicMode) {
             list = []
             for (const category of Object.keys(categories)) {
@@ -1388,11 +1412,11 @@ class Channels extends ChannelsKids {
                     const start = Date.now();
                     console.log('category.renderer', category.name, Date.now() - start);
                     let chs = category.entries.map(e => this.isChannel(e.name)).filter(e => !!e);
-                    
+
                     // Add timeout to prevent hanging on slow lists.has() calls
                     let ret = {};
                     try {
-                        const timeoutPromise = new Promise((_, reject) => 
+                        const timeoutPromise = new Promise((_, reject) =>
                             setTimeout(() => reject(new Error(`lists.has timeout for category ${category.name}`)), 30000)
                         );
                         ret = await Promise.race([
@@ -1401,19 +1425,19 @@ class Channels extends ChannelsKids {
                         ]);
                     } catch (err) {
                         const isTimeout = err.message && err.message.includes('timeout');
-                        const errorMsg = isTimeout 
+                        const errorMsg = isTimeout
                             ? `Timeout checking availability of channels in category "${category.name}". The operation took more than 30 seconds.`
                             : `Error checking availability of channels in category "${category.name}": ${err.message}`;
-                        
+
                         console.warn(`category.renderer timeout/error for ${category.name}:`, err.message);
-                        
+
                         // Show informative error message to user
                         global.menu.displayErr(errorMsg);
-                        
+
                         // Return empty result on timeout/error to prevent hanging
                         ret = {};
                     }
-                    
+
                     console.log('global.lists.has', category.name, Date.now() - start);
                     let entries = category.entries.filter(e => ret[e.name]);
                     console.log('category.entries.filter', category.name, Date.now() - start);
@@ -1430,16 +1454,16 @@ class Channels extends ChannelsKids {
             list = global.lists.tools.sort(list);
             list.push(this.allCategoriesEntry());
         }
-        editable && !publicMode && list.push(this.getCategoryEntry());
-        publicMode || list.unshift(this.chooseChannelGridOption());
-        publicMode && paths.ALLOW_ADDING_LISTS && list.unshift(global.lists.manager.noListsEntry());
+        editable && !publicMode && list.push(this.getCategoryEntry())
+        publicMode || list.unshift(this.exportImportOption())
+        publicMode && paths.ALLOW_ADDING_LISTS && list.unshift(global.lists.manager.noListsEntry())
         return list;
     }
     allCategoriesEntry() {
         return {
             name: lang.ALL_CHANNELS,
             type: 'group',
-            renderer: async () => {                
+            renderer: async () => {
                 let entries = [], already = {};
                 for (const category of this.channelList.getCategories()) {
                     category.entries.map(e => this.isChannel(e.name)).filter(e => {
@@ -1457,53 +1481,12 @@ class Channels extends ChannelsKids {
             }
         };
     }
-    chooseChannelGridOption(epgFocused) {
-        return {
-            name: lang.CHOOSE_CHANNEL_GRID,
-            type: 'select',
-            fa: 'fas fa-th',
-            renderer: async () => {
-                const def = config.get('channel-grid'), opts = [
-                    { name: lang.AUTO + ' (' + lang.RECOMMENDED + ')', type: 'action', selected: !def, action: () => {
-                            this.setGridType('').catch(err => console.error(err));
-                        } },
-                    { name: lang.DEFAULT, type: 'action', selected: def == 'app', action: () => {
-                            this.setGridType('app').catch(err => console.error(err));
-                        } },
-                    { name: lang.EPG, type: 'action', selected: def == 'epg', action: () => {
-                            this.setGridType('epg').catch(err => console.error(err));
-                        } },
-                    { name: lang.PUBLIC_LISTS, type: 'action', selected: def == 'public', action: () => {
-                            this.setGridType('public').catch(err => console.error(err));
-                        } }
-                ];
-                if (epgFocused !== true) {
-                    if (config.get('lists').length) {
-                        opts.push({
-                            name: lang.MY_LISTS, type: 'action',
-                            selected: def == 'lists',
-                            action: () => {
-                                this.setGridType('lists').catch(err => console.error(err));
-                            }
-                        });
-                    }
-                    opts.push(this.exportImportOption());
-                }
-                if (config.get('parental-control') != 'remove' && global.lists.parentalControl.lazyAuth()) {
-                    opts.splice(opts.length - 2, 0, { name: lang.ADULT_CONTENT, type: 'action', selected: def == 'xxx', action: () => {
-                        this.setGridType('xxx').catch(err => console.error(err))
-                    }})
-                }
-                return opts;
-            }
-        };
-    }
-    sortCategoryEntries(entries) {        
+    sortCategoryEntries(entries) {
         entries = global.lists.tools.sort(entries);
         const policy = config.get('channels-list-smart-sorting')
         const adjust = e => {
-            if(e.programme && e.programme.title) {
-                if(!e.originalName) {
+            if (e.programme && e.programme.title) {
+                if (!e.originalName) {
                     e.originalName = e.name
                 }
                 e.details = e.name
@@ -1544,7 +1527,7 @@ class Channels extends ChannelsKids {
         console.log('Categories file', data);
         try {
             data = parse(data);
-            if (typeof(data) == 'object') {
+            if (typeof (data) == 'object') {
                 this.channelList.setCategories(data);
                 osd.show('OK', 'fas fa-check-circle faclr-green', 'options', 'normal');
             } else {
@@ -1569,7 +1552,7 @@ class Channels extends ChannelsKids {
                         let err
                         const filename = 'categories.json', file = downloads.folder + '/' + filename
                         const json = JSON.stringify(this.channelList.getCategories(true), null, 3)
-                        if(json) {
+                        if (json) {
                             await fs.promises.writeFile(file, json, { encoding: 'utf-8' }).catch(e => err = e)
                             if (err) return menu.displayErr(err)
                             downloads.serve(file, true, false).catch(e => menu.displayErr(e))
@@ -1583,7 +1566,6 @@ class Channels extends ChannelsKids {
                     type: 'action',
                     fa: 'fas fa-file-import',
                     action: async () => {
-                        config.set('channel-grid', '');                        
                         const file = await menu.chooseFile('application/json');
                         this.importFile(await fs.promises.readFile(file));
                     }
@@ -1603,9 +1585,9 @@ class Channels extends ChannelsKids {
         };
     }
     options() {
-        return new Promise((resolve, reject) => {            
+        return new Promise((resolve, reject) => {
             let entries = [];
-            if (!config.get('channel-grid') && config.get('allow-edit-channel-list')) {
+            if (config.get('allow-edit-channel-list')) {
                 entries.push(this.editCategoriesEntry());
             }
             entries.push(this.exportImportOption());
@@ -1651,15 +1633,21 @@ class Channels extends ChannelsKids {
                     renderer: () => {
                         return new Promise((resolve, reject) => {
                             let def = config.get('channels-list-smart-sorting'), opts = [
-                                { name: lang.FOCUS_ON_TV_SHOWS, type: 'action', selected: (def == 0), action: () => {
+                                {
+                                    name: lang.FOCUS_ON_TV_SHOWS, type: 'action', selected: (def == 0), action: () => {
                                         config.set('channels-list-smart-sorting', 0);
-                                    } },
-                                { name: lang.FOCUS_ON_CHANNELS_WITH_TV_SHOW_IMAGES, type: 'action', selected: (def == 1), action: () => {
+                                    }
+                                },
+                                {
+                                    name: lang.FOCUS_ON_CHANNELS_WITH_TV_SHOW_IMAGES, type: 'action', selected: (def == 1), action: () => {
                                         config.set('channels-list-smart-sorting', 1);
-                                    } },
-                                { name: lang.FOCUS_ON_CHANNELS, type: 'action', selected: (def == 2), action: () => {
+                                    }
+                                },
+                                {
+                                    name: lang.FOCUS_ON_CHANNELS, type: 'action', selected: (def == 2), action: () => {
                                         config.set('channels-list-smart-sorting', 2);
-                                    } }
+                                    }
+                                }
                             ];
                             resolve(opts);
                         });
@@ -1672,15 +1660,21 @@ class Channels extends ChannelsKids {
                     renderer: () => {
                         return new Promise(resolve => {
                             let def = config.get('watch-now-auto'), opts = [
-                                { name: lang.AUTO, type: 'action', selected: (def == 'auto'), action: data => {
+                                {
+                                    name: lang.AUTO, type: 'action', selected: (def == 'auto'), action: data => {
                                         config.set('watch-now-auto', 'auto');
-                                    } },
-                                { name: lang.ALWAYS, type: 'action', selected: (def == 'always'), action: data => {
+                                    }
+                                },
+                                {
+                                    name: lang.ALWAYS, type: 'action', selected: (def == 'always'), action: data => {
                                         config.set('watch-now-auto', 'always');
-                                    } },
-                                { name: lang.NEVER, type: 'action', selected: (def == 'never'), action: data => {
+                                    }
+                                },
+                                {
+                                    name: lang.NEVER, type: 'action', selected: (def == 'never'), action: data => {
                                         config.set('watch-now-auto', 'never');
-                                    } }
+                                    }
+                                }
                             ];
                             resolve(opts);
                         });
@@ -1697,11 +1691,12 @@ class Channels extends ChannelsKids {
         }
 
         const isSeries = type == 'series';
-        const acpolicy = config.get('parental-control');
+        // Parental control is always active (block behavior) - acpolicy kept for compatibility
+        const acpolicy = 'block';
 
         // Performance optimization: Async group loading
         let groups = await global.lists.groups(type ? [type] : ['series', 'vod'], opts.myListsOnly);
-        
+
         if (!groups.length && !global.lists.loaded(true)) {
             if (paths.ALLOW_ADDING_LISTS) {
                 return [global.lists.manager.noListsEntry()];
@@ -1711,18 +1706,18 @@ class Channels extends ChannelsKids {
 
         // Performance optimization: Apply parental filter early to reduce processing
         groups = this.applyParentalFilter(groups, acpolicy);
-        
+
         // Performance optimization: Async group processing with batching
         const groupToEntry = (group) => {
             const name = group.name;
-            
+
             // FIXED: Prevent recursive concatenation in details field
             let details = '';
             if (group.group && group.group !== name) {
                 // Split the group path and filter out the current name to avoid recursion
                 const pathParts = group.group.split('/');
                 const filteredParts = pathParts.filter(n => n && n !== name);
-                
+
                 // Remove duplicate consecutive parts to prevent recursive concatenation
                 const uniqueParts = [];
                 let lastPart = '';
@@ -1732,10 +1727,10 @@ class Channels extends ChannelsKids {
                         lastPart = part;
                     }
                 }
-                
+
                 details = uniqueParts.join(' &middot; ');
             }
-            
+
             return {
                 name,
                 details,
@@ -1755,25 +1750,25 @@ class Channels extends ChannelsKids {
         const processGroupsBatch = async (groupsBatch) => {
             const batchSize = 10; // Process 10 groups at a time
             const results = [];
-            
+
             for (let i = 0; i < groupsBatch.length; i += batchSize) {
                 const batch = groupsBatch.slice(i, i + batchSize);
-                const batchPromises = batch.map(group => 
+                const batchPromises = batch.map(group =>
                     Promise.resolve(groupToEntry(group)).catch(err => {
                         console.error('Error processing group:', group.name, err);
                         return null;
                     })
                 );
-                
+
                 const batchResults = await Promise.all(batchPromises);
                 results.push(...batchResults.filter(result => result !== null));
-                
+
                 // Performance optimization: Yield control to prevent blocking
                 if (i + batchSize < groupsBatch.length) {
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
             }
-            
+
             return results;
         };
 
@@ -1800,14 +1795,7 @@ class Channels extends ChannelsKids {
 
     // Performance optimization: Extracted parental filter function
     applyParentalFilter(entries, acpolicy) {
-        if (acpolicy == 'block') {
-            return global.lists.parentalControl.filter(entries);
-        } else if (acpolicy == 'remove') {
-            return global.lists.parentalControl.filter(entries);
-        } else if (acpolicy == 'only') {
-            return global.lists.parentalControl.only(entries);
-        }
-        return entries;
+        return global.lists.parentalControl.filter(entries);
     }
 
     // Performance optimization: Extracted group rendering function with async processing
@@ -1824,18 +1812,18 @@ class Channels extends ChannelsKids {
             }
 
             console.warn('entries before chunking', entries.length);
-            
+
             // Performance optimization: Process entries in smaller chunks
             const CHUNK_SIZE = 20;
             let processedEntries = [];
 
             for (let i = 0; i < entries.length; i += CHUNK_SIZE) {
                 const chunk = entries.slice(i, i + CHUNK_SIZE);
-                
+
                 // Performance optimization: Process chunk asynchronously
                 const processedChunk = await this.processEntriesChunk(chunk, group, isSeries);
                 processedEntries.push(...processedChunk);
-                
+
                 // Performance optimization: Yield control between chunks
                 if (i + CHUNK_SIZE < entries.length) {
                     await new Promise(resolve => setTimeout(resolve, 0));
@@ -1874,20 +1862,20 @@ class Channels extends ChannelsKids {
     // Performance optimization: Process entries chunk with error handling
     async processEntriesChunk(chunk, group, isSeries) {
         const results = [];
-        
+
         for (const entry of chunk) {
             try {
                 let processedEntry = entry;
-                
+
                 // Performance optimization: Handle nested entries efficiently
                 if (entry.entries) {
                     processedEntry = entry.entries;
-                } else if (typeof(entry.renderer) == 'function') {
+                } else if (typeof (entry.renderer) == 'function') {
                     processedEntry = await entry.renderer(entry);
-                } else if (typeof(entry.renderer) == 'string') {
+                } else if (typeof (entry.renderer) == 'string') {
                     processedEntry = await storage.get(entry.renderer);
                 }
-                
+
                 if (Array.isArray(processedEntry)) {
                     results.push(...processedEntry);
                 } else if (processedEntry) {
@@ -1898,21 +1886,23 @@ class Channels extends ChannelsKids {
                 // Continue processing other entries
             }
         }
-        
+
         return results;
     }
     async hook(entries, path) {
         if (!path) {
-            const liveEntry = { name: lang.LIVE, side: true, fa: 'fas fa-tv', details: '<i class="fas fa-th"></i>&nbsp; ' + lang.ALL_CHANNELS, type: 'group', renderer: this.entries.bind(this) }
-            const searchEntry = { name: lang.SEARCH, side: true, fa: 'fas fa-search', type: 'action', action: () => {
-                process.nextTick(() => renderer.ui.emit('omni-show'))
-            }};
+            const liveEntry = { name: lang.LIVE, side: true, fa: 'fas fa-broadcast-tower', details: lang.ALL_CHANNELS, type: 'group', renderer: this.entries.bind(this) }
+            const searchEntry = {
+                name: lang.SEARCH, side: true, fa: 'fas fa-search', type: 'action', action: () => {
+                    process.nextTick(() => renderer.ui.emit('omni-show'))
+                }
+            };
             insertEntry(liveEntry, entries, [lang.MY_LISTS, lang.TOOLS, lang.SEARCH]);
             insertEntry(searchEntry, entries, [lang.MY_LISTS, lang.TOOLS], [lang.TRENDING, lang.LIVE, lang.CATEGORY_MOVIES_SERIES]);
             if (paths.ALLOW_ADDING_LISTS) {
                 const moviesEntry = {
                     name: lang.CATEGORY_MOVIES_SERIES,
-                    side: true, fa: 'fas fa-th', details: '', type: 'group',
+                    side: true, fa: 'fas fa-film', details: '', type: 'group',
                     renderer: () => this.groupsRenderer('')
                 };
                 insertEntry(moviesEntry, entries, [lang.OPTIONS, lang.TOOLS, lang.SEARCH], [lang.LIVE]);

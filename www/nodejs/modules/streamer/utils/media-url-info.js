@@ -87,7 +87,7 @@ class MediaStreamInfo {
             return 'live';
         } else if (entry.url.includes('video')) {
             return 'video';
-        } else {
+        } else if (entry.name) {
             const name = entry.name + ' ' + (entry.group || '');
             if (this.isRadio(name)) {
                 return 'live';

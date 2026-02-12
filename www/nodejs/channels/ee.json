@@ -1,0 +1,343 @@
+{
+  "Religious": [
+    {
+      "name": "TBN Baltia",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Taevas TV 7",
+      "isFree": true,
+      "website": "https://www.tv7.ee/",
+      "priority": 4
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "ETV",
+      "isFree": true,
+      "keywords": "etv -2",
+      "priority": 5
+    },
+    {
+      "name": "ETV 2",
+      "isFree": true,
+      "keywords": "etv 2 | etv2",
+      "priority": 5
+    },
+    {
+      "name": "Life",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Riigikogu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Alo",
+      "isFree": true,
+      "website": "http://www.audiovideo.ee/",
+      "priority": 5
+    },
+    {
+      "name": "CTC Estonia",
+      "isFree": true,
+      "website": "http://ctci.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Discovery",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Duo 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Duo 4",
+      "isFree": true,
+      "website": "https://kanal11.postimees.ee/",
+      "priority": 5
+    },
+    {
+      "name": "Duo 5",
+      "isFree": true,
+      "website": "https://kanal12.postimees.ee/",
+      "priority": 5
+    },
+    {
+      "name": "Duo 6",
+      "isFree": true,
+      "website": "https://www.duo6.ee/",
+      "priority": 5
+    },
+    {
+      "name": "Eesti Kanal",
+      "isFree": true,
+      "website": "https://jupiter.err.ee/etv",
+      "priority": 5
+    },
+    {
+      "name": "Entusiast",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "FX",
+      "isFree": true,
+      "keywords": "fx -life",
+      "website": "https://www.fxchannel.ee/",
+      "priority": 5
+    },
+    {
+      "name": "FX Life",
+      "isFree": true,
+      "website": "https://www.fxchannel.ee/",
+      "priority": 5
+    },
+    {
+      "name": "Inspira",
+      "isFree": true,
+      "website": "https://www.telia.ee/en/era/tv/inspira/",
+      "priority": 5
+    },
+    {
+      "name": "Kanal 2",
+      "isFree": true,
+      "website": "http://kanal2.postimees.ee/",
+      "priority": 5
+    },
+    {
+      "name": "Kanal 7",
+      "isFree": true,
+      "website": "https://kanal7.ee/ru",
+      "priority": 5,
+      "_altWebsites": [
+        "https://kanal7plus.ee/ru"
+      ]
+    },
+    {
+      "name": "Kanal 7+",
+      "isFree": true,
+      "website": "https://kanal7plus.ee/ru",
+      "priority": 5
+    },
+    {
+      "name": "PBK Estonia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "REN TV Estonia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Smartzone",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tartu",
+      "isFree": true,
+      "website": "https://tartutv.ee/",
+      "priority": 5
+    },
+    {
+      "name": "TV 3",
+      "isFree": true,
+      "keywords": "tv3 -life",
+      "website": "https://tv3.ee/",
+      "priority": 5
+    },
+    {
+      "name": "TV3 Life",
+      "isFree": true,
+      "website": "https://www.tv3.ee/life/",
+      "priority": 5
+    },
+    {
+      "name": "TV 6",
+      "isFree": true,
+      "website": "http://tv6.tv3.ee/",
+      "priority": 5
+    },
+    {
+      "name": "TVN",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "ARU.TV",
+      "isFree": true,
+      "website": "https://aru.tv/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Best of Dance",
+      "isFree": true,
+      "website": "https://www.dancetv.net/live",
+      "priority": 5
+    },
+    {
+      "name": "DanceTV Algorhythm",
+      "isFree": true,
+      "website": "https://www.dancetv.net/tech-house/",
+      "priority": 5
+    },
+    {
+      "name": "DanceTV Chill AF",
+      "isFree": true,
+      "website": "https://www.dancetv.net/downtempo",
+      "priority": 5
+    },
+    {
+      "name": "DanceTV Deep House District",
+      "isFree": true,
+      "website": "https://www.dancetv.net/deep-house/",
+      "priority": 5
+    },
+    {
+      "name": "DanceTV EDM Mainstage",
+      "isFree": true,
+      "website": "https://www.dancetv.net/edm/",
+      "priority": 5
+    },
+    {
+      "name": "DanceTV House Floor",
+      "isFree": true,
+      "website": "https://www.dancetv.net/house/",
+      "priority": 5
+    },
+    {
+      "name": "DanceTV Melodic Tech",
+      "isFree": true,
+      "website": "https://www.dancetv.net/melodic-tech",
+      "priority": 5
+    },
+    {
+      "name": "DanceTV Minimal Tech",
+      "isFree": true,
+      "website": "https://www.dancetv.net/minimal-tech",
+      "priority": 5
+    },
+    {
+      "name": "DanceTV Techno Warehouse",
+      "isFree": true,
+      "website": "https://www.dancetv.net/techno/",
+      "priority": 5
+    },
+    {
+      "name": "MyHits",
+      "isFree": true,
+      "website": "https://myhits.pleier.ee/",
+      "priority": 5
+    },
+    {
+      "name": "Vantage Music",
+      "isFree": true,
+      "website": "https://vantagetv.ee",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Filmzone",
+      "isFree": true,
+      "website": "http://filmzonetv.eu/",
+      "priority": 5
+    },
+    {
+      "name": "Go3 Films",
+      "isFree": true,
+      "website": "https://go3.tv",
+      "priority": 5
+    },
+    {
+      "name": "Kino 7",
+      "isFree": true,
+      "website": "https://kino7.ee/ru",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Go3 Sport",
+      "isFree": true,
+      "keywords": "go3 sport -1 -2 -3 -4 -open",
+      "website": "https://go3.tv/",
+      "priority": 10
+    },
+    {
+      "name": "Go3 Sport 2",
+      "isFree": true,
+      "website": "https://go3.tv/",
+      "priority": 10
+    },
+    {
+      "name": "Go3 Sport 3",
+      "isFree": true,
+      "website": "https://go3.tv/",
+      "priority": 10
+    },
+    {
+      "name": "Go3 Sport 4",
+      "isFree": true,
+      "website": "https://go3.tv/",
+      "priority": 10
+    },
+    {
+      "name": "Go3 Sport Open",
+      "isFree": true,
+      "website": "https://go3.tv/",
+      "priority": 10
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Healthmedi",
+      "isFree": true,
+      "website": "https://mediagenie.co.kr/Healthmedi/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "KidZone Max",
+      "isFree": true,
+      "website": "https://kidzonetv.ee/",
+      "priority": 5
+    },
+    {
+      "name": "KidZone Mini",
+      "isFree": true,
+      "website": "https://kidzonemini.ee/",
+      "priority": 5
+    },
+    {
+      "name": "Nickelodeon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pingviin",
+      "isFree": true,
+      "website": "http://www.lolotv.lv/",
+      "priority": 5
+    },
+    {
+      "name": "Semejka",
+      "isFree": true,
+      "website": "https://semejka.eu/ru",
+      "priority": 5
+    }
+  ]
+}

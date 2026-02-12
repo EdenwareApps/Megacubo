@@ -1,0 +1,553 @@
+{
+  "Kids": [
+    {
+      "name": "Enki Benki",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Basti Bubu",
+      "isFree": true,
+      "website": "https://bastibubu.ge/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Palitra News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Alt-Info",
+      "isFree": true,
+      "website": "https://alt-info.ge/",
+      "priority": 5
+    },
+    {
+      "name": "BMG",
+      "isFree": true,
+      "website": "https://bm.ge/en/tv",
+      "priority": 5
+    },
+    {
+      "name": "Dia",
+      "isFree": true,
+      "website": "https://www.dia.ge/",
+      "priority": 5
+    },
+    {
+      "name": "ERI Media",
+      "isFree": true,
+      "website": "https://erimedia.ge/",
+      "priority": 5
+    },
+    {
+      "name": "Euronews Georgia",
+      "isFree": true,
+      "website": "https://euronewsgeorgia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Georgian Times",
+      "isFree": true,
+      "website": "https://gttv.ge/",
+      "priority": 5
+    },
+    {
+      "name": "Marneuli",
+      "isFree": true,
+      "website": "http://www.marneulitv.ge/",
+      "priority": 5
+    },
+    {
+      "name": "Meteo24.tv",
+      "isFree": true,
+      "website": "https://www.meteo24.tv/",
+      "priority": 5
+    },
+    {
+      "name": "NWBC",
+      "isFree": true,
+      "website": "https://nwbc.ge/",
+      "priority": 5
+    },
+    {
+      "name": "Obieqtivi",
+      "isFree": true,
+      "website": "http://www.obieqtivi.net/",
+      "priority": 5
+    },
+    {
+      "name": "Sfero",
+      "isFree": true,
+      "website": "https://sferonews.ge/",
+      "priority": 5
+    },
+    {
+      "name": "TV 24",
+      "isFree": true,
+      "website": "https://tv24.ge/",
+      "priority": 5
+    },
+    {
+      "name": "TV 9",
+      "isFree": true,
+      "website": "https://tv9news.ge/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "1",
+      "isFree": true,
+      "keywords": "1 tv | 1tv",
+      "priority": 5
+    },
+    {
+      "name": "2",
+      "isFree": true,
+      "keywords": "2 tv | 2tv",
+      "priority": 5
+    },
+    {
+      "name": "Formula",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mtavari Arkhi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rioni",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Agrogaremo",
+      "isFree": true,
+      "website": "https://agrogaremo.ge/",
+      "priority": 5
+    },
+    {
+      "name": "Agro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ajara",
+      "isFree": true,
+      "website": "https://ajaratv.ge/",
+      "priority": 5
+    },
+    {
+      "name": "Apsua",
+      "isFree": true,
+      "website": "https://www.apsua.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Argo",
+      "isFree": true,
+      "website": "https://argotv.ge/",
+      "priority": 5
+    },
+    {
+      "name": "Batumi",
+      "isFree": true,
+      "website": "https://tvbatumi.com/",
+      "priority": 5
+    },
+    {
+      "name": "Borjomi",
+      "isFree": true,
+      "website": "https://borjomi.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Channel Five",
+      "isFree": true,
+      "website": "http://www.tv5.ge/",
+      "priority": 5
+    },
+    {
+      "name": "Chveni Magti",
+      "isFree": true,
+      "website": "https://www.magticom.ge/",
+      "priority": 5
+    },
+    {
+      "name": "Comedy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Egrisi",
+      "isFree": true,
+      "website": "https://egrisitv.ge/",
+      "priority": 5
+    },
+    {
+      "name": "FM Abkhazia",
+      "isFree": true,
+      "website": "http://www.fmabkhazia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Free",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GDS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Girchi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GMS",
+      "isFree": true,
+      "website": "https://gmstv.ge/",
+      "priority": 5
+    },
+    {
+      "name": "Green",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Guria",
+      "isFree": true,
+      "website": "https://guria.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Gurjaani",
+      "isFree": true,
+      "website": "http://www.gurjaanitv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Imedi",
+      "isFree": true,
+      "website": "https://www.imedi.ge/",
+      "priority": 5
+    },
+    {
+      "name": "Imervizia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kavkasia",
+      "isFree": true,
+      "website": "http://www.kavkasiatv.ge/",
+      "priority": 5
+    },
+    {
+      "name": "Kolkheti 89",
+      "isFree": true,
+      "website": "https://kolkheti89.ge/",
+      "priority": 5
+    },
+    {
+      "name": "L-TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Maestro",
+      "isFree": true,
+      "website": "http://www.maestro.ge/",
+      "priority": 5
+    },
+    {
+      "name": "Magti Hiti",
+      "isFree": true,
+      "website": "https://www.magticom.ge/",
+      "priority": 5
+    },
+    {
+      "name": "Marao",
+      "isFree": true,
+      "website": "http://www.rustavi2.ge/",
+      "priority": 5
+    },
+    {
+      "name": "Mega",
+      "isFree": true,
+      "website": "https://megatv.ge/",
+      "priority": 5
+    },
+    {
+      "name": "Mze",
+      "isFree": true,
+      "website": "https://tvmze.ge/",
+      "priority": 5
+    },
+    {
+      "name": "Odishi",
+      "isFree": true,
+      "website": "https://radio.odishi.ge/",
+      "priority": 5
+    },
+    {
+      "name": "Parliament of Georgia",
+      "isFree": true,
+      "website": "https://www.parliament.ge/en/media/live/14",
+      "priority": 5
+    },
+    {
+      "name": "Parvana",
+      "isFree": true,
+      "website": "http://www.parvana.ge/",
+      "priority": 5
+    },
+    {
+      "name": "PKTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pos",
+      "isFree": true,
+      "website": "https://postv.media/",
+      "priority": 5
+    },
+    {
+      "name": "Prime",
+      "isFree": true,
+      "priority": 6
+    },
+    {
+      "name": "Pulsi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Qartuli Arkhi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Quality",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rioni TV 2",
+      "isFree": true,
+      "website": "https://www.rionitv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Rugby",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rustavi 2",
+      "isFree": true,
+      "website": "http://www.rustavi2.ge/",
+      "priority": 5
+    },
+    {
+      "name": "Saperavi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sezoni",
+      "isFree": true,
+      "website": "https://sezonitv.ge/",
+      "priority": 5
+    },
+    {
+      "name": "Shoni-TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Silk Universal",
+      "isFree": true,
+      "website": "https://www.silknet.com/",
+      "priority": 5
+    },
+    {
+      "name": "Stereo Plus",
+      "isFree": true,
+      "website": "http://stereoplus.ge/",
+      "priority": 5
+    },
+    {
+      "name": "TOK",
+      "isFree": true,
+      "website": "https://toktv.ge/",
+      "priority": 5
+    },
+    {
+      "name": "TV 25",
+      "isFree": true,
+      "website": "https://www.tv25.ge/",
+      "priority": 5
+    },
+    {
+      "name": "TV 4",
+      "isFree": true,
+      "website": "https://tv4.ge/",
+      "priority": 5
+    },
+    {
+      "name": "TVC",
+      "isFree": true,
+      "website": "https://tvc.ge/",
+      "priority": 5
+    },
+    {
+      "name": "TV Monitoringi",
+      "isFree": true,
+      "website": "https://tvmonitoringi.ge/",
+      "priority": 5
+    },
+    {
+      "name": "TV Pirveli",
+      "isFree": true,
+      "website": "http://www.tvpirveli.ge/",
+      "priority": 5
+    },
+    {
+      "name": "TV Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Trialeti",
+      "isFree": true,
+      "website": "http://trialeti.ge/",
+      "priority": 5
+    },
+    {
+      "name": "1TV",
+      "isFree": true,
+      "website": "https://1tv.ge/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "MusicBox Georgia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dardimandi",
+      "isFree": true,
+      "website": "http://www.dardimandi.ge/",
+      "priority": 5
+    },
+    {
+      "name": "Positive",
+      "isFree": true,
+      "website": "https://www.positive.ge/",
+      "priority": 5
+    },
+    {
+      "name": "Starvizia",
+      "isFree": true,
+      "website": "https://starvision.ge/starvisia-live/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Adjarasport",
+      "isFree": true,
+      "website": "https://adjarasport.tv/",
+      "priority": 10
+    },
+    {
+      "name": "Adjarasport 2",
+      "isFree": true,
+      "website": "https://adjarasport.tv/",
+      "priority": 10
+    },
+    {
+      "name": "Chess",
+      "isFree": true,
+      "website": "https://www.chesstv.ge/",
+      "priority": 5
+    },
+    {
+      "name": "Setanta Sports Georgia",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "TV O 2",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Artarea",
+      "isFree": true,
+      "website": "https://artarea.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Kartuli",
+      "isFree": true,
+      "website": "https://civilizebuli.ge/",
+      "priority": 5
+    },
+    {
+      "name": "SDASU",
+      "isFree": true,
+      "website": "https://sdasu.edu.ge/en/sdasu-tv",
+      "priority": 5
+    },
+    {
+      "name": "TAFU",
+      "isFree": true,
+      "website": "https://tafu.edu.ge/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Ertsulovneba",
+      "isFree": true,
+      "website": "https://www.televizia.org/ertsulovneba/",
+      "priority": 4
+    },
+    {
+      "name": "Royal",
+      "isFree": true,
+      "website": "https://www.qch.ge/",
+      "priority": 4
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Magti Kino",
+      "isFree": true,
+      "website": "https://www.magticom.ge/",
+      "priority": 5
+    }
+  ],
+  "Shop": [
+    {
+      "name": "Mall",
+      "isFree": true,
+      "website": "http://www.malltv.ge/indexen.php",
+      "priority": 4
+    }
+  ]
+}

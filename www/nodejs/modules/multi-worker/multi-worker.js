@@ -245,6 +245,11 @@ class WorkerDriver extends EventEmitter {
     }
     terminate() {
         this.finished = true;
+        // Clear any pending restart timeout
+        if (this.workerRestartTimeout) {
+            clearTimeout(this.workerRestartTimeout);
+            this.workerRestartTimeout = null;
+        }
         if (this.worker) {
             setTimeout(() => {
                 const worker = this.worker
@@ -266,8 +271,13 @@ class WorkerDriver extends EventEmitter {
     }
 }
 
+const DEFAULT_RESOURCE_LIMITS = {
+    maxOldGenerationSizeMb: 2048,  // 2GB default (was 1536) to reduce OOM on heavy EPG/updater load
+    maxYoungGenerationSizeMb: 256
+}
+
 export default class ThreadWorkerDriver extends WorkerDriver {
-    constructor() {
+    constructor(options = {}) {
         super()
         this.worker = null
         this.workerData = null
@@ -275,7 +285,14 @@ export default class ThreadWorkerDriver extends WorkerDriver {
         this.workerReady = false
         this.callQueue = [] // Buffer for calls made before worker is ready
         this.loadWorkerSent = new Set() // Track which workers have had loadWorker sent
-        
+        /** Optional resource limits override (e.g. for updater worker with heavier list/EPG load) */
+        this.resourceLimitsOption = options.resourceLimits || null
+
+        // Worker lifecycle control
+        this.lastWorkerExitTime = 0
+        this.workerRestartCooldown = 5000 // 5 seconds cooldown before restarting worker
+        this.workerRestartTimeout = null
+
         // Initialize worker asynchronously after language is ready
         this.initializeWorker()
     }
@@ -308,13 +325,14 @@ export default class ThreadWorkerDriver extends WorkerDriver {
                 langData: this.workerData.$lang 
             })
             
+            const resourceLimits = this.resourceLimitsOption ?? {
+                maxOldGenerationSizeMb: config.get('worker-max-old-generation-mb', DEFAULT_RESOURCE_LIMITS.maxOldGenerationSizeMb),
+                maxYoungGenerationSizeMb: config.get('worker-max-young-generation-mb', DEFAULT_RESOURCE_LIMITS.maxYoungGenerationSizeMb)
+            }
             this.worker = new Worker(this.workerFile, {
                 type: 'commonjs', // (file == distFile ? 'commonjs' : 'module'),
                 workerData: this.workerData, // leave stdout/stderr undefined
-                resourceLimits: {
-                    maxOldGenerationSizeMb: 1024, // 1GB limit for old generation heap (increased for EPG processing)
-                    maxYoungGenerationSizeMb: 128  // 128MB limit for young generation heap (increased)
-                }
+                resourceLimits
             })
             
             this.setupWorkerEventListeners()
@@ -416,11 +434,36 @@ export default class ThreadWorkerDriver extends WorkerDriver {
             this.rejectAll(null, 'worker exited out of memory');
         }, true, true);
         this.worker.on('exit', () => {
-            this.finished = true;
+            const wasOOM = this.err && String(this.err).match(new RegExp('(out of memory|out_of_memory)', 'i'));
             this.worker = null;
             this.workerReady = false;
+            this.lastWorkerExitTime = Date.now();
             console.error('Worker exited', this.err, Object.keys(this.instances));
             this.rejectAll(null, this.err || 'worker exited');
+            
+            // Don't restart if OOM or manually terminated
+            if (wasOOM || this.finished) {
+                this.finished = true;
+                return;
+            }
+            
+            // Schedule worker restart with cooldown to prevent rapid restart loops
+            if (this.workerRestartTimeout) {
+                clearTimeout(this.workerRestartTimeout);
+            }
+            
+            const timeSinceLastExit = Date.now() - this.lastWorkerExitTime;
+            const cooldownRemaining = Math.max(0, this.workerRestartCooldown - timeSinceLastExit);
+            
+            console.log(`🔄 Scheduling worker restart in ${cooldownRemaining}ms...`);
+            this.workerRestartTimeout = setTimeout(() => {
+                if (!this.finished) {
+                    console.log('🔄 Restarting worker after cooldown...');
+                    this.initializeWorker().catch(err => {
+                        console.error('❌ Failed to restart worker:', err.message);
+                    });
+                }
+            }, cooldownRemaining);
         });
         this.worker.on('message', ret => {
             this.debug && console.log('🔍 MultiWorker: Received message:', { id: ret.id, file: ret.file, type: ret.type, dataLength: ret.data?.length })

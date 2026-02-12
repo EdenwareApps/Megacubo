@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events'
-import { EPGErrorHandler } from '../epg/worker/EPGErrorHandler.js'
+import { ErrorHandler } from './ErrorHandler.mjs'
 import { AITagExpansion } from './AITagExpansion.mjs'
 import { SmartCache } from './SmartCache.mjs'
 
@@ -19,6 +19,14 @@ export class EnhancedRecommendations extends EventEmitter {
             defaultTTL: 300000, // 5 minutes
             cleanupInterval: 60000 // 1 minute
         })
+        
+        // Track ongoing background refreshes to avoid duplicates
+        this.ongoingRefreshes = new Set();
+        
+        // Minimum time between refreshes for same tags (5 minutes)
+        this.refreshCooldown = new Map();
+        this.minRefreshInterval = 5 * 60 * 1000; // 5 minutes
+        
         this.config = {
             defaultLimit: 25,
             maxRetries: 3,
@@ -69,9 +77,9 @@ export class EnhancedRecommendations extends EventEmitter {
             if (recommendations && recommendations.length > 0) {
                 this.cache.set(cacheKey, recommendations,
                     [`user:${userContext.userId}`, 'recommendations'], 2)
-                EPGErrorHandler.debug(`Cached ${recommendations.length} recommendations for limit ${options.limit}`)
+                ErrorHandler.debug(`Cached ${recommendations.length} recommendations for limit ${options.limit}`)
             } else {
-                EPGErrorHandler.warn(`Not caching empty recommendations for limit ${JSON.stringify(options.limit)}`)
+                ErrorHandler.warn(`Not caching empty recommendations for limit ${JSON.stringify(options.limit)}`)
             }
 
             // Update performance metrics
@@ -81,7 +89,7 @@ export class EnhancedRecommendations extends EventEmitter {
             return recommendations
 
         } catch (error) {
-            EPGErrorHandler.error('Enhanced recommendations failed:', error)
+            ErrorHandler.error('Enhanced recommendations failed:', error)
             const fallback = await this.getFallbackRecommendations(userContext)
             return this.applyAdvancedFilters(fallback, userContext, this.config.defaultLimit)
         }
@@ -108,8 +116,12 @@ export class EnhancedRecommendations extends EventEmitter {
                 expandedTags = cachedExpansion
                 // Using cached expanded tags
                 
-                // Schedule background refresh for cache update
-                this.scheduleBackgroundTagRefresh(userContext.tags)
+                // Only schedule background refresh if cache is stale (older than 30 minutes)
+                // This prevents unnecessary API calls when fresh cache is available
+                const cacheAge = Date.now() - (cachedExpansion._timestamp || 0);
+                if (cacheAge > 30 * 60 * 1000) { // 30 minutes
+                    this.scheduleBackgroundTagRefresh(userContext.tags);
+                }
             } else {
                 // No cache available - use original tags and update cache in background
                 // Cache miss - using original tags, updating cache in background
@@ -146,7 +158,7 @@ export class EnhancedRecommendations extends EventEmitter {
             return filteredRecommendations
 
         } catch (error) {
-            EPGErrorHandler.warn('Recommendation generation failed:', error.message)
+            ErrorHandler.warn('Recommendation generation failed:', error.message)
             throw error
         }
     }
@@ -249,7 +261,7 @@ export class EnhancedRecommendations extends EventEmitter {
             // Check if EPG is available and has data
             const epgManager = global.lists?.epg
             if (!epgManager || !epgManager.loaded?.length) {
-                EPGErrorHandler.warn('EPG Manager not available, cannot get semantic data')
+                ErrorHandler.warn('EPG Manager not available, cannot get semantic data')
                 return []
             }
 
@@ -275,7 +287,7 @@ export class EnhancedRecommendations extends EventEmitter {
 
             // Get recommendations from EPG system
             const channelTermsArrays = global.channels?.channelList?.channelsIndex ? Object.values(global.channels.channelList.channelsIndex) : []
-            EPGErrorHandler.debug(`Calling getRecommendations with ${Object.keys(categories).length} categories and ${channelTermsArrays.length} channel term arrays`)
+            ErrorHandler.debug(`Calling getRecommendations with ${Object.keys(categories).length} categories and ${channelTermsArrays.length} channel term arrays`)
             
             // Pass null for chList to disable channel filtering and get all programmes
             const epgRecommendations = await global.lists.epg.getRecommendations(
@@ -292,11 +304,11 @@ export class EnhancedRecommendations extends EventEmitter {
                 score: typeof programme.score === 'number' ? programme.score : 0
             }))
 
-            EPGErrorHandler.debug(`Found ${programmes.length} programmes from EPG system using ${Object.keys(categories).length} categories`)
+            ErrorHandler.debug(`Found ${programmes.length} programmes from EPG system using ${Object.keys(categories).length} categories`)
             return this.applyAdvancedFilters(programmes, userContext, this.config.defaultLimit)
 
         } catch (error) {
-            EPGErrorHandler.warn('Failed to get semantic EPG data: '+ String(error))
+            ErrorHandler.warn('Failed to get semantic EPG data: '+ String(error))
             return []
         }
     }
@@ -312,7 +324,7 @@ export class EnhancedRecommendations extends EventEmitter {
         try {
             // Check if lists are available
             if (!global.lists || typeof global.lists.multiSearch !== 'function') {
-                EPGErrorHandler.warn('Lists multiSearch not available, cannot get VOD data')
+                ErrorHandler.warn('Lists multiSearch not available, cannot get VOD data')
                 return []
             }
 
@@ -336,7 +348,7 @@ export class EnhancedRecommendations extends EventEmitter {
             }
 
             if (Object.keys(scoreMap).length === 0) {
-                EPGErrorHandler.warn('No tags provided for VOD search')
+                ErrorHandler.warn('No tags provided for VOD search')
                 return []
             }
 
@@ -348,11 +360,11 @@ export class EnhancedRecommendations extends EventEmitter {
                 typeStrict: options.typeStrict !== false // Search strictly if typeStrict is not false
             }
 
-            EPGErrorHandler.debug(`Calling multiSearch for VOD with ${Object.keys(scoreMap).length} tags, limit: ${searchOpts.limit}`)
+            ErrorHandler.debug(`Calling multiSearch for VOD with ${Object.keys(scoreMap).length} tags, limit: ${searchOpts.limit}`)
             console.log('multiSearch', scoreMap, searchOpts);
             const vodEntries = await global.lists.multiSearch(scoreMap, searchOpts)
 
-            EPGErrorHandler.debug(`Found ${vodEntries.length} VOD entries from lists using ${Object.keys(scoreMap).length} tags`)
+            ErrorHandler.debug(`Found ${vodEntries.length} VOD entries from lists using ${Object.keys(scoreMap).length} tags`)
             
             // Transform to EPG-compatible format (similar to EPG programmes format)
             const programmes = vodEntries.map(entry => ({
@@ -375,7 +387,7 @@ export class EnhancedRecommendations extends EventEmitter {
             return programmes
 
         } catch (error) {
-            EPGErrorHandler.warn('Failed to get semantic VOD data: '+ String(error))
+            ErrorHandler.warn('Failed to get semantic VOD data: '+ String(error))
             return []
         }
     }
@@ -391,7 +403,7 @@ export class EnhancedRecommendations extends EventEmitter {
             // Check if EPG is loaded (loaded can be an array of URLs or boolean)
             const epgLoaded = global.lists?.epg?.loaded
             if (!epgLoaded || (Array.isArray(epgLoaded) && epgLoaded.length === 0)) {
-                EPGErrorHandler.warn('EPG not loaded, cannot get programmes')
+                ErrorHandler.warn('EPG not loaded, cannot get programmes')
                 return []
             }
 
@@ -441,11 +453,11 @@ export class EnhancedRecommendations extends EventEmitter {
                 score: typeof programme.score === 'number' ? programme.score : 0
             }))
 
-            EPGErrorHandler.debug(`Found ${programmes.length} relevant programmes for user interests`)
+            ErrorHandler.debug(`Found ${programmes.length} relevant programmes for user interests`)
             return programmes
 
         } catch (error) {
-            EPGErrorHandler.warn('Failed to get programmes:', error.message)
+            ErrorHandler.warn('Failed to get programmes:', error.message)
             return []
         }
     }
@@ -480,11 +492,11 @@ export class EnhancedRecommendations extends EventEmitter {
                 fallback: true
             }))
 
-            EPGErrorHandler.debug(`Fallback recommendations: ${programmes.length} programmes`)
+            ErrorHandler.debug(`Fallback recommendations: ${programmes.length} programmes`)
             return programmes
 
         } catch (error) {
-            EPGErrorHandler.warn('Fallback recommendations failed:', error.message)
+            ErrorHandler.warn('Fallback recommendations failed:', error.message)
             return []
         }
     }
@@ -599,6 +611,24 @@ export class EnhancedRecommendations extends EventEmitter {
      * @param {Object} userTags - User tags to refresh
      */
     scheduleBackgroundTagRefresh(userTags) {
+        const cacheKey = this.generateTagCacheKey(userTags);
+        
+        // Check if refresh is already ongoing for these tags
+        if (this.ongoingRefreshes.has(cacheKey)) {
+            return; // Already refreshing
+        }
+        
+        // Check cooldown period
+        const lastRefresh = this.refreshCooldown.get(cacheKey);
+        const now = Date.now();
+        if (lastRefresh && (now - lastRefresh) < this.minRefreshInterval) {
+            return; // Too soon to refresh again
+        }
+        
+        // Mark as ongoing and set cooldown
+        this.ongoingRefreshes.add(cacheKey);
+        this.refreshCooldown.set(cacheKey, now);
+        
         // Use setTimeout to avoid blocking the main thread
         setTimeout(async () => {
             try {
@@ -614,7 +644,6 @@ export class EnhancedRecommendations extends EventEmitter {
                 )
                 
                 // Cache the expanded tags
-                const cacheKey = this.generateTagCacheKey(userTags)
                 this.cache.set(cacheKey, expandedTags, ['tags', 'expansion'], 3, 24 * 60 * 60 * 1000) // 24h TTL
                 
                 // Background tag refresh completed and cached
@@ -624,6 +653,9 @@ export class EnhancedRecommendations extends EventEmitter {
                 
             } catch (error) {
                 console.warn('Background tag refresh failed:', error.message)
+            } finally {
+                // Clean up
+                this.ongoingRefreshes.delete(cacheKey);
             }
         }, 1000) // Start after 1 second
     }

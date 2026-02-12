@@ -1,0 +1,397 @@
+{
+  "Music Videos": [
+    {
+      "name": "Sky Folk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Balkan Music",
+      "isFree": true,
+      "website": "http://www.balkanika.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Folk",
+      "isFree": true,
+      "website": "https://stream.nasatv.com.mk/folktv/",
+      "priority": 5
+    },
+    {
+      "name": "Hi Music",
+      "isFree": true,
+      "website": "https://www.himusic.tv",
+      "priority": 5
+    },
+    {
+      "name": "Jazz",
+      "isFree": true,
+      "website": "https://stream.nasatv.com.mk/jazztv/",
+      "priority": 5
+    },
+    {
+      "name": "Love",
+      "isFree": true,
+      "website": "https://stream.nasatv.com.mk/lovetv/",
+      "priority": 5
+    },
+    {
+      "name": "MRT Sobraniski kanal",
+      "isFree": true,
+      "website": "https://www.mrt.com.mk/",
+      "priority": 5
+    },
+    {
+      "name": "Rock",
+      "isFree": true,
+      "website": "https://stream.nasatv.com.mk/rocktv/",
+      "priority": 5
+    },
+    {
+      "name": "Star Folk",
+      "isFree": true,
+      "website": "https://starfolk.net/",
+      "priority": 5
+    },
+    {
+      "name": "Star Plus Televizija",
+      "isFree": true,
+      "website": "https://starplustv.com/",
+      "priority": 5
+    },
+    {
+      "name": "TopEstrada",
+      "isFree": true,
+      "website": "https://topestrada.tv/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Alfa",
+      "isFree": true,
+      "website": "https://alfa.mk/",
+      "priority": 5
+    },
+    {
+      "name": "Alsat",
+      "isFree": true,
+      "website": "http://alsat-m.tv",
+      "priority": 5
+    },
+    {
+      "name": "Cool",
+      "isFree": true,
+      "website": "https://stream.nasatv.com.mk/cooltv/",
+      "priority": 5
+    },
+    {
+      "name": "Kanal 5",
+      "isFree": true,
+      "website": "https://www.kanal5.com.mk/",
+      "priority": 5
+    },
+    {
+      "name": "Kanal 8",
+      "isFree": true,
+      "website": "http://www.kanal8.mk/",
+      "priority": 5
+    },
+    {
+      "name": "Klan Macedonia",
+      "isFree": true,
+      "website": "http://klanmacedonia.mk/",
+      "priority": 5
+    },
+    {
+      "name": "Koha",
+      "isFree": true,
+      "website": "https://tvkoha.tv/",
+      "priority": 5
+    },
+    {
+      "name": "KTV",
+      "isFree": true,
+      "website": "https://ktv.mk/",
+      "priority": 5
+    },
+    {
+      "name": "Makedonsko Sonce",
+      "isFree": true,
+      "website": "http://makedonskosonce.com/",
+      "priority": 5
+    },
+    {
+      "name": "M-Net",
+      "isFree": true,
+      "website": "https://mnet.mk/",
+      "priority": 5
+    },
+    {
+      "name": "MRT",
+      "isFree": true,
+      "keywords": "mrt 1 -sat",
+      "website": "https://www.mrt.com.mk/",
+      "priority": 5
+    },
+    {
+      "name": "MRT 1 Sat",
+      "isFree": true,
+      "website": "https://www.mrt.com.mk/",
+      "priority": 5
+    },
+    {
+      "name": "MRT 4",
+      "isFree": true,
+      "website": "https://www.mrt.com.mk/",
+      "priority": 5
+    },
+    {
+      "name": "MRT 5",
+      "isFree": true,
+      "website": "https://www.mrt.com.mk/",
+      "priority": 5
+    },
+    {
+      "name": "MTM",
+      "isFree": true,
+      "website": "https://mtm.mk/",
+      "priority": 5
+    },
+    {
+      "name": "Nasa",
+      "isFree": true,
+      "website": "https://nasatv.com.mk/",
+      "priority": 5
+    },
+    {
+      "name": "Prva Skopska",
+      "isFree": true,
+      "website": "https://prvaskopska.mk/",
+      "priority": 5
+    },
+    {
+      "name": "Sitel",
+      "isFree": true,
+      "website": "https://sitel.com.mk/",
+      "priority": 5
+    },
+    {
+      "name": "Spektra",
+      "isFree": true,
+      "website": "https://spektra.com.mk/",
+      "priority": 5
+    },
+    {
+      "name": "Sutel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televizija Kobra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televizija Protel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televizija Star",
+      "isFree": true,
+      "website": "https://tvstar.com.mk/",
+      "priority": 5
+    },
+    {
+      "name": "Telma",
+      "isFree": true,
+      "website": "https://telma.com.mk/",
+      "priority": 5
+    },
+    {
+      "name": "Tera",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 21",
+      "isFree": true,
+      "website": "https://mk.tv21.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV 24",
+      "isFree": true,
+      "website": "https://www.24.mk/",
+      "priority": 5
+    },
+    {
+      "name": "TV2 Gostivar",
+      "isFree": true,
+      "website": "https://tvdue.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Edo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV ERA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Festa",
+      "isFree": true,
+      "website": "https://tvfesta.mk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Globi",
+      "isFree": true,
+      "website": "https://globi.mk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Gurra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Iris",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Kaltrina",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Kanal VIS",
+      "isFree": true,
+      "website": "https://www.kanalvis.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV KISS & Menada",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVM Televizija",
+      "isFree": true,
+      "website": "https://tvm.mk/",
+      "priority": 5
+    },
+    {
+      "name": "TV NOVA 12",
+      "isFree": true,
+      "website": "https://tvnova12.mk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Orbis",
+      "isFree": true,
+      "website": "https://www.tvorbis.com.mk/",
+      "priority": 5
+    },
+    {
+      "name": "TVPlus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Pollogu",
+      "isFree": true,
+      "website": "https://pollogu.mk",
+      "priority": 5
+    },
+    {
+      "name": "TV Shenja",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Sonce",
+      "isFree": true,
+      "website": "http://tv-sonce.com/tv-sonce.com",
+      "priority": 5
+    },
+    {
+      "name": "TV Svet",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Uskana",
+      "isFree": true,
+      "website": "https://www.uskana.mk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Zdravkin",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "M-Net Info",
+      "isFree": true,
+      "website": "https://info.mnet.mk/",
+      "priority": 5
+    },
+    {
+      "name": "News33.tv",
+      "isFree": true,
+      "website": "https://www.news33.tv/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "M-Net Kids",
+      "isFree": true,
+      "website": "https://kids.mnet.mk/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "M-Net Sport",
+      "isFree": true,
+      "website": "http://sport.mnet.mk/",
+      "priority": 10
+    },
+    {
+      "name": "MRT 3",
+      "isFree": true,
+      "website": "https://www.mrt.com.mk/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "MRT 2",
+      "isFree": true,
+      "keywords": "mrt 2 -sat",
+      "website": "https://www.mrt.com.mk/",
+      "priority": 5
+    },
+    {
+      "name": "MRT 2 Sat",
+      "isFree": true,
+      "website": "https://www.mrt.com.mk/",
+      "priority": 5
+    },
+    {
+      "name": "V",
+      "isFree": true,
+      "website": "https://vtv.mk/",
+      "priority": 5
+    }
+  ]
+}

@@ -1,0 +1,286 @@
+{
+  "Entertainment": [
+    {
+      "name": "Chau",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVNET",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "360TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "8TV",
+      "isFree": true,
+      "website": "https://www.tet.lv/",
+      "priority": 5
+    },
+    {
+      "name": "Discovery",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Duo 6",
+      "isFree": true,
+      "website": "https://duo6.lv/",
+      "priority": 5
+    },
+    {
+      "name": "Gribu visu zinat",
+      "isFree": true,
+      "website": "https://movify.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Kurzemes Televizija",
+      "isFree": true,
+      "website": "https://kurzemestv.lv/",
+      "priority": 5
+    },
+    {
+      "name": "LRT+",
+      "isFree": true,
+      "website": "https://lrtv.lv/",
+      "priority": 5
+    },
+    {
+      "name": "LTV",
+      "isFree": true,
+      "website": "https://replay.lsm.lv/lv/tiesraide/ltv1",
+      "priority": 5
+    },
+    {
+      "name": "LTV 7",
+      "isFree": true,
+      "website": "https://ltv.lsm.lv/lv/ltv7/",
+      "priority": 5
+    },
+    {
+      "name": "PBK Latvia",
+      "isFree": true,
+      "website": "http://www.1tv.lv/",
+      "priority": 5
+    },
+    {
+      "name": "REN TV Baltic",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Re",
+      "isFree": true,
+      "website": "https://www.retv.lv/",
+      "priority": 5
+    },
+    {
+      "name": "Sea",
+      "isFree": true,
+      "website": "http://www.seatv.eu/",
+      "priority": 5
+    },
+    {
+      "name": "STV Pirma",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 24",
+      "isFree": true,
+      "website": "https://tv24.lv/",
+      "priority": 5
+    },
+    {
+      "name": "TV 3",
+      "isFree": true,
+      "keywords": "tv3 -life -mini -plus",
+      "website": "https://www.tv3.lv/tv3/",
+      "priority": 5
+    },
+    {
+      "name": "TV3 Life",
+      "isFree": true,
+      "website": "https://www.tv3.lv/tv3life/",
+      "priority": 5
+    },
+    {
+      "name": "TV3 Plus",
+      "isFree": true,
+      "website": "https://www.tv3.lv/3plus/",
+      "priority": 5
+    },
+    {
+      "name": "TV 4",
+      "isFree": true,
+      "website": "https://www.cetri.lv/",
+      "priority": 5
+    },
+    {
+      "name": "TV 6",
+      "isFree": true,
+      "website": "https://www.tv3.lv/tv6/",
+      "priority": 5
+    },
+    {
+      "name": "TV9 Pakalni",
+      "isFree": true,
+      "website": "https://tv9pakalni.lv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Jurmala",
+      "isFree": true,
+      "website": "https://jurmala.tv/tiesraide/",
+      "priority": 5
+    },
+    {
+      "name": "TV Kurzeme",
+      "isFree": true,
+      "website": "https://www.liepajniekiem.lv/tv-kurzeme",
+      "priority": 5
+    },
+    {
+      "name": "TV Skrunda",
+      "isFree": true,
+      "website": "https://www.tvskrunda.lv/",
+      "priority": 5
+    },
+    {
+      "name": "TV XXI",
+      "isFree": true,
+      "website": "http://www.tv21.lv/",
+      "priority": 5
+    },
+    {
+      "name": "Vidusdaugavas Televizija",
+      "isFree": true,
+      "website": "https://www.vdtv.lv",
+      "priority": 5
+    },
+    {
+      "name": "Visiem LTV",
+      "isFree": true,
+      "website": "https://replay.lsm.lv/lv/tiesraide/visiem/sodienas-jautajums",
+      "priority": 5
+    },
+    {
+      "name": "Zemgales",
+      "isFree": true,
+      "website": "https://zemgalestv.lv/",
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Latvijas Radio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Latvijas Radio 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Latvijas Radio 3 Klasika",
+      "isFree": true,
+      "shortName": "LR3K",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "ATV",
+      "isFree": true,
+      "website": "https://aliseplus.lv/ru/TV",
+      "priority": 5
+    },
+    {
+      "name": "Latvijas Slagerkanals",
+      "isFree": true,
+      "website": "https://slageris.lv/",
+      "priority": 5
+    },
+    {
+      "name": "Muzikas Video Kanals",
+      "isFree": true,
+      "website": "https://muzikas-video.lv/",
+      "priority": 5
+    },
+    {
+      "name": "Radio SWH",
+      "isFree": true,
+      "website": "https://play.radioswh.lv/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Best4Sport.TV",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sportacentrs",
+      "isFree": true,
+      "website": "https://sportacentrs.com/",
+      "priority": 10
+    }
+  ],
+  "Religious": [
+    {
+      "name": "EWTN Latvija",
+      "isFree": true,
+      "website": "https://ewtn.lv/",
+      "priority": 4
+    },
+    {
+      "name": "Katolis",
+      "isFree": true,
+      "website": "https://katolis.lv/",
+      "priority": 4
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Kanal 7 Baltics",
+      "isFree": true,
+      "website": "https://kanal7.lv/ru",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Movify Kino",
+      "isFree": true,
+      "website": "https://movify.tv/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Multimania",
+      "isFree": true,
+      "website": "https://movify.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Pingviins",
+      "isFree": true,
+      "website": "http://www.lolotv.lv/",
+      "priority": 5
+    },
+    {
+      "name": "TV3 Mini",
+      "isFree": true,
+      "website": "https://www.tv3.lv/tv3mini/",
+      "priority": 5
+    }
+  ]
+}

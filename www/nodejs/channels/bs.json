@@ -1,0 +1,99 @@
+{
+  "Entertainment": [
+    {
+      "name": "Island Luck",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ZNS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "JCN Channel 14",
+      "isFree": true,
+      "website": "http://jonesbahamas.com/",
+      "priority": 5
+    },
+    {
+      "name": "ZNS-TV",
+      "isFree": true,
+      "website": "https://znsbahamas.com/zns-t-v/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "The Parliamentary",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cala Weather",
+      "isFree": true,
+      "website": "https://www.calaweather.com/",
+      "priority": 5
+    },
+    {
+      "name": "GO242",
+      "isFree": true,
+      "website": "https://ournews.bs/go242/",
+      "priority": 5
+    },
+    {
+      "name": "Guardian Talk Radio",
+      "isFree": true,
+      "website": "https://guardiantalkradio.com/",
+      "priority": 5
+    },
+    {
+      "name": "Our",
+      "isFree": true,
+      "website": "https://ournews.bs/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "BCN",
+      "isFree": true,
+      "website": "https://bcntv.net/",
+      "priority": 4
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Cala Action",
+      "isFree": true,
+      "website": "https://www.calaaction.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cala Classics",
+      "isFree": true,
+      "website": "https://www.calaclassics.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cala Westerns",
+      "isFree": true,
+      "website": "https://www.calawesterns.com/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "HOT 91.7 FM",
+      "isFree": true,
+      "website": "https://www.hot917fm.com/",
+      "priority": 5
+    },
+    {
+      "name": "VIBES 93.1 FM",
+      "isFree": true,
+      "website": "https://vibes931fm.com/",
+      "priority": 5
+    }
+  ]
+}

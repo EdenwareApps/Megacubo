@@ -1,0 +1,992 @@
+{
+  "News": [
+    {
+      "name": "Phoenix InfoNews",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HKIBC",
+      "isFree": true,
+      "website": "http://www.hkibchannel.com.hk/",
+      "priority": 5
+    },
+    {
+      "name": "i-CABLE Finance Info",
+      "isFree": true,
+      "website": "http://epg.i-cable.com/ci/channel/epg/151/",
+      "priority": 5
+    },
+    {
+      "name": "i-CABLE Live News",
+      "isFree": true,
+      "website": "http://cablenews.i-cable.com/",
+      "priority": 5
+    },
+    {
+      "name": "i-CABLE News",
+      "isFree": true,
+      "website": "http://cablenews.i-cable.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mainland News",
+      "isFree": true,
+      "website": "https://promo.mytvsuper.com/en/epg-channel/CMN1",
+      "priority": 5
+    },
+    {
+      "name": "now Business News",
+      "isFree": true,
+      "website": "http://finance.now.com/",
+      "priority": 5
+    },
+    {
+      "name": "now Direct",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/331/1",
+      "priority": 5
+    },
+    {
+      "name": "now News",
+      "isFree": true,
+      "website": "http://news.now.com/",
+      "priority": 5
+    },
+    {
+      "name": "RTHK TV 35",
+      "isFree": true,
+      "website": "https://www.rthk.hk/tv",
+      "priority": 5
+    },
+    {
+      "name": "TVB Finance Sports & Information",
+      "isFree": true,
+      "website": "https://promo.mytvsuper.com/en/epg-channel/A",
+      "priority": 10
+    },
+    {
+      "name": "TVB News",
+      "isFree": true,
+      "website": "http://programme.tvb.com/tvbnewschannel",
+      "priority": 5
+    },
+    {
+      "name": "TVB",
+      "isFree": null,
+      "keywords": "tvb -asian -select -chinese -drama -opera -channel -classic -movies -finance -sports -information -food -hd -jade -j1 -j5 -japanese -network -vision -news -pearl -plus -xing -he",
+      "priority": 5
+    },
+    {
+      "name": "Radio Television Hong Kong",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "HK Television Entertainment",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "I-CABLE HOY",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Asia Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Commercial Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "New Asia Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Hong Kong Television Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Now",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Cable TV Hong Kong",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVB Network Vision",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "HOY International Business",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVB Jade",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVB Plus",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVB Pearl",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "His",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "her",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CCTV- 4",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CTi International",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "ATV HDTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "ATV Asia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CCTV-",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "ATV Classic",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Southern Television Guangdong",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVB HD Jade",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVB J 5",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Plus",
+      "isFree": null,
+      "priority": 5
+    }
+  ],
+  "Travel": [],
+  "Shop": [
+    {
+      "name": "BSTV",
+      "isFree": true,
+      "website": "http://bschannel.com/zh",
+      "priority": 4
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Celestial Movies",
+      "priority": 5
+    },
+    {
+      "name": "Asian Action",
+      "isFree": true,
+      "website": "http://b.tvb.com/tvbi/2017/04/25/malaysia-jadepack/",
+      "priority": 5
+    },
+    {
+      "name": "CCM",
+      "isFree": true,
+      "website": "https://www.cmclassic.tv/index.php?location/HK",
+      "priority": 5
+    },
+    {
+      "name": "Celestial Movies Pinoy",
+      "isFree": true,
+      "website": "https://www.cmpinoy.com.ph/",
+      "priority": 5
+    },
+    {
+      "name": "Classic Movies",
+      "isFree": true,
+      "website": "https://promo.mytvsuper.com/en/epg-channel/CCLM",
+      "priority": 5
+    },
+    {
+      "name": "FOX Action Movies MENA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "FOX Action Movies Southeast Asia",
+      "isFree": true,
+      "website": "https://foxactionmovies.foxmoviesasia.com/",
+      "priority": 5
+    },
+    {
+      "name": "i-CABLE Cable Movies",
+      "isFree": true,
+      "website": "http://epg.i-cable.com/ci/channel/epg/251/",
+      "priority": 5
+    },
+    {
+      "name": "i-CABLE Cine p.",
+      "isFree": true,
+      "website": "http://epg.i-cable.com/ci/channel/epg/253/",
+      "priority": 5
+    },
+    {
+      "name": "Mei Ah Drama",
+      "isFree": true,
+      "website": "http://www.matv.com.hk/drama.aspx",
+      "priority": 5
+    },
+    {
+      "name": "Mei Ah Movie",
+      "isFree": true,
+      "website": "http://www.matv.com.hk/film.aspx",
+      "priority": 5
+    },
+    {
+      "name": "Movie Movie",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/116/1",
+      "priority": 5
+    },
+    {
+      "name": "now Baogu Movies",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/133/1",
+      "priority": 5
+    },
+    {
+      "name": "now Baogu Superstars",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/138/1",
+      "priority": 5
+    },
+    {
+      "name": "now Video Express",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/106/1",
+      "priority": 5
+    },
+    {
+      "name": "Phoenix Movies",
+      "isFree": true,
+      "website": "http://ent.ifeng.com/movie",
+      "priority": 5
+    },
+    {
+      "name": "Star Chinese Movies",
+      "isFree": true,
+      "keywords": "star chinese movies -legend",
+      "website": "https://www.dngtw.tw/scm/",
+      "priority": 5
+    },
+    {
+      "name": "Star Chinese Movies Legend",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Star Entertainment",
+      "isFree": true,
+      "website": "https://www.dngtw.tw/sec/",
+      "priority": 5
+    },
+    {
+      "name": "Thrill",
+      "isFree": true,
+      "website": "http://www.thrill-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVB Classic",
+      "isFree": true,
+      "keywords": "tvb classic -movies",
+      "website": "https://programme.tvb.com/tvbclassic",
+      "priority": 5
+    },
+    {
+      "name": "TVB Classic Movies",
+      "isFree": true,
+      "website": "http://programme.tvb.com/tvbclassicmovies/",
+      "priority": 5
+    },
+    {
+      "name": "tvN Movies Asia",
+      "isFree": true,
+      "website": "https://tvnmovies.net/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Creation",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HKSTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Phoenix Hong Kong",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTHK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVB J",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ViuTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "iMode",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "香港开电视 / HKSTV-HKS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Asian Drama",
+      "isFree": true,
+      "website": "https://promo.mytvsuper.com/en/epg-channel/CTVS",
+      "priority": 5
+    },
+    {
+      "name": "Asian Variety",
+      "isFree": true,
+      "website": "https://promo.mytvsuper.com/en/epg-channel/CWIN",
+      "priority": 5
+    },
+    {
+      "name": "Asia Travel Satellite",
+      "isFree": true,
+      "website": "http://www.ctstvnet.com/",
+      "priority": 5
+    },
+    {
+      "name": "ATV Home",
+      "isFree": true,
+      "website": "http://www.hkatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Channel Blue",
+      "isFree": null,
+      "website": "http://epg.i-cable.com/ci/channel/epg/901/",
+      "priority": 5
+    },
+    {
+      "name": "Channel Fire",
+      "isFree": null,
+      "website": "http://epg.i-cable.com/ci/channel/epg/902/",
+      "priority": 5
+    },
+    {
+      "name": "Chinese Drama",
+      "isFree": true,
+      "website": "https://promo.mytvsuper.com/en/epg-channel/CDR3",
+      "priority": 5
+    },
+    {
+      "name": "CHTV",
+      "isFree": true,
+      "website": "http://www.chtv.com.hk/",
+      "priority": 5
+    },
+    {
+      "name": "Entertainment News",
+      "isFree": true,
+      "website": "https://promo.mytvsuper.com/en/epg-channel/CTVE",
+      "priority": 5
+    },
+    {
+      "name": "Golden Jade",
+      "isFree": true,
+      "website": "https://promo.mytvsuper.com/en/epg-channel/TVG",
+      "priority": 5
+    },
+    {
+      "name": "HKI",
+      "isFree": true,
+      "website": "http://www.hongkongitv.com/pc_news/news_list/cid-2",
+      "priority": 5
+    },
+    {
+      "name": "HOY Infotainment",
+      "isFree": true,
+      "website": "https://hoy.tv/live?channel_no=78",
+      "priority": 5
+    },
+    {
+      "name": "HOY",
+      "isFree": true,
+      "website": "https://hoy.tv/",
+      "priority": 5
+    },
+    {
+      "name": "i-CABLE Family Entertainment",
+      "isFree": true,
+      "website": "http://epg.i-cable.com/ci/channel/epg/371/",
+      "priority": 5
+    },
+    {
+      "name": "i-CABLE No.",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ice Fire",
+      "isFree": null,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/901/1",
+      "priority": 5
+    },
+    {
+      "name": "J 2",
+      "isFree": true,
+      "website": "https://programme.tvb.com/j2",
+      "priority": 5
+    },
+    {
+      "name": "Jade",
+      "isFree": true,
+      "website": "http://programme.tvb.com/jade/",
+      "priority": 5
+    },
+    {
+      "name": "KIX",
+      "isFree": true,
+      "website": "http://www.kix-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Macau Cultural",
+      "isFree": true,
+      "website": "https://programme.tvb.com/asianselect",
+      "priority": 5
+    },
+    {
+      "name": "MIHK",
+      "isFree": true,
+      "website": "http://www.mihk.tv/",
+      "priority": 5
+    },
+    {
+      "name": "now Chinese Drama",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/105/1",
+      "priority": 5
+    },
+    {
+      "name": "now Data",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/336/1",
+      "priority": 5
+    },
+    {
+      "name": "now Jelli",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/108/1",
+      "priority": 5
+    },
+    {
+      "name": "OneTV",
+      "isFree": true,
+      "website": "http://www.one-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Pearl",
+      "isFree": true,
+      "website": "https://programme.tvb.com/pearl/",
+      "priority": 5
+    },
+    {
+      "name": "Pet Club",
+      "isFree": true,
+      "website": "https://www.lightninginternational.net/channels",
+      "priority": 5
+    },
+    {
+      "name": "Phoenix Chinese",
+      "isFree": true,
+      "website": "http://phtv.ifeng.com/",
+      "priority": 5
+    },
+    {
+      "name": "Phoenix CNE",
+      "isFree": true,
+      "website": "http://www.pcne.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Phoenix North America Chinese",
+      "isFree": true,
+      "website": "http://www.ifengus.com/",
+      "priority": 5
+    },
+    {
+      "name": "RTHK TV 31",
+      "isFree": true,
+      "website": "https://www.rthk.hk/",
+      "priority": 5
+    },
+    {
+      "name": "RTHK TV 32",
+      "isFree": true,
+      "website": "https://www.rthk.hk/",
+      "priority": 5
+    },
+    {
+      "name": "RTHK TV 33",
+      "isFree": true,
+      "website": "https://www.rthk.hk/",
+      "priority": 5
+    },
+    {
+      "name": "RTHK TV 34",
+      "isFree": true,
+      "website": "https://www.rthk.hk/",
+      "priority": 5
+    },
+    {
+      "name": "Star Chinese",
+      "isFree": true,
+      "website": "https://www.dngtw.tw/scc/",
+      "priority": 5
+    },
+    {
+      "name": "Star Xing Kong",
+      "isFree": true,
+      "website": "http://www.xingkong.com.cn/",
+      "priority": 5
+    },
+    {
+      "name": "Sun",
+      "isFree": true,
+      "website": "https://www.isuntv.com/zh/index",
+      "priority": 5
+    },
+    {
+      "name": "TVB Asian Select",
+      "isFree": true,
+      "website": "https://programme.tvb.com/asianselect",
+      "priority": 5
+    },
+    {
+      "name": "TVB Chinese Drama",
+      "isFree": true,
+      "website": "https://programme.tvb.com/tvbchinesedrama",
+      "priority": 5
+    },
+    {
+      "name": "TVB Chinese Opera",
+      "isFree": true,
+      "website": "https://www.mytvsuper.com/en/epg/98/Chinese%20Opera%20Channel/",
+      "priority": 5
+    },
+    {
+      "name": "TVB Food",
+      "isFree": true,
+      "website": "http://programme.tvb.com/tvbfood",
+      "priority": 5
+    },
+    {
+      "name": "TVB Japanese Drama",
+      "isFree": true,
+      "website": "http://programme.tvb.com/tvbjapanesedrama/",
+      "priority": 5
+    },
+    {
+      "name": "TVB Xing He",
+      "isFree": true,
+      "website": "http://www.tvb.com/xinghe/",
+      "priority": 5
+    },
+    {
+      "name": "tvN Asia",
+      "isFree": true,
+      "website": "https://www.tvnasia.net/",
+      "priority": 5
+    },
+    {
+      "name": "Universal Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Viu",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/102/1",
+      "priority": 5
+    },
+    {
+      "name": "ViuTVsix",
+      "isFree": true,
+      "website": "http://viu.tv/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Ani-One",
+      "isFree": true,
+      "website": "https://www.medialink.com.hk/en/Anione.aspx",
+      "priority": 5
+    },
+    {
+      "name": "Hands Up",
+      "isFree": true,
+      "website": "https://promo.mytvsuper.com/en/epg-channel/KID",
+      "priority": 5
+    },
+    {
+      "name": "Miao Mi",
+      "isFree": true,
+      "website": "https://www.miaomi-tv.com/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Channel V",
+      "isFree": true,
+      "website": "http://www.vchinese.com/",
+      "priority": 5
+    },
+    {
+      "name": "Chinese Opera",
+      "isFree": true,
+      "website": "https://promo.mytvsuper.com/en/epg-channel/CCOC",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "i-CABLE Channel 18",
+      "isFree": true,
+      "website": "http://epg.i-cable.com/new/ch_content.php?ch=618",
+      "priority": 5
+    },
+    {
+      "name": "i-CABLE HD 603",
+      "isFree": true,
+      "website": "http://www.cabletv.com.hk/ct/cabletv.php?id=5&cid=86",
+      "priority": 5
+    },
+    {
+      "name": "i-CABLE Horse Racing",
+      "isFree": true,
+      "website": "http://epg.i-cable.com/ci/channel/epg/668/",
+      "priority": 5
+    },
+    {
+      "name": "i-CABLE Horse Racing 2",
+      "isFree": true,
+      "website": "http://epg.i-cable.com/ci/channel/epg/669/",
+      "priority": 5
+    },
+    {
+      "name": "i-CABLE Sports",
+      "isFree": true,
+      "website": "http://sports.i-cable.com/",
+      "priority": 10
+    },
+    {
+      "name": "i-CABLE Sports Plus",
+      "isFree": true,
+      "website": "http://epg.i-cable.com/ci/channel/epg/662/",
+      "priority": 10
+    },
+    {
+      "name": "i-CABLE Sports Plus 2",
+      "isFree": true,
+      "website": "http://epg.i-cable.com/ci/channel/epg/664/",
+      "priority": 10
+    },
+    {
+      "name": "i-CABLE Sports Plus 3",
+      "isFree": true,
+      "website": "http://epg.i-cable.com/ci/channel/epg/665/",
+      "priority": 10
+    },
+    {
+      "name": "myTV SUPER 18",
+      "isFree": true,
+      "website": "https://promo.mytvsuper.com/en/epg-channel/C18",
+      "priority": 5
+    },
+    {
+      "name": "myTV SUPER Live Soccer",
+      "isFree": true,
+      "website": "https://promo.mytvsuper.com/en/epg-channel/EVT1",
+      "priority": 5
+    },
+    {
+      "name": "myTV SUPER Live Soccer 2",
+      "isFree": true,
+      "website": "https://promo.mytvsuper.com/en/epg-channel/EVT2",
+      "priority": 5
+    },
+    {
+      "name": "myTV SUPER Live Soccer 3",
+      "isFree": true,
+      "website": "https://promo.mytvsuper.com/en/epg-channel/EVT3",
+      "priority": 5
+    },
+    {
+      "name": "myTV SUPER Live Soccer 4",
+      "isFree": true,
+      "website": "https://promo.mytvsuper.com/en/epg-channel/EVT4",
+      "priority": 5
+    },
+    {
+      "name": "myTV SUPER Live Soccer 5",
+      "isFree": true,
+      "website": "https://promo.mytvsuper.com/en/epg-channel/EVT5",
+      "priority": 5
+    },
+    {
+      "name": "now 668",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/668/1",
+      "priority": 5
+    },
+    {
+      "name": "now Golf 2",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/683/1",
+      "priority": 5
+    },
+    {
+      "name": "now Golf 3",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/684/1",
+      "priority": 5
+    },
+    {
+      "name": "now Sports",
+      "isFree": true,
+      "keywords": "now sports -1 -2 -3 -4 -4k -616 -617 -5 -6 -618 -619 -650 -651 -681 -7 -plus -premier -league -tv -prime",
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/600/1",
+      "priority": 10
+    },
+    {
+      "name": "now Sports 2",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/632/1",
+      "priority": 10
+    },
+    {
+      "name": "now Sports 3",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/633/1",
+      "priority": 10
+    },
+    {
+      "name": "now Sports 4",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/634/1",
+      "priority": 10
+    },
+    {
+      "name": "now Sports 4K",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/611/1",
+      "priority": 10
+    },
+    {
+      "name": "now Sports 4K 2",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/612/1",
+      "priority": 10
+    },
+    {
+      "name": "now Sports 4K 616",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/616/1",
+      "priority": 10
+    },
+    {
+      "name": "now Sports 4K 617",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/617/1",
+      "priority": 10
+    },
+    {
+      "name": "now Sports 5",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/635/1",
+      "priority": 10
+    },
+    {
+      "name": "now Sports 6",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/636/1",
+      "priority": 10
+    },
+    {
+      "name": "now Sports 618",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/618/1",
+      "priority": 10
+    },
+    {
+      "name": "now Sports 619",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/619/1",
+      "priority": 10
+    },
+    {
+      "name": "now Sports 650",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/650/1",
+      "priority": 10
+    },
+    {
+      "name": "now Sports 651",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/651/1",
+      "priority": 10
+    },
+    {
+      "name": "now Sports 681",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/681/1",
+      "priority": 10
+    },
+    {
+      "name": "now Sports 7",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/637/1",
+      "priority": 10
+    },
+    {
+      "name": "now Sports Plus",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/680/1",
+      "priority": 10
+    },
+    {
+      "name": "now Sports Premier League",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/621/1",
+      "priority": 10
+    },
+    {
+      "name": "now Sports Premier League 2",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/622/1",
+      "priority": 10
+    },
+    {
+      "name": "now Sports Premier League 3",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/623/1",
+      "priority": 10
+    },
+    {
+      "name": "now Sports Premier League 4",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/624/1",
+      "priority": 10
+    },
+    {
+      "name": "now Sports Premier League 5",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/625/1",
+      "priority": 10
+    },
+    {
+      "name": "now Sports Premier League 6",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/626/1",
+      "priority": 10
+    },
+    {
+      "name": "now Sports Prime",
+      "isFree": true,
+      "website": "https://nowplayer.now.com/tvguide/channeldetail/630/1",
+      "priority": 10
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "National Geographic",
+      "isFree": true,
+      "keywords": "national geographic -wild",
+      "website": "http://natgeotv.com/hk",
+      "priority": 7
+    },
+    {
+      "name": "National Geographic Wild",
+      "isFree": true,
+      "website": "http://natgeotv.com/asia",
+      "priority": 7
+    },
+    {
+      "name": "now International",
+      "isFree": true,
+      "website": "http://nowtv.now.com/overseas/us/channel?lang=zh",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Taoist",
+      "isFree": true,
+      "website": "https://www.taoist.tv/",
+      "priority": 4
+    }
+  ]
+}

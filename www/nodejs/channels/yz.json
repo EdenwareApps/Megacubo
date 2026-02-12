@@ -1,0 +1,963 @@
+{
+  "Entertainment": [
+    {
+      "name": "1Mus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "30A Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "4 TURK BILLBOARD",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "4 TURK MUSIC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ADRIA Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ALB MUSIC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Activa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Alegria",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Algorhythm i love Tech House",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BaebleMusic",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bajo Cero",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Baraza Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Baraza TV Classic Hits",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Baraza TV Greek Music Hits",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Beast Mode",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bedroom Beats",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Best Cable Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bluegrass 4U",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Box Hits",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CANNALI",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CHOICE",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CMC 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Caltex Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 38",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Carolina",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Chau",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Chill AF",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "City",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Conecta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cusano",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "D 5",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DBM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DELUXEMUSIC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DSTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DanceTrippin",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Deejay",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DeepHouse District",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ditty",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EBC1 Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EDM Mainstage",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EUROAL",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Electro Anthems",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ems Vechte Welle",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Euro Indie Music Chart",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "FOLX Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "FOLX Slovenija",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Friday Feels",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GO-RTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Generations",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gold",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hip Hop Bangers",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hit Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hits 360",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hot Rock",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ilirida RTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Karibena",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kayhan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kerrang",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kiss",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KroneHit",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LEEEKO",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LFM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La Mega Mundial",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Latido Music",
+      "isFree": true,
+      "keywords": "latido music",
+      "priority": 5
+    },
+    {
+      "name": "Latinos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Latinos UP",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Like Yesterday",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Live Music Replay",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MDR Jump",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MESSATIDA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MGR",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MIX 24 7 - Baladas",
+      "isFree": true,
+      "shortName": "M27B",
+      "priority": 5
+    },
+    {
+      "name": "MIX 24 7 - Conciertos Live",
+      "isFree": true,
+      "shortName": "M27CL",
+      "priority": 5
+    },
+    {
+      "name": "MIX 24 7 - Pop",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MIX 24 7 - Retro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MIX 24 7 - Tropical",
+      "isFree": true,
+      "shortName": "M27T",
+      "priority": 5
+    },
+    {
+      "name": "MM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTV Germany",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTV Music 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTV Norway",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MUSIC ,",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Magic",
+      "isFree": true,
+      "keywords": "magic",
+      "priority": 5
+    },
+    {
+      "name": "Mas Cumbia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Minimal Techno",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Muzzik AMVA 2020 Serbia",
+      "isFree": true,
+      "shortName": "MA2S",
+      "priority": 5
+    },
+    {
+      "name": "Muzzik Cafe&Club Serbia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Muzzik Gen Z Serbia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Muzzik HipHop Serbia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Muzzik Mediteraneo Serbia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Muzzik OKK Serbia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Muzzik Rock&Roll Serbia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Muzzik TV Serbia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Muzzik Worldwide Serbia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NRG",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nancy Web",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Neural Focused",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nojoum",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nostalgie Route 66",
+      "isFree": true,
+      "shortName": "NR 6",
+      "priority": 5
+    },
+    {
+      "name": "ONE1 Slovenija",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Obosso",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ocko",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Oldies",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Only 90s Kids will understand",
+      "isFree": true,
+      "shortName": "O9KWU",
+      "priority": 5
+    },
+    {
+      "name": "Ostsee Welle",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Oxigeno",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PANIK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PERSIANA BILLBOARD",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PERSIANA MUSIC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pamir",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Power",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Power Turk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pure Rock",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTL 102.5 BEST",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Reload Play",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Retro Musik",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Retro Plus 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Retro Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rewind",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rock Antenne",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SKY FOLK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "STIRR Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Spirit",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Spotlight",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TILEMOUSIKI",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TOP GOLD",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TOP Latino",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVM 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TZiK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Techno Warehouse",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleMusica",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Texas-Sized Hits",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "That 70s",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "That's Hot",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "The Box",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "The Retro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Thebig1510.com New Jersey",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Top Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Unwind",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "V2Beat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Video Tour",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Videorola",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Wham",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "XITE",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "XTV Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Xalastra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Xtra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Yacht Rock",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ZOUGLA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ZWEI2 Music",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "105'5 Spreeradio",
+      "isFree": true,
+      "keywords": "105 5 spreeradio -80er",
+      "priority": 5
+    },
+    {
+      "name": "105'5 Spreeradio 80er",
+      "isFree": true,
+      "shortName": "1S 8",
+      "priority": 5
+    },
+    {
+      "name": "60´s - Beatles Radio",
+      "isFree": true,
+      "shortName": "6BR",
+      "priority": 5
+    },
+    {
+      "name": "60´s - Harmony Radio",
+      "isFree": true,
+      "shortName": "6HR",
+      "priority": 5
+    },
+    {
+      "name": "60´s - KTL Oldieradio",
+      "isFree": true,
+      "shortName": "6KO",
+      "priority": 5
+    },
+    {
+      "name": "80's Loop",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "80s Party",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "90's Loop",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Fun Radio 92.7 Alabama",
+      "isFree": true,
+      "shortName": "FR9A",
+      "priority": 5
+    },
+    {
+      "name": "La Cuenca Radio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MDR Radio Sachsen Bautzen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MY RADIO",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Maxima FM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NG RADIO",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Otto FM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Power Hit Radio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RADIO FRECCIA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio 51 Lombardia",
+      "isFree": true,
+      "shortName": "R5L",
+      "priority": 5
+    },
+    {
+      "name": "Radio BOB",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Contact",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Italia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Javan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Number One",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Ostrock",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Pilatus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Schlager Paradies",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Taormina Sicilia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio m20 Lazio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radionorba",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radiou",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sonus FM",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "VEVO 2K",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VEVO 80's",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VEVO 90's",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VEVO Country",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VEVO R&B",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VEVO Reggeaton & Trap",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vevo Pop",
+      "isFree": true,
+      "priority": 5
+    }
+  ]
+}

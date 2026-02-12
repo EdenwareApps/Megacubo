@@ -6,7 +6,7 @@ import fs from "fs";
 import config from "../../config/config.js"
 import { distinguishM3UType } from '../../lists/tools.js';
 
-class StreamInfo {
+export default class StreamInfo {
     constructor() {
         this.opts = {
             debug: false,
@@ -320,4 +320,3 @@ class StreamInfo {
         return !isAscii;
     }
 }
-export default StreamInfo;

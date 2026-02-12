@@ -1,0 +1,161 @@
+{
+  "Entertainment": [
+    {
+      "name": "KC 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Rwanda",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ahupa Visual Radio",
+      "isFree": true,
+      "website": "https://ahuparadio.com/",
+      "priority": 5
+    },
+    {
+      "name": "B+",
+      "isFree": true,
+      "website": "https://btnrwanda.com/",
+      "priority": 5
+    },
+    {
+      "name": "BTN",
+      "isFree": true,
+      "website": "https://btnrwanda.com/",
+      "priority": 5
+    },
+    {
+      "name": "BTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EAMG",
+      "isFree": true,
+      "website": "https://new.eamgtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "ETV Rwanda",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Flash",
+      "isFree": true,
+      "website": "https://flash.rw/",
+      "priority": 5
+    },
+    {
+      "name": "Isibo",
+      "isFree": true,
+      "website": "https://www.isibo.tv/maintenance/",
+      "priority": 5
+    },
+    {
+      "name": "Izuba",
+      "isFree": true,
+      "website": "https://www.izubaradiotv.rw/",
+      "priority": 5
+    },
+    {
+      "name": "Rwanda",
+      "isFree": true,
+      "website": "https://www.rba.co.rw/tv",
+      "priority": 5
+    },
+    {
+      "name": "TV",
+      "isFree": true,
+      "website": "https://www.tv1.rw/",
+      "priority": 5
+    },
+    {
+      "name": "TV 10",
+      "isFree": true,
+      "website": "http://www.radiotv10.rw/",
+      "priority": 5
+    },
+    {
+      "name": "Yongwe",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ZACU",
+      "isFree": true,
+      "website": "https://www.canalplus.com/rw/chaines/zacu-tv",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Authentic",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BCN",
+      "isFree": true,
+      "website": "https://bcntv.org/",
+      "priority": 4
+    },
+    {
+      "name": "Contact",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Genesis",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Pacis",
+      "isFree": true,
+      "website": "https://pacistv.rw/",
+      "priority": 4
+    },
+    {
+      "name": "TV O Rwanda",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "News": [
+    {
+      "name": "Goodrich",
+      "isFree": true,
+      "website": "https://goodrichbusinessgroup.com/goodrich-tv/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Isango",
+      "isFree": true,
+      "website": "http://www.isangostar.rw/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Ishusho",
+      "isFree": true,
+      "website": "https://ishushotv.online/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Magic Sports",
+      "isFree": true,
+      "website": "https://rba.co.rw/",
+      "priority": 10
+    }
+  ]
+}

@@ -1,0 +1,495 @@
+{
+  "Religious": [
+    {
+      "name": "IBN",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Africa TV 2",
+      "isFree": true,
+      "website": "http://www.africatv2.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Agape TV Network",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Arise & Shine",
+      "isFree": true,
+      "website": "https://www.ariseandshine-ministries.org/arise-and-shine-tv",
+      "priority": 4
+    },
+    {
+      "name": "Chakula",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Christ Mandate",
+      "isFree": true,
+      "website": "https://www.christmandate.or.tz/cm-tv",
+      "priority": 4
+    },
+    {
+      "name": "Divine TV 001",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Eden",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Efatha",
+      "isFree": true,
+      "website": "https://efathachurch.org/",
+      "priority": 4
+    },
+    {
+      "name": "GeorDavie",
+      "isFree": true,
+      "website": "https://www.geordavie.org/",
+      "priority": 4
+    },
+    {
+      "name": "Habari Maalum",
+      "isFree": true,
+      "website": "https://habarimaalummedia.or.tz/",
+      "priority": 4
+    },
+    {
+      "name": "Haleluya",
+      "isFree": true,
+      "website": "https://haleluyatv.co.tz/",
+      "priority": 4
+    },
+    {
+      "name": "Hope Channel Tanzania",
+      "isFree": true,
+      "website": "http://hopetv.or.tz/",
+      "priority": 4
+    },
+    {
+      "name": "IBN TV Africa",
+      "isFree": true,
+      "website": "http://www.ibn-tv.co.tz/",
+      "priority": 4
+    },
+    {
+      "name": "Jehova Jire",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "JN Power",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Joy Gospel",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Mahaasin",
+      "isFree": true,
+      "website": "http://www.mahaasintv.co.tz/",
+      "priority": 4
+    },
+    {
+      "name": "Mzee Wa Upako",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Rabbi",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Robert",
+      "isFree": true,
+      "website": "https://roberttvtanzania.com/",
+      "priority": 4
+    },
+    {
+      "name": "ROC",
+      "isFree": true,
+      "website": "https://roctv.co.tz/",
+      "priority": 4
+    },
+    {
+      "name": "Sauti Ya Uponyaji",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Star Religion",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "The Sniper One",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Tumaini",
+      "isFree": true,
+      "website": "https://tumainimedia.co.tz/",
+      "priority": 4
+    },
+    {
+      "name": "TV Imaan",
+      "isFree": true,
+      "website": "https://islamicftz.org/",
+      "priority": 4
+    },
+    {
+      "name": "TZ Gospel",
+      "isFree": true,
+      "website": "https://tzgospel.co.tz/",
+      "priority": 4
+    },
+    {
+      "name": "Upendo",
+      "isFree": true,
+      "website": "http://www.upendomedianetwork.co.tz/",
+      "priority": 4
+    },
+    {
+      "name": "Usambara Mountain",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "WRM",
+      "isFree": true,
+      "website": "https://wrm.or.tz/",
+      "priority": 4
+    },
+    {
+      "name": "ZOE",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Channel Ten",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Abood",
+      "isFree": true,
+      "website": "https://www.aboodmedia.co.tz/",
+      "priority": 5
+    },
+    {
+      "name": "Azam One",
+      "isFree": true,
+      "website": "http://azamtv.co.tz/",
+      "priority": 5
+    },
+    {
+      "name": "Azam Two",
+      "isFree": true,
+      "website": "http://azamtv.co.tz/",
+      "priority": 5
+    },
+    {
+      "name": "Azam Xtra",
+      "isFree": true,
+      "website": "https://azamtv.co.tz/",
+      "priority": 5
+    },
+    {
+      "name": "Barmedas",
+      "isFree": true,
+      "website": "https://www.barmedas.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Capital",
+      "isFree": true,
+      "website": "https://www.ippmedia.com/",
+      "priority": 5
+    },
+    {
+      "name": "CG Online",
+      "isFree": true,
+      "website": "https://cgfmradio.co.tz/",
+      "priority": 5
+    },
+    {
+      "name": "Cheka Plus",
+      "isFree": true,
+      "website": "https://chekaplus.com/",
+      "priority": 5
+    },
+    {
+      "name": "Clear",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Clouds",
+      "isFree": true,
+      "website": "http://cloudsmedia.com/profile/clouds-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Crown",
+      "isFree": true,
+      "website": "https://crownmedia.co.tz/",
+      "priority": 5
+    },
+    {
+      "name": "Dira",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dodoma",
+      "isFree": true,
+      "website": "https://dodomafm.co.tz/dodomatv.html",
+      "priority": 5
+    },
+    {
+      "name": "EATV 5",
+      "isFree": true,
+      "website": "https://www.eatv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Furaha",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ITV",
+      "isFree": true,
+      "website": "https://www.itv.co.tz/",
+      "priority": 5
+    },
+    {
+      "name": "Mambo Moto",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mambo TV Swahili",
+      "isFree": true,
+      "website": "http://www.mambotvswahili.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mchongo",
+      "isFree": true,
+      "website": "https://mchongotv.co.tz/aboutus.html",
+      "priority": 5
+    },
+    {
+      "name": "Plus",
+      "isFree": true,
+      "website": "https://plustv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "REDTV",
+      "isFree": true,
+      "website": "https://www.itsred.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Riyadh",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sibuka Maisha",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Star E ,",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Star",
+      "isFree": true,
+      "website": "https://startv.co.tz/",
+      "priority": 5
+    },
+    {
+      "name": "Tanzania Safari",
+      "isFree": true,
+      "website": "https://tanzaniasafarichannel.go.tz/",
+      "priority": 5
+    },
+    {
+      "name": "TBC",
+      "isFree": true,
+      "website": "http://tbc.go.tz/",
+      "priority": 5
+    },
+    {
+      "name": "TBC 2",
+      "isFree": true,
+      "website": "https://www.tbc.go.tz/",
+      "priority": 5
+    },
+    {
+      "name": "Top Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Trenet",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 3",
+      "isFree": true,
+      "website": "http://www.tv3.co.tz/",
+      "priority": 5
+    },
+    {
+      "name": "TV E",
+      "isFree": true,
+      "website": "https://tve.co.tz/",
+      "priority": 5
+    },
+    {
+      "name": "Uhai",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UTV",
+      "isFree": true,
+      "website": "https://azamtv.co.tz/",
+      "priority": 5
+    },
+    {
+      "name": "Wasafi",
+      "isFree": true,
+      "website": "https://wasafimedia.co.tz/",
+      "priority": 5
+    },
+    {
+      "name": "Zamaradi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ZBC 2",
+      "isFree": true,
+      "website": "https://www.zbc.go.tz/",
+      "priority": 5
+    },
+    {
+      "name": "ZBC",
+      "isFree": true,
+      "website": "https://zbc.go.tz/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Azam Sports",
+      "isFree": true,
+      "website": "https://web.azamtvmax.com/Home",
+      "priority": 10
+    },
+    {
+      "name": "Azam Sports 2",
+      "isFree": true,
+      "website": "https://web.azamtvmax.com/Home",
+      "priority": 10
+    },
+    {
+      "name": "Azam Sports 3",
+      "isFree": true,
+      "website": "https://web.azamtvmax.com/Home",
+      "priority": 10
+    },
+    {
+      "name": "Supa",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Channel Ten ,",
+      "isFree": true,
+      "website": "http://channelten.co.tz/",
+      "priority": 5
+    },
+    {
+      "name": "OFFTRACK",
+      "isFree": true,
+      "website": "https://offtrack.co.tz/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Dizzim",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Mlimani",
+      "isFree": true,
+      "website": "https://www.udsm.ac.tz/web/index.php/schools/sjmc/mlimani-tv",
+      "priority": 5
+    },
+    {
+      "name": "SUATV",
+      "isFree": true,
+      "website": "https://www.suamedia.sua.ac.tz/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Sinema Zetu",
+      "isFree": true,
+      "website": "https://azamtv.co.tz/tan/sinema-zetu",
+      "priority": 5
+    },
+    {
+      "name": "Star Movies ,",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Star Tollywood",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Star Kids",
+      "isFree": true,
+      "priority": 5
+    }
+  ]
+}

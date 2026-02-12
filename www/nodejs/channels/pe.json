@@ -1,0 +1,2646 @@
+{
+  "Local": [
+    {
+      "name": "ATM Televisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Andes Televisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Antares Televisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AsiriTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Auténtica Televisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BeXtreme",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bella Abanquina",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CNC Digital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CR Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cable Netword",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cadena TV Huancayo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cajamarca",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 43 Sudamericana",
+      "isFree": true,
+      "shortName": "C4S",
+      "priority": 5
+    },
+    {
+      "name": "Canal 8",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal E",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Caribe Televisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Central",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ClipsTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Conecta2TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CreoTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DMJ",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DeltaTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Diario Hechicera",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Expresión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "FuegoTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "FullTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GORESAM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Genios",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gold Valley",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Huacho Perú",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Huanta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Huánuco en Vivo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Imagen Televisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Impacto Televisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Imperial Televisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Inkavisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KBO Quillabamba",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kachorro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kallpa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KeBuena",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La Ribereña",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LimaLive",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LotPlus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTV Más",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Master",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MaticesTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mega",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Millenium 49",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MitosTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Moda Huancayo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NorSelva RTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nuestra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "OK TeVe",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Oasis RTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Oriental TV 21",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Planeta TV Bagua",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Planeta TV Moyobamba",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Proyecta Televisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pucallpa Televisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "QT Televisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Quattro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Quillavision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RN Televisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RW Televisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Red de Comunicación Regional",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Región",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ribereña",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SatelTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SelvaMía",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sistema",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sol Stereo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Solar Televisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SoriTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sumac",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Super Canal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SurTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TPTO",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Andahuaylas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Huarmey",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Norte",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Sensación",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Sistemas Cuzco",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV5 Soritor",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVenLinea",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele2000",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telesur",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisión Tarapoto",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tropical",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tumpis",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Unitel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Universitaria",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Uranio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VamisaTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vía Altomayo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vía Televisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Wtv",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "X",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "ATV+ Noticias",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CanalB",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Congreso",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Exitosa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gaceta Ucayalina",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Identidad",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "JNE",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La Abeja",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La República",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PBO Digital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PymeTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RSelvaTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Total",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Noticias 7. 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Perú Noticias",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Visión Noticias Perú",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Atmosfera Television",
+      "isFree": true,
+      "website": "https://www.radioatmosfera.pe/",
+      "priority": 5
+    },
+    {
+      "name": "ATV+",
+      "isFree": true,
+      "keywords": "atvplus -noticias",
+      "website": "https://www.atv.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Canal N",
+      "isFree": true,
+      "website": "https://canaln.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Expresion",
+      "isFree": true,
+      "website": "https://www.radioexpresion.com.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Huanuco en Vivo",
+      "isFree": true,
+      "website": "https://huanucoenvivo.com/",
+      "priority": 5
+    },
+    {
+      "name": "La Primera",
+      "isFree": true,
+      "website": "https://forcatel.com/laprimera.html",
+      "priority": 6
+    },
+    {
+      "name": "Like",
+      "isFree": true,
+      "website": "https://liketv.pe/",
+      "priority": 5
+    },
+    {
+      "name": "LR+",
+      "isFree": true,
+      "website": "https://lrmas.larepublica.pe/",
+      "priority": 5
+    },
+    {
+      "name": "PBO",
+      "isFree": true,
+      "keywords": "pbo -digital",
+      "website": "https://pboradio.com/",
+      "priority": 5
+    },
+    {
+      "name": "Qosqo Times",
+      "isFree": true,
+      "website": "https://qosqotimes.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Uno Tacna",
+      "isFree": true,
+      "website": "https://radiouno.pe/",
+      "priority": 5
+    },
+    {
+      "name": "RCR",
+      "isFree": true,
+      "website": "https://www.rcrperu.com/",
+      "priority": 5
+    },
+    {
+      "name": "RPP",
+      "isFree": true,
+      "website": "http://rpp.pe/tv.html",
+      "priority": 5
+    },
+    {
+      "name": "RTV Total Yurimaguas",
+      "isFree": true,
+      "website": "https://rtvtotal.pe/",
+      "priority": 5
+    },
+    {
+      "name": "TV Peru Noticias",
+      "isFree": true,
+      "website": "https://www.tvperu.gob.pe/",
+      "priority": 5
+    },
+    {
+      "name": "VNP",
+      "isFree": true,
+      "website": "https://vnp.pe",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Best Cable Sports Perú",
+      "priority": 10
+    },
+    {
+      "name": "Contacto Deportivo",
+      "priority": 5
+    },
+    {
+      "name": "Monterrico",
+      "priority": 5
+    },
+    {
+      "name": "Ovacion",
+      "priority": 5
+    },
+    {
+      "name": "Best Cable Sports Peru",
+      "isFree": true,
+      "website": "https://bestcableperu.com.pe/tv6.html",
+      "priority": 10
+    },
+    {
+      "name": "Gol Peru",
+      "isFree": true,
+      "website": "https://golperu.pe/",
+      "priority": 5
+    },
+    {
+      "name": "L",
+      "isFree": true,
+      "keywords": "l1 -max",
+      "website": "https://www.l1max.com/",
+      "priority": 5
+    },
+    {
+      "name": "L1 Max",
+      "isFree": true,
+      "website": "https://www.l1max.com/",
+      "priority": 5
+    },
+    {
+      "name": "Movistar Deportes",
+      "isFree": true,
+      "website": "http://movistardeportes.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Sqala",
+      "isFree": true,
+      "website": "https://sqala.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Universitario",
+      "isFree": true,
+      "website": "https://universitario.pe/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "JN 19",
+      "isFree": true,
+      "keywords": "jn 19 | jn19",
+      "shortName": "JN 19",
+      "priority": 4
+    },
+    {
+      "name": "La Luz",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Nazarenas",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Pax",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Virgen de Natividad de Paruro",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Andes Television",
+      "isFree": true,
+      "website": "https://radiosicuani.com/ANDESTV/",
+      "priority": 4
+    },
+    {
+      "name": "Bethel Plus",
+      "isFree": true,
+      "website": "https://www.betheltv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Bethel",
+      "isFree": true,
+      "website": "https://www.betheltv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Kairos",
+      "isFree": true,
+      "website": "http://www.kairostv.pe/",
+      "priority": 4
+    },
+    {
+      "name": "Presencia",
+      "isFree": true,
+      "website": "https://presenciaradiopangoa.blogspot.com/",
+      "priority": 4
+    },
+    {
+      "name": "Santa Rosa Radio",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Surymar",
+      "isFree": true,
+      "website": "https://www.televisionsurymar.com/",
+      "priority": 4
+    },
+    {
+      "name": "Unife",
+      "isFree": true,
+      "website": "https://universal.org.pe/canal-unife-tv/",
+      "priority": 4
+    },
+    {
+      "name": "Vision",
+      "isFree": true,
+      "keywords": "vision -sur -musica",
+      "website": "https://www.vision.org.pe/",
+      "priority": 4
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "ABTelevision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ATV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BHTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bella Asuncion",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Best Cable Perú",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CANAL IPE",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Chicos IPe",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kora",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Latina",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NacionalTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Onda Digital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Panamericana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Cosmos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Palmeras",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Perú",
+      "isFree": true,
+      "keywords": "tv peru -noticias",
+      "priority": 5
+    },
+    {
+      "name": "Tvfaces Online",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UCI",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "USIL",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Uchu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Willax",
+      "isFree": true,
+      "website": "https://willax.pe/",
+      "priority": 5
+    },
+    {
+      "name": "36 TV Huacho",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ABC Teleshow",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Activa",
+      "isFree": true,
+      "website": "https://activatv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Agro",
+      "isFree": true,
+      "website": "http://agrotv.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Alacocina",
+      "isFree": true,
+      "website": "https://www.alacocinatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Albricias",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Altura",
+      "isFree": true,
+      "website": "https://grupoaltura.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Amazonas",
+      "isFree": true,
+      "website": "https://radiostereo99baguagrande.com/",
+      "priority": 5
+    },
+    {
+      "name": "Amazonia",
+      "isFree": true,
+      "website": "https://amazoniatvyurimaguas.com/",
+      "priority": 5
+    },
+    {
+      "name": "Amazonica",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "America Television",
+      "isFree": true,
+      "website": "https://tvgo.americatv.com.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Anas Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Antares Television",
+      "isFree": true,
+      "website": "http://antarestvradio.com/tvonline.html",
+      "priority": 5
+    },
+    {
+      "name": "Antena",
+      "isFree": true,
+      "website": "https://canala1.com",
+      "priority": 5
+    },
+    {
+      "name": "Antena 2",
+      "isFree": true,
+      "website": "https://canala1.com",
+      "priority": 5
+    },
+    {
+      "name": "Antena Regional",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Antena SUR",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Antena Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Arpegio",
+      "isFree": true,
+      "website": "https://arpegio.com.pe/tv/",
+      "priority": 5
+    },
+    {
+      "name": "Arussa Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Astros Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Atenas Television",
+      "isFree": true,
+      "website": "https://atenastelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Atlantis Radio",
+      "isFree": true,
+      "website": "https://atlantisradiotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "ATM Television",
+      "isFree": true,
+      "website": "http://www.atm.pe/",
+      "priority": 5
+    },
+    {
+      "name": "ATV Sur",
+      "isFree": true,
+      "website": "https://www.atv.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Aura",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Autentica Television",
+      "isFree": true,
+      "website": "https://autenticatv.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Belmont Television",
+      "isFree": true,
+      "website": "https://belmonttelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Best Cable Peru",
+      "isFree": true,
+      "website": "https://bestcableperu.com.pe/tv3.html",
+      "priority": 5
+    },
+    {
+      "name": "Bitt",
+      "isFree": true,
+      "website": "https://bittchannel.com/",
+      "priority": 5
+    },
+    {
+      "name": "BNB Digital",
+      "isFree": true,
+      "website": "https://www.bnbdigitaltv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cable Andino Canal 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cadena",
+      "isFree": true,
+      "keywords": "cadena tv -huancayo",
+      "website": "http://www.cadenatv.com.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Callao al Dia",
+      "isFree": true,
+      "website": "https://callaoaldia.pe/multimedia/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 20 Pacasmayo",
+      "isFree": true,
+      "website": "https://canal20pacasmayo.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 21 Huancayo",
+      "isFree": true,
+      "website": "https://canal21huancayo.com",
+      "priority": 5
+    },
+    {
+      "name": "Canal 21 Otuzco",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 25 Ayacucho",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 33 Ayacucho",
+      "isFree": true,
+      "website": "https://www.canal33ayacucho.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 33 Chimbote",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 49 Chiclayo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 6 Mollendo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Catacaos",
+      "isFree": true,
+      "website": "https://www.canal8catacaos.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Mas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CANAL M Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal TeleTres",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Caribe Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Casma",
+      "isFree": true,
+      "website": "https://www.casmanoticias.com/",
+      "priority": 5
+    },
+    {
+      "name": "Charapa",
+      "isFree": true,
+      "website": "https://charapatv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Chincha",
+      "isFree": true,
+      "website": "https://www.chincha.tv/p/live.html",
+      "priority": 5
+    },
+    {
+      "name": "Chupaca Television",
+      "isFree": true,
+      "website": "https://chupacatelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Churcampa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Clarin TV Canal 12",
+      "isFree": true,
+      "website": "https://clarinmedios.com.pe/",
+      "priority": 5
+    },
+    {
+      "name": "CNC Cajamarca",
+      "isFree": true,
+      "website": "https://www.cnccajamarca.com/",
+      "priority": 5
+    },
+    {
+      "name": "CNH",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CN",
+      "isFree": true,
+      "website": "http://www.cablenetword.com/canal.html",
+      "priority": 5
+    },
+    {
+      "name": "Controversia",
+      "isFree": true,
+      "website": "https://playmax.tv/tvcontroversia",
+      "priority": 5
+    },
+    {
+      "name": "Cositel",
+      "isFree": true,
+      "website": "https://www.cositel.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Cosmos TV Puno",
+      "isFree": true,
+      "website": "https://cosmostvpuno.pe/",
+      "priority": 5
+    },
+    {
+      "name": "CTC",
+      "isFree": true,
+      "website": "http://ctc.com.pe/",
+      "priority": 5
+    },
+    {
+      "name": "CTV",
+      "isFree": true,
+      "keywords": "ctv -qollasuyo",
+      "priority": 5
+    },
+    {
+      "name": "CTV Qollasuyo",
+      "isFree": true,
+      "website": "https://ctvqollasuyo.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cuba",
+      "isFree": true,
+      "website": "https://www.cubatvayacucho.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cultural RTV",
+      "isFree": true,
+      "website": "http://www.cultural.com.pe/",
+      "priority": 5
+    },
+    {
+      "name": "CUTERVO",
+      "isFree": true,
+      "website": "https://cutervotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "CVN",
+      "isFree": true,
+      "website": "https://cvn.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Dac",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Doble AA",
+      "isFree": true,
+      "website": "https://dobleaamedios.com/tv",
+      "priority": 5
+    },
+    {
+      "name": "Doble C Television",
+      "isFree": true,
+      "website": "https://doblectelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "DUB",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dunas",
+      "isFree": true,
+      "website": "https://dunastv.pe/",
+      "priority": 5
+    },
+    {
+      "name": "ECO Television",
+      "isFree": true,
+      "website": "https://ecoperu.tv/",
+      "priority": 5
+    },
+    {
+      "name": "El Pueblo Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Emax",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Evolucion",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Fama",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Foro",
+      "isFree": true,
+      "website": "https://www.forotv.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Frecuencia Amazonica",
+      "isFree": true,
+      "website": "https://frecuenciaamazonicatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Gamarra",
+      "isFree": true,
+      "website": "https://gamarrachannel.com/",
+      "priority": 5
+    },
+    {
+      "name": "Global",
+      "isFree": true,
+      "website": "https://www.atv.pe/noticias/global-tv-13738",
+      "priority": 5
+    },
+    {
+      "name": "GRAMI",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GTV Pisco",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Heroica",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Horizonte",
+      "isFree": true,
+      "website": "http://horizonteradiotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Hoynet",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HOYPERU",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HRTV",
+      "isFree": true,
+      "website": "https://www.hrtv.com.pe/tv-en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "Huacho Peru",
+      "isFree": true,
+      "website": "https://huachotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Huaralenlinea",
+      "isFree": true,
+      "website": "https://huaralenlinea.com/",
+      "priority": 5
+    },
+    {
+      "name": "Imagen Television Rioja",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Imagen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Impacto Television",
+      "isFree": true,
+      "website": "http://radioimpactodecajamarca.com.pe/impacto-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Imperial Television",
+      "isFree": true,
+      "website": "http://www.radioimperialtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Inkavision",
+      "isFree": true,
+      "website": "https://inkavision.pe/tv/",
+      "priority": 5
+    },
+    {
+      "name": "Intuitiva",
+      "isFree": true,
+      "website": "https://cableperu.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Justicia",
+      "isFree": true,
+      "website": "https://justiciatv.pj.gob.pe/",
+      "priority": 5
+    },
+    {
+      "name": "KBO",
+      "isFree": true,
+      "keywords": "kbo -quillabamba",
+      "website": "https://kboquillabamba.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "La 5ta",
+      "isFree": true,
+      "website": "https://la5ta.pe/",
+      "priority": 5
+    },
+    {
+      "name": "La Islilla",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La Tele",
+      "isFree": true,
+      "website": "https://www.atv.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Lider",
+      "isFree": true,
+      "website": "https://radioytvlider.com/",
+      "priority": 5
+    },
+    {
+      "name": "Machupicchu Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Media",
+      "isFree": true,
+      "website": "http://www.opencaster.com/mediatvperu",
+      "priority": 5
+    },
+    {
+      "name": "Mega TV Arequipa",
+      "isFree": true,
+      "website": "http://www.megatvarequipa.com/television-en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "Mega TV Jaen",
+      "isFree": true,
+      "website": "https://megatvjaen.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Mega TV Tarapoto",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Megavision Canal 45",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Melodicos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Milenial",
+      "isFree": true,
+      "website": "https://www.milenial.news/",
+      "priority": 5
+    },
+    {
+      "name": "Milenia",
+      "isFree": true,
+      "website": "http://www.radiomileniaperu.com/mileniatv/",
+      "priority": 5
+    },
+    {
+      "name": "Millenium",
+      "isFree": true,
+      "website": "https://milleniumtv.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Miramax",
+      "isFree": true,
+      "website": "https://miramaxnet.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Movistar Plus",
+      "isFree": true,
+      "website": "https://www.movistarplus.pe/",
+      "priority": 5
+    },
+    {
+      "name": "MTV Mas Ancash",
+      "isFree": true,
+      "website": "https://mtvnoticiasancash.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nacional Tv Peru",
+      "isFree": true,
+      "website": "https://nacionaltvperu.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nativa",
+      "isFree": true,
+      "keywords": "nativa satipo",
+      "website": "https://ntv.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Nativa TV Satipo",
+      "isFree": true,
+      "website": "https://elgrupofiesta.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Neo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nova TV Star",
+      "isFree": true,
+      "website": "http://radionovastar.com/tv-en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "Nuestra TV Lima",
+      "isFree": true,
+      "website": "https://servicable.com.pe/nuestra-tv/",
+      "priority": 5
+    },
+    {
+      "name": "NZK Television",
+      "isFree": true,
+      "website": "https://nzktv.com/",
+      "priority": 5
+    },
+    {
+      "name": "OK Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Omega",
+      "isFree": true,
+      "website": "https://vaughn.live/omegatelevision",
+      "priority": 5
+    },
+    {
+      "name": "Onda",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Oriental",
+      "isFree": true,
+      "keywords": "oriental tv -21",
+      "priority": 5
+    },
+    {
+      "name": "Ozono",
+      "isFree": true,
+      "website": "https://ozonotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Panc TV Peru",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Peru Latin",
+      "isFree": true,
+      "website": "https://perulatintv.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Peru Magico",
+      "isFree": true,
+      "website": "http://perumagico.pe/",
+      "priority": 5
+    },
+    {
+      "name": "PiuraTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Planea",
+      "isFree": true,
+      "website": "https://planeatvamazonas.com/",
+      "priority": 5
+    },
+    {
+      "name": "Planeta",
+      "isFree": true,
+      "keywords": "planeta tv -bagua -moyobamba",
+      "website": "https://moyobamba.com/planetatv/",
+      "priority": 5
+    },
+    {
+      "name": "Primavera 15",
+      "isFree": true,
+      "keywords": "primavera 15 -radiotelevision",
+      "website": "https://www.radioprimaveratv.com.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Proyecta Television",
+      "isFree": true,
+      "website": "https://proyectatvhuacho.com/",
+      "priority": 5
+    },
+    {
+      "name": "Pucallpa Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Qollasuyo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "QT Television",
+      "isFree": true,
+      "website": "https://qosqotimes.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Quassar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Quatro",
+      "isFree": true,
+      "website": "https://quatrotv.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Corporacion",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Cumbre",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Inka",
+      "isFree": true,
+      "website": "https://inkatropical.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Las Vegas",
+      "isFree": true,
+      "website": "https://lasvegasperu.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Libertad Arequipa",
+      "isFree": true,
+      "website": "https://www.radiolibertadarequipa.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Milenia",
+      "isFree": true,
+      "website": "http://www.radiomileniaperu.com/mileniatv/",
+      "priority": 5
+    },
+    {
+      "name": "Radio TV Binacional",
+      "isFree": true,
+      "website": "http://www.radiotvbinacional.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Uno TV Ayabaca",
+      "isFree": true,
+      "website": "https://radiounotvayabaca.com/",
+      "priority": 5
+    },
+    {
+      "name": "Real Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Region TV Callao",
+      "isFree": true,
+      "website": "https://regionteve.com/",
+      "priority": 5
+    },
+    {
+      "name": "Riberena",
+      "isFree": true,
+      "website": "https://riberenaperu.com/",
+      "priority": 5
+    },
+    {
+      "name": "Riku",
+      "isFree": true,
+      "website": "https://rikutv.lat/",
+      "priority": 5
+    },
+    {
+      "name": "Riqsiy Peru",
+      "isFree": true,
+      "website": "https://riqsiyperu.pe/",
+      "priority": 5
+    },
+    {
+      "name": "RN Television",
+      "isFree": true,
+      "website": "https://radionoticiastv.com/",
+      "priority": 5
+    },
+    {
+      "name": "RTP",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Chota",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV El Diario",
+      "isFree": true,
+      "website": "https://diariodelcusco.pe/",
+      "priority": 5
+    },
+    {
+      "name": "RW Television Tarapoto",
+      "isFree": true,
+      "website": "https://rwtelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "SelvaMia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SelvaTV",
+      "isFree": true,
+      "website": "https://www.selvatv.pe/senal-en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "Senal Peru",
+      "isFree": true,
+      "website": "https://xn--sealperutv-u9a.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Sin",
+      "isFree": true,
+      "website": "https://sintvperu.com/",
+      "priority": 5
+    },
+    {
+      "name": "Siscom",
+      "isFree": true,
+      "website": "https://siscomtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Solar Television",
+      "isFree": true,
+      "website": "http://www.corporacionsolar.com/",
+      "priority": 5
+    },
+    {
+      "name": "Solnet",
+      "isFree": true,
+      "website": "https://solnetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "SolTV",
+      "isFree": true,
+      "website": "https://soltvperu.com/",
+      "priority": 5
+    },
+    {
+      "name": "Somos Television",
+      "isFree": true,
+      "website": "http://www.somostvchimbote.com/",
+      "priority": 5
+    },
+    {
+      "name": "Studio Pasco",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sullana",
+      "isFree": true,
+      "website": "https://sullanatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Super",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sur Peru",
+      "isFree": true,
+      "website": "http://plus.surperu.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Teleamazonas",
+      "isFree": true,
+      "website": "https://teleamazonas.pe/tv-en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "Telecanal",
+      "isFree": true,
+      "website": "https://telecanalperu.com/tv-en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "TeleCentro",
+      "isFree": true,
+      "website": "https://www.telecentroperu.com/",
+      "priority": 5
+    },
+    {
+      "name": "Telecolor Yurimaguas",
+      "isFree": true,
+      "website": "https://telecolortv.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Telelima",
+      "isFree": true,
+      "website": "https://www.telelima.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Teleoriente Internacional",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TelePeru",
+      "isFree": true,
+      "website": "https://teleperutv.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Teleselva",
+      "isFree": true,
+      "website": "https://radionoticiasatipo.com/tv-en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "TeleStar Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telesur Camana",
+      "isFree": true,
+      "website": "https://www.telesur.com.pe/telesur/streaming",
+      "priority": 5
+    },
+    {
+      "name": "Telesur Ilo",
+      "isFree": true,
+      "website": "https://www.telesur.com.pe/telesur/streaming",
+      "priority": 5
+    },
+    {
+      "name": "Telesur Mollendo",
+      "isFree": true,
+      "website": "https://www.telesur.com.pe/telesur/streaming",
+      "priority": 5
+    },
+    {
+      "name": "Telesur Moquegua",
+      "isFree": true,
+      "website": "https://www.telesur.com.pe/telesur/streaming",
+      "priority": 5
+    },
+    {
+      "name": "Telesur Tacna",
+      "isFree": true,
+      "website": "https://www.telesur.com.pe/telesur/streaming",
+      "priority": 5
+    },
+    {
+      "name": "Telesystem",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Vida",
+      "isFree": true,
+      "website": "http://televidatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Television Tarapoto",
+      "isFree": true,
+      "website": "https://www.televisiontarapoto.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Tevesur",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Top",
+      "isFree": true,
+      "website": "https://www.toptvaguaytia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Trivu",
+      "isFree": true,
+      "website": "https://www.trivutv.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV 5",
+      "isFree": true,
+      "keywords": "tv5 -soritor",
+      "website": "https://tv5soritor.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Bella Asuncion",
+      "isFree": true,
+      "website": "https://www.tvbellaasuncion.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Cosmos 15. 2",
+      "isFree": true,
+      "website": "https://tvcosmos.pe",
+      "priority": 5
+    },
+    {
+      "name": "TVFaces Peru",
+      "isFree": true,
+      "website": "https://tvfacesperu.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Kaliente",
+      "isFree": true,
+      "website": "https://radiokalientequiquijana.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV MAR",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV MAX",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Mundo Arequipa",
+      "isFree": true,
+      "website": "https://www.tvmundo.pe/",
+      "priority": 5
+    },
+    {
+      "name": "TV Norte Chiclayo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVO Piura",
+      "isFree": true,
+      "website": "https://tvopiura.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Peru",
+      "isFree": true,
+      "keywords": "tv peru -internacional -noticias",
+      "website": "https://www.tvperu.gob.pe/",
+      "priority": 5
+    },
+    {
+      "name": "TV Peru Internacional",
+      "isFree": true,
+      "website": "https://www.tvperu.gob.pe/internacional",
+      "priority": 5
+    },
+    {
+      "name": "TV+ Chincha",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Sensacion",
+      "isFree": true,
+      "website": "https://tvsensacionperu.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Sur Juliaca",
+      "isFree": true,
+      "website": "https://www.tvsur.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Ucayalina de Television",
+      "isFree": true,
+      "website": "https://radiusac.com.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Unicentro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UPAO Television",
+      "isFree": true,
+      "website": "https://upao.edu.pe/diferenciacion/vive-upao-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Via Altomayo",
+      "isFree": true,
+      "website": "https://www.viaaltomayotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Via Television",
+      "isFree": true,
+      "website": "https://viatelevision.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Vigil",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vision Sur",
+      "isFree": true,
+      "website": "https://visionsurtv.pe/",
+      "priority": 5
+    },
+    {
+      "name": "VivaTV",
+      "isFree": true,
+      "website": "https://www.vivatv.com.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Viva TV Yurimaguas",
+      "isFree": true,
+      "website": "https://www.vivatvonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "VR Canal 21 Nasca",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VZ",
+      "isFree": true,
+      "website": "https://vzproducciones.online/",
+      "priority": 5
+    },
+    {
+      "name": "Wayra",
+      "isFree": true,
+      "website": "https://www.wayra.com/",
+      "priority": 5
+    },
+    {
+      "name": "X TV Chachapoyas",
+      "isFree": true,
+      "website": "https://xtv.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Yumi Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Yurimaguas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Yurivision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zeleve",
+      "isFree": true,
+      "website": "https://zelevesuperradio.com.pe/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Best Cable Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Best Cable Más Cumbia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CVM TV Digital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cable Netword Belleza Andina",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cable Netword Cumbia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Galáctica",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hatun",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Karibeña",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Metropolitana del Cuzco",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RumbaMix",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SanjuaneraTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Stereo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Peruanísima",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Top Latino",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Visión TV Musica",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Alto Nivel Radio",
+      "isFree": true,
+      "website": "https://altonivelperuradio.com/about/",
+      "priority": 5
+    },
+    {
+      "name": "Andina RTV",
+      "isFree": true,
+      "website": "https://andinartv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Angienet",
+      "isFree": true,
+      "website": "https://espectaculosenlinea.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "ATL Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Belleza Andina",
+      "isFree": true,
+      "website": "http://www.cablenetword.com/canal2.html",
+      "priority": 5
+    },
+    {
+      "name": "Best Cable Mas Cumbia",
+      "isFree": true,
+      "website": "https://bestcableperu.com.pe/tv98.html",
+      "priority": 5
+    },
+    {
+      "name": "Cumbia",
+      "isFree": true,
+      "website": "http://www.cablenetword.com/canal1.html",
+      "priority": 5
+    },
+    {
+      "name": "CVM",
+      "isFree": true,
+      "keywords": "cvm tv -digital",
+      "website": "https://sanchezproducciones.com/",
+      "priority": 5
+    },
+    {
+      "name": "Estelar",
+      "isFree": true,
+      "website": "https://estelartvtarapoto.com/",
+      "priority": 5
+    },
+    {
+      "name": "Folklore",
+      "isFree": true,
+      "website": "https://www.folkloretv.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Galactica",
+      "isFree": true,
+      "website": "http://www.galacticatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "GHAM-TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Karibena",
+      "isFree": true,
+      "website": "https://lakaribena.com.pe/tv/vivo",
+      "priority": 5
+    },
+    {
+      "name": "La Fabulosa",
+      "isFree": true,
+      "website": "https://lafabulosa.pe/",
+      "priority": 5
+    },
+    {
+      "name": "La Riberena",
+      "isFree": true,
+      "website": "http://www.riberenapucallpa.com/",
+      "priority": 5
+    },
+    {
+      "name": "Miel",
+      "isFree": true,
+      "website": "https://elgrupofiesta.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Nortena Mix Radio",
+      "isFree": true,
+      "website": "https://www.nortenamixradiotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio El Pueblo",
+      "isFree": true,
+      "website": "https://radioelpueblo.com/el-pueblo-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Master",
+      "isFree": true,
+      "website": "https://radiomaster.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Onda Digital",
+      "isFree": true,
+      "website": "https://radioondadigital.com/cabinaenvivo/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Rumba",
+      "isFree": true,
+      "website": "https://radiorumbaperu.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Stereo",
+      "isFree": true,
+      "website": "https://radiostereotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Tropical",
+      "isFree": true,
+      "keywords": "radio tropical -tarapoto",
+      "website": "https://radiotropical.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Radio TV Puro Sur",
+      "isFree": true,
+      "website": "https://en-vivo.purosurfm.com/Inicio.html",
+      "priority": 5
+    },
+    {
+      "name": "Radio TV Tendencias",
+      "isFree": true,
+      "website": "https://www.radiotvtendencias.com/tv-tendencias/",
+      "priority": 5
+    },
+    {
+      "name": "Taky Peru",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Peruanisima",
+      "isFree": true,
+      "website": "http://tvperuanisima.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVUNO",
+      "isFree": true,
+      "website": "https://wa.me/message/GKPBK7JQ55EGC1?src=qr",
+      "priority": 5
+    },
+    {
+      "name": "Vinilos",
+      "isFree": true,
+      "website": "https://playmax.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Vision TV Musica",
+      "isFree": true,
+      "website": "https://www.cablevisionperu.pe/?page_id=2205",
+      "priority": 5
+    },
+    {
+      "name": "Innova FM",
+      "isFree": true,
+      "priority": 5,
+      "website": "https://www.innovafm.com/"
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Cultura 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MINEDU IPTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MINEDU IPTV 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Salgalú",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "USMPTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cumo",
+      "isFree": true,
+      "website": "https://cumo.pe/cumo-en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "Diaspora",
+      "isFree": true,
+      "website": "https://dtv.pe/",
+      "priority": 5
+    },
+    {
+      "name": "Salgalu",
+      "isFree": true,
+      "website": "https://www.salgalu.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV UNA",
+      "isFree": true,
+      "website": "https://tvunapuno.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV UNSA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UNC",
+      "isFree": true,
+      "website": "https://www.unc.edu.pe/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "TelSatel Cine",
+      "priority": 5
+    },
+    {
+      "name": "Cine Club",
+      "isFree": true,
+      "website": "https://tecsatelperu.com/",
+      "priority": 5
+    },
+    {
+      "name": "Latina Clasicos",
+      "isFree": true,
+      "website": "https://www.latina.pe/",
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Millenium 109 FM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PeruvianRadio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Primavera 15 Radiotelevisión",
+      "isFree": true,
+      "shortName": "P1R",
+      "priority": 5
+    },
+    {
+      "name": "Radio Calor",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Chalaca",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Digital 94.",
+      "isFree": true,
+      "shortName": "RD9T",
+      "priority": 5
+    },
+    {
+      "name": "Radio Libertad",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Pachatusan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio San Borja",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Sistema",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio TV Charles",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio TV Juanjui",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Tropical Tarapoto",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Uno",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Victoria 780 AM",
+      "isFree": true,
+      "shortName": "RV7A",
+      "priority": 5
+    },
+    {
+      "name": "Radio Xtrema",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio y Tv Filadelfia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RadioTV Oriente",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Top FM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Turbo Mix Radio",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Shop": [
+    {
+      "name": "Canal J",
+      "isFree": true,
+      "website": "http://www.canalj.pe/",
+      "priority": 4
+    }
+  ]
+}

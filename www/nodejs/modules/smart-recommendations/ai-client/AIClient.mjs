@@ -3,7 +3,7 @@
  * HTTP client for AI recommendations server with caching and fallback
  */
 
-import { EPGErrorHandler } from '../../epg/worker/EPGErrorHandler.js';
+import { ErrorHandler } from '../ErrorHandler.mjs';
 import { AICache } from './AICache.mjs';
 import { AIBatchProcessor } from './AIBatchProcessor.mjs';
 import { AIFallback } from './AIFallback.mjs';
@@ -49,24 +49,24 @@ export class AIClient {
     async initialize() {
         if (this.initialized) return;
         
-        EPGErrorHandler.info('🤖 Initializing AI Client...');
+        ErrorHandler.info('🤖 Initializing AI Client...');
         
         // Test connection
         const now = Date.now();
         if (this.disabledUntil && now < this.disabledUntil) {
             const remaining = Math.ceil((this.disabledUntil - now) / 1000);
-            EPGErrorHandler.warn(`⚠️ AI Server temporarily disabled. Retrying in ${remaining}s.`);
+            ErrorHandler.warn(`⚠️ AI Server temporarily disabled. Retrying in ${remaining}s.`);
             this.initialized = true;
             return;
         }
 
         try {
             await this.request('/api/recommendations/health', {}, { timeout: 5000, retries: 1, method: 'GET' });
-            EPGErrorHandler.info('✅ AI Server connection established');
+            ErrorHandler.info('✅ AI Server connection established');
             this.enabled = true;
             this.disabledUntil = 0;
         } catch (error) {
-            EPGErrorHandler.warn('⚠️ AI Server not available, using fallback mode:', error.message);
+            ErrorHandler.warn('⚠️ AI Server not available, using fallback mode:', error.message);
             this.enabled = false;
             this.disabledUntil = Date.now() + 60000;
         }
@@ -105,7 +105,7 @@ export class AIClient {
         const cacheKey = this.cache.generateKey('expand', { tags, locale });
         
         if (forceRefresh) {
-            await this.cache.delete(cacheKey).catch(err => EPGErrorHandler.warn('Cache delete failed:', err.message));
+            await this.cache.delete(cacheKey).catch(err => ErrorHandler.warn('Cache delete failed:', err.message));
         } else {
         // Check cache (only use if has expanded tags)
         const cached = await this.cache.get(cacheKey);
@@ -162,19 +162,46 @@ export class AIClient {
                 limit: options.limit || 20,
                 threshold: options.threshold || 0.6
             }));
-            
+
+            // Check if server returned an error (even with success: true)
+            const hasServerError = response.error || response.fallback === true;
+
+            // Validate that expandedTags contains actual tag data, not metadata
+            const hasValidTags = response.expandedTags &&
+                typeof response.expandedTags === 'object' &&
+                !Array.isArray(response.expandedTags) &&
+                Object.keys(response.expandedTags).length > 0 &&
+                !this.isMetadataResponse(response.expandedTags);
+
+            if (hasServerError || !hasValidTags) {
+                ErrorHandler.warn('AI expand tags returned error or invalid data, using fallback:', {
+                    hasError: hasServerError,
+                    error: response.error,
+                    hasValidTags,
+                    tagCount: response.expandedTags ? Object.keys(response.expandedTags).length : 0
+                });
+
+                // Use fallback
+                this.stats.fallbacks++;
+                const fallbackResult = this.applyResponseNormalization(this.fallback.expandTags(tags, { locale, ...options }));
+                if (!fallbackResult.fallback && fallbackResult.expandedTags && Object.keys(fallbackResult.expandedTags).length > 0) {
+                    await this.cache.set(cacheKey, fallbackResult);
+                }
+                return { ...fallbackResult, source: 'fallback' };
+            }
+
             this.stats.successes++;
-            
+
             // Cache result
             if (!response.fallback && response.expandedTags && Object.keys(response.expandedTags).length > 0) {
                 await this.cache.set(cacheKey, response);
             }
-            
+
             return { ...response, cached: false, source: 'server' };
             
         } catch (error) {
             this.stats.failures++;
-            EPGErrorHandler.warn('AI expand tags failed, using fallback:', error.message);
+            ErrorHandler.warn('AI expand tags failed, using fallback:', error.message);
             
             // Use fallback
             this.stats.fallbacks++;
@@ -233,7 +260,7 @@ export class AIClient {
             
         } catch (error) {
             this.stats.failures++;
-            EPGErrorHandler.warn('AI cluster tags failed, using fallback:', error.message);
+            ErrorHandler.warn('AI cluster tags failed, using fallback:', error.message);
             
             // Use fallback
             this.stats.fallbacks++;
@@ -287,11 +314,25 @@ export class AIClient {
                 
                 if (!response.ok) {
                     console.log({ response });
+
+                    // Special handling for rate limiting (429)
+                    if (response.status === 429) {
+                        const errorMsg = `Rate limited (429)`;
+                        console.warn('AI API rate limited:', errorMsg);
+                        throw new Error(errorMsg);
+                    }
+
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
-                
+
                 const data = await response.json();
-                
+
+                // Check for server-side errors even with success: true
+                if (data.error || data.fallback === true) {
+                    console.warn('AI server returned error in response:', data.error);
+                    throw new Error(data.error || 'Server returned fallback mode');
+                }
+
                 if (!data.success) {
                     throw new Error(data.message || 'Server returned error');
                 }
@@ -381,6 +422,44 @@ export class AIClient {
     }
 
     /**
+     * Check if response contains metadata instead of actual tags
+     * @param {Object} expandedTags
+     * @returns {boolean}
+     */
+    isMetadataResponse(expandedTags) {
+        if (!expandedTags || typeof expandedTags !== 'object') {
+            return true;
+        }
+
+        const keys = Object.keys(expandedTags);
+
+        // Check for known metadata keys that shouldn't be treated as tags
+        const metadataKeys = ['success', 'error', 'fallback', 'locale', 'message', 'status', 'timestamp'];
+
+        // If all keys are metadata, or if we have error-related keys, it's metadata
+        const hasMetadataKeys = keys.some(key => metadataKeys.includes(key.toLowerCase()));
+        const hasErrorIndicators = keys.some(key => key.toLowerCase().includes('error') || key.toLowerCase().includes('fail'));
+
+        // If response has mostly metadata keys or error indicators, it's not valid tag data
+        if (hasMetadataKeys || hasErrorIndicators) {
+            return true;
+        }
+
+        // Check if values are not numeric (tags should have numeric scores)
+        const nonNumericValues = keys.filter(key => {
+            const value = expandedTags[key];
+            return typeof value !== 'number' && !Number.isFinite(Number(value));
+        });
+
+        // If most values are non-numeric, it's likely metadata
+        if (nonNumericValues.length > keys.length * 0.5) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Apply normalization to responses that contain expandedTags
      * @param {Object} response
      * @returns {Object}
@@ -397,7 +476,7 @@ export class AIClient {
      */
     setEnabled(enabled) {
         this.enabled = enabled;
-        EPGErrorHandler.info(`AI Client ${enabled ? 'enabled' : 'disabled'}`);
+        ErrorHandler.info(`AI Client ${enabled ? 'enabled' : 'disabled'}`);
     }
 
     /**

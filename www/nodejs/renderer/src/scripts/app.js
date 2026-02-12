@@ -1,7 +1,7 @@
 import { main } from '../../../modules/bridge/renderer';
 import { Menu } from '../../../modules/menu/renderer'
 import { OMNI } from '../../../modules/omni/renderer'
-import { AndroidWinActions, ElectronWinActions} from './window-actions'
+import { AndroidWinActions, ElectronWinActions } from './window-actions'
 import { Hotkeys } from './hotkeys'
 import { getFontList } from './font-detector'
 import { css, traceback } from './utils'
@@ -12,14 +12,14 @@ import { ImageProcessor } from '../../../modules/icon-server/renderer'
 let menu;
 
 function openExternalFile(file, mimetype) {
-	console.log('openExternalFile', file);
-	if (window.capacitor) {
-		alert('Cannot open file: ' + file.split('/').pop())
-	} else if (parent.electron) { // electron
-		parent.electron.openExternal(file)
-	} else {
-		window.open(file, '_system')
-	}
+    console.log('openExternalFile', file);
+    if (window.capacitor) {
+        alert('Cannot open file: ' + file.split('/').pop())
+    } else if (parent.electron) { // electron
+        parent.electron.openExternal(file)
+    } else {
+        window.open(file, '_system')
+    }
 }
 
 var hidingBackButton = false
@@ -39,7 +39,7 @@ function configUpdated() {
     const ms = main.config['view-size']
     menu.setGrid(ms.landscape.x, ms.landscape.y, ms.portrait.x, ms.portrait.y)
     hideBackButton(main.config['hide-back-button'])
-    if (typeof(window['winActions']) == 'undefined' || !window['winActions']) {
+    if (typeof (window['winActions']) == 'undefined' || !window['winActions']) {
         return
     }
     window['winActions'].enabled = main.config['miniplayer-auto']
@@ -114,14 +114,31 @@ function handleSwipe(e) {
     }
 }
 
+function onOverscrollUp(el, callback) {
+    el.addEventListener('wheel', e => {
+        if (el.scrollTop === 0 && e.deltaY < 0) callback(e)
+    })
+
+    let startY = 0
+    el.addEventListener('touchstart', e => {
+        startY = e.touches[0].clientY
+    })
+
+    el.addEventListener('touchmove', e => {
+        if (el.scrollTop === 0 && e.touches[0].clientY > startY) {
+            callback(e)
+        }
+    })
+}
+
 window.handleOpenURL = url => { // avoid local scoping
-	setTimeout(function() {
-		if (url && url.match('^[a-z]*:?//')) {
-			main.waitMain(() => {
-				channel.post('message', ['open-url', url.replace(new RegExp('.*megacubo\\.tv/(w|assistir)/', ''), 'mega://')]);
-			})
-		}
-	}, 0);
+    setTimeout(function () {
+        if (url && url.match('^[a-z]*:?//')) {
+            main.waitMain(() => {
+                channel.post('message', ['open-url', url.replace(new RegExp('.*megacubo\\.tv/(w|assistir)/', ''), 'mega://')]);
+            })
+        }
+    }, 0);
 }
 
 export const initApp = async () => {
@@ -144,7 +161,7 @@ export const initApp = async () => {
     })
     main.on('open-external-url', url => winActions.openExternalURL(url))
     main.on('open-external-file', (url, mimetype) => openExternalFile(url, mimetype))
-    main.on('load-js', src => {        
+    main.on('load-js', src => {
         console.warn('LOADJS ' + src)
         var s = document.createElement('script')
         s.src = src
@@ -164,7 +181,7 @@ export const initApp = async () => {
     main.on('download', async (url, name) => {
         console.log('download', url, name)
         if (window.capacitor) {
-            await capacitor.NativeFileDownloader.scheduleFileDownload({url, fileName: name})
+            await capacitor.NativeFileDownloader.scheduleFileDownload({ url, fileName: name })
         } else {
             let e = document.createElement('a')
             e.setAttribute('href', url)
@@ -178,6 +195,7 @@ export const initApp = async () => {
     main.on('config', configUpdated)
     main.on('fontlist', () => main.emit('fontlist', getFontList()))
     main.on('css', (css, id) => main.css(css, id))
+    main.on('static-dbg', m => console.log(m))
     console.log('load app')
     const menuElement = document.querySelector('#menu')
     if (menuElement) {
@@ -187,8 +205,8 @@ export const initApp = async () => {
         return
     }
     main.on('sound', (n, v) => menu.sounds.play(n, v))
-    menu.on('render', path => {   
-        if(menu.lastNavPath !== path || menu.sideMenuPending) {
+    menu.on('render', path => {
+        if (menu.lastNavPath !== path || menu.sideMenuPending) {
             menu.sideMenuPending = false
             menu.lastNavPath = path
             menu.sideMenu(false, 'instant')
@@ -196,9 +214,9 @@ export const initApp = async () => {
         if (path) {
             if (document.body.classList.contains('home')) {
                 document.body.classList.remove('home')
-            }   
+            }
         } else {
-            document.body.classList.add('home')    
+            document.body.classList.add('home')
         }
     })
 
@@ -219,7 +237,7 @@ export const initApp = async () => {
             }
         })
         main.menu.on('x-focus', (idx, e) => {
-            if(e == main.streamer.seekbar.lastElementChild) {
+            if (e == main.streamer.seekbar.lastElementChild) {
                 main.streamer.setSeeking()
             } else {
                 main.streamer.unsetSeeking()
@@ -227,18 +245,24 @@ export const initApp = async () => {
         })
         main.streamer.on('state', s => {
             if (s == 'playing' && menu.dialogs.container && menu.dialogs.container.querySelector('#dialog-template-option-wait')) {
-                menu.dialogs.end(true)
+                // CRITICAL: Only close if dialog is not mandatory
+                if (!menu.dialogs.inDialogMandatory()) {
+                    menu.dialogs.end(true)
+                }
             }
         })
         main.streamer.on('hide', () => {
-            menu.sounds.play('click-out', {volume: 30})
+            menu.sounds.play('click-out', { volume: 30 })
             menu.sideMenu(false, 'instant')
             menu.showWhilePlaying(false)
             if (menu.dialogs.container && (
                 menu.dialogs.container.querySelector('#dialog-template-option-wait') ||
                 menu.dialogs.container.querySelector('#dialog-template-option-resume')
             )) {
-                menu.dialogs.end(true)
+                // CRITICAL: Only close if dialog is not mandatory
+                if (!menu.dialogs.inDialogMandatory()) {
+                    menu.dialogs.end(true)
+                }
             } else {
                 menu.emit('reset', true)
             }
@@ -256,12 +280,12 @@ export const initApp = async () => {
         const actions = {
             play: () => main.streamer.playOrPauseNotIdle(),
             stop: () => {
-                if(main.streamer.casting) return main.streamer.castUIStop()
+                if (main.streamer.casting) return main.streamer.castUIStop()
                 main.streamer.stop()
             },
             menu: () => menu.showWhilePlaying(true)
         }
-        for(const k in buttons) {
+        for (const k in buttons) {
             buttons[k].setAttribute('title', titles[k])
             buttons[k].setAttribute('aria-label', titles[k])
             buttons[k].addEventListener('click', actions[k])
@@ -323,16 +347,16 @@ export const initApp = async () => {
         }
         parent.Manager && parent.Manager.appLoaded()
     })
-    
+
     menu.on('dialog-start', () => menu.reset())
     menu.on('dialog-end', () => menu.reset())
     menu.on('x-select', (element) => {
         const key = element ? menu.getKey(element) : null;
         if (key == main.menu.lastSelectedKey) return;
         main.menu.lastSelectedKey = key;
-        main.menu.sounds.play('click-in', {volume: 30})
+        main.menu.sounds.play('click-in', { volume: 30 })
     })
-    
+
     menu.on('menu-playing', enable => {
         main.emit('menu-playing', enable)
         main.idle.reset()
@@ -345,14 +369,20 @@ export const initApp = async () => {
 
     main.localEmit('menu-ready')
     main.emit('menu-ready')
-    
+
+    onOverscrollUp(menu.scrollContainer, (e) => {
+        if (menu.inPlayer() && menu.isVisible()) {
+            main.hotkeys.arrowUpPressed(true)
+        }
+    });
+
     const menuCloseBtn = document.querySelector('#menu-playing-close')
     if (menuCloseBtn) {
         menuCloseBtn.addEventListener('click', () => {
             menu.showWhilePlaying(false)
         })
     }
-    
+
     const arrowHintBtn = document.querySelector('div#arrow-down-hint i')
     if (arrowHintBtn) {
         arrowHintBtn.addEventListener('click', () => {
@@ -377,17 +407,17 @@ export const initApp = async () => {
     })
 
     var toggle = document.querySelector('.side-menu-toggle')
-    if(toggle && window.capacitor) { // tapping
+    if (toggle && window.capacitor) { // tapping
         toggle.addEventListener('click', () => {
             menu.inSideMenu() || menu.dialogs.inDialog() || menu.sideMenu(true, 'smooth')
         })
         swipey.add(document.body, handleSwipe, { diagonal: false })
-    } else if(toggle) { // pc mouse hovering
+    } else if (toggle) { // pc mouse hovering
         toggle.addEventListener('mouseenter', () => {
             menu.inSideMenu() || menu.dialogs.inDialog() || menu.sideMenu(true)
         })
     }
-    
+
     if (wrap) {
         wrap.addEventListener('mouseenter', () => menu.sideMenu(false))
 
@@ -397,10 +427,10 @@ export const initApp = async () => {
         }
         const autoScrollClearTimer = () => clearInterval(autoScrollInterval);
         for (const o of [
-            { direction: 'up'},
-            { direction: 'down'}
+            { direction: 'up' },
+            { direction: 'down' }
         ]) {
-            const element = document.querySelector('#arrow-'+ o.direction)
+            const element = document.querySelector('#arrow-' + o.direction)
             if (element) {
                 element.addEventListener('mouseenter', () => {
                     element.addEventListener('mouseleave', autoScrollClearTimer)
@@ -454,13 +484,13 @@ export const initApp = async () => {
         }
     })
     main.menu.wrap.addEventListener('scroll', () => main.idle.reset());
-    
+
     const ffmpeg = new FFmpegController(parent.ffmpeg)
-    if(!window.capacitor) {
+    if (!window.capacitor) {
         main.on('ffmpeg-path', (dir, executable) => {
             console.log('ffmpeg-path', dir, executable)
-            ffmpeg.master.setExecutable(dir +'/'+ executable)
-        })        
+            ffmpeg.master.setExecutable(dir + '/' + executable)
+        })
     }
     ffmpeg.bind()
 
@@ -468,40 +498,40 @@ export const initApp = async () => {
 }
 
 window.onerror = function (message, file, line, column, errorObj) {
-	let stack = typeof errorObj == 'object' && errorObj !== null && errorObj.stack ? errorObj.stack : traceback();
-	console.error(errorObj || message, { errorObj, message, file, stack });
-	return true;
+    let stack = typeof errorObj == 'object' && errorObj !== null && errorObj.stack ? errorObj.stack : traceback();
+    console.error(errorObj || message, { errorObj, message, file, stack });
+    return true;
 }
-	
+
 if (window.capacitor) {
     capacitor.App.addListener('backButton', () => {
         main.hotkeys && main.hotkeys.escapePressed()
     })
-	capacitor.Keyboard.addListener('keyboardWillShow', function (event) {
-		adjustLayoutForKeyboard(event.keyboardHeight)
-	})
-	capacitor.Keyboard.addListener('keyboardWillHide', function () {
-		adjustLayoutForKeyboard(false)
-	})
-	function adjustLayoutForKeyboard(keyboardHeight) {
-		const m = document.body.querySelector('div#dialog > div > div')
-		if (m) {
-			const mi = m.querySelector('.dialog-wrap')
-			if (keyboardHeight) {		
-				const h = window.innerHeight - keyboardHeight
-				m.style.height = h + 'px'
-				if (mi && mi.offsetHeight > h) {
-					var mq = mi.querySelector('span.dialog-template-question')
-					if (mq) {
-						mq.style.display = 'none'
-					}
-				}
-			} else {
-				m.style.height = '100vh'
-				if (mi) {
-					mi.querySelector('span.dialog-template-question').style.display = 'flex'
-				}
-			}
-		}
-	}
+    capacitor.Keyboard.addListener('keyboardWillShow', function (event) {
+        adjustLayoutForKeyboard(event.keyboardHeight)
+    })
+    capacitor.Keyboard.addListener('keyboardWillHide', function () {
+        adjustLayoutForKeyboard(false)
+    })
+    function adjustLayoutForKeyboard(keyboardHeight) {
+        const m = document.body.querySelector('div#dialog > div > div')
+        if (m) {
+            const mi = m.querySelector('.dialog-wrap')
+            if (keyboardHeight) {
+                const h = window.innerHeight - keyboardHeight
+                m.style.height = h + 'px'
+                if (mi && mi.offsetHeight > h) {
+                    var mq = mi.querySelector('span.dialog-template-question')
+                    if (mq) {
+                        mq.style.display = 'none'
+                    }
+                }
+            } else {
+                m.style.height = '100vh'
+                if (mi) {
+                    mi.querySelector('span.dialog-template-question').style.display = 'flex'
+                }
+            }
+        }
+    }
 }

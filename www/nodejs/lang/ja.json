@@ -98,6 +98,7 @@
    "CATEGORY_SHOP": "店",
    "CATEGORY_SPORTS": "スポーツ",
    "CATEGORY_TRAVEL": "旅行",
+   "CATEGORY_XXX": "成人コンテンツ",
    "CHANGE_DEST_FOLDER": "目的のフォルダーを変える",
    "CHANGE_HOTKEY_MESSAGE": "このアクションの新しいキーの組み合わせを入力するか、{0}を押してキャンセルしてください。",
    "CHANNEL_ADDED": "チャネルが追加されました",

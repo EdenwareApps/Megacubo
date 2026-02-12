@@ -1,0 +1,405 @@
+{
+  "Entertainment": [
+    {
+      "name": "Azon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "8TV",
+      "isFree": true,
+      "website": "https://8tv.uz/",
+      "priority": 5
+    },
+    {
+      "name": "AGRO",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Amudaryo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Andijon MTRK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BIZ",
+      "isFree": true,
+      "website": "https://biztv.uz/",
+      "priority": 5
+    },
+    {
+      "name": "Buxoro MTRK",
+      "isFree": true,
+      "website": "https://buxorotv.uz/",
+      "priority": 5
+    },
+    {
+      "name": "Cheksiz",
+      "isFree": true,
+      "website": "https://cheksiztv.uz/",
+      "priority": 5
+    },
+    {
+      "name": "Dasturxon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dunyo bo'ylab",
+      "isFree": true,
+      "website": "https://www.mtrk.uz/uz/tv/dunyo/",
+      "priority": 5
+    },
+    {
+      "name": "Farg'ona MTRK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Fazo.tv",
+      "isFree": true,
+      "website": "https://fazo.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Gold Uz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ischonch",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Istiqlol",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Jaslar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Jizzax MTRK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lux.TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Madaniyat va ma'rifat",
+      "isFree": true,
+      "website": "https://www.mtrk.uz/uz/tv/madaniyat/",
+      "priority": 5
+    },
+    {
+      "name": "Mahalla",
+      "isFree": true,
+      "website": "https://www.mtrk.uz/uz/tv/mahalla/",
+      "priority": 5
+    },
+    {
+      "name": "Makon",
+      "isFree": true,
+      "website": "https://makon.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Milliy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Muloqot",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MY 5",
+      "isFree": true,
+      "website": "https://my5.media/",
+      "priority": 5
+    },
+    {
+      "name": "Namangan MTRK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nasaf",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Navo",
+      "isFree": true,
+      "website": "https://www.mtrk.uz/uz/tv/navo/",
+      "priority": 5
+    },
+    {
+      "name": "Navoiy MTRK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nurafshon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "O'zbekiston",
+      "isFree": true,
+      "keywords": "o zbekiston -24 -tarixi",
+      "website": "https://www.mtrk.uz/uz/tv/ozbekiston/",
+      "priority": 5
+    },
+    {
+      "name": "Qaraqalpaqstan",
+      "isFree": true,
+      "website": "https://www.uztv.tv/channels/qaraqalpaqstan",
+      "priority": 5
+    },
+    {
+      "name": "Qashqadaryo MTRK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Renessans",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RizaNova",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ruxsor",
+      "isFree": true,
+      "website": "https://www.ruxsortrk.uz/",
+      "priority": 5
+    },
+    {
+      "name": "Samarqand MTRK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sevimli",
+      "isFree": true,
+      "website": "https://www.sevimlitv.uz/",
+      "priority": 5
+    },
+    {
+      "name": "Shifo",
+      "isFree": true,
+      "website": "https://shifotv.uz/",
+      "priority": 5
+    },
+    {
+      "name": "S-Ikbol",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sirdaryo MTRK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Surxondaryo MTRK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Taraqqiyot",
+      "isFree": true,
+      "website": "https://taraqqiyot.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Toshkent",
+      "isFree": true,
+      "website": "https://www.mtrk.uz/uz/tv/toshkent/",
+      "priority": 5
+    },
+    {
+      "name": "TTV Telekanali",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vodiy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Xorazm MTRK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "YangiKulgu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Yoshlar",
+      "isFree": true,
+      "website": "https://www.mtrk.uz/uz/tv/yoshlar/",
+      "priority": 5
+    },
+    {
+      "name": "Zo'r",
+      "isFree": true,
+      "website": "https://zortv.uz/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Aqlvoy",
+      "isFree": true,
+      "website": "https://aqlvoy.uz/",
+      "priority": 5
+    },
+    {
+      "name": "Bolajon",
+      "isFree": true,
+      "website": "https://www.mtrk.uz/uz/tv/bolajon/",
+      "priority": 5
+    },
+    {
+      "name": "MiMi",
+      "isFree": true,
+      "website": "https://mimitv.uz/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "BIZ Cinema",
+      "isFree": true,
+      "website": "https://biztv.uz/",
+      "priority": 5
+    },
+    {
+      "name": "iTV Cinema",
+      "isFree": true,
+      "website": "https://itv.uz/en",
+      "priority": 5
+    },
+    {
+      "name": "Kinoteatr",
+      "isFree": true,
+      "website": "https://www.mtrk.uz/uz/tv/kinoteatr/",
+      "priority": 5
+    },
+    {
+      "name": "TTV Kino",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "BIZ Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ellikqala",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "FTV",
+      "isFree": true,
+      "website": "https://www.uzreport.news/",
+      "priority": 5
+    },
+    {
+      "name": "iTV Music",
+      "isFree": true,
+      "website": "https://itv.uz/en",
+      "priority": 5
+    },
+    {
+      "name": "NevoMusic",
+      "isFree": true,
+      "website": "https://nevomusic.net/",
+      "priority": 5
+    },
+    {
+      "name": "NevoMusicTj",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TTV Musiqa",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Foreign Languages",
+      "isFree": true,
+      "website": "https://www.uztv.tv/channels/foreign-languages",
+      "priority": 5
+    },
+    {
+      "name": "O'zbekiston Tarixi",
+      "isFree": true,
+      "website": "https://www.uztv.tv/channels/uzbekiston-tarix",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Hidoyat Sari",
+      "isFree": true,
+      "website": "https://www.uztv.tv/channels/hidoyat-sari",
+      "priority": 4
+    }
+  ],
+  "News": [
+    {
+      "name": "O'zbekiston 24",
+      "isFree": true,
+      "website": "http://uzbekistan24.uz/",
+      "priority": 5
+    },
+    {
+      "name": "UzReport",
+      "isFree": true,
+      "website": "https://uzreport.news/",
+      "priority": 5
+    },
+    {
+      "name": "UzReport World",
+      "isFree": true,
+      "website": "https://uzreport.news/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Sport",
+      "isFree": true,
+      "website": "https://www.mtrk.uz/uz/tv/sport/",
+      "priority": 10
+    }
+  ]
+}

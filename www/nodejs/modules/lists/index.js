@@ -116,19 +116,17 @@ class Index extends Common {
                         
                         // Use exists() for ultra-fast index-only check (no disk I/O)
                         // Prefer indexManager.exists() directly (synchronous, faster) if available
-                        // Build options object with excludes if any
-                        const existsOptions = { $all: useAll };
+                        // Build criteria object with nameTerms and mediaType filter
+                        const criteria = {
+                            nameTerms: useAll ? { $all: filteredTerms } : filteredTerms[0],
+                            mediaType: { '!=': 'video' } // Filter out VOD entries for has() (live streams only)
+                        };
                         if (excludes.length > 0) {
-                            existsOptions.excludes = excludes;
+                            criteria.$not = { nameTerms: { $in: excludes } };
                         }
+
                         let ret = false;
-                        if (list.indexer.db.indexManager && typeof list.indexer.db.indexManager.exists === 'function') {
-                            // Direct synchronous call (fastest)
-                            ret = list.indexer.db.indexManager.exists('nameTerms', filteredTerms, existsOptions);
-                        } else {
-                            // Async wrapper (still fast, index-only)
-                            ret = await list.indexer.db.exists('nameTerms', filteredTerms, existsOptions);
-                        }
+                        ret = await list.indexer.db.exists(criteria);
                         
                         if (ret) {
                             found = true;
@@ -374,7 +372,13 @@ class Index extends Common {
     parseQuery(terms, opts) {
         if (!Array.isArray(terms)) {
             terms = this.tools.terms(terms);
+        } else {
+            // Array already normalized (from search() with string input)
+            // Filter stopWords from inclusion terms only (keep stopWords in exclusion terms)
+            // Since nameTerms in index don't have stopWords, we filter them from search terms
+            terms = this.tools.filterStopWords(terms, { removeStopWords: true, removeExcludes: false });
         }
+        
         const excludes = [];
         let i = 0, groups = [[]]
         for (const term of terms) {
@@ -388,101 +392,241 @@ class Index extends Common {
             }
         }
         groups = groups.filter(g => g.length)
+        // Remove duplicate excludes
+        const uniqueExcludes = [...new Set(excludes)];
         const query = {}
         
+        // Helper function to create exclude conditions
+        const createExcludeConditions = (excludes, opts) => {
+            const excludeConditions = [];
+            const excludeRegexes = [];
+            
+            // Optimize: combine all excludes into single $nin conditions instead of multiple $and conditions
+            // This is more efficient and avoids potential issues with multiple $and conditions
+            if (excludes.length > 0) {
+                // Create single condition: entry does NOT have any exclude in nameTerms AND NOT in groupTerms
+                const excludeCondition = {
+                    $and: [
+                        // nameTerms doesn't contain any exclude
+                        { nameTerms: { $nin: excludes } },
+                        // groupTerms doesn't contain any exclude (only if field exists - JexiDB handles missing fields)
+                        { groupTerms: { $nin: excludes } }
+                    ]
+                };
+                
+                excludeConditions.push(excludeCondition);
+                
+                // Create regexes for post-processing filter (name field)
+                for (const exclude of excludes) {
+                    const escapedExclude = exclude.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const regexPattern = opts.partial ? escapedExclude : `\\b${escapedExclude}\\b`;
+                    const excludeRegex = new RegExp(regexPattern, 'i');
+                    excludeRegexes.push(excludeRegex);
+                }
+            }
+            
+            return { excludeConditions, excludeRegexes };
+        };
+        
         // Helper function to create search conditions for nameTerms and optionally groupTerms
-        const createSearchConditions = (terms, useGroup = false, isPartial = false) => {
+        const createSearchConditions = (terms, useGroup = false, isPartial = false, excludes = []) => {
+            let searchCondition;
+            
             if (terms.length === 1) {
                 const term = terms[0];
                 
                 if (isPartial) {
-                    // Partial match - use regex for substring matching
+                    // Partial match - include both exact and partial
                     if (useGroup) {
-                        return {
+                        searchCondition = {
                             $or: [
-                                { nameTerms: new RegExp(term, 'i') },
-                                { groupTerms: new RegExp(term, 'i') }
+                                { nameTerms: term }, // exact
+                                { nameTerms: new RegExp(term, 'i') }, // partial
+                                { groupTerms: term }, // exact group
+                                { groupTerms: new RegExp(term, 'i') } // partial group
                             ]
                         };
                     } else {
-                        return { nameTerms: new RegExp(term, 'i') };
+                        searchCondition = {
+                            $or: [
+                                { nameTerms: term }, // exact
+                                { nameTerms: new RegExp(term, 'i') } // partial
+                            ]
+                        };
                     }
                 } else {
                     // Exact match - use direct equality (fastest)
                     if (useGroup) {
-                        return {
+                        searchCondition = {
                             $or: [
                                 { nameTerms: term },
                                 { groupTerms: term }
                             ]
                         };
                     } else {
-                        return { nameTerms: term };
+                        searchCondition = { nameTerms: term };
                     }
                 }
             } else {
-                // Multiple terms - for partial search, each term should match partially
+                // Multiple terms - for partial search, include both exact and partial combinations
                 // For exact search, use $all for AND behavior
                 if (isPartial) {
-                    // For partial with multiple terms, each term should match partially
-                    const nameConditions = terms.map(term => ({ nameTerms: new RegExp(term, 'i') }));
-                    const groupConditions = terms.map(term => ({ groupTerms: new RegExp(term, 'i') }));
+                    // For partial with multiple terms, include exact $all and partial $and
+                    const exactNameCondition = { nameTerms: { $all: terms } };
+                    const partialNameConditions = terms.map(term => ({ nameTerms: new RegExp(term, 'i') }));
+                    const partialNameCondition = { $and: partialNameConditions };
                     
                     if (useGroup) {
-                        return {
+                        const exactGroupCondition = { groupTerms: { $all: terms } };
+                        const partialGroupConditions = terms.map(term => ({ groupTerms: new RegExp(term, 'i') }));
+                        const partialGroupCondition = { $and: partialGroupConditions };
+                        
+                        searchCondition = {
                             $or: [
-                                { $and: nameConditions },
-                                { $and: groupConditions }
+                                exactNameCondition,
+                                partialNameCondition,
+                                exactGroupCondition,
+                                partialGroupCondition
                             ]
                         };
                     } else {
-                        return { $and: nameConditions };
+                        searchCondition = {
+                            $or: [
+                                exactNameCondition,
+                                partialNameCondition
+                            ]
+                        };
                     }
                 } else {
                     // Exact match - use $all for AND behavior (more specific results)
                     if (useGroup) {
-                        return {
+                        searchCondition = {
                             $or: [
                                 { nameTerms: { $all: terms } },
                                 { groupTerms: { $all: terms } }
                             ]
                         };
                     } else {
-                        return { nameTerms: { $all: terms } };
+                        searchCondition = { nameTerms: { $all: terms } };
                     }
                 }
             }
+            
+            // Apply excludes to this search condition if any
+            if (excludes.length > 0) {
+                const { excludeConditions } = createExcludeConditions(excludes, { partial: isPartial });
+                // Flatten $and conditions to avoid nested $and
+                if (excludeConditions.length === 1) {
+                    const excludeCondition = excludeConditions[0];
+                    // If excludeCondition already has $and, merge its conditions
+                    if (excludeCondition.$and) {
+                        return {
+                            $and: [
+                                searchCondition,
+                                ...excludeCondition.$and
+                            ]
+                        };
+                    } else {
+                        return {
+                            $and: [
+                                searchCondition,
+                                excludeCondition
+                            ]
+                        };
+                    }
+                } else if (excludeConditions.length > 1) {
+                    return {
+                        $and: [
+                            searchCondition,
+                            ...excludeConditions
+                        ]
+                    };
+                }
+            }
+            
+            return searchCondition;
         };
         
         if (groups.length > 1) {
-            // Multiple groups - use $or for better performance
-            query.$or = groups.map(g => createSearchConditions(g, opts.group, opts.partial));
-        } else if (groups.length === 1) {
-            // Single group - use helper function
-            Object.assign(query, createSearchConditions(groups[0], opts.group, opts.partial));
-        }
-        
-        // Add excludes if any
-        if (excludes.length > 0) {
-            // Create exclude conditions based on partial mode
-            let excludeConditions;
-            if (opts.partial) {
-                // For partial mode, use regex for excludes too
-                const nameExcludes = excludes.map(exclude => ({ nameTerms: new RegExp(exclude, 'i') }));
-                const groupExcludes = excludes.map(exclude => ({ groupTerms: new RegExp(exclude, 'i') }));
-                excludeConditions = { $or: [...nameExcludes, ...groupExcludes] };
-            } else {
-                // For exact mode, use $in for excludes
-                excludeConditions = { $or: [
-                    { nameTerms: { $in: excludes } },
-                    { groupTerms: { $in: excludes } }
-                ] };
+            // Multiple groups - apply excludes within each group
+            // This ensures: (group1 AND excludes) OR (group2 AND excludes)
+            // Filter out empty groups to avoid invalid queries
+            const validGroups = groups.filter(g => g.length > 0);
+            if (validGroups.length === 0) {
+                // No valid groups, return empty query
+                return { _empty: true };
             }
+            if (validGroups.length === 1) {
+                // Only one valid group, treat as single group
+                const searchCondition = createSearchConditions(validGroups[0], opts.group, opts.partial, uniqueExcludes);
+                Object.assign(query, searchCondition);
+                
+                // Store exclude regexes for post-processing filter (name field)
+                if (uniqueExcludes.length > 0) {
+                    const { excludeRegexes } = createExcludeConditions(uniqueExcludes, opts);
+                    query._excludeRegexes = excludeRegexes;
+                }
+            } else {
+                // Multiple valid groups
+                const orConditions = validGroups.map(g => createSearchConditions(g, opts.group, opts.partial, uniqueExcludes));
+                // Ensure $or has at least 2 conditions
+                if (orConditions.length >= 2) {
+                    query.$or = orConditions;
+                } else if (orConditions.length === 1) {
+                    // Only one condition, use it directly instead of $or
+                    Object.assign(query, orConditions[0]);
+                }
+                
+                // Store exclude regexes for post-processing filter (name field)
+                if (uniqueExcludes.length > 0) {
+                    const { excludeRegexes } = createExcludeConditions(uniqueExcludes, opts);
+                    query._excludeRegexes = excludeRegexes;
+                }
+            }
+        } else if (groups.length === 1) {
+            // Single group - apply excludes to the group
+            const searchCondition = createSearchConditions(groups[0], opts.group, opts.partial, uniqueExcludes);
+            Object.assign(query, searchCondition);
             
-            // Add exclusion conditions to the query
-            query.$not = excludeConditions;
+            // Store exclude regexes for post-processing filter (name field)
+            if (uniqueExcludes.length > 0) {
+                const { excludeRegexes } = createExcludeConditions(uniqueExcludes, opts);
+                query._excludeRegexes = excludeRegexes;
+            }
         }
         
+        // Add mediaType filtering for better performance when searching for live streams
+        if (opts.type === 'live') {
+            // Filter out VOD entries to improve search performance for live streams
+            if (query.$and) {
+                query.$and.push({ mediaType: { '!=': 'video' } });
+            } else if (query.$or) {
+                // When there's $or, we need to apply mediaType filter to each OR condition
+                // This ensures: (group1 AND mediaType) OR (group2 AND mediaType)
+                query.$or = query.$or.map(condition => {
+                    if (condition.$and) {
+                        condition.$and.push({ mediaType: { '!=': 'video' } });
+                        return condition;
+                    } else {
+                        return {
+                            $and: [condition, { mediaType: { '!=': 'video' } }]
+                        };
+                    }
+                });
+            } else if (query.nameTerms || Object.keys(query).length > 0) {
+                // If query has other conditions, wrap everything in $and
+                const originalQuery = { ...query };
+                query.$and = [originalQuery, { mediaType: { '!=': 'video' } }];
+                // Clean up the original conditions since they're now in $and
+                if (originalQuery.nameTerms) delete query.nameTerms;
+                // Only delete $not if it's at top level and not part of exclude conditions
+                if (originalQuery.$not && !excludes.length) delete query.$not;
+            } else {
+                // If query is empty, just use mediaType condition
+                query.mediaType = { '!=': 'video' };
+            }
+        }
+
         // Add icon filtering if withIconOnly is enabled
         if (opts.withIconOnly) {
             const iconConditions = [
@@ -501,7 +645,8 @@ class Index extends Common {
                 // Clean up the original conditions since they're now in $and
                 if (originalQuery.$or) delete query.$or;
                 if (originalQuery.nameTerms) delete query.nameTerms;
-                if (originalQuery.$not) delete query.$not;
+                // Only delete $not if it's at top level and not part of exclude conditions
+                if (originalQuery.$not && !excludes.length) delete query.$not;
             } else {
                 // If query is empty, just use icon conditions
                 query.$and = iconConditions;
@@ -524,8 +669,34 @@ class Index extends Common {
         }
         const query = this.parseQuery(terms, opts)
         if (this.debug) {
-            console.warn('lists.search() map searching', ((Date.now() / 1000) - start) + 's (pre time)', query);
+            console.warn('lists.search() map searching', ((Date.now() / 1000) - start) + 's (pre time)', JSON.stringify(query, null, 2));
         }
+        
+        // Check if query is empty (no valid groups)
+        if (query._empty) {
+            return [];
+        }
+        
+        // Extract exclude regexes for post-processing filter (if any)
+        const excludeRegexes = query._excludeRegexes || [];
+        delete query._excludeRegexes; // Remove from query before database search
+        
+        // WORKAROUND: If query has $or with multiple conditions, execute each condition separately
+        // This is needed because JexiDB may not handle $or correctly when one condition returns no results
+        const queriesToExecute = [];
+        if (query.$or && Array.isArray(query.$or) && query.$or.length > 1) {
+            // Execute each $or condition separately and combine results
+            for (const orCondition of query.$or) {
+                const singleQuery = { ...query };
+                delete singleQuery.$or;
+                Object.assign(singleQuery, orCondition);
+                queriesToExecute.push(singleQuery);
+            }
+        } else {
+            // Single query, execute normally
+            queriesToExecute.push(query);
+        }
+        
         const already = new Set();
         const results = []
         
@@ -543,32 +714,36 @@ class Index extends Common {
         for (const url of sortedUrls) {
             if (shouldStop) break;
             
-            tasks.push(limiter(async () => {
-                if (shouldStop || results.length >= maxWorkingSetLimit) {
-                    return;
-                }
+            // Execute each query separately
+            for (const queryToExecute of queriesToExecute) {
+                if (shouldStop) break;
                 
-                try {
-                    // Skip lists that are being updated
-                    if (this.isListUpdating && this.isListUpdating(url)) {
+                tasks.push(limiter(async () => {
+                    if (shouldStop || results.length >= maxWorkingSetLimit) {
                         return;
                     }
-                    // Add null check for list and indexer to prevent TypeError
-                    if (!this.lists[url] || !this.lists[url].indexer || !this.lists[url].indexer.db) {
-                        return;
-                    }
-                    // ULTRA-OPTIMIZATION: Skip count() - go directly to find() with limit
-                    const queryOpts = {
-                        limit: Math.min(maxWorkingSetLimit - results.length, 50), // Smaller limit per database for faster results
-                        streaming: false // Disable streaming for faster small queries
-                    };
                     
-                    // Allow non-indexed fields when withIconOnly is used (icon field is not indexed)
-                    if (opts.withIconOnly) {
-                        queryOpts.allowNonIndexed = true;
-                    }
-                    
-                    const ret = await this.lists[url].indexer.db.find(query, queryOpts)
+                    try {
+                        // Skip lists that are being updated
+                        if (this.isListUpdating && this.isListUpdating(url)) {
+                            return;
+                        }
+                        // Add null check for list and indexer to prevent TypeError
+                        if (!this.lists[url] || !this.lists[url].indexer || !this.lists[url].indexer.db) {
+                            return;
+                        }
+                        // ULTRA-OPTIMIZATION: Skip count() - go directly to find() with limit
+                        const queryOpts = {
+                            limit: Math.min(maxWorkingSetLimit - results.length, 50), // Smaller limit per database for faster results
+                            streaming: false // Disable streaming for faster small queries
+                        };
+                        
+                        // Allow non-indexed fields when withIconOnly is used (icon field is not indexed)
+                        if (opts.withIconOnly) {
+                            queryOpts.allowNonIndexed = true;
+                        }
+                        
+                        const ret = await this.lists[url].indexer.db.find(queryToExecute, queryOpts)
                     
                     // ULTRA-OPTIMIZATION: Process results more efficiently with early termination
                     for (const r of ret) {
@@ -597,7 +772,8 @@ class Index extends Common {
                         console.warn(`Search error in ${url}:`, error.message);
                     }
                 }
-            }))
+                }));
+            }
         }
         
         // ULTRA-OPTIMIZATION: Use Promise.allSettled with shorter timeout and early termination
@@ -609,6 +785,24 @@ class Index extends Common {
         
         if (this.debug) {
             console.warn('lists.search() RESULTS*', ((Date.now() / 1000) - start) + 's (total time)', terms);
+        }
+        
+        // CRITICAL: Post-process filtering for name field exclusions
+        // Since $not with RegExp doesn't work reliably in JexiDB queries,
+        // we filter results here based on excludeRegexes stored in query
+        if (excludeRegexes.length > 0) {
+            const filteredResults = results.filter(entry => {
+                // Check if entry.name matches any exclude regex
+                if (!entry.name) return true; // Keep entries without name
+                for (const regex of excludeRegexes) {
+                    if (regex.test(entry.name)) {
+                        return false; // Exclude this entry
+                    }
+                }
+                return true; // Keep this entry
+            });
+            
+            return this.adjustSearchResults(filteredResults, opts, limit);
         }
         
         return this.adjustSearchResults(results, opts, limit)
@@ -671,6 +865,17 @@ class Index extends Common {
         if (myListsOnly) {
             myListsOnly = config.get('lists').map(l => l[1]);
         }
+        // Normalize types: accept array or single string; 'video' is alias for vod + series (index only has live/vod/series)
+        const typeList = Array.isArray(types) ? types : (typeof types === 'string' ? [types] : []);
+        const resolvedTypes = [];
+        typeList.forEach(t => {
+            if (t === 'video') {
+                if (!resolvedTypes.includes('vod')) resolvedTypes.push('vod');
+                if (!resolvedTypes.includes('series')) resolvedTypes.push('series');
+            } else if (t && !resolvedTypes.includes(t)) {
+                resolvedTypes.push(t);
+            }
+        });
         Object.keys(this.lists).forEach(url => {
             if (myListsOnly && !myListsOnly.includes(url))
                 return;
@@ -682,7 +887,7 @@ class Index extends Common {
                 return;
             }
             let entries = this.lists[url].index.groupsTypes;
-            types.forEach(type => {
+            resolvedTypes.forEach(type => {
                 if (!entries || !entries[type])
                     return;
                 entries[type].forEach(group => {

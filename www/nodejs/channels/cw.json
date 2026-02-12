@@ -1,0 +1,50 @@
+{
+  "Entertainment": [
+    {
+      "name": "Bonce",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nos Pais",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Direct 13",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleCuraçao",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleCuracao",
+      "isFree": true,
+      "website": "https://xn--telecuraao-v6a.com/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Hype Radio",
+      "isFree": true,
+      "website": "https://hyperadio.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Rumbera Curacao 107.9 FM",
+      "isFree": true,
+      "website": "https://rumberacuracao.com/",
+      "priority": 5
+    },
+    {
+      "name": "VAM",
+      "isFree": true,
+      "website": "https://vamcuracao.com/",
+      "priority": 5
+    }
+  ]
+}

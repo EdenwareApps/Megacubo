@@ -1,6 +1,7 @@
 import { EventEmitter } from "events";
 import StreamQualityAnalyzer from "../utils/stream-quality-analyzer.js";
 import crypto from 'crypto'
+import renderer from "../../bridge/bridge.js"
 
 // Backward compatibility
 const BitrateChecker = StreamQualityAnalyzer;
@@ -19,12 +20,25 @@ class StreamerAdapterBase extends EventEmitter {
         if (opts) {
             this.setOpts(opts);
         }
+        // Honor 'debug' from command line (e.g. bin.js debug) so [StaticDbg] and onDbg are enabled
+        if (typeof process !== 'undefined' && process.argv && process.argv.includes && process.argv.includes('debug')) {
+            this.opts.debug = true;
+        }
         this._dimensions = '';
         this.currentSpeed = -1;
         this.connectable = false;
         this.adapters = [];
         this.bitrate = false;
-        this.bitrateChecker = new StreamQualityAnalyzer(opts);
+        const sd = opts?.staticDetection || {};
+        const dbg = !!(sd.debug || opts?.debug || this.opts.debug);
+        this.bitrateChecker = new StreamQualityAnalyzer({
+            ...opts,
+            staticDetection: {
+                ...sd,
+                debug: dbg,
+                onDbg: dbg ? (msg) => { try { renderer?.ui?.emit?.('static-dbg', String(msg)); } catch (e) {} } : undefined
+            }
+        });
         this.bitrateChecker.url = this.url;
         this.bitrateChecker.type = this.type;
         this.bitrateChecker.on('bitrate', (...args) => this.emit('bitrate', ...args));

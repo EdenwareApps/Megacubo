@@ -1,0 +1,2986 @@
+{
+  "News": [
+    {
+      "name": "BeritaSatu",
+      "isFree": true,
+      "keywords": "beritasatu -english -world",
+      "priority": 5
+    },
+    {
+      "name": "BeritaSatu English",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BeritaSatu World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CNBC Indonesia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CNN Indonesia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Metro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR Parlemen",
+      "isFree": true,
+      "keywords": "tvr parlemen -badan -anggaran -legislatif -musyawarah -bakn -bksap -komisi -i -ii -iii -iv -ix -v -vi -vii -viii -x -xi",
+      "priority": 5
+    },
+    {
+      "name": "TVR Parlemen BAKN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR Parlemen BKSAP",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR Parlemen Badan Anggaran",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR Parlemen Badan Legislatif",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR Parlemen Badan Musyawarah",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR Parlemen Komisi I",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR Parlemen Komisi II",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR Parlemen Komisi III",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR Parlemen Komisi IV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR Parlemen Komisi IX",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR Parlemen Komisi V",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR Parlemen Komisi VI",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR Parlemen Komisi VII",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR Parlemen Komisi VIII",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR Parlemen Komisi X",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR Parlemen Komisi XI",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "iNews",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Antara",
+      "isFree": true,
+      "website": "https://en.antaranews.com/",
+      "priority": 5
+    },
+    {
+      "name": "BN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BTV",
+      "isFree": true,
+      "website": "https://www.beritasatu.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Huma Betang",
+      "isFree": true,
+      "website": "https://humabetang.com/",
+      "priority": 5
+    },
+    {
+      "name": "IDX",
+      "isFree": true,
+      "website": "https://www.idxchannel.com/",
+      "priority": 5
+    },
+    {
+      "name": "Jakarta Globe News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kompas",
+      "isFree": true,
+      "website": "https://www.kompas.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Lingkar",
+      "isFree": true,
+      "website": "https://lingkartv.com",
+      "priority": 5
+    },
+    {
+      "name": "Metro Globe Network",
+      "isFree": true,
+      "website": "https://www.metroglobe.id/live",
+      "priority": 5
+    },
+    {
+      "name": "Mimoza",
+      "isFree": true,
+      "website": "https://mimoza.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Sindo News",
+      "isFree": true,
+      "keywords": "sindo news tv | sindonews tv",
+      "website": "http://www.mncchannels.com/micro/mncnews",
+      "priority": 5
+    },
+    {
+      "name": "Sin Po",
+      "isFree": true,
+      "website": "https://tv.sinpo.id/",
+      "priority": 5
+    },
+    {
+      "name": "GTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "SCTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Moji",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Mentari",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "tvOne",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "VTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Magna",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Kompas Gramedia Group#Media",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "RTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "NT Corp",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Garuda",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MDTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "DAAI",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Indonesia Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Inspira",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "tvMu",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "JPM",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Fajar GroupOperated by Jawa Pos Group",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Disway",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Ajwa",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sports",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Education",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Jawa Pos",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Kick Andy Foundation",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CTV/Mola",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MahakaX",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Visi Media Asia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Banda Aceh",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Aceh",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Jawa Pos TV Bali",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "RBTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Daftar stasiun televisi di Jawa Tengah",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Semarang",
+      "isFree": null,
+      "keywords": "semarang",
+      "priority": 5
+    },
+    {
+      "name": "TVKU",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Purwokerto",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BMS",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Kebumen",
+      "isFree": null,
+      "keywords": "kebumen",
+      "priority": 5
+    },
+    {
+      "name": "Pekalongan",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Batik",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Surakarta",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TATV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV 10",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Temanggung",
+      "isFree": null,
+      "keywords": "temanggung",
+      "priority": 5
+    },
+    {
+      "name": "Surabaya",
+      "isFree": null,
+      "keywords": "surabaya",
+      "priority": 5
+    },
+    {
+      "name": "JTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV9 Nusantara",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Batu",
+      "isFree": null,
+      "keywords": "batu",
+      "priority": 5
+    },
+    {
+      "name": "Agropolitan",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Malang",
+      "isFree": null,
+      "keywords": "malang",
+      "priority": 5
+    },
+    {
+      "name": "Dhamma",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MHTV Malang",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Gajayana",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "UBTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Madiun",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVRI East Java",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Kediri",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "DhohoTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Kilisuci",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Blitar",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Tulungagung",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Samarinda",
+      "isFree": null,
+      "keywords": "samarinda",
+      "priority": 5
+    },
+    {
+      "name": "Kaltim",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Balikpapan",
+      "isFree": null,
+      "keywords": "balikpapan",
+      "website": "https://balikpapantv.co.id/",
+      "priority": 5
+    },
+    {
+      "name": "Bontang",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Publik Khatulistiwa",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Gorontalo",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "KTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Smile",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Independent",
+      "isFree": null,
+      "keywords": "independent -community -public",
+      "_alt_origName": [
+        "Independent (Public)"
+      ],
+      "priority": 5
+    },
+    {
+      "name": "JakTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Elshinta",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Jambi",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Jek",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Bandar Lampung",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Radar Lampung",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Siger",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Delta",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Tegar",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Tarakan",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "STTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Pematangsiantar and Simalungun",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sumut",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Pekanbaru",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Riau",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Rokan Hilir",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Tembilahan",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "GemilanG",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Batam and Tanjungpinang",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Batam",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVTPI",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Banjarmasin",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Banjar",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Duta",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Makassar",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Fajar",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "VE",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Palopo",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Parepare",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sinjai",
+      "isFree": null,
+      "keywords": "sinjai",
+      "priority": 5
+    },
+    {
+      "name": "Palembang",
+      "isFree": null,
+      "keywords": "palembang",
+      "website": "https://paltv.co.id/",
+      "priority": 5
+    },
+    {
+      "name": "PALTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Bandung",
+      "isFree": null,
+      "keywords": "bandung",
+      "priority": 10
+    },
+    {
+      "name": "AKTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Garvis",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "I",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Jawa Barat",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sukabumi",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MGSTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Pontianak",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "M2TV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Padang",
+      "isFree": null,
+      "keywords": "padang",
+      "priority": 5
+    },
+    {
+      "name": "GPR",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Ministry of Culture",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "PT Ashiil Cahaya Tauhid",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Ahsan TV Media Muslim Indonesia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Surya Citra Media",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "AM MediaBy Habib",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Yayasan Al Bahjah CirebonBy Buya",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Radio Suara Al Iman",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "IndiHome TVBy Telkom Indonesia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Bali Post Media GroupIndonesia Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Efarina Etaham Group",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Dewan Fatwa Perhimpunan Al Irsyad",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Gazwah EnterpriseBy Ustad",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Seventh day Adventist Church",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Media Hijrah Indonesia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Hope Channel Indonesia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "IndiHome",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "www.insantv",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "izzah",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "PT Jayapura Televisi",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Jawa Pos Group",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "KG Media",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Bina Madani Foundation",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nex Parabola",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Yayasan Media Sunnah Aceh",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Televisi Media Gama Islam",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Yayasan Majlis Tafsir Al Qur'an",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Islamic Center Mu'adz Bin Jaball",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Yayasan An Naajiya Pasaman Barat",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Al Rabithah al Alawiyyah",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "K Vision",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Media Dakwah Sunnah",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Perkumpulan Lembaga Dakwah dan Pendidikan Islam Indonesia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Media Dakwah As Sunnah Lombok Timur",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Rodja",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "PT Ruai Televisi",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Surau",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nahdlatul UlamaThrough PWNU Jawa Timur",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Muhammadiyah",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "U",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nur Medinah Intermedia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Champions",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MNC Infotainment and Infotainment",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MNC Entertainment",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MNC Food & Travel and Food & Travel",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MNC Fashion - MNC Lifestyle - Lifestyle & Fashion - Okezone TV and Channel Jowo",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MNC Business and iBCM",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MNC Kids and Kids",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV Indonesia - MNC Music Channel - MNC Music and Music",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MNC Muslim and Hidayah",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MNC News Channel and MNC News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Vision 1 Sports - MNC Sports 1 and MNC Sports",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "MNC Sports 2",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Kidnesia and MNC Sports 3",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Nova",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Pop",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Bioskop TelkomVision",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Ananda",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Golf Channel Indonesia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Alif",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV Asia and Channel V",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Showcase",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Also available on the iKonser app for non IndiHome TV customers",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Hi!",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "First Football",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BeritaSatu Lifestyle and The First Comedy Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BeritaDua",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Bola Indonesia and TSB",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TSB 2",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nex Football",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Children",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Ganteng Ganteng Serigala",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Musica Studio's",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "PT Lingkar Taqwa Vision",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "PT Salira Info Utama",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV Indonesia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Spacetoon Indonesia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "KTI",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MYTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "RIM",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Saburai",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Jogja",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "AM MediaBy",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Gazwah EnterpriseBy",
+      "isFree": null,
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "I AM",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Reformed 21",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Ahsan",
+      "isFree": true,
+      "website": "https://ahsan.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Al Bahjah",
+      "isFree": true,
+      "website": "https://www.albahjah.or.id/",
+      "priority": 4
+    },
+    {
+      "name": "Al Furqon",
+      "isFree": true,
+      "website": "https://daksos.alfurqongresik.com/",
+      "priority": 4
+    },
+    {
+      "name": "Al Iman",
+      "isFree": true,
+      "website": "https://aliman.id/",
+      "priority": 4
+    },
+    {
+      "name": "Al Wafa Tarim",
+      "isFree": true,
+      "website": "https://live.alwafatarim.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Ar Raudhah",
+      "isFree": true,
+      "website": "http://arraudhah-sekumpul.com/",
+      "priority": 4
+    },
+    {
+      "name": "Ashiil",
+      "isFree": true,
+      "website": "http://www.ashiil.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Aswaja",
+      "isFree": true,
+      "website": "https://www.aswajatv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Bin Baz",
+      "isFree": true,
+      "website": "https://binbaz.or.id/",
+      "priority": 4
+    },
+    {
+      "name": "CGNTV Indonesia",
+      "isFree": true,
+      "website": "https://www.cgnindonesia.com/about-cgn",
+      "priority": 4
+    },
+    {
+      "name": "Citra Muslim",
+      "isFree": true,
+      "website": "http://www.ieg.id/tv-channel/citra-muslim/",
+      "priority": 4
+    },
+    {
+      "name": "Dalwa",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "eLKISI",
+      "isFree": true,
+      "website": "https://elkisi.com/official-elkisi-tv/",
+      "priority": 4
+    },
+    {
+      "name": "Fatwa",
+      "isFree": true,
+      "website": "https://fatwatv.id/",
+      "priority": 4
+    },
+    {
+      "name": "Gazwah",
+      "isFree": true,
+      "website": "https://gazwah.com/",
+      "priority": 4
+    },
+    {
+      "name": "GBI",
+      "isFree": true,
+      "website": "http://www.beritabethel.com/",
+      "priority": 4
+    },
+    {
+      "name": "GMS",
+      "isFree": true,
+      "website": "https://gms.church/",
+      "priority": 4
+    },
+    {
+      "name": "HCBN Indonesia",
+      "isFree": true,
+      "website": "https://www.hcbn-indonesia.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Hijrah",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Khazanah",
+      "isFree": true,
+      "website": "https://www.transvision.co.id/",
+      "priority": 4
+    },
+    {
+      "name": "Madani",
+      "isFree": true,
+      "website": "https://madani.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Media Sunnah Aceh",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MGI",
+      "isFree": true,
+      "website": "https://mgitv.com/",
+      "priority": 4
+    },
+    {
+      "name": "MQTV",
+      "isFree": true,
+      "website": "http://www.mqtv.co.id/",
+      "priority": 4
+    },
+    {
+      "name": "MTA",
+      "isFree": true,
+      "website": "http://mtatv.net/",
+      "priority": 4
+    },
+    {
+      "name": "Muadz",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Muslim",
+      "isFree": true,
+      "website": "https://www.mncchannels.com/micro/Muslim-TV",
+      "priority": 4
+    },
+    {
+      "name": "Naajiya",
+      "isFree": true,
+      "website": "https://annaajiya.or.id/naajiyatv/",
+      "priority": 4
+    },
+    {
+      "name": "Nabawi",
+      "isFree": true,
+      "website": "https://nabawi.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Niaga",
+      "isFree": true,
+      "website": "http://www.niaga.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Radio Kita",
+      "isFree": true,
+      "website": "http://radiokita.tv/",
+      "priority": 4
+    }
+  ],
+  "Local": [
+    {
+      "name": "TVRI Aceh",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Bali",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Bangka Belitung",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Bengkulu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI DKI Jakarta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Jambi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Jawa Tengah",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Jawa Timur",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Kalimantan Barat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Kalimantan Selatan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Kalimantan Tengah",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Kalimantan Timur",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Lampung",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Maluku",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Nusa Tenggara Barat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Nusa Tenggara Timur",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Papua",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Riau",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Sulawesi Barat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Sulawesi Selatan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Sulawesi Tengah",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Sulawesi Tenggara",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Sulawesi Utara",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Sumatera Barat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Sumatera Selatan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Sumatera Utara",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Yogyakarta",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Bali United",
+      "isFree": true,
+      "website": "https://www.baliutd.com/tv/",
+      "priority": 5
+    },
+    {
+      "name": "Champions Fight",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Champions Golf",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Champions Golf 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Champions TV",
+      "isFree": true,
+      "website": "http://www.ieg.id/tv-channel/champions-tv-1/",
+      "priority": 5
+    },
+    {
+      "name": "Champions TV 2",
+      "isFree": true,
+      "website": "http://www.ieg.id/tv-channel/champions-tv-2/",
+      "priority": 5
+    },
+    {
+      "name": "Champions TV 3",
+      "isFree": true,
+      "website": "http://www.ieg.id/tv-channel/champions-tv-3/",
+      "priority": 5
+    },
+    {
+      "name": "Champions TV 4",
+      "isFree": true,
+      "website": "http://www.ieg.id/tv-channel/champions-tv-3/",
+      "priority": 5
+    },
+    {
+      "name": "Champions TV 5",
+      "isFree": true,
+      "website": "http://www.ieg.id/tv-channel/champions-tv-3/",
+      "priority": 5
+    },
+    {
+      "name": "Champions TV 6",
+      "isFree": true,
+      "website": "http://www.ieg.id/tv-channel/champions-tv-3/",
+      "priority": 5
+    },
+    {
+      "name": "Champions TV EPL",
+      "isFree": true,
+      "website": "http://www.ieg.id/tv-channel/champions-tv-3/",
+      "priority": 5
+    },
+    {
+      "name": "Champions TV Goal",
+      "isFree": true,
+      "website": "http://www.ieg.id/tv-channel/champions-tv-3/",
+      "priority": 5
+    },
+    {
+      "name": "Champions TV Xtra",
+      "isFree": true,
+      "website": "http://www.ieg.id/tv-channel/champions-tv-3/",
+      "priority": 5
+    },
+    {
+      "name": "Dunia Games",
+      "isFree": true,
+      "website": "https://maxstream.tv",
+      "priority": 5
+    },
+    {
+      "name": "SportOne",
+      "isFree": true,
+      "website": "https://www.tvonenews.com/channel/sportone",
+      "priority": 10
+    },
+    {
+      "name": "Sportstars",
+      "isFree": true,
+      "keywords": "sportstars -2 -3 -4",
+      "website": "https://www.mncchannels.com/micro/MNC-Sport",
+      "priority": 10
+    },
+    {
+      "name": "Sportstars 2",
+      "isFree": true,
+      "website": "https://www.mncchannels.com/micro/MNC-Sport",
+      "priority": 10
+    },
+    {
+      "name": "Sportstars 3",
+      "isFree": true,
+      "website": "https://www.mncchannels.com/micro/MNC-Sport",
+      "priority": 10
+    },
+    {
+      "name": "Sportstars 4",
+      "isFree": true,
+      "website": "https://www.mncchannels.com/micro/MNC-Sport",
+      "priority": 10
+    },
+    {
+      "name": "SPOTV",
+      "isFree": true,
+      "keywords": "spotv -2",
+      "priority": 5
+    },
+    {
+      "name": "SPOTV 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Sport",
+      "isFree": true,
+      "keywords": "tvri sport",
+      "priority": 10
+    },
+    {
+      "name": "Voli",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Hits",
+      "isFree": true,
+      "keywords": "hits -movies",
+      "priority": 5
+    },
+    {
+      "name": "Indonesia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MNCTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "One",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RCTI",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RRI Net",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI",
+      "isFree": true,
+      "keywords": "tvri -4 -aceh -bali -bangka -belitung -bengkulu -dki -jakarta -gorontalo -jambi -jawa -barat -tengah -timur -kalimantan -selatan -kanal -3 -lampung -maluku -nasional -nusa -tenggara -papua -riau -sport -hd -sulawesi -utara -sumatera -yogyakarta",
+      "priority": 5
+    },
+    {
+      "name": "TVRI 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Kanal 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Nasional",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Trans",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Trans 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ADi",
+      "isFree": true,
+      "website": "http://www.aditv.co.id/",
+      "priority": 5
+    },
+    {
+      "name": "AFBTV Kupang",
+      "isFree": true,
+      "website": "http://afbtvkupang.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ainos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "All Play Ent",
+      "isFree": true,
+      "website": "https://www.indihometv.com/",
+      "priority": 5
+    },
+    {
+      "name": "ANTV",
+      "isFree": true,
+      "website": "https://www.antvklik.com/",
+      "priority": 5
+    },
+    {
+      "name": "Arek",
+      "isFree": true,
+      "website": "https://arek.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Astha",
+      "isFree": true,
+      "website": "https://asthatv.com",
+      "priority": 5
+    },
+    {
+      "name": "Astro Blitar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Atambua",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ATV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ATVLI",
+      "isFree": true,
+      "website": "https://atvli.or.id/",
+      "priority": 5
+    },
+    {
+      "name": "Bakudapa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Banten",
+      "isFree": true,
+      "website": "http://bantentv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bayu TV Nganjuk",
+      "isFree": true,
+      "website": "https://www.bayutvpersada.com/",
+      "priority": 5
+    },
+    {
+      "name": "BBS",
+      "isFree": true,
+      "website": "https://www.bbstv.id/",
+      "priority": 5
+    },
+    {
+      "name": "Besmart",
+      "isFree": true,
+      "website": "https://mncvision.id/",
+      "priority": 5
+    },
+    {
+      "name": "BE",
+      "isFree": true,
+      "website": "http://betv.rakyatbengkulu.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bima",
+      "isFree": true,
+      "website": "https://www.bimakini.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bioskop Indonesia",
+      "isFree": true,
+      "website": "https://www.transvision.co.id/",
+      "priority": 5
+    },
+    {
+      "name": "Biznet Adventure",
+      "isFree": true,
+      "website": "http://www.biznetvideo.net/",
+      "priority": 5
+    },
+    {
+      "name": "Biznet Lifestyle",
+      "isFree": true,
+      "website": "http://www.biznetvideo.net/",
+      "priority": 5
+    },
+    {
+      "name": "B One",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BRTV",
+      "isFree": true,
+      "website": "https://brtv.co.id/",
+      "priority": 5
+    },
+    {
+      "name": "Bungo",
+      "isFree": true,
+      "website": "https://www.bungotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cahaya TV Banten",
+      "isFree": true,
+      "website": "https://www.cahayabanten.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Carang",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Caruban",
+      "isFree": true,
+      "website": "https://carubantv.id/",
+      "priority": 5
+    },
+    {
+      "name": "Celebes",
+      "isFree": true,
+      "website": "http://www.celebesmedia.id/",
+      "priority": 5
+    },
+    {
+      "name": "Celebrities",
+      "isFree": true,
+      "website": "https://www.mncchannels.com/micro/mncinfotainment",
+      "priority": 5
+    },
+    {
+      "name": "Channel 4U",
+      "isFree": true,
+      "website": "https://maxstream.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Channel Jowo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Citra Bioskop",
+      "isFree": true,
+      "website": "http://www.ieg.id/tv-channel/citra-bioskop/",
+      "priority": 5
+    },
+    {
+      "name": "Citra Culinary & Travel",
+      "isFree": true,
+      "website": "http://www.ieg.id/tv-channel/citra-dangdut/",
+      "priority": 5
+    },
+    {
+      "name": "Citra Dangdut",
+      "isFree": true,
+      "website": "http://www.ieg.id/tv-channel/citra-dangdut/",
+      "priority": 5
+    },
+    {
+      "name": "Citra Entertainment",
+      "isFree": true,
+      "website": "http://www.ieg.id/tv-channel/citra-entertainment/",
+      "priority": 5
+    },
+    {
+      "name": "Citra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dangdut Tivi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Davika",
+      "isFree": true,
+      "website": "https://davikatv.co/",
+      "priority": 5
+    },
+    {
+      "name": "Dayak",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dens Food",
+      "isFree": true,
+      "website": "http://dens.tv",
+      "priority": 5
+    },
+    {
+      "name": "Dens Life & Style",
+      "isFree": true,
+      "website": "http://dens.tv",
+      "priority": 5
+    },
+    {
+      "name": "Dens Play",
+      "isFree": true,
+      "website": "http://dens.tv",
+      "priority": 5
+    },
+    {
+      "name": "Dens ShowBiz",
+      "isFree": true,
+      "website": "http://dens.tv",
+      "priority": 5
+    },
+    {
+      "name": "Dhoho",
+      "isFree": true,
+      "website": "http://www.dhohotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "DigiOne",
+      "isFree": true,
+      "website": "https://maxstream.tv",
+      "priority": 5
+    },
+    {
+      "name": "Discovery",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "DM TV Malang",
+      "isFree": true,
+      "website": "https://dmtvmalang.com/",
+      "priority": 5
+    },
+    {
+      "name": "dTVi",
+      "isFree": true,
+      "website": "https://dtv-indonesia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Dunia Anak",
+      "isFree": true,
+      "website": "https://www.transvision.co.id/",
+      "priority": 5
+    },
+    {
+      "name": "Dunia Lain",
+      "isFree": true,
+      "website": "https://www.transvision.co.id/",
+      "priority": 5
+    },
+    {
+      "name": "Eat N Go",
+      "isFree": true,
+      "website": "https://www.transvision.co.id/",
+      "priority": 5
+    },
+    {
+      "name": "E",
+      "isFree": true,
+      "website": "http://echanneltv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Efarina",
+      "isFree": true,
+      "website": "https://efarinatv.net/",
+      "priority": 5
+    },
+    {
+      "name": "EmPhi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EmPhi 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EmPhi 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EmPhi 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Entertainment",
+      "isFree": true,
+      "website": "https://www.mncchannels.com/micro/entertainment",
+      "priority": 5
+    },
+    {
+      "name": "Ficom",
+      "isFree": true,
+      "website": "https://www.vnews.click/",
+      "priority": 5
+    },
+    {
+      "name": "Flik",
+      "isFree": true,
+      "website": "https://www.instagram.com/fliktv/",
+      "priority": 5
+    },
+    {
+      "name": "FMN",
+      "isFree": true,
+      "website": "https://mncvision.id/channel/detail/150/fmn/",
+      "priority": 5
+    },
+    {
+      "name": "FTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ie",
+      "isFree": true,
+      "website": "https://www.mncchannels.com/micro/infotainment",
+      "priority": 5
+    },
+    {
+      "name": "Inahealth",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Indonesiana",
+      "isFree": true,
+      "website": "https://indonesiana.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Indosiar",
+      "isFree": true,
+      "website": "https://www.indosiar.com/",
+      "priority": 5
+    },
+    {
+      "name": "Insan",
+      "isFree": true,
+      "website": "http://www.insantv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Jak",
+      "isFree": true,
+      "website": "https://jak-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Jaya TV Jayapura",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Jendela",
+      "isFree": true,
+      "website": "https://www.transvision.co.id/",
+      "priority": 5
+    },
+    {
+      "name": "Jogja Istimewa",
+      "isFree": true,
+      "website": "http://jitv.jogjaprov.go.id/",
+      "priority": 5
+    },
+    {
+      "name": "Karisma",
+      "isFree": true,
+      "website": "http://www.ieg.id/tv-channel/karisma/",
+      "priority": 5
+    },
+    {
+      "name": "Kawanua",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "K Drama",
+      "isFree": true,
+      "website": "https://www.eyeplus.co.id/",
+      "priority": 5
+    },
+    {
+      "name": "Kresna",
+      "isFree": true,
+      "website": "https://www.kresna.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Life",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lombok",
+      "isFree": true,
+      "website": "https://lomboktvnews.com/",
+      "priority": 5
+    },
+    {
+      "name": "Madu",
+      "isFree": true,
+      "website": "https://madu.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Maleo",
+      "isFree": true,
+      "website": "http://www.ninmedia.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Mata Milenial Indonesia",
+      "isFree": true,
+      "website": "https://mataindonesia.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Max2U",
+      "isFree": true,
+      "website": "https://maxstream.tv/",
+      "priority": 5
+    },
+    {
+      "name": "MAX Stream",
+      "isFree": true,
+      "website": "https://maxstream.tv/",
+      "priority": 5
+    },
+    {
+      "name": "MCC",
+      "isFree": true,
+      "website": "https://maxstream.tv/",
+      "priority": 5
+    },
+    {
+      "name": "M",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mola TV",
+      "isFree": true,
+      "website": "https://mola.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Mola TV 2",
+      "isFree": true,
+      "website": "https://mola.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Molluca",
+      "isFree": true,
+      "website": "http://molluca.cahaya.tv/",
+      "priority": 5
+    },
+    {
+      "name": "More",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "My Family",
+      "isFree": true,
+      "website": "http://www.ciptamutu.com/",
+      "priority": 5
+    },
+    {
+      "name": "My",
+      "isFree": true,
+      "website": "https://www.mytv.co.id/",
+      "priority": 5
+    },
+    {
+      "name": "NET",
+      "isFree": true,
+      "website": "https://www.netmedia.co.id/",
+      "priority": 5
+    },
+    {
+      "name": "Nirwana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "!nsert",
+      "isFree": true,
+      "website": "https://www.transvision.co.id/",
+      "priority": 5
+    },
+    {
+      "name": "Nu",
+      "isFree": true,
+      "website": "http://nuchannel.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Nusantara",
+      "isFree": true,
+      "website": "https://www.nusantaratv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nusa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Okezone",
+      "isFree": true,
+      "website": "https://tv.okezone.com/",
+      "priority": 5
+    },
+    {
+      "name": "OK",
+      "isFree": true,
+      "website": "https://www.mncchannels.com/micro/OK-TV",
+      "priority": 5
+    },
+    {
+      "name": "Online TV Nusantara",
+      "isFree": true,
+      "website": "https://indeksnews.com/",
+      "priority": 5
+    },
+    {
+      "name": "Pawagam Indonesia",
+      "isFree": true,
+      "website": "http://www.ieg.id/tv-channel/pawagam-indonesia/",
+      "priority": 5
+    },
+    {
+      "name": "Persada",
+      "isFree": true,
+      "website": "https://www.persada.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Persib",
+      "isFree": true,
+      "website": "https://persib.co.id/media/persib_tv",
+      "priority": 5
+    },
+    {
+      "name": "Persona",
+      "isFree": true,
+      "website": "http://www.ieg.id/tv-channel/pesona/",
+      "priority": 5
+    },
+    {
+      "name": "Pet",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pijar",
+      "isFree": true,
+      "website": "http://pijar.tv/",
+      "priority": 5
+    },
+    {
+      "name": "PJTV",
+      "isFree": true,
+      "website": "http://www.pjtvbandung.com/",
+      "priority": 5
+    },
+    {
+      "name": "PKTV",
+      "isFree": true,
+      "website": "http://pktvkaltim.com/",
+      "priority": 5
+    },
+    {
+      "name": "PONTV",
+      "isFree": true,
+      "website": "https://www.pontv.id/",
+      "priority": 5
+    },
+    {
+      "name": "PSJ",
+      "isFree": true,
+      "website": "https://www.psjtv.id/",
+      "priority": 5
+    },
+    {
+      "name": "Puja TV Aceh",
+      "isFree": true,
+      "website": "https://www.pujatvaceh.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radar Tasikmalaya",
+      "isFree": true,
+      "website": "https://radartasikmalaya.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Rajawali",
+      "isFree": true,
+      "website": "https://www.rtv.co.id/",
+      "priority": 5
+    },
+    {
+      "name": "Rakyat Bengkulu",
+      "isFree": true,
+      "website": "https://rbtv.rakyatbengkulu.com/",
+      "priority": 5
+    },
+    {
+      "name": "RANS Entertainment",
+      "isFree": true,
+      "website": "https://www.vidio.com/live/8241-rans-channel",
+      "priority": 5
+    },
+    {
+      "name": "Rasyaad",
+      "isFree": true,
+      "website": "https://www.rasyaad.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Ratih",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RBTV Jogja",
+      "isFree": true,
+      "website": "http://www.rbtvjogja.tv/",
+      "priority": 5
+    },
+    {
+      "name": "RCTV",
+      "isFree": true,
+      "website": "https://www.radarcirebon.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Riau Raya",
+      "isFree": true,
+      "website": "https://riauraya.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Ruai",
+      "isFree": true,
+      "website": "https://ruai.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Ruang Trampil",
+      "isFree": true,
+      "website": "https://useetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sakti",
+      "isFree": true,
+      "website": "https://www.sakti.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Salam",
+      "isFree": true,
+      "website": "https://salamtelevisi.com/",
+      "priority": 5
+    },
+    {
+      "name": "Saling Sapa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Salira",
+      "isFree": true,
+      "website": "https://salira.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Sampit",
+      "isFree": true,
+      "website": "https://sampittv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Samudera",
+      "isFree": true,
+      "website": "https://samudera.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Sangaji",
+      "isFree": true,
+      "website": "https://sangajitv.co.id/",
+      "priority": 5
+    },
+    {
+      "name": "SEA Today",
+      "isFree": true,
+      "website": "https://www.seatoday.com/",
+      "priority": 5
+    },
+    {
+      "name": "Selaparang",
+      "isFree": true,
+      "website": "https://selaparangtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Seru!",
+      "isFree": true,
+      "website": "https://www.transvision.co.id/",
+      "priority": 5
+    },
+    {
+      "name": "Siak",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Simpang 5",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Situbondo",
+      "isFree": true,
+      "website": "http://www.situbondotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Vision Learning",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SMTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Snooker",
+      "isFree": true,
+      "website": "http://www.skynindo.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Soccer",
+      "isFree": true,
+      "website": "https://www.mncchannels.com/micro/Soccer-Channel",
+      "priority": 5
+    },
+    {
+      "name": "Sriwijaya",
+      "isFree": true,
+      "website": "http://www.sriwijayatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Stara",
+      "isFree": true,
+      "website": "https://stream.staratv.id/",
+      "priority": 5
+    },
+    {
+      "name": "STV",
+      "isFree": true,
+      "website": "https://www.stv.co.id/",
+      "priority": 5
+    },
+    {
+      "name": "Sultra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sunnah Jalan Pasti",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tanjungpinang",
+      "isFree": true,
+      "website": "https://tvtpi.id/",
+      "priority": 5
+    },
+    {
+      "name": "Tawaf",
+      "isFree": true,
+      "website": "https://www.tawaf.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Tegar TV Jogja",
+      "isFree": true,
+      "website": "http://www.tegartv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tegar TV Lampung",
+      "isFree": true,
+      "website": "http://www.tegartv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Timor",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tuan Guru",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Desa",
+      "isFree": true,
+      "website": "https://tvdesa.id/",
+      "priority": 5
+    },
+    {
+      "name": "TV Edukasi",
+      "isFree": true,
+      "website": "https://tve.kemdikbud.go.id/",
+      "priority": 5
+    },
+    {
+      "name": "TV Kesehatan",
+      "isFree": true,
+      "website": "https://www.kemkes.go.id/",
+      "priority": 5
+    },
+    {
+      "name": "TVM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Mu",
+      "isFree": true,
+      "website": "http://tvmu.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV MUI",
+      "isFree": true,
+      "website": "https://mui.or.id/",
+      "priority": 5
+    },
+    {
+      "name": "TVRI World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Tabalong",
+      "isFree": true,
+      "website": "https://tv.tabalongkab.go.id/",
+      "priority": 5
+    },
+    {
+      "name": "TV Tempo",
+      "isFree": true,
+      "website": "https://www.vidio.com/live/7946-tv-tempo",
+      "priority": 5
+    },
+    {
+      "name": "UBTV Brawijaya",
+      "isFree": true,
+      "website": "https://tv.ub.ac.id/",
+      "priority": 5
+    },
+    {
+      "name": "UFA 24",
+      "isFree": true,
+      "website": "https://firanda.com/",
+      "priority": 5
+    },
+    {
+      "name": "UGTV",
+      "isFree": true,
+      "website": "https://ugtv.co.id/",
+      "priority": 5
+    },
+    {
+      "name": "Usee Photo",
+      "isFree": true,
+      "website": "https://useetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Usee Prime",
+      "isFree": true,
+      "website": "https://useetv.com/",
+      "priority": 6
+    },
+    {
+      "name": "USM",
+      "isFree": true,
+      "website": "https://usmtv.id",
+      "priority": 5
+    },
+    {
+      "name": "Vision Prime",
+      "isFree": true,
+      "website": "https://www.mncchannels.com/micro/vision-prime",
+      "priority": 6
+    },
+    {
+      "name": "Wesal",
+      "isFree": true,
+      "website": "http://wesaltv.id/",
+      "priority": 5
+    },
+    {
+      "name": "Zee Bioskop",
+      "isFree": true,
+      "website": "https://www.zeebioskop.com/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Hits Movies",
+      "priority": 5
+    },
+    {
+      "name": "Celestial Classic Movies",
+      "isFree": true,
+      "website": "https://www.cmclassic.tv/index.php?location/ID",
+      "priority": 5
+    },
+    {
+      "name": "Celestial Movies Indonesia",
+      "isFree": true,
+      "website": "https://www.celestialmovies.com/schedule.php?location/ID",
+      "priority": 5
+    },
+    {
+      "name": "Citra Drama",
+      "isFree": true,
+      "keywords": "citra drama -plus",
+      "website": "http://www.ieg.id/tv-channel/citra-drama/",
+      "priority": 5
+    },
+    {
+      "name": "Citra Drama Plus",
+      "isFree": true,
+      "website": "http://www.ieg.id/tv-channel/citra-drama-plus/",
+      "priority": 5
+    },
+    {
+      "name": "Galaxy",
+      "isFree": true,
+      "keywords": "galaxy -premium",
+      "website": "https://www.k-vision.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Galaxy Premium",
+      "isFree": true,
+      "website": "https://www.k-vision.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Haari Drama",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Haari Movie",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "IMC",
+      "isFree": true,
+      "website": "https://www.k-vision.tv/",
+      "priority": 5
+    },
+    {
+      "name": "My Cinema",
+      "isFree": true,
+      "keywords": "my cinema -asia",
+      "website": "http://ciptamutu.com/",
+      "priority": 5
+    },
+    {
+      "name": "My Cinema Asia",
+      "isFree": true,
+      "website": "http://www.ciptamutu.com/",
+      "priority": 5
+    },
+    {
+      "name": "Paramount Network",
+      "isFree": true,
+      "website": "https://www.paramountnetwork.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sinema Indonesia",
+      "isFree": true,
+      "keywords": "sinema indonesia -x",
+      "website": "https://www.eyeplus.co.id/",
+      "priority": 5
+    },
+    {
+      "name": "Sinema Indonesia X",
+      "isFree": true,
+      "website": "https://www.eyeplus.co.id/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Al Binaa",
+      "isFree": true,
+      "website": "https://albinaa.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Bali",
+      "isFree": true,
+      "website": "https://balitv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Dens Learning & Knowledge",
+      "isFree": true,
+      "website": "http://dens.tv",
+      "priority": 5
+    },
+    {
+      "name": "Lingua",
+      "isFree": true,
+      "website": "https://www.transvision.co.id/channel/lingua.html",
+      "priority": 5
+    },
+    {
+      "name": "MHO",
+      "isFree": true,
+      "website": "http://mhotv.id/",
+      "priority": 5
+    },
+    {
+      "name": "National Geographic",
+      "isFree": true,
+      "keywords": "national geographic -wild",
+      "website": "http://natgeotv.com/asia",
+      "priority": 7
+    },
+    {
+      "name": "National Geographic Wild",
+      "isFree": true,
+      "website": "http://natgeotv.com/asia",
+      "priority": 7
+    },
+    {
+      "name": "Rinjani",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "The Indonesia",
+      "isFree": true,
+      "website": "https://www.theindonesiachannel.com/",
+      "priority": 5
+    }
+  ],
+  "Shop": [
+    {
+      "name": "Berkah Shop",
+      "isFree": true,
+      "website": "https://berkahshopping.com/",
+      "priority": 4
+    },
+    {
+      "name": "iBerkah",
+      "isFree": true,
+      "website": "https://iberkah.co.id/",
+      "priority": 4
+    },
+    {
+      "name": "Lejel Home Shopping",
+      "isFree": true,
+      "website": "https://lejel.co.id/",
+      "priority": 4
+    },
+    {
+      "name": "M Shop Signature",
+      "isFree": true,
+      "website": "https://mncvision.id/channel/detail/88/mshop-signature/",
+      "priority": 4
+    },
+    {
+      "name": "M Shop Super Sale!",
+      "isFree": true,
+      "website": "https://mncvision.id/channel/detail/79/mshop-super-sale/",
+      "priority": 4
+    },
+    {
+      "name": "NaDoo Commerce",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "NaDoo Korean",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "O Shop",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Biznet Kids",
+      "isFree": true,
+      "website": "http://www.biznetvideo.net/",
+      "priority": 5
+    },
+    {
+      "name": "Fun Planet",
+      "isFree": true,
+      "website": "https://www.indihometv.com/livetv/indikids",
+      "priority": 5
+    },
+    {
+      "name": "Haari Kids",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hip Hip Horee!",
+      "isFree": true,
+      "website": "http://www.ieg.id/tv-channel/hip-hip-horee/",
+      "priority": 5
+    },
+    {
+      "name": "Horee!",
+      "isFree": true,
+      "website": "http://www.ieg.id/tv-channel/horee/",
+      "priority": 5
+    },
+    {
+      "name": "IndiKids",
+      "isFree": true,
+      "website": "https://www.useetv.com/livetv/indikids",
+      "priority": 5
+    },
+    {
+      "name": "Kids",
+      "isFree": true,
+      "website": "https://www.mncchannels.com/micro/Kids-TV",
+      "priority": 5
+    },
+    {
+      "name": "My Kidz",
+      "isFree": true,
+      "website": "http://www.ciptamutu.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nick Jr",
+      "isFree": true,
+      "website": "https://www.nickjr.tv/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Channel Dangdut Indonesia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Music Information",
+      "isFree": true,
+      "website": "https://mic-indo.com/live",
+      "priority": 5
+    },
+    {
+      "name": "Music",
+      "isFree": true,
+      "website": "https://www.mncchannels.com/micro/Music-TV",
+      "priority": 5
+    },
+    {
+      "name": "Musik Indonesia",
+      "isFree": true,
+      "website": "https://www.transvision.co.id/channel/music-indonesia.html",
+      "priority": 5
+    },
+    {
+      "name": "Pop Musik",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "T Music",
+      "isFree": true,
+      "website": "https://www.transvision.co.id/",
+      "priority": 5
+    },
+    {
+      "name": "VH",
+      "isFree": true,
+      "priority": 5
+    }
+  ]
+}

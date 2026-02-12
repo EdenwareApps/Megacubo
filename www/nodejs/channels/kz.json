@@ -1,0 +1,466 @@
+{
+  "News": [
+    {
+      "name": "Atameken Business",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Caspian News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "24KZ",
+      "isFree": true,
+      "website": "https://24.kz/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Asyl Arna",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dombyra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gakku",
+      "isFree": true,
+      "website": "https://gakku.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Hit",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "1 Severnyy",
+      "isFree": true,
+      "website": "https://1severniy.kz/",
+      "priority": 5
+    },
+    {
+      "name": "31 Kanal",
+      "isFree": true,
+      "website": "https://31.kz/",
+      "priority": 5
+    },
+    {
+      "name": "5 Kanal",
+      "isFree": true,
+      "website": "https://5tv.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Aigak",
+      "isFree": true,
+      "website": "https://aigak.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Alatau",
+      "isFree": true,
+      "website": "https://alatautv.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Alau",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Almaty",
+      "isFree": true,
+      "website": "https://31.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Altai",
+      "isFree": true,
+      "website": "https://altaitv.kz/ru",
+      "priority": 5
+    },
+    {
+      "name": "Alva",
+      "isFree": true,
+      "website": "https://alvatv.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Aqjaiyq",
+      "isFree": true,
+      "website": "http://oraltv.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Aqsham",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Aqtobe",
+      "isFree": true,
+      "website": "http://aktobetv.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Assembly",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Astana",
+      "isFree": true,
+      "website": "https://astanatv.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Atyray",
+      "isFree": true,
+      "website": "http://atyrautv.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Channel 7 Kazakhstan",
+      "isFree": true,
+      "website": "https://tv7.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Channel One Eurasia",
+      "isFree": true,
+      "website": "https://1tv.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Ertis",
+      "isFree": true,
+      "website": "http://pavlodartv.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Han",
+      "isFree": true,
+      "website": "https://hantv.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Irbis",
+      "isFree": true,
+      "website": "https://irbistv.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Jambyl",
+      "isFree": true,
+      "website": "https://jambyltv.kz/kz",
+      "priority": 5
+    },
+    {
+      "name": "Jibek Joly",
+      "isFree": true,
+      "website": "https://jjtv.kz/en",
+      "priority": 5
+    },
+    {
+      "name": "Khabar",
+      "isFree": true,
+      "website": "https://khabar.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Kokshe",
+      "isFree": true,
+      "website": "http://kokshetautv.kz/",
+      "priority": 5
+    },
+    {
+      "name": "KTK",
+      "isFree": true,
+      "website": "https://www.ktk.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Mangystay",
+      "isFree": true,
+      "website": "https://mangystautv.kz/kz",
+      "priority": 5
+    },
+    {
+      "name": "MTRK",
+      "isFree": true,
+      "website": "https://mtrk.kz/ru/",
+      "priority": 5
+    },
+    {
+      "name": "Novoe televidenie",
+      "isFree": true,
+      "website": "https://novoetv.kz/smotret-onlajn/",
+      "priority": 5
+    },
+    {
+      "name": "NTK",
+      "isFree": true,
+      "website": "http://www.ntk.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Ontustik",
+      "isFree": true,
+      "website": "http://shymkenttv.kz/",
+      "priority": 5
+    },
+    {
+      "name": "OTAU",
+      "isFree": true,
+      "website": "https://otautv.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Otyrar",
+      "isFree": true,
+      "website": "https://otyrar.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Qazaqstan",
+      "isFree": true,
+      "keywords": "qazaqstan -international",
+      "website": "https://qazaqstan.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Qazaqstan International",
+      "isFree": true,
+      "website": "https://qazaqstan.tv/live",
+      "priority": 5
+    },
+    {
+      "name": "QOGAM",
+      "isFree": true,
+      "website": "https://kogamtv.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Qonaev Media",
+      "isFree": true,
+      "website": "https://qonaevtv.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Qostanai",
+      "isFree": true,
+      "website": "http://kostanaytv.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Qyzyljar",
+      "isFree": true,
+      "website": "http://petropavltv.kz/kz",
+      "priority": 5
+    },
+    {
+      "name": "Qyzylorda",
+      "isFree": true,
+      "website": "http://kyzylordatv.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Rika",
+      "isFree": true,
+      "website": "http://www.rikatv.kz",
+      "priority": 5
+    },
+    {
+      "name": "SANUR",
+      "isFree": true,
+      "website": "https://sanur.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Saryarqa",
+      "isFree": true,
+      "website": "http://kartv.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Semei",
+      "isFree": true,
+      "website": "https://semeitv.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Setanta Qazaqstan",
+      "isFree": true,
+      "website": "https://setanta.kz/",
+      "priority": 5
+    },
+    {
+      "name": "SHOW",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Silk Way",
+      "isFree": true,
+      "website": "https://silkwaytv.kz/en",
+      "priority": 5
+    },
+    {
+      "name": "STV",
+      "isFree": true,
+      "website": "http://stv-online.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Talim",
+      "isFree": true,
+      "website": "https://asylarna.kz/",
+      "priority": 5
+    },
+    {
+      "name": "TDK 42",
+      "isFree": true,
+      "website": "http://www.tdk42.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Toi Duman",
+      "isFree": true,
+      "website": "https://toiduman.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Turan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Turkistan",
+      "isFree": true,
+      "website": "https://turkistan.tv/kz",
+      "priority": 5
+    },
+    {
+      "name": "TVK- 6",
+      "isFree": true,
+      "website": "https://tvk-6.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Ulytau",
+      "isFree": true,
+      "website": "https://ulytau.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Zhetysu",
+      "isFree": true,
+      "website": "https://zhetysutv.kz/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "El Arna",
+      "isFree": true,
+      "website": "https://elarna.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Q KinoAlem",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Q KinoHit",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Abai",
+      "isFree": true,
+      "website": "https://abaitv.kz/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Balapan",
+      "isFree": true,
+      "website": "https://balapan.kaztrk.kz/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "CNL America",
+      "isFree": true,
+      "website": "https://cnl.tv/",
+      "priority": 4
+    },
+    {
+      "name": "CNL Europe",
+      "isFree": true,
+      "website": "https://cnl.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Munara",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "MuzLife",
+      "isFree": true,
+      "website": "https://vk.com/muzlifetvkz",
+      "priority": 5
+    },
+    {
+      "name": "MuzzOne",
+      "isFree": true,
+      "website": "https://muzzone.tv/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "QazSport",
+      "isFree": true,
+      "website": "https://qazsporttv.kz/",
+      "priority": 10
+    },
+    {
+      "name": "Q Football",
+      "isFree": true,
+      "website": "https://qfootball.kz/",
+      "priority": 5
+    },
+    {
+      "name": "Q League",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Q Sport",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sport+ Qazaqstan",
+      "isFree": true,
+      "website": "https://www.sportplustv.kz/",
+      "priority": 10
+    }
+  ]
+}

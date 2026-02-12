@@ -1,0 +1,914 @@
+{
+  "Religious": [
+    {
+      "name": "Iglesia Del Camino",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Amigos TV Chiquimula",
+      "isFree": true,
+      "website": "https://amigostv.com.gt/",
+      "priority": 4
+    },
+    {
+      "name": "Canal 27",
+      "isFree": true,
+      "website": "https://www.canal27.org/",
+      "priority": 4
+    },
+    {
+      "name": "Canal 30 TV Bethel",
+      "isFree": true,
+      "website": "https://canal30tvbethel.blogspot.com/",
+      "priority": 4
+    },
+    {
+      "name": "Canal 69 Barivision",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Canal Iglesia Luz y Verdad",
+      "isFree": true,
+      "website": "https://www.luzyverdadmtl.com/",
+      "priority": 4
+    },
+    {
+      "name": "Canal Peniel",
+      "isFree": true,
+      "website": "https://www.playgt.net/canalpeniel",
+      "priority": 4
+    },
+    {
+      "name": "Canal TV Radio Maya TGBA",
+      "isFree": true,
+      "website": "https://www.radiomayatgba.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Candelaria",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Cielo",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "CNI",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Conectados con Dios",
+      "isFree": true,
+      "website": "https://www.conectadoscondiostv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Cristo",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "El Olam",
+      "isFree": true,
+      "website": "https://www.elolam.tv/",
+      "priority": 4
+    },
+    {
+      "name": "El-Roi",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Espiritu Santo Y Fuego",
+      "isFree": true,
+      "website": "http://www.espiritusantoyfuego.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Expresion",
+      "isFree": true,
+      "website": "https://www.ebenezersolola.com.gt/expresion-tv",
+      "priority": 4
+    },
+    {
+      "name": "Fe Viviente",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Franchs",
+      "isFree": true,
+      "website": "https://franchs.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Horeb TV Gualan",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Jehova Nissi",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Jesus",
+      "isFree": true,
+      "website": "https://www.canaljesustv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Jubilo",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Maranatha",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MCN Television",
+      "isFree": true,
+      "website": "https://mcntelevision.org/",
+      "priority": 4
+    },
+    {
+      "name": "Milenium TV Canal 26",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Nueva Familia Television",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Peniel K&Y",
+      "isFree": true,
+      "website": "https://www.playgt.net/penielky",
+      "priority": 4
+    },
+    {
+      "name": "Peniel Musical",
+      "isFree": true,
+      "website": "https://www.playgt.net/penielmusical",
+      "priority": 4
+    },
+    {
+      "name": "Peniel TV Biblia Abierta",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Plenitud",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "PMCS",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Presencia Television",
+      "isFree": true,
+      "website": "https://palabraenaccion.org/",
+      "priority": 4
+    },
+    {
+      "name": "Radio Vida",
+      "isFree": true,
+      "website": "https://radiovida.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Rhema",
+      "isFree": true,
+      "website": "https://rtv.live/",
+      "priority": 4
+    },
+    {
+      "name": "Stella Maris",
+      "isFree": true,
+      "website": "https://stellamarismedia.org/canal-de-tv",
+      "priority": 4
+    },
+    {
+      "name": "Teve Globo",
+      "isFree": true,
+      "website": "https://www.teveglobo.live/",
+      "priority": 10
+    },
+    {
+      "name": "TV Maria",
+      "isFree": true,
+      "website": "https://canaltvmariaguatemala.com/",
+      "priority": 4
+    },
+    {
+      "name": "ZOE Vision",
+      "isFree": true,
+      "website": "https://zoevisiontv.com/",
+      "priority": 4
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "CANAL ANTIGUA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Antigua Guatemala",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "A+ Guate",
+      "isFree": true,
+      "website": "https://tvaztecaguate.com/",
+      "priority": 5
+    },
+    {
+      "name": "Azteca Guatemala",
+      "isFree": true,
+      "website": "http://www.azteca.com.gt/",
+      "priority": 5
+    },
+    {
+      "name": "Barbe",
+      "isFree": true,
+      "website": "https://barbetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bari",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BD Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Buzzer Toto Canal 10",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 100 Chinique",
+      "isFree": true,
+      "website": "https://www.playgt.net/c100chinique",
+      "priority": 5
+    },
+    {
+      "name": "Canal 12 Itza",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 13 Esquipulas",
+      "isFree": true,
+      "website": "https://radiosdeguate.com/tv/canal-13-esquipulas",
+      "priority": 5
+    },
+    {
+      "name": "Canal 1 Retalhuleu",
+      "isFree": true,
+      "website": "https://canal-1-reu.jimdosite.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 20",
+      "isFree": true,
+      "website": "https://desuchi.com/?page_id=171",
+      "priority": 5
+    },
+    {
+      "name": "Canal 21 Rudyvision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 23 Mazatenango",
+      "isFree": true,
+      "website": "https://www.playgt.net/canal23",
+      "priority": 5
+    },
+    {
+      "name": "Canal 25 Regional",
+      "isFree": true,
+      "website": "https://canal25guatemala.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 26 Cono Sur",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 26 Quesada",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 3",
+      "isFree": true,
+      "keywords": "canal 3 -regional",
+      "website": "https://www.chapintv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 33 Costavision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 35 Yepocapa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 3 Regional",
+      "isFree": true,
+      "website": "https://canal3regional.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Ixil",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 Solola",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 6 Panadish",
+      "isFree": true,
+      "website": "https://www.panadish.com/canal6.html",
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Alaska",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Santa Rosa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 9 Congreso de la Republica",
+      "isFree": true,
+      "website": "https://www.congreso.gob.gt/live_video",
+      "priority": 5
+    },
+    {
+      "name": "Canal 9 de Coatevision",
+      "isFree": true,
+      "website": "https://coatevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal9 Toliman",
+      "isFree": true,
+      "website": "https://www.playgt.net/canal9gt",
+      "priority": 5
+    },
+    {
+      "name": "Canal 9 TV Cono Sur",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Cinco Argueta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal de Gobierno",
+      "isFree": true,
+      "website": "https://guatemala.gob.gt/canal-de-gobierno/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Puerto",
+      "isFree": true,
+      "website": "https://canalpuertotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Visof",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Carinosa",
+      "isFree": true,
+      "website": "https://carinosatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Centro Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Como Antes",
+      "isFree": true,
+      "website": "https://www.atom.bio/comoantestv",
+      "priority": 5
+    },
+    {
+      "name": "Cotzal TV Canal 36",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cuilapa TV Canal 6",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Doce",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Esquipulas",
+      "isFree": true,
+      "website": "https://esquipulastv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Fama TV Canal 29",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Full",
+      "isFree": true,
+      "website": "https://www.playgt.net/fullchannel",
+      "priority": 5
+    },
+    {
+      "name": "Gardenias",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GTV",
+      "isFree": true,
+      "website": "https://grupogenesis.net/",
+      "priority": 5
+    },
+    {
+      "name": "Guatemala.com",
+      "isFree": true,
+      "website": "https://www.guatemala.com/tv/",
+      "priority": 5
+    },
+    {
+      "name": "GuaTV",
+      "isFree": true,
+      "website": "https://guatemala.gob.gt/guatemala-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Imagen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ixchiguan Estereo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Izabalense",
+      "isFree": true,
+      "website": "https://izabalensetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Izabal",
+      "isFree": true,
+      "website": "https://izabaltv.com",
+      "priority": 5
+    },
+    {
+      "name": "Izavision Canal 19",
+      "isFree": true,
+      "website": "https://www.twitch.tv/izavisioncanal19",
+      "priority": 5
+    },
+    {
+      "name": "Jacal Canal 5",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Knal 4 Quiche",
+      "isFree": true,
+      "website": "https://www.knal4quiche.com/",
+      "priority": 5
+    },
+    {
+      "name": "Lago",
+      "isFree": true,
+      "website": "https://www.servicable.net/",
+      "priority": 5
+    },
+    {
+      "name": "Luna Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MAS",
+      "isFree": true,
+      "website": "https://mastv.gt/",
+      "priority": 5
+    },
+    {
+      "name": "Maxivision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mega Chapines",
+      "isFree": true,
+      "website": "http://megachapines.com/",
+      "priority": 5
+    },
+    {
+      "name": "Megavision Canal 38 Sistecom",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mi Canal",
+      "isFree": true,
+      "website": "https://www.micanal.gt/",
+      "priority": 5
+    },
+    {
+      "name": "Multivision Canal 3",
+      "isFree": true,
+      "website": "https://multivisioncanal3.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nim",
+      "isFree": true,
+      "website": "https://www.playgt.net/nimtv",
+      "priority": 5
+    },
+    {
+      "name": "Nuestra Imagen",
+      "isFree": true,
+      "website": "https://nuestraimagentv.com.gt/",
+      "priority": 5
+    },
+    {
+      "name": "Paisaje",
+      "isFree": true,
+      "website": "https://paisaje-tv.webnode.com.co/en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "Pinula TV Canal 42",
+      "isFree": true,
+      "website": "https://pinulavision.com/",
+      "priority": 5
+    },
+    {
+      "name": "PlayMedios Digital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Coatan Canal 21",
+      "isFree": true,
+      "website": "https://radiocoatan.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ramaj",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Reu Vision Canal 20",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RS Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Salama",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SAS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SIL",
+      "isFree": true,
+      "website": "https://siltv.netlify.app/",
+      "priority": 5
+    },
+    {
+      "name": "Simclar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sol",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Star",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Supercable Nahuala",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Super TV Tuismil Canal 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sur",
+      "isFree": true,
+      "website": "https://www.playgt.net/surtv",
+      "priority": 5
+    },
+    {
+      "name": "Tacana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TDS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele 10 Encuentros",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telearte",
+      "isFree": true,
+      "website": "https://www.playgt.net/telearte",
+      "priority": 5
+    },
+    {
+      "name": "Telecosta",
+      "isFree": true,
+      "website": "https://www.telecostaescuintla.com/",
+      "priority": 5
+    },
+    {
+      "name": "Telemax",
+      "isFree": true,
+      "website": "https://www.playgt.net/telemax",
+      "priority": 5
+    },
+    {
+      "name": "Tele-Occidente Canal 9",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleOnce",
+      "isFree": true,
+      "website": "https://www.chapintv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Televisiete",
+      "isFree": true,
+      "website": "https://www.chapintv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Television del Sur",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TreceVision",
+      "isFree": true,
+      "website": "http://canales11y13.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tunevision",
+      "isFree": true,
+      "website": "https://www.playgt.net/tunevision",
+      "priority": 5
+    },
+    {
+      "name": "Turansa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Arquidiocesana",
+      "isFree": true,
+      "website": "https://canalcatolico.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Florencia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVQ",
+      "isFree": true,
+      "keywords": "tvq -live -sports",
+      "website": "https://tvq.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TVQ Live",
+      "isFree": true,
+      "website": "https://tvq.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV San Pedro",
+      "isFree": true,
+      "website": "https://prensacomunitaria.org/",
+      "priority": 5
+    },
+    {
+      "name": "TV Tun",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ultra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Unica",
+      "isFree": true,
+      "website": "https://www.playgt.net/unicatv",
+      "priority": 5
+    },
+    {
+      "name": "Vea Canal",
+      "isFree": true,
+      "website": "http://www.veacanal.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Vision",
+      "isFree": true,
+      "keywords": "vision tv -canal -99",
+      "website": "https://www.visiontv.com.gt/",
+      "priority": 5
+    },
+    {
+      "name": "Vision TV Canal 99",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Aurora Media Films",
+      "isFree": true,
+      "website": "https://www.playgt.net/auroramediafilms",
+      "priority": 5
+    },
+    {
+      "name": "TVS Retro",
+      "isFree": true,
+      "website": "https://www.playgt.net/tvsretro",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Gomerano TV Canal 15",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Multivision Sports",
+      "isFree": true,
+      "website": "https://multivisioncanal3.com/",
+      "priority": 10
+    },
+    {
+      "name": "Tigo Sports",
+      "isFree": true,
+      "website": "http://www.tigosports.gt/",
+      "priority": 10
+    },
+    {
+      "name": "TVQ Sports",
+      "isFree": true,
+      "website": "https://tvq.tv/",
+      "priority": 10
+    }
+  ],
+  "News": [
+    {
+      "name": "Guatevision",
+      "isFree": true,
+      "website": "https://www.guatevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "La Red",
+      "isFree": true,
+      "website": "https://www.lared1061.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nuevo Mundo",
+      "isFree": true,
+      "website": "https://nuevomundoradio.com/nuevomundo-tv/",
+      "priority": 5
+    },
+    {
+      "name": "TN 23",
+      "isFree": true,
+      "website": "https://www.tn23.tv/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "La Guerrera",
+      "isFree": true,
+      "website": "https://laguerreraradioytv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mas Musica",
+      "isFree": true,
+      "website": "https://gnm.gt/mas-musica-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Totovision",
+      "isFree": true,
+      "website": "https://totovision.net/",
+      "priority": 5
+    },
+    {
+      "name": "Xetinimit Radio y",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "TV Maya",
+      "isFree": true,
+      "website": "https://www.almg.org.gt/",
+      "priority": 5
+    },
+    {
+      "name": "USAC",
+      "isFree": true,
+      "website": "https://www.tvusac.com/?page_id=121",
+      "priority": 5
+    }
+  ]
+}

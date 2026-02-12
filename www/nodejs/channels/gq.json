@@ -1,0 +1,71 @@
+{
+  "Entertainment": [
+    {
+      "name": "TVGE",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Asonga",
+      "isFree": true,
+      "website": "https://asongartv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Sol",
+      "isFree": true,
+      "website": "https://www.canalsol.com/",
+      "priority": 5
+    },
+    {
+      "name": "SolTV",
+      "isFree": true,
+      "website": "https://tv.solmediaeg.com/soltv/",
+      "priority": 5
+    },
+    {
+      "name": "TVGE Internacional",
+      "isFree": true,
+      "website": "https://tvgelive.gq/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Sol Cinema",
+      "isFree": true,
+      "website": "https://www.canalsol.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sol Series",
+      "isFree": true,
+      "website": "https://www.canalsol.com/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Sol Educacion",
+      "isFree": true,
+      "website": "https://www.canalsol.com/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Sol Junior",
+      "isFree": true,
+      "website": "https://www.canalsol.com/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Sol Music",
+      "isFree": true,
+      "website": "https://www.canalsol.com/",
+      "priority": 5
+    }
+  ]
+}

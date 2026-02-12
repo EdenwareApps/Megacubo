@@ -111,6 +111,7 @@
    "CATEGORY_SHOP": "দোকান",
    "CATEGORY_SPORTS": "খেলাধুলা",
    "CATEGORY_TRAVEL": "ভ্রমণ",
+   "CATEGORY_XXX": "প্রাপ্তবয়স্ক বিষয়বস্তু",
    "CHANGELANG": "ভাষা পরিবর্তন করুন",
    "CHANGE_DEST_FOLDER": "গন্তব্য ফোল্ডার পরিবর্তন করুন",
    "CHANGE_HOTKEY_MESSAGE": "এই ক্রিয়াটির জন্য কীগুলির একটি নতুন সংমিশ্রণ লিখুন বা বাতিল করতে {0} টিপুন...",

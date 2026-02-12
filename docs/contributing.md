@@ -51,7 +51,7 @@ To **build IPTV player** from source locally, you'll need:
 
 4. **Test your changes**:
    ```bash
-   npm run debug  # Development mode
+   npm start  # Starts app (automatically detects development or production mode based on the last build)
    ```
 
 ### Build Commands

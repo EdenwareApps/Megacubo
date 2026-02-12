@@ -1,0 +1,906 @@
+{
+  "Entertainment": [
+    {
+      "name": "ABC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Farra Play",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GEN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LIM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Más",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Trece Paraguay",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Unicanal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ABC TV Paraguay",
+      "isFree": true,
+      "website": "https://www.abc.com.py/tv/",
+      "priority": 5
+    },
+    {
+      "name": "Almaya",
+      "isFree": true,
+      "website": "https://almaya.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Alt Media",
+      "isFree": true,
+      "website": "https://alt.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Alto Parana",
+      "isFree": true,
+      "website": "https://www.altoparana.com.py/tv",
+      "priority": 5
+    },
+    {
+      "name": "America Paraguay",
+      "isFree": true,
+      "website": "https://www.americatv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Artigas TV Online",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bruno Masi",
+      "isFree": true,
+      "website": "http://www.brunomasi.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Caaguazu",
+      "isFree": true,
+      "website": "https://paraguayonline.net/caaguazuradiodigital/",
+      "priority": 5
+    },
+    {
+      "name": "Cambyreta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Campo 9 Online",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 11 Damoa TV Regional",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 11 Yvy Pyta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 15 San Joaquin",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 16 de Fernando de la Mora",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 CCV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Teve",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 40 TV Concepcion",
+      "isFree": true,
+      "website": "https://www.tvconcepcion.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Iturbe",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 TVCSA",
+      "isFree": true,
+      "website": "https://tvcsa.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 TV Max",
+      "isFree": true,
+      "website": "https://tvmaxsa.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 C&C Producciones",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Vision",
+      "isFree": true,
+      "website": "https://www.visioncomunicaciones.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Canal de Salvacion",
+      "isFree": true,
+      "website": "https://canaldesalvacion.org/",
+      "priority": 5
+    },
+    {
+      "name": "Caritas",
+      "isFree": true,
+      "website": "https://www.caritas.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "CBC Canal 8",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cosmos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Del Rey",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Emprende",
+      "isFree": true,
+      "website": "http://www.emprendetvonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Estacion Cristal",
+      "isFree": true,
+      "website": "https://www.organizacioncristal.com/",
+      "priority": 5
+    },
+    {
+      "name": "GO",
+      "isFree": true,
+      "website": "https://goradio.com.py/gotv/",
+      "priority": 5
+    },
+    {
+      "name": "Integracion",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Invasiva",
+      "isFree": true,
+      "website": "https://invasivamedia.com",
+      "priority": 5
+    },
+    {
+      "name": "Katuete FM",
+      "isFree": true,
+      "website": "https://www.katuetefm.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Latele",
+      "isFree": true,
+      "website": "https://latele.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Limpio Digital",
+      "isFree": true,
+      "website": "https://limpiodigital.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Luque Puroite Radio",
+      "isFree": true,
+      "website": "https://luquepuroite.com/",
+      "priority": 5
+    },
+    {
+      "name": "Max Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mbocayaty",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mil Ideas TV Canal 10",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mision TV Digital",
+      "isFree": true,
+      "website": "https://emisorasdelparaguay.com/misiontvhd/",
+      "priority": 5
+    },
+    {
+      "name": "MiTV",
+      "isFree": true,
+      "website": "https://www.cadenadelsuritapua.com/mi-tv-en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "Monumental",
+      "isFree": true,
+      "website": "https://www.monumental.com.py/tv",
+      "priority": 5
+    },
+    {
+      "name": "Motor Sur Media",
+      "isFree": true,
+      "website": "https://iptv.com.py/motorsur/",
+      "priority": 5
+    },
+    {
+      "name": "Natalicio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NN Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Oasis",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Occidental",
+      "isFree": true,
+      "website": "https://www.occidentaltv.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Oviedo",
+      "isFree": true,
+      "website": "https://www.oviedotv.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Panambi Digital",
+      "isFree": true,
+      "website": "http://panambidigital.com/",
+      "priority": 5
+    },
+    {
+      "name": "Paraguari",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Paraguay",
+      "isFree": true,
+      "website": "https://www.paraguaytv.gov.py/",
+      "priority": 5
+    },
+    {
+      "name": "Parana Medios",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Parana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Paravision",
+      "isFree": true,
+      "website": "http://www.paravision.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Popu",
+      "isFree": true,
+      "website": "https://www.gen.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Productiva",
+      "isFree": true,
+      "website": "https://productiva.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Caazapa Poty 98",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Coop Online",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Guaira",
+      "isFree": true,
+      "website": "https://www.radioguaira.com/radio-guaira-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Radio San Roque FM 87",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Red Digital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Red Informativa",
+      "isFree": true,
+      "website": "https://www.redinformativa.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Red Interior",
+      "isFree": true,
+      "website": "https://redinteriortv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Regional TV Yaguaron",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Republica",
+      "isFree": true,
+      "website": "https://www.republicafmtv.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "RTV 12",
+      "isFree": true,
+      "website": "https://iptv.com.py/rtv/",
+      "priority": 5
+    },
+    {
+      "name": "RTV del Sur",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Salto",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Satelital",
+      "isFree": true,
+      "website": "https://radiosatelitaltv.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Senado",
+      "isFree": true,
+      "website": "http://www.senado.gov.py/index.php/menu-contenido/listado-de-categoria-contenido/198-sesion-en-vivo",
+      "priority": 5
+    },
+    {
+      "name": "SNT",
+      "isFree": true,
+      "website": "https://www.snt.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Somos del Este",
+      "isFree": true,
+      "website": "https://somosdeleste.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "SP TV Online",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SUR TV Itapua",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleCanal 50",
+      "isFree": true,
+      "website": "https://comunicacionesdigitales.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Telefuturo",
+      "isFree": true,
+      "website": "https://telefuturo.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "TelePortal Canal 53",
+      "isFree": true,
+      "website": "https://teleportalcanal53.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "Telequince",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Trece",
+      "isFree": true,
+      "keywords": "trece -paraguay",
+      "website": "http://www.trece.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "TV 7 Caaguazu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Aire",
+      "isFree": true,
+      "website": "https://iptv.com.py/tvaire/",
+      "priority": 5
+    },
+    {
+      "name": "TV Camara",
+      "isFree": true,
+      "website": "http://tv.diputados.gov.py/",
+      "priority": 5
+    },
+    {
+      "name": "TV Canal 20 Digital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Canindeyu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Frontera Multicanal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Lambare",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVS Encarnacion",
+      "isFree": true,
+      "website": "https://tvs.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Union",
+      "isFree": true,
+      "website": "https://uniontv.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "UniRadio",
+      "isFree": true,
+      "website": "https://www.uniradiopy.com/",
+      "priority": 5
+    },
+    {
+      "name": "Villa Elisa Radio",
+      "isFree": true,
+      "website": "https://villaelisaradiotv.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Personal Sports",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Tigo SAT Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Tigo",
+      "isFree": null,
+      "keywords": "tigo -cinema -series -ppv -max -teledeportes -paraguay -s -a -movies -music -sat -network -sports -sportsplus",
+      "priority": 5
+    },
+    {
+      "name": "One Sports",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "One Max",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Tigo Movies",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Tigo Cinema & Series PPV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Tigo Music",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "RPC",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV Pública Paraguay",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Tigo Max (Teledeportes Paraguay S",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Tigo Max",
+      "isFree": null,
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Radio Universo",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "4Dmas Noticias",
+      "isFree": true,
+      "website": "https://4dmasnoticias.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "5Dias",
+      "isFree": true,
+      "website": "https://www.5dias.com.py/videos",
+      "priority": 5
+    },
+    {
+      "name": "A24 Paraguay",
+      "isFree": true,
+      "website": "https://www.a24.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "C9N",
+      "isFree": true,
+      "website": "https://www.c9n.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Pro",
+      "isFree": true,
+      "website": "https://www.canalpro.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Causa Comun",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "El Observador",
+      "isFree": true,
+      "website": "https://www.observador.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Mas",
+      "isFree": true,
+      "website": "https://www.mastv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Mega",
+      "isFree": true,
+      "website": "https://megacadena.com.py/mega-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Nanduti",
+      "isFree": true,
+      "website": "https://nanduti.com.py/nanduti-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Nemby Noticias",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NPY",
+      "isFree": true,
+      "website": "https://npy.com.py/en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "Oviedo Press",
+      "isFree": true,
+      "website": "https://oviedopress.com/",
+      "priority": 5
+    },
+    {
+      "name": "PDS Radio TV Digital",
+      "isFree": true,
+      "website": "https://pdsdigital.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "RCN",
+      "isFree": true,
+      "website": "https://www.rcn.com.py/tv/",
+      "priority": 5
+    },
+    {
+      "name": "RCSC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Suceso",
+      "isFree": true,
+      "website": "https://radiosuceso.com/sucesotv/",
+      "priority": 5
+    },
+    {
+      "name": "UCL",
+      "isFree": true,
+      "website": "http://www.ucltelevision.com/vivo/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Alcance FM PLAY",
+      "isFree": true,
+      "website": "https://www.alcance.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Dismar Radio",
+      "isFree": true,
+      "website": "http://radiodismar.tv/",
+      "priority": 5
+    },
+    {
+      "name": "DMpy",
+      "isFree": true,
+      "website": "https://digitalmediapy.com/",
+      "priority": 5
+    },
+    {
+      "name": "FM Frutillar",
+      "isFree": true,
+      "website": "http://www.fmfrutillar.com/",
+      "priority": 5
+    },
+    {
+      "name": "HEi Now",
+      "isFree": true,
+      "website": "https://www.heinow.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Los Angeles TV Radio",
+      "isFree": true,
+      "website": "https://losangelestvradio.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nande Portetepe",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Palma",
+      "isFree": true,
+      "website": "https://www.palma.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Aregua",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Ciudad 98",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Colmenar 92",
+      "isFree": true,
+      "website": "https://radiocolmenar.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Concierto 89",
+      "isFree": true,
+      "website": "https://radioconcierto.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Pykasu",
+      "isFree": true,
+      "website": "https://telnet.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Radio San Cristobal 88",
+      "isFree": true,
+      "website": "https://sancristobalfm887.com/",
+      "priority": 5
+    },
+    {
+      "name": "RQP Paraguay",
+      "isFree": true,
+      "website": "https://www.rqp.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Tropicalia 93",
+      "isFree": true,
+      "website": "https://www.tropicalia.com.py/",
+      "priority": 5
+    },
+    {
+      "name": "Urbano Radio TV 96",
+      "isFree": true,
+      "website": "https://radiourbanofm965.wixsite.com/urbano",
+      "priority": 5
+    },
+    {
+      "name": "Yaguaron Radio",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Conmebol TV",
+      "isFree": true,
+      "website": "https://www.conmebol.com/",
+      "priority": 5
+    },
+    {
+      "name": "Conmebol TV 2",
+      "isFree": true,
+      "website": "https://www.conmebol.com/",
+      "priority": 5
+    },
+    {
+      "name": "Conmebol TV 3",
+      "isFree": true,
+      "website": "https://www.conmebol.com/",
+      "priority": 5
+    },
+    {
+      "name": "Conmebol TV 4",
+      "isFree": true,
+      "website": "https://www.conmebol.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tigo Sports",
+      "isFree": true,
+      "website": "http://www.tigosports.com.py/",
+      "priority": 10
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Educanal",
+      "isFree": true,
+      "website": "https://iptv.com.py/educanal/",
+      "priority": 5
+    },
+    {
+      "name": "Nihon Gakko",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UPE",
+      "isFree": true,
+      "website": "https://upe.edu.py/noticias_upe_tv.php",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Fe",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Nandejara Ne'e",
+      "isFree": true,
+      "website": "https://nandejaranee.org/",
+      "priority": 4
+    },
+    {
+      "name": "Obedira",
+      "isFree": true,
+      "website": "https://www.obedira.com.py/page/obediratv/",
+      "priority": 4
+    },
+    {
+      "name": "RCC",
+      "isFree": true,
+      "website": "https://rcc.com.py/tv-envivo/",
+      "priority": 4
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Next",
+      "isFree": true,
+      "website": "https://nexthdpy.blogspot.com/",
+      "priority": 5
+    }
+  ]
+}

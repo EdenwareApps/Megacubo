@@ -1,0 +1,763 @@
+{
+  "Kids": [
+    {
+      "name": "Duck",
+      "isFree": true,
+      "keywords": "duck tv | ducktv -plus",
+      "priority": 5
+    },
+    {
+      "name": "ducktv PLUS",
+      "isFree": true,
+      "website": "https://www.ducktv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Jojko",
+      "isFree": true,
+      "website": "https://jojko.joj.sk/",
+      "priority": 5
+    },
+    {
+      "name": "Lala",
+      "isFree": true,
+      "website": "https://www.skylink.sk/program/lala-tv",
+      "priority": 5
+    },
+    {
+      "name": "Tuki",
+      "isFree": true,
+      "website": "https://www.tukitv.sk/",
+      "priority": 5
+    },
+    {
+      "name": "TV RiK",
+      "isFree": true,
+      "website": "https://www.tvrik.sk/",
+      "priority": 5
+    },
+    {
+      "name": "ducktv",
+      "isFree": true,
+      "website": "https://www.ducktv.tv/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "BTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "FashionTV Slovak&Czech",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "JOJ",
+      "isFree": true,
+      "keywords": "joj -family",
+      "priority": 5
+    },
+    {
+      "name": "JOJ Family",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kosice:dnes",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LocAll",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nove Zamky",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Raj",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Reduta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rik",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Severka",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV DK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Lux",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Markíza",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Nove Zamky",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Nové Zámky",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Poprad",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Povazie",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Povaziy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Reduta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Ruzinov",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Ružinov",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Turzovka",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV WAU",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televizia OSEM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Wau",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ATV Ziar",
+      "isFree": true,
+      "website": "https://www.tvziar.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Banovske televizne vysielanie",
+      "isFree": true,
+      "website": "https://www.btv.sk/",
+      "priority": 5
+    },
+    {
+      "name": "C 8",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Chuck",
+      "isFree": true,
+      "website": "https://www.chucktv.eu/",
+      "priority": 5
+    },
+    {
+      "name": "CSRTV",
+      "isFree": true,
+      "website": "http://csrtv.sk/",
+      "priority": 5
+    },
+    {
+      "name": "DSTV",
+      "isFree": true,
+      "website": "https://dunajskostredsky.sk/dunajskostredska-mestska-televizia",
+      "priority": 5
+    },
+    {
+      "name": "DTV",
+      "isFree": true,
+      "website": "https://www.dtv.eu.sk/",
+      "priority": 5
+    },
+    {
+      "name": "GutaTV",
+      "isFree": true,
+      "website": "http://www.gutatv.sk",
+      "priority": 5
+    },
+    {
+      "name": "HAHA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hlohovska televizia",
+      "isFree": true,
+      "website": "https://hctv.sk/",
+      "priority": 5
+    },
+    {
+      "name": "HNTV",
+      "isFree": true,
+      "website": "http://hntv.sk/",
+      "priority": 5
+    },
+    {
+      "name": "Jednotka",
+      "isFree": true,
+      "website": "http://www.rtvs.sk/televizia/tv",
+      "priority": 5
+    },
+    {
+      "name": "JOJ Plus",
+      "isFree": true,
+      "website": "https://plus.joj.sk/",
+      "priority": 5
+    },
+    {
+      "name": "JOJ WAU",
+      "isFree": true,
+      "website": "https://wau.joj.sk/",
+      "priority": 5
+    },
+    {
+      "name": "Kezmarska televizia",
+      "isFree": true,
+      "website": "https://ktv.kezmarok.sk/",
+      "priority": 5
+    },
+    {
+      "name": "Kysucka televizia",
+      "isFree": true,
+      "website": "https://www.kysuckatelevizia.sk/",
+      "priority": 5
+    },
+    {
+      "name": "Levicka televizia",
+      "isFree": true,
+      "website": "https://www.levickatelevizia.sk/",
+      "priority": 5
+    },
+    {
+      "name": "Lubovnianska",
+      "isFree": true,
+      "website": "https://www.lms.sk/",
+      "priority": 5
+    },
+    {
+      "name": "Markiza",
+      "isFree": true,
+      "keywords": "markiza -dajto -doma -international -klasik -krimi -plus",
+      "website": "http://www.markiza.sk/",
+      "priority": 5
+    },
+    {
+      "name": "Markiza Dajto",
+      "isFree": true,
+      "website": "http://dajto.markiza.sk/",
+      "priority": 5
+    },
+    {
+      "name": "Markiza Doma",
+      "isFree": true,
+      "website": "http://doma.markiza.sk/",
+      "priority": 5
+    },
+    {
+      "name": "Markiza International",
+      "isFree": true,
+      "website": "http://international.markiza.sk/",
+      "priority": 5
+    },
+    {
+      "name": "Markiza Klasik",
+      "isFree": true,
+      "website": "https://www.markiza.sk/klasik",
+      "priority": 5
+    },
+    {
+      "name": "Markiza Krimi",
+      "isFree": true,
+      "website": "https://krimi.markiza.sk/",
+      "priority": 5
+    },
+    {
+      "name": "Markiza Plus",
+      "isFree": true,
+      "website": "http://www.markiza.sk/",
+      "priority": 5
+    },
+    {
+      "name": "Mestska televizia Partizanske",
+      "isFree": true,
+      "website": "https://mtp.sk/",
+      "priority": 5
+    },
+    {
+      "name": "Mestska televizia Trnava",
+      "isFree": true,
+      "website": "http://www.mtt.sk/",
+      "priority": 5
+    },
+    {
+      "name": "MTR",
+      "isFree": true,
+      "website": "https://www.mtr.sk/",
+      "priority": 5
+    },
+    {
+      "name": "NZTV",
+      "isFree": true,
+      "website": "https://www.nztv.eu/",
+      "priority": 5
+    },
+    {
+      "name": "Piestany",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Regio",
+      "isFree": true,
+      "website": "http://www.regio-tv.sk",
+      "priority": 5
+    },
+    {
+      "name": "RTV Krea",
+      "isFree": true,
+      "website": "https://www.rtvkrea.sk/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Prievidza",
+      "isFree": true,
+      "website": "http://www.rtvprievidza.sk/",
+      "priority": 5
+    },
+    {
+      "name": "RVTV",
+      "isFree": true,
+      "website": "https://www.rvtv.sk/",
+      "priority": 5
+    },
+    {
+      "name": "Senzi",
+      "isFree": true,
+      "keywords": "senzi",
+      "website": "http://www.senzi.sk/",
+      "priority": 5
+    },
+    {
+      "name": "Skylink 7",
+      "isFree": true,
+      "website": "https://www.skylink.sk/program/skylink-7",
+      "priority": 5
+    },
+    {
+      "name": "Sobranska Televizia",
+      "isFree": true,
+      "website": "https://sobrance.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TA 3",
+      "isFree": true,
+      "website": "https://www.ta3.com/",
+      "priority": 5
+    },
+    {
+      "name": "Televizia Mocenok",
+      "isFree": true,
+      "website": "https://mocenok.sk/clanok/zive-vysielanie",
+      "priority": 5
+    },
+    {
+      "name": "Televizia Pohoda",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televizia Trencianske Teplice",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televizia Turiec",
+      "isFree": true,
+      "website": "https://tvturiec.eu/",
+      "priority": 5
+    },
+    {
+      "name": "Televizia Zemplin",
+      "isFree": true,
+      "website": "https://www.zemplin.tv/",
+      "priority": 5
+    },
+    {
+      "name": "telKE",
+      "isFree": true,
+      "website": "https://www.telke.sk/",
+      "priority": 5
+    },
+    {
+      "name": "Trojka",
+      "isFree": true,
+      "website": "http://www.rtvs.sk/televizia/tv",
+      "priority": 5
+    },
+    {
+      "name": "Turbo",
+      "isFree": true,
+      "website": "https://detskyfest.sk/turbotv/",
+      "priority": 5
+    },
+    {
+      "name": "TV 7",
+      "isFree": true,
+      "website": "https://www.tv7.sk/",
+      "priority": 5
+    },
+    {
+      "name": "TV 8",
+      "isFree": true,
+      "website": "http://tv8.sk/",
+      "priority": 5
+    },
+    {
+      "name": "TV 9",
+      "isFree": true,
+      "website": "http://www.tv9.sk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Bratislava",
+      "isFree": true,
+      "website": "https://www.tvbratislava.sk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Brezova",
+      "isFree": true,
+      "website": "http://www.tvsen.sk/aktualne/?tv_id=13",
+      "priority": 5
+    },
+    {
+      "name": "TV Central",
+      "isFree": true,
+      "website": "http://cetv.sk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Doktor",
+      "isFree": true,
+      "website": "https://www.tvdoktor.sk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Hronka",
+      "isFree": true,
+      "website": "https://www.tvhronka.sk/",
+      "priority": 5
+    },
+    {
+      "name": "TV JOJ",
+      "isFree": true,
+      "website": "https://joj.sk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Komjatice",
+      "isFree": true,
+      "website": "https://komjatice.sk/obec/institucie/kablova-televizia-komjatice-s-r-o/",
+      "priority": 5
+    },
+    {
+      "name": "TV Kosice",
+      "isFree": true,
+      "website": "https://www.tvkosice.sk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Levoca",
+      "isFree": true,
+      "website": "http://tvlevoca.sk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Liptov",
+      "isFree": true,
+      "website": "http://www.tvliptov.sk",
+      "priority": 5
+    },
+    {
+      "name": "TV LocAll",
+      "isFree": true,
+      "website": "https://www.tvlocall.eu/",
+      "priority": 5
+    },
+    {
+      "name": "TV Mistral",
+      "isFree": true,
+      "website": "https://www.tvmistral.sk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Moldava",
+      "isFree": true,
+      "website": "https://tvmoldava.sk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Myjava",
+      "isFree": true,
+      "website": "http://www.tvmyjava.sk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Nitricka",
+      "isFree": true,
+      "website": "https://tvnitricka.sk",
+      "priority": 5
+    },
+    {
+      "name": "TV NRSR",
+      "isFree": true,
+      "website": "https://tv.nrsr.sk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Oravia",
+      "isFree": true,
+      "website": "https://tvoravia.sk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Panorama",
+      "isFree": true,
+      "website": "https://panoramapro.sk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Pezinok",
+      "isFree": true,
+      "website": "https://www.tvpezinok.sk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Raj",
+      "isFree": true,
+      "website": "https://www.tvraj.sk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Rimava",
+      "isFree": true,
+      "website": "https://www.rimava.sk/tvrimava/",
+      "priority": 5
+    },
+    {
+      "name": "TV Romana",
+      "isFree": true,
+      "website": "https://romana.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Sen",
+      "isFree": true,
+      "website": "https://www.tvsen.sk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Severka",
+      "isFree": true,
+      "website": "http://www.severka.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Skalica",
+      "isFree": true,
+      "website": "http://tvskalica.sk",
+      "priority": 5
+    },
+    {
+      "name": "TV Stara Tura",
+      "isFree": true,
+      "website": "http://www.tvsen.sk/aktualne/?tv_id=14",
+      "priority": 5
+    },
+    {
+      "name": "TVT",
+      "isFree": true,
+      "website": "http://www.tvt.sk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Vega",
+      "isFree": true,
+      "website": "https://vegatv.sk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Vychod",
+      "isFree": true,
+      "website": "https://www.tvvychod.sk/",
+      "priority": 5
+    },
+    {
+      "name": "VIO",
+      "isFree": true,
+      "website": "http://viotv.sk/",
+      "priority": 5
+    },
+    {
+      "name": "VTN Vranov",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zapadoslovenska",
+      "isFree": true,
+      "website": "https://zstv.sk/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "JOJ 24",
+      "isFree": true,
+      "website": "https://joj.sk/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Arena Sport",
+      "isFree": true,
+      "website": "http://arenatv.sk/",
+      "priority": 10
+    },
+    {
+      "name": "Arena Sport 2",
+      "isFree": true,
+      "website": "http://arenatv.sk/",
+      "priority": 10
+    },
+    {
+      "name": "JOJ Sport",
+      "isFree": true,
+      "keywords": "joj sport -2",
+      "website": "https://jojsport.joj.sk/",
+      "priority": 10
+    },
+    {
+      "name": "JOJ Sport 2",
+      "isFree": true,
+      "website": "https://jojsport.joj.sk/",
+      "priority": 10
+    },
+    {
+      "name": "Premier Sport",
+      "isFree": true,
+      "website": "http://www.premiersport.sk/",
+      "priority": 10
+    },
+    {
+      "name": "Premier Sport 2",
+      "isFree": true,
+      "website": "http://www.premiersport.sk/",
+      "priority": 10
+    },
+    {
+      "name": "Sport",
+      "isFree": true,
+      "website": "https://www.rtvs.sk/televizia/sport",
+      "priority": 10
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Dvojka",
+      "isFree": true,
+      "website": "http://www.rtvs.sk/televizia/tv",
+      "priority": 5
+    },
+    {
+      "name": "Park",
+      "isFree": true,
+      "website": "http://parktv.sk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Vita",
+      "isFree": true,
+      "website": "https://tvvita.sk/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Folklorika",
+      "isFree": true,
+      "website": "http://www.folklorika.tv/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "JOJ Cinema",
+      "isFree": true,
+      "website": "http://jojcinema.cz/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "LifeTv",
+      "isFree": true,
+      "website": "https://www.lifetv.sk/",
+      "priority": 4
+    }
+  ]
+}

@@ -1,0 +1,2918 @@
+{
+  "Entertainment": [
+    {
+      "name": "Arica",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Autonoma",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Camara de Diputados",
+      "isFree": true,
+      "retransmits": "Canal Diputados",
+      "shortName": "Cámara",
+      "website": "https://www.camara.cl",
+      "priority": 5
+    },
+    {
+      "name": "Campo Abierto",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 13",
+      "isFree": true,
+      "website": "https://www.13.cl",
+      "priority": 5
+    },
+    {
+      "name": "Canal 21",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 29",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 33",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 9 Bío Bío Televisión",
+      "isFree": true,
+      "shortName": "C9BBT",
+      "priority": 5
+    },
+    {
+      "name": "Canal Diputados",
+      "isFree": true,
+      "shortName": "Cámara",
+      "website": "https://www.camara.cl",
+      "priority": 5
+    },
+    {
+      "name": "Canal Latino",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ChileVisión",
+      "isFree": true,
+      "website": "https://www.chilevision.cl",
+      "priority": 5
+    },
+    {
+      "name": "Contivisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EGM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "El Pinguino",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EnerGeek",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Estación",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Eva Stream",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Evavisión Pachanga",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Genial",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HiperTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ITV Patagonia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LRP Televisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La Red",
+      "isFree": true,
+      "website": "https://www.lared.cl",
+      "priority": 5
+    },
+    {
+      "name": "MAXIMA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mega",
+      "isFree": true,
+      "website": "https://www.mega.cl",
+      "priority": 5
+    },
+    {
+      "name": "MÁS+",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pauta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pintana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Planetatv Kids",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Planetatv Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RealPro Online",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rocco",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sello de Raza",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Spectrum Channel LGBTQ+",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Stgo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Costa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Pop",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Salud",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVN",
+      "isFree": true,
+      "website": "https://www.tvn.cl",
+      "priority": 5
+    },
+    {
+      "name": "TVR",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Thema Televisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "U Los Lagos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UCV 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UTV San Clemente",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Universidad Autónoma Temuco",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VC Online",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VTV Valle de Aconcagua",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zona Play",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "13 Cocina",
+      "isFree": true,
+      "website": "https://www.13go.cl/",
+      "priority": 5
+    },
+    {
+      "name": "13 Humor",
+      "isFree": true,
+      "website": "https://www.13.cl/13humor",
+      "priority": 5
+    },
+    {
+      "name": "13 Pop",
+      "isFree": true,
+      "website": "https://www.13go.cl/",
+      "priority": 5
+    },
+    {
+      "name": "13 Realities",
+      "isFree": true,
+      "website": "https://www.13go.cl/",
+      "priority": 5
+    },
+    {
+      "name": "13 Viajes",
+      "isFree": true,
+      "website": "https://www.13go.cl/",
+      "priority": 5
+    },
+    {
+      "name": "38TV",
+      "isFree": true,
+      "website": "http://www.38tv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Abajo e' La Linea",
+      "isFree": true,
+      "website": "https://www.abajoelalinea.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Agricultura",
+      "isFree": true,
+      "website": "https://www.radioagricultura.cl/agricultura-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Alegria",
+      "isFree": true,
+      "website": "https://www.alegriafm.cl/",
+      "priority": 5
+    },
+    {
+      "name": "AM Canal",
+      "isFree": true,
+      "website": "https://amcanal.cl/",
+      "priority": 5
+    },
+    {
+      "name": "AMC",
+      "isFree": true,
+      "website": "https://www.amcmedios.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Araucovision",
+      "isFree": true,
+      "website": "https://araucovision.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Astro",
+      "isFree": true,
+      "website": "https://astrotv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "ATV Valdivia",
+      "isFree": true,
+      "website": "https://atvvaldivia.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Aysen",
+      "isFree": true,
+      "website": "https://www.aysen.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Bajos de Mena",
+      "isFree": true,
+      "website": "https://bajosdemenateve.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Bio Bio",
+      "isFree": true,
+      "website": "https://www.biobiochile.cl/biobiotv/",
+      "priority": 5
+    },
+    {
+      "name": "Calama",
+      "isFree": true,
+      "website": "https://www.calamatv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Caldera Vision",
+      "isFree": true,
+      "website": "http://www.calderavision.cl/en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "CampusTV",
+      "isFree": true,
+      "website": "http://campustv.utalca.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 11 Aysen",
+      "isFree": true,
+      "website": "https://canal11aysen.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 1 Nuble",
+      "isFree": true,
+      "website": "https://www.canal1.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 23 Chimbarongo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Linares",
+      "isFree": true,
+      "website": "https://www.canal2linares.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Quellon",
+      "isFree": true,
+      "website": "https://canal2quellon.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 San Antonio",
+      "isFree": true,
+      "website": "https://cablenoticias.cl/canal2/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 30 Loncomilla",
+      "isFree": true,
+      "website": "https://canal30.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 30 Multicom",
+      "isFree": true,
+      "website": "https://www.canal30multicom.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 Angol",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 Puerto Montt",
+      "isFree": true,
+      "website": "https://canal5.cl/wp/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 74 San Antonio",
+      "isFree": true,
+      "website": "https://www.canal74.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 8",
+      "isFree": true,
+      "keywords": "canal 8 -saavedra",
+      "website": "https://canal8tv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Saavedra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 9 Bio Bio Television",
+      "isFree": true,
+      "website": "https://www.canal9.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Alta Frontera",
+      "isFree": true,
+      "website": "https://www.canalaltafrontera.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Chilote",
+      "isFree": true,
+      "website": "http://www.canalchilote.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Claro",
+      "isFree": true,
+      "website": "http://www.clarochile.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Canal del Sur",
+      "isFree": true,
+      "website": "https://www.canaldelsur.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Latino 54",
+      "isFree": true,
+      "website": "https://radio1latina.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Local",
+      "isFree": true,
+      "website": "https://www.canallocal.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Mundo",
+      "isFree": true,
+      "website": "https://www.tumundo.cl/mundo-go/",
+      "priority": 5
+    },
+    {
+      "name": "Canal SCN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Sur Patagonia",
+      "isFree": true,
+      "website": "https://www.canalsurpatagonia.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Survision Alerce",
+      "isFree": true,
+      "website": "https://tvsurvision.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Carnaval",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Castro Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CDF Premium",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CDTV",
+      "isFree": true,
+      "website": "https://www.camara.cl/prensa/television.aspx",
+      "priority": 5
+    },
+    {
+      "name": "ChallaTV",
+      "isFree": true,
+      "website": "https://challatv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "CHIC Magazine",
+      "isFree": true,
+      "website": "https://chicmagazinetv.online/",
+      "priority": 5
+    },
+    {
+      "name": "Chile",
+      "isFree": true,
+      "website": "https://chilechanneltv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "ChileVision",
+      "isFree": true,
+      "website": "https://www.chilevision.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Cloudserver Latam CSTV",
+      "isFree": true,
+      "website": "https://www.cloudserverlatam.com/television/",
+      "priority": 5
+    },
+    {
+      "name": "Colina",
+      "isFree": true,
+      "website": "https://radiocumbre.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Concepcion",
+      "isFree": true,
+      "website": "https://www.concepciontv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Conecta",
+      "isFree": true,
+      "website": "https://conectatv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Control",
+      "isFree": true,
+      "website": "https://www.control.vg/",
+      "priority": 5
+    },
+    {
+      "name": "Cool",
+      "isFree": true,
+      "website": "https://cooltv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Cosmos",
+      "isFree": true,
+      "website": "https://globalcosmos.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Cronicas del Sur",
+      "isFree": true,
+      "website": "https://cronicasdelsur.cl/",
+      "priority": 5
+    },
+    {
+      "name": "CTV 35",
+      "isFree": true,
+      "website": "https://www.ctv35.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Curanilahue Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DCH",
+      "isFree": true,
+      "website": "https://www.dch.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Decima",
+      "isFree": true,
+      "website": "https://www.decimatv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Detras de la Razon",
+      "isFree": true,
+      "website": "https://www.cloudserverlatam.com/television/",
+      "priority": 5
+    },
+    {
+      "name": "Diferencia Radio",
+      "isFree": true,
+      "website": "https://www.radiodiferenciapaillaco.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Ekiz",
+      "isFree": true,
+      "website": "https://ekiztv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "El 3 de Conce",
+      "isFree": true,
+      "website": "https://el3deconce.cl/",
+      "priority": 5
+    },
+    {
+      "name": "El Canal Feliz",
+      "isFree": true,
+      "website": "http://elcanalfeliz.cl",
+      "priority": 5
+    },
+    {
+      "name": "elhashtag",
+      "isFree": true,
+      "website": "https://elhashtag.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Elquina",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Emocion",
+      "isFree": true,
+      "website": "https://www.emociontv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Enfoque Digital",
+      "isFree": true,
+      "website": "https://enfoquedigital.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Estacion Limache",
+      "isFree": true,
+      "website": "https://limachetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Estacion",
+      "isFree": true,
+      "website": "http://estaciontv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Estudio",
+      "isFree": true,
+      "website": "http://estudiotv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Evavision",
+      "isFree": true,
+      "keywords": "evavision -pachanga",
+      "website": "https://consorcioeva.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Exprezion",
+      "isFree": true,
+      "website": "https://www.exprezion.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Frecuencia 7",
+      "isFree": true,
+      "website": "https://www.frecuencia7tv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "FX",
+      "isFree": true,
+      "website": "http://www.canalfx.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Galactika Media",
+      "isFree": true,
+      "website": "http://www.xgomedia.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Geovision",
+      "isFree": true,
+      "website": "http://www.geotv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Girovisual",
+      "isFree": true,
+      "website": "https://girovisualtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Gonza TV Radio",
+      "isFree": true,
+      "website": "https://www.gonzatvradioaudiovisual.com/",
+      "priority": 5
+    },
+    {
+      "name": "Goza",
+      "isFree": true,
+      "website": "https://www.tumundo.cl/mundo-go/",
+      "priority": 5
+    },
+    {
+      "name": "GTV",
+      "isFree": true,
+      "website": "https://www.gtv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Hiperconectados",
+      "isFree": true,
+      "website": "https://www.hiperconectados.com/",
+      "priority": 5
+    },
+    {
+      "name": "Hito Cero Television",
+      "isFree": true,
+      "website": "https://www.hitocerotv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Huasco Television",
+      "isFree": true,
+      "website": "http://www.huascotelevisionstreaming.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Interactiva",
+      "isFree": true,
+      "website": "https://radiointeractivafm.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Iquique",
+      "isFree": true,
+      "website": "https://iquiquetv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Islita",
+      "isFree": true,
+      "website": "https://islitatv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Juntos",
+      "isFree": true,
+      "website": "https://www.juntostvchile.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Kanade",
+      "isFree": true,
+      "website": "https://kanade.cl",
+      "priority": 5
+    },
+    {
+      "name": "La Chilena",
+      "isFree": true,
+      "website": "https://lachilena.tutv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "La Melinkana",
+      "isFree": true,
+      "website": "https://www.lamelinkanafm.cl/",
+      "priority": 5
+    },
+    {
+      "name": "La Metro",
+      "isFree": true,
+      "website": "https://lametrofm.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Lanco",
+      "isFree": true,
+      "website": "https://lancotv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "La Nuestra",
+      "isFree": true,
+      "website": "https://www.lanuestra.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Latina Network",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/latina-network-tv",
+      "priority": 5
+    },
+    {
+      "name": "Legua",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Llanquihue",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lof Television",
+      "isFree": true,
+      "website": "https://lofchile.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Lo Hermida Television",
+      "isFree": true,
+      "website": "https://lhtv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Longino",
+      "isFree": true,
+      "website": "https://longinotv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Los Volcanes Television",
+      "isFree": true,
+      "website": "https://losvolcanesradioytelevision.cl/",
+      "priority": 5
+    },
+    {
+      "name": "LRP",
+      "isFree": true,
+      "website": "https://www.lrptelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Maray",
+      "isFree": true,
+      "website": "https://www.maray.cl/maraytv/",
+      "priority": 5
+    },
+    {
+      "name": "Marga Marga",
+      "isFree": true,
+      "website": "https://margamargatv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Mata O Te Rapa Nui",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Maulevision",
+      "isFree": true,
+      "website": "https://maulevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mejillones Television",
+      "isFree": true,
+      "website": "https://www.mejillones.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Milodon",
+      "isFree": true,
+      "website": "https://milodoncomunicaciones.com/milodon-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Mi Radio",
+      "isFree": true,
+      "website": "https://miradiotv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Mundos Lacustres",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nada Es Imposible",
+      "isFree": true,
+      "website": "https://www.tvnei.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Nativa",
+      "isFree": true,
+      "website": "https://nativatv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "NexoTV",
+      "isFree": true,
+      "website": "https://nexotv.cl/noticias/",
+      "priority": 5
+    },
+    {
+      "name": "Nortevision",
+      "isFree": true,
+      "website": "https://nortevisiontv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "NORTV Antofagasta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nova TV Canal 7",
+      "isFree": true,
+      "website": "https://novatv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Nublevision",
+      "isFree": true,
+      "website": "https://nublevision.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Nueva Region",
+      "isFree": true,
+      "website": "https://nuevaregion.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Odisea",
+      "isFree": true,
+      "website": "https://radioodisea.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Oli",
+      "isFree": true,
+      "website": "https://olitv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Origen",
+      "isFree": true,
+      "website": "https://www.origentv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Osorno",
+      "isFree": true,
+      "website": "https://www.osornotv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Oveja",
+      "isFree": true,
+      "website": "https://ovejatelevision.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "Pacifico Television",
+      "isFree": true,
+      "website": "https://pacificotelevisionhd.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Palmira TV 5",
+      "isFree": true,
+      "website": "https://palmiratv5.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Pichilemu",
+      "isFree": true,
+      "website": "https://pichilemutv.org/",
+      "priority": 5
+    },
+    {
+      "name": "PlanetaTV 90s",
+      "isFree": true,
+      "website": "https://planetatv.online/",
+      "priority": 5
+    },
+    {
+      "name": "Plaza",
+      "isFree": true,
+      "website": "https://tuplazatv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Polar",
+      "isFree": true,
+      "website": "https://www.radiopolar.com/",
+      "priority": 5
+    },
+    {
+      "name": "PRIDEtv LATAM",
+      "isFree": true,
+      "website": "https://pridetvlatam.com",
+      "priority": 5
+    },
+    {
+      "name": "Primicia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Primitivos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Providencia Television",
+      "isFree": true,
+      "website": "https://providenciatelevision.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Provincial",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pucon",
+      "isFree": true,
+      "website": "https://www.pucontv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Puerta Norte",
+      "isFree": true,
+      "website": "https://radiopuertanorte.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Quilicura",
+      "isFree": true,
+      "keywords": "quilicura tv -kids",
+      "website": "https://canalquilicuratelevision.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "Quillayino",
+      "isFree": true,
+      "website": "https://quillayino.cl/quillayino-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Quinta Vision",
+      "isFree": true,
+      "website": "https://www.quintavision.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Radio America",
+      "isFree": true,
+      "website": "https://www.radioamerica.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Hoy",
+      "isFree": true,
+      "website": "https://radiohoy.cl/hoytv/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Infinita",
+      "isFree": true,
+      "website": "https://www.infinita.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Popular",
+      "isFree": true,
+      "website": "https://radiopopularcoihueco.cl/radio/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Touch",
+      "isFree": true,
+      "website": "https://www.radiotouchtv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Tributo Valentina",
+      "isFree": true,
+      "website": "https://tributovalentina.cl/",
+      "priority": 5
+    },
+    {
+      "name": "RDO Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Red Vision Television",
+      "isFree": true,
+      "website": "https://www.rvtv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Rial",
+      "isFree": true,
+      "website": "https://rialtv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "RTC Television",
+      "isFree": true,
+      "website": "https://www.rtctelevision.cl/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Nuble",
+      "isFree": true,
+      "website": "https://canalrtv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "San Nicolas",
+      "isFree": true,
+      "website": "https://sannicolastv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Santa Maria Television",
+      "isFree": true,
+      "website": "https://santamariatv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "SB Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Senal 3 La Victoria",
+      "isFree": true,
+      "website": "https://canal3lavictoria.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Soberania",
+      "isFree": true,
+      "website": "https://www.soberaniaradio.cl/",
+      "priority": 5
+    },
+    {
+      "name": "SoloStandUp",
+      "isFree": true,
+      "website": "https://www.solostandup.com/",
+      "priority": 5
+    },
+    {
+      "name": "Spectrum",
+      "isFree": true,
+      "keywords": "spectrum channel -lgbtqplus",
+      "website": "https://spectrumtv.cl",
+      "priority": 5
+    },
+    {
+      "name": "Stream Latino",
+      "isFree": true,
+      "website": "https://streamlatino.net/",
+      "priority": 5
+    },
+    {
+      "name": "Subela",
+      "isFree": true,
+      "website": "https://www.subela.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Surena",
+      "isFree": true,
+      "website": "https://www.radiodelsur.cl/",
+      "priority": 5
+    },
+    {
+      "name": "SUR",
+      "isFree": true,
+      "website": "https://www.surtv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Tamarugal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele 2 Web Retiro",
+      "isFree": true,
+      "website": "https://tele2web.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Teleangol",
+      "isFree": true,
+      "website": "https://www.teleangol.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Teleton",
+      "isFree": true,
+      "website": "https://teletontv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Temuco Television",
+      "isFree": true,
+      "website": "https://temucotelevision.cl/web/",
+      "priority": 5
+    },
+    {
+      "name": "Tendencias Prime",
+      "isFree": true,
+      "website": "https://www.tendenciastv.cl/",
+      "priority": 6
+    },
+    {
+      "name": "Thema Television",
+      "isFree": true,
+      "website": "https://www.thematelevision.cl/",
+      "priority": 5
+    },
+    {
+      "name": "TMN",
+      "isFree": true,
+      "website": "http://tmntv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Tres Puntos",
+      "isFree": true,
+      "website": "https://radiotrespuntos.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Tu Canal Colina",
+      "isFree": true,
+      "website": "http://www.corporacioncolina.cl/streaming-tu-canal-colina-senal-online/",
+      "priority": 5
+    },
+    {
+      "name": "Turismo Travel",
+      "isFree": true,
+      "website": "https://turismotravel.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV2 Choapa",
+      "isFree": true,
+      "website": "https://tv2choapa.es.tl/",
+      "priority": 5
+    },
+    {
+      "name": "TV4 Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV5 Linares",
+      "isFree": true,
+      "website": "https://www.tv5.cl/",
+      "priority": 5
+    },
+    {
+      "name": "TV8 Concepcion",
+      "isFree": true,
+      "website": "https://www.canaltv8.cl/",
+      "priority": 5
+    },
+    {
+      "name": "TV8 Penalolen",
+      "isFree": true,
+      "website": "https://canal8.cl/",
+      "priority": 5
+    },
+    {
+      "name": "TV Bajo Cero",
+      "isFree": true,
+      "website": "https://bajoceromultimedia.net/",
+      "priority": 5
+    },
+    {
+      "name": "TV Chile",
+      "isFree": true,
+      "website": "https://www.tvn.cl",
+      "priority": 5
+    },
+    {
+      "name": "T Vinet",
+      "isFree": true,
+      "website": "http://www.tvinet.cl/",
+      "priority": 5
+    },
+    {
+      "name": "TVM",
+      "isFree": true,
+      "website": "https://canaltvm.cl/",
+      "priority": 5
+    },
+    {
+      "name": "TVO San Vicente",
+      "isFree": true,
+      "website": "http://www.tvosanvicente.cl/",
+      "priority": 5
+    },
+    {
+      "name": "TV Play Chiloe",
+      "isFree": true,
+      "website": "https://tvplaychiloe.cl/",
+      "priority": 5
+    },
+    {
+      "name": "TV+",
+      "isFree": true,
+      "keywords": "tvplus -2",
+      "website": "https://www.tvmas.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV+ 2",
+      "isFree": true,
+      "website": "https://www.tvmas.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Pulso",
+      "isFree": true,
+      "website": "https://www.fmpulso.cl/tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Quinta Region",
+      "isFree": true,
+      "website": "https://www.tvquintaregion.cl/",
+      "priority": 5
+    },
+    {
+      "name": "TVR Canal 11",
+      "isFree": true,
+      "website": "https://www.canal11curico.cl/",
+      "priority": 5
+    },
+    {
+      "name": "TVU",
+      "isFree": true,
+      "website": "https://tvu.cl/",
+      "priority": 5
+    },
+    {
+      "name": "TV UCT",
+      "isFree": true,
+      "website": "https://www.tvuct.cl/",
+      "priority": 5
+    },
+    {
+      "name": "UATV",
+      "isFree": true,
+      "website": "https://uatv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "UESTV",
+      "isFree": true,
+      "website": "https://www.uestv.cl/en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "Ufrovision",
+      "isFree": true,
+      "website": "https://www.ufromedios.cl/ufrovision/",
+      "priority": 5
+    },
+    {
+      "name": "Unetev",
+      "isFree": true,
+      "website": "https://www.unetev.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Uniregion",
+      "isFree": true,
+      "website": "https://uniregion.cl/",
+      "priority": 5
+    },
+    {
+      "name": "UTV",
+      "isFree": true,
+      "keywords": "utv -san -clemente",
+      "website": "https://www.utv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Vertice",
+      "isFree": true,
+      "website": "https://www.vertice.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Via X",
+      "isFree": true,
+      "website": "https://www.canalviax.com/",
+      "priority": 5
+    },
+    {
+      "name": "Vision Plus",
+      "isFree": true,
+      "website": "https://www.visionplustv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Vision",
+      "isFree": true,
+      "website": "https://visiontv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Vitalidad",
+      "isFree": true,
+      "website": "https://www.tumundo.cl/mundo-go/",
+      "priority": 5
+    },
+    {
+      "name": "Vive Elqui",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vivo",
+      "isFree": true,
+      "website": "http://www.vivotv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "VLTV",
+      "isFree": true,
+      "website": "https://vltv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Voz Populi",
+      "isFree": true,
+      "website": "https://diariovozpopuli.cl/",
+      "priority": 5
+    },
+    {
+      "name": "VTV Vina del Mar y Valparaiso",
+      "isFree": true,
+      "website": "https://www.canalvtv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Wowly",
+      "isFree": true,
+      "website": "https://beta.wowlymedia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Yungay Online",
+      "isFree": true,
+      "website": "https://yungayonline.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Zona Latina",
+      "isFree": true,
+      "website": "https://www.zonalatinatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zonal",
+      "isFree": true,
+      "website": "https://zonaltelevision.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Zona Sur",
+      "isFree": true,
+      "website": "https://zonasurtv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Paramount Skydance",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Mega Media",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Albavisión",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "NTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "PBS Chile/Public Broadcasting Services",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "ARTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVI Chile",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "El Mostrador",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CDtv S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Carey Media Holdings",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal 24 Horas",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal 13 S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "RTM",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Arica TV S",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Tarapaca Televisión S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "NorTv S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Antofagasta TV S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "VLP S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Digital Channel S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Siete S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Holvoet S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "STM S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Andacollo Televisión S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV2 Choapa S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Thema Comunicaciones",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 S",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "QU",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Girovisual television S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Valle Televisión S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 San Antonio S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Bio Bio Comunicaciones",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal 21 S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV8 S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "NCC S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "U. Autónoma Chile Televisión",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Pucón TV S",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "ATV S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVA de Ancud S",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Telesur S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV Allakintuy S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Magallanes Region",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "ITV S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Patagónica Publicaciones S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Polar TV S.A",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Media of Chile",
+      "isFree": null,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "24 Horas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Meganoticias",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tevex",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ADN",
+      "isFree": true,
+      "website": "https://www.adnradio.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Atacama Noticias",
+      "isFree": true,
+      "website": "https://www.atacamanoticias.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Canal de Noticias Colchagua",
+      "isFree": true,
+      "website": "https://cncomunica.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Ecool",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cappissima Multimedial",
+      "isFree": true,
+      "website": "https://cappissimamultimedial.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Cauquenesnet",
+      "isFree": true,
+      "website": "https://cauquenesnet.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Central Noticias",
+      "isFree": true,
+      "website": "https://centralnoticias.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Chile Informa",
+      "isFree": true,
+      "website": "http://chileinforma.multicontenidos.cl/",
+      "priority": 5
+    },
+    {
+      "name": "CHV Noticias",
+      "isFree": true,
+      "website": "https://www.chvnoticias.cl/",
+      "priority": 5
+    },
+    {
+      "name": "CNN Chile",
+      "isFree": true,
+      "website": "https://edition.cnn.com/",
+      "priority": 5
+    },
+    {
+      "name": "Contivision",
+      "isFree": true,
+      "website": "http://w.contivision.cl/cvn/",
+      "priority": 5
+    },
+    {
+      "name": "El Centro",
+      "isFree": true,
+      "website": "https://www.diarioelcentro.cl/centro-tv/",
+      "priority": 5
+    },
+    {
+      "name": "El Tipografo",
+      "isFree": true,
+      "website": "https://eltipografo.cl/eltipografotv",
+      "priority": 5
+    },
+    {
+      "name": "Madero",
+      "isFree": true,
+      "website": "https://www.maderotv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Meganoticias Ahora",
+      "isFree": true,
+      "website": "https://www.meganoticias.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Megatiempo",
+      "isFree": true,
+      "website": "https://www.megatiempo.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Molina",
+      "isFree": true,
+      "website": "https://web.molina.cl/",
+      "priority": 5
+    },
+    {
+      "name": "NCTV",
+      "isFree": true,
+      "website": "https://nctv.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Opinionsur",
+      "isFree": true,
+      "website": "https://opinionsur.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Puranoticia",
+      "isFree": true,
+      "website": "https://puranoticia.pnt.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Telecanal",
+      "isFree": true,
+      "keywords": "telecanal -santa -cruz",
+      "website": "https://www.telecanal.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Telecanal Santa Cruz",
+      "isFree": true,
+      "website": "https://www.santacruztelecanalhd.cl/",
+      "priority": 5
+    },
+    {
+      "name": "TeleCauquenes",
+      "isFree": true,
+      "website": "https://www.telecauquenes.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Turno",
+      "isFree": true,
+      "website": "https://www.turno.live/",
+      "priority": 5
+    }
+  ],
+  "Local": [
+    {
+      "name": "Alternativa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Antofagasta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Atacama",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Aysén",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Buin Somos Todos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CEAC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Campus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 57 Melipilla",
+      "isFree": true,
+      "shortName": "C5M",
+      "priority": 5
+    },
+    {
+      "name": "Canal 74",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal TUTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Caracola",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Click",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cloudserver Kids 90",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cloudserver Latam",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Club",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Décima",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Elion Canal Digital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Exprezión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Geovisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Holvoet",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La Granja",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La Popular",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Puncón",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Santa María Televisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Elqui",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Osorno",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Quellón",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Quinta Región",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Senado",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 8",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVO",
+      "isFree": true,
+      "keywords": "tvo -tocopilla",
+      "priority": 5
+    },
+    {
+      "name": "TVO Tocopilla",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele 2 Web",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tendencias 31 Prime",
+      "isFree": true,
+      "shortName": "T3P",
+      "priority": 6
+    },
+    {
+      "name": "Visión Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ziza",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ñuble RTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ñublevisión",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Canal ISB",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Gracia",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Restaurando Vidas Internacional",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TNE",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Unidad Evangelica",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Vida",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Voz de Poder",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Casa Sobre La Roca",
+      "isFree": true,
+      "website": "https://tv.casasobreroca.cl/",
+      "priority": 4
+    },
+    {
+      "name": "Fortaleza",
+      "isFree": true,
+      "website": "https://www.fortalezatv.cl/",
+      "priority": 4
+    },
+    {
+      "name": "MTNA",
+      "isFree": true,
+      "website": "https://www.mtna.tv/",
+      "priority": 4
+    },
+    {
+      "name": "NCC",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Nuevo Tiempo",
+      "isFree": true,
+      "website": "https://www.nuevotiempo.cl/tv/",
+      "priority": 4
+    },
+    {
+      "name": "Radio Armonia",
+      "isFree": true,
+      "website": "https://www.armonia.cl/",
+      "priority": 4
+    },
+    {
+      "name": "Red de Fe",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Televida",
+      "isFree": true,
+      "website": "https://www.televida.cl/",
+      "priority": 4
+    },
+    {
+      "name": "Telezion",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Vida Nueva",
+      "isFree": true,
+      "website": "https://www.vidanuevaradio.cl/vida-nueva-television/",
+      "priority": 4
+    },
+    {
+      "name": "Voz de Poder Television",
+      "isFree": true,
+      "website": "https://vozdepoder.cl/",
+      "priority": 4
+    }
+  ],
+  "Sports": [
+    {
+      "name": "RedBull Batalla de Gallos",
+      "priority": 5
+    },
+    {
+      "name": "Teletrak",
+      "website": "https://www.teletrak.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Turf Móvil",
+      "priority": 5
+    },
+    {
+      "name": "CDF Basico",
+      "isFree": true,
+      "website": "https://tntsports.cl/",
+      "priority": 5
+    },
+    {
+      "name": "CDO",
+      "isFree": true,
+      "keywords": "cdo -basico -premium",
+      "website": "http://www.cdo.tv/",
+      "priority": 5
+    },
+    {
+      "name": "CDO Basico",
+      "isFree": true,
+      "website": "http://www.cdo.tv/",
+      "priority": 5
+    },
+    {
+      "name": "CDO Premium",
+      "isFree": true,
+      "website": "http://www.cdo.tv/",
+      "priority": 5
+    },
+    {
+      "name": "CDR",
+      "isFree": true,
+      "website": "http://www.xgomedia.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Claro Sports Chile",
+      "isFree": true,
+      "website": "https://www.marca.com/claro-mx/",
+      "priority": 10
+    },
+    {
+      "name": "CRTV",
+      "isFree": true,
+      "website": "https://crtvchile.cl/",
+      "priority": 5
+    },
+    {
+      "name": "ESPN Premium",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "FOX Sports",
+      "isFree": true,
+      "website": "http://foxsportspremium.cl/",
+      "priority": 10
+    },
+    {
+      "name": "Red Bull Batalla de los Gallos",
+      "isFree": true,
+      "website": "https://www.cloudserverlatam.com/television/",
+      "priority": 5
+    },
+    {
+      "name": "TNT Sports",
+      "isFree": true,
+      "keywords": "tnt sports -2 -3",
+      "website": "https://www.tntsports.cl/",
+      "priority": 10
+    },
+    {
+      "name": "TNT Sports 2",
+      "isFree": true,
+      "website": "https://www.tntsports.cl/",
+      "priority": 10
+    },
+    {
+      "name": "TNT Sports 3",
+      "isFree": true,
+      "website": "https://www.tntsports.cl/",
+      "priority": 10
+    },
+    {
+      "name": "Turf Movil",
+      "isFree": true,
+      "website": "https://tvturf.cl/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "ARABTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cultura Online",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Wapp",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Chiloe Red 25",
+      "isFree": true,
+      "website": "https://chiloered25.cl/",
+      "priority": 5
+    },
+    {
+      "name": "ClickTV Chile",
+      "isFree": true,
+      "website": "https://clicktvchile.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Corcubio",
+      "isFree": true,
+      "website": "http://tv.corcubio.com/",
+      "priority": 5
+    },
+    {
+      "name": "Docu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GVision",
+      "isFree": true,
+      "website": "https://www.gvision.cl/",
+      "priority": 5
+    },
+    {
+      "name": "History",
+      "isFree": true,
+      "website": "https://www.historyplay.tv/",
+      "priority": 7
+    },
+    {
+      "name": "Lautaro Educa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mega 2",
+      "isFree": true,
+      "website": "https://www.mega.cl/temas/mega-2/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Suyai",
+      "isFree": true,
+      "website": "https://radio.suyaitv.cl",
+      "priority": 5
+    },
+    {
+      "name": "Salesianos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Suyai",
+      "isFree": true,
+      "website": "https://suyaitv.cl",
+      "priority": 5
+    },
+    {
+      "name": "TV Aconcagua",
+      "isFree": true,
+      "website": "https://tvaconcagua.cl/",
+      "priority": 5
+    },
+    {
+      "name": "TV Usach",
+      "isFree": true,
+      "website": "https://www.santiagotelevision.cl/",
+      "priority": 5
+    },
+    {
+      "name": "UChile",
+      "isFree": true,
+      "website": "https://www.uchile.cl/uchiletv",
+      "priority": 5
+    },
+    {
+      "name": "UCV",
+      "isFree": true,
+      "website": "https://ucvtv.cl/home.php",
+      "priority": 5
+    },
+    {
+      "name": "UMAGTV",
+      "isFree": true,
+      "website": "https://www.umagtv.cl/blank-1",
+      "priority": 5
+    },
+    {
+      "name": "UTalca",
+      "isFree": true,
+      "website": "https://tv.utalca.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Verso",
+      "isFree": true,
+      "website": "https://www.verso.cl/television",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Carolina",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MIX 24/7 Conciertos",
+      "isFree": true,
+      "shortName": "M2C",
+      "priority": 5
+    },
+    {
+      "name": "Mundo de la Música",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Portalfoxmix",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RCK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Retro Plus",
+      "isFree": true,
+      "keywords": "retro plus -2 -3",
+      "priority": 5
+    },
+    {
+      "name": "Retro Plus 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rewind",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "13 Festival",
+      "isFree": true,
+      "website": "https://www.13go.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Apocalipsis TVD",
+      "isFree": true,
+      "website": "https://apocalipsis.vip/",
+      "priority": 5
+    },
+    {
+      "name": "Canal DOS",
+      "isFree": true,
+      "keywords": "canal dos -kids",
+      "priority": 5
+    },
+    {
+      "name": "CCP Radio",
+      "isFree": true,
+      "website": "https://ccpradio.cl",
+      "priority": 5
+    },
+    {
+      "name": "Cloudserver CloudFM",
+      "isFree": true,
+      "website": "https://www.cloudserverlatam.com/television/",
+      "priority": 5
+    },
+    {
+      "name": "Dance FM",
+      "isFree": true,
+      "website": "https://www.dancefm.cl/live/",
+      "priority": 5
+    },
+    {
+      "name": "Dinamica",
+      "isFree": true,
+      "website": "https://radiodinamica.cl/canal-dinamica-tv/",
+      "priority": 5
+    },
+    {
+      "name": "DJ Loncho",
+      "isFree": true,
+      "website": "https://djlonchoradio.com/",
+      "priority": 5
+    },
+    {
+      "name": "EnerGeek Radio",
+      "isFree": true,
+      "website": "https://energeek.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Evavision Pachanga",
+      "isFree": true,
+      "website": "https://consorcioeva.cl/",
+      "priority": 5
+    },
+    {
+      "name": "FM Kitsch",
+      "isFree": true,
+      "website": "https://fmkitsch.cl/fmkitschtv/",
+      "priority": 5
+    },
+    {
+      "name": "FM Mas Longavi",
+      "isFree": true,
+      "website": "https://maslongavi.cl/",
+      "priority": 5
+    },
+    {
+      "name": "FM Plus",
+      "isFree": true,
+      "website": "https://www.fmplus.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Generacion Kpop",
+      "isFree": true,
+      "website": "http://www.generacionkpop.net/",
+      "priority": 5
+    },
+    {
+      "name": "Karavana",
+      "isFree": true,
+      "website": "https://karavanatv.multicontenidos.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Karavana Urbano",
+      "isFree": true,
+      "website": "https://www.multicontenidos.net/canales/karavana-urbano",
+      "priority": 5
+    },
+    {
+      "name": "Latinos Radio",
+      "isFree": true,
+      "website": "https://latinosradio.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Macarena FM",
+      "isFree": true,
+      "website": "https://macarenafm.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Maqui",
+      "isFree": true,
+      "website": "https://maquionline.cl/wp/maqui-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Maxima FM",
+      "isFree": true,
+      "keywords": "maxima fm -chile",
+      "website": "https://maximachile.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Maxima FM Chile",
+      "isFree": true,
+      "website": "https://maximachile.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Mundo de la Musica",
+      "isFree": true,
+      "website": "https://mundodelamusicachile.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Patagonia Radio",
+      "isFree": true,
+      "website": "https://patagoniaradio.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Radio La Serena",
+      "isFree": true,
+      "website": "https://radioserena.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Q",
+      "isFree": true,
+      "website": "https://radioq.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Radioteca Webstereo",
+      "isFree": true,
+      "website": "https://www.radiotecawebstereo.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Recuerdos Retro",
+      "isFree": true,
+      "website": "https://recuerdosretro.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ritoque",
+      "isFree": true,
+      "website": "https://ritoquefm.cl/ritoquetv/",
+      "priority": 5
+    },
+    {
+      "name": "Romantica",
+      "isFree": true,
+      "website": "https://www.romantica.cl/romantica-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Sensacion Costa",
+      "isFree": true,
+      "website": "https://sensacioncosta.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Solo Bailalo",
+      "isFree": true,
+      "website": "https://www.solobailalo.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Terranova Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Hits",
+      "isFree": true,
+      "website": "http://www.tvhits.online/",
+      "priority": 5
+    },
+    {
+      "name": "UMAGTV 2",
+      "isFree": true,
+      "website": "https://www.umagtv.cl/blank-2",
+      "priority": 5
+    },
+    {
+      "name": "V Classic",
+      "isFree": true,
+      "website": "https://www.radiocoquimbo.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Viwix TV Music",
+      "isFree": true,
+      "website": "https://viwix.cl/en-vivo-4/",
+      "priority": 5
+    },
+    {
+      "name": "Zapping Music",
+      "isFree": true,
+      "website": "https://www.zapping.com/music",
+      "priority": 5
+    },
+    {
+      "name": "Interradio",
+      "isFree": true,
+      "priority": 5,
+      "website": "https://www.interradio1.net/"
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Planetatv Movie",
+      "priority": 5
+    },
+    {
+      "name": "Retro Plus 3",
+      "priority": 5
+    },
+    {
+      "name": "13Rec",
+      "isFree": true,
+      "website": "https://www.13.cl/rec",
+      "priority": 5
+    },
+    {
+      "name": "Eva Retro",
+      "isFree": true,
+      "website": "https://consorcioeva.cl/",
+      "priority": 5
+    },
+    {
+      "name": "Mega Ficcion",
+      "isFree": true,
+      "website": "https://www.mega.cl/temas/mega-ficcion/",
+      "priority": 5
+    },
+    {
+      "name": "Star",
+      "isFree": true,
+      "website": "https://www.star-latam.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVN 3",
+      "isFree": true,
+      "website": "https://www.tvn.cl/tvn3",
+      "priority": 5
+    },
+    {
+      "name": "Viwix TV Accion",
+      "isFree": true,
+      "website": "https://viwix.cl/en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "Viwix TV Estrenos",
+      "isFree": true,
+      "website": "https://viwix.cl/en-vivo-3/",
+      "priority": 5
+    },
+    {
+      "name": "Viwix TV Series",
+      "isFree": true,
+      "website": "https://viwix.cl/en-vivo-5/",
+      "priority": 5
+    },
+    {
+      "name": "Viwix TV Terror",
+      "isFree": true,
+      "website": "https://viwix.cl/en-vivo-6/",
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "AE Radio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Onda Radio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio América",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio El Sembrador",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio La Sabrosura",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Maxima 94",
+      "isFree": true,
+      "shortName": "RM9FS",
+      "priority": 5
+    },
+    {
+      "name": "Radio Rancagua FM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Ritmo FM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Uniem",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Zeta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ruidos FM",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "13 Kids",
+      "isFree": true,
+      "website": "https://www.13.cl/13kids",
+      "priority": 5
+    },
+    {
+      "name": "Canal DOS Kids",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cloudserver Latam Kids 90",
+      "isFree": true,
+      "website": "https://www.cloudserverlatam.com/television/",
+      "priority": 5
+    },
+    {
+      "name": "CNTV Infantil",
+      "isFree": true,
+      "website": "https://cntvinfantil.cl/",
+      "priority": 5
+    },
+    {
+      "name": "EnerGeek FAN",
+      "isFree": true,
+      "website": "https://energeek.cl/",
+      "priority": 5
+    },
+    {
+      "name": "ETC",
+      "isFree": true,
+      "website": "https://www.etc.cl/",
+      "priority": 5
+    },
+    {
+      "name": "FunBox",
+      "isFree": true,
+      "website": "https://www.funboxchannel.com/",
+      "priority": 5
+    },
+    {
+      "name": "Pandamax",
+      "isFree": true,
+      "website": "https://pandamax.cl",
+      "priority": 5
+    },
+    {
+      "name": "Quilicura TV Kids",
+      "isFree": true,
+      "website": "https://canalquilicuratelevision.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "Senpai",
+      "isFree": true,
+      "website": "https://senpaitv.com/",
+      "priority": 5
+    }
+  ]
+}

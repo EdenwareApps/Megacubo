@@ -1,0 +1,1095 @@
+{
+  "Entertainment": [
+    {
+      "name": "Canal Luz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Nubeh",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal i",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Globovision",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "La Tele Tuya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PromarTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Familia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisora de Oriente",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vale",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ve Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Venevision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vepaco",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Aguacate",
+      "isFree": true,
+      "website": "https://aguacatetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Alba",
+      "isFree": true,
+      "website": "http://www.albatv.org/",
+      "priority": 5
+    },
+    {
+      "name": "Amavision Canal 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Antorcha",
+      "isFree": true,
+      "website": "https://antorchatelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "ANTV",
+      "isFree": true,
+      "website": "http://www.asambleanacional.gob.ve/",
+      "priority": 5
+    },
+    {
+      "name": "Anzoategui",
+      "isFree": true,
+      "website": "https://anzoategui.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Apure",
+      "isFree": true,
+      "website": "https://apuretv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Avila",
+      "isFree": true,
+      "website": "http://www.avilatv.gob.ve/",
+      "priority": 5
+    },
+    {
+      "name": "Barinas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cablecel Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Caminos Media",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 21 Tachira",
+      "isFree": true,
+      "website": "https://canal21tachira.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Once",
+      "isFree": true,
+      "website": "http://www.canal11delzulia.com.ve/",
+      "priority": 5
+    },
+    {
+      "name": "Canal V",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CANTV TV Satelital",
+      "isFree": true,
+      "website": "https://www.cantv.com.ve/tv-satelital/",
+      "priority": 5
+    },
+    {
+      "name": "Catatumbo",
+      "isFree": true,
+      "website": "https://catatumbo.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Chivacoa TV Internacional",
+      "isFree": true,
+      "website": "https://www.chivacoatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "CMC Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Colonesa Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ConCiencia",
+      "isFree": true,
+      "website": "https://conciencia.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Conectados TV en Linea",
+      "isFree": true,
+      "website": "https://conectadostv.com/conectados-tv-canal-de-television-online/senal-en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "Contactv",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Coquivacoa Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CRN Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CTN",
+      "isFree": true,
+      "website": "https://www.caracastelevisionnetwork.com/transmision-en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "Cumbre Television",
+      "isFree": true,
+      "website": "https://www.cumbretv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Digital Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DuacaVision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ecovision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EXC",
+      "isFree": true,
+      "website": "https://lorini.net/exctv/",
+      "priority": 5
+    },
+    {
+      "name": "Falconia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Fortuna",
+      "isFree": true,
+      "website": "https://linktr.ee/tufortunatv",
+      "priority": 5
+    },
+    {
+      "name": "GlobalTV",
+      "isFree": true,
+      "website": "https://globaltvplay.com/",
+      "priority": 5
+    },
+    {
+      "name": "Glow",
+      "isFree": true,
+      "website": "https://www.glowtelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Grande",
+      "isFree": true,
+      "website": "https://www.grandefmtv.com.ve/television",
+      "priority": 5
+    },
+    {
+      "name": "Guaro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Humor Max",
+      "isFree": true,
+      "website": "http://www.humormaxchannel.com/",
+      "priority": 5
+    },
+    {
+      "name": "Imparcial",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Inter",
+      "isFree": true,
+      "website": "https://intervenhosting.net/",
+      "priority": 5
+    },
+    {
+      "name": "Isla",
+      "isFree": true,
+      "website": "https://islatv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "IVC",
+      "isFree": true,
+      "keywords": "ivc -internacional",
+      "website": "https://www.ivcnetworks.com/",
+      "priority": 5
+    },
+    {
+      "name": "IVC Internacional",
+      "isFree": true,
+      "website": "https://www.ivcnetworks.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kaina",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lara en Redes",
+      "isFree": true,
+      "website": "https://laraenredes.com/",
+      "priority": 5
+    },
+    {
+      "name": "Lara TVe",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Latina",
+      "isFree": true,
+      "website": "https://latinamedios.com/en-vivo-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Mas Talk",
+      "isFree": true,
+      "website": "https://www.venevisionplay.com/",
+      "priority": 5
+    },
+    {
+      "name": "Maxima",
+      "isFree": true,
+      "website": "https://maximatv.net/",
+      "priority": 5
+    },
+    {
+      "name": "MDA Television",
+      "isFree": true,
+      "website": "https://www.mdatelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mira",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Monagas Vision",
+      "isFree": true,
+      "website": "https://monagasvision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Oasis Television",
+      "isFree": true,
+      "website": "http://oasistelevision.com",
+      "priority": 5
+    },
+    {
+      "name": "Onza",
+      "isFree": true,
+      "website": "https://onzatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Panavision",
+      "isFree": true,
+      "website": "http://www.panavision.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Planet",
+      "isFree": true,
+      "website": "https://www.planet-intv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Plous",
+      "isFree": true,
+      "website": "https://www.ploustv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Portuguesa Television",
+      "isFree": true,
+      "website": "https://portutv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Prisma",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Cayaurima",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RCTV",
+      "isFree": true,
+      "keywords": "rctv -international",
+      "website": "http://rctv.com/",
+      "priority": 5
+    },
+    {
+      "name": "RCTV International",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Roscio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Santa Ana",
+      "isFree": true,
+      "website": "https://www.santaanatvchannel.com/",
+      "priority": 5
+    },
+    {
+      "name": "Siembra",
+      "isFree": true,
+      "website": "https://siembratv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Siguaraya",
+      "isFree": true,
+      "website": "https://siguarayatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Somos",
+      "isFree": true,
+      "website": "https://corporacionsomos.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sony",
+      "isFree": true,
+      "website": "https://la.sonychannel.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sucre",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sun",
+      "isFree": true,
+      "website": "http://www.sunchanneltv.com/",
+      "priority": 5
+    },
+    {
+      "name": "SUR",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TAM",
+      "isFree": true,
+      "website": "https://tamtv.com.ve/",
+      "priority": 5
+    },
+    {
+      "name": "TeleAragua",
+      "isFree": true,
+      "website": "http://tla.gob.ve/",
+      "priority": 5
+    },
+    {
+      "name": "Telebocono",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telecentro",
+      "isFree": true,
+      "website": "http://telecentrocanal.com/",
+      "priority": 5
+    },
+    {
+      "name": "Telecolor",
+      "isFree": true,
+      "website": "https://telecolor.com/",
+      "priority": 5
+    },
+    {
+      "name": "Teleguarico",
+      "isFree": true,
+      "website": "https://teleguarico.com/",
+      "priority": 5
+    },
+    {
+      "name": "Teleplus Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleSocopo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telesol",
+      "isFree": true,
+      "website": "https://telesoltv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Televisa Canal 7 del Zulia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisora Falcon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tic Television",
+      "isFree": true,
+      "website": "https://tictv.com.ve/",
+      "priority": 5
+    },
+    {
+      "name": "TNO Radio",
+      "isFree": true,
+      "website": "https://tnoradio.com/",
+      "priority": 5
+    },
+    {
+      "name": "Torococo",
+      "isFree": true,
+      "website": "http://mitorococo.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "TRP",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TRT",
+      "isFree": true,
+      "website": "https://trt.com.ve/",
+      "priority": 5
+    },
+    {
+      "name": "TRV",
+      "isFree": true,
+      "website": "https://trv.net.ve/",
+      "priority": 5
+    },
+    {
+      "name": "Tu",
+      "isFree": true,
+      "website": "https://multitel.com.ve/tv.php",
+      "priority": 5
+    },
+    {
+      "name": "TV Andes",
+      "isFree": true,
+      "website": "http://www.tvandes.com",
+      "priority": 5
+    },
+    {
+      "name": "TVCaricuao",
+      "isFree": true,
+      "website": "https://tvcaricuao.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVC Canal 11",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Delta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVes",
+      "isFree": true,
+      "website": "https://www.tves.gob.ve/",
+      "priority": 5
+    },
+    {
+      "name": "TV FANB",
+      "isFree": true,
+      "website": "https://www.tvfanb.mil.ve/",
+      "priority": 5
+    },
+    {
+      "name": "TVGuayana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Llanos",
+      "isFree": true,
+      "website": "https://www.tvllanos.com",
+      "priority": 5
+    },
+    {
+      "name": "TV Milenium",
+      "isFree": true,
+      "website": "https://circuitomileniumradio.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVM para ti",
+      "isFree": true,
+      "website": "https://tvmparati.com.ve/",
+      "priority": 5
+    },
+    {
+      "name": "TV Oasis Monay",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Rio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVS",
+      "isFree": true,
+      "keywords": "tvs -cantaura",
+      "website": "http://www.lorini.net/tvs/",
+      "priority": 5
+    },
+    {
+      "name": "TVS Cantaura",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVTrujillo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Venezuela",
+      "isFree": true,
+      "website": "https://www.tvvenezuela.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Unare",
+      "isFree": true,
+      "website": "https://unaretv.com.ve/",
+      "priority": 5
+    },
+    {
+      "name": "UniTV",
+      "isFree": true,
+      "website": "https://lorini.net/unitv/",
+      "priority": 5
+    },
+    {
+      "name": "Universal Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Venevision Internacional",
+      "isFree": true,
+      "website": "https://www.venevisionplay.com/",
+      "priority": 5
+    },
+    {
+      "name": "Venezolana de Television",
+      "isFree": true,
+      "website": "https://www.vtv.gob.ve/",
+      "priority": 5
+    },
+    {
+      "name": "Ven",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VIVOplay",
+      "isFree": true,
+      "website": "https://vivoplay.net/",
+      "priority": 5
+    },
+    {
+      "name": "Yaracuyana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Yaravision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "YATVO",
+      "isFree": true,
+      "website": "https://www.yatvo.com",
+      "priority": 5
+    },
+    {
+      "name": "Zona",
+      "isFree": true,
+      "website": "https://zona93.net/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "TV Telesur",
+      "isFree": true,
+      "keywords": "telesur",
+      "priority": 5
+    },
+    {
+      "name": "TeleSUR English",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bit Radio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Informativo Movistar",
+      "isFree": true,
+      "website": "https://www.movistar.com.ve/Particulares/home-particulares.html",
+      "priority": 5
+    },
+    {
+      "name": "Canal NVH",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La Iguana",
+      "isFree": true,
+      "website": "https://www.laiguana.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Caracas Radio",
+      "isFree": true,
+      "website": "https://rcr.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Telesur",
+      "isFree": true,
+      "website": "https://www.telesurtv.net/",
+      "priority": 5
+    },
+    {
+      "name": "UN 24",
+      "isFree": true,
+      "website": "https://ultimasnoticias.com.ve/",
+      "priority": 5
+    },
+    {
+      "name": "Venezuela News",
+      "isFree": true,
+      "website": "https://venezuela-news.com/",
+      "priority": 5
+    },
+    {
+      "name": "VPItv",
+      "isFree": true,
+      "website": "https://vpitv.com/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Italianissimo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Oxigeno",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BTA",
+      "isFree": true,
+      "website": "https://btatv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Cultura Venezuela",
+      "isFree": true,
+      "website": "https://culturavenezuela.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cantina",
+      "isFree": true,
+      "website": "http://www.cantinatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Fiesta Max",
+      "isFree": true,
+      "website": "http://fiestamaxchannel.com/",
+      "priority": 5
+    },
+    {
+      "name": "KandelaTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LaPuraCrema Television",
+      "isFree": true,
+      "website": "https://lapuracrema.net/",
+      "priority": 5
+    },
+    {
+      "name": "Mix Music",
+      "isFree": true,
+      "website": "https://supertrendy.net/mix/",
+      "priority": 5
+    },
+    {
+      "name": "Oye 90.9 FM",
+      "isFree": true,
+      "website": "https://oyetufm.com/video.html",
+      "priority": 5
+    },
+    {
+      "name": "Pop 92.3 FM",
+      "isFree": true,
+      "website": "https://supertrendy.net/pop-fm/",
+      "priority": 5
+    },
+    {
+      "name": "RLV",
+      "isFree": true,
+      "website": "https://radiolatinavzla.com/",
+      "priority": 5
+    },
+    {
+      "name": "ShowVen",
+      "isFree": true,
+      "website": "https://corazonllanero.com/",
+      "priority": 5
+    },
+    {
+      "name": "Super Trendy Caracas 104.5 FM",
+      "isFree": true,
+      "website": "https://supertrendy.net/supertrendy-caracas/",
+      "priority": 5
+    },
+    {
+      "name": "Super Trendy Valencia 101.9 FM",
+      "isFree": true,
+      "website": "https://supertrendy.net/supertrendy-valencia/",
+      "priority": 5
+    },
+    {
+      "name": "Tiuna FM",
+      "isFree": true,
+      "website": "https://www.tiunafm.com/",
+      "priority": 5
+    },
+    {
+      "name": "Yaritagua",
+      "isFree": true,
+      "website": "https://yaritaguatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zut",
+      "isFree": true,
+      "website": "https://www.zut.tv/",
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Radio Caracas",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "123TV",
+      "isFree": true,
+      "website": "https://123tvinfantil.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "Animax Latin America",
+      "isFree": true,
+      "website": "http://www.animaxtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "eSports Max",
+      "isFree": true,
+      "website": "http://esportsmaxnetwork.com/",
+      "priority": 10
+    },
+    {
+      "name": "MAX Anime",
+      "isFree": true,
+      "website": "https://esportsmax.tv/max-anime/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Alcance",
+      "isFree": true,
+      "website": "https://alcancetv.org.ve/",
+      "priority": 4
+    },
+    {
+      "name": "Audaz",
+      "isFree": true,
+      "website": "https://audaz.com.ve/",
+      "priority": 4
+    },
+    {
+      "name": "Canal Mana",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Esperanza",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Fe Television",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Fundacion Multicanal",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Kairos",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "LGD Television",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Luz TV Internacional",
+      "isFree": true,
+      "website": "https://2024.obraluzdelmundo.org/",
+      "priority": 4
+    },
+    {
+      "name": "Misericordia",
+      "isFree": true,
+      "website": "https://misericordiatv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Nuestra Vision",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Omega",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Proclamacion",
+      "isFree": true,
+      "website": "https://proclamaciontv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Reforma",
+      "isFree": true,
+      "website": "https://www.reformatv.net/",
+      "priority": 4
+    },
+    {
+      "name": "TV Universal Venezuela",
+      "isFree": true,
+      "website": "https://universal.org.ve/tv-universal/",
+      "priority": 4
+    },
+    {
+      "name": "Vida",
+      "isFree": true,
+      "website": "https://vidatvplay.com/",
+      "priority": 4
+    },
+    {
+      "name": "Vision TV Monagas",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "Sports": [
+    {
+      "name": "AS3 Sport",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "ByM Sport",
+      "isFree": true,
+      "website": "https://bymsport.com.ve/",
+      "priority": 10
+    },
+    {
+      "name": "Frontino Digital",
+      "isFree": true,
+      "website": "https://frontinodigital.com/tv.html",
+      "priority": 5
+    },
+    {
+      "name": "Meridiano",
+      "isFree": true,
+      "website": "https://meridiano.net/",
+      "priority": 5
+    },
+    {
+      "name": "SportsMax News",
+      "isFree": true,
+      "website": "https://www.sportsmaxnews.com/",
+      "priority": 10
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Canal Diplomatico",
+      "isFree": true,
+      "website": "http://canaldiplomatico.com/",
+      "priority": 5
+    },
+    {
+      "name": "Colombeia",
+      "isFree": true,
+      "website": "https://www.colombeia.edu.ve/",
+      "priority": 5
+    },
+    {
+      "name": "ESCINETV",
+      "isFree": true,
+      "website": "https://escinetv.org.ve/",
+      "priority": 5
+    },
+    {
+      "name": "History",
+      "isFree": true,
+      "website": "https://www.historyplay.tv/",
+      "priority": 7
+    },
+    {
+      "name": "PLTV",
+      "isFree": true,
+      "website": "https://pltvnetwork.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV UNEFM",
+      "isFree": true,
+      "website": "https://sites.google.com/view/tvunefm",
+      "priority": 5
+    },
+    {
+      "name": "Vive",
+      "isFree": true,
+      "website": "http://www.vive.gob.ve/",
+      "priority": 5
+    }
+  ]
+}

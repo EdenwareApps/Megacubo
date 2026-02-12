@@ -1,10 +1,11 @@
+// Cache invalidation 3
 import fs from 'fs';
 import path from 'path';
 import terser from '@rollup/plugin-terser';
 import svelte from 'rollup-plugin-svelte';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import builtins from 'rollup-plugin-node-builtins';
+import polyfills from 'rollup-plugin-polyfill-node';
 import json from '@rollup/plugin-json';
 import replace from '@rollup/plugin-replace';
 import copy from 'rollup-plugin-copy';
@@ -51,7 +52,7 @@ const rendererPlugins = [
     resolveOnly: [] // Allow all modules to be resolved
   }),
   commonjs({ sourcemap: true }),
-  builtins(),
+  polyfills(),
   getBabelOutputPlugin({ ...babelRendererOutput, allowAllFormats: true }),
   json({ compact: true }),
         ...(isProduction ? [terser({
@@ -97,39 +98,18 @@ function sqliteResolvePlugin() {
     resolveId(source) {
       // Intercept node:sqlite and return virtual module ID
       if (source === 'node:sqlite') {
-        return '\0node:sqlite'; // Virtual module ID (null-byte prefix)
+        return '\0node:sqlite2'; // Virtual module ID (null-byte prefix)
       }
       return null;
     },
     load(id) {
       // Return mock module when virtual ID is loaded
       // This replaces require('node:sqlite') with a mock implementation
-      if (id === '\0node:sqlite') {
+      if (id === '\0node:sqlite2') {
         return `
 // Mock module for node:sqlite (not available on Android)
-class DatabaseSync {
-  constructor() {}
-  close() {}
-  prepare() {
-    return {
-      run: () => {},
-      get: () => null,
-      all: () => []
-    };
-  }
-}
-
-class StatementSync {}
-
-function openSync() {
-  throw new Error('SQLite not available on Android');
-}
-
-// Support both ESM and CommonJS
-exports.DatabaseSync = DatabaseSync;
-exports.StatementSync = StatementSync;
-exports.openSync = openSync;
-module.exports = { DatabaseSync, StatementSync, openSync };
+// Updated mock
+export default {};
 `;
       }
       return null;
@@ -141,11 +121,11 @@ module.exports = { DatabaseSync, StatementSync, openSync };
 function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals = null, isLargeFile = false, isMainProcess = false }) {
   // Configurações específicas para main process
   const mainProcessConfig = isMainProcess ? {
-    maxWorkers: 1, // Reduzir workers para economizar memória
-    keep_classnames: false, // Desabilitar para economizar memória
-    keep_fnames: false, // Desabilitar para economizar memória
+    maxWorkers: 1, // Reduce workers to save memory
+    keep_classnames: false, // Disable to save memory
+    keep_fnames: false, // Disable to save memory
     compress: {
-      drop_console: true, // Remover console logs para economizar memória
+      drop_console: isProduction, // Remove console logs in production
       drop_debugger: true,
       passes: 1,
       unsafe: true, // Otimizações mais agressivas
@@ -157,7 +137,7 @@ function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals
     keep_classnames: true,
     keep_fnames: true,
     compress: {
-      drop_console: false,
+      drop_console: isProduction, // Keep console logs in development
       drop_debugger: false,
       passes: 1
     }
@@ -171,13 +151,22 @@ function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals
       ...(isMainProcess ? { dedupe: [] } : {})
     }),
     commonjs({ 
-      sourcemap: isMainProcess ? false : true, // Desabilitar sourcemap para main process
+      sourcemap: isMainProcess ? false : true, // Disable sourcemap for main process
+      dynamicRequireTargets: [
+        'node_modules/node-ssdp/lib/server.js',
+        'node_modules/*/lib/server.js',
+        'node_modules/**/lib/server.js',
+        'www/nodejs/modules/premium/modules/cast/node_modules/node-ssdp/lib/server.js',
+        'www/nodejs/modules/premium/modules/cast/node_modules/node-ssdp/lib/client.js',
+        'www/nodejs/modules/premium/modules/cast/node_modules/node-ssdp/lib/index.js'
+      ],
+      ignoreDynamicRequires: true,
       ...(isMainProcess ? { requireReturnsDefault: 'auto' } : {})
     }),
     json({ compact: true }),
     getBabelOutputPlugin({
       ...babelOpts,
-      // Otimizações de memória para main process
+      // Memory optimizations for main process
       ...(isMainProcess ? { compact: true, minified: true } : {})
     }),
     replace(replaceOpts),    
@@ -213,7 +202,7 @@ function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals
     watch: watchOpts,
     maxParallelFileOps: isLargeFile || isMainProcess ? 1 : undefined, // Forçar 1 para main process
     treeshake: isLargeFile ? false : (isMainProcess ? {
-      // Tree shaking habilitado para main.js com configurações conservadoras
+      // Tree shaking enabled for main.js with conservative settings
       moduleSideEffects: (id) => {
         // Preservar módulos que podem ter side effects importantes
         if (id.includes('analytics.js') || 
@@ -236,7 +225,7 @@ function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals
     ...(isMainProcess ? {
       preserveEntrySignatures: 'allow-extension',
       onwarn(warning, warn) {
-        // Suprimir warnings de dependências circulares para main process
+        // Suppress circular dependency warnings for main process
         if (warning.code === 'CIRCULAR_DEPENDENCY') return;
         warn(warning);
       }
@@ -278,7 +267,7 @@ outputs.push(
 
 makeNodeBundle({
   input: 'www/nodejs/main.mjs',
-  output: { format: 'cjs', file: 'www/nodejs/dist/main.js', inlineDynamicImports: true, sourcemap: false }, // Desabilitar sourcemap para main process
+  output: { format: 'cjs', file: 'www/nodejs/dist/main.js', inlineDynamicImports: true, sourcemap: false }, // Disable sourcemap for main process
   babelOpts: nodeBabelOpts,
   isMainProcess: true, // Ativar otimizações específicas para main process
   extraPlugins: [

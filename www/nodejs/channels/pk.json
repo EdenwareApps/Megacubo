@@ -1,0 +1,1038 @@
+{
+  "News": [
+    {
+      "name": "92 News",
+      "isFree": true,
+      "keywords": "92 news -uk",
+      "website": "https://92newshd.tv/live-tv",
+      "priority": 5
+    },
+    {
+      "name": "92 News UK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ARY News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dunya News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Express News Pakistan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Geo News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Khyber News",
+      "isFree": true,
+      "keywords": "khyber news",
+      "priority": 5
+    },
+    {
+      "name": "Lahore News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PTV News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Such",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "24/7 News",
+      "isFree": true,
+      "website": "https://247news.com.pk/",
+      "priority": 5
+    },
+    {
+      "name": "24 News",
+      "isFree": true,
+      "website": "https://www.24newshd.tv/",
+      "priority": 5
+    },
+    {
+      "name": "48 News UK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "99 News",
+      "isFree": true,
+      "website": "https://99newshd.com/",
+      "priority": 5
+    },
+    {
+      "name": "A1TV Pakistan",
+      "isFree": true,
+      "website": "https://a1tv.pk/",
+      "priority": 5
+    },
+    {
+      "name": "Aaj News",
+      "isFree": true,
+      "website": "https://www.aaj.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Abb Takk",
+      "isFree": true,
+      "website": "http://www.abbtakk.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ABN News",
+      "isFree": true,
+      "website": "https://abnnews.pk/abn-live/",
+      "priority": 5
+    },
+    {
+      "name": "Aik News",
+      "isFree": true,
+      "website": "https://www.aiknewshd.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Bol News",
+      "isFree": true,
+      "website": "https://www.bolnews.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bolo News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Capital",
+      "isFree": true,
+      "website": "http://capitaldigital.pk/",
+      "priority": 5
+    },
+    {
+      "name": "Channel Five",
+      "isFree": true,
+      "website": "https://channelfivepakistan.tv/",
+      "priority": 5
+    },
+    {
+      "name": "City 41",
+      "isFree": true,
+      "website": "http://www.city41.tv/",
+      "priority": 5
+    },
+    {
+      "name": "City 42",
+      "isFree": true,
+      "website": "https://www.city42.tv/",
+      "priority": 5
+    },
+    {
+      "name": "City News",
+      "isFree": true,
+      "website": "http://citynewshd.tv/",
+      "priority": 5
+    },
+    {
+      "name": "CNN Pakistan",
+      "isFree": true,
+      "website": "https://live.cnnpakistan.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Dawn News",
+      "isFree": true,
+      "website": "https://www.dawnnews.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Din News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Express News",
+      "isFree": true,
+      "keywords": "express news -pakistan",
+      "website": "https://www.express.pk/",
+      "priority": 5
+    },
+    {
+      "name": "Geo News International",
+      "isFree": true,
+      "website": "https://www.geo.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Geo Tez",
+      "isFree": true,
+      "website": "http://www.geotez.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Gourmet News Network",
+      "isFree": true,
+      "website": "https://gnnhd.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GTV Network",
+      "isFree": true,
+      "website": "https://gtvnetwork.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Hum News",
+      "isFree": true,
+      "website": "https://www.humnews.pk/",
+      "priority": 5
+    },
+    {
+      "name": "Jeejal News",
+      "isFree": true,
+      "website": "https://jeejalnewshd.com/",
+      "priority": 5
+    },
+    {
+      "name": "JNN News",
+      "isFree": true,
+      "website": "https://www.jnnnewstv.com/",
+      "priority": 5
+    },
+    {
+      "name": "K21 News",
+      "isFree": true,
+      "website": "https://k21news.pk/",
+      "priority": 5
+    },
+    {
+      "name": "Kohenoor News",
+      "isFree": true,
+      "website": "https://www.kohenoor.tv/",
+      "priority": 5
+    },
+    {
+      "name": "KTN News",
+      "isFree": true,
+      "website": "https://www.ktnnews.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Lahore Rang",
+      "isFree": true,
+      "website": "https://www.lahorerang.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Mashriq",
+      "isFree": true,
+      "website": "https://www.mashriqtv.pk/",
+      "priority": 5
+    },
+    {
+      "name": "Metro1 News",
+      "isFree": true,
+      "website": "http://www.metro1news.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Neo News",
+      "isFree": true,
+      "website": "https://www.neonetwork.pk/",
+      "priority": 5
+    },
+    {
+      "name": "News One",
+      "isFree": true,
+      "website": "https://www.newsone.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ON News",
+      "isFree": true,
+      "website": "http://www.onnewstv.pk/",
+      "priority": 5
+    },
+    {
+      "name": "PNN News",
+      "isFree": true,
+      "website": "https://pnntv.pk/",
+      "priority": 5
+    },
+    {
+      "name": "Public News",
+      "isFree": true,
+      "website": "https://publicnews.com/",
+      "priority": 5
+    },
+    {
+      "name": "Roze News",
+      "isFree": true,
+      "website": "https://rozenews.com.pk/",
+      "priority": 5
+    },
+    {
+      "name": "SBI News",
+      "isFree": true,
+      "website": "https://shanabashana.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sindh TV News",
+      "isFree": true,
+      "website": "https://sindhtvnews.net/",
+      "priority": 5
+    },
+    {
+      "name": "Star News Pakistan",
+      "isFree": true,
+      "website": "https://starnewspakistan.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sub News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Suno News",
+      "isFree": true,
+      "website": "https://www.sunonews.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Time News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Voice News",
+      "isFree": true,
+      "website": "https://voicenewspk.com/",
+      "priority": 5
+    },
+    {
+      "name": "VSH News",
+      "isFree": true,
+      "website": "https://vshnews.tv/",
+      "priority": 5
+    }
+  ],
+  "Local": [],
+  "Religious": [
+    {
+      "name": "Madani Channel Bangla",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Madani Channel Urdu",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Peace TV Urdu",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Al Ehsaan",
+      "isFree": true,
+      "website": "https://www.alehsaan.tv/",
+      "priority": 4
+    },
+    {
+      "name": "ARY Qtv",
+      "isFree": true,
+      "website": "https://aryqtv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Fazal",
+      "isFree": true,
+      "website": "https://www.fazal.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Gawahi",
+      "isFree": true,
+      "website": "https://gawahi.tv/",
+      "priority": 4
+    },
+    {
+      "name": "God Stands",
+      "isFree": true,
+      "website": "https://www.godstands.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Grace Network",
+      "isFree": true,
+      "website": "https://gracenetwork.global/",
+      "priority": 4
+    },
+    {
+      "name": "HK",
+      "isFree": true,
+      "website": "https://hktv.pk/",
+      "priority": 4
+    },
+    {
+      "name": "Isaac",
+      "isFree": true,
+      "website": "https://isaactelevision.tv/Isaac%20Tv%20Pakistan/",
+      "priority": 4
+    },
+    {
+      "name": "Jesus Christ TV Pakistan",
+      "isFree": true,
+      "website": "https://www.jctvpak.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Joshua",
+      "isFree": true,
+      "website": "http://www.joshuatv.org/",
+      "priority": 4
+    },
+    {
+      "name": "King",
+      "isFree": true,
+      "website": "http://www.kingtelevision.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Love of Jesus",
+      "isFree": true,
+      "website": "https://www.jctvpak.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Madani Channel English",
+      "isFree": true,
+      "website": "https://www.madanichannel.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Paighan",
+      "isFree": true,
+      "website": "http://www.paigham.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Quran",
+      "isFree": true,
+      "website": "https://paigham.tv/paigham-quran-tv/",
+      "priority": 4
+    }
+  ],
+  "Sports": [
+    {
+      "name": "One Golf",
+      "priority": 5
+    },
+    {
+      "name": "Fast Sports",
+      "isFree": true,
+      "website": "https://www.fastsports.tv/",
+      "priority": 10
+    },
+    {
+      "name": "Geo Super",
+      "isFree": true,
+      "website": "https://www.geosuper.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Ten Sports Pakistan",
+      "isFree": true,
+      "priority": 10
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "ARY Digital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AVT Khyber",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kay 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Khyber Middle East",
+      "isFree": true,
+      "keywords": "khyber middle east",
+      "priority": 5
+    },
+    {
+      "name": "Minhaj",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Noor",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PTV Home",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PTV Sports",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "PTV World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zindagi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "A",
+      "isFree": true,
+      "website": "https://www.bellsentertainment.com.pk/media/",
+      "priority": 5
+    },
+    {
+      "name": "Aaj Entertainment",
+      "isFree": true,
+      "website": "https://aajentertainment.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Afghan",
+      "isFree": true,
+      "website": "http://afghantv.pk/",
+      "priority": 5
+    },
+    {
+      "name": "AJK",
+      "isFree": true,
+      "website": "https://ptv.com.pk/ptvCorporate/ptvAJK",
+      "priority": 5
+    },
+    {
+      "name": "A-Plus",
+      "isFree": true,
+      "website": "http://www.a-plus.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Apna",
+      "isFree": true,
+      "website": "http://apna.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ARY World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ARY Zauq",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ARY Zindagi",
+      "isFree": true,
+      "website": "https://www.aryzindagi.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ATV",
+      "isFree": true,
+      "website": "http://atv.com.pk/",
+      "priority": 5
+    },
+    {
+      "name": "aurLife",
+      "isFree": true,
+      "website": "https://aurlife.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Awaz TV Network",
+      "isFree": true,
+      "website": "https://www.awaztv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Best",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bol Entertainment",
+      "isFree": true,
+      "website": "https://www.bolentertainment.com/",
+      "priority": 5
+    },
+    {
+      "name": "Dhanak",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dharti",
+      "isFree": true,
+      "website": "http://dhartitv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Discover Pakistan",
+      "isFree": true,
+      "website": "https://www.discoverpakistan.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Dunya Entertainment",
+      "isFree": true,
+      "website": "https://dunya.com.pk/index.php/contact-us",
+      "priority": 5
+    },
+    {
+      "name": "E",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Express Entertainment",
+      "isFree": true,
+      "website": "https://www.expressentertainment.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Faiz TV Network",
+      "isFree": true,
+      "website": "https://faiz.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Geo Kahani",
+      "isFree": true,
+      "website": "http://geokahani.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GR 8",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Health",
+      "isFree": true,
+      "website": "http://www.health-tv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Hum Europe",
+      "isFree": true,
+      "website": "https://hum.tv/hum-europe/",
+      "priority": 5
+    },
+    {
+      "name": "Hum MENA",
+      "isFree": true,
+      "website": "https://hum.tv/hum-mena/",
+      "priority": 5
+    },
+    {
+      "name": "Hum Sitaray",
+      "isFree": true,
+      "website": "http://www.humsitaray.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Hum",
+      "isFree": true,
+      "website": "https://www.hum.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Hum World",
+      "isFree": true,
+      "website": "https://hum.tv/hum-world-sd/",
+      "priority": 5
+    },
+    {
+      "name": "Kashish",
+      "isFree": true,
+      "website": "https://www.ktntv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "KTN",
+      "isFree": true,
+      "keywords": "ktn -news",
+      "website": "https://www.ktntv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "LTN Family",
+      "isFree": true,
+      "website": "https://ltnfamily.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Masala",
+      "isFree": true,
+      "website": "https://www.masala.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Pashto",
+      "isFree": true,
+      "website": "https://humpashto1.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Play Entertainment",
+      "isFree": true,
+      "website": "https://www.playentertainment.tv/",
+      "priority": 5
+    },
+    {
+      "name": "PMI",
+      "isFree": true,
+      "website": "http://www.pmitv.org/",
+      "priority": 5
+    },
+    {
+      "name": "Pop Pakistan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Praise",
+      "isFree": true,
+      "website": "https://praisetvpakistan.tv/",
+      "priority": 5
+    },
+    {
+      "name": "PTV Bolan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PTV Global",
+      "isFree": true,
+      "website": "http://global.ptv.com.pk/",
+      "priority": 5
+    },
+    {
+      "name": "PTV National",
+      "isFree": true,
+      "website": "https://www.ptv.com.pk/ptvCorporate/ptvNational",
+      "priority": 5
+    },
+    {
+      "name": "Punjab",
+      "isFree": true,
+      "website": "http://www.punjabtv.pk/",
+      "priority": 5
+    },
+    {
+      "name": "Raavi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rohi",
+      "isFree": true,
+      "website": "http://www.rohi.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Royal Taiz",
+      "isFree": true,
+      "website": "https://royaltaiz.tv/",
+      "priority": 5
+    },
+    {
+      "name": "SAB",
+      "isFree": true,
+      "website": "https://sabtv.pk/",
+      "priority": 5
+    },
+    {
+      "name": "Samaa",
+      "isFree": true,
+      "website": "https://www.samaa.tv/",
+      "priority": 5
+    },
+    {
+      "name": "See",
+      "isFree": true,
+      "website": "http://seetv.pk/",
+      "priority": 5
+    },
+    {
+      "name": "Shine Star",
+      "isFree": true,
+      "website": "https://shinestar.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Silver Screen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sindh",
+      "isFree": true,
+      "keywords": "sindh tv -news",
+      "website": "https://sindhtv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Smile",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Star Asia",
+      "isFree": true,
+      "website": "http://starasianews.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Starlite",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Star Max",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV One Global",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Today",
+      "isFree": true,
+      "website": "https://tvtodaynews.tv/",
+      "priority": 5
+    },
+    {
+      "name": "VU TV Network",
+      "isFree": true,
+      "website": "http://www.vu.edu.pk/",
+      "priority": 5
+    },
+    {
+      "name": "VU TV Network 2",
+      "isFree": true,
+      "website": "http://www.vu.edu.pk/",
+      "priority": 5
+    },
+    {
+      "name": "VU TV Network 3",
+      "isFree": true,
+      "website": "http://www.vu.edu.pk/",
+      "priority": 5
+    },
+    {
+      "name": "VU TV Network 4",
+      "isFree": true,
+      "website": "http://www.vu.edu.pk/",
+      "priority": 5
+    },
+    {
+      "name": "Waseb",
+      "isFree": true,
+      "website": "http://www.waseb.tv/home",
+      "priority": 5
+    },
+    {
+      "name": "Zan",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "8XM",
+      "isFree": true,
+      "website": "https://8xm.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ARY Musik",
+      "isFree": true,
+      "website": "https://arymusik.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Jalwa",
+      "isFree": true,
+      "website": "https://jalwa.tv/",
+      "priority": 5
+    },
+    {
+      "name": "JooMusic",
+      "isFree": true,
+      "website": "https://www.joomusic.info/",
+      "priority": 5
+    },
+    {
+      "name": "VH",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Aag",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cartoon Network",
+      "isFree": true,
+      "website": "http://www.cartoonnetwork.com.pk/",
+      "priority": 5
+    },
+    {
+      "name": "Kids Zone",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Minimax",
+      "isFree": true,
+      "website": "https://www.bellsentertainment.com.pk/media/",
+      "priority": 5
+    },
+    {
+      "name": "Nickelodeon",
+      "isFree": true,
+      "website": "http://www.nickpakistan.tv/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Bethat",
+      "isFree": true,
+      "website": "https://bethat.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ELC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Geo Canada",
+      "isFree": true,
+      "website": "https://asr.geo.tv/canada/",
+      "priority": 5
+    },
+    {
+      "name": "Geo Middle East",
+      "isFree": true,
+      "website": "http://www.geo.tv/me/",
+      "priority": 5
+    },
+    {
+      "name": "Geo UK",
+      "isFree": true,
+      "website": "https://asr.geo.tv/uk/",
+      "priority": 5
+    },
+    {
+      "name": "Geo USA",
+      "isFree": true,
+      "website": "https://asr.geo.tv/usa/",
+      "priority": 5
+    },
+    {
+      "name": "HarPal Geo",
+      "isFree": true,
+      "website": "https://harpalgeo.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Mehran",
+      "isFree": true,
+      "website": "https://mehrantv.tv",
+      "priority": 5
+    },
+    {
+      "name": "Teleschool",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Cinema Gold",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cinema",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Filmax",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Filmazia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Filmcity",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Film World",
+      "isFree": true,
+      "website": "https://ltnworld.com/",
+      "priority": 5
+    }
+  ],
+  "Added": [
+    {
+      "name": "Geo",
+      "priority": 5
+    }
+  ]
+}

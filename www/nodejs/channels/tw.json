@@ -1,0 +1,1105 @@
+{
+  "Religious": [
+    {
+      "name": "GOOD TV CH1 綜合台",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH12 維他命施",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH14 真情部落格",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH15 真情之夜",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH16 葉光明",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH17 大衛鮑森",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH18 國際講員",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH19 共享觀點",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH2 真理台",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH20 恩典時分",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH21 華語講員",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH22 職場新視野",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH24 劉三講古",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH25 福氣人生",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH27 空中聖經學院",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH28 現代詩歌",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH29 經典音樂河",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH3 真情部落格 短版",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH30 天堂敬拜",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH31 福音佈道音樂會",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH41 幸福學堂",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH44 烤箱讀書會",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH45 卡通",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH47 牧者頻道",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH49 禱告頻道",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH5 共享觀點 短版",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH6 親近神 詩歌音樂",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH7 禱告大軍 信息",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH8 幸福學堂 短版",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GOOD TV CH9 愛,好醫生 短版",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Beautiful Life",
+      "isFree": true,
+      "website": "http://www.bltv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "CBTV",
+      "isFree": true,
+      "website": "https://www.cbtv.com.tw/",
+      "priority": 4
+    },
+    {
+      "name": "CGNTV Chinese",
+      "isFree": true,
+      "website": "http://chinese.cgntv.net/",
+      "priority": 4
+    },
+    {
+      "name": "Chengte",
+      "isFree": true,
+      "website": "https://tv.chengte.org.tw/",
+      "priority": 4
+    },
+    {
+      "name": "Good 2",
+      "isFree": true,
+      "website": "https://www.goodtv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Good",
+      "isFree": true,
+      "website": "https://www.goodtv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Hwazan Satellite",
+      "isFree": true,
+      "website": "https://www.hwazan.org/",
+      "priority": 4
+    },
+    {
+      "name": "Life",
+      "isFree": true,
+      "website": "http://www.lifetv.org.tw/",
+      "priority": 4
+    },
+    {
+      "name": "WXTV",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "News": [
+    {
+      "name": "FTV News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVBS新聞",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CTi News",
+      "isFree": true,
+      "website": "http://www.ctitv.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "CTS News",
+      "isFree": true,
+      "website": "https://www.cts.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "CTV News",
+      "isFree": true,
+      "website": "http://new.ctv.com.tw/News",
+      "priority": 5
+    },
+    {
+      "name": "EBC Financial News",
+      "isFree": true,
+      "website": "https://fnc.ebc.net.tw/",
+      "priority": 5
+    },
+    {
+      "name": "EBC News",
+      "isFree": true,
+      "keywords": "ebc news -asia",
+      "website": "https://news.ebc.net.tw/",
+      "priority": 5
+    },
+    {
+      "name": "EBC News Asia",
+      "isFree": true,
+      "website": "http://ebcasiatv.com/asia/apps/aboutch.htm?ch=1",
+      "priority": 5
+    },
+    {
+      "name": "Era News",
+      "isFree": true,
+      "website": "https://www.eracom.com.tw/EraNews/",
+      "priority": 5
+    },
+    {
+      "name": "ETTV Asia News",
+      "isFree": true,
+      "website": "http://ettvasia.ebc.net.tw/",
+      "priority": 5
+    },
+    {
+      "name": "ETTV Financial",
+      "isFree": true,
+      "website": "http://www.ettvamerica.com/Channels/ChannelDescription?i=Financial",
+      "priority": 5
+    },
+    {
+      "name": "ETTV News",
+      "isFree": true,
+      "website": "http://www.ettvamerica.com/Channels/ChannelDescription.cshtml?i=News",
+      "priority": 5
+    },
+    {
+      "name": "Express Finance Satellite",
+      "isFree": true,
+      "website": "https://www.eftv.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "FTV Taiwan",
+      "isFree": true,
+      "website": "https://www.ftv.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "Global News",
+      "isFree": true,
+      "website": "http://www.asiadigital.com.tw/archives/category/globalnews",
+      "priority": 5
+    },
+    {
+      "name": "mnews",
+      "isFree": true,
+      "website": "https://www.mnews.tw/",
+      "priority": 5
+    },
+    {
+      "name": "Next TV News",
+      "isFree": true,
+      "website": "http://www.nexttv.com.tw/NextTV/News/",
+      "priority": 5
+    },
+    {
+      "name": "PTS News 24",
+      "isFree": true,
+      "website": "https://news.pts.org.tw/video",
+      "priority": 5
+    },
+    {
+      "name": "SET iNews",
+      "isFree": true,
+      "website": "https://www.settv.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "SET News",
+      "isFree": true,
+      "website": "https://www.settv.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "TTV Finance",
+      "isFree": true,
+      "website": "https://www.ttv.com.tw/finance/",
+      "priority": 5
+    },
+    {
+      "name": "TTV News",
+      "isFree": true,
+      "website": "https://www.ttv.com.tw/news/",
+      "priority": 5
+    },
+    {
+      "name": "TVBS News",
+      "isFree": true,
+      "website": "https://news.tvbs.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "UDN",
+      "isFree": true,
+      "website": "https://video.udn.com/live",
+      "priority": 5
+    },
+    {
+      "name": "Unique Business News",
+      "isFree": true,
+      "website": "https://news.ustv.com.tw/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "CTI TV Asia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Indigenous",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Legislative Yuan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Amazing",
+      "isFree": null,
+      "website": "https://www.ourshdtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Asian Food Network",
+      "isFree": true,
+      "website": "https://www.tlc-tw.com/afn.php",
+      "priority": 5
+    },
+    {
+      "name": "Asia Travel",
+      "isFree": true,
+      "website": "https://www.asiadigital.com.tw/archives/category/asiatravel",
+      "priority": 5
+    },
+    {
+      "name": "Banana",
+      "isFree": null,
+      "website": "https://www.ourshdtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Buddha Compassion TV Station",
+      "isFree": true,
+      "website": "http://rsbc.ehosting.com.tw/bts/home.htm",
+      "priority": 5
+    },
+    {
+      "name": "Congress Channel",
+      "isFree": true,
+      "website": "https://www.parliamentarytv.org.tw/",
+      "priority": 5
+    },
+    {
+      "name": "Congress Channel 2",
+      "isFree": true,
+      "website": "https://www.parliamentarytv.org.tw/",
+      "priority": 5
+    },
+    {
+      "name": "CTi Asia",
+      "isFree": true,
+      "website": "https://ctiasia.chinatimes.com/",
+      "priority": 5
+    },
+    {
+      "name": "CTi Entertainment",
+      "isFree": true,
+      "website": "https://www.ctitv.com.tw/channel39",
+      "priority": 5
+    },
+    {
+      "name": "CTi North America",
+      "isFree": true,
+      "website": "https://www.ctitv.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "CTi",
+      "isFree": true,
+      "website": "http://www.ctitv.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "CTi Variety",
+      "isFree": true,
+      "website": "https://www.ctitv.com.tw/channel36",
+      "priority": 5
+    },
+    {
+      "name": "CTS",
+      "isFree": true,
+      "keywords": "cts -iq -news",
+      "website": "https://www.cts.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "CTV",
+      "isFree": true,
+      "keywords": "ctv -bravo -classic -news -channel",
+      "website": "http://new.ctv.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "CTV Bravo",
+      "isFree": true,
+      "website": "http://new.ctv.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "DaAi",
+      "isFree": true,
+      "website": "http://www.daai.tv/",
+      "priority": 5
+    },
+    {
+      "name": "DaAi 2",
+      "isFree": true,
+      "website": "http://www.daai.tv/",
+      "priority": 5
+    },
+    {
+      "name": "DaAi World",
+      "isFree": true,
+      "website": "http://www.daai.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Dali",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Discovery Asia Taiwan",
+      "isFree": true,
+      "website": "https://www.discoverychannel.com.tw/asia_index.php",
+      "priority": 7
+    },
+    {
+      "name": "EBC Asia",
+      "isFree": true,
+      "website": "http://ebcasiatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "EBC Super",
+      "isFree": true,
+      "website": "https://supertv.ebc.net.tw/",
+      "priority": 5
+    },
+    {
+      "name": "EBC Variety",
+      "isFree": true,
+      "keywords": "ebc variety -asia",
+      "website": "http://www.ebc.net.tw/",
+      "priority": 5
+    },
+    {
+      "name": "EBC Variety Asia",
+      "isFree": true,
+      "website": "http://ebcasiatv.com/asia/apps/aboutch.htm",
+      "priority": 5
+    },
+    {
+      "name": "ETTV China",
+      "isFree": true,
+      "website": "http://ettvamerica.com/Channels/ChannelDescription?i=China",
+      "priority": 5
+    },
+    {
+      "name": "ETTV Global",
+      "isFree": true,
+      "website": "http://www.ettvamerica.com/Channels/ChannelDescription?i=Global",
+      "priority": 5
+    },
+    {
+      "name": "EVE Taiwan",
+      "isFree": true,
+      "website": "https://www.tlc-tw.com/eve.php",
+      "priority": 5
+    },
+    {
+      "name": "EYE TV Travel",
+      "isFree": true,
+      "website": "https://www.eyetv.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "Food Network",
+      "isFree": true,
+      "website": "https://www.tlc-tw.com/fn.php",
+      "priority": 5
+    },
+    {
+      "name": "FTV",
+      "isFree": true,
+      "keywords": "ftv -drama -news -one -taiwan -travel -variety",
+      "website": "https://www.ftv.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "FTV Drama",
+      "isFree": true,
+      "website": "https://embed.4gtv.tv/ftv/FTVDrama.html",
+      "priority": 5
+    },
+    {
+      "name": "FTV One",
+      "isFree": true,
+      "website": "https://www.ftv.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "FTV Travel",
+      "isFree": true,
+      "website": "https://embed.4gtv.tv/ftv/FTVTravel.html",
+      "priority": 5
+    },
+    {
+      "name": "FTV Variety",
+      "isFree": true,
+      "website": "https://embed.4gtv.tv/ftv/FTVVariety.html",
+      "priority": 5
+    },
+    {
+      "name": "Genius Go Go Go",
+      "isFree": true,
+      "website": "https://www.cts.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "Gorgeous Space",
+      "isFree": true,
+      "website": "https://hhh.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "GTV",
+      "isFree": true,
+      "website": "https://www.gtv.com.tw/channel.php?channelId=27",
+      "priority": 5
+    },
+    {
+      "name": "GTV Entertainment",
+      "isFree": true,
+      "website": "https://www.gtv.com.tw/channel.php?channelId=86",
+      "priority": 5
+    },
+    {
+      "name": "GTV K",
+      "isFree": true,
+      "website": "https://www.gtv.com.tw/channel.php?channelId=28",
+      "priority": 5
+    },
+    {
+      "name": "Happy",
+      "isFree": null,
+      "website": "http://www.star-winged.com.tw/happy/",
+      "priority": 5
+    },
+    {
+      "name": "HGTV",
+      "isFree": true,
+      "website": "https://www.tlc-tw.com/hgtv.php",
+      "priority": 5
+    },
+    {
+      "name": "Hi-Play",
+      "isFree": null,
+      "website": "http://www.star-winged.com.tw/hi/",
+      "priority": 5
+    },
+    {
+      "name": "Hot",
+      "isFree": null,
+      "website": "http://www.star-winged.com.tw/hot/",
+      "priority": 5
+    },
+    {
+      "name": "Lohas",
+      "isFree": null,
+      "website": "http://www.goldentv.com.tw/index.php?m=Product&a=index&pc_code=1080113&pop=false",
+      "priority": 5
+    },
+    {
+      "name": "Look",
+      "isFree": true,
+      "website": "http://www.rtv.com.tw/main.php?ch=ktv",
+      "priority": 5
+    },
+    {
+      "name": "LTV Drama",
+      "isFree": true,
+      "website": "http://www.ltv.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "MTV",
+      "isFree": true,
+      "website": "http://www.mtv.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "Ours HD",
+      "isFree": null,
+      "website": "https://www.ourshdtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ours HD 2",
+      "isFree": null,
+      "website": "https://www.ourshdtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ours HD 3",
+      "isFree": null,
+      "website": "https://www.ourshdtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Pandora Perfect",
+      "isFree": null,
+      "website": "https://www.pandoramove.tw/",
+      "priority": 5
+    },
+    {
+      "name": "Parliamentary",
+      "isFree": true,
+      "website": "https://www.parliamentarytv.org.tw/#live",
+      "priority": 5
+    },
+    {
+      "name": "Pili",
+      "isFree": true,
+      "website": "https://home.pili.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "PTS",
+      "isFree": true,
+      "keywords": "pts -3 -news -24 -taigi",
+      "website": "https://www.pts.org.tw/",
+      "priority": 5
+    },
+    {
+      "name": "PTS 3",
+      "isFree": true,
+      "website": "http://pts_3.pts.org.tw/",
+      "priority": 5
+    },
+    {
+      "name": "PTS Taigi",
+      "isFree": true,
+      "website": "https://taigi.pts.org.tw/",
+      "priority": 5
+    },
+    {
+      "name": "Rainbow",
+      "isFree": null,
+      "website": "http://www.rtv.com.tw/main.php?ch=bang",
+      "priority": 5
+    },
+    {
+      "name": "SDTV",
+      "isFree": true,
+      "website": "https://www.sdtv.com.tw/index_tw.php",
+      "priority": 5
+    },
+    {
+      "name": "SET International",
+      "isFree": true,
+      "website": "https://www.settv.com.tw/en/html/",
+      "priority": 5
+    },
+    {
+      "name": "SET Metro",
+      "isFree": true,
+      "website": "http://www.settv.com.tw/metro/",
+      "priority": 5
+    },
+    {
+      "name": "SET Taiwan",
+      "isFree": true,
+      "website": "http://www.settv.com.tw/taiwan/",
+      "priority": 5
+    },
+    {
+      "name": "Sinda",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SJTV",
+      "isFree": true,
+      "website": "https://www.sjtv.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "Sonsee TV",
+      "isFree": null,
+      "website": "http://www.sonseetv.com",
+      "priority": 5
+    },
+    {
+      "name": "Sonsee TV 2",
+      "isFree": null,
+      "website": "http://www.sonseetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sonsee TV 3",
+      "isFree": null,
+      "website": "http://www.sonseetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sonsee TV 4",
+      "isFree": null,
+      "website": "http://www.sonseetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Supreme Master",
+      "isFree": true,
+      "website": "http://suprememastertv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Taiwan Indigenous",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Taiwan Plus",
+      "isFree": true,
+      "website": "https://www.taiwanplus.com",
+      "priority": 5
+    },
+    {
+      "name": "TLC",
+      "isFree": true,
+      "website": "https://www.tlc-tw.com/index.php",
+      "priority": 5
+    },
+    {
+      "name": "Top",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TTV",
+      "isFree": true,
+      "keywords": "ttv -finance -news -variety",
+      "website": "https://www.ttv.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "TTV Variety",
+      "isFree": true,
+      "website": "https://www.ttv.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "TVBS",
+      "isFree": true,
+      "keywords": "tvbs -entertainment -channel -news",
+      "website": "https://www.tvbs.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "TVBS-Asia",
+      "isFree": true,
+      "website": "https://www.tvbs.com.tw/ours/en/tvbsasia",
+      "priority": 5
+    },
+    {
+      "name": "TVBS Entertainment",
+      "isFree": true,
+      "website": "http://www.tvbs.com.tw/tvbs_g/",
+      "priority": 5
+    },
+    {
+      "name": "UCTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Unique Satellite",
+      "isFree": true,
+      "website": "https://www.ustv.com.tw/home",
+      "priority": 5
+    },
+    {
+      "name": "Videoland Japan",
+      "isFree": true,
+      "website": "http://japan.videoland.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "Videoland Max",
+      "isFree": true,
+      "website": "http://maxtv.videoland.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "Videoland ONTV",
+      "isFree": true,
+      "website": "http://ontv.videoland.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "Wei Xin",
+      "isFree": true,
+      "website": "http://wxtv.asia/",
+      "priority": 5
+    },
+    {
+      "name": "Wolves Valley",
+      "isFree": true,
+      "website": "http://www.esports.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "World",
+      "isFree": true,
+      "website": "https://www.wtvtw.com/",
+      "priority": 5
+    },
+    {
+      "name": "Z",
+      "isFree": true,
+      "website": "http://www.zchannel.com.tw/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "GSTV Gorgeous Space",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Animal Planet",
+      "isFree": true,
+      "website": "https://www.discoverychannel.com.tw/ap_index.php",
+      "priority": 5
+    },
+    {
+      "name": "CTS IQ",
+      "isFree": true,
+      "website": "https://www.cts.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "Hakka",
+      "isFree": true,
+      "website": "https://www.hakkatv.org.tw/",
+      "priority": 5
+    },
+    {
+      "name": "National Geographic",
+      "isFree": true,
+      "website": "http://natgeotv.com/asia",
+      "priority": 7
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Cartoon Network",
+      "isFree": true,
+      "website": "http://www.cartoonnetwork.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "EBC YOYO",
+      "isFree": true,
+      "website": "http://ebcasiatv.com/asia/apps/showlist.htm?ch=3",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "CTV Classic",
+      "isFree": true,
+      "website": "http://new.ctv.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "EBC Drama",
+      "isFree": true,
+      "website": "https://drama.ebc.net.tw/",
+      "priority": 5
+    },
+    {
+      "name": "EBC Foreign Movie",
+      "isFree": true,
+      "website": "http://emovie.ebc.net.tw/",
+      "priority": 5
+    },
+    {
+      "name": "EBC Movie",
+      "isFree": true,
+      "website": "http://etmovie.ebc.net.tw/",
+      "priority": 5
+    },
+    {
+      "name": "ETTV Drama",
+      "isFree": true,
+      "website": "http://www.ettvamerica.com/Channels/ChannelDescription?i=Drama",
+      "priority": 5
+    },
+    {
+      "name": "EYE TV Drama",
+      "isFree": true,
+      "website": "https://www.eyetv.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "FOX Taiwan",
+      "isFree": true,
+      "website": "https://www.dngtw.tw/",
+      "priority": 5
+    },
+    {
+      "name": "GTV Drama",
+      "isFree": true,
+      "website": "https://www.gtv.com.tw/channel.php?channelId=41",
+      "priority": 5
+    },
+    {
+      "name": "Hollywood Movie",
+      "isFree": true,
+      "website": "https://www.hollywood.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "LS Time Movie",
+      "isFree": true,
+      "website": "http://www.lstime.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "Private Cinema",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rainbow Movie",
+      "isFree": true,
+      "website": "http://www.rtv.com.tw/main.php?ch=movie",
+      "priority": 5
+    },
+    {
+      "name": "Universal",
+      "isFree": true,
+      "website": "http://www.universalchannel.asia/",
+      "priority": 5
+    },
+    {
+      "name": "Videoland Drama",
+      "isFree": true,
+      "website": "http://drama.videoland.com.tw/",
+      "priority": 5
+    },
+    {
+      "name": "Videoland Movie",
+      "isFree": true,
+      "website": "http://movie.videoland.com.tw/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Eleven",
+      "isFree": true,
+      "website": "https://www.elevensports.tw/",
+      "priority": 5
+    },
+    {
+      "name": "Eleven 2",
+      "isFree": true,
+      "website": "https://www.elevensports.tw/",
+      "priority": 5
+    },
+    {
+      "name": "Sportcast Golf 2",
+      "isFree": true,
+      "website": "http://www.sportcast.com.tw/golf.php?item_id=2&i=4",
+      "priority": 10
+    },
+    {
+      "name": "Videoland Sports",
+      "isFree": true,
+      "website": "http://sport.videoland.com.tw/",
+      "priority": 10
+    }
+  ],
+  "Shop": [
+    {
+      "name": "ET Mall",
+      "isFree": true,
+      "website": "https://www.etmall.com.tw/",
+      "priority": 4
+    },
+    {
+      "name": "ET Mall 2",
+      "isFree": true,
+      "website": "https://www.etmall.com.tw/",
+      "priority": 4
+    },
+    {
+      "name": "ET Mall 3",
+      "isFree": true,
+      "website": "https://www.etmall.com.tw/",
+      "priority": 4
+    },
+    {
+      "name": "ET Mall 5",
+      "isFree": true,
+      "website": "https://www.etmall.com.tw/",
+      "priority": 4
+    },
+    {
+      "name": "ET Mall 60",
+      "isFree": true,
+      "website": "https://www.etmall.com.tw/",
+      "priority": 4
+    },
+    {
+      "name": "Momo Shopping 2",
+      "isFree": true,
+      "website": "https://www.momoshop.com.tw/main/Main.jsp",
+      "priority": 4
+    },
+    {
+      "name": "MOMO",
+      "isFree": true,
+      "website": "https://tv.momoshop.com.tw/main.momo",
+      "priority": 4
+    },
+    {
+      "name": "ViVa",
+      "isFree": true,
+      "website": "https://www.vivatv.com.tw/",
+      "priority": 4
+    }
+  ]
+}

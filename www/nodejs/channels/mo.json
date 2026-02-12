@@ -1,0 +1,163 @@
+{
+  "Entertainment": [
+    {
+      "name": "Boom",
+      "isFree": true,
+      "keywords": "boom",
+      "priority": 5
+    },
+    {
+      "name": "Canal Macau",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTP Africa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "STV",
+      "isFree": true,
+      "keywords": "stv | soico",
+      "priority": 5
+    },
+    {
+      "name": "TDM Info",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TDM Entertainment",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVI Africa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVM",
+      "isFree": true,
+      "keywords": "tvm | tv mocambique | televisao mocambique",
+      "priority": 5
+    },
+    {
+      "name": "Zap Novelas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zap Viva",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lotus",
+      "isFree": true,
+      "website": "http://www.lotustv.cc/",
+      "priority": 5
+    },
+    {
+      "name": "MASTV",
+      "isFree": true,
+      "website": "http://www.imastv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MCTV Channel",
+      "isFree": true,
+      "website": "https://www.macaucabletv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MCTV Channel 3",
+      "isFree": true,
+      "website": "https://www.macaucabletv.com/",
+      "priority": 5
+    },
+    {
+      "name": "TDM",
+      "isFree": true,
+      "website": "http://www.tdm.com.mo/c_tv/?ch=hdctvp",
+      "priority": 5
+    },
+    {
+      "name": "TDM-Macau Satellite",
+      "isFree": true,
+      "website": "http://new.tdm.com.mo/c_tv/?ch=sat",
+      "priority": 5
+    },
+    {
+      "name": "TDM Ou Mun",
+      "isFree": true,
+      "website": "http://new.tdm.com.mo/c_tv/?ch=ctvp",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Boomerang",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Blast",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Afro Music",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "TDM Sport",
+      "priority": 10
+    },
+    {
+      "name": "Football",
+      "isFree": true,
+      "website": "https://www.macaucabletv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MCTV Info-Sports",
+      "isFree": true,
+      "website": "https://www.macaucabletv.com/",
+      "priority": 10
+    },
+    {
+      "name": "Sports",
+      "isFree": true,
+      "website": "https://www.macaucabletv.com/",
+      "priority": 10
+    },
+    {
+      "name": "TDM Sports",
+      "isFree": true,
+      "website": "http://new.tdm.com.mo/c_tv/?ch=sport",
+      "priority": 10
+    }
+  ],
+  "News": [
+    {
+      "name": "MCTV iNews",
+      "isFree": true,
+      "website": "https://www.macaucabletv.com/",
+      "priority": 5
+    },
+    {
+      "name": "TDM Information",
+      "isFree": true,
+      "website": "http://new.tdm.com.mo/c_tv/?ch=info",
+      "priority": 5
+    }
+  ]
+}

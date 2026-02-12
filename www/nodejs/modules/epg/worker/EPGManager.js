@@ -5,7 +5,7 @@ import { EPGCurator } from './EPGCurator.js'
 import { EPG_CONFIG } from './config.js'
 import { DatabaseFactory } from './database/DatabaseFactory.js'
 import config from '../../config/config.js'
-import ConnRacing from '../../conn-racing/conn-racing.js'
+import ConnRacing from '@edenware/conn-racing'
 import { parseCommaDelimitedURIs, ucWords } from '../../utils/utils.js'
 import setupUtils from '../../multi-worker/utils.js'
 import { getFilename } from 'cross-dirname'
@@ -310,6 +310,16 @@ export default class EPGManager extends EPGPaginateChannelsList {
       return
     }
 
+    // CRITICAL FIX: Skip data curation if any EPG is being destroyed or reloaded
+    // This prevents race conditions during database operations
+    for (const url in this.epgs) {
+      const epg = this.epgs[url]
+      if (epg?.db && (epg.db.destroyed || !epg.db.initialized || epg.readyState === 'destroyed' || epg.readyState === 'destroying')) {
+        console.warn(`⚠️ Skipping data curation - EPG ${url} is in unstable state (readyState: ${epg.readyState}, db.destroyed: ${epg.db.destroyed}, db.initialized: ${epg.db.initialized})`)
+        return
+      }
+    }
+
     // First, clean old data from all EPGs (optional but kept)
     await this.cleanOldData()
 
@@ -329,11 +339,25 @@ export default class EPGManager extends EPGPaginateChannelsList {
         continue
       }
 
+      // CRITICAL FIX: Double-check database state before walk to prevent race conditions
+      if (db.destroyed || !db.initialized) {
+        console.warn(`⚠️ Skipping walk for ${url} - database became unstable during curation`)
+        continue
+      }
+
       try {
         const initialLength = (db && typeof db.length === 'number') ? db.length : 0
+        const initialState = { initialized: db.initialized, destroyed: db.destroyed || false }
+
         this.debug && console.log(`🔍 Building icon index for ${url}: starting with db.length=${initialLength}`)
-        
+
         for await (const p of db.walk()) {
+          // CRITICAL FIX: Check database state during walk to detect if it was destroyed mid-operation
+          if (db.destroyed || !db.initialized) {
+            console.error(`🚨 CRITICAL: Database ${url} was destroyed during walk operation! Aborting curation.`)
+            return
+          }
+
           if (p?.icon) {
             const key = this.curator.normalizeTitle(p.title)
             if (!key) continue
@@ -341,16 +365,18 @@ export default class EPGManager extends EPGPaginateChannelsList {
             crossIconIndex.get(key).add(p.icon)
           }
         }
-        
+
         const afterWalkLength = (db && typeof db.length === 'number') ? db.length : 0
+        const afterWalkState = { initialized: db.initialized, destroyed: db.destroyed || false }
+
         this.debug && console.log(`🔍 Icon index built for ${url}: db.length=${afterWalkLength} (was ${initialLength})`)
-        
+
         if (afterWalkLength !== initialLength) {
           console.error(`🚨 FLAG: Database length changed during walk()! ${initialLength} → ${afterWalkLength}`)
         }
-        
-        if (!db.initialized || db.destroyed) {
-          console.error(`🚨 FLAG: Database state changed during walk()! initialized=${db.initialized}, destroyed=${db.destroyed || false}`)
+
+        if (afterWalkState.initialized !== initialState.initialized || afterWalkState.destroyed !== initialState.destroyed) {
+          console.error(`🚨 FLAG: Database state changed during walk()! initialized=${initialState.initialized}->${afterWalkState.initialized}, destroyed=${initialState.destroyed}->${afterWalkState.destroyed}`)
         }
       } catch (err) {
         console.warn(`Icon index build failed for ${url}:`, err.message)
@@ -373,25 +399,35 @@ export default class EPGManager extends EPGPaginateChannelsList {
         continue
       }
 
+      // CRITICAL FIX: Double-check database state before fillMissingIcons to prevent race conditions
+      if (db.destroyed || !db.initialized) {
+        console.warn(`⚠️ Skipping fillMissingIcons for ${url} - database became unstable during curation`)
+        continue
+      }
+
       try {
         const beforeCurationLength = (db && typeof db.length === 'number') ? db.length : 0
+        const beforeCurationState = { initialized: db.initialized, destroyed: db.destroyed || false }
+
         // CRITICAL: Pass epg.file to fillMissingIcons as fallback
         const epgFilePath = epg.file
         const dbFilePath = db.normalizedFile
         this.debug && console.log(`🔍 Starting fillMissingIcons for ${url}: db.length=${beforeCurationLength}, normalizedFile=${db.normalizedFile || 'undefined'}, filePath=${epgFilePath}`)
-        
+
         const results = await this.curator.fillMissingIcons(db, crossIconIndex, epgFilePath)
         this.debug && console.log(`✅ Icons-only curation for ${url}:`, results)
-        
+
         const afterCurationLength = (db && typeof db.length === 'number') ? db.length : 0
+        const afterCurationState = { initialized: db.initialized, destroyed: db.destroyed || false }
+
         this.debug && console.log(`🔍 After fillMissingIcons for ${url}: db.length=${afterCurationLength} (was ${beforeCurationLength})`)
-        
+
         if (afterCurationLength !== beforeCurationLength) {
           console.error(`🚨 FLAG: Database length changed during fillMissingIcons()! ${beforeCurationLength} → ${afterCurationLength}`)
         }
-        
-        if (!db.initialized || db.destroyed) {
-          console.error(`🚨 FLAG: Database state changed during fillMissingIcons()! initialized=${db.initialized}, destroyed=${db.destroyed || false}`)
+
+        if (afterCurationState.initialized !== beforeCurationState.initialized || afterCurationState.destroyed !== beforeCurationState.destroyed) {
+          console.error(`🚨 FLAG: Database state changed during fillMissingIcons()! initialized=${beforeCurationState.initialized}->${afterCurationState.initialized}, destroyed=${beforeCurationState.destroyed}->${afterCurationState.destroyed}`)
         }
       } catch (err) {
         console.error(`❌ Icons-only curation failed for ${url}:`, err)
@@ -1616,21 +1652,16 @@ export default class EPGManager extends EPGPaginateChannelsList {
     }
 
     const results = []
-    const searchPromises = []
+    const maxResults = 400 // Limit to prevent large memory usage
 
     for (const url in this.epgs) {
       const epg = this.epgs[url]
       if (epg.readyState !== 'loaded') continue
 
-      searchPromises.push(this._searchInEPG(epg, terms, nowLive))
-    }
+      const epgResults = await this._searchInEPG(epg, terms, nowLive)
+      results.push(...epgResults)
 
-    const epgResults = await Promise.allSettled(searchPromises)
-
-    for (const result of epgResults) {
-      if (result.status === 'fulfilled' && Array.isArray(result.value)) {
-        results.push(...result.value)
-      }
+      if (results.length >= maxResults) break
     }
 
     return results

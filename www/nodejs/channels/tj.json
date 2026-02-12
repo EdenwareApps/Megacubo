@@ -1,0 +1,99 @@
+{
+  "Entertainment": [
+    {
+      "name": "Badakhshon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dushanbe",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ilm va Tabiat",
+      "isFree": true,
+      "website": "http://ivt.tj/",
+      "priority": 5
+    },
+    {
+      "name": "Jahonnamo",
+      "isFree": true,
+      "website": "http://www.jahonnamo.tj/",
+      "priority": 5
+    },
+    {
+      "name": "Khatlon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TMT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tojikiston",
+      "isFree": true,
+      "website": "http://tvt.tj/",
+      "priority": 5
+    },
+    {
+      "name": "TV Kulob",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Safina",
+      "isFree": true,
+      "website": "https://safina.tj/",
+      "priority": 5
+    },
+    {
+      "name": "TV Sayohi",
+      "isFree": true,
+      "website": "https://tvsayohi.tj/",
+      "priority": 5
+    },
+    {
+      "name": "TV Sinamo",
+      "isFree": true,
+      "website": "http://www.sinamo.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Sugd",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Futbol",
+      "isFree": true,
+      "website": "http://fft.tj/",
+      "priority": 5
+    },
+    {
+      "name": "TV Varzish",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "TV Bahoriston",
+      "isFree": true,
+      "website": "http://tvb.tj/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "TV Tourism and Folk Crafts",
+      "isFree": true,
+      "website": "https://tvsayohi.tj/",
+      "priority": 5
+    }
+  ]
+}

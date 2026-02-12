@@ -149,7 +149,6 @@ const liveChannels = await lists.getLiveNow();
 ## Configuration
 
 ### Loading Settings
-- `lists-loader-concurrency`: Parallel loading limit
 - `lists-update-interval`: Automatic update interval
 - `lists-cache-size`: Cache size limit
 - `lists-validation`: Enable content validation

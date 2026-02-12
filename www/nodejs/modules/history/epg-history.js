@@ -40,11 +40,9 @@ class EPGHistory extends EntriesGroup {
                 console.warn('Session finished')
                 this.finishSession()
             })
-            lang.ready().catch(err => console.error(err)).finally(() => {
-                global.lists.epgReady().then(() => { // we need to wait for the epg to be ready, it can be slow so do it as last
-                    if (this.inSection()) menu.refresh()
-                }).catch(err => console.error(err))
-            })
+            global.lists.epgReady().then(() => { // we need to wait for the epg to be ready, it can be slow so do it as last
+                if (this.inSection()) menu.refresh()
+            }).catch(err => console.error(err))
         })
     }
     currentStreamData() {        

@@ -1,0 +1,179 @@
+{
+  "Kids": [
+    {
+      "name": "Balastan",
+      "isFree": true,
+      "website": "https://www.utrk.kg/kg/live/tv?channel=49",
+      "priority": 5
+    },
+    {
+      "name": "Bilim Ilim",
+      "isFree": true,
+      "website": "https://eltr.kg/eltr-bilim-ilim/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "TV1",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Aprel",
+      "isFree": true,
+      "website": "https://april.kg/",
+      "priority": 5
+    },
+    {
+      "name": "Channel 5 Kyrgyzstan",
+      "isFree": true,
+      "website": "https://5tv.kg/",
+      "priority": 5
+    },
+    {
+      "name": "Channel 7 Kyrgyzstan",
+      "isFree": true,
+      "website": "https://7tv.kg/",
+      "priority": 5
+    },
+    {
+      "name": "ElTR",
+      "isFree": true,
+      "website": "https://eltr.kg",
+      "priority": 5
+    },
+    {
+      "name": "Lubimyi",
+      "isFree": true,
+      "website": "https://lctv.kg",
+      "priority": 5
+    },
+    {
+      "name": "Manas",
+      "isFree": true,
+      "website": "http://mediamanas.kg/",
+      "priority": 5
+    },
+    {
+      "name": "New",
+      "isFree": true,
+      "website": "http://newtv.kg/",
+      "priority": 5
+    },
+    {
+      "name": "Next",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NTS",
+      "isFree": true,
+      "website": "http://nts.kg/",
+      "priority": 5
+    },
+    {
+      "name": "Osh Pirim",
+      "isFree": true,
+      "website": "https://oshpirim.kg",
+      "priority": 5
+    },
+    {
+      "name": "OshTV",
+      "isFree": true,
+      "website": "https://oshtv.kg/",
+      "priority": 5
+    },
+    {
+      "name": "Semeinyi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 15",
+      "isFree": true,
+      "website": "https://pyramida.kg",
+      "priority": 5
+    },
+    {
+      "name": "TV1.KG",
+      "isFree": true,
+      "website": "http://tv1.kg/",
+      "priority": 5
+    },
+    {
+      "name": "UTRK",
+      "isFree": true,
+      "website": "https://www.utrk.kg",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "312 Kino",
+      "isFree": true,
+      "website": "http://312tv.kg",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "312 Muzyka",
+      "isFree": true,
+      "website": "http://312tv.kg",
+      "priority": 5
+    },
+    {
+      "name": "Music",
+      "isFree": true,
+      "website": "https://www.utrk.kg/kg/live/tv?channel=45",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Ala-Too 24",
+      "isFree": true,
+      "website": "https://www.utrk.kg/kg/live/tv?channel=42",
+      "priority": 5
+    },
+    {
+      "name": "Nomad",
+      "isFree": true,
+      "website": "https://nomadtv.kg/",
+      "priority": 5
+    },
+    {
+      "name": "Region",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Asia",
+      "isFree": true,
+      "website": "http://asiatv.kg/",
+      "priority": 5
+    },
+    {
+      "name": "Madaniyat",
+      "isFree": true,
+      "website": "https://www.utrk.kg/kg",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Kyrgyz Sport",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sport",
+      "isFree": true,
+      "website": "https://www.utrk.kg/kg/live/tv?channel=51",
+      "priority": 10
+    }
+  ]
+}

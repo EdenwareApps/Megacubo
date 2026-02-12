@@ -1,0 +1,154 @@
+{
+  "Religious": [
+    {
+      "name": "Al Maali",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Al Maaref",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Ch4Teen",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Ch4Teen Clip",
+      "isFree": true,
+      "website": "https://www.twitch.tv/ch4teenclip",
+      "priority": 4
+    },
+    {
+      "name": "Ch4Teen Documentary",
+      "isFree": true,
+      "website": "https://www.twitch.tv/ch4teendoc",
+      "priority": 4
+    }
+  ],
+  "News": [
+    {
+      "name": "Al Sabah",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KTV News",
+      "isFree": true,
+      "website": "https://media.gov.kw/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "ATV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Rai",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al-Bawadi",
+      "isFree": true,
+      "website": "https://www.bawaditv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Funoon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KTV 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KTV Al Majlis",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KTV Al Qurain",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KTV Arabe",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KTV Ethraa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KTV Khallik Bilbait",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KTV Sport Plus",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Marina",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Anwar",
+      "isFree": true,
+      "website": "https://alanwar.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Alshahed",
+      "isFree": true,
+      "website": "https://alshahed.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Bahry",
+      "isFree": true,
+      "website": "https://bahry.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ritmu",
+      "isFree": true,
+      "website": "https://www.ritmu.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Scope",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Soutalarab",
+      "isFree": true,
+      "website": "http://arabnewstv.net/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "KTV Sport",
+      "keywords": "ktv sport -plus",
+      "priority": 10
+    }
+  ]
+}

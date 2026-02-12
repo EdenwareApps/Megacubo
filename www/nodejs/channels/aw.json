@@ -1,0 +1,79 @@
+{
+  "Entertainment": [
+    {
+      "name": "Nos Isla",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telearuba",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Aruba Tourist",
+      "isFree": true,
+      "website": "https://arubatouristchannel.com/",
+      "priority": 5
+    },
+    {
+      "name": "ArubaTV +",
+      "isFree": true,
+      "website": "https://www.arubatvplus.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 22 Aruba",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Balchi",
+      "isFree": true,
+      "website": "https://www.balchitv.com/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Cool FM 98. 9",
+      "isFree": true,
+      "website": "https://coolaruba.com/",
+      "priority": 5
+    },
+    {
+      "name": "Heart Radio Aruba",
+      "isFree": true,
+      "website": "https://www.heartradio.com/",
+      "priority": 5
+    },
+    {
+      "name": "Hit 94 FM",
+      "isFree": true,
+      "website": "https://broadcast94.yolasite.com/",
+      "priority": 5
+    },
+    {
+      "name": "Power 101.7 FM",
+      "isFree": true,
+      "website": "http://www.powerfm1017.com/",
+      "priority": 5
+    },
+    {
+      "name": "VIP",
+      "isFree": true,
+      "website": "http://www.viponlineradio.com/vip-tv/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Diario",
+      "isFree": true,
+      "website": "http://www.diariotv.tv/",
+      "priority": 5
+    }
+  ]
+}

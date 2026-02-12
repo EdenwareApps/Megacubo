@@ -1,0 +1,491 @@
+{
+  "Entertainment": [
+    {
+      "name": "Canal 10",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 33",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVO Canal 23",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TribunaTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "WOW",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Órbita TV Canal 25",
+      "isFree": true,
+      "shortName": "ÓTC 2",
+      "priority": 5
+    },
+    {
+      "name": "Agape",
+      "isFree": true,
+      "website": "https://www.agapetv8.com/",
+      "priority": 5
+    },
+    {
+      "name": "Anamoros",
+      "isFree": true,
+      "website": "https://anamorostv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 11 TuTV",
+      "isFree": true,
+      "website": "http://www.canal11.com.sv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 12",
+      "isFree": true,
+      "website": "https://www.canal12.com.sv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 14 TLM",
+      "isFree": true,
+      "website": "https://telemas.com.sv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 15 Acajutla",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 15 El Zamorano",
+      "isFree": true,
+      "website": "https://elzamoranotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 16 Arce Cable",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 2",
+      "isFree": true,
+      "website": "https://www.tcsgo.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 20 Corinto",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 20 Master Cable Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 29 Apopa",
+      "isFree": true,
+      "website": "https://universalcable.com.sv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 29 Omnivision",
+      "isFree": true,
+      "website": "https://canal29omnivision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 31 San Vicente",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 3 Chirilagua",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 3 Impresionante",
+      "isFree": true,
+      "website": "https://canal3impresionante.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 4",
+      "isFree": true,
+      "website": "https://www.tcsgo.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 50 Apopa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 58 El Salvador",
+      "isFree": true,
+      "website": "https://www.iblups.com/canal58elsalvador",
+      "priority": 5
+    },
+    {
+      "name": "Canal 6",
+      "isFree": true,
+      "website": "https://www.tcsgo.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 61 Nuestra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 9 Chalatenango",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 9 La Union",
+      "isFree": true,
+      "website": "https://multicanallu.com.sv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal TRV",
+      "isFree": true,
+      "website": "https://www.diariotrv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Colosal TV Canal 9",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "El 15",
+      "isFree": true,
+      "website": "https://el15tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Emax",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ES 24",
+      "isFree": true,
+      "website": "https://hemispheretv.com/es24/",
+      "priority": 5
+    },
+    {
+      "name": "ESTV Canal 67",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Genteve",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "JTV Corinto",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Legislative Assembly of El Salvador",
+      "isFree": true,
+      "website": "https://www.asamblea.gob.sv/",
+      "priority": 5
+    },
+    {
+      "name": "Megavision Canal 19",
+      "isFree": true,
+      "website": "https://megavision.com.sv/",
+      "priority": 5
+    },
+    {
+      "name": "Megavision Canal 21",
+      "isFree": true,
+      "website": "https://megavision.com.sv/",
+      "priority": 5
+    },
+    {
+      "name": "Morazan",
+      "isFree": true,
+      "website": "https://canal5meanguera.wixsite.com/canal5",
+      "priority": 5
+    },
+    {
+      "name": "RD Click",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Canal 57",
+      "isFree": true,
+      "website": "https://rtvcanal57.com/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Izcanal",
+      "isFree": true,
+      "website": "https://izcanal.org/",
+      "priority": 5
+    },
+    {
+      "name": "SolTV",
+      "isFree": true,
+      "website": "https://radiomorazan.net/",
+      "priority": 5
+    },
+    {
+      "name": "TCS+",
+      "isFree": true,
+      "website": "https://www.tcsgo.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tele El Salvador",
+      "isFree": true,
+      "website": "https://teleelsalvador.com/",
+      "priority": 5
+    },
+    {
+      "name": "Television Santiaguena",
+      "isFree": true,
+      "website": "https://radiocaffe909.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVC Network",
+      "isFree": true,
+      "website": "https://www.tvcnetwork.net/",
+      "priority": 5
+    },
+    {
+      "name": "TV Impacto",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVU",
+      "isFree": true,
+      "website": "https://tvuelsalvadordigital.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVX",
+      "isFree": true,
+      "website": "https://tvx.com.sv",
+      "priority": 5
+    },
+    {
+      "name": "VTV Canal 35",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Órbita FM",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "99",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TDF Canal 99",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Arbol de Vida",
+      "isFree": true,
+      "website": "https://www.iglesiaarboldevida.org/",
+      "priority": 4
+    },
+    {
+      "name": "Canal 26 TV IAP",
+      "isFree": true,
+      "website": "https://canal26.org/",
+      "priority": 4
+    },
+    {
+      "name": "Canal 33 Cablesat",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Canal 63 TV Catolico Corinto",
+      "isFree": true,
+      "website": "https://cablevisioncorinto.blogspot.com/",
+      "priority": 4
+    },
+    {
+      "name": "Canal 65",
+      "isFree": true,
+      "website": "https://www.misioncristianaelohim.com/",
+      "priority": 4
+    },
+    {
+      "name": "Canal 7 Cristiano",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "El Camino",
+      "isFree": true,
+      "website": "http://www.iglesiadelcamino.org/tv/",
+      "priority": 4
+    },
+    {
+      "name": "Elim",
+      "isFree": true,
+      "website": "https://www.elim.org.sv/elimtv/",
+      "priority": 4
+    },
+    {
+      "name": "FTV Television Familiar",
+      "isFree": true,
+      "website": "https://www.televisionfamiliar.com/",
+      "priority": 4
+    },
+    {
+      "name": "GSG",
+      "isFree": true,
+      "website": "https://graciasobregracia.org/",
+      "priority": 4
+    },
+    {
+      "name": "JFV",
+      "isFree": true,
+      "website": "https://www.radiojesucristofuentedevida.com/",
+      "priority": 4
+    },
+    {
+      "name": "Josue",
+      "isFree": true,
+      "website": "https://iglesiajosue.org/es/",
+      "priority": 4
+    },
+    {
+      "name": "Mizpa",
+      "isFree": true,
+      "website": "https://www.radiomizpa.net/",
+      "priority": 4
+    },
+    {
+      "name": "RTV Catolica",
+      "isFree": true,
+      "website": "https://www.radioytelevisioncatolica.com/",
+      "priority": 4
+    },
+    {
+      "name": "TaberTV",
+      "isFree": true,
+      "website": "https://tabernaculo.net/",
+      "priority": 4
+    },
+    {
+      "name": "Television Nueva Jerusalen",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TVCa",
+      "isFree": true,
+      "website": "https://tvcaelsalvador.org/",
+      "priority": 4
+    },
+    {
+      "name": "TV CRET",
+      "isFree": true,
+      "website": "https://radiocret.net/",
+      "priority": 4
+    },
+    {
+      "name": "TV Getsemani",
+      "isFree": true,
+      "website": "https://www.radiogetsemani.net/",
+      "priority": 4
+    },
+    {
+      "name": "TV Leon de Juda",
+      "isFree": true,
+      "website": "https://tvleondejuda.com/",
+      "priority": 4
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Awapa Sports",
+      "isFree": true,
+      "website": "https://megavision.univtec.com/",
+      "priority": 10
+    },
+    {
+      "name": "Tigo Sports",
+      "isFree": true,
+      "website": "http://www.tigosports.com.sv/",
+      "priority": 10
+    }
+  ],
+  "News": [
+    {
+      "name": "MBN",
+      "isFree": true,
+      "website": "https://mbnelsalvador.com/",
+      "priority": 5
+    },
+    {
+      "name": "Orbita",
+      "isFree": true,
+      "website": "https://orbitatv.com.sv/",
+      "priority": 5
+    },
+    {
+      "name": "Tribuna",
+      "isFree": true,
+      "website": "https://www.tribunatv.us/",
+      "priority": 5
+    },
+    {
+      "name": "TVM El Salvador",
+      "isFree": true,
+      "website": "https://tvm.com.sv/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Orbita FM",
+      "isFree": true,
+      "website": "https://orbitafm.com.sv/",
+      "priority": 5
+    }
+  ]
+}

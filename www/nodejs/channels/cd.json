@@ -1,0 +1,890 @@
+{
+  "Music Videos": [
+    {
+      "name": "Afrobeats",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Backstage",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Maajabu",
+      "isFree": true,
+      "website": "https://www.maajabu.tv/",
+      "priority": 5
+    },
+    {
+      "name": "RUMBA",
+      "isFree": true,
+      "website": "https://rumba-tv.com/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Boss Brothers",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Congo Planet Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ABBA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Actu 30",
+      "isFree": true,
+      "website": "https://actu30.cd/",
+      "priority": 5
+    },
+    {
+      "name": "Antenne A",
+      "isFree": true,
+      "website": "https://www.antenneatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "APIC-TV",
+      "isFree": true,
+      "website": "https://apic-tv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Arvignon",
+      "isFree": true,
+      "website": "http://www.eglisearvignon.com/",
+      "priority": 5
+    },
+    {
+      "name": "Biso",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "B-One",
+      "isFree": true,
+      "website": "https://b-onetv.cd/",
+      "priority": 5
+    },
+    {
+      "name": "BSC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CAB-TV",
+      "isFree": true,
+      "website": "https://cab-bukavu.org/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Futur",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Kin Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cascade",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CBC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CCTV Ralik",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CMB Digi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CNTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CODIR",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Congo Stars",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Couleurs",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Digital Congo",
+      "isFree": true,
+      "website": "https://digitalcongo.org/",
+      "priority": 5
+    },
+    {
+      "name": "Dynamique",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EGG PRO",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Espoir",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EVI",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Face",
+      "isFree": true,
+      "website": "https://facetvrdc.com/",
+      "priority": 5
+    },
+    {
+      "name": "Fondation Maluwa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GM RTV",
+      "isFree": true,
+      "website": "https://reveilducongo.com/",
+      "priority": 5
+    },
+    {
+      "name": "Heros",
+      "isFree": true,
+      "website": "https://herostv.net/",
+      "priority": 5
+    },
+    {
+      "name": "HK 6",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "INNOV",
+      "isFree": true,
+      "website": "https://innovtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Justicia",
+      "isFree": true,
+      "website": "https://justiciardc.org/",
+      "priority": 5
+    },
+    {
+      "name": "Kin Direct",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kinshasa Television",
+      "isFree": true,
+      "website": "https://kinshasatelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "KMC",
+      "isFree": true,
+      "website": "https://www.kmc-rdc.tv/",
+      "priority": 5
+    },
+    {
+      "name": "La JOIE",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Life HD",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Madi",
+      "isFree": true,
+      "website": "https://maditvafrica.com/",
+      "priority": 5
+    },
+    {
+      "name": "Malaika",
+      "isFree": true,
+      "website": "https://malaikatv.cd/",
+      "priority": 5
+    },
+    {
+      "name": "Mandiko",
+      "isFree": true,
+      "website": "https://www.mandiko.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Manseba",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mbegu",
+      "isFree": true,
+      "website": "https://mbegu.net/",
+      "priority": 5
+    },
+    {
+      "name": "Mikuba",
+      "isFree": true,
+      "website": "https://mikubart.com/",
+      "priority": 5
+    },
+    {
+      "name": "Numerica",
+      "isFree": true,
+      "website": "https://numericatelevision.cd",
+      "priority": 5
+    },
+    {
+      "name": "Nyota",
+      "isFree": true,
+      "website": "https://www.nyota.net/",
+      "priority": 5
+    },
+    {
+      "name": "Perfect",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PSTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Tele Eben-ezer",
+      "isFree": true,
+      "website": "https://radioteleeben-ezer.net/",
+      "priority": 5
+    },
+    {
+      "name": "RFMTV",
+      "isFree": true,
+      "website": "https://www.rfmtv.net/",
+      "priority": 5
+    },
+    {
+      "name": "RTCL",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTCM",
+      "isFree": true,
+      "website": "https://rtcm-rdc.com/",
+      "priority": 5
+    },
+    {
+      "name": "RTEC Tropicana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTEKA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTGA World",
+      "isFree": true,
+      "website": "https://groupelavenir-rdc.com/",
+      "priority": 5
+    },
+    {
+      "name": "RTK",
+      "isFree": true,
+      "website": "https://kakofm.net/",
+      "priority": 5
+    },
+    {
+      "name": "RTLJ",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTMA Manika",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RT Mwangaza",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTNC",
+      "isFree": true,
+      "keywords": "rtnc -2 -3",
+      "website": "https://rtnc.cd/",
+      "priority": 5
+    },
+    {
+      "name": "RTNC 2",
+      "isFree": true,
+      "website": "https://rtnc.cd/",
+      "priority": 5
+    },
+    {
+      "name": "RTNC 3",
+      "isFree": true,
+      "website": "https://rtnc.cd/",
+      "priority": 5
+    },
+    {
+      "name": "RTNK",
+      "isFree": true,
+      "website": "https://rtnk.org/",
+      "priority": 5
+    },
+    {
+      "name": "RTPA",
+      "isFree": true,
+      "website": "https://www.rtpa.cd/",
+      "priority": 5
+    },
+    {
+      "name": "RTVH",
+      "isFree": true,
+      "website": "https://rtvh.net/",
+      "priority": 5
+    },
+    {
+      "name": "RTVMS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTVS",
+      "isFree": true,
+      "website": "http://rtvs1.cd/",
+      "priority": 5
+    },
+    {
+      "name": "Sacree Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sarah Tola",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sensation",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Six",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "S-Medias Tv 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Star",
+      "isFree": true,
+      "website": "https://www.star-tv.online/",
+      "priority": 5
+    },
+    {
+      "name": "Tele 50",
+      "isFree": true,
+      "website": "https://tele50.cd",
+      "priority": 5
+    },
+    {
+      "name": "Tele 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tokomi Wapi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tosungana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Univers",
+      "isFree": true,
+      "website": "https://eric-mandala.com/univers-groupe-television/",
+      "priority": 5
+    },
+    {
+      "name": "Verts Paturages",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Wangu RTV",
+      "isFree": true,
+      "website": "https://www.wangu.info/",
+      "priority": 5
+    },
+    {
+      "name": "Wemsa",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "10'eme Rue",
+      "isFree": true,
+      "website": "https://10emeruetv.net/",
+      "priority": 5
+    },
+    {
+      "name": "ACTU NGOLO",
+      "isFree": true,
+      "website": "https://actungolotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "AUBS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Baraka Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bosolo Television",
+      "isFree": true,
+      "website": "https://bosolo.info/",
+      "priority": 5
+    },
+    {
+      "name": "Business Life",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Chat",
+      "isFree": true,
+      "website": "https://chatgroupinternational.com/",
+      "priority": 5
+    },
+    {
+      "name": "CML 13",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Communication Plus",
+      "isFree": true,
+      "website": "https://www.communicationplus.info/",
+      "priority": 5
+    },
+    {
+      "name": "Congo 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Congo 26",
+      "isFree": true,
+      "website": "https://congo26tv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Congo Buzz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Congo Live",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ECOFIN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Entrepreneurs",
+      "isFree": true,
+      "website": "https://entrepreneurs-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Geopolis",
+      "isFree": true,
+      "website": "https://geopolismagazine.net/",
+      "priority": 5
+    },
+    {
+      "name": "Kin 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Le Monde en 24h",
+      "isFree": true,
+      "website": "https://lemondeen24h.com/",
+      "priority": 5
+    },
+    {
+      "name": "Le Phare",
+      "isFree": true,
+      "website": "http://lephareonline.net/",
+      "priority": 5
+    },
+    {
+      "name": "Zoom Eco",
+      "isFree": true,
+      "website": "https://zoom-eco.net",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Amen TV Sat",
+      "isFree": true,
+      "website": "https://amentvsat.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Arc-en-ciel",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Ca Marche",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Canal CVV International",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "CCPV Television",
+      "isFree": true,
+      "website": "https://ccpvmontreal.com/",
+      "priority": 4
+    },
+    {
+      "name": "Cle de David",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Compassion",
+      "isFree": true,
+      "website": "https://egliselacompassion.org/",
+      "priority": 4
+    },
+    {
+      "name": "De La Foi",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Desco",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Eden City",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "EMCI TV Afrique",
+      "isFree": true,
+      "website": "https://emcitv.com/direct/kinshasa/",
+      "priority": 4
+    },
+    {
+      "name": "Heritage",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Hope Channel",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Horeb",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Hosanna Radio",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "ITVN Kinshasa",
+      "isFree": true,
+      "website": "https://www.itvn.co.za/",
+      "priority": 4
+    },
+    {
+      "name": "King",
+      "isFree": true,
+      "website": "https://kingtelevision.tv/Coverage.html",
+      "priority": 4
+    },
+    {
+      "name": "LBFD RTV",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "LOGOS Television",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MEG",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Merveilles",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Metanoia",
+      "isFree": true,
+      "website": "https://metanoia.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Mishapi Voice",
+      "isFree": true,
+      "website": "https://mishapivoicetv.net/",
+      "priority": 4
+    },
+    {
+      "name": "MRC",
+      "isFree": true,
+      "website": "https://www.mrctv.cd/",
+      "priority": 4
+    },
+    {
+      "name": "ONE-TV",
+      "isFree": true,
+      "website": "https://www.one-tv.org/",
+      "priority": 4
+    },
+    {
+      "name": "Parole Eternelle",
+      "isFree": true,
+      "website": "https://paroleeternellertv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Parole",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Pourim RTV",
+      "isFree": true,
+      "website": "http://radiopourim.com/",
+      "priority": 4
+    },
+    {
+      "name": "Radio Tele Fepaco",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Radio Tele Fraternite Buena Muntu",
+      "isFree": true,
+      "website": "https://fraternitebuenamuntu.com/",
+      "priority": 4
+    },
+    {
+      "name": "Radiotelevision UMOJA",
+      "isFree": true,
+      "website": "https://fmanasbl.org/",
+      "priority": 4
+    },
+    {
+      "name": "RATELKI",
+      "isFree": true,
+      "website": "https://ratelki.net/",
+      "priority": 4
+    },
+    {
+      "name": "RCV",
+      "isFree": true,
+      "website": "https://www.rcvtv.cd/",
+      "priority": 4
+    },
+    {
+      "name": "REB-TV",
+      "isFree": true,
+      "website": "https://rebtv.org/",
+      "priority": 4
+    },
+    {
+      "name": "RTCE Monde",
+      "isFree": true,
+      "website": "https://radio-elikya.com/",
+      "priority": 4
+    },
+    {
+      "name": "RTEE",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "RTVA",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "RTV CBCO",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "RTVECC",
+      "isFree": true,
+      "website": "https://rtvecc.cd/",
+      "priority": 4
+    },
+    {
+      "name": "Shalom Television",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "SSM",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "VOICI L'HOMME",
+      "isFree": true,
+      "website": "https://voicilhommemonblog.blogspot.com/",
+      "priority": 4
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Balade Monde",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CEBS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Centrale Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "C'Possible",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Educ",
+      "isFree": true,
+      "website": "https://eductv.cd/",
+      "priority": 5
+    },
+    {
+      "name": "J'EDUC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Moliere",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RL PRO",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTUS",
+      "isFree": true,
+      "website": "https://5f9a743138af8.site123.me/",
+      "priority": 5
+    },
+    {
+      "name": "VUVAMU",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Cinarc",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lollywood HD",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Mampala",
+      "isFree": true,
+      "website": "https://acsgroupe.com/",
+      "priority": 5
+    }
+  ]
+}

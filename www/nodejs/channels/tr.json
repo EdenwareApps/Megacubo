@@ -1,0 +1,2882 @@
+{
+  "News": [
+    {
+      "name": "Bloomberg HT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CNN Türk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TGRT Haber",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TRT World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "A Haber",
+      "isFree": true,
+      "website": "http://www.ahaber.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Almahriah",
+      "isFree": true,
+      "website": "https://almahriah.net/",
+      "priority": 5
+    },
+    {
+      "name": "Al Qanat 9",
+      "isFree": true,
+      "website": "https://alqanat9.com/",
+      "priority": 5
+    },
+    {
+      "name": "Anadolu Agency",
+      "isFree": true,
+      "website": "http://www.aa.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "A News",
+      "isFree": true,
+      "website": "https://www.anews.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "A Para",
+      "isFree": true,
+      "website": "http://www.apara.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "AS",
+      "isFree": true,
+      "website": "https://astv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "A Turk",
+      "isFree": true,
+      "website": "https://www.aturk.tv/",
+      "priority": 5
+    },
+    {
+      "name": "BBN Turk",
+      "isFree": true,
+      "website": "https://www.bbnturk.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "BFZ Turk",
+      "isFree": true,
+      "website": "https://bfzturk.com/",
+      "priority": 5
+    },
+    {
+      "name": "CNBC-e",
+      "isFree": true,
+      "website": "https://cnbce.com/",
+      "priority": 5
+    },
+    {
+      "name": "CNN Turk",
+      "isFree": true,
+      "website": "https://www.cnnturk.com/",
+      "priority": 5
+    },
+    {
+      "name": "Dim",
+      "isFree": true,
+      "website": "https://dimtv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Ekoturk",
+      "isFree": true,
+      "website": "https://www.ekoturk.com/",
+      "priority": 5
+    },
+    {
+      "name": "Flash Haber",
+      "isFree": true,
+      "website": "https://flashhabertv.com/canli-yayin.html",
+      "priority": 5
+    },
+    {
+      "name": "GEM Crypto",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GEM Modern Economy",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GEM Property",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Guney TV Tarsus",
+      "isFree": true,
+      "website": "https://www.guneytv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Haberturk",
+      "isFree": true,
+      "website": "https://tv.haberturk.com/",
+      "priority": 5
+    },
+    {
+      "name": "Halab Today",
+      "isFree": true,
+      "website": "https://halabtodaytv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Halk",
+      "isFree": true,
+      "website": "https://halktv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Kablo Info",
+      "isFree": true,
+      "website": "https://www.turksatkablo.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Kadirga",
+      "isFree": true,
+      "website": "https://www.kadirga.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Kanal S",
+      "isFree": true,
+      "website": "https://www.kanals.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Kudus",
+      "isFree": true,
+      "website": "https://www.kudustv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Lider Haber",
+      "isFree": true,
+      "website": "https://liderhaber.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Medya Haber",
+      "isFree": true,
+      "keywords": "medya haber",
+      "website": "https://www.medyahaber.info/",
+      "priority": 5
+    },
+    {
+      "name": "Mekameleen",
+      "isFree": true,
+      "website": "https://www.mekameleen.tv/",
+      "priority": 5
+    },
+    {
+      "name": "MPL",
+      "isFree": true,
+      "website": "https://mpltv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Nora",
+      "isFree": true,
+      "website": "https://noratelevizyonu.com/",
+      "priority": 5
+    },
+    {
+      "name": "OlayTurk",
+      "isFree": true,
+      "website": "https://www.olayturk.tv/",
+      "priority": 5
+    },
+    {
+      "name": "On Medya",
+      "isFree": true,
+      "website": "http://www.onmedya.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "TRT Arabi",
+      "isFree": true,
+      "website": "https://www.trtarabi.com/",
+      "priority": 5
+    },
+    {
+      "name": "TurkHaber",
+      "isFree": true,
+      "website": "https://www.turkhabertv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Turkiye Gazete Radyo Televizyon",
+      "isFree": true,
+      "website": "https://www.tgrt.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Uzay Haber",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Akit",
+      "isFree": true,
+      "website": "https://www.akittv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Can",
+      "isFree": true,
+      "website": "https://cantv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Sports 1",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports 2",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports 3",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports 4",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports 5",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "beIN Series 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "beIN Sports Max 1",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "TV8",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Show TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Semerkand TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KRT TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TRT Spor 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Star TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TRT 1",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TRT Kurdî",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TRT Diyanet",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Eurosport 2",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Discovery Channel",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Ekol TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "FB TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal B",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ulusal 1",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "A2 TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SinemaTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sinema TV Yerli",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sinema TV Aksiyon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SinemaTV Aile",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SinemaTV 1001",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "SAT-7 TÜRK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Thaqalayn",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Al-Rafidain",
+      "isFree": true,
+      "website": "https://alrafidain.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Daawah",
+      "isFree": true,
+      "website": "http://www.daawah.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Diyanet",
+      "isFree": true,
+      "website": "https://www.diyanet.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Diyar",
+      "isFree": true,
+      "website": "https://www.diyartv.com.tr/",
+      "priority": 4
+    },
+    {
+      "name": "Dost",
+      "isFree": true,
+      "website": "https://www.dosttv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Lalegul",
+      "isFree": true,
+      "website": "https://lalegultv.com.tr/",
+      "priority": 4
+    },
+    {
+      "name": "Nur",
+      "isFree": true,
+      "website": "https://www.nurtv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Salam",
+      "isFree": true,
+      "website": "https://salammedia61.com/",
+      "priority": 4
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Sports",
+      "priority": 10
+    },
+    {
+      "name": "TRT Spor",
+      "priority": 5
+    },
+    {
+      "name": "TV 8. 5",
+      "priority": 5
+    },
+    {
+      "name": "A Spor",
+      "isFree": true,
+      "website": "https://www.aspor.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Sports Haber",
+      "isFree": true,
+      "website": "https://beinsports.com.tr/",
+      "priority": 10
+    },
+    {
+      "name": "FB",
+      "isFree": true,
+      "website": "https://www.fenerbahce.org/fbtv/",
+      "priority": 5
+    },
+    {
+      "name": "GEM Fit",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GEM Sport",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 10
+    },
+    {
+      "name": "GS",
+      "isFree": true,
+      "website": "https://galatasaray.com/",
+      "priority": 5
+    },
+    {
+      "name": "HTSpor",
+      "isFree": true,
+      "website": "https://www.htspor.com/canli-yayin",
+      "priority": 5
+    },
+    {
+      "name": "NTV Spor",
+      "isFree": true,
+      "website": "http://www.ntvspor.net/",
+      "priority": 5
+    },
+    {
+      "name": "S Sport",
+      "isFree": true,
+      "keywords": "s sport -2",
+      "website": "https://www.ssport.tv/",
+      "priority": 10
+    },
+    {
+      "name": "S Sport 2",
+      "isFree": true,
+      "website": "https://www.ssport.tv/",
+      "priority": 10
+    },
+    {
+      "name": "Tabii Spor 6",
+      "isFree": true,
+      "website": "https://www.tabii.com/tr/watch/live/tabiispor6",
+      "priority": 5
+    },
+    {
+      "name": "Tivibu Spor",
+      "isFree": true,
+      "keywords": "tivibu spor -2 -3 -4",
+      "website": "https://www.tivibu.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Tivibu Spor 2",
+      "isFree": true,
+      "website": "https://www.tivibu.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Tivibu Spor 3",
+      "isFree": true,
+      "website": "https://www.tivibu.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Tivibu Spor 4",
+      "isFree": true,
+      "website": "https://www.tivibu.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "TJK",
+      "isFree": true,
+      "keywords": "tjk tv -2",
+      "website": "https://www.tjk.org/",
+      "priority": 5
+    },
+    {
+      "name": "TJK TV 2",
+      "isFree": true,
+      "website": "https://www.tjk.org/",
+      "priority": 5
+    },
+    {
+      "name": "TRT Spor Yildiz",
+      "isFree": true,
+      "website": "https://www.trtspor.com.tr/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "TRT Çocuk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Boomerang",
+      "isFree": true,
+      "website": "http://www.boomerangtv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Cartoon Network",
+      "isFree": true,
+      "website": "http://www.cartoonnetwork.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "CBeebies",
+      "isFree": true,
+      "website": "https://www.bbcturkiye.com/kanallar/cbeebies",
+      "priority": 5
+    },
+    {
+      "name": "Cocuk Smart",
+      "isFree": true,
+      "website": "https://www.dsmart.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Disney",
+      "isFree": true,
+      "website": "http://www.disneyturkiye.com.tr/disney-tv/disney-channel/",
+      "priority": 5
+    },
+    {
+      "name": "Disney Jr.",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GEM Junior",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GEM Kids",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Minika Cocuk",
+      "isFree": true,
+      "website": "http://www.minikacocuk.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Minika Go",
+      "isFree": true,
+      "website": "http://www.minikago.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Nickelodeon",
+      "isFree": true,
+      "website": "http://www.nickelodeon.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Nick Jr.",
+      "isFree": true,
+      "website": "http://www.nickjr.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nicktoons",
+      "isFree": true,
+      "website": "http://nicktoons.nick.com/",
+      "priority": 5
+    },
+    {
+      "name": "Spacetoon Turkey",
+      "isFree": true,
+      "website": "https://spacetoon.com.tr/tr/",
+      "priority": 5
+    },
+    {
+      "name": "TRT Cocuk",
+      "isFree": true,
+      "keywords": "trt cocuk -plus8",
+      "website": "https://www.trtcocuk.net.tr/",
+      "priority": 5
+    },
+    {
+      "name": "TRT Cocuk + 8",
+      "isFree": true,
+      "website": "http://www.trtcocuk.net.tr/",
+      "priority": 5
+    },
+    {
+      "name": "TRT Diyanet Cocuk",
+      "isFree": true,
+      "website": "https://www.trtdiyanetcocuk.net.tr/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "AA Live",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AKSU",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ALTAS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ARAS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ASTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ATR Kirim Tatar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ATV Alanya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ATV Avrupa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ada",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Afyon Turk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Afyon Türk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ahi TV Kirsehir",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Akilli",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al-Zahra TV Turkic",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Alanya Posta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Av",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BENGÜTÜRK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BLT Turk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BRT",
+      "isFree": true,
+      "keywords": "brt 1",
+      "priority": 5
+    },
+    {
+      "name": "BRT 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BRTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Berat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Besiktas Web",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Beyaz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Beykent",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Beşiktaş Web",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bitlis",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bodrum Belediyesi Web",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bursa AS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bursa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cay",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cekmeköy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cem",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ciftci",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DHA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DRT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Deha",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dersim 62",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DİM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ELIT TV Isvicre",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ER",
+      "isFree": true,
+      "keywords": "er tv | ertv",
+      "priority": 5
+    },
+    {
+      "name": "ETV Manisa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ege A Turk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ege",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ege Türk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Elmas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Em",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ert Sah",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Erzurum Web",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Euro 90",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Euro Genc",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EuroStar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Fenerbahçe",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Finans Turk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GRT",
+      "isFree": true,
+      "keywords": "grt -gaziantep",
+      "priority": 5
+    },
+    {
+      "name": "GRT Gaziantep",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GSTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gaziantep Olay",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Genç",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gonca",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Guneydogu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Guneydoğu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Güneş TV Kibris",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Haber 61",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Haber Global",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Habertürk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hunat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "IBB",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Icel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Istanbul Metropolitan Municipality",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "JIN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KANAL 58",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KANAL AVRUPA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal 12",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal 15",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal 23",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal 26",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal 32",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal 33",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal 34",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal 38",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal 68",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal 7",
+      "isFree": true,
+      "keywords": "kanal 7 -avrupa -hd",
+      "priority": 5
+    },
+    {
+      "name": "Kanal 7 Avrupa",
+      "isFree": true,
+      "keywords": "kanal 7 avrupa",
+      "shortName": "K7AH",
+      "priority": 5
+    },
+    {
+      "name": "Kanal Alanya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal Ege",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal Firat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal T",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal Urfa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal V",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal Z",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kay",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kent Deha",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kent",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kent Türk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kral Pop",
+      "isFree": true,
+      "website": "https://www.kralmuzik.com.tr/tv/kral-pop-tv",
+      "priority": 5
+    },
+    {
+      "name": "Kral",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kudüs",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lale TV Kirim Tatar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lalegül",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Life",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Line",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MSBC Kanal 2000",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Marmara",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mavi Karadeniz",
+      "isFree": true,
+      "keywords": "mavi karadeniz tv | mavikaradeniz tv",
+      "priority": 5
+    },
+    {
+      "name": "Med Müzik",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mercan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Meteoroloji",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Milyon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Natural",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ON Medya Haber",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ON 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ogün",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Olay Türk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "OlayTürk Kayseri",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Petra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Power",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Power Turk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PowerTürk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rehber",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rudaw",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Samsun Canli Haber",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sarıyer",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sat7 Pars",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sat7 Türk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Satranç",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Semerkand",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Show",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sinop Yildiz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Star",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sterk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sun RTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TGRT EU",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TR 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TRT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TRT 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TRT 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TRT Belgesel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TRT EBA Ortaokul",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TRT Kurdi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 38",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 41",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 52",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 8",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV A",
+      "isFree": true,
+      "keywords": "tv a | tva",
+      "priority": 5
+    },
+    {
+      "name": "TV DEN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Em",
+      "isFree": true,
+      "keywords": "tv em | tvem",
+      "priority": 5
+    },
+    {
+      "name": "TV 4",
+      "isFree": true,
+      "keywords": "tv 4 | tv4 -hd -turkiye",
+      "shortName": "TV 4",
+      "priority": 5
+    },
+    {
+      "name": "TV4 HD Türkiye",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVnet",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tempo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ton",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Toprak",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UçanKus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UçanKuş",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "V",
+      "isFree": true,
+      "keywords": "v tv | vtv",
+      "priority": 5
+    },
+    {
+      "name": "Vizyon 58",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vizyon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vuslat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "YOL",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Yeni Malatyaspor",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Yesilyurt",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "tivi TÜRK",
+      "isFree": true,
+      "keywords": "tivi turk | tiviturk",
+      "priority": 5
+    },
+    {
+      "name": "Çiftçi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Öncü",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Üniversite",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ÜÜ TV Üsküdar Üniversitesi",
+      "isFree": true,
+      "shortName": "ÜTÜÜT",
+      "priority": 5
+    },
+    {
+      "name": "Şaban",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "4 Eylul",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "4U",
+      "isFree": true,
+      "website": "https://4utv.tv/en/",
+      "priority": 5
+    },
+    {
+      "name": "A2TV",
+      "isFree": true,
+      "website": "https://www.atv.com.tr/a2tv",
+      "priority": 5
+    },
+    {
+      "name": "Afroturk",
+      "isFree": true,
+      "website": "https://afroturktv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Agro",
+      "isFree": true,
+      "website": "https://www.agrotv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Ahi",
+      "isFree": true,
+      "keywords": "ahi tv -kirsehir",
+      "website": "https://www.ahitv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Anadolu Dernek",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Anadolu Net",
+      "isFree": true,
+      "website": "https://www.anadolunettv.com/",
+      "priority": 5
+    },
+    {
+      "name": "ATV",
+      "isFree": true,
+      "keywords": "atv -plus8 -alanya -avrupa",
+      "website": "https://www.atv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "ATV + 8",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bartin",
+      "isFree": true,
+      "website": "http://bartintv.com.tr/sayfa/kurumsal/canli-yayin-btv",
+      "priority": 5
+    },
+    {
+      "name": "Baska",
+      "isFree": true,
+      "website": "https://baskatv.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "BEA",
+      "isFree": true,
+      "website": "https://beykenttv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Gurme",
+      "isFree": true,
+      "website": "http://www.beingurme.com/",
+      "priority": 5
+    },
+    {
+      "name": "beIN H&E",
+      "isFree": true,
+      "website": "http://www.digiturk.com.tr/home-and-entertainment",
+      "priority": 5
+    },
+    {
+      "name": "beIN IZ",
+      "isFree": true,
+      "website": "http://www.beiniz.com/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Series Comedy",
+      "isFree": true,
+      "website": "http://www.digiturk.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Benguturk",
+      "isFree": true,
+      "website": "https://www.benguturk.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bir",
+      "isFree": true,
+      "website": "https://birtv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Bizimev",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BluTV Play",
+      "isFree": true,
+      "website": "https://www.blutvplay1.com/",
+      "priority": 5
+    },
+    {
+      "name": "BluTV Play 2",
+      "isFree": true,
+      "website": "https://www.blutvplay2.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bric ve Satranc",
+      "isFree": true,
+      "website": "http://www.itp.tv.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Cekmekoy",
+      "isFree": true,
+      "website": "https://www.cekmekoy.bel.tr/web-tv",
+      "priority": 5
+    },
+    {
+      "name": "Cine",
+      "isFree": true,
+      "website": "https://www.artidijitalmedya.com/embed/tv/cine1/",
+      "priority": 5
+    },
+    {
+      "name": "CRI Turk Belgesel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Deniz Postasi",
+      "isFree": true,
+      "website": "https://www.denizpostasi.com/",
+      "priority": 5
+    },
+    {
+      "name": "Digiturk 4K",
+      "isFree": true,
+      "website": "http://www.digiturk.com.tr/urunler-servisler/4k-teknolojisi",
+      "priority": 5
+    },
+    {
+      "name": "Discovery",
+      "isFree": true,
+      "website": "http://www.discoverychannel.com.tr/",
+      "priority": 7
+    },
+    {
+      "name": "DiziSmart Max",
+      "isFree": true,
+      "website": "https://www.dsmart.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "DiziSmart Premium",
+      "isFree": true,
+      "website": "https://www.dsmart.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "DMAX",
+      "isFree": true,
+      "website": "https://www.dmax.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "DRT Denizli",
+      "isFree": true,
+      "website": "https://www.drttv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Edessa",
+      "isFree": true,
+      "website": "http://www.edessatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Egem TV Usak",
+      "isFree": true,
+      "website": "https://www.usakegemtv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Ege Turk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ekin Turk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Elsharq",
+      "isFree": true,
+      "website": "http://elsharq.tv/",
+      "priority": 5
+    },
+    {
+      "name": "EMAX",
+      "isFree": true,
+      "website": "https://www.emaxtv.com.tr",
+      "priority": 5
+    },
+    {
+      "name": "ES",
+      "isFree": true,
+      "website": "http://www.estv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "ETV",
+      "isFree": true,
+      "keywords": "etv -kayseri -manisa",
+      "website": "https://www.edirnetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "ETV Kayseri",
+      "isFree": true,
+      "website": "https://www.etvkayseri.com/",
+      "priority": 5
+    },
+    {
+      "name": "Euro D",
+      "isFree": true,
+      "website": "http://eurod.kanald.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Eva",
+      "isFree": true,
+      "website": "https://www.evatv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Flash",
+      "isFree": true,
+      "website": "https://flashtv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "FM",
+      "isFree": true,
+      "website": "https://www.fmtelevizyonu.com/",
+      "priority": 5
+    },
+    {
+      "name": "Fortuna",
+      "isFree": true,
+      "website": "http://www.fortunatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "FOX",
+      "isFree": true,
+      "keywords": "fox -crime",
+      "website": "https://www.nowtv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "FX",
+      "isFree": true,
+      "website": "https://www.fxturkiye.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Galatasaray",
+      "isFree": true,
+      "website": "https://www.galatasaray.com",
+      "priority": 5
+    },
+    {
+      "name": "GEM Comedy",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GEM Food",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GEM Life",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GEM River",
+      "isFree": true,
+      "keywords": "gem river -plus",
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GEM River +",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Go2Travel",
+      "isFree": true,
+      "website": "https://go2travel.tv/live/#/?playlistId=0&videoId=0",
+      "priority": 5
+    },
+    {
+      "name": "Gozde",
+      "isFree": true,
+      "website": "https://www.gozdetv.com.tr/canli-tv",
+      "priority": 5
+    },
+    {
+      "name": "Habitat",
+      "isFree": true,
+      "website": "http://habitattv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Helwa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HRT Akdeniz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal",
+      "isFree": true,
+      "website": "https://www.kanal1.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Kanal 19",
+      "isFree": true,
+      "website": "https://www.kanal19tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kanal 42",
+      "isFree": true,
+      "website": "https://www.kanal42haber.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kanal 5",
+      "isFree": true,
+      "website": "http://kanal5.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Kanal 56",
+      "isFree": true,
+      "website": "https://kanal56.net/canli-yayin/",
+      "priority": 5
+    },
+    {
+      "name": "Kanal D Drama",
+      "isFree": true,
+      "website": "https://kanalddrama.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kanal Hayat",
+      "isFree": true,
+      "website": "https://kanalhayat.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kanal Turk",
+      "isFree": true,
+      "website": "http://www.kanalturk.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Kardelen",
+      "isFree": true,
+      "website": "http://kardelentv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Kent Turk",
+      "isFree": true,
+      "website": "https://www.kentturktv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kocaeli",
+      "isFree": true,
+      "website": "https://www.kocaelitv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Konya Olay",
+      "isFree": true,
+      "website": "https://www.konyaolaytv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Koy",
+      "isFree": true,
+      "website": "https://www.koytv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Koza",
+      "isFree": true,
+      "website": "https://kozatv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Lider",
+      "isFree": true,
+      "website": "https://lidertv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Malatya Vuslat",
+      "isFree": true,
+      "website": "https://www.malatyavuslattv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Manisa",
+      "isFree": true,
+      "website": "https://www.manisatv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "MedyaEvim",
+      "isFree": true,
+      "website": "https://www.socialcreator.com/medyaevimtv",
+      "priority": 5
+    },
+    {
+      "name": "Meltem",
+      "isFree": true,
+      "website": "http://www.meltemtv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "MTurk",
+      "isFree": true,
+      "website": "https://www.mturktv.com/",
+      "priority": 5
+    },
+    {
+      "name": "NOW",
+      "isFree": true,
+      "website": "https://www.nowtv.com.tr",
+      "priority": 5
+    },
+    {
+      "name": "On 6",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Oncu",
+      "isFree": true,
+      "website": "https://www.oncurtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Pamukkale",
+      "isFree": true,
+      "website": "http://pamukkaletv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Qaf",
+      "isFree": true,
+      "website": "https://www.qaf.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Rumeli",
+      "isFree": true,
+      "website": "http://www.rumelitv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Sariyer",
+      "isFree": true,
+      "website": "http://sariyer.tv.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Show Max",
+      "isFree": true,
+      "website": "http://www.showmax.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Show Turk",
+      "isFree": true,
+      "website": "https://www.showturk.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Sinema Komedi",
+      "isFree": true,
+      "keywords": "sinema komedi -2",
+      "website": "http://komedi.sinematv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Sinema Komedi 2",
+      "isFree": true,
+      "website": "http://komedi2.sinematv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Sozcu",
+      "isFree": true,
+      "website": "https://www.szctv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Spor Smart",
+      "isFree": true,
+      "keywords": "spor smart -2",
+      "website": "https://www.dsmart.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Spor Smart 2",
+      "isFree": true,
+      "website": "https://www.dsmart.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Tarih",
+      "isFree": true,
+      "website": "http://tarihtv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Tarim",
+      "isFree": true,
+      "website": "https://www.tarimtv.gov.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Tatlises",
+      "isFree": true,
+      "website": "http://tatlises.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TAY",
+      "isFree": true,
+      "website": "https://www.tjk.org/",
+      "priority": 5
+    },
+    {
+      "name": "TBMM",
+      "isFree": true,
+      "website": "https://www.tbmm.gov.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Tek Rumeli",
+      "isFree": true,
+      "website": "http://www.tekrumelitv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tele",
+      "isFree": true,
+      "website": "https://tele1.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "TGRT Belgesel",
+      "isFree": true,
+      "keywords": "tgrt belgesel",
+      "website": "https://www.tgrtbelgesel.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "TGRT Europe",
+      "isFree": true,
+      "website": "https://www.tgrteu.com/canliyayin/tgrteu.html",
+      "priority": 5
+    },
+    {
+      "name": "Tivi 6",
+      "isFree": true,
+      "website": "https://tivi6.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "TLC",
+      "isFree": true,
+      "keywords": "tlc -tr",
+      "website": "https://www.tlctv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "TMB",
+      "isFree": true,
+      "website": "https://www.tmb.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TR 35",
+      "isFree": true,
+      "website": "https://tr35.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Trabzon Buyuksehir Belediyesi",
+      "isFree": true,
+      "website": "https://tbbweb.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Trakya Turk",
+      "isFree": true,
+      "website": "https://trakyaturktv.com/canli-yayin",
+      "priority": 5
+    },
+    {
+      "name": "TRT 4K",
+      "isFree": true,
+      "website": "http://www.trt.net.tr/",
+      "priority": 5
+    },
+    {
+      "name": "TRT Turk",
+      "isFree": true,
+      "keywords": "trt turk -plus8",
+      "website": "https://www.trtturk.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "TRT Turk + 8",
+      "isFree": true,
+      "website": "https://www.trtturk.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Turksat Saat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Turksat Tanitim",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV",
+      "isFree": true,
+      "website": "http://www.tvbir.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "tv 2",
+      "isFree": true,
+      "website": "https://www.tv2.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "TV 35",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 5",
+      "isFree": true,
+      "website": "https://www.tv5.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "TV8int",
+      "isFree": true,
+      "website": "https://www.tv8.com.tr/sayfa-tv8-international",
+      "priority": 5
+    },
+    {
+      "name": "TV Kayseri",
+      "isFree": true,
+      "website": "https://tvkayseri.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "TVO",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TYT Turk",
+      "isFree": true,
+      "website": "https://tytturk.com/",
+      "priority": 5
+    },
+    {
+      "name": "UcanKus",
+      "isFree": true,
+      "website": "https://www.ucankus.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ulke",
+      "isFree": true,
+      "website": "https://www.ulketv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Ulusal Kanal",
+      "isFree": true,
+      "website": "https://www.ulusal.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Universal",
+      "isFree": true,
+      "website": "http://www.universaltv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Universite",
+      "isFree": true,
+      "website": "https://www.universitetv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Urfa Natik",
+      "isFree": true,
+      "website": "https://urfanatiktv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Uskudar Universitesi Televizyonu",
+      "isFree": true,
+      "website": "https://tv.uskudar.edu.tr/",
+      "priority": 5
+    },
+    {
+      "name": "UU TV",
+      "isFree": true,
+      "website": "https://tv.uskudar.edu.tr/",
+      "priority": 5
+    },
+    {
+      "name": "UU TV 2",
+      "isFree": true,
+      "website": "https://tv.uskudar.edu.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Vatan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vav",
+      "isFree": true,
+      "website": "https://www.vavtv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Woman",
+      "isFree": true,
+      "website": "https://www.womantv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "World Turk",
+      "isFree": true,
+      "website": "https://worldturk.com.tr/world-turk-tv-canli-yayin-izle/",
+      "priority": 5
+    },
+    {
+      "name": "Yaban",
+      "isFree": true,
+      "website": "https://www.yabantv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Yildiz TV En",
+      "isFree": true,
+      "website": "http://www.yildiztv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Zarok",
+      "isFree": true,
+      "website": "https://zaroktv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "ERTV",
+      "isFree": true,
+      "website": "http://www.ertv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "TvEM",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Misk FM",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "beIN Box Office",
+      "isFree": true,
+      "website": "http://www.digiturk.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Box Office 2",
+      "isFree": true,
+      "website": "http://www.digiturk.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Box Office 3",
+      "isFree": true,
+      "website": "http://www.digiturk.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Movies Action",
+      "isFree": true,
+      "keywords": "bein movies action -2",
+      "website": "http://www.digiturk.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Movies Action 2",
+      "isFree": true,
+      "website": "http://www.digiturk.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Movies Family",
+      "isFree": true,
+      "website": "http://www.digiturk.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Movies Premiere",
+      "isFree": true,
+      "keywords": "bein movies premiere -2",
+      "website": "http://www.digiturk.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Movies Premiere 2",
+      "isFree": true,
+      "website": "http://www.digiturk.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Movies Stars",
+      "isFree": true,
+      "website": "http://www.digiturk.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Movies Turk",
+      "isFree": true,
+      "website": "http://www.digiturk.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Series Drama",
+      "isFree": true,
+      "website": "http://www.digiturk.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Series Sci-Fi",
+      "isFree": true,
+      "website": "http://www.digiturk.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Series Vice",
+      "isFree": true,
+      "website": "http://www.digiturk.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Cine 5",
+      "isFree": true,
+      "keywords": "cine5",
+      "website": "http://cine5tv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "FOX Crime",
+      "isFree": true,
+      "website": "https://www.foxchannels.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "GEM Academy",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GEM Bollywood",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GEM Classic",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GEM Drama",
+      "isFree": true,
+      "keywords": "gem drama -plus",
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GEM Film",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GEM Onyx",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GEM Pixel",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GEM Rubix",
+      "isFree": true,
+      "keywords": "gem rubix -plus",
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GEM Rubix +",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GEM Series +",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GEM",
+      "isFree": true,
+      "keywords": "gem tv -plus",
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Grand Cinema",
+      "isFree": true,
+      "website": "https://grandcinema.wns.live/",
+      "priority": 5
+    },
+    {
+      "name": "GZT",
+      "isFree": true,
+      "website": "https://www.gzt.com/",
+      "priority": 5
+    },
+    {
+      "name": "MovieSmart Classic",
+      "isFree": true,
+      "website": "https://www.dsmart.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "MovieSmart Premium",
+      "isFree": true,
+      "keywords": "moviesmart premium -2",
+      "website": "https://www.dsmart.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "MovieSmart Premium 2",
+      "isFree": true,
+      "website": "https://www.dsmart.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "MovieSmart Turk",
+      "isFree": true,
+      "website": "https://www.dsmart.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Sinema 1001",
+      "isFree": true,
+      "website": "http://1001.sinematv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Sinema 1002",
+      "isFree": true,
+      "website": "http://1002.sinematv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Sinema 2",
+      "isFree": true,
+      "website": "http://sinematv2.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Sinema Aile",
+      "isFree": true,
+      "keywords": "sinema aile -2",
+      "website": "http://sinematvaile.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Sinema Aile 2",
+      "isFree": true,
+      "website": "http://aile2.sinematv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Sinema Aksiyon",
+      "isFree": true,
+      "keywords": "sinema aksiyon -2",
+      "website": "http://aksiyon.sinematv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Sinema Aksiyon 2",
+      "isFree": true,
+      "website": "http://aksiyon2.sinematv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Sinema",
+      "isFree": true,
+      "website": "http://sinematv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Sinema Yerli",
+      "isFree": true,
+      "keywords": "sinema yerli -2",
+      "website": "http://yerli.sinematv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Sinema Yerli 2",
+      "isFree": true,
+      "website": "http://yerli2.sinematv.com.tr/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "AMC",
+      "isFree": true,
+      "website": "https://amc.wns.live/",
+      "priority": 5
+    },
+    {
+      "name": "Dream Turk",
+      "isFree": true,
+      "website": "https://www.dreamturk.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "GEM 24B",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GEM Arabia",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GEM AZ",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GEM Mifa",
+      "isFree": true,
+      "keywords": "gem mifa -plus",
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Med Muzik",
+      "isFree": true,
+      "website": "http://medmuzik.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Number 1 Ask",
+      "isFree": true,
+      "website": "https://www.numberone.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Number 1 Damar",
+      "isFree": true,
+      "website": "https://www.numberone.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Number 1 Dance",
+      "isFree": true,
+      "website": "https://www.numberone.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Number 1 Turk",
+      "isFree": true,
+      "website": "https://www.numberone.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Number",
+      "isFree": true,
+      "website": "http://www.numberone.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Power Dance",
+      "isFree": true,
+      "website": "https://www.powerapp.com.tr/radios/powerdance/",
+      "priority": 5
+    },
+    {
+      "name": "Power Love",
+      "isFree": true,
+      "website": "https://www.powerapp.com.tr/radios/powerlove/",
+      "priority": 5
+    },
+    {
+      "name": "Power Plus",
+      "isFree": true,
+      "website": "https://www.powerapp.com.tr/powerplus/",
+      "priority": 5
+    },
+    {
+      "name": "PowerTurk Akustik",
+      "isFree": true,
+      "website": "https://www.powerapp.com.tr/radios/powerturkakustik/",
+      "priority": 5
+    },
+    {
+      "name": "PowerTurk En Iyiler",
+      "isFree": true,
+      "website": "https://www.powerapp.com.tr/radios/powerturkbestof/",
+      "priority": 5
+    },
+    {
+      "name": "PowerTurk Slow",
+      "isFree": true,
+      "website": "https://www.powerapp.com.tr/radios/powerturkslow/",
+      "priority": 5
+    },
+    {
+      "name": "PowerTurk Taptaze",
+      "isFree": true,
+      "website": "https://www.powerapp.com.tr/radios/powerturktaptaze/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Animal Planet",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CGTN Documentary",
+      "isFree": true,
+      "website": "https://puhutv.com/cgtn-documentary-canli-yayin-detay",
+      "priority": 5
+    },
+    {
+      "name": "GEM Latino",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "GEM Nature",
+      "isFree": true,
+      "website": "https://www.gemgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Karadeniz",
+      "isFree": true,
+      "website": "http://www.karadeniztv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "KRT",
+      "isFree": true,
+      "website": "http://www.krttv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Luys",
+      "isFree": true,
+      "website": "http://luys.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Nat Geo People",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "National Geographic",
+      "isFree": true,
+      "keywords": "national geographic -wild",
+      "website": "http://www.natgeotv.com/tr",
+      "priority": 7
+    },
+    {
+      "name": "National Geographic Wild",
+      "isFree": true,
+      "website": "http://natgeotv.com/tr/wild",
+      "priority": 7
+    },
+    {
+      "name": "NTR",
+      "isFree": true,
+      "website": "https://ntrtv.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "TRT EBA",
+      "isFree": true,
+      "keywords": "trt eba -ilkokul -lise -ortaokul",
+      "website": "https://eba.gov.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Viasat Explore",
+      "isFree": true,
+      "website": "https://www.viasatexplore.com.tr/",
+      "priority": 5
+    },
+    {
+      "name": "Viasat History",
+      "isFree": true,
+      "website": "https://viasathd.com.tr/",
+      "priority": 7
+    }
+  ]
+}

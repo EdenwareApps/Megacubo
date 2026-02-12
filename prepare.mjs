@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'node:url'
 import packageJson from './package.json' with { type: 'json' }
+import { computeHash, FileStore } from 'rollup-plugin-smart-cache'
 
 // Get the current directory in ESM
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -16,6 +17,28 @@ if (!packageJson.version || !/^[0-9]+(\.[0-9]+)*$/.test(packageJson.version)) {
 }
 
 console.log(`App version: ${packageJson.version}`)
+
+// Prune .rollup-smart-cache so it does not grow indefinitely (plugin has no expiration)
+try {
+  execSync('node scripts/prune-rollup-cache.js 15 7', { stdio: 'pipe', cwd: __dirname })
+} catch (_) {
+  // ignore prune errors
+}
+
+// Copy @edenware/countries data/supplement.json so bundled main.js (run from www/nodejs/dist) can find it at www/nodejs/data/supplement.json
+const copySupplementJson = () => {
+  const src = path.join(__dirname, 'node_modules/@edenware/countries/data/supplement.json')
+  const destDir = path.join(__dirname, 'www/nodejs/data')
+  const dest = path.join(destDir, 'supplement.json')
+  if (!fs.existsSync(src)) {
+    console.warn('@edenware/countries data/supplement.json not found, skipping copy')
+    return
+  }
+  fs.mkdirSync(destDir, { recursive: true })
+  fs.copyFileSync(src, dest)
+  console.log('Copied supplement.json to www/nodejs/data/')
+}
+copySupplementJson()
 
 // Helper to run commands and handle errors
 const runCommand = (command, description) => {
@@ -50,93 +73,38 @@ const removeElectronForAndroid = () => {
   fs.renameSync(fixedTargetMainPath, targetMainPath)
 }
 
-// Smart cache function - checks if rebuild is needed
-function shouldSkipBuild() {
-  const outputDirs = [
-    'www/nodejs/dist',
-    'www/nodejs/renderer/dist'
-  ];
-
-  // Check if all output directories exist
-  for (const dir of outputDirs) {
-    if (!fs.existsSync(dir)) {
-      console.log(`📂 Output directory ${dir} missing, rebuild needed`);
-      return false;
-    }
+// Smart cache: walk directory and collect relative paths -> Buffer (forward slashes)
+function walkDirForMap(dir, base, map) {
+  if (!fs.existsSync(dir)) return
+  const entries = fs.readdirSync(dir, { withFileTypes: true })
+  for (const e of entries) {
+    const full = path.join(dir, e.name)
+    const rel = path.relative(base, full).replace(/\\/g, '/')
+    if (e.isDirectory()) walkDirForMap(full, base, map)
+    else if (e.isFile()) map.set(rel, fs.readFileSync(full))
   }
-
-  // Files that invalidate cache (always rebuild if changed)
-  const cacheBusters = [
-    'package.json',                    // npm dependencies
-    'www/nodejs/main.mjs',             // main entry point
-    'www/nodejs/electron.mjs',         // electron entry point
-    'rollup.config.node.mjs',          // node rollup config
-    'rollup.config.renderer.mjs',      // renderer rollup config
-    'babel.node-output.json',          // babel config
-    'babel.renderer-output.json'       // babel config
-  ];
-
-  // Get newest output file time
-  const newestOutput = getNewestFileTime(outputDirs);
-
-  // Check cache busters against outputs
-  for (const buster of cacheBusters) {
-    if (fs.existsSync(buster)) {
-      const busterTime = fs.statSync(buster).mtime;
-      if (busterTime > newestOutput) {
-        console.log(`📋 ${buster} changed (${busterTime.toISOString()}), rebuild needed`);
-        return false;
-      }
-    }
-  }
-
-  // Check source directories for changes
-  const sourceDirs = ['www/nodejs/modules', 'www/nodejs/renderer/src'];
-  for (const sourceDir of sourceDirs) {
-    if (fs.existsSync(sourceDir)) {
-      const newestSource = getNewestFileTime([sourceDir]);
-      if (newestSource > newestOutput) {
-        console.log(`📋 ${sourceDir} has changes (${new Date(newestSource).toISOString()} > ${new Date(newestOutput).toISOString()}), rebuild needed`);
-        return false;
-      }
-    }
-  }
-
-  return true; // Can skip build
 }
 
-// Helper to get newest file modification time in directories
-function getNewestFileTime(dirs) {
-  let newest = 0;
+function readNodeOutputs() {
+  const map = new Map()
+  walkDirForMap(path.join(__dirname, 'www/nodejs/dist'), __dirname, map)
+  walkDirForMap(path.join(__dirname, 'www/nodejs/renderer/dist'), __dirname, map)
+  return map
+}
 
-  function walkDir(dir) {
-    if (!fs.existsSync(dir)) return;
+function readRendererOutputs() {
+  const map = new Map()
+  const p = path.join(__dirname, 'www/nodejs/renderer/dist/App.js')
+  if (fs.existsSync(p)) map.set('www/nodejs/renderer/dist/App.js', fs.readFileSync(p))
+  return map
+}
 
-    const items = fs.readdirSync(dir);
-    for (const item of items) {
-      const fullPath = path.join(dir, item);
-
-      // Skip node_modules and other unwanted dirs
-      if (item === 'node_modules' || item === '.git' || item.startsWith('.')) {
-        continue;
-      }
-
-      const stat = fs.statSync(fullPath);
-      if (stat.isDirectory()) {
-        walkDir(fullPath);
-      } else if (stat.isFile()) {
-        if (stat.mtime > newest) {
-          newest = stat.mtime;
-        }
-      }
-    }
+function restoreFromCache(entry, projectRoot) {
+  for (const [fileName, content] of entry.outputs) {
+    const full = path.join(projectRoot, fileName)
+    fs.mkdirSync(path.dirname(full), { recursive: true })
+    fs.writeFileSync(full, content)
   }
-
-  for (const dir of dirs) {
-    walkDir(dir);
-  }
-
-  return newest;
 }
 
 // Run Rollup builds sequentially (Node.js bundles first, then Renderer bundles)
@@ -159,12 +127,18 @@ const runRollupAsync = (configFile, description) => {
       nodeOptions = (nodeOptions ? `${nodeOptions} ` : '') + '--expose-gc'
     }
     
-    const rollupProcess = spawn('npx', ['rollup', '-c', configFile], {
+    // Run rollup - handle Windows .cmd files properly
+    const rollupBin = process.platform === 'win32'
+      ? 'node_modules\\.bin\\rollup.cmd'
+      : 'node_modules/.bin/rollup'
+
+    const rollupProcess = spawn(rollupBin, ['-c', configFile], {
       stdio: 'inherit',
       shell: true,
-      env: { 
-        ...process.env, 
-        NODE_OPTIONS: nodeOptions 
+      env: {
+        ...process.env,
+        NODE_OPTIONS: nodeOptions,
+        PATH: `${process.cwd()}\\node_modules\\.bin;${process.env.PATH}`
       }
     })
 
@@ -199,23 +173,60 @@ const runRollupAsync = (configFile, description) => {
   })
 }
 
-// Check if rebuild is needed
-console.log('🔍 Checking if rebuild is needed...')
+// Smart cache: inputs and ignore for hash
+const nodeInputs = [
+  'www/nodejs/main.mjs', 'www/nodejs/electron.mjs', 'www/nodejs/preload.mjs',
+  'www/nodejs/modules/**/*.js', 'www/nodejs/modules/**/*.mjs',
+  'package.json', 'rollup.config.node.mjs', 'babel.config.json', 'babel.node-output.json',
+  'capacitor.config.json', 'android/app/build.gradle'
+]
+const rendererInputs = [
+  'www/nodejs/renderer/src/**/*.js', 'www/nodejs/renderer/src/**/*.svelte',
+  'www/nodejs/modules/**/*.js',
+  'package.json', 'rollup.config.renderer.mjs', 'babel.renderer-output.json', 'babel.renderer-polyfills.json', 'babel.config.json',
+  'capacitor.config.json'
+]
+const sharedIgnore = ['node_modules/**', 'www/nodejs/dist/**', 'www/nodejs/renderer/dist/**', '**/*.map', '.git/**', 'temp/**', 'releases/**', 'android/app/src/main/assets/**']
 
-if (shouldSkipBuild()) {
-  console.log('✅ Bundles are up-to-date, skipping Rollup builds!')
-} else {
-  console.log('🔄 Rebuild needed, starting Rollup builds...')
+const fileStore = new FileStore({ cacheDir: '.rollup-smart-cache', lockTimeout: 300000, includeNode: true, includePlatform: true })
 
-  // Run rollup configs sequentially
-  try {
+console.log('🔍 Smart cache: checking if rebuild is needed...')
+
+try {
+  // Node bundles
+  const hashNode = await computeHash({ inputs: nodeInputs, ignore: sharedIgnore, env: ['NODE_ENV'], platform: true, node: true, cwd: __dirname })
+  const entryNode = await fileStore.get(hashNode)
+  if (entryNode) {
+    console.log('✅ Node cache hit, restoring from cache...')
+    restoreFromCache(entryNode, __dirname)
+  } else {
+    console.log('🔄 Node cache miss, running Rollup...')
     await runRollupAsync('rollup.config.node.mjs', 'Node.js bundles')
-    await runRollupAsync('rollup.config.renderer.mjs', 'Renderer/Capacitor bundles')
-    console.log('All Rollup builds completed successfully')
-  } catch (error) {
-    console.error('Rollup build failed:', error)
-    process.exit(1)
+    const outputsNode = readNodeOutputs()
+    if (outputsNode.size > 0) {
+      await fileStore.set(hashNode, outputsNode, { hash: hashNode, timestamp: Date.now(), nodeVersion: process.version, platform: process.platform, outputs: [] })
+    }
   }
+
+  // Renderer bundles
+  const hashRenderer = await computeHash({ inputs: rendererInputs, ignore: sharedIgnore, env: ['NODE_ENV'], platform: true, node: true, cwd: __dirname })
+  const entryRenderer = await fileStore.get(hashRenderer)
+  if (entryRenderer) {
+    console.log('✅ Renderer cache hit, restoring from cache...')
+    restoreFromCache(entryRenderer, __dirname)
+  } else {
+    console.log('🔄 Renderer cache miss, running Rollup...')
+    await runRollupAsync('rollup.config.renderer.mjs', 'Renderer/Capacitor bundles')
+    const outputsRenderer = readRendererOutputs()
+    if (outputsRenderer.size > 0) {
+      await fileStore.set(hashRenderer, outputsRenderer, { hash: hashRenderer, timestamp: Date.now(), nodeVersion: process.version, platform: process.platform, outputs: [] })
+    }
+  }
+
+  console.log('All Rollup builds completed successfully')
+} catch (error) {
+  console.error('Rollup build failed:', error)
+  process.exit(1)
 }
 
 // Remove .portable directory if it exists

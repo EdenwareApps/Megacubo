@@ -1,0 +1,76 @@
+{
+  "Music Videos": [
+    {
+      "name": "TMA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Guadeloupe 4",
+      "isFree": true,
+      "website": "https://guadeloupe4-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Madras FM",
+      "isFree": true,
+      "website": "https://www.madrasfm.tv/",
+      "priority": 5
+    },
+    {
+      "name": "NOT' FM",
+      "isFree": true,
+      "website": "https://notfm.fr/",
+      "priority": 5
+    },
+    {
+      "name": "RHT Guadeloupe",
+      "isFree": true,
+      "website": "https://www.rhtguadeloupe.fr/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Alizes",
+      "isFree": true,
+      "website": "https://www.alizes.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 10",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ETV",
+      "isFree": true,
+      "website": "https://www.etv.gp/",
+      "priority": 5
+    },
+    {
+      "name": "Guadeloupe 1ere",
+      "isFree": true,
+      "website": "https://la1ere.francetvinfo.fr/guadeloupe/",
+      "priority": 5
+    },
+    {
+      "name": "MyTV Caraibes",
+      "isFree": true,
+      "website": "https://mytvcaraibes.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio TV Basse-Terre",
+      "isFree": true,
+      "website": "https://www.rtvbt.fr/",
+      "priority": 5
+    },
+    {
+      "name": "TEVEKA",
+      "isFree": true,
+      "website": "http://www.teveka.net/",
+      "priority": 5
+    }
+  ]
+}

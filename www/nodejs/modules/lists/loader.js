@@ -8,12 +8,13 @@ import PQueue from 'p-queue';
 import pLimit from 'p-limit';
 import workers from '../multi-worker/main.js';
 import MultiWorker from '../multi-worker/multi-worker.js';
-import ConnRacing from '../conn-racing/conn-racing.js';
+import ConnRacing from '@edenware/conn-racing';
 import config from '../config/config.js';
 import renderer from '../bridge/bridge.js';
 import { getDirname } from 'cross-dirname';
 import { randomUUID } from 'node:crypto'
 import { resolveListDatabaseKey } from "./tools.js";
+import { touchListMetaFile } from "./list-meta.js";
 
 class ListsLoader extends EventEmitter {
     constructor(master, opts = {}) {
@@ -21,8 +22,16 @@ class ListsLoader extends EventEmitter {
         this.master = master;
         this.debug = master.debug;
         this.opts = opts;
-        this.concurrency = config.get('lists-loader-concurrency') || 3;
-        this.queue = new PQueue({ concurrency: this.concurrency });
+        // Parse concurrency: 2 allows faster list loading; worker has 2560MB heap
+        this.concurrency = 2;
+        
+        // Download (8) and parse (2) - parse was bottleneck with 1
+        this.downloadQueue = new PQueue({ concurrency: 8 });
+        this.parseQueue = new PQueue({ concurrency: 2 });
+        
+        // Track downloaded files waiting for parsing
+        this.downloadedFiles = new Map(); // url -> { tempFilePath, updater }
+        
         this.osdID = 'lists-loader';
         this.pings = {};
         this.results = {};
@@ -32,6 +41,9 @@ class ListsLoader extends EventEmitter {
         this.publicListsActive = config.get('public-lists');
         this.communityListsAmount = master.communityListsAmount;
         this.notifiedCommunityIdle = false;
+        // Cache for relevantKeywords to avoid recalculating repeatedly
+        this.cachedKeywords = null;
+        this.keywordsCacheExpiry = 0;
         this.setupListeners();
         this.enqueue(this.myLists, 1);
         this.process().catch(err => console.error('Error processing lists', err));
@@ -93,12 +105,19 @@ class ListsLoader extends EventEmitter {
     }
 
     adjustConcurrency(concurrency) {
-        const configConcurrency = config.get('lists-loader-concurrency');
-        if (configConcurrency && typeof configConcurrency === 'number') {
-            concurrency = configConcurrency;
-        }
-        this.queue.concurrency = concurrency;
+        if (concurrency === this.concurrency) return;
+        this.concurrency = concurrency;
+        this.parseQueue.concurrency = concurrency;
         this.process();
+    }
+
+    /** Queue stats for debugging: download/parse waiting + in-progress */
+    getQueueStats() {
+        return {
+            download: { waiting: this.downloadQueue.size, running: this.downloadQueue.pending },
+            parse: { waiting: this.parseQueue.size, running: this.parseQueue.pending },
+            processes: { total: this.processes.length, done: this.processes.filter(p => p.done()).length },
+        };
     }
 
     handleListsChange(data) {
@@ -125,7 +144,7 @@ class ListsLoader extends EventEmitter {
 
     cancelProcesses(type) {
         this.processes = this.processes.filter(p => {
-            if (this.master.discovery.details(p.url, type) === type) {
+            if (this.master.discovery.details(p.url, 'type') === type) {
                 p.cancel();
                 this.master.processedLists.delete(p.url);
                 return false;
@@ -142,16 +161,22 @@ class ListsLoader extends EventEmitter {
     }
 
     async process(recursion = 0) {
-        if (recursion > 2 || (!this.publicListsActive && !this.communityListsAmount)) return;
-        
-        // Prevent infinite recursion by checking if we're already processing
-        if (this.isProcessing) {
+        if (recursion > 5 || (!this.publicListsActive && !this.communityListsAmount)) {
+            console.log('[lists.loader] process() early exit:', { recursion, publicListsActive: this.publicListsActive, communityListsAmount: this.communityListsAmount });
+            return;
+        }
+        if (recursion === 0 && this.isProcessing) {
+            console.log('[lists.loader] process() skip: already processing');
             return;
         }
         this.isProcessing = true;
-        
+        console.log('[lists.loader] process() start:', { recursion, myLists: this.myLists.length });
         try {
-            this.processes = this.processes.filter(p => p.started() && !p.done());
+            if (recursion > 0) {
+                await new Promise(resolve => setTimeout(resolve, Math.min(recursion * 200, 1000)))
+            }
+
+            this.processes = this.processes.filter(p => !p.done());
             const minLists = Math.max(8, 2 * this.communityListsAmount);
 
             // Count only successfully loaded lists (ready), not just processed attempts
@@ -188,36 +213,47 @@ class ListsLoader extends EventEmitter {
             // Only stop processing when:
             //  - we already have enough total lists (minLists), AND
             //  - we also have at least the community quota plus exploration slots loaded.
-            if (minLists <= loadedListsCount && loadedCommunityCount >= effectiveCommunityTarget) return;
+            if (minLists <= loadedListsCount && loadedCommunityCount >= effectiveCommunityTarget) {
+                console.log('[lists.loader] process() target reached:', { loadedListsCount, loadedCommunityCount, minLists, effectiveCommunityTarget });
+                return;
+            }
 
             const taskId = randomUUID();
             this.currentTaskId = taskId;
             this.master.updaterFinished(false);
-            const lists = await this.master.discovery.get(Math.max(16, 3 * this.communityListsAmount));
+            const lists = await this.master.discovery.get(Math.max(16, 3 * this.communityListsAmount) + (recursion * 8));
+            console.log('[lists.loader] process() discovery.get:', { count: lists?.length, taskId });
             if (this.currentTaskId !== taskId) return;
 
             const urls = lists.filter(l => !this.myLists.includes(l.url) && !this.processes.some(p => p.url === l.url) && !this.master.processedLists.has(l.url) && !this.master.lists[l.url]).map(l => l.url);
-            const cached = await this.master.filterCachedUrls(urls);
+            console.log('[lists.loader] process() urls to filter:', { count: urls.length, sample: urls.slice(0, 3) });
+            const filterResult = await this.master.filterCachedUrls(urls);
             if (this.currentTaskId !== taskId) return;
 
-            // Check for URLs with main files but missing meta files
-            const urlsWithMissingMeta = [];
-            const checkMetaLimit = pLimit(8);
-            const checkMetaTasks = urls.filter(u => !cached.includes(u)).map(url => {
-                return async () => {
-                    const result = await this.master.checkListFiles(url);
-                    if (result.hasMissingMeta) {
-                        urlsWithMissingMeta.push(url);
-                    }
-                };
-            }).map(checkMetaLimit);
+            const cached = Array.isArray(filterResult) ? filterResult : (filterResult.cachedUrls || []);
+            const urlsWithMissingMeta = filterResult.urlsWithMissingMeta || [];
+            console.log('[lists.loader] process() filterResult:', { cachedCount: cached.length, urlsWithMissingMetaCount: urlsWithMissingMeta.length });
             
-            await Promise.allSettled(checkMetaTasks).catch(err => console.error(err));
+            // OPTIMIZATION: Load cached lists (alreadyFiltered=true to avoid duplicate filterCachedUrls call)
+            // Don't await - let it run in background while we enqueue other URLs
+            if (cached.length > 0) {
+                this.master.loadCachedLists(cached, true).catch(err => {
+                    if (this.debug) {
+                        console.error('Error loading cached lists:', err);
+                    }
+                });
+            }
 
-            this.master.loadCachedLists(cached).catch(console.error);
-            this.enqueue([...urls.filter(u => !cached.includes(u) && !urlsWithMissingMeta.includes(u)), ...cached, ...urlsWithMissingMeta]);
-            await this.queue.onIdle().catch(console.error);
-            if (this.currentTaskId !== taskId || this.queue.size) return;
+            const nonCachedUrls = urls.filter(u => !cached.includes(u) && !urlsWithMissingMeta.includes(u));
+            const toEnqueue = [...nonCachedUrls, ...cached, ...urlsWithMissingMeta];
+            console.log('[lists.loader] process() enqueue:', { total: toEnqueue.length, nonCached: nonCachedUrls.length });
+            this.enqueue(toEnqueue);
+            // Wait for both queues to be idle
+            await Promise.allSettled([
+                this.downloadQueue.onIdle(),
+                this.parseQueue.onIdle()
+            ]);
+            if (this.currentTaskId !== taskId || this.downloadQueue.size || this.parseQueue.size) return;
 
             this.maybeEmitCommunityIdle({
                 urls,
@@ -226,11 +262,17 @@ class ListsLoader extends EventEmitter {
                 listsCount: lists.length
             });
 
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 200));
             if (this.currentTaskId !== taskId) return;
 
-            this.master.satisfied ? this.master.updaterFinished(true) : this.process(recursion + 1);
+            let promise = 0;
+            if (this.master.satisfied) {
+                this.master.updaterFinished(true)
+            } else {
+                promise = this.process(recursion + 1);
+            }
             this.master.updateState();
+            await promise;
         } finally {
             this.isProcessing = false;
         }
@@ -261,10 +303,16 @@ class ListsLoader extends EventEmitter {
             }
             
             this.uid = this.uid || randomUUID();
-            // Cria uma instância dedicada do MultiWorker apenas para o updater
-            const updaterWorker = new MultiWorker();
+            // Dedicated MultiWorker for updater with higher heap (list/EPG updates can be heavy)
+            const updaterWorker = new MultiWorker({
+                resourceLimits: {
+                    maxOldGenerationSizeMb: 2560,
+                    maxYoungGenerationSizeMb: 384
+                }
+            });
             this.updater = updaterWorker.load(path.join(getDirname(), 'updater-worker.js'));
             if (!this.updater?.update) throw new Error('Failed to create updater worker');
+            console.log('[lists.loader] prepareUpdater() created new updater worker');
             
             // Armazena a referência do worker para poder terminá-lo completamente
             this.updaterWorkerInstance = updaterWorker;
@@ -306,16 +354,20 @@ class ListsLoader extends EventEmitter {
                 // Remover marcação de atualização
                 this.master.markListUpdating(url, false)
                 
-                // Se a atualização foi bem-sucedida e a lista ainda não está carregada, tentar carregar
-                if (succeeded && !this.master.lists[url]) {
-                    // Aguardar um pouco para garantir que o arquivo está completamente salvo
-                    setTimeout(() => {
-                        this.master.loadList(url).catch(e => {
-                            if (!String(e).match(/destroyed|list discarded|file not found/i)) {
-                                console.error('Error loading list after update:', url, e)
-                            }
-                        })
-                    }, 500) // 500ms de delay para garantir que o arquivo está salvo
+                if (succeeded) {
+                    const list = this.master.lists[url]
+                    if (list?.indexer && typeof list.indexer.loadMeta === 'function') {
+                        list.indexer.loadMeta().catch(() => {})
+                    }
+                    if (!list) {
+                        setTimeout(() => {
+                            this.master.loadList(url).catch(e => {
+                                if (!String(e).match(/destroyed|list discarded|file not found/i)) {
+                                    console.error('Error loading list after update:', url, e)
+                                }
+                            })
+                        }, 500)
+                    }
                 }
             })
             
@@ -327,9 +379,10 @@ class ListsLoader extends EventEmitter {
             })
             
             this.updater.close = () => {
-                if (--this.updaterClients <= 0 && !this.updaterTerminatingTimeout) {
+                clearTimeout(this.updaterTerminatingTimeout);
+                if (--this.updaterClients <= 0) {
                     this.updaterTerminatingTimeout = setTimeout(() => {
-                        if (this.updaterWorkerInstance && !this.updaterWorkerInstance.finished) {
+                        if (this.updaterWorkerInstance && !this.updaterWorkerInstance.finished && !this.updaterClients) {
                             this.debug && console.error('[listsLoader] Terminating updater');
                             // Termina o worker instance completamente
                             try {
@@ -348,13 +401,16 @@ class ListsLoader extends EventEmitter {
                                 this.updater = null;
                             }
                         }
-                        this.updaterTerminatingTimeout = null;
                     }, 5000);
                 }
             };
-            // Get channelsIndex for better processing
-            const channelsIndex = await this.master.relevantKeywords();
-            this.updater.setRelevantKeywords(channelsIndex).catch(console.error);
+            // Get channelsIndex for better processing (cached for 1 minute)
+            const now = Date.now();
+            if (!this.cachedKeywords || this.keywordsCacheExpiry < now) {
+                this.cachedKeywords = await this.master.relevantKeywords();
+                this.keywordsCacheExpiry = now + 60000; // Cache for 1 minute
+            }
+            this.updater.setRelevantKeywords(this.cachedKeywords).catch(console.error);
         } else {
             this.updaterClients++;
             // Limpa timeout de terminação se existir
@@ -367,22 +423,52 @@ class ListsLoader extends EventEmitter {
 
     async enqueue(urls, priority = 9) {
         urls = urls.filter(url => priority === 1 ? this.myLists.includes(url) : !this.processes.some(p => p.url === url));
-        if (!urls.length) return;
+        if (!urls.length) {
+            console.log('[lists.loader] enqueue() skip: no urls after filter');
+            return;
+        }
+        console.log('[lists.loader] enqueue() start:', { urlsCount: urls.length, priority });
 
         if (priority === 1) return urls.forEach(url => this.schedule(url, priority));
 
         const toSchedule = urls.filter(url => this.pings[url] > 0).sort((a, b) => this.pings[a] - this.pings[b]);
         urls = urls.filter(url => !this.pings[url]).map(url => (this.pings[url] = 0, url));
         toSchedule.forEach(url => this.schedule(url, priority));
+        const scheduledCountBefore = this.processes.length;
 
         const start = Date.now() / 1000;
         const racing = new ConnRacing(urls, { retries: 2, timeout: 8 });
-        for (let i = 0; i < urls.length; i++) {
-            const res = await racing.next().catch(console.error);
-            if (res?.valid) {
-                this.pings[res.url] = (Date.now() / 1000) - start;
-                this.schedule(res.url, priority);
-            } else if (res?.url) delete this.pings[res.url];
+
+        // Process results as they become available in parallel
+        const processResults = async () => {
+            const resultPromises = urls.map(() =>
+                racing.next().catch(err => {
+                    console.error('ConnRacing error:', err);
+                    return false;
+                }).then(res => {
+                    if (res?.valid) {
+                        this.pings[res.url] = (Date.now() / 1000) - start;
+                        this.schedule(res.url, priority);
+                    } else if (res?.url) {
+                        delete this.pings[res.url];
+                    }
+                    return res;
+                })
+            );
+            await Promise.allSettled(resultPromises);
+        };
+
+        await processResults();
+
+        const scheduledCount = this.processes.length - scheduledCountBefore;
+        console.log('[lists.loader] enqueue() ConnRacing done:', { scheduledFromRacing: scheduledCount, processesTotal: this.processes.length });
+
+        // Fallback: if ConnRacing returned no valid URLs, schedule first few anyway to bootstrap
+        if (scheduledCount === 0 && urls.length > 0) {
+            const fallbackLimit = Math.min(8, urls.length);
+            const fallbackUrls = urls.filter(u => /^https?:\/\//.test(u)).slice(0, fallbackLimit);
+            console.warn('[lists.loader] enqueue() fallback: ConnRacing returned no valid URLs, scheduling:', fallbackUrls.length, fallbackUrls.slice(0, 2));
+            fallbackUrls.forEach(url => this.schedule(url, priority));
         }
     }
 
@@ -394,6 +480,7 @@ class ListsLoader extends EventEmitter {
         const result = await this.updater.update(url, { uid, timeout }).catch(e => { throw e; });
         progress && this.updater.removeListener('progress', progress);
         storage.touch(key, {size: true, raw: true, expiration: true});
+        touchListMetaFile(url).catch(() => {});
         console.log('addListNow result', url, result);
         this.updater?.close();
         try {
@@ -403,24 +490,168 @@ class ListsLoader extends EventEmitter {
 
     schedule(url, priority) {
         if (this.processes.some(p => p.url === url)) return;
-        let cancel, started, done;
-        this.processes.push({
-            promise: this.queue.add(async () => {
-                started = true;
-                await this.waitIfPaused();
-                if (cancel) return;
-                const key = resolveListDatabaseKey(url);
-                await this.prepareUpdater();
-                this.master.processedLists.set(url, null);
-                this.results[url] = await this.updater.update(url).catch(e => e);
-                this.updater?.close();
-                storage.touch(key, {size: true, raw: true, expiration: true});
+        console.log('[lists.loader] schedule():', url.substring(0, 60) + (url.length > 60 ? '...' : ''));
+        let cancel, started = false, parsed = false, done = false;
+        
+        // FASE 1: Download (concorrência 8)
+        const downloadPromise = this.downloadQueue.add(async () => {
+            await this.waitIfPaused();
+            if (cancel) {
                 done = true;
-                if (this.results[url] === 'updated' || (this.myLists.includes(url) && !this.master.lists[url]) || this.results[url] === 'already updated') {
-                    await this.master.loadList(url).catch(e => !String(e).match(/destroyed|list discarded|file not found/i) && console.error(e));
+                return;
+            }
+            console.log('[lists.loader] download task start:', url.substring(0, 50) + '...');
+            const key = resolveListDatabaseKey(url);
+            await this.prepareUpdater();
+            this.master.processedLists.set(url, null);
+            
+            try {
+                // Download only - returns tempFilePath (or null for XStream/MAG fallback)
+                const tempFilePath = await this.updater.download(url).catch(e => {
+                    // If download fails, try fallback to full start() for compatibility
+                    console.warn('Download failed, falling back to full start():', e);
+                    return null;
+                });
+                
+                // Check if download returned null (XStream/MAG fallback) or a valid file path
+                if (tempFilePath === null) {
+                    // XStream/MAG or other special cases - use full start() immediately
+                    started = true; // no separate download phase
+                    try {
+                        this.results[url] = await this.updater.update(url).catch(e => {
+                            console.error('Update failed after download failure for', url, e);
+                            return e;
+                        });
+                        this.updater?.close();
+                        storage.touch(key, {size: true, raw: true, expiration: true});
+                        touchListMetaFile(url).catch(() => {});
+                        parsed = true;
+                        done = true;
+                        if (this.results[url] === 'updated' || (this.myLists.includes(url) && !this.master.lists[url]) || this.results[url] === 'already updated') {
+                            await this.master.loadList(url).catch(e => !String(e).match(/destroyed|list discarded|file not found/i) && console.error(e));
+                        }
+                    } catch (updateErr) {
+                        console.error('Update error after download failure for', url, updateErr);
+                        this.results[url] = updateErr;
+                        this.updater?.close();
+                        done = true;
+                    }
+                    return; // Exit early, don't enqueue parsing
+                } else if (tempFilePath) {
+                    // Store downloaded file info for parsing queue
+                    started = true; // download completed
+                    this.downloadedFiles.set(url, { tempFilePath, url: url });
+                    
+                    // Enqueue parsing immediately
+                    this.parseQueue.add(async () => {
+                        if (cancel) {
+                            // Cleanup temp file if cancelled
+                            const fileInfo = this.downloadedFiles.get(url);
+                            if (fileInfo && fileInfo.tempFilePath) {
+                                fs.promises.unlink(fileInfo.tempFilePath).catch(() => {});
+                            }
+                            this.downloadedFiles.delete(url);
+                            this.results[url] = new Error('Cancelled');
+                            done = true;
+                            return;
+                        }
+                        
+                        const fileInfo = this.downloadedFiles.get(url);
+                        if (!fileInfo || !fileInfo.tempFilePath) {
+                            console.error('Downloaded file info not found for:', url);
+                            this.results[url] = new Error('Downloaded file info not found');
+                            done = true;
+                            return;
+                        }
+                        
+                        try {
+                            // Verify file exists and has content before parsing
+                            const fileStats = await fs.promises.stat(fileInfo.tempFilePath).catch(() => null);
+                            if (!fileStats || fileStats.size === 0) {
+                                console.error(`[Loader] Temp file is empty or missing for ${url}: ${fileInfo.tempFilePath}`);
+                                this.results[url] = new Error('Downloaded file is empty');
+                                fs.promises.unlink(fileInfo.tempFilePath).catch(() => {});
+                                this.downloadedFiles.delete(url);
+                                done = true;
+                                return;
+                            }
+                            
+                            // Parse from downloaded file using updater worker
+                            if (this.debug) {
+                                console.log(`[Loader] Starting parse for ${url} from file: ${fileInfo.tempFilePath} (${fileStats.size} bytes)`);
+                            }
+                            await this.prepareUpdater();
+                            this.results[url] = await this.updater.parseFromFile(fileInfo.tempFilePath, url).catch(e => {
+                                console.error(`[Loader] Parse error for ${url}:`, e);
+                                return e;
+                            });
+                            
+                            if (this.debug) {
+                                console.log(`[Loader] Parse completed for ${url}. Result:`, this.results[url]);
+                            }
+                            
+                            // Cleanup temp file AFTER parsing is complete
+                            fs.promises.unlink(fileInfo.tempFilePath).catch((err) => {
+                                console.warn(`[Loader] Failed to delete temp file ${fileInfo.tempFilePath}:`, err);
+                            });
+                            this.downloadedFiles.delete(url);
+                            
+                            storage.touch(key, {size: true, raw: true, expiration: true});
+                            touchListMetaFile(url).catch(() => {});
+                            parsed = true;
+                            done = true;
+                            
+                            const list = this.master.lists[url];
+                            if (list?.indexer && typeof list.indexer.loadMeta === 'function') {
+                                list.indexer.loadMeta().catch(() => {});
+                            }
+                            if (this.results[url] === true || (this.myLists.includes(url) && !list) || this.results[url] === 'already updated') {
+                                await this.master.loadList(url).catch(e => !String(e).match(/destroyed|list discarded|file not found/i) && console.error(e));
+                            }
+                        } catch (parseErr) {
+                            console.error('Parse error for', url, parseErr);
+                            // Cleanup temp file on error
+                            fs.promises.unlink(fileInfo.tempFilePath).catch(() => {});
+                            this.downloadedFiles.delete(url);
+                            done = true;
+                        }
+                    }, { priority });
+                        } else {
+                    // Fallback: use full start() for compatibility (xtream/mag, etc)
+                    started = true;
+                    try {
+                        this.results[url] = await this.updater.update(url).catch(e => {
+                            console.error('Update failed for', url, e);
+                            return e;
+                        });
+                        this.updater?.close();
+                        storage.touch(key, {size: true, raw: true, expiration: true});
+                        touchListMetaFile(url).catch(() => {});
+                        parsed = true;
+                        done = true;
+                        if (this.results[url] === 'updated' || (this.myLists.includes(url) && !this.master.lists[url]) || this.results[url] === 'already updated') {
+                            await this.master.loadList(url).catch(e => !String(e).match(/destroyed|list discarded|file not found/i) && console.error(e));
+                        }
+                    } catch (updateErr) {
+                        console.error('Update error for', url, updateErr);
+                        this.results[url] = updateErr;
+                        this.updater?.close();
+                        done = true;
+                    }
                 }
-            }, { priority }),
+            } catch (downloadErr) {
+                console.error('Download error for', url, downloadErr);
+                this.results[url] = downloadErr;
+                done = true;
+            }
+        }, { priority });
+        
+        this.processes.push({
+            promise: downloadPromise,
+            // started = true when download completed (meaning "downloaded")
             started: () => started,
+            // parsed = true when parsing completed
+            parsed: () => parsed,
             cancel: () => cancel = true,
             done: () => done || cancel,
             priority,
@@ -429,16 +660,19 @@ class ListsLoader extends EventEmitter {
     }
 
     pause() {
-        !this.queue.isPaused && this.queue.pause();
+        if (!this.downloadQueue.isPaused) this.downloadQueue.pause();
+        if (!this.parseQueue.isPaused) this.parseQueue.pause();
     }
 
     resume() {
         this.emit('resume');
-        this.queue.isPaused && this.queue.start();
+        if (this.downloadQueue.isPaused) this.downloadQueue.start();
+        if (this.parseQueue.isPaused) this.parseQueue.start();
     }
 
     waitIfPaused() {
-        return this.queue.isPaused ? new Promise(resolve => this.once('resume', resolve)) : Promise.resolve();
+        const isPaused = this.downloadQueue.isPaused || this.parseQueue.isPaused;
+        return isPaused ? new Promise(resolve => this.once('resume', resolve)) : Promise.resolve();
     }
 
     async reload(url) {
@@ -453,7 +687,8 @@ class ListsLoader extends EventEmitter {
         this.updater.on('progress', showProgress);
         this.results[url] = await this.updater.updateList(url, { force: true, uid: progressId }).catch(e => { throw e; });
         this.updater?.close();
-        storage.touch(key, {size: true, raw: true, expiration: true});        
+        storage.touch(key, {size: true, raw: true, expiration: true});
+        touchListMetaFile(url).catch(() => {});
         this.updater.removeListener('progress', showProgress);
         osd.hide(`progress-${progressId}`);
         return this.master.loadList(url);
@@ -481,7 +716,7 @@ class ListsLoader extends EventEmitter {
             return;
         }
 
-        if (this.queue.size) {
+        if (this.downloadQueue.size || this.parseQueue.size) {
             return;
         }
 

@@ -1,0 +1,793 @@
+{
+  "Entertainment": [
+    {
+      "name": "Charrúa Televisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La Red",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "1000xHora",
+      "isFree": true,
+      "website": "https://www.1000xhoratv.com/",
+      "priority": 5
+    },
+    {
+      "name": "33",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ADU Live",
+      "isFree": true,
+      "website": "https://tv.vera.com.uy/content/2s6nx",
+      "priority": 5
+    },
+    {
+      "name": "ANPI",
+      "isFree": true,
+      "website": "https://tv.vera.com.uy/content/2s6nj",
+      "priority": 5
+    },
+    {
+      "name": "Antel Eventos",
+      "isFree": true,
+      "website": "https://tv.vera.com.uy/envivo",
+      "priority": 5
+    },
+    {
+      "name": "Artigas Television",
+      "isFree": true,
+      "website": "http://artigastv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Autonoma",
+      "isFree": true,
+      "website": "https://www.autonoma.uy/",
+      "priority": 5
+    },
+    {
+      "name": "Camara de Representantes",
+      "isFree": true,
+      "website": "http://www.diputados.gub.uy/transmision-en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "Camara de Senadores",
+      "isFree": true,
+      "website": "https://parlamento.gub.uy/camarasycomisiones/senadores",
+      "priority": 5
+    },
+    {
+      "name": "Campo Rural",
+      "isFree": true,
+      "website": "https://camporural.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 10",
+      "isFree": true,
+      "keywords": "canal 10 bella union",
+      "website": "https://www.canal10.com.uy/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 10 TV Bella Union",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 11 de Santa Lucia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 11 Fray Bentos",
+      "isFree": true,
+      "website": "https://canal11fraybentos.plag.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 11 Treinta y Tres",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 11",
+      "isFree": true,
+      "website": "https://tv.vera.com.uy/canal/6055",
+      "priority": 5
+    },
+    {
+      "name": "Canal 12 Melo",
+      "isFree": true,
+      "website": "https://canal12melo.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 13 Cerro del Verdun",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 14 Young Teve",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 23 Florida",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Lascano",
+      "isFree": true,
+      "website": "https://tv.vera.com.uy/content/2s6nk",
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Minas Cable Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 San Carlos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Vision Canaria",
+      "isFree": true,
+      "website": "https://tv.vera.com.uy/content/2s6nh",
+      "priority": 5
+    },
+    {
+      "name": "Canal 38 RBTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 3 Colonia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 3 San Jose",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 4",
+      "isFree": true,
+      "keywords": "canal 4 -chuy -internacional -juan -lacaze -paysandu -salto -tacuarembo",
+      "website": "https://www.canal4.com.uy/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Chuy",
+      "isFree": true,
+      "website": "https://tv.vera.com.uy/content/2s6n1",
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Internacional",
+      "isFree": true,
+      "website": "https://www.canal4.com.uy/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Juan Lacaze",
+      "isFree": true,
+      "website": "https://canal4colonia.uy/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Paysandu",
+      "isFree": true,
+      "website": "https://tv.vera.com.uy/content/2s6pl",
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Salto",
+      "isFree": true,
+      "website": "http://www.canal4salto.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Tacuarembo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 5",
+      "isFree": true,
+      "keywords": "canal 5 -salto -tarariras",
+      "website": "https://mediospublicos.uy/category/television/canal-5/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 Salto",
+      "isFree": true,
+      "website": "https://www.cablevisionsalto.com.uy/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 Tarariras",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 6 Ciudad de la Costa",
+      "isFree": true,
+      "website": "https://www.cableplus.com.uy/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 6 Durazno",
+      "isFree": true,
+      "website": "https://tudurazno.net/canal6/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 7 Punta del Este",
+      "isFree": true,
+      "website": "https://www.canal7.com.uy/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 7 Tacuarembo",
+      "isFree": true,
+      "website": "https://multimedios.com.uy/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 8",
+      "isFree": true,
+      "keywords": "canal 8 -artigas -bella -union -carolino -durazno -eventos -hd -mercedes -rio -branco -rivera -rosario -salto -trinidad",
+      "website": "https://mediospublicos.uy/category/television/canal-8/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Artigas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Bella Union",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Carolino",
+      "isFree": true,
+      "website": "https://www.carolinotv.com.uy/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Durazno",
+      "isFree": true,
+      "website": "https://tv.vera.com.uy/content/2s6pf",
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Eventos",
+      "isFree": true,
+      "website": "https://www.cabledosmil.com.uy/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Mercedes",
+      "isFree": true,
+      "website": "http://www.canal8mercedes.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Rio Branco",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Rivera",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Rosario",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Salto",
+      "isFree": true,
+      "website": "https://canal8salto.com.uy/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Trinidad",
+      "isFree": true,
+      "website": "https://tvc.uy/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 9 Palmitas",
+      "isFree": true,
+      "website": "https://canal9palmitas.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 9 Telerocha",
+      "isFree": true,
+      "website": "https://canal9telerocha.com.uy/",
+      "priority": 5
+    },
+    {
+      "name": "Canal ALMA",
+      "isFree": true,
+      "website": "https://canalalma.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Local Cardona",
+      "isFree": true,
+      "website": "https://www.emisoracolor.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal M",
+      "isFree": true,
+      "website": "https://www.canalm.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Once Punta del Este",
+      "isFree": true,
+      "website": "https://canal11.uy/",
+      "priority": 5
+    },
+    {
+      "name": "Canal TRES Sarandi del Yi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canelones Capital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cardinal",
+      "isFree": true,
+      "website": "https://tv.vera.com.uy/content/2s6pw",
+      "priority": 5
+    },
+    {
+      "name": "CCV Canal 9",
+      "isFree": true,
+      "website": "https://www.consorciocablevision.uy/",
+      "priority": 5
+    },
+    {
+      "name": "CLD",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CV10 HD Mercedes",
+      "isFree": true,
+      "website": "https://cv10hd.uy/",
+      "priority": 5
+    },
+    {
+      "name": "Desde El Sur",
+      "isFree": true,
+      "website": "https://surmultimedios.com/",
+      "priority": 5
+    },
+    {
+      "name": "Dolores ,TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Durazno",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "El Canal de la Region",
+      "isFree": true,
+      "website": "https://tv.vera.com.uy/play/2s6rb",
+      "priority": 5
+    },
+    {
+      "name": "Eventos",
+      "isFree": true,
+      "website": "https://tv.vera.com.uy/content/2sffq",
+      "priority": 5
+    },
+    {
+      "name": "FTC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La Costa",
+      "isFree": true,
+      "website": "https://lacostatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Latina TV Paysandu",
+      "isFree": true,
+      "website": "https://tv.vera.com.uy/play/2s6rd",
+      "priority": 5
+    },
+    {
+      "name": "Maronas Entertainment",
+      "isFree": true,
+      "website": "http://www.maronas.com.uy/transmision-en-vivo",
+      "priority": 5
+    },
+    {
+      "name": "MAS BUS",
+      "isFree": true,
+      "website": "http://masbus.uy/",
+      "priority": 5
+    },
+    {
+      "name": "Mas Television",
+      "isFree": true,
+      "website": "https://www.puntacable.com.uy/",
+      "priority": 5
+    },
+    {
+      "name": "MIEM",
+      "isFree": true,
+      "website": "https://www.gub.uy/ministerio-industria-energia-mineria/",
+      "priority": 5
+    },
+    {
+      "name": "Mi Movil",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nova TV Progreso",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pantalla IMPO",
+      "isFree": true,
+      "website": "https://www.impo.com.uy/pantalla/",
+      "priority": 5
+    },
+    {
+      "name": "Perfiles",
+      "isFree": true,
+      "website": "https://www.perfiles.uy/",
+      "priority": 5
+    },
+    {
+      "name": "Plazacanal",
+      "isFree": true,
+      "website": "https://tv.vera.com.uy/content/2s6r5",
+      "priority": 5
+    },
+    {
+      "name": "Pop",
+      "isFree": true,
+      "website": "https://poptv.uy/",
+      "priority": 5
+    },
+    {
+      "name": "Rio Uruguay",
+      "isFree": true,
+      "website": "http://www.canal12.com.uy/",
+      "priority": 5
+    },
+    {
+      "name": "Somos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SuperCanal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TCC",
+      "isFree": true,
+      "website": "https://www.tcc.com.uy/senales/basico",
+      "priority": 5
+    },
+    {
+      "name": "TCC 2",
+      "isFree": true,
+      "website": "https://www.tcc.com.uy/senales/basico",
+      "priority": 5
+    },
+    {
+      "name": "TCC 3",
+      "isFree": true,
+      "website": "https://www.tcc.com.uy/senales/basico",
+      "priority": 5
+    },
+    {
+      "name": "TCC Vivo",
+      "isFree": true,
+      "website": "https://www.tccvivo.com.uy/web/inicio/",
+      "priority": 5
+    },
+    {
+      "name": "Teledoce",
+      "isFree": true,
+      "website": "https://www.teledoce.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tele R",
+      "isFree": true,
+      "website": "https://grupormultimedio.com/",
+      "priority": 5
+    },
+    {
+      "name": "Teve, Florida",
+      "isFree": true,
+      "website": "https://tevemas.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TUtv",
+      "isFree": true,
+      "website": "https://www.rionegro.gub.uy/en-vivo-tutv/",
+      "priority": 5
+    },
+    {
+      "name": "TV 10 Rivera",
+      "isFree": true,
+      "website": "https://tv10rivera.com.uy/",
+      "priority": 5
+    },
+    {
+      "name": "TV5 Artigas",
+      "isFree": true,
+      "website": "https://tv5artigas0.wixsite.com/tv5artigas",
+      "priority": 5
+    },
+    {
+      "name": "TV ABC Palmira",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Ciudad",
+      "isFree": true,
+      "website": "https://www.tvciudad.uy/",
+      "priority": 5
+    },
+    {
+      "name": "TVEO Dolores",
+      "isFree": true,
+      "website": "https://www.cabledoloresdigital.com.uy/tveo_dolores.php",
+      "priority": 5
+    },
+    {
+      "name": "TVFlorida",
+      "isFree": true,
+      "website": "https://www.tvflorida.com.uy/",
+      "priority": 5
+    },
+    {
+      "name": "TV Libre",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVL Pando",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Rochense",
+      "isFree": true,
+      "website": "https://tvrochense.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "Uruguay Natural",
+      "isFree": true,
+      "website": "https://uruguaynatural.com/es/",
+      "priority": 5
+    },
+    {
+      "name": "Uruguay Presidencia",
+      "isFree": true,
+      "website": "https://www.gub.uy/presidencia/",
+      "priority": 5
+    },
+    {
+      "name": "VCC Laguna del Sauce",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vera,",
+      "isFree": true,
+      "website": "https://tv.vera.com.uy/envivo",
+      "priority": 5
+    },
+    {
+      "name": "Video Cable Castillos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vivo Canal 3",
+      "isFree": true,
+      "website": "https://www.vivocanal3.uy/",
+      "priority": 5
+    },
+    {
+      "name": "VIVO",
+      "isFree": true,
+      "website": "https://vivotv.uy/",
+      "priority": 5
+    },
+    {
+      "name": "VTV",
+      "isFree": true,
+      "keywords": "vtv -plus",
+      "website": "https://www.vtv.com.uy/",
+      "priority": 5
+    },
+    {
+      "name": "VTV Plus",
+      "isFree": true,
+      "website": "https://www.vtv.com.uy/",
+      "priority": 5
+    },
+    {
+      "name": "UCL",
+      "isFree": true,
+      "keywords": "ucl",
+      "website": "https://www.ucltelevision.com/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Activa",
+      "isFree": true,
+      "website": "https://www.radioactivafm.com.uy/",
+      "priority": 5
+    },
+    {
+      "name": "Del Este",
+      "isFree": true,
+      "website": "https://www.radiodeleste.com.uy/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "A,V",
+      "isFree": true,
+      "website": "http://www.amasv.com.uy/",
+      "priority": 5
+    },
+    {
+      "name": "Charrua Television",
+      "isFree": true,
+      "website": "https://www.charrua.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Efusiva",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Asuntos Publicos",
+      "isFree": true,
+      "website": "https://asuntospublicos.tv/",
+      "priority": 5
+    },
+    {
+      "name": "RDTV",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Canal Mas",
+      "isFree": true,
+      "website": "https://canalmasuruguay.com/",
+      "priority": 4
+    },
+    {
+      "name": "ICMtv",
+      "isFree": true,
+      "website": "https://icmtv.uy/",
+      "priority": 4
+    },
+    {
+      "name": "Mision Vida",
+      "isFree": true,
+      "website": "https://www.misionvida.org/mvtv/",
+      "priority": 4
+    },
+    {
+      "name": "TV Universal Uruguay",
+      "isFree": true,
+      "website": "https://universal.org.uy/tvuniversal/",
+      "priority": 4
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Dexary",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NS Eventos",
+      "isFree": true,
+      "website": "https://www.nuevosiglo.com.uy/Programacion",
+      "priority": 5
+    },
+    {
+      "name": "NS Eventos 2",
+      "isFree": true,
+      "website": "https://www.nuevosiglo.com.uy/Programacion",
+      "priority": 5
+    },
+    {
+      "name": "NS Eventos 3",
+      "isFree": true,
+      "website": "https://www.nuevosiglo.com.uy/Programacion",
+      "priority": 5
+    },
+    {
+      "name": "Nuevo Siglo",
+      "isFree": true,
+      "website": "https://www.nuevosiglo.com.uy/Programacion",
+      "priority": 5
+    },
+    {
+      "name": ",DeportesUy",
+      "isFree": true,
+      "website": "https://tv.vera.com.uy/content/2sf4f",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Latino Kids",
+      "isFree": true,
+      "website": "https://www.latinokids.online/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Siemprecine",
+      "isFree": true,
+      "priority": 5
+    }
+  ]
+}

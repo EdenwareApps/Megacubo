@@ -1,0 +1,1898 @@
+{
+  "Entertainment": [
+    {
+      "name": "Africa TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Africa TV 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Africa TV 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Emmanuel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lagos Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NTA International",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ABS",
+      "isFree": true,
+      "website": "https://absradiotelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Afia",
+      "isFree": true,
+      "website": "https://www.afiatv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Africa Health",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Africa Magic Family",
+      "isFree": true,
+      "website": "https://www.dstv.com/africamagic/en-ng/channel/africa-magic-family",
+      "priority": 5
+    },
+    {
+      "name": "Africa Magic Hausa",
+      "isFree": true,
+      "website": "https://www.dstv.com/africamagic/en-ng/channel/africa-magic-hausa",
+      "priority": 5
+    },
+    {
+      "name": "Africa Magic Igbo",
+      "isFree": true,
+      "website": "https://www.dstv.com/africamagic/en-ng/channel/africa-magic-igbo",
+      "priority": 5
+    },
+    {
+      "name": "Africa Magic Showcase",
+      "isFree": true,
+      "website": "https://www.dstv.com/africamagic/en-ng/channel/africa-magic-showcase",
+      "priority": 5
+    },
+    {
+      "name": "Africa Magic Urban",
+      "isFree": true,
+      "website": "https://www.dstv.com/africamagic/en-ng/channel/africa-magic-urban",
+      "priority": 5
+    },
+    {
+      "name": "Africa Magic Yoruba",
+      "isFree": true,
+      "website": "https://www.dstv.com/africamagic/en-ng/channel/africa-magic-yoruba",
+      "priority": 5
+    },
+    {
+      "name": "Al-Irshaad",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Alu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Approval",
+      "isFree": true,
+      "website": "https://live.approvaltv.com",
+      "priority": 5
+    },
+    {
+      "name": "ARCN",
+      "isFree": true,
+      "website": "https://arcn.gov.ng/",
+      "priority": 5
+    },
+    {
+      "name": "Area Ten",
+      "isFree": true,
+      "website": "https://areaten.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Arewa 24",
+      "isFree": true,
+      "website": "https://arewa24.com/",
+      "priority": 5
+    },
+    {
+      "name": "ARTV Kano",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Aso Radio",
+      "isFree": true,
+      "website": "https://www.asoradiotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "BCOS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BCS StarCross",
+      "isFree": true,
+      "website": "http://ooo-bcsonline.org/starcross-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Benue Television",
+      "isFree": true,
+      "website": "https://benuetv.be.gov.ng/",
+      "priority": 5
+    },
+    {
+      "name": "Bet 9JA Gold",
+      "isFree": true,
+      "website": "https://www.bet9ja.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bet 9JA Serie A",
+      "isFree": true,
+      "website": "https://www.bet9ja.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bet 9JA Virtual Game",
+      "isFree": true,
+      "keywords": "bet 9ja virtual game -2",
+      "website": "https://www.bet9ja.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bet 9JA Virtual Game 2",
+      "isFree": true,
+      "website": "https://www.bet9ja.com/",
+      "priority": 5
+    },
+    {
+      "name": "Betbiga Color-Color",
+      "isFree": true,
+      "website": "https://www.betbiga.com/",
+      "priority": 5
+    },
+    {
+      "name": "Betbiga Premier League",
+      "isFree": true,
+      "website": "https://www.betbiga.com/",
+      "priority": 5
+    },
+    {
+      "name": "BetBonanza Colour",
+      "isFree": true,
+      "website": "https://betbonanza.com/",
+      "priority": 5
+    },
+    {
+      "name": "BetBonanza EPL",
+      "isFree": true,
+      "website": "https://betbonanza.com/",
+      "priority": 5
+    },
+    {
+      "name": "BetKing Italiano",
+      "isFree": true,
+      "website": "https://www.betking.com/",
+      "priority": 5
+    },
+    {
+      "name": "BetKing Live League",
+      "isFree": true,
+      "website": "https://www.betking.com/",
+      "priority": 5
+    },
+    {
+      "name": "BigiBet EPL",
+      "isFree": true,
+      "website": "https://www.bigibet.com/",
+      "priority": 5
+    },
+    {
+      "name": "BigiBet Lucky 6",
+      "isFree": true,
+      "website": "https://www.bigibet.com/",
+      "priority": 5
+    },
+    {
+      "name": "Blackdrum",
+      "isFree": true,
+      "website": "https://blackdrumtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bonanza Ballz",
+      "isFree": true,
+      "website": "https://betbonanza.com/bonanzaballz",
+      "priority": 5
+    },
+    {
+      "name": "Bride",
+      "isFree": true,
+      "website": "https://bridetv.org/",
+      "priority": 5
+    },
+    {
+      "name": "Bright Radio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BRTV",
+      "isFree": true,
+      "website": "https://brtv24.live/",
+      "priority": 5
+    },
+    {
+      "name": "CAC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Capital",
+      "isFree": true,
+      "website": "https://capitaltvnigeria.com/",
+      "priority": 5
+    },
+    {
+      "name": "Champions",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DBN World",
+      "isFree": true,
+      "website": "http://atechgroupuk.com/DBNTV/DBNTV.html",
+      "priority": 5
+    },
+    {
+      "name": "Dexterity",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DRTV Warri",
+      "isFree": true,
+      "website": "https://www.dbswarri.com/",
+      "priority": 5
+    },
+    {
+      "name": "EbonyLife",
+      "isFree": true,
+      "website": "http://ebonylifetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Estars",
+      "isFree": true,
+      "website": "http://estarstv.telly4africa.com/",
+      "priority": 5
+    },
+    {
+      "name": "Fortis",
+      "isFree": true,
+      "website": "https://fortistv.com/",
+      "priority": 5
+    },
+    {
+      "name": "GoTV Guide",
+      "isFree": true,
+      "website": "https://www.gotvafrica.com/",
+      "priority": 5
+    },
+    {
+      "name": "Hi-Impact",
+      "isFree": true,
+      "website": "https://www.hi-impactstudios.com/tv",
+      "priority": 5
+    },
+    {
+      "name": "Hijrah",
+      "isFree": true,
+      "website": "http://hijrahtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Hip",
+      "isFree": true,
+      "keywords": "hip tv | hiptv",
+      "website": "http://www.hiphopworldmagazine.com/",
+      "priority": 5
+    },
+    {
+      "name": "Hits",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ITV Benin",
+      "isFree": true,
+      "website": "https://www.itvradiong.com/live-benin/",
+      "priority": 5
+    },
+    {
+      "name": "JKD",
+      "isFree": true,
+      "website": "https://www.jkdtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "KAFTAN",
+      "isFree": true,
+      "keywords": "kaftan tv -hausa -yoruba",
+      "website": "https://www.kaftan.tv/",
+      "priority": 5
+    },
+    {
+      "name": "KAFTAN TV Hausa",
+      "isFree": true,
+      "website": "https://www.kaftan.tv/",
+      "priority": 5
+    },
+    {
+      "name": "KAFTAN TV Yoruba",
+      "isFree": true,
+      "website": "https://www.kaftan.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Kingsview",
+      "isFree": true,
+      "website": "https://kingsview.tv/",
+      "priority": 5
+    },
+    {
+      "name": "KTTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kwara",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Life Center Network",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mama Africa Hausa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mama Africa Igbo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mama Africa Yoruba",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Manara",
+      "isFree": true,
+      "website": "http://www.manaratv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MITV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Muhasa",
+      "isFree": true,
+      "website": "https://muhasatvr.ng/",
+      "priority": 5
+    },
+    {
+      "name": "NBS",
+      "isFree": true,
+      "website": "https://nbs.na.gov.ng/",
+      "priority": 5
+    },
+    {
+      "name": "NCBN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ngwanu",
+      "isFree": true,
+      "website": "https://satviewnetwork.com/ethnic-channels/",
+      "priority": 5
+    },
+    {
+      "name": "Nigezie Xtreme",
+      "isFree": true,
+      "website": "https://nigezie.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Nollywood Capital",
+      "isFree": true,
+      "website": "https://nollywoodcapitaltv.com/watch/46626541",
+      "priority": 5
+    },
+    {
+      "name": "NTA",
+      "isFree": true,
+      "keywords": "nta -2 -entertainment -hausa -igbo -international -knowledge -lagos -channel -10 -news -24 -parliament -sports -yoruba",
+      "website": "https://www.nta.ng/",
+      "priority": 5
+    },
+    {
+      "name": "NTA 2",
+      "isFree": true,
+      "website": "https://www.nta.ng/",
+      "priority": 5
+    },
+    {
+      "name": "NTA Entertainment",
+      "isFree": true,
+      "website": "https://www.nta.ng/",
+      "priority": 5
+    },
+    {
+      "name": "NTA Hausa",
+      "isFree": true,
+      "website": "https://www.nta.ng/",
+      "priority": 5
+    },
+    {
+      "name": "NTA Igbo",
+      "isFree": true,
+      "website": "https://www.nta.ng/",
+      "priority": 5
+    },
+    {
+      "name": "NTA Lagos Channel 10",
+      "isFree": true,
+      "website": "https://www.ntalagoschannel10.gov.ng/",
+      "priority": 5
+    },
+    {
+      "name": "NTA Parliament",
+      "isFree": true,
+      "website": "https://www.nta.ng/",
+      "priority": 5
+    },
+    {
+      "name": "NTA Yoruba",
+      "isFree": true,
+      "website": "https://www.nta.ng/",
+      "priority": 5
+    },
+    {
+      "name": "Ogun State",
+      "isFree": true,
+      "website": "http://ogtv.com.ng/about-new/",
+      "priority": 5
+    },
+    {
+      "name": "ONMAX",
+      "isFree": true,
+      "website": "https://ontvsite.com/max/",
+      "priority": 5
+    },
+    {
+      "name": "ONTV Nigeria",
+      "isFree": true,
+      "website": "https://ontvsite.com/",
+      "priority": 5
+    },
+    {
+      "name": "Orisun",
+      "isFree": true,
+      "website": "https://www.orisun.tv/",
+      "priority": 5
+    },
+    {
+      "name": "OSBC",
+      "isFree": true,
+      "website": "https://osbcng.org/",
+      "priority": 5
+    },
+    {
+      "name": "Our Root",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Our Yotomi",
+      "isFree": true,
+      "website": "https://www.ourtv.ng/our-yotomi/",
+      "priority": 5
+    },
+    {
+      "name": "Our Zone",
+      "isFree": true,
+      "website": "https://www.ourtv.ng/our-zone/",
+      "priority": 5
+    },
+    {
+      "name": "Pathway",
+      "isFree": true,
+      "website": "https://pathwaytv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Peoples",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Plus TV Africa",
+      "isFree": true,
+      "website": "https://plustvafrica.com/",
+      "priority": 5
+    },
+    {
+      "name": "Pop Central",
+      "isFree": true,
+      "website": "http://www.popcentraltv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Praise",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Quest",
+      "isFree": true,
+      "website": "https://questfmtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "R2TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rahma",
+      "isFree": true,
+      "website": "https://rahmatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Rapid",
+      "isFree": true,
+      "website": "https://www.rapidtvnetwork.com/",
+      "priority": 5
+    },
+    {
+      "name": "Rave",
+      "isFree": true,
+      "website": "http://raveng.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Remite TV Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RSTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Salvation",
+      "isFree": true,
+      "website": "https://www.salvationtv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Sebioba Royal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Shalom",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Shekinah",
+      "isFree": true,
+      "website": "https://www.saigmt.org/",
+      "priority": 5
+    },
+    {
+      "name": "Silverbird",
+      "isFree": true,
+      "website": "https://silverbirdtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Soundcity",
+      "isFree": true,
+      "website": "https://soundcity.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Spirit & Bride Network",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SUM",
+      "isFree": true,
+      "website": "https://www.supamediatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sunna",
+      "isFree": true,
+      "keywords": "sunna tv -2 -savana",
+      "priority": 5
+    },
+    {
+      "name": "Sunna TV 2",
+      "isFree": true,
+      "website": "http://sunnah-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sunna TV Savana",
+      "isFree": true,
+      "website": "http://sunnah-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Surebet 247 Num Games",
+      "isFree": true,
+      "website": "https://www.surebet247.com/",
+      "priority": 5
+    },
+    {
+      "name": "Synagogue",
+      "isFree": true,
+      "website": "https://synagoguetv.org/",
+      "priority": 5
+    },
+    {
+      "name": "Tambarin Hausa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tattase",
+      "isFree": true,
+      "website": "https://tattase.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Temple",
+      "isFree": true,
+      "website": "https://jctm.org/",
+      "priority": 5
+    },
+    {
+      "name": "The Church",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "The Wedding",
+      "isFree": true,
+      "website": "https://weddingchannelafrica.com/",
+      "priority": 5
+    },
+    {
+      "name": "TNT",
+      "isFree": true,
+      "website": "https://tnttv247.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tozali",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Trust",
+      "isFree": true,
+      "website": "https://trusttv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Trybe",
+      "isFree": true,
+      "website": "https://www.trybe.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TVC",
+      "isFree": true,
+      "keywords": "tvc -news",
+      "website": "https://www.tvcentertainment.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Taraba",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ulaff",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Urban",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Viewer",
+      "isFree": true,
+      "website": "https://viewertv.com.ng/",
+      "priority": 5
+    },
+    {
+      "name": "Views",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Waffi",
+      "isFree": true,
+      "website": "https://waffitv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Wakaati",
+      "isFree": true,
+      "website": "https://www.wakaati.com/",
+      "priority": 5
+    },
+    {
+      "name": "Wap",
+      "isFree": true,
+      "website": "https://waptvchannel.com/",
+      "priority": 5
+    },
+    {
+      "name": "Wazobia Max TV Abuja",
+      "isFree": true,
+      "website": "https://www.wazobiamax.ng/abuja",
+      "priority": 5
+    },
+    {
+      "name": "Wazobia Max TV Nigeria",
+      "isFree": true,
+      "website": "https://www.wazobiamax.ng/",
+      "priority": 5
+    },
+    {
+      "name": "Wazobia Max TV Port-Harcourt",
+      "isFree": true,
+      "website": "https://www.wazobiamax.ng/ph",
+      "priority": 5
+    },
+    {
+      "name": "Wazobia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Western Spring",
+      "isFree": true,
+      "website": "https://westernspring.tv/",
+      "priority": 5
+    },
+    {
+      "name": "WGB Champions League",
+      "isFree": true,
+      "website": "https://www.winnersgoldenbet.com/",
+      "priority": 5
+    },
+    {
+      "name": "WGB Color-Color",
+      "isFree": true,
+      "website": "https://www.winnersgoldenbet.com/",
+      "priority": 5
+    },
+    {
+      "name": "WGB Keno",
+      "isFree": true,
+      "website": "https://www.winnersgoldenbet.com/",
+      "priority": 5
+    },
+    {
+      "name": "WGB Live Dog Race",
+      "isFree": true,
+      "website": "https://www.winnersgoldenbet.com/",
+      "priority": 5
+    },
+    {
+      "name": "WGB Lucky Balls",
+      "isFree": true,
+      "website": "https://www.winnersgoldenbet.com/",
+      "priority": 5
+    },
+    {
+      "name": "WGB Spin & Win",
+      "isFree": true,
+      "website": "https://www.winnersgoldenbet.com/",
+      "priority": 5
+    },
+    {
+      "name": "Wonderland",
+      "isFree": true,
+      "website": "https://wtvnigeria.com/",
+      "priority": 5
+    },
+    {
+      "name": "World Agro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zamani",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Africa Independent Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "AKBC",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Arise News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Degue Broadcasting Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Galaxy Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "News Central",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nigerian Television Authority",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Ogun State Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Silverbird Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Superscreen",
+      "isFree": null,
+      "keywords": "superscreen",
+      "website": "https://superscreen.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Televista",
+      "isFree": null,
+      "keywords": "televista",
+      "website": "https://www.televista.me/",
+      "priority": 5
+    },
+    {
+      "name": "Wale Adenuga Production",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Media of Nigeria",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nigerian newspapers",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Cinema of Nigeria",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Telecommunications in Nigeria",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Daawa",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "1TV Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "El-zion Global Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Gamji TV - Gusau",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Koga",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Minaj Systems Tv Obosi",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Minaj Broadcast Network Obosi",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Minaj Broadcasting International",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Murhi International Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nassarawa Broadcasting Service",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Odenigbo FM Obosi Anambra state",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Ondo State Radiovision Corporation",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "OYJ",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Rhema",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sunna trcv",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVC Entertainment",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "HipTV",
+      "isFree": true,
+      "website": "http://www.hiphopworldmagazine.com/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "A1 Kids",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Branama",
+      "isFree": true,
+      "website": "https://branamatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Lovetoons",
+      "isFree": true,
+      "website": "https://lovetoons.org/",
+      "priority": 5
+    },
+    {
+      "name": "Our Kiddies",
+      "isFree": true,
+      "website": "https://www.ourtv.ng/our-kiddies/",
+      "priority": 5
+    },
+    {
+      "name": "Teen Africa",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "ABN",
+      "isFree": true,
+      "website": "https://abntv.com.ng/",
+      "priority": 5
+    },
+    {
+      "name": "Advocate Broadcasting Network",
+      "isFree": true,
+      "website": "https://www.abn.ng/",
+      "priority": 5
+    },
+    {
+      "name": "AIT International",
+      "isFree": true,
+      "website": "https://ait.live/",
+      "priority": 5
+    },
+    {
+      "name": "AIT Lagos",
+      "isFree": true,
+      "website": "https://ait.live/",
+      "priority": 5
+    },
+    {
+      "name": "AIT National",
+      "isFree": true,
+      "website": "https://ait.live/",
+      "priority": 5
+    },
+    {
+      "name": "AIT Partners",
+      "isFree": true,
+      "website": "https://ait.live/",
+      "priority": 5
+    },
+    {
+      "name": "ATN",
+      "isFree": true,
+      "website": "https://atlanticnetwork.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Channels 24",
+      "isFree": true,
+      "website": "https://www.channelstv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Channels",
+      "isFree": true,
+      "website": "https://www.channelstv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Core TV News",
+      "isFree": true,
+      "website": "https://www.coretvnews.com/",
+      "priority": 5
+    },
+    {
+      "name": "Eagles",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Galaxy",
+      "isFree": true,
+      "keywords": "galaxy tv -lagos",
+      "website": "https://www.galaxytvonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Galaxy TV Lagos",
+      "isFree": true,
+      "website": "https://www.galaxytvonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Global",
+      "isFree": true,
+      "website": "https://globaltvabuja.com/",
+      "priority": 5
+    },
+    {
+      "name": "Housing TV Africa",
+      "isFree": true,
+      "website": "https://www.housingtvafrica.com/",
+      "priority": 5
+    },
+    {
+      "name": "Human Rights",
+      "isFree": true,
+      "website": "https://www.humanrightsradiotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "IDEA",
+      "isFree": true,
+      "website": "https://ideatv.live/",
+      "priority": 5
+    },
+    {
+      "name": "Impact Africa",
+      "isFree": true,
+      "website": "https://iatvafrica.com/",
+      "priority": 5
+    },
+    {
+      "name": "KSMC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Liberty",
+      "isFree": true,
+      "website": "https://libertytvradio.com/",
+      "priority": 5
+    },
+    {
+      "name": "LN247",
+      "isFree": true,
+      "website": "https://ln247.news/",
+      "priority": 5
+    },
+    {
+      "name": "NTA News 24",
+      "isFree": true,
+      "website": "https://www.nta.ng/",
+      "priority": 5
+    },
+    {
+      "name": "Silverbird News 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Spectrum",
+      "isFree": true,
+      "website": "https://spectrumtvlive.ng/live-tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV360 Nigeria",
+      "isFree": true,
+      "website": "https://www.tv360nigeria.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVC News",
+      "isFree": true,
+      "website": "https://tvcnews.tv/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "AccessBet",
+      "isFree": true,
+      "keywords": "accessbet -league",
+      "website": "https://sport.accessbet.com/",
+      "priority": 5
+    },
+    {
+      "name": "AccessBet League",
+      "isFree": true,
+      "website": "https://sport.accessbet.com/",
+      "priority": 5
+    },
+    {
+      "name": "AfroSport Nigeria",
+      "isFree": true,
+      "website": "https://www.afrosportgroup.com/",
+      "priority": 10
+    },
+    {
+      "name": "Bet 9JA Dog Racing",
+      "isFree": true,
+      "website": "https://www.bet9ja.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bet 9JA Football",
+      "isFree": true,
+      "website": "https://www.bet9ja.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bet 9JA League 2",
+      "isFree": true,
+      "website": "https://www.bet9ja.com/",
+      "priority": 5
+    },
+    {
+      "name": "Betbiga LaLiga",
+      "isFree": true,
+      "website": "https://www.betbiga.com/",
+      "priority": 5
+    },
+    {
+      "name": "Betbiga mosaic",
+      "isFree": true,
+      "website": "https://www.betbiga.com/",
+      "priority": 5
+    },
+    {
+      "name": "BigiBet LaLiga",
+      "isFree": true,
+      "website": "https://www.bigibet.com/",
+      "priority": 5
+    },
+    {
+      "name": "Gibet Dog Racing",
+      "isFree": true,
+      "website": "http://www.gibet.ng/",
+      "priority": 5
+    },
+    {
+      "name": "Gibet EPL",
+      "isFree": true,
+      "website": "http://www.gibet.ng/",
+      "priority": 5
+    },
+    {
+      "name": "Gibet Keno",
+      "isFree": true,
+      "website": "http://www.gibet.ng/",
+      "priority": 5
+    },
+    {
+      "name": "Gibet La Liga",
+      "isFree": true,
+      "website": "http://www.gibet.ng/",
+      "priority": 5
+    },
+    {
+      "name": "Grande Sports Football",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "LuckyBet EPL",
+      "isFree": true,
+      "website": "http://www.luckybet.ng/",
+      "priority": 5
+    },
+    {
+      "name": "LuckyBet LaLiga",
+      "isFree": true,
+      "website": "http://www.luckybet.ng/",
+      "priority": 5
+    },
+    {
+      "name": "MerryBet",
+      "isFree": true,
+      "website": "https://www.merrybet.com/",
+      "priority": 5
+    },
+    {
+      "name": "NTA Sports 24",
+      "isFree": true,
+      "website": "http://www.nta.ng/channels/nta-sports-24/",
+      "priority": 10
+    },
+    {
+      "name": "Our Sports",
+      "isFree": true,
+      "website": "https://ourtv.ng/our-sports/",
+      "priority": 10
+    },
+    {
+      "name": "Sporty",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Surebet 247 Horse Racing",
+      "isFree": true,
+      "website": "https://www.surebet247.com/",
+      "priority": 5
+    },
+    {
+      "name": "WGB Dog Racing",
+      "isFree": true,
+      "website": "https://www.winnersgoldenbet.com/",
+      "priority": 5
+    },
+    {
+      "name": "WGB Global Football",
+      "isFree": true,
+      "website": "https://www.winnersgoldenbet.com/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "ACNN",
+      "isFree": true,
+      "website": "https://www.acnntv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Albaniy",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Alminhaj",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Altar of Divine Mercy",
+      "isFree": true,
+      "website": "https://altarofdivinemercy.com/",
+      "priority": 4
+    },
+    {
+      "name": "Ambience",
+      "isFree": true,
+      "website": "https://ambiencetvofficial.com/",
+      "priority": 4
+    },
+    {
+      "name": "APTIM",
+      "isFree": true,
+      "website": "https://www.aptimministries.com/",
+      "priority": 4
+    },
+    {
+      "name": "Catholic",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Caught-Up",
+      "isFree": true,
+      "website": "https://gewcministry.org/caught-up-tv/",
+      "priority": 4
+    },
+    {
+      "name": "Champions of Fire",
+      "isFree": true,
+      "website": "https://live.championoffiretv.org.championoffiretv.org/",
+      "priority": 4
+    },
+    {
+      "name": "Chosen Testimonies",
+      "isFree": true,
+      "website": "https://cttv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Chosen TV English",
+      "isFree": true,
+      "website": "https://www.tlccrm.org/",
+      "priority": 4
+    },
+    {
+      "name": "Chosen TV French",
+      "isFree": true,
+      "website": "https://www.tlccrm.org/",
+      "priority": 4
+    },
+    {
+      "name": "Christian Reformed",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "cLoveworld",
+      "isFree": true,
+      "website": "https://cloveworld.org/",
+      "priority": 4
+    },
+    {
+      "name": "Coza",
+      "isFree": true,
+      "website": "https://coza.org.ng/",
+      "priority": 4
+    },
+    {
+      "name": "Deeper Christian Life Ministry",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Divine Hand",
+      "isFree": true,
+      "website": "https://www.divinehandofgod.org/",
+      "priority": 4
+    },
+    {
+      "name": "Dove",
+      "isFree": true,
+      "website": "https://dovevision.org/",
+      "priority": 4
+    },
+    {
+      "name": "Dunamis",
+      "isFree": true,
+      "website": "https://www.dunamisgospel.org/",
+      "priority": 4
+    },
+    {
+      "name": "ECWA",
+      "isFree": true,
+      "website": "http://www.ecwatv.org/",
+      "priority": 4
+    },
+    {
+      "name": "Elijah's Voice",
+      "isFree": true,
+      "website": "https://www.elijahfaithassembly.com.ng/",
+      "priority": 4
+    },
+    {
+      "name": "Elohim Global",
+      "isFree": true,
+      "website": "https://elohimglobal.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Encounter Jesus",
+      "isFree": true,
+      "website": "https://www.encounterjesusministriesinternational.org/",
+      "priority": 4
+    },
+    {
+      "name": "Evangel",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Flame",
+      "isFree": true,
+      "website": "https://flametv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Foursquare",
+      "isFree": true,
+      "website": "http://foursquare.org.ng/",
+      "priority": 4
+    },
+    {
+      "name": "Free Indeed",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Full Life",
+      "isFree": true,
+      "website": "https://fulllifefoundation.org/",
+      "priority": 4
+    },
+    {
+      "name": "Glamour",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Glorious Vision",
+      "isFree": true,
+      "website": "http://gloriousvisiontv.org/",
+      "priority": 4
+    },
+    {
+      "name": "GMTV",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Grande Gospel",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Holy Ghost Miracle",
+      "isFree": true,
+      "website": "https://holyghostmiracletestifierschurch.org/",
+      "priority": 4
+    },
+    {
+      "name": "HoremowTV",
+      "isFree": true,
+      "website": "https://www.horemowtv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Liberation",
+      "isFree": true,
+      "website": "https://gracenation.ng/liberationtv",
+      "priority": 4
+    },
+    {
+      "name": "LoveWorld Arabic",
+      "isFree": true,
+      "website": "http://loveworldarabic.tv/",
+      "priority": 4
+    },
+    {
+      "name": "LoveWorld Asia",
+      "isFree": true,
+      "website": "https://cloveworld.org/?tv=5a098fdb0c4105wjug1qiet7v",
+      "priority": 4
+    },
+    {
+      "name": "LoveWorld CASA",
+      "isFree": true,
+      "website": "https://cloveworld.org/?tv=5a099019dcdbax4kpil9ujrzy",
+      "priority": 4
+    },
+    {
+      "name": "LoveWorld Euro",
+      "isFree": true,
+      "website": "https://cloveworld.org/?tv=5a098ffad71f9cy8g5uns1x70",
+      "priority": 4
+    },
+    {
+      "name": "LoveWorld India",
+      "isFree": true,
+      "website": "https://www.lbntv.org/",
+      "priority": 4
+    },
+    {
+      "name": "LoveWorld Italia",
+      "isFree": true,
+      "website": "https://cloveworld.org/?tv=60f97930bc0830lwf4sx1zrnc",
+      "priority": 4
+    },
+    {
+      "name": "LoveWorld Jerusalem",
+      "isFree": true,
+      "website": "https://loveworldjerusalem.org/",
+      "priority": 4
+    },
+    {
+      "name": "LoveWorld Pacifics",
+      "isFree": true,
+      "website": "https://cloveworld.org/?tv=5a382af71148549pde562zf0y",
+      "priority": 4
+    },
+    {
+      "name": "LoveWorld Persia",
+      "isFree": true,
+      "website": "https://loveworldpersia.org/",
+      "priority": 4
+    },
+    {
+      "name": "LoveworldSAT",
+      "isFree": true,
+      "website": "http://www.loveworldsat.org/",
+      "priority": 4
+    },
+    {
+      "name": "LoveWorld UK",
+      "isFree": true,
+      "website": "https://loveworlduk.org/",
+      "priority": 4
+    },
+    {
+      "name": "LoveWorld USA",
+      "isFree": true,
+      "website": "https://www.loveworldusa.org/",
+      "priority": 4
+    },
+    {
+      "name": "Loveworld XP",
+      "isFree": true,
+      "website": "https://www.lxp.tv/watch/",
+      "priority": 4
+    },
+    {
+      "name": "Lumen Christi TV Network",
+      "isFree": true,
+      "website": "https://www.lumenchristitv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Master's",
+      "isFree": true,
+      "website": "https://themastersplace.org/",
+      "priority": 4
+    },
+    {
+      "name": "Mercy TV Plus",
+      "isFree": true,
+      "website": "https://www.christmercyland.org/",
+      "priority": 4
+    },
+    {
+      "name": "MFM",
+      "isFree": true,
+      "website": "https://www.mountainoffire.org/",
+      "priority": 4
+    },
+    {
+      "name": "More Grace",
+      "isFree": true,
+      "website": "https://moregrace.tv/",
+      "priority": 4
+    },
+    {
+      "name": "New Frontiers",
+      "isFree": true,
+      "website": "http://newfrontierstv.info/",
+      "priority": 4
+    },
+    {
+      "name": "New Vision",
+      "isFree": true,
+      "website": "https://crichurch.org/",
+      "priority": 4
+    },
+    {
+      "name": "OPM",
+      "isFree": true,
+      "website": "https://opmworldwide.com/",
+      "priority": 4
+    },
+    {
+      "name": "Oracle",
+      "isFree": true,
+      "website": "https://www.oracletv.org/",
+      "priority": 4
+    },
+    {
+      "name": "PCM Media",
+      "isFree": true,
+      "website": "https://pcmglobalchurch.org/",
+      "priority": 4
+    },
+    {
+      "name": "Phenomenal Life",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Praiseland",
+      "isFree": true,
+      "website": "https://praiselandtv.org/",
+      "priority": 4
+    },
+    {
+      "name": "TV Sapientia",
+      "isFree": true,
+      "website": "https://sapientiaonitsha.com/",
+      "priority": 4
+    },
+    {
+      "name": "Voice of One",
+      "isFree": true,
+      "website": "https://www.voiceofonetv.org/live.php",
+      "priority": 4
+    },
+    {
+      "name": "Whole Word",
+      "isFree": true,
+      "website": "https://godhouse.org/",
+      "priority": 4
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Aforevo Music",
+      "isFree": true,
+      "website": "http://tv.aforevo.com/",
+      "priority": 5
+    },
+    {
+      "name": "Aforevo",
+      "isFree": true,
+      "website": "http://tv.aforevo.com/",
+      "priority": 5
+    },
+    {
+      "name": "AMusic",
+      "isFree": true,
+      "website": "http://amusic.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Hits Africa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kennis Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Our Music",
+      "isFree": true,
+      "website": "https://www.ourtv.ng/our-music/",
+      "priority": 5
+    },
+    {
+      "name": "X2D",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Africa Magic Epic",
+      "isFree": true,
+      "website": "https://www.dstv.com/africamagic/en-ng/channel/africa-magic-epic",
+      "priority": 5
+    },
+    {
+      "name": "African Movie Net",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Grande Bolly",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Itage",
+      "isFree": true,
+      "website": "http://itagetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mama Africa Movies",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Our Movies Globe",
+      "isFree": true,
+      "website": "https://www.ourtv.ng/our-movie-globe/",
+      "priority": 5
+    },
+    {
+      "name": "Our Movies Nolly",
+      "isFree": true,
+      "website": "https://www.ourtv.ng/our-movie-nolly/",
+      "priority": 5
+    },
+    {
+      "name": "Our Series",
+      "isFree": true,
+      "website": "https://www.ourtv.ng/our-series/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Awa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ESBS",
+      "isFree": true,
+      "website": "http://www.esbsenugu.com/",
+      "priority": 5
+    },
+    {
+      "name": "Farin Wata",
+      "isFree": true,
+      "website": "http://www.farinwatatv.ng/",
+      "priority": 5
+    },
+    {
+      "name": "Isi Mbido",
+      "isFree": true,
+      "website": "https://isimbido.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Naija Farmer",
+      "isFree": true,
+      "website": "https://naijafarmer.org/",
+      "priority": 5
+    },
+    {
+      "name": "Nigbati",
+      "isFree": true,
+      "website": "https://www.nigbati.tv/",
+      "priority": 5
+    },
+    {
+      "name": "NTA Knowledge",
+      "isFree": true,
+      "website": "http://www.nta.ng/channels/nta-knowledge/",
+      "priority": 5
+    },
+    {
+      "name": "Nupe TV Africa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Qausain",
+      "isFree": true,
+      "website": "https://www.qausaintv.com/",
+      "priority": 5
+    }
+  ],
+  "Shop": [
+    {
+      "name": "Baba Ijebu",
+      "isFree": true,
+      "website": "https://babaijebu.ng/",
+      "priority": 4
+    },
+    {
+      "name": "Baba Ijebu 2",
+      "isFree": true,
+      "website": "https://babaijebu.ng/",
+      "priority": 4
+    },
+    {
+      "name": "Baba Ijebu 3",
+      "isFree": true,
+      "website": "https://babaijebu.ng/",
+      "priority": 4
+    },
+    {
+      "name": "Baba Ijebu 4",
+      "isFree": true,
+      "website": "https://babaijebu.ng/",
+      "priority": 4
+    }
+  ]
+}

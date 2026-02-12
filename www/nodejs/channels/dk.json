@@ -1,0 +1,975 @@
+{
+  "Entertainment": [
+    {
+      "name": "KKR",
+      "isFree": true,
+      "keywords": "kkr tv | kkrtv",
+      "priority": 5
+    },
+    {
+      "name": "KVF",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal Hovedstaden",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 2 Nord Salto",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV2 Fyn",
+      "isFree": true,
+      "keywords": "tv 2 fyn | tv2 fyn",
+      "priority": 5
+    },
+    {
+      "name": "TV2 Lorry",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV2 Ostjylland",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 2/Bornholm",
+      "isFree": true,
+      "keywords": "tv 2 bornholm | tv2 bornholm",
+      "shortName": "TV 2/Bornholm",
+      "priority": 5
+    },
+    {
+      "name": "TV 2/Lorry",
+      "isFree": true,
+      "keywords": "tv 2 lorry | tv2 lorry",
+      "shortName": "TV 2/Lorry",
+      "priority": 5
+    },
+    {
+      "name": "TV 2/Østjylland",
+      "isFree": true,
+      "keywords": "tv 2 østjylland | tv2 østjylland",
+      "shortName": "TV 2/Østjylland",
+      "priority": 5
+    },
+    {
+      "name": "0-TV",
+      "isFree": true,
+      "website": "https://0-tv.dk/",
+      "priority": 5
+    },
+    {
+      "name": "ANTV",
+      "isFree": true,
+      "website": "https://www.antv.dk/",
+      "priority": 5
+    },
+    {
+      "name": "Canal6000",
+      "isFree": true,
+      "website": "https://www.canal6000.dk/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 9",
+      "isFree": true,
+      "website": "http://canal9.dk/",
+      "priority": 5
+    },
+    {
+      "name": "Christiania",
+      "isFree": true,
+      "website": "https://christiania.tv/",
+      "priority": 5
+    },
+    {
+      "name": "DanmarkC",
+      "isFree": true,
+      "website": "https://danmarkc.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Deaf",
+      "isFree": true,
+      "website": "https://deaftv.dk/",
+      "priority": 5
+    },
+    {
+      "name": "Discovery",
+      "isFree": true,
+      "website": "https://www.discoveryplus.dk/kanaler/discovery/",
+      "priority": 7
+    },
+    {
+      "name": "Dit lokal",
+      "isFree": true,
+      "website": "https://www.ditlokaltv.dk/",
+      "priority": 5
+    },
+    {
+      "name": "dk 4",
+      "isFree": true,
+      "website": "http://www.dk4.dk/",
+      "priority": 5
+    },
+    {
+      "name": "DR",
+      "isFree": true,
+      "website": "http://www.dr.dk/dr1/",
+      "priority": 5
+    },
+    {
+      "name": "DR 3",
+      "isFree": true,
+      "website": "http://dr.dk/dr3",
+      "priority": 5
+    },
+    {
+      "name": "DRTV",
+      "isFree": true,
+      "website": "https://www.dr.dk/drtv/",
+      "priority": 5
+    },
+    {
+      "name": "Frederiksberg Lokal",
+      "isFree": true,
+      "website": "https://frederiksberglokaltv.dk/",
+      "priority": 5
+    },
+    {
+      "name": "Fynbo",
+      "isFree": true,
+      "website": "https://fynbotv.dk/",
+      "priority": 5
+    },
+    {
+      "name": "HAS",
+      "isFree": true,
+      "website": "https://hastv.dk/",
+      "priority": 5
+    },
+    {
+      "name": "KANAL",
+      "isFree": true,
+      "website": "https://kanal-1.dk/",
+      "priority": 5
+    },
+    {
+      "name": "Kanal 4",
+      "isFree": true,
+      "website": "http://www.kanal4.dk/",
+      "priority": 5
+    },
+    {
+      "name": "Kanal 5",
+      "isFree": true,
+      "website": "http://www.kanal5.dk/",
+      "priority": 5
+    },
+    {
+      "name": "Kanalvest",
+      "isFree": true,
+      "website": "https://www.kanalvest.dk/",
+      "priority": 5
+    },
+    {
+      "name": "KIP",
+      "isFree": true,
+      "website": "https://kiptv.dk/",
+      "priority": 5
+    },
+    {
+      "name": "Koge.tv",
+      "isFree": true,
+      "website": "https://koege.tv/",
+      "priority": 5
+    },
+    {
+      "name": "KulturKanalen",
+      "isFree": true,
+      "website": "https://kultur-kanalen.dk",
+      "priority": 5
+    },
+    {
+      "name": "Middelfart Lokal",
+      "isFree": true,
+      "website": "https://middelfart.tv/",
+      "priority": 5
+    },
+    {
+      "name": "MTV Denmark",
+      "isFree": true,
+      "website": "http://www.mtv.dk/",
+      "priority": 5
+    },
+    {
+      "name": "Provins",
+      "isFree": true,
+      "website": "https://www.provinstv.dk/",
+      "priority": 5
+    },
+    {
+      "name": "Roskilde",
+      "isFree": true,
+      "website": "https://roskildetv.dk/",
+      "priority": 5
+    },
+    {
+      "name": "Sydfyn",
+      "isFree": true,
+      "website": "https://www.sydfyntv.dk/",
+      "priority": 5
+    },
+    {
+      "name": "TLC",
+      "isFree": true,
+      "website": "http://www.tlcdanmark.dk/",
+      "priority": 5
+    },
+    {
+      "name": "TV 2",
+      "isFree": true,
+      "keywords": "tv 2 -charlie -fri -fyn -kosmopol -news -nord -salto -sport -x -zulu",
+      "website": "https://tv2.dk/",
+      "priority": 5
+    },
+    {
+      "name": "TV 2 Charlie",
+      "isFree": true,
+      "website": "http://charlie.tv2.dk/",
+      "priority": 5
+    },
+    {
+      "name": "TV 2 Fri",
+      "isFree": true,
+      "website": "http://fri.tv2.dk/",
+      "priority": 5
+    },
+    {
+      "name": "TV 2 Kosmopol",
+      "isFree": true,
+      "website": "https://www.tv2kosmopol.dk/",
+      "priority": 5
+    },
+    {
+      "name": "TV2 Nord",
+      "isFree": true,
+      "website": "https://www.tv2nord.dk/",
+      "priority": 5
+    },
+    {
+      "name": "TV 2 Zulu",
+      "isFree": true,
+      "website": "http://zulu.tv2.dk/",
+      "priority": 5
+    },
+    {
+      "name": "TV 3",
+      "isFree": true,
+      "keywords": "tv3 -max -puls -sport",
+      "website": "https://www.viafree.dk/kanal/tv3",
+      "priority": 5
+    },
+    {
+      "name": "TV3 Max",
+      "isFree": true,
+      "website": "https://www.tv3sport.dk/",
+      "priority": 5
+    },
+    {
+      "name": "TV3+",
+      "isFree": true,
+      "website": "https://www.viafree.dk/kanal/tv3",
+      "priority": 5
+    },
+    {
+      "name": "TV3 Puls",
+      "isFree": true,
+      "website": "https://www.viafree.dk/kanal/tv3",
+      "priority": 5
+    },
+    {
+      "name": "TV Avisen",
+      "isFree": true,
+      "website": "https://www.dr.dk/drtv/kanal/drtv_192099",
+      "priority": 5
+    },
+    {
+      "name": "TV Fano",
+      "isFree": true,
+      "website": "https://tvfano.dk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Fionia",
+      "isFree": true,
+      "website": "https://tvfionia.dk/",
+      "priority": 5
+    },
+    {
+      "name": "TV from the Danish Parliament",
+      "isFree": true,
+      "website": "https://www.ft.dk/da/aktuelt/tv-fra-folketinget",
+      "priority": 5
+    },
+    {
+      "name": "TV Glad",
+      "isFree": true,
+      "website": "https://www.tv-glad.dk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Kant",
+      "isFree": true,
+      "website": "https://www.tvkant.dk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Kobenhavn",
+      "isFree": true,
+      "website": "https://tvkobenhavn.dk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Kronjylland",
+      "isFree": true,
+      "website": "https://www.tv-kronjylland.dk/",
+      "priority": 5
+    },
+    {
+      "name": "TVMarineret",
+      "isFree": true,
+      "website": "http://www.tvmarineret.org/",
+      "priority": 5
+    },
+    {
+      "name": "TV Midtvest",
+      "isFree": true,
+      "website": "https://www.tvmidtvest.dk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Nordkysten",
+      "isFree": true,
+      "website": "https://tvnordkysten.dk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Storbyen",
+      "isFree": true,
+      "website": "http://www.kanalnordvest.dk/",
+      "priority": 5
+    },
+    {
+      "name": "TV SYD",
+      "isFree": true,
+      "website": "https://www.tvsyd.dk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Vestjylland",
+      "isFree": true,
+      "website": "https://tvvestjylland.dk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Vestsjaelland",
+      "isFree": true,
+      "website": "https://tvvestsjaelland.dk/",
+      "priority": 5
+    },
+    {
+      "name": "Vesterbro Lokal",
+      "isFree": true,
+      "website": "https://vesterbrolokaltv.dk/",
+      "priority": 5
+    },
+    {
+      "name": "Xee",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DR Update",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV 2 Echo",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV 2 Sport",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "TV 2/Fyn",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV 2/Nord",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV 2 Øst",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV 2 Film",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "V Series",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "V Sport Golf",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "V Sport",
+      "isFree": null,
+      "keywords": "v sport -golf",
+      "priority": 10
+    },
+    {
+      "name": "Sportkanalen",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Viasat Film",
+      "isFree": null,
+      "keywords": "viasat film -classic -comedy -drama -nordic",
+      "priority": 5
+    },
+    {
+      "name": "Viasat Film Classic",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Viasat Film Comedy",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Viasat Film Drama",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Viasat Film Nordic",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV3 Sport 2",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "MTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nickelodeon Global",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nick Jr.",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nicktoons",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Paramount Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "VH",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "VH1 Classic",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Club MTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV Hits",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV Live",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV 80s",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV 90s",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV 00s",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "NickMusic EMEA",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "SkyShowtime",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV4 Hits",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "SF-kanalen",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Kiosk",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "C More Sport",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "C More Action",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "C More Emotion",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "C More Film",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV Aitio",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "C More Kids",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV4 Hockey",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV Viihde",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "C More Tennis",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Investigation Discovery Europe",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "Eurosport",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Eurosport 2",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Discovery Channel Denmark",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "Discovery Science",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "Cartoonito",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CNN International",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Travel Channel International",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "7'eren",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Discovery World",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "Boomerang Europe#Nordics",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Disney",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Disney Junior",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Disney XD",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "National Geographic",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "National Geographic Wild",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "Nat Geo People",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BBC News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BBC Nordic",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BBC Brit",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BBC Earth",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BBC Entertainment",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BBC Lifestyle",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Al Jazeera English",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Bloomberg Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "DW-TV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Euronews",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "FashionTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "France 24",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Mezzo",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "History",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "H 2",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Viasat Explore",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Viasat History",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "E!",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CNBC Europe",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sky News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Glad Foundation",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "24Nordjyske",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "24Sjællandske",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Aabenraa Lokal",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Aalborg+",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Kanal København",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "KTV Kolding",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Boxer TV A/S",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Allente",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "YouSee",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Stofa",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Waoo!",
+      "isFree": null,
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "6'eren",
+      "isFree": true,
+      "website": "http://www.6-eren.dk/",
+      "priority": 5
+    },
+    {
+      "name": "DR 2",
+      "isFree": true,
+      "website": "http://www.dr.dk/dr2/",
+      "priority": 5
+    },
+    {
+      "name": "DR K",
+      "isFree": true,
+      "website": "http://dr.dk/K/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "DR Ramasjang",
+      "isFree": true,
+      "website": "http://www.dr.dk/Ramasjang/",
+      "priority": 5
+    },
+    {
+      "name": "DR Ultra",
+      "isFree": true,
+      "website": "https://www.dr.dk/ultra",
+      "priority": 5
+    },
+    {
+      "name": "Nickelodeon",
+      "isFree": true,
+      "website": "http://nickelodeon.dk/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Hope Channel Danmark",
+      "isFree": true,
+      "website": "https://hopechannel.dk/",
+      "priority": 4
+    },
+    {
+      "name": "KKRtv",
+      "isFree": true,
+      "website": "https://kkrtv.dk/",
+      "priority": 4
+    }
+  ],
+  "News": [
+    {
+      "name": "KobenhavnLIV",
+      "isFree": true,
+      "website": "https://kobenhavnliv.dk/",
+      "priority": 5
+    },
+    {
+      "name": "TV 2 News",
+      "isFree": true,
+      "website": "http://news.tv2.dk/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [],
+  "Sports": [
+    {
+      "name": "Sport Live",
+      "isFree": true,
+      "website": "https://www.sport-live.dk/",
+      "priority": 10
+    },
+    {
+      "name": "TV 2 Sport X",
+      "isFree": true,
+      "website": "https://sport.tv2.dk/sportx",
+      "priority": 10
+    },
+    {
+      "name": "TV3 Sport",
+      "isFree": true,
+      "website": "https://www.tv3sport.dk/",
+      "priority": 10
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Uptown Classic",
+      "isFree": true,
+      "website": "https://uptown.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Uptown Dansk Musik",
+      "isFree": true,
+      "website": "https://uptown.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Uptown Music",
+      "isFree": true,
+      "website": "https://uptown.tv/",
+      "priority": 5
+    }
+  ]
+}

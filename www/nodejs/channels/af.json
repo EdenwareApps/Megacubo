@@ -1,0 +1,481 @@
+{
+  "News": [
+    {
+      "name": "ATN News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bloomberg TV Asia",
+      "isFree": true,
+      "keywords": "bloomberg tv asia -live -event",
+      "priority": 5
+    },
+    {
+      "name": "Bloomberg TV Asia Live Event",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Chekad",
+      "isFree": true,
+      "website": "https://chekad.tv/",
+      "priority": 5
+    },
+    {
+      "name": "STR News",
+      "isFree": true,
+      "website": "https://strnews.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TOLOnews",
+      "isFree": true,
+      "website": "https://www.tolonews.com/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Noor",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Eslah",
+      "isFree": true,
+      "website": "http://www.eslah.tv/",
+      "priority": 4
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "&Pictures",
+      "priority": 5
+    },
+    {
+      "name": "&TV",
+      "priority": 5
+    },
+    {
+      "name": "&privé",
+      "priority": 5
+    },
+    {
+      "name": "Thrill",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "11",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AMC",
+      "isFree": true,
+      "website": "https://www.amctv.media/",
+      "priority": 5
+    },
+    {
+      "name": "Barbud Music",
+      "isFree": true,
+      "website": "https://barbudmusic.com/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "ATN Europe",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ATN National",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ATN USA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Andisheh",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ariana Afghan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ariana Afghanistan International",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ariana TV National",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ariana TV US",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ayeneh",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bahar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Barya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Caltex Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dubai One",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EBC1 Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ganje Hozour",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Helal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hewad",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Iman",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Israel Pars",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kalemeh",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kayhan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Manoto",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mihan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mohabat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Omid Javedan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pamir",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Parnian",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ParsiLand",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Payam-e-Afghan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Payvand",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Persian Bazar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Shabakeh 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Shamshad",
+      "isFree": true,
+      "website": "https://shamshadtv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Simaye Azadi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Solh",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TIN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tapesh",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tolo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tuti",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VOA Persian",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "WATAN-E-MAA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "1TV",
+      "isFree": true,
+      "website": "http://www.1tvmedia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Afghan",
+      "isFree": true,
+      "website": "http://afghantv.news/",
+      "priority": 5
+    },
+    {
+      "name": "Arezo",
+      "isFree": true,
+      "website": "https://arezo.news/",
+      "priority": 5
+    },
+    {
+      "name": "Asr",
+      "isFree": true,
+      "website": "https://asrtv.media/",
+      "priority": 5
+    },
+    {
+      "name": "ATN International",
+      "isFree": true,
+      "website": "https://www.arianatelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "ATN US",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ayna",
+      "isFree": true,
+      "website": "http://www.ayna.af/",
+      "priority": 5
+    },
+    {
+      "name": "Dunya Naw",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Faza",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Khurshid",
+      "isFree": true,
+      "website": "http://www.khurshid.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Lemar",
+      "isFree": true,
+      "website": "https://www.lemar.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Noorin",
+      "isFree": true,
+      "website": "https://www.noortv.af/",
+      "priority": 5
+    },
+    {
+      "name": "Rah-e-Farda",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTA",
+      "isFree": true,
+      "keywords": "rta -education -news -sport",
+      "website": "https://rta.af/",
+      "priority": 5
+    },
+    {
+      "name": "RTA Education",
+      "isFree": true,
+      "website": "https://rta.af/live/",
+      "priority": 5
+    },
+    {
+      "name": "RTA News",
+      "isFree": true,
+      "website": "https://rta.af/live/",
+      "priority": 5
+    },
+    {
+      "name": "Sharq Radio",
+      "isFree": true,
+      "website": "http://www.shaiqnetwork.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tamadon",
+      "isFree": true,
+      "website": "https://tamadon.af/",
+      "priority": 5
+    },
+    {
+      "name": "Watan 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zan",
+      "isFree": true,
+      "website": "https://www.zantvnetwork.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zhwandoon",
+      "isFree": true,
+      "website": "https://zhwandoon.tv/",
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Radio Farda",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Javan",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "3Sport",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "RTA Sport",
+      "isFree": true,
+      "website": "https://rta.af/",
+      "priority": 10
+    },
+    {
+      "name": "Solh Sports",
+      "isFree": true,
+      "priority": 10
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Afghanistan Youth",
+      "isFree": true,
+      "website": "https://afghanyouth.tv/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Begum",
+      "isFree": true,
+      "website": "https://begum.ngo/",
+      "priority": 5
+    },
+    {
+      "name": "Maarif",
+      "isFree": true,
+      "website": "https://moe.gov.af/",
+      "priority": 5
+    },
+    {
+      "name": "Shams",
+      "isFree": true,
+      "website": "https://www.darya.net/",
+      "priority": 5
+    }
+  ]
+}

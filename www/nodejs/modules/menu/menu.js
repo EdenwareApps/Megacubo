@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events'
-import { basename, traceback } from '../utils/utils.js'
+import { basename, traceback, trackPromise } from '../utils/utils.js'
 import lang from '../lang/lang.js'
 import storage from '../storage/storage.js'
 import Limiter from '../limiter/limiter.js'
@@ -116,22 +116,40 @@ class Menu extends EventEmitter {
                 await this.select(path, tabindex).catch(e => this.displayErr(e))
             })
         })
-        this.on('open', path => {
-            if(path === this.liveSectionPath) return
-            clearInterval(this.liveSectionTimer)
-            this.liveSectionPath = path
-            for(const section of this.liveSections) {
-                const match = section.path.includes('*') ? path.match(section.path) : path == section.path
-                if(match) {
-                    this.liveSectionTimer = setInterval(() => {
-                        if(typeof(section.callback) == 'function') {
-                            section.callback()
-                        } else {
-                            menu.refresh()                                
-                        }
-                    }, section.interval)
-                }
+        this.on('open', async path => {
+            if (path === this.liveSectionPath) return
+            clearTimeout(this.liveSectionTimer)
+
+            const section = this.liveSections.find(s => s.path === path)
+            if (!section) {
+                this.liveSectionPath = null
+                return
             }
+
+            this.liveSectionPath = path
+            const cb = async () => {
+                if (path !== this.liveSectionPath) {
+                    clearTimeout(this.liveSectionTimer)
+                    this.liveSectionPath = null
+                    return
+                }
+                let data
+                try {
+                    data = await section.callback()
+                } catch (e) {
+                    this.opts.debug && console.error('live section callback error', e)
+                }
+                if (path !== this.liveSectionPath) {
+                    clearTimeout(this.liveSectionTimer)
+                    this.liveSectionPath = null
+                    return
+                }
+                if (data && Array.isArray(data[0])) {
+                    this.render(data[0], path, data[1] || {})
+                }
+                this.liveSectionTimer = setTimeout(cb, section.interval)
+            }
+            await cb()
         })
     }
     setLiveSection(path, interval=1000, callback) {
@@ -256,9 +274,9 @@ class Menu extends EventEmitter {
         this.pages[''] = await this.applyFilters([], '')
         this.path || this.refresh()
     }
-    async dialog(opts, def, mandatory) {
-        let uid = 'ac-' + Date.now()
-        renderer.ui.emit('dialog', opts, uid, def, mandatory)
+    async dialog(opts, def, mandatory, dialogId = null) {
+        let uid = dialogId || ('ac-' + Date.now())
+        renderer.ui.emit('dialog', opts, uid, def, mandatory, dialogId)
         return new Promise(resolve => renderer.ui.once(uid, resolve))
     }
     async prompt(atts) {
@@ -280,7 +298,7 @@ class Menu extends EventEmitter {
                 details.push(e.details)
             }
             if (e.usersPercentage || e.users) {
-                let s = '', c = e.users > 1 ? 'users' : 'user'
+                let s = '', c = 'fire'
                 if (typeof(e.trend) == 'number') {
                     if (e.trend == -1) {
                         c = 'caret-down'
@@ -290,12 +308,7 @@ class Menu extends EventEmitter {
                         s = ' style="color: green;font-weight: bold;"'
                     }
                 }
-                if (e.usersPercentage) {
-                    let p = e.usersPercentage >= 1 ? Math.round(e.usersPercentage) : e.usersPercentage.toFixed(e.usersPercentage >= 0.1 ? 1 : 2)
-                    details.push('<i class="fas fa-' + c + '" ' + s + '></i> ' + p + '%')
-                } else if (e.users) {
-                    details.push('<i class="fas fa-' + c + '" ' + s + '></i> ' + e.users)
-                }
+                details.push('<i class="fas fa-' + c + '" ' + s + '></i> ' + lang.TRENDING)
             }
             if (e.position && this.path == lang.TRENDING) {
                 details.push('<i class="fas fa-trophy" style="transform: scale(0.8)"></i> ' + e.position)
@@ -562,27 +575,30 @@ class Menu extends EventEmitter {
         }
     }
     async action(destPath, tabindex) {
-        let name = basename(destPath), dir = this.dirname(destPath)
-        if (this.opts.debug) {
-            console.log('action ' + destPath + ' | ' + dir, tabindex)
-        }
-        if (typeof(this.pages[dir]) == 'undefined') {
-            console.error(dir + 'NOT FOUND IN', this.pages)
-        } else {
-            const inSelect = this.pages[dir].some(e => typeof(e.selected) != 'undefined')
-            let i = this.findEntryIndex(this.pages[dir], name, tabindex)
-            if(typeof(i) == 'number') {
-                if (inSelect) {
-                    this.pages[dir].forEach((e, j) => {
-                        this.pages[dir][i].selected = j == i    
-                    })
-                }
-                this.emit('action', this.pages[dir][i])
-                return true
-            } else {
-                console.error('ACTION ' + name + ' (' + tabindex + ') NOT FOUND IN ', { dir, destPath, keys: Object.keys(this.pages) }, this.pages[dir])
+        // Track menu.action() to detect hangs
+        return trackPromise((async () => {
+            let name = basename(destPath), dir = this.dirname(destPath)
+            if (this.opts.debug) {
+                console.log('action ' + destPath + ' | ' + dir, tabindex)
             }
-        }
+            if (typeof(this.pages[dir]) == 'undefined') {
+                console.error(dir + 'NOT FOUND IN', this.pages)
+            } else {
+                const inSelect = this.pages[dir].some(e => typeof(e.selected) != 'undefined')
+                let i = this.findEntryIndex(this.pages[dir], name, tabindex)
+                if(typeof(i) == 'number') {
+                    if (inSelect) {
+                        this.pages[dir].forEach((e, j) => {
+                            this.pages[dir][i].selected = j == i    
+                        })
+                    }
+                    this.emit('action', this.pages[dir][i])
+                    return true
+                } else {
+                    console.error('ACTION ' + name + ' (' + tabindex + ') NOT FOUND IN ', { dir, destPath, keys: Object.keys(this.pages) }, this.pages[dir])
+                }
+            }
+        })(), `menu.action(${destPath})`, 30000)
     }
     dirname(path) {
         let i = String(path).lastIndexOf('/')
@@ -702,121 +718,128 @@ class Menu extends EventEmitter {
         }
         const requestToken = ++this.openToken
         this.emit('open', destPath)
-        let parentEntry, name = basename(destPath), parentPath = this.dirname(destPath)
-        const finish = async (es) => {
-            if (requestToken !== this.openToken) {
-                if (this.opts.debug) {
-                    console.log('open finish skipped (outdated)', { destPath, requestToken, currentToken: this.openToken })
-                }
-                return false
-            }
-            if (backInSelect && parentEntry && parentEntry.type == 'select') {
-                if (this.opts.debug) {
-                    console.log('backInSelect', backInSelect, parentEntry, destPath)
-                }
-                return this.open(this.dirname(destPath), -1, deep, isFolder, backInSelect)
-            }
-            if(!destPath || !parentEntry || parentEntry.type == 'group') {
-                this.path = destPath
-            }
-            es = this.addMetaEntries(es, destPath, parentPath)
-            this.pages[this.path] = es
-            await this.render(this.pages[this.path], this.path, { parent: parentEntry, openToken: requestToken })
-            return true
-        }
-        if (this.opts.debug) {
-            console.log('readen1', this.pages[parentPath], parentPath, name)
-        }
-        if (Array.isArray(this.pages[parentPath])) {
-            const i = this.pages[parentPath].findIndex(e => e.name == name)
-            if (this.opts.debug) {
-                console.log('readen1.5', i)
-            }
-            if (i != -1) {
-                const e = this.pages[parentPath][i]
-                if (e.url && (!e.type || e.type == 'stream')) { // force search results to open directly
-                    return this.action(destPath, tabindex)
-                } else if(e.type == 'group' && parentPath.startsWith(lang.SEARCH)) {
+        
+        // Track menu.open() to detect hangs
+        return trackPromise((async () => {
+            let parentEntry, name = basename(destPath), parentPath = this.dirname(destPath)
+            const finish = async (es) => {
+                if (requestToken !== this.openToken) {
                     if (this.opts.debug) {
-                        console.log('readen1.6', e)
+                        console.log('open finish skipped (outdated)', { destPath, requestToken, currentToken: this.openToken })
                     }
-                    let es = await this.readEntry(e, parentPath)
-                    es = await this.applyFilters(es, destPath)
-                    return this.render(es, destPath, { parent: e, openToken: requestToken })
-                } else if(e.type == 'group') {
-                    // Handle normal groups (like "Recomendado para você")
-                    parentEntry = e
-                    let es = await this.readEntry(e, parentPath)
-                    es = await this.applyFilters(es, destPath)
-                    return finish(es)
+                    return false
+                }
+                if (backInSelect && parentEntry && parentEntry.type == 'select') {
+                    if (this.opts.debug) {
+                        console.log('backInSelect', backInSelect, parentEntry, destPath)
+                    }
+                    return this.open(this.dirname(destPath), -1, deep, isFolder, backInSelect)
+                }
+                if(!destPath || !parentEntry || parentEntry.type == 'group') {
+                    this.path = destPath
+                }
+                es = this.addMetaEntries(es, destPath, parentPath)
+                this.pages[this.path] = es
+                await this.render(this.pages[this.path], this.path, { parent: parentEntry, openToken: requestToken })
+                return true
+            }
+            if (this.opts.debug) {
+                console.log('readen1', this.pages[parentPath], parentPath, name)
+            }
+            if (Array.isArray(this.pages[parentPath])) {
+                const i = this.pages[parentPath].findIndex(e => e.name == name)
+                if (this.opts.debug) {
+                    console.log('readen1.5', i)
+                }
+                if (i != -1) {
+                    const e = this.pages[parentPath][i]
+                    if (e.url && (!e.type || e.type == 'stream')) { // force search results to open directly
+                        return this.action(destPath, tabindex)
+                    } else if(e.type == 'group' && parentPath.startsWith(lang.SEARCH)) {
+                        if (this.opts.debug) {
+                            console.log('readen1.6', e)
+                        }
+                        let es = await this.readEntry(e, parentPath)
+                        es = await this.applyFilters(es, destPath)
+                        return this.render(es, destPath, { parent: e, openToken: requestToken })
+                    } else if(e.type == 'group') {
+                        // Handle normal groups (like "Recomendado para você")
+                        parentEntry = e
+                        let es = await this.readEntry(e, parentPath)
+                        es = await this.applyFilters(es, destPath)
+                        return finish(es)
+                    }
                 }
             }
-        }
-        let ret = await this[deep === true ? 'deepRead' : 'read'](parentPath, undefined)
-        if (this.opts.debug) {
-            console.log('readen2', {ret, page: this.pages[parentPath], parentPath, name, destPath, tabindex, deep, isFolder, backInSelect}, traceback())
-        }
-        if (ret === -1 || ret === undefined) return
-        parentEntry = ret.parent
-        if (name) {
-            // Try to find entry in ret.entries first, but if not found, try in this.pages[parentPath]
-            // This handles cases where the entry was filtered out or the array was modified
-            let e = this.findEntry(ret.entries, name, {
-                tabindex, isFolder, fullPath: destPath
-            })
-            if (!e && Array.isArray(this.pages[parentPath])) {
-                e = this.findEntry(this.pages[parentPath], name, {
+            let ret = await this[deep === true ? 'deepRead' : 'read'](parentPath, undefined)
+            if (this.opts.debug) {
+                console.log('readen2', {ret, page: this.pages[parentPath], parentPath, name, destPath, tabindex, deep, isFolder, backInSelect}, traceback())
+            }
+            if (ret === -1 || ret === undefined) return
+            parentEntry = ret.parent
+            if (name) {
+                // Try to find entry in ret.entries first, but if not found, try in this.pages[parentPath]
+                // This handles cases where the entry was filtered out or the array was modified
+                let e = this.findEntry(ret.entries, name, {
                     tabindex, isFolder, fullPath: destPath
                 })
-            }
-            if (this.opts.debug) {
-                console.log('findEntry', destPath, ret.entries, name, tabindex, isFolder, e)
-            }
-            if (e) {
-                parentEntry = e
-                if (e.type == 'group') {
-                    let es = await this.readEntry(e, parentPath)
-                    es = await this.applyFilters(es, destPath)
-                    return finish(es)
-                } else if (e.type == 'select') {
-                    if (backInSelect) {
-                        return this.open(this.dirname(destPath), -1, deep, isFolder, backInSelect)
+                if (!e && Array.isArray(this.pages[parentPath])) {
+                    e = this.findEntry(this.pages[parentPath], name, {
+                        tabindex, isFolder, fullPath: destPath
+                    })
+                }
+                if (this.opts.debug) {
+                    console.log('findEntry', destPath, ret.entries, name, tabindex, isFolder, e)
+                }
+                if (e) {
+                    parentEntry = e
+                    if (e.type == 'group') {
+                        let es = await this.readEntry(e, parentPath)
+                        es = await this.applyFilters(es, destPath)
+                        return finish(es)
+                    } else if (e.type == 'select') {
+                        if (backInSelect) {
+                            return this.open(this.dirname(destPath), -1, deep, isFolder, backInSelect)
+                        } else {
+                            await this.select(destPath, tabindex)
+                            return true
+                        }
                     } else {
-                        await this.select(destPath, tabindex)
+                        this.action(destPath, tabindex)
                         return true
                     }
                 } else {
-                    this.action(destPath, tabindex)
-                    return true
+                    if (this.opts.debug) {
+                        console.log('noParentEntry', destPath, this.pages[destPath], ret)
+                    }
+                    if (typeof(this.pages[destPath]) != 'undefined') {
+                        return finish(this.pages[destPath])
+                    } else {
+                        return this.open(this.dirname(destPath), undefined, deep, undefined, backInSelect)
+                    }
                 }
             } else {
-                if (this.opts.debug) {
-                    console.log('noParentEntry', destPath, this.pages[destPath], ret)
-                }
-                if (typeof(this.pages[destPath]) != 'undefined') {
-                    return finish(this.pages[destPath])
-                } else {
-                    return this.open(this.dirname(destPath), undefined, deep, undefined, backInSelect)
-                }
+                this.path = destPath
+                await this.render(this.pages[this.path], this.path, { parent: parentEntry, openToken: requestToken })
+                return true
             }
-        } else {
-            this.path = destPath
-            await this.render(this.pages[this.path], this.path, { parent: parentEntry, openToken: requestToken })
-            return true
-        }
+        })(), `menu.open(${destPath})`, 30000)
     }
     async readEntry(e) {
-        let entries
-        if (!e)
-            return []
-        if (typeof(e.renderer) == 'function') {
-            entries = await e.renderer(e)
-        } else if (typeof(e.renderer) == 'string') {
-            entries = await storage.get(e.renderer)
-        } else {
-            entries = e.entries || []
-        }
-        return Array.isArray(entries) ? entries : []
+        // Track menu.readEntry() to detect hangs
+        return trackPromise((async () => {
+            let entries
+            if (!e)
+                return []
+            if (typeof(e.renderer) == 'function') {
+                entries = await e.renderer(e)
+            } else if (typeof(e.renderer) == 'string') {
+                entries = await storage.get(e.renderer)
+            } else {
+                entries = e.entries || []
+            }
+            return Array.isArray(entries) ? entries : []
+        })(), `menu.readEntry(${e?.name || 'unknown'})`, 15000)
     }
     findEntryIndex(entries, name, tabindex, isFolder) {
         let ret = false

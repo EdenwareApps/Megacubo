@@ -14,7 +14,7 @@ import Limiter from '../limiter/limiter.js'
 import { randomUUID } from 'node:crypto'
 import { EventEmitter } from "events";
 import { promises as fsp } from "fs";
-import { basename, clone, forwardSlashes, getDomain, isLocal, insertEntry, kfmt, listNameFromURL, parseCommaDelimitedURIs, validateURL, ucWords, formatThousands } from "../utils/utils.js";
+import { basename, clone, forwardSlashes, getDomain, isLocal, insertEntry, kfmt, listNameFromURL, parseCommaDelimitedURIs, translateCategoryName, validateURL, ucWords, formatThousands } from "../utils/utils.js";
 import { resolveListDatabaseFile } from "./tools.js";
 import { Fetcher } from './common.js';
 
@@ -37,17 +37,32 @@ class ManagerEPG extends EventEmitter {
                         const hash = entries.map(e => e.name + e.details + e.value).join('')
                         if (hash !== currentHash) {
                             currentHash = hash
-                            menu.render(entries, this.epgSelectionPath(), {
+                            return [entries, {
                                 icon: global.channels ? global.channels.epgIcon : '',
                                 filter: true
-                            })
+                            }]
                         }
                     }
                 } catch (error) {
                     console.error('Error in epgOptionsEntries:', error)
                 }
             }
+            const updaterReceivedLists = async () => {
+                try {
+                    const communityProvider = this.master.discovery.getProvider('community', 'community-lists');
+                    const entries = await communityProvider.receivedListsEntries()
+                    return [
+                        entries, {
+                            icon: 'fas fa-users',
+                            filter: true
+                        }
+                    ]
+                } catch (error) {
+                    console.error('Error in updaterReceivedLists:', error)
+                }
+            }
             menu.setLiveSection(lang.MY_LISTS + '/' + lang.EPG + '/' + lang.SELECT, 1000, updater)
+            menu.setLiveSection(lang.MY_LISTS + '/' + lang.COMMUNITY_LISTS + '/' + lang.RECEIVED_LISTS, 1000, updaterReceivedLists)
             menu.setLiveSection(lang.EPG + '/' + lang.SELECT, 1000, updater)
         })
     }
@@ -257,19 +272,16 @@ class ManagerEPG extends EventEmitter {
                         categories = []
                         console.error(e)
                     }
-                    entries.push(...[
-                        global.channels.epgSearchEntry(),
-                        global.channels.chooseChannelGridOption(true),
-                        ...categories.map(category => {
-                            const rawname = lang.CATEGORY_KIDS == category.name ? '[fun]' + category.name + '[|fun]' : category.name;
-                            return {
-                                name: category.name,
-                                rawname,
-                                type: 'group',
-                                renderer: () => this.epgCategoryEntries(category)
+                    entries.push(global.channels.epgSearchEntry())
+                    entries.push(...categories.map(c => {
+                        return {
+                            name: c.name,
+                            type: 'group',
+                            renderer: async () => {
+                                return this.epgCategoryEntries(c)
                             }
-                        })
-                    ])
+                        }
+                    }))
                     if (!categories.length) {
                         entries.push({
                             name: lang.EPG_AVAILABLE_SOON,
@@ -296,7 +308,7 @@ class ManagerEPG extends EventEmitter {
         }).filter(e => e)
         chs = chs.map(c => {
             return {
-                name: c.name,
+                name: translateCategoryName(c.name),
                 type: 'group',
                 fa: 'fas fa-play',
                 terms: c.terms, // allow EPG info inclusion
@@ -305,8 +317,14 @@ class ManagerEPG extends EventEmitter {
                 }
             };
         })
-        // Reordena as entradas para que os que possuam 'programme' fiquem na frente
-        const allEntries = await global.channels.epgChannelsAddLiveNow(chs, false);
+        // Reorder entries so that those with 'programme' come first
+        let allEntries = await global.channels.epgChannelsAddLiveNow(chs, false);
+        for (let entry of allEntries) {
+            if (!entry.programme) {
+                entry.class = (entry.class || '') + ' entry-disabled';
+                entry.details = '<i class="fas fa-times-circle"></i> ' + lang.NOT_FOUND;
+            }
+        }
         return [
             ...allEntries.filter(entry => !!entry.programme),
             ...allEntries.filter(entry => !entry.programme)
@@ -443,7 +461,36 @@ class Manager extends ManagerFetch {
 
         this.updateProgressLimiter = new Limiter(this.updateProgress.bind(this), 1000)
         this.master.on('state', info => this.updateProgressLimiter.call(info))
-        this.master.on('satisfied', () => this.updateProgress(this.master.state))
+        this.master.on('satisfied', () => {
+            // Reset loading dialog flag and force close when lists become satisfied
+            this.hideLoadingDialog()
+            this.updateProgress(this.master.state)
+        })
+        this.master.on('unsatisfied', () => {
+            this.showLoadingDialog()
+            this.updateProgress(this.master.state)
+        })
+
+        menu.on('rendered', () => this.updateProgress(this.master.state))
+        menu.on('render', () => this.updateProgress(this.master.state))
+
+        // Track loading dialog state
+        this.loadingDialogShown = false;
+
+        // Update listener for recommendations updates
+        if (global.recommendations) {
+            global.recommendations.on('updated', () => {
+                // If showing LOADING_RECOMMENDATIONS and recommendations are no longer placeholders,
+                // update progress to show LISTS_UPDATED or hide
+                if (this.lastProgressMessage === lang.LOADING_RECOMMENDATIONS) {
+                    const recommendationsArePlaceholders = this.areRecommendationsPlaceholders();
+                    if (!recommendationsArePlaceholders) {
+                        // Recommendations are no longer placeholders, show LISTS_UPDATED and hide after a time
+                        this.showUpdateProgress(lang.LISTS_UPDATED, 'fas fa-check-circle', 'normal');
+                    }
+                }
+            });
+        }
 
         renderer.ready(async () => {
             renderer.ui.on('menu-back', () => osd.hide('list-open'))
@@ -713,7 +760,7 @@ class Manager extends ManagerFetch {
                         return
                 }
                 let chosen = await menu.dialog([
-                    { template: 'question', text: ucWords(paths.manifest.name), fa: 'fas fa-star' },
+                    { template: 'question', text: ucWords(paths.manifest.name), fa: 'fas fa-heart' },
                     { template: 'message', text: lang.ADDED_LIST_EPG },
                     { template: 'option', text: lang.YES, id: 'yes', fa: 'fas fa-check-circle' },
                     { template: 'option', text: lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle' }
@@ -830,23 +877,85 @@ class Manager extends ManagerFetch {
             }
         });
     }
+
+    showLoadingDialog() {
+        if (this.loadingDialogShown) {
+            return;
+        }
+
+        this.loadingDialogShown = true;
+
+        // Use the same dialogId as wizard to avoid collisions
+        renderer.ready(() => {
+            const mode = this.master.communityListsAmount > 0 ? 'community' : 'public';
+            const messages = {
+                community: lang.PREPARING_STREAMS,
+                public: lang.LOADING_PUBLIC
+            };    
+            const opts = [
+                { template: 'question', text: messages[mode], fa: 'fas fa-spinner fa-spin' },
+                { template: 'message', text: lang.WAIT_MOMENT }
+            ];
+    
+            menu.dialog(opts, 'loading', true, 'loading');
+        })
+    }
+
+    hideLoadingDialog() {
+        if (!this.loadingDialogShown) {
+            return;
+        }
+        this.loadingDialogShown = false;
+        renderer.ready(() => {
+            renderer.ui.emit('dialog-close', 'loading');
+        })
+    }
+
+    areRecommendationsPlaceholders() {
+        try {
+            // Check if any entry is placeholders (busy entries)
+            const showingPlaceholders = menu.pages[''].some(e => e.hookId === 'recommendations' && e.id?.startsWith('recommendations-busy-'));
+            return showingPlaceholders;
+        } catch (error) {
+            console.warn('Error checking if recommendations are placeholders:', error);
+            return false;
+        }
+    }
+
     updateProgress(info) {
+        // Don't show loading indicators before setup is completed
+        if (!config.get('setup-completed')) {
+            return;
+        }
+
         const communityListsAmount = this.master.communityListsAmount
         const progress = info.length ? info.progress : 0
         let m, fa = 'fa-mega busy-x', duration = 'persistent';
         if (this.master.satisfied) {
+            // Close loading dialog if it's open and no active progress
+            this.hideLoadingDialog()
             if (info.length || !communityListsAmount) {
-                m = lang.LISTS_UPDATED;
-                fa = 'fas fa-check-circle';
-                duration = 'normal';
+                // Check if recommendations are still placeholders
+                const recommendationsArePlaceholders = this.areRecommendationsPlaceholders();
+                if (recommendationsArePlaceholders) {
+                    m = lang.LOADING_RECOMMENDATIONS;
+                    fa = 'fa-mega busy-x';
+                    duration = 'persistent';
+                } else {
+                    m = lang.LISTS_UPDATED;
+                    fa = 'fas fa-check-circle';
+                    duration = 'normal';
+                }
                 this.master.isFirstRun = false;
-            } else if(this.master.loader.queue.size) {
+            } else if(this.master.loader.parseQueue.size || this.master.loader.downloadQueue.size) {
                 m = communityListsAmount ? lang.SEARCH_COMMUNITY_LISTS : lang.STARTING_LISTS
             } else {
                 this.hideUpdateProgress()
                 m = -1; // do not show 'lists updated' message yet
             }
         } else {
+            // Lists are not ready OR there's active progress - show loading dialog
+            this.showLoadingDialog()
             if(progress) {
                 m = info.firstRun ? lang.STARTING_LISTS_FIRST_TIME_WAIT : lang.UPDATING_LISTS
                 m += ' ' + progress + '%'
@@ -874,6 +983,7 @@ class Manager extends ManagerFetch {
                 }
             }
         }
+
         this.handleNoListsAutoRetry(info)
     }
     handleNoListsAutoRetry(info = {}) {
@@ -889,7 +999,7 @@ class Manager extends ManagerFetch {
         if (!loader) {
             return;
         }
-        const hasQueue = Boolean(loader.queue?.size);
+        const hasQueue = Boolean(loader.parseQueue.size || loader.downloadQueue.size);
         const hasRunningProcess = Array.isArray(loader.processes) && loader.processes.some(p => {
             return typeof p?.done === 'function' ? !p.done() : true;
         });
@@ -1270,7 +1380,7 @@ class Manager extends ManagerFetch {
             name: manageOnly ? lang.IPTV_LISTS : lang.MY_LISTS,
             details: manageOnly ? lang.CONFIGURE : lang.IPTV_LISTS,
             type: 'group',
-            fa: 'fas fa-list',
+            fa: 'fas fa-stream',
             renderer: async () => {
                 let lists = this.get();
                 const extInfo = await this.master.info(true);

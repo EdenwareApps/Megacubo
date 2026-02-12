@@ -1,0 +1,40 @@
+{
+  "Sports": [
+    {
+      "name": "Bahrain Sports",
+      "priority": 10
+    },
+    {
+      "name": "Bahrain Sports 2",
+      "isFree": true,
+      "website": "https://www.mia.gov.bh/media-center/live-tv-and-radio/?lang=en",
+      "priority": 10
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Bahrain Lawal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bahrain",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bahrain International",
+      "isFree": true,
+      "website": "https://www.mia.gov.bh/media-center/live-tv-and-radio/?lang=en",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Bahrain Quran",
+      "isFree": true,
+      "website": "https://www.mia.gov.bh/media-center/live-tv-and-radio/?lang=en",
+      "priority": 4
+    }
+  ]
+}

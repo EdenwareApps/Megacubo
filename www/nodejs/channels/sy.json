@@ -1,0 +1,240 @@
+{
+  "News": [
+    {
+      "name": "ANN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Halab Today",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Syrian News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Alalam News Channel Syria",
+      "isFree": true,
+      "website": "https://alalamsyria.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Alikhbaria Syria",
+      "isFree": true,
+      "website": "http://alikhbaria.net/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Alkul",
+      "isFree": true,
+      "website": "https://www.radioalkul.com/",
+      "priority": 5
+    },
+    {
+      "name": "Welat",
+      "isFree": true,
+      "website": "https://www.welattv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Syria Drama AR",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Syria TV Ar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Syria TV En",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Noor Al-Sham",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Suboro",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Nour El-Sham",
+      "isFree": true,
+      "website": "http://nour-elsham.sy/",
+      "priority": 4
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Spacetoon",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Lana",
+      "isFree": true,
+      "keywords": "lana tv -plus",
+      "priority": 5
+    },
+    {
+      "name": "Lana TV Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rojava",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ronahî",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sama",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sham IPTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Syria Satellite",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Syria",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ugarit",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al-Khabar Tele Site",
+      "isFree": true,
+      "website": "http://alkhabar-sy.com/",
+      "priority": 5
+    },
+    {
+      "name": "Almahaliya",
+      "isFree": true,
+      "website": "http://almahaliya.com/",
+      "priority": 5
+    },
+    {
+      "name": "Althania",
+      "isFree": true,
+      "website": "https://www.althania.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Massaya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Prime",
+      "isFree": true,
+      "website": "https://prime1tv.com/",
+      "priority": 6
+    },
+    {
+      "name": "Raqqa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ronahi",
+      "isFree": true,
+      "website": "http://ronahi.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Souryana",
+      "isFree": true,
+      "website": "http://www.ortas.online/RadioSouryana/",
+      "priority": 5
+    },
+    {
+      "name": "Syrian Satellite",
+      "isFree": true,
+      "website": "http://www.ortas.online//SyrianTV/",
+      "priority": 5
+    },
+    {
+      "name": "Syria One",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Sham FM",
+      "isFree": true,
+      "priority": 5,
+      "website": "https://sham.fm/"
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Syria Drama",
+      "priority": 5
+    },
+    {
+      "name": "Syria Drama 24",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Syrian Education",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Alyaum",
+      "isFree": true,
+      "website": "https://alyaumtv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Syrian Educational",
+      "isFree": true,
+      "website": "http://www.ortas.online//SEduTV/",
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Souryana Radio",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Syria Sports",
+      "isFree": true,
+      "priority": 10
+    }
+  ]
+}

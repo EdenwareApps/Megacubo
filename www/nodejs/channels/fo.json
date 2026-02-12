@@ -1,0 +1,27 @@
+{
+  "Entertainment": [
+    {
+      "name": "KVF",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kringvarp Foroya",
+      "isFree": true,
+      "website": "https://kvf.fo/",
+      "priority": 5
+    },
+    {
+      "name": "KVF Sjonvarp",
+      "isFree": true,
+      "website": "https://kvf.fo/live/1",
+      "priority": 5
+    },
+    {
+      "name": "KVF Tingvarp",
+      "isFree": true,
+      "website": "https://kvf.fo/live/tingvarp",
+      "priority": 5
+    }
+  ]
+}

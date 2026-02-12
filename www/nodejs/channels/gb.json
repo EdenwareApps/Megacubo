@@ -1,0 +1,6138 @@
+{
+  "Religious": [
+    {
+      "name": "Ahlulbayt",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Akaal",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "British Muslim",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Eman",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Fadak",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "God TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Iqra Bangla",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Iqra",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Islam",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Loveworld",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "ACTS",
+      "isFree": true,
+      "website": "https://www.ariseuk.org/about-us",
+      "priority": 4
+    },
+    {
+      "name": "Ahlebait",
+      "isFree": true,
+      "website": "https://ahlebaittv.net/",
+      "priority": 4
+    },
+    {
+      "name": "Bible TV Global",
+      "isFree": true,
+      "website": "https://www.bibletvglobal.com/live/",
+      "priority": 4
+    },
+    {
+      "name": "Elshaddai Television Network",
+      "isFree": true,
+      "website": "http://elshaddai.co.uk/",
+      "priority": 4
+    },
+    {
+      "name": "Faith UK",
+      "isFree": true,
+      "website": "https://uk.myfaith.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Faith World",
+      "isFree": true,
+      "website": "https://www.faithworldtv.com/",
+      "priority": 4
+    },
+    {
+      "name": "GOD",
+      "isFree": true,
+      "keywords": "god tv -asia",
+      "website": "https://www.god.tv/",
+      "priority": 4
+    },
+    {
+      "name": "GOD TV Asia",
+      "isFree": true,
+      "website": "https://www.god.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Goodnews",
+      "isFree": true,
+      "website": "https://www.goodnewsworld.tv/",
+      "priority": 4
+    },
+    {
+      "name": "HadiTV",
+      "isFree": true,
+      "website": "https://en.haditv.co.uk/",
+      "priority": 4
+    },
+    {
+      "name": "Hidayat",
+      "isFree": true,
+      "website": "https://www.hidayattv.uk/",
+      "priority": 4
+    },
+    {
+      "name": "Hope Channel UK",
+      "isFree": true,
+      "website": "https://hopetv.org.uk/",
+      "priority": 4
+    },
+    {
+      "name": "IBC Bakthi",
+      "isFree": true,
+      "website": "https://tvibctamil.com/",
+      "priority": 4
+    },
+    {
+      "name": "IBC Siluvai",
+      "isFree": true,
+      "website": "https://tvibctamil.com/",
+      "priority": 4
+    },
+    {
+      "name": "Islam Channel Urdu",
+      "isFree": true,
+      "website": "https://www.islamchannelurdu.tv/",
+      "priority": 4
+    },
+    {
+      "name": "JKM Church",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Kalemeh",
+      "isFree": true,
+      "website": "https://kalemeh.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Kanal Hayat International",
+      "isFree": true,
+      "website": "https://www.kanalhayat.com/",
+      "priority": 4
+    },
+    {
+      "name": "KICC",
+      "isFree": true,
+      "website": "https://www.kicc.org.uk/tv-radio/",
+      "priority": 4
+    },
+    {
+      "name": "LCBN",
+      "isFree": true,
+      "website": "https://lcbntv.com/webcast",
+      "priority": 4
+    },
+    {
+      "name": "Miracle",
+      "isFree": true,
+      "website": "https://www.miracletv.co/",
+      "priority": 4
+    },
+    {
+      "name": "MTA1 World",
+      "isFree": true,
+      "website": "https://www.mta.tv/",
+      "priority": 4
+    },
+    {
+      "name": "MTA2 Europe",
+      "isFree": true,
+      "website": "https://www.mta.tv/",
+      "priority": 4
+    },
+    {
+      "name": "MTA3 Al Arabia",
+      "isFree": true,
+      "website": "https://www.mta.tv/",
+      "priority": 4
+    },
+    {
+      "name": "MTA4 Africa",
+      "isFree": true,
+      "website": "https://www.mta.tv/",
+      "priority": 4
+    },
+    {
+      "name": "MTA5 Africa",
+      "isFree": true,
+      "website": "https://www.mta.tv/",
+      "priority": 4
+    },
+    {
+      "name": "MTA6 Asia",
+      "isFree": true,
+      "website": "https://www.mta.tv/",
+      "priority": 4
+    },
+    {
+      "name": "MTA7 Asia",
+      "isFree": true,
+      "website": "https://www.mta.tv/",
+      "priority": 4
+    },
+    {
+      "name": "MTA8 America",
+      "isFree": true,
+      "website": "https://www.mta.tv/",
+      "priority": 4
+    },
+    {
+      "name": "New Media",
+      "isFree": true,
+      "website": "https://newmediatvuk.com/",
+      "priority": 4
+    },
+    {
+      "name": "Panjab",
+      "isFree": true,
+      "website": "https://panjabtv.uk/",
+      "priority": 4
+    },
+    {
+      "name": "PBC",
+      "isFree": true,
+      "website": "https://panjabbc.com/",
+      "priority": 4
+    },
+    {
+      "name": "Potta Divine TV UK",
+      "isFree": true,
+      "website": "https://dvnonline.org/",
+      "priority": 4
+    },
+    {
+      "name": "Revelation",
+      "isFree": true,
+      "website": "https://revelationtv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Safeer",
+      "isFree": true,
+      "website": "https://safeertv.com/live/",
+      "priority": 4
+    },
+    {
+      "name": "UCB",
+      "isFree": true,
+      "website": "https://www.ucb.co.uk/",
+      "priority": 4
+    },
+    {
+      "name": "Verite",
+      "isFree": true,
+      "website": "https://xn--vrittv-bvad.com/",
+      "priority": 4
+    },
+    {
+      "name": "Winners Chapel International",
+      "isFree": true,
+      "website": "https://winners-chapel.org.uk/",
+      "priority": 4
+    },
+    {
+      "name": "International BBC television channels",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Regional",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC Scotland",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC News",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "In Scottish Gaelic",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "STV",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "UTV",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "E 4",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MTV",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Nickelodeon",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Nick Jr",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Nicktoons",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Comedy Central",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "True Crime",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Legend",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Legend Xtra",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Colors",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Challenge",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Kids",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky History",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Sky History 2",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Crime & Investigation",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Blaze",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Cinema Premiere",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Cinema Select",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Cinema Hits",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Cinema Greats",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Cinema Animation",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Cinema Family",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Cinema Action",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Cinema Comedy",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Cinema Drama",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Cinema Thriller",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Cinema Sci Fi Horror",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Sports Box Office",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports Main Event",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports Premier League",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports Football",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports Cricket",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports Golf",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports Tennis",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports Action",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports +",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports Mix",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Discovery",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Animal Planet",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TLC",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Investigation Discovery",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Discovery Science",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "DMAX",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Food Network",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Quest",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Really",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Boomerang",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Cartoon Network",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Cartoonito",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TNT Sports",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "TNT Sports 3",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Disney Jr",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GREAT! Movies",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GREAT! Action",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GREAT! Romance",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GREAT!",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Welsh",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Irish",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "National Geographic",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Nat Geo Wild",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "This is a simulcast of the local That's TV service with the local news taken out",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "All Perspectives Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Talk",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Premier Sports",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Racing UK Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MUTV",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GINX eSports",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Extreme",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "QVC",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Free to air",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Ideal Extra",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Best Direct International",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sunshine Cruise Holidays Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GGC Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Hobby Maker",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Must Have Ideas Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TJC",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Canis 107 Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Txt Me TV Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Bloomberg",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Channelbox carries Euronews English - Euronews Russian and Africanews",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "NDTV World",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "India Today",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Ahlebait TV Network Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Ahlulbayt TV Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Akaal Channel Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Al Arabiya News Channel FZ LLC",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "ARY Group",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Channel S Plus Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Vision TV Network",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Channel i Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Channel S Global Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Enterr10 Television Network",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Eman Channel Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Hellenic Television Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Mohammed Ali Harrath",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Kanshi TV Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Dawat e Islami",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Middlesex Broadcasting Corporation Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Ahmadiyya Muslim Association",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Al Ehya Digital Television Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "NTV",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Phoenix Television",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Paul E Commerce Private Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "PTC Network",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Jaag Broadcasting Systems Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sangat TV Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Legal Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Venus TV Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sony Entertainment Television Asia",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Takbeer TV Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Light Upon Light Media Ltd",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Daystar",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sonlife",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TBN",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Entertainment Hub UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Comedy Hub UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "The Jamie Oliver Channel UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Tiny Pop UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "That's TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Ketchup TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Ketchup Too UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC Scotland UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "FightBox UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Stingray iConcerts",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC Red Button 1 UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Notts TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TNT Sports 5 UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "TNT Sports 6 UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "TNT Sports 7 UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "TNT Sports 8 UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "TNT Sports 9 UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "TNT Sports 10 UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Inspiration TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Trace Sport Stars UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "MTV 00's UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MTV 80s UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Al Jazeera English UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MTV 90's UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Club MTV Europe UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Nautical Channel UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Smithsonian Channel UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Planet Rock UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Epic Drama UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Viasat Nature UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Viasat History UK",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Viasat Explore UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Sports Main Event UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sci Fi UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Investigation Discovery UK",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "ITV 1 UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "ITV2 UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "ITV3 UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "ITV4 UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "ITV Quiz UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "More4 UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Nat Geo Wild UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "National Geographic UK",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Nick Jr UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Pop UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Premier Sports 1 UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Premier Sports 2 UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Quest UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Racing UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Crime UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Really UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Arts UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Witness UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Sci Fi & Horror UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Cinema Thriller UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky News UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Sports F1 UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports Football UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports Cricket UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports Golf UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Talking Pictures UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TLC UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "U&W UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "U&Yesterday UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Sports Mix UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "PBS America UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "5Select UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Star Bharat UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Colors Rishtey UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Red Bull TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Cinema Hits UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Cinema Greats UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Action UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Family UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Cinema Premiere UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Local TV Tyne & Wear UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "ITV Wales UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "B4U Music UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TNT Sport Box Office 1 UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "TNT Sport Box Office 2 UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "STV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "EWTN UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Kix UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Liverpool FC TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "London Live UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Movies 24 UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Nicktoons UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Mix UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Great! Action UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Islam Channel UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Islam Channel Urdu UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Madani Channel UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Takbeer TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Eman Channel UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Brit Asia TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Quest Red UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "QVC UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Atlantic UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Cinema Select UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Sports Premiere League UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports Racing UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Great! Movies UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sony Entertainment UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Rishtey Cineplex UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Great! Classic UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Great! TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Crime & Investigation UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Now 80s UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Clubland TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Channel AKA UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Heart TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "My5 UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Blaze UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC One Scotland UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC One Northern Ireland UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC One Wales UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "PCNE UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Now 70s UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Food XP UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Iqra TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Geo TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sony Max 2 UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "A1 TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "S4C UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Cinema Comedy UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Comedy UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "5 Action UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "ITV Granada UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MTA 1 World UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "ITV Westcountry UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Showcase UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Max UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "CNN International UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Great! Romance UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Nickelodeon UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "DAZN UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Sports NFL UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Channel 5 UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "NDTV 24x7 UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Sports+ UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports Action UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports Box Office UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports News UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "At the races UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Baby TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC News UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "U & Eden UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "EuroNews UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MTV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MTV Base UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MTV Hits UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MTV Music UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MTV Classic UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MUTV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Channel 4 UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "E4 Extra UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "4Seven UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "5Star UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "5USA UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "U & Alibi UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Animal Planet UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "B4U Movies UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC1 UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC2 UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC4 UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Best Direct UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Bloomberg TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Boomerang UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TNT Sports 1 UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "TNT Sports 2 UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "TNT Sports 3 UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "TNT Sports 4 UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Cartoon Network UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Cartoonito UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "CBeebies UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "CBS Justice UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "True Crime Xtra UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "True Crime UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Challenge UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Comedy Central UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Comedy Central Extra UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Community Channel UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "U&Dave UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Dave ja vu UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Discovery Channel UK",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Discovery History UK",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Discovery Home & Health UK",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Discovery Science UK",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Discovery Shed UK",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Discovery Turbo UK",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "D Max UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "U&Drama UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "E4 UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Film4 UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Food Network UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "U & GOLD UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky History 2 UK",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Sky History UK",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Home UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Legend Xtra UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Colors UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "POP Max UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Star Plus UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Star Gold UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Zee Cinema UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Now Rock UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC One North West UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC One Yorkshire UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC One Oxford UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sony Max UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC Two Wales UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC Two Northern Ireland UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC One East Midland UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC One West Midland UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC One South East UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "QVC Style UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "QVC Beauty UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "QVC Extra UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Warehouse UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sony SAB UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TravelXP UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TVC News UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "HGTV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "PTC Punjabi UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "HiImpact TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Nature UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Documentaries UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Together TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MyTV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Gems TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "High Street 1 UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "High Street 2 UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "High Street 3 UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Jewelry Maker UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Primal Living UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TJC UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Cruise 1st TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Live 360 UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "ITV Central UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Arirang UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Cinema Animation UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "SonLife UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Ahlebait TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Replay UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Arise News UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Cinema Drama UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Channel S UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Must See UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "CourtTV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GB News UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "New Vision UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Ary Digital UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Legend UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Kids UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Sports Tennis UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "BBC News Europe UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC News Africa UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC News Asia Pacific UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC News Latin America UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC News Middle East UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC News South Asia UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC Parliament UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC3 UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC Alba UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC Three/CBBC UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBC Four/CBeebies UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Talk TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "UTV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "CBBC UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "NYX TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GINX eSportsTV UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Birmingham TV UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "JimJam UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TNT Sports Ultimate UK",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Soports 1 UHD UK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sky Soports 2 UHD UK",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "News": [
+    {
+      "name": "92 News UK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Arise News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bloomberg EU",
+      "isFree": true,
+      "keywords": "bloomberg eu -event",
+      "priority": 5
+    },
+    {
+      "name": "Bloomberg EU Event",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bloomberg+ 4K",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CNN International",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Euronews",
+      "isFree": true,
+      "website": "https://www.euronews.com",
+      "priority": 5
+    },
+    {
+      "name": "GB News",
+      "isFree": true,
+      "website": "https://www.gbnews.com",
+      "priority": 5
+    },
+    {
+      "name": "Iran International",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RT UK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sky News",
+      "isFree": true,
+      "keywords": "sky news -extra",
+      "website": "https://news.sky.com",
+      "priority": 5
+    },
+    {
+      "name": "Sky News Extra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Afghanistan International",
+      "isFree": true,
+      "website": "https://www.afintl.com/",
+      "priority": 5
+    },
+    {
+      "name": "Almadaria",
+      "isFree": true,
+      "website": "https://en.almadariatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Almagharibia",
+      "isFree": true,
+      "website": "https://almagharibia.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Al Mustakillah",
+      "isFree": true,
+      "website": "http://www.almustakillah.com/",
+      "priority": 5
+    },
+    {
+      "name": "BBC Arabic",
+      "isFree": true,
+      "website": "https://www.bbc.com/arabic",
+      "priority": 5
+    },
+    {
+      "name": "BBC Persian",
+      "isFree": true,
+      "website": "https://www.bbc.com/persian",
+      "priority": 5
+    },
+    {
+      "name": "CGTN Europe",
+      "isFree": true,
+      "website": "https://www.cgtn.com/tv",
+      "priority": 5
+    },
+    {
+      "name": "CNBC Europe",
+      "isFree": true,
+      "website": "https://www.cnbc.com/europe-television/",
+      "priority": 5
+    },
+    {
+      "name": "CNBC UK",
+      "isFree": true,
+      "website": "http://www.cnbc.com/europe-television/",
+      "priority": 5
+    },
+    {
+      "name": "DM News",
+      "isFree": true,
+      "website": "https://dmnews.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Dunya News UK",
+      "isFree": true,
+      "website": "https://dunyanews.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Euro Genc",
+      "isFree": true,
+      "website": "https://www.eurogenctv.com/",
+      "priority": 5
+    },
+    {
+      "name": "IraneFarda",
+      "isFree": true,
+      "website": "http://iranefardalive.com/",
+      "priority": 5
+    },
+    {
+      "name": "LuaLua",
+      "isFree": true,
+      "website": "https://lualuatv.net/",
+      "priority": 5
+    },
+    {
+      "name": "New Vision",
+      "isFree": true,
+      "website": "https://www.skymedia.co.uk/channels/new-vision/",
+      "priority": 5
+    },
+    {
+      "name": "Ocean News Network",
+      "isFree": true,
+      "website": "https://onntv.tv/live/",
+      "priority": 5
+    },
+    {
+      "name": "Shabelle",
+      "isFree": true,
+      "website": "https://shabellemedia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Siraj",
+      "isFree": true,
+      "website": "https://sabeelfoundation.org/",
+      "priority": 5
+    },
+    {
+      "name": "Sky News International",
+      "isFree": true,
+      "website": "http://www.skynewsinternational.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sky News Weather",
+      "isFree": true,
+      "website": "https://news.sky.com/weather",
+      "priority": 5
+    },
+    {
+      "name": "SMS Somali",
+      "isFree": true,
+      "website": "https://somalisms.com/",
+      "priority": 5
+    },
+    {
+      "name": "SomNews",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "The Guardian",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Local": [
+    {
+      "name": "Sheffield Live",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Comedy": [
+    {
+      "name": "Comedy",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Shop": [
+    {
+      "name": "Craft Store",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Cruise1st",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Gems",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Ideal World",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "AstraMarket",
+      "isFree": true,
+      "website": "https://astramarket.eu/live.html",
+      "priority": 4
+    },
+    {
+      "name": "Direct Store",
+      "isFree": true,
+      "website": "https://directstore.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Gemporia",
+      "isFree": true,
+      "website": "https://www.gemporia.com/",
+      "priority": 4
+    },
+    {
+      "name": "High Street TV",
+      "isFree": true,
+      "website": "https://www.highstreettv.com/",
+      "priority": 4
+    },
+    {
+      "name": "High Street TV 2",
+      "isFree": true,
+      "website": "https://www.highstreettv.com/",
+      "priority": 4
+    },
+    {
+      "name": "High Street TV 3",
+      "isFree": true,
+      "website": "https://www.highstreettv.com/",
+      "priority": 4
+    },
+    {
+      "name": "High Street TV 4",
+      "isFree": true,
+      "website": "https://www.highstreettv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Jewellery Maker",
+      "isFree": true,
+      "website": "https://www.jewellerymaker.com/",
+      "priority": 4
+    },
+    {
+      "name": "JML Direct",
+      "isFree": true,
+      "website": "https://www.jmldirect.com/",
+      "priority": 4
+    },
+    {
+      "name": "Juwelo",
+      "isFree": true,
+      "website": "https://www.juwelo.com/?rocks-to-juwelo",
+      "priority": 4
+    },
+    {
+      "name": "Must Have Ideas",
+      "isFree": true,
+      "website": "https://musthaveideas.co.uk/",
+      "priority": 4
+    },
+    {
+      "name": "Psychic Today",
+      "isFree": true,
+      "website": "https://psychictoday.com/psychic-tv",
+      "priority": 4
+    },
+    {
+      "name": "QVC 2",
+      "isFree": true,
+      "website": "https://www.qvcuk.com/",
+      "priority": 4
+    },
+    {
+      "name": "QVC Beauty",
+      "isFree": true,
+      "website": "https://www.qvcuk.com/",
+      "priority": 4
+    },
+    {
+      "name": "QVC Extra",
+      "isFree": true,
+      "website": "https://www.qvcuk.com/",
+      "priority": 4
+    },
+    {
+      "name": "QVC Style",
+      "isFree": true,
+      "website": "https://www.qvcuk.com/",
+      "priority": 4
+    },
+    {
+      "name": "Sewing Street",
+      "isFree": true,
+      "website": "https://www.sewingstreet.com/en-gb/",
+      "priority": 4
+    },
+    {
+      "name": "TJC Beauty",
+      "isFree": true,
+      "website": "https://www.tjc.co.uk/",
+      "priority": 4
+    }
+  ],
+  "Sports": [
+    {
+      "name": "EDGESport",
+      "priority": 10
+    },
+    {
+      "name": "FreeSports",
+      "priority": 10
+    },
+    {
+      "name": "Horse & Country",
+      "priority": 5
+    },
+    {
+      "name": "SKI",
+      "priority": 5
+    },
+    {
+      "name": "Sports Tonight",
+      "priority": 10
+    },
+    {
+      "name": "Sporty Stuff",
+      "keywords": "sporty stuff tv | sportystuff tv",
+      "priority": 10
+    },
+    {
+      "name": "BFBS Sport",
+      "isFree": true,
+      "website": "https://www.bfbs.com/",
+      "priority": 10
+    },
+    {
+      "name": "BoxNation",
+      "isFree": true,
+      "website": "http://www.boxnation.com/",
+      "priority": 5
+    },
+    {
+      "name": "BT Sport Mosaic",
+      "isFree": true,
+      "keywords": "bt sport mosaic -2",
+      "website": "https://sport.bt.com/",
+      "priority": 10
+    },
+    {
+      "name": "BT Sport Mosaic 2",
+      "isFree": true,
+      "website": "https://sport.bt.com/",
+      "priority": 10
+    },
+    {
+      "name": "DAZN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DAZN 2",
+      "isFree": true,
+      "website": "https://www.elevensports.pt/",
+      "priority": 5
+    },
+    {
+      "name": "DAZN 3",
+      "isFree": true,
+      "website": "https://www.elevensports.pt/",
+      "priority": 5
+    },
+    {
+      "name": "DAZN 4",
+      "isFree": true,
+      "website": "https://www.elevensports.pt/",
+      "priority": 5
+    },
+    {
+      "name": "DAZN 5",
+      "isFree": true,
+      "website": "https://www.elevensports.pt/",
+      "priority": 5
+    },
+    {
+      "name": "DAZN 6",
+      "isFree": true,
+      "website": "https://www.elevensports.pt/",
+      "priority": 5
+    },
+    {
+      "name": "DAZN Combat",
+      "isFree": true,
+      "website": "https://www.dazn.com/",
+      "priority": 5
+    },
+    {
+      "name": "DAZN F",
+      "isFree": true,
+      "website": "https://www.dazn.com/es-ES/l/sports/",
+      "priority": 5
+    },
+    {
+      "name": "DAZN LaLiga",
+      "isFree": true,
+      "keywords": "dazn laliga -2 -3 -4 -5",
+      "website": "https://www.dazn.com/es-ES/l/sports/",
+      "priority": 5
+    },
+    {
+      "name": "DAZN LaLiga 2",
+      "isFree": true,
+      "website": "https://www.dazn.com/es-ES/l/sports/",
+      "priority": 5
+    },
+    {
+      "name": "DAZN LaLiga 3",
+      "isFree": true,
+      "website": "https://www.dazn.com/es-ES/l/sports/",
+      "priority": 5
+    },
+    {
+      "name": "DAZN LaLiga 4",
+      "isFree": true,
+      "website": "https://www.dazn.com/es-ES/l/sports/",
+      "priority": 5
+    },
+    {
+      "name": "DAZN LaLiga 5",
+      "isFree": true,
+      "website": "https://www.dazn.com/es-ES/l/sports/",
+      "priority": 5
+    },
+    {
+      "name": "DAZN Pro League",
+      "isFree": true,
+      "website": "https://elevensports.be/",
+      "priority": 5
+    },
+    {
+      "name": "DAZN Pro League 2",
+      "isFree": true,
+      "website": "https://elevensports.be/",
+      "priority": 5
+    },
+    {
+      "name": "DAZN Pro League 3",
+      "isFree": true,
+      "website": "https://elevensports.be/",
+      "priority": 5
+    },
+    {
+      "name": "ESPN Classic Europe",
+      "isFree": true,
+      "website": "http://www.espnclassic.com/",
+      "priority": 10
+    },
+    {
+      "name": "FIFA+",
+      "isFree": true,
+      "keywords": "fifaplus -women",
+      "website": "https://www.plus.fifa.com/",
+      "priority": 5
+    },
+    {
+      "name": "FIFA+ Women",
+      "isFree": true,
+      "website": "https://www.plus.fifa.com/",
+      "priority": 5
+    },
+    {
+      "name": "Fight Factor",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "GINX",
+      "isFree": true,
+      "website": "https://www.ginx.tv/en/",
+      "priority": 5
+    },
+    {
+      "name": "Intense",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "LA Muscle",
+      "isFree": true,
+      "website": "https://www.lamuscle.com/lamuscletv/",
+      "priority": 5
+    },
+    {
+      "name": "LFCTV",
+      "isFree": true,
+      "website": "https://www.liverpoolfc.com/lfctv/",
+      "priority": 5
+    },
+    {
+      "name": "Racing",
+      "isFree": true,
+      "website": "https://www.racingtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Sports Arena",
+      "isFree": true,
+      "website": "https://www.skysports.com/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports F",
+      "isFree": true,
+      "website": "http://www.skysports.com/f1",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports News",
+      "isFree": true,
+      "website": "https://www.skysports.com/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports NFL",
+      "isFree": true,
+      "website": "https://www.skysports.com/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports Premier League ROI",
+      "isFree": true,
+      "website": "https://www.skysports.com/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports Racing",
+      "isFree": true,
+      "website": "https://www.skysports.com/racing",
+      "priority": 10
+    },
+    {
+      "name": "Speed Factor",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sport 24",
+      "isFree": true,
+      "keywords": "sport 24 -extra",
+      "website": "https://sport24live.com/",
+      "priority": 10
+    },
+    {
+      "name": "Sport 24 Extra",
+      "isFree": true,
+      "website": "https://sport24live.com/",
+      "priority": 10
+    },
+    {
+      "name": "Sportyfy",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 10
+    },
+    {
+      "name": "talkSPORT",
+      "isFree": true,
+      "website": "https://talksport.com/",
+      "priority": 10
+    },
+    {
+      "name": "TNT Sports 10",
+      "isFree": true,
+      "website": "https://www.tntsports.co.uk/",
+      "priority": 10
+    },
+    {
+      "name": "TNT Sports 2",
+      "isFree": true,
+      "website": "https://www.tntsports.co.uk/",
+      "priority": 10
+    },
+    {
+      "name": "TNT Sports 4",
+      "isFree": true,
+      "website": "https://www.tntsports.co.uk/",
+      "priority": 10
+    },
+    {
+      "name": "TNT Sports 5",
+      "isFree": true,
+      "website": "https://www.tntsports.co.uk/",
+      "priority": 10
+    },
+    {
+      "name": "TNT Sports 6",
+      "isFree": true,
+      "website": "https://www.tntsports.co.uk/",
+      "priority": 10
+    },
+    {
+      "name": "TNT Sports 7",
+      "isFree": true,
+      "website": "https://www.tntsports.co.uk/",
+      "priority": 10
+    },
+    {
+      "name": "TNT Sports 8",
+      "isFree": true,
+      "website": "https://www.tntsports.co.uk/",
+      "priority": 10
+    },
+    {
+      "name": "TNT Sports 9",
+      "isFree": true,
+      "website": "https://www.tntsports.co.uk/",
+      "priority": 10
+    },
+    {
+      "name": "TNT Sports Box Office",
+      "isFree": true,
+      "keywords": "tnt sports box office -2",
+      "website": "https://sport.bt.com/",
+      "priority": 10
+    },
+    {
+      "name": "TNT Sports Box Office 2",
+      "isFree": true,
+      "website": "https://sport.bt.com/",
+      "priority": 10
+    },
+    {
+      "name": "TNT Sports Ultimate",
+      "isFree": true,
+      "website": "https://sport.bt.com/",
+      "priority": 10
+    },
+    {
+      "name": "Viaplay Xtra",
+      "isFree": true,
+      "website": "https://www.premiersports.com/",
+      "priority": 5
+    },
+    {
+      "name": "Wow",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "IGN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Moonbug Kids",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nick Jr Too UK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "A+ Kids",
+      "isFree": true,
+      "website": "https://apluskidstv.com/",
+      "priority": 5
+    },
+    {
+      "name": "BabyTV",
+      "isFree": true,
+      "website": "http://www.babytv.com/",
+      "priority": 5
+    },
+    {
+      "name": "BBC Four/CBeebies",
+      "isFree": true,
+      "website": "http://www.bbc.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "BBC Three/CBBC",
+      "isFree": true,
+      "website": "http://www.bbc.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Boomerang Nordic",
+      "isFree": true,
+      "website": "http://www.cartoonnetwork.se/boomerang",
+      "priority": 5
+    },
+    {
+      "name": "Carlton Kids",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cartoonito CEE",
+      "isFree": true,
+      "website": "http://www.boomerangtv.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Cartoonito MENA",
+      "isFree": true,
+      "website": "https://www.cartoonitomena.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cartoonito Nordic",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cartoonito Western Europe",
+      "isFree": true,
+      "website": "http://www.boomeranghq.net/",
+      "priority": 5
+    },
+    {
+      "name": "Cartoon Network Africa",
+      "isFree": true,
+      "website": "https://www.cartoonnetworkhq.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cartoon Network CEE",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cartoon Network MENA",
+      "isFree": true,
+      "website": "https://cartoonnetworkmena.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cartoon Network Western Europe",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CBeebies Africa",
+      "isFree": true,
+      "website": "http://www.bbcsouthafrica.com/channels/cbeebies/",
+      "priority": 5
+    },
+    {
+      "name": "CBeebies Asia",
+      "isFree": true,
+      "website": "http://www.bbcasia.com/channels/cbeebies/",
+      "priority": 5
+    },
+    {
+      "name": "CBeebies Latin America",
+      "isFree": true,
+      "website": "http://www.bbclatinoamerica.com/canales/cbeebies/",
+      "priority": 5
+    },
+    {
+      "name": "CBeebies Middle East",
+      "isFree": true,
+      "website": "https://www.bbcchannels.com/bbc-middle-east/channels/cbeebies/",
+      "priority": 5
+    },
+    {
+      "name": "Cinemachi Family",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cinemachi Junior",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cinemachi Kids",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "CITV",
+      "isFree": true,
+      "website": "https://www.itv.com/hub/citv",
+      "priority": 5
+    },
+    {
+      "name": "Discovery Kids",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Disney Channel EMEA",
+      "isFree": true,
+      "website": "http://www.disneyme.com/",
+      "priority": 5
+    },
+    {
+      "name": "Disney Channel Scandinavia",
+      "isFree": true,
+      "website": "https://disney.se/",
+      "priority": 5
+    },
+    {
+      "name": "Disney Junior MENA",
+      "isFree": true,
+      "website": "http://www.disneyme.com/",
+      "priority": 5
+    },
+    {
+      "name": "Disney Junior Scandinavia",
+      "isFree": true,
+      "website": "http://disneyinternational.com/disney-junior/",
+      "priority": 5
+    },
+    {
+      "name": "Hala London TV Cartoon",
+      "isFree": true,
+      "website": "https://www.hunalondon.net/ar/live-tv?live-channel=23464",
+      "priority": 5
+    },
+    {
+      "name": "JimJam Europe",
+      "isFree": true,
+      "website": "https://pe.jimjam.tv/",
+      "priority": 5
+    },
+    {
+      "name": "JimJam MEA",
+      "isFree": true,
+      "website": "https://me.jimjam.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Kids Series",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Lolly Kids",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mr Bean Animated",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nickelodeon Global",
+      "isFree": true,
+      "website": "https://www.nick.com/global",
+      "priority": 5
+    },
+    {
+      "name": "Pop Up",
+      "isFree": true,
+      "website": "https://pop.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Shaun the Sheep & Friends",
+      "isFree": true,
+      "website": "https://www.aardman.com/film-tv-games/shaun-the-sheep/",
+      "priority": 5
+    },
+    {
+      "name": "Tiny Pop",
+      "isFree": true,
+      "website": "http://www.tinypop.com/",
+      "priority": 5
+    },
+    {
+      "name": "YAAAS!",
+      "isFree": true,
+      "website": "https://yaaas.tv",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "ATN Bangla UK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ahwazna",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "All Drama",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Anand",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Awraas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BBC Alba",
+      "isFree": true,
+      "website": "https://www.bbc.co.uk/bbcalba",
+      "priority": 5
+    },
+    {
+      "name": "BBC Earth",
+      "website": "https://www.bbcearth.com",
+      "priority": 5
+    },
+    {
+      "name": "BBC Four",
+      "isFree": true,
+      "website": "https://www.bbc.co.uk/bbcfour",
+      "priority": 5
+    },
+    {
+      "name": "BBC One Cambridge",
+      "isFree": true,
+      "retransmits": "BBC One",
+      "priority": 5
+    },
+    {
+      "name": "BBC One Channel Islands",
+      "isFree": true,
+      "retransmits": "BBC One",
+      "priority": 5
+    },
+    {
+      "name": "BBC One East",
+      "isFree": true,
+      "keywords": "bbc one east -midlands -yorkshire",
+      "retransmits": "BBC One",
+      "priority": 5
+    },
+    {
+      "name": "BBC One East Midlands",
+      "isFree": true,
+      "retransmits": "BBC One",
+      "priority": 5
+    },
+    {
+      "name": "BBC One East Yorkshire",
+      "isFree": true,
+      "retransmits": "BBC One",
+      "priority": 5
+    },
+    {
+      "name": "BBC One London",
+      "isFree": true,
+      "retransmits": "BBC One",
+      "shortName": "BBC One",
+      "website": "https://www.bbc.co.uk/iplayer",
+      "priority": 5
+    },
+    {
+      "name": "BBC One North East",
+      "isFree": true,
+      "retransmits": "BBC One",
+      "priority": 5
+    },
+    {
+      "name": "BBC One North West",
+      "isFree": true,
+      "retransmits": "BBC One",
+      "priority": 5
+    },
+    {
+      "name": "BBC One Northern Ireland",
+      "isFree": true,
+      "retransmits": "BBC One",
+      "priority": 5
+    },
+    {
+      "name": "BBC One Oxford",
+      "isFree": true,
+      "retransmits": "BBC One",
+      "priority": 5
+    },
+    {
+      "name": "BBC One Scotland",
+      "isFree": true,
+      "retransmits": "BBC One",
+      "priority": 5
+    },
+    {
+      "name": "BBC One South",
+      "isFree": true,
+      "keywords": "bbc one south -east -west",
+      "retransmits": "BBC One",
+      "priority": 5
+    },
+    {
+      "name": "BBC One South East",
+      "isFree": true,
+      "retransmits": "BBC One",
+      "priority": 5
+    },
+    {
+      "name": "BBC One South West",
+      "isFree": true,
+      "retransmits": "BBC One",
+      "priority": 5
+    },
+    {
+      "name": "BBC One Wales",
+      "isFree": true,
+      "retransmits": "BBC One",
+      "priority": 5
+    },
+    {
+      "name": "BBC One West",
+      "isFree": true,
+      "keywords": "bbc one west -midlands",
+      "retransmits": "BBC One",
+      "priority": 5
+    },
+    {
+      "name": "BBC One West Midlands",
+      "isFree": true,
+      "retransmits": "BBC One",
+      "priority": 5
+    },
+    {
+      "name": "BBC One Yorks",
+      "isFree": true,
+      "retransmits": "BBC One",
+      "priority": 5
+    },
+    {
+      "name": "BBC Parliament",
+      "isFree": true,
+      "website": "https://www.bbc.co.uk/parliament",
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button 10",
+      "isFree": true,
+      "shortName": "BRB",
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button 11",
+      "isFree": true,
+      "shortName": "BRB",
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button 12",
+      "isFree": true,
+      "shortName": "BRB",
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button 13",
+      "isFree": true,
+      "shortName": "BRB",
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button 14",
+      "isFree": true,
+      "shortName": "BRB",
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button 15",
+      "isFree": true,
+      "shortName": "BRB",
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button 16",
+      "isFree": true,
+      "shortName": "BRB",
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button 17",
+      "isFree": true,
+      "shortName": "BRB",
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button 18",
+      "isFree": true,
+      "shortName": "BRB",
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button 19",
+      "isFree": true,
+      "shortName": "BRB",
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button 20",
+      "isFree": true,
+      "shortName": "BRB 2",
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button 21",
+      "isFree": true,
+      "shortName": "BRB 2",
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button 22",
+      "isFree": true,
+      "shortName": "BRB 2",
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button 23",
+      "isFree": true,
+      "shortName": "BRB 2",
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button 24",
+      "isFree": true,
+      "shortName": "BRB 2",
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button 5",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button 6",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button 8",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BBC Red Button 9",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BBC Two England",
+      "isFree": true,
+      "retransmits": "BBC Two",
+      "shortName": "BBC Two",
+      "priority": 5
+    },
+    {
+      "name": "BBC Two Northen Ireland",
+      "isFree": true,
+      "retransmits": "BBC Two",
+      "priority": 5
+    },
+    {
+      "name": "BBC Two Northern Ireland",
+      "isFree": true,
+      "retransmits": "BBC Two",
+      "priority": 5
+    },
+    {
+      "name": "BBC Two Wales",
+      "isFree": true,
+      "retransmits": "BBC Two",
+      "priority": 5
+    },
+    {
+      "name": "BBC UHD Trial",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BBC UHD Trial 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BBC UHD Trial 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BBC UHD Trial 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BBC UHD Trial 5",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BT Sport",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "BT Sport 2",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Beano",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Big Names",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Brit Asia Live",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CBBC",
+      "isFree": true,
+      "keywords": "cbbc",
+      "priority": 5
+    },
+    {
+      "name": "CBeebies",
+      "isFree": true,
+      "keywords": "cbeebies",
+      "priority": 5
+    },
+    {
+      "name": "CGTN",
+      "isFree": true,
+      "website": "https://www.cgtn.com",
+      "priority": 5
+    },
+    {
+      "name": "Channel S",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Chelsea",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Clubbing",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Crime",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Discover",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Diy Daily",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Drama",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dust",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Edge Sport",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "FTF For the fans",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Failarmy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Fashion",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Filmon 360",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Filmstream",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Filmzie",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Garshom",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Go USA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GustoTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hala London",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Horse and Country",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Humanity",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ITV",
+      "isFree": true,
+      "website": "https://www.itv.com",
+      "priority": 5
+    },
+    {
+      "name": "ITV 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ITV 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ITV 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Insight",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Inspiration",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Introuble",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Inwild",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Inwonder",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Iqraa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KMTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanshi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kerrang",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kid Gamer",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kidoodle",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kiss",
+      "isFree": true,
+      "website": "https://www.boxplus.com/",
+      "priority": 5
+    },
+    {
+      "name": "Latest",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Luxe",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MMA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTA",
+      "isFree": true,
+      "keywords": "mta 1 -english -original -urdu",
+      "priority": 5
+    },
+    {
+      "name": "MTA 1 English",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTA 1 Original",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTA 1 Urdu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTA 2",
+      "isFree": true,
+      "keywords": "mta 2 -urdu",
+      "priority": 5
+    },
+    {
+      "name": "MTA 2 Urdu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTA 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTA Africa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Magic",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Manoto",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Masters of Food",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mav",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "My5 Documentaries",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "My5 GP's",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Noor",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PBS America",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "People are Awesome",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Planet Knowledge",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Players",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pocket watch",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Press",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "QUEST TV Classical",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "QUEST TV Jazz and Beyond",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "QUEST TV MIX",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Real Stories",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Red Bull",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Reel Truth",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Relevation",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Reuters",
+      "isFree": true,
+      "keywords": "reuters -now",
+      "priority": 5
+    },
+    {
+      "name": "Reuters Now",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rugby Men's Sevens",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rugby Women's Sevens",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rugby World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "S4C",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sangat Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Screamfest",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sky 1 Racing",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sky 2 Racing",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sofy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Spark",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Spike",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sports Channel Network",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Spotlight",
+      "isFree": true,
+      "keywords": "spotlight",
+      "priority": 5
+    },
+    {
+      "name": "Sterling Drama",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Stingray Karaoke",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sunburn",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Supertoons",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Classical",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV MIX",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tastemade",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Teletubbies",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tennis",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "The Boat Show",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "The Box",
+      "isFree": true,
+      "keywords": "the box -uk",
+      "priority": 5
+    },
+    {
+      "name": "The Tennis",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Time Line",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Toongoggles",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Travel XP",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Truly",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Unbeaten",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "V2Beat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "William Hill BTV",
+      "isFree": true,
+      "shortName": "WHB",
+      "priority": 5
+    },
+    {
+      "name": "William Hill BTV 2",
+      "isFree": true,
+      "shortName": "WHB 2",
+      "priority": 5
+    },
+    {
+      "name": "Wonder",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "iON",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "n",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "4seven",
+      "isFree": true,
+      "website": "https://www.channel4.com/",
+      "priority": 5
+    },
+    {
+      "name": "5Action",
+      "isFree": true,
+      "website": "http://www.channel5.com/channels/5action",
+      "priority": 5
+    },
+    {
+      "name": "5SELECT",
+      "isFree": true,
+      "website": "https://www.channel5.com/channels/5select",
+      "priority": 5
+    },
+    {
+      "name": "5STAR",
+      "isFree": true,
+      "website": "http://channel5.com/5star",
+      "priority": 5
+    },
+    {
+      "name": "5USA",
+      "isFree": true,
+      "website": "https://www.channel5.com/channels/5usa",
+      "priority": 5
+    },
+    {
+      "name": "Aathavan",
+      "isFree": true,
+      "website": "https://athavantv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Alb UK",
+      "isFree": true,
+      "website": "https://albuk.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Al Shoub",
+      "isFree": true,
+      "website": "https://alshoub.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Anal4K",
+      "isFree": null,
+      "website": "https://anal4k.com/",
+      "priority": 5
+    },
+    {
+      "name": "Anal Teen Angels",
+      "isFree": null,
+      "website": "https://www.analteenangels.com/",
+      "priority": 5
+    },
+    {
+      "name": "ARISEPlay",
+      "isFree": true,
+      "website": "https://www.ariseplay.com/live",
+      "priority": 5
+    },
+    {
+      "name": "Asshole Fever",
+      "isFree": null,
+      "website": "https://www.assholefever.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ayozat",
+      "isFree": true,
+      "website": "https://www.ayozat.com/live-tv/ayozat-tv",
+      "priority": 5
+    },
+    {
+      "name": "Babenation",
+      "isFree": null,
+      "website": "https://www.babenation.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Balag",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BBC Brit",
+      "isFree": true,
+      "website": "https://www.bbcafricachannels.com/channels/brit",
+      "priority": 5
+    },
+    {
+      "name": "BBC Entertainment",
+      "isFree": true,
+      "website": "https://www.bbcstudios.com/",
+      "priority": 5
+    },
+    {
+      "name": "BBC First",
+      "isFree": true,
+      "website": "https://www.bbcchannels.com/",
+      "priority": 5
+    },
+    {
+      "name": "BBC",
+      "isFree": true,
+      "website": "http://www.bbchd.com/",
+      "priority": 5
+    },
+    {
+      "name": "BBC Lifestyle",
+      "isFree": true,
+      "website": "https://www.bbcstudios.com/",
+      "priority": 5
+    },
+    {
+      "name": "BBC News Pashto",
+      "isFree": true,
+      "website": "https://www.bbc.com/pashto",
+      "priority": 5
+    },
+    {
+      "name": "BBC Nordic",
+      "isFree": true,
+      "website": "https://www.bbcnordic.com/",
+      "priority": 5
+    },
+    {
+      "name": "BBC One",
+      "isFree": true,
+      "keywords": "bbc one -cambridge -channel -islands -east -midlands -yorkshire -london -north -west -northern -ireland -oxford -scotland -south -wales -yorks",
+      "website": "https://www.bbc.co.uk/iplayer",
+      "priority": 5,
+      "shortName": "BBC One"
+    },
+    {
+      "name": "BBC Pie",
+      "isFree": null,
+      "website": "https://bbcpie.com/",
+      "priority": 5
+    },
+    {
+      "name": "BBC Three",
+      "isFree": true,
+      "website": "https://www.bbc.co.uk/bbcthree",
+      "priority": 5
+    },
+    {
+      "name": "BBC Two",
+      "isFree": true,
+      "keywords": "bbc two -england -northen -ireland -northern -hd -wales",
+      "website": "https://www.bbc.co.uk/iplayer",
+      "priority": 5,
+      "shortName": "BBC Two"
+    },
+    {
+      "name": "BBC UHD",
+      "isFree": true,
+      "website": "https://www.bbc.co.uk/iplayer/help/questions/features/uhd-connected-tv",
+      "priority": 5
+    },
+    {
+      "name": "BBC UHD 2",
+      "isFree": true,
+      "website": "https://www.bbc.co.uk/iplayer/help/questions/features/uhd-connected-tv",
+      "priority": 5
+    },
+    {
+      "name": "BBC UHD 3",
+      "isFree": true,
+      "website": "https://www.bbc.co.uk/iplayer/help/questions/features/uhd-connected-tv",
+      "priority": 5
+    },
+    {
+      "name": "BBC UHD 4",
+      "isFree": true,
+      "website": "https://www.bbc.co.uk/iplayer/help/questions/features/uhd-connected-tv",
+      "priority": 5
+    },
+    {
+      "name": "BBC UHD 5",
+      "isFree": true,
+      "website": "https://www.bbc.co.uk/iplayer/help/questions/features/uhd-connected-tv",
+      "priority": 5
+    },
+    {
+      "name": "BEN Television",
+      "isFree": true,
+      "website": "https://bentelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Best Direct",
+      "isFree": true,
+      "website": "http://www.bestdirect.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "BFBS Extra",
+      "isFree": true,
+      "website": "https://www.bfbs.com/",
+      "priority": 5
+    },
+    {
+      "name": "BITE",
+      "isFree": true,
+      "website": "https://www.bitetv.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Brit Asia",
+      "isFree": true,
+      "website": "https://britasia.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Canaf 54",
+      "isFree": true,
+      "website": "https://canaf54.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Carlton Food Network",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Carlton Select",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cars & Stars",
+      "isFree": true,
+      "website": "https://carsandstars.tv/",
+      "priority": 5
+    },
+    {
+      "name": "CBS Reality",
+      "isFree": true,
+      "keywords": "cbs reality -africa -emea",
+      "website": "https://www.cbsreality.tv/uk/",
+      "priority": 5
+    },
+    {
+      "name": "CBS Reality Africa",
+      "isFree": true,
+      "website": "https://www.cbsreality.tv/eu_2/",
+      "priority": 5
+    },
+    {
+      "name": "CBS Reality EMEA",
+      "isFree": true,
+      "website": "https://www.cbsreality.tv/eu/",
+      "priority": 5
+    },
+    {
+      "name": "Channel 4",
+      "isFree": true,
+      "website": "https://www.channel4.com/",
+      "priority": 5
+    },
+    {
+      "name": "Channel 5",
+      "isFree": true,
+      "website": "https://www.channel5.com/channels/channel-5",
+      "priority": 5
+    },
+    {
+      "name": "Channel 7",
+      "isFree": true,
+      "website": "http://mychannel7tv.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Chl Line up",
+      "isFree": true,
+      "website": "http://www.sky.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cinemachi Comedy",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Climax",
+      "isFree": null,
+      "website": "https://www.televisionx.com/",
+      "priority": 5
+    },
+    {
+      "name": "Comedy Central Extra",
+      "isFree": true,
+      "website": "http://www.comedycentral.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Crime + Investigation",
+      "isFree": true,
+      "keywords": "crime plus investigation -benelux -cee",
+      "website": "https://www.crimeandinvestigation.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Crime + Investigation Benelux",
+      "isFree": true,
+      "website": "https://www.crimeandinvestigation.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Crime + Investigation CEE",
+      "isFree": true,
+      "website": "https://www.crimeandinvestigation.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Cum4k",
+      "isFree": null,
+      "website": "https://cum4k.com/",
+      "priority": 5
+    },
+    {
+      "name": "DAZN Women's Football",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Deen",
+      "isFree": true,
+      "website": "http://www.deentv.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Desire",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Discovery Channel Europe",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Discovery Science Europe",
+      "isFree": true,
+      "website": "http://www.discoveryuk.com/",
+      "priority": 7
+    },
+    {
+      "name": "Discovery Science Middle East",
+      "isFree": true,
+      "website": "http://www.sciencechannel.com/",
+      "priority": 7
+    },
+    {
+      "name": "Discovery Turbo",
+      "isFree": true,
+      "website": "https://www.discoveryuk.com/",
+      "priority": 7
+    },
+    {
+      "name": "DP Fanatics",
+      "isFree": null,
+      "website": "https://www.dpfanatics.com/",
+      "priority": 5
+    },
+    {
+      "name": "E!",
+      "isFree": true,
+      "website": "http://uk.eonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "E4 Extra",
+      "isFree": true,
+      "website": "https://www.channel4.com/",
+      "priority": 5
+    },
+    {
+      "name": "ENT",
+      "isFree": true,
+      "website": "https://www.40mediagroup.com",
+      "priority": 5
+    },
+    {
+      "name": "ENT Family",
+      "isFree": true,
+      "website": "https://www.40mediagroup.com",
+      "priority": 5
+    },
+    {
+      "name": "Eryal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Eurochannel",
+      "isFree": true,
+      "website": "http://www.eurochannel.com/",
+      "priority": 5
+    },
+    {
+      "name": "Exotic 4K",
+      "isFree": null,
+      "website": "https://exotic4k.com/",
+      "priority": 5
+    },
+    {
+      "name": "Fashion One",
+      "isFree": true,
+      "website": "https://www.fashionone.com/",
+      "priority": 5
+    },
+    {
+      "name": "Fashion Television",
+      "isFree": true,
+      "website": "https://www.fashion.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Foodies",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Foodxp",
+      "isFree": true,
+      "website": "https://www.foodxp.com/",
+      "priority": 5
+    },
+    {
+      "name": "Glazy",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Hasti",
+      "isFree": true,
+      "website": "https://hastitv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Health & Wellness",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Hellenic",
+      "isFree": true,
+      "website": "https://www.hellenictv.net/",
+      "priority": 5
+    },
+    {
+      "name": "HGTV",
+      "isFree": true,
+      "website": "https://hgtv.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Homey's",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "IBC Comedy",
+      "isFree": true,
+      "website": "https://tvibctamil.com/",
+      "priority": 5
+    },
+    {
+      "name": "IBC Tamil",
+      "isFree": true,
+      "keywords": "ibc tamil -canada -sri -lanka",
+      "website": "https://tvibctamil.com/",
+      "priority": 5
+    },
+    {
+      "name": "IBC Tamil Canada",
+      "isFree": true,
+      "website": "https://tvibctamil.com/",
+      "priority": 5
+    },
+    {
+      "name": "IBC Tamil Sri Lanka",
+      "isFree": true,
+      "website": "https://tvibctamil.com/",
+      "priority": 5
+    },
+    {
+      "name": "ITVBe",
+      "isFree": true,
+      "website": "https://www.itv.com/hub/itvbe",
+      "priority": 5
+    },
+    {
+      "name": "ITV Quiz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "JSTV",
+      "isFree": true,
+      "website": "https://www.jstv.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "JSTV 2",
+      "isFree": true,
+      "website": "https://www.jstv.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Kanal Jadid",
+      "isFree": true,
+      "website": "https://kanaljadid.com/",
+      "priority": 5
+    },
+    {
+      "name": "KTV Global",
+      "isFree": true,
+      "website": "https://www.ktv.global/",
+      "priority": 5
+    },
+    {
+      "name": "Liberty Erotika FHD",
+      "isFree": null,
+      "website": "https://tvlider.net/",
+      "priority": 5
+    },
+    {
+      "name": "London Live",
+      "isFree": true,
+      "website": "https://www.londonlive.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Luxe & Life",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Magnavision",
+      "isFree": true,
+      "website": "https://magnavision.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Manchester",
+      "isFree": true,
+      "website": "https://uklocal.tv/manchester-tv/",
+      "priority": 5
+    },
+    {
+      "name": "MBC",
+      "isFree": true,
+      "website": "https://mybingechannel.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "MM Somali",
+      "isFree": true,
+      "website": "https://mmsomalitv.com/",
+      "priority": 5
+    },
+    {
+      "name": "More 4",
+      "isFree": true,
+      "website": "https://www.channel4.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mr Bean Live Action",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTV Global",
+      "isFree": true,
+      "website": "https://www.mtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mutembei",
+      "isFree": true,
+      "website": "https://mutembeitv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nepali",
+      "isFree": true,
+      "website": "http://nepalitv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nicely",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nicktoonsters",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "North Africa",
+      "isFree": true,
+      "website": "https://nafrica.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Notts",
+      "isFree": true,
+      "website": "http://www.nottstv.com/",
+      "priority": 5
+    },
+    {
+      "name": "NVTV",
+      "isFree": true,
+      "website": "https://www.nvtv.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Pet & Pal",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Pick",
+      "isFree": true,
+      "website": "https://www.sky.com/watch/channel/pick",
+      "priority": 5
+    },
+    {
+      "name": "Planet Eat",
+      "isFree": true,
+      "website": "https://terms.planeteat.com/",
+      "priority": 5
+    },
+    {
+      "name": "Planet Fun",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Politics Punjab",
+      "isFree": true,
+      "website": "https://politicspunjab.com",
+      "priority": 5
+    },
+    {
+      "name": "Pop",
+      "isFree": true,
+      "keywords": "pop -max -up",
+      "website": "https://www.popfun.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Pop Max",
+      "isFree": true,
+      "website": "https://www.popmax.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Quest Red",
+      "isFree": true,
+      "website": "https://www.discoveryplus.co.uk/channel/quest-red",
+      "priority": 5
+    },
+    {
+      "name": "RAW",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ROK",
+      "isFree": true,
+      "keywords": "rok -2 -gh -uk",
+      "website": "http://www.rokchannels.tv/rok/",
+      "priority": 5
+    },
+    {
+      "name": "ROK 2",
+      "isFree": true,
+      "website": "http://www.rokchannels.tv/rok2/",
+      "priority": 5
+    },
+    {
+      "name": "ROK GH",
+      "isFree": true,
+      "website": "http://www.rokchannels.tv/rokgh/",
+      "priority": 5
+    },
+    {
+      "name": "ROK UK",
+      "isFree": true,
+      "website": "http://www.rokchannels.tv/rokuk/",
+      "priority": 5
+    },
+    {
+      "name": "RTN Somali",
+      "isFree": true,
+      "website": "https://rtnsomalitv.net/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Diamant",
+      "isFree": true,
+      "website": "https://rtvdiamant.live/",
+      "priority": 5
+    },
+    {
+      "name": "RugbyPass",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "S66 Cams",
+      "isFree": null,
+      "website": "https://www.s66cams.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sangat",
+      "isFree": true,
+      "website": "http://sangattelevision.org/",
+      "priority": 5
+    },
+    {
+      "name": "Sawt Alitra",
+      "isFree": true,
+      "website": "https://sawtalitra.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Shots!",
+      "isFree": true,
+      "website": "https://www.shotstv.com",
+      "priority": 5
+    },
+    {
+      "name": "Sikh",
+      "isFree": true,
+      "website": "https://sikhchannel.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Simaye Azadi",
+      "isFree": true,
+      "website": "https://iranntv.com/",
+      "priority": 5
+    },
+    {
+      "name": "SINematica",
+      "isFree": null,
+      "website": "https://sinematica.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Arts",
+      "isFree": true,
+      "website": "https://www.sky.com/watch/channel/sky-arts",
+      "priority": 5
+    },
+    {
+      "name": "Sky Atlantic",
+      "isFree": true,
+      "website": "http://www.sky.com/watch/channel/sky-atlantic",
+      "priority": 5
+    },
+    {
+      "name": "Sky Comedy",
+      "isFree": true,
+      "website": "https://www.sky.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Max",
+      "isFree": true,
+      "website": "https://www.skymedia.co.uk/channels/sky-max/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Mix",
+      "isFree": true,
+      "website": "https://www.sky.com/watch/channel/pick",
+      "priority": 5
+    },
+    {
+      "name": "Sky One",
+      "isFree": true,
+      "website": "https://www.sky.com/watch/channel/sky-one",
+      "priority": 5
+    },
+    {
+      "name": "Sky Pal",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Replay",
+      "isFree": true,
+      "website": "https://www.sky.com/watch/channel/sky-one",
+      "priority": 5
+    },
+    {
+      "name": "Sky Sci Fi",
+      "isFree": true,
+      "website": "https://www.sky.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Showcase",
+      "isFree": true,
+      "website": "https://www.sky.com/watch/channel/sky-showcase",
+      "priority": 5
+    },
+    {
+      "name": "Sky Witness",
+      "isFree": true,
+      "website": "https://www.sky.com/watch/channel/sky-witness",
+      "priority": 5
+    },
+    {
+      "name": "Smilie",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Smithsonian",
+      "isFree": true,
+      "website": "https://www.smithsonianchannel.com/",
+      "priority": 5
+    },
+    {
+      "name": "Somali Cable",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sony Max",
+      "isFree": true,
+      "website": "http://www.sonymax.tv/en_uk/",
+      "priority": 5
+    },
+    {
+      "name": "STV Central",
+      "isFree": true,
+      "website": "https://player.stv.tv/live/stv",
+      "priority": 5
+    },
+    {
+      "name": "STV North",
+      "isFree": true,
+      "website": "https://player.stv.tv/live/stv",
+      "priority": 5
+    },
+    {
+      "name": "Takbeer",
+      "isFree": true,
+      "website": "http://takbeer.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TalkBirmingham",
+      "isFree": true,
+      "website": "https://www.birminghamlocal.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TalkBristol",
+      "isFree": true,
+      "website": "https://www.bristollocal.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TalkCardiff",
+      "isFree": true,
+      "website": "https://www.cardifflocal.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Talking Pictures",
+      "isFree": true,
+      "website": "https://talkingpicturestv.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "TalkLeeds",
+      "isFree": true,
+      "website": "https://www.leedslocal.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TalkLiverpool",
+      "isFree": true,
+      "website": "https://www.liverpoollocal.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TalkNorthWales",
+      "isFree": true,
+      "website": "https://www.northwaleslocal.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TalkTeesside",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TalkTV",
+      "isFree": true,
+      "website": "https://talk.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TalkTyne&Wear",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TBN UK",
+      "isFree": true,
+      "website": "https://www.tbnuk.org/",
+      "priority": 5
+    },
+    {
+      "name": "Thane Direct",
+      "isFree": true,
+      "website": "https://www.thanedirect.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "That's",
+      "isFree": true,
+      "website": "http://www.thats.tv/",
+      "priority": 5
+    },
+    {
+      "name": "The Craft Store",
+      "isFree": true,
+      "website": "https://thecraftstore.com/",
+      "priority": 5
+    },
+    {
+      "name": "The Graham Norton Show",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tiny4K",
+      "isFree": null,
+      "website": "https://tiny4k.com/",
+      "priority": 5
+    },
+    {
+      "name": "TNT Africa",
+      "isFree": true,
+      "website": "https://www.tnt.africa/",
+      "priority": 5
+    },
+    {
+      "name": "Together",
+      "isFree": true,
+      "website": "https://www.togethertv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Top Gear",
+      "isFree": true,
+      "website": "https://www.topgear.com/",
+      "priority": 5
+    },
+    {
+      "name": "Travel Channel EMEA",
+      "isFree": true,
+      "website": "http://www.travelchanneltv.eu/",
+      "priority": 5
+    },
+    {
+      "name": "True Amateurs",
+      "isFree": null,
+      "website": "https://www.trueamateurs.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV One",
+      "isFree": true,
+      "website": "https://www.tvoneuk.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Warehouse",
+      "isFree": true,
+      "website": "http://www.tvwarehouse.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tyne & Wear",
+      "isFree": true,
+      "website": "https://uklocal.tv/tyne-and-wear-tv/",
+      "priority": 5
+    },
+    {
+      "name": "U&Dave",
+      "isFree": true,
+      "website": "https://dave.uktv.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "U&DaveJaVu",
+      "isFree": true,
+      "website": "https://dave.uktv.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "U&Drama",
+      "isFree": true,
+      "website": "https://u.co.uk/channel/drama",
+      "priority": 5
+    },
+    {
+      "name": "U&Eden",
+      "isFree": true,
+      "website": "https://u.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "U&Gold",
+      "isFree": true,
+      "website": "https://u.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "UK 44",
+      "isFree": true,
+      "website": "http://www.uk44.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Universal Somali",
+      "isFree": true,
+      "website": "https://universaltvsomali.net/",
+      "priority": 5
+    },
+    {
+      "name": "Utsav Bharat",
+      "isFree": true,
+      "website": "https://www.hotstar.com/",
+      "priority": 5
+    },
+    {
+      "name": "Utsav Plus",
+      "isFree": true,
+      "website": "https://www.hotstar.com/",
+      "priority": 5
+    },
+    {
+      "name": "U&W",
+      "isFree": true,
+      "website": "https://u.co.uk/channel/w",
+      "priority": 5
+    },
+    {
+      "name": "U&Yesterday",
+      "isFree": true,
+      "website": "https://u.co.uk/channel/yesterday",
+      "priority": 5
+    },
+    {
+      "name": "VoxAfrica",
+      "isFree": true,
+      "website": "http://www.voxafrica.com/",
+      "priority": 5
+    },
+    {
+      "name": "WildEarth",
+      "isFree": true,
+      "website": "https://wildearth.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Wisal Hausa",
+      "isFree": true,
+      "website": "https://wisalhausa.tv",
+      "priority": 5
+    },
+    {
+      "name": "Xpanded",
+      "isFree": null,
+      "website": "https://xpanded.com/",
+      "priority": 5
+    },
+    {
+      "name": "XYmax",
+      "isFree": null,
+      "website": "https://invivo.tv/",
+      "priority": 5
+    },
+    {
+      "name": "XYmix",
+      "isFree": null,
+      "website": "https://invivo.tv/",
+      "priority": 5
+    },
+    {
+      "name": "XYplus",
+      "isFree": null,
+      "website": "https://invivo.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Yanga!",
+      "isFree": true,
+      "website": "https://yangatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zee One",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee TV UK",
+      "isFree": true,
+      "website": "http://zeetv.zeeuk.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zing!",
+      "isFree": true,
+      "website": "https://zingtv.co.uk",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Box Hits",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Qello Concerts by Stingray",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Qwest TV Classical",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Qwest TV Jazz & Beyond",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Qwest TV Mix",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "The Box UK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "4Music",
+      "isFree": true,
+      "website": "https://www.boxplus.com/",
+      "priority": 5
+    },
+    {
+      "name": "Africayo",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Afrobeat TV Entertainment",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bangers",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Black Diamondz",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Capital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Chillayo",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Classical Harmony",
+      "isFree": true,
+      "website": "https://english-club.tv/channels/classical-harmony/",
+      "priority": 5
+    },
+    {
+      "name": "Clubland",
+      "isFree": true,
+      "website": "http://aatw.com/",
+      "priority": 5
+    },
+    {
+      "name": "Club MTV Europe",
+      "isFree": true,
+      "website": "http://www.mtv.co.uk/club-mtv",
+      "priority": 5
+    },
+    {
+      "name": "Cubayo",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Flame",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "FMTV",
+      "isFree": true,
+      "website": "https://www.frecuenciamusicaltv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Heart",
+      "isFree": true,
+      "website": "http://www.heart.co.uk/tv",
+      "priority": 5
+    },
+    {
+      "name": "IBC Music",
+      "isFree": true,
+      "website": "https://tvibctamil.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kerrang!",
+      "isFree": true,
+      "website": "https://www.boxplus.com/?channel=kerrang",
+      "priority": 5
+    },
+    {
+      "name": "Kick",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kurd Music",
+      "isFree": true,
+      "website": "https://kurdmusic.com/",
+      "priority": 5
+    },
+    {
+      "name": "Melodia RU",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "MTV 00s",
+      "isFree": true,
+      "website": "https://www.mtv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "MTV 80s",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTV 90s",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTV Base",
+      "isFree": true,
+      "website": "http://www.mtv.co.uk/mtv-base",
+      "priority": 5
+    },
+    {
+      "name": "MTV Classic",
+      "isFree": true,
+      "website": "http://www.mtv.co.uk/mtv-classic",
+      "priority": 5
+    },
+    {
+      "name": "MTV Hits",
+      "isFree": true,
+      "keywords": "mtv hits -europe",
+      "website": "http://www.mtv.co.uk/channels/mtv-hits",
+      "priority": 5
+    },
+    {
+      "name": "MTV Hits Europe",
+      "isFree": true,
+      "website": "http://www.mtv.co.uk/channels/mtv-hits",
+      "priority": 5
+    },
+    {
+      "name": "MTV Live",
+      "isFree": true,
+      "website": "http://www.mtv.ru/mtv-live-hd",
+      "priority": 5
+    },
+    {
+      "name": "MTV Music",
+      "isFree": true,
+      "website": "http://www.mtv.co.uk/mtv-music",
+      "priority": 5
+    },
+    {
+      "name": "MTV Rocks Europe",
+      "isFree": true,
+      "website": "https://www.mtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Music & Memories",
+      "isFree": true,
+      "website": "https://musicandmemories.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Now 70s",
+      "isFree": true,
+      "website": "https://www.nowmusic.com/",
+      "priority": 5
+    },
+    {
+      "name": "Now 80s",
+      "isFree": true,
+      "website": "https://www.nowmusic.com/",
+      "priority": 5
+    },
+    {
+      "name": "Now 90s00s",
+      "isFree": true,
+      "website": "https://www.nowmusic.com/",
+      "priority": 5
+    },
+    {
+      "name": "NOW Rock",
+      "isFree": true,
+      "website": "https://www.nowmusic.com/",
+      "priority": 5
+    },
+    {
+      "name": "Party's",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Songbird",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "That's 60s",
+      "isFree": true,
+      "website": "http://www.thats.tv/",
+      "priority": 5
+    },
+    {
+      "name": "That's 70s",
+      "isFree": true,
+      "website": "http://www.thats.tv/",
+      "priority": 5
+    },
+    {
+      "name": "That's 80s",
+      "isFree": true,
+      "website": "http://www.thats.tv/",
+      "priority": 5
+    },
+    {
+      "name": "That's 90s",
+      "isFree": true,
+      "website": "http://www.thats.tv/",
+      "priority": 5
+    },
+    {
+      "name": "That's Melody",
+      "isFree": true,
+      "website": "http://www.thats.tv/",
+      "priority": 5
+    },
+    {
+      "name": "That's Oldies",
+      "isFree": true,
+      "website": "http://www.thats.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Totalmusic",
+      "isFree": true,
+      "keywords": "totalmusic -2000s -80s -concerts -dance",
+      "website": "https://www.40mediagroup.com",
+      "priority": 5
+    },
+    {
+      "name": "Totalmusic 2000s",
+      "isFree": true,
+      "website": "https://www.40mediagroup.com",
+      "priority": 5
+    },
+    {
+      "name": "Totalmusic 80s",
+      "isFree": true,
+      "website": "https://www.40mediagroup.com",
+      "priority": 5
+    },
+    {
+      "name": "Totalmusic Concerts",
+      "isFree": true,
+      "website": "https://www.40mediagroup.com",
+      "priority": 5
+    },
+    {
+      "name": "Totalmusic Dance",
+      "isFree": true,
+      "website": "https://www.40mediagroup.com",
+      "priority": 5
+    },
+    {
+      "name": "Trace Hits",
+      "isFree": true,
+      "website": "https://trace.tv/uk/",
+      "priority": 5
+    },
+    {
+      "name": "Trace Latina",
+      "isFree": true,
+      "website": "https://trace.company/activities/television/trace-latina/",
+      "priority": 5
+    },
+    {
+      "name": "Trace Vault",
+      "isFree": true,
+      "website": "https://trace.tv/uk/",
+      "priority": 5
+    },
+    {
+      "name": "Trace Xmas",
+      "isFree": true,
+      "website": "https://trace.tv/uk/",
+      "priority": 5
+    },
+    {
+      "name": "VH",
+      "isFree": true,
+      "keywords": "vh1 -adria -classic -europe",
+      "website": "http://vh1e.com/",
+      "priority": 5
+    },
+    {
+      "name": "VH1 Adria",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VH1 Classic Europe",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Action Movies",
+      "priority": 5
+    },
+    {
+      "name": "Comedy Movies",
+      "priority": 5
+    },
+    {
+      "name": "Dark Matter",
+      "priority": 5
+    },
+    {
+      "name": "Family Movies",
+      "priority": 5
+    },
+    {
+      "name": "Movies Central",
+      "priority": 5
+    },
+    {
+      "name": "African Movie",
+      "isFree": true,
+      "keywords": "african movie channel -series",
+      "website": "https://www.africanmoviechannel.tv/",
+      "priority": 5
+    },
+    {
+      "name": "African Movie Channel Series",
+      "isFree": true,
+      "website": "http://www.africanmoviechannel.tv/",
+      "priority": 5
+    },
+    {
+      "name": "AMC Europe",
+      "isFree": true,
+      "website": "https://uk.amc.com/",
+      "priority": 5
+    },
+    {
+      "name": "BBC Drama",
+      "isFree": true,
+      "website": "https://pluto.tv/en/live-tv/bbc-drama-es",
+      "priority": 5
+    },
+    {
+      "name": "Carlton Cinema",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CBS Justice",
+      "isFree": true,
+      "keywords": "cbs justice -africa",
+      "website": "http://www.cbsjustice.tv/uk/",
+      "priority": 5
+    },
+    {
+      "name": "CBS Justice Africa",
+      "isFree": true,
+      "website": "http://www.cbsjustice.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Cinemachi",
+      "isFree": true,
+      "keywords": "cinemachi -action -comedy -crime -docu -drama -family -fantasy -junior -kids -max -romance -scream -series -urban -xtra",
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cinemachi Action",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cinemachi Crime",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cinemachi Drama",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cinemachi Fantasy",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cinemachi Max",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cinemachi Romance",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cinemachi Scream",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cinemachi Series",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cinemachi Urban",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cinemachi Xtra",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Discover Film",
+      "isFree": true,
+      "website": "https://discover.film/",
+      "priority": 5
+    },
+    {
+      "name": "Epic Drama",
+      "isFree": true,
+      "website": "https://epicdrama.eu/",
+      "priority": 5
+    },
+    {
+      "name": "Film 4",
+      "isFree": true,
+      "website": "https://www.channel4.com/collection/film4",
+      "priority": 5
+    },
+    {
+      "name": "GREAT! mystery",
+      "isFree": true,
+      "website": "https://greatnetwork.com/",
+      "priority": 5
+    },
+    {
+      "name": "Hala London TV Movies",
+      "isFree": true,
+      "website": "https://halalondon.com/",
+      "priority": 5
+    },
+    {
+      "name": "Hala London TV Series",
+      "isFree": true,
+      "website": "https://halalondon.com/",
+      "priority": 5
+    },
+    {
+      "name": "HorrorXtra",
+      "isFree": true,
+      "website": "https://www.horrorxtra.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Lady Series",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Men Series",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Morphle",
+      "isFree": true,
+      "website": "https://pluto.tv/en/live-tv/morphle-gb",
+      "priority": 5
+    },
+    {
+      "name": "Movie Mix",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Movies 24",
+      "isFree": true,
+      "keywords": "movies 24 -plus",
+      "website": "https://www.tvmovies24.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nolly Africa",
+      "isFree": true,
+      "website": "https://www.africanmoviechannel.tv/products-and-services",
+      "priority": 5
+    },
+    {
+      "name": "Paramount Network",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RealityXtra",
+      "isFree": true,
+      "website": "https://www.realityxtra.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Rewind",
+      "isFree": true,
+      "website": "https://rewindtv.uk",
+      "priority": 5
+    },
+    {
+      "name": "ShortsTV",
+      "isFree": true,
+      "website": "https://shorts.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Cinema Sci Fi",
+      "isFree": true,
+      "keywords": "sky cinema sci-fi-horror",
+      "website": "https://www.sky.com/tv/cinema",
+      "priority": 5
+    },
+    {
+      "name": "Sky Crime",
+      "isFree": true,
+      "website": "https://www.sky.com/tv/cinema",
+      "priority": 5
+    },
+    {
+      "name": "Sky Movies Classics",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TCM Movies",
+      "isFree": true,
+      "website": "http://www.tcmuk.tv/",
+      "priority": 5
+    },
+    {
+      "name": "True Crime Xtra",
+      "isFree": true,
+      "website": "https://www.truecrimextra-tv.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "U&Alibi",
+      "isFree": true,
+      "website": "https://u.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Universal",
+      "isFree": true,
+      "website": "http://www.universaltv.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Viasat Kino World",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Jewelery Maker",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Hiwar",
+      "isFree": true,
+      "website": "https://www.alhiwar.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Animal Planet Europe",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Animal Planet Nordic",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Asena",
+      "isFree": true,
+      "website": "https://asenatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "BBC Knowledge",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Carlton World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Channel Europe",
+      "isFree": true,
+      "website": "https://channeleurope.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Cinemachi Docu",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Court",
+      "isFree": true,
+      "website": "https://www.courttv.com/court-tv-uk/",
+      "priority": 5
+    },
+    {
+      "name": "Craft Extra",
+      "isFree": true,
+      "website": "https://www.createandcraft.com/",
+      "priority": 5
+    },
+    {
+      "name": "Create and Craft",
+      "isFree": true,
+      "website": "https://www.createandcraft.com/",
+      "priority": 5
+    },
+    {
+      "name": "Discovery History",
+      "isFree": true,
+      "website": "http://www.yourdiscovery.com/web/discovery-history/",
+      "priority": 7
+    },
+    {
+      "name": "Discovery Wings",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Docu Crime",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Docu History",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 7
+    },
+    {
+      "name": "Docu Kids",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Docu Nature",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Docu People",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Docu Science",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Docu Sport",
+      "isFree": true,
+      "website": "https://www.mimyuni.com/",
+      "priority": 10
+    },
+    {
+      "name": "English Club",
+      "isFree": true,
+      "website": "http://english-club.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Five Somali",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Greek TV London",
+      "isFree": true,
+      "website": "https://www.hellenictv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Horn Cable",
+      "isFree": true,
+      "website": "https://www.hctv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Kalsan",
+      "isFree": true,
+      "website": "http://kalsantv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MATV",
+      "isFree": true,
+      "website": "https://matvchannel.com/",
+      "priority": 5
+    },
+    {
+      "name": "National Geographic Middle East",
+      "isFree": true,
+      "website": "http://natgeotv.com/me",
+      "priority": 7
+    },
+    {
+      "name": "National Geographic Wild",
+      "isFree": true,
+      "keywords": "national geographic wild -middle -east",
+      "website": "http://www.natgeowild.co.uk/",
+      "priority": 7
+    },
+    {
+      "name": "National Geographic Wild Middle East",
+      "isFree": true,
+      "website": "http://natgeotv.com/me",
+      "priority": 7
+    },
+    {
+      "name": "Omega TV UK",
+      "isFree": true,
+      "website": "https://www.omegatv.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Rep Dat",
+      "isFree": true,
+      "website": "https://www.repdattv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Documentaries",
+      "isFree": true,
+      "website": "https://www.sky.com/watch/sky-documentaries",
+      "priority": 5
+    },
+    {
+      "name": "Sky Nature",
+      "isFree": true,
+      "website": "https://www.sky.com/watch/sky-nature",
+      "priority": 5
+    },
+    {
+      "name": "Zaire",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Kool London Radio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sheffield Live 93",
+      "isFree": true,
+      "shortName": "SL9F",
+      "priority": 5
+    }
+  ]
+}

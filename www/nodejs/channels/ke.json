@@ -1,0 +1,948 @@
+{
+  "News": [
+    {
+      "name": "KTN News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CGTN Africa",
+      "isFree": true,
+      "website": "https://africa.cgtn.com/",
+      "priority": 5
+    },
+    {
+      "name": "Lolwe",
+      "isFree": true,
+      "website": "https://www.lolwe.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Metropol",
+      "isFree": true,
+      "website": "https://metropoltv.co.ke/",
+      "priority": 5
+    },
+    {
+      "name": "Mt Kenya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Shahidi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SHAMMAH",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Africa 24",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "LOOK UP",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Kenya Broadcasting Corporation",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Kenya Television Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "NTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "KTN News Kenya",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CHRISTIAN FAITH",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "GIKUYU",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Romanza+ África",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Media of Kenya",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Ukombozi",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "El Shaddai",
+      "isFree": null,
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Citizen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ebru",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GBS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KBC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KTN",
+      "isFree": true,
+      "keywords": "ktn -news",
+      "priority": 5
+    },
+    {
+      "name": "Kameme",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kass",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Switch",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 47",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "3 Stones",
+      "isFree": true,
+      "website": "https://threestones.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Baite",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Border",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BTV",
+      "isFree": true,
+      "website": "https://www.btvkenya.ke/",
+      "priority": 5
+    },
+    {
+      "name": "Burudani Bomba",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Citizen Extra",
+      "isFree": true,
+      "website": "https://citizen.digital/",
+      "priority": 5
+    },
+    {
+      "name": "CMTv Kenya",
+      "isFree": true,
+      "website": "https://cmtvkenya.co.ke/",
+      "priority": 5
+    },
+    {
+      "name": "Conqueror",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Family",
+      "isFree": true,
+      "website": "http://familymedia.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Getembe",
+      "isFree": true,
+      "website": "https://getembetv.co.ke/",
+      "priority": 5
+    },
+    {
+      "name": "Gichichio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Githima",
+      "isFree": true,
+      "website": "https://www.githimatv.co.ke/",
+      "priority": 5
+    },
+    {
+      "name": "Goodwill",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GTN",
+      "isFree": true,
+      "website": "https://gtntv.co.ke/",
+      "priority": 5
+    },
+    {
+      "name": "Helicopter",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HLC",
+      "isFree": true,
+      "website": "https://hlctv.co.ke/",
+      "priority": 5
+    },
+    {
+      "name": "Homeboyz",
+      "isFree": true,
+      "website": "https://www.homeboyz.co.ke/",
+      "priority": 5
+    },
+    {
+      "name": "Inooro",
+      "isFree": true,
+      "website": "https://citizen.digital/tv/inooro-tv-14",
+      "priority": 5
+    },
+    {
+      "name": "Ithaga",
+      "isFree": true,
+      "website": "https://ithagatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "KBC Channel",
+      "isFree": true,
+      "website": "https://www.kbc.co.ke/",
+      "priority": 5
+    },
+    {
+      "name": "KTN Home",
+      "isFree": true,
+      "website": "https://www.standardmedia.co.ke/ktnhome/",
+      "priority": 5
+    },
+    {
+      "name": "KU",
+      "isFree": true,
+      "website": "http://kutv.co.ke/",
+      "priority": 5
+    },
+    {
+      "name": "Look-Up",
+      "isFree": true,
+      "website": "https://lookuptv.co.ke/",
+      "priority": 5
+    },
+    {
+      "name": "Luyaa",
+      "isFree": true,
+      "website": "https://www.luyaatv.co.ke/",
+      "priority": 5
+    },
+    {
+      "name": "Maisha",
+      "isFree": true,
+      "website": "https://maishatv.co.ke/",
+      "priority": 5
+    },
+    {
+      "name": "Mamlaka",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mashariki",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Massa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MERU",
+      "isFree": true,
+      "website": "http://merudigital.co.ke/",
+      "priority": 5
+    },
+    {
+      "name": "Mukeu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mutongoi",
+      "isFree": true,
+      "website": "https://www.mutongoitv.co.ke",
+      "priority": 5
+    },
+    {
+      "name": "Mzalendo",
+      "isFree": true,
+      "website": "https://mzalendotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nenyon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nice TV Kenya",
+      "isFree": true,
+      "website": "https://nicetvkenya.com/",
+      "priority": 5
+    },
+    {
+      "name": "Njata",
+      "isFree": true,
+      "website": "https://njatatv.co.ke/",
+      "priority": 5
+    },
+    {
+      "name": "NTV Kenya",
+      "isFree": true,
+      "website": "https://ntv.nation.co.ke/",
+      "priority": 5
+    },
+    {
+      "name": "Nyumba iitu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Parliament of Kenya",
+      "isFree": true,
+      "website": "http://www.parliament.go.ke/",
+      "priority": 5
+    },
+    {
+      "name": "PPP",
+      "isFree": true,
+      "website": "https://triplep.tv/",
+      "priority": 5
+    },
+    {
+      "name": "QTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Raia",
+      "isFree": true,
+      "website": "https://raiatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ramogi",
+      "isFree": true,
+      "website": "https://www.citizen.digital/tv/ramogi-tv-19",
+      "priority": 5
+    },
+    {
+      "name": "Riri",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Romanza+ Africa",
+      "isFree": true,
+      "website": "https://www.adnetmedia.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Sasa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Shifu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Signs",
+      "isFree": true,
+      "website": "https://signsmediake.com/",
+      "priority": 5
+    },
+    {
+      "name": "Star Africa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "STN Somali",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tamu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tandao",
+      "isFree": true,
+      "website": "https://tandaomedia.co.ke/",
+      "priority": 5
+    },
+    {
+      "name": "Testimony",
+      "isFree": true,
+      "website": "https://testimony-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Thstone",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV47 Kenya",
+      "isFree": true,
+      "website": "https://tv47.co.ke/",
+      "priority": 5
+    },
+    {
+      "name": "Uvoro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Weega",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Weru",
+      "isFree": true,
+      "website": "http://www.werutv.co.ke/",
+      "priority": 5
+    },
+    {
+      "name": "West",
+      "isFree": true,
+      "website": "https://westfm.co.ke/",
+      "priority": 5
+    },
+    {
+      "name": "Zuku Novella",
+      "isFree": true,
+      "website": "http://www.zuku.co.ke/",
+      "priority": 5
+    },
+    {
+      "name": "Zuku Zone",
+      "isFree": true,
+      "website": "http://www.zuku.co.ke/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Akili Kids!",
+      "isFree": true,
+      "website": "https://akilikids.co.ke/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Al Huda",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Alltime",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Aviation",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BTL",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Capuchin",
+      "isFree": true,
+      "website": "https://capuchintv.co.ke/",
+      "priority": 4
+    },
+    {
+      "name": "Clergy",
+      "isFree": true,
+      "website": "https://www.clergytv.co.ke/",
+      "priority": 4
+    },
+    {
+      "name": "CTN",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Dacwa",
+      "isFree": true,
+      "website": "https://www.dacwa.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Deliverance",
+      "isFree": true,
+      "website": "https://atgdeliveranceministry.co.ke/tv.html",
+      "priority": 4
+    },
+    {
+      "name": "Destiny Voices",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "DGTV",
+      "isFree": true,
+      "website": "https://dominiongeneration.org/",
+      "priority": 4
+    },
+    {
+      "name": "DOXA",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Dynamic Grace",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "EBN",
+      "isFree": true,
+      "website": "https://ebntv.co.ke/",
+      "priority": 4
+    },
+    {
+      "name": "Elevate",
+      "isFree": true,
+      "website": "https://elevatetv.co.ke/",
+      "priority": 4
+    },
+    {
+      "name": "Elisam",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "El-Shaddai TV Kenya",
+      "isFree": true,
+      "website": "https://kenyalivetv.co.ke/tv/elshaddai-tv-kenya-live",
+      "priority": 4
+    },
+    {
+      "name": "Endtime",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Engelos",
+      "isFree": true,
+      "website": "http://www.pdaconferences.com/",
+      "priority": 4
+    },
+    {
+      "name": "Faith Today",
+      "isFree": true,
+      "website": "https://faithtodaytv.co.ke/",
+      "priority": 4
+    },
+    {
+      "name": "Faith TV Kenya",
+      "isFree": true,
+      "website": "https://faithtodaytv.co.ke/",
+      "priority": 4
+    },
+    {
+      "name": "Family Liberation",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Favour of God",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Fire",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Freedom",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GBN",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Goshen Wonders",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GPG",
+      "isFree": true,
+      "website": "https://gpgtv.net/",
+      "priority": 4
+    },
+    {
+      "name": "Heaven Bound",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "His Grace",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Hope Channel Kenya",
+      "isFree": true,
+      "website": "https://hck.co.ke/",
+      "priority": 4
+    },
+    {
+      "name": "Hope",
+      "isFree": true,
+      "website": "https://www.hopemediakenya.org/hope-tv-live/",
+      "priority": 4
+    },
+    {
+      "name": "Horizon",
+      "isFree": true,
+      "website": "https://www.horizontv.co.ke/",
+      "priority": 4
+    },
+    {
+      "name": "ICTV",
+      "isFree": true,
+      "website": "https://www.faithembassymedia.com/",
+      "priority": 4
+    },
+    {
+      "name": "Imani",
+      "isFree": true,
+      "website": "https://www.imanitv.org/",
+      "priority": 4
+    },
+    {
+      "name": "JCC",
+      "isFree": true,
+      "website": "http://www.jccmombasa.org/",
+      "priority": 4
+    },
+    {
+      "name": "JCDH",
+      "isFree": true,
+      "website": "http://digitaltv.co.ke/",
+      "priority": 4
+    },
+    {
+      "name": "JCM",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "JIAM-JBN",
+      "isFree": true,
+      "website": "https://classic.jiam.org/",
+      "priority": 4
+    },
+    {
+      "name": "Kingdom Television",
+      "isFree": true,
+      "website": "https://kingdomtelevision.tv/live/",
+      "priority": 4
+    },
+    {
+      "name": "Kirk",
+      "isFree": true,
+      "website": "https://www.kirktv.org/",
+      "priority": 4
+    },
+    {
+      "name": "Kyeni",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Mahdi",
+      "isFree": true,
+      "website": "https://mahditv.co.ke/",
+      "priority": 4
+    },
+    {
+      "name": "MBCI",
+      "isFree": true,
+      "website": "https://mbcimedia.com/",
+      "priority": 4
+    },
+    {
+      "name": "Mizpah",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MOF",
+      "isFree": true,
+      "website": "https://mountainoffiretv.com/",
+      "priority": 4
+    },
+    {
+      "name": "MOP TV Kenya",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Morning Cloud",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Muthingi",
+      "isFree": true,
+      "website": "https://muthingitv.co.ke/contactus/",
+      "priority": 4
+    },
+    {
+      "name": "Muugi",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Mwangaza",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Ndurumeni",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "New Life",
+      "isFree": true,
+      "website": "http://www.newlifeprayercenterandchurch.org/",
+      "priority": 4
+    },
+    {
+      "name": "Nissi Television",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Nuru",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "One Accord",
+      "isFree": true,
+      "website": "https://oneaccord.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Oracle",
+      "isFree": true,
+      "website": "https://oracletv.co.ke/",
+      "priority": 4
+    },
+    {
+      "name": "Pillar",
+      "isFree": true,
+      "website": "https://www.pillartv.co.ke/",
+      "priority": 4
+    },
+    {
+      "name": "Pneuma",
+      "isFree": true,
+      "website": "https://www.pneumatv.co.ke/",
+      "priority": 4
+    },
+    {
+      "name": "PrayerCave",
+      "isFree": true,
+      "website": "https://prayercave.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Revival",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sayare",
+      "isFree": true,
+      "website": "https://www.sayare.co.ke/",
+      "priority": 4
+    },
+    {
+      "name": "Shiloh",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "SOA",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Spirit",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Tinker",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Truth",
+      "isFree": true,
+      "website": "https://truthtvkenya.co.ke/",
+      "priority": 4
+    },
+    {
+      "name": "Urejesho TV Africa",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Ushirika",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Voice Of Victory",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "YOUNIB Media",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Zoe",
+      "isFree": true,
+      "website": "https://zoetv.co.ke/",
+      "priority": 4
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Edu",
+      "isFree": true,
+      "website": "http://kicd.ac.ke/",
+      "priority": 5
+    },
+    {
+      "name": "Elimu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kamba",
+      "isFree": true,
+      "website": "https://kambatv.co.ke/",
+      "priority": 5
+    },
+    {
+      "name": "KTN Farmers",
+      "isFree": true,
+      "website": "https://www.farmers.co.ke/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Jambu",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Kiss",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Spice FM",
+      "isFree": true,
+      "website": "https://www.standardmedia.co.ke/spicefm/watch-live",
+      "priority": 5
+    },
+    {
+      "name": "Vybez Radio",
+      "isFree": true,
+      "website": "https://www.standardmedia.co.ke/vybezradio/watch-live",
+      "priority": 5
+    }
+  ]
+}

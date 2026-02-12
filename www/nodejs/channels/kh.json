@@ -1,0 +1,262 @@
+{
+  "News": [
+    {
+      "name": "Bayon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Fresh News",
+      "isFree": true,
+      "keywords": "fresh news",
+      "priority": 5
+    },
+    {
+      "name": "BTV News",
+      "isFree": true,
+      "website": "https://news.btv.com.kh/",
+      "priority": 5
+    },
+    {
+      "name": "CNC",
+      "isFree": true,
+      "website": "https://www.cnc.com.kh/",
+      "priority": 5
+    },
+    {
+      "name": "EAC News",
+      "isFree": true,
+      "website": "https://eacnews.asia/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "PNN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SEA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 9",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVK",
+      "isFree": true,
+      "keywords": "tvk -camboya",
+      "priority": 5
+    },
+    {
+      "name": "TVK Camboya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Apsara TV 11",
+      "isFree": true,
+      "website": "https://ams.com.kh/",
+      "priority": 5
+    },
+    {
+      "name": "CTN",
+      "isFree": true,
+      "website": "https://ctn.com.kh/",
+      "priority": 5
+    },
+    {
+      "name": "CTV 8",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CTV 9",
+      "isFree": true,
+      "website": "https://tv9.com.kh/",
+      "priority": 5
+    },
+    {
+      "name": "ETV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hang Meas HDTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "iTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MOI",
+      "isFree": true,
+      "website": "http://moinews.gov.kh/",
+      "priority": 5
+    },
+    {
+      "name": "MSJ",
+      "isFree": true,
+      "website": "https://www.msjtv.asia/",
+      "priority": 5
+    },
+    {
+      "name": "My",
+      "isFree": true,
+      "website": "https://mytv.com.kh/",
+      "priority": 5
+    },
+    {
+      "name": "Nice",
+      "isFree": true,
+      "website": "https://nicetv.asia/",
+      "priority": 5
+    },
+    {
+      "name": "NTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "One TV Discovery 6",
+      "isFree": true,
+      "website": "http://digitalsky.com.kh/EN/Channel-List/OneTV-Discovery-6",
+      "priority": 7
+    },
+    {
+      "name": "One TV Sabay",
+      "isFree": true,
+      "website": "http://digitalsky.com.kh/EN/Channel-List/OneTV-Sabay-1",
+      "priority": 5
+    },
+    {
+      "name": "Rasmey Hang Meas HDTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Town",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 3",
+      "isFree": true,
+      "website": "http://kcscambodia.net/",
+      "priority": 5
+    },
+    {
+      "name": "TV5 Cambodia",
+      "isFree": true,
+      "website": "https://www.tv5hd.com/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Celestial Classic Movies",
+      "isFree": true,
+      "website": "https://www.cmclassic.tv/index.php?location/KH",
+      "priority": 5
+    },
+    {
+      "name": "Komsan",
+      "isFree": true,
+      "website": "https://khmerkomsan.net/",
+      "priority": 5
+    },
+    {
+      "name": "One TV Cinema 2",
+      "isFree": true,
+      "website": "http://digitalsky.com.kh/EN/Channel-List/OneTV-Cinema-2",
+      "priority": 5
+    },
+    {
+      "name": "One TV Drama 3",
+      "isFree": true,
+      "website": "http://digitalsky.com.kh/EN/Channel-List/OneTV-Drama-3",
+      "priority": 5
+    },
+    {
+      "name": "One TV Movies 7",
+      "isFree": true,
+      "website": "http://digitalsky.com.kh/EN/Channel-List/OneTV-Movie-HD-7",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "CITV",
+      "isFree": true,
+      "website": "https://citvchannel.com.kh/",
+      "priority": 4
+    },
+    {
+      "name": "Sangkem",
+      "isFree": true,
+      "website": "https://www.sangkemtv.com/",
+      "priority": 4
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "D Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "One TV Music 8",
+      "isFree": true,
+      "website": "http://digitalsky.com.kh/EN/Channel-List/OneTV-Music-8",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "One TV E-School Cambodia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVK 2",
+      "isFree": true,
+      "website": "https://www.tvk.gov.kh/",
+      "priority": 5
+    },
+    {
+      "name": "Wiki",
+      "isFree": true,
+      "website": "https://poscardigital.com/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "One TV Kids 5",
+      "isFree": true,
+      "website": "http://digitalsky.com.kh/EN/Channel-List/OneTV-Kids-5",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "One TV Sports 11",
+      "isFree": true,
+      "website": "http://www.digitalsky.com.kh/EN/Channel-List/OneTV-Sports-11",
+      "priority": 10
+    },
+    {
+      "name": "One TV Sports 9",
+      "isFree": true,
+      "website": "http://www.digitalsky.com.kh/EN/Channel-List/OneTV-Sports-9",
+      "priority": 10
+    }
+  ]
+}

@@ -154,7 +154,8 @@ class EntriesGroup extends EventEmitter {
         } else {
             storage.set(this.key, data, {
                 permanent: true,
-                expiration: true
+                expiration: true,
+                personal: true  // mark as personal to avoid sync issues between users on the same machine
             });
         }
     }

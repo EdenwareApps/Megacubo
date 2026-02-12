@@ -1,0 +1,5941 @@
+{
+  "Religious": [
+    {
+      "name": "ADinet Gospel",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Boa Vontade",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "CEAK",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "CJC",
+      "isFree": true,
+      "keywords": "cjc | canal juventude crista",
+      "priority": 1
+    },
+    {
+      "name": "Canção Nova",
+      "isFree": true,
+      "website": "https://www.cancaonova.com",
+      "priority": 2
+    },
+    {
+      "name": "Católica",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Culto Online Igreja Batista",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Cultos Igreja Batista em Padre Miguel",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Fonte",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Fortaleza em Cristo",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Gospel Cartoon",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Gospel Movie",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Gostei Gospel",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "IAPTD",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "IMPD",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "IPB",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "IURD",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "Igreja Evangélica Cristo Vive",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Luz",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Novo Tempo",
+      "isFree": true,
+      "website": "https://www.novotempo.com",
+      "priority": 2
+    },
+    {
+      "name": "PUC TV Goiás",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Paz Com Cristo",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Portal Gospel",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Pr. José Gomes",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Rede Brasil de Comunicação",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "Rede Gospel",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "Rede Gênesis",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Rede Mão Amiga",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Rede Super",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "Rede Século 21",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Rede Vida",
+      "isFree": true,
+      "keywords": "rede vida | redevida",
+      "website": "https://www.redevida.com.br",
+      "priority": 6
+    },
+    {
+      "name": "ReluzTV",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Semear",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Aparecida",
+      "isFree": true,
+      "shortName": "Aparecida",
+      "website": "https://www.a12.com/tv",
+      "priority": 7
+    },
+    {
+      "name": "TV Arautos",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Cajuína",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "TV Evangelizar",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "TV Feliz",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Gideoes",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Gideões",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Horizonte",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "TV Imaculada Conceição",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "TV Leão",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "TV MICA",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "TV Missão",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "TV Mundo Católico",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "TV Nova Canaã",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "TV Padre Cícero",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "TV Pai Eterno",
+      "isFree": true,
+      "shortName": "Pai Eterno",
+      "website": "https://www.tvpaieterno.com.br",
+      "priority": 0
+    },
+    {
+      "name": "TV Terceiro Anjo",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "TV Tribo de Juda",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "TV Tubá",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "TV Universal",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "TV Verdade",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "TV Web Paraná",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "Tv Menorah",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "UNEC",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "Vem & Vê",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "Despertar",
+      "isFree": true,
+      "website": "https://despertartv.com.br/",
+      "priority": 0
+    },
+    {
+      "name": "Igreja Crista Maranata",
+      "isFree": true,
+      "website": "https://www.igrejacristamaranata.org.br/",
+      "priority": 0
+    },
+    {
+      "name": "Igreja Internacional da Graca de Deus",
+      "isFree": true,
+      "website": "http://ongrace.com/",
+      "priority": 5
+    },
+    {
+      "name": "IMPD TV Africa",
+      "isFree": true,
+      "website": "https://impd.org.br/?tv=",
+      "priority": 2
+    },
+    {
+      "name": "IMPD TV Worldwide",
+      "isFree": true,
+      "website": "https://impd.org.br/?tv=",
+      "priority": 2
+    },
+    {
+      "name": "Nuevo Tiempo",
+      "isFree": true,
+      "website": "https://www.nuevotiempo.org/tv/",
+      "priority": 2
+    },
+    {
+      "name": "Plenitude",
+      "isFree": true,
+      "website": "https://www.iaptd.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "PUC TV Goias",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Rede America",
+      "isFree": true,
+      "website": "https://www.redeamericatv.com/",
+      "priority": 2
+    },
+    {
+      "name": "Rede Brasil de Comunicacao",
+      "isFree": true,
+      "website": "https://redebrasiloficial.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Rede Mao Amiga",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Rede Seculo 21",
+      "isFree": true,
+      "keywords": "rede seculo 21 -educa",
+      "website": "https://www.rs21.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Imaculada",
+      "isFree": true,
+      "keywords": "tv imaculada -conceicao",
+      "website": "https://www.miliciadaimaculada.org.br/tv-imaculada",
+      "priority": 2
+    },
+    {
+      "name": "TV Maanaim",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Padre Cicero",
+      "isFree": true,
+      "website": "https://www.tvpadrecicero.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Templo",
+      "isFree": true,
+      "website": "https://www.otemplodesalomao.com/",
+      "priority": 2
+    },
+    {
+      "name": "Globo",
+      "isFree": true,
+      "keywords": "globo -brasilia -internacional -africa -americas -asia -europa -minas -nordeste -pernambuco -rio -de -janeiro -sao -paulo",
+      "priority": 10,
+      "website": "http://redeglobo.globo.com/rio"
+    },
+    {
+      "name": "Rede TV!",
+      "isFree": true,
+      "keywords": "redetv -fortaleza -minas -recife -rio -de -janeiro -tocantins",
+      "priority": 8,
+      "website": "https://www.redetv.uol.com.br/"
+    },
+    {
+      "name": "Record",
+      "isFree": true,
+      "priority": 9
+    },
+    {
+      "name": "Sistema Brasileiro de Televisão",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Band",
+      "isFree": true,
+      "priority": 8,
+      "website": "https://www.band.uol.com.br/"
+    },
+    {
+      "name": "Xsports",
+      "priority": 3
+    },
+    {
+      "name": "Boas Novas Manaus",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "Inova",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "CNT Bahia",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "TV Brasil",
+      "isFree": true,
+      "website": "https://tvbrasil.ebc.com.br",
+      "priority": 7
+    },
+    {
+      "name": "Globo Brasília",
+      "isFree": true,
+      "priority": 8
+    },
+    {
+      "name": "Rede Brasil",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "RIT",
+      "isFree": true,
+      "keywords": "rit -noticias",
+      "priority": 0
+    },
+    {
+      "name": "RBTV Minas",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "Paraná",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "CNT Londrina",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "Globo Pernambuco",
+      "isFree": true,
+      "priority": 8
+    },
+    {
+      "name": "Globo Rio",
+      "isFree": true,
+      "priority": 8
+    },
+    {
+      "name": "CNT Rio",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "NGT Rio de Janeiro",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "Boas Novas Rio de Janeiro",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "CNT RS",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "Santa Catarina",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "Record News SC",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "Globo São Paulo",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "CNT São Paulo",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "NG",
+      "priority": 6
+    },
+    {
+      "name": "TV Brasil São Paulo",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "RBTV São Paulo",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "TV Jovem Palmas",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "Jovem Pan",
+      "isFree": true,
+      "keywords": "jovem pan -news",
+      "priority": 5
+    },
+    {
+      "name": "SBT News",
+      "isFree": true,
+      "priority": 8
+    },
+    {
+      "name": "BM&C News",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "Federal District",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Jovem Pan News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CNN Brasil Money",
+      "priority": 8
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "ARTV",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Amazon Sat",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Animal Planet",
+      "priority": 8
+    },
+    {
+      "name": "Campus UFSM",
+      "isFree": true,
+      "priority": 6
+    },
+    {
+      "name": "Canal Saúde",
+      "isFree": true,
+      "priority": 6
+    },
+    {
+      "name": "Cultura Vale do Arco",
+      "isFree": true,
+      "priority": 6
+    },
+    {
+      "name": "Demais",
+      "isFree": true,
+      "priority": 6
+    },
+    {
+      "name": "Discovery",
+      "priority": 4
+    },
+    {
+      "name": "Discovery Civilization",
+      "priority": 2
+    },
+    {
+      "name": "Discovery Home & Health",
+      "priority": 3
+    },
+    {
+      "name": "Discovery Investigação",
+      "priority": 2
+    },
+    {
+      "name": "Discovery Science",
+      "priority": 3
+    },
+    {
+      "name": "Discovery Theater",
+      "priority": 1
+    },
+    {
+      "name": "Discovery Turbo",
+      "priority": 2
+    },
+    {
+      "name": "Discovery World",
+      "priority": 1
+    },
+    {
+      "name": "E-Paraná",
+      "isFree": true,
+      "website": "https://g1.globo.com/sp/campinas-regiao",
+      "priority": 3
+    },
+    {
+      "name": "Futura",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Governo do Estado da Bahia",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "History",
+      "keywords": "history -lab -tvs",
+      "priority": 6
+    },
+    {
+      "name": "History 2",
+      "keywords": "history 2 -lab -tvs",
+      "priority": 4
+    },
+    {
+      "name": "Nat Geo",
+      "keywords": "nat geo -wild",
+      "priority": 6
+    },
+    {
+      "name": "Nat Geo Wild",
+      "priority": 5
+    },
+    {
+      "name": "Rede Minas",
+      "isFree": true,
+      "website": "https://g1.globo.com/mg",
+      "priority": 6
+    },
+    {
+      "name": "Santa Cecilia",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Sesc",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV ALMG",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "TV Aperipê",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "TV Assembléia",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Baiana",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Brasil Central",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Cultura",
+      "isFree": true,
+      "shortName": "Cultura",
+      "website": "https://tvcultura.com.br",
+      "priority": 7
+    },
+    {
+      "name": "TV Escola",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Ines",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "TV Itararé",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "TV Mackenzie",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "TV Medicina & Saúde",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Paulo Freire",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "TV UFG",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "TVE",
+      "isFree": true,
+      "keywords": "tve -bahia -rs",
+      "priority": 6
+    },
+    {
+      "name": "TVE RS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Top Cultura 15",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Uni",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Agro Canal",
+      "isFree": true,
+      "website": "https://sba1.com/",
+      "priority": 2
+    },
+    {
+      "name": "Arte",
+      "isFree": true,
+      "website": "https://canalarte1.com.br/",
+      "priority": 3
+    },
+    {
+      "name": "Canal Educacao",
+      "isFree": true,
+      "website": "https://www.gov.br/mec/pt-br/canal-educacao",
+      "priority": 2
+    },
+    {
+      "name": "Canal Futura",
+      "isFree": true,
+      "website": "https://www.futura.org.br/",
+      "priority": 7
+    },
+    {
+      "name": "Canal Saude",
+      "isFree": true,
+      "website": "https://www.canalsaude.fiocruz.br/",
+      "priority": 3
+    },
+    {
+      "name": "Curta!",
+      "website": "https://canalcurta.tv.br/",
+      "priority": 4
+    },
+    {
+      "name": "Damasio Educacional",
+      "website": "https://www.damasio.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Damasio Educacional 10",
+      "website": "https://www.damasio.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Damasio Educacional 11",
+      "website": "https://www.damasio.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Damasio Educacional 12",
+      "website": "https://www.damasio.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Damasio Educacional 13",
+      "website": "https://www.damasio.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Damasio Educacional 2",
+      "website": "https://www.damasio.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Damasio Educacional 3",
+      "website": "https://www.damasio.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Damasio Educacional 4",
+      "website": "https://www.damasio.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Damasio Educacional 5",
+      "website": "https://www.damasio.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Damasio Educacional 6",
+      "website": "https://www.damasio.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Damasio Educacional 7",
+      "website": "https://www.damasio.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Damasio Educacional 8",
+      "website": "https://www.damasio.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Damasio Educacional 9",
+      "website": "https://www.damasio.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Dunas",
+      "priority": 3
+    },
+    {
+      "name": "Investigation Discovery",
+      "website": "http://id.discoverybrasil.uol.com.br/",
+      "priority": 6
+    },
+    {
+      "name": "ITV Brazil",
+      "website": "http://itvbrasil.tv.br/",
+      "priority": 5
+    },
+    {
+      "name": "National Geographic",
+      "keywords": "national geographic -wild",
+      "website": "http://www.foxplaybrasil.com.br/channel/natgeo",
+      "priority": 7
+    },
+    {
+      "name": "National Geographic Wild",
+      "website": "http://nationalgeographicla.com/",
+      "priority": 6
+    },
+    {
+      "name": "Nature",
+      "priority": 5
+    },
+    {
+      "name": "Nova TV Agrotour",
+      "isFree": true,
+      "website": "https://www.novatvagrotour.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Portal Cultura",
+      "isFree": true,
+      "website": "https://www.portalcultura.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TVBE Joinville",
+      "isFree": true,
+      "website": "https://www.tvbejoinville.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV das Artes",
+      "isFree": true,
+      "website": "https://www.tvdasartes.com/",
+      "priority": 2
+    },
+    {
+      "name": "TV Educativa ES",
+      "isFree": true,
+      "website": "https://rtv.es.gov.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Life America",
+      "isFree": true,
+      "website": "https://tvlifeamerica.com/",
+      "priority": 2
+    },
+    {
+      "name": "TV Omindare",
+      "isFree": true,
+      "website": "https://www.tvomindare.tv.br/",
+      "priority": 2
+    },
+    {
+      "name": "Unisc",
+      "isFree": true,
+      "website": "https://www.unisc.br/pt/unisc-tv/ao-vivo",
+      "priority": 2
+    },
+    {
+      "name": "Unisul",
+      "isFree": true,
+      "website": "http://unisultv.blogspot.com/",
+      "priority": 2
+    },
+    {
+      "name": "UniTV Porto Alegre",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Urban Docs",
+      "isFree": true,
+      "website": "https://urbantv.com.br/",
+      "priority": 2
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "A&E",
+      "keywords": "a e | a&e | aee | arts entertainment",
+      "priority": 6
+    },
+    {
+      "name": "ACM",
+      "priority": 4
+    },
+    {
+      "name": "Brasil Oeste",
+      "priority": 5
+    },
+    {
+      "name": "CBTV Now",
+      "priority": 4
+    },
+    {
+      "name": "CNU",
+      "keywords": "cnu | tv universitaria",
+      "priority": 4
+    },
+    {
+      "name": "COM Brasil",
+      "priority": 4
+    },
+    {
+      "name": "Canal 29",
+      "priority": 5
+    },
+    {
+      "name": "Canal Repórter",
+      "priority": 5
+    },
+    {
+      "name": "Viva",
+      "keywords": "viva -tela -web",
+      "website": "https://www.vivaxtv.com/",
+      "priority": 7
+    },
+    {
+      "name": "Canal da Gente",
+      "priority": 1
+    },
+    {
+      "name": "Canal do Boi",
+      "priority": 1
+    },
+    {
+      "name": "Central",
+      "priority": 2
+    },
+    {
+      "name": "Chef",
+      "keywords": "chef tv | cheftv",
+      "priority": 3
+    },
+    {
+      "name": "Comedy Central",
+      "priority": 5
+    },
+    {
+      "name": "Cultura Pará",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Diário do Sertão",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "E! Entertainment Television",
+      "keywords": "e! | e entertainment",
+      "priority": 4
+    },
+    {
+      "name": "FOZ",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "G2P",
+      "priority": 1
+    },
+    {
+      "name": "GNT",
+      "website": "https://globoplay.globo.com/gnt",
+      "priority": 5
+    },
+    {
+      "name": "GazetaDigital",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "ISTV",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Internauta",
+      "priority": 1
+    },
+    {
+      "name": "JustTV",
+      "priority": 1
+    },
+    {
+      "name": "Litoral Panorama",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Livre",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Loupe",
+      "priority": 1
+    },
+    {
+      "name": "MKK",
+      "priority": 1
+    },
+    {
+      "name": "MasterChef",
+      "priority": 3
+    },
+    {
+      "name": "Mega Games",
+      "priority": 1
+    },
+    {
+      "name": "Mega",
+      "priority": 8
+    },
+    {
+      "name": "Multi",
+      "priority": 6
+    },
+    {
+      "name": "MultiCultura",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Multishow",
+      "website": "https://globoplay.globo.com/multishow",
+      "priority": 8
+    },
+    {
+      "name": "Mundo",
+      "priority": 6
+    },
+    {
+      "name": "NGT",
+      "keywords": "ngt | tv preve",
+      "priority": 2
+    },
+    {
+      "name": "Nosey Casos",
+      "priority": 3
+    },
+    {
+      "name": "Nosey Escândalos",
+      "priority": 3
+    },
+    {
+      "name": "Nosso Canal",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Nova Era",
+      "priority": 2
+    },
+    {
+      "name": "Novo Canal",
+      "priority": 2
+    },
+    {
+      "name": "Olha",
+      "priority": 2
+    },
+    {
+      "name": "Paramount, Apresenta",
+      "priority": 6
+    },
+    {
+      "name": "Paraná Turismo",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "People are Awesome",
+      "priority": 4
+    },
+    {
+      "name": "Premiere Gospel",
+      "priority": 3
+    },
+    {
+      "name": "Project Hunter",
+      "priority": 3
+    },
+    {
+      "name": "Qlip",
+      "priority": 2
+    },
+    {
+      "name": "RBTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RCR",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Rede CNT",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Rede Família",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Rede Ground",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Rede Mundo",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Rede NGT",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Rede New",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Rede União",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Rede Virtual",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "RIC",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "SEC",
+      "isFree": true,
+      "keywords": "sec tv | sectv",
+      "priority": 1
+    },
+    {
+      "name": "Super Interessante",
+      "priority": 3
+    },
+    {
+      "name": "TBS",
+      "priority": 6
+    },
+    {
+      "name": "TLC",
+      "priority": 6
+    },
+    {
+      "name": "TV ABCD",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "TV Aberta",
+      "isFree": true,
+      "keywords": "tv aberta -sp",
+      "priority": 2
+    },
+    {
+      "name": "TV Aberta SP",
+      "isFree": true,
+      "priority": 2,
+      "retransmits": "TV Aberta"
+    },
+    {
+      "name": "TV Alternativa",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "TV Antares",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "TV Arapuan",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "TV Aratu",
+      "isFree": true,
+      "website": "https://g1.globo.com/ba",
+      "priority": 6
+    },
+    {
+      "name": "TV Beltrão",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV BRICS",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Bahia",
+      "isFree": true,
+      "website": "https://g1.globo.com/ba",
+      "priority": 6
+    },
+    {
+      "name": "TV Beira Rio",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Birigui",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Brusque",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV CN Agitos",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "TV COM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Canal X",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "TV Candidés",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "TV Capital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Carioca",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Digital Birigui",
+      "isFree": true,
+      "priority": 4,
+      "retransmits": "TV Birigui"
+    },
+    {
+      "name": "TV Diário",
+      "isFree": true,
+      "keywords": "tv diario -do -sertao",
+      "priority": 5
+    },
+    {
+      "name": "TV Diário do Sertão",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Estúdio Brasil",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Faap",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Futuro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV GF Grupo Ferreira",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Gazeta",
+      "isFree": true,
+      "website": "https://g1.globo.com/es",
+      "priority": 7
+    },
+    {
+      "name": "TV Geral",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Goiás",
+      "isFree": true,
+      "website": "https://g1.globo.com/go",
+      "priority": 5
+    },
+    {
+      "name": "TV Guarany",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Guarujá",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Guarulhos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Guará",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Interativa",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Itiruçu",
+      "isFree": true,
+      "keywords": "tv itirucu | lgr video",
+      "priority": 3
+    },
+    {
+      "name": "TV Jangadeiro",
+      "isFree": true,
+      "website": "https://g1.globo.com/ce",
+      "priority": 6
+    },
+    {
+      "name": "TV Japi",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Karisma",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "TV Liberdade",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV MAX",
+      "priority": 8
+    },
+    {
+      "name": "TV Mais",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Manchete",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "TV Marajoara",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Master",
+      "isFree": true,
+      "keywords": "tv master | tvmaster",
+      "priority": 2
+    },
+    {
+      "name": "TV Meio Norte",
+      "isFree": true,
+      "website": "https://g1.globo.com/pi",
+      "priority": 6
+    },
+    {
+      "name": "TV Metrópole",
+      "isFree": true,
+      "keywords": "tv metropole -ce",
+      "priority": 4
+    },
+    {
+      "name": "TV Metrópole CE",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Mocinha",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "TV NBR",
+      "isFree": true,
+      "website": "https://www.gov.br/nbr/pt-br",
+      "priority": 5
+    },
+    {
+      "name": "TV Nova Brasil",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Nova Nordeste",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV O FLU",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV O Povo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Pampa",
+      "isFree": true,
+      "website": "https://g1.globo.com/rs",
+      "priority": 5
+    },
+    {
+      "name": "TV Pantanal",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Paraná",
+      "isFree": true,
+      "keywords": "tv parana -turismo",
+      "website": "https://g1.globo.com/pr",
+      "priority": 7
+    },
+    {
+      "name": "TV Paraná Turismo",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Polo",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Potengi",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Poços",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Praia",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Preve",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Produto",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "TV RBC",
+      "isFree": true,
+      "website": "https://g1.globo.com/sc",
+      "priority": 4
+    },
+    {
+      "name": "TV Regional",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Revista",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV SOL",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Sancouper",
+      "isFree": true,
+      "keywords": "tv sancouper -3 -gospel",
+      "priority": 2
+    },
+    {
+      "name": "TV Sancouper 3",
+      "isFree": true,
+      "priority": 2,
+      "retransmits": "TV Sancouper"
+    },
+    {
+      "name": "TV Sancouper Gospel",
+      "isFree": true,
+      "priority": 2,
+      "retransmits": "TV Sancouper"
+    },
+    {
+      "name": "TV Santa Cecília",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Senado",
+      "isFree": true,
+      "shortName": "Senado",
+      "website": "https://www12.senado.leg.br/tv",
+      "priority": 5
+    },
+    {
+      "name": "TV Som Zoom",
+      "isFree": true,
+      "keywords": "som zoom | somzoom",
+      "priority": 2
+    },
+    {
+      "name": "TV Sul Educativa",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "TV Thathi",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Transamérica",
+      "isFree": true,
+      "priority": 6
+    },
+    {
+      "name": "TV Tropical",
+      "isFree": true,
+      "website": "https://g1.globo.com/mt",
+      "priority": 2
+    },
+    {
+      "name": "TV Unesp",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "TV União",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Urbana",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Verdes Campos",
+      "isFree": true,
+      "website": "https://g1.globo.com/mg",
+      "priority": 2
+    },
+    {
+      "name": "TV Votorantim",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Zoom",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TVC Bauru",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "TVC TV Ceará",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TVN Brasil",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TVT",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TVUPLAY",
+      "priority": 5
+    },
+    {
+      "name": "Tastemade",
+      "priority": 5
+    },
+    {
+      "name": "TopTV Paraná",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "Transamérica",
+      "isFree": true,
+      "priority": 8
+    },
+    {
+      "name": "Tru TV",
+      "website": "http://www.trutv.com.br/",
+      "keywords": "tru tv | trutv",
+      "priority": 7
+    },
+    {
+      "name": "Tudo Aqui",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Tv Web Bahia",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "UFG",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "UbunTV",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Ulbra",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "Univesp",
+      "isFree": true,
+      "keywords": "univesp tv | univesptv",
+      "shortName": "UnivespTV",
+      "priority": 3
+    },
+    {
+      "name": "Via Morena",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "VRT",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "WebTV Conexão",
+      "isFree": true,
+      "keywords": "web tv conexao | webtv conexao",
+      "priority": 2
+    },
+    {
+      "name": "WebTV Rio Preto",
+      "isFree": true,
+      "keywords": "web tv rio preto | webtv rio preto",
+      "priority": 2
+    },
+    {
+      "name": "WebTV São Caetano",
+      "isFree": true,
+      "keywords": "web tv sao caetano | webtv sao caetano",
+      "priority": 2
+    },
+    {
+      "name": "YEEAAH",
+      "isFree": true,
+      "keywords": "yeeaah",
+      "priority": 2
+    },
+    {
+      "name": "Adesso",
+      "isFree": true,
+      "website": "https://www.adessotv.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Agro Brasil",
+      "isFree": true,
+      "website": "http://agrobrasiltv.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Aish",
+      "priority": 1
+    },
+    {
+      "name": "Allegro WebTV",
+      "isFree": true,
+      "website": "https://allegrowebtv.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Alpha",
+      "website": "https://www.alphachannel.tv.br/",
+      "priority": 2
+    },
+    {
+      "name": "Araruna",
+      "isFree": true,
+      "website": "https://www.ararunatv.com/",
+      "priority": 1
+    },
+    {
+      "name": "Ascame",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Assembleia Legislativa",
+      "isFree": true,
+      "website": "http://www2.al.rs.gov.br/tvassembleia/",
+      "priority": 0
+    },
+    {
+      "name": "Aula Parana",
+      "isFree": true,
+      "website": "http://www.educacao.pr.gov.br/desvio.html",
+      "priority": 0
+    },
+    {
+      "name": "Band Alternativo",
+      "website": "https://www.band.uol.com.br/",
+      "priority": 4
+    },
+    {
+      "name": "Band Amazonas",
+      "isFree": true,
+      "website": "https://www.band.uol.com.br/",
+      "priority": 5
+    },
+    {
+      "name": "Band Bahia",
+      "isFree": true,
+      "website": "https://www.band.uol.com.br/",
+      "priority": 5
+    },
+    {
+      "name": "Band Ceara",
+      "isFree": true,
+      "website": "https://www.band.uol.com.br/",
+      "priority": 5
+    },
+    {
+      "name": "Band Curitiba",
+      "isFree": true,
+      "website": "https://www.band.uol.com.br/",
+      "priority": 5
+    },
+    {
+      "name": "Band Internacional",
+      "retransmits": "Band",
+      "website": "https://bandinternacional.band.uol.com.br/",
+      "priority": 4
+    },
+    {
+      "name": "Band Mais",
+      "website": "https://www.band.uol.com.br/",
+      "priority": 4
+    },
+    {
+      "name": "Band Minas Gerais",
+      "isFree": true,
+      "website": "https://www.band.uol.com.br/",
+      "priority": 5
+    },
+    {
+      "name": "Band Rede",
+      "isFree": true,
+      "website": "https://www.band.uol.com.br/",
+      "priority": 5
+    },
+    {
+      "name": "Band Rio Interior",
+      "isFree": true,
+      "website": "https://www.band.uol.com.br/",
+      "priority": 5
+    },
+    {
+      "name": "Band RS",
+      "isFree": true,
+      "website": "https://www.band.uol.com.br/",
+      "priority": 5
+    },
+    {
+      "name": "Band Sao Paulo",
+      "isFree": true,
+      "website": "https://www.band.uol.com.br/",
+      "priority": 6
+    },
+    {
+      "name": "Band SP Interior",
+      "isFree": true,
+      "website": "https://www.band.uol.com.br/",
+      "priority": 3
+    },
+    {
+      "name": "Band Triangulo",
+      "isFree": true,
+      "website": "https://www.band.uol.com.br/",
+      "priority": 3
+    },
+    {
+      "name": "BDC",
+      "website": "https://bdcnoticias.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Bem",
+      "website": "https://www.bemtv.online/",
+      "priority": 1
+    },
+    {
+      "name": "Big Brother Brazil",
+      "website": "https://gshow.globo.com/realities/bbb",
+      "priority": 4
+    },
+    {
+      "name": "Bis",
+      "website": "https://canaisglobo.globo.com/c/bis/",
+      "priority": 3
+    },
+    {
+      "name": "Blitstv",
+      "isFree": true,
+      "website": "https://blitstv.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Boas Novas",
+      "isFree": true,
+      "keywords": "boas novas -belem",
+      "website": "http://boasnovas.tv/",
+      "priority": 3
+    },
+    {
+      "name": "Boas Novas Belem",
+      "isFree": true,
+      "website": "https://www.boasnovas.net/",
+      "priority": 1,
+      "retransmits": "Boas Novas"
+    },
+    {
+      "name": "Cabo Frio",
+      "isFree": true,
+      "website": "https://www.redecanal10.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Canal 25 Jundiai",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Canal da Juventude Crista",
+      "isFree": true,
+      "website": "https://ongrace.com/",
+      "priority": 1
+    },
+    {
+      "name": "Canal do Cliente",
+      "website": "https://skycombotv.com.br/pergunta-e-resposta/canal-sky-clientes/",
+      "priority": 1
+    },
+    {
+      "name": "Canal do Criador",
+      "website": "https://www.canaldocriador.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Canal FDR",
+      "isFree": true,
+      "website": "https://fdr.org.br/canalfdr/",
+      "priority": 1
+    },
+    {
+      "name": "Canal Gov",
+      "isFree": true,
+      "website": "https://agenciagov.ebc.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Canal Libras",
+      "isFree": true,
+      "website": "https://www.gov.br/mec/pt-br/canal-libras/",
+      "priority": 1
+    },
+    {
+      "name": "Canal Off",
+      "website": "https://globosatplay.globo.com/canal-off/",
+      "priority": 1
+    },
+    {
+      "name": "Canal Ricos",
+      "website": "https://www.canalricos.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Canal Sete",
+      "isFree": true,
+      "website": "http://www.canalsete.com.br/",
+      "priority": 3
+    },
+    {
+      "name": "Canal TV Rio",
+      "isFree": true,
+      "website": "https://www.canaltvrio.com.br/",
+      "priority": 4
+    },
+    {
+      "name": "Canal Viva",
+      "website": "https://globosatplay.globo.com/viva/",
+      "priority": 5
+    },
+    {
+      "name": "Catve 2",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Catve Master",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Chroma",
+      "website": "https://chromatv.com.br/",
+      "priority": 4
+    },
+    {
+      "name": "Clubinho Fun",
+      "website": "http://baitaconteudo.com/canais/",
+      "priority": 4
+    },
+    {
+      "name": "Conecta Mais",
+      "priority": 4
+    },
+    {
+      "name": "ConecTV Brasil",
+      "website": "https://www.conectvbrasil.site/",
+      "priority": 4
+    },
+    {
+      "name": "Conexao",
+      "priority": 4
+    },
+    {
+      "name": "Costa Verde",
+      "isFree": true,
+      "website": "https://costaverde.tv.br/",
+      "priority": 4
+    },
+    {
+      "name": "Cultura Para",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "CWB",
+      "isFree": true,
+      "website": "https://www.cwbtv.net/",
+      "priority": 4
+    },
+    {
+      "name": "DiaTV",
+      "isFree": true,
+      "website": "https://diaestudio.com/",
+      "priority": 4
+    },
+    {
+      "name": "DTCom Sat",
+      "website": "https://dtcom.com.br/",
+      "priority": 4
+    },
+    {
+      "name": "DTCom Sat 2",
+      "website": "https://dtcom.com.br/",
+      "priority": 4
+    },
+    {
+      "name": "Elemental",
+      "website": "https://www.elementalchannel.com.br/",
+      "priority": 4
+    },
+    {
+      "name": "ElyTV",
+      "website": "https://www.elementalchannel.com.br/",
+      "priority": 4
+    },
+    {
+      "name": "Entretendo",
+      "website": "http://baitaconteudo.com/canais/",
+      "priority": 4
+    },
+    {
+      "name": "EPTV Campinas e regiao",
+      "isFree": true,
+      "website": "http://globoesporte.globo.com/sp/campinas-e-regiao/",
+      "priority": 5
+    },
+    {
+      "name": "EPTV Central",
+      "isFree": true,
+      "website": "https://redeglobo.globo.com/sp/eptv/",
+      "priority": 5
+    },
+    {
+      "name": "EPTV Ribeirao Preto e regiao",
+      "isFree": true,
+      "website": "http://globoesporte.globo.com/sp/ribeirao-preto-e-regiao/",
+      "priority": 4
+    },
+    {
+      "name": "EPTV Sao Carlos e Araraquara",
+      "isFree": true,
+      "website": "http://g1.globo.com/sp/sao-carlos-regiao/",
+      "priority": 4
+    },
+    {
+      "name": "EPTV Sul de Minas",
+      "isFree": true,
+      "website": "http://globoesporte.globo.com/mg/sul-de-minas/",
+      "priority": 4
+    },
+    {
+      "name": "Estude em casa",
+      "isFree": true,
+      "website": "https://www.seduc.se.gov.br/estudeemcasa/",
+      "priority": 1
+    },
+    {
+      "name": "EUTV",
+      "website": "https://eutv.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Fala Litoral",
+      "isFree": true,
+      "website": "https://portalfalalitoral.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "FashionTV",
+      "website": "https://boxbrazil.tv.br/fashion-tv/",
+      "priority": 2
+    },
+    {
+      "name": "Fora Tedio",
+      "website": "https://foratedio.com/",
+      "priority": 1
+    },
+    {
+      "name": "Globoplay Novelas",
+      "website": "https://globosatplay.globo.com/viva/",
+      "priority": 7
+    },
+    {
+      "name": "Guia de Canais",
+      "priority": 0
+    },
+    {
+      "name": "HBO,",
+      "website": "https://www.hbobrasil.com/",
+      "priority": 7
+    },
+    {
+      "name": "Hello!",
+      "website": "http://baitaconteudo.com/canais/",
+      "priority": 1
+    },
+    {
+      "name": "Ideal",
+      "priority": 1
+    },
+    {
+      "name": "InterTV Alto Litoral",
+      "isFree": true,
+      "website": "http://intertvonline.globo.com/",
+      "priority": 2
+    },
+    {
+      "name": "InterTV Cabugi",
+      "isFree": true,
+      "website": "http://intertvonline.globo.com/",
+      "priority": 2
+    },
+    {
+      "name": "InterTV Costa Branca",
+      "isFree": true,
+      "website": "http://intertvonline.globo.com/",
+      "priority": 2
+    },
+    {
+      "name": "InterTV Grande Minas",
+      "isFree": true,
+      "website": "http://intertvonline.globo.com/",
+      "priority": 2
+    },
+    {
+      "name": "InterTV Serra,Mar",
+      "isFree": true,
+      "website": "http://intertvonline.globo.com/",
+      "priority": 2
+    },
+    {
+      "name": "InterTV Vales de Minas Gerais",
+      "isFree": true,
+      "website": "http://intertvonline.globo.com/",
+      "priority": 2
+    },
+    {
+      "name": "Joias VIP",
+      "website": "https://www.joiasvip.com.br/",
+      "priority": 0
+    },
+    {
+      "name": "Lavras CE",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "L!ke",
+      "website": "http://www.canallike.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Loading",
+      "priority": 1
+    },
+    {
+      "name": "Mais na Tela",
+      "website": "https://canaisglobo.globo.com/c/mais-na-tela/",
+      "priority": 0
+    },
+    {
+      "name": "MKK Web",
+      "website": "https://mkkwebtv.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "NDTV",
+      "isFree": true,
+      "website": "https://ndmais.com.br/ndtv/criciuma-ao-vivo/",
+      "priority": 0
+    },
+    {
+      "name": "NSC",
+      "isFree": true,
+      "keywords": "nsc tv -blumenau -centro -oeste -chapeco -criciuma -florianopolis -joinville",
+      "website": "http://redeglobo.globo.com/sc/nsctv/",
+      "priority": 6
+    },
+    {
+      "name": "NSC TV Blumenau",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/sc/nsctv/",
+      "priority": 5,
+      "retransmits": "NSC"
+    },
+    {
+      "name": "NSC TV Centro-Oeste",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/sc/nsctv/",
+      "priority": 5,
+      "retransmits": "NSC"
+    },
+    {
+      "name": "NSC TV Chapeco",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/sc/nsctv/",
+      "priority": 5,
+      "retransmits": "NSC"
+    },
+    {
+      "name": "NSC TV Criciuma",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/sc/nsctv/",
+      "priority": 5,
+      "retransmits": "NSC"
+    },
+    {
+      "name": "NSC TV Florianopolis",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/sc/nsctv/",
+      "priority": 5,
+      "retransmits": "NSC"
+    },
+    {
+      "name": "NSC TV Joinville",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/sc/nsctv/",
+      "priority": 5,
+      "retransmits": "NSC"
+    },
+    {
+      "name": "NTV",
+      "isFree": true,
+      "website": "https://www.ntv.tv.br/",
+      "priority": 2
+    },
+    {
+      "name": "O Caminho Antigo",
+      "isFree": true,
+      "website": "http://ocaminhoantigo.tv/",
+      "priority": 1
+    },
+    {
+      "name": "O Dia",
+      "isFree": true,
+      "website": "https://portalodia.com/odiatv",
+      "priority": 2
+    },
+    {
+      "name": "OESC",
+      "isFree": true,
+      "website": "https://tvoesc.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Opiniao Play",
+      "website": "https://opiniaoplay.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Peru",
+      "priority": 1
+    },
+    {
+      "name": "PFC",
+      "keywords": "pfc -internacional",
+      "website": "http://pfc.globo.com/",
+      "priority": 1
+    },
+    {
+      "name": "PFC Internacional",
+      "website": "http://pfci.globo.com/",
+      "priority": 2
+    },
+    {
+      "name": "Play",
+      "website": "http://playtv.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Prime Box Brazil",
+      "website": "https://boxbrazil.tv.br/prime-box-brazil/",
+      "priority": 1
+    },
+    {
+      "name": "Primer",
+      "website": "https://primertv.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "RBATV",
+      "isFree": true,
+      "website": "https://rbatv.dol.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "RBI",
+      "isFree": true,
+      "website": "http://www.rbitv.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "RBS TV Caxias do Sul",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/rs/rbstvrs/",
+      "priority": 1
+    },
+    {
+      "name": "RBS TV Pelotas",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/rs/rbstvrs/",
+      "priority": 1
+    },
+    {
+      "name": "RBS TV Porto Alegre",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/rs/rbstvrs/",
+      "priority": 2
+    },
+    {
+      "name": "RBS TV RS",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "RBS TV Santa Maria",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/rs/rbstvrs/",
+      "priority": 1
+    },
+    {
+      "name": "RDC",
+      "isFree": true,
+      "website": "https://rdctv.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Receitas Fast",
+      "website": "https://receitas.globo.com/canal-receitas.ghtml",
+      "priority": 1
+    },
+    {
+      "name": "Record Interior RJ",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Record RS",
+      "isFree": true,
+      "website": "https://www.Recordrs.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Record Americas",
+      "isFree": true,
+      "website": "https://www.Recordamericas.com/",
+      "priority": 4
+    },
+    {
+      "name": "Record Belem",
+      "isFree": true,
+      "website": "http://Record.r7.com/",
+      "priority": 2
+    },
+    {
+      "name": "Record Brasilia",
+      "isFree": true,
+      "website": "http://noticias.r7.com/brasilia",
+      "priority": 2
+    },
+    {
+      "name": "Record Cabralia",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Record Goias",
+      "isFree": true,
+      "retransmits": "Record",
+      "website": "http://Recordgoias.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Record Interior SP",
+      "isFree": true,
+      "retransmits": "Record",
+      "website": "http://Record.r7.com/Record-interior-sp",
+      "priority": 1
+    },
+    {
+      "name": "Record Itapoan",
+      "isFree": true,
+      "retransmits": "Record",
+      "website": "http://rederecord.r7.com/",
+      "priority": 1
+    },
+    {
+      "name": "Record Litoral e Vale",
+      "isFree": true,
+      "retransmits": "Record",
+      "website": "https://Record.r7.com/record-tv-litoral-e-vale",
+      "priority": 1
+    },
+    {
+      "name": "Record Manaus",
+      "isFree": true,
+      "retransmits": "Record",
+      "website": "http://Record.r7.com/",
+      "priority": 1
+    },
+    {
+      "name": "Record Minas",
+      "isFree": true,
+      "retransmits": "Record",
+      "website": "http://recordminas.tv.br/",
+      "priority": 1
+    },
+    {
+      "name": "Record Paulista",
+      "isFree": true,
+      "retransmits": "Record",
+      "website": "http://recordpaulista.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Record Rio",
+      "isFree": true,
+      "keywords": "record rio -preto",
+      "retransmits": "Record",
+      "website": "http://Recordrio.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Record Rio Preto",
+      "isFree": true,
+      "retransmits": "Record",
+      "website": "http://Recordriopreto.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Record Sao Paulo",
+      "isFree": true,
+      "retransmits": "Record",
+      "website": "http://Record.r7.com/",
+      "priority": 9
+    },
+    {
+      "name": "Rede 21",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Rede Amazonica",
+      "isFree": true,
+      "keywords": "rede amazonica -ariquemes -ji -parana -manaus",
+      "priority": 5
+    },
+    {
+      "name": "Rede Amazonica Ariquemes",
+      "isFree": true,
+      "website": "https://redeglobo.globo.com/redeamazonica/",
+      "priority": 1,
+      "retransmits": "Rede Amazônica"
+    },
+    {
+      "name": "Rede Amazonica Ji-Parana",
+      "isFree": true,
+      "website": "https://redeglobo.globo.com/redeamazonica/",
+      "priority": 1,
+      "retransmits": "Rede Amazônica"
+    },
+    {
+      "name": "Rede Amazonica Manaus",
+      "isFree": true,
+      "website": "https://redeglobo.globo.com/redeamazonica/",
+      "priority": 5,
+      "retransmits": "Rede Amazônica"
+    },
+    {
+      "name": "Rede Caxias",
+      "isFree": true,
+      "keywords": "rede caxias",
+      "priority": 2
+    },
+    {
+      "name": "Rede Clube",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/pi/redeclube/",
+      "priority": 2
+    },
+    {
+      "name": "Rede CNT Belem",
+      "isFree": true,
+      "website": "http://www.cnt.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Rede CNT Cuiaba",
+      "isFree": true,
+      "website": "http://www.cnt.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Rede CNT Curitiba",
+      "isFree": true,
+      "website": "http://www.cnt.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Rede CNT Londrina",
+      "isFree": true,
+      "website": "http://www.cnt.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Rede CNT Manaus",
+      "isFree": true,
+      "website": "http://www.cnt.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Rede CNT Porto Alegre",
+      "isFree": true,
+      "website": "http://www.cnt.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Rede CNT Rio Branco",
+      "isFree": true,
+      "website": "http://www.cnt.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Rede CNT Rio de Janeiro",
+      "isFree": true,
+      "website": "http://www.cnt.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Rede CNT Salvador",
+      "isFree": true,
+      "website": "http://www.cnt.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Rede CNT Sao Paulo",
+      "isFree": true,
+      "website": "http://www.cnt.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Rede Familia",
+      "isFree": true,
+      "website": "https://www.redefamilia.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Rede Genesis",
+      "isFree": true,
+      "website": "https://redegenesis.tv.br/",
+      "priority": 1
+    },
+    {
+      "name": "Rede Internacional de",
+      "isFree": true,
+      "website": "https://www.rittv.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Rede Mais",
+      "isFree": true,
+      "website": "https://redemais.tv.br/",
+      "priority": 2
+    },
+    {
+      "name": "Rede Manchete",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Rede Massa",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Rede Meio Norte",
+      "isFree": true,
+      "website": "https://www.meionorte.com/tv-meionorte",
+      "priority": 2
+    },
+    {
+      "name": "Rede Metropole",
+      "isFree": true,
+      "website": "http://redemetropole.com/",
+      "priority": 2
+    },
+    {
+      "name": "Rede Premium",
+      "website": "https://redepremiumtv.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Rede QDM",
+      "isFree": true,
+      "website": "https://clube.atitudenew.com/redeqdm/",
+      "priority": 1
+    },
+    {
+      "name": "Rede Seculo 21 Educa",
+      "isFree": true,
+      "website": "https://www.rs21.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Rede SPTV",
+      "isFree": true,
+      "website": "https://www.redesptv.com.br/",
+      "priority": 3
+    },
+    {
+      "name": "Rede Sul",
+      "isFree": true,
+      "website": "https://redesulrs.tv.br/",
+      "priority": 2
+    },
+    {
+      "name": "Rede Tupi",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Rede TV! Alternativo",
+      "isFree": true,
+      "retransmits": "Rede TV!",
+      "website": "https://www.redetv.uol.com.br/",
+      "priority": 3
+    },
+    {
+      "name": "Rede TV! ES",
+      "isFree": true,
+      "retransmits": "Rede TV!",
+      "priority": 3
+    },
+    {
+      "name": "Rede TV! Mais",
+      "isFree": true,
+      "retransmits": "Rede TV!",
+      "priority": 3
+    },
+    {
+      "name": "Rede TV! Rede",
+      "isFree": true,
+      "retransmits": "Rede TV!",
+      "website": "https://www.redetv.uol.com.br/",
+      "priority": 3
+    },
+    {
+      "name": "Rede TV! Rondonia",
+      "isFree": true,
+      "retransmits": "Rede TV!",
+      "website": "https://www.diariodaamazonia.com.br/redetv/",
+      "priority": 3
+    },
+    {
+      "name": "RedeTV! Tocantins",
+      "isFree": true,
+      "retransmits": "Rede TV!",
+      "priority": 3
+    },
+    {
+      "name": "Rede UTV",
+      "isFree": true,
+      "website": "https://www.redeutv.com.br/",
+      "priority": 3
+    },
+    {
+      "name": "Rede Vida Educacao",
+      "isFree": true,
+      "keywords": "rede vida educacao -2",
+      "website": "http://www.redevida.com.br/",
+      "priority": 4
+    },
+    {
+      "name": "Rede Vida Educacao 2",
+      "isFree": true,
+      "website": "http://www.redevida.com.br/",
+      "priority": 3,
+      "retransmits": "Rede Vida Educacao"
+    },
+    {
+      "name": "Residencia Saude",
+      "website": "https://residenciaeducacao.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Rio TV Camara",
+      "isFree": true,
+      "website": "http://camara.rio/",
+      "priority": 2
+    },
+    {
+      "name": "RPC",
+      "isFree": true,
+      "keywords": "rpc tv -curitiba -foz -do -iguacu -maringa -paranavai -ponta -grossa",
+      "website": "http://redeglobo.globo.com/rpc/",
+      "priority": 7
+    },
+    {
+      "name": "RPC TV Curitiba",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/rpc/",
+      "priority": 5,
+      "retransmits": "RPC"
+    },
+    {
+      "name": "RPC TV Foz do Iguacu",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/rpc/",
+      "priority": 5,
+      "retransmits": "RPC"
+    },
+    {
+      "name": "RPC TV Maringa",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/rpc/",
+      "priority": 5,
+      "retransmits": "RPC"
+    },
+    {
+      "name": "RPC TV Paranavai",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/rpc/",
+      "priority": 5,
+      "retransmits": "RPC"
+    },
+    {
+      "name": "RPC TV Ponta Grossa",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/rpc/",
+      "priority": 5,
+      "retransmits": "RPC"
+    },
+    {
+      "name": "SBT Cuiaba",
+      "isFree": true,
+      "retransmits": "SBT",
+      "website": "http://www.sbtmt.com.br/",
+      "priority": 6
+    },
+    {
+      "name": "SBT Interior",
+      "isFree": true,
+      "retransmits": "SBT",
+      "website": "https://sbtinterior.com/",
+      "priority": 5
+    },
+    {
+      "name": "SBT Internacional America",
+      "retransmits": "SBT",
+      "website": "https://www.sbt.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "SBT MS",
+      "isFree": true,
+      "retransmits": "SBT",
+      "website": "http://www.sbtms.com.br/",
+      "priority": 5
+    },
+    {
+      "name": "SBT",
+      "isFree": true,
+      "website": "https://www.sbt.com.br/",
+      "priority": 10
+    },
+    {
+      "name": "SBT Para",
+      "isFree": true,
+      "retransmits": "SBT",
+      "website": "https://www.sbt.com.br/",
+      "priority": 5
+    },
+    {
+      "name": "SBT Rio",
+      "isFree": true,
+      "keywords": "sbt rio -grande",
+      "retransmits": "SBT",
+      "website": "https://www.sbt.com.br/tv/rio/",
+      "priority": 5
+    },
+    {
+      "name": "SBT Rio Grande",
+      "isFree": true,
+      "retransmits": "SBT",
+      "website": "https://www.sbt.com.br/tv/portoalegre/",
+      "priority": 5
+    },
+    {
+      "name": "Sertao",
+      "isFree": true,
+      "website": "http://sertaotvceara.com.br/#/",
+      "priority": 3
+    },
+    {
+      "name": "Show da Fé",
+      "isFree": true,
+      "website": "http://www.canalshowdafe.com.br/",
+      "priority": 3
+    },
+    {
+      "name": "Smithsonian",
+      "website": "https://www.smithsonianchannel.com.br/",
+      "priority": 3
+    },
+    {
+      "name": "Sony",
+      "website": "https://br.sonychannel.com/",
+      "priority": 7
+    },
+    {
+      "name": "SOS Espiritual",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "SOU",
+      "isFree": true,
+      "website": "https://www.soutv.com.br/",
+      "priority": 3
+    },
+    {
+      "name": "SRTV PB",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Superflix",
+      "priority": 3
+    },
+    {
+      "name": "SuperMix",
+      "isFree": true,
+      "website": "http://www.tvsupermix.com.br/",
+      "priority": 6
+    },
+    {
+      "name": "Tabela Conmebol",
+      "isFree": true,
+      "website": "https://www.conmebol.com/",
+      "priority": 4
+    },
+    {
+      "name": "Tela Brasil",
+      "isFree": true,
+      "website": "https://www.tvtelabrasil.com",
+      "priority": 4
+    },
+    {
+      "name": "Tere",
+      "isFree": true,
+      "website": "https://portalgrpcom.com.br/",
+      "priority": 4
+    },
+    {
+      "name": "The Superstation",
+      "website": "https://canalarte1.com.br/",
+      "priority": 4
+    },
+    {
+      "name": "Travel Box Brazil",
+      "website": "https://boxbrazil.tv.br/music-box-brazil/",
+      "priority": 5
+    },
+    {
+      "name": "Trip Brasil",
+      "website": "https://www.tripbrasilchannel.com.br/",
+      "priority": 5
+    },
+    {
+      "name": "TV!",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV A7 Plus",
+      "isFree": true,
+      "website": "https://tva7.com.br/",
+      "priority": 4
+    },
+    {
+      "name": "TV Acre",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/redeamazonica/",
+      "priority": 5
+    },
+    {
+      "name": "TV A Critica",
+      "isFree": true,
+      "website": "https://www.acritica.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVAL",
+      "isFree": true,
+      "website": "http://agenciaal.alesc.sc.gov.br/index.php/tval",
+      "priority": 4
+    },
+    {
+      "name": "TV ALBA",
+      "isFree": true,
+      "website": "https://www.al.ba.gov.br/midia-center/tvalba",
+      "priority": 4
+    },
+    {
+      "name": "TV Aldeia",
+      "isFree": true,
+      "website": "https://www.tvaldeia.com/",
+      "priority": 4
+    },
+    {
+      "name": "TV ALESP",
+      "isFree": true,
+      "website": "https://www.al.sp.gov.br/alesp/tv/",
+      "priority": 4
+    },
+    {
+      "name": "TV Alianca Catarinense",
+      "isFree": true,
+      "website": "https://tvaliancasc.com.br/",
+      "priority": 5
+    },
+    {
+      "name": "TV Allamanda",
+      "isFree": true,
+      "website": "https://www.sbt.com.br/afiliada/tvallamanda",
+      "priority": 4
+    },
+    {
+      "name": "TV Alterosa Centro-Oeste",
+      "isFree": true,
+      "website": "https://www.alterosa.com.br/",
+      "priority": 5
+    },
+    {
+      "name": "TV Alterosa Interior",
+      "isFree": true,
+      "website": "https://www.alterosa.com.br/",
+      "priority": 5
+    },
+    {
+      "name": "TV Alterosa Leste",
+      "isFree": true,
+      "website": "https://www.alterosa.com.br/",
+      "priority": 5
+    },
+    {
+      "name": "TV Alterosa Zona da Mata",
+      "isFree": true,
+      "website": "https://www.alterosa.com.br/",
+      "priority": 5
+    },
+    {
+      "name": "TV Altiora",
+      "isFree": true,
+      "website": "https://tvaltiora.com/",
+      "priority": 1
+    },
+    {
+      "name": "TV Alvorada",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Amapa",
+      "isFree": true,
+      "website": "https://g1.globo.com/ap/amapa/",
+      "priority": 2
+    },
+    {
+      "name": "TV Anhanguera Goiania",
+      "isFree": true,
+      "website": "https://redeglobo.globo.com/tvanhanguera/",
+      "priority": 3
+    },
+    {
+      "name": "TV Antena 10",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "TV A Plateia",
+      "isFree": true,
+      "website": "https://www.aplateia.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "TV Aracati",
+      "isFree": true,
+      "website": "https://www.tvaracati.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "TV Asa Branca",
+      "isFree": true,
+      "website": "https://redeglobo.globo.com/pe/tvasabranca/",
+      "priority": 2
+    },
+    {
+      "name": "TV Assembleia Ceara",
+      "isFree": true,
+      "website": "https://www.al.ce.gov.br/",
+      "priority": 1
+    },
+    {
+      "name": "TV Assembleia Mato Grosso",
+      "isFree": true,
+      "website": "https://www.al.mt.gov.br/institucional/tv/",
+      "priority": 1
+    },
+    {
+      "name": "TV Assembleia Minas Gerais",
+      "isFree": true,
+      "website": "https://www.almg.gov.br/acompanhe/tv_assembleia/",
+      "priority": 1
+    },
+    {
+      "name": "TV Assembleia Paraiba",
+      "isFree": true,
+      "website": "http://www.al.pb.leg.br/tvalpb/",
+      "priority": 1
+    },
+    {
+      "name": "TV Assembleia Parana",
+      "isFree": true,
+      "website": "http://www.alep.pr.gov.br/sala_de_imprensa/tv_sinal",
+      "priority": 1
+    },
+    {
+      "name": "TV Assembleia Piaui",
+      "isFree": true,
+      "website": "https://www.alepi.pi.gov.br/",
+      "priority": 1
+    },
+    {
+      "name": "TV Assembleia RN",
+      "isFree": true,
+      "website": "http://www.al.rn.gov.br/tvs",
+      "priority": 1
+    },
+    {
+      "name": "TV Atalaia",
+      "isFree": true,
+      "website": "https://a8se.com/tv-atalaia/",
+      "priority": 2
+    },
+    {
+      "name": "TV Barriga Verde",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Beltrao",
+      "isFree": true,
+      "website": "https://tvbeltrao.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "TV Boqueirao",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "TV Brasil 2",
+      "isFree": true,
+      "website": "https://tvbrasil.ebc.com.br/",
+      "priority": 3
+    },
+    {
+      "name": "TV Brasil Oeste",
+      "isFree": true,
+      "website": "http://www.tbomt.com.br/",
+      "priority": 3
+    },
+    {
+      "name": "TV Cabo Branco",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/tvcabobranco/",
+      "priority": 5
+    },
+    {
+      "name": "TV Cachoeira",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "TV Camara",
+      "isFree": true,
+      "keywords": "tv camara -2 -de -sao -paulo -porto -alegre -salvador",
+      "website": "https://www.camara.leg.br/tv",
+      "priority": 4
+    },
+    {
+      "name": "TV Camara 2",
+      "isFree": true,
+      "priority": 3,
+      "retransmits": "TV Camara"
+    },
+    {
+      "name": "TV Camara de Sao Paulo",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Camara Porto Alegre",
+      "isFree": true,
+      "website": "https://www.camarapoa.rs.gov.br/institucional/tvcamara",
+      "priority": 3
+    },
+    {
+      "name": "TV Camara Salvador",
+      "isFree": true,
+      "website": "https://www.cms.ba.gov.br/tv-camara",
+      "priority": 3
+    },
+    {
+      "name": "TV Cancao Nova",
+      "isFree": true,
+      "keywords": "tv cancao nova -cachoeira -paulista -internacional -rede -rio -grande -do -sul",
+      "priority": 5
+    },
+    {
+      "name": "TV Cancao Nova Cachoeira Paulista",
+      "isFree": true,
+      "website": "https://tv.cancaonova.com/",
+      "priority": 3,
+      "retransmits": "TV Cancao Nova"
+    },
+    {
+      "name": "TV Cancao Nova Internacional",
+      "isFree": true,
+      "website": "http://tv.cancaonova.pt/index.php?option=com_content&view=article&id=2&Itemid=3",
+      "priority": 2,
+      "retransmits": "TV Cancao Nova"
+    },
+    {
+      "name": "TV Cancao Nova Rede",
+      "isFree": true,
+      "website": "https://tv.cancaonova.com/",
+      "priority": 4,
+      "retransmits": "TV Cancao Nova"
+    },
+    {
+      "name": "TV Cancao Nova Rio Grande do Sul",
+      "isFree": true,
+      "website": "https://tv.cancaonova.com/",
+      "priority": 3,
+      "retransmits": "TV Cancao Nova"
+    },
+    {
+      "name": "TV Candides",
+      "isFree": true,
+      "website": "https://www.candides.com/",
+      "priority": 2
+    },
+    {
+      "name": "TV Capital Lucelia",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Capixaba",
+      "isFree": true,
+      "website": "http://www.tvcapixaba.com.br/",
+      "priority": 4
+    },
+    {
+      "name": "TV Caravelas",
+      "isFree": true,
+      "website": "https://www.tvcaravelas.com/",
+      "priority": 2
+    },
+    {
+      "name": "TV Ceara",
+      "isFree": true,
+      "website": "https://www.tvceara.ce.gov.br/",
+      "priority": 5
+    },
+    {
+      "name": "TV Centro America",
+      "isFree": true,
+      "keywords": "tv centro america -cuiaba -rondonopolis -sinop",
+      "website": "http://redeglobo.globo.com/tvcentroamerica/",
+      "priority": 2
+    },
+    {
+      "name": "TV Centro America Cuiaba",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/tvcentroamerica/",
+      "priority": 0,
+      "retransmits": "TV Centro America"
+    },
+    {
+      "name": "TV Centro America Rondonopolis",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/tvcentroamerica/",
+      "priority": 0,
+      "retransmits": "TV Centro America"
+    },
+    {
+      "name": "TV Centro America Sinop",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/tvcentroamerica/",
+      "priority": 0,
+      "retransmits": "TV Centro America"
+    },
+    {
+      "name": "TV Cidade Canal 9",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "TV Cidade de Petropolis",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "TV Cidade de Sao Paulo",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "TV Cidade Fortaleza",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "TV Cidade Londrina",
+      "isFree": true,
+      "website": "https://www.redemassa.com.br/",
+      "priority": 0
+    },
+    {
+      "name": "TV Cidade Oeste",
+      "isFree": true,
+      "website": "https://www.tvcidadeoeste.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "TV Cidade Sao Luiz",
+      "isFree": true,
+      "website": "http://www.suacidade.com/",
+      "priority": 1
+    },
+    {
+      "name": "TV Cidade Verde",
+      "isFree": true,
+      "keywords": "tv cidade verde -cuiaba -piaui",
+      "website": "https://cidadeverde.com/",
+      "priority": 0
+    },
+    {
+      "name": "TV Cidade Verde Cuiaba",
+      "isFree": true,
+      "priority": 0,
+      "retransmits": "TV Cidade Verde"
+    },
+    {
+      "name": "TV Cidade Verde Piaui",
+      "isFree": true,
+      "website": "https://cidadeverde.com/",
+      "priority": 0,
+      "retransmits": "TV Cidade Verde"
+    },
+    {
+      "name": "TV Clube",
+      "isFree": true,
+      "website": "https://tvclubepe.op9.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "TVCOM Maceio",
+      "isFree": true,
+      "website": "http://tvcommaceio.tv.br/",
+      "priority": 0
+    },
+    {
+      "name": "TV COM Santos",
+      "isFree": true,
+      "website": "https://tvcomsantos.com/",
+      "priority": 0
+    },
+    {
+      "name": "TV Comunitaria",
+      "isFree": true,
+      "website": "https://www.tvcomunitariadf.com/",
+      "priority": 0
+    },
+    {
+      "name": "TV Cordeiro",
+      "isFree": true,
+      "website": "https://radiocordeiroofici.wixsite.com/player/tvcordeiro",
+      "priority": 0
+    },
+    {
+      "name": "TV Correio",
+      "isFree": true,
+      "website": "https://tvcorreio.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "TVC-Rio",
+      "isFree": true,
+      "website": "https://www.tvcomunitaria.rio/",
+      "priority": 2
+    },
+    {
+      "name": "TV Cultura do Para",
+      "isFree": true,
+      "website": "http://www.portalcultura.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Cultura Paulista",
+      "isFree": true,
+      "website": "https://cultura.uol.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Curuca",
+      "isFree": true,
+      "website": "https://www.tvcurucasp.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "TV Diario",
+      "isFree": true,
+      "keywords": "tv diario -do -sertao -macapa -mogi -das -cruzes",
+      "website": "http://tvdiario.verdesmares.com.br/",
+      "priority": 4
+    },
+    {
+      "name": "TV Diario do Sertao",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Diario Macapa",
+      "isFree": true,
+      "website": "https://www.diariodoamapa.com.br/cat/tv-diario/",
+      "priority": 2
+    },
+    {
+      "name": "TV Diario Mogi das Cruzes",
+      "isFree": true,
+      "website": "https://redeglobo.globo.com/sp/tvdiario/",
+      "priority": 2
+    },
+    {
+      "name": "TV Difusora Leste",
+      "isFree": true,
+      "website": "https://difusoraon.com/tv-difusora-leste/",
+      "priority": 2
+    },
+    {
+      "name": "TV Difusora Sao Luis",
+      "isFree": true,
+      "website": "https://www.ma10.com.br/",
+      "priority": 3
+    },
+    {
+      "name": "TV Difusora Sul",
+      "isFree": true,
+      "website": "https://difusoraon.com/tv-difusora-sul/",
+      "priority": 2
+    },
+    {
+      "name": "TV Diversa",
+      "isFree": true,
+      "website": "https://www.tvdiversa.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "TVE Cultura",
+      "isFree": true,
+      "website": "http://www.portaldaeducativa.ms.gov.br/",
+      "priority": 5
+    },
+    {
+      "name": "TV Educacao",
+      "isFree": true,
+      "keywords": "tv educacao -ma",
+      "priority": 3
+    },
+    {
+      "name": "TV Educacao MA",
+      "isFree": true,
+      "website": "https://www.educacao.ma.gov.br/tv-educacao-caminho-para-o-saber-completa-um-mes-no-ar-e-estudantes-comemoram/",
+      "priority": 2
+    },
+    {
+      "name": "TV EJA Brasil",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "TV Empire",
+      "priority": 7
+    },
+    {
+      "name": "TV Em Tempo",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "TV Encontro das Aguas",
+      "isFree": true,
+      "website": "https://tveradioencontrodasaguas.com.br/tv-encontro-das-aguas-ao-vivo/",
+      "priority": 2
+    },
+    {
+      "name": "TV Executiva",
+      "priority": 1
+    },
+    {
+      "name": "TV Fronteira",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/sp/tvfronteira/",
+      "priority": 2
+    },
+    {
+      "name": "TV Galega Blumenau",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Gazeta Acre",
+      "isFree": true,
+      "website": "http://www.agazeta.net/",
+      "priority": 3
+    },
+    {
+      "name": "TV Gazeta Alagoas",
+      "isFree": true,
+      "website": "https://redeglobo.globo.com/al/tvgazetaal/",
+      "priority": 3
+    },
+    {
+      "name": "TV Gazeta Espirito Santo",
+      "isFree": true,
+      "website": "http://g1.globo.com/espirito-santo/",
+      "priority": 3
+    },
+    {
+      "name": "TV Gerais",
+      "isFree": true,
+      "website": "http://www.tvgerais.com.br/",
+      "priority": 3
+    },
+    {
+      "name": "Globo Brasilia",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/globobrasilia",
+      "priority": 8,
+      "retransmits": "Globo"
+    },
+    {
+      "name": "Globo Internacional Africa",
+      "website": "https://globointernacional.globo.com/Africa/Paginas/home.aspx",
+      "priority": 5
+    },
+    {
+      "name": "Globo Internacional Americas",
+      "website": "http://globointernacional.globo.com/Americas/Paginas/home.aspx",
+      "priority": 5
+    },
+    {
+      "name": "Globo Internacional Asia",
+      "website": "https://globointernacional.globo.com/Asia/Paginas/home.aspx",
+      "priority": 5
+    },
+    {
+      "name": "Globo Internacional Europa",
+      "website": "https://globointernacional.globo.com/Europa/Paginas/home.aspx",
+      "priority": 5
+    },
+    {
+      "name": "Globo Minas",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/globominas/",
+      "priority": 7,
+      "retransmits": "Globo"
+    },
+    {
+      "name": "Globo Nordeste",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/globonordeste/",
+      "priority": 7,
+      "retransmits": "Globo"
+    },
+    {
+      "name": "Globo Sao Paulo",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/sao-paulo",
+      "priority": 8,
+      "retransmits": "Globo"
+    },
+    {
+      "name": "TV Goiania Band",
+      "isFree": true,
+      "website": "https://tvgoiania.com.br/",
+      "priority": 5
+    },
+    {
+      "name": "TV Gramado",
+      "isFree": true,
+      "website": "http://www.tvgramado.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Grande Natal",
+      "isFree": true,
+      "website": "https://tvgrandenatalhd.business.site/",
+      "priority": 3
+    },
+    {
+      "name": "TV Grande Rio",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/pe/tvgranderio/",
+      "priority": 3
+    },
+    {
+      "name": "TV Grao Para",
+      "isFree": true,
+      "website": "https://www.tvgraopara.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Guaiba",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Guanandi",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Guara",
+      "isFree": true,
+      "website": "https://www.redemassa.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Guarapari",
+      "isFree": true,
+      "website": "https://www.tvguarapari.com/",
+      "priority": 2
+    },
+    {
+      "name": "TV Ibiapabana",
+      "isFree": true,
+      "website": "http://tvibiapaba.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Iguacu",
+      "isFree": true,
+      "website": "https://www.redemassa.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Ilha do Sol",
+      "isFree": true,
+      "website": "https://www.istv.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV InforBahia",
+      "isFree": true,
+      "website": "https://inforbahia.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Integracao",
+      "isFree": true,
+      "keywords": "tv integracao -araxa -ituiutaba -zona -da -mata",
+      "website": "http://redeglobo.globo.com/mg/tvintegracao/",
+      "priority": 2
+    },
+    {
+      "name": "TV Integracao Araxa",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/mg/tvintegracao/",
+      "priority": 2
+    },
+    {
+      "name": "TV Integracao Ituiutaba",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/mg/tvintegracao/",
+      "priority": 2
+    },
+    {
+      "name": "TV Integracao Zona da Mata",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/mg/tvintegracao/",
+      "priority": 2
+    },
+    {
+      "name": "TV Iracema",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TVitape",
+      "isFree": true,
+      "website": "https://www.tvitape.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Jornal Caruaru",
+      "isFree": true,
+      "website": "https://tvjornal.ne10.uol.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV J.SID",
+      "isFree": true,
+      "website": "https://tvjsid.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Justica",
+      "isFree": true,
+      "website": "http://www.tvjustica.jus.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV La Verdad",
+      "isFree": true,
+      "website": "https://elcaminoantiguo.com/",
+      "priority": 2
+    },
+    {
+      "name": "TV Leste",
+      "isFree": true,
+      "website": "http://www.tvleste.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Liberal",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/pa/tvliberal/",
+      "priority": 2
+    },
+    {
+      "name": "TV Maceio",
+      "isFree": true,
+      "website": "https://tvmaceio.tv.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Mais Brasil",
+      "isFree": true,
+      "website": "https://www.tvmaisbrasil.com.br/",
+      "priority": 3
+    },
+    {
+      "name": "TV Mais Familia",
+      "priority": 2
+    },
+    {
+      "name": "TV Mais Marica",
+      "isFree": true,
+      "website": "https://www.tvmaismarica.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "TV Mar",
+      "isFree": true,
+      "website": "https://tvmar.tv.br/novo/",
+      "priority": 1
+    },
+    {
+      "name": "TVMatic Comedy",
+      "priority": 2
+    },
+    {
+      "name": "TVMatic Crafts",
+      "priority": 2
+    },
+    {
+      "name": "TVMatic Facebook",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TVMatic Funny",
+      "priority": 2
+    },
+    {
+      "name": "TVMatic TikTok",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Metropole",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Metropolitana Rio",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Milagro",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "TV Mirante",
+      "isFree": true,
+      "keywords": "tv mirante -cocais -imperatriz",
+      "website": "https://redeglobo.globo.com/ma/tvmirante/",
+      "priority": 3
+    },
+    {
+      "name": "TV Mirante Cocais",
+      "isFree": true,
+      "website": "https://redeglobo.globo.com/ma/tvmirante/",
+      "priority": 1,
+      "retransmits": "TV Mirante"
+    },
+    {
+      "name": "TV Mirante Imperatriz",
+      "isFree": true,
+      "website": "https://redeglobo.globo.com/ma/tvmirante/",
+      "priority": 1,
+      "retransmits": "TV Mirante"
+    },
+    {
+      "name": "TV Modelo",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "TV Morena Campo Grande",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/tvmorena/",
+      "priority": 2
+    },
+    {
+      "name": "TV Morena Ponta Pora",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/tvmorena/",
+      "priority": 1,
+      "retransmits": "TV Morena Campo Grande"
+    },
+    {
+      "name": "TV Mundo Maior",
+      "isFree": true,
+      "website": "https://tvmundomaior.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "TV Naipi",
+      "isFree": true,
+      "website": "https://www.redemassa.com.br/",
+      "priority": 3
+    },
+    {
+      "name": "TV Natal",
+      "isFree": true,
+      "website": "http://www.tvnatal.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Nazare",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TVNBN",
+      "isFree": true,
+      "website": "https://www.tvnbn.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Nova Play",
+      "isFree": true,
+      "website": "http://www.tvnovaplay.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Novo Tempo",
+      "isFree": true,
+      "website": "https://www.novotempo.com/tv/",
+      "priority": 2
+    },
+    {
+      "name": "TV Osasco",
+      "isFree": true,
+      "website": "https://www.tvosasco.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Pajucara",
+      "isFree": true,
+      "website": "http://pajucara.tnh1.com.br/tv/",
+      "priority": 2
+    },
+    {
+      "name": "TV Pampa Norte",
+      "isFree": true,
+      "website": "https://www.tvpampa.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Pantanal MS",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Paraense",
+      "isFree": true,
+      "website": "https://portaltvparaense.com.br",
+      "priority": 2
+    },
+    {
+      "name": "TV Paranaiba",
+      "isFree": true,
+      "website": "https://www.tvparanaiba.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Parana Turismo",
+      "isFree": true,
+      "website": "http://www.paranaeducativa.pr.gov.br/modules/conteudo/conteudo.php?conteudo=19",
+      "priority": 2
+    },
+    {
+      "name": "TV Passo Fundo",
+      "isFree": true,
+      "website": "https://tvpassofundo.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV PE",
+      "isFree": true,
+      "website": "https://portalepc.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Plan",
+      "isFree": true,
+      "website": "https://tvplan.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Planalto Norte",
+      "isFree": true,
+      "website": "https://tvplanaltonorte.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Pocos",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Ponta do Seixas",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Ponta Negra",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Precabura",
+      "isFree": true,
+      "website": "https://www.tvprecabura.com/",
+      "priority": 2
+    },
+    {
+      "name": "TV Profissao",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Ra Tim Bum",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Reme",
+      "isFree": true,
+      "website": "http://www.campogrande.ms.gov.br/semed/tv-reme/",
+      "priority": 2
+    },
+    {
+      "name": "TV Rio Grande",
+      "isFree": true,
+      "website": "https://www.tvriogrande.com/",
+      "priority": 2
+    },
+    {
+      "name": "TV Rio Preto",
+      "isFree": true,
+      "website": "https://tvriopreto.tv/",
+      "priority": 2
+    },
+    {
+      "name": "TV Rio Sul",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/rj/tvriosul/",
+      "priority": 2
+    },
+    {
+      "name": "TV Rondonia",
+      "isFree": true,
+      "website": "https://g1.globo.com/ro/rondonia/",
+      "priority": 2
+    },
+    {
+      "name": "TV Roraima",
+      "isFree": true,
+      "website": "https://g1.globo.com/rr/roraima/",
+      "priority": 2
+    },
+    {
+      "name": "TV Sagres",
+      "isFree": true,
+      "website": "https://sagresonline.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Sandegi",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Sao Francisco",
+      "isFree": true,
+      "website": "http://www.redebahia.com.br/empresas/tv/tv-sao-francisco",
+      "priority": 2
+    },
+    {
+      "name": "TV Sao Raimundo",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Sergipe",
+      "isFree": true,
+      "website": "https://g1.globo.com/se/sergipe/",
+      "priority": 2
+    },
+    {
+      "name": "TV Serra Dourada",
+      "isFree": true,
+      "website": "https://tvsd.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Sete Lagoas",
+      "isFree": true,
+      "website": "https://tvsetelagoas.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Subae",
+      "isFree": true,
+      "website": "http://www.redebahia.com.br/empresas/tv/tv-subae",
+      "priority": 2
+    },
+    {
+      "name": "TV Sucesso",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Sudoeste",
+      "isFree": true,
+      "website": "http://www.redebahia.com.br/empresas/tv/tv-sudoeste",
+      "priority": 2
+    },
+    {
+      "name": "TV Sul Bahia",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Sul de Minas",
+      "isFree": true,
+      "website": "https://www.tvsuldeminas.com.br/",
+      "priority": 3
+    },
+    {
+      "name": "TV Tapajos",
+      "isFree": true,
+      "website": "https://redeglobo.globo.com/pa/tvtapajos/",
+      "priority": 3
+    },
+    {
+      "name": "TV Taroba Cascavel",
+      "isFree": true,
+      "website": "https://tv.tarobanews.com/",
+      "priority": 3
+    },
+    {
+      "name": "TV Taroba Londrina",
+      "isFree": true,
+      "website": "https://tarobanews.com/tv/londrina",
+      "priority": 3
+    },
+    {
+      "name": "TV TEM Bauru",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/sp/tvtem/",
+      "priority": 7
+    },
+    {
+      "name": "TV TEM Itapetininga",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/sp/tvtem/",
+      "priority": 6
+    },
+    {
+      "name": "TV TEM Sao Jose do Rio Preto",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/sp/tvtem/",
+      "priority": 7
+    },
+    {
+      "name": "TV TEM Sorocaba",
+      "isFree": true,
+      "website": "http://redeglobo.globo.com/sp/tvtem/",
+      "priority": 7
+    },
+    {
+      "name": "TV Thathi Campinas",
+      "isFree": true,
+      "website": "http://tvb.com.br/tvb/portal/",
+      "priority": 3
+    },
+    {
+      "name": "TV Tibagi",
+      "isFree": true,
+      "website": "https://www.redemassa.com.br/",
+      "priority": 3
+    },
+    {
+      "name": "TV Tribuna",
+      "isFree": true,
+      "keywords": "tv tribuna -band",
+      "website": "https://g1.globo.com/sp/santos-regiao",
+      "priority": 6
+    },
+    {
+      "name": "TV Tribuna Band",
+      "isFree": true,
+      "retransmits": "TV Tribuna",
+      "priority": 6
+    },
+    {
+      "name": "TV Turfe",
+      "website": "https://www.jcb.com.br/home/",
+      "priority": 3
+    },
+    {
+      "name": "TV UFOP",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "TV Uniao Fortaleza",
+      "isFree": true,
+      "website": "http://www.redeuniao.com.br/",
+      "priority": 6
+    },
+    {
+      "name": "TV Uniao Natal",
+      "isFree": true,
+      "website": "https://www.uniaoplay.com.br/",
+      "priority": 6
+    },
+    {
+      "name": "TV Universitaria",
+      "isFree": true,
+      "website": "http://tvu.ntvru.ufpe.br/",
+      "priority": 3
+    },
+    {
+      "name": "TV Vale do Uruara",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "TV Vanguarda Sao Jose dos Campos",
+      "isFree": true,
+      "website": "http://www.vanguarda.tv/",
+      "priority": 7
+    },
+    {
+      "name": "TV Vanguarda Taubate",
+      "isFree": true,
+      "website": "http://www.vanguarda.tv/",
+      "priority": 6
+    },
+    {
+      "name": "TV Vareza Grande",
+      "isFree": true,
+      "website": "https://conexaomt.com/",
+      "priority": 3
+    },
+    {
+      "name": "TV Verdes Campos Sat",
+      "isFree": true,
+      "website": "https://www.tvverdescampossat.com/",
+      "priority": 2
+    },
+    {
+      "name": "TV Verdes Mares",
+      "isFree": true,
+      "keywords": "tv verdes mares -cariri",
+      "website": "https://redeglobo.globo.com/tvverdesmares/",
+      "priority": 4
+    },
+    {
+      "name": "TV Verdes Mares Cariri",
+      "isFree": true,
+      "website": "https://redeglobo.globo.com/tvverdesmares/",
+      "priority": 3,
+      "retransmits": "TV Verdes Mares"
+    },
+    {
+      "name": "TV Vicosa",
+      "isFree": true,
+      "website": "http://fratevi.org.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Vila Real",
+      "isFree": true,
+      "website": "https://www.gazetadigital.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Vitoria",
+      "isFree": true,
+      "website": "https://portalredevitoria.com.br/",
+      "priority": 4
+    },
+    {
+      "name": "TV Walter Abrahao",
+      "isFree": true,
+      "website": "https://tvwaonline.com/",
+      "priority": 2
+    },
+    {
+      "name": "TV Web Camocim",
+      "isFree": true,
+      "website": "https://www.tvwebcamocim.com/",
+      "priority": 1
+    },
+    {
+      "name": "TV Web Parana",
+      "isFree": true,
+      "website": "https://www.tvwebparana.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV West",
+      "website": "http://www.redebahia.com.br/empresas/tv/tv-oeste",
+      "priority": 3
+    },
+    {
+      "name": "TV WTJMINAS",
+      "isFree": true,
+      "website": "https://www.wtjtvminas.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "UMA",
+      "isFree": true,
+      "website": "https://www.umatv.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "UNBTV",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Uninter",
+      "website": "https://www.uninter.com/",
+      "priority": 4
+    },
+    {
+      "name": "Uninter 2",
+      "website": "https://www.uninter.com/",
+      "priority": 3,
+      "retransmits": "Uninter"
+    },
+    {
+      "name": "Unisa",
+      "website": "http://www.unisa.br/",
+      "priority": 3
+    },
+    {
+      "name": "Unisa 2",
+      "website": "http://www.unisa.br/",
+      "priority": 2,
+      "retransmits": "Unisa"
+    },
+    {
+      "name": "Unisa 3",
+      "website": "http://www.unisa.br/",
+      "priority": 2,
+      "retransmits": "Unisa"
+    },
+    {
+      "name": "Unisa 4",
+      "website": "http://www.unisa.br/",
+      "priority": 2,
+      "retransmits": "Unisa"
+    },
+    {
+      "name": "Unisa 5",
+      "isFree": true,
+      "website": "http://www.unisa.br/",
+      "priority": 2
+    },
+    {
+      "name": "Unisa 6",
+      "isFree": true,
+      "website": "http://www.unisa.br/",
+      "priority": 1
+    },
+    {
+      "name": "Unisa 7",
+      "isFree": true,
+      "website": "http://www.unisa.br/",
+      "priority": 1
+    },
+    {
+      "name": "UPFTV",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Urban Travel",
+      "website": "https://urbantv.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Urban Turbo",
+      "website": "https://urbantv.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Urban",
+      "website": "https://urbantv.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "ViaMoreno",
+      "isFree": true,
+      "website": "https://www.viamorena.com/",
+      "priority": 1
+    },
+    {
+      "name": "VTV",
+      "isFree": true,
+      "website": "https://www.sbt.com.br/afiliada/vtv",
+      "priority": 1
+    },
+    {
+      "name": "VV 8",
+      "isFree": true,
+      "website": "https://vv8.tv.br/",
+      "priority": 1
+    },
+    {
+      "name": "Web TV Agua Boa",
+      "isFree": true,
+      "website": "https://www.tvaguaboa.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Web TV Alternativa",
+      "isFree": true,
+      "website": "https://zonajoventvla.principalwebsite.com/",
+      "priority": 1
+    },
+    {
+      "name": "WooHoo",
+      "website": "https://woohoo.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "WTV Brasil",
+      "isFree": true,
+      "website": "https://www.wtvbrasil.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Yes Life",
+      "website": "http://baitaconteudo.com/canais/",
+      "priority": 2
+    },
+    {
+      "name": "Record Litoral/Vale",
+      "isFree": true,
+      "priority": 6
+    },
+    {
+      "name": "Band Campinas",
+      "isFree": true,
+      "priority": 6
+    },
+    {
+      "name": "Band Vale do Paraíba",
+      "isFree": true,
+      "priority": 6
+    },
+    {
+      "name": "SBT RP",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SBT Central",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Band Paulista",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "SBT Santa Catarina",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Record Guaíba",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "SBT RS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Band Porto Alegre",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "RedeTV! Rio de Janeiro",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "SBT Interior RJ",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Band Rio de Janeiro",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "RedeTV! Recife",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Record Belém",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "SBT Pará",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Band Triângulo",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "RedeTV! Minas",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Band Minas",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "SBT Cuiabá",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Record Goiás",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Band Brasília",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "SBT Brasília",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Record Brasília",
+      "isFree": true,
+      "priority": 6
+    },
+    {
+      "name": "RedeTV! Fortaleza",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Record Cabrália",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Record Bahia",
+      "isFree": true,
+      "priority": 6
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "BigHits",
+      "priority": 3
+    },
+    {
+      "name": "City Television",
+      "priority": 1
+    },
+    {
+      "name": "ESKA Party",
+      "priority": 1
+    },
+    {
+      "name": "Eska Rock",
+      "priority": 1
+    },
+    {
+      "name": "Gospel Music Television",
+      "priority": 2
+    },
+    {
+      "name": "Hit",
+      "priority": 4
+    },
+    {
+      "name": "KISS",
+      "priority": 2
+    },
+    {
+      "name": "KpopTV",
+      "priority": 2
+    },
+    {
+      "name": "M2O",
+      "priority": 1
+    },
+    {
+      "name": "MTV",
+      "priority": 5
+    },
+    {
+      "name": "Mega Mix TV Clips",
+      "priority": 1
+    },
+    {
+      "name": "Milk",
+      "priority": 1
+    },
+    {
+      "name": "Mix",
+      "priority": 2
+    },
+    {
+      "name": "Planet",
+      "priority": 1
+    },
+    {
+      "name": "Retro Music",
+      "keywords": "retro music -television",
+      "priority": 2
+    },
+    {
+      "name": "Retro Music Television",
+      "priority": 2
+    },
+    {
+      "name": "Super Hits",
+      "priority": 1
+    },
+    {
+      "name": "TV BNO",
+      "priority": 0
+    },
+    {
+      "name": "TV Carioca.Net",
+      "priority": 0
+    },
+    {
+      "name": "TV Clipes Gospel",
+      "priority": 0
+    },
+    {
+      "name": "TV Destak",
+      "priority": 0
+    },
+    {
+      "name": "TV Mega Clipes",
+      "priority": 0
+    },
+    {
+      "name": "TV Sertanejo Total",
+      "priority": 0
+    },
+    {
+      "name": "Best Brasil",
+      "website": "https://coyotelandmedia.com/",
+      "priority": 0
+    },
+    {
+      "name": "BMTV",
+      "priority": 0
+    },
+    {
+      "name": "Gazeta FM 94.",
+      "website": "https://www.gazetaweb.com/radios/gazetaFm94-1",
+      "priority": 0
+    },
+    {
+      "name": "KpopTV Play",
+      "website": "https://kpoptv.live/",
+      "priority": 0
+    },
+    {
+      "name": "Master Show",
+      "website": "https://www.mastershowtv.com/",
+      "priority": 0
+    },
+    {
+      "name": "Mirante News",
+      "website": "https://imirante.com/mirantenews",
+      "priority": 0
+    },
+    {
+      "name": "Music Box Brazil",
+      "website": "https://boxbrazil.tv.br/prime-box-brazil/",
+      "priority": 0
+    },
+    {
+      "name": "VH",
+      "website": "https://www.vh1.com/",
+      "priority": 0
+    },
+    {
+      "name": "Virtual",
+      "website": "http://www.virtual.tv.br/",
+      "priority": 0
+    },
+    {
+      "name": "Wham",
+      "priority": 0
+    }
+  ],
+  "News": [
+    {
+      "name": "Agro Mais",
+      "keywords": "agro mais | agromais",
+      "priority": 0
+    },
+    {
+      "name": "BH News",
+      "priority": 0
+    },
+    {
+      "name": "Band News",
+      "keywords": "band news | bandnews",
+      "shortName": "Band News",
+      "website": "https://www.band.uol.com.br/bandnews",
+      "priority": 5
+    },
+    {
+      "name": "CNN Brasil",
+      "website": "https://www.cnnbrasil.com.br",
+      "priority": 8
+    },
+    {
+      "name": "Canal Metropolitano de Noticias",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "Canal Rural",
+      "keywords": "canal rural -x",
+      "website": "https://www.canalrural.com.br",
+      "priority": 4
+    },
+    {
+      "name": "Canal Rural X",
+      "priority": 1
+    },
+    {
+      "name": "Conexão",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "Euronews Português",
+      "priority": 3
+    },
+    {
+      "name": "GV News",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "Globo News",
+      "keywords": "globo news | globonews",
+      "shortName": "Globo News",
+      "website": "https://g1.globo.com/globonews",
+      "priority": 8
+    },
+    {
+      "name": "Jockey Club",
+      "priority": 2
+    },
+    {
+      "name": "Ponta Negra News",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Record News",
+      "isFree": true,
+      "website": "https://recordnews.r7.com",
+      "priority": 8
+    },
+    {
+      "name": "Rede Litoral News",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "TV ALERJ",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "TV Alese",
+      "isFree": true,
+      "keywords": "tv alese | assembleia sergipe",
+      "priority": 3
+    },
+    {
+      "name": "TV Câmara",
+      "isFree": true,
+      "keywords": "tv camara -2 -de -sao -paulo",
+      "shortName": "Câmara",
+      "website": "https://www.camara.leg.br/tv",
+      "priority": 7
+    },
+    {
+      "name": "TV Câmara 2",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Câmara de Sao Paulo",
+      "isFree": true,
+      "keywords": "tv camara sao paulo | tv camara sp",
+      "priority": 3
+    },
+    {
+      "name": "TV Galega",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Justiça",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "TV Sindepress",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TVídeoNews",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "Terra Viva",
+      "priority": 1
+    },
+    {
+      "name": "WFTV 9 News",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "WebTV Minas",
+      "isFree": true,
+      "keywords": "web tv minas | webtv minas",
+      "priority": 2
+    },
+    {
+      "name": "Aratu On",
+      "isFree": true,
+      "website": "https://aratuon.com.br/aovivo/aratuon",
+      "priority": 5
+    },
+    {
+      "name": "BR 8",
+      "isFree": true,
+      "website": "https://br8news.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Canal 38",
+      "isFree": true,
+      "website": "https://www.canal38.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "CBN SP",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Climatempo",
+      "website": "https://www.climatempo.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Giro TV News",
+      "isFree": true,
+      "website": "https://www.girotvnews.com/",
+      "priority": 2
+    },
+    {
+      "name": "Imperial",
+      "isFree": true,
+      "website": "https://imperialtv.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "J3NEWS",
+      "isFree": true,
+      "website": "https://tvterceiravia.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "JP News",
+      "isFree": true,
+      "website": "https://jovempan.com.br/jpnews",
+      "priority": 2
+    },
+    {
+      "name": "Plena",
+      "isFree": true,
+      "website": "http://www.folha1.com.br/plena_tv",
+      "priority": 1
+    },
+    {
+      "name": "RDTV",
+      "isFree": true,
+      "website": "http://www.rdtv.net.br/",
+      "priority": 2
+    },
+    {
+      "name": "Rede Web",
+      "isFree": true,
+      "website": "https://rwtv.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "RIT Noticias",
+      "isFree": true,
+      "website": "https://linktr.ee/ritnoticias",
+      "priority": 6
+    },
+    {
+      "name": "STZ",
+      "isFree": true,
+      "website": "https://stztv.org.br/",
+      "priority": 1
+    },
+    {
+      "name": "TCM 10",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Times Brasil",
+      "isFree": true,
+      "website": "https://timesbrasil.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV A Folha",
+      "isFree": true,
+      "website": "https://www.jornalafolha.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TV Alagonet",
+      "isFree": true,
+      "website": "https://www.tvalagonet.com.br/",
+      "priority": 0
+    },
+    {
+      "name": "TV Cidada Alagoas",
+      "isFree": true,
+      "website": "https://www.tceal.tc.br/",
+      "priority": 0
+    },
+    {
+      "name": "TV do Povo",
+      "isFree": true,
+      "website": "https://www.tvdopovo.com/",
+      "priority": 0
+    },
+    {
+      "name": "TVideoNews",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "TV Osorio News",
+      "isFree": true,
+      "website": "https://www.tvosorionews.com.br/",
+      "priority": 0
+    },
+    {
+      "name": "TV Sim Cachoeiro",
+      "isFree": true,
+      "website": "https://www.simnoticias.com.br/ao-vivo-tv-sim-cachoeiro/",
+      "priority": 0
+    },
+    {
+      "name": "TV Sim Colatina",
+      "isFree": true,
+      "website": "https://www.simnoticias.com.br/ao-vivo-tv-sim-colatina/",
+      "priority": 0
+    },
+    {
+      "name": "TV Sim Sao Mateus",
+      "isFree": true,
+      "website": "https://www.simnoticias.com.br/ao-vivo-tv-sim-sao-mateus/",
+      "priority": 0
+    },
+    {
+      "name": "WeatherSpy",
+      "isFree": true,
+      "website": "https://www.weatherspy.tv/",
+      "priority": 1
+    }
+  ],
+  "Sports": [
+    {
+      "name": "All Sports",
+      "priority": 1
+    },
+    {
+      "name": "Band Sports",
+      "priority": 6
+    },
+    {
+      "name": "Combate",
+      "priority": 7
+    },
+    {
+      "name": "EI MAXX",
+      "keywords": "ei maxx -2",
+      "priority": 3
+    },
+    {
+      "name": "EI MAXX 2",
+      "priority": 3,
+      "retransmits": "EI MAXX"
+    },
+    {
+      "name": "ESPN Brasil",
+      "priority": 8
+    },
+    {
+      "name": "Esporte Interativo",
+      "keywords": "esporte interativo -2",
+      "priority": 4
+    },
+    {
+      "name": "Esporte Interativo 2",
+      "shortName": "EI 2",
+      "priority": 4,
+      "retransmits": "Esporte Interativo"
+    },
+    {
+      "name": "FOX Sports",
+      "priority": 7
+    },
+    {
+      "name": "FUEL",
+      "priority": 2
+    },
+    {
+      "name": "Fish",
+      "priority": 0
+    },
+    {
+      "name": "NBA",
+      "priority": 5
+    },
+    {
+      "name": "OFF",
+      "priority": 0
+    },
+    {
+      "name": "Premiere",
+      "keywords": "premiere -cine | pfc",
+      "priority": 8
+    },
+    {
+      "name": "Premiere 2",
+      "keywords": "premiere 2 | pfc 2",
+      "priority": 8,
+      "retransmits": "Premiere"
+    },
+    {
+      "name": "Premiere 3",
+      "keywords": "premiere 3 | pfc 3",
+      "priority": 8,
+      "retransmits": "Premiere"
+    },
+    {
+      "name": "Premiere 4",
+      "keywords": "premiere 4 | pfc 4",
+      "priority": 8,
+      "retransmits": "Premiere"
+    },
+    {
+      "name": "Premiere 5",
+      "keywords": "premiere 5 | pfc 5",
+      "priority": 8,
+      "retransmits": "Premiere"
+    },
+    {
+      "name": "Premiere 6",
+      "keywords": "premiere 6 | pfc 6",
+      "priority": 8,
+      "retransmits": "Premiere"
+    },
+    {
+      "name": "Premiere 7",
+      "keywords": "premiere 7 | pfc 7",
+      "priority": 8,
+      "retransmits": "Premiere"
+    },
+    {
+      "name": "Premiere 8",
+      "keywords": "premiere 8 | pfc 8",
+      "priority": 8,
+      "retransmits": "Premiere"
+    },
+    {
+      "name": "Premiere 9",
+      "keywords": "premiere 9 | pfc 9",
+      "priority": 8,
+      "retransmits": "Premiere"
+    },
+    {
+      "name": "Real Madrid",
+      "priority": 7
+    },
+    {
+      "name": "SporTV",
+      "keywords": "sportv -2 -3",
+      "website": "https://ge.globo.com/sportv",
+      "priority": 8
+    },
+    {
+      "name": "SporTV 2",
+      "priority": 8,
+      "retransmits": "SporTV"
+    },
+    {
+      "name": "SporTV 3",
+      "priority": 8,
+      "retransmits": "SporTV"
+    },
+    {
+      "name": "TNT Sports",
+      "keywords": "tnt sports -2 -3 -4 -5",
+      "priority": 8
+    },
+    {
+      "name": "TNT Sports 2",
+      "priority": 8,
+      "retransmits": "TNT Sports"
+    },
+    {
+      "name": "TNT Sports 3",
+      "priority": 8,
+      "retransmits": "TNT Sports"
+    },
+    {
+      "name": "TNT Sports 4",
+      "priority": 8,
+      "retransmits": "TNT Sports"
+    },
+    {
+      "name": "TNT Sports 5",
+      "priority": 6
+    },
+    {
+      "name": "Canal do Inter",
+      "website": "https://internacional.com.br/",
+      "priority": 5
+    },
+    {
+      "name": "CazeTV",
+      "website": "https://www.livemode.com/cazetv",
+      "priority": 3
+    },
+    {
+      "name": "ESPN",
+      "keywords": "espn -3 -4 -brasil -extra",
+      "website": "http://www.espn.com.br/",
+      "priority": 8
+    },
+    {
+      "name": "ESPN 3",
+      "website": "http://www.espn.com.br/",
+      "priority": 7,
+      "retransmits": "ESPN"
+    },
+    {
+      "name": "ESPN 4",
+      "website": "http://www.espn.com.br/",
+      "priority": 7,
+      "retransmits": "ESPN"
+    },
+    {
+      "name": "ESPN Extra",
+      "website": "http://espn.uol.com.br/",
+      "priority": 6,
+      "retransmits": "ESPN"
+    },
+    {
+      "name": "FOX Sports 2",
+      "website": "http://www.foxsports.com.br/",
+      "priority": 5
+    },
+    {
+      "name": "GE Fast",
+      "website": "https://ge.globo.com/ge-fast/ao-vivo/ge-fast-assista-agora-ao-canal-com-24-horas-de-esporte.ghtml",
+      "priority": 6
+    },
+    {
+      "name": "Jockey Club de Sao Paulo",
+      "website": "http://www.jockeysp.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "Premiere 10",
+      "website": "http://premierefc.globo.com/",
+      "priority": 5
+    },
+    {
+      "name": "Premiere Clubes",
+      "website": "http://globotv.globo.com/sportv/premiere-clubes/",
+      "priority": 5
+    },
+    {
+      "name": "Premiere FC",
+      "website": "http://premierefc.globo.com/",
+      "priority": 8
+    },
+    {
+      "name": "Premiere FC 2",
+      "website": "http://premierefc.globo.com/",
+      "priority": 6,
+      "retransmits": "Premiere FC"
+    },
+    {
+      "name": "Premiere FC 24h",
+      "website": "http://premierefc.globo.com/",
+      "priority": 6,
+      "retransmits": "Premiere FC"
+    },
+    {
+      "name": "Premiere FC 3",
+      "website": "http://premierefc.globo.com/",
+      "priority": 6,
+      "retransmits": "Premiere FC"
+    },
+    {
+      "name": "Premiere FC 4",
+      "website": "http://premierefc.globo.com/",
+      "priority": 6,
+      "retransmits": "Premiere FC"
+    },
+    {
+      "name": "Premiere FC 5",
+      "website": "http://premierefc.globo.com/",
+      "priority": 6,
+      "retransmits": "Premiere FC"
+    },
+    {
+      "name": "Premiere FC 6",
+      "website": "http://premierefc.globo.com/",
+      "priority": 6,
+      "retransmits": "Premiere FC"
+    },
+    {
+      "name": "Premiere FC 7",
+      "website": "http://premierefc.globo.com/",
+      "priority": 6,
+      "retransmits": "Premiere FC"
+    },
+    {
+      "name": "Premiere FC 8",
+      "website": "http://premierefc.globo.com/",
+      "priority": 6
+    },
+    {
+      "name": "Premiere FC 9",
+      "website": "http://premierefc.globo.com/",
+      "priority": 6
+    },
+    {
+      "name": "SporTV 2 Alternativo",
+      "website": "http://sportv.globo.com/",
+      "priority": 5
+    },
+    {
+      "name": "SporTV Alternativo",
+      "website": "http://sportv.globo.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVMatic Fight",
+      "priority": 2
+    },
+    {
+      "name": "TVMatic Sport",
+      "priority": 2
+    }
+  ],
+  "Radios": [
+    {
+      "name": "98 Live",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Atlântida FM",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Band FM",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Band News FM",
+      "isFree": true,
+      "priority": 6
+    },
+    {
+      "name": "Catve FM",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "CBN RJ",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "CBN Rio",
+      "isFree": true,
+      "keywords": "cbn rio | cbn rj",
+      "priority": 7
+    },
+    {
+      "name": "CBN São Paulo",
+      "isFree": true,
+      "keywords": "cbn sao paulo | cbn sp",
+      "priority": 8
+    },
+    {
+      "name": "Cidade FM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hot FM SP",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Italigado Web Radio",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "Itatiaia AM",
+      "isFree": true,
+      "priority": 6
+    },
+    {
+      "name": "Itatiaia FM",
+      "isFree": true,
+      "priority": 6
+    },
+    {
+      "name": "Rádio Caicara",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "Rádio Globo",
+      "isFree": true,
+      "keywords": "radio globo | globo fm",
+      "priority": 4
+    },
+    {
+      "name": "Rádio Monte Carlo",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Rádio Cristo O Libertador",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "Rádio Restauração Gospel",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "TV Rádio Vida Em Cristo",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Vanguarda FM",
+      "isFree": true,
+      "priority": 3
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "AMC",
+      "priority": 4
+    },
+    {
+      "name": "AXN",
+      "priority": 5
+    },
+    {
+      "name": "Canal Brasil",
+      "priority": 5
+    },
+    {
+      "name": "Cine Filmes",
+      "priority": 4
+    },
+    {
+      "name": "Cine,",
+      "priority": 5
+    },
+    {
+      "name": "CinePix",
+      "priority": 4
+    },
+    {
+      "name": "Cinemax",
+      "priority": 4
+    },
+    {
+      "name": "Classique",
+      "priority": 3
+    },
+    {
+      "name": "FOX",
+      "keywords": "fox -sports",
+      "priority": 6
+    },
+    {
+      "name": "FX",
+      "priority": 5
+    },
+    {
+      "name": "Ghost",
+      "priority": 3
+    },
+    {
+      "name": "HBO",
+      "keywords": "hbo -2 -family -max -plus -signature",
+      "priority": 7
+    },
+    {
+      "name": "HBO 2",
+      "priority": 7
+    },
+    {
+      "name": "HBO Family",
+      "priority": 6
+    },
+    {
+      "name": "HBO Max",
+      "priority": 8
+    },
+    {
+      "name": "HBO Plus",
+      "priority": 5
+    },
+    {
+      "name": "HBO Signature",
+      "priority": 4
+    },
+    {
+      "name": "Lifetime",
+      "priority": 3
+    },
+    {
+      "name": "Max",
+      "keywords": "max -prime -up",
+      "priority": 7
+    },
+    {
+      "name": "Max Prime",
+      "priority": 7
+    },
+    {
+      "name": "Max UP",
+      "priority": 6
+    },
+    {
+      "name": "Megapix",
+      "priority": 4
+    },
+    {
+      "name": "Paramount",
+      "priority": 5
+    },
+    {
+      "name": "Space",
+      "priority": 6
+    },
+    {
+      "name": "Studio Universal",
+      "priority": 4
+    },
+    {
+      "name": "Syfy",
+      "priority": 5
+    },
+    {
+      "name": "TCM",
+      "priority": 3
+    },
+    {
+      "name": "TNT",
+      "keywords": "tnt -sports -2 -3 -4 -5",
+      "priority": 8
+    },
+    {
+      "name": "TV Cinec",
+      "priority": 2
+    },
+    {
+      "name": "TV na Ilha",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Telecine",
+      "keywords": "telecine -action -cult -fun -pipoca -premium -touch",
+      "priority": 8
+    },
+    {
+      "name": "Telecine Action",
+      "priority": 7,
+      "retransmits": "Telecine"
+    },
+    {
+      "name": "Telecine Cult",
+      "priority": 7,
+      "retransmits": "Telecine"
+    },
+    {
+      "name": "Telecine Fun",
+      "priority": 7,
+      "retransmits": "Telecine"
+    },
+    {
+      "name": "Telecine Pipoca",
+      "priority": 6
+    },
+    {
+      "name": "Telecine Premium",
+      "priority": 5
+    },
+    {
+      "name": "Telecine Touch",
+      "priority": 5
+    },
+    {
+      "name": "Universal",
+      "priority": 5
+    },
+    {
+      "name": "Warner",
+      "priority": 5
+    },
+    {
+      "name": "AWTV",
+      "website": "https://awtv.com.br/",
+      "priority": 0
+    },
+    {
+      "name": "CineBrasil",
+      "website": "http://www.cinebrasil.tv/",
+      "priority": 1
+    },
+    {
+      "name": "Classique TV 2",
+      "priority": 0
+    },
+    {
+      "name": "Classique TV Western",
+      "priority": 0
+    },
+    {
+      "name": "HBO Mundi",
+      "website": "https://www.hbobrasil.com/",
+      "priority": 6
+    },
+    {
+      "name": "HBO Pop",
+      "website": "https://www.hbobrasil.com/",
+      "priority": 5
+    },
+    {
+      "name": "HBO Xtreme",
+      "website": "https://www.hbobrasil.com/",
+      "priority": 5
+    },
+    {
+      "name": "Jeannie e um Genio",
+      "priority": 0
+    },
+    {
+      "name": "MyTime Movie Network",
+      "website": "https://mytimemovienetwork.com/",
+      "priority": 0
+    },
+    {
+      "name": "Oi Filmes",
+      "website": "http://www.oi.com.br/oi/oi-pra-voce/planos-servicos/oi-tv",
+      "priority": 2
+    },
+    {
+      "name": "Retro Cartoon",
+      "priority": 1
+    },
+    {
+      "name": "Star",
+      "website": "https://www.star-brasil.com/",
+      "priority": 8
+    },
+    {
+      "name": "Tela Viva",
+      "website": "https://telaviva.com.br/",
+      "priority": 0
+    },
+    {
+      "name": "TV Series",
+      "priority": 4
+    },
+    {
+      "name": "Urban Movies",
+      "website": "https://urbantv.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Urban Retro",
+      "website": "https://urbantv.com.br/",
+      "priority": 0
+    },
+    {
+      "name": "Urban Series",
+      "website": "https://urbantv.com.br/",
+      "priority": 1
+    }
+  ],
+  "Shop": [
+    {
+      "name": "1001 Noites",
+      "isFree": true,
+      "priority": 0
+    },
+    {
+      "name": "Polishop",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Shoptime",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "Medalhao Persa",
+      "isFree": true,
+      "website": "https://medalhaopersa.com.br/",
+      "priority": 0
+    },
+    {
+      "name": "Polishop 2",
+      "isFree": true,
+      "website": "https://www.polishop.com.br/",
+      "priority": 1,
+      "retransmits": "Polishop"
+    },
+    {
+      "name": "TV Shoptime",
+      "isFree": true,
+      "website": "https://www.shoptime.com.br/ofertasdatv/?chave=TV_FAIXA_FOOTER",
+      "priority": 2,
+      "retransmits": "Shoptime"
+    },
+    {
+      "name": "TV Shop Tour",
+      "isFree": true,
+      "website": "https://www.shoptour.com.br/",
+      "priority": 0
+    },
+    {
+      "name": "TV Tudo BH",
+      "isFree": true,
+      "website": "https://www.tvtudo.tv.br/",
+      "priority": 0
+    }
+  ],
+  "Local": [
+    {
+      "name": "Canal 25 Jundiaí",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "ITV",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "Rede RC",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "TV Cidade",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Interlagos",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "TV Jornal do Nordeste",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TV Mon",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "TV Nova Onda",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "TV Santa Cruz",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "TV Sol Comunidade",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "TV UniSantos",
+      "isFree": true,
+      "priority": 3
+    },
+    {
+      "name": "TV Uniao",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "TVCI",
+      "isFree": true,
+      "priority": 1
+    },
+    {
+      "name": "TVE Bahia",
+      "isFree": true,
+      "priority": 2
+    },
+    {
+      "name": "TVunisat",
+      "isFree": true,
+      "keywords": "tvunisat | tv unisat",
+      "priority": 1
+    }
+  ],
+  "Kids": [
+    {
+      "name": "3 ABN KIDS",
+      "priority": 3
+    },
+    {
+      "name": "Anime",
+      "priority": 4
+    },
+    {
+      "name": "Animestation",
+      "priority": 3
+    },
+    {
+      "name": "Boomerang",
+      "priority": 5
+    },
+    {
+      "name": "Canal TVS",
+      "keywords": "canal tvs | tvsancouper",
+      "priority": 2
+    },
+    {
+      "name": "Cartoon Network",
+      "priority": 8
+    },
+    {
+      "name": "Cartoon Retrô",
+      "priority": 4
+    },
+    {
+      "name": "Discovery Junior",
+      "priority": 4
+    },
+    {
+      "name": "Discovery Kids",
+      "priority": 8
+    },
+    {
+      "name": "Disney",
+      "priority": 8
+    },
+    {
+      "name": "Disney JR",
+      "priority": 5
+    },
+    {
+      "name": "Disney XD",
+      "priority": 4
+    },
+    {
+      "name": "Gloob",
+      "priority": 8
+    },
+    {
+      "name": "Nick Jr.",
+      "priority": 5
+    },
+    {
+      "name": "Nick Teen",
+      "priority": 4
+    },
+    {
+      "name": "Nickelodeon",
+      "priority": 8
+    },
+    {
+      "name": "Retrô Cartoon",
+      "priority": 3
+    },
+    {
+      "name": "TV Rá-Tim-Bum",
+      "isFree": true,
+      "keywords": "tv ratimbum | tv ra tim bum",
+      "priority": 7
+    },
+    {
+      "name": "TV Tokyo",
+      "priority": 2
+    },
+    {
+      "name": "Tokusato",
+      "priority": 1
+    },
+    {
+      "name": "Tooncast",
+      "priority": 5
+    },
+    {
+      "name": "ZooMoo Kids",
+      "keywords": "zoomoo",
+      "priority": 2
+    },
+    {
+      "name": "Cartoonito Live",
+      "keywords": "cartoonito live -latin -america",
+      "website": "https://cartoonito.com.br/",
+      "priority": 4
+    },
+    {
+      "name": "Cartoonito Live Latin America",
+      "website": "https://cartoonitola.com/",
+      "priority": 4
+    },
+    {
+      "name": "Cartoon Network Live",
+      "keywords": "cartoon network live -2 -latin -america",
+      "website": "https://www.cartoonnetwork.com.br/",
+      "priority": 8
+    },
+    {
+      "name": "Cartoon Network Live 2",
+      "website": "https://www.cartoonnetwork.com.br/",
+      "priority": 4
+    },
+    {
+      "name": "Cartoon Network Live Latin America",
+      "keywords": "cartoon network live latin america -2",
+      "website": "https://spa.cartoonnetworkla.com/",
+      "priority": 8
+    },
+    {
+      "name": "Cartoon Network Live Latin America 2",
+      "website": "https://spa.cartoonnetworkla.com/",
+      "priority": 4
+    },
+    {
+      "name": "Discovery Kids Live",
+      "keywords": "discovery kids live -latin -america",
+      "website": "http://www.discoverykids.com.br/",
+      "priority": 8
+    },
+    {
+      "name": "Discovery Kids Live Latin America",
+      "website": "http://www.discoverykids.com/",
+      "priority": 8
+    },
+    {
+      "name": "Geekdot",
+      "website": "https://geekdot.live/",
+      "priority": 1
+    },
+    {
+      "name": "Gloobinho",
+      "isFree": true,
+      "website": "https://globosatplay.globo.com/gloobinho/",
+      "priority": 7
+    },
+    {
+      "name": "Gulli Brasil",
+      "website": "https://gulli.com.br/",
+      "priority": 2
+    },
+    {
+      "name": "TeenNick",
+      "website": "https://nickelodeon.com.br/",
+      "priority": 3
+    },
+    {
+      "name": "Urban Kids",
+      "website": "https://urbantv.com.br/",
+      "priority": 1
+    },
+    {
+      "name": "Xtreme",
+      "isFree": true,
+      "website": "https://xtremetv.com.br/",
+      "priority": 4
+    }
+  ]
+}

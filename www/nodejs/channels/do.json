@@ -1,0 +1,2007 @@
+{
+  "Entertainment": [
+    {
+      "name": "AkíTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Amé 47",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CDN 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CDN Noticias",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 12",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 56",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Amé 47",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Carivision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Comunion",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DAN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Digital Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ecovisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Fuego",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GDMTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GH Television Canal 10",
+      "isFree": true,
+      "shortName": "GTC",
+      "priority": 5
+    },
+    {
+      "name": "HM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hermanas Mirabal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hilando Fino",
+      "isFree": true,
+      "website": "http://www.hilandofinotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "LA MIA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LVM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Megavision Canal 43",
+      "isFree": true,
+      "shortName": "MC 4",
+      "priority": 5
+    },
+    {
+      "name": "Microvision 10",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mision ELTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ORBIT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PH",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PHTV Canal 34",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Punta Cana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RNN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ready TV Canal 6",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Romana TV Canal 42",
+      "isFree": true,
+      "shortName": "RTC 4",
+      "priority": 5
+    },
+    {
+      "name": "San Isidro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SiTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Super Canal 33",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Super TV 55",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TDN Medios",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Montaña Canal 10",
+      "isFree": true,
+      "shortName": "TMC",
+      "priority": 5
+    },
+    {
+      "name": "TV Plata",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Éxitos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleBendicion",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleCibao",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telecanal 28",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telefuturo Canal 23",
+      "isFree": true,
+      "shortName": "TC 2",
+      "priority": 5
+    },
+    {
+      "name": "Teleimpacto",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telemicro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telemilenio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telenord 12",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telenord 8",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telenord Canal 10",
+      "isFree": true,
+      "shortName": "TC",
+      "priority": 5
+    },
+    {
+      "name": "Telesur Canal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Teleunion",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vallevision",
+      "isFree": true,
+      "keywords": "vallevision -canal -10",
+      "priority": 5
+    },
+    {
+      "name": "Vallevision Canal 10",
+      "isFree": true,
+      "shortName": "VC",
+      "priority": 5
+    },
+    {
+      "name": "Vega Teve",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Viva Canal 5",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ZTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zol106",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "002 Radio",
+      "isFree": true,
+      "website": "https://www.002radio.com/",
+      "priority": 5
+    },
+    {
+      "name": "Agenda 56",
+      "isFree": true,
+      "website": "https://agenda56.com/agenda56tv/",
+      "priority": 5
+    },
+    {
+      "name": "Ahora",
+      "isFree": true,
+      "website": "https://www.ahoratv.com/",
+      "priority": 5
+    },
+    {
+      "name": "AION",
+      "isFree": true,
+      "website": "https://aiontelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "AkiTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Alcarrizos",
+      "isFree": true,
+      "website": "https://alcarrizostv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Alegre TV RD",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/alegre-tv-rd",
+      "priority": 5
+    },
+    {
+      "name": "Altanto",
+      "isFree": true,
+      "website": "https://altanto.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "Ame 47",
+      "isFree": true,
+      "website": "https://www.rdmusica.com/",
+      "priority": 5
+    },
+    {
+      "name": "Antena 21",
+      "isFree": true,
+      "website": "https://www.antena7.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "Antena 7",
+      "isFree": true,
+      "website": "https://www.antena7.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "ARROZ",
+      "isFree": true,
+      "website": "https://www.prensalibrerd.com/",
+      "priority": 5
+    },
+    {
+      "name": "Atabal",
+      "isFree": true,
+      "website": "https://www.tvdominicana.net/livetv/watch/atabaltv/51",
+      "priority": 5
+    },
+    {
+      "name": "Bebeto",
+      "isFree": true,
+      "website": "https://bebetohd.com/en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "Bellavision",
+      "isFree": true,
+      "website": "https://bellavision8.com/",
+      "priority": 5
+    },
+    {
+      "name": "Boca Chica",
+      "isFree": true,
+      "website": "https://dominicanchannels.com/boca-chica-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Bonao",
+      "isFree": true,
+      "website": "https://www.bonaotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bonches Latinos",
+      "isFree": true,
+      "website": "https://boncheslatinos.com/",
+      "priority": 5
+    },
+    {
+      "name": "Camara 809",
+      "isFree": true,
+      "website": "https://camara809fm.com/index.php/radio-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Camino Real",
+      "isFree": true,
+      "website": "http://www.caminoreal.do/",
+      "priority": 5
+    },
+    {
+      "name": "Camu",
+      "isFree": true,
+      "website": "http://www.camutv.net",
+      "priority": 5
+    },
+    {
+      "name": "Canal 25",
+      "isFree": true,
+      "website": "https://www.canal25rd.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 40",
+      "isFree": true,
+      "website": "https://canal40tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 RD",
+      "isFree": true,
+      "website": "https://rtvd.gob.do/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 70",
+      "isFree": true,
+      "website": "https://gia.tv/watchssh101.php?sn=cnal70tv",
+      "priority": 5
+    },
+    {
+      "name": "Canal America",
+      "isFree": true,
+      "website": "https://canalamerica.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Catorce",
+      "isFree": true,
+      "website": "http://14tv.live/",
+      "priority": 5
+    },
+    {
+      "name": "Canalda 26",
+      "isFree": true,
+      "website": "https://canaldahd.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal del Sol",
+      "isFree": true,
+      "website": "https://www.canaldelsol.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal DTV",
+      "isFree": true,
+      "website": "https://dominiodtv.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Multivision",
+      "isFree": true,
+      "website": "https://canalmultivision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cananga",
+      "isFree": true,
+      "website": "https://canangatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cana TV Digital",
+      "isFree": true,
+      "website": "https://canatvdigital.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canela",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/canela-tv",
+      "priority": 5
+    },
+    {
+      "name": "Caoba TV Radio",
+      "isFree": true,
+      "website": "https://caobatvradio.com/",
+      "priority": 5
+    },
+    {
+      "name": "Caribbean Traveling Network",
+      "isFree": true,
+      "website": "https://ctn.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "Cascara",
+      "isFree": true,
+      "website": "https://cascaratv.com/",
+      "priority": 5
+    },
+    {
+      "name": "CDN",
+      "isFree": true,
+      "keywords": "cdn -2 -deportes -noticias",
+      "website": "https://cdn.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "Cenovision",
+      "isFree": true,
+      "website": "https://cenovision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cibaena",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/cibaena-tv",
+      "priority": 5
+    },
+    {
+      "name": "Claro Television Dominicana",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/claro-tv-dominicana",
+      "priority": 5
+    },
+    {
+      "name": "Claro Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "COCO",
+      "isFree": true,
+      "website": "https://canalesdominicanos.live/coco-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Codigo",
+      "isFree": true,
+      "website": "https://codigotv.net/en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "Colome",
+      "isFree": true,
+      "website": "https://colometv.com/#/other/vivo",
+      "priority": 5
+    },
+    {
+      "name": "Color Vision",
+      "isFree": true,
+      "website": "https://colorvision.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "ConstanzaTV",
+      "isFree": true,
+      "website": "https://www.constanzatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Coral 39",
+      "isFree": true,
+      "website": "https://telesistema11.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "Cotubanama",
+      "isFree": true,
+      "website": "https://cotubanamadigital.net/",
+      "priority": 5
+    },
+    {
+      "name": "CromTV",
+      "isFree": true,
+      "website": "https://www.cromtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "CTT Canal 49",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CTV Canal 76",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CV Vision",
+      "isFree": true,
+      "website": "https://www.ccvdigital.com/",
+      "priority": 5
+    },
+    {
+      "name": "Del Pueblo",
+      "isFree": true,
+      "website": "https://www.tvdominicana.net/livetv/watch/delpueblotv/49",
+      "priority": 5
+    },
+    {
+      "name": "Delta TV Canal 50",
+      "isFree": true,
+      "website": "https://dominicanchannels.com/delta-tv-canal-50/",
+      "priority": 5
+    },
+    {
+      "name": "Digital 15",
+      "isFree": true,
+      "website": "https://telemicro.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "Digital809",
+      "isFree": true,
+      "website": "https://digital809tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Digital Vision 63",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dimelo",
+      "isFree": true,
+      "website": "https://dimelotv.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "Dominican View",
+      "isFree": true,
+      "website": "https://www.olympusat.com/networks/dominican-view/",
+      "priority": 5
+    },
+    {
+      "name": "Ecos Canal 57",
+      "isFree": true,
+      "website": "https://rnn.com.do/ecos57-en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "Edu+",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/edu",
+      "priority": 5
+    },
+    {
+      "name": "Elias Pina",
+      "isFree": true,
+      "website": "https://eliaspinatv.net/",
+      "priority": 5
+    },
+    {
+      "name": "El Pituco",
+      "isFree": true,
+      "website": "https://elpituco.com/",
+      "priority": 5
+    },
+    {
+      "name": "El Seis 6",
+      "isFree": true,
+      "website": "https://elseis.do/",
+      "priority": 5
+    },
+    {
+      "name": "Enntivision",
+      "isFree": true,
+      "website": "https://www.tonyconelpueblofm.com/enntivision",
+      "priority": 5
+    },
+    {
+      "name": "entelevision",
+      "isFree": true,
+      "website": "https://entelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Enterate RD",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/enterate-rd",
+      "priority": 5
+    },
+    {
+      "name": "Entuno",
+      "isFree": true,
+      "website": "https://www.tvdominicana.net/livetv/details/entuno-tv/50",
+      "priority": 5
+    },
+    {
+      "name": "Explosion",
+      "isFree": true,
+      "website": "https://canalesdominicanos.live/explosion-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Extra 86",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/extra-86",
+      "priority": 5
+    },
+    {
+      "name": "Farovision",
+      "isFree": true,
+      "website": "http://farovision.net/",
+      "priority": 5
+    },
+    {
+      "name": "FRATA",
+      "isFree": true,
+      "website": "https://fratatv.com/en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "GalaxiATeVe",
+      "isFree": true,
+      "website": "https://grupomediosdelnorte.com/",
+      "priority": 5
+    },
+    {
+      "name": "GET",
+      "isFree": true,
+      "website": "https://www.gettvrd.com/",
+      "priority": 5
+    },
+    {
+      "name": "GH Television",
+      "isFree": true,
+      "keywords": "gh television -canal -10",
+      "website": "https://ghtelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Gi Television",
+      "isFree": true,
+      "website": "https://gitelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Global Social",
+      "isFree": true,
+      "website": "https://globalsocialtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Global",
+      "isFree": true,
+      "website": "https://globaltv.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "Guacara",
+      "isFree": true,
+      "website": "http://www.guacaratv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Haina Vision",
+      "isFree": true,
+      "website": "https://hainavision.com/",
+      "priority": 5
+    },
+    {
+      "name": "HAY",
+      "isFree": true,
+      "website": "https://channelstore.roku.com/es-mx/details/a5605ea797c8098f3e9c2f14067c3cce/hay-tv",
+      "priority": 5
+    },
+    {
+      "name": "HTV Live",
+      "isFree": true,
+      "website": "https://canalhtvlive.com/",
+      "priority": 5
+    },
+    {
+      "name": "Imagen Universal",
+      "isFree": true,
+      "website": "https://imagenuniversaltv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Infinito",
+      "isFree": true,
+      "website": "https://infinitotv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Informe",
+      "isFree": true,
+      "website": "https://dominicanchannels.com/informe-tv/",
+      "priority": 5
+    },
+    {
+      "name": "JARABACOA",
+      "isFree": true,
+      "website": "https://dominicanchannels.com/jarabacoatv/",
+      "priority": 5
+    },
+    {
+      "name": "Jimani",
+      "isFree": true,
+      "website": "https://dominicanchannels.com/jimani-tv/",
+      "priority": 5
+    },
+    {
+      "name": "JMTV",
+      "isFree": true,
+      "website": "https://jmtv12.com/",
+      "priority": 5
+    },
+    {
+      "name": "JPD",
+      "isFree": true,
+      "website": "https://juanpabloduartetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "La Caleta",
+      "isFree": true,
+      "website": "https://lacaletatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "La Descarga",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/la-descarga-tv",
+      "priority": 5
+    },
+    {
+      "name": "La Hora",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/la-hora-tv",
+      "priority": 5
+    },
+    {
+      "name": "La Reina",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/la-reina-tv",
+      "priority": 5
+    },
+    {
+      "name": "Larivision",
+      "isFree": true,
+      "website": "https://www.larivision.com/",
+      "priority": 5
+    },
+    {
+      "name": "La Ruta",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/la-ruta-tv",
+      "priority": 5
+    },
+    {
+      "name": "La Sultana del Este",
+      "isFree": true,
+      "website": "https://lasultanadelestetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Latina TV Internacional",
+      "isFree": true,
+      "website": "https://latinatvinternacional.com/",
+      "priority": 5
+    },
+    {
+      "name": "LC Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lena",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/lena-radio-tv",
+      "priority": 5
+    },
+    {
+      "name": "Luna TV Canal 53",
+      "isFree": true,
+      "website": "https://lunatv.do/",
+      "priority": 5
+    },
+    {
+      "name": "Makina",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/makina-tv",
+      "priority": 5
+    },
+    {
+      "name": "Manaclar Television",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/manaclar-television",
+      "priority": 5
+    },
+    {
+      "name": "Marka",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/marka-tv",
+      "priority": 5
+    },
+    {
+      "name": "MegaVision",
+      "isFree": true,
+      "website": "http://www.megavisiontvrd.com/",
+      "priority": 5
+    },
+    {
+      "name": "Miavision",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/miavision",
+      "priority": 5
+    },
+    {
+      "name": "Mi Pueblo",
+      "isFree": true,
+      "website": "https://dominicanchannels.com/mi-pueblo-tv-canal-26/",
+      "priority": 5
+    },
+    {
+      "name": "MI Turno",
+      "isFree": true,
+      "website": "https://miturno.com.do/miturnotv/",
+      "priority": 5
+    },
+    {
+      "name": "MiTV",
+      "isFree": true,
+      "website": "https://www.mitv-hd.com/",
+      "priority": 5
+    },
+    {
+      "name": "Moca Vision Canal 48",
+      "isFree": true,
+      "website": "https://www.televiaducto.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "Montecristi Digital 8",
+      "isFree": true,
+      "website": "https://dominicanchannels.com/montecristi-digital-8/",
+      "priority": 5
+    },
+    {
+      "name": "MorroTV",
+      "isFree": true,
+      "website": "https://www.morrodigital.com/",
+      "priority": 5
+    },
+    {
+      "name": "MQTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Musavision",
+      "isFree": true,
+      "website": "https://musavision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Naranja",
+      "isFree": true,
+      "website": "https://naranjatvrd.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nexxo",
+      "isFree": true,
+      "website": "http://nexxo.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Nicol Studio RD",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/nicol-studio-rd",
+      "priority": 5
+    },
+    {
+      "name": "Nisibon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nitida",
+      "isFree": true,
+      "website": "https://nitidafm.com/",
+      "priority": 5
+    },
+    {
+      "name": "Notisur",
+      "isFree": true,
+      "website": "https://www.notisurbani.com/index.php",
+      "priority": 5
+    },
+    {
+      "name": "Nueva Vision 14",
+      "isFree": true,
+      "website": "https://dominicanchannels.com/nueva-vision-14/",
+      "priority": 5
+    },
+    {
+      "name": "OEPM",
+      "isFree": true,
+      "website": "https://proinversiontv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Onda",
+      "isFree": true,
+      "website": "https://cableondaoriental.com/onda-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Oriental",
+      "isFree": true,
+      "website": "https://orientaltv.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "OxiTV",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/oxi-tv",
+      "priority": 5
+    },
+    {
+      "name": "Palmar",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/palmar-tv",
+      "priority": 5
+    },
+    {
+      "name": "Peravia Vision",
+      "isFree": true,
+      "website": "https://peraviavision.tv/",
+      "priority": 5
+    },
+    {
+      "name": "PHTV",
+      "isFree": true,
+      "keywords": "phtv -canal -34",
+      "priority": 5
+    },
+    {
+      "name": "Pinpon",
+      "isFree": true,
+      "website": "http://www.asodomedcotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Portal Digital",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/portal-digital-tv",
+      "priority": 5
+    },
+    {
+      "name": "Pronems",
+      "isFree": true,
+      "website": "https://www.pronemstv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Pula",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/pula-tv",
+      "priority": 5
+    },
+    {
+      "name": "Punto",
+      "isFree": true,
+      "keywords": "punto tv -digital -40",
+      "website": "https://dominicanchannels.com/punto-tv-canal-40/",
+      "priority": 5
+    },
+    {
+      "name": "Punto TV Digital 40",
+      "isFree": true,
+      "website": "https://puntotvdigital.net/television-online/",
+      "priority": 5
+    },
+    {
+      "name": "Red Social Codi",
+      "isFree": true,
+      "website": "https://redsocialcodi.com/",
+      "priority": 5
+    },
+    {
+      "name": "Reportero",
+      "isFree": true,
+      "website": "https://dominicanchannels.com/reportero-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Resplandor",
+      "isFree": true,
+      "website": "https://resplandorvision.com/",
+      "priority": 5
+    },
+    {
+      "name": "R&E",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rocavision",
+      "isFree": true,
+      "website": "https://www.tvdominicana.net/livetv/watch/roka-vision/48",
+      "priority": 5
+    },
+    {
+      "name": "R Television",
+      "isFree": true,
+      "website": "https://www.tvdominicana.net/livetv/watch/r-television/38",
+      "priority": 5
+    },
+    {
+      "name": "Ruta 66",
+      "isFree": true,
+      "website": "https://ruta66tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sabaneta",
+      "isFree": true,
+      "website": "https://sabanetatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Santiago",
+      "isFree": true,
+      "website": "http://www.santiagotv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Senal de Vida",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Senal Digital",
+      "isFree": true,
+      "website": "https://canalesdominicanos.live/senal-digital-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Senales",
+      "isFree": true,
+      "website": "https://senalestv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sensacion",
+      "isFree": true,
+      "website": "https://dominicaninternet.com/client-details/1563",
+      "priority": 5
+    },
+    {
+      "name": "Simavision Canal 18",
+      "isFree": true,
+      "website": "https://simavision.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Sistesur Canal 49",
+      "isFree": true,
+      "website": "https://sistesur.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "Solucion",
+      "isFree": true,
+      "website": "https://soluciontv.com/",
+      "priority": 5
+    },
+    {
+      "name": "SRC Media",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/src-media-tv",
+      "priority": 5
+    },
+    {
+      "name": "Su Mundo",
+      "isFree": true,
+      "website": "https://www.sumundotv.com",
+      "priority": 5
+    },
+    {
+      "name": "Super7FM",
+      "isFree": true,
+      "website": "https://super7fm.com/",
+      "priority": 5
+    },
+    {
+      "name": "Super Canal",
+      "isFree": true,
+      "keywords": "super canal -33",
+      "website": "http://www.supercanal.com/",
+      "priority": 5
+    },
+    {
+      "name": "Super Digital",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/super-digital-tv",
+      "priority": 5
+    },
+    {
+      "name": "Supremateve",
+      "isFree": true,
+      "website": "https://supremateve.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sur",
+      "isFree": true,
+      "website": "https://empresasradiofonicas.com.do/canal-de-television/",
+      "priority": 5
+    },
+    {
+      "name": "Telealtura",
+      "isFree": true,
+      "website": "https://www.telealtura.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Antillas",
+      "isFree": true,
+      "website": "https://teleantillas.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "Telecanal 12",
+      "isFree": true,
+      "website": "https://telecanal12.net/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Caribe",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telecentro",
+      "isFree": true,
+      "website": "https://telecentro.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "TeleCibaoHD",
+      "isFree": true,
+      "website": "http://www.telecibaohd.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Telecomercio",
+      "isFree": true,
+      "website": "https://dominicanchannels.com/telecomercio/",
+      "priority": 5
+    },
+    {
+      "name": "Telecontacto",
+      "isFree": true,
+      "website": "http://www.telecontacto.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Dajabon",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/tele-dajabon",
+      "priority": 5
+    },
+    {
+      "name": "Telefuturo",
+      "isFree": true,
+      "keywords": "telefuturo -canal -23",
+      "website": "http://telefuturo.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "Telemax",
+      "isFree": true,
+      "website": "https://telemaxrd.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "Telemedio Digital",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/telemedio-digital",
+      "priority": 5
+    },
+    {
+      "name": "Telemedios Canal 8",
+      "isFree": true,
+      "website": "https://telemedios.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "Telemetro",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/telemetro",
+      "priority": 5
+    },
+    {
+      "name": "Telemicro Internacional",
+      "isFree": true,
+      "website": "https://telemicro.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "Telenord 10",
+      "isFree": true,
+      "website": "https://www.telenord.com/canales/canal-10",
+      "priority": 5
+    },
+    {
+      "name": "Telenord 14",
+      "isFree": true,
+      "website": "http://telenord.com.do/index.php/canales/canal-14",
+      "priority": 5
+    },
+    {
+      "name": "Telenovisa 43",
+      "isFree": true,
+      "website": "https://telenovisa43.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Ola 44",
+      "isFree": true,
+      "website": "https://dominicanchannels.com/tele-ola-cnal-44/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Oriental",
+      "isFree": true,
+      "website": "https://teleoriental.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Proyecto",
+      "isFree": true,
+      "website": "https://dominicanchannels.com/teleproyecto/",
+      "priority": 5
+    },
+    {
+      "name": "TeleRadioNorte",
+      "isFree": true,
+      "website": "https://teleradionorte.com/",
+      "priority": 5
+    },
+    {
+      "name": "Telesantodomingo",
+      "isFree": true,
+      "website": "https://www.telesantodomingo.com/index.html",
+      "priority": 5
+    },
+    {
+      "name": "TELESIGLO",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/telesiglo",
+      "priority": 5
+    },
+    {
+      "name": "Telesistema 11",
+      "isFree": true,
+      "website": "https://telesistema11.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "Telesur Canal 10",
+      "isFree": true,
+      "website": "https://www.telesur.com.do",
+      "priority": 5
+    },
+    {
+      "name": "Teletur",
+      "isFree": true,
+      "website": "https://dominicanchannels.com/teletur-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Universal DC",
+      "isFree": true,
+      "website": "https://dominicanchannels.com/tele-universal-dc/",
+      "priority": 5
+    },
+    {
+      "name": "Teleuniverso",
+      "isFree": true,
+      "website": "https://teleuniversotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Telever",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televiaducto Canal 14",
+      "isFree": true,
+      "website": "https://www.televiaducto.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "Televiaducto Canal 3",
+      "isFree": true,
+      "website": "https://www.televiaducto.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "Television A",
+      "isFree": true,
+      "keywords": "television a1 -canal -2",
+      "website": "https://www.televisiona1.com/",
+      "priority": 5
+    },
+    {
+      "name": "Television A1 Canal 2",
+      "isFree": true,
+      "website": "https://www.televisiona1.com/canal-2",
+      "priority": 5
+    },
+    {
+      "name": "Television Las Terrenas",
+      "isFree": true,
+      "website": "http://tdn.do/Canales/canal4/canal4.html",
+      "priority": 5
+    },
+    {
+      "name": "Tenarenses",
+      "isFree": true,
+      "website": "https://www.tenarenses.com/tenarenses-tv-3/",
+      "priority": 5
+    },
+    {
+      "name": "Terrenas Vision",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/terrenas-vision",
+      "priority": 5
+    },
+    {
+      "name": "Titanico",
+      "isFree": true,
+      "website": "https://www.titanicotv.net/",
+      "priority": 5
+    },
+    {
+      "name": "TNE Canal 58",
+      "isFree": true,
+      "website": "https://www.televiaducto.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "TNI Canal 51",
+      "isFree": true,
+      "website": "https://tni51online.com/",
+      "priority": 5
+    },
+    {
+      "name": "Turismo",
+      "isFree": true,
+      "website": "https://gia.tv/watchssh101.php?psid=54",
+      "priority": 5
+    },
+    {
+      "name": "Turismo RDTV",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/turismo-tv",
+      "priority": 5
+    },
+    {
+      "name": "Turivision Canal 45",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 10 San Juan",
+      "isFree": true,
+      "website": "https://tv10sanjuan.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "TV 43",
+      "isFree": true,
+      "website": "https://www.tv43.net/",
+      "priority": 5
+    },
+    {
+      "name": "TV Canal Sur",
+      "isFree": true,
+      "website": "https://tvcanalsur.com.do/en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "TV Cotui Canal 31",
+      "isFree": true,
+      "website": "http://tvcotuicanal31.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Daja",
+      "isFree": true,
+      "website": "https://dajatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Higuey Digital",
+      "isFree": true,
+      "website": "https://tvhigueydigital.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Montana Canal 10",
+      "isFree": true,
+      "website": "https://tvmontana.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVO",
+      "isFree": true,
+      "website": "https://tvo.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "TV Vision",
+      "isFree": true,
+      "website": "https://tvvisionrd.com/",
+      "priority": 5
+    },
+    {
+      "name": "Valle Nuevo",
+      "isFree": true,
+      "website": "https://generacionesradio.com/",
+      "priority": 5
+    },
+    {
+      "name": "Vegavision Canal 18",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Villa Altagracia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vision 3000",
+      "isFree": true,
+      "website": "https://peraviavision.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Vision NDV",
+      "isFree": true,
+      "website": "https://www.visionndv.com/",
+      "priority": 5
+    },
+    {
+      "name": "VTV Canal 32",
+      "isFree": true,
+      "website": "https://vtvcanal32.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "WMTI",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Xtra",
+      "isFree": true,
+      "website": "https://xtratvrd.com/",
+      "priority": 5
+    },
+    {
+      "name": "Xtremo",
+      "isFree": true,
+      "website": "https://www.xtremochannel.com/",
+      "priority": 5
+    },
+    {
+      "name": "Yunavision",
+      "isFree": true,
+      "website": "https://www.yunavision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zinc Nombre",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/zinc-nombre-radio-y-tv",
+      "priority": 5
+    },
+    {
+      "name": "Zonavision",
+      "isFree": true,
+      "website": "https://dominicanchannels.com/zonavision/",
+      "priority": 5
+    },
+    {
+      "name": "ZuuTV",
+      "isFree": true,
+      "website": "https://zuutv.net/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Chinola",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Anime Zone",
+      "isFree": true,
+      "website": "http://animezonetv.com",
+      "priority": 5
+    },
+    {
+      "name": "Locomotion",
+      "isFree": true,
+      "website": "http://locomotiontv.com/envivo",
+      "priority": 5
+    },
+    {
+      "name": "Tiguerito",
+      "isFree": true,
+      "website": "https://www.tigueritos.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tom And Jerry",
+      "isFree": true,
+      "website": "https://gia.tv/watchssh101.php?pptv=208314",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Hits 360",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Area 809 El Original",
+      "isFree": true,
+      "website": "http://www.rudyrudisimo.com",
+      "priority": 5
+    },
+    {
+      "name": "Cacique",
+      "isFree": true,
+      "website": "https://dominicanchannels.com/cacique-tv_rd/",
+      "priority": 5
+    },
+    {
+      "name": "La Voz del Tropico",
+      "isFree": true,
+      "website": "http://lavozdeltropico.online/",
+      "priority": 5
+    },
+    {
+      "name": "Maimon TV Canal 3",
+      "isFree": true,
+      "website": "https://www.maimontv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Makao",
+      "isFree": true,
+      "website": "https://makaoradio.com/#makaotv",
+      "priority": 5
+    },
+    {
+      "name": "Mun2TV",
+      "isFree": true,
+      "website": "https://www.mun2-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Rumba 98.5 FM",
+      "isFree": true,
+      "website": "https://rumba985fm.com/",
+      "priority": 5
+    },
+    {
+      "name": "Siembra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Somos Topo Point",
+      "isFree": true,
+      "website": "https://somostopopointtv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Dominicana",
+      "isFree": true,
+      "website": "https://dominicanchannels.com/tele-dominicana/",
+      "priority": 5
+    },
+    {
+      "name": "Telerumba",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/telerumba",
+      "priority": 5
+    },
+    {
+      "name": "Topical Moon RD",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/tropical-moon-rd",
+      "priority": 5
+    },
+    {
+      "name": "Tu Musica",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Exitos",
+      "isFree": true,
+      "website": "http://grupomediosdelnorte.com/",
+      "priority": 5
+    },
+    {
+      "name": "Urbancrist TV 2",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Radio105 full",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Cinevision Canal 19",
+      "shortName": "CC",
+      "priority": 5
+    },
+    {
+      "name": "Boreal",
+      "isFree": true,
+      "website": "https://borealtelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mega Cine",
+      "isFree": true,
+      "website": "https://dominicanchannels.com/mega-cine-tv/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Acento",
+      "isFree": true,
+      "website": "https://acentotv.do/",
+      "priority": 5
+    },
+    {
+      "name": "ADOCCO",
+      "isFree": true,
+      "website": "https://adocco.tv/",
+      "priority": 5
+    },
+    {
+      "name": "BizTV",
+      "isFree": true,
+      "website": "https://biztv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Citrico",
+      "isFree": true,
+      "website": "https://citricotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "De Ultimo Minuto",
+      "isFree": true,
+      "website": "https://deultimominuto.net/",
+      "priority": 5
+    },
+    {
+      "name": "El Nuevo Diario",
+      "isFree": true,
+      "website": "https://elnuevodiario.com.do/tv/",
+      "priority": 5
+    },
+    {
+      "name": "Linieros",
+      "isFree": true,
+      "website": "https://www.linieros.com/",
+      "priority": 5
+    },
+    {
+      "name": "Noticias 16",
+      "isFree": true,
+      "website": "https://noticias16.com.do/en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "Policia",
+      "isFree": true,
+      "website": "https://canalesdominicanos.live/policia-tv/",
+      "priority": 5
+    },
+    {
+      "name": "RDN",
+      "isFree": true,
+      "website": "http://www.rdn.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "Telenews",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/telenews",
+      "priority": 5
+    },
+    {
+      "name": "Television del Este",
+      "isFree": true,
+      "website": "https://televisiondeleste.net/",
+      "priority": 5
+    },
+    {
+      "name": "TRA 2",
+      "isFree": true,
+      "website": "https://www.teleradioamerica2.com/",
+      "priority": 5
+    },
+    {
+      "name": "TRA Noticias",
+      "isFree": true,
+      "website": "http://www.teleradioamerica.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVN 24",
+      "isFree": true,
+      "website": "https://tvn24.do/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Adoram",
+      "isFree": true,
+      "website": "https://adoramtv.org/",
+      "priority": 4
+    },
+    {
+      "name": "Avivamiento",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Celestial",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Cielo",
+      "isFree": true,
+      "website": "https://cielotv.do/",
+      "priority": 4
+    },
+    {
+      "name": "El Puerto",
+      "isFree": true,
+      "website": "https://elpuerto.com.do/",
+      "priority": 4
+    },
+    {
+      "name": "Jazmin",
+      "isFree": true,
+      "website": "http://www.jazmintv.online/",
+      "priority": 4
+    },
+    {
+      "name": "La Voz de Jesus",
+      "isFree": true,
+      "website": "https://gia.tv/watchssh101.php?pptv=208429",
+      "priority": 4
+    },
+    {
+      "name": "La Voz de Maria",
+      "isFree": true,
+      "website": "http://www.lavozdemariatv.org/",
+      "priority": 4
+    },
+    {
+      "name": "Luz Divina",
+      "isFree": true,
+      "website": "https://dominicanchannels.com/luz-divina-tv/",
+      "priority": 4
+    },
+    {
+      "name": "Radio Tele Milenaire",
+      "isFree": true,
+      "website": "https://www.radiotelemilenaire.com/",
+      "priority": 4
+    },
+    {
+      "name": "RVida",
+      "isFree": true,
+      "website": "https://rvidatv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Televida",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Luz",
+      "isFree": true,
+      "website": "https://tvluzrd.com/",
+      "priority": 4
+    },
+    {
+      "name": "Urbancrist",
+      "isFree": true,
+      "keywords": "urbancrist tv -2",
+      "website": "https://www.urbancrist.com/p/urbancristv-en-vivo.html",
+      "priority": 4
+    }
+  ],
+  "Shop": [
+    {
+      "name": "Bajo Techo",
+      "isFree": true,
+      "website": "http://bajotecho.tv/",
+      "priority": 4
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Canal 17 RTVD",
+      "isFree": true,
+      "website": "https://rtvd.gob.do/",
+      "priority": 5
+    },
+    {
+      "name": "Ecovision",
+      "isFree": true,
+      "website": "http://grupomediosdelnorte.com/",
+      "priority": 5
+    },
+    {
+      "name": "EStylo",
+      "isFree": true,
+      "website": "https://canalesdominicanos.live/estylo-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Guaymate",
+      "isFree": true,
+      "website": "https://guaymatetvdigital.blogspot.com/2022/04/guayumate-tv-digital.html",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "CDN Deportes",
+      "isFree": true,
+      "website": "https://cdndeportes.com.do/",
+      "priority": 5
+    },
+    {
+      "name": "Colimdo",
+      "isFree": true,
+      "website": "https://colimdotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Gallero Soy",
+      "isFree": true,
+      "website": "https://gallerosoy.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sport Vision",
+      "isFree": true,
+      "website": "http://sportvisioncanal35.com/",
+      "priority": 10
+    }
+  ]
+}

@@ -305,9 +305,9 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
                     }
                     if (isNaN(rate)) {
                         console.error('bitrate() failure', nfo, kbfmt(length));
-                        cb('bitrate check failure', null, codecs, dimensions);
+                        cb('bitrate check failure', null, codecs, dimensions, nfo);
                     } else {
-                        cb(null, rate, codecs, dimensions);
+                        cb(null, rate, codecs, dimensions, nfo);
                     }
                 } else {
                     cb('FFmpeg unable to process ' + file + ' ' + JSON.stringify(nfo), 0);
@@ -361,8 +361,13 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
             }
             this.exec(path, [...outputOptions, tempFile], (error, output) => {                
                 fs.stat(tempFile, (err, stat) => {
-                    cb({ error, output, size: stat ? stat.size : null, duration: seconds });
-                    err || fs.unlink(tempFile, () => {})
+                    const nfoObj = { error, output, size: stat ? stat.size : null, duration: seconds };
+                    if (!durationWanted) {
+                        nfoObj.tempFilePath = tempFile;
+                    } else {
+                        err || fs.unlink(tempFile, () => {});
+                    }
+                    cb(nfoObj);
                 });
             }, inputOptions);
         }
@@ -639,7 +644,8 @@ class FFmpegDownloader {
         const variant = osName + '-' + arch;
         const url = await this.getVariantURL(variant)
         if (!url) throw 'FFmpeg source binary URL not found'
-        osd.show(mask.replace('{0}', '0%'), 'fa-mega busy-x', 'ffmpeg-dl', 'persistent');
+        const showOsd = () => config.get('setup-completed');
+        if (showOsd()) osd.show(mask.replace('{0}', '0%'), 'fa-mega busy-x', 'ffmpeg-dl', 'persistent');
         const tmpZipFile = await Download.file({
             url,
             timeout: {
@@ -648,7 +654,7 @@ class FFmpegDownloader {
             },
             file: path.join(target, 'ffmpeg.zip'),
             progress: p => {
-                osd.show(mask.replace('{0}', p + '%'), 'fa-mega busy-x', 'ffmpeg-dl', 'persistent');
+                if (showOsd()) osd.show(mask.replace('{0}', p + '%'), 'fa-mega busy-x', 'ffmpeg-dl', 'persistent');
             }
         });
         const zip = new AdmZip(tmpZipFile);
@@ -674,9 +680,9 @@ class FFmpegDownloader {
                 let err;
                 const file = await this.download(folder, mask).catch(e => err = e);
                 if (err) {
-                    osd.show(String(err), 'fas fa-exclamation-triangle faclr-red', 'ffmpeg-dl', 'normal');
+                    if (config.get('setup-completed')) osd.show(String(err), 'fas fa-exclamation-triangle faclr-red', 'ffmpeg-dl', 'normal');
                 } else {
-                    osd.show(mask.replace('{0}', '100%'), 'fas fa-check-circle faclr-green', 'ffmpeg-dl', 'normal');
+                    if (config.get('setup-completed')) osd.show(mask.replace('{0}', '100%'), 'fas fa-check-circle faclr-green', 'ffmpeg-dl', 'normal');
                     this.executableDir = path.dirname(file);
                     this.executable = path.basename(file);
                     return true;

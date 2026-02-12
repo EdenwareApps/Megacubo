@@ -1,0 +1,3218 @@
+{
+  "News": [
+    {
+      "name": "AMX Noticias",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Azteca Noticias",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CBN Español",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Euronews en Español",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ForoTV",
+      "isFree": true,
+      "retransmits": "TV Azteca",
+      "shortName": "Foro",
+      "website": "https://www.tvazteca.com/forotv",
+      "priority": 5
+    },
+    {
+      "name": "MVM Noticias",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa News Mexico",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ACM Canal 54",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Acustik",
+      "isFree": true,
+      "website": "https://acustik.mx/",
+      "priority": 5
+    },
+    {
+      "name": "BITV",
+      "isFree": true,
+      "website": "https://www.binoticias.com/tv-en-vivo",
+      "priority": 5
+    },
+    {
+      "name": "Cable Noticias Jalisco",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 18 NTRT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Efekto",
+      "isFree": true,
+      "website": "https://www.efekto.tv/",
+      "priority": 5
+    },
+    {
+      "name": "El Financiero Bloomberg",
+      "isFree": true,
+      "website": "https://www.elfinanciero.com.mx/tv/",
+      "priority": 5
+    },
+    {
+      "name": "Excelsior",
+      "isFree": true,
+      "website": "https://www.excelsior.com.mx/tv",
+      "priority": 5
+    },
+    {
+      "name": "Foro",
+      "isFree": true,
+      "keywords": "foro mx",
+      "website": "https://www.nmas.com.mx/foro-tv",
+      "priority": 5
+    },
+    {
+      "name": "Gamavision",
+      "isFree": true,
+      "website": "https://gamavision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Global Media",
+      "isFree": true,
+      "website": "https://www.globalmedia.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Info TV 9",
+      "isFree": true,
+      "website": "https://canalnuevezacatecas.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Meganoticias",
+      "isFree": true,
+      "website": "https://meganoticias.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Milenio Television",
+      "isFree": true,
+      "website": "https://www.milenio.com/mileniotv",
+      "priority": 5
+    },
+    {
+      "name": "MiSURtv",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MVS Noticias",
+      "isFree": true,
+      "website": "https://mvsnoticias.com/",
+      "priority": 5
+    },
+    {
+      "name": "NNVeracruz",
+      "isFree": true,
+      "website": "https://www.nnveracruz.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "N+",
+      "isFree": true,
+      "keywords": "nplus -bajio -media",
+      "website": "https://www.nmas.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "N+ Bajio",
+      "isFree": true,
+      "website": "https://www.nmas.com.mx/en-vivo",
+      "priority": 5
+    },
+    {
+      "name": "N+ Media",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NRT Mexico Internacional",
+      "isFree": true,
+      "website": "https://noticiasnrt.com/",
+      "priority": 5
+    },
+    {
+      "name": "NRT Mexico Region Carbonifera",
+      "isFree": true,
+      "website": "https://noticiasnrt.com/",
+      "priority": 5
+    },
+    {
+      "name": "NRT Mexico Region Centro",
+      "isFree": true,
+      "website": "https://noticiasnrt.com/",
+      "priority": 5
+    },
+    {
+      "name": "NRT Mexico Region Sureste",
+      "isFree": true,
+      "website": "https://noticiasnrt.com/",
+      "priority": 5
+    },
+    {
+      "name": "Paralelo 20 650 AM",
+      "isFree": true,
+      "website": "https://paraleloveinte.com/",
+      "priority": 5
+    },
+    {
+      "name": "PSN Canal 45. 2",
+      "isFree": true,
+      "website": "https://psn.si/",
+      "priority": 5
+    },
+    {
+      "name": "Reporte TV-Noticias",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TN23 Mexico",
+      "isFree": true,
+      "website": "https://www.canal13mexico.com/",
+      "priority": 5
+    },
+    {
+      "name": "UDG TV Noticias",
+      "isFree": true,
+      "website": "https://udgtv.com/44noticias",
+      "priority": 5
+    },
+    {
+      "name": "WeatherSpy",
+      "isFree": true,
+      "website": "https://www.weatherspy.tv/",
+      "priority": 5
+    },
+    {
+      "name": "WOWmx.TV",
+      "isFree": true,
+      "website": "https://www.wowmx.tv/",
+      "priority": 5
+    },
+    {
+      "name": "XHZAE-TDT",
+      "isFree": true,
+      "website": "https://grupozer.mx/",
+      "priority": 5
+    },
+    {
+      "name": "XHZER-TDT",
+      "isFree": true,
+      "website": "https://grupozer.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Imagen Televisión",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal 5",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "XHTVM-TDT",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "A Más",
+      "isFree": null,
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "ADN 40",
+      "isFree": true,
+      "keywords": "adn 40 | adn40",
+      "website": "https://www.adn40.mx",
+      "priority": 5
+    },
+    {
+      "name": "Alcarria",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 28",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 44 Chihuahua",
+      "isFree": true,
+      "shortName": "C4C",
+      "priority": 5
+    },
+    {
+      "name": "Canal Mundo+",
+      "isFree": true,
+      "retransmits": "Canal Once",
+      "priority": 5
+    },
+    {
+      "name": "Canal Once Internacional",
+      "isFree": true,
+      "retransmits": "Canal Once",
+      "shortName": "Canal Once",
+      "website": "https://www.canaloncedigital.mx",
+      "priority": 5
+    },
+    {
+      "name": "Canal Once TV IPN",
+      "isFree": true,
+      "retransmits": "Canal Once",
+      "shortName": "Canal Once",
+      "website": "https://www.canaloncedigital.mx",
+      "priority": 5
+    },
+    {
+      "name": "Claro Sports",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "CorTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Energía Musical",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Genesis",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Governo do México",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hipodromo de las Americas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Icrtv Colima",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Imagen",
+      "isFree": true,
+      "shortName": "Imagen",
+      "website": "https://www.imagentv.com",
+      "priority": 5
+    },
+    {
+      "name": "Jalisco",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La Octava",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mexiquense",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Milenio",
+      "isFree": true,
+      "shortName": "Milenio",
+      "website": "https://www.milenio.com",
+      "priority": 5
+    },
+    {
+      "name": "Milenio Televisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Multimedios Guadalajara",
+      "isFree": true,
+      "retransmits": "Multimedios",
+      "shortName": "Multimedios",
+      "website": "https://www.multimedios.com",
+      "priority": 5
+    },
+    {
+      "name": "Multimedios Laguna",
+      "isFree": true,
+      "retransmits": "Multimedios",
+      "priority": 5
+    },
+    {
+      "name": "Multimedios Monterrey",
+      "isFree": true,
+      "retransmits": "Multimedios",
+      "shortName": "Multimedios",
+      "website": "https://www.multimedios.com",
+      "priority": 5
+    },
+    {
+      "name": "México Travel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Noticias Canal 10",
+      "isFree": true,
+      "shortName": "NC",
+      "priority": 5
+    },
+    {
+      "name": "Once Mexico",
+      "isFree": true,
+      "retransmits": "Canal Once",
+      "shortName": "Canal Once",
+      "website": "https://www.canaloncedigital.mx",
+      "priority": 5
+    },
+    {
+      "name": "POP",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Quiero",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RCG 2 Saltillo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RCG 3 Saltillo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RCG",
+      "isFree": true,
+      "keywords": "rcg tv -2 -3",
+      "priority": 5
+    },
+    {
+      "name": "RCG TV 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RCG TV 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTQ Queretaro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sintesis",
+      "isFree": true,
+      "keywords": "sintesis tv | sintesistv",
+      "shortName": "SintesisTV",
+      "priority": 5
+    },
+    {
+      "name": "Sipse TV Cancun",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TELE SISTEMA CANAL 9",
+      "isFree": true,
+      "shortName": "TSC 9",
+      "priority": 5
+    },
+    {
+      "name": "TV Azteca 7",
+      "isFree": true,
+      "retransmits": "TV Azteca",
+      "shortName": "Azteca 7",
+      "website": "https://www.tvazteca.com",
+      "priority": 5
+    },
+    {
+      "name": "TV Lobo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Unam",
+      "isFree": true,
+      "shortName": "TV UNAM",
+      "website": "https://www.tv.unam.mx",
+      "priority": 5
+    },
+    {
+      "name": "TVMAS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVMÁS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVP",
+      "isFree": true,
+      "keywords": "tvp -culiacan -los -mochis -obregon",
+      "priority": 5
+    },
+    {
+      "name": "TVP Culiacán",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVP Los Mochis",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVP Obregón",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tabasco Hoy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleFormula",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telefórmula",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telemar Campeche",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telemax",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Teleritmo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tlaxcala Televisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Transmedia Televisión Morelia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UDG 44",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Uno",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "12 Vision Encarnacion",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "15TV",
+      "isFree": true,
+      "website": "https://15tv.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "8.1 Mas Nogales",
+      "isFree": true,
+      "website": "https://8nogales.tv/",
+      "priority": 5
+    },
+    {
+      "name": "8NTV",
+      "isFree": true,
+      "website": "https://www.ntv.com.mx/envivo/",
+      "priority": 5
+    },
+    {
+      "name": "Acatlan TV Canal 23",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Allende",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Anesma",
+      "isFree": true,
+      "website": "https://anesma.net/",
+      "priority": 5
+    },
+    {
+      "name": "Antena",
+      "isFree": true,
+      "website": "http://www.antenatele.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Arco TV Hidalgo",
+      "isFree": true,
+      "website": "https://arcotvhidalgo.com/",
+      "priority": 5
+    },
+    {
+      "name": "Asi Sucede Guanajuato",
+      "isFree": true,
+      "website": "https://asisucedegto.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Az Clic",
+      "isFree": true,
+      "website": "https://www.tvazteca.com/tvpaga/notas/clic",
+      "priority": 5
+    },
+    {
+      "name": "Az Mundo",
+      "isFree": true,
+      "website": "https://www.tvazteca.com/tvpaga/notas/mundo",
+      "priority": 5
+    },
+    {
+      "name": "Azteca 7",
+      "isFree": true,
+      "website": "https://www.tvazteca.com/azteca7",
+      "priority": 5
+    },
+    {
+      "name": "Azteca Internacional",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "B15 Fresnillo",
+      "isFree": true,
+      "website": "https://b15.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "B15 Zacatecas",
+      "isFree": true,
+      "website": "https://b15.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Beat Box",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "bitMe",
+      "isFree": true,
+      "keywords": "bitme -latin -america",
+      "website": "https://www.bitme.gg/",
+      "priority": 5
+    },
+    {
+      "name": "bitMe Latin America",
+      "isFree": true,
+      "website": "https://www.bitme.gg/",
+      "priority": 5
+    },
+    {
+      "name": "C9NTV",
+      "isFree": true,
+      "website": "https://c9ntv.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Cadena Sur Multimedios",
+      "isFree": true,
+      "website": "http://cadenasurmultimedios.mx/site/",
+      "priority": 5
+    },
+    {
+      "name": "California Medios",
+      "isFree": true,
+      "website": "https://californiamedios.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 10.",
+      "isFree": true,
+      "retransmits": "Canal Once",
+      "website": "https://www.diezpuntounotam.com/",
+      "priority": 5,
+      "keywords": "canal 10 -cancun"
+    },
+    {
+      "name": "Canal 105 de Tacambaro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 10 Cancun",
+      "isFree": true,
+      "website": "https://noticias.canal10.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 10 Durango",
+      "isFree": true,
+      "website": "https://canal10.com.mx/sitio/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 10 San Pedro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 12 Chiapas",
+      "isFree": true,
+      "website": "https://www.valancimediagroup.com/canal12/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 12 Durango",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 12 Iguala",
+      "isFree": true,
+      "website": "https://canal12tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 13 Bajio",
+      "isFree": true,
+      "website": "https://www.canal13mexico.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 13 Campeche",
+      "isFree": true,
+      "website": "https://www.canal13mexico.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 13 Chiapas",
+      "isFree": true,
+      "website": "https://www.canal13mexico.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 13 Guadalajara",
+      "isFree": true,
+      "website": "https://www.canal13mexico.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 13 Michoacan",
+      "isFree": true,
+      "website": "https://www.canal13mexico.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 13 Oaxaca",
+      "isFree": true,
+      "website": "https://www.canal13mexico.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 13 Puebla",
+      "isFree": true,
+      "website": "https://www.canal13mexico.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 13 Tabasco",
+      "isFree": true,
+      "website": "https://www.canal13mexico.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 13 Tapachula",
+      "isFree": true,
+      "website": "https://www.canal13mexico.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 13 Tierra Caliente",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 13 Yucatan",
+      "isFree": true,
+      "website": "https://www.canal13mexico.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 15 Kantunilkin",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 16.",
+      "isFree": true,
+      "retransmits": "Canal Once",
+      "website": "https://www.setpuebla.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 16. 2",
+      "isFree": true,
+      "retransmits": "Canal Once",
+      "website": "https://www.setpuebla.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 16 TV Sur Ocozocoautla",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 19",
+      "isFree": true,
+      "website": "https://canal19tvregional.wixsite.com/canal19",
+      "priority": 5
+    },
+    {
+      "name": "Canal 21 Chignahuapan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 21 Jalisco",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 21 Rioverde",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 22 Internacional",
+      "isFree": true,
+      "website": "https://www.canal22.org.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 22 Metropolitana y Nacional",
+      "isFree": true,
+      "website": "https://www.canal22.org.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 22",
+      "isFree": true,
+      "website": "https://www.canal22.org.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 25",
+      "isFree": true,
+      "keywords": "canal 25 -tenosique",
+      "priority": 5
+    },
+    {
+      "name": "Canal 25 Tenosique",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 26",
+      "isFree": true,
+      "website": "https://ryta.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 26. 2",
+      "isFree": true,
+      "retransmits": "Canal Once",
+      "website": "https://ryta.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 29 de Airecable",
+      "isFree": true,
+      "website": "https://airecable.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 29 Monclova",
+      "isFree": true,
+      "website": "https://impulsotelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Television de La Cruz",
+      "isFree": true,
+      "website": "https://www.televisiondelacruz.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 30 Cintalapa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 30 Stars",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 33 Tijuana",
+      "isFree": true,
+      "website": "https://canal66.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 37",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 3 TG TVCable",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 44",
+      "isFree": true,
+      "keywords": "canal 44 -chihuahua",
+      "website": "https://canal44.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 47",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 48 TV Universo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 de Matehuala",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 51",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 Donde Tu Te Ves",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 San Cristobal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 TV Cozumel",
+      "isFree": true,
+      "website": "https://tvcozumel.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 6 de Tamazula",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 6 Tecpan",
+      "isFree": true,
+      "website": "http://canal6tecpan.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 6",
+      "isFree": true,
+      "website": "https://www.canal6tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 6 TV Cable Hidalguense",
+      "isFree": true,
+      "website": "https://www.tvcablehidalguense.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 7 Destel",
+      "isFree": true,
+      "website": "https://canalsietetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 7 SLP",
+      "isFree": true,
+      "website": "https://canal7slp.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Telecable Carbonifera",
+      "isFree": true,
+      "website": "https://telcammuzquiz.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Tu Nueva Vision",
+      "isFree": true,
+      "website": "https://canal8tnv.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 96 Tizimin",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal del Congreso 45.",
+      "isFree": true,
+      "retransmits": "Canal Once",
+      "website": "https://www.canaldelcongreso.gob.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Canal del Congreso 45. 2",
+      "isFree": true,
+      "retransmits": "Canal Once",
+      "website": "https://www.canaldelcongreso.gob.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Canal del Congreso 45. 3",
+      "isFree": true,
+      "retransmits": "Canal Once",
+      "website": "https://www.canaldelcongreso.gob.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Doce Huejutla",
+      "isFree": true,
+      "retransmits": "Canal Once",
+      "priority": 5
+    },
+    {
+      "name": "Canal Doce Panuco",
+      "isFree": true,
+      "retransmits": "Canal Once",
+      "priority": 5
+    },
+    {
+      "name": "Canal Doce Tantoyuca",
+      "isFree": true,
+      "retransmits": "Canal Once",
+      "priority": 5
+    },
+    {
+      "name": "Canal Doce",
+      "isFree": true,
+      "retransmits": "Canal Once",
+      "priority": 5
+    },
+    {
+      "name": "Canal Ocho",
+      "isFree": true,
+      "retransmits": "Canal Once",
+      "website": "https://canalochotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Parlamento del Congreso de Jalisco",
+      "isFree": true,
+      "retransmits": "Canal Once",
+      "website": "https://canalparlamento.congresojal.gob.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Car One",
+      "isFree": true,
+      "website": "https://www.carone.tv/",
+      "priority": 5
+    },
+    {
+      "name": "CB TV Michoacan",
+      "isFree": true,
+      "website": "https://cbtelevision.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Cepropie",
+      "isFree": true,
+      "website": "http://cepropie.gob.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Citro 6 TV La Imagen de Alamo",
+      "isFree": true,
+      "website": "https://www.tvalamo.com.mx/digital.php",
+      "priority": 5
+    },
+    {
+      "name": "City",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CNR Television",
+      "isFree": true,
+      "website": "https://www.cnrnoticias.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Coahuila Television",
+      "isFree": true,
+      "website": "https://coahuilartv.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Comunique",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CreaLaTV",
+      "isFree": true,
+      "website": "https://www.creala.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Cuatro Television",
+      "isFree": true,
+      "website": "https://www.cuatrotelevision.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Despierta",
+      "isFree": true,
+      "website": "https://despierta.tv/",
+      "priority": 5
+    },
+    {
+      "name": "DiezTV Encarnacion",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Discovery Home & Health Latin America",
+      "isFree": true,
+      "website": "http://www.tudiscovery.com/hh",
+      "priority": 7
+    },
+    {
+      "name": "Distrito Comedia",
+      "isFree": true,
+      "website": "http://televisa-networks.com/programacion/distrito-comedia/",
+      "priority": 5
+    },
+    {
+      "name": "Eclipse",
+      "isFree": true,
+      "website": "https://grupoeclipse.com.mx/tv/",
+      "priority": 5
+    },
+    {
+      "name": "Ecovision 27",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "El Nu9ve",
+      "isFree": true,
+      "website": "https://www.televisa.com/el-nueve/",
+      "priority": 5
+    },
+    {
+      "name": "Encadena",
+      "isFree": true,
+      "website": "https://encadena.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Enlace 13",
+      "isFree": true,
+      "website": "https://www.enlace.org/",
+      "priority": 5
+    },
+    {
+      "name": "Entornotvc",
+      "isFree": true,
+      "website": "https://etntvc.com/",
+      "priority": 5
+    },
+    {
+      "name": "Espacio Television",
+      "isFree": true,
+      "website": "https://espaciotelevision.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Expresa",
+      "isFree": true,
+      "website": "https://expresatv.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "FreeTV 8. 2",
+      "isFree": true,
+      "website": "https://www.freetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Frontera",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "FX",
+      "isFree": true,
+      "website": "http://www.canalfx.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Gobierno de la Republica",
+      "isFree": true,
+      "website": "http://www.presidencia.gob.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Golden",
+      "isFree": true,
+      "keywords": "golden -edge -multiplex -plus -premier -2",
+      "website": "http://televisa-networks.ioncom.mx/portfolio/golden/",
+      "priority": 5
+    },
+    {
+      "name": "Golden Edge",
+      "isFree": true,
+      "website": "https://televisa-networks.com/portfolio/golden-edge/",
+      "priority": 5
+    },
+    {
+      "name": "Golden Multiplex",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Golden Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hidalgo",
+      "isFree": true,
+      "website": "http://radioytelevision.hidalgo.gob.mx/pag/hidalgotelevision.html",
+      "priority": 5
+    },
+    {
+      "name": "Hola! 13",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "IERTBCS Canal 8. 2",
+      "isFree": true,
+      "website": "https://iert.bcs.gob.mx/canal-8-1-2/",
+      "priority": 5
+    },
+    {
+      "name": "IMRyT",
+      "isFree": true,
+      "website": "http://imryt.org/",
+      "priority": 5
+    },
+    {
+      "name": "INFO 7",
+      "isFree": true,
+      "website": "https://www.info7.mx/tv-en-vivo",
+      "priority": 5
+    },
+    {
+      "name": "Ingenio",
+      "isFree": true,
+      "website": "https://aprende.gob.mx/",
+      "priority": 5
+    },
+    {
+      "name": "ITV Deportes",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Justicia",
+      "isFree": true,
+      "website": "https://justiciatv.mx/",
+      "priority": 5
+    },
+    {
+      "name": "La Mexicana",
+      "isFree": true,
+      "website": "http://lamexicana.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Las Estrellas",
+      "isFree": true,
+      "keywords": "las estrellas -europa -latin -america",
+      "website": "https://www.lasestrellas.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Las Estrellas Europa",
+      "isFree": true,
+      "website": "https://www.lasestrellas.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Las Estrellas Latin America",
+      "isFree": true,
+      "website": "https://www.lasestrellas.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Los Altos Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Maussan Television",
+      "isFree": true,
+      "website": "https://maussantelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mayavision",
+      "isFree": true,
+      "website": "https://www.mayavision.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "MC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Megacanal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Metropoli Television",
+      "isFree": true,
+      "website": "https://metropolitelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mexicanal",
+      "isFree": true,
+      "website": "https://www.mexicanal.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mexico Travel",
+      "isFree": true,
+      "website": "https://mexicotravelchannel.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Multimedios Bajio",
+      "isFree": true,
+      "retransmits": "Multimedios",
+      "website": "https://www.multimedios.com/video/bajio-tv-en-vivo/v17351",
+      "priority": 5
+    },
+    {
+      "name": "Multimedios CDMX",
+      "isFree": true,
+      "retransmits": "Multimedios",
+      "website": "https://www.multimedios.com/television",
+      "priority": 5
+    },
+    {
+      "name": "Multimedios Ciudad Juarez",
+      "isFree": true,
+      "retransmits": "Multimedios",
+      "website": "https://www.multimedios.com/video/ciudad-juarez-tv-en-vivo/v19824",
+      "priority": 5
+    },
+    {
+      "name": "Multimedios Plus",
+      "isFree": true,
+      "retransmits": "Multimedios",
+      "website": "https://www.multimediostv.com/programas",
+      "priority": 5
+    },
+    {
+      "name": "Multimedios Puebla",
+      "isFree": true,
+      "retransmits": "Multimedios",
+      "website": "https://www.multimedios.com/video/puebla-tv-en-vivo/v17946",
+      "priority": 5
+    },
+    {
+      "name": "Multimedios Saltillo",
+      "isFree": true,
+      "retransmits": "Multimedios",
+      "website": "https://www.multimedios.com/video/saltillo-tv-en-vivo/v17784",
+      "priority": 5
+    },
+    {
+      "name": "MVS",
+      "isFree": true,
+      "website": "https://mvstv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nayarit Comunica",
+      "isFree": true,
+      "website": "https://nayaritcomunica.com/",
+      "priority": 5
+    },
+    {
+      "name": "No Name",
+      "isFree": true,
+      "website": "https://nonametv.net/",
+      "priority": 5
+    },
+    {
+      "name": "NuestraVision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nueve",
+      "isFree": true,
+      "keywords": "nueve",
+      "website": "https://www.televisa.com/el-nueve/",
+      "priority": 5
+    },
+    {
+      "name": "OnC. 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Panico",
+      "isFree": true,
+      "website": "http://www.pctvcanales.mx/canales/panico.aspx",
+      "priority": 5
+    },
+    {
+      "name": "PSN",
+      "isFree": true,
+      "keywords": "psn -canal -45 -2",
+      "website": "https://psn.si/",
+      "priority": 5
+    },
+    {
+      "name": "Queretaro Femenil",
+      "isFree": true,
+      "website": "https://www.vbmedia.com.mx",
+      "priority": 5
+    },
+    {
+      "name": "Radiotele",
+      "isFree": true,
+      "website": "https://radiotele.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Raly",
+      "isFree": true,
+      "website": "https://ralytv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Red de las Artes",
+      "isFree": true,
+      "website": "http://www.cenart.gob.mx/red-de-las-artes-canal-23/",
+      "priority": 5
+    },
+    {
+      "name": "RMS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTG",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Salud",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Secrets",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "SIPSE TV 8.",
+      "isFree": true,
+      "website": "https://sipseplay.com/",
+      "priority": 5
+    },
+    {
+      "name": "SIPSE TVCUN 8.",
+      "isFree": true,
+      "website": "https://sipseplay.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sistema Michoacano de",
+      "isFree": true,
+      "website": "https://www.sistemamichoacano.tv/television",
+      "priority": 5
+    },
+    {
+      "name": "Sky One",
+      "isFree": true,
+      "website": "https://www.sky.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Sky View",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Solo",
+      "isFree": true,
+      "website": "https://solotv.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Sony",
+      "isFree": true,
+      "website": "https://la.sonychannel.com/",
+      "priority": 5
+    },
+    {
+      "name": "SQCS Canal 4",
+      "isFree": true,
+      "website": "https://qroo.gob.mx/sqcs",
+      "priority": 5
+    },
+    {
+      "name": "Suma",
+      "isFree": true,
+      "website": "https://uaeh.edu.mx/suma/tv/index.html",
+      "priority": 5
+    },
+    {
+      "name": "Super 9",
+      "isFree": true,
+      "website": "https://super9.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Super Channel 12",
+      "isFree": true,
+      "website": "https://superchannel12.com",
+      "priority": 5
+    },
+    {
+      "name": "Tamazvision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TCCN Canal Once",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TDN Mexico",
+      "isFree": true,
+      "website": "http://www.televisanetworks.tv/perfil.asp?idc=24",
+      "priority": 5
+    },
+    {
+      "name": "Tele 10",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TELE 4 Ojocaliente",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telebachillerato",
+      "isFree": true,
+      "website": "https://aprende.gob.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Cienega",
+      "isFree": true,
+      "website": "https://telecienega.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Telemaya",
+      "isFree": true,
+      "website": "https://mayacable.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Mexico",
+      "isFree": true,
+      "website": "https://aprende.gob.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Teleplay Sureste",
+      "isFree": true,
+      "website": "https://teleplay.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Saltillo",
+      "isFree": true,
+      "website": "https://www.zocalo.com.mx/category/video/",
+      "priority": 5
+    },
+    {
+      "name": "Telesur Yucatan",
+      "isFree": true,
+      "website": "https://telesur889.com/",
+      "priority": 5
+    },
+    {
+      "name": "Televisa Chiapas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Del Bajio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Del Golfo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Durango",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Morelos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Oaxaca",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Puebla",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Queretaro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Quintana Roo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Saltillo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa San Luis Potosi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Sinaloa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Victoria",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Yucatan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Television Altena",
+      "isFree": true,
+      "website": "https://tvctepa.com/WEB/tva.html",
+      "priority": 5
+    },
+    {
+      "name": "Tele Yucatan",
+      "isFree": true,
+      "website": "http://www.teleyucatan.gob.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Tlaxcala",
+      "isFree": true,
+      "website": "https://www.tlaxcalatelevision.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Torreon TV Canal 28",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Transmedia Television Morelia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TRC",
+      "isFree": true,
+      "website": "http://trccampeche.gob.mx/",
+      "priority": 5
+    },
+    {
+      "name": "TUDN",
+      "isFree": true,
+      "website": "https://www.tudn.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Turistik",
+      "isFree": true,
+      "website": "https://turistiktv.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "TV5 Tu Canal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVA Canal 25",
+      "isFree": true,
+      "website": "https://tvatoto.wordpress.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVC",
+      "isFree": true,
+      "keywords": "tvc -deportes -2",
+      "website": "http://www.pctvcanales.mx/canales/meganoticias-tvc",
+      "priority": 5
+    },
+    {
+      "name": "TVC Deportes",
+      "isFree": true,
+      "keywords": "tvc deportes -2",
+      "website": "http://www.pctvcanales.mx/canales/tvc-deportes",
+      "priority": 5
+    },
+    {
+      "name": "TVC Deportes 2",
+      "isFree": true,
+      "website": "http://www.pctvcanales.mx/canales/tvc-deportes",
+      "priority": 5
+    },
+    {
+      "name": "TV Cuatro 4.",
+      "isFree": true,
+      "website": "http://www.tvcuatro.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVeo Canal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Guanajuato",
+      "isFree": true,
+      "website": "https://tvguanajuato.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Hot",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "TV Independencia",
+      "isFree": true,
+      "website": "https://tvindependencia.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Libertad",
+      "isFree": true,
+      "website": "https://tvlibertad.mx/",
+      "priority": 5
+    },
+    {
+      "name": "TV Mar La Paz",
+      "isFree": true,
+      "website": "https://tvmar.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Mar Los Cabos",
+      "isFree": true,
+      "website": "https://tvmar.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Mar Puerto Vallarta",
+      "isFree": true,
+      "website": "https://tvmar.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Mexiquense",
+      "isFree": true,
+      "website": "https://radioytvmexiquense.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Tvmezquital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Migrante",
+      "isFree": true,
+      "website": "https://mxplus.tv/television/tv-migrante",
+      "priority": 5
+    },
+    {
+      "name": "TV Monarca",
+      "isFree": true,
+      "website": "https://tvmonarca.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Parras",
+      "isFree": true,
+      "website": "https://tvparras.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVP Culiacan",
+      "isFree": true,
+      "website": "https://tvpacifico.mx/",
+      "priority": 5
+    },
+    {
+      "name": "TVP Mazatlan",
+      "isFree": true,
+      "website": "https://tvpacifico.mx/",
+      "priority": 5
+    },
+    {
+      "name": "TVP Obregon",
+      "isFree": true,
+      "website": "https://tvpacifico.mx/",
+      "priority": 5
+    },
+    {
+      "name": "TvQ Tabasco",
+      "isFree": true,
+      "website": "https://tvq.mx/",
+      "priority": 5
+    },
+    {
+      "name": "TV San Luis",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVT",
+      "isFree": true,
+      "website": "https://tvt.mx/",
+      "priority": 5
+    },
+    {
+      "name": "TV Tierra Colorada",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Universidad",
+      "isFree": true,
+      "website": "https://aprende.gob.mx/",
+      "priority": 5
+    },
+    {
+      "name": "TVX Canal 18",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Zacatlan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UDG",
+      "isFree": true,
+      "keywords": "udg tv -noticias",
+      "website": "http://udgtv.com/canal44/",
+      "priority": 5
+    },
+    {
+      "name": "Ultra TV Puebla",
+      "isFree": true,
+      "website": "https://puebla.ultralaradio.mx/",
+      "priority": 5
+    },
+    {
+      "name": "UMTV",
+      "isFree": true,
+      "website": "http://umtv.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Unicable",
+      "isFree": true,
+      "website": "https://www.unicable.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Univision Latin America",
+      "isFree": true,
+      "website": "http://afiliados.televisa-networks.com/programacion/univision-latam/",
+      "priority": 5
+    },
+    {
+      "name": "VB Media",
+      "isFree": true,
+      "website": "https://www.vbmedia.com.mx",
+      "priority": 5
+    },
+    {
+      "name": "Veracidad",
+      "isFree": true,
+      "website": "http://veracidadchannel.com/",
+      "priority": 5
+    },
+    {
+      "name": "Veracruz Multimedios",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vextremo",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "VIA El Canal de Celaya",
+      "isFree": true,
+      "website": "https://viaelcanaldecelaya.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ViBE",
+      "isFree": true,
+      "website": "https://www.vibetv.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Vibra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Videa Plataforma",
+      "isFree": true,
+      "website": "https://www.videatelevision.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Video Rola",
+      "isFree": true,
+      "website": "https://www.videorola.com/",
+      "priority": 5
+    },
+    {
+      "name": "ViX Familia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ViX Jajaja",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ViX Parejas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VO Media",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "World",
+      "isFree": true,
+      "website": "https://worldtv.mx/",
+      "priority": 5
+    },
+    {
+      "name": "XEFB-TDT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "XEFE-TDT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "XEIMT-TDT 2",
+      "isFree": true,
+      "website": "https://www.canal22.org.mx/",
+      "priority": 5
+    },
+    {
+      "name": "XEJ-TDT",
+      "isFree": true,
+      "website": "https://xejtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "XET-TDT",
+      "isFree": true,
+      "website": "https://www.televisa.com/canal5",
+      "priority": 5
+    },
+    {
+      "name": "XETV-TDT",
+      "isFree": true,
+      "website": "https://www.televisa.com/canal5/",
+      "priority": 5
+    },
+    {
+      "name": "XETV-TDT 2",
+      "isFree": true,
+      "website": "https://www.televisa.com/canal5/",
+      "priority": 5
+    },
+    {
+      "name": "XEVT 104.1 FM",
+      "isFree": true,
+      "website": "https://www.xevt.com/",
+      "priority": 5
+    },
+    {
+      "name": "XEWH-TDT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "XEWT-TDT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "XHBC-TDT",
+      "isFree": true,
+      "website": "http://www.televisaregional.com/mexicali/",
+      "priority": 5
+    },
+    {
+      "name": "XHBZC-TDT",
+      "isFree": true,
+      "website": "https://iert.bcs.gob.mx/",
+      "priority": 5
+    },
+    {
+      "name": "XHCCA-TDT",
+      "isFree": true,
+      "website": "https://trccampeche.gob.mx/canal/",
+      "priority": 5
+    },
+    {
+      "name": "XHDF-TDT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "XHFGL-TDT",
+      "isFree": true,
+      "website": "https://www.el15.mx/",
+      "priority": 5
+    },
+    {
+      "name": "XHFN-TDT",
+      "isFree": true,
+      "website": "https://www.info7.mx/",
+      "priority": 5
+    },
+    {
+      "name": "XHG-TDT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "XHGV-TDT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "XHICCH-TDT",
+      "isFree": true,
+      "website": "http://www.canal44.com/",
+      "priority": 5
+    },
+    {
+      "name": "XHIJ-TDT",
+      "isFree": true,
+      "website": "http://www.canal44.com/",
+      "priority": 5
+    },
+    {
+      "name": "XHILA-TDT",
+      "isFree": true,
+      "website": "http://www.canal66.tv/",
+      "priority": 5
+    },
+    {
+      "name": "XHJK-TDT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "XHKG-TDT",
+      "isFree": true,
+      "website": "http://xhkg.tv/",
+      "priority": 5
+    },
+    {
+      "name": "XHMZ-TDT",
+      "isFree": true,
+      "website": "https://tvpacifico.mx/tv-en-linea/mazatlan",
+      "priority": 5
+    },
+    {
+      "name": "XHPBZC-TDT",
+      "isFree": true,
+      "website": "http://www.setpuebla.mx/television/",
+      "priority": 5
+    },
+    {
+      "name": "XHRIO-TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "XHSDD-TDT",
+      "isFree": true,
+      "website": "https://15tv.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "XHST-TDT",
+      "isFree": true,
+      "website": "http://www.teleyucatan.gob.mx/en_vivo",
+      "priority": 5
+    },
+    {
+      "name": "XHS-TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "XHTJB-TDT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "XHTPG-TDT",
+      "isFree": true,
+      "website": "http://www.10tv.nayarit.gob.mx/",
+      "priority": 5
+    },
+    {
+      "name": "XHTRES-TDT",
+      "isFree": true,
+      "website": "https://heraldodemexico.com.mx/tv.html",
+      "priority": 5
+    },
+    {
+      "name": "XHTTG-TDT",
+      "isFree": true,
+      "website": "http://radiotvycine.chiapas.gob.mx/en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "XHX-TDT",
+      "isFree": true,
+      "website": "https://www.lasestrellas.tv/",
+      "priority": 5
+    },
+    {
+      "name": "XHZHZ-TDT",
+      "isFree": true,
+      "website": "https://www.sizart.org.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Xti Network",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ZAZ",
+      "isFree": true,
+      "website": "https://zaztv.com/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "MTC Mexico Travel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Antena Lince UAdeO",
+      "isFree": true,
+      "website": "https://uadeo.mx/antena-lince-uadeo/",
+      "priority": 5
+    },
+    {
+      "name": "A+",
+      "isFree": true,
+      "website": "https://www.tvazteca.com/amastv",
+      "priority": 5
+    },
+    {
+      "name": "Aprende en casa 3. 2",
+      "isFree": true,
+      "website": "https://aprendeencasa.sep.gob.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Aprende",
+      "isFree": true,
+      "website": "https://aprende.gob.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 53 UANL",
+      "isFree": true,
+      "website": "http://radioytv.uanl.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Cultural Huauchinango",
+      "isFree": true,
+      "retransmits": "Canal Once",
+      "website": "https://www.canalcultural.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Iberoamericano",
+      "isFree": true,
+      "retransmits": "Canal Once",
+      "website": "https://www.ilce.edu.mx/index.php/radio-y-tv",
+      "priority": 5
+    },
+    {
+      "name": "El Sonorense",
+      "isFree": true,
+      "website": "https://www.elsonorense.com/",
+      "priority": 5
+    },
+    {
+      "name": "Espacio Universitario",
+      "isFree": true,
+      "website": "https://www.ilce.edu.mx/index.php/radio-y-tv",
+      "priority": 5
+    },
+    {
+      "name": "Especiales",
+      "isFree": true,
+      "website": "https://aprende.gob.mx/",
+      "priority": 5
+    },
+    {
+      "name": "GikTVMX",
+      "isFree": true,
+      "website": "https://giktvmx.g3radio.mx",
+      "priority": 5
+    },
+    {
+      "name": "History",
+      "isFree": true,
+      "website": "https://www.historyplay.tv/",
+      "priority": 7
+    },
+    {
+      "name": "ILCE Canal 13 Innova Conocimiento",
+      "isFree": true,
+      "website": "http://www.ilce.edu.mx/index.php/canal-13",
+      "priority": 5
+    },
+    {
+      "name": "ILCE Canal 15 Summa Saberes",
+      "isFree": true,
+      "website": "https://www.ilce.edu.mx/index.php/radio-y-tv",
+      "priority": 5
+    },
+    {
+      "name": "Imagen UABC",
+      "isFree": true,
+      "website": "https://imagentv.uabc.mx/envivo",
+      "priority": 5
+    },
+    {
+      "name": "Lobo+",
+      "isFree": true,
+      "website": "https://tv.buap.mx/",
+      "priority": 5
+    },
+    {
+      "name": "National Geographic",
+      "isFree": true,
+      "website": "https://www.nationalgeographicla.com/",
+      "priority": 7
+    },
+    {
+      "name": "Once Internacional",
+      "isFree": true,
+      "website": "http://canalonce.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Once Ninas y Ninos",
+      "isFree": true,
+      "website": "https://onceninos.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Presumiendo Mexico",
+      "isFree": true,
+      "website": "https://www.presumiendomexico.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Radio y Television UASLP",
+      "isFree": true,
+      "website": "https://radioytelevision.uaslp.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Tele UV",
+      "isFree": true,
+      "website": "https://www.uv.mx/television/",
+      "priority": 5
+    },
+    {
+      "name": "TV BUAP",
+      "isFree": true,
+      "website": "https://radioytv.buap.mx/",
+      "priority": 5
+    },
+    {
+      "name": "TV Cuatro 4. 2",
+      "isFree": true,
+      "website": "https://tvcuatro.tv/4-2/",
+      "priority": 5
+    },
+    {
+      "name": "TV Cuatro 4. 4",
+      "isFree": true,
+      "website": "https://tvcuatro.tv/4-4/",
+      "priority": 5
+    },
+    {
+      "name": "TV UAQ",
+      "isFree": true,
+      "website": "https://tv.uaq.mx/",
+      "priority": 5
+    },
+    {
+      "name": "TV UAT",
+      "isFree": true,
+      "website": "https://tvuat.uat.edu.mx/",
+      "priority": 5
+    },
+    {
+      "name": "TV UAZ",
+      "isFree": true,
+      "website": "https://tvuaz.uaz.edu.mx/",
+      "priority": 5
+    },
+    {
+      "name": "TV UG",
+      "isFree": true,
+      "website": "https://ugto.mx/sirth/television/",
+      "priority": 5
+    },
+    {
+      "name": "TV UJAT",
+      "isFree": true,
+      "website": "http://www.ujat.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV UJED",
+      "isFree": true,
+      "website": "http://tv.ujed.mx/",
+      "priority": 5
+    },
+    {
+      "name": "UAA",
+      "isFree": true,
+      "website": "https://www.dailymotion.com/uaatv",
+      "priority": 5
+    },
+    {
+      "name": "UACJ-TV",
+      "isFree": true,
+      "website": "https://comunica.uacj.mx/uacj-tv2",
+      "priority": 5
+    },
+    {
+      "name": "Unison",
+      "isFree": true,
+      "website": "https://television.unison.mx/",
+      "priority": 5
+    },
+    {
+      "name": "XEIPN-TDT",
+      "isFree": true,
+      "website": "https://canalonce.mx/",
+      "priority": 5
+    },
+    {
+      "name": "XHMNL-TDT",
+      "isFree": true,
+      "website": "https://srtvnl.com/",
+      "priority": 5
+    },
+    {
+      "name": "XHPBZC-TDT 2",
+      "isFree": true,
+      "website": "http://www.setpuebla.mx/television/",
+      "priority": 5
+    },
+    {
+      "name": "XHSPR-TDT",
+      "isFree": true,
+      "website": "https://canalcatorce.tv/",
+      "priority": 5
+    },
+    {
+      "name": "XHUNES-TDT",
+      "isFree": true,
+      "website": "https://senalespana.unes.edu.mx/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "María Visión Mexico",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Monte Maria",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Alcance",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BAMOS",
+      "isFree": true,
+      "website": "https://www.bamos.com.mx/",
+      "priority": 4
+    },
+    {
+      "name": "Efeso Television",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Maria Vision",
+      "isFree": true,
+      "website": "https://www.mariavision.com/",
+      "priority": 4
+    },
+    {
+      "name": "Radio y Television Crisol de la Alegria",
+      "isFree": true,
+      "website": "https://web.radiocrisoldelaalegria.com/",
+      "priority": 4
+    },
+    {
+      "name": "Unife Mexico",
+      "isFree": true,
+      "website": "https://video.unife.mx/",
+      "priority": 4
+    }
+  ],
+  "Local": [
+    {
+      "name": "Azteca Uno",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 10 Cancún",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 12",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Catorce",
+      "isFree": true,
+      "retransmits": "Canal Once",
+      "priority": 5
+    },
+    {
+      "name": "Capital 21",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Imagen Multicast",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SET Televisión Canal 26.",
+      "isFree": true,
+      "shortName": "STC 2",
+      "priority": 5
+    },
+    {
+      "name": "Televisa Aguascalientes",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Chihuahua",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Ciudad Juarez",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Estado",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Guadalajara",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Guerrero",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Laguna",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Mexicali",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Monterrey",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Noreste",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Piedras Negras",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa San Luis Potosí",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Sonora",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Veracruz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televisa Zacatecas",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Conecta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bandamax",
+      "isFree": true,
+      "website": "http://www.bandamax.tv/",
+      "priority": 10
+    },
+    {
+      "name": "D 99",
+      "isFree": true,
+      "website": "https://www.mmradio.com/estaciones/d99-989-fm-monterrey",
+      "priority": 5
+    },
+    {
+      "name": "Exa",
+      "isFree": true,
+      "website": "https://exa.tv/",
+      "priority": 5
+    },
+    {
+      "name": "La Imagen de Tierra Caliente",
+      "isFree": true,
+      "website": "https://www.hispanatv.com/c/13/la-imagen",
+      "priority": 5
+    },
+    {
+      "name": "La Luperrona Ciudad Guzman",
+      "isFree": true,
+      "website": "https://laluperrona.com/",
+      "priority": 5
+    },
+    {
+      "name": "La Luperrona Colima",
+      "isFree": true,
+      "website": "https://laluperrona.com/",
+      "priority": 5
+    },
+    {
+      "name": "La Luperrona Ocotlan",
+      "isFree": true,
+      "website": "https://laluperrona.com/",
+      "priority": 5
+    },
+    {
+      "name": "La Mejor",
+      "isFree": true,
+      "website": "https://lamejor.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "La Ranchera de Cuauhtemoc",
+      "isFree": true,
+      "website": "https://dp.gbmradio.com/",
+      "priority": 5
+    },
+    {
+      "name": "La Voz Grupera",
+      "isFree": true,
+      "website": "https://www.vozfmradio.com/",
+      "priority": 5
+    },
+    {
+      "name": "Lobo",
+      "isFree": true,
+      "website": "https://www.lobotv.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "NU Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ola Grupera",
+      "isFree": true,
+      "website": "https://gruperaola.wixsite.com/olagruperamagazine-3",
+      "priority": 5
+    },
+    {
+      "name": "Radar TV 71",
+      "isFree": true,
+      "website": "https://www.radarfm.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Radio y Television Budokan",
+      "isFree": true,
+      "website": "https://budokanveracruzmultimedios.com/",
+      "priority": 5
+    },
+    {
+      "name": "TeleHit",
+      "isFree": true,
+      "website": "https://www.telehit.com/",
+      "priority": 5
+    },
+    {
+      "name": "Telehit Musica",
+      "isFree": true,
+      "website": "https://www.telehit.com/musica",
+      "priority": 5
+    },
+    {
+      "name": "Vision Television",
+      "isFree": true,
+      "website": "https://www.vozfmradio.com/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Moovimex",
+      "priority": 5
+    },
+    {
+      "name": "Az Cinema",
+      "isFree": true,
+      "website": "https://www.tvazteca.com/tvpaga/notas/cinema",
+      "priority": 5
+    },
+    {
+      "name": "Az Corazon",
+      "isFree": true,
+      "website": "https://www.tvazteca.com/tvpaga/notas/corazon",
+      "priority": 5
+    },
+    {
+      "name": "CineLatino",
+      "isFree": true,
+      "website": "http://www.cinelatino.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cinema Dinamita",
+      "isFree": true,
+      "website": "http://www.cinemadinamita.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cinema Platino",
+      "isFree": true,
+      "keywords": "cinema platino -2",
+      "website": "http://www.pctvcanales.mx/canales/platino",
+      "priority": 5
+    },
+    {
+      "name": "Cinema Platino 2",
+      "isFree": true,
+      "website": "http://www.pctvcanales.mx/canales/platino",
+      "priority": 5
+    },
+    {
+      "name": "Cine Mexicano",
+      "isFree": true,
+      "website": "http://www.pctvcanales.mx/canales/cine-mexicano",
+      "priority": 5
+    },
+    {
+      "name": "Claro Cinema",
+      "isFree": true,
+      "website": "https://www.claro.com/",
+      "priority": 5
+    },
+    {
+      "name": "De Pelicula Clasico",
+      "isFree": true,
+      "website": "http://televisa-networks.ioncom.mx/portfolio/de-pelicula/",
+      "priority": 5
+    },
+    {
+      "name": "De Pelicula Europa",
+      "isFree": true,
+      "website": "http://televisa-networks.ioncom.mx/portfolio/de-pelicula/",
+      "priority": 5
+    },
+    {
+      "name": "De Pelicula Latin America",
+      "isFree": true,
+      "website": "http://televisa-networks.ioncom.mx/portfolio/de-pelicula/",
+      "priority": 5
+    },
+    {
+      "name": "De Pelicula Plus",
+      "isFree": true,
+      "website": "http://televisa-networks.ioncom.mx/portfolio/de-pelicula/",
+      "priority": 5
+    },
+    {
+      "name": "Filmex",
+      "isFree": true,
+      "keywords": "filmex -clasico",
+      "website": "https://www.xumo.tv/live-guide/filmex",
+      "priority": 5
+    },
+    {
+      "name": "Filmex Clasico",
+      "isFree": true,
+      "website": "https://www.xumo.tv/live-guide/filmex-clasico",
+      "priority": 5
+    },
+    {
+      "name": "Golden Premier",
+      "isFree": true,
+      "keywords": "golden premier -2",
+      "website": "https://televisa-networks.com/golden-premier/",
+      "priority": 5
+    },
+    {
+      "name": "Golden Premier 2",
+      "isFree": true,
+      "website": "https://televisa-networks.com/golden-premier/",
+      "priority": 5
+    },
+    {
+      "name": "MultiPremier",
+      "isFree": true,
+      "website": "https://multipremier.com/",
+      "priority": 5
+    },
+    {
+      "name": "MyTime Movie Network",
+      "isFree": true,
+      "website": "https://mytimemovienetwork.com/",
+      "priority": 5
+    },
+    {
+      "name": "Popcorn Central",
+      "isFree": true,
+      "website": "https://popcorncentraltv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Premiere",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Premiere 10",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Premiere 11",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Premiere 12",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Premiere 13",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Premiere 14",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Premiere 15",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Premiere 2",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Premiere 3",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Premiere 4",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Premiere 5",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Premiere 6",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Premiere 7",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Premiere 8",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Premiere 9",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Star",
+      "isFree": true,
+      "website": "https://www.star-latam.com/",
+      "priority": 5
+    },
+    {
+      "name": "Teleclasica",
+      "isFree": true,
+      "website": "http://teleclasica.com",
+      "priority": 5
+    },
+    {
+      "name": "TLN Network",
+      "isFree": true,
+      "website": "http://afiliados.televisa-networks.com/programacion/tlnetwork/",
+      "priority": 5
+    },
+    {
+      "name": "Tlnovelas Europa",
+      "isFree": true,
+      "website": "https://www.televisa.com/tlnovelas",
+      "priority": 5
+    },
+    {
+      "name": "Tlnovelas Latin America",
+      "isFree": true,
+      "website": "https://www.televisa.com/tlnovelas",
+      "priority": 5
+    },
+    {
+      "name": "Tlnovelas Mexico",
+      "isFree": true,
+      "website": "https://www.televisa.com/tlnovelas",
+      "priority": 5
+    },
+    {
+      "name": "ViX Cine Club",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vix Novelas de Oro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ViX Novelas de Romance",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ViX Villanos",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Imagen Radio",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Afizzionados",
+      "isFree": true,
+      "website": "https://afizzionados.tv/",
+      "priority": 5
+    },
+    {
+      "name": "AyM Sports",
+      "isFree": true,
+      "website": "http://aymsports.net/",
+      "priority": 10
+    },
+    {
+      "name": "FOX Sports",
+      "isFree": true,
+      "keywords": "fox sports -2 -3 -premium",
+      "website": "http://www.foxsports.com.mx/",
+      "priority": 10
+    },
+    {
+      "name": "FOX Sports 2",
+      "isFree": true,
+      "website": "http://www.foxsports.com.mx/",
+      "priority": 10
+    },
+    {
+      "name": "FOX Sports 3",
+      "isFree": true,
+      "website": "https://www.foxsports.com.mx/",
+      "priority": 10
+    },
+    {
+      "name": "FOX Sports Premium",
+      "isFree": true,
+      "website": "http://www.foxsports.com.mx/",
+      "priority": 10
+    },
+    {
+      "name": "Hi! Sports",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "LevelUp",
+      "isFree": true,
+      "website": "https://www.levelup.com/",
+      "priority": 5
+    },
+    {
+      "name": "Liga Mexicana de Beisbol",
+      "isFree": true,
+      "website": "http://www.lmb.com.mx/",
+      "priority": 5
+    },
+    {
+      "name": "Mega Sports",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "PX Sports",
+      "isFree": true,
+      "website": "http://pxsports.com/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports 16",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports 2",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports 21",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports 24",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports 3",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports 34",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports 6",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports 8",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports 9",
+      "isFree": true,
+      "website": "http://www.sky.com.mx/",
+      "priority": 10
+    },
+    {
+      "name": "TNT Sports",
+      "isFree": true,
+      "website": "https://tntsports.com.mx/",
+      "priority": 10
+    },
+    {
+      "name": "TV Cuatro 4. 3",
+      "isFree": true,
+      "website": "https://tvcuatro.tv/4-3/",
+      "priority": 5
+    },
+    {
+      "name": "ViX Lo Mejor de La Liga",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Shop": [
+    {
+      "name": "CV Directo",
+      "isFree": true,
+      "website": "https://cvdirectomexico.com/",
+      "priority": 4
+    },
+    {
+      "name": "CV Shopping",
+      "isFree": true,
+      "website": "https://cvshopping.mx/",
+      "priority": 4
+    },
+    {
+      "name": "Inova",
+      "isFree": true,
+      "website": "https://www.inova.com.mx/",
+      "priority": 4
+    }
+  ]
+}

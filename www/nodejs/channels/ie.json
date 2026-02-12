@@ -1,0 +1,528 @@
+{
+  "News": [
+    {
+      "name": "Oireachtas",
+      "isFree": true,
+      "keywords": "oireachtas tv -committee -room -1 -2 -3 -4 -dail -eireann -seanad",
+      "priority": 5
+    },
+    {
+      "name": "Oireachtas TV Committee Room",
+      "isFree": true,
+      "shortName": "OTCR",
+      "priority": 5
+    },
+    {
+      "name": "Oireachtas TV Committee Room 2",
+      "isFree": true,
+      "shortName": "OTCR 2",
+      "priority": 5
+    },
+    {
+      "name": "Oireachtas TV Committee Room 3",
+      "isFree": true,
+      "shortName": "OTCR 3",
+      "priority": 5
+    },
+    {
+      "name": "Oireachtas TV Committee Room 4",
+      "isFree": true,
+      "shortName": "OTCR 4",
+      "priority": 5
+    },
+    {
+      "name": "Oireachtas TV Dáil Éireann",
+      "isFree": true,
+      "shortName": "OTDÉ",
+      "priority": 5
+    },
+    {
+      "name": "Oireachtas TV Seanad Éireann",
+      "isFree": true,
+      "shortName": "OTSÉ",
+      "priority": 5
+    },
+    {
+      "name": "RTE News Now",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTÉ News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTE News",
+      "isFree": true,
+      "keywords": "rte news -now",
+      "website": "https://www.rte.ie/news/",
+      "priority": 5
+    },
+    {
+      "name": "Sky News",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Blaze",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Challenge",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Comedy Central",
+      "isFree": true,
+      "keywords": "comedy central -extra",
+      "priority": 5
+    },
+    {
+      "name": "Comedy Central Extra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cork Community",
+      "isFree": true,
+      "website": "http://corkcommunitytv.ie/",
+      "priority": 5
+    },
+    {
+      "name": "Crime + Investigation",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dave",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Drama",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dublin Community Television",
+      "isFree": true,
+      "website": "https://www.dctv.ie/",
+      "priority": 5
+    },
+    {
+      "name": "E 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Food Network",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GOLD",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GREAT!",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HGTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "More 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTV",
+      "isFree": true,
+      "website": "http://mtv.ie/",
+      "priority": 5
+    },
+    {
+      "name": "Near",
+      "isFree": true,
+      "website": "https://neartv.ie/",
+      "priority": 5
+    },
+    {
+      "name": "Oireachtas TV Dail Eireann",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Oireachtas TV Seanad Eireann",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Quest Red",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Really",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTE 2",
+      "isFree": true,
+      "website": "https://www.rte.ie/tv/",
+      "priority": 5
+    },
+    {
+      "name": "RTEjr",
+      "isFree": true,
+      "website": "http://www.rte.ie/rtejr/",
+      "priority": 5
+    },
+    {
+      "name": "RTE One",
+      "isFree": true,
+      "website": "https://www.rte.ie/tv/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Arts",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sky Atlantic",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sky Comedy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sky Max",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sky Mix",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sky Replay",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sky Showcase",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sky Witness",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TG 4",
+      "isFree": true,
+      "keywords": "tg4 -ie",
+      "website": "http://www.tg4.ie/",
+      "priority": 5
+    },
+    {
+      "name": "TLC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Virgin Media Four",
+      "isFree": true,
+      "website": "https://www.virginmediatelevision.ie/",
+      "priority": 5
+    },
+    {
+      "name": "Virgin Media More",
+      "isFree": true,
+      "website": "https://www.virginmedia.ie/more",
+      "priority": 5
+    },
+    {
+      "name": "Virgin Media One",
+      "isFree": true,
+      "website": "https://www.virginmediatelevision.ie/",
+      "priority": 5
+    },
+    {
+      "name": "Virgin Media Three",
+      "isFree": true,
+      "website": "https://www.virginmediatelevision.ie/",
+      "priority": 5
+    },
+    {
+      "name": "Virgin Media Two",
+      "isFree": true,
+      "website": "https://www.virginmediatelevision.ie/",
+      "priority": 5
+    },
+    {
+      "name": "W Ireland",
+      "isFree": true,
+      "website": "https://w.uktv.co.uk/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "alibi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Film 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sky Crime",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "CBBC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CBeebies",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cula 4",
+      "isFree": true,
+      "website": "https://www.cula4.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nickelodeon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nick Jr.",
+      "isFree": true,
+      "keywords": "nick jr -too",
+      "priority": 5
+    },
+    {
+      "name": "Nick Jr. Too",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nicktoons",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "F",
+      "isFree": true,
+      "website": "https://www.c15.studio/channels/formula-1-channel/",
+      "priority": 5
+    },
+    {
+      "name": "Premier Sports",
+      "isFree": true,
+      "keywords": "premier sports 1 -asia",
+      "website": "https://www.nowtv.com/ie/watch-sports-extra",
+      "priority": 10
+    },
+    {
+      "name": "Premier Sports 1 Asia",
+      "isFree": true,
+      "website": "https://www.premiersportsasia.com/",
+      "priority": 10
+    },
+    {
+      "name": "Premier Sports 2",
+      "isFree": true,
+      "keywords": "premier sports 2 -asia",
+      "website": "https://www.nowtv.com/ie/watch-sports-extra",
+      "priority": 10
+    },
+    {
+      "name": "Premier Sports 2 Asia",
+      "isFree": true,
+      "website": "https://www.premiersportsasia.com/",
+      "priority": 10
+    },
+    {
+      "name": "Premier Sports 3 Asia",
+      "isFree": true,
+      "website": "https://www.premiersportsasia.com/",
+      "priority": 10
+    },
+    {
+      "name": "Setanta Sports 1 Eurasia",
+      "isFree": true,
+      "website": "https://www.setantaeurasia.com/",
+      "priority": 10
+    },
+    {
+      "name": "Setanta Sports 2 Eurasia",
+      "isFree": true,
+      "website": "https://www.setantaeurasia.com/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports Arena",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports Cricket",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports F",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports Football",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports Golf",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports Main Event",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports News",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports NFL",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports Premier League",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sky Sports Tennis",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Virgin Media Extra",
+      "isFree": true,
+      "website": "https://www.virginmediatelevision.ie/",
+      "priority": 5
+    },
+    {
+      "name": "Virgin Media Extra 2",
+      "isFree": true,
+      "website": "https://www.virginmediatelevision.ie/",
+      "priority": 5
+    },
+    {
+      "name": "Virgin Media Sport",
+      "isFree": true,
+      "keywords": "virgin media sport -extra -3 -4 -5 -6",
+      "website": "https://www.virginmediatelevision.ie",
+      "priority": 10
+    },
+    {
+      "name": "Virgin Media Sport Extra 3",
+      "isFree": true,
+      "website": "https://www.virginmediatelevision.ie/",
+      "priority": 10
+    },
+    {
+      "name": "Virgin Media Sport Extra 4",
+      "isFree": true,
+      "website": "https://www.virginmediatelevision.ie/",
+      "priority": 10
+    },
+    {
+      "name": "Virgin Media Sport Extra 5",
+      "isFree": true,
+      "website": "https://www.virginmediatelevision.ie/",
+      "priority": 10
+    },
+    {
+      "name": "Virgin Media Sport Extra 6",
+      "isFree": true,
+      "website": "https://www.virginmediatelevision.ie/",
+      "priority": 10
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Kingdom",
+      "isFree": true,
+      "website": "https://kingdom24.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Shalom Europe",
+      "isFree": true,
+      "website": "https://shalomtv.tv/",
+      "priority": 4
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Sky Documentaries",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sky History",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Sky Nature",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Added": [
+    {
+      "name": "RTÉ One",
+      "priority": 5
+    },
+    {
+      "name": "RTÉ 2",
+      "priority": 5
+    }
+  ]
+}

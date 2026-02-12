@@ -1,0 +1,1264 @@
+{
+  "Entertainment": [
+    {
+      "name": "Caca Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Macau",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Porto Canal",
+      "isFree": true,
+      "priority": 9
+    },
+    {
+      "name": "RTP Açores",
+      "isFree": true,
+      "retransmits": "RTP",
+      "website": "https://www.rtp.pt",
+      "priority": 5
+    },
+    {
+      "name": "RTP Internacional",
+      "isFree": true,
+      "retransmits": "RTP",
+      "shortName": "RTPi",
+      "website": "https://www.rtp.pt",
+      "priority": 8
+    },
+    {
+      "name": "RTP Madeira",
+      "isFree": true,
+      "retransmits": "RTP",
+      "website": "https://www.rtp.pt",
+      "priority": 5
+    },
+    {
+      "name": "RTP Memória",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTP África",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTP",
+      "isFree": true,
+      "keywords": "rtp | rtp 1 | rtp1",
+      "shortName": "RTP",
+      "website": "https://www.rtp.pt/rtp1",
+      "priority": 9
+    },
+    {
+      "name": "RTP 2",
+      "isFree": true,
+      "keywords": "rtp 2 | rtp2",
+      "shortName": "RTP 2",
+      "website": "https://www.rtp.pt/rtp2",
+      "priority": 5
+    },
+    {
+      "name": "SIC",
+      "isFree": true,
+      "keywords": "sic -internacional -k -noticias -radical",
+      "website": "https://www.sic.pt",
+      "priority": 9
+    },
+    {
+      "name": "SIC Internacional",
+      "isFree": true,
+      "priority": 9
+    },
+    {
+      "name": "SIC Radical",
+      "isFree": true,
+      "priority": 9
+    },
+    {
+      "name": "Sic Mulher",
+      "isFree": true,
+      "priority": 9
+    },
+    {
+      "name": "TV Fatima",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Mana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVI",
+      "isFree": true,
+      "keywords": "tvi -reality",
+      "website": "https://www.tvi.pt",
+      "priority": 9
+    },
+    {
+      "name": "TVI Reality",
+      "isFree": true,
+      "priority": 9
+    },
+    {
+      "name": "Águeda",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ADVNCE",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Agueda",
+      "isFree": true,
+      "website": "https://agueda.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Alma Lusa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AMC Break",
+      "isFree": true,
+      "website": "https://blazetv.pt/",
+      "priority": 5
+    },
+    {
+      "name": "ARTV",
+      "isFree": true,
+      "website": "https://canal.parlamento.pt",
+      "priority": 5
+    },
+    {
+      "name": "Bom Som",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Nos",
+      "isFree": true,
+      "website": "https://www.nos.pt/particulares/televisao/canais/exclusivos/Pages/canal-nos.aspx",
+      "priority": 5
+    },
+    {
+      "name": "Canal Q",
+      "isFree": true,
+      "website": "http://www.canalq.pt/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Um Europa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Casa e Cozinha",
+      "isFree": true,
+      "website": "https://casa-e-cozinha.pt/",
+      "priority": 5
+    },
+    {
+      "name": "CM",
+      "isFree": true,
+      "website": "https://www.cm-tv.pt/",
+      "priority": 5
+    },
+    {
+      "name": "ConecTV Algarve",
+      "isFree": true,
+      "website": "https://www.conectv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Conta La",
+      "isFree": true,
+      "website": "https://conta-la.pt/",
+      "priority": 5
+    },
+    {
+      "name": "Discovery",
+      "isFree": true,
+      "website": "https://discoverychannel.com.pt/programacao/discovery-channel",
+      "priority": 9
+    },
+    {
+      "name": "FOX",
+      "isFree": true,
+      "keywords": "fox -comedy -crime -life -movies",
+      "website": "http://fox.canais-fox.pt/",
+      "priority": 9
+    },
+    {
+      "name": "FOX Comedy",
+      "isFree": true,
+      "website": "http://www.foxcomedy.pt/",
+      "priority": 9
+    },
+    {
+      "name": "Globo",
+      "isFree": true,
+      "keywords": "globo -now",
+      "website": "https://globointernacional.globo.com/GloboPortugal/Paginas/home.aspx",
+      "priority": 10
+    },
+    {
+      "name": "Globo Now",
+      "isFree": true,
+      "website": "https://globointernacional.globo.com/GloboNOW/",
+      "priority": 10
+    },
+    {
+      "name": "Historia",
+      "isFree": true,
+      "website": "https://canalhistoria.pt/",
+      "priority": 5
+    },
+    {
+      "name": "HOT",
+      "isFree": null,
+      "keywords": "hot -man -taboo",
+      "website": "http://www.hottv.pt/",
+      "priority": 5
+    },
+    {
+      "name": "HOT Man",
+      "isFree": null,
+      "website": "http://www.hottv.pt/",
+      "priority": 5
+    },
+    {
+      "name": "HOT Taboo",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "LocalVisao",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTV",
+      "isFree": true,
+      "website": "http://www.mtv.pt/",
+      "priority": 5
+    },
+    {
+      "name": "Norte Litoral",
+      "isFree": true,
+      "website": "https://nortelitoral.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Nos Studios",
+      "isFree": true,
+      "website": "https://www.nos.pt/particulares/televisao/canais/exclusivos/Pages/nos-studios.aspx?channel=547",
+      "priority": 5
+    },
+    {
+      "name": "Novum Canal",
+      "isFree": true,
+      "website": "https://novumcanal.pt/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Sines",
+      "isFree": true,
+      "website": "https://radiosines.sapo.pt/",
+      "priority": 5
+    },
+    {
+      "name": "Record Europa",
+      "isFree": true,
+      "website": "https://recordeuropa.com/",
+      "priority": 10
+    },
+    {
+      "name": "RTP Acores",
+      "isFree": true,
+      "retransmits": "RTP",
+      "website": "http://www.rtp.pt/acores/",
+      "priority": 5
+    },
+    {
+      "name": "RTP Africa",
+      "isFree": true,
+      "website": "http://www.rtp.pt/rtpafrica/",
+      "priority": 5
+    },
+    {
+      "name": "RTPi America",
+      "isFree": true,
+      "website": "http://www.rtp.pt/rtpinternacional",
+      "priority": 5
+    },
+    {
+      "name": "RTPi Asia",
+      "isFree": true,
+      "website": "http://www.rtp.pt/rtpinternacional",
+      "priority": 5
+    },
+    {
+      "name": "RTP Memoria",
+      "isFree": true,
+      "website": "http://www.rtp.pt/rtpmemoria/",
+      "priority": 5
+    },
+    {
+      "name": "SIC Alta Definicao",
+      "isFree": true,
+      "website": "https://opto.sic.pt/",
+      "priority": 9
+    },
+    {
+      "name": "SIC Caras",
+      "isFree": true,
+      "website": "https://siccaras.pt/",
+      "priority": 9
+    },
+    {
+      "name": "SIC Internacional Africa",
+      "isFree": true,
+      "website": "https://www.sic.pt/internacional",
+      "priority": 9
+    },
+    {
+      "name": "SIC Replay",
+      "isFree": true,
+      "website": "https://opto.sic.pt/",
+      "priority": 9
+    },
+    {
+      "name": "S+",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Star",
+      "isFree": true,
+      "website": "https://www.starchannel.pt/",
+      "priority": 5
+    },
+    {
+      "name": "Star Comedy",
+      "isFree": true,
+      "website": "https://www.startv.pt/programacao/starcomedy",
+      "priority": 5
+    },
+    {
+      "name": "Star Crime",
+      "isFree": true,
+      "website": "https://www.startv.pt/programacao/starcrime",
+      "priority": 5
+    },
+    {
+      "name": "Star Life",
+      "isFree": true,
+      "website": "https://www.startv.pt/programacao/starlife",
+      "priority": 5
+    },
+    {
+      "name": "Syfy",
+      "isFree": true,
+      "website": "https://www.syfy.pt/",
+      "priority": 5
+    },
+    {
+      "name": "TLC",
+      "isFree": true,
+      "website": "https://discoverychannel.com.pt/programacao/tlc",
+      "priority": 5
+    },
+    {
+      "name": "TV Cancao Nova",
+      "isFree": true,
+      "website": "https://tv.cancaonova.pt/",
+      "priority": 5
+    },
+    {
+      "name": "TVI Africa",
+      "isFree": true,
+      "website": "http://www.tvi.iol.pt/africa/",
+      "priority": 9
+    },
+    {
+      "name": "TVI Internacional",
+      "isFree": true,
+      "website": "http://www.tvi.iol.pt/internacional",
+      "priority": 9
+    },
+    {
+      "name": "TV Verdade",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VITEC Azores",
+      "isFree": true,
+      "website": "https://www.azorestv.com/",
+      "priority": 5
+    },
+    {
+      "name": "V+ TVI",
+      "isFree": true,
+      "website": "https://tvi.iol.pt/vmais/",
+      "priority": 9
+    },
+    {
+      "name": "WEB TV Paixao FM",
+      "isFree": true,
+      "website": "https://radiopaixaofm.live/",
+      "priority": 5
+    },
+    {
+      "name": "Mass media in Portugal",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "AXN",
+      "isFree": null,
+      "priority": 9
+    },
+    {
+      "name": "AXN Movies",
+      "isFree": null,
+      "priority": 9
+    },
+    {
+      "name": "Star Channel Portugal",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Star Movies",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Cinemundo",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "AMC Portugal",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Blast",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Disney Channel Portugal",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Disney Jr",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Biggs",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Cartoon Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nick Jr",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVCine TOP",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVCine EDITION",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVCine EMOTION",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVCine ACTION",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sport TV",
+      "isFree": null,
+      "priority": 9
+    },
+    {
+      "name": "SportTV 2",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "SportTV 3",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "SportTV 4",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "SportTV 5",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "SportTV 6",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "SportTV 7",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "BTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Fuel",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Premiere",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "DAZN 1 Portugal",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "DAZN 2 Portugal",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "DAZN 3 Portugal",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "DAZN 4 Portugal",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "DAZN 5 Portugal",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "DAZN 6 Portugal",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Syfy Portugal",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "24 Kitchen",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal Odisseia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "National Geographic",
+      "isFree": null,
+      "priority": 9
+    },
+    {
+      "name": "AMC Crime",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Caçavision",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TPA Notícias",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TCV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Woohoo",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Discovery Science",
+      "isFree": null,
+      "priority": 9
+    },
+    {
+      "name": "SIC Internacional África",
+      "isFree": null,
+      "priority": 9
+    },
+    {
+      "name": "E!",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Discovery Showcase",
+      "isFree": null,
+      "priority": 9
+    },
+    {
+      "name": "Fine Living",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Cartoonito",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Caza y Pesca",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV Galicia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "24 Horas",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Viacom",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TeleSur",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Mezzo",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Mezzo Live",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "RAI News 24",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CNN",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Bloomberg",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "VH",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "VH1 Classic",
+      "isFree": null,
+      "priority": 9
+    },
+    {
+      "name": "CNBC",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MUTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV Music",
+      "isFree": null,
+      "priority": 9
+    },
+    {
+      "name": "Ginx",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV Rocks",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "DW",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "RTL",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "VOX",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "ARD",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Adult Swim",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "iConcerts",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Luxe",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Channel",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "RT",
+      "isFree": null,
+      "priority": 9
+    },
+    {
+      "name": "INTER+",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "PRO TV International",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BabyFirst",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Phoenix InfoNews",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Phoenix CNE",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "SET Asia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal 11",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nickelodeon",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVR International",
+      "isFree": null,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Canal Parlamento",
+      "isFree": true,
+      "shortName": "Parlamento",
+      "website": "https://www.parlamento.pt",
+      "priority": 5
+    },
+    {
+      "name": "Euronews",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTP Noticias",
+      "isFree": true,
+      "shortName": "RTP Notícias",
+      "website": "https://www.rtp.pt/noticias",
+      "priority": 5
+    },
+    {
+      "name": "RTP 3",
+      "isFree": true,
+      "keywords": "rtp3 | rtp 3",
+      "website": "https://www.rtp.pt/rtp3",
+      "priority": 5
+    },
+    {
+      "name": "SIC Notícias",
+      "website": "https://www.sicnoticias.pt",
+      "priority": 10
+    },
+    {
+      "name": "TVI 24",
+      "website": "https://tvi24.iol.pt",
+      "priority": 10
+    },
+    {
+      "name": "CNN Portugal",
+      "isFree": true,
+      "website": "http://www.cnnportugal.pt/",
+      "priority": 5
+    },
+    {
+      "name": "News Now",
+      "isFree": true,
+      "website": "https://www.nowcanal.pt/",
+      "priority": 5
+    },
+    {
+      "name": "SIC Noticias",
+      "isFree": true,
+      "website": "https://sicnoticias.pt/",
+      "priority": 10
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Canal180",
+      "isFree": true,
+      "website": "https://www.canal180.pt/",
+      "priority": 5
+    },
+    {
+      "name": "National Geographic Wild",
+      "isFree": true,
+      "website": "http://www.natgeo.pt/",
+      "priority": 9
+    },
+    {
+      "name": "Odisseia",
+      "isFree": true,
+      "website": "http://odisseia.pt/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Benfica",
+      "website": "https://www.benfica.tv",
+      "priority": 10
+    },
+    {
+      "name": "A Bola",
+      "isFree": true,
+      "website": "http://www.abolatv.pt/",
+      "priority": 5
+    },
+    {
+      "name": "Campo Pequeno",
+      "isFree": true,
+      "website": "https://www.campopequeno.com/campopequenotv/",
+      "priority": 5
+    },
+    {
+      "name": "Sporting",
+      "isFree": true,
+      "website": "http://www.sporting.pt/",
+      "priority": 10
+    },
+    {
+      "name": "Sport TV Africa",
+      "isFree": true,
+      "website": "https://www.sporttv.pt/sport-tv-africa/#733",
+      "priority": 10
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Canção Nova",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Igreja Online",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Kuriakos",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sobrenatural",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Fátima",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV MANA MAPUTO",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Maná",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Maná 2",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Maná Córdoba",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "AD Almada",
+      "isFree": true,
+      "website": "https://adalmada.org/",
+      "priority": 4
+    },
+    {
+      "name": "ADB",
+      "isFree": true,
+      "website": "https://live.adburaca.org/",
+      "priority": 4
+    },
+    {
+      "name": "Canal de Oracao Mana",
+      "isFree": true,
+      "website": "https://canal-oracao-mana.com/",
+      "priority": 4
+    },
+    {
+      "name": "iesTV",
+      "isFree": true,
+      "website": "https://iescc.pt/tv/",
+      "priority": 4
+    },
+    {
+      "name": "Mana Church Online",
+      "isFree": true,
+      "website": "http://www.igreja-online.co.uk/",
+      "priority": 4
+    },
+    {
+      "name": "Mana Cirkev Online",
+      "isFree": true,
+      "website": "http://cirkev-online.sk/",
+      "priority": 4
+    },
+    {
+      "name": "Mana Eglise Online",
+      "isFree": true,
+      "website": "http://eglise-online.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Mana Iglesia Online",
+      "isFree": true,
+      "website": "http://www.iglesia-online.es/",
+      "priority": 4
+    },
+    {
+      "name": "Mana Igreja Online",
+      "isFree": true,
+      "website": "http://www.igreja-online.tv",
+      "priority": 4
+    },
+    {
+      "name": "Mana Tserkov' Onlayn",
+      "isFree": true,
+      "website": "http://www.igreja-online.ru/",
+      "priority": 4
+    },
+    {
+      "name": "Novo Tempo Portugal",
+      "isFree": true,
+      "website": "https://www.novotempo.pt/",
+      "priority": 4
+    },
+    {
+      "name": "Radio Televisao Crista",
+      "isFree": true,
+      "website": "http://rtc.infor.media/",
+      "priority": 4
+    },
+    {
+      "name": "TV Mana 2",
+      "isFree": true,
+      "website": "https://tvmana2.com/",
+      "priority": 4
+    },
+    {
+      "name": "TV Mana Brasil",
+      "isFree": true,
+      "website": "https://tvmanabrasil.com/",
+      "priority": 4
+    },
+    {
+      "name": "TV Mana English",
+      "isFree": true,
+      "website": "https://tvmana-english.ar/",
+      "priority": 4
+    },
+    {
+      "name": "TV Mana Espanhol",
+      "isFree": true,
+      "website": "https://tvmana-espanhol.ar/",
+      "priority": 4
+    },
+    {
+      "name": "TV Mana Hindi",
+      "isFree": true,
+      "website": "https://tvmana-hindi.com/",
+      "priority": 4
+    },
+    {
+      "name": "TV Mana Russkiy",
+      "isFree": true,
+      "website": "https://tvmanarusskii.ru/",
+      "priority": 4
+    },
+    {
+      "name": "Unife",
+      "isFree": true,
+      "website": "https://www.unifetv.pt/",
+      "priority": 4
+    },
+    {
+      "name": "Way",
+      "isFree": true,
+      "website": "https://www.waytv.pt/",
+      "priority": 4
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Kuriakos Kids",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SIC K",
+      "isFree": true,
+      "priority": 9
+    },
+    {
+      "name": "Animax",
+      "isFree": true,
+      "website": "https://web.archive.org/web/20110430212548/http://www.animax.pt/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Panda",
+      "isFree": true,
+      "website": "https://canalpanda.pt/",
+      "priority": 5
+    },
+    {
+      "name": "Disney",
+      "isFree": true,
+      "website": "http://tv.disney.pt/",
+      "priority": 5
+    },
+    {
+      "name": "Disney Junior",
+      "isFree": true,
+      "website": "http://www.disney.pt/disney-channel/disney-junior/",
+      "priority": 5
+    },
+    {
+      "name": "Panda Kids",
+      "isFree": true,
+      "website": "https://tuamc.tv/canal-panda/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Kuriakos Cine",
+      "priority": 5
+    },
+    {
+      "name": "Canal Blast",
+      "isFree": true,
+      "website": "http://canalblast.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Hollywood",
+      "isFree": true,
+      "website": "http://www.canalhollywood.pt/",
+      "priority": 5
+    },
+    {
+      "name": "Cine Mundo",
+      "isFree": true,
+      "website": "http://www.cinemundo.pt/canalcinemundo/",
+      "priority": 5
+    },
+    {
+      "name": "DSTV Pipoca",
+      "isFree": true,
+      "website": "http://www.cinemundo.pt/dstvpipoca/",
+      "priority": 5
+    },
+    {
+      "name": "FOX Crime",
+      "isFree": true,
+      "website": "http://foxcrime.canais-fox.pt/",
+      "priority": 9
+    },
+    {
+      "name": "FOX Life",
+      "isFree": true,
+      "website": "http://foxlife.canais-fox.pt/",
+      "priority": 9
+    },
+    {
+      "name": "FOX Movies",
+      "isFree": true,
+      "website": "http://www.foxmovies.com.pt/",
+      "priority": 9
+    },
+    {
+      "name": "Morangos com Acucar",
+      "isFree": true,
+      "website": "https://tvi.iol.pt/morangoscomacucar/",
+      "priority": 5
+    },
+    {
+      "name": "SIC Novelas",
+      "isFree": true,
+      "priority": 9
+    },
+    {
+      "name": "TLN Network",
+      "isFree": true,
+      "website": "http://afiliados.televisa-networks.com/programacion/tlnetwork/",
+      "priority": 5
+    },
+    {
+      "name": "TVI Ficcao",
+      "isFree": true,
+      "website": "https://tviplayer.iol.pt/direto/TVI_FICCAO",
+      "priority": 9
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Kuriakos Music",
+      "isFree": true,
+      "priority": 9
+    },
+    {
+      "name": "Famatv",
+      "isFree": true,
+      "website": "https://famatv.pt/",
+      "priority": 5
+    },
+    {
+      "name": "NPC Radio e",
+      "isFree": true,
+      "website": "https://www.nasciparacantar.pt/",
+      "priority": 5
+    },
+    {
+      "name": "ON FM",
+      "isFree": true,
+      "website": "https://www.onfm.pt/",
+      "priority": 5
+    },
+    {
+      "name": "RFPtv",
+      "isFree": true,
+      "website": "https://www.rfptv.pt/",
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Radio Clube",
+      "isFree": true,
+      "priority": 5
+    }
+  ]
+}

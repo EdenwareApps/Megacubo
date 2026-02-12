@@ -189,7 +189,7 @@ class StreamState extends EventEmitter {
             const now = (Date.now() / 1000);
             this.lastSaveTime = now;
             this.trim();
-            storage.set(this.key, this.data, {expiration: true}).catch(err => console.error(err));
+            storage.set(this.key, this.data, {expiration: true, personal: true}).catch(err => console.error(err));
             console.warn('STREAMSTATE SAVE*', now);
         }
     }

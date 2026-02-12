@@ -1,0 +1,637 @@
+{
+  "News": [
+    {
+      "name": "Avenues Khabar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AamNepali",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ABC News Nepal",
+      "isFree": true,
+      "website": "https://www.abcnepal.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Anews Nepal",
+      "isFree": true,
+      "website": "https://aonetelevision.com.np/",
+      "priority": 5
+    },
+    {
+      "name": "Bhadagaun",
+      "isFree": true,
+      "website": "https://bhadgauntv.com.np/",
+      "priority": 5
+    },
+    {
+      "name": "BTV Business",
+      "isFree": true,
+      "website": "https://businesstvnepal.com/",
+      "priority": 5
+    },
+    {
+      "name": "Business Plus",
+      "isFree": true,
+      "website": "https://emountaintv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Galaxy 4K",
+      "isFree": true,
+      "website": "https://gmn.com.np/",
+      "priority": 5
+    },
+    {
+      "name": "Global",
+      "isFree": true,
+      "website": "https://globaltvnepal.com/",
+      "priority": 5
+    },
+    {
+      "name": "ITV Nepal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Janasanchar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kalika",
+      "isFree": true,
+      "website": "https://www.kalikanews.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kasthamandap Television",
+      "isFree": true,
+      "keywords": "kasthamandap television -gold",
+      "priority": 5
+    },
+    {
+      "name": "Koshi 4K Television",
+      "isFree": true,
+      "website": "https://koshitelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mountain",
+      "isFree": true,
+      "website": "https://emountaintv.com/",
+      "priority": 5
+    },
+    {
+      "name": "News 24",
+      "isFree": true,
+      "website": "https://www.news24nepal.tv/",
+      "priority": 5
+    },
+    {
+      "name": "News Nepal",
+      "isFree": true,
+      "website": "https://newsnepaltv.com/",
+      "priority": 5
+    },
+    {
+      "name": "NTV News",
+      "isFree": true,
+      "website": "https://nepaltvonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sutra",
+      "isFree": true,
+      "website": "https://www.sutranews.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Today",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Nepal",
+      "isFree": true,
+      "website": "https://zeenepaltv.com/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "AP",
+      "isFree": true,
+      "website": "https://ap1.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Appan",
+      "isFree": true,
+      "website": "https://www.appantv.com.np/",
+      "priority": 5
+    },
+    {
+      "name": "Araniko Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Arena Television",
+      "isFree": true,
+      "website": "https://www.arenatelevision.com.np/",
+      "priority": 5
+    },
+    {
+      "name": "AVASS",
+      "isFree": true,
+      "website": "https://avasstv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bagmati",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bhairahawa Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bhakti Darshan",
+      "isFree": true,
+      "website": "http://bhaktidarshantv.com/en/",
+      "priority": 5
+    },
+    {
+      "name": "Bhojpuri Magic",
+      "isFree": true,
+      "website": "https://dishhome.com.np/exclusive-channels/bhojpuri-magic",
+      "priority": 5
+    },
+    {
+      "name": "Birat Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Buddha",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Capital",
+      "isFree": true,
+      "website": "https://www.capitaltvhd.com/",
+      "priority": 5
+    },
+    {
+      "name": "City One Television",
+      "isFree": true,
+      "website": "https://www.cityonetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Deep",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dhaulagiri Television",
+      "isFree": true,
+      "website": "https://edhaulagiritv.com/",
+      "priority": 5
+    },
+    {
+      "name": "DishHome Ramailo",
+      "isFree": true,
+      "website": "http://www.dishhome.com.np/",
+      "priority": 5
+    },
+    {
+      "name": "DishHome Showcase",
+      "isFree": true,
+      "keywords": "dishhome showcase -2",
+      "website": "http://www.dishhome.com.np/",
+      "priority": 5
+    },
+    {
+      "name": "DishHome Showcase 2",
+      "isFree": true,
+      "website": "http://www.dishhome.com.np/",
+      "priority": 5
+    },
+    {
+      "name": "Everest",
+      "isFree": true,
+      "website": "https://everesthd.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Fewa Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gorkha",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hamro Kisan",
+      "isFree": true,
+      "website": "https://hamrokisantv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Health",
+      "isFree": true,
+      "website": "https://healthtvonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Himshikhar Television",
+      "isFree": true,
+      "website": "https://himshikhartv.com.np/",
+      "priority": 5
+    },
+    {
+      "name": "Indigenous Television",
+      "isFree": true,
+      "website": "https://www.indigenoustelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Janata",
+      "isFree": true,
+      "website": "https://www.janatasamachar.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kantipur",
+      "isFree": true,
+      "website": "https://kantipurtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kasthamandap Television Gold",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "K World",
+      "isFree": true,
+      "website": "https://dishhome.com.np/exclusive-channels/k-world",
+      "priority": 5
+    },
+    {
+      "name": "Laxmi Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Life OK",
+      "isFree": true,
+      "website": "https://lifeoktvnepal.com/",
+      "priority": 5
+    },
+    {
+      "name": "Lumbini",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Makalu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mega",
+      "isFree": true,
+      "website": "https://megatv.com.np/",
+      "priority": 5
+    },
+    {
+      "name": "Mero Online",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "METV",
+      "isFree": true,
+      "website": "https://metvhd.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mithila Nepal",
+      "isFree": true,
+      "website": "http://mtvnepal.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Moonlight HD",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mukundasen",
+      "isFree": true,
+      "website": "https://www.mukundasentv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Namaste Khwoopa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nari",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "National Gold",
+      "isFree": true,
+      "website": "https://nationalgoldhd.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nepa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nepal Network",
+      "isFree": true,
+      "website": "https://nepalnetworktv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nepal Television",
+      "isFree": true,
+      "website": "https://nepaltvonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Newa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nice",
+      "isFree": true,
+      "website": "https://nicetvnepal.com/",
+      "priority": 5
+    },
+    {
+      "name": "NTV Itahari",
+      "isFree": true,
+      "website": "https://nepaltvonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "NTV Kohalpur",
+      "isFree": true,
+      "website": "https://nepaltvonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "NTV Plus",
+      "isFree": true,
+      "website": "https://nepaltvonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Pokhara",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Prime Times",
+      "isFree": true,
+      "website": "https://primetimes.tv/",
+      "priority": 6
+    },
+    {
+      "name": "Rajya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rapti Darpan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Reality",
+      "isFree": true,
+      "website": "https://dishhome.com.np/exclusive-channels/reality-tv",
+      "priority": 5
+    },
+    {
+      "name": "RED Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sagarmatha",
+      "isFree": true,
+      "website": "https://sagarmatha.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Sajha",
+      "isFree": true,
+      "website": "https://nepalhighlight.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sarokar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Seven Star",
+      "isFree": true,
+      "website": "https://sevenstartv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Space 4K",
+      "isFree": true,
+      "website": "https://www.space4ktv.com/Home",
+      "priority": 5
+    },
+    {
+      "name": "Triveni Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Birgunj",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Universal",
+      "isFree": true,
+      "website": "https://universalsamachar.com/",
+      "priority": 5
+    },
+    {
+      "name": "Upahar",
+      "isFree": true,
+      "website": "https://www.radioupahar.com/",
+      "priority": 5
+    },
+    {
+      "name": "Waling Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Yoho",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Bodhi",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Buddha Awaaz",
+      "isFree": true,
+      "website": "https://buddhaawaaztv.com.np/",
+      "priority": 4
+    },
+    {
+      "name": "Dharma Television",
+      "isFree": true,
+      "website": "https://dharmatelevision.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Divya Darshan",
+      "isFree": true,
+      "website": "https://divyadarshantv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Nepal Mandal",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "Sports": [
+    {
+      "name": "DishHome Action Sports",
+      "isFree": true,
+      "website": "http://www.dishhome.com.np/",
+      "priority": 10
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "DishHome Cinema Ghar 108",
+      "isFree": true,
+      "website": "http://www.dishhome.com.np/",
+      "priority": 5
+    },
+    {
+      "name": "DishHome Cinema Ghar 888",
+      "isFree": true,
+      "website": "http://www.dishhome.com.np/",
+      "priority": 5
+    },
+    {
+      "name": "D Movies",
+      "isFree": true,
+      "website": "https://dishhome.com.np/exclusive-channels/dmovies",
+      "priority": 5
+    },
+    {
+      "name": "Kantipur Cineplex",
+      "isFree": true,
+      "website": "https://kantipurtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kantipur Max",
+      "isFree": true,
+      "website": "https://kantipurtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Plus Movie",
+      "isFree": true,
+      "website": "https://dishhome.com.np/exclusive-channels/plus-movie",
+      "priority": 5
+    },
+    {
+      "name": "TV Filmy",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "DishHome Junior",
+      "isFree": true,
+      "website": "http://www.dishhome.com.np/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Education Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Himalaya",
+      "isFree": true,
+      "website": "https://www.himalayatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Krishi",
+      "isFree": true,
+      "website": "https://krishitelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Omkar",
+      "isFree": true,
+      "website": "https://www.omkartv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Paryawaran",
+      "isFree": true,
+      "website": "https://paryawarantv.com/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "J Music",
+      "isFree": true,
+      "website": "https://jayventure.com.np/jmusictelevision/",
+      "priority": 5
+    },
+    {
+      "name": "Rhymes",
+      "isFree": true,
+      "website": "http://www.dishhome.com.np/",
+      "priority": 5
+    }
+  ]
+}

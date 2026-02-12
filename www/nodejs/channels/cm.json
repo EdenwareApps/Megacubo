@@ -1,0 +1,661 @@
+{
+  "Entertainment": [
+    {
+      "name": "Emergence",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "My",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vision 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Acerfi",
+      "isFree": true,
+      "website": "https://tv.acerfi.net/",
+      "priority": 5
+    },
+    {
+      "name": "Bengha",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CAM 10",
+      "isFree": true,
+      "website": "https://cam10tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 International",
+      "isFree": true,
+      "website": "http://www.canal2international.net/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Woyla",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Capital Sante",
+      "isFree": true,
+      "website": "http://www.capitalsantetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Carrefour",
+      "isFree": true,
+      "website": "https://www.groupecarrefourmedias.com/",
+      "priority": 5
+    },
+    {
+      "name": "CEN Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Chateau Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CRTV",
+      "isFree": true,
+      "keywords": "crtv -news -sports -and -entertainment",
+      "website": "https://www.crtv.cm/",
+      "priority": 5
+    },
+    {
+      "name": "CTV Afrique",
+      "isFree": true,
+      "website": "https://www.ctvafrique.com/",
+      "priority": 5
+    },
+    {
+      "name": "C Vie",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DBS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Eagle Flight",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Elite One Africa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Equinoxe",
+      "isFree": true,
+      "website": "https://equinoxetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Galaxie",
+      "isFree": true,
+      "website": "https://galaxietv.wordpress.com/",
+      "priority": 5
+    },
+    {
+      "name": "Global LTV",
+      "isFree": true,
+      "website": "https://globalltv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Hi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Home",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Horizon 3",
+      "isFree": true,
+      "website": "https://horizon3medias.com/",
+      "priority": 5
+    },
+    {
+      "name": "HTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Laura Dave Media",
+      "isFree": true,
+      "website": "https://lauradavemedia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Leader Cable",
+      "isFree": true,
+      "website": "https://www.leader-tv-cameroun.com/",
+      "priority": 5
+    },
+    {
+      "name": "LTM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MENO",
+      "isFree": true,
+      "website": "https://menotv.net/",
+      "priority": 5
+    },
+    {
+      "name": "NAJA",
+      "isFree": true,
+      "website": "https://naja-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "NG",
+      "isFree": true,
+      "website": "https://www.ngtv.cm/",
+      "priority": 5
+    },
+    {
+      "name": "PLEX",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PRC",
+      "isFree": true,
+      "website": "https://www.prc.cm/fr/prc-tv-live-fr-stream",
+      "priority": 5
+    },
+    {
+      "name": "Real Black",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Reflets d'Afrique",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Regard'Afrik",
+      "isFree": true,
+      "website": "https://regardafrik.net/",
+      "priority": 5
+    },
+    {
+      "name": "Repentance",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SCBC",
+      "isFree": true,
+      "website": "https://scbcmedia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Solution",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "STV",
+      "isFree": true,
+      "website": "http://www.stvgroup.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sun+",
+      "isFree": true,
+      "website": "https://www.sunplustv.com/",
+      "priority": 5
+    },
+    {
+      "name": "The Temple",
+      "isFree": true,
+      "website": "https://www.thetemple.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TR24 Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Transfiguration",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Transformers",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Veritas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zoe",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Play",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Afrobit",
+      "isFree": true,
+      "website": "https://shop.afrobitproductions.com/",
+      "priority": 5
+    },
+    {
+      "name": "Boom",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "My Music Africa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RCG",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vibe Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ZIK-PROMO",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "ABC Amba",
+      "isFree": true,
+      "website": "https://www.abcambatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "ACN",
+      "isFree": true,
+      "website": "https://www.acnlive.net/",
+      "priority": 5
+    },
+    {
+      "name": "AFO Media",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Africa+ News",
+      "isFree": true,
+      "website": "https://africaplusnews.com/",
+      "priority": 5
+    },
+    {
+      "name": "Afrique 54",
+      "isFree": true,
+      "website": "https://afrique54.net/",
+      "priority": 5
+    },
+    {
+      "name": "Afrique Media",
+      "isFree": true,
+      "website": "https://www.afriquemedia.tv/live",
+      "priority": 5
+    },
+    {
+      "name": "Balafon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bnews",
+      "isFree": true,
+      "website": "https://www.bnews1tvonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "CRTV News",
+      "isFree": true,
+      "website": "https://www.crtv.cm/",
+      "priority": 5
+    },
+    {
+      "name": "Dash TV News",
+      "isFree": true,
+      "website": "https://www.dashacomedia.com/",
+      "priority": 5
+    },
+    {
+      "name": "For You",
+      "isFree": true,
+      "website": "https://foryoumedia-africa.com/",
+      "priority": 5
+    },
+    {
+      "name": "HPS-TV",
+      "isFree": true,
+      "website": "https://www.hps-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "IBA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "InfoTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Le Messager",
+      "isFree": true,
+      "website": "https://lemessagertv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Lion's TV+",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "My Media Prime",
+      "isFree": true,
+      "priority": 6
+    },
+    {
+      "name": "Panafrican Media",
+      "isFree": true,
+      "website": "https://panafricanmedia.tv/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Africa Movie Star",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Movies",
+      "isFree": true,
+      "website": "http://www.canal2international.net/",
+      "priority": 5
+    },
+    {
+      "name": "Collywood",
+      "isFree": true,
+      "website": "https://www.collywoodtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "My Movie English",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "My Movie French",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Ark of God",
+      "isFree": true,
+      "website": "https://www.johnchi.org/ark-of-god-tv-live",
+      "priority": 4
+    },
+    {
+      "name": "Canal de Vie",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "C-Gospel",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Charis",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Divine",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "DMR",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Dominion",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Excel Discovery",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Global Impact Television",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Glory Christ",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "God Is Able",
+      "isFree": true,
+      "website": "https://godisabletv.org/",
+      "priority": 4
+    },
+    {
+      "name": "Hope World",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Kingship",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Leader Gospel",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Le Feu et Les Anges",
+      "isFree": true,
+      "website": "https://lefeuetlesangestv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Liberty",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "LOGOS",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MISEC",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "My Gospel",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "My Righteous",
+      "isFree": true,
+      "website": "https://ligministries.org/my-righteous-tv/",
+      "priority": 4
+    },
+    {
+      "name": "NELCOM",
+      "isFree": true,
+      "website": "https://nelcomministry.net/",
+      "priority": 4
+    },
+    {
+      "name": "Reconciliation",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Revival",
+      "isFree": true,
+      "website": "https://revival-channel.tv/",
+      "priority": 4
+    },
+    {
+      "name": "RTVC Koume",
+      "isFree": true,
+      "website": "https://cmfiradio.org/",
+      "priority": 4
+    },
+    {
+      "name": "SEV",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Treasure",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV7 Vie",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "VS RTV",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "Sports": [
+    {
+      "name": "CRTV Sports and Entertainment",
+      "isFree": true,
+      "website": "https://www.crtv.cm/",
+      "priority": 10
+    },
+    {
+      "name": "Dash TV Sports & Entertainment",
+      "isFree": true,
+      "website": "https://www.dashacomedia.com/",
+      "priority": 10
+    },
+    {
+      "name": "MSI",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Dikalo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dream",
+      "isFree": true,
+      "website": "https://webtv.dreamtv.cm/",
+      "priority": 5
+    },
+    {
+      "name": "EducaTV",
+      "isFree": true,
+      "keywords": "educatv -academie -generation",
+      "website": "https://educatv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "EducaTV Academie",
+      "isFree": true,
+      "website": "https://educatv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "EducaTV Generation",
+      "isFree": true,
+      "website": "https://educatv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Hausa 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kemet",
+      "isFree": true,
+      "website": "https://kemettv.cm/",
+      "priority": 5
+    },
+    {
+      "name": "School TV Africa",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Leader Phoenix",
+      "isFree": true,
+      "priority": 5
+    }
+  ]
+}

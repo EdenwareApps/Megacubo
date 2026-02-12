@@ -1,0 +1,1217 @@
+{
+  "Entertainment": [
+    {
+      "name": "Resurrection",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "7DSGH",
+      "isFree": true,
+      "website": "https://7dsonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "ABC TV Ghana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ability",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AB",
+      "isFree": true,
+      "website": "http://www.affulbismark.com/",
+      "priority": 5
+    },
+    {
+      "name": "Adinkra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Adoa",
+      "isFree": true,
+      "website": "https://adoanewsonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Adom",
+      "isFree": true,
+      "website": "http://www.adomtv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Aflao",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Agoo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Akanayo",
+      "isFree": true,
+      "keywords": "akanayo tv -plus",
+      "priority": 5
+    },
+    {
+      "name": "Akanayo TV Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Akasanoma",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Akuafo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Akwaaba Magic",
+      "isFree": true,
+      "keywords": "akwaaba magic -abusua",
+      "website": "https://www.dstv.com/akwaabamagic/en-gh/home",
+      "priority": 5
+    },
+    {
+      "name": "Akwaaba Magic Abusua",
+      "isFree": true,
+      "website": "https://www.dstv.com/akwaabamagic/en-gh/channel/akwaaba-magic-abusua",
+      "priority": 5
+    },
+    {
+      "name": "Amenfi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Amen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Anidaso",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Apple",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AP",
+      "isFree": true,
+      "website": "https://apmediagh.com/",
+      "priority": 5
+    },
+    {
+      "name": "Asempa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Atinka",
+      "isFree": true,
+      "website": "https://atinkaonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Avenor",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Best",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Big",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Blessed",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BOC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Boss",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Brighter",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Brong and Ahafo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bryt",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CACI",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CeeJay",
+      "isFree": true,
+      "website": "https://ceejaytv.com.gh/",
+      "priority": 5
+    },
+    {
+      "name": "Channel247",
+      "isFree": true,
+      "website": "https://channel247online.com/",
+      "priority": 5
+    },
+    {
+      "name": "ChannelOne",
+      "isFree": true,
+      "website": "https://channel1news.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cheers",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CLOG",
+      "isFree": true,
+      "website": "https://clogsag.org.gh/clogsag/",
+      "priority": 5
+    },
+    {
+      "name": "Crystal TV Plus",
+      "isFree": true,
+      "website": "https://crystaltvgroup.com/",
+      "priority": 5
+    },
+    {
+      "name": "Crystal TV Prime",
+      "isFree": true,
+      "website": "https://crystaltvgroup.com/",
+      "priority": 6
+    },
+    {
+      "name": "C",
+      "isFree": true,
+      "website": "https://classfmonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Days",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EBN Ghana",
+      "isFree": true,
+      "website": "https://ebnghana.com/",
+      "priority": 5
+    },
+    {
+      "name": "Eno",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "e.tv Ghana",
+      "isFree": true,
+      "website": "https://www.etvghana.com/",
+      "priority": 5
+    },
+    {
+      "name": "Family",
+      "isFree": true,
+      "website": "https://www.familytvghana.com/",
+      "priority": 5
+    },
+    {
+      "name": "Famous",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Fast",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Fire TV 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Fish",
+      "isFree": true,
+      "website": "https://www.fishfmonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Fly",
+      "isFree": true,
+      "website": "https://flytvgh.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ghanaman",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ghana",
+      "isFree": true,
+      "website": "https://www.gbcghana.com/",
+      "priority": 5
+    },
+    {
+      "name": "GHLife",
+      "isFree": true,
+      "website": "https://ghlifeonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Gh One",
+      "isFree": true,
+      "website": "http://ghonetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Green Gold",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GTV",
+      "isFree": true,
+      "keywords": "gtv -sports -plus",
+      "website": "https://www.gbcghanaonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Henne's",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hot",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ice",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Iron",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "JK Ultimate",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Joy Prime",
+      "isFree": true,
+      "website": "http://multitvworld.com/joy-prime-2/",
+      "priority": 6
+    },
+    {
+      "name": "Kabila",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kantanka",
+      "isFree": true,
+      "website": "https://kantankatv.com/page/live-tv",
+      "priority": 5
+    },
+    {
+      "name": "Kessben",
+      "isFree": true,
+      "website": "https://kessbentv.com/",
+      "priority": 5
+    },
+    {
+      "name": "KFM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "King Tom",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kiss",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KOOL",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kumawood",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lawson",
+      "isFree": true,
+      "website": "https://lawsonmultimedia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Light TV Ghana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "London",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Marego",
+      "isFree": true,
+      "website": "https://maregotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Max",
+      "isFree": true,
+      "website": "http://www.maxtvgh.com/",
+      "priority": 5
+    },
+    {
+      "name": "Metro",
+      "isFree": true,
+      "website": "https://metrotvonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mothers",
+      "isFree": true,
+      "website": "https://mothersmediagh.com/",
+      "priority": 5
+    },
+    {
+      "name": "Movement",
+      "isFree": true,
+      "website": "https://movementtvonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "MX 24",
+      "isFree": true,
+      "website": "https://mx24online.com/",
+      "priority": 5
+    },
+    {
+      "name": "New Day",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Next",
+      "isFree": true,
+      "website": "https://www.nexttvgh.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nhyiraba",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NTV",
+      "isFree": true,
+      "website": "https://www.ntvghana.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ocean 1TV",
+      "isFree": true,
+      "website": "https://ocean1television.com/",
+      "priority": 5
+    },
+    {
+      "name": "One Ghana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "One",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Onua",
+      "isFree": true,
+      "website": "https://onuaonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "OTV",
+      "isFree": true,
+      "website": "http://live.oceanstvgh.com/",
+      "priority": 5
+    },
+    {
+      "name": "Oyerepa",
+      "isFree": true,
+      "website": "https://oyerepafmonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Power",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Precious",
+      "isFree": true,
+      "website": "https://precious.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Property",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Prophet",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rhema",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rock",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Royal Star",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Royal",
+      "isFree": true,
+      "website": "http://rtvgh.com/",
+      "priority": 5
+    },
+    {
+      "name": "Safoa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sagani",
+      "isFree": true,
+      "website": "https://www.saganitvonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Samenk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SBN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Second Chance",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Selom",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Serwaa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Shelter",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Silver",
+      "isFree": true,
+      "website": "http://silveronline24.com/silvertv",
+      "priority": 5
+    },
+    {
+      "name": "Sompa",
+      "isFree": true,
+      "website": "https://sompaonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Spin 2 Win",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Spirit Filled",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Spiritus",
+      "isFree": true,
+      "website": "http://spiritusghtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Starr",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Strong",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Super A",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sweet",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Temko",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Thunder",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Todays",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tosh",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Truth",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 3",
+      "isFree": true,
+      "website": "https://3news.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Africa",
+      "isFree": true,
+      "website": "https://tvafricagh.org/",
+      "priority": 5
+    },
+    {
+      "name": "TV Xyz",
+      "isFree": true,
+      "website": "http://myxyzonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "United States of Africa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "United",
+      "isFree": true,
+      "website": "http://utv.peacefmonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Virgin",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Volta",
+      "isFree": true,
+      "website": "https://voltaonetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "VSN Xtra",
+      "isFree": true,
+      "website": "https://viewsat.world/",
+      "priority": 5
+    },
+    {
+      "name": "Wesleyan",
+      "isFree": true,
+      "website": "http://wesleyantv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Woezor",
+      "isFree": true,
+      "website": "https://woezor.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Wontumi",
+      "isFree": true,
+      "website": "https://www.wontumionline.com/",
+      "priority": 5
+    },
+    {
+      "name": "YTV",
+      "isFree": true,
+      "website": "https://yfmghana.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zaa",
+      "isFree": true,
+      "website": "https://zaaradio.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zone Three 6",
+      "isFree": true,
+      "website": "https://zonethree6.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ZTV Ghana",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "3ABN Ghana",
+      "isFree": true,
+      "website": "https://www.3abnghana.org/",
+      "priority": 4
+    },
+    {
+      "name": "AGTV",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Agya Kofabae",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Akwasi Awua",
+      "isFree": true,
+      "website": "http://akwasiawuahonline.com/",
+      "priority": 4
+    },
+    {
+      "name": "Altar",
+      "isFree": true,
+      "website": "https://altartvgh.com/",
+      "priority": 4
+    },
+    {
+      "name": "Amazing Power",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Amenuveve",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Angel",
+      "isFree": true,
+      "website": "http://angeltvghana.com/",
+      "priority": 4
+    },
+    {
+      "name": "Baina",
+      "isFree": true,
+      "website": "https://bainatv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Cash",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Cosmopolitan",
+      "isFree": true,
+      "website": "http://www.christcosmopolitan.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Covenant",
+      "isFree": true,
+      "website": "https://covenanttv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Dominion",
+      "isFree": true,
+      "website": "https://dominiontv.net/",
+      "priority": 4
+    },
+    {
+      "name": "Eba",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Elijah",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Endowment",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Ezra",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Fire",
+      "isFree": true,
+      "keywords": "fire tv -2",
+      "priority": 4
+    },
+    {
+      "name": "Footprint",
+      "isFree": true,
+      "website": "https://footprinttvonline.com/",
+      "priority": 4
+    },
+    {
+      "name": "Gaskia",
+      "isFree": true,
+      "website": "https://www.gaskiatv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Genesis",
+      "isFree": true,
+      "website": "https://genesistv.org/",
+      "priority": 4
+    },
+    {
+      "name": "Guidance",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Healing Jesus",
+      "isFree": true,
+      "website": "http://www.healingjesus.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Hill",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Holy",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Hope Channel Ghana",
+      "isFree": true,
+      "website": "https://www.hopetvgh.org/",
+      "priority": 4
+    },
+    {
+      "name": "HSM",
+      "isFree": true,
+      "website": "http://heavenseekersministry.org/",
+      "priority": 4
+    },
+    {
+      "name": "Jesus Saves",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Kings",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Love Revolution",
+      "isFree": true,
+      "website": "https://desertmedialimited.com/",
+      "priority": 4
+    },
+    {
+      "name": "Mabesh",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Maranatha",
+      "isFree": true,
+      "website": "http://www.maranathatvonline.com/",
+      "priority": 4
+    },
+    {
+      "name": "Mediation",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MOGPA",
+      "isFree": true,
+      "keywords": "mogpa tv -plus",
+      "website": "https://mogpa.org/",
+      "priority": 4
+    },
+    {
+      "name": "MOGPA TV Plus",
+      "isFree": true,
+      "website": "https://mogpatvplus.com/",
+      "priority": 4
+    },
+    {
+      "name": "Muslim Access Movement",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Nazareth",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "OB",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Ogyaba",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "OK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Ororo",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Passion",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "PCG",
+      "isFree": true,
+      "website": "https://pcgtvgh.com/",
+      "priority": 4
+    },
+    {
+      "name": "Pemsan",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Pent",
+      "isFree": true,
+      "website": "https://thecophq.org/pent-tv/",
+      "priority": 4
+    },
+    {
+      "name": "PowerlineTV",
+      "isFree": true,
+      "website": "https://www.royalhousechapel.org/",
+      "priority": 4
+    },
+    {
+      "name": "Praise",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TAC",
+      "isFree": true,
+      "website": "https://www.theapostolicchurch.org.gh/tac-tv/",
+      "priority": 4
+    },
+    {
+      "name": "Zoe",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "3Music",
+      "isFree": true,
+      "website": "https://www.3music.tv/",
+      "priority": 5
+    },
+    {
+      "name": "3rd",
+      "isFree": true,
+      "website": "https://3rdtv.live/",
+      "priority": 5
+    },
+    {
+      "name": "4Syte",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kasapa",
+      "isFree": true,
+      "website": "https://kasapafmonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Maxx Empire",
+      "isFree": true,
+      "website": "http://maxxempireonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mighty",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "The Base Gospel",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "AAU",
+      "isFree": true,
+      "website": "https://tv.aau.org/",
+      "priority": 5
+    },
+    {
+      "name": "Aseda",
+      "isFree": true,
+      "website": "http://www.asedatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "ATV",
+      "isFree": true,
+      "website": "https://amansantv.com/",
+      "priority": 5
+    },
+    {
+      "name": "CAFDIL",
+      "isFree": true,
+      "website": "https://cafdil.com/",
+      "priority": 5
+    },
+    {
+      "name": "Channel MOE",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DNT",
+      "isFree": true,
+      "website": "https://www.dntghana.com/",
+      "priority": 5
+    },
+    {
+      "name": "Faculty",
+      "isFree": true,
+      "website": "https://facultytvgh.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ghana Learning",
+      "isFree": true,
+      "website": "https://ges.gov.gh/",
+      "priority": 5
+    },
+    {
+      "name": "Globe",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Joy Learning",
+      "isFree": true,
+      "website": "https://mytunein.com/joylearningtv",
+      "priority": 5
+    },
+    {
+      "name": "Obonu",
+      "isFree": true,
+      "website": "https://www.gbcghanaonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Oseikrom",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pan African",
+      "isFree": true,
+      "website": "https://panafricantv.com/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "ABC News",
+      "isFree": true,
+      "website": "https://abcnewsgh.com/",
+      "priority": 5
+    },
+    {
+      "name": "AIT",
+      "isFree": true,
+      "website": "https://tvait.com/",
+      "priority": 5
+    },
+    {
+      "name": "Citi",
+      "isFree": true,
+      "website": "http://cititvonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "GBC News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Home",
+      "isFree": true,
+      "website": "https://homeradionews.com/",
+      "priority": 5
+    },
+    {
+      "name": "Joy News",
+      "isFree": true,
+      "website": "https://www.myjoyonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Lucky",
+      "isFree": true,
+      "website": "https://luckytvonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Net 2",
+      "isFree": true,
+      "website": "https://net2tvgh.com/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "AgyaPa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VSN Action",
+      "isFree": true,
+      "website": "https://viewsat.world/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "GNTV Junior",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kids Arena",
+      "isFree": true,
+      "website": "https://viewsat.world/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "GTV Sports +",
+      "isFree": true,
+      "website": "https://www.gbcghana.com/",
+      "priority": 10
+    }
+  ]
+}

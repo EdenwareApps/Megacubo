@@ -49,7 +49,7 @@ class PremiumHelper {
                 name: lang.RECORDINGS,
                 prepend: '<i class="fas fa-star faclr-purple"></i> ',
                 type: 'action', side: true,
-                fa: 'fas fa-folder',
+                fa: 'fas fa-play-circle',
                 action: this.action.bind(this)
             }, entries, [lang.TOOLS, lang.OPTIONS])
         }

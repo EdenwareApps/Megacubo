@@ -174,6 +174,7 @@ body:not(input):not(textarea) {
     position: absolute;
     justify-content: center;
     background-color: transparent;
+    transition: top 0.4s ease-in-out 0s;
 }
 body:not(.video) #main {
     background: linear-gradient(to bottom, transparent 0%, var(--alpha-background-color) calc(var(--menu-header-height) + var(--menu-padding-top) + (var(--menu-padding) * 4)));

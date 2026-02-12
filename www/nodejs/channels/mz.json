@@ -1,0 +1,291 @@
+{
+  "Entertainment": [
+    {
+      "name": "Record Internacional Mozambique",
+      "isFree": true,
+      "keywords": "record mozambique | tv miramar",
+      "priority": 10
+    },
+    {
+      "name": "TVM",
+      "isFree": true,
+      "keywords": "tvm -internacional",
+      "priority": 5
+    },
+    {
+      "name": "TVM Internacional",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "6TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Afro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 258",
+      "isFree": true,
+      "website": "https://canal258.co.mz/",
+      "priority": 5
+    },
+    {
+      "name": "Dual",
+      "isFree": true,
+      "website": "https://www.dualtv.net/",
+      "priority": 5
+    },
+    {
+      "name": "EcoTV",
+      "isFree": true,
+      "website": "http://www.ecotv.co.mz/",
+      "priority": 5
+    },
+    {
+      "name": "Focos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "FTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gungu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Limpopo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Luz",
+      "isFree": true,
+      "website": "https://www.luztvmoz.com/",
+      "priority": 5
+    },
+    {
+      "name": "M",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Media Mais",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mega",
+      "isFree": true,
+      "website": "https://mega.co.mz/",
+      "priority": 5
+    },
+    {
+      "name": "Mind Cast",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PSTV",
+      "isFree": true,
+      "website": "https://pstvmz.org/",
+      "priority": 5
+    },
+    {
+      "name": "RAM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Strong Live",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "STV",
+      "isFree": true,
+      "keywords": "stv -noticias",
+      "website": "https://stv.co.mz/",
+      "priority": 5
+    },
+    {
+      "name": "Top",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tua",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Gloria",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVM 2",
+      "isFree": true,
+      "website": "https://www.tvm.co.mz/",
+      "priority": 5
+    },
+    {
+      "name": "TV Miramar",
+      "isFree": true,
+      "website": "http://miramar.co.mz/",
+      "priority": 5
+    },
+    {
+      "name": "TVM Telescola",
+      "isFree": true,
+      "website": "https://www.tvm.co.mz/",
+      "priority": 5
+    },
+    {
+      "name": "TV Muniga",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Revolucao",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Sucesso",
+      "isFree": true,
+      "website": "https://www.tvsucesso.co.mz/",
+      "priority": 5
+    },
+    {
+      "name": "TV Vitoria",
+      "isFree": true,
+      "website": "https://www.vitoriacomunicacoes.site/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "TV Maná Moçambique",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Ebenezer",
+      "isFree": true,
+      "website": "https://ministeriodivinaesperanca.org/ebenezer-tv/",
+      "priority": 4
+    },
+    {
+      "name": "Haq",
+      "isFree": true,
+      "website": "http://www.haqtv.co.mz/",
+      "priority": 4
+    },
+    {
+      "name": "ITV",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "JTV",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Kingdom",
+      "isFree": true,
+      "website": "https://kingdom24.tv/",
+      "priority": 4
+    },
+    {
+      "name": "KTV",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Noor Televisao",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "RTV Alfa e Omega",
+      "isFree": true,
+      "website": "https://rtvam.co.mz/",
+      "priority": 4
+    },
+    {
+      "name": "TV Accao",
+      "isFree": true,
+      "website": "http://www.radioaccao.co.mz/",
+      "priority": 4
+    },
+    {
+      "name": "TV Mana Mocambique",
+      "isFree": true,
+      "website": "https://tvmana-mocambique.com/",
+      "priority": 4
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "CTV",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Gloom",
+      "isFree": true,
+      "website": "https://mosaik.co.mz/",
+      "priority": 5
+    },
+    {
+      "name": "Televisao Academica",
+      "isFree": true,
+      "website": "https://rtvam.co.mz/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Indico News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MBC",
+      "isFree": true,
+      "website": "https://mbc.co.mz/",
+      "priority": 5
+    },
+    {
+      "name": "STV Noticias",
+      "isFree": true,
+      "website": "https://stv.co.mz/",
+      "priority": 5
+    },
+    {
+      "name": "Visao Novo Mocambique",
+      "isFree": true,
+      "website": "https://tv.jornalvisaomoz.com/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Reino Infantil",
+      "isFree": true,
+      "website": "https://reinoinfantil.tv/",
+      "priority": 5
+    }
+  ]
+}

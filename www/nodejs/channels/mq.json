@@ -1,0 +1,109 @@
+{
+  "Religious": [
+    {
+      "name": "Espérance",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "APTV",
+      "isFree": true,
+      "website": "http://www.aptv.fr/",
+      "priority": 4
+    },
+    {
+      "name": "Esperance TV InterAmerique",
+      "isFree": true,
+      "website": "http://esperancetv.org/",
+      "priority": 4
+    },
+    {
+      "name": "Graphe",
+      "isFree": true,
+      "website": "https://www.graphetv.com/",
+      "priority": 4
+    },
+    {
+      "name": "TV Famille",
+      "isFree": true,
+      "website": "https://tvfamille.org/",
+      "priority": 4
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Martinique la 1ère",
+      "isFree": true,
+      "shortName": "ML",
+      "priority": 5
+    },
+    {
+      "name": "KMT",
+      "isFree": true,
+      "website": "https://www.kmttelevision.fr/",
+      "priority": 5
+    },
+    {
+      "name": "Madinina",
+      "isFree": true,
+      "website": "http://www.madininatv.com",
+      "priority": 5
+    },
+    {
+      "name": "Martinique 1ere",
+      "isFree": true,
+      "website": "https://la1ere.francetvinfo.fr/martinique/",
+      "priority": 5
+    },
+    {
+      "name": "ViaATV",
+      "isFree": true,
+      "website": "https://viaatv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Zitata",
+      "isFree": true,
+      "website": "https://zitata.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Zouk",
+      "isFree": true,
+      "website": "https://www.zouktv.com/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "FUSION",
+      "isFree": true,
+      "website": "https://fusiontv.fr/",
+      "priority": 5
+    },
+    {
+      "name": "Identite Tele Caraibes",
+      "isFree": true,
+      "website": "https://identiteradio.com/tv/",
+      "priority": 5
+    },
+    {
+      "name": "RBR",
+      "isFree": true,
+      "website": "http://www.rbrfm.com/rbr-tv",
+      "priority": 5
+    },
+    {
+      "name": "Sucre",
+      "isFree": true,
+      "website": "http://www.sucretv.fr/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Zoukla",
+      "isFree": true,
+      "website": "https://www.telezoukla.com/",
+      "priority": 5
+    }
+  ]
+}

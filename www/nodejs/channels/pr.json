@@ -1,0 +1,675 @@
+{
+  "Entertainment": [
+    {
+      "name": "América TeVé",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CDM International",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CDM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Noti Uno Puerto Rico",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pura Palabra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "WORO DT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ACS Network",
+      "isFree": true,
+      "website": "https://conectatetvpr.com/en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "America TeVe",
+      "isFree": true,
+      "website": "https://www.americatevepr.com/",
+      "priority": 5
+    },
+    {
+      "name": "Boricua",
+      "isFree": true,
+      "website": "https://www.boricuatv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Buena",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 85 de Liberty",
+      "isFree": true,
+      "website": "https://www.libertypr.com/es/mi-cuenta",
+      "priority": 5
+    },
+    {
+      "name": "CAtv",
+      "isFree": true,
+      "website": "http://caribbeanadvantage.com",
+      "priority": 5
+    },
+    {
+      "name": "CBS Puerto Rico",
+      "isFree": true,
+      "website": "https://puertoricocbs.com/",
+      "priority": 5
+    },
+    {
+      "name": "PRI",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/puerto-rico-isla-tv",
+      "priority": 5
+    },
+    {
+      "name": "Radio Yaucana",
+      "isFree": true,
+      "website": "https://radioyaucanatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Telenorte",
+      "isFree": true,
+      "website": "https://telenortepr.godaddysites.com/",
+      "priority": 5
+    },
+    {
+      "name": "TeleOnce",
+      "isFree": true,
+      "website": "https://teleonce.com/en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "WAPA DT",
+      "isFree": true,
+      "website": "http://www.televicentropr.com/",
+      "priority": 5
+    },
+    {
+      "name": "WIDP DT 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "WIMN",
+      "isFree": true,
+      "website": "http://www.paradisenetwork.tv/",
+      "priority": 5
+    },
+    {
+      "name": "WIPR DT",
+      "isFree": true,
+      "website": "http://tutv.puertorico.pr/",
+      "priority": 5
+    },
+    {
+      "name": "WJPX DT",
+      "isFree": true,
+      "website": "http://www.mundomaxpr.com/",
+      "priority": 5
+    },
+    {
+      "name": "WJWN DT",
+      "isFree": true,
+      "website": "https://transition.fcc.gov/fcc-bin/tvq?facid=58342",
+      "priority": 5
+    },
+    {
+      "name": "WKAQ DT",
+      "isFree": true,
+      "website": "http://www.telemundopr.com/",
+      "priority": 5
+    },
+    {
+      "name": "WKAQ DT 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "WKAQ DT 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "WKPV DT",
+      "isFree": true,
+      "website": "https://www.rabbitears.info/market.php?request=print_station&facility_id=58341",
+      "priority": 5
+    },
+    {
+      "name": "WLII DT",
+      "isFree": true,
+      "website": "http://univision.centennialpr.net/",
+      "priority": 5
+    },
+    {
+      "name": "WLII DT 2",
+      "isFree": true,
+      "website": "https://teleonce.com/",
+      "priority": 5
+    },
+    {
+      "name": "WMEI DT 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "WMTJ DT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "WNJX DT",
+      "isFree": true,
+      "website": "https://wapa.tv/",
+      "priority": 5
+    },
+    {
+      "name": "WNJX DT 3",
+      "isFree": true,
+      "website": "https://publicfiles.fcc.gov/tv-profile/WNJX-TV",
+      "priority": 5
+    },
+    {
+      "name": "WOLE DT",
+      "isFree": true,
+      "website": "https://teleonce.com/",
+      "priority": 5
+    },
+    {
+      "name": "WOLE DT 2",
+      "isFree": true,
+      "website": "https://publicfiles.fcc.gov/tv-profile/WOLE-DT",
+      "priority": 5
+    },
+    {
+      "name": "WORA DT",
+      "isFree": true,
+      "website": "https://abc.pr/",
+      "priority": 5
+    },
+    {
+      "name": "WORA DT 2",
+      "isFree": true,
+      "website": "https://www.woratv.com/",
+      "priority": 5
+    },
+    {
+      "name": "WORA DT 3",
+      "isFree": true,
+      "website": "https://enterpriseefiling.fcc.gov/dataentry/public/tv/publicFacilityDetails.html?facilityId=64865",
+      "priority": 5
+    },
+    {
+      "name": "WORA DT 4",
+      "isFree": true,
+      "website": "https://enterpriseefiling.fcc.gov/dataentry/public/tv/publicFacilityDetails.html?facilityId=64865",
+      "priority": 5
+    },
+    {
+      "name": "WOST DT 2",
+      "isFree": true,
+      "website": "https://publicfiles.fcc.gov/tv-profile/WOST",
+      "priority": 5
+    },
+    {
+      "name": "WOST DT 4",
+      "isFree": true,
+      "website": "https://publicfiles.fcc.gov/tv-profile/WOST",
+      "priority": 5
+    },
+    {
+      "name": "WRUA DT",
+      "isFree": true,
+      "website": "https://tivatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "WSJP LD 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "WSTE DT",
+      "isFree": true,
+      "website": "https://www.univision.com/local/puerto-rico-wlii",
+      "priority": 5
+    },
+    {
+      "name": "WSUR DT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "WTCV DT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "WVOZ DT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "WWXY DT",
+      "isFree": true,
+      "website": "https://www.boricuatv.net/",
+      "priority": 5
+    },
+    {
+      "name": "WXWZ LD",
+      "isFree": true,
+      "website": "https://mastvpr.com/",
+      "priority": 5
+    },
+    {
+      "name": "WITA",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "WMEI",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "WSJU",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Media of Puerto Rico",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Mayagüez",
+      "isFree": null,
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "CTNi",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Candelita",
+      "isFree": true,
+      "website": "https://candelita7.com/",
+      "priority": 4
+    },
+    {
+      "name": "CDM Internacional",
+      "isFree": true,
+      "website": "https://cdminternacional.com/",
+      "priority": 4
+    },
+    {
+      "name": "DNJ",
+      "isFree": true,
+      "website": "https://dnj.tv/",
+      "priority": 4
+    },
+    {
+      "name": "EBN Television",
+      "isFree": true,
+      "website": "https://ebnpr.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Familia Vision",
+      "isFree": true,
+      "website": "https://lafamiliadelafe.net/",
+      "priority": 4
+    },
+    {
+      "name": "Faro de Santidad",
+      "isFree": true,
+      "website": "https://farodesantidad.com",
+      "priority": 4
+    },
+    {
+      "name": "La Gran Carpa Catedral",
+      "isFree": true,
+      "website": "https://www.carpa.com/",
+      "priority": 4
+    },
+    {
+      "name": "Master Video",
+      "isFree": true,
+      "website": "https://www.mastervideopro.com/",
+      "priority": 4
+    },
+    {
+      "name": "NG Radio",
+      "isFree": true,
+      "website": "https://ng907fm.com/",
+      "priority": 4
+    },
+    {
+      "name": "Nueva Vida FM",
+      "isFree": true,
+      "website": "https://nuevavida.fm/",
+      "priority": 4
+    },
+    {
+      "name": "Paraiso",
+      "isFree": true,
+      "website": "https://paraisotv.org/",
+      "priority": 4
+    },
+    {
+      "name": "Radio Sol 98",
+      "isFree": true,
+      "website": "https://www.radiosol.org/",
+      "priority": 4
+    },
+    {
+      "name": "Salvacion",
+      "isFree": true,
+      "website": "http://www.salvaciontv.org/",
+      "priority": 4
+    },
+    {
+      "name": "Triunfo 96",
+      "isFree": true,
+      "website": "https://www.triunfo969.fm/",
+      "priority": 4
+    },
+    {
+      "name": "WCCV DT",
+      "isFree": true,
+      "website": "https://cdminternacional.com/",
+      "priority": 4
+    },
+    {
+      "name": "WCLO DT",
+      "isFree": true,
+      "website": "https://nuevavida.fm/",
+      "priority": 4
+    },
+    {
+      "name": "WDWL DT",
+      "isFree": true,
+      "website": "https://teleadoracion.org/",
+      "priority": 4
+    },
+    {
+      "name": "WDWL DT 2",
+      "isFree": true,
+      "website": "https://ejtv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "WECN",
+      "isFree": true,
+      "website": "https://canal64.tv/",
+      "priority": 4
+    },
+    {
+      "name": "WELU DT",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "WIDP DT",
+      "isFree": true,
+      "website": "https://ebnpr.tv/",
+      "priority": 4
+    },
+    {
+      "name": "WIDP DT 3",
+      "isFree": true,
+      "website": "https://ebnpr.tv/",
+      "priority": 4
+    },
+    {
+      "name": "WIRS DT 2",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "WLII DT 3",
+      "isFree": true,
+      "website": "https://teleonce.com/",
+      "priority": 4
+    },
+    {
+      "name": "WOLE DT 3",
+      "isFree": true,
+      "website": "https://publicfiles.fcc.gov/tv-profile/WOLE-DT",
+      "priority": 4
+    },
+    {
+      "name": "WORO DT 2",
+      "isFree": true,
+      "website": "https://www.canal13pr.tv/",
+      "priority": 4
+    },
+    {
+      "name": "WORO DT 4",
+      "isFree": true,
+      "website": "https://www.canal13pr.tv/",
+      "priority": 4
+    },
+    {
+      "name": "WTCV DT 2",
+      "isFree": true,
+      "website": "https://publicfiles.fcc.gov/tv-profile/WTCV",
+      "priority": 4
+    },
+    {
+      "name": "WUJA DT",
+      "isFree": true,
+      "website": "https://purapalabra.com/",
+      "priority": 4
+    },
+    {
+      "name": "WUJA DT 2",
+      "isFree": true,
+      "website": "https://purapalabra.com/",
+      "priority": 4
+    },
+    {
+      "name": "WUJA DT 3",
+      "isFree": true,
+      "website": "https://purapalabra.com/",
+      "priority": 4
+    },
+    {
+      "name": "WUJA DT 4",
+      "isFree": true,
+      "website": "https://purapalabra.com/",
+      "priority": 4
+    },
+    {
+      "name": "WVSN DT",
+      "isFree": true,
+      "website": "https://publicfiles.fcc.gov/tv-profile/WVSN",
+      "priority": 4
+    },
+    {
+      "name": "WWXY DT 3",
+      "isFree": true,
+      "website": "https://www.maranatharadioministries.com/",
+      "priority": 4
+    }
+  ],
+  "News": [
+    {
+      "name": "Conectate",
+      "isFree": true,
+      "website": "https://conectatetvpr.com/",
+      "priority": 5
+    },
+    {
+      "name": "DeFiance Media",
+      "isFree": true,
+      "website": "https://defiance.media/",
+      "priority": 5
+    },
+    {
+      "name": "NotiUno",
+      "isFree": true,
+      "website": "https://www.notiuno.com/notiuno-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Isla",
+      "isFree": true,
+      "website": "https://radioisla.tv/",
+      "priority": 5
+    },
+    {
+      "name": "WWXY DT 2",
+      "isFree": true,
+      "website": "https://www.boricuatv.net/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "La X",
+      "isFree": true,
+      "website": "https://lax.fm/portal/la-x-radio-visual/",
+      "priority": 5
+    },
+    {
+      "name": "The Retro",
+      "isFree": true,
+      "website": "http://www.theretrochannel.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Zeta 93",
+      "isFree": true,
+      "website": "https://www.lamusica.com/stations/wznt",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "UIA",
+      "isFree": true,
+      "website": "https://www.sg.inter.edu/news/inter-online-tv/",
+      "priority": 5
+    },
+    {
+      "name": "WIPM DT",
+      "isFree": true,
+      "website": "https://publicfiles.fcc.gov/tv-profile/WIPM-TV",
+      "priority": 5
+    },
+    {
+      "name": "WIPM DT 3",
+      "isFree": true,
+      "website": "https://publicfiles.fcc.gov/tv-profile/WIPM-TV",
+      "priority": 5
+    },
+    {
+      "name": "WIPR DT 2",
+      "isFree": true,
+      "website": "https://wipr.pr/",
+      "priority": 5
+    },
+    {
+      "name": "WMTJ DT 2",
+      "isFree": true,
+      "website": "https://sistematv.uagm.net/",
+      "priority": 5
+    },
+    {
+      "name": "WQTO DT",
+      "isFree": true,
+      "website": "https://publicfiles.fcc.gov/tv-profile/WQTO",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "WAPA DT 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "WAPA DT 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "WJWN DT 3",
+      "isFree": true,
+      "website": "https://www.rabbitears.info/market.php?request=print_station&facility_id=58342",
+      "priority": 5
+    },
+    {
+      "name": "WKPV DT 3",
+      "isFree": true,
+      "website": "https://www.rabbitears.info/market.php?request=print_station&facility_id=58341",
+      "priority": 5
+    },
+    {
+      "name": "WNJX DT 2",
+      "isFree": true,
+      "website": "https://wapa.tv/",
+      "priority": 5
+    },
+    {
+      "name": "WOST DT 6",
+      "isFree": true,
+      "website": "https://publicfiles.fcc.gov/tv-profile/WOST",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "WORO DT 3",
+      "isFree": true,
+      "website": "http://shabumplus.com/",
+      "priority": 5
+    },
+    {
+      "name": "WQTO DT 2",
+      "isFree": true,
+      "website": "https://publicfiles.fcc.gov/tv-profile/WQTO",
+      "priority": 5
+    }
+  ],
+  "Shop": [
+    {
+      "name": "WOST DT",
+      "isFree": true,
+      "website": "https://publicfiles.fcc.gov/tv-profile/WOST",
+      "priority": 4
+    },
+    {
+      "name": "WOST DT 3",
+      "isFree": true,
+      "website": "https://publicfiles.fcc.gov/tv-profile/WOST",
+      "priority": 4
+    }
+  ]
+}

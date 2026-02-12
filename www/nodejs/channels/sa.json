@@ -1,0 +1,950 @@
+{
+  "Religious": [
+    {
+      "name": "Ahlu Al Quran",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Al Quran Al Kareem",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Al Sunnah Al Nabawiyah",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Iqraa",
+      "isFree": true,
+      "keywords": "iqraa -europe -africa",
+      "priority": 4
+    },
+    {
+      "name": "Iqraa Europe Africa",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Kaif",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Makkah",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Wesal",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "ZAD",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Ahl-Alquran",
+      "isFree": true,
+      "website": "https://www.ahlu.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Al-Majd Al Hadeeth Al Nabawy",
+      "isFree": true,
+      "website": "https://almajdtv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Al-Majd Holy Quran",
+      "isFree": true,
+      "website": "https://almajdtv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Al-Majd Scientific",
+      "isFree": true,
+      "website": "https://almajdtv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Al Resalah",
+      "isFree": true,
+      "keywords": "al resalah -international",
+      "website": "https://www.alresalah.net/",
+      "priority": 4
+    },
+    {
+      "name": "Al Resalah International",
+      "isFree": true,
+      "website": "https://www.alresalah.net/",
+      "priority": 4
+    },
+    {
+      "name": "Al Sahraa",
+      "isFree": true,
+      "website": "http://www.alsahraa.tv/index.php",
+      "priority": 4
+    },
+    {
+      "name": "Iqraa Africa & Europe",
+      "isFree": true,
+      "website": "https://iqraa.com/",
+      "priority": 4
+    },
+    {
+      "name": "Iqraa Arabic",
+      "isFree": true,
+      "website": "https://iqraa.com/",
+      "priority": 4
+    },
+    {
+      "name": "Iqraa Duea Wabtihal",
+      "isFree": true,
+      "website": "https://www.iqraa.com/Live?type=5",
+      "priority": 4
+    },
+    {
+      "name": "Iqraa Mukhtarat",
+      "isFree": true,
+      "website": "https://www.iqraa.com/Live?type=4",
+      "priority": 4
+    },
+    {
+      "name": "Iqraa Quran",
+      "isFree": true,
+      "website": "https://iqraa.com/",
+      "priority": 4
+    },
+    {
+      "name": "Quran",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sad Satellite",
+      "isFree": true,
+      "website": "https://www.ssad.tv/live-tv/",
+      "priority": 4
+    }
+  ],
+  "News": [
+    {
+      "name": "Al Ekhbariya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Asharq",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Alam Al Yawm",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Arabiya English",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Hadath",
+      "isFree": true,
+      "website": "https://www.alhadath.net/",
+      "priority": 5
+    },
+    {
+      "name": "Asharq News",
+      "isFree": true,
+      "keywords": "asharq news -portrait",
+      "website": "https://asharq.com/",
+      "priority": 5
+    },
+    {
+      "name": "Asharq News Portrait",
+      "isFree": true,
+      "website": "https://asharq.com/",
+      "priority": 5
+    },
+    {
+      "name": "Asharq Radio",
+      "isFree": true,
+      "website": "https://asharqbusiness.com/radio/",
+      "priority": 5
+    },
+    {
+      "name": "Channel 24 Saudi",
+      "isFree": true,
+      "website": "https://24mediagroup.net/",
+      "priority": 5
+    },
+    {
+      "name": "Oyoun Al-Watan",
+      "isFree": true,
+      "website": "https://www.oyounalwatan.com/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Atfal Wa Mawaheb",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rotana Kids",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al-Majd Kids",
+      "isFree": true,
+      "website": "https://almajdtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Anime",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Atfal & Mawaheb",
+      "isFree": true,
+      "website": "https://atfal1.com/",
+      "priority": 5
+    }
+  ],
+  "Travel": [
+    {
+      "name": "Jasco Events",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "KSA Sports",
+      "priority": 10
+    },
+    {
+      "name": "KSA Sports 2",
+      "priority": 10
+    },
+    {
+      "name": "SSC Action Waleed",
+      "keywords": "ssc action waleed -extra",
+      "priority": 5
+    },
+    {
+      "name": "SSC Action Waleed Extra",
+      "priority": 5
+    },
+    {
+      "name": "SSC",
+      "priority": 5
+    },
+    {
+      "name": "Channel 24 Sports",
+      "isFree": true,
+      "website": "https://24mediagroup.net/%d9%82%d9%86%d8%a7%d8%a9-24-%d8%a7%d9%84%d8%b1%d9%8a%d8%a7%d8%b6%d9%8a%d8%a9",
+      "priority": 10
+    },
+    {
+      "name": "KSA Sports 3",
+      "isFree": true,
+      "website": "https://www.aloula.sa/live/ksa-sports3",
+      "priority": 10
+    },
+    {
+      "name": "KSA Sports 4",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "SSC 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SSC 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SSC 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SSC 5",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SSC Extra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SSC Extra 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SSC Extra 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SSC News",
+      "isFree": true,
+      "website": "https://ssc.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Thmanyah",
+      "isFree": true,
+      "website": "https://thmanyah.com/",
+      "priority": 5
+    },
+    {
+      "name": "Thmanyah 2",
+      "isFree": true,
+      "website": "https://thmanyah.com/",
+      "priority": 5
+    },
+    {
+      "name": "Thmanyah 3",
+      "isFree": true,
+      "website": "https://thmanyah.com/",
+      "priority": 5
+    }
+  ],
+  "Comedy": [
+    {
+      "name": "Rotana Comedy",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "AL HOKAIR Group",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Khalij",
+      "isFree": true,
+      "website": "https://www.al-khalij.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Al Saudiya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rotana Drama",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rotana+",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SBC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "22 Arab",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "7lim BIGOTV",
+      "isFree": true,
+      "website": "https://7lim.com/",
+      "priority": 5
+    },
+    {
+      "name": "Al Amaken",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Alkhuzama Radio",
+      "isFree": true,
+      "website": "https://radioplus.sba.sa/en/live/7",
+      "priority": 5
+    },
+    {
+      "name": "Al-Majd Al Tabeeaiyah",
+      "isFree": true,
+      "website": "https://almajdtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Al-Majd Public",
+      "isFree": true,
+      "website": "https://almajdtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Al Mergab",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Riyadh Radio",
+      "isFree": true,
+      "website": "https://www.aloula.sa/en/live/riyadhradio",
+      "priority": 5
+    },
+    {
+      "name": "Al Saudiya Alaan",
+      "isFree": true,
+      "website": "https://www.aloula.sa/live/ksa-now",
+      "priority": 5
+    },
+    {
+      "name": "Alwesam",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ART America",
+      "isFree": true,
+      "website": "https://www.artonline.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Ayat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bedaya",
+      "isFree": true,
+      "website": "http://www.bedaya.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Beity",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Besma",
+      "isFree": true,
+      "website": "https://almajdtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Big Time Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bin Othaimeen",
+      "isFree": true,
+      "website": "http://binothaimeen.net/channel/",
+      "priority": 5
+    },
+    {
+      "name": "Dahk wa Bass",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Duhk Wa Bas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Khaliji Comedy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LBC",
+      "isFree": true,
+      "website": "http://rotana.net/vod-channels/lbc/",
+      "priority": 5
+    },
+    {
+      "name": "Masah",
+      "isFree": true,
+      "website": "https://almajdtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MBC Gaming",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Qur'an Hidayah English",
+      "isFree": true,
+      "website": "http://www.quran-hidayah.com/main/en/",
+      "priority": 5
+    },
+    {
+      "name": "Quran Radio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ramez",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rawdah",
+      "isFree": true,
+      "website": "https://almajdtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Romance",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rotana Aflam+",
+      "isFree": true,
+      "website": "https://rotana.net/",
+      "priority": 5
+    },
+    {
+      "name": "Rotana America",
+      "isFree": true,
+      "website": "https://rotana.net/",
+      "priority": 5
+    },
+    {
+      "name": "Rotana Clip",
+      "isFree": true,
+      "website": "https://rotana.net/",
+      "priority": 5
+    },
+    {
+      "name": "Rotana D 7",
+      "isFree": true,
+      "website": "https://rotana.net/ar/channels#/live/rotana_D7kwbs",
+      "priority": 5
+    },
+    {
+      "name": "Rotana Sydtelshasha",
+      "isFree": true,
+      "website": "https://rotana.net/ar/channels#/live/rotana_Sydtelshasha",
+      "priority": 5
+    },
+    {
+      "name": "Saudia Radio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sayedat Alshasha",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Shareeyah",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sunna",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Waqie",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Rotana Khalijia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Abdulmajeed Abdullah",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ART Tarab",
+      "isFree": true,
+      "website": "https://www.artonline.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Fairuz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Jeddah Radio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Majid Al Mohandis",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MBC Loud",
+      "isFree": true,
+      "website": "https://mbcloud.fm",
+      "priority": 5
+    },
+    {
+      "name": "Mohammed Abdo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "M+",
+      "isFree": true,
+      "website": "https://rotana.net/",
+      "priority": 5
+    },
+    {
+      "name": "Nidae AlIslam Radio",
+      "isFree": true,
+      "website": "https://www.aloula.sa/en/live/nidaalislam",
+      "priority": 5
+    },
+    {
+      "name": "Rabeh Saqer",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rashid AlMajed",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rotana FM KSA",
+      "isFree": true,
+      "website": "https://rotanaradios.com/",
+      "priority": 5
+    },
+    {
+      "name": "Rotana Music",
+      "isFree": true,
+      "website": "https://rotana.net/",
+      "priority": 5
+    },
+    {
+      "name": "Tarab",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Rotana Cinema",
+      "keywords": "rotana cinema -ksa",
+      "priority": 5
+    },
+    {
+      "name": "Rotana Cinema KSA",
+      "priority": 5
+    },
+    {
+      "name": "Rotana Classic",
+      "priority": 5
+    },
+    {
+      "name": "Thikrayat",
+      "priority": 5
+    },
+    {
+      "name": "Aflam",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ART Aflam",
+      "isFree": true,
+      "website": "https://www.artonline.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ART Aflam 2",
+      "isFree": true,
+      "website": "https://www.artonline.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Art Cima",
+      "isFree": true,
+      "website": "https://my.dish.com/station/ARTCM",
+      "priority": 5
+    },
+    {
+      "name": "ART Cinema",
+      "isFree": true,
+      "website": "https://www.artonline.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ART Hekayat",
+      "isFree": true,
+      "keywords": "art hekayat -2",
+      "website": "https://www.artonline.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ART Hekayat 2",
+      "isFree": true,
+      "website": "https://www.artonline.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Bab Al Hara",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Drama Badawia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Maraya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MBC Masr Drama",
+      "isFree": true,
+      "website": "https://www.mbc.net/",
+      "priority": 5
+    },
+    {
+      "name": "MBC Max",
+      "isFree": true,
+      "website": "https://www.mbc.net/pages/mbc-max/",
+      "priority": 5
+    },
+    {
+      "name": "MBC+ Drama",
+      "isFree": true,
+      "website": "https://www.mbc.net/channels/mbc-drama-plus",
+      "priority": 5
+    },
+    {
+      "name": "Movies Action",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Movies Thriller",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Spooky Nights",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "MBC FM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Panorama FM",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Al-Majd Documentary",
+      "isFree": true,
+      "website": "https://almajdtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Asharq Discovery",
+      "isFree": true,
+      "website": "https://asharqdiscovery.com",
+      "priority": 7
+    },
+    {
+      "name": "Asharq Documentary",
+      "isFree": true,
+      "website": "https://now.asharq.com/%D9%85%D8%A8%D8%A7%D8%B4%D8%B1-%D8%A7%D9%84%D8%B4%D8%B1%D9%82-%D8%A7%D9%84%D9%88%D8%AB%D8%A7%D8%A6%D9%82%D9%8A%D8%A9",
+      "priority": 5
+    },
+    {
+      "name": "IEN Doros",
+      "isFree": true,
+      "website": "http://www.ientv.edu.sa/",
+      "priority": 5
+    },
+    {
+      "name": "IEN Doros 10",
+      "isFree": true,
+      "website": "http://www.ientv.edu.sa/",
+      "priority": 5
+    },
+    {
+      "name": "IEN Doros 11",
+      "isFree": true,
+      "website": "http://www.ientv.edu.sa/",
+      "priority": 5
+    },
+    {
+      "name": "IEN Doros 12",
+      "isFree": true,
+      "website": "http://www.ientv.edu.sa/",
+      "priority": 5
+    },
+    {
+      "name": "IEN Doros 13",
+      "isFree": true,
+      "website": "http://www.ientv.edu.sa/",
+      "priority": 5
+    },
+    {
+      "name": "IEN Doros 14",
+      "isFree": true,
+      "website": "http://www.ientv.edu.sa/",
+      "priority": 5
+    },
+    {
+      "name": "IEN Doros 15",
+      "isFree": true,
+      "website": "http://www.ientv.edu.sa/",
+      "priority": 5
+    },
+    {
+      "name": "IEN Doros 16",
+      "isFree": true,
+      "website": "http://www.ientv.edu.sa/",
+      "priority": 5
+    },
+    {
+      "name": "IEN Doros 17",
+      "isFree": true,
+      "website": "http://www.ientv.edu.sa/",
+      "priority": 5
+    },
+    {
+      "name": "IEN Doros 18",
+      "isFree": true,
+      "website": "http://www.ientv.edu.sa/",
+      "priority": 5
+    },
+    {
+      "name": "IEN Doros 19",
+      "isFree": true,
+      "website": "http://www.ientv.edu.sa/",
+      "priority": 5
+    },
+    {
+      "name": "IEN Doros 2",
+      "isFree": true,
+      "website": "http://www.ientv.edu.sa/",
+      "priority": 5
+    },
+    {
+      "name": "IEN Doros 20",
+      "isFree": true,
+      "website": "http://www.ientv.edu.sa/",
+      "priority": 5
+    },
+    {
+      "name": "IEN Doros 21",
+      "isFree": true,
+      "website": "http://www.ientv.edu.sa/",
+      "priority": 5
+    },
+    {
+      "name": "IEN Doros 22",
+      "isFree": true,
+      "website": "http://www.ientv.edu.sa/",
+      "priority": 5
+    },
+    {
+      "name": "IEN Doros 23",
+      "isFree": true,
+      "website": "http://www.ientv.edu.sa/",
+      "priority": 5
+    },
+    {
+      "name": "IEN Doros 3",
+      "isFree": true,
+      "website": "http://www.ientv.edu.sa/",
+      "priority": 5
+    },
+    {
+      "name": "IEN Doros 4",
+      "isFree": true,
+      "website": "http://www.ientv.edu.sa/",
+      "priority": 5
+    },
+    {
+      "name": "IEN Doros 5",
+      "isFree": true,
+      "website": "http://www.ientv.edu.sa/",
+      "priority": 5
+    },
+    {
+      "name": "IEN Doros 6",
+      "isFree": true,
+      "website": "http://www.ientv.edu.sa/",
+      "priority": 5
+    },
+    {
+      "name": "IEN Doros 7",
+      "isFree": true,
+      "website": "http://www.ientv.edu.sa/",
+      "priority": 5
+    },
+    {
+      "name": "IEN Doros 8",
+      "isFree": true,
+      "website": "http://www.ientv.edu.sa/",
+      "priority": 5
+    },
+    {
+      "name": "IEN Doros 9",
+      "isFree": true,
+      "website": "http://www.ientv.edu.sa/",
+      "priority": 5
+    },
+    {
+      "name": "Saudi Thaqafiya",
+      "isFree": true,
+      "website": "http://thaqafiyatv.sa/",
+      "priority": 5
+    }
+  ]
+}

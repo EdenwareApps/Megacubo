@@ -11,6 +11,7 @@ import cloud from "../cloud/cloud.js";
 import ytsr from 'ytsr'
 import config from "../config/config.js"
 import renderer from '../bridge/bridge.js'
+import paths from '../paths/paths.js'
 import { match, terms, sort, findSuggestions } from '../lists/tools.js';
 
 class SearchTermsHistory {
@@ -32,7 +33,7 @@ class SearchTermsHistory {
         this.get().then(vs => {
             vs = vs.filter(v => v != tms).slice((this.maxlength - 1) * -1);
             vs.push(tms);
-            storage.set(this.key, vs, { expiration: true });
+            storage.set(this.key, vs, { expiration: true, personal: true });
         });
     }
     async terms() {
@@ -66,7 +67,7 @@ class Search extends EventEmitter {
             cacheSize: 1000
         };
     }
-    entriesLive() {
+    getMenuEntriesForLive() {
         if (this.currentSearchType != 'live') {
             this.currentSearchType = 'live';
             this.searchMediaType = 'live';
@@ -76,7 +77,7 @@ class Search extends EventEmitter {
             if (this.currentEntries) {
                 return resolve(this.currentEntries);
             }
-            this.searchSuggestionEntries().then(es => {
+            this.getPopularSearchTerms().then(es => {
                 const { parentalControl } = lists;
                 es = es.map(e => {
                     return {
@@ -86,7 +87,7 @@ class Search extends EventEmitter {
                 });
                 es = es.map(e => this.channels.toMetaEntry(e, false));
                 es = parentalControl.filter(es, true);
-                es = this.addFixedEntries(this.currentSearchType, es);
+                es = this.withSearchActions(this.currentSearchType, es);
                 resolve(es);
             }).catch(err => {
                 console.error(err);
@@ -94,7 +95,7 @@ class Search extends EventEmitter {
             });
         });
     }
-    entries() {
+    getMenuEntriesForAll() {
         if (this.currentSearchType != 'all') {
             this.currentSearchType = 'all';
             this.searchMediaType = 'all';
@@ -104,175 +105,145 @@ class Search extends EventEmitter {
             if (this.currentEntries) {
                 return resolve(this.currentEntries);
             }
-            resolve(this.addFixedEntries(this.currentSearchType, []));
+            resolve(this.withSearchActions(this.currentSearchType, []));
         });
     }
-    async go(value, mediaType, excludeUrls) {
-        if (!value)
-            return false;
-        if (!mediaType) {
-            mediaType = 'all';
+
+    /**
+     * Merges a layer's results into allResults: deduplicates by url/name, limits to remaining slots,
+     * mutates allResults and searchSources. Used by fetchSearchResults.
+     */
+    mergeLayerResults(allResults, searchSources, newItems, sourceLabel, { excludeUrls } = {}) {
+        if (!newItems || newItems.length === 0) return 0;
+        const unique = newItems.filter(
+            item => !allResults.some(ex => ex.url === item.url || ex.name === item.name) &&
+                (!excludeUrls || !excludeUrls.has(item.url))
+        );
+        const remaining = this.resultsAmountLimit - allResults.length;
+        const toAdd = unique.slice(0, remaining);
+        if (toAdd.length > 0) {
+            allResults.push(...toAdd);
+            searchSources.push(`${sourceLabel}: ${toAdd.length}`);
         }
-        
-        osd.show(lang.SEARCHING, 'fas fa-search busy-x', 'search', 'persistent');
-        
-        let allResults = [];
-        let searchSources = [];
-        
-        try {
-            // Estratégia de busca em camadas para maximizar resultados
-            // Camada 1: Busca Live (sempre tentar primeiro)
+        return toAdd.length;
+    }
+
+    /**
+     * Fetches search results from all layers (live, EPG, lists+YouTube, suggestions).
+     * Returns { results, searchSources }. No UI side effects.
+     */
+
+    async fetchSearchResults(value, mediaType, excludeUrls) {
+        const allResults = [];
+        const searchSources = [];
+
+        if (mediaType === 'live') {
             console.log('🔍 Layer 1: Searching live channels...');
-            const liveResults = mediaType == 'live' ? await this.channelsResults(value).catch(e => {
+            const live = await this.fetchLiveResults(value).catch(e => {
                 console.warn('Live search failed:', e);
                 return [];
-            }) : [];
-            
-            if (liveResults.length > 0) {
-                allResults.push(...liveResults);
-                searchSources.push(`Live: ${liveResults.length}`);
-                console.log(`✅ Live results: ${liveResults.length}, Total: ${allResults.length}`);
-            }
-            
-            // Continuar buscando até atingir o limite máximo
-            if (allResults.length < this.resultsAmountLimit && mediaType == 'live') {
-                console.log('🔍 Layer 2: Searching EPG...');
-                const epgResults = await this.channels.epgSearch(value).catch(e => {
-                    console.warn('EPG search failed:', e);
-                    return [];
-                });
-                
-                if (epgResults.length > 0) {
-                    // FP: Evitar duplicatas entre live e EPG
-                    const uniqueEpgResults = epgResults.filter(epgItem => 
-                        !allResults.some(existingItem => 
-                            existingItem.url === epgItem.url || existingItem.name === epgItem.name
-                        )
-                    );
-                    
-                    if (uniqueEpgResults.length > 0) {
-                        // Limitar resultados se exceder o máximo
-                        const remainingSlots = this.resultsAmountLimit - allResults.length;
-                        const limitedEpgResults = uniqueEpgResults.slice(0, remainingSlots);
-                        
-                        allResults.push(...limitedEpgResults);
-                        searchSources.push(`EPG: ${limitedEpgResults.length}`);
-                        console.log(`✅ EPG results: ${limitedEpgResults.length}, Total: ${allResults.length}`);
-                    }
-                }
-            }
-            
-            // Continuar buscando se ainda há espaço
-            if (allResults.length < this.resultsAmountLimit) {
-                console.log('🔍 Layer 3: Searching all content...');
-                const allResults_search = await this.results(value, { type: mediaType, group: mediaType === 'all' }, excludeUrls).catch(e => {
-                    console.warn('All search failed:', e);
-                    return [];
-                });
-                
-                if (allResults_search.length > 0) {
-                    // FP: Evitar duplicatas
-                    const uniqueAllResults = allResults_search.filter(allItem => 
-                        !allResults.some(existingItem => 
-                            existingItem.url === allItem.url || existingItem.name === allItem.name
-                        ) && 
-                        (!excludeUrls || !excludeUrls.has(allItem.url))
-                    );
-                    
-                    if (uniqueAllResults.length > 0) {
-                        // Limitar resultados se exceder o máximo
-                        const remainingSlots = this.resultsAmountLimit - allResults.length;
-                        const limitedAllResults = uniqueAllResults.slice(0, remainingSlots);
-                        
-                        allResults.push(...limitedAllResults);
-                        searchSources.push(`All: ${limitedAllResults.length}`);
-                        console.log(`✅ All results: ${limitedAllResults.length}, Total: ${allResults.length}`);
-                    }
-                }
-            }
-            
-            // Adicionar sugestões se ainda há espaço e poucos resultados
-            if (allResults.length < this.resultsAmountLimit && allResults.length < 20) {
-                console.log('🔍 Layer 4: Adding suggestions...');
-                const suggestions = await this.searchWithSuggestions(value, { mediaType }).catch(e => {
-                    console.warn('Suggestions failed:', e);
-                    return [];
-                });
-                
-                if (suggestions.length > 0) {
-                    // Limitar sugestões se exceder o máximo
-                    const remainingSlots = this.resultsAmountLimit - allResults.length;
-                    const limitedSuggestions = suggestions.slice(0, remainingSlots);
-                    
-                    allResults.push(...limitedSuggestions);
-                    searchSources.push(`Suggestions: ${limitedSuggestions.length}`);
-                    console.log(`✅ Suggestions: ${limitedSuggestions.length}, Total: ${allResults.length}`);
-                }
-            }
-            
-            // Finalizar busca
+            });
+            this.mergeLayerResults(allResults, searchSources, live, 'Live', { excludeUrls });
+        }
+
+        if (allResults.length < this.resultsAmountLimit && mediaType === 'live') {
+            console.log('🔍 Layer 2: Searching EPG...');
+            const epg = await this.channels.epgSearch(value).catch(e => {
+                console.warn('EPG search failed:', e);
+                return [];
+            });
+            this.mergeLayerResults(allResults, searchSources, epg, 'EPG', { excludeUrls });
+        }
+
+        if (allResults.length < this.resultsAmountLimit) {
+            console.log('🔍 Layer 3: Searching all content...');
+            const allContent = await this.searchListsAndUpdateState(value, { type: mediaType, group: mediaType === 'all' }, excludeUrls).catch(e => {
+                console.warn('All search failed:', e);
+                return [];
+            });
+            this.mergeLayerResults(allResults, searchSources, allContent, 'All', { excludeUrls });
+        }
+
+        if (allResults.length < this.resultsAmountLimit && allResults.length < 20) {
+            console.log('🔍 Layer 4: Adding suggestions...');
+            const suggestions = await this.getResultsWithQuerySuggestions(value, { mediaType }).catch(e => {
+                console.warn('Suggestions failed:', e);
+                return [];
+            });
+            this.mergeLayerResults(allResults, searchSources, suggestions, 'Suggestions', {});
+        }
+
+        console.log(`🎯 Final results: ${allResults.length}/${this.resultsAmountLimit} (sources: ${searchSources.join(', ')})`);
+        if (!allResults.length) {
+            allResults.push({
+                name: lang.NO_RESULTS_FOUND,
+                details: lang.TRY_DIFFERENT_TERMS,
+                type: 'info',
+                fa: 'fas fa-info-circle',
+                prepend: '<i class="fas fa-info-circle"></i> '
+            });
+        }
+        return { results: allResults, searchSources };
+    }
+
+    async runSearch(value, mediaType, excludeUrls) {
+        if (!value) return false;
+        if (!mediaType) mediaType = 'all';
+
+        osd.show(lang.SEARCHING, 'fas fa-search busy-x', 'search', 'persistent');
+
+        try {
+            const { results, searchSources } = await this.fetchSearchResults(value, mediaType, excludeUrls);
+
             osd.hide('search');
-            
-            console.log(`🎯 Final results: ${allResults.length}/${this.resultsAmountLimit} (sources: ${searchSources.join(', ')})`);
-            
-            // Emitir evento de busca
             this.emit('search', { query: value });
-            
-            // Configurar menu se necessário
-            if (!menu.path) {
-                menu.path = lang.SEARCH;
-            }
-            
-            // Renderizar resultados
-            const resultsCount = allResults.length;
-            menu.render(this.addFixedEntries(mediaType, allResults, excludeUrls), menu.path, {
+            if (!menu.path) menu.path = lang.SEARCH;
+
+            menu.render(this.withSearchActions(mediaType, results, excludeUrls), menu.path, {
                 icon: 'fas fa-search',
                 backTo: '/'
             });
-            
-            // Mostrar notificação de resultados
-            if (resultsCount > 0) {
-                osd.show(lang.X_RESULTS.format(resultsCount), 'fas fa-check-circle', 'search', 'short');
+
+            if (results.length > 0) {
+                osd.show(lang.X_RESULTS.format(results.length), 'fas fa-check-circle', 'search', 'short');
             } else {
                 osd.show(lang.NO_RESULTS_FOUND, 'fas fa-info-circle', 'search', 'normal');
             }
-            
-            // Adicionar ao histórico
+
             this.history.add(value);
             return true;
-            
         } catch (err) {
-            // Erro na busca
             console.error('Search error:', err);
             osd.hide('search');
             menu.displayErr(err);
             return false;
         }
     }
-    refresh() {
+
+    rerunSearch() {
         if (this.currentSearch) {
-            this.go(this.currentSearch.name, this.currentSearchType);
+            this.runSearch(this.currentSearch.name, this.currentSearchType);
         }
     }
-    mediaTypeName() {
+    getMediaTypeLabel() {
         let type = String(this.searchMediaType).toUpperCase();
         if (typeof(lang[type]) == 'string') {
             type = lang[type];
         }
         return type;
     }
-    addFixedEntries(mediaType, es) {
+    withSearchActions(mediaType, es) {
         es.unshift({
             name: lang.NEW_SEARCH,
-            details: this.mediaTypeName(),
+            details: this.getMediaTypeLabel(),
             type: 'input',
             fa: 'fas fa-search',
             action: (e, value) => {
                 console.log('new search', e, value, mediaType);
-                this.go(value, mediaType);
+                this.runSearch(value, mediaType);
             },
             value: () => {
-                return this.defaultTerms();
+                return this.getCurrentQuery();
             },
             placeholder: lang.SEARCH_PLACEHOLDER
         });
@@ -284,7 +255,7 @@ class Search extends EventEmitter {
                     type: 'action',
                     fa: 'fas fa-search-plus',
                     action: async () => {
-                        this.go(this.currentSearch.name, 'all', new Set(es.map(e => e.url)))
+                        this.runSearch(this.currentSearch.name, 'all', new Set(es.map(e => e.url)))
                     }
                 });
             }
@@ -293,7 +264,7 @@ class Search extends EventEmitter {
     }
     
     // Fase 2: Métodos para cache e sugestões
-    async getValidTermsForList(listUrl) {
+    async getIndexedTermsForList(listUrl) {
         if (this.validTermsCache.has(listUrl)) {
             return this.validTermsCache.get(listUrl);
         }
@@ -323,12 +294,12 @@ class Search extends EventEmitter {
         return new Set();
     }
     
-    async getAllValidTerms() {
+    async getIndexedTermsFromAllLists() {
         const allTerms = new Set();
         
         for (const [url, list] of Object.entries(lists.lists || {})) {
             try {
-                const terms = await this.getValidTermsForList(url);
+                const terms = await this.getIndexedTermsForList(url);
                 terms.forEach(term => allTerms.add(term));
             } catch (err) {
                 console.warn('Error getting terms from list:', url, err);
@@ -338,11 +309,11 @@ class Search extends EventEmitter {
         return allTerms;
     }
     
-    getCachedSuggestions(searchTerm) {
+    getSuggestionsFromCache(searchTerm) {
         return this.suggestionCache.get(searchTerm.toLowerCase());
     }
-    
-    setCachedSuggestions(searchTerm, suggestions) {
+
+    setSuggestionsCache(searchTerm, suggestions) {
         // Limitar tamanho do cache
         if (this.suggestionCache.size >= this.suggestionConfig.cacheSize) {
             const firstKey = this.suggestionCache.keys().next().value;
@@ -352,28 +323,17 @@ class Search extends EventEmitter {
         this.suggestionCache.set(searchTerm.toLowerCase(), suggestions);
     }
     
-    async findSuggestionsForTerm(searchTerm) {
-        // Verificar cache primeiro
-        const cached = this.getCachedSuggestions(searchTerm);
-        if (cached) {
-            return cached;
-        }
-        
+    async getQuerySuggestions(searchTerm) {
+        const cached = this.getSuggestionsFromCache(searchTerm);
+        if (cached) return cached;
+
         try {
-            const validTerms = await this.getAllValidTerms();
-            
-            // Estratégia 1: Buscar sugestões para a frase completa
+            const validTerms = await this.getIndexedTermsFromAllLists();
             let suggestions = findSuggestions(searchTerm, validTerms, this.suggestionConfig);
-            
-            // Estratégia 2: Se não encontrou sugestões para a frase completa,
-            // tentar corrigir palavras individuais na frase
             if (suggestions.length === 0 && searchTerm.includes(' ')) {
-                suggestions = await this.findWordCorrectionSuggestions(searchTerm, validTerms);
+                suggestions = await this.getWordCorrectionSuggestions(searchTerm, validTerms);
             }
-            
-            // Cache das sugestões
-            this.setCachedSuggestions(searchTerm, suggestions);
-            
+            this.setSuggestionsCache(searchTerm, suggestions);
             return suggestions;
         } catch (err) {
             console.warn('Error finding suggestions:', err);
@@ -381,7 +341,7 @@ class Search extends EventEmitter {
         }
     }
     
-    async findWordCorrectionSuggestions(searchTerm, validTerms) {
+    async getWordCorrectionSuggestions(searchTerm, validTerms) {
         const words = searchTerm.split(' ');
         const suggestions = [];
         
@@ -430,13 +390,13 @@ class Search extends EventEmitter {
         return uniqueSuggestions.slice(0, this.suggestionConfig.maxSuggestions);
     }
     
-    async searchWithSuggestions(terms, options = {}) {
+    async getResultsWithQuerySuggestions(terms, options = {}) {
         // 1. Tentar busca normal primeiro
-        let results = await this.search(terms, options);
+        let results = await this.searchLists(terms, options);
         
         // 2. Se não encontrou resultados, buscar sugestões
         if (results.length === 0) {
-            const suggestions = await this.findSuggestionsForTerm(terms);
+            const suggestions = await this.getQuerySuggestions(terms);
             
             if (suggestions.length > 0) {
                 // 3. Adicionar entrada de sugestão principal
@@ -447,7 +407,7 @@ class Search extends EventEmitter {
                         `"${mainSuggestion.originalWord}" → "${mainSuggestion.correctedWord}"` : 
                         `Score: ${(mainSuggestion.score * 100).toFixed(1)}%`,
                     type: 'action',
-                    action: () => this.go(mainSuggestion.term, options.mediaType || this.searchMediaType),
+                    action: () => this.runSearch(mainSuggestion.term, options.mediaType || this.searchMediaType),
                     fa: 'fas fa-lightbulb',
                     prepend: '<i class="fas fa-lightbulb"></i> '
                 };
@@ -463,32 +423,23 @@ class Search extends EventEmitter {
                             `"${suggestion.originalWord}" → "${suggestion.correctedWord}"` : 
                             `Score: ${(suggestion.score * 100).toFixed(1)}%`,
                         type: 'action',
-                        action: () => this.go(suggestion.term, options.mediaType || this.searchMediaType),
+                        action: () => this.runSearch(suggestion.term, options.mediaType || this.searchMediaType),
                         fa: 'fas fa-lightbulb',
                         prepend: '<i class="fas fa-lightbulb"></i> '
                     });
                 }
-            } else {
-                // 5. Se não há sugestões, mostrar mensagem amigável
-                results.push({
-                    name: lang.NO_RESULTS_FOUND,
-                    details: lang.TRY_DIFFERENT_TERMS,
-                    type: 'info',
-                    fa: 'fas fa-info-circle',
-                    prepend: '<i class="fas fa-info-circle"></i> '
-                });
             }
         }
         
         return results;
     }
     
-    async searchGroups(tms) {
+    async findMatchingGroups(tms) {
         if (!Array.isArray(tms)) {
             tms = terms(tms)
         }
         const map = {}, entries = []        
-        const es = await this.search(tms, {groupsOnly: true})
+        const es = await this.searchLists(tms, {groupsOnly: true})
         for (const e of es) {
             if (!Array.isArray(e.groupTerms) || !e.groupTerms.length || !match(tms, e.groupTerms)) {
                 continue;
@@ -507,16 +458,21 @@ class Search extends EventEmitter {
         }
         return sort(entries)
     }
-    async search(terms, atts = {}, excludeUrls) {        
-        const policy = config.get('parental-control');
-        const parentalControlActive = ['remove', 'block'].includes(policy);
-        const isAdultQueryBlocked = policy == 'remove' && !lists.parentalControl.allow(terms);
+    async searchLists(tms, atts = {}, excludeUrls) {        
+        // Normalize terms to array for consistency
+        if (typeof tms === 'string') {
+            tms = terms(tms);
+        }
+        
+        // Parental control is always active (block behavior)
+        const parentalControlActive = true;
+        const isAdultQueryBlocked = !lists.parentalControl.allow(tms);
         const opts = {
             partial: this.searchInaccurate,
             type: this.searchMediaType,
             typeStrict: this.searchStrict,
             group: this.searchMediaType != 'live',
-            parentalControl: policy == 'remove' ? false : undefined // allow us to count blocked results
+            parentalControl: false // Always filter blocked results
         };
         Object.assign(opts, atts);
         if (typeof(opts.limit) != 'number') {
@@ -525,9 +481,9 @@ class Search extends EventEmitter {
         if (excludeUrls) {
             opts.limit += excludeUrls.size
         }
-        console.log('will search', terms, opts);
-        let es = await lists.search(terms, opts);
-        console.log('has searched', es.length, {terms, parentalControlActive, isAdultQueryBlocked, excludeUrls});
+        console.log('will search', tms, opts);
+        let es = await lists.search(tms, opts);
+        console.log('has searched', es.length, {terms: tms, parentalControlActive, isAdultQueryBlocked, excludeUrls});
         if (excludeUrls) {
             es = es.filter(e => !excludeUrls.has(e.url));
         }
@@ -535,7 +491,7 @@ class Search extends EventEmitter {
             es = [
                 {
                     prepend: '<i class="fas fa-info-circle"></i> ',
-                    name: lang.X_BLOCKED_RESULTS.format(es.length),
+                    name: lang.X_BLOCKED_RESULTS.format(es.length || 'X'),
                     details: lang.ADULT_CONTENT_BLOCKED,
                     fa: 'fas fa-lock',
                     type: 'action',
@@ -547,25 +503,28 @@ class Search extends EventEmitter {
         } else {
             this.currentResults = es.slice(0)
             const minResultsWanted = 256
+            let ys = [];
             if (config.get('search-youtube') && es.length < minResultsWanted) {
-                let ys = await this[this.searchMediaType == 'live' ? 'ytLiveResults' : 'ytResults'](terms).catch(err => console.error(err));
-                Array.isArray(ys) && es.push(...ys)
+                // Parallelize YouTube search with lists search (though lists.search is already done, but for future optimization)
+                ys = await this[this.searchMediaType == 'live' ? 'fetchYouTubeLive' : 'fetchYouTubeVideos'](terms).catch(err => console.error(err));
             }
-            if (es.length) {
+            Array.isArray(ys) && es.push(...ys)
+            // Conditionally apply parental filter only if opts.parentalControl is true
+            if (opts.parentalControl && es.length) {
                 es = lists.parentalControl.filter(es);
             }
         }
         console.log('search: results finished', es);
         return es;
     }
-    async results(terms, opts = {}, excludeUrls) {
+    async searchListsAndUpdateState(terms, opts = {}, excludeUrls) {
         let u = ucWords(terms);
         this.currentSearch = {
             name: u,
             url: mega.build(u, { terms, mediaType: this.searchMediaType })
         };
         
-        const es = await this.search(terms, opts, excludeUrls);
+        const es = await this.searchLists(terms, opts, excludeUrls);
         renderer.ui.emit('current-search', terms, this.searchMediaType);
         if (!lists.loaded(true)) {
             if (paths.ALLOW_ADDING_LISTS) {
@@ -575,78 +534,90 @@ class Search extends EventEmitter {
         }
         return es;
     }
-    fixYTTitles(name) {
+    sanitizeYouTubeTitle(name) {
         return name.replaceAll('/', '|');
     }
-    async ytResults(tms) {
-        let terms = tms;
-        if (Array.isArray(terms)) {
-            terms = terms.join(' ');
-        }
-        const filters = await ytsr.getFilters(terms);
-        const filter = filters.get('Type').get('Video');
-        const options = {
-            pages: 2,
-            gl: lang.countryCode.toUpperCase(),
-            hl: lang.locale,
-            requestOptions: {
-                rejectUnauthorized: false,
-                transform: (parsed) => {
-                    return Object.assign(parsed, {
-                        rejectUnauthorized: false
-                    });
+    async fetchYouTubeVideos(tms) {
+        if (!tms) return [];
+        if (typeof tms === 'string') tms = [tms];
+        if (!Array.isArray(tms) || !tms.length) return [];
+        let terms = tms.join(' ').trim();
+        if (!terms) return [];
+        try {
+            const filters = await ytsr.getFilters(terms);
+            const filter = filters.get('Type')?.get('Videos'); // Changed 'Video' to 'Videos'
+            if (!filter || !filter.url) return [];
+            const options = {
+                pages: 2,
+                gl: lang.countryCode.toUpperCase(),
+                hl: lang.locale,
+                requestOptions: {
+                    rejectUnauthorized: false,
+                    transform: (parsed) => {
+                        return Object.assign(parsed, {
+                            rejectUnauthorized: false
+                        });
+                    }
                 }
-            }
-        };
-        const results = await ytsr(filter.url, options);
-        return results.items.filter(t => t && !t.isLive && t.url).map(t => {
-            let icon = t.thumbnails ? t.thumbnails.sortByProp('width').shift().url : undefined;
-            return {
-                name: this.fixYTTitles(t.title),
-                icon,
-                type: 'stream',
-                url: t.url
             };
-        });
-    }
-    async ytLiveResults($tms) {        
-        if (!Array.isArray($tms)) {
-            $tms = terms($tms)
+            const results = await ytsr(filter.url, options);
+            return results.items.filter(t => t && !t.isLive && t.url).map(t => {
+                let icon = t.thumbnails ? t.thumbnails.sortByProp('width').shift().url : undefined;
+                return {
+                    name: this.sanitizeYouTubeTitle(t.title),
+                    icon,
+                    type: 'stream',
+                    url: t.url
+                };
+            });
+        } catch (err) {
+            console.error('YouTube videos search error:', err);
+            return [];
         }
-        let tms = $tms.join(' ');
+    }
+    async fetchYouTubeLive($tms) {        
+        if (!$tms) return [];
+        if (typeof $tms === 'string') $tms = [$tms];
+        if (!Array.isArray($tms) || !$tms.length) return [];
+        let tms = $tms.join(' ').trim();
+        if (!tms) return [];
         tms += ' (' + lang.LIVE + ' OR 24h)'
         console.warn('YTSEARCH', tms);
-        const filters = await ytsr.getFilters(tms);
-        const filter = filters.get('Type').get('Video');
-        const filters2 = await ytsr.getFilters(filter.url);
-        const filter2 = filters2.get('Features').get('Live');
-        const options = {
-            pages: 1,
-            gl: lang.countryCode.toUpperCase(),
-            hl: lang.locale,
-            requestOptions: {
-                rejectUnauthorized: false,
-                transform: (parsed) => {
-                    return Object.assign(parsed, {
-                        rejectUnauthorized: false
-                    });
+        try {
+            const filters = await ytsr.getFilters(tms);
+            const filter = filters.get('Type')?.get('Videos'); // Changed 'Video' to 'Videos'
+            if (!filter || !filter.url) return [];
+            const filters2 = await ytsr.getFilters(filter.url);
+            const features = filters2.get('Features');
+            if (!features) return [];
+            const filter2 = features.get('Live');
+            if (!filter2 || !filter2.url) return [];
+            const options = {
+                pages: 1,
+                gl: lang.countryCode.toUpperCase(),
+                hl: lang.locale,
+                requestOptions: {
+                    rejectUnauthorized: false,
+                    transform: (parsed) => {
+                        return Object.assign(parsed, {
+                            rejectUnauthorized: false
+                        });
+                    }
                 }
-            }
-        };
-        const results = await ytsr(filter2.url, options);
-        results.items = results.items.filter(t => {
-            let ytms = terms(t.title);
-            console.warn('YTSEARCH', $tms, ytms);
-            return match(tms, ytms, true);
-        });
-        return results.items.map(t => this.channels.toMetaEntry({
-            name: this.fixYTTitles(t.title),
-            icon: t.thumbnails ? t.thumbnails.sortByProp('width').shift().url : undefined,
-            type: 'stream',
-            url: t.url
-        }));
+            };
+            const results = await ytsr(filter2.url, options);
+            return results.items.map(t => this.channels.toMetaEntry({
+                name: this.sanitizeYouTubeTitle(t.title),
+                icon: t.thumbnails ? t.thumbnails.sortByProp('width').shift().url : undefined,
+                type: 'stream',
+                url: t.url
+            }));
+        } catch (err) {
+            console.error('YouTube live search error:', err);
+            return [];
+        }
     }
-    async channelsResults($terms) {        
+    async fetchLiveResults($terms) {        
         if (!Array.isArray($terms)) {
             $terms = terms($terms)
         }
@@ -664,12 +635,12 @@ class Search extends EventEmitter {
         let es = await this.channels.searchChannels($terms, this.searchInaccurate)
         es = es.map(e => this.channels.toMetaEntry(e))
 
-        const gs = await this.searchGroups($terms)
+        const gs = await this.findMatchingGroups($terms)
         es.push(...gs)
 
         const minResultsWanted = 256
         if (config.get('search-youtube') && es.length < minResultsWanted) {
-            let ys = await this.ytLiveResults($terms).catch(err => console.error(err));
+            let ys = await this.fetchYouTubeLive($terms).catch(err => console.error(err));
             if (Array.isArray(ys)) {
                 es.push(...ys.slice(0, minResultsWanted - es.length));
             }
@@ -684,7 +655,7 @@ class Search extends EventEmitter {
             return e.name == lang.SEARCH || e.name == lang.NEW_SEARCH;
         });
     }
-    matchTerms(nlc, precision, es) {
+    findMatchingTermInSuggestions(nlc, precision, es) {
         let term = false;
         if (es.length) {
             es.forEach(t => {
@@ -697,7 +668,7 @@ class Search extends EventEmitter {
         }
         return term;
     }
-    termsFromEntry(entry, precision, searchSugEntries) {
+    getQueryFromEntry(entry, precision, searchSugEntries) {
         return new Promise((resolve, reject) => {
             let name = entry.originalName || entry.name;
             if (typeof name !== 'string') {
@@ -705,10 +676,10 @@ class Search extends EventEmitter {
             }
             let nlc = name.toLowerCase();
             if (Array.isArray(searchSugEntries)) {
-                resolve(this.matchTerms(nlc, precision, searchSugEntries));
+                resolve(this.findMatchingTermInSuggestions(nlc, precision, searchSugEntries));
             } else {
-                this.searchSuggestionEntries().then(es => {
-                    resolve(this.matchTerms(nlc, precision, es));
+                this.getPopularSearchTerms().then(es => {
+                    resolve(this.findMatchingTermInSuggestions(nlc, precision, es));
                 }).catch(e => {
                     console.error(e);
                     resolve(false);
@@ -716,7 +687,7 @@ class Search extends EventEmitter {
             }
         });
     }
-    async searchSuggestionEntries(removeAliases, countryOnly) {
+    async getPopularSearchTerms(removeAliases, countryOnly) {
         const limit = pLimit(3);
         const ignoreKeywords = new Set(['tv', 'hd', 'sd'])
         let ret = {}, locs = await lang.getActiveCountries()
@@ -746,17 +717,17 @@ class Search extends EventEmitter {
             }
         });
         if (countryOnly && !ret.length) {
-            return this.searchSuggestionEntries(removeAliases, false);
+            return this.getPopularSearchTerms(removeAliases, false);
         }
         if (removeAliases === true) {
-            ret = this.removeSearchSuggestionsTermsAliasesObject(ret).sortByProp('cnt', true);
+            ret = this.mergeSuggestionAliasesByCount(ret).sortByProp('cnt', true);
         }
         return ret;
     }
-    removeSearchSuggestionsCheckNames(a, b) {
+    isSuggestionTermAlias(a, b) {
         return (a != b && (a.substr(b.length * -1) == b || (a.includes(b) && a.length <= (b.length + 3))));
     }
-    removeSearchSuggestionsGetAliases(o) {
+    getSuggestionAliasesMap(o) {
         let aliases = {};
         if (o.length) {
             let s = o.slice(0);
@@ -767,7 +738,7 @@ class Search extends EventEmitter {
             }
             s.forEach((k, i) => {
                 s.forEach(t => {
-                    if (this.removeSearchSuggestionsCheckNames(t, k)) {
+                    if (this.isSuggestionTermAlias(t, k)) {
                         if (typeof(aliases[k]) == 'undefined') {
                             aliases[k] = [];
                         }
@@ -778,9 +749,9 @@ class Search extends EventEmitter {
         }
         return aliases;
     }
-    removeSearchSuggestionsTermsAliases(s) {
+    filterSuggestionAliases(s) {
         if (s.length) {
-            let aliases = this.removeSearchSuggestionsGetAliases(s);
+            let aliases = this.getSuggestionAliasesMap(s);
             s = s.filter(v => {
                 let keep = true;
                 Object.keys(aliases).some(k => {
@@ -794,9 +765,9 @@ class Search extends EventEmitter {
         }
         return s;
     }
-    removeSearchSuggestionsTermsAliasesObject(s) {
+    mergeSuggestionAliasesByCount(s) {
         if (s.length) {
-            let aliases = this.removeSearchSuggestionsGetAliases(s), cnts = {};
+            let aliases = this.getSuggestionAliasesMap(s), cnts = {};
             s = s.filter((o, i) => {
                 let keep = true;
                 if (typeof(o.cnt) != 'number') {
@@ -820,34 +791,34 @@ class Search extends EventEmitter {
         }
         return s;
     }
-    defaultTerms() {
+    getCurrentQuery() {
         let def = '';
         if (this.currentSearch) {
             def = this.currentSearch.name;
         }
         return def;
     }
-    entry(mediaType = 'live') {
+    getSearchEntry(mediaType = 'live') {
         this.searchMediaType = mediaType;
         /*
         return {
             name: lang.SEARCH,
-            details: this.mediaTypeName(),
+            details: this.getMediaTypeLabel(),
             type: 'input',
             fa: 'fas fa-search',
             action: (e, value) => {
                 console.log('new search', e, value, mediaType);
-                this.go(value, mediaType);
+                this.runSearch(value, mediaType);
             },
             value: () => {
-                return this.defaultTerms();
+                return this.getCurrentQuery();
             },
             placeholder: lang.SEARCH_PLACEHOLDER
         };
         */
         return {
             name: lang.SEARCH,
-            details: this.mediaTypeName(),
+            details: this.getMediaTypeLabel(),
             type: 'action',
             fa: 'fas fa-search',
             action: (e, value) => {
@@ -856,12 +827,12 @@ class Search extends EventEmitter {
             }
         };
     }
-    async hook(entries, path) {
+    async getMenuHook(entries, path) {
         if (lists.loaded() && lists.activeLists.length) {
             if (path == lang.LIVE) {
-                entries.unshift(this.entry('live'));
+                entries.unshift(this.getSearchEntry('live'));
             } else if (lang.CATEGORY_MOVIES_SERIES == path) {
-                entries.unshift(this.entry('all'));
+                entries.unshift(this.getSearchEntry('all'));
             }
         }
         return entries

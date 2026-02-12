@@ -3,11 +3,12 @@
     import { onMount } from "svelte";
 
     let visible = $state(false);
-    let content = $state({ entries: [], opts: [], defaultIndex: "", type: "", value: "" });
+    let content = $state({ entries: [], opts: [], defaultIndex: "", type: "", value: "", id: null });
     let maskedValue = $state('');
     let mandatory = $state(false);
     let dialogQueue = $state([]);
     let currentCallback = $state(null);
+    let currentDialogId = $state(null);
 
     let { container = $bindable() } = $props();
 
@@ -53,8 +54,26 @@
         }
     }
 
-    export function end(cancel = false) {
-        if (!visible) return;
+    export function end(cancel = false, targetDialogId = null, force = false) {
+        // Se um ID específico foi fornecido, remover diálogos com este ID da fila
+        if (targetDialogId !== null) {
+            removeQueuedDialogs(targetDialogId);
+            // Se o ID não corresponde ao diálogo atual, só remover da fila
+            if (currentDialogId !== targetDialogId) {
+                return true; // Removeu da fila com sucesso
+            }
+        }
+
+        if (!visible) return false;
+        
+        // CRITICAL: Prevent closing mandatory dialogs unless forced
+        // force=true is used for:
+        // 1. Programmatic closes via dialog-close event with matching ID
+        // 2. User actions (clicking dialog options)
+        if (mandatory && !force) {
+            return false; // Cannot close mandatory dialog
+        }
+        
         visible = false;
         if (currentCallback) {
             try {
@@ -63,26 +82,34 @@
                 console.error('!!! dialog callback error', err);
             }
         }
-        content = { entries: [], opts: [], defaultIndex: "", type: "", value: "" };
+        content = { entries: [], opts: [], defaultIndex: "", type: "", value: "", id: null };
         maskedValue = '';
         mandatory = false;
         currentCallback = null;
+        currentDialogId = null;
         document.body.classList.remove("dialog");
         setTimeout(() => {
             main.emit("dialog-end");
             nextDialog();
         }, 100);
+        return true; // Fechou com sucesso
+    }
+
+    export function removeQueuedDialogs(targetDialogId) {
+        if (targetDialogId) {
+            dialogQueue = dialogQueue.filter(item => item.id !== targetDialogId);
+        }
     }
 
     function queueDialog(config, callback, mandatoryParam) {
-        dialogQueue = [...dialogQueue, { config, callback }];
         mandatory = mandatoryParam || false;
+        dialogQueue = [...dialogQueue, { config, callback, id: config.id, mandatory }];
         if (!visible) nextDialog();
     }
 
     function nextDialog() {
         if (dialogQueue.length > 0 && !visible) {
-            const { config, callback } = dialogQueue[0];
+            const { config, callback, id, mandatory: dialogMandatory } = dialogQueue[0];
             const opts = [];
             config.entries = config.entries.filter(e => {
                 const isOption = e.template === "option" || e.template === "option-detailed";
@@ -98,6 +125,8 @@
             });
             content = { ...config, opts };
             currentCallback = callback;
+            currentDialogId = id;
+            mandatory = dialogMandatory || false;
             dialogQueue = dialogQueue.slice(1);
             start();
         }
@@ -117,21 +146,22 @@
             cb.push(id || ''); // emitting null causes error: An object could not be cloned.
             main.emit(...cb);
         }
-        end(); // Close dialog after any button click
+        // CRITICAL: User action (clicking option) should always close dialog, even if mandatory
+        end(cancel, null, true); // force=true allows closing mandatory dialogs via user action
     }
 
-    export function dialog(entries, cb, defaultIndex, mandatoryParam) {
-        console.log("dialog", { entries, cb, defaultIndex, mandatoryParam });
+    export function dialog(entries, callbackId, defaultIndex, mandatoryParam, dialogId = null) {
+        console.log("dialog", { entries, callbackId, defaultIndex, mandatoryParam, dialogId });
         let done = false;
         queueDialog(
-            { entries, defaultIndex, type: "dialog" },
+            { entries, defaultIndex, type: "dialog", id: dialogId },
             (id, cancel) => {
                 if(done) return;
                 done = true;
                 if (cancel) {
                     id = null;
                 }
-                sendCallback(id, cb, cancel);
+                sendCallback(id, callbackId, cancel);
             },
             mandatoryParam
         );
@@ -258,7 +288,12 @@
         return visible && mandatory;
     }
 
-    function handleOptionClick(id) {
+    function handleOptionClick(id, event) {
+        // CRITICAL: Stop event propagation to prevent overlay click handler from firing
+        if (event) {
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+        }
         if (currentCallback) {
             if (id === 'submit') {
                 const input = container.querySelector("input, textarea");
@@ -310,8 +345,24 @@
 
     onMount(() => {
         main.on("info", (a, b, c) => info(a, b, null, c));
-        main.on("dialog", dialog);
-        main.on("dialog-close", end);
+        main.on("dialog", (entries, callbackId, defaultIndex, mandatoryParam, dialogId) => {
+            dialog(entries, callbackId, defaultIndex, mandatoryParam, dialogId)
+        });
+        main.on("dialog-close", (targetDialogId) => {
+            // CRITICAL: dialog-close event with specific ID should always be able to close,
+            // even if mandatory, because it's an intentional programmatic close
+            // This allows loading dialogs to close automatically when operations complete
+            if (targetDialogId && currentDialogId === targetDialogId) {
+                // Programmatic close with matching ID - always allow, even if mandatory
+                end(false, targetDialogId, true); // force=true for programmatic close
+            } else if (mandatory) {
+                // Block closing mandatory dialog without matching ID
+                return;
+            } else {
+                // Not mandatory or no ID - allow close
+                end(false, targetDialogId);
+            }
+        });
         main.on("prompt", prompt);
     });
 
@@ -333,14 +384,118 @@
             class="dialog-overlay"
             role="button"
             tabindex="-1"
-            onmousedown={() => !mandatory && end(true)}
+            onmousedown={(e) => {
+                // CRITICAL: Prevent closing mandatory dialogs on background click
+                // Click can occur on .dialog-overlay or .dialog-content, but NOT on .dialog-wrap
+                const target = e.target;
+                const overlay = e.currentTarget; // This is the .dialog-overlay element
+                const dialogWrap = container?.querySelector('.dialog-wrap');
+                
+                // Click is outside dialog-wrap if target is inside overlay but NOT inside dialog-wrap
+                // This includes clicks on .dialog-overlay itself and .dialog-content (but not .dialog-wrap)
+                const isOutsideDialogWrap = overlay.contains(target) && (!dialogWrap || !dialogWrap.contains(target));
+                
+                if (isOutsideDialogWrap) {
+                    if (!mandatory) {
+                        // Non-mandatory: allow closing
+                        end(true);
+                    } else {
+                        // Mandatory: block all mouse events
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        return false;
+                    }
+                }
+            }}
+            onmouseup={(e) => {
+                // CRITICAL: Also block mouseup events for mandatory dialogs on overlay
+                const target = e.target;
+                const overlay = e.currentTarget;
+                const dialogWrap = container?.querySelector('.dialog-wrap');
+                const isOutsideDialogWrap = overlay.contains(target) && (!dialogWrap || !dialogWrap.contains(target));
+                
+                if (mandatory && isOutsideDialogWrap) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    return false;
+                }
+            }}
+            onclick={(e) => {
+                // CRITICAL: Handle click events for both mandatory and non-mandatory dialogs
+                const target = e.target;
+                const overlay = e.currentTarget;
+                const dialogWrap = container?.querySelector('.dialog-wrap');
+                const isOutsideDialogWrap = overlay.contains(target) && (!dialogWrap || !dialogWrap.contains(target));
+                
+                if (isOutsideDialogWrap) {
+                    if (!mandatory) {
+                        // Non-mandatory: allow closing (fallback in case mousedown didn't work)
+                        end(true);
+                    } else {
+                        // Mandatory: block all mouse events
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        return false;
+                    }
+                }
+            }}
         >
-            <div class="dialog-content">
+            <div 
+                class="dialog-content"
+                onmousedown={(e) => {
+                    // CRITICAL: Handle clicks on .dialog-content (but not on .dialog-wrap)
+                    const target = e.target;
+                    const dialogContent = e.currentTarget;
+                    const dialogWrap = container?.querySelector('.dialog-wrap');
+                    
+                    // Click is outside dialog-wrap if target is inside dialog-content but NOT inside dialog-wrap
+                    const isOutsideDialogWrap = dialogContent.contains(target) && (!dialogWrap || !dialogWrap.contains(target));
+                    
+                    if (isOutsideDialogWrap) {
+                        if (!mandatory) {
+                            // Non-mandatory: allow closing
+                            end(true);
+                        } else {
+                            // Mandatory: block all mouse events
+                            e.preventDefault();
+                            e.stopPropagation();
+                            e.stopImmediatePropagation();
+                            return false;
+                        }
+                    }
+                }}
+                onclick={(e) => {
+                    // CRITICAL: Handle clicks on .dialog-content (but not on .dialog-wrap)
+                    const target = e.target;
+                    const dialogContent = e.currentTarget;
+                    const dialogWrap = container?.querySelector('.dialog-wrap');
+                    
+                    // Click is outside dialog-wrap if target is inside dialog-content but NOT inside dialog-wrap
+                    const isOutsideDialogWrap = dialogContent.contains(target) && (!dialogWrap || !dialogWrap.contains(target));
+                    
+                    if (isOutsideDialogWrap) {
+                        if (!mandatory) {
+                            // Non-mandatory: allow closing (fallback)
+                            end(true);
+                        } else {
+                            // Mandatory: block all mouse events
+                            e.preventDefault();
+                            e.stopPropagation();
+                            e.stopImmediatePropagation();
+                            return false;
+                        }
+                    }
+                }}
+            >
                 <div class="dialog-wrap">
                     <div
                         tabindex="-1"
                         role="button"
                         onmousedown={(e) => e.stopPropagation()}
+                        onclick={(e) => e.stopPropagation()}
                     >
                         <div class="dialog-template-entries">
                             {#each content.entries as entry}
@@ -414,7 +569,7 @@
                                         id="dialog-template-option-{text2id(option.id)}"
                                         title={option.text}
                                         aria-label={option.text}
-                                        onclick={() => handleOptionClick(option.id)}
+                                        onclick={(e) => handleOptionClick(option.id, e)}
                                         class={option.template === "option-detailed"
                                             ? "dialog-template-option-detailed"
                                             : "dialog-template-option"} 

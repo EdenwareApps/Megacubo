@@ -1,0 +1,577 @@
+{
+  "Religious": [
+    {
+      "name": "Himlen TV 7",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Taevas TV 7",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Taivas TV 7",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Hope Channel Finland",
+      "isFree": true,
+      "website": "https://hopechannel.fi/",
+      "priority": 4
+    },
+    {
+      "name": "IRR-TV",
+      "isFree": true,
+      "website": "https://irr-tv.fi/",
+      "priority": 4
+    },
+    {
+      "name": "Nebesa TV 7",
+      "isFree": true,
+      "website": "https://www.nebesatv7.com/",
+      "priority": 4
+    },
+    {
+      "name": "One Way",
+      "isFree": true,
+      "website": "https://oneway.tv/fi/",
+      "priority": 4
+    },
+    {
+      "name": "Monk",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "The Vampire Diaries",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Eureka",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Media of Finland",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MTV Finland",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Yle Areena",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "YLE TV1",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "YLE TV2",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MTV3",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Eurosport 1",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "MTV Liiga 3",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MTV Liiga 4",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MTV Liiga 6",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MTV Liiga UHD",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "V Sport 1",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "V Sport 1 Suomi",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "V Sport 2",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "V Sport Premium",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "V Sport Live 1",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "V Sport Live 2",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "V Sport Live 3",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "V Sport Live 4",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "V Sport Live 5",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Extreme Sports Channel",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "TotoTV",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "V Sport Ultra HD",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "V Film Premiere",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "V Film Action",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "V Film Family",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "V Film Hits",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Cartoon Network",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Disney Channel",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "AlfaTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "YLE TV",
+      "isFree": true,
+      "keywords": "yle tv 1 | yle tv1",
+      "priority": 5
+    },
+    {
+      "name": "YLE TV 2",
+      "isFree": true,
+      "keywords": "yle tv 2 | yle tv2",
+      "priority": 5
+    },
+    {
+      "name": "YLE TV Teema & Fem",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ArvasTV",
+      "isFree": true,
+      "website": "http://www.arvastv.fi/",
+      "priority": 5
+    },
+    {
+      "name": "Discovery",
+      "isFree": true,
+      "website": "http://www.discovery.fi/",
+      "priority": 7
+    },
+    {
+      "name": "Eveo",
+      "isFree": true,
+      "website": "https://www.eveo.fi/",
+      "priority": 5
+    },
+    {
+      "name": "FOX",
+      "isFree": true,
+      "website": "https://www.foxtv.fi/",
+      "priority": 5
+    },
+    {
+      "name": "Frii",
+      "isFree": true,
+      "website": "https://www.discoveryplus.com/fi/channel/frii",
+      "priority": 5
+    },
+    {
+      "name": "INEZ",
+      "isFree": true,
+      "website": "https://inez.fi/fi/",
+      "priority": 5
+    },
+    {
+      "name": "IskelmaTV",
+      "isFree": true,
+      "website": "https://iskelmatv.fi/",
+      "priority": 5
+    },
+    {
+      "name": "Jim",
+      "isFree": true,
+      "website": "http://www.jimtv.fi/",
+      "priority": 5
+    },
+    {
+      "name": "KEXTV",
+      "isFree": true,
+      "website": "https://www.kextv.fi/",
+      "priority": 5
+    },
+    {
+      "name": "KRS-TV",
+      "isFree": true,
+      "website": "https://www.krstv.fi/",
+      "priority": 5
+    },
+    {
+      "name": "Kutonen",
+      "isFree": true,
+      "website": "https://www.discoveryplus.com/fi/channel/kutonen",
+      "priority": 5
+    },
+    {
+      "name": "Larsmo Nar-TV",
+      "isFree": true,
+      "website": "https://www.larsmonartv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Liv",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Love Nature",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Malax Lokal-TV",
+      "isFree": true,
+      "website": "https://malaxtv.fi/",
+      "priority": 5
+    },
+    {
+      "name": "MTV",
+      "isFree": true,
+      "keywords": "mtv -aitio -ava -juniori -max -sub -urheilu -1 -2 -uutiset -viihde",
+      "website": "http://www.musictelevision.fi/",
+      "priority": 5
+    },
+    {
+      "name": "MTV 3",
+      "isFree": true,
+      "website": "https://www.mtv.fi/",
+      "priority": 5
+    },
+    {
+      "name": "MTV Aitio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTV Ava",
+      "isFree": true,
+      "website": "https://www.mtv.fi/",
+      "priority": 5
+    },
+    {
+      "name": "MTV Max",
+      "isFree": true,
+      "website": "https://www.cmore.fi/sport",
+      "priority": 5
+    },
+    {
+      "name": "MTV Sub",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTV Viihde",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nar-TV",
+      "isFree": true,
+      "website": "https://nartv.fi/",
+      "priority": 5
+    },
+    {
+      "name": "Nelonen",
+      "isFree": true,
+      "website": "http://www.nelonen.fi/",
+      "priority": 5
+    },
+    {
+      "name": "Oho Live",
+      "isFree": true,
+      "website": "https://ohotv.fi/",
+      "priority": 5
+    },
+    {
+      "name": "Onni",
+      "isFree": true,
+      "website": "https://www.onnitv.fi/",
+      "priority": 5
+    },
+    {
+      "name": "PeTV",
+      "isFree": true,
+      "website": "https://www.petalaxtv.fi/",
+      "priority": 5
+    },
+    {
+      "name": "Pulsea",
+      "isFree": true,
+      "website": "https://www.pulsea.fi/",
+      "priority": 5
+    },
+    {
+      "name": "SF-kanalen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SkyShowtime",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SkyShowtime 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "STAR",
+      "isFree": true,
+      "website": "http://starchannel.fi/",
+      "priority": 5
+    },
+    {
+      "name": "Sundom",
+      "isFree": true,
+      "website": "https://951.fi/",
+      "priority": 5
+    },
+    {
+      "name": "TLC",
+      "isFree": true,
+      "website": "https://www.discoveryplus.com/fi/channel/tlc",
+      "priority": 5
+    },
+    {
+      "name": "TV 5",
+      "isFree": true,
+      "website": "https://www.dplay.fi/kanavat/tv5",
+      "priority": 5
+    },
+    {
+      "name": "TV Finland",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Viasat Explore",
+      "isFree": true,
+      "website": "https://viasatexplore.eu/",
+      "priority": 5
+    },
+    {
+      "name": "Viasat History",
+      "isFree": true,
+      "website": "https://viasathistory.eu/",
+      "priority": 7
+    },
+    {
+      "name": "Viasat Nature",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "WorTV",
+      "isFree": true,
+      "website": "http://www.wortv.fi/",
+      "priority": 5
+    },
+    {
+      "name": "Yle Fem",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Yle Teema",
+      "isFree": true,
+      "keywords": "yle teema -fem",
+      "priority": 5
+    },
+    {
+      "name": "Yle Teema & Fem",
+      "isFree": true,
+      "website": "https://svenska.yle.fi/yle-fem",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "C More Juniori",
+      "isFree": true,
+      "website": "http://www.cmore.fi/juniori",
+      "priority": 5
+    },
+    {
+      "name": "MTV Juniori",
+      "isFree": true,
+      "website": "https://www.mtv.fi/juniori",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Hero",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "JRTV Jarviradio",
+      "isFree": true,
+      "website": "https://www.jarviradio.fi/",
+      "priority": 5
+    },
+    {
+      "name": "Navahang",
+      "isFree": true,
+      "website": "https://www.navahang.com/",
+      "priority": 5
+    },
+    {
+      "name": "YleX",
+      "isFree": true,
+      "website": "https://areena.yle.fi/podcastit/ohjelmat/ylex",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "KotiTV",
+      "isFree": true,
+      "website": "https://www.kotitv.fi/",
+      "priority": 5
+    },
+    {
+      "name": "National Geographic",
+      "isFree": true,
+      "keywords": "national geographic -wild",
+      "website": "http://www.natgeotv.com/fi",
+      "priority": 7
+    },
+    {
+      "name": "National Geographic Wild",
+      "isFree": true,
+      "website": "http://www.natgeotv.com/fi",
+      "priority": 7
+    }
+  ],
+  "Sports": [
+    {
+      "name": "MTV Urheilu",
+      "isFree": true,
+      "website": "https://www.cmore.fi/sport",
+      "priority": 5
+    },
+    {
+      "name": "MTV Urheilu 2",
+      "isFree": true,
+      "website": "https://www.cmore.fi/sport",
+      "priority": 5
+    },
+    {
+      "name": "Viaplay",
+      "isFree": true,
+      "website": "https://viaplaytv.fi/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "MTV Uutiset",
+      "isFree": true,
+      "website": "https://www.mtvuutiset.fi/",
+      "priority": 5
+    },
+    {
+      "name": "Nopola News",
+      "isFree": true,
+      "website": "https://www.nopolanews.fi/",
+      "priority": 5
+    },
+    {
+      "name": "Posi",
+      "isFree": true,
+      "website": "https://positv.fi/",
+      "priority": 5
+    }
+  ]
+}

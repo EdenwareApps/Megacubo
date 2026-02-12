@@ -1,0 +1,197 @@
+{
+  "Sports": [
+    {
+      "name": "Arryadia",
+      "priority": 5
+    },
+    {
+      "name": "Canal Atlas Fight",
+      "isFree": true,
+      "website": "https://www.canalatlasfight.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cote & Sport",
+      "isFree": true,
+      "website": "https://cotesport.mdjsjeux.ma/fr/",
+      "priority": 10
+    },
+    {
+      "name": "Cote & Sport 2",
+      "isFree": true,
+      "website": "https://cotesport.mdjsjeux.ma/fr/",
+      "priority": 10
+    },
+    {
+      "name": "Sorec",
+      "isFree": true,
+      "website": "http://www.sorec.ma/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "M 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Medi 1 TV Afrique",
+      "isFree": true,
+      "keywords": "medi 1 tv afrique | medi1tv afrique",
+      "shortName": "M1TA",
+      "priority": 5
+    },
+    {
+      "name": "Medi 1 TV Arabic",
+      "isFree": true,
+      "keywords": "medi 1 tv arabic | medi1tv arabic",
+      "priority": 5
+    },
+    {
+      "name": "Medi 1 TV Maghreb",
+      "isFree": true,
+      "keywords": "medi 1 tv maghreb | medi1tv maghreb",
+      "shortName": "M1TM",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "2M Monde",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Aoula",
+      "isFree": true,
+      "keywords": "al aoula -laayoune",
+      "priority": 5
+    },
+    {
+      "name": "Al Aoula Laayoune",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Maghribia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Arrabiaa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Assadissa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MBC 5",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Maghreb Arabe Press",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tamazight",
+      "isFree": true,
+      "website": "http://www.tamazight-tv.ma/",
+      "priority": 5
+    },
+    {
+      "name": "Télé Maroc",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "2M",
+      "isFree": true,
+      "keywords": "2m -mena -monde",
+      "website": "https://2m.ma/",
+      "priority": 5
+    },
+    {
+      "name": "2M MENA",
+      "isFree": true,
+      "website": "https://2m.ma/",
+      "priority": 5
+    },
+    {
+      "name": "Chada",
+      "isFree": true,
+      "website": "https://chadatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Chouf",
+      "isFree": true,
+      "website": "https://chouftv.ma/",
+      "priority": 5
+    },
+    {
+      "name": "Laayoune",
+      "isFree": true,
+      "website": "http://www.alaoula.ma/laayoune_tv.php?lang=fr",
+      "priority": 5
+    },
+    {
+      "name": "L'Match",
+      "isFree": true,
+      "website": "https://www.loterie.ma/jouer-et-gagner/nouveaux-jeux/",
+      "priority": 5
+    },
+    {
+      "name": "Sloog",
+      "isFree": true,
+      "website": "https://www.loterie.ma/presentation-sloog/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Maroc",
+      "isFree": true,
+      "website": "https://www.telemaroc.tv/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Aflam",
+      "isFree": true,
+      "website": "http://www.aflamtv.ma/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Al Ons",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Athaqafia",
+      "isFree": true,
+      "website": "http://www.athaqafia.ma/",
+      "priority": 5
+    },
+    {
+      "name": "Campus Maroc",
+      "isFree": true,
+      "website": "https://campustv.ma/",
+      "priority": 5
+    },
+    {
+      "name": "StoryChannel",
+      "isFree": true,
+      "website": "https://storychannel.tv/",
+      "priority": 5
+    }
+  ]
+}

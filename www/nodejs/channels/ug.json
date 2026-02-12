@@ -1,0 +1,611 @@
+{
+  "Religious": [
+    {
+      "name": "Salt",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "3ABN TV Uganda",
+      "isFree": true,
+      "website": "https://avventomedia.org/",
+      "priority": 4
+    },
+    {
+      "name": "Alpha Digital",
+      "isFree": true,
+      "website": "http://imc.ug/",
+      "priority": 4
+    },
+    {
+      "name": "Bukalango",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "CCCO Aspire",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Channel 44 Uganda",
+      "isFree": true,
+      "website": "https://channel44tv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Church of Uganda Family Television",
+      "isFree": true,
+      "website": "https://coufamilytv.co.ug/live",
+      "priority": 4
+    },
+    {
+      "name": "Doxa",
+      "isFree": true,
+      "website": "http://www.imc.ug/",
+      "priority": 4
+    },
+    {
+      "name": "Dream",
+      "isFree": true,
+      "website": "http://www.imc.ug/",
+      "priority": 4
+    },
+    {
+      "name": "Eternal Life",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Focus of God",
+      "isFree": true,
+      "website": "https://www.focusofgod.com/",
+      "priority": 4
+    },
+    {
+      "name": "Freedom Experience",
+      "isFree": true,
+      "website": "https://freedomflixtv.org/",
+      "priority": 4
+    },
+    {
+      "name": "Fresh",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GBN",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Glorious Times",
+      "isFree": true,
+      "website": "https://kakandeministries.org/about-us/glorious-times-tv/",
+      "priority": 4
+    },
+    {
+      "name": "GNTV",
+      "isFree": true,
+      "website": "https://live.gntvug.org/",
+      "priority": 4
+    },
+    {
+      "name": "GTV",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Gugudde",
+      "isFree": true,
+      "website": "https://www.gugudde.com/",
+      "priority": 4
+    },
+    {
+      "name": "HGTV Uganda",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Hope Channel Uganda",
+      "isFree": true,
+      "website": "https://hopechannel-ug.org/",
+      "priority": 4
+    },
+    {
+      "name": "King",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "KSTV Uganda",
+      "isFree": true,
+      "website": "https://www.kstvuganda.com/home.php",
+      "priority": 4
+    },
+    {
+      "name": "Lighthouse Television",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Manifest Television",
+      "isFree": true,
+      "website": "https://phaneroo.org/",
+      "priority": 4
+    },
+    {
+      "name": "Praise Jesus Tower",
+      "isFree": true,
+      "website": "https://praisejesustower.org/",
+      "priority": 4
+    },
+    {
+      "name": "Rest",
+      "isFree": true,
+      "website": "https://resttv.ug/",
+      "priority": 4
+    },
+    {
+      "name": "Revival",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Rite",
+      "isFree": true,
+      "website": "https://ritetv.ug/",
+      "priority": 4
+    },
+    {
+      "name": "Salam",
+      "isFree": true,
+      "website": "https://salamtv.ug/",
+      "priority": 4
+    },
+    {
+      "name": "Spirit Of Glory",
+      "isFree": true,
+      "website": "https://spiritofgloryltm.org/",
+      "priority": 4
+    },
+    {
+      "name": "Spirit",
+      "isFree": true,
+      "website": "https://spirittv.co.ug/",
+      "priority": 4
+    },
+    {
+      "name": "TBS",
+      "isFree": true,
+      "website": "http://tbsmedia.org/",
+      "priority": 4
+    },
+    {
+      "name": "Top",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Trumpet of Faith",
+      "isFree": true,
+      "website": "https://trumpetnet.com/",
+      "priority": 4
+    },
+    {
+      "name": "Trust",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Turn",
+      "isFree": true,
+      "website": "https://www.turntvuganda.com/",
+      "priority": 4
+    },
+    {
+      "name": "UCTV",
+      "isFree": true,
+      "website": "https://uctvuganda.org/",
+      "priority": 4
+    },
+    {
+      "name": "Worship",
+      "isFree": true,
+      "website": "https://jameskawalyaministries.org/worshiptv.html",
+      "priority": 4
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Ark",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NBS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ACW",
+      "isFree": true,
+      "website": "https://live.acwugtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Baba",
+      "isFree": true,
+      "website": "https://www.babatv.co.ug/",
+      "priority": 5
+    },
+    {
+      "name": "BBS",
+      "isFree": true,
+      "website": "https://www.bbstv.ug/",
+      "priority": 5
+    },
+    {
+      "name": "Bethany",
+      "isFree": true,
+      "website": "https://bethanytv.ug/",
+      "priority": 5
+    },
+    {
+      "name": "Be",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BM TV Africa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BTM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BTV",
+      "isFree": true,
+      "website": "https://imc.ug/",
+      "priority": 5
+    },
+    {
+      "name": "Bukedde TV",
+      "isFree": true,
+      "website": "https://www.bukedde.co.ug/",
+      "priority": 5
+    },
+    {
+      "name": "Bukedde TV 2",
+      "isFree": true,
+      "website": "https://www.bukedde.co.ug/",
+      "priority": 5
+    },
+    {
+      "name": "Bunyoro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Chamuka",
+      "isFree": true,
+      "website": "https://chamukatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Channel U",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Delta TV Tukole",
+      "isFree": true,
+      "website": "https://deltatvtukole.business.site/",
+      "priority": 5
+    },
+    {
+      "name": "EXCEL",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Faraja Television",
+      "isFree": true,
+      "website": "https://farajadtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "FORT",
+      "isFree": true,
+      "website": "https://fort-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Freedom Love Zone",
+      "isFree": true,
+      "website": "https://freedomflixtv.org/",
+      "priority": 5
+    },
+    {
+      "name": "Host",
+      "isFree": true,
+      "website": "https://www.host-tv.info/",
+      "priority": 5
+    },
+    {
+      "name": "KBS",
+      "isFree": true,
+      "website": "http://www.kbstv.co.ug/",
+      "priority": 5
+    },
+    {
+      "name": "KRC",
+      "isFree": true,
+      "website": "https://krcfm.com/",
+      "priority": 5
+    },
+    {
+      "name": "KTV",
+      "isFree": true,
+      "website": "https://kingdommediaug.com/",
+      "priority": 5
+    },
+    {
+      "name": "Lit",
+      "isFree": true,
+      "website": "https://littvug.com/",
+      "priority": 5
+    },
+    {
+      "name": "Magic",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Makula KiKa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mama",
+      "isFree": true,
+      "website": "https://mamatvug.com/",
+      "priority": 5
+    },
+    {
+      "name": "Moon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NBS Star",
+      "isFree": true,
+      "website": "https://nextmedia.co.ug/",
+      "priority": 5
+    },
+    {
+      "name": "NTV Uganda",
+      "isFree": true,
+      "website": "https://www.ntv.co.ug/",
+      "priority": 5
+    },
+    {
+      "name": "Nyce",
+      "isFree": true,
+      "website": "https://nycetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Pearl Magic",
+      "isFree": true,
+      "keywords": "pearl magic -prime",
+      "website": "https://pearlmagic.dstv.com",
+      "priority": 5
+    },
+    {
+      "name": "Pearl Magic Prime",
+      "isFree": true,
+      "website": "https://pearlmagicprime.dstv.com/",
+      "priority": 6
+    },
+    {
+      "name": "Rwenzori",
+      "isFree": true,
+      "website": "https://rwenzoritv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sanyuka",
+      "isFree": true,
+      "website": "https://sanyukatv.ug/",
+      "priority": 5
+    },
+    {
+      "name": "SEE",
+      "isFree": true,
+      "website": "http://seetv.co.ug/live/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Spark",
+      "isFree": true,
+      "website": "https://www.ntv.co.ug/",
+      "priority": 5
+    },
+    {
+      "name": "Star",
+      "isFree": true,
+      "website": "https://ubc.go.ug/tv/star-tv/",
+      "priority": 5
+    },
+    {
+      "name": "STV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tagy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tayari West",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV East",
+      "isFree": true,
+      "website": "https://www.newvision.co.ug/tv/16",
+      "priority": 5
+    },
+    {
+      "name": "TV West",
+      "isFree": true,
+      "website": "https://tvwest.co.ug/",
+      "priority": 5
+    },
+    {
+      "name": "UBC",
+      "isFree": true,
+      "website": "https://ubc.go.ug/tv/ubc-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Urban",
+      "isFree": true,
+      "website": "https://urbantv.co.ug/",
+      "priority": 5
+    },
+    {
+      "name": "Wan Luo",
+      "isFree": true,
+      "website": "https://www.newvision.co.ug/tv/11",
+      "priority": 5
+    },
+    {
+      "name": "WBS",
+      "isFree": true,
+      "website": "http://wbs.ug/",
+      "priority": 5
+    },
+    {
+      "name": "Westnile",
+      "isFree": true,
+      "website": "http://www.westniletv.co.ug/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Face",
+      "isFree": true,
+      "website": "http://www.tritv.co.nz",
+      "priority": 5
+    },
+    {
+      "name": "Galaxy",
+      "isFree": true,
+      "website": "https://galaxytv.ug/",
+      "priority": 5
+    },
+    {
+      "name": "Ground",
+      "isFree": true,
+      "website": "https://groundmediaug.com/",
+      "priority": 5
+    },
+    {
+      "name": "NRG Radio Visual",
+      "isFree": true,
+      "website": "https://www.nrgug.radio/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Freedom Movie Sphere",
+      "isFree": true,
+      "website": "https://freedomflixtv.org/",
+      "priority": 5
+    },
+    {
+      "name": "GMTV",
+      "isFree": true,
+      "website": "https://greenmondaytv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Makula",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "FUFA",
+      "isFree": true,
+      "website": "https://www.fufa.co.ug/",
+      "priority": 5
+    },
+    {
+      "name": "NBS Sport",
+      "isFree": true,
+      "website": "https://nbssport.co.ug/",
+      "priority": 10
+    },
+    {
+      "name": "Sanyuka Prime",
+      "isFree": true,
+      "website": "https://sanyukatv.ug/",
+      "priority": 6
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Janan Schools",
+      "isFree": true,
+      "website": "https://jananschools.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kitara",
+      "isFree": true,
+      "website": "https://kitaratv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ndejje University",
+      "isFree": true,
+      "website": "https://ndejjeuniversity.ac.ug/",
+      "priority": 5
+    },
+    {
+      "name": "U24 Television",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "NBS Plus",
+      "isFree": true,
+      "website": "https://nextmedia.co.ug/",
+      "priority": 5
+    },
+    {
+      "name": "Smart 24",
+      "isFree": true,
+      "website": "https://smart24.tv/",
+      "priority": 5
+    }
+  ]
+}

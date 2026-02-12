@@ -98,6 +98,7 @@
    "CATEGORY_SHOP": "购物",
    "CATEGORY_SPORTS": "体育",
    "CATEGORY_TRAVEL": "旅游",
+   "CATEGORY_XXX": "成人内容",
    "CHANGE_DEST_FOLDER": "更改目标文件夹",
    "CHANGE_HOTKEY_MESSAGE": "输入此操作的新键组合，或按{0}取消...",
    "CHANNEL_ADDED": "频道已添加",

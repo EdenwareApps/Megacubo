@@ -1,0 +1,615 @@
+{
+  "Religious": [
+    {
+      "name": "A2i Religion",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Ahlou Mouride",
+      "isFree": true,
+      "website": "https://www.mourides.com/",
+      "priority": 4
+    },
+    {
+      "name": "Al Fayda",
+      "isFree": true,
+      "website": "https://radioalfayda.net/",
+      "priority": 4
+    },
+    {
+      "name": "Al Khadimiyyah",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Al Mouridiyyah",
+      "isFree": true,
+      "website": "https://almouridiyyah.com/",
+      "priority": 4
+    },
+    {
+      "name": "Asfiyahi",
+      "isFree": true,
+      "website": "https://www.asfiyahi.org/",
+      "priority": 4
+    },
+    {
+      "name": "As-Samadiyya",
+      "isFree": true,
+      "website": "https://as-samadiyya.org/",
+      "priority": 4
+    },
+    {
+      "name": "Bichri",
+      "isFree": true,
+      "website": "https://bichri.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Chabiba",
+      "isFree": true,
+      "website": "https://alkhayria.net/",
+      "priority": 4
+    },
+    {
+      "name": "IMTV",
+      "isFree": true,
+      "website": "https://imediasn.com/",
+      "priority": 4
+    },
+    {
+      "name": "Istikhama",
+      "isFree": true,
+      "website": "http://www.istikhama.org/spip/",
+      "priority": 4
+    },
+    {
+      "name": "Lamp Fall",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Layene",
+      "isFree": true,
+      "website": "http://www.layene.sn/",
+      "priority": 4
+    },
+    {
+      "name": "Malikia",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Medina Baye",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Mourchid",
+      "isFree": true,
+      "website": "https://mourchidtv.sn/",
+      "priority": 4
+    },
+    {
+      "name": "Mouride",
+      "isFree": true,
+      "website": "http://www.mouridetv.net/",
+      "priority": 4
+    },
+    {
+      "name": "Tawhid",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TFM Religions",
+      "isFree": true,
+      "website": "https://www.igfm.sn",
+      "priority": 4
+    },
+    {
+      "name": "Tivaouane",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Touba Belel",
+      "isFree": true,
+      "website": "https://www.toubabelel.net/web-tv/",
+      "priority": 4
+    },
+    {
+      "name": "ToubaMondeBi",
+      "isFree": true,
+      "website": "https://www.toubamondebi.com/",
+      "priority": 4
+    },
+    {
+      "name": "Touba",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "2STV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "7TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "A2i Naja",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "A2i",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Africa 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Label",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RFM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTS",
+      "isFree": true,
+      "keywords": "rts 1 | rts1",
+      "shortName": "RTS",
+      "priority": 5
+    },
+    {
+      "name": "RTS 2",
+      "isFree": true,
+      "keywords": "rts 2 | rts2",
+      "shortName": "RTS 2",
+      "priority": 5
+    },
+    {
+      "name": "Sen",
+      "isFree": true,
+      "keywords": "sen tv | sentv",
+      "shortName": "SenTV",
+      "priority": 5
+    },
+    {
+      "name": "TFM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "7TV Senegal",
+      "isFree": true,
+      "website": "http://7tv.sn/",
+      "priority": 5
+    },
+    {
+      "name": "Afrika Poulaar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Banlieue",
+      "isFree": true,
+      "website": "https://canalbanlieue.pro/",
+      "priority": 5
+    },
+    {
+      "name": "CNM",
+      "isFree": true,
+      "website": "https://cnm.sn/",
+      "priority": 5
+    },
+    {
+      "name": "DBT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Diamaguene",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Diama",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Diaspora 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Fashion Africa",
+      "isFree": true,
+      "website": "http://www.fashionafrica.tv/",
+      "priority": 5
+    },
+    {
+      "name": "FOLLY",
+      "isFree": true,
+      "website": "https://follymedia.net/",
+      "priority": 5
+    },
+    {
+      "name": "Galsen 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gelongal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GMS",
+      "isFree": true,
+      "website": "https://www.gms.sn/",
+      "priority": 5
+    },
+    {
+      "name": "Grand Yoff",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GTV",
+      "isFree": true,
+      "website": "https://toutinfo.net/",
+      "priority": 5
+    },
+    {
+      "name": "ITV",
+      "isFree": true,
+      "website": "http://emedia.sn/",
+      "priority": 5
+    },
+    {
+      "name": "Keur Ndanane",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Leral",
+      "isFree": true,
+      "website": "https://www.leral.net/",
+      "priority": 5
+    },
+    {
+      "name": "L'Obs",
+      "isFree": true,
+      "website": "https://www.igfm.sn/",
+      "priority": 5
+    },
+    {
+      "name": "Lou'Bess",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Louga",
+      "isFree": true,
+      "website": "https://lougatv.net/",
+      "priority": 5
+    },
+    {
+      "name": "MADER",
+      "isFree": true,
+      "website": "https://maderpost.com/",
+      "priority": 5
+    },
+    {
+      "name": "MbourTV",
+      "isFree": true,
+      "website": "https://mbourtv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Ngor Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ouest-TV",
+      "isFree": true,
+      "website": "http://www.ouest-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Tele Fulbe",
+      "isFree": true,
+      "website": "https://radiotelevisionfulbe.com/",
+      "priority": 5
+    },
+    {
+      "name": "RDV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rewmi",
+      "isFree": true,
+      "website": "https://www.rewmi.com/rewmi-tv/",
+      "priority": 5
+    },
+    {
+      "name": "RTS 3",
+      "isFree": true,
+      "website": "https://www.rts.sn/tv/rts-3",
+      "priority": 5
+    },
+    {
+      "name": "RTS 4",
+      "isFree": true,
+      "website": "https://www.rts.sn/tv/rts-4",
+      "priority": 5
+    },
+    {
+      "name": "RTS 5",
+      "isFree": true,
+      "website": "https://www.rts.sn/tv/rts-5",
+      "priority": 5
+    },
+    {
+      "name": "Sangalkam",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Seneweb",
+      "isFree": true,
+      "website": "https://www.seneweb.com/",
+      "priority": 5
+    },
+    {
+      "name": "SenJeunes",
+      "isFree": true,
+      "website": "https://senjeunes.net/",
+      "priority": 5
+    },
+    {
+      "name": "Siweul",
+      "isFree": true,
+      "website": "https://www.siweul.net/siweul-tv/",
+      "priority": 5
+    },
+    {
+      "name": "SK 2",
+      "isFree": true,
+      "website": "https://sk2tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Senegal",
+      "isFree": true,
+      "website": "https://www.telesenegal.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVS Saloum",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Walf",
+      "isFree": true,
+      "website": "http://www.walf-groupe.com/",
+      "priority": 5
+    },
+    {
+      "name": "Wannel",
+      "isFree": true,
+      "website": "https://www.wannel.tv/",
+      "priority": 5
+    },
+    {
+      "name": "WF",
+      "isFree": true,
+      "website": "https://women-first.net/",
+      "priority": 5
+    },
+    {
+      "name": "Yegle",
+      "isFree": true,
+      "website": "https://www.yeugle.net/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "A2i Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTJ",
+      "isFree": true,
+      "website": "https://www.rtjtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "TeleMusik Senegal",
+      "isFree": true,
+      "website": "https://www.telemusik.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Urban Africa",
+      "isFree": true,
+      "website": "https://urbanmedia.group/urbanafricatv/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "2A",
+      "isFree": true,
+      "website": "https://2ainfos.com/",
+      "priority": 5
+    },
+    {
+      "name": "313 Digital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bantamba",
+      "isFree": true,
+      "website": "https://2stv.net/category/bantambatv/",
+      "priority": 5
+    },
+    {
+      "name": "DakarActu",
+      "isFree": true,
+      "website": "https://www.dakaractu.com/",
+      "priority": 5
+    },
+    {
+      "name": "EcoMedia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Media Infos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Prestige Thies",
+      "isFree": true,
+      "website": "https://prestigethies.com/",
+      "priority": 5
+    },
+    {
+      "name": "PublicSn",
+      "isFree": true,
+      "website": "https://public.sn/",
+      "priority": 5
+    },
+    {
+      "name": "RTMD",
+      "isFree": true,
+      "website": "https://rtmd.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Sunugal 24",
+      "isFree": true,
+      "website": "https://www.sunugal24.net/",
+      "priority": 5
+    },
+    {
+      "name": "SunuLabel",
+      "isFree": true,
+      "website": "https://www.labeltelevision.com/direct-sunulabel-tv",
+      "priority": 5
+    },
+    {
+      "name": "Teranga Senegal",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "A2i Naija",
+      "isFree": true,
+      "website": "https://www.a2itv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Amani",
+      "isFree": true,
+      "website": "https://amanitv.media/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Education",
+      "isFree": true,
+      "website": "https://canal.education.sn/",
+      "priority": 5
+    },
+    {
+      "name": "Dakar TV International",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DRTS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "One Nation",
+      "isFree": true,
+      "website": "https://onenationtv.sn/",
+      "priority": 5
+    },
+    {
+      "name": "Tele-Ecole",
+      "isFree": true,
+      "website": "https://tele-ecole.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TM.tv",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Yakaar",
+      "isFree": true,
+      "website": "https://yakaar.tv/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Lutte",
+      "isFree": true,
+      "website": "https://www.luttetv.com/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "PULAAGU",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sunu Yeuf",
+      "isFree": true,
+      "website": "https://www.sunuyeuf.com/",
+      "priority": 5
+    },
+    {
+      "name": "Wassa",
+      "isFree": true,
+      "website": "https://wassa.tv/",
+      "priority": 5
+    }
+  ]
+}

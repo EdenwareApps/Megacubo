@@ -106,6 +106,7 @@
    "CATEGORY_SHOP": "Tienda",
    "CATEGORY_SPORTS": "Deportes",
    "CATEGORY_TRAVEL": "Viajar",
+   "CATEGORY_XXX": "Contenido para adultos",
    "CHANGE_DEST_FOLDER": "Cambiar carpeta de destino",
    "CHANGE_HOTKEY_MESSAGE": "Escriba una nueva combinación de teclas para esta acción o pulse {0} para cancelar...",
    "CHANNEL_ADDED": "Canal agregado",

@@ -3,8 +3,6 @@
  * Provides offline functionality when server is unavailable
  */
 
-import { EPGErrorHandler } from '../../epg/worker/EPGErrorHandler.js';
-
 export class AIFallback {
     constructor() {
         // No local fallback dictionary - rely on AI server or return original tags

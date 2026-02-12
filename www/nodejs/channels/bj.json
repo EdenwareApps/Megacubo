@@ -1,0 +1,415 @@
+{
+  "News": [
+    {
+      "name": "Golfe TV Africa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Benin Web",
+      "isFree": true,
+      "website": "https://beninwebtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "First Afrique",
+      "isFree": true,
+      "website": "https://firstafriquetv.bj/",
+      "priority": 5
+    },
+    {
+      "name": "Golfe TV Benin",
+      "isFree": true,
+      "website": "https://golfegroupe.com/golfe-tv-benin/",
+      "priority": 5
+    },
+    {
+      "name": "HC 2",
+      "isFree": true,
+      "website": "https://hc2tv.bj/",
+      "priority": 5
+    },
+    {
+      "name": "ICONE",
+      "isFree": true,
+      "website": "https://iconetv.bj/",
+      "priority": 5
+    },
+    {
+      "name": "Investir",
+      "isFree": true,
+      "website": "https://www.investir-tv.bj/",
+      "priority": 5
+    },
+    {
+      "name": "ISN 24",
+      "isFree": true,
+      "website": "https://www.isn24.bj/",
+      "priority": 5
+    },
+    {
+      "name": "La Voix du Routier",
+      "isFree": true,
+      "website": "https://lavoixduroutiertv.bj/",
+      "priority": 5
+    },
+    {
+      "name": "Le Beninois Libere",
+      "isFree": true,
+      "website": "https://lebeninoislibere.bj/",
+      "priority": 5
+    },
+    {
+      "name": "Le Nouveau Manager",
+      "isFree": true,
+      "website": "https://lenouveaumanager.info/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "BB 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Etélé",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bluediamond",
+      "isFree": true,
+      "website": "https://bluediamondtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Star",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 3 Benin",
+      "isFree": true,
+      "website": "https://canal3television.com/",
+      "priority": 5
+    },
+    {
+      "name": "CNTV Benin",
+      "isFree": true,
+      "website": "https://lecanarddunord.bj/",
+      "priority": 5
+    },
+    {
+      "name": "Daabaaru",
+      "isFree": true,
+      "website": "https://daabaaru.bj/dtv/",
+      "priority": 5
+    },
+    {
+      "name": "Decryptage Web",
+      "isFree": true,
+      "website": "https://decryptage.bj/live.html",
+      "priority": 5
+    },
+    {
+      "name": "Eden",
+      "isFree": true,
+      "website": "http://benin-eden.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Etele",
+      "isFree": true,
+      "website": "https://etelebenin.com/",
+      "priority": 5
+    },
+    {
+      "name": "FONDAKIZ",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Guerite TV Monde",
+      "isFree": true,
+      "website": "https://gueritetvmonde.bj/",
+      "priority": 5
+    },
+    {
+      "name": "HMD 4",
+      "isFree": true,
+      "website": "https://hmd4.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Imanle Africa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KassouaTV",
+      "isFree": true,
+      "website": "http://kassouatv.great-site.net/",
+      "priority": 5
+    },
+    {
+      "name": "Kdaara",
+      "isFree": true,
+      "website": "https://kdaaratv.bj/",
+      "priority": 5
+    },
+    {
+      "name": "KINGO TV World",
+      "isFree": true,
+      "website": "https://www.kingonews.com/",
+      "priority": 5
+    },
+    {
+      "name": "La Beninoise",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Matin Libre",
+      "isFree": true,
+      "website": "https://matinlibretv.bj/",
+      "priority": 5
+    },
+    {
+      "name": "MORID",
+      "isFree": true,
+      "website": "https://morid-prod.bj/",
+      "priority": 5
+    },
+    {
+      "name": "Nord Benin",
+      "isFree": true,
+      "website": "https://nordbenin.bj/",
+      "priority": 5
+    },
+    {
+      "name": "ODD",
+      "isFree": true,
+      "website": "https://oddtv.live/",
+      "priority": 5
+    },
+    {
+      "name": "ORTB",
+      "isFree": true,
+      "website": "https://srtb.bj/benintv/",
+      "priority": 5
+    },
+    {
+      "name": "Planete Terre a Terre",
+      "isFree": true,
+      "website": "https://planeteterreaterretv.bj/",
+      "priority": 5
+    },
+    {
+      "name": "Soleil Levant",
+      "isFree": true,
+      "website": "https://groupesoleillevant.bj/",
+      "priority": 5
+    },
+    {
+      "name": "Speedline",
+      "isFree": true,
+      "website": "https://speedlinetv.bj/",
+      "priority": 5
+    },
+    {
+      "name": "Television Hemicycle",
+      "isFree": true,
+      "website": "https://radiohemicycle.com/television/",
+      "priority": 5
+    },
+    {
+      "name": "Top Media Benin",
+      "isFree": true,
+      "website": "https://www.topmediabenin.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVC Benin",
+      "isFree": true,
+      "website": "https://www.tvcbenin.com/",
+      "priority": 5
+    },
+    {
+      "name": "Unafrica",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Kultu",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "ADO",
+      "isFree": true,
+      "website": "https://srtb.bj/directbenintvjuniors/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Alleluia World",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Eclat Divin",
+      "isFree": true,
+      "website": "https://eeadbenin.org/",
+      "priority": 4
+    },
+    {
+      "name": "Hope TV Benin",
+      "isFree": true,
+      "website": "http://www.hopetvbenin.org/",
+      "priority": 4
+    },
+    {
+      "name": "Jesus-Revient",
+      "isFree": true,
+      "website": "https://jesusrevient.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Jesus Savior",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "La Chretienne",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Lumen Christi",
+      "isFree": true,
+      "website": "https://lumenchristitv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Maitre Sam",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Manifold",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MEC",
+      "isFree": true,
+      "website": "https://www.elitepourchrist.org/",
+      "priority": 4
+    },
+    {
+      "name": "Medegbe",
+      "isFree": true,
+      "website": "http://www.olaoluwamedegbetv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Mirhe",
+      "isFree": true,
+      "website": "http://tv.mirhe.org/",
+      "priority": 4
+    },
+    {
+      "name": "Misericorde",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Porte",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Power",
+      "isFree": true,
+      "website": "https://www.charlespasso.org/",
+      "priority": 4
+    },
+    {
+      "name": "Tele Evangelique",
+      "isFree": true,
+      "website": "https://tele-evangilque.com/",
+      "priority": 4
+    },
+    {
+      "name": "URHC",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "A+ Benin",
+      "isFree": true,
+      "website": "https://www.canalplus-afrique.com/bj/offres-tv/aplus-benin",
+      "priority": 5
+    },
+    {
+      "name": "Benin TV Alafia",
+      "isFree": true,
+      "website": "https://srtb.bj/",
+      "priority": 5
+    },
+    {
+      "name": "ESAE-TV",
+      "isFree": true,
+      "website": "https://www.esaetv.bj/",
+      "priority": 5
+    },
+    {
+      "name": "ISMA Studio Ecole",
+      "isFree": true,
+      "website": "https://ismastudio.bj/",
+      "priority": 5
+    },
+    {
+      "name": "Nationale",
+      "isFree": true,
+      "website": "https://www.nationale-tv.bj/",
+      "priority": 5
+    },
+    {
+      "name": "NEK4 Culture",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Racines Africa",
+      "isFree": true,
+      "website": "https://ong-racines.org/",
+      "priority": 5
+    },
+    {
+      "name": "Sodjo",
+      "isFree": true,
+      "website": "https://sodjotv.bj/",
+      "priority": 5
+    },
+    {
+      "name": "TATA",
+      "isFree": true,
+      "website": "https://tatainfos.bj/",
+      "priority": 5
+    },
+    {
+      "name": "Wadedji",
+      "isFree": true,
+      "priority": 5
+    }
+  ]
+}

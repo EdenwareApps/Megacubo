@@ -1,0 +1,753 @@
+{
+  "Religious": [
+    {
+      "name": "Aghapy",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Al Hayat",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Coptic",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MESat",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "The Kingdom Sat",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Alassema",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Alfath Atfal",
+      "isFree": true,
+      "website": "https://www.alfath.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Alfath Sonnah",
+      "isFree": true,
+      "website": "https://alfath.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Alfath",
+      "isFree": true,
+      "website": "https://alfath.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Al Nada",
+      "isFree": true,
+      "website": "http://alnada.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Al-Nahar Noor",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Al Rahma",
+      "isFree": true,
+      "website": "https://alrahma.tv/livestream",
+      "priority": 4
+    },
+    {
+      "name": "Egypt Quran Kareem",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Elnas",
+      "isFree": true,
+      "website": "http://www.elnas.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Huda",
+      "isFree": true,
+      "website": "https://huda.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Mawda",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Safa",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "News": [
+    {
+      "name": "Mekameleen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "eXtra News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Ghad Plus",
+      "isFree": true,
+      "website": "https://www.alghad.tv/",
+      "priority": 5
+    },
+    {
+      "name": "AlHadath Alyoum",
+      "isFree": true,
+      "website": "https://helyoum.com/",
+      "priority": 5
+    },
+    {
+      "name": "Alkofiya",
+      "isFree": true,
+      "website": "https://alkofiya.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Al Qahera News",
+      "isFree": true,
+      "website": "https://alqaheranews.net/",
+      "priority": 5
+    },
+    {
+      "name": "Extra Live",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nile News",
+      "isFree": true,
+      "website": "https://www.nile.eg/",
+      "priority": 5
+    },
+    {
+      "name": "Nile TV International",
+      "isFree": true,
+      "website": "http://www.nileinternational.net/",
+      "priority": 5
+    },
+    {
+      "name": "On E",
+      "isFree": true,
+      "website": "https://www.on-eg.com/",
+      "priority": 5
+    },
+    {
+      "name": "PNC Yom",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Ghad",
+      "isFree": true,
+      "website": "https://www.alghad.tv/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Koogi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cookies Kids",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Comedy": [
+    {
+      "name": "Nile TV Comedy",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Nile TV Sport",
+      "priority": 10
+    },
+    {
+      "name": "Al Ahly",
+      "isFree": true,
+      "website": "https://alahlyegypt.com/ar",
+      "priority": 5
+    },
+    {
+      "name": "CAF",
+      "isFree": true,
+      "website": "https://www.cafonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nile Sport",
+      "isFree": true,
+      "website": "http://www.niletc.tv/Channel/sport",
+      "priority": 10
+    },
+    {
+      "name": "OnTime Sports",
+      "isFree": true,
+      "keywords": "ontime sports -2 -3",
+      "website": "https://www.on-eg.com/",
+      "priority": 10
+    },
+    {
+      "name": "OnTime Sports 2",
+      "isFree": true,
+      "website": "https://www.on-eg.com/",
+      "priority": 10
+    },
+    {
+      "name": "OnTime Sports 3",
+      "isFree": true,
+      "website": "https://www.on-eg.com/",
+      "priority": 10
+    },
+    {
+      "name": "Zamalek",
+      "isFree": true,
+      "website": "https://el-zamalek.com/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "ATVSat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Alrafidain",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CBC",
+      "isFree": true,
+      "keywords": "cbc -drama",
+      "priority": 5
+    },
+    {
+      "name": "CBC Drama",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Elsharq",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MBC Masr",
+      "isFree": true,
+      "keywords": "mbc masr 1 -usa",
+      "priority": 5
+    },
+    {
+      "name": "MBC Masr 1 USA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MBC Masr 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nile TV Family",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Noble",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sada Elbalad",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ten",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Watan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "3yoon",
+      "isFree": true,
+      "website": "https://www.3yoontv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Alhayat",
+      "isFree": true,
+      "website": "https://elcinema.com/en/tvguide/1137/",
+      "priority": 5
+    },
+    {
+      "name": "Al Kahera Wal Nas",
+      "isFree": true,
+      "keywords": "al kahera wal nas -2",
+      "website": "http://www.alkaherawalnas.com/",
+      "priority": 5
+    },
+    {
+      "name": "Al Kahera Wal Nas 2",
+      "isFree": true,
+      "website": "http://www.alkaherawalnas.com/",
+      "priority": 5
+    },
+    {
+      "name": "Al Masriyah",
+      "isFree": true,
+      "website": "http://dotnet.ertu.org/",
+      "priority": 5
+    },
+    {
+      "name": "Al-Nahar",
+      "isFree": true,
+      "keywords": "al-nahar-algadid-drama-noor",
+      "website": "https://www.al-nahar.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Al-Nahar Algadid",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Seha Wal Jamal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Shams",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AlShoub",
+      "isFree": true,
+      "website": "https://alshoub.tv",
+      "priority": 5
+    },
+    {
+      "name": "CBC Sofra",
+      "isFree": true,
+      "website": "https://sofra.cbc-eg.com/",
+      "priority": 5
+    },
+    {
+      "name": "DMC",
+      "isFree": true,
+      "keywords": "dmc -drama",
+      "website": "https://dmc.com.eg/",
+      "priority": 5
+    },
+    {
+      "name": "Egyptian",
+      "isFree": true,
+      "website": "https://www.maspero.eg/",
+      "priority": 5
+    },
+    {
+      "name": "El Mehwar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "El Moled",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ERTU",
+      "isFree": true,
+      "website": "http://dotnet.ertu.org/",
+      "priority": 5
+    },
+    {
+      "name": "ERTU 2",
+      "isFree": true,
+      "website": "http://dotnet.ertu.org/",
+      "priority": 5
+    },
+    {
+      "name": "ERTU 3 Al Kahera",
+      "isFree": true,
+      "website": "http://dotnet.ertu.org/",
+      "priority": 5
+    },
+    {
+      "name": "ERTU 4 Al Kanal",
+      "isFree": true,
+      "website": "http://dotnet.ertu.org/",
+      "priority": 5
+    },
+    {
+      "name": "ERTU 5 Al Askandria",
+      "isFree": true,
+      "website": "http://dotnet.ertu.org/",
+      "priority": 5
+    },
+    {
+      "name": "ERTU 6 Al Delta",
+      "isFree": true,
+      "website": "http://dotnet.ertu.org/",
+      "priority": 5
+    },
+    {
+      "name": "ERTU 7 Al Saeed",
+      "isFree": true,
+      "website": "http://dotnet.ertu.org/",
+      "priority": 5
+    },
+    {
+      "name": "ERTU 8 Teba",
+      "isFree": true,
+      "website": "http://dotnet.ertu.org/",
+      "priority": 5
+    },
+    {
+      "name": "ETC",
+      "isFree": true,
+      "website": "https://etc-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Hya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Maspero Zaman",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Masr Om Eldonia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MBC 1 Egypt",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Menhag",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Misr AlBalad",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mix Bel Araby",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nile Comedy",
+      "isFree": true,
+      "website": "http://www.niletc.tv/Channel/comedy",
+      "priority": 5
+    },
+    {
+      "name": "Nile Family",
+      "isFree": true,
+      "website": "http://www.niletc.tv/Channel/family",
+      "priority": 5
+    },
+    {
+      "name": "Nile Life",
+      "isFree": true,
+      "website": "http://www.niletc.tv/Channel/life",
+      "priority": 5
+    },
+    {
+      "name": "Omg",
+      "isFree": true,
+      "keywords": "omg channel",
+      "website": "http://omg.omgchannel.net/",
+      "priority": 5
+    },
+    {
+      "name": "OTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PNC Food",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sada Elbalad 2",
+      "isFree": true,
+      "website": "https://www.elbalad.news/",
+      "priority": 5
+    },
+    {
+      "name": "Sout Masr",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sowt Al-Arab",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Omg Series",
+      "isFree": true,
+      "keywords": "omg series",
+      "website": "http://omg.omgchannel.net/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Nile TV Cinema",
+      "priority": 5
+    },
+    {
+      "name": "Alhayat Drama",
+      "isFree": true,
+      "website": "https://elcinema.com/en/tvguide/1138/",
+      "priority": 5
+    },
+    {
+      "name": "Al-Nahar Drama",
+      "isFree": true,
+      "website": "https://www.al-nahar.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Cima",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DMC Drama",
+      "isFree": true,
+      "website": "https://dmc.com.eg/",
+      "priority": 5
+    },
+    {
+      "name": "FOX Movies",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HBC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Melody Classic",
+      "isFree": true,
+      "website": "https://my.dish.com/station/MLDYC",
+      "priority": 5
+    },
+    {
+      "name": "Mix Hollywood",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nile Cinema",
+      "isFree": true,
+      "website": "http://www.niletc.tv/Channel/cinema",
+      "priority": 5
+    },
+    {
+      "name": "Nile Drama",
+      "isFree": true,
+      "website": "http://www.niletc.tv/Channel/drama",
+      "priority": 5
+    },
+    {
+      "name": "On Drama",
+      "isFree": true,
+      "website": "https://www.on-eg.com/",
+      "priority": 5
+    },
+    {
+      "name": "One Movies",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PNC Drama",
+      "isFree": true,
+      "keywords": "pnc drama -2",
+      "priority": 5
+    },
+    {
+      "name": "PNC Drama 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PNC Film",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rotana Cinema Egypt",
+      "isFree": true,
+      "website": "http://www.cinema.rotana.net/",
+      "priority": 5
+    },
+    {
+      "name": "Sada Elbalad Drama",
+      "isFree": true,
+      "website": "https://www.elbalad.news/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Nile TV Culture",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nile TV Learning",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nile TV Life",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al-Saeedah",
+      "isFree": true,
+      "website": "http://www.alsaeedah-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Al Wathaeqya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GUC",
+      "isFree": true,
+      "website": "https://www.guc.edu.eg/",
+      "priority": 5
+    },
+    {
+      "name": "Madrasetna",
+      "isFree": true,
+      "website": "https://madrasetna-egypt.com/",
+      "priority": 5
+    },
+    {
+      "name": "Madrasetna 2",
+      "isFree": true,
+      "website": "https://madrasetna-egypt.com/",
+      "priority": 5
+    },
+    {
+      "name": "Madrasetna 3",
+      "isFree": true,
+      "website": "https://madrasetna-egypt.com/",
+      "priority": 5
+    },
+    {
+      "name": "Misr Al Zeraya",
+      "isFree": true,
+      "website": "https://misrelzraea.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nile Culture",
+      "isFree": true,
+      "website": "http://www.niletc.tv/Channel/culture",
+      "priority": 5
+    },
+    {
+      "name": "Nile Education",
+      "isFree": true,
+      "website": "http://www.niletc.tv/Channel/Learning",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "El Radio 9090 FM",
+      "isFree": true,
+      "website": "https://www.9090.fm/",
+      "priority": 5
+    },
+    {
+      "name": "Free",
+      "isFree": true,
+      "website": "http://freetvmusic.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Mazzika",
+      "isFree": true,
+      "website": "https://mazzikagroup.com/",
+      "priority": 5
+    },
+    {
+      "name": "NogoumFMTV",
+      "isFree": true,
+      "website": "https://www.nogoumfm.net/",
+      "priority": 5
+    },
+    {
+      "name": "Shaabeyat",
+      "isFree": true,
+      "website": "https://sh3beyat.com",
+      "priority": 5
+    },
+    {
+      "name": "Zilzal Classic",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Nogoum FM",
+      "isFree": true,
+      "priority": 5
+    }
+  ]
+}

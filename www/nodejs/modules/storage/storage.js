@@ -8,6 +8,43 @@ import path from "path";
 import config from "../config/config.js"
 import { moveFile, rmdir } from '../utils/utils.js'
 import { parse } from '../serialize/serialize.js'
+import crypto from 'crypto'
+
+// Class to manage profile authentication
+class ProfileAuth {
+    constructor() {
+        this.authKeys = new Map(); // profileId -> encryptionKey
+        this.openProfiles = new Set(); // perfis sem criptografia
+    }
+
+    // Set encryption key for a profile
+    setAuth(profileId, key) {
+        if (!key) {
+            // Perfil aberto - sem criptografia
+            this.openProfiles.add(profileId);
+            this.authKeys.delete(profileId);
+        } else {
+            this.openProfiles.delete(profileId);
+            this.authKeys.set(profileId, key);
+        }
+    }
+
+    // Get encryption key for a profile
+    getAuth(profileId) {
+        return this.authKeys.get(profileId);
+    }
+
+    // Check if profile is open (no encryption)
+    isOpen(profileId) {
+        return this.openProfiles.has(profileId);
+    }
+
+    // Remove authentication from a profile
+    clearAuth(profileId) {
+        this.authKeys.delete(profileId);
+        this.openProfiles.delete(profileId);
+    }
+}
 
 class StorageTools extends EventEmitter {
     constructor(opts) {
@@ -26,7 +63,16 @@ class StorageTools extends EventEmitter {
         this.locked = {};
         this.index = {};
         this.knownExtensions = ['offsets.jdb', 'idx.jdb', 'dat', 'jdb'] // do not include 'json', those are handled by upgrade()
-        
+
+        // Ensure storage folder exists synchronously in main process (avoids ENOENT on first write when packaged)
+        if (this.opts.main && this.opts.folder) {
+            try {
+                fs.mkdirSync(this.opts.folder, { recursive: true });
+            } catch (e) {
+                console.warn('Storage: could not create folder', this.opts.folder, e.message);
+            }
+        }
+
         // Add write queue system for better concurrency control
         this.writeQueue = new Map(); // key -> queue of write operations
         this.writeQueueLocks = new Map(); // key -> lock for queue operations
@@ -629,7 +675,10 @@ class StorageIndex extends StorageHolding {
         return changed
     }
     async touch(key, atts, doNotPropagate) {
-        key = this.prepareKey(key)
+        // Apply prepareKey only if key doesn't already have valid scope prefix (global/ or profiles/)
+        if (!this.hasValidScope(key)) {
+            key = this.prepareKey(key);
+        }
         if (atts && atts.delete === true) { // IPC sync only
             if (this.index[key]) {
                 delete this.index[key]
@@ -761,9 +810,74 @@ class StorageIndex extends StorageHolding {
 class StorageIO extends StorageIndex {
     constructor(opts) {
         super(opts);
+        this.profileAuth = new ProfileAuth();
+        this.currentProfile = null;
+        this.migrationCompleted = false;
+        this.lazyMigrations = new Set(); // Track lazy migrations
+        this.migrationStats = {
+            migrated: 0,
+            failed: 0,
+            skipped: 0
+        };
+    }
+
+    // Method to set current profile
+    setCurrentProfile(profileId) {
+        this.currentProfile = profileId;
+    }
+
+    // Method to set profile authentication
+    setProfileAuth(profileId, key) {
+        this.profileAuth.setAuth(profileId, key);
+    }
+
+    // auth() method as requested
+    auth(profileId) {
+        return {
+            setKey: (key) => this.setProfileAuth(profileId, key),
+            getKey: () => this.profileAuth.getAuth(profileId),
+            isOpen: () => this.profileAuth.isOpen(profileId),
+            clear: () => this.profileAuth.clearAuth(profileId)
+        };
     }
     async get(key, opts={}) {
-        key = this.prepareKey(key)
+        // Ensure initial migration was checked
+        await this.ensureMigrationReady();
+
+        // Try search with new structure first
+        let result = await this.getWithNewStructure(key, opts);
+
+        // Fallback to lazy migration if not found
+        if (result === null) {
+            result = await this.tryLazyMigration(key, opts);
+        }
+
+        return result;
+    }
+
+    async getWithNewStructure(key, opts={}) {
+        // Don't apply prepareKey if key already has valid scope prefix
+        if (!this.hasValidScope(key)) {
+            key = this.prepareKey(key);
+
+            // Try first as personal (with current profile)
+            let actualKey = `profiles/${this.currentProfile || 'default'}/${key}`;
+            let result = await this.getByKey(actualKey, opts);
+
+            // If not found, try as global
+            if (result === null) {
+                actualKey = `global/${key}`;
+                result = await this.getByKey(actualKey, opts);
+            }
+
+            return result;
+        } else {
+            // Key already has valid scope, use it directly
+            return this.getByKey(key, opts);
+        }
+    }
+
+    async getByKey(key, opts={}) {
         if (!this.index[key]) {
             // Try auto-heal if not in index
             const healed = await this.tryAutoHealKey(key).catch(() => false);
@@ -775,6 +889,13 @@ class StorageIO extends StorageIndex {
             }
         }
         const row = this.index[key]
+        if (!row) {
+            if(opts.throwIfMissing === true) {
+                throw new Error('Key not found: '+ key)
+            }
+            return null;
+        }
+
         // grab this row to mem to avoid losing it due to its deletion in meanwhile, maybe using a lock() would be better
         if (opts.encoding !== null && typeof(opts.encoding) != 'string') {
             if (row.compress) {
@@ -784,7 +905,7 @@ class StorageIO extends StorageIndex {
             }
         }
         await this.touch(key, false) // wait writing on file to finish before to re-enable access
-        
+
         // Acquire lock and ensure it's released
         const lock = await this.lock(key, false);
         try {
@@ -816,6 +937,20 @@ class StorageIO extends StorageIndex {
                             try {
                                 let j = parse(content);
                                 if (j && j != null) {
+                                    // Descriptografar se necessário
+                                    if (row.encrypted) {
+                                        const profileId = this.extractProfileFromKey(key);
+                                        const authKey = this.profileAuth.getAuth(profileId);
+                                        if (authKey) {
+                                            j = await this.decryptContent(j, authKey);
+                                        } else {
+                                            // Cannot decrypt - profile not authenticated
+                                            if (opts.throwIfMissing === true) {
+                                                throw new Error('Profile not authenticated: ' + profileId);
+                                            }
+                                            return null;
+                                        }
+                                    }
                                     return j;
                                 }
                             }
@@ -833,45 +968,517 @@ class StorageIO extends StorageIndex {
             lock.release();
         }
     }
+
+    // Hybrid Migration System for Retro-Compatibility
+    async ensureMigrationReady() {
+        if (this.migrationCompleted) return;
+
+        // Check if bulk migration was already done
+        const migrationFlagKey = 'migration-profiles-system-v1';
+        const alreadyMigrated = await this.getLegacyData(migrationFlagKey);
+
+        if (!alreadyMigrated) {
+            // Try quick migration of critical data
+            await this.attemptCriticalDataMigration();
+            // Mark as completed
+            this.migrationCompleted = true;
+        } else {
+            this.migrationCompleted = true;
+        }
+    }
+
+    async attemptCriticalDataMigration() {
+        const criticalKeys = ['playlists', 'favorites', 'bookmarks'];
+
+        for (const key of criticalKeys) {
+            try {
+                if (await this.hasLegacyData(key)) {
+                    const data = await this.getLegacyData(key);
+                    if (data !== null) {
+                        console.log(`🔄 Migrating critical data: ${key}`);
+                        await this.migrateDataToNewStructure(key, data);
+                        this.migrationStats.migrated++;
+                    }
+                }
+            } catch (error) {
+                console.warn(`⚠️ Failed to migrate critical key ${key}:`, error.message);
+                this.migrationStats.failed++;
+            }
+        }
+    }
+
+    async tryLazyMigration(key, opts) {
+        // Avoid migration loops
+        if (this.lazyMigrations.has(key)) return null;
+
+        try {
+            // Check if legacy data exists
+            const legacyData = await this.getLegacyData(key);
+            if (legacyData !== null) {
+                console.log(`🔄 Lazy migrating: ${key}`);
+                await this.migrateDataToNewStructure(key, legacyData);
+                this.lazyMigrations.add(key);
+                this.migrationStats.migrated++;
+                return legacyData;
+            }
+        } catch (error) {
+            console.warn(`⚠️ Lazy migration failed for ${key}:`, error.message);
+            this.migrationStats.failed++;
+        }
+
+        return null;
+    }
+
+    async migrateDataToNewStructure(key, data) {
+        // Create backup before migration
+        await this.createMigrationBackup(key, data);
+
+        // Determine if it's personal or global data
+        const isPersonal = this.isPersonalDataKey(key);
+        const shouldEncrypt = this.isSensitiveDataKey(key);
+
+        try {
+            if (isPersonal) {
+                // Migrate to personal profile
+                await this.set(key, data, {
+                    personal: true,
+                    sensitive: shouldEncrypt,
+                    profileId: this.currentProfile || 'default'
+                });
+            } else {
+                // Migrate to global
+                await this.set(key, data, { personal: false });
+            }
+
+            // After successful migration, remove legacy file
+            await this.removeLegacyData(key);
+
+        } catch (error) {
+            console.error(`❌ Migration failed for ${key}:`, error);
+            await this.restoreMigrationBackup(key);
+            throw error;
+        }
+    }
+
+    async createMigrationBackup(key, data) {
+        // Create backup directly, without going through migration system
+        const backupKey = `migration-backup-${key}-${Date.now()}`;
+        const backupFile = this.resolve(backupKey);
+
+        try {
+            // Create directory if it doesn't exist
+            const dir = path.dirname(backupFile);
+            await fs.promises.mkdir(dir, { recursive: true }).catch(() => {});
+
+            // Save backup directly as JSON
+            const backupData = JSON.stringify({
+                key,
+                data,
+                timestamp: Date.now(),
+                version: 'migration-backup-v1'
+            });
+
+            await fs.promises.writeFile(backupFile, backupData, 'utf8');
+
+            // Atualizar index
+            await this.touch(backupKey, {
+                size: backupData.length,
+                permanent: true,
+                time: Date.now() / 1000
+            });
+
+        } catch (error) {
+            console.warn(`⚠️ Could not create backup for ${key}:`, error.message);
+        }
+    }
+
+    async restoreMigrationBackup(key) {
+        // In a complete implementation, we would search for the most recent backup
+        // and restore the legacy file
+        console.warn(`⚠️ Migration rollback needed for ${key} - manual intervention required`);
+    }
+
+    async hasLegacyData(key) {
+        // Check if legacy file exists (without profiles/ or global/ prefixes)
+        const legacyFile = this.resolve(key);
+        try {
+            await fs.promises.access(legacyFile);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    async getLegacyData(key) {
+        // Read data directly from legacy file
+        const legacyFile = this.resolve(key);
+        try {
+            const stat = await fs.promises.stat(legacyFile).catch(() => null);
+            if (!stat) return null;
+
+            const content = await fs.promises.readFile(legacyFile, 'utf8');
+            if (content && content.trim()) {
+                const row = this.index[key];
+                let parsed = content;
+
+                // Decompress if necessary
+                if (row && row.compress) {
+                    parsed = await this.decompress(Buffer.from(content));
+                }
+
+                // Parse JSON if not raw
+                if (row && !row.raw && parsed !== 'undefined') {
+                    try {
+                        const j = parse(parsed);
+                        return j && j !== null ? j : null;
+                    } catch (e) {
+                        return null;
+                    }
+                }
+
+                return parsed;
+            }
+        } catch (error) {
+            // Silently ignore errors when checking legacy data
+        }
+        return null;
+    }
+
+    async removeLegacyData(key) {
+        try {
+            const legacyFile = this.resolve(key);
+            await fs.promises.unlink(legacyFile).catch(() => {});
+
+            // Remover do index se existir
+            if (this.index[key]) {
+                delete this.index[key];
+            }
+        } catch (error) {
+            console.warn(`⚠️ Could not remove legacy data for ${key}:`, error.message);
+        }
+    }
+
+    isNewStructureKey(key) {
+        // Verificar se a chave já está na nova estrutura
+        return this.hasValidScope(key);
+    }
+
+    isPersonalDataKey(key) {
+        // List of keys that are considered personal data
+        const personalKeys = [
+            'favorites', 'bookmarks', 'user-tasks', 'search', 'trending-current',
+            'recorder-schedules', 'cast-known-devices', 'stream-state',
+            'discovery', 'bsdk-last-mtime', 'pac-', 'history', 'playlists'
+        ];
+
+        return personalKeys.some(personalKey =>
+            key.startsWith(personalKey) || key.includes(personalKey)
+        );
+    }
+
+    isSensitiveDataKey(key) {
+        // Data that contains sensitive information that should be encrypted
+        const sensitiveKeys = [
+            'playlists', 'pac-', 'credentials', 'auth', 'api-keys'
+        ];
+
+        return sensitiveKeys.some(sensitiveKey =>
+            key.includes(sensitiveKey)
+        );
+    }
+
+    extractProfileFromKey(key) {
+        const match = key.match(/^profiles\/([^\/]+)\//);
+        return match ? match[1] : 'default';
+    }
+
+    extractScopeFromKey(key) {
+        return key.startsWith('global/') ? 'global' : 'personal';
+    }
+
+    // Métodos de criptografia
+    async encryptContent(content, key) {
+        const iv = crypto.randomBytes(16);
+        const cipher = crypto.createCipher('aes-256-gcm', key);
+        cipher.setAAD(Buffer.from('storage-data'));
+
+        let encrypted = cipher.update(JSON.stringify(content), 'utf8', 'hex');
+        encrypted += cipher.final('hex');
+
+        return {
+            data: encrypted,
+            iv: iv.toString('hex'),
+            tag: cipher.getAuthTag().toString('hex')
+        };
+    }
+
+    async decryptContent(encryptedData, key) {
+        const decipher = crypto.createDecipher('aes-256-gcm', key);
+        decipher.setAuthTag(Buffer.from(encryptedData.tag, 'hex'));
+        decipher.setAAD(Buffer.from('storage-data'));
+
+        let decrypted = decipher.update(encryptedData.data, 'hex', 'utf8');
+        decrypted += decipher.final('utf8');
+
+        return JSON.parse(decrypted);
+    }
+
     async set(key, content, atts) {
-        key = this.prepareKey(key);
-        
-        // Use write queue to prevent race conditions
-        return this.queueWrite(key, async () => {
-            const lock = await this.lock(key, true), t = typeof(atts);
+        // Note: prepareKey is now called INSIDE applyScopeAndEncryption to avoid stripping scope slashes
+        // Processar novos parâmetros personal/sensitive
+        const processedAtts = this.processStorageAttributes(atts);
+
+        // Aplicar escopo e criptografia (prepareKey is applied to base key inside)
+        const result = await this.applyScopeAndEncryption(key, content, processedAtts);
+
+        // Use write queue with the processed key
+        return this.queueWrite(result.key, async () => {
+            const lock = await this.lock(result.key, true), t = typeof(result.atts);
             if (t == 'boolean' || t == 'number') {
                 if (t == 'number') {
-                    atts += (Date.now() / 1000);
+                    result.atts += (Date.now() / 1000);
                 }
-                atts = { expiration: atts };
+                result.atts = { expiration: result.atts };
             }
-            if (atts.encoding !== null && typeof(atts.encoding) != 'string') {
-                if (atts.compress) {
-                    atts.encoding = null;
+            if (result.atts.encoding !== null && typeof(result.atts.encoding) != 'string') {
+                if (result.atts.compress) {
+                    result.atts.encoding = null;
                 } else {
-                    atts.encoding = 'utf-8';
+                    result.atts.encoding = 'utf-8';
                 }
             }
-            let file = this.resolve(key);
-            if (atts.raw && typeof(content) != 'string' && !Buffer.isBuffer(content))
-                atts.raw = false;
-            if (!atts.raw)
-                content = JSON.stringify(content);
-            if (atts.compress)
-                content = await this.compress(content);
-            await this.write(file, content, atts.encoding).catch(err => console.error(err));
-            
-            await this.touch(key, Object.assign(atts, { size: content.length }));
-            
+            let file = this.resolve(result.key);
+            if (result.atts.raw && typeof(result.content) != 'string' && !Buffer.isBuffer(result.content))
+                result.atts.raw = false;
+            if (!result.atts.raw)
+                result.content = JSON.stringify(result.content);
+            if (result.atts.compress)
+                result.content = await this.compress(result.content);
+            await this.write(file, result.content, result.atts.encoding).catch(err => console.error(err));
+
+            await this.touch(result.key, Object.assign(result.atts, { size: result.content.length }));
+
             // Save expiration sidecar file AFTER touch() (which calculates expiration via calcExpiration)
-            const finalExp = this.index[key]?.expiration;
+            const finalExp = this.index[result.key]?.expiration;
             if (typeof finalExp === 'number' && finalExp > 0) {
                 const expFile = file.replace(/\.dat$/, '.expires.json');
                 await fs.promises.writeFile(expFile, String(finalExp), 'utf8').catch(() => {});
             }
-            
+
             lock.release()
         });
+    }
+
+    // Processa os atributos da nova API
+    processStorageAttributes(atts = {}) {
+        const processed = { ...atts };
+
+        // personal: true/false (padrão false)
+        const personal = processed.personal || false;
+        delete processed.personal;
+
+        // sensitive: defaults to personal value, only can be true if personal==true
+        let sensitive = processed.sensitive;
+        if (typeof sensitive === 'undefined') {
+            sensitive = personal; // defaults to personal value
+        } else if (sensitive && !personal) {
+            throw new Error('sensitive can only be true if personal is true');
+        }
+        delete processed.sensitive;
+
+        return {
+            ...processed,
+            personal,
+            sensitive
+        };
+    }
+
+    // Aplica escopo e criptografia
+    async applyScopeAndEncryption(key, content, atts) {
+        // Apply prepareKey to the BASE key first (before adding scope prefix)
+        // This ensures slashes in scope prefixes are preserved
+        const baseKey = this.prepareKey(key);
+        
+        let finalKey = baseKey;
+        let finalContent = content;
+        let finalAtts = { ...atts };
+
+        const profileId = atts.profileId || this.currentProfile || 'default';
+
+        // Aplicar escopo - note: baseKey is already sanitized, scope prefix is added cleanly
+        if (atts.personal) {
+            finalKey = `profiles/${profileId}/${baseKey}`;
+        } else {
+            finalKey = `global/${baseKey}`;
+        }
+
+        // Aplicar criptografia se necessário
+        if (atts.sensitive && !this.profileAuth.isOpen(profileId)) {
+            const authKey = this.profileAuth.getAuth(profileId);
+            if (authKey) {
+                finalContent = await this.encryptContent(content, authKey);
+                finalAtts.encrypted = true;
+            }
+        }
+
+        return {
+            key: finalKey,
+            content: finalContent,
+            atts: finalAtts
+        };
+    }
+
+    hasValidScope(key) {
+        return key.startsWith('global/') || key.startsWith('profiles/');
+    }
+
+    // Modification of get() method to support profiles
+    async get(key, opts = {}) {
+        // Don't apply prepareKey if key already has valid scope prefix
+        if (!this.hasValidScope(key)) {
+            key = this.prepareKey(key);
+
+            // Try first as personal (with current profile)
+            let actualKey = `profiles/${this.currentProfile || 'default'}/${key}`;
+            let result = await this.getByKey(actualKey, opts);
+
+            // If not found, try as global
+            if (result === null) {
+                actualKey = `global/${key}`;
+                result = await this.getByKey(actualKey, opts);
+            }
+
+            return result;
+        } else {
+            // Key already has valid scope, use it directly
+            return this.getByKey(key, opts);
+        }
+    }
+
+    // Helper method to search by specific key
+    async getByKey(key, opts = {}) {
+        if (!this.index[key]) {
+            // Try auto-heal if not in index
+            const healed = await this.tryAutoHealKey(key).catch(() => false);
+            if (!healed) {
+                if(opts.throwIfMissing === true) {
+                    throw new Error('Key not found: '+ key)
+                }
+                return null;
+            }
+        }
+        const row = this.index[key]
+        if (!row) {
+            if(opts.throwIfMissing === true) {
+                throw new Error('Key not found: '+ key)
+            }
+            return null;
+        }
+
+        // grab this row to mem to avoid losing it due to its deletion in meanwhile, maybe using a lock() would be better
+        if (opts.encoding !== null && typeof(opts.encoding) != 'string') {
+            if (row.compress) {
+                opts.encoding = null
+            } else {
+                opts.encoding = 'utf-8'
+            }
+        }
+        await this.touch(key, false) // wait writing on file to finish before to re-enable access
+
+        // Acquire lock and ensure it's released
+        const lock = await this.lock(key, false);
+        try {
+            const now = (Date.now() / 1000)
+            if (row.expiration < now) {
+                if(opts.throwIfMissing === true) {
+                    throw new Error('Key expired: '+ key)
+                }
+                return null
+            }
+            const file = this.resolve(key);
+            const stat = await fs.promises.stat(file).catch(() => {});
+            const exists = stat && typeof(stat.size) == 'number';
+            if (exists) {
+                let err;
+                await this.touch(key, { size: stat.size });
+                let content = await fs.promises.readFile(file, { encoding: opts.encoding }).catch(e => err = e);
+                if (!err) {
+                    if (row.compress) {
+                        content = await this.decompress(content)
+                    }
+                    if (row.raw) {
+                        return content;
+                    } else {
+                        if (Buffer.isBuffer(content)) { // is buffer
+                            content = String(content);
+                        }
+                        if (content != 'undefined') {
+                            try {
+                                let j = parse(content);
+                                if (j && j != null) {
+                                    // Descriptografar se necessário
+                                    if (row.encrypted) {
+                                        const profileId = this.extractProfileFromKey(key);
+                                        const authKey = this.profileAuth.getAuth(profileId);
+                                        if (authKey) {
+                                            j = await this.decryptContent(j, authKey);
+                                        } else {
+                                            // Cannot decrypt - profile not authenticated
+                                            if (opts.throwIfMissing === true) {
+                                                throw new Error('Profile not authenticated: ' + profileId);
+                                            }
+                                            return null;
+                                        }
+                                    }
+                                    return j;
+                                }
+                            }
+                            catch (e) {}
+                        }
+                    }
+                }
+            }
+            if(opts.throwIfMissing === true) {
+                throw new Error('Key not found: '+ key)
+            }
+            return null;
+        } finally {
+            // Always release the lock
+            lock.release();
+        }
+    }
+
+    // Utilities to extract information from keys
+    extractProfileFromKey(key) {
+        const match = key.match(/^profiles\/([^\/]+)\//);
+        return match ? match[1] : 'default';
+    }
+
+    // Métodos de criptografia
+    async encryptContent(content, key) {
+        const iv = crypto.randomBytes(16);
+        const cipher = crypto.createCipher('aes-256-gcm', key);
+        cipher.setAAD(Buffer.from('storage-data'));
+
+        let encrypted = cipher.update(JSON.stringify(content), 'utf8', 'hex');
+        encrypted += cipher.final('hex');
+
+        return {
+            data: encrypted,
+            iv: iv.toString('hex'),
+            tag: cipher.getAuthTag().toString('hex')
+        };
+    }
+
+    async decryptContent(encryptedData, key) {
+        const decipher = crypto.createDecipher('aes-256-gcm', key);
+        decipher.setAuthTag(Buffer.from(encryptedData.tag, 'hex'));
+        decipher.setAAD(Buffer.from('storage-data'));
+
+        let decrypted = decipher.update(encryptedData.data, 'hex', 'utf8');
+        decrypted += decipher.final('utf8');
+
+        return JSON.parse(decrypted);
     }
     
     // Queue system for write operations
@@ -1001,36 +1608,106 @@ class StorageIO extends StorageIndex {
     }
 
     expiration(key) {
-        key = this.prepareKey(key)
-        if (this.index[key] && this.index[key].expiration) {
-            return this.index[key].expiration
+        let lookupKey;
+
+        if (this.hasValidScope(key)) {
+            lookupKey = key;
+        } else {
+            const preparedKey = this.prepareKey(key);
+            // Try personal first, then global
+            const personalKey = `profiles/${this.currentProfile || 'default'}/${preparedKey}`;
+            const globalKey = `global/${preparedKey}`;
+
+            if (this.index[personalKey] && this.index[personalKey].expiration) {
+                return this.index[personalKey].expiration;
+            }
+            if (this.index[globalKey] && this.index[globalKey].expiration) {
+                return this.index[globalKey].expiration;
+            }
+            lookupKey = preparedKey;
+        }
+
+        if (this.index[lookupKey] && this.index[lookupKey].expiration) {
+            return this.index[lookupKey].expiration;
         }
         // Note: Auto-heal is async, called from async methods (get/exists)
         return 0;
     }
     async exists(key) {
-        key = this.prepareKey(key);
-        if (this.has(key)) {            
-            const file = this.resolve(key);
-            const stat = await fs.promises.stat(file).catch(() => {});
-            if (stat && typeof(stat.size) == 'number') {
+        if (!this.hasValidScope(key)) {
+            const preparedKey = this.prepareKey(key);
+
+            // Try personal scope first
+            const personalKey = `profiles/${this.currentProfile || 'default'}/${preparedKey}`;
+            if (this.index[personalKey]) {
+                const file = this.resolve(personalKey);
+                const stat = await fs.promises.stat(file).catch(() => {});
+                if (stat && typeof(stat.size) == 'number') {
+                    return true;
+                }
+            }
+
+            // Try global scope
+            const globalKey = `global/${preparedKey}`;
+            if (this.index[globalKey]) {
+                const file = this.resolve(globalKey);
+                const stat = await fs.promises.stat(file).catch(() => {});
+                if (stat && typeof(stat.size) == 'number') {
+                    return true;
+                }
+            }
+
+            // Try direct key (fallback for old entries)
+            if (this.has(preparedKey)) {
+                const file = this.resolve(preparedKey);
+                const stat = await fs.promises.stat(file).catch(() => {});
+                if (stat && typeof(stat.size) == 'number') {
+                    return true;
+                }
+            }
+
+            // Try auto-heal if not found
+            const healed = await this.tryAutoHealKey(preparedKey).catch(() => false);
+            if (healed && this.index[preparedKey]) {
                 return true;
             }
+
+            return false;
+        } else {
+            // Key already has valid scope, check directly
+            if (this.index[key]) {
+                const file = this.resolve(key);
+                const stat = await fs.promises.stat(file).catch(() => {});
+                if (stat && typeof(stat.size) == 'number') {
+                    return true;
+                }
+            }
+            return false;
         }
-        
-        // Try auto-heal if not in index
-        const healed = await this.tryAutoHealKey(key).catch(() => false);
-        if (healed && this.index[key]) {
-            return true;
-        }
-        
-        return false;
     }
     has(key) {
-        key = this.prepareKey(key);
-        if (!this.index[key])
+        let lookupKey;
+
+        if (this.hasValidScope(key)) {
+            lookupKey = key;
+        } else {
+            const preparedKey = this.prepareKey(key);
+            // Try personal first, then global
+            const personalKey = `profiles/${this.currentProfile || 'default'}/${preparedKey}`;
+            const globalKey = `global/${preparedKey}`;
+
+            if (this.index[personalKey]) {
+                lookupKey = personalKey;
+            } else if (this.index[globalKey]) {
+                lookupKey = globalKey;
+            } else {
+                lookupKey = preparedKey;
+            }
+        }
+
+        if (!this.index[lookupKey])
             return false;
-        const expiral = this.expiration(key);
+        const expiral = this.expiration(lookupKey);
         return (expiral > (Date.now() / 1000));
     }
     async write(file, content, enc) {
@@ -1094,7 +1771,32 @@ class StorageIO extends StorageIndex {
         throw lastError;
     }
     async delete(key, removeFile) {
-        key = this.prepareKey(key)
+        // Handle scoped keys differently than simple keys
+        if (this.hasValidScope(key)) {
+            // Key already has valid scope, delete directly
+            return this.deleteByKey(key, removeFile);
+        } else {
+            // Simple key - try both personal and global scopes
+            const preparedKey = this.prepareKey(key);
+
+            // Try personal first
+            const personalKey = `profiles/${this.currentProfile || 'default'}/${preparedKey}`;
+            if (this.index[personalKey]) {
+                return this.deleteByKey(personalKey, removeFile);
+            }
+
+            // Try global
+            const globalKey = `global/${preparedKey}`;
+            if (this.index[globalKey]) {
+                return this.deleteByKey(globalKey, removeFile);
+            }
+
+            // Fallback - delete with prepared key directly
+            return this.deleteByKey(preparedKey, removeFile);
+        }
+    }
+
+    async deleteByKey(key, removeFile) {
         const files = []
         for (const ext of this.knownExtensions) {
             files.push(this.resolve(key, ext)) // before deleting from index
@@ -1379,13 +2081,38 @@ class Storage extends StorageIO {
     }
     
     resolve(key, ext='dat') {
-        key = this.prepareKey(key);
-        if (this.index[key]) {
-            if (this.index[key].file) { // still there?
-                return this.index[key].file;
+        const originalKey = key;
+
+        // Don't apply prepareKey if key already has valid scope prefix (global/ or profiles/)
+        const preparedKey = this.hasValidScope(key) ? key : this.prepareKey(key);
+
+        // Try to find the key in index considering scope prefixes
+        const possibleKeys = [
+            preparedKey, // try exact key first (already scoped)
+            `profiles/${this.currentProfile || 'default'}/${this.prepareKey(key)}`, // personal
+            `global/${this.prepareKey(key)}`, // global
+            this.prepareKey(key) // fallback for old keys without scope
+        ];
+
+        for (const scopedKey of possibleKeys) {
+            if (this.index[scopedKey]) {
+                if (this.index[scopedKey].file) { // still there?
+                    return this.index[scopedKey].file;
+                }
             }
         }
-        return this.opts.folder +'/'+ key +'.'+ ext
+
+        // Fallback: generate path based on key
+        // For scoped keys (global/xxx or profiles/xxx), convert slashes to safe chars for filename
+        // For simple keys, just use prepareKey
+        let filename;
+        if (this.hasValidScope(originalKey)) {
+            // Convert scoped key to safe filename: global/key -> globalkey, profiles/default/key -> profilesdefaultkey
+            filename = originalKey.replace(/\//g, '');
+        } else {
+            filename = this.prepareKey(originalKey);
+        }
+        return this.opts.folder +'/'+ filename +'.'+ ext
     }
     unresolve(file) {
         const key = this.prepareKey(path.basename(file).replace(new RegExp('\\.(json|offsets\\.jdb|idx\\.jdb|dat|jdb)$'), ''));

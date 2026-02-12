@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events';
-import Countries from "../countries/countries.js";
+import countries from '@edenware/countries';
 import fs from "fs";
 import path from "path";
 import config from "../config/config.js"
@@ -10,7 +10,7 @@ import { moment } from '../utils/utils.js'
 class Language extends EventEmitter {
     constructor() {
         super()
-        this.countries = new Countries()
+        this.countries = countries
         this.ready = ready()
     }
     async findLanguages() {

@@ -1,0 +1,186 @@
+{
+  "Entertainment": [
+    {
+      "name": "Sudan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Gezira",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al-Hilal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ashorooq",
+      "isFree": true,
+      "website": "https://ashorooq.net.sd/",
+      "priority": 5
+    },
+    {
+      "name": "Blue Nile",
+      "isFree": true,
+      "keywords": "blue nile channel -2",
+      "website": "http://bnile.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Blue Nile Channel 2",
+      "isFree": true,
+      "website": "http://bnile.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Kanon TV Sudan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Karari",
+      "isFree": true,
+      "website": "https://www.karari.info/",
+      "priority": 5
+    },
+    {
+      "name": "Kassala",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Khartoum",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nile River",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Red Sea",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Shamalia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sniper",
+      "isFree": true,
+      "website": "https://sipergroup.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sudania 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TA Seti Almareefa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tayba",
+      "isFree": true,
+      "website": "https://tayba.tv/livestream/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Al Alamiya 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ML",
+      "isFree": true,
+      "website": "https://medialivetv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Sudan Edu",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Albalad",
+      "isFree": true,
+      "website": "https://albaldnews.net/",
+      "priority": 5
+    },
+    {
+      "name": "Aleunwan 24",
+      "isFree": true,
+      "website": "https://aleunwan.com/",
+      "priority": 5
+    },
+    {
+      "name": "Alzarga",
+      "isFree": true,
+      "website": "https://alzargatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Dabanga",
+      "isFree": true,
+      "website": "https://www.dabangasudan.org/",
+      "priority": 5
+    },
+    {
+      "name": "Sudan Bukra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sudan Now 24",
+      "isFree": true,
+      "website": "https://24mediagroup.net/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Alistijabah",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Al-Merrikh",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sudan Sport",
+      "isFree": true,
+      "website": "https://www.taseti.net/",
+      "priority": 10
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Sudan Drama",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Sudan Music",
+      "isFree": true,
+      "website": "https://www.taseti.net/",
+      "priority": 5
+    }
+  ]
+}

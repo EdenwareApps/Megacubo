@@ -1,4 +1,4 @@
-import { moment, traceback } from '../utils/utils.js'
+import { moment, traceback, enablePromiseTracking } from '../utils/utils.js'
 import utilsSetup from './utils.js'
 import config from '../config/config.js'
 import storage from '../storage/storage.js'
@@ -19,6 +19,12 @@ const { logErr, parentPort, postMessage, loadGlobalVars } = utilsSetup(file)
 const require = createRequire(file)
 
 loadGlobalVars()
+
+// Enable global promise tracking in worker to detect orphaned promises (only in debug mode)
+// Checks every 60 seconds and alerts if promises are pending for more than 5 minutes
+if (process.argv.includes('--inspect')) {
+    enablePromiseTracking(60000, 300000)
+}
 
 // Console interception to forward logs to main process
 global.originalConsole = {

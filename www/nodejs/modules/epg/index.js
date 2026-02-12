@@ -4,15 +4,11 @@ import MultiWorker from '../multi-worker/multi-worker.js'
 
 let instance
 
-export function createEPGInstance() {
-    const worker = new MultiWorker()
-    const epg = worker.load(path.join(getDirname(), 'worker', 'EPGManager.js'))
-    return { worker, epg }
-}
-
 export function getEPGInstance() {
-    if (!instance) {
-        instance = createEPGInstance()
+    if (!instance) {        
+        const worker = new MultiWorker()
+        const epg = worker.load(path.join(getDirname(), 'worker', 'EPGManager.js'))
+        instance = { worker, epg }
     }
     return instance
 }

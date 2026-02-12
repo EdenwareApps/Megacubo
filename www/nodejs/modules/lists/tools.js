@@ -2,7 +2,7 @@ import lang from "../lang/lang.js";
 import storage from '../storage/storage.js'
 import pLimit from "p-limit";
 import data from "./search-redirects.json" with {type: 'json'};
-import countryCodes from '../countries/countries.json' with {type: 'json'};
+import countries from '@edenware/countries';
 import options from "./options.json" with { type: 'json' }
 import { basename, forwardSlashes } from "../utils/utils.js";
 
@@ -94,9 +94,13 @@ export const resolveListDatabaseFile = (url, index = false) => {
 
 class TermsHandler {
     constructor() {
-        this.countryCodes = new Set(countryCodes.map(c => c.code)); // precompute country codes as Set
+        this.countryCodes = new Set(countries.getCountries()); // precompute country codes as Set
         this.regexes = regexes;
-        this.allowedCharsRegex = new RegExp('[^ a-z0-9\\-\\+\\*@$|]+', 'g') // remove chars not allowed (keep | for OR logic)
+        // Allow Unicode letters, numbers, and specific symbols
+        // \p{L} = Unicode letters (supports cirílico, chinês, árabe, etc.)
+        // \p{N} = Unicode numbers, \p{M} = combining marks (acentos, etc.)
+        // Flag 'u' enables Unicode property escapes
+        this.allowedCharsRegex = new RegExp('[^ \\p{L}\\p{N}\\p{M}\\-\\+\\*@$|]+', 'gu') // remove chars not allowed (keep | for OR logic)
         this.sanitizeName = sanitizeName;
         this.searchRedirects = [];
         this.stopWords = new Set(['sd', '4k', 'hd', 'h264', 'h.264', 'fhd', 'uhd', 'null', 'undefined']); // common words to ignore on searching
@@ -180,11 +184,51 @@ class TermsHandler {
         terms = terms.filter(s => s); // remove empty terms
 
         if (!keepStopWords) {
-            terms = terms.filter(s => !this.stopWords.has(s));
+            terms = this.filterStopWords(terms);
         }
 
         return this.applySearchRedirects(terms); // apply redirects last
     }
+    
+    /**
+     * Check if a word is a stopWord
+     * @param {string} word - Word to check
+     * @returns {boolean} - True if word is a stopWord
+     */
+    isStopWord(word) {
+        if (typeof word !== 'string' || !word) {
+            return false;
+        }
+        return this.stopWords.has(word.toLowerCase());
+    }
+    
+    /**
+     * Filter stopWords and exclude terms from an array of terms
+     * @param {Array<string>} inputArray - Array of terms to filter
+     * @param {Object} options - Filtering options
+     * @param {boolean} options.removeExcludes - If true, remove terms starting with '-' (default: false)
+     * @param {boolean} options.removeStopWords - If true, remove stopWords (default: true)
+     * @returns {Array<string>} - Filtered array
+     */
+    filterStopWords(inputArray, options = {}) {
+        if (!Array.isArray(inputArray)) {
+            return [];
+        }
+        const { removeExcludes = false, removeStopWords = true } = options;
+        
+        return inputArray.filter(term => {
+            // Remove exclude terms if requested
+            if (removeExcludes && term.startsWith('-')) {
+                return false;
+            }
+            // Remove stopWords if requested (but keep exclude terms even if they're stopWords)
+            if (removeStopWords && !term.startsWith('-') && this.isStopWord(term)) {
+                return false;
+            }
+            return true;
+        });
+    }
+    
     match(needleTerms, stackTerms, partial = false) {
         if (!Array.isArray(needleTerms) || !Array.isArray(stackTerms)) return 0;
 

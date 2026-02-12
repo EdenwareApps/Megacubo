@@ -1,0 +1,1511 @@
+{
+  "Kids": [
+    {
+      "name": "Cartoon Network Vietnam",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ant",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Binh Phuoc TV 3",
+      "isFree": true,
+      "website": "https://bptv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "K, Kids",
+      "isFree": true,
+      "website": "https://www.kplus.vn/",
+      "priority": 5
+    },
+    {
+      "name": "ON BiBi",
+      "isFree": true,
+      "website": "https://bibi.vn/",
+      "priority": 5
+    },
+    {
+      "name": "ON Kids",
+      "isFree": true,
+      "website": "https://vtvcab.vn",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "BRT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bến Tre",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Channel V",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cà Mau",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Da Nang TV",
+      "isFree": true,
+      "keywords": "da nang tv 1 | da nang tv1",
+      "priority": 5
+    },
+    {
+      "name": "Da Nang TV 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dao Lane Xang",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dhammasapha",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "FBNC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gia Lai",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Good Idea",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HBTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HTV Thể Thao",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HTV 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HTV 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HTV 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HTVC Ca Nhạc",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HTVC Du Lịch Cuộc Sống",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HTVC Gia Đình",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HTVC Phim",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HTVC Phụ Nữ",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HTVC Thuần Việt",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HTVC,",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hmong TV Network",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HmongUSA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Houng Fa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ISTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KhmerTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Khomsanh",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kien Giang",
+      "isFree": true,
+      "keywords": "kien giang tv -1 | kiengiangtv",
+      "shortName": "Kien Giang TV",
+      "priority": 5
+    },
+    {
+      "name": "Kien Giang TV",
+      "isFree": true,
+      "keywords": "kien giang tv 1 | kiengiangtv1",
+      "shortName": "Kien Giang TV",
+      "priority": 5
+    },
+    {
+      "name": "LA34 Long An",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lao Champa TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lao Champa TV 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lao Champa TV 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lao Heritage Foundation",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lao Muslim",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lao Net",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lao SV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lao-Thai US",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Laos Planet",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Look Thoong",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NAT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Oh Muang Lao",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PNTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PTP Phú Yên",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "QRT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Quốc Hội",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Supreme Master",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tea",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tien Giang",
+      "isFree": true,
+      "website": "http://www.thtg.vn/",
+      "priority": 5
+    },
+    {
+      "name": "VITV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VTC 4",
+      "isFree": true,
+      "keywords": "vtc4 -yeah1 -family",
+      "priority": 5
+    },
+    {
+      "name": "VTC4 Yeah1 Family",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VTC 5",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VTC 6",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vajtswv Txojlus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vanphenh",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vati Lao",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Việt Mỹ",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vĩnh Long",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vĩnh Long 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Đồng Nai",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Đồng Nai 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Air",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "An Giang TV",
+      "isFree": true,
+      "website": "https://angiangtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "An Giang TV 2",
+      "isFree": true,
+      "website": "https://angiangtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "An Giang TV 3",
+      "isFree": true,
+      "website": "https://angiangtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "An Ninh The Gioi",
+      "isFree": true,
+      "website": "https://antg.cand.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "An Ninh",
+      "isFree": true,
+      "website": "https://www.antv.gov.vn/",
+      "priority": 5
+    },
+    {
+      "name": "An Vien",
+      "isFree": true,
+      "website": "https://www.avg.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Bac Giang",
+      "isFree": true,
+      "website": "http://www.bacgiangtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Bac Kan",
+      "isFree": true,
+      "website": "http://backantv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Bac Lieu",
+      "isFree": true,
+      "website": "https://thbl.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Bac Ninh",
+      "isFree": true,
+      "website": "https://bacninhtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Ba Ria Vung Tau",
+      "isFree": true,
+      "website": "http://www.brt.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Ben Tre",
+      "isFree": true,
+      "website": "http://thbt.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Binh Dinh",
+      "isFree": true,
+      "website": "http://binhdinhtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Binh Duong TV",
+      "isFree": true,
+      "website": "http://www.btv.org.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Binh Duong TV 2",
+      "isFree": true,
+      "website": "http://www.btv.org.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Binh Duong TV 3",
+      "isFree": true,
+      "website": "http://www.btv.org.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Binh Duong TV 4",
+      "isFree": true,
+      "website": "http://www.btv.org.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Binh Phuoc TV",
+      "isFree": true,
+      "website": "https://bptv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Binh Phuoc TV 2",
+      "isFree": true,
+      "website": "https://bptv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Binh Thuan",
+      "isFree": true,
+      "keywords": "binh thuan tv -6",
+      "website": "http://binhthuantv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Ca Mau",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Can Tho",
+      "isFree": true,
+      "keywords": "can tho tv -2 -3",
+      "website": "https://canthotv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Can Tho TV 3",
+      "isFree": true,
+      "website": "https://thst.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Cao Bang",
+      "isFree": true,
+      "website": "http://caobangtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Dak Lak",
+      "isFree": true,
+      "website": "http://www.drt.org.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Dak Nong",
+      "isFree": true,
+      "website": "http://www.truyenhinhdaknong.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Dien Bien",
+      "isFree": true,
+      "website": "https://dienbientv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Dong Nai TV",
+      "isFree": true,
+      "website": "http://dnrtv.org.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Dong Nai TV 2",
+      "isFree": true,
+      "website": "http://dnrtv.org.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Dong Nai TV 3",
+      "isFree": true,
+      "website": "http://dnrtv.org.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Dong Thap",
+      "isFree": true,
+      "website": "http://thdt.vn/",
+      "priority": 5
+    },
+    {
+      "name": "E",
+      "isFree": true,
+      "website": "http://echannel.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Ha Giang",
+      "isFree": true,
+      "website": "http://hagiangtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Hai Phong",
+      "isFree": true,
+      "website": "https://thhp.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Ha Nam",
+      "isFree": true,
+      "website": "http://hanamtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "HanoiTV",
+      "isFree": true,
+      "website": "https://hanoitv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "HanoiTV 2",
+      "isFree": true,
+      "website": "https://hanoitv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Ha Tinh",
+      "isFree": true,
+      "website": "https://hatinhtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Hau Giang",
+      "isFree": true,
+      "website": "https://haugiangtivi.vn/",
+      "priority": 5
+    },
+    {
+      "name": "HDTV",
+      "isFree": true,
+      "website": "http://www.haiduongtv.com.vn/truyen-hinh-truc-tuyen.html",
+      "priority": 5
+    },
+    {
+      "name": "HTV 7",
+      "isFree": true,
+      "website": "https://htv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "HTV 9",
+      "isFree": true,
+      "website": "https://htv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "HTVC Family",
+      "isFree": true,
+      "website": "http://htvc.vn",
+      "priority": 5
+    },
+    {
+      "name": "HTV Co.op",
+      "isFree": true,
+      "website": "https://htvcoop.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "HTVC Plus",
+      "isFree": true,
+      "website": "http://htvc.vn",
+      "priority": 5
+    },
+    {
+      "name": "HTVC Pure Vietnamese",
+      "isFree": true,
+      "website": "http://htvc.vn",
+      "priority": 5
+    },
+    {
+      "name": "HTVC Travel and Life",
+      "isFree": true,
+      "website": "http://htvc.vn",
+      "priority": 5
+    },
+    {
+      "name": "HTVC Women",
+      "isFree": true,
+      "website": "http://htvc.vn",
+      "priority": 5
+    },
+    {
+      "name": "Hung Yen",
+      "isFree": true,
+      "website": "https://www.hungyentv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Info",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Khanh Hoa",
+      "isFree": true,
+      "website": "http://khanhhoa.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Kon Tum",
+      "isFree": true,
+      "website": "https://kontumtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "K, Life",
+      "isFree": true,
+      "website": "https://www.kplus.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Lai Chau",
+      "isFree": true,
+      "website": "http://laichautv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Lam Dong",
+      "isFree": true,
+      "website": "http://lamdongtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Lang Son",
+      "isFree": true,
+      "website": "http://www.langsontv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Lao Cai",
+      "isFree": true,
+      "website": "http://laocaitv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Mien Tay",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nam Dinh",
+      "isFree": true,
+      "website": "http://www.namdinhtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Nghe An",
+      "isFree": true,
+      "website": "https://truyenhinhnghean.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Ninh Binh",
+      "isFree": true,
+      "website": "https://nbtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Ninh Thuan",
+      "isFree": true,
+      "website": "http://www.ninhthuantv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "ON Life",
+      "isFree": true,
+      "website": "https://vtvcab.vn",
+      "priority": 5
+    },
+    {
+      "name": "ON Style",
+      "isFree": true,
+      "website": "https://vtvcab.vn",
+      "priority": 5
+    },
+    {
+      "name": "ON Vie Drama",
+      "isFree": true,
+      "website": "https://vtvcab.vn",
+      "priority": 5
+    },
+    {
+      "name": "Oy Lao",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Phu Tho",
+      "isFree": true,
+      "website": "https://phuthotv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Phu Yen",
+      "isFree": true,
+      "website": "http://www.ptpphuyen.vn/",
+      "priority": 5
+    },
+    {
+      "name": "QPVN",
+      "isFree": true,
+      "website": "http://www.qpvn.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Quang Binh",
+      "isFree": true,
+      "website": "http://www.qbtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Quang Nam",
+      "isFree": true,
+      "website": "http://qrt.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Quang Ngai",
+      "isFree": true,
+      "website": "http://quangngaitv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Quang Ninh TV",
+      "isFree": true,
+      "website": "http://baoquangninh.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Quang Ninh TV 3",
+      "isFree": true,
+      "website": "http://baoquangninh.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Quang Tri",
+      "isFree": true,
+      "website": "http://quangtritv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Quoc Hoi",
+      "isFree": true,
+      "website": "http://quochoitv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "SCTV",
+      "isFree": true,
+      "website": "http://www.sctv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "SCTV 10",
+      "isFree": true,
+      "website": "http://www.sctv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "SCTV 11",
+      "isFree": true,
+      "website": "http://www.sctv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "SCTV 12",
+      "isFree": true,
+      "website": "http://www.sctv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "SCTV 13",
+      "isFree": true,
+      "website": "http://www.sctv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "SCTV 14",
+      "isFree": true,
+      "website": "http://www.sctv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "SCTV 15",
+      "isFree": true,
+      "website": "http://www.sctv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "SCTV 16",
+      "isFree": true,
+      "website": "http://www.sctv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "SCTV 17",
+      "isFree": true,
+      "website": "http://www.sctv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "SCTV 18",
+      "isFree": true,
+      "website": "http://www.sctv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "SCTV 19",
+      "isFree": true,
+      "website": "http://www.sctv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "SCTV 2",
+      "isFree": true,
+      "website": "http://www.sctv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "SCTV 20",
+      "isFree": true,
+      "website": "http://www.sctv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "SCTV 21",
+      "isFree": true,
+      "website": "http://www.sctv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "SCTV 22",
+      "isFree": true,
+      "website": "http://www.sctv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "SCTV 3",
+      "isFree": true,
+      "website": "http://www.sctv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "SCTV 4",
+      "isFree": true,
+      "website": "http://www.sctv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "SCTV4K",
+      "isFree": true,
+      "website": "https://sctv.com.vn",
+      "priority": 5
+    },
+    {
+      "name": "SCTV 5",
+      "isFree": true,
+      "website": "http://www.sctv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "SCTV 6",
+      "isFree": true,
+      "website": "http://www.sctv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "SCTV 7",
+      "isFree": true,
+      "website": "http://www.sctv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "SCTV 8",
+      "isFree": true,
+      "website": "http://www.sctv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "SCTV 9",
+      "isFree": true,
+      "website": "http://www.sctv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "SCTV Phim Tong Hop",
+      "isFree": true,
+      "website": "http://www.sctv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Soc Trang TV",
+      "isFree": true,
+      "website": "http://thst.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Soc Trang TV 2",
+      "isFree": true,
+      "website": "https://thst.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Son La",
+      "isFree": true,
+      "website": "http://sonlatv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Tay Ninh",
+      "isFree": true,
+      "website": "http://ttv11.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Tay Ninh TV",
+      "isFree": true,
+      "website": "https://la34.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Thai Binh",
+      "isFree": true,
+      "website": "http://thaibinhtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Thai Nguyen",
+      "isFree": true,
+      "keywords": "thai nguyen tv -2",
+      "website": "https://thainguyentv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Thai Nguyen TV 2",
+      "isFree": true,
+      "website": "https://thainguyentv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Thanh Hoa",
+      "isFree": true,
+      "website": "http://truyenhinhthanhhoa.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Thua Thien Hue",
+      "isFree": true,
+      "website": "https://www.trt.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Today",
+      "isFree": true,
+      "website": "http://www.todaytv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Tra Vinh",
+      "isFree": true,
+      "keywords": "tra vinh tv -2",
+      "website": "https://www.thvli.vn/live/thvl5-hd",
+      "priority": 5
+    },
+    {
+      "name": "TTXVN",
+      "isFree": true,
+      "website": "http://vnanet.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Tuyen Quang",
+      "isFree": true,
+      "website": "https://tuyenquangtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "VFamily",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Viet My",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vietnam Today",
+      "isFree": true,
+      "website": "https://vietnamtoday.vtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Vinh Long TV",
+      "isFree": true,
+      "website": "https://www.thvl.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Vinh Long TV 2",
+      "isFree": true,
+      "website": "https://www.thvl.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Vinh Long TV 3",
+      "isFree": true,
+      "website": "https://www.thvli.vn/live/thvl3-hd",
+      "priority": 5
+    },
+    {
+      "name": "Vinh Long TV 4",
+      "isFree": true,
+      "website": "https://www.thvli.vn/live/thvl4-hd",
+      "priority": 5
+    },
+    {
+      "name": "Vinh Phuc",
+      "isFree": true,
+      "website": "http://vinhphuctv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "VTC",
+      "isFree": true,
+      "website": "https://vtc.gov.vn/live/",
+      "priority": 5
+    },
+    {
+      "name": "VTC 10",
+      "isFree": true,
+      "website": "https://vtc.gov.vn/live/",
+      "priority": 5
+    },
+    {
+      "name": "VTC 11",
+      "isFree": true,
+      "website": "https://vtc.gov.vn/live/",
+      "priority": 5
+    },
+    {
+      "name": "VTC 12",
+      "isFree": true,
+      "website": "https://vtc.gov.vn/live/",
+      "priority": 5
+    },
+    {
+      "name": "VTC 13",
+      "isFree": true,
+      "website": "https://vtc.gov.vn/live/",
+      "priority": 5
+    },
+    {
+      "name": "VTC 14",
+      "isFree": true,
+      "website": "https://vtc.gov.vn/live/",
+      "priority": 5
+    },
+    {
+      "name": "VTC 16",
+      "isFree": true,
+      "website": "https://vtc.gov.vn/live/",
+      "priority": 5
+    },
+    {
+      "name": "VTC 2",
+      "isFree": true,
+      "website": "https://vtc.gov.vn/live/",
+      "priority": 5
+    },
+    {
+      "name": "VTC 3",
+      "isFree": true,
+      "website": "https://vtc.gov.vn/live/",
+      "priority": 5
+    },
+    {
+      "name": "VTC 7",
+      "isFree": true,
+      "website": "https://vtc.gov.vn/live/",
+      "priority": 5
+    },
+    {
+      "name": "VTC 8",
+      "isFree": true,
+      "website": "https://vtc.gov.vn/live/",
+      "priority": 5
+    },
+    {
+      "name": "VTC 9",
+      "isFree": true,
+      "website": "https://vtc.gov.vn/live/",
+      "priority": 5
+    },
+    {
+      "name": "VTV",
+      "isFree": true,
+      "website": "https://vtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "VTV 2",
+      "isFree": true,
+      "website": "https://vtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "VTV 3",
+      "isFree": true,
+      "website": "https://vtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "VTV 4",
+      "isFree": true,
+      "website": "http://vtv4.vtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "VTV 5",
+      "isFree": true,
+      "keywords": "vtv5 -tay -nam -bo -nguyen",
+      "website": "http://www.vtv5.net.vn/",
+      "priority": 5
+    },
+    {
+      "name": "VTV5 Tay Nam Bo",
+      "isFree": true,
+      "website": "http://www.vtv5.net.vn/",
+      "priority": 5
+    },
+    {
+      "name": "VTV5 Tay Nguyen",
+      "isFree": true,
+      "website": "http://www.vtv5.net.vn/",
+      "priority": 5
+    },
+    {
+      "name": "VTV 7",
+      "isFree": true,
+      "website": "https://vtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "VTV 8",
+      "isFree": true,
+      "website": "https://vtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "VTV 9",
+      "isFree": true,
+      "website": "https://vtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "VTVCab",
+      "isFree": true,
+      "website": "http://giaitritv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "VTVCab 7",
+      "isFree": true,
+      "website": "https://vtv.vn/vtvcab-7.html",
+      "priority": 5
+    },
+    {
+      "name": "VTV Can Tho",
+      "isFree": true,
+      "website": "https://vtv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Yeah",
+      "isFree": true,
+      "website": "https://yeah1.com/",
+      "priority": 5
+    },
+    {
+      "name": "Yen Bai",
+      "isFree": true,
+      "website": "https://yenbaitv.org.vn/",
+      "priority": 5
+    },
+    {
+      "name": "You",
+      "isFree": true,
+      "website": "http://youtv.vn/",
+      "priority": 5
+    }
+  ],
+  "Shop": [
+    {
+      "name": "SkyShop",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "ARICO Shopping",
+      "isFree": true,
+      "website": "http://arico.vn/dn",
+      "priority": 4
+    },
+    {
+      "name": "Binh Duong TV 11",
+      "isFree": true,
+      "website": "http://www.btv.org.vn/",
+      "priority": 4
+    },
+    {
+      "name": "Binh Thuan TV 6",
+      "isFree": true,
+      "website": "https://newatv.vn/",
+      "priority": 4
+    },
+    {
+      "name": "GS Shop",
+      "isFree": true,
+      "website": "https://gsshop.vn/",
+      "priority": 4
+    },
+    {
+      "name": "Shopping 24h",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Tea TV Khmer",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Uniquely Thai",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "VTV Hyundai Home Shopping",
+      "isFree": true,
+      "website": "https://www.vtvhyundai.vn/",
+      "priority": 4
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Binh Duong TV 5",
+      "isFree": true,
+      "website": "http://www.btv.org.vn/",
+      "priority": 5
+    },
+    {
+      "name": "HTV Sports",
+      "isFree": true,
+      "website": "https://htv.com.vn/",
+      "priority": 10
+    },
+    {
+      "name": "K, Sport",
+      "isFree": true,
+      "website": "https://www.kplus.vn/",
+      "priority": 10
+    },
+    {
+      "name": "K, Sport 2",
+      "isFree": true,
+      "website": "https://www.kplus.vn/",
+      "priority": 10
+    },
+    {
+      "name": "ON Football",
+      "isFree": true,
+      "website": "https://vtvcab.vn",
+      "priority": 5
+    },
+    {
+      "name": "ON Golf",
+      "isFree": true,
+      "website": "https://vtvcab.vn",
+      "priority": 5
+    },
+    {
+      "name": "ON Sports",
+      "isFree": true,
+      "keywords": "on sports -news",
+      "website": "https://vtvcab.vn",
+      "priority": 10
+    },
+    {
+      "name": "ON Sports News",
+      "isFree": true,
+      "website": "https://vtvcab.vn",
+      "priority": 10
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Binh Duong TV 6",
+      "isFree": true,
+      "website": "http://www.btv.org.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Binh Duong TV 9",
+      "isFree": true,
+      "website": "https://bchannel.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Can Tho TV 2",
+      "isFree": true,
+      "website": "http://haugiangtivi.vn/",
+      "priority": 5
+    },
+    {
+      "name": "HTV Key",
+      "isFree": true,
+      "website": "https://htv.com.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Khmer",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nhan Dan",
+      "isFree": true,
+      "website": "https://nhandantv.vn/",
+      "priority": 5
+    },
+    {
+      "name": "Tra Vinh TV 2",
+      "isFree": true,
+      "website": "https://travinhtv.vn/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Box Movie",
+      "isFree": true,
+      "website": "https://www.intheboxtv.eu/",
+      "priority": 5
+    },
+    {
+      "name": "HTVC Movies",
+      "isFree": true,
+      "website": "http://htvc.vn",
+      "priority": 5
+    },
+    {
+      "name": "K, Cine",
+      "isFree": true,
+      "website": "https://www.kplus.vn/",
+      "priority": 5
+    },
+    {
+      "name": "ON Cine",
+      "isFree": true,
+      "website": "https://vtvcab.vn",
+      "priority": 5
+    },
+    {
+      "name": "ON Movies",
+      "isFree": true,
+      "website": "https://vtvcab.vn",
+      "priority": 5
+    },
+    {
+      "name": "ON Phim Viet",
+      "isFree": true,
+      "website": "https://vtvcab.vn",
+      "priority": 5
+    },
+    {
+      "name": "Paramount Network",
+      "isFree": true,
+      "website": "https://www.paramountnetwork.com/",
+      "priority": 5
+    },
+    {
+      "name": "Phim Hay",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "HTVC Music",
+      "isFree": true,
+      "website": "http://htvc.vn",
+      "priority": 5
+    },
+    {
+      "name": "MTV",
+      "isFree": true,
+      "website": "http://mtvwe.com",
+      "priority": 5
+    },
+    {
+      "name": "ON Music",
+      "isFree": true,
+      "website": "https://vtvcab.vn",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "VCAL",
+      "isFree": true,
+      "website": "https://www.vcal.tv/",
+      "priority": 5
+    },
+    {
+      "name": "V News",
+      "isFree": true,
+      "website": "https://vnews.gov.vn/?v=live",
+      "priority": 5
+    },
+    {
+      "name": "VOV",
+      "isFree": true,
+      "website": "https://truyenhinhvov.vn/live.htm",
+      "priority": 5
+    }
+  ]
+}

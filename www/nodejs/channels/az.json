@@ -1,0 +1,296 @@
+{
+  "News": [
+    {
+      "name": "ARB 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Azerbaijan News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CBC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AnewZ",
+      "isFree": true,
+      "website": "https://anewz.tv/",
+      "priority": 5
+    },
+    {
+      "name": "APA",
+      "isFree": true,
+      "website": "https://apa.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Aznews",
+      "isFree": true,
+      "website": "https://www.aznews.tv/canli/",
+      "priority": 5
+    },
+    {
+      "name": "Baku.TV",
+      "isFree": true,
+      "website": "https://baku.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Kapaz",
+      "isFree": true,
+      "website": "https://www.azernews.az/tags/43134/",
+      "priority": 5
+    },
+    {
+      "name": "Media Turk",
+      "isFree": true,
+      "website": "https://mediaturk.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Reaksiya",
+      "isFree": true,
+      "website": "https://reaksiyatv.az/",
+      "priority": 5
+    },
+    {
+      "name": "Toplum",
+      "isFree": true,
+      "website": "https://toplummedia.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Vision",
+      "isFree": true,
+      "website": "https://visiontv.az/",
+      "priority": 5
+    },
+    {
+      "name": "Xezer Xeber",
+      "isFree": true,
+      "website": "https://www.xezerxeber.az/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "ARB Günəş",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ARB Gunes",
+      "isFree": true,
+      "website": "https://www.arbgunesh.az/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "CBC Sport",
+      "isFree": true,
+      "website": "http://www.cbcsport.tv/",
+      "priority": 10
+    },
+    {
+      "name": "Idman",
+      "isFree": true,
+      "website": "http://www.idmantv.az/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "ARB",
+      "isFree": true,
+      "keywords": "arb -24 -gunəs",
+      "priority": 5
+    },
+    {
+      "name": "Alvin Channel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Az Star",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Az",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Azad",
+      "isFree": true,
+      "keywords": "azad tv -2 -4",
+      "priority": 5
+    },
+    {
+      "name": "Azad TV - 2",
+      "isFree": true,
+      "keywords": "azad tv -2",
+      "priority": 5
+    },
+    {
+      "name": "Azad TV - 4",
+      "isFree": true,
+      "keywords": "azad tv -4",
+      "priority": 5
+    },
+    {
+      "name": "EL",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kəpəz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Muğan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Naxçıvan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Qafqaz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Qəbələ",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Space",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Xəzər",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "İnterAz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Agro TV Azerbaijan",
+      "isFree": true,
+      "website": "https://www.agrotvazerbaijan.az/",
+      "priority": 5
+    },
+    {
+      "name": "Dunya",
+      "isFree": true,
+      "website": "https://dunyatv.az/",
+      "priority": 5
+    },
+    {
+      "name": "Ictimai",
+      "isFree": true,
+      "website": "https://itv.az/",
+      "priority": 5
+    },
+    {
+      "name": "Mugan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Naxcivan",
+      "isFree": true,
+      "website": "https://ntv.az/",
+      "priority": 5
+    },
+    {
+      "name": "Qebele",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Real",
+      "isFree": true,
+      "website": "https://www.realtv.az/",
+      "priority": 5
+    },
+    {
+      "name": "Sehiyye",
+      "isFree": true,
+      "website": "https://sehiyyetv.az/",
+      "priority": 5
+    },
+    {
+      "name": "Ses",
+      "isFree": true,
+      "website": "https://tv.sia.az/",
+      "priority": 5
+    },
+    {
+      "name": "Show Plus",
+      "isFree": true,
+      "website": "https://showplus.az/",
+      "priority": 5
+    },
+    {
+      "name": "Start",
+      "isFree": true,
+      "website": "https://kanal-s.az/",
+      "priority": 5
+    },
+    {
+      "name": "Xezer",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "FTV",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Mədəniyyət",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Medeniyyet",
+      "isFree": true,
+      "website": "http://www.medeniyyettv.az/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Qlobal",
+      "isFree": true,
+      "website": "http://qlobal.tv/",
+      "priority": 4
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Muz",
+      "isFree": true,
+      "website": "http://www.muz-tv.az/",
+      "priority": 5
+    }
+  ]
+}

@@ -1,0 +1,141 @@
+{
+  "Entertainment": [
+    {
+      "name": "VTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Aslu",
+      "isFree": true,
+      "website": "https://aslu.com.mv/",
+      "priority": 5
+    },
+    {
+      "name": "Channel 13",
+      "isFree": true,
+      "website": "https://stream.theyraonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Dhaaris",
+      "isFree": true,
+      "website": "https://dhaaris.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Dhivehi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ice",
+      "isFree": true,
+      "website": "https://medianet.mv/channels",
+      "priority": 5
+    },
+    {
+      "name": "Maldives",
+      "isFree": true,
+      "website": "https://maldivestv.mv/",
+      "priority": 5
+    },
+    {
+      "name": "MMTV",
+      "isFree": true,
+      "website": "https://mmtv.mv/",
+      "priority": 5
+    },
+    {
+      "name": "NTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "People's Neutral",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Raajje",
+      "isFree": true,
+      "website": "https://raajje.mv/",
+      "priority": 5
+    },
+    {
+      "name": "SSTV",
+      "isFree": true,
+      "website": "https://ssnet.mv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Maldives",
+      "isFree": true,
+      "website": "http://www.psm.mv/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Alkaun",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Munnaaru",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TVM Qur'an",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "News": [
+    {
+      "name": "CNM",
+      "isFree": true,
+      "website": "https://www.cnm.mv/",
+      "priority": 5
+    },
+    {
+      "name": "Mendhuru",
+      "isFree": true,
+      "website": "https://mendhuru.tv/en",
+      "priority": 5
+    },
+    {
+      "name": "Ocean TV Network",
+      "isFree": true,
+      "website": "https://oceantvnetwork.com/",
+      "priority": 5
+    },
+    {
+      "name": "PSM News",
+      "isFree": true,
+      "website": "http://psmnews.mv/",
+      "priority": 5
+    },
+    {
+      "name": "Sangu",
+      "isFree": true,
+      "website": "https://sangu.mv/",
+      "priority": 5
+    },
+    {
+      "name": "YES",
+      "isFree": true,
+      "website": "http://psmnews.mv/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Ice Sports",
+      "isFree": true,
+      "website": "https://medianet.mv/channel/201",
+      "priority": 10
+    }
+  ]
+}

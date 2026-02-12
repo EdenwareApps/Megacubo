@@ -21,6 +21,7 @@ const replaceOpts = {
   preventAssignment: false,
   delimiters: ['', ''],
   values: {
+    '__BUILD_MODE__': JSON.stringify(process.env.NODE_ENV || 'development'),
     'fs/promises")': 'fs").promises',
     "fs/promises')": "fs').promises",
     'getFilename()': '__filename',
@@ -79,11 +80,8 @@ function openSync() {
   throw new Error('SQLite not available on Android');
 }
 
-// Support both ESM and CommonJS
-exports.DatabaseSync = DatabaseSync;
-exports.StatementSync = StatementSync;
-exports.openSync = openSync;
-module.exports = { DatabaseSync, StatementSync, openSync };
+export { DatabaseSync, StatementSync, openSync };
+export default { DatabaseSync, StatementSync, openSync };
 `;
       }
       return null;
@@ -95,11 +93,11 @@ module.exports = { DatabaseSync, StatementSync, openSync };
 function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals = null, isLargeFile = false, isMainProcess = false }) {
   // Configurações específicas para main process
   const mainProcessConfig = isMainProcess ? {
-    maxWorkers: 1, // Reduzir workers para economizar memória
-    keep_classnames: false, // Desabilitar para economizar memória
-    keep_fnames: false, // Desabilitar para economizar memória
+    maxWorkers: 1, // Reduce workers to save memory
+    keep_classnames: false, // Disable to save memory
+    keep_fnames: false, // Disable to save memory
     compress: {
-      drop_console: true, // Remover console logs para economizar memória
+      drop_console: isProduction, // Remove console logs in production
       drop_debugger: true,
       passes: 1,
       unsafe: true, // Otimizações mais agressivas
@@ -111,7 +109,7 @@ function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals
     keep_classnames: true,
     keep_fnames: true,
     compress: {
-      drop_console: false,
+      drop_console: isProduction, // Keep console logs in development
       drop_debugger: false,
       passes: 1
     }
@@ -125,13 +123,22 @@ function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals
       ...(isMainProcess ? { dedupe: [] } : {})
     }),
     commonjs({ 
-      sourcemap: isMainProcess ? false : true, // Desabilitar sourcemap para main process
+      sourcemap: isMainProcess ? false : true, // Disable sourcemap for main process
+      dynamicRequireTargets: [
+        'node_modules/node-ssdp/lib/server.js',
+        'node_modules/*/lib/server.js',
+        'node_modules/**/lib/server.js',
+        'www/nodejs/modules/premium/modules/cast/node_modules/node-ssdp/lib/server.js',
+        'www/nodejs/modules/premium/modules/cast/node_modules/node-ssdp/lib/client.js',
+        'www/nodejs/modules/premium/modules/cast/node_modules/node-ssdp/lib/index.js'
+      ],
+      ignoreDynamicRequires: true,
       ...(isMainProcess ? { requireReturnsDefault: 'auto' } : {})
     }),
     json({ compact: true }),
     getBabelOutputPlugin({
       ...babelOpts,
-      // Otimizações de memória para main process
+      // Memory optimizations for main process
       ...(isMainProcess ? { compact: true, minified: true } : {})
     }),
     replace(replaceOpts),    
@@ -143,8 +150,8 @@ function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals
           keep_classnames: true, // Keep class names to avoid BigInt issues
           keep_fnames: true, // Keep function names to avoid BigInt issues
           output: { comments: false },
-          compress: {
-            drop_console: true,
+    compress: {
+      drop_console: isProduction, // Remove console logs in production
             drop_debugger: true,
             passes: 1, // Reduce passes to avoid BigInt issues
             // ✅ APENAS as desativações essenciais para BigInt
@@ -168,7 +175,7 @@ function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals
     watch: watchOpts,
     maxParallelFileOps: isLargeFile || isMainProcess ? 1 : undefined, // Forçar 1 para main process
     treeshake: isLargeFile ? false : (isMainProcess ? {
-      // Tree shaking habilitado para main.js com configurações conservadoras
+      // Tree shaking enabled for main.js with conservative settings
       moduleSideEffects: (id) => {
         // Preservar módulos que podem ter side effects importantes
         if (id.includes('analytics.js') || 
@@ -191,7 +198,7 @@ function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals
     ...(isMainProcess ? {
       preserveEntrySignatures: 'allow-extension',
       onwarn(warning, warn) {
-        // Suprimir warnings de dependências circulares para main process
+        // Suppress circular dependency warnings for main process
         if (warning.code === 'CIRCULAR_DEPENDENCY') return;
         warn(warning);
       }
@@ -202,7 +209,7 @@ function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals
 // Node.js bundles only
 makeNodeBundle({
   input: 'www/nodejs/main.mjs',
-  output: { format: 'cjs', file: 'www/nodejs/dist/main.js', inlineDynamicImports: true, sourcemap: false }, // Desabilitar sourcemap para main process
+  output: { format: 'cjs', file: 'www/nodejs/dist/main.js', inlineDynamicImports: true, sourcemap: false }, // Disable sourcemap for main process
   babelOpts: nodeBabelOpts,
   isMainProcess: true, // Ativar otimizações específicas para main process
   extraPlugins: [
@@ -212,6 +219,7 @@ makeNodeBundle({
       { src: 'node_modules/hls.js/dist/hls.min.js', dest: 'www/nodejs/renderer/dist' },
       { src: 'node_modules/mpegts.js/dist/mpegts.js', dest: 'www/nodejs/renderer/dist' },
       { src: 'node_modules/bytenode/**/*', dest: 'www/nodejs/dist/node_modules/bytenode' },
+      { src: 'node_modules/@edenware/tv-channels-by-country/channels/*.json', dest: 'www/nodejs/channels' },
     ] })
   ]
 });

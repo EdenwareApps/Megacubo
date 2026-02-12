@@ -1,0 +1,326 @@
+{
+  "Religious": [
+    {
+      "name": "CNA",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV 5",
+      "isFree": true,
+      "website": "http://entv.dz/",
+      "priority": 4
+    }
+  ],
+  "News": [
+    {
+      "name": "Echorouk News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AL24 News",
+      "isFree": true,
+      "website": "https://al24news.com/",
+      "priority": 5
+    },
+    {
+      "name": "Alaqaria",
+      "isFree": true,
+      "website": "https://alaqariatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Aures",
+      "isFree": true,
+      "website": "https://aurestv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Dz News",
+      "isFree": true,
+      "website": "https://dznews.dz/",
+      "priority": 5
+    },
+    {
+      "name": "Elikhbaria",
+      "isFree": true,
+      "website": "https://elikhbaria.dz/",
+      "priority": 5
+    },
+    {
+      "name": "Eliktisadia El Oula",
+      "isFree": true,
+      "website": "https://www.eliktisadiaeloula.dz/",
+      "priority": 5
+    },
+    {
+      "name": "Setif News",
+      "isFree": true,
+      "website": "https://sawtsetif.dz/",
+      "priority": 5
+    },
+    {
+      "name": "TV 3",
+      "isFree": true,
+      "website": "http://entv.dz/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Al Anis",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Algérie TV 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Algérie TV 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Algérie TV 5",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Algérie TV 6",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bahia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Beur",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Algérie",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ENTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Echorouk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "El Bilad",
+      "isFree": true,
+      "website": "https://www.elbilad.net/",
+      "priority": 5
+    },
+    {
+      "name": "El Djazair N",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "El Djazairia One",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "El Fadjr",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "El Hayat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "El Heddaf",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ennahar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lina",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Samira",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV7 Elmaarifa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV8 Edhakira",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Alsir",
+      "isFree": true,
+      "website": "https://alsirtv.live/",
+      "priority": 5
+    },
+    {
+      "name": "Chebab",
+      "isFree": true,
+      "website": "https://chebabtv.dz/",
+      "priority": 5
+    },
+    {
+      "name": "El Adjwaa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "El Fadjer",
+      "isFree": true,
+      "website": "http://www.elfadjr.dz.tv/",
+      "priority": 5
+    },
+    {
+      "name": "El Hidhab",
+      "isFree": true,
+      "website": "https://elhidhabtv.dz/",
+      "priority": 5
+    },
+    {
+      "name": "Elwatania",
+      "isFree": true,
+      "website": "https://elwataniatv.dz/",
+      "priority": 5
+    },
+    {
+      "name": "Essalam",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Fairs",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Jeel",
+      "isFree": true,
+      "website": "https://jeel.dz/tv/",
+      "priority": 5
+    },
+    {
+      "name": "One",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV",
+      "isFree": true,
+      "website": "https://www.entv.dz/",
+      "priority": 5
+    },
+    {
+      "name": "TV 2",
+      "isFree": true,
+      "website": "https://www.entv.dz/",
+      "priority": 5
+    },
+    {
+      "name": "TV 4",
+      "isFree": true,
+      "website": "http://entv.dz/",
+      "priority": 5
+    },
+    {
+      "name": "TV 6",
+      "isFree": true,
+      "website": "http://entv.dz/",
+      "priority": 5
+    },
+    {
+      "name": "TV 9",
+      "isFree": true,
+      "website": "https://www.entv.dz/",
+      "priority": 5
+    },
+    {
+      "name": "ZAHRA",
+      "isFree": true,
+      "website": "https://www.zahratv.net/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "4Kids",
+      "isFree": true,
+      "website": "https://4kids-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Amou Yazid",
+      "isFree": true,
+      "website": "http://tv.amouyazid.com/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Dzair Tube",
+      "isFree": true,
+      "website": "https://dzair-tube.dz/",
+      "priority": 5
+    },
+    {
+      "name": "El-Heddaf",
+      "isFree": true,
+      "website": "https://www.elheddaf.com/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Sahra",
+      "isFree": true,
+      "website": "https://sahranews.dz/",
+      "priority": 5
+    },
+    {
+      "name": "TV 7",
+      "isFree": true,
+      "keywords": "tv7 -elmaarifa",
+      "website": "https://www.entv.dz/",
+      "priority": 5
+    },
+    {
+      "name": "TV 8",
+      "isFree": true,
+      "keywords": "tv8 -edhakira",
+      "website": "http://entv.dz/",
+      "priority": 5
+    },
+    {
+      "name": "WebTV Universite de Bejaia",
+      "isFree": true,
+      "website": "https://webtv.univ-bejaia.dz/",
+      "priority": 5
+    }
+  ]
+}

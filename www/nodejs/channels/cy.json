@@ -1,0 +1,477 @@
+{
+  "Sports": [
+    {
+      "name": "Alfa Sport",
+      "priority": 10
+    },
+    {
+      "name": "Cablenet Sports",
+      "isFree": true,
+      "website": "https://cablenet.com.cy/en/sports/",
+      "priority": 10
+    },
+    {
+      "name": "Cablenet Sports 2",
+      "isFree": true,
+      "website": "https://cablenet.com.cy/en/sports/",
+      "priority": 10
+    },
+    {
+      "name": "Cablenet Sports 3",
+      "isFree": true,
+      "website": "https://cablenet.com.cy/en/sports/",
+      "priority": 10
+    },
+    {
+      "name": "Cytavision Sports",
+      "isFree": true,
+      "website": "https://www.cyta.com.cy/cytavision-sports/",
+      "priority": 10
+    },
+    {
+      "name": "Cytavision Sports 2",
+      "isFree": true,
+      "website": "https://www.cyta.com.cy/cytavision-sports/",
+      "priority": 10
+    },
+    {
+      "name": "Cytavision Sports 3",
+      "isFree": true,
+      "website": "https://www.cyta.com.cy/cytavision-sports/",
+      "priority": 10
+    },
+    {
+      "name": "Cytavision Sports 4",
+      "isFree": true,
+      "website": "https://www.cyta.com.cy/cytavision-sports/",
+      "priority": 10
+    },
+    {
+      "name": "Cytavision Sports 4K",
+      "isFree": true,
+      "website": "https://www.cyta.com.cy/cytavision-sports/",
+      "priority": 10
+    },
+    {
+      "name": "Cytavision Sports 5",
+      "isFree": true,
+      "website": "https://www.cyta.com.cy/cytavision-sports/",
+      "priority": 10
+    },
+    {
+      "name": "Cytavision Sports 6",
+      "isFree": true,
+      "website": "https://www.cyta.com.cy/cytavision-sports/",
+      "priority": 10
+    },
+    {
+      "name": "Cytavision Sports 7",
+      "isFree": true,
+      "website": "https://www.cyta.com.cy/cytavision-sports/",
+      "priority": 10
+    },
+    {
+      "name": "Cytavision Sports 8",
+      "isFree": true,
+      "website": "https://www.cyta.com.cy/cytavision-sports",
+      "priority": 10
+    },
+    {
+      "name": "Cytavision Sports MV",
+      "isFree": true,
+      "website": "https://www.cyta.com.cy/cytavision-sports/",
+      "priority": 10
+    },
+    {
+      "name": "OMONOIA",
+      "isFree": true,
+      "website": "https://primetel.com.cy/omonoia-tv-el",
+      "priority": 5
+    },
+    {
+      "name": "Primetel Sports",
+      "isFree": true,
+      "website": "https://primetel.com.cy/",
+      "priority": 10
+    },
+    {
+      "name": "Primetel Sports 2",
+      "isFree": true,
+      "website": "https://primetel.com.cy/",
+      "priority": 10
+    },
+    {
+      "name": "Primetel Sports 3",
+      "isFree": true,
+      "website": "https://primetel.com.cy/",
+      "priority": 10
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Ada",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BRT 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "City",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Digital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kuzey Kibris",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RIK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RIK 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RΙΚ Sat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vouli",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Alfa",
+      "isFree": true,
+      "website": "https://www.alphacyprus.com.cy",
+      "priority": 5
+    },
+    {
+      "name": "Alpha TV Cyprus",
+      "isFree": true,
+      "website": "https://www.alphacyprus.com.cy/",
+      "priority": 5
+    },
+    {
+      "name": "ANT1 Cyprus",
+      "isFree": true,
+      "website": "https://www.ant1.com.cy/",
+      "priority": 5
+    },
+    {
+      "name": "AST.TV",
+      "isFree": null,
+      "website": "https://www.ast.tv/",
+      "priority": 5
+    },
+    {
+      "name": "AST.TV 2",
+      "isFree": null,
+      "website": "https://www.ast.tv/channel-2",
+      "priority": 5
+    },
+    {
+      "name": "BRT",
+      "isFree": true,
+      "keywords": "brt 1",
+      "website": "https://brtk.net/",
+      "priority": 5
+    },
+    {
+      "name": "BRT 2",
+      "isFree": true,
+      "keywords": "brt 2",
+      "website": "https://brtk.net/",
+      "priority": 5
+    },
+    {
+      "name": "Capital",
+      "isFree": true,
+      "website": "https://capitaltv.cy/",
+      "priority": 5
+    },
+    {
+      "name": "Fotohandy",
+      "isFree": true,
+      "website": "http://www.fotohandy.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Kanal Sim",
+      "isFree": true,
+      "website": "http://www.kanalsim.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kibris Kanal T",
+      "isFree": true,
+      "website": "http://www.kanalt.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kibris",
+      "isFree": true,
+      "website": "https://www.kibristv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mena",
+      "isFree": true,
+      "website": "https://mena24tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MyCam TV Anal",
+      "isFree": null,
+      "website": "https://mycamtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MyCam TV Arab",
+      "isFree": null,
+      "website": "https://mycamtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MyCam TV Asian",
+      "isFree": null,
+      "website": "https://mycamtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MyCam TV Big Ass",
+      "isFree": null,
+      "website": "https://mycamtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MyCam TV Big Tits",
+      "isFree": null,
+      "website": "https://mycamtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MyCam TV Blonde",
+      "isFree": null,
+      "website": "https://mycamtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MyCam TV Blowjob",
+      "isFree": null,
+      "website": "https://mycamtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MyCam TV Brunette",
+      "isFree": null,
+      "website": "https://mycamtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MyCam TV Ebony",
+      "isFree": null,
+      "website": "https://mycamtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MyCam TV Latina",
+      "isFree": null,
+      "website": "https://mycamtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MyCam TV Medium",
+      "isFree": null,
+      "website": "https://mycamtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MyCam TV MILF",
+      "isFree": null,
+      "website": "https://mycamtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MyCam TV Skinny",
+      "isFree": null,
+      "website": "https://mycamtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MyCam TV Squirt",
+      "isFree": null,
+      "website": "https://mycamtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MyCam TV Teen",
+      "isFree": null,
+      "website": "https://mycamtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MyCam TV White",
+      "isFree": null,
+      "website": "https://mycamtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MyCam TV Young",
+      "isFree": null,
+      "website": "https://mycamtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Omega",
+      "isFree": true,
+      "website": "https://www.omegatv.com.cy/",
+      "priority": 5
+    },
+    {
+      "name": "One Channel Cyprus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RIK Sat",
+      "isFree": true,
+      "website": "http://cybc.com.cy/",
+      "priority": 5
+    },
+    {
+      "name": "Sat 7 Arabic",
+      "isFree": true,
+      "website": "https://sat7.org/our-channels/channel-overview/sat-7-arabic",
+      "priority": 5
+    },
+    {
+      "name": "Sat 7 Turk",
+      "isFree": true,
+      "website": "https://www.sat7turk.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sigma",
+      "isFree": true,
+      "website": "https://www.sigmatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "TNT Cyprus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Gunes",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Reload",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Magic",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Cablenet Cinema",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Movies Best",
+      "isFree": true,
+      "website": "http://www.mesimvria.com/en/home/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "DAU",
+      "isFree": true,
+      "website": "https://www.emu.edu.tr/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Kibris Genc",
+      "isFree": true,
+      "website": "https://www.kibrisgenctv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Vergina TV Cyprus",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Masha y el Oso",
+      "isFree": true,
+      "website": "https://www.mashabear.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sat 7 Kids",
+      "isFree": true,
+      "website": "http://sat7kids.com/",
+      "priority": 5
+    },
+    {
+      "name": "Smile TV Cyprus",
+      "isFree": true,
+      "website": "https://www.smiletvcyprus.com/gr/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Middle East",
+      "isFree": true,
+      "website": "http://metv.org/",
+      "priority": 4
+    },
+    {
+      "name": "Sat 7 Pars",
+      "isFree": true,
+      "website": "https://www.sat7pars.com/",
+      "priority": 4
+    }
+  ],
+  "Shop": [
+    {
+      "name": "TV Mall",
+      "isFree": true,
+      "website": "https://tvmall.cy/",
+      "priority": 4
+    }
+  ]
+}

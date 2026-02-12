@@ -36,9 +36,9 @@ class Bookmarks extends EntriesGroup {
             global.streamer.aboutRegisterEntry('fav', data => {
                 if (!data.isLocal) {
                     if (this.has(this.simplify(data))) {
-                        return { template: 'option', fa: 'fas fa-star-half', text: lang.REMOVE_FROM.format(lang.BOOKMARKS), id: 'fav' };
+                        return { template: 'option', fa: 'fas fa-heart-broken', text: lang.REMOVE_FROM.format(lang.BOOKMARKS), id: 'fav' };
                     } else {
-                        return { template: 'option', fa: 'fas fa-star', text: lang.ADD_TO.format(lang.BOOKMARKS), id: 'fav' };
+                        return { template: 'option', fa: 'fas fa-heart', text: lang.ADD_TO.format(lang.BOOKMARKS), id: 'fav' };
                     }
                 }
             }, this.toggle.bind(this), 3)
@@ -52,7 +52,7 @@ class Bookmarks extends EntriesGroup {
     }
     async hook(entries, path) {
         if (!path) {
-            const bmEntry = { name: lang.BOOKMARKS, fa: 'fas fa-star', side: true, type: 'group', renderer: this.entries.bind(this) };
+            const bmEntry = { name: lang.BOOKMARKS, fa: 'fas fa-heart', side: true, type: 'group', renderer: this.entries.bind(this) };
             if (this.data.length)
                 bmEntry.details = this.data.map(e => e.name).unique().slice(0, 3).join(', ') +'...'
             insertEntry(bmEntry, entries, [lang.OPTIONS, lang.ABOUT], [lang.OPEN_URL, lang.CATEGORY_MOVIES_SERIES, lang.LIVE]);
@@ -75,23 +75,23 @@ class Bookmarks extends EntriesGroup {
             if (this.has(bookmarkable)) {
                 bookmarker = {
                     type: 'action',
-                    fa: 'fas fa-star-half',
+                    fa: 'fas fa-heart-broken',
                     name: lang.REMOVE_FROM.format(lang.BOOKMARKS),
                     action: () => {
                         this.remove(bookmarkable);
                         menu.refreshNow();
-                        osd.show(lang.BOOKMARK_REMOVED.format(bookmarkable.name), 'fas fa-star-half', 'bookmarks', 'normal');
+                        osd.show(lang.BOOKMARK_REMOVED.format(bookmarkable.name), 'fas fa-heart-broken', 'bookmarks', 'normal');
                     }
                 };
             } else if (!path.includes(lang.BOOKMARKS)) {
                 bookmarker = {
                     type: 'action',
-                    fa: 'fas fa-star',
+                    fa: 'fas fa-heart',
                     name: lang.ADD_TO.format(lang.BOOKMARKS),
                     action: () => {
                         this.add(bookmarkable);
                         menu.refreshNow();
-                        osd.show(lang.BOOKMARK_ADDED.format(bookmarkable.name), 'fas fa-star', 'bookmarks', 'normal');
+                        osd.show(lang.BOOKMARK_ADDED.format(bookmarkable.name), 'fas fa-heart', 'bookmarks', 'normal');
                     }
                 };
             }
@@ -105,10 +105,10 @@ class Bookmarks extends EntriesGroup {
         if (data) {
             if (this.has(data)) {
                 this.remove(data);
-                osd.show(lang.BOOKMARK_REMOVED.format(data.name), 'fas fa-star-half', 'bookmarks', 'normal');
+                osd.show(lang.BOOKMARK_REMOVED.format(data.name), 'fas fa-heart-broken', 'bookmarks', 'normal');
             } else {
                 this.add(data);
-                osd.show(lang.BOOKMARK_ADDED.format(data.name), 'fas fa-star', 'bookmarks', 'normal');
+                osd.show(lang.BOOKMARK_ADDED.format(data.name), 'fas fa-heart', 'bookmarks', 'normal');
             }
             menu.refreshNow();
         }
@@ -151,18 +151,18 @@ class Bookmarks extends EntriesGroup {
         if (current && !this.has(current)) {
             es.push({
                 name: lang.ADD + ': ' + current.name,
-                fa: 'fas fa-star', icon: current.icon, type: 'action',
+                fa: 'fas fa-heart', icon: current.icon, type: 'action',
                 action: () => {
                     this.add(current)
                     menu.refreshNow()
                 }
             })
         }
-        es.push({ name: lang.ADD_BY_NAME, fa: 'fas fa-star', type: 'group', renderer: this.addByNameEntries.bind(this) });
+        es.push({ name: lang.ADD_BY_NAME, fa: 'fas fa-heart', type: 'group', renderer: this.addByNameEntries.bind(this) });
         let gentries = this.get().map((e, i) => {
             const isMega = e.url && mega.isMega(e.url);
-            e.fa = 'fas fa-star';
-            e.details = '<i class="fas fa-star"></i> ' + e.bookmarkId;
+            e.fa = 'fas fa-heart';
+            e.details = '<i class="fas fa-heart"></i> ' + e.bookmarkId;
             if (isMega) {
                 let atts = mega.parse(e.url);
                 if (atts.mediaType == 'live') {
@@ -209,7 +209,7 @@ class Bookmarks extends EntriesGroup {
                 entries.push({
                     name: e.name,
                     details: lang.SHORTCUT_NUMBER +': '+ e.bookmarkId,
-                    fa: 'fas fa-star',
+                    fa: 'fas fa-heart',
                     type: 'action',
                     action: async () => {
                         let n = await global.menu.prompt({

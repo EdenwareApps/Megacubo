@@ -1,0 +1,792 @@
+{
+  "Entertainment": [
+    {
+      "name": "88 Stereo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Anexión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Antena Seis",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 11",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 13 Sinart",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 14 San Carlos",
+      "isFree": true,
+      "shortName": "C1SC",
+      "priority": 5
+    },
+    {
+      "name": "Canal 6",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 8",
+      "isFree": true,
+      "keywords": "canal 8 -costa -rica",
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Costa Rica",
+      "isFree": true,
+      "shortName": "C8CR",
+      "priority": 5
+    },
+    {
+      "name": "Canal 88 Stereo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Colosal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Extrema",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HBTV TicaVisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Humor 24- 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Quince UCR",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Retro TV Palmares",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "STV El Camal Familiar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Sur Canal 9",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Uno",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleSUR Costa Rica",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telered Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Teletica 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "360 RFTV",
+      "isFree": true,
+      "website": "https://riofriotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Agrotendencia",
+      "isFree": true,
+      "website": "https://agrotendencia.tv/en-directo/",
+      "priority": 5
+    },
+    {
+      "name": "Bajura",
+      "isFree": true,
+      "website": "https://bajuratv.wordpress.com/",
+      "priority": 5
+    },
+    {
+      "name": "Barva Online",
+      "isFree": true,
+      "website": "https://bortvfm.com/",
+      "priority": 5
+    },
+    {
+      "name": "BestClasicosTV",
+      "isFree": true,
+      "website": "https://www.mediosdecostarica.com/2025/07/best-clasicos-tv.html",
+      "priority": 5
+    },
+    {
+      "name": "BeXtreme HD",
+      "isFree": true,
+      "website": "https://www.xtelevision.tv",
+      "priority": 5
+    },
+    {
+      "name": "Canal",
+      "isFree": true,
+      "website": "https://canal1cr.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 10",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 2",
+      "isFree": true,
+      "keywords": "canal 2 -puriscal",
+      "website": "https://www.repretel.com/envivo-canal2/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 21 Cable Caribe",
+      "isFree": true,
+      "website": "https://cablecaribecr.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Puriscal",
+      "isFree": true,
+      "website": "https://www.cablevisiondeoccidente.cr/canal-2",
+      "priority": 5
+    },
+    {
+      "name": "Canal 4",
+      "isFree": true,
+      "website": "http://www.repretel.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 53 Cable Victoria",
+      "isFree": true,
+      "website": "https://cablevictoria.site123.me/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 Guanacaste",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Los Chiles",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 9",
+      "isFree": true,
+      "website": "https://www.canal9.cr/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Altavision",
+      "isFree": true,
+      "website": "https://www.coopesantos.com/",
+      "priority": 5
+    },
+    {
+      "name": "CANAL RED",
+      "isFree": true,
+      "website": "http://mzproducciones.com/",
+      "priority": 5
+    },
+    {
+      "name": "Caribe TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cartago Medios",
+      "isFree": true,
+      "website": "https://cartagomedios.com/",
+      "priority": 5
+    },
+    {
+      "name": "CDB",
+      "isFree": true,
+      "website": "https://canaldelbarrio.com/",
+      "priority": 5
+    },
+    {
+      "name": "Comunicaciones Jimenez",
+      "isFree": true,
+      "website": "https://comunicacionesjime.wixsite.com/misitio",
+      "priority": 5
+    },
+    {
+      "name": "Costa Rica",
+      "isFree": true,
+      "website": "https://costaricachannel.org/",
+      "priority": 5
+    },
+    {
+      "name": "Coto Brus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CR TV y Radio",
+      "isFree": true,
+      "website": "http://www.crtvyradio.xyz/",
+      "priority": 5
+    },
+    {
+      "name": "Extra TV 42",
+      "isFree": true,
+      "website": "https://www.extratv42.com/",
+      "priority": 5
+    },
+    {
+      "name": "Faro Puntarenas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GAMTV.cr",
+      "isFree": true,
+      "website": "https://gamtvcr.com/",
+      "priority": 5
+    },
+    {
+      "name": "Garabito",
+      "isFree": true,
+      "website": "https://garabitotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Guatuso",
+      "isFree": true,
+      "website": "https://www.grupodgrajal.com/guatuso.html",
+      "priority": 5
+    },
+    {
+      "name": "La Potente Radio",
+      "isFree": true,
+      "website": "https://lapotentecr.com/",
+      "priority": 5
+    },
+    {
+      "name": "Limon",
+      "isFree": true,
+      "website": "https://www.limonhoy.com",
+      "priority": 5
+    },
+    {
+      "name": "Los Santos",
+      "isFree": true,
+      "website": "https://www.lossantostv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Meganet",
+      "isFree": true,
+      "website": "https://meganettv.fun/",
+      "priority": 5
+    },
+    {
+      "name": "Mega",
+      "isFree": true,
+      "website": "https://megatvcr.net/",
+      "priority": 5
+    },
+    {
+      "name": "MetaVersus",
+      "isFree": true,
+      "website": "https://metaversuscr.com/",
+      "priority": 5
+    },
+    {
+      "name": "MoraTV",
+      "isFree": true,
+      "website": "https://www.moratvonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "¡OPA!",
+      "isFree": true,
+      "website": "https://www.genteopa.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Puerto",
+      "isFree": true,
+      "website": "https://radiopuertotv.net/",
+      "priority": 5
+    },
+    {
+      "name": "RTTV",
+      "isFree": true,
+      "website": "https://www.radioturrialba.com/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Chirripo",
+      "isFree": true,
+      "website": "https://radiotvchirripo.com/",
+      "priority": 5
+    },
+    {
+      "name": "San Vito Television",
+      "isFree": true,
+      "website": "http://sanvito-television.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sarapiqui",
+      "isFree": true,
+      "website": "https://www.sarapiquitvcr.com/",
+      "priority": 5
+    },
+    {
+      "name": "Somos Caribe",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Super Cable",
+      "isFree": true,
+      "website": "https://www.supercable.co.cr/",
+      "priority": 5
+    },
+    {
+      "name": "TDtv",
+      "isFree": true,
+      "website": "https://cloudvideo.servers10.com/public/8230",
+      "priority": 5
+    },
+    {
+      "name": "TeleBrunca",
+      "isFree": true,
+      "website": "https://www.cablebruncacr.com/telebrunca",
+      "priority": 5
+    },
+    {
+      "name": "TeleMas",
+      "isFree": true,
+      "website": "https://telemascr.com/",
+      "priority": 5
+    },
+    {
+      "name": "Telesistema",
+      "isFree": true,
+      "website": "https://telesistemacr.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tica TV+",
+      "isFree": true,
+      "website": "https://www.ticatvplus.com/tvenvivo",
+      "priority": 5
+    },
+    {
+      "name": "TicaVision",
+      "isFree": true,
+      "keywords": "ticavision -radio -sports",
+      "website": "https://ticavisiontv.com/",
+      "priority": 5
+    },
+    {
+      "name": "TicaVision Radio",
+      "isFree": true,
+      "website": "https://ticavisiontv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Trece Costa Rica Television",
+      "isFree": true,
+      "website": "https://costaricamedios.cr/envivo",
+      "priority": 5
+    },
+    {
+      "name": "Trivision 36",
+      "isFree": true,
+      "website": "https://trivision36.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV 8",
+      "isFree": true,
+      "website": "https://tv8cr.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Atenas",
+      "isFree": true,
+      "website": "https://www.tvatenas.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Cachi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Chorotega",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Curre",
+      "isFree": true,
+      "website": "https://tvcurrecr.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Legislativa",
+      "isFree": true,
+      "website": "https://www.asamblea.go.cr/",
+      "priority": 5
+    },
+    {
+      "name": "TVMeta",
+      "isFree": true,
+      "website": "https://ticavisiontv.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVN 14",
+      "isFree": true,
+      "website": "http://www.tvn14.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Nica",
+      "isFree": true,
+      "website": "https://ticavisiontv.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Nosara",
+      "isFree": true,
+      "website": "https://www.radiotvnosara.online",
+      "priority": 5
+    },
+    {
+      "name": "TV Santa Cruz",
+      "isFree": true,
+      "website": "https://www.tvsantacruzcr.net/",
+      "priority": 5
+    },
+    {
+      "name": "TV Sur Canal 14",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "XperTV",
+      "isFree": true,
+      "website": "https://xpertvcr.com/",
+      "priority": 5
+    },
+    {
+      "name": "ZTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zurqui",
+      "isFree": true,
+      "website": "http://zurquitv.com/",
+      "priority": 5
+    }
+  ],
+  "Local": [
+    {
+      "name": "NicoyaTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "San Rafael en Linea",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Canal 38",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Video Tour",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 3 KMK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gex",
+      "isFree": true,
+      "website": "https://gextv.com/",
+      "priority": 5
+    },
+    {
+      "name": "IQ",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Megahits",
+      "isFree": true,
+      "website": "https://meganettv.fun/",
+      "priority": 5
+    },
+    {
+      "name": "Oldies Hits",
+      "isFree": true,
+      "website": "https://www.grupodgrajal.com/oldies-hits.html",
+      "priority": 5
+    },
+    {
+      "name": "SOY Plancha",
+      "isFree": true,
+      "website": "https://soyplancha.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Urbano",
+      "isFree": true,
+      "website": "https://urbanotvcr.com/",
+      "priority": 5
+    },
+    {
+      "name": "Video Musica",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vintage Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VM Latino",
+      "isFree": true,
+      "website": "https://vmlatino.com/",
+      "priority": 5
+    },
+    {
+      "name": "VoiceOver Radio",
+      "isFree": true,
+      "website": "https://www.voiceovercr.com/V.O.R.%20TV-Live.html",
+      "priority": 5
+    },
+    {
+      "name": "Xpresso Joven Radio",
+      "isFree": true,
+      "website": "https://xpressojovenradiocr.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zona Music",
+      "isFree": true,
+      "website": "https://zonamusictvcr.wixsite.com/misitio",
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Repretel CDR-2 Central de Radios",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Canal Olimpico",
+      "isFree": true,
+      "website": "https://www.concrc.org/",
+      "priority": 5
+    },
+    {
+      "name": "FUTV",
+      "isFree": true,
+      "website": "http://www.futvcr.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mas Ciclismo",
+      "isFree": true,
+      "website": "https://www.elsprinter.com/en/index.html",
+      "priority": 5
+    },
+    {
+      "name": "MZ Sports",
+      "isFree": true,
+      "website": "https://mzsportscr.com/live/",
+      "priority": 10
+    },
+    {
+      "name": "Radio Turrialba TV Sports",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "TD Mas",
+      "isFree": true,
+      "keywords": "td mas -2",
+      "website": "https://www.tdmax.com/",
+      "priority": 5
+    },
+    {
+      "name": "TD Mas 2",
+      "isFree": true,
+      "website": "https://www.tdmax.com/",
+      "priority": 5
+    },
+    {
+      "name": "TicaVision Sports",
+      "isFree": true,
+      "website": "https://ticavisiontv.com/",
+      "priority": 10
+    },
+    {
+      "name": "Tigo Sports",
+      "isFree": true,
+      "website": "http://www.tigosports.cr/",
+      "priority": 10
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Cristo Vision Canal 31",
+      "isFree": true,
+      "website": "http://cristovision31.org/",
+      "priority": 4
+    },
+    {
+      "name": "Enlace",
+      "isFree": true,
+      "keywords": "enlace -juvenil",
+      "website": "https://www.enlace.org/",
+      "priority": 4
+    },
+    {
+      "name": "Enlace Juvenil",
+      "isFree": true,
+      "website": "https://ejtv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Esperanza TV Costa Rica",
+      "isFree": true,
+      "website": "https://esperanzatv.cr/",
+      "priority": 4
+    },
+    {
+      "name": "Impact",
+      "isFree": true,
+      "website": "https://impactchannelcr.com/",
+      "priority": 4
+    },
+    {
+      "name": "Luz Naciente",
+      "isFree": true,
+      "website": "https://www.luznacientetv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Reforma TV Orotina",
+      "isFree": true,
+      "website": "https://www.reformatvradio.com/",
+      "priority": 4
+    },
+    {
+      "name": "San Jose",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "SMO",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Telefides",
+      "isFree": true,
+      "website": "https://telefides.com/",
+      "priority": 4
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Extrema Kids",
+      "isFree": true,
+      "website": "https://extrematv.org/extrema-kids",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Multizonas",
+      "isFree": true,
+      "website": "https://cloudvideo.servers10.com/public/8068",
+      "priority": 5
+    },
+    {
+      "name": "Nativa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV+",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Norte Informativo",
+      "isFree": true,
+      "website": "https://norteinformativo.com/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Retrox",
+      "isFree": true,
+      "website": "https://retroxtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zona Films",
+      "isFree": true,
+      "website": "https://www.twitch.tv/zonafilmstv",
+      "priority": 5
+    }
+  ]
+}

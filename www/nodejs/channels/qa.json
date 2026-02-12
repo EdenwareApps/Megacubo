@@ -1,0 +1,518 @@
+{
+  "News": [
+    {
+      "name": "Al Jazeera",
+      "isFree": true,
+      "keywords": "al jazeera -english",
+      "website": "https://www.aljazeera.com",
+      "priority": 5
+    },
+    {
+      "name": "Al Jazeera English",
+      "isFree": true,
+      "retransmits": "Al Jazeera",
+      "shortName": "AJ English",
+      "website": "https://www.aljazeera.com",
+      "priority": 5
+    },
+    {
+      "name": "Al Araby",
+      "isFree": true,
+      "keywords": "al araby tv -2",
+      "website": "https://www.alaraby.com/",
+      "priority": 5
+    },
+    {
+      "name": "Al Araby TV 2",
+      "isFree": true,
+      "website": "https://www.alaraby.com/alaraby2",
+      "priority": 5
+    },
+    {
+      "name": "Al Jazeera Mubasher",
+      "isFree": true,
+      "keywords": "al jazeera mubasher -24 -broadcast -2",
+      "retransmits": "Al Jazeera",
+      "shortName": "AJ Mubasher",
+      "website": "https://www.aljazeera.net",
+      "priority": 5
+    },
+    {
+      "name": "Al Jazeera Mubasher 24",
+      "isFree": true,
+      "website": "https://www.aljazeeramubasher.net/",
+      "priority": 5
+    },
+    {
+      "name": "Al Jazeera Mubasher Broadcast 2",
+      "isFree": true,
+      "website": "https://www.aljazeeramubasher.net/",
+      "priority": 5
+    },
+    {
+      "name": "Libya Al Ahrar",
+      "isFree": true,
+      "website": "https://libyaalahrar.tv/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Alkass Eight",
+      "isFree": true,
+      "website": "https://www.alkass.net/",
+      "priority": 5
+    },
+    {
+      "name": "Alkass Eleven",
+      "isFree": true,
+      "website": "http://www.alkass.net/",
+      "priority": 5
+    },
+    {
+      "name": "Alkass Four",
+      "isFree": true,
+      "website": "https://www.alkass.net/",
+      "priority": 5
+    },
+    {
+      "name": "Alkass Nine",
+      "isFree": true,
+      "website": "http://www.alkass.net/",
+      "priority": 5
+    },
+    {
+      "name": "Alkass One",
+      "isFree": true,
+      "website": "https://www.alkass.net/",
+      "priority": 5
+    },
+    {
+      "name": "Alkass Seven",
+      "isFree": true,
+      "website": "https://www.alkass.net/",
+      "priority": 5
+    },
+    {
+      "name": "Alkass SHOOF",
+      "isFree": true,
+      "website": "https://shoof.alkass.net/live?ch=shoof",
+      "priority": 5
+    },
+    {
+      "name": "Alkass Six",
+      "isFree": true,
+      "website": "https://www.alkass.net/",
+      "priority": 5
+    },
+    {
+      "name": "Alkass Ten",
+      "isFree": true,
+      "website": "http://www.alkass.net/",
+      "priority": 5
+    },
+    {
+      "name": "Alkass Three",
+      "isFree": true,
+      "website": "https://www.alkass.net/",
+      "priority": 5
+    },
+    {
+      "name": "Alkass Two",
+      "isFree": true,
+      "website": "https://www.alkass.net/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Sports",
+      "keywords": "bein sports -1 -2 -3 -4 -5 -6 -7 -8 -afc -en -espanol -english -french -max -10 -9 -nba -news -premium -xtra",
+      "shortName": "beIN",
+      "website": "https://www.beinsports.com",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports 2",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports 3",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports 4",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports 5",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports 6",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports 7",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports 8",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports AFC",
+      "isFree": true,
+      "keywords": "bein sports afc -1 -2 -3",
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports AFC 2",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports AFC 3",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports en Espanol",
+      "isFree": true,
+      "website": "https://www.beinsports.com/us-es/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports English",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports English 2",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports English 3",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports French",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports French 2",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports French 3",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports Max",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports Max 10",
+      "isFree": true,
+      "website": "http://www.beinsports.com/france/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports Max 2",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports Max 3",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports Max 4",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports Max 5",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports Max 6",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports Max 7",
+      "isFree": true,
+      "website": "http://www.beinsports.com/france/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports Max 8",
+      "isFree": true,
+      "website": "http://www.beinsports.com/france/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports Max 9",
+      "isFree": true,
+      "website": "http://www.beinsports.com/france/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports NBA",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports News",
+      "isFree": true,
+      "website": "https://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports Premium",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports Premium 2",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports Premium 3",
+      "isFree": true,
+      "website": "http://www.beinsports.com/ar/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports Xtra",
+      "isFree": true,
+      "website": "https://www.beinsportsxtra.com/",
+      "priority": 10
+    },
+    {
+      "name": "beIN Sports Xtra 2",
+      "isFree": true,
+      "website": "https://www.beinsportsxtra.com/",
+      "priority": 10
+    },
+    {
+      "name": "Alkass Five",
+      "isFree": true,
+      "website": "https://www.alkass.net/",
+      "priority": 5,
+      "keywords": "al kass five | alkass five"
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Al Rassoul",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Al Maaref",
+      "isFree": true,
+      "website": "https://almaaref.ch/",
+      "priority": 4
+    },
+    {
+      "name": "Dohat Alquran",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Al Rayyan",
+      "isFree": true,
+      "keywords": "al rayyan -al -qadeem",
+      "website": "https://www.alrayyan.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Qatar",
+      "isFree": true,
+      "keywords": "qatar tv -2",
+      "priority": 5
+    },
+    {
+      "name": "Qatar TV 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Rayyan Old",
+      "isFree": true,
+      "website": "https://www.alrayyan.tv/",
+      "priority": 5
+    },
+    {
+      "name": "beIN 4K",
+      "isFree": true,
+      "website": "https://www.bein.com/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Gourmet",
+      "isFree": true,
+      "website": "https://www.bein.com/",
+      "priority": 5
+    },
+    {
+      "name": "Qatar Television",
+      "isFree": true,
+      "keywords": "qatar television -2",
+      "website": "http://www.qtv.qa/",
+      "priority": 5
+    },
+    {
+      "name": "Qatar Television 2",
+      "isFree": true,
+      "website": "http://www.qtv.qa/",
+      "priority": 5
+    },
+    {
+      "name": "Qatar Today",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Qatar Today 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sama Alkhaleej",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Al Rayyan Al Qadeem",
+      "priority": 5
+    },
+    {
+      "name": "beIN Box Office",
+      "isFree": true,
+      "website": "https://www.bein.com/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Box Office 2",
+      "isFree": true,
+      "website": "https://www.bein.com/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Drama",
+      "isFree": true,
+      "website": "https://www.bein.com/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Movies 1 Premiere",
+      "isFree": true,
+      "website": "http://bein.net/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Movies 2 Action",
+      "isFree": true,
+      "website": "http://bein.net/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Movies 3 Drama",
+      "isFree": true,
+      "website": "http://bein.net/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Movies 4 Family",
+      "isFree": true,
+      "website": "http://bein.net/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Series",
+      "isFree": true,
+      "website": "http://bein.net/",
+      "priority": 5
+    },
+    {
+      "name": "beIN Series 2",
+      "isFree": true,
+      "website": "http://bein.net/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Al Jazeera Documentary",
+      "isFree": true,
+      "website": "http://doc.aljazeera.net/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Baraem",
+      "isFree": true,
+      "website": "https://baraem.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Be Junior",
+      "isFree": true,
+      "website": "https://www.bein.com/en/bejunior/",
+      "priority": 5
+    },
+    {
+      "name": "JeemTV",
+      "isFree": true,
+      "website": "https://jeemtv.net",
+      "priority": 5
+    }
+  ]
+}

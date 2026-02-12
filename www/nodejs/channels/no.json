@@ -1,0 +1,1310 @@
+{
+  "Sports": [
+    {
+      "name": "Canal Motor",
+      "priority": 5
+    },
+    {
+      "name": "TV 2 Sporten",
+      "priority": 10
+    },
+    {
+      "name": "Eurosport",
+      "isFree": true,
+      "website": "https://www.eurosport.no/",
+      "priority": 10
+    },
+    {
+      "name": "Telenor Sports 11",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Telenor Sports 12",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Telenor Sports 13",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Telenor Sports 14",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Telenor Sports 15",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "TV 2 Sport",
+      "isFree": true,
+      "website": "https://www.tv2.no/kanaler/sport1/",
+      "priority": 10
+    },
+    {
+      "name": "TV 2 Sport 2",
+      "isFree": true,
+      "website": "https://www.tv2.no/kanaler/sport2/",
+      "priority": 10
+    },
+    {
+      "name": "TV 2 Sport Premium",
+      "isFree": true,
+      "keywords": "tv 2 sport premium -2",
+      "website": "https://www.tv2.no/kanaler/sport-premium/",
+      "priority": 10
+    },
+    {
+      "name": "TV 2 Sport Premium 2",
+      "isFree": true,
+      "website": "https://www.tv2.no/kanaler/sport-premium/",
+      "priority": 10
+    },
+    {
+      "name": "NRK Tegnspråk",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV 2",
+      "isFree": null,
+      "priority": 5,
+      "_alt_origName": [
+        "TV 2 (Denmark)"
+      ]
+    },
+    {
+      "name": "TV 2 Nyheter",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV4 Hits",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV4 Stars",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "SF kanalen",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV 3",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "V Film",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "V Series",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "V Sport",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "FEM",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Rex",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "VOX",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Discovery Channel Norway",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "Discovery",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "Eurosport 2#Eurosport Norway",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "TLC Norway",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "VGTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Verdikanalen",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Visjon Norge",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "tvins",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV Glad",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Fatstone",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Kanal 10 Norge",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Johnn Hardang",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Vårt Land",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BBC Nordic",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CBS Reality",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Extreme Sports",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Disney",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "National Geographic Channel Scandinavia",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "National Geographic",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "Spice Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Animal Planet Nordic",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Cartoonito",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Cartoon Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Discovery Science",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "Investigation Discovery",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "MTV Global",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nickelodeon",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nick Jr",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nicktoons",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "SkyShowtime",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Viasat Explore",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Viasat History",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "History",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "H 2",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Bloomberg",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CNBC Nordic",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "E!",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "The God",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "God 2",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Motors",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Private Blue",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "The Poker",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Travel",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "3ABN International",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "3sat",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BBC News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BEN Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Chelsea",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Club",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CNN International",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "DR",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Euronews",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Fashion",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "FOX News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Health",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Hope",
+      "isFree": null,
+      "keywords": "hope channel -norge -norway",
+      "priority": 5
+    },
+    {
+      "name": "Life",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Liverpool",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Mezzo",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Manchester United",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "RTL Télé Lëtzebuerg",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sat",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sky News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sony Entertainment Television Asia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "SVT",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "SVT 2",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Rai Uno",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TBN Europe",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV 4",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV5Monde",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV 8",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVE Internacional",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV Finland",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TRT World",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Zee",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "3+",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BBC Brit",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BBC Earth",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BBC Entertainment",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BBC Food",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BBC Prime",
+      "isFree": null,
+      "priority": 6
+    },
+    {
+      "name": "BBC HD Scandinavia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal 9",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "C More Action",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "C More Kids",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "C More Film",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "C More Emotion",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV Aitio",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV4 Hockey",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "C More Sport",
+      "isFree": null,
+      "keywords": "c more sport",
+      "priority": 10
+    },
+    {
+      "name": "MTV Viihde",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "C More Tennis",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal+ Comedy",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal+ Action",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal+ Drama",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal+ Family",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal+ Film",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal+ Fotball",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal+ Sport 2",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Canal+ Sport 3",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Canal+ Hockey",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal+ Sport Extra",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Canal M",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Cinema",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "FOX",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "FOX Crime",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Disney Junior Scandinavia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Disney XD Scandinavia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Discovery World",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "ESPN America",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "ESPN Classic",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Fight+",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "FilmMax",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Filmnet",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "FOX Kids Nordic",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Hallmark Channel Scandilux",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Jetix",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Kiosk",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "K T.V",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Metropol",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Moox Live",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV 80s",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV 90s",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV 00s",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Club MTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV Hits",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV Live",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Norsk TV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nyhetskanalen",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "The Studio",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Rush",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Showtime Scandinavia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Silver",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sky Entertainment",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sportkanalen",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Star! Scandinavia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TCM Nordic",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Toon Disney Scandinavia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TNT",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "The Voice TV Norway",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV+",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV 2 Bliss",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV 2 Filmkanalen",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV 2 Science Fiction",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV 2 Sonen 24/ 7",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV4 Norge",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "VH1 Europe",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "VH1 Europe#VH1 Classic Europe",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Viasat 3D",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Viasat Film Comedy",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Viasat Fotball",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Viasat Plus",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Viasat SportN",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Viasat Sport 2",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Viasat Sport 3",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Viasat Sport 24",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Voom HD International",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "ZTV Norway",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal+",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Public Broadcaster",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV 2 Direkte",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "General Entertainment",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Wonderful Religious",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal+ Emotion",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal+ Sport HD",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Janco Visjon General entertainment channel (1986",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV 2 Humor",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Viasat Hockey",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Viasat Motor",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Viasat Ticket",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "NRK",
+      "isFree": true,
+      "website": "http://www.nrk.no/nrk1/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Hope Channel Norge",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Bedehuskanalen",
+      "isFree": true,
+      "website": "https://www.bedehuskanalen.no/",
+      "priority": 4
+    },
+    {
+      "name": "EWTN Norway",
+      "isFree": true,
+      "website": "https://www.ewtn.no/",
+      "priority": 4
+    },
+    {
+      "name": "Hope Channel Norway",
+      "isFree": true,
+      "website": "https://www.hopechannel.no/",
+      "priority": 4
+    },
+    {
+      "name": "Kanal 10 Norway",
+      "isFree": true,
+      "website": "https://www.kanal10.no/",
+      "priority": 4
+    },
+    {
+      "name": "Profetisk",
+      "isFree": true,
+      "website": "https://www.profetisktv.no/",
+      "priority": 4
+    },
+    {
+      "name": "TVL",
+      "isFree": true,
+      "website": "https://tvl.no/",
+      "priority": 4
+    },
+    {
+      "name": "TV Vision Heaven",
+      "isFree": true,
+      "website": "http://visionheaven.com/",
+      "priority": 4
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Frikanalen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal 10",
+      "isFree": true,
+      "keywords": "kanal 10 -asia",
+      "priority": 5
+    },
+    {
+      "name": "Kanal 10 Asia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Stortinget HS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Stortinget HS 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Stortinget N 202",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Stortinget Nett",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Stortinget Stortingssalen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Haugaland",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV2 Nyhetsstrømmen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Auto Motor og Sport",
+      "isFree": true,
+      "website": "http://automotorogsporttv.com/",
+      "priority": 10
+    },
+    {
+      "name": "Heim",
+      "isFree": true,
+      "website": "https://www.heimtv.no/",
+      "priority": 5
+    },
+    {
+      "name": "Matkanalen",
+      "isFree": true,
+      "website": "https://matkanalen.tv/",
+      "priority": 5
+    },
+    {
+      "name": "MAX",
+      "isFree": true,
+      "website": "http://www.max.no/",
+      "priority": 5
+    },
+    {
+      "name": "MTV",
+      "isFree": true,
+      "website": "https://www.mtv.no/",
+      "priority": 5
+    },
+    {
+      "name": "Naturkanal",
+      "isFree": true,
+      "website": "https://naturkanal1.no/",
+      "priority": 5
+    },
+    {
+      "name": "NRK 2",
+      "isFree": true,
+      "website": "http://www.nrk.no/nrk2/",
+      "priority": 5
+    },
+    {
+      "name": "NRK 3",
+      "isFree": true,
+      "website": "http://www.nrk.no/nrk3/",
+      "priority": 5
+    },
+    {
+      "name": "NRK Super/NRK 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NRK Tegnsprak",
+      "isFree": true,
+      "website": "http://www.nrk.no/hjelp/nrks-tilbud-til-horselshemmede-1.6613906",
+      "priority": 5
+    },
+    {
+      "name": "Rikstoto Direkte",
+      "isFree": true,
+      "website": "http://www.rikstoto.no/",
+      "priority": 5
+    },
+    {
+      "name": "Shakaal",
+      "isFree": true,
+      "website": "https://shakaalmedia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sunnmore LIVE",
+      "isFree": true,
+      "website": "https://slive.no/",
+      "priority": 5
+    },
+    {
+      "name": "TLC",
+      "isFree": true,
+      "website": "http://www.tlcnorge.no/",
+      "priority": 5
+    },
+    {
+      "name": "Tronder",
+      "isFree": true,
+      "website": "https://www.trondertv.no/",
+      "priority": 5
+    },
+    {
+      "name": "TV1 Ost",
+      "isFree": true,
+      "website": "https://xn--tv1-2na.no/",
+      "priority": 5
+    },
+    {
+      "name": "TV 2 Livsstil",
+      "isFree": true,
+      "website": "http://www.tv2.no/kanaler/livsstil/",
+      "priority": 5
+    },
+    {
+      "name": "TV 2 Nyhetskanalen",
+      "isFree": true,
+      "website": "https://www.tv2.no/kanaler/nyhetskanalen/",
+      "priority": 5
+    },
+    {
+      "name": "TV2 Nyhetsstrommen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 2 Zebra",
+      "isFree": true,
+      "website": "https://www.tv2.no/kanaler/zebra/",
+      "priority": 5
+    },
+    {
+      "name": "TV 6",
+      "isFree": true,
+      "website": "https://www.viafree.no/kanal/tv6",
+      "priority": 5
+    },
+    {
+      "name": "TV Agder",
+      "isFree": true,
+      "website": "https://www.tvagder.no/",
+      "priority": 5
+    },
+    {
+      "name": "TVModum",
+      "isFree": true,
+      "website": "https://tvmodum.no/",
+      "priority": 5
+    },
+    {
+      "name": "TV Nord",
+      "isFree": true,
+      "website": "https://www.rikstv.no/tv-kanaler/lokal-tv/tv-nord/",
+      "priority": 5
+    },
+    {
+      "name": "TVNorge",
+      "isFree": true,
+      "website": "http://www.tvnorge.no/",
+      "priority": 5
+    },
+    {
+      "name": "TV Ostfold",
+      "isFree": true,
+      "website": "https://www.tvoplay.no/",
+      "priority": 5
+    },
+    {
+      "name": "TV Vest Rogaland",
+      "isFree": true,
+      "website": "https://video.tvvest.no/se-tv-vest-rogaland-direkte-uten-abonnement",
+      "priority": 5
+    },
+    {
+      "name": "TV Vest Vestland",
+      "isFree": true,
+      "website": "https://video.tvvest.no/se-tv-vest-vestland-direkte",
+      "priority": 5
+    },
+    {
+      "name": "TV Visjon Norway",
+      "isFree": true,
+      "website": "https://visjonnorge.com/",
+      "priority": 5
+    },
+    {
+      "name": "VG",
+      "isFree": true,
+      "website": "https://www.vgtv.no/",
+      "priority": 5
+    },
+    {
+      "name": "VSTLND",
+      "isFree": true,
+      "website": "https://www.vstlnd.tv/nb",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Bergen Student",
+      "isFree": true,
+      "website": "https://bstv.no/",
+      "priority": 5
+    },
+    {
+      "name": "National Geographic Wild",
+      "isFree": true,
+      "website": "http://www.natgeotv.com/no",
+      "priority": 7
+    }
+  ],
+  "News": [
+    {
+      "name": "Finansavisen",
+      "isFree": true,
+      "website": "https://tv.finansavisen.no/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "NRK Super",
+      "isFree": true,
+      "website": "http://www.nrksuper.no/",
+      "priority": 5
+    }
+  ]
+}

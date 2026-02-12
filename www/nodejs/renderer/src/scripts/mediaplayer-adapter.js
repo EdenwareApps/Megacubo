@@ -21,23 +21,58 @@ export class MediaPlayerAdapter extends EventEmitter {
 	}
 	reload(cb) {
 		const alive = this.active && this.object
-		const t = this.time()
+		let t = 0
+		try {
+			// time() may not exist in all subclasses, handle gracefully
+			if (typeof this.time === 'function') {
+				t = this.time()
+			}
+		} catch (e) {
+			console.warn('Error getting time in reload:', e)
+		}
+		
 		const {currentSrc, currentMimetype, currentAdditionalSubtitles, cookie, mediatype} = this
 		this.suspendStateChangeReporting = true
-		this.unload()
+		
+		try {
+			this.unload()
+		} catch (unloadError) {
+			console.error('Error during unload in reload:', unloadError)
+		}
+		
 		if(alive){
 			setTimeout(() => {
-				this.suspendStateChangeReporting = false
-				this.setState('loading')
-			this.load(currentSrc, currentMimetype, currentAdditionalSubtitles, cookie, mediatype)
-			if(t && this.mediatype == 'live') {
-				this.time(t + 0.5) // nudge a bit to skip any decoding error on part of the file
-			}
-				cb && cb()
+				try {
+					this.suspendStateChangeReporting = false
+					this.setState('loading')
+					const loadResult = this.load(currentSrc, currentMimetype, currentAdditionalSubtitles, cookie, mediatype)
+					const done = () => {
+						if(t && this.mediatype == 'live' && typeof this.time === 'function') {
+							this.time(t + 0.5) // nudge a bit to skip any decoding error on part of the file
+						}
+						cb && cb()
+					}
+					if (loadResult && typeof loadResult.then === 'function') {
+						loadResult.then(done).catch(loadError => {
+							console.error('Error during load in reload:', loadError)
+							this.emit('error', 'Failed to reload', true)
+							this.setState('')
+							if (cb) cb()
+						})
+					} else {
+						done()
+					}
+				} catch (loadError) {
+					console.error('Error during load in reload:', loadError)
+					this.emit('error', 'Failed to reload', true)
+					this.setState('')
+					if (cb) cb()
+				}
 			}, 10)
 		} else {
 			this.emit('error', 'Playback failure', true)
 			this.setState('')
+			if (cb) cb()
 		}
 	}
 	destroy(){
@@ -58,6 +93,8 @@ class MediaPlayerAdapterHTML5 extends MediaPlayerAdapter {
 		this.uiVisibility = true
 		this.currentSrc = ''
 		this.currentMimetype = ''
+		this.errorsCount = 0
+		this.lastErrorTime = 0
 	}
 	setup(tag){
 		console.log('adapter setup')
@@ -77,325 +114,632 @@ class MediaPlayerAdapterHTML5 extends MediaPlayerAdapter {
 		this.uiVisibility = visible
 	}
 	connect(){
-		this.object.currentTime = 0
-		this.object.textTracks.addEventListener('change', () => this.emit('subtitleTracks', this.subtitleTracks()))
+		if (!this.object) {
+			console.error('Cannot connect: object is null')
+			return
+		}
+		
+		try {
+			this.object.currentTime = 0
+		} catch (e) {
+			console.warn('Error setting currentTime to 0:', e)
+		}
+		
+		// Add text tracks change listener with error handling
+		try {
+			if (this.object.textTracks && this.object.textTracks.addEventListener) {
+				this.object.textTracks.addEventListener('change', () => {
+					try {
+						this.emit('subtitleTracks', this.subtitleTracks())
+					} catch (e) {
+						console.error('Error in subtitleTracks change handler:', e)
+					}
+				})
+			}
+		} catch (e) {
+			console.warn('Error adding textTracks listener:', e)
+		}
+		
 		const onerr = e => {
-			if(this.object.error){
-				e = this.object.error
+			if (!this.object || !this.active) {
+				return
 			}
-			const t = this.time()
-			const errStr = e ? String(e.message ? e.message : e) : 'unknown error'
-			const isFailed = this.object.error || this.object.networkState == 3 || this.object.readyState < 2 || errStr.match(new RegExp('(pipeline_error|demuxer)', 'i'))
-			console.error('Video error', t, this.errorsCount, e, errStr, this.object.networkState +', '+ this.object.readyState, isFailed)
-			if(isFailed){
-				this.errorsCount++
-				if(this.errorsCount >= (t > 0 ? 20 : 2)){
-					this.emit('error', String(e.message || e), true)
-					this.setState('')
-				} else {
-					const c = this.errorsCount // load() will reset the counter
-					this.reload(() => {
-						this.errorsCount = c
-					})
+			
+			try {
+				if(this.object.error){
+					e = this.object.error
 				}
+				
+				let t = 0
+				try {
+					if (typeof this.time === 'function') {
+						t = this.time()
+					}
+				} catch (timeError) {
+					console.warn('Error getting time in error handler:', timeError)
+				}
+				
+				const errStr = e ? String(e.message ? e.message : e) : 'unknown error'
+				const isFailed = this.object.error || this.object.networkState == 3 || this.object.readyState < 2 || errStr.match(new RegExp('(pipeline_error|demuxer)', 'i'))
+				console.error('Video error', t, this.errorsCount || 0, e, errStr, this.object.networkState +', '+ this.object.readyState, isFailed)
+				
+				if(isFailed){
+					this.errorsCount = (this.errorsCount || 0) + 1
+					const maxRetries = t > 0 ? 20 : 2
+					
+					if(this.errorsCount >= maxRetries){
+						console.error('Video error: max retries reached', this.errorsCount, '/', maxRetries)
+						this.emit('error', String(e.message || e), true)
+						this.setState('')
+					} else {
+						const c = this.errorsCount // load() will reset the counter
+						try {
+							this.reload(() => {
+								this.errorsCount = c
+							})
+						} catch (reloadError) {
+							console.error('Error during reload in error handler:', reloadError)
+							this.emit('error', 'Failed to reload after error', true)
+							this.setState('')
+						}
+					}
+				}
+			} catch (errorHandlerError) {
+				console.error('Error in error handler:', errorHandlerError)
 			}
 		}
-		if(this.currentMimetype.match(new RegExp('(mpegts|mpegurl)', 'i'))){
-			// let hls.js and mpegts.js do its own error handling first
-			this.object.addEventListener('error', () => setTimeout(() => this.object.error && onerr(), 10))
-		} else {
-			this.object.addEventListener('error', onerr)
-			const source = this.object.querySelector('source')
-			if(source){ // for video only, hls.js uses src directly
-				source.addEventListener('error', onerr)
-			}
+		if (!this.object || typeof this.object.addEventListener !== 'function') {
+			console.warn('Cannot connect: object is not available or addEventListener is not a function')
+			return
 		}
-		this.object.addEventListener('ended', e => {
-			console.log('video ended', e)
-            this.emit('ended', String(e))
-		})
-        this.object.addEventListener('timeupdate', event => {
-			this.emit('timeupdate', this.object.currentTime)
-			this.state === 'loading' && this.processState()
-		})
-        this.object.addEventListener('durationchange', event => {
-			if(this.object.duration && this.duration != this.object.duration){
-				this.duration = this.object.duration
-				if(this.duration && this.errorsCount){
-					this.errorsCount = 0
+		
+		try {
+			if(this.currentMimetype && this.currentMimetype.match(new RegExp('(mpegts|mpegurl)', 'i'))){
+				// let hls.js and mpegts.js do its own error handling first
+				this.object.addEventListener('error', () => {
+					setTimeout(() => {
+						if (this.object && this.object.error && this.active) {
+							onerr()
+						}
+					}, 10)
+				})
+			} else {
+				this.object.addEventListener('error', onerr)
+				const source = this.object.querySelector('source')
+				if(source){ // for video only, hls.js uses src directly
+					source.addEventListener('error', onerr)
 				}
 			}
-			this.emit('durationchange')
-		})
-        this.object.addEventListener('loadedmetadata', event => {
-			if(this.object.videoHeight){
-				let r = this.object.videoWidth / this.object.videoHeight
-				if(r > 0 && !this.hasReceivedRatio){
-					this.hasReceivedRatio = true
-					this.emit('setup-ratio', r)
+		} catch (e) {
+			console.error('Error adding error listeners:', e)
+		}
+		try {
+			
+			this.object.addEventListener('ended', e => {
+				if (!this.active) return
+				console.log('video ended', e)
+				this.emit('ended', String(e))
+			})
+			
+			this.object.addEventListener('timeupdate', event => {
+				if (!this.active || !this.object) return
+				try {
+					this.emit('timeupdate', this.object.currentTime)
+					if(this.state === 'loading') {
+						this.processState()
+					}
+				} catch (e) {
+					console.error('Error in timeupdate handler:', e)
 				}
-				this.ratio(r)
+			})
+			
+			this.object.addEventListener('durationchange', event => {
+				if (!this.active || !this.object) return
+				try {
+					if(this.object.duration && this.duration != this.object.duration){
+						this.duration = this.object.duration
+						if(this.duration && this.errorsCount){
+							this.errorsCount = 0
+						}
+					}
+					this.emit('durationchange')
+				} catch (e) {
+					console.error('Error in durationchange handler:', e)
+				}
+			})
+			
+			this.object.addEventListener('loadedmetadata', event => {
+				if (!this.active || !this.object) return
+				try {
+					if(this.object.videoHeight){
+						let r = this.object.videoWidth / this.object.videoHeight
+						if(r > 0 && !this.hasReceivedRatio){
+							this.hasReceivedRatio = true
+							this.emit('setup-ratio', r)
+						}
+						this.ratio(r)
+					}
+					this.emit('audioTracks', this.audioTracks())
+					this.emit('subtitleTracks', this.subtitleTracks())
+				} catch (e) {
+					console.error('Error in loadedmetadata handler:', e)
+				}
+			})
+			
+			this.object.addEventListener('waiting', () => {
+				if (this.active) {
+					this.setState('loading')
+				}
+			})
+			
+			this.object.addEventListener('playing', () => {
+				if (this.active) {
+					this.setState('playing')
+				}
+			})
+			
+			// Verify this.object is still available before adding multiple listeners
+			if (this.object && typeof this.object.addEventListener === 'function') {
+				['abort', 'canplay', 'canplaythrough', 'durationchange', 'emptied', 'ended', 'error', 'loadeddata', 'loadedmetadata', 'loadstart', 'pause', 'play', 'seeked', 'stalled', 'suspend'].forEach(n => {
+					try {
+						if (this.object && typeof this.object.addEventListener === 'function') {
+							this.object.addEventListener(n, this.processState.bind(this))
+						}
+					} catch (e) {
+						console.warn('Error adding event listener for', n, ':', e)
+					}
+				})
 			}
-			this.emit('audioTracks', this.audioTracks())
-			this.emit('subtitleTracks', this.subtitleTracks())
-		});
-		this.object.addEventListener('waiting', () => {
-			this.setState('loading')
-		})
-		this.object.addEventListener('playing', () => {
-			this.setState('playing')
-		});
-		['abort', 'canplay', 'canplaythrough', 'durationchange', 'emptied', 'ended', 'error', 'loadeddata', 'loadedmetadata', 'loadstart', 'pause', 'play', 'seeked', 'stalled', 'suspend'].forEach(n => {
-			this.object.addEventListener(n, this.processState.bind(this))
-		})
-		this.processState()
+			
+			if (this.object) {
+				try {
+					this.processState()
+				} catch (e) {
+					console.warn('Error in processState() during connect():', e)
+				}
+			}
+		} catch (e) {
+			console.error('Error in connect():', e)
+		}
 	}
 	disconnect(){
 		this.recycle()
 	}	
 	recycle() {
-		if (this.object.parentNode && this.object.getAttribute('src')) {
-			const volume = this.object.volume
-			if(this.object) {
+		if (!this.object || !this.object.parentNode) {
+			return
+		}
+		
+		try {
+			const p = this.object.parentNode
+			const volume = this.object.volume || 1
+			
+			// Pause and clear source
+			if (this.object.pause) {
 				this.object.pause()
+			}
+			if (this.object.removeAttribute) {
 				this.object.removeAttribute('src')
+			}
+			if (this.object.load) {
 				this.object.load()
 			}
-			const v = document.createElement('video')
-			v.autoplay = true
-			this.object.replaceWith(v)
-			this.object.parentNode && this.object.parentNode.removeChild(this.object)
-			this.object = v
-			this.object.volume = volume
-			this.patchPauseFn()
-		}
-	}
-	recycle() {
-		const p = this.object.parentNode
-		if (p) {
-			const volume = this.object.volume
-			this.object.pause()
-			this.object.removeAttribute('src')
-			this.object.load()
+			
+			// Clone the element to reset its state
 			const v = this.object.cloneNode(false)
 			v.autoplay = true
+			
+			// Replace the element
 			p.removeChild(this.object)
 			p.appendChild(v)
 			this.object = v
 			this.object.volume = volume
 			this.patchPauseFn()
+		} catch (e) {
+			console.error('Error in recycle():', e)
+			// If recycle fails, try to at least clear the source
+			if (this.object && this.object.removeAttribute) {
+				try {
+					this.object.removeAttribute('src')
+					if (this.object.load) {
+						this.object.load()
+					}
+				} catch (clearError) {
+					console.error('Error clearing source after recycle failure:', clearError)
+				}
+			}
 		}
 	}
 	setTextTracks(object, tracks) {
-		const existingTracks = object.querySelectorAll('track')
-		for (var i = 0; i < existingTracks.length; i++) {
-			object.removeChild(existingTracks[i])
+		if (!object || typeof object.querySelectorAll !== 'function') {
+			console.warn('setTextTracks: invalid object')
+			return
 		}
-		if(tracks) {
-			tracks.split('§').forEach((subtitleUrl, i) => {
-				const track = document.createElement('track')
-				//track.kind = 'subtitles'
-				track.kind = 'captions'
-				track.src = subtitleUrl
-
-				if(i == 0) {
-					track.mode = 'showing'
-					track.enabled = true
+		
+		try {
+			const existingTracks = object.querySelectorAll('track')
+			for (var i = 0; i < existingTracks.length; i++) {
+				try {
+					object.removeChild(existingTracks[i])
+				} catch (e) {
+					console.warn('Error removing existing track', i, ':', e)
 				}
-
-				const urlParams = new URL(subtitleUrl)
-				const language = urlParams.searchParams.get('lang')
-				const label = urlParams.searchParams.get('label')
+			}
 			
-				if(language) track.srclang = language
-				if(label) track.label = label
+			if(tracks && typeof tracks === 'string') {
+				tracks.split('§').forEach((subtitleUrl, i) => {
+					if (!subtitleUrl) return
+					
+					try {
+						const track = document.createElement('track')
+						track.kind = 'captions'
+						track.src = subtitleUrl
 
-				object.appendChild(track)
-			})
+						if(i == 0) {
+							track.mode = 'showing'
+							track.enabled = true
+						}
+
+						try {
+							const urlParams = new URL(subtitleUrl)
+							const language = urlParams.searchParams.get('lang')
+							const label = urlParams.searchParams.get('label')
+						
+							if(language) track.srclang = language
+							if(label) track.label = label
+						} catch (urlError) {
+							console.warn('Error parsing subtitle URL:', subtitleUrl, urlError)
+							// Continue without language/label if URL parsing fails
+						}
+
+						object.appendChild(track)
+					} catch (trackError) {
+						console.error('Error creating/appending track', i, ':', trackError)
+					}
+				})
+			}
+		} catch (e) {
+			console.error('Error in setTextTracks():', e)
 		}
 	}
 	disableTextTracks() {
-		for(let i=0; i<this.object.textTracks.length; i++) {
-			this.object.textTracks.mode = 'disabled'
-		}
-		const existingTracks = this.object.querySelectorAll('track')
-		for (var i = 0; i < existingTracks.length; i++) {
-			this.object.removeChild(existingTracks[i])
+		if (!this.object) return
+		try {
+			if (this.object.textTracks) {
+				for(let i=0; i<this.object.textTracks.length; i++) {
+					try {
+						this.object.textTracks[i].mode = 'disabled'
+					} catch (e) {
+						console.warn('Error disabling text track', i, ':', e)
+					}
+				}
+			}
+			const existingTracks = this.object.querySelectorAll('track')
+			for (var i = 0; i < existingTracks.length; i++) {
+				try {
+					this.object.removeChild(existingTracks[i])
+				} catch (e) {
+					console.warn('Error removing track', i, ':', e)
+				}
+			}
+		} catch (e) {
+			console.error('Error in disableTextTracks():', e)
 		}
 	}
 	addTextTrack(trackNfo) {
-		if(this.object.readyState < 2) {
-			const listener = () => {
-				this.addTextTrack(trackNfo)
-				this.object.removeEventListener('loadedmetadata', listener)
-			}
-			return this.object.addEventListener('loadedmetadata', listener)
+		if (!this.object || !trackNfo) {
+			return
 		}
-		this.disableTextTracks() // disable video embedded tracks
-		const track = document.createElement('track')
-		track.kind = 'captions'
-		track.label = trackNfo.name || 'English'
-		track.srclang = trackNfo.language || 'en'
-		track.enabled = true
-		track.src = trackNfo.url
-		track.mode = 'showing'
-		track.addEventListener('load', () => track.mode = 'showing')
-		this.object.appendChild(track)
-		this.object.textTracks[0].mode = 'showing'
+		
+		try {
+			if(this.object.readyState < 2) {
+				const listener = () => {
+					try {
+						this.addTextTrack(trackNfo)
+						this.object.removeEventListener('loadedmetadata', listener)
+					} catch (e) {
+						console.error('Error in addTextTrack listener:', e)
+					}
+				}
+				return this.object.addEventListener('loadedmetadata', listener)
+			}
+			this.disableTextTracks() // disable video embedded tracks
+			const track = document.createElement('track')
+			track.kind = 'captions'
+			track.label = trackNfo.name || 'English'
+			track.srclang = trackNfo.language || 'en'
+			track.enabled = true
+			track.src = trackNfo.url
+			track.mode = 'showing'
+			track.addEventListener('load', () => {
+				try {
+					track.mode = 'showing'
+				} catch (e) {
+					console.warn('Error setting track mode in load handler:', e)
+				}
+			})
+			this.object.appendChild(track)
+			if (this.object.textTracks && this.object.textTracks.length > 0) {
+				try {
+					this.object.textTracks[0].mode = 'showing'
+				} catch (e) {
+					console.warn('Error setting first text track mode:', e)
+				}
+			}
+		} catch (e) {
+			console.error('Error in addTextTrack():', e)
+		}
 	}
 	load(src, mimetype, additionalSubtitles, cookie, mediatype){
-		this.setVars(src, mimetype, additionalSubtitles, cookie, mediatype)
-		this._paused = false
-		this.setState('loading')
-		this.suspendStateChangeReporting = true
-		this.unload(true)
-		this.active = true
-		console.log('adapter load')
+		if (!src) {
+			console.error('Bad source in load()', src, mimetype)
+			return
+		}
+		
+		if (!this.object) {
+			console.error('Cannot load: object is null')
+			this.emit('error', 'Media element not available', true)
+			return
+		}
+		
+		try {
+			this.setVars(src, mimetype, additionalSubtitles, cookie, mediatype)
+			this._paused = false
+			this.setState('loading')
+			this.suspendStateChangeReporting = true
+			this.unload(true)
+			this.active = true
+			console.log('adapter load')
 
-		this.setTextTracks(this.object, additionalSubtitles)
-		this.object.src = src
-		this.connect()
-		this.object.load()
-		this._paused = false
-		this.setState('loading')
-		this.suspendStateChangeReporting = false
-		this.resume()
-		console.log('adapter resume', this.object.outerHTML, src, mimetype)
+			this.setTextTracks(this.object, additionalSubtitles)
+			this.object.src = src
+			this.connect()
+			this.object.load()
+			this._paused = false
+			this.setState('loading')
+			this.suspendStateChangeReporting = false
+			this.resume()
+			console.log('adapter resume', this.object.outerHTML, src, mimetype)
+		} catch (e) {
+			console.error('Error in load():', e)
+			this.emit('error', 'Failed to load media', true)
+			this.setState('')
+			this.active = false
+		}
 	}
 	unload(){
 		console.log('adapter unload')
 		this.hasReceivedRatio = false
 		if(this.active){
 			this.active = false
-			this.disconnect()
-			if(this.object.currentSrc) {
-				this.pause()
-				this._paused = false
-				const source = document.createElement('source')
-				source.type = 'video/mp4'
-				source.src = ''
-				this.object.innerHTML = ''
-				this.object.appendChild(source)
-				this.object.removeAttribute('src')
-				this.object.load()
+			try {
+				this.disconnect()
+			} catch (e) {
+				console.error('Error in disconnect() during unload():', e)
+			}
+			
+			if(this.object && this.object.currentSrc) {
+				try {
+					this.pause()
+					this._paused = false
+					const source = document.createElement('source')
+					source.type = 'video/mp4'
+					source.src = ''
+					this.object.innerHTML = ''
+					this.object.appendChild(source)
+					this.object.removeAttribute('src')
+					this.object.load()
+				} catch (e) {
+					console.error('Error clearing object source in unload():', e)
+				}
 			}
 		}
 	}
 	resume(){
+		if (!this.object || !this.active) {
+			return
+		}
+		
 		this._paused = false
-		let promise = this.object.play()
-		if(promise){
-			promise.catch(err => {
-				if(this.active){
-					console.error(err, err.message, this.object.networkState, this.object.readyState)
-				}
-			})
+		try {
+			let promise = this.object.play()
+			if(promise && typeof promise.catch === 'function'){
+				promise.catch(err => {
+					// AbortError and NotAllowedError are expected (user pause, autoplay restrictions)
+					if (err.name !== 'AbortError' && err.name !== 'NotAllowedError' && this.active){
+						console.error('Error in resume():', err, err.message, this.object ? this.object.networkState : 'N/A', this.object ? this.object.readyState : 'N/A')
+					}
+				})
+			}
+		} catch (e) {
+			console.error('Error calling play() in resume():', e)
 		}
 	}
 	pause(){
 		this._paused = true
-		this.object && this.object._pause && this.object._pause()
+		if (this.object && typeof this.object._pause === 'function') {
+			try {
+				this.object._pause()
+			} catch (e) {
+				console.error('Error calling _pause():', e)
+			}
+		}
 	}
 	restart(){
-		this.time(0)
+		if (typeof this.time === 'function') {
+			try {
+				this.time(0)
+			} catch (e) {
+				console.error('Error setting time to 0 in restart():', e)
+			}
+		}
 		this.resume()
 	}
 	time(s){
-		if(typeof(s) == 'number'){
-			this.object.currentTime = s
+		if (!this.object) {
+			return 0
 		}
-		return this.object.currentTime
+		if(typeof(s) == 'number'){
+			try {
+				this.object.currentTime = s
+			} catch (e) {
+				console.error('Error setting currentTime:', e)
+			}
+		}
+		try {
+			return this.object.currentTime || 0
+		} catch (e) {
+			console.error('Error getting currentTime:', e)
+			return 0
+		}
 	}
 	ratio(s){
 		if(typeof(s) == 'number'){
-			let css, rd, wr, portrait
-			if(window.innerWidth < window.innerHeight){
-				portrait = true
-				wr = window.innerHeight / window.innerWidth
-			} else {
-				wr = window.innerWidth / window.innerHeight
-			}
-			rd = (wr > s)
-			console.log('ratiochange', rd, this.ratioDirection, wr, s, this._ratio)
-			if(typeof(this.ratioDirection) == 'undefined' || this.ratioDirection != rd || s != this._ratio || portrait != this.inPortrait){
-				this.inPortrait = portrait
-				this._ratio = s
-				this.ratioDirection = rd
-				if(this.inPortrait){
-					css = 'player > div { width: 100vw; height: calc(100vw / ' + this._ratio + ') !important; }'
+			try {
+				let css, rd, wr, portrait
+				if(window.innerWidth < window.innerHeight){
+					portrait = true
+					wr = window.innerHeight / window.innerWidth
 				} else {
-					if(this.ratioDirection){
-						css = 'player > div { height: 100vh; width: calc(100vh * ' + this._ratio + ') !important; }'
-					} else {
-						css = 'player > div { width: 100vw; height: calc(100vw / ' + this._ratio + ') !important; }'
-					}
+					wr = window.innerWidth / window.innerHeight
 				}
-            	if(!this.ratioCSS){
-	                this.ratioCSS = document.createElement('style')
-            	}
-            	this.ratioCSS.innerText = ''
-            	this.ratioCSS.appendChild(document.createTextNode(css))
-            	const target = document.querySelector("head, body")
-            	if (target) target.appendChild(this.ratioCSS)
-				console.log('ratioupdated', this.inPortrait ?? false)
+				rd = (wr > s)
+				console.log('ratiochange', rd, this.ratioDirection, wr, s, this._ratio)
+				if(typeof(this.ratioDirection) == 'undefined' || this.ratioDirection != rd || s != this._ratio || portrait != this.inPortrait){
+					this.inPortrait = portrait
+					this._ratio = s
+					this.ratioDirection = rd
+					if(this.inPortrait){
+						css = 'player > div { width: 100vw; height: calc(100vw / ' + this._ratio + ') !important; }'
+					} else {
+						if(this.ratioDirection){
+							css = 'player > div { height: 100vh; width: calc(100vh * ' + this._ratio + ') !important; }'
+						} else {
+							css = 'player > div { width: 100vw; height: calc(100vw / ' + this._ratio + ') !important; }'
+						}
+					}
+					if(!this.ratioCSS){
+						this.ratioCSS = document.createElement('style')
+					}
+					this.ratioCSS.innerText = ''
+					this.ratioCSS.appendChild(document.createTextNode(css))
+					const target = document.querySelector("head, body")
+					if (target) {
+						target.appendChild(this.ratioCSS)
+					} else {
+						console.warn('Could not find head or body element to append ratio CSS')
+					}
+					console.log('ratioupdated', this.inPortrait ?? false)
+				}
+			} catch (e) {
+				console.error('Error in ratio():', e)
 			}
 		}
-		return this._ratio
+		return this._ratio || 0
 	}
 	playbackRate(rate){
+		if (!this.object) return 1
 		if(typeof(rate) == 'number'){
-			this.object.playbackRate = rate
+			try {
+				this.object.playbackRate = rate
+			} catch (e) {
+				console.error('Error setting playbackRate:', e)
+			}
 		}
-		return this.object.playbackRate
+		try {
+			return this.object.playbackRate || 1
+		} catch (e) {
+			console.error('Error getting playbackRate:', e)
+			return 1
+		}
 	}
 	videoRatio(){
-		if(!this.object.videoWidth){
+		if (!this.object) {
 			return 1.7777777777777777
 		}
-		return this.object.videoWidth / this.object.videoHeight
+		try {
+			if(!this.object.videoWidth || !this.object.videoHeight){
+				return 1.7777777777777777
+			}
+			return this.object.videoWidth / this.object.videoHeight
+		} catch (e) {
+			console.error('Error getting videoRatio:', e)
+			return 1.7777777777777777
+		}
 	}
 	processState(){
+		if (!this.object) {
+			return
+		}
+		
 		var s = ''
 		if(this.active){
-			if(this.object.paused){
-				if(this._paused === true) {
-					s = 'paused'
-				} else {
+			try {
+				if(this.object.paused){
+					if(this._paused === true) {
+						s = 'paused'
+					} else {
+						s = 'loading'
+						this.resume()
+					} 
+				} else if(this.object.readyState < 4) { // if duration == Infinity, readyState will be 3		
+					this.lastSeenTime = this.object.currentTime || 0
 					s = 'loading'
-					this.resume()
-				} 
-			} else if(this.object.readyState < 4) { // if duration == Infinity, readyState will be 3		
-				this.lastSeenTime = this.object.currentTime
-				s = 'loading'
-			} else {
-				s = 'playing'
+				} else {
+					s = 'playing'
+				}
+			} catch (e) {
+				console.error('Error in processState():', e)
+				s = ''
 			}
 		}
 		this.setState(s)
 	}
 	volume(l){
+		if (!this.object) return
 		if(typeof(l) == 'number'){
-			this.object.volume = l / 100
+			try {
+				this.object.volume = l / 100
+			} catch (e) {
+				console.error('Error setting volume:', e)
+			}
 		}
 	}
 	audioTracks(){
+		if (!this.object || !this.object.audioTracks) {
+			return []
+		}
 		return this.formatTracks(this.object.audioTracks)
 	}
 	audioTrack(trackId){
-		for (let i = 0; i < this.object.audioTracks.length; i++) {
-			const enable = i == trackId || this.object.audioTracks[i].id == trackId
-			this.object.audioTracks[i].enabled = enable
+		if (!this.object || !this.object.audioTracks) {
+			return
+		}
+		try {
+			for (let i = 0; i < this.object.audioTracks.length; i++) {
+				const enable = i == trackId || this.object.audioTracks[i].id == trackId
+				this.object.audioTracks[i].enabled = enable
+			}
+		} catch (e) {
+			console.error('Error setting audio track:', e)
 		}
 	}
 	subtitleTracks(){
+		if (!this.object || !this.object.textTracks) {
+			return []
+		}
 		return this.formatTracks(this.object.textTracks)
 	}
 	subtitleTrack(trackId){
-		if(!this.object.textTracks) return
-		for (let i = 0; i < this.object.textTracks.length; i++) {
-			const enable = i == trackId || this.object.textTracks[i].id == trackId
-			this.object.textTracks[i].enabled = enable
-			this.object.textTracks[i].mode = enable ? 'showing' : 'disabled'
+		if(!this.object || !this.object.textTracks) return
+		try {
+			for (let i = 0; i < this.object.textTracks.length; i++) {
+				const enable = i == trackId || this.object.textTracks[i].id == trackId
+				this.object.textTracks[i].enabled = enable
+				this.object.textTracks[i].mode = enable ? 'showing' : 'disabled'
+			}
+		} catch (e) {
+			console.error('Error setting subtitle track:', e)
 		}
 	}
 	formatTracks(tracks, activeId){

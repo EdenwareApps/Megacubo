@@ -1,0 +1,437 @@
+{
+  "Entertainment": [
+    {
+      "name": "RTK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTK 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTK 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTK 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "21 Mix",
+      "isFree": true,
+      "website": "https://rtv21.tv/",
+      "priority": 5
+    },
+    {
+      "name": "21 Plus",
+      "isFree": true,
+      "website": "https://rtv21.tv/",
+      "priority": 5
+    },
+    {
+      "name": "AMOL",
+      "isFree": true,
+      "website": "https://amoltv.net/",
+      "priority": 5
+    },
+    {
+      "name": "DTV",
+      "isFree": true,
+      "website": "https://dtvmedia.net/",
+      "priority": 5
+    },
+    {
+      "name": "First",
+      "isFree": true,
+      "website": "https://www.first-channel.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Istogu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Klan Kosova",
+      "isFree": true,
+      "website": "https://klankosova.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Prime",
+      "isFree": true,
+      "website": "https://www.artmotion.net/tv/",
+      "priority": 6
+    },
+    {
+      "name": "PRO",
+      "isFree": true,
+      "website": "https://pro1.tv/",
+      "priority": 5
+    },
+    {
+      "name": "RTK 1 Sat",
+      "isFree": true,
+      "website": "https://www.rtklive.com/",
+      "priority": 5
+    },
+    {
+      "name": "RTV 21",
+      "isFree": true,
+      "website": "https://rtv21.tv/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Besa",
+      "isFree": true,
+      "website": "https://rtvbesa.com/live/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Dukagjini",
+      "isFree": true,
+      "website": "https://www.dukagjini.com/tv/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Fontana",
+      "isFree": true,
+      "website": "https://radiofontana.org/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Iliria",
+      "isFree": true,
+      "website": "https://rti.tv/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Mir",
+      "isFree": true,
+      "website": "http://www.rtvmir.com/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Vizioni",
+      "isFree": true,
+      "website": "http://www.radio-vizioni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Syri Vision",
+      "isFree": true,
+      "website": "https://www.syri-vision.tv/live-tv/",
+      "priority": 5
+    },
+    {
+      "name": "T 7",
+      "isFree": true,
+      "website": "https://www.televizioni7.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tema",
+      "isFree": true,
+      "website": "https://www.tvtema.net/",
+      "priority": 5
+    },
+    {
+      "name": "Teve",
+      "isFree": true,
+      "website": "https://teve1.info/",
+      "priority": 5
+    },
+    {
+      "name": "Travelingo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Arberia",
+      "isFree": true,
+      "website": "https://www.rtvarberia.com/rtv-arberia-live/",
+      "priority": 5
+    },
+    {
+      "name": "TV Arberia 2",
+      "isFree": true,
+      "website": "https://www.rtvarberia.com/live-tv2/",
+      "priority": 5
+    },
+    {
+      "name": "TV Arberia 5",
+      "isFree": true,
+      "website": "https://www.rtvarberia.com/tv-arberia-5/",
+      "priority": 5
+    },
+    {
+      "name": "TV Dielli",
+      "isFree": true,
+      "website": "http://stream.tvdielli.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Festina",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Llapi",
+      "isFree": true,
+      "website": "https://visionpress.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Malisheva",
+      "isFree": true,
+      "website": "https://www.malisheva.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Mitrovica",
+      "isFree": true,
+      "website": "https://rtvmitrovica.com/tv-mitrovica/",
+      "priority": 5
+    },
+    {
+      "name": "TV Opinion",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Opoja",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Prizreni",
+      "isFree": true,
+      "website": "https://tvprizreni.net/",
+      "priority": 5
+    },
+    {
+      "name": "TV Syri",
+      "isFree": true,
+      "website": "https://www.syri-vision.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Zeri",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "21 Junior",
+      "isFree": true,
+      "website": "https://rtv21.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Arberia 3 Femije",
+      "isFree": true,
+      "website": "https://www.rtvarberia.com/live-femije/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "21 Popullore",
+      "isFree": true,
+      "website": "https://rtv21.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Antena 1 Vushtrri",
+      "isFree": true,
+      "website": "https://antena-vushtrri.com/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Ulpiana",
+      "isFree": true,
+      "website": "https://rtvulpiana.net/",
+      "priority": 5
+    },
+    {
+      "name": "TV Arberia 4 Muzike",
+      "isFree": true,
+      "website": "https://www.rtvarberia.com/tv-arberia-4-muzike/",
+      "priority": 5
+    },
+    {
+      "name": "TV Arberia Retro Hits",
+      "isFree": true,
+      "website": "http://www.rtvarberia.com/tv-arberia-retro-hits/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "ATV",
+      "isFree": true,
+      "website": "https://atvlive.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Kanal 10",
+      "isFree": true,
+      "website": "https://kanal10.live/",
+      "priority": 5
+    },
+    {
+      "name": "Kohavision",
+      "isFree": true,
+      "website": "https://www.koha.net/ktv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Arta",
+      "isFree": true,
+      "website": "https://www.koha.net/arta-tv/14427/tv-arta-live/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Doku",
+      "isFree": true,
+      "website": "https://www.artmotion.net/tv/",
+      "priority": 5
+    },
+    {
+      "name": "Doku 2",
+      "isFree": true,
+      "website": "https://www.artmotion.net/tv/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Episode",
+      "isFree": true,
+      "website": "https://www.artmotion.net/tv/",
+      "priority": 5
+    },
+    {
+      "name": "Kino",
+      "isFree": true,
+      "website": "https://www.artmotion.net/tv/",
+      "priority": 5
+    },
+    {
+      "name": "Kino 2",
+      "isFree": true,
+      "website": "https://www.artmotion.net/tv/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "K Sport",
+      "isFree": true,
+      "website": "https://www.kujtesa.com/",
+      "priority": 10
+    },
+    {
+      "name": "K Sport 2",
+      "isFree": true,
+      "website": "https://www.kujtesa.com/",
+      "priority": 10
+    },
+    {
+      "name": "K Sport 3",
+      "isFree": true,
+      "website": "https://www.kujtesa.com/",
+      "priority": 10
+    },
+    {
+      "name": "K Sport 4",
+      "isFree": true,
+      "website": "https://www.kujtesa.com/",
+      "priority": 10
+    },
+    {
+      "name": "K Sport 5",
+      "isFree": true,
+      "website": "https://www.kujtesa.com/",
+      "priority": 10
+    },
+    {
+      "name": "Sport",
+      "isFree": true,
+      "website": "https://www.artmotion.net/tv/",
+      "priority": 10
+    },
+    {
+      "name": "Sport 2",
+      "isFree": true,
+      "website": "https://www.artmotion.net/tv/",
+      "priority": 10
+    },
+    {
+      "name": "Sport 3",
+      "isFree": true,
+      "website": "https://www.artmotion.net/tv/",
+      "priority": 10
+    },
+    {
+      "name": "Sport 4",
+      "isFree": true,
+      "website": "https://www.artmotion.net/tv/",
+      "priority": 10
+    },
+    {
+      "name": "Sport 5",
+      "isFree": true,
+      "website": "https://www.artmotion.net/tv/",
+      "priority": 10
+    },
+    {
+      "name": "Sport 6",
+      "isFree": true,
+      "website": "https://www.artmotion.net/tv/",
+      "priority": 10
+    },
+    {
+      "name": "SuperSport Kosova",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "SuperSport Kosova 2",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "SuperSport Kosova 3",
+      "isFree": true,
+      "priority": 10
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Peace TV Albanian",
+      "isFree": true,
+      "website": "https://peacetv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "TV Arberia Arshi i Allahut",
+      "isFree": true,
+      "website": "http://www.rtvarberia.com/tv-arberia-arshi-i-allahut/",
+      "priority": 4
+    },
+    {
+      "name": "TV Arberia Shpresa e Perendise",
+      "isFree": true,
+      "website": "http://www.rtvarberia.com/rtv-arberia-shpresa-e-perendise/",
+      "priority": 4
+    }
+  ]
+}

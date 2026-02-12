@@ -1,0 +1,220 @@
+{
+  "Entertainment": [
+    {
+      "name": "3TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Faso",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTB",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Agribusiness",
+      "isFree": true,
+      "website": "https://agribusinesstv.info/",
+      "priority": 5
+    },
+    {
+      "name": "BF",
+      "isFree": true,
+      "website": "https://www.bf1.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Boima",
+      "isFree": true,
+      "website": "https://boima.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Burkina Sciences",
+      "isFree": true,
+      "website": "https://burkinasciences.tv/",
+      "priority": 5
+    },
+    {
+      "name": "C360",
+      "isFree": true,
+      "website": "https://gmcas.media/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 3",
+      "isFree": true,
+      "website": "https://canal3.bf/",
+      "priority": 5
+    },
+    {
+      "name": "La Voix du Paysan",
+      "isFree": true,
+      "website": "https://lavoixdupaysan-fngn-bf.org/",
+      "priority": 5
+    },
+    {
+      "name": "LCA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Munyu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTB2 Hauts-Basins",
+      "isFree": true,
+      "website": "https://www.rtb.bf/",
+      "priority": 5
+    },
+    {
+      "name": "Saaba",
+      "isFree": true,
+      "website": "https://saabatv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Sanmatenga Television",
+      "isFree": true,
+      "website": "http://www.acdcnradiotele.com/",
+      "priority": 5
+    },
+    {
+      "name": "Savane",
+      "isFree": true,
+      "website": "https://savanemedias.net/",
+      "priority": 5
+    },
+    {
+      "name": "SMTV Bobo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Tin Tua",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Citoyenne",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVZ Africa",
+      "isFree": true,
+      "website": "http://www.netbf.info/",
+      "priority": 5
+    },
+    {
+      "name": "Zobre Web",
+      "isFree": true,
+      "website": "https://zobretv.com/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Burkina Info",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Filinfo",
+      "isFree": true,
+      "website": "https://filinfos.net/",
+      "priority": 5
+    },
+    {
+      "name": "Wadjo",
+      "isFree": true,
+      "website": "https://wadjo.tv/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "CIMIDI",
+      "isFree": true,
+      "website": "https://cimidi.tv/",
+      "priority": 4
+    },
+    {
+      "name": "CVK",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "El-Bethel",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Espoir du Monde",
+      "isFree": true,
+      "website": "https://www.cipdsntempleespoirdumonde.org/espoir-du-monde-tv",
+      "priority": 4
+    },
+    {
+      "name": "Impact",
+      "isFree": true,
+      "website": "http://www.impact-tele.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Omega",
+      "isFree": true,
+      "website": "https://www.omegamedias.info/tv/",
+      "priority": 4
+    },
+    {
+      "name": "Shammah",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Al Houda",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TV Maria",
+      "isFree": true,
+      "website": "https://catholique.bf/",
+      "priority": 4
+    },
+    {
+      "name": "TV Peace Afrika",
+      "isFree": true,
+      "website": "https://aptele.net/",
+      "priority": 4
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Hakili TV Sport",
+      "isFree": true,
+      "priority": 10
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "RTB 3",
+      "isFree": true,
+      "website": "https://www.rtb.bf/",
+      "priority": 5
+    },
+    {
+      "name": "RTB Zenith",
+      "isFree": true,
+      "website": "https://www.rtb.bf/tele-zenith/",
+      "priority": 5
+    }
+  ]
+}

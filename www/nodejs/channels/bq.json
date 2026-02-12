@@ -1,0 +1,63 @@
+{
+  "News": [
+    {
+      "name": "Al Jazeera English",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Bonaire.tv",
+      "isFree": true,
+      "website": "https://bonaire.tv/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Dutch Caribbean",
+      "isFree": true,
+      "website": "https://www.dutchcaribbeantv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Energia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nos TV Bonaire",
+      "isFree": true,
+      "website": "http://www.nostvbonaire.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tourist TV Bonaire",
+      "isFree": true,
+      "website": "https://lamediabonaire.com/",
+      "priority": 5
+    },
+    {
+      "name": "Voz Di Bonaire",
+      "isFree": true,
+      "website": "https://vozdibonaire.org/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Live99FM",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "TV Universal Bonaire",
+      "isFree": true,
+      "website": "https://universalbonaire.com/",
+      "priority": 4
+    }
+  ]
+}

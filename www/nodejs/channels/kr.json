@@ -1,0 +1,1971 @@
+{
+  "Entertainment": [
+    {
+      "name": "Arirang",
+      "isFree": true,
+      "keywords": "arirang -radio",
+      "website": "https://www.arirang.com/",
+      "priority": 5
+    },
+    {
+      "name": "BBS Buddhist Broadcasting",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CBS",
+      "isFree": true,
+      "keywords": "cbs",
+      "priority": 5
+    },
+    {
+      "name": "CJB청주방송",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CTS기독교TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Channel 67",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EBS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EBS 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EBS Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EBS Plus 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EBS e",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GCN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gugbang",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "JIBS SBS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "JTBC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "K+",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KBS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KBS LiveCam DokDo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KBS World",
+      "isFree": true,
+      "keywords": "kbs world -latino",
+      "priority": 5
+    },
+    {
+      "name": "KBS World Latino",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KBS 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KCTV 광주 CH 05",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MBC",
+      "isFree": true,
+      "keywords": "mbc -drama -yeosu",
+      "priority": 5,
+      "website": "http://www.imbc.com/broad/tv"
+    },
+    {
+      "name": "MBC Drama",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MBC Yeosu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mnet",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NBS Korea Agricultural Broadcasting",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "One",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SBS",
+      "isFree": true,
+      "keywords": "sbs -international -knn -plus -star",
+      "priority": 5
+    },
+    {
+      "name": "SBS International",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SBS KNN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SBS Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SBS Star",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TBC 대구",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Work Net",
+      "isFree": true,
+      "keywords": "tv work net | tvworknet",
+      "shortName": "TV Work Net",
+      "priority": 5
+    },
+    {
+      "name": "YTN",
+      "isFree": true,
+      "keywords": "ytn -science",
+      "priority": 5
+    },
+    {
+      "name": "가요TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "9colors",
+      "isFree": true,
+      "website": "http://www.9colors.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "ABN",
+      "isFree": true,
+      "website": "https://www.abn.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "All the K-Pop",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Asia UHD",
+      "isFree": true,
+      "website": "http://www.asiauhd.com/",
+      "priority": 5
+    },
+    {
+      "name": "Brain",
+      "isFree": true,
+      "website": "http://www.braintv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Channel A",
+      "isFree": true,
+      "keywords": "channel a -plus",
+      "website": "http://www.ichannela.com/",
+      "priority": 5
+    },
+    {
+      "name": "Channel A Plus",
+      "isFree": true,
+      "website": "http://www.channelaplus.com/",
+      "priority": 5
+    },
+    {
+      "name": "Channel J",
+      "isFree": true,
+      "website": "http://channelj.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Channel Seezn",
+      "isFree": true,
+      "website": "https://www.seezntv.com/",
+      "priority": 5
+    },
+    {
+      "name": "CH.DIA",
+      "isFree": true,
+      "website": "http://www.chdia.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "CHING",
+      "isFree": true,
+      "website": "https://mediagenie.co.kr/CHING/",
+      "priority": 5
+    },
+    {
+      "name": "Ch View",
+      "isFree": true,
+      "website": "http://www.imtcast.com/chview/",
+      "priority": 5
+    },
+    {
+      "name": "Ch W",
+      "isFree": true,
+      "website": "http://www.chw.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "CH.WIDE",
+      "isFree": true,
+      "website": "http://www.chwide.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "CookTV",
+      "isFree": true,
+      "website": "http://www.berrymedia.co.kr/bbs/group.php?gr_id=cooktv",
+      "priority": 5
+    },
+    {
+      "name": "Desire",
+      "isFree": null,
+      "website": "http://www.desiretv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Dog",
+      "isFree": true,
+      "website": "https://www.thedogtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "D-One",
+      "isFree": true,
+      "website": "http://www.ikmh.co.kr/new_home1/02_Business/02_channel.php?cha=DONE",
+      "priority": 5
+    },
+    {
+      "name": "DongaTV",
+      "isFree": true,
+      "website": "https://dongatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "E",
+      "isFree": true,
+      "website": "http://www.imtcast.com/echannel/",
+      "priority": 5
+    },
+    {
+      "name": "Edge",
+      "isFree": true,
+      "website": "http://www.edgetv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "ENA",
+      "isFree": true,
+      "keywords": "ena -drama -play -story",
+      "website": "https://ena.skylifetv.co.kr/ENA/",
+      "priority": 5
+    },
+    {
+      "name": "ENA PLAY",
+      "isFree": true,
+      "website": "http://ena.skylifetv.co.kr/ENA_PLAY/",
+      "priority": 5
+    },
+    {
+      "name": "ENA STORY",
+      "isFree": true,
+      "website": "https://mediagenie.co.kr/ENA_STORY/",
+      "priority": 5
+    },
+    {
+      "name": "ETV",
+      "isFree": true,
+      "website": "http://www.etv.go.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Fashion N",
+      "isFree": true,
+      "website": "https://www.imtcast.com/fashionn/index.jsp#CH_N",
+      "priority": 5
+    },
+    {
+      "name": "Fishing",
+      "isFree": true,
+      "website": "http://www.fishingtv.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Food",
+      "isFree": true,
+      "website": "http://www.myfoodtv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "FOX",
+      "isFree": true,
+      "website": "http://www.foxchannel.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "FTV",
+      "isFree": true,
+      "website": "https://www.eftv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Fun",
+      "isFree": true,
+      "website": "http://funtv2.com/",
+      "priority": 5
+    },
+    {
+      "name": "FX",
+      "isFree": true,
+      "website": "http://www.fxchannel.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "GTV",
+      "isFree": true,
+      "website": "http://www.berrymedia.co.kr/bbs/group.php?gr_id=gtv",
+      "priority": 5
+    },
+    {
+      "name": "Highlight",
+      "isFree": true,
+      "website": "http://www.highlighttv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "HLAI-DTV",
+      "isFree": true,
+      "website": "https://changwon.kbs.co.kr/index.html",
+      "priority": 5
+    },
+    {
+      "name": "HLAJ-DTV",
+      "isFree": true,
+      "website": "https://jejumbc.com/",
+      "priority": 5
+    },
+    {
+      "name": "HLAM-DTV",
+      "isFree": true,
+      "website": "https://mpmbc.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "HLAN-DTV",
+      "isFree": true,
+      "website": "http://chmbc.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "HLAO-DTV",
+      "isFree": true,
+      "website": "http://www.mbccb.co.kr/rb/",
+      "priority": 5
+    },
+    {
+      "name": "HLAQ-DTV",
+      "isFree": true,
+      "website": "https://www.mbceg.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "HLAT-DTV",
+      "isFree": true,
+      "website": "http://www.ysmbc.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "HLAU-DTV",
+      "isFree": true,
+      "website": "https://www.usmbc.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "HLAV-DTV",
+      "isFree": true,
+      "website": "http://www.phmbc.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "HLAW-DTV",
+      "isFree": true,
+      "website": "https://andongmbc.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "HLAY-DTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HLCG-DTV",
+      "isFree": true,
+      "website": "https://www.g1tv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "HLCH-DTV",
+      "isFree": true,
+      "website": "https://chungju.kbs.co.kr/index.html",
+      "priority": 5
+    },
+    {
+      "name": "HLCJ-DTV",
+      "isFree": true,
+      "website": "https://jinju.kbs.co.kr/index.html",
+      "priority": 5
+    },
+    {
+      "name": "HLCN-DTV",
+      "isFree": true,
+      "website": "https://kjmbc.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "HLCP-DTV",
+      "isFree": true,
+      "website": "https://pohang.kbs.co.kr/index.html",
+      "priority": 5
+    },
+    {
+      "name": "HLCQ-DTV",
+      "isFree": true,
+      "website": "https://tjmbc.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "HLCR-DTV",
+      "isFree": true,
+      "website": "https://andong.kbs.co.kr/index.html",
+      "priority": 5
+    },
+    {
+      "name": "HLCT-DTV",
+      "isFree": true,
+      "website": "https://dgmbc.com/",
+      "priority": 5
+    },
+    {
+      "name": "HLCW-DTV",
+      "isFree": true,
+      "website": "https://wonju.kbs.co.kr/index.html",
+      "priority": 5
+    },
+    {
+      "name": "HLCX-DTV",
+      "isFree": true,
+      "website": "https://www.jmbc.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "HLCY-DTV",
+      "isFree": true,
+      "website": "https://suncheon.kbs.co.kr/index.html",
+      "priority": 5
+    },
+    {
+      "name": "HLDE-DTV",
+      "isFree": true,
+      "website": "https://www.tbc.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "HLDF-DTV",
+      "isFree": true,
+      "website": "http://www.tjb.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "HLDG-DTV",
+      "isFree": true,
+      "website": "https://www.knn.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "HLDH-DTV",
+      "isFree": true,
+      "website": "http://www.ikbc.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "HLDP-DTV",
+      "isFree": true,
+      "website": "http://web.ubc.co.kr/wp/tv",
+      "priority": 5
+    },
+    {
+      "name": "HLDQ-DTV",
+      "isFree": true,
+      "website": "http://www.jtv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "HLDR-DTV",
+      "isFree": true,
+      "website": "https://www.cjb.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "HLKA-DTV",
+      "isFree": true,
+      "website": "https://onair.kbs.co.kr/index.html?sname=onair&stype=live&ch_code=11&ch_type=globalList",
+      "priority": 5
+    },
+    {
+      "name": "HLKB-DTV",
+      "isFree": true,
+      "website": "https://busan.kbs.co.kr/index.html",
+      "priority": 5
+    },
+    {
+      "name": "HLKF-DTV",
+      "isFree": true,
+      "website": "https://jeonju.kbs.co.kr/index.html",
+      "priority": 5
+    },
+    {
+      "name": "HLKG-DTV",
+      "isFree": true,
+      "website": "https://daegu.kbs.co.kr/index.html",
+      "priority": 5
+    },
+    {
+      "name": "HLKH-DTV",
+      "isFree": true,
+      "website": "https://gwangju.kbs.co.kr/index.html",
+      "priority": 5
+    },
+    {
+      "name": "HLKI-DTV",
+      "isFree": true,
+      "website": "https://daejeon.kbs.co.kr/index.html",
+      "priority": 5
+    },
+    {
+      "name": "HLKJ-DTV",
+      "isFree": true,
+      "website": "https://www.jibs.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "HLKM-DTV",
+      "isFree": true,
+      "website": "https://chuncheon.kbs.co.kr/index.html",
+      "priority": 5
+    },
+    {
+      "name": "HLKN-DTV",
+      "isFree": true,
+      "website": "https://mokpo.kbs.co.kr/index.html",
+      "priority": 5
+    },
+    {
+      "name": "HLKQ-DTV",
+      "isFree": true,
+      "website": "https://cheongju.kbs.co.kr/index.html",
+      "priority": 5
+    },
+    {
+      "name": "HLKR-DTV",
+      "isFree": true,
+      "website": "https://gangneung.kbs.co.kr/index.html",
+      "priority": 5
+    },
+    {
+      "name": "HLKS-DTV",
+      "isFree": true,
+      "website": "https://jeju.kbs.co.kr/index.html",
+      "priority": 5
+    },
+    {
+      "name": "HLKU-DTV",
+      "isFree": true,
+      "website": "https://busanmbc.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "HLQB-DTV",
+      "isFree": true,
+      "website": "https://ulsan.kbs.co.kr/index.html",
+      "priority": 5
+    },
+    {
+      "name": "HLQS-DTV",
+      "isFree": true,
+      "website": "http://www.obs.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "HLSA-DTV",
+      "isFree": true,
+      "website": "https://onair.kbs.co.kr/index.html?sname=onair&stype=live&ch_code=12&ch_type=globalList",
+      "priority": 5
+    },
+    {
+      "name": "HLSB-DTV",
+      "isFree": true,
+      "website": "https://www.wjmbc.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Hobby Life",
+      "isFree": true,
+      "website": "https://www.fillcon.co.kr/channels/hobbylife",
+      "priority": 5
+    },
+    {
+      "name": "Honey",
+      "isFree": null,
+      "website": "https://www.honeytv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "JTBC 2",
+      "isFree": true,
+      "website": "http://jtbc2.joins.com/",
+      "priority": 5
+    },
+    {
+      "name": "JTBC 4",
+      "isFree": true,
+      "website": "http://jtbc4.joins.com/",
+      "priority": 5
+    },
+    {
+      "name": "JTV",
+      "isFree": true,
+      "website": "http://www.jtv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "KBS 1TV",
+      "isFree": true,
+      "website": "http://drama.kbs.co.kr/m/",
+      "priority": 5
+    },
+    {
+      "name": "KBS 2TV",
+      "isFree": true,
+      "website": "http://drama.kbs.co.kr/m/",
+      "priority": 5
+    },
+    {
+      "name": "KBS Drama",
+      "isFree": true,
+      "website": "http://www.kbsn.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "KBS Joy",
+      "isFree": true,
+      "website": "http://www.kbsn.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "KBS Korea",
+      "isFree": true,
+      "website": "https://kbsworld.kbs.co.kr/index_korea.php",
+      "priority": 5
+    },
+    {
+      "name": "KBS Life",
+      "isFree": true,
+      "website": "http://www.kbsn.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "KBS N Life",
+      "isFree": true,
+      "website": "http://www.kbsn.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "KBS Prime",
+      "isFree": true,
+      "website": "http://www.kbsn.co.kr/",
+      "priority": 6
+    },
+    {
+      "name": "KBS Story",
+      "isFree": true,
+      "website": "http://www.kbsn.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "KBS W",
+      "isFree": true,
+      "website": "http://www.kbsn.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "KCTV",
+      "isFree": true,
+      "keywords": "kctv -광주 -ch05",
+      "website": "https://www.kctv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "KMTV",
+      "isFree": true,
+      "website": "http://www.kmtv.asia/",
+      "priority": 5
+    },
+    {
+      "name": "Korea Economy",
+      "isFree": true,
+      "website": "https://www.wowtv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "K-Star",
+      "isFree": true,
+      "website": "http://kstar.ihq.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Kuki",
+      "isFree": true,
+      "website": "http://www.kukitv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Living",
+      "isFree": true,
+      "website": "http://www.ilivingtv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "MBC Every",
+      "isFree": true,
+      "website": "https://mbcplus.com/",
+      "priority": 5
+    },
+    {
+      "name": "MBC Gyeongnam",
+      "isFree": true,
+      "website": "https://mbcgn.kr/",
+      "priority": 5
+    },
+    {
+      "name": "MBC Net",
+      "isFree": true,
+      "website": "http://www.mbcnet.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "MBC On",
+      "isFree": true,
+      "website": "http://imbc.com/",
+      "priority": 5
+    },
+    {
+      "name": "MBN",
+      "isFree": true,
+      "keywords": "mbn -plus",
+      "website": "https://www.mbn.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "MBN Plus",
+      "isFree": true,
+      "website": "http://plus.mbn.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Midnight",
+      "isFree": null,
+      "website": "https://www.skylife.co.kr/channel/pay_channel/midnightInfo.do",
+      "priority": 5
+    },
+    {
+      "name": "National Assembly",
+      "isFree": true,
+      "website": "http://www.assembly.go.kr/",
+      "priority": 5
+    },
+    {
+      "name": "NHTV",
+      "isFree": true,
+      "website": "http://nhtv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "OBS W",
+      "isFree": true,
+      "website": "http://www.obsw.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "OLIFE",
+      "isFree": true,
+      "website": "http://ena.skylifetv.co.kr/OLIFE/",
+      "priority": 5
+    },
+    {
+      "name": "ONCE",
+      "isFree": true,
+      "website": "http://skylifetv.co.kr/ONCE/",
+      "priority": 5
+    },
+    {
+      "name": "OnStyle",
+      "isFree": true,
+      "website": "http://onstyle.tving.com/onstyle",
+      "priority": 5
+    },
+    {
+      "name": "ONT",
+      "isFree": true,
+      "website": "https://ont.mediagenie.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Polaris",
+      "isFree": true,
+      "website": "http://polaristv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Real Estate",
+      "isFree": true,
+      "website": "http://www.rtn.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "RTV",
+      "isFree": true,
+      "website": "https://rtv.or.kr/",
+      "priority": 5
+    },
+    {
+      "name": "SBS F!L",
+      "isFree": true,
+      "website": "https://fil.sbs.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "SBS funE",
+      "isFree": true,
+      "website": "https://fune.sbs.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Screen",
+      "isFree": true,
+      "keywords": "screen -golfzon",
+      "website": "http://www.imtcast.com/screen/",
+      "priority": 5
+    },
+    {
+      "name": "SEN",
+      "isFree": true,
+      "website": "https://www.sentv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Silver iTV",
+      "isFree": true,
+      "website": "http://www.silver-itv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "skyA&C",
+      "isFree": true,
+      "website": "https://tv.skylife.co.kr/skyanc",
+      "priority": 5
+    },
+    {
+      "name": "skyHealing",
+      "isFree": true,
+      "website": "https://tv.skylife.co.kr/skyhealing",
+      "priority": 5
+    },
+    {
+      "name": "skyICT",
+      "isFree": true,
+      "website": "https://tv.skylife.co.kr/skyict",
+      "priority": 5
+    },
+    {
+      "name": "skyPetPark",
+      "isFree": true,
+      "website": "https://tv.skylife.co.kr/skypetpark",
+      "priority": 5
+    },
+    {
+      "name": "skyTravel",
+      "isFree": true,
+      "website": "http://skylifetv.co.kr/skyTravel/",
+      "priority": 5
+    },
+    {
+      "name": "skyUHD",
+      "isFree": true,
+      "website": "http://ena.skylifetv.co.kr/skyUHD/",
+      "priority": 5
+    },
+    {
+      "name": "SmileTV Plus",
+      "isFree": true,
+      "website": "http://tra.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "STB",
+      "isFree": true,
+      "website": "https://www.stb.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "TBS eFM",
+      "isFree": true,
+      "website": "https://tbs.seoul.kr/",
+      "priority": 5
+    },
+    {
+      "name": "TBS",
+      "isFree": true,
+      "website": "http://tbs.seoul.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Tomato",
+      "isFree": true,
+      "website": "http://tv.etomato.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVasia Plus",
+      "isFree": true,
+      "website": "http://tvasia.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "TV Chosun",
+      "isFree": true,
+      "keywords": "tv chosun -2 -3",
+      "website": "http://www.tvchosun.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Chosun 2",
+      "isFree": true,
+      "website": "http://www.tvchosun2.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Chosun 3",
+      "isFree": true,
+      "website": "http://www.tvchosun3.com/",
+      "priority": 5
+    },
+    {
+      "name": "tvN",
+      "isFree": true,
+      "keywords": "tvn -drama -show -sports -story",
+      "website": "http://tvn.tving.com/tvn/",
+      "priority": 5
+    },
+    {
+      "name": "tvN Show",
+      "isFree": true,
+      "website": "http://tvnshow.tving.com/",
+      "priority": 5
+    },
+    {
+      "name": "tvN Story",
+      "isFree": true,
+      "website": "http://tvnstory.tving.com/",
+      "priority": 5
+    },
+    {
+      "name": "UHD Dream",
+      "isFree": true,
+      "website": "http://www.berrymedia.co.kr/main.php?br=s45",
+      "priority": 5
+    },
+    {
+      "name": "UXN",
+      "isFree": true,
+      "website": "http://uxn.tving.com/uxn",
+      "priority": 5
+    },
+    {
+      "name": "Viki",
+      "isFree": null,
+      "website": "http://ena.skylifetv.co.kr/viki/",
+      "priority": 5
+    },
+    {
+      "name": "Vlending",
+      "isFree": true,
+      "website": "https://www.vlending.kr/",
+      "priority": 5
+    },
+    {
+      "name": "WBC",
+      "isFree": true,
+      "website": "http://www.iwbc.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "WeeTV",
+      "isFree": true,
+      "website": "http://tra.co.kr/web_kor2/",
+      "priority": 5
+    },
+    {
+      "name": "Yonhap News",
+      "isFree": true,
+      "website": "https://www.yonhapnewstv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "YTN DMB",
+      "isFree": true,
+      "website": "https://www.ytn.co.kr/replay/channel.php?idx=4",
+      "priority": 5
+    },
+    {
+      "name": "YTN Science",
+      "isFree": true,
+      "website": "https://science.ytn.co.kr/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "CGNTV",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BBS",
+      "isFree": true,
+      "website": "http://www.bbsi.co.kr/",
+      "priority": 4
+    },
+    {
+      "name": "BTN",
+      "isFree": true,
+      "website": "http://www.btn.co.kr/btntv/main.asp",
+      "priority": 4
+    },
+    {
+      "name": "C",
+      "isFree": true,
+      "website": "http://www.cchannel.com/main/",
+      "priority": 4
+    },
+    {
+      "name": "CGNTV South Korea",
+      "isFree": true,
+      "website": "http://www.cgntv.net/",
+      "priority": 4
+    },
+    {
+      "name": "CPBC",
+      "isFree": true,
+      "website": "http://www.cpbc.co.kr/tv",
+      "priority": 4
+    },
+    {
+      "name": "CTS",
+      "isFree": true,
+      "website": "http://www.cts.tv/",
+      "priority": 4
+    },
+    {
+      "name": "FGTV",
+      "isFree": true,
+      "website": "https://www.fgtv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Good",
+      "isFree": true,
+      "website": "http://home.goodtv.co.kr/",
+      "priority": 4
+    },
+    {
+      "name": "Hope Channel Korea",
+      "isFree": true,
+      "website": "https://hopechannel.kr/",
+      "priority": 4
+    },
+    {
+      "name": "RUTC",
+      "isFree": true,
+      "website": "http://rutc.tv/",
+      "priority": 4
+    },
+    {
+      "name": "WBS",
+      "isFree": true,
+      "website": "https://wbsi.kr/index_tv.php",
+      "priority": 4
+    }
+  ],
+  "Kids": [
+    {
+      "name": "EBS KIDS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Anibox",
+      "isFree": true,
+      "website": "http://www.aniboxtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Animax",
+      "isFree": true,
+      "website": "http://www.animaxtv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Anione",
+      "isFree": true,
+      "website": "http://www.anionetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Aniplus",
+      "isFree": true,
+      "website": "http://www.aniplustv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bravo Kids",
+      "isFree": true,
+      "website": "http://www.bravokidstv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Carrie",
+      "isFree": true,
+      "website": "http://carrietv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Cartoon Network",
+      "isFree": true,
+      "website": "http://www.cartoonnetworkkorea.com/",
+      "priority": 5
+    },
+    {
+      "name": "Daekyo Kids",
+      "isFree": true,
+      "website": "http://www.kids17.net/",
+      "priority": 5
+    },
+    {
+      "name": "JEI Talent",
+      "isFree": true,
+      "website": "http://www.jeitv.com/",
+      "priority": 5
+    },
+    {
+      "name": "KBS Kids",
+      "isFree": true,
+      "website": "http://www.kbsn.co.kr/kids/",
+      "priority": 5
+    },
+    {
+      "name": "Kids Talk Talk Plus",
+      "isFree": true,
+      "website": "http://ena.skylifetv.co.kr/kidstalktalkplus/",
+      "priority": 5
+    },
+    {
+      "name": "Nickelodeon",
+      "isFree": true,
+      "website": "http://www.nick.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Pinkfong",
+      "isFree": true,
+      "website": "http://pinkfong.com/",
+      "priority": 5
+    },
+    {
+      "name": "Poyo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tooniverse",
+      "isFree": true,
+      "website": "http://tooniverse.tving.com/tooniverse",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Arirang UN",
+      "isFree": true,
+      "website": "https://www.arirang.com/",
+      "priority": 5
+    },
+    {
+      "name": "Arirang World",
+      "isFree": true,
+      "website": "https://www.arirang.com/",
+      "priority": 5
+    },
+    {
+      "name": "Edaily",
+      "isFree": true,
+      "website": "http://tv.edaily.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Jobplus",
+      "isFree": true,
+      "website": "https://www.jobplustv.or.kr/",
+      "priority": 5
+    },
+    {
+      "name": "KBS 24 News",
+      "isFree": true,
+      "website": "http://news.kbs.co.kr/common/news24.html",
+      "priority": 5
+    },
+    {
+      "name": "KBS News D",
+      "isFree": true,
+      "website": "http://news.kbs.co.kr/common/news24.html",
+      "priority": 5
+    },
+    {
+      "name": "KFN",
+      "isFree": true,
+      "website": "http://tv.dema.mil.kr/web/tv/main.do",
+      "priority": 5
+    },
+    {
+      "name": "KTV",
+      "isFree": true,
+      "website": "https://www.ktv.go.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Maeil Business",
+      "isFree": true,
+      "website": "http://mbnmoney.mbn.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "MBC News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTN W",
+      "isFree": true,
+      "website": "https://www.mtnw.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "NBN",
+      "isFree": true,
+      "website": "https://www.nbntv.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Pax Economy",
+      "isFree": true,
+      "website": "http://www.paxetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "SBS Biz",
+      "isFree": true,
+      "website": "https://biz.sbs.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "SBS News",
+      "isFree": true,
+      "website": "https://mnews.sbs.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Sosang-gong-in Sijang",
+      "isFree": true,
+      "website": "https://www.sebis.or.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Yes",
+      "isFree": true,
+      "website": "https://www.sebis.or.kr/",
+      "priority": 5
+    },
+    {
+      "name": "YTN World",
+      "isFree": true,
+      "website": "https://www.ytn.co.kr/replay/channel.php?idx=5",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Art TV Arte",
+      "isFree": true,
+      "website": "http://www.arte.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "EBS 1TV",
+      "isFree": true,
+      "website": "https://www.ebs.co.kr/tv/home",
+      "priority": 5
+    },
+    {
+      "name": "EBS 2TV",
+      "isFree": true,
+      "website": "http://www.ebs.co.kr/ebs2tv/introduce",
+      "priority": 5
+    },
+    {
+      "name": "EBS English",
+      "isFree": true,
+      "website": "http://www.ebse.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "EBS Learning Primary School 3",
+      "isFree": true,
+      "website": "https://primary.ebs.co.kr/main/primary",
+      "priority": 5
+    },
+    {
+      "name": "EBS Learning Primary School 4",
+      "isFree": true,
+      "website": "https://primary.ebs.co.kr/main/primary",
+      "priority": 5
+    },
+    {
+      "name": "EBS Learning Primary School 5",
+      "isFree": true,
+      "website": "https://primary.ebs.co.kr/main/primary",
+      "priority": 5
+    },
+    {
+      "name": "EBS Learning Primary School 6",
+      "isFree": true,
+      "website": "https://primary.ebs.co.kr/main/primary",
+      "priority": 5
+    },
+    {
+      "name": "EBS Learning Secondary School",
+      "isFree": true,
+      "website": "https://mid.ebs.co.kr/main/middle",
+      "priority": 5
+    },
+    {
+      "name": "EBS Learning Secondary School 2",
+      "isFree": true,
+      "website": "https://mid.ebs.co.kr/main/middle",
+      "priority": 5
+    },
+    {
+      "name": "History",
+      "isFree": true,
+      "website": "http://historykorea.kr/",
+      "priority": 7
+    },
+    {
+      "name": "JEI English",
+      "isFree": true,
+      "website": "http://www.ienglishtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "National Geographic",
+      "isFree": true,
+      "keywords": "national geographic -wild",
+      "website": "http://ngckorea.com/",
+      "priority": 7
+    },
+    {
+      "name": "National Geographic Wild",
+      "isFree": true,
+      "website": "https://www.natgeotv.com/asia/wild-korea",
+      "priority": 7
+    },
+    {
+      "name": "NBS",
+      "isFree": true,
+      "keywords": "nbs -korea -agricultural -broadcasting",
+      "website": "https://www.inbs.co.kr/main.do",
+      "priority": 5
+    },
+    {
+      "name": "OUN",
+      "isFree": true,
+      "website": "http://oun.knou.ac.kr/",
+      "priority": 5
+    },
+    {
+      "name": "YTN 2",
+      "isFree": true,
+      "website": "https://ytn2.ytn.co.kr/",
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Arirang Radio",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "AsiaM",
+      "isFree": true,
+      "website": "http://www.asiantv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "AsiaN",
+      "isFree": true,
+      "website": "http://www.asiantv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "AXN",
+      "isFree": true,
+      "website": "http://axntv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Catch On",
+      "isFree": true,
+      "website": "http://catchon.tving.com/catchon/",
+      "priority": 5
+    },
+    {
+      "name": "Catch On 2",
+      "isFree": true,
+      "website": "http://catchon.tving.com/catchon/",
+      "priority": 5
+    },
+    {
+      "name": "Channel China",
+      "isFree": true,
+      "website": "http://www.cntv.co.kr/china",
+      "priority": 5
+    },
+    {
+      "name": "Channel Olleh",
+      "isFree": true,
+      "website": "https://www.kaonmedia.com:8443/eng/company/intro02_3.asp",
+      "priority": 5
+    },
+    {
+      "name": "Chunghwa",
+      "isFree": true,
+      "website": "http://zhtv.tving.com/zhtv",
+      "priority": 5
+    },
+    {
+      "name": "Cinema Heaven",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DramaCube",
+      "isFree": true,
+      "website": "http://www.imtcast.com/dramacube/",
+      "priority": 5
+    },
+    {
+      "name": "Dramax",
+      "isFree": true,
+      "website": "http://dramax.ihq.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "ENA DRAMA",
+      "isFree": true,
+      "website": "https://www.mediagenie.co.kr/ENA_DRAMA/",
+      "priority": 5
+    },
+    {
+      "name": "iHQ Drama",
+      "isFree": true,
+      "website": "https://ihq.co.kr/drama/",
+      "priority": 5
+    },
+    {
+      "name": "Indie Film",
+      "isFree": true,
+      "website": "http://www.indiefilm.kr/",
+      "priority": 5
+    },
+    {
+      "name": "JNG Korea",
+      "isFree": true,
+      "website": "http://jngkorea.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mplex",
+      "isFree": true,
+      "website": "http://www.ikmh.co.kr/03_mplex/channel.php",
+      "priority": 5
+    },
+    {
+      "name": "OCN",
+      "isFree": true,
+      "keywords": "ocn -movies -thrills",
+      "website": "http://ocn.tving.com/",
+      "priority": 5
+    },
+    {
+      "name": "OCN Movies",
+      "isFree": true,
+      "website": "http://ocnmovies.tving.com/ocnmovies",
+      "priority": 5
+    },
+    {
+      "name": "OCN Thrills",
+      "isFree": true,
+      "website": "http://ocnthrills.m.tving.com/",
+      "priority": 5
+    },
+    {
+      "name": "PLAYY Action Movie",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PLAYY Healing Movie",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PLAYY Premium Movie",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PLAYY Well-Made Movie",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telenovela",
+      "isFree": true,
+      "website": "http://www.telenovela.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "The Movie",
+      "isFree": true,
+      "website": "http://www.chthemovie.com/",
+      "priority": 5
+    },
+    {
+      "name": "tvN Drama",
+      "isFree": true,
+      "website": "http://tvndrama.tving.com/",
+      "priority": 5
+    },
+    {
+      "name": "WeLike",
+      "isFree": true,
+      "website": "http://weliketv.co.kr/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Baduk",
+      "isFree": true,
+      "website": "http://www.tvbaduk.com/",
+      "priority": 5
+    },
+    {
+      "name": "BallTV",
+      "isFree": true,
+      "website": "http://www.berrymedia.co.kr/bbs/group.php?gr_id=balltv",
+      "priority": 5
+    },
+    {
+      "name": "Billiards",
+      "isFree": true,
+      "website": "http://www.billiardstv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Copa del Rey",
+      "isFree": true,
+      "website": "http://www.rfef.es/copa-del-rey",
+      "priority": 5
+    },
+    {
+      "name": "Golf & PBA",
+      "isFree": true,
+      "website": "http://www.tgckorea.com/",
+      "priority": 5
+    },
+    {
+      "name": "IB Sports",
+      "isFree": true,
+      "website": "http://ibsportstv.com/webuser/page/main.html",
+      "priority": 10
+    },
+    {
+      "name": "JTBC Golf",
+      "isFree": true,
+      "keywords": "jtbc golf -sports",
+      "website": "http://www.jtbcgolf.com/",
+      "priority": 5
+    },
+    {
+      "name": "JTBC Golf & Sports",
+      "isFree": true,
+      "website": "http://jtbcgolfnsports.joins.com/",
+      "priority": 10
+    },
+    {
+      "name": "K-Baduk",
+      "isFree": true,
+      "website": "https://www.kbaduk.com/",
+      "priority": 5
+    },
+    {
+      "name": "KBS N Sports",
+      "isFree": true,
+      "website": "http://www.kbsn.co.kr/sports/",
+      "priority": 10
+    },
+    {
+      "name": "Life Sports",
+      "isFree": true,
+      "website": "http://www.berrymedia.co.kr/bbs/group.php?gr_id=sports",
+      "priority": 10
+    },
+    {
+      "name": "MBC Sports+",
+      "isFree": true,
+      "website": "http://www.mbcplus.com/sports/",
+      "priority": 10
+    },
+    {
+      "name": "OGN",
+      "isFree": true,
+      "website": "http://ogn.tving.com/ogn",
+      "priority": 5
+    },
+    {
+      "name": "Professional Baseball",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Professional Baseball 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Professional Baseball 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Professional Baseball 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Professional Baseball 5",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SBS Golf",
+      "isFree": true,
+      "website": "https://golf.sbs.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "SBS Sports",
+      "isFree": true,
+      "website": "http://sbssports.sbs.co.kr/",
+      "priority": 10
+    },
+    {
+      "name": "Screen Golfzon",
+      "isFree": true,
+      "website": "http://tv.golfzon.com/",
+      "priority": 5
+    },
+    {
+      "name": "skySports",
+      "isFree": true,
+      "website": "http://www.sky-k.co.kr/",
+      "priority": 10
+    },
+    {
+      "name": "SPOTV",
+      "isFree": true,
+      "keywords": "spotv -golf -health",
+      "website": "https://spotv.net/",
+      "priority": 5
+    },
+    {
+      "name": "SPOTV 2",
+      "isFree": true,
+      "website": "https://spotv.net/",
+      "priority": 5
+    },
+    {
+      "name": "SPOTV Golf & Health",
+      "isFree": true,
+      "website": "https://spotv.net/",
+      "priority": 5
+    },
+    {
+      "name": "STATV",
+      "isFree": true,
+      "website": "http://www.statv.net/",
+      "priority": 5
+    },
+    {
+      "name": "tvN Sports",
+      "isFree": true,
+      "website": "http://tvnsports.tving.com/tvnsports",
+      "priority": 10
+    }
+  ],
+  "Shop": [
+    {
+      "name": "CJ OnStyle",
+      "isFree": true,
+      "website": "http://display.cjonstyle.com/",
+      "priority": 4
+    },
+    {
+      "name": "Gongyoung Home Shopping",
+      "isFree": true,
+      "website": "https://www.gongyoungshop.kr/",
+      "priority": 4
+    },
+    {
+      "name": "GS My Shop",
+      "isFree": true,
+      "website": "https://www.gsshop.com/shop/gsmyshop/index.gs",
+      "priority": 4
+    },
+    {
+      "name": "GS Shop",
+      "isFree": true,
+      "website": "https://www.gsshop.com/",
+      "priority": 4
+    },
+    {
+      "name": "Home & Shopping",
+      "isFree": true,
+      "website": "http://www.hnsmall.com/",
+      "priority": 4
+    },
+    {
+      "name": "Hyundai Home Shopping",
+      "isFree": true,
+      "keywords": "hyundai home shopping -plus -shop",
+      "website": "https://www.hmall.com/",
+      "priority": 4
+    },
+    {
+      "name": "Hyundai Home Shopping + Shop",
+      "isFree": true,
+      "website": "https://www.hmall.com/",
+      "priority": 4
+    },
+    {
+      "name": "K Shopping",
+      "isFree": true,
+      "website": "http://www.kshop.co.kr/",
+      "priority": 4
+    },
+    {
+      "name": "Lotte Home Shopping",
+      "isFree": true,
+      "website": "http://www.lotteimall.com/",
+      "priority": 4
+    },
+    {
+      "name": "Lotte OneTV",
+      "isFree": true,
+      "website": "http://www.lotteimall.com/onetv.lotte",
+      "priority": 4
+    },
+    {
+      "name": "MGTV",
+      "isFree": true,
+      "website": "http://www.mgtvlive.com/content/onair?ckattempt=1",
+      "priority": 4
+    },
+    {
+      "name": "NS Home Shopping",
+      "isFree": true,
+      "website": "http://pr.nsmall.com/",
+      "priority": 4
+    },
+    {
+      "name": "NS Shop+",
+      "isFree": true,
+      "website": "http://pr.nsmall.com/",
+      "priority": 4
+    },
+    {
+      "name": "Shinsegae TV Shopping",
+      "isFree": true,
+      "website": "http://www.shinsegaetvshopping.com/",
+      "priority": 4
+    },
+    {
+      "name": "Shopping NT",
+      "isFree": true,
+      "website": "https://www.shoppingntmall.com/",
+      "priority": 4
+    },
+    {
+      "name": "SK Stoa",
+      "isFree": true,
+      "website": "https://www.skstoa.com/",
+      "priority": 4
+    },
+    {
+      "name": "W Shopping",
+      "isFree": true,
+      "website": "https://w-shopping.co.kr/",
+      "priority": 4
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "GayoTV",
+      "isFree": true,
+      "website": "http://gayotv.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "GMTV",
+      "isFree": true,
+      "website": "http://www.berrymedia.co.kr/bbs/group.php?gr_id=gmtv",
+      "priority": 5
+    },
+    {
+      "name": "Gugak",
+      "isFree": true,
+      "website": "https://www.igbf.kr/",
+      "priority": 5
+    },
+    {
+      "name": "Inet",
+      "isFree": true,
+      "website": "http://inettv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "MBC M",
+      "isFree": true,
+      "website": "https://www.mbcplus.com/",
+      "priority": 5
+    },
+    {
+      "name": "SBS M",
+      "isFree": true,
+      "website": "https://sbsm.sbs.co.kr/",
+      "priority": 5
+    },
+    {
+      "name": "THE K-POP",
+      "isFree": true,
+      "website": "https://sbsmedianet.sbs.co.kr/onair.html?channel=S20",
+      "priority": 5
+    }
+  ],
+  "Added": []
+}

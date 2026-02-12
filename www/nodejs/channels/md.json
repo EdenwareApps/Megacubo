@@ -1,0 +1,385 @@
+{
+  "News": [
+    {
+      "name": "Publika",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Albasat",
+      "isFree": true,
+      "website": "https://albasat.md/",
+      "priority": 5
+    },
+    {
+      "name": "AVA",
+      "isFree": true,
+      "website": "https://ava.md/",
+      "priority": 5
+    },
+    {
+      "name": "FACES",
+      "isFree": true,
+      "website": "https://ftv.md/",
+      "priority": 5
+    },
+    {
+      "name": "Global 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Jurnal",
+      "isFree": true,
+      "website": "http://www.jurnaltv.md/",
+      "priority": 5
+    },
+    {
+      "name": "New",
+      "isFree": true,
+      "website": "https://newtv.md/",
+      "priority": 5
+    },
+    {
+      "name": "Next",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ONE",
+      "isFree": true,
+      "website": "https://info1.md/",
+      "priority": 5
+    },
+    {
+      "name": "Realitatea",
+      "isFree": true,
+      "website": "https://realitatea.md/",
+      "priority": 5
+    },
+    {
+      "name": "TV 8",
+      "isFree": true,
+      "website": "https://tv8.md/live",
+      "priority": 5
+    },
+    {
+      "name": "TV-Nord",
+      "isFree": true,
+      "website": "https://tvn.md/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Acasa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bălţi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Regional",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Drochia",
+      "isFree": true,
+      "website": "https://drochia.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Moldova 2",
+      "isFree": true,
+      "keywords": "moldova 2 | moldova2",
+      "shortName": "Moldova 2",
+      "priority": 5
+    },
+    {
+      "name": "Noroc",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR Moldova",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vocea Basarabiei",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "1TV",
+      "isFree": true,
+      "website": "https://1tv.md/",
+      "priority": 5
+    },
+    {
+      "name": "7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Agro TV Moldova",
+      "isFree": true,
+      "website": "https://agrotv.md/",
+      "priority": 5
+    },
+    {
+      "name": "ATV",
+      "isFree": true,
+      "website": "https://atv.md/",
+      "priority": 5
+    },
+    {
+      "name": "Axial",
+      "isFree": true,
+      "website": "https://axialtv.md/",
+      "priority": 5
+    },
+    {
+      "name": "Balti",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BAS-TV",
+      "isFree": true,
+      "website": "https://bas-tv.md/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 2",
+      "isFree": true,
+      "website": "http://www.canal2.md/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 3",
+      "isFree": true,
+      "website": "https://www.canal3.md/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 5",
+      "isFree": true,
+      "website": "https://canal5.md/ru/",
+      "priority": 5
+    },
+    {
+      "name": "Elita",
+      "isFree": true,
+      "website": "http://voceata.md/elitatv/",
+      "priority": 5
+    },
+    {
+      "name": "Exclusiv",
+      "isFree": true,
+      "website": "https://exclusivtv.md/",
+      "priority": 5
+    },
+    {
+      "name": "GRT",
+      "isFree": true,
+      "website": "http://grt.md/",
+      "priority": 5
+    },
+    {
+      "name": "Media",
+      "isFree": true,
+      "website": "https://mediatv.md/",
+      "priority": 5
+    },
+    {
+      "name": "Mega",
+      "isFree": true,
+      "website": "https://megatv.md/",
+      "priority": 5
+    },
+    {
+      "name": "Moldova",
+      "isFree": true,
+      "website": "https://trm.md/ro/moldova-1",
+      "priority": 5
+    },
+    {
+      "name": "N 4",
+      "isFree": true,
+      "website": "https://n4.md/",
+      "priority": 5
+    },
+    {
+      "name": "NTS",
+      "isFree": true,
+      "website": "https://www.nts-tv.md/",
+      "priority": 5
+    },
+    {
+      "name": "Orizont",
+      "isFree": true,
+      "website": "https://orizont.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Premiera",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Prima TV Moldova",
+      "isFree": true,
+      "website": "https://www.primatv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Primul in Moldova",
+      "isFree": true,
+      "website": "https://primul.online/",
+      "priority": 5
+    },
+    {
+      "name": "Privesc.Eu",
+      "isFree": true,
+      "website": "https://www.privesc.eu/tv",
+      "priority": 5
+    },
+    {
+      "name": "PRO TV Chisinau",
+      "isFree": true,
+      "website": "https://protv.md/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Moldova",
+      "isFree": true,
+      "keywords": "radio moldova -muzical -tineret",
+      "website": "https://radiomoldova.md/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Moldova Tineret",
+      "isFree": true,
+      "website": "https://radiomoldova.md/tineret",
+      "priority": 5
+    },
+    {
+      "name": "Sor",
+      "isFree": true,
+      "website": "https://news.sortv.md",
+      "priority": 5
+    },
+    {
+      "name": "Star",
+      "isFree": true,
+      "website": "https://tvstar.md/",
+      "priority": 5
+    },
+    {
+      "name": "Studio-L",
+      "isFree": true,
+      "website": "https://www.studio-l.online/",
+      "priority": 5
+    },
+    {
+      "name": "Tele M",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TSV",
+      "isFree": true,
+      "website": "https://tsv.md/",
+      "priority": 5
+    },
+    {
+      "name": "TV 6",
+      "isFree": true,
+      "website": "https://tv6.live/",
+      "priority": 5
+    },
+    {
+      "name": "TV 9",
+      "isFree": true,
+      "website": "https://www.tv9.md/",
+      "priority": 5
+    },
+    {
+      "name": "TV PMR",
+      "isFree": true,
+      "website": "https://tv.pgtrk.com/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Busuioc",
+      "isFree": true,
+      "website": "https://busuioctv.md/",
+      "priority": 5
+    },
+    {
+      "name": "Hit FM",
+      "isFree": true,
+      "website": "https://hitfm.md/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Moldova Muzical",
+      "isFree": true,
+      "website": "https://radiomoldova.md/muzical",
+      "priority": 5
+    },
+    {
+      "name": "Tezaur",
+      "isFree": true,
+      "website": "https://tezaurtv.md",
+      "priority": 5
+    },
+    {
+      "name": "Zona M",
+      "isFree": true,
+      "website": "https://www.zonam.md/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Cinema",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cinemaraton Moldova",
+      "isFree": true,
+      "website": "https://www.cinemaraton.ro/cinemaraton-moldova/",
+      "priority": 5
+    },
+    {
+      "name": "TVC 21",
+      "isFree": true,
+      "website": "https://tvc21.md/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Gurinel",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "We Sport",
+      "isFree": true,
+      "website": "https://fmf.md/home/fmf/we-sport/wesport-tv",
+      "priority": 10
+    }
+  ]
+}

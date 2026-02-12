@@ -114,12 +114,8 @@ export default class Trending extends EntriesGroup {
         if (!list.length) {
             list = [{ name: lang.EMPTY, fa: 'fas fa-info-circle', type: 'action', class: 'entry-empty' }];
         } else {
-            const acpolicy = config.get('parental-control');
-            if (['remove', 'block'].includes(acpolicy)) {
-                list = lists.parentalControl.filter(list);
-            } else if (acpolicy == 'only') {
-                list = lists.parentalControl.only(list);
-            }
+            // Always filter entries (block behavior)
+            list = lists.parentalControl.filter(list);
         }
         this.currentTopProgrammeEntry = false;
         list = this.prepare(list);
@@ -201,12 +197,11 @@ export default class Trending extends EntriesGroup {
         data = lists.parentalControl.filter(data);
         this.currentRawEntries = data.slice(0);
         let searchTerms = [], groups = {}, gcount = {}, gsearches = [], gentries = [];
-        const adultContentOnly = config.get('parental-control') == 'only';
-        const onlyKnownChannels = !adultContentOnly && config.get('only-known-channels-in-trending');
+        const onlyKnownChannels = config.get('only-known-channels-in-trending');
         const popularSearches = config.get('popular-searches-in-trending');
         if (popularSearches) {
             const searchExcludes = new Set(['live', 'tv', 'free', 'hd', '4k', 'live', 'sport', 'sports'])
-            const sdata = {}, sentries = await this.channels.search.searchSuggestionEntries()
+            const sdata = {}, sentries = await this.channels.search.getPopularSearchTerms()
             sentries.map(s => s.search_term).filter(s => s.length >= 3).filter(s => !this.channels.isChannel(s)).filter(s => lists.parentalControl.allow(s)).forEach(name => {
                 if (searchExcludes.has(name)) return
                 sdata[name] = { name, terms: lists.tools.terms(name) };
@@ -271,6 +266,7 @@ export default class Trending extends EntriesGroup {
         data = this.applyUsersPercentages(data);
         this.currentEntries = data;
         storage.set('trending-current', this.currentRawEntries, {
+            personal: true,
             permanent: true,
             expiration: true
         }).catch(err => console.error(err)); // do not await
@@ -317,6 +313,6 @@ export default class Trending extends EntriesGroup {
         return entries;
     }
     entry() {
-        return { name: this.title(), side: true, details: lang.BEEN_WATCHED, fa: 'fas fa-chart-bar', hookId: this.key, type: 'group', renderer: this.entries.bind(this) }
+        return { name: this.title(), side: true, details: lang.BEEN_WATCHED, fa: 'fas fa-fire', hookId: this.key, type: 'group', renderer: this.entries.bind(this) }
     }
 }

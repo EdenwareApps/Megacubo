@@ -1,0 +1,879 @@
+{
+  "Auto": [
+    {
+      "name": "100% Auto Moto",
+      "isFree": true,
+      "shortName": "1AMT",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Bulgaria On Air",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BBG News",
+      "isFree": true,
+      "website": "https://bbgnews.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Bloomberg TV Bulgaria",
+      "isFree": true,
+      "website": "https://www.bloombergtv.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Bulgaria 24",
+      "isFree": true,
+      "website": "http://bulgaria24.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Euronews Bulgaria",
+      "isFree": true,
+      "website": "https://euronewsbulgaria.com/",
+      "priority": 5
+    },
+    {
+      "name": "newsONE",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nova News",
+      "isFree": true,
+      "website": "https://nova.bg/novanews",
+      "priority": 5
+    },
+    {
+      "name": "PIK",
+      "isFree": true,
+      "website": "https://pik.bg/",
+      "priority": 5
+    },
+    {
+      "name": "TVN-Bulgaria",
+      "isFree": true,
+      "website": "https://tvn.bg/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Sportal.bg",
+      "priority": 10
+    },
+    {
+      "name": "b1b.box",
+      "isFree": true,
+      "website": "https://b1b.tv/",
+      "priority": 5
+    },
+    {
+      "name": "B1B Sport",
+      "isFree": true,
+      "website": "https://b1bsport.bg/",
+      "priority": 10
+    },
+    {
+      "name": "Diema Sport",
+      "isFree": true,
+      "keywords": "diema sport -2 -4k -3",
+      "website": "https://diemaxtra.nova.bg/diemasport",
+      "priority": 10
+    },
+    {
+      "name": "Diema Sport 2",
+      "isFree": true,
+      "keywords": "diema sport 2 -4k",
+      "website": "https://diemaxtra.nova.bg/diemasport2",
+      "priority": 10
+    },
+    {
+      "name": "Diema Sport 2 4K",
+      "isFree": true,
+      "website": "https://diemaxtra.nova.bg/diemasport2",
+      "priority": 10
+    },
+    {
+      "name": "Diema Sport 3",
+      "isFree": true,
+      "keywords": "diema sport 3 -4k",
+      "website": "https://diemaxtra.nova.bg/diemasport3",
+      "priority": 10
+    },
+    {
+      "name": "Diema Sport 3 4K",
+      "isFree": true,
+      "website": "https://diemaxtra.nova.bg/diemasport3",
+      "priority": 10
+    },
+    {
+      "name": "Max Sport",
+      "isFree": true,
+      "website": "https://maxsport.live/",
+      "priority": 10
+    },
+    {
+      "name": "Max Sport 2",
+      "isFree": true,
+      "website": "https://maxsport.live/",
+      "priority": 10
+    },
+    {
+      "name": "Max Sport 3",
+      "isFree": true,
+      "website": "https://maxsport.live/",
+      "priority": 10
+    },
+    {
+      "name": "Max Sport 4",
+      "isFree": true,
+      "website": "https://maxsport.live/",
+      "priority": 10
+    },
+    {
+      "name": "Nova Sport",
+      "isFree": true,
+      "website": "http://www.sport.novatv.bg/",
+      "priority": 10
+    },
+    {
+      "name": "Sportal",
+      "isFree": true,
+      "website": "https://www.sportal.bg/",
+      "priority": 10
+    },
+    {
+      "name": "Sport+",
+      "isFree": true,
+      "website": "http://tvplus.bg/",
+      "priority": 10
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "BTK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "City",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DSTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Evrokom",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Light",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "This is Bulgaria",
+      "isFree": true,
+      "website": "http://hd.traveltv.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Travel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vibee",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Wness",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Agro",
+      "isFree": true,
+      "website": "https://agrotv.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Alfa",
+      "isFree": true,
+      "website": "http://alfatv.online/",
+      "priority": 5
+    },
+    {
+      "name": "BG-Dnes",
+      "isFree": true,
+      "website": "https://bg-dnes.tv/",
+      "priority": 5
+    },
+    {
+      "name": "BG+",
+      "isFree": true,
+      "website": "https://bgplus.bg/",
+      "priority": 5
+    },
+    {
+      "name": "BNT",
+      "isFree": true,
+      "website": "https://bnt1.bnt.bg/",
+      "priority": 5
+    },
+    {
+      "name": "BNT 2",
+      "isFree": true,
+      "website": "https://bnt2.bnt.bg/",
+      "priority": 5
+    },
+    {
+      "name": "BNT 3",
+      "isFree": true,
+      "website": "https://bnthd.bnt.bg/",
+      "priority": 5
+    },
+    {
+      "name": "BNT 4",
+      "isFree": true,
+      "website": "https://bntworld.bnt.bg/",
+      "priority": 5
+    },
+    {
+      "name": "BSTV",
+      "isFree": true,
+      "website": "https://www.bstv.bg/",
+      "priority": 5
+    },
+    {
+      "name": "bTV",
+      "isFree": true,
+      "keywords": "btv -action -cinema -comedy -lady",
+      "website": "https://www.btv.bg/",
+      "priority": 5
+    },
+    {
+      "name": "bTV Comedy",
+      "isFree": true,
+      "website": "https://www.btv.bg/comedy",
+      "priority": 5
+    },
+    {
+      "name": "Bulsat Info",
+      "isFree": true,
+      "website": "https://www.bulsatcom.bg/televiziya/televizionni-kanali/",
+      "priority": 5
+    },
+    {
+      "name": "Code Fashion",
+      "isFree": true,
+      "website": "https://tv.codefashion.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Code Health",
+      "isFree": true,
+      "website": "https://www.codehealth.bg/",
+      "priority": 5
+    },
+    {
+      "name": "comedy.box",
+      "isFree": true,
+      "website": "http://www.bulsatcom.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Comedy+",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Diana Kabel",
+      "isFree": true,
+      "website": "https://dtv.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Diema Family",
+      "isFree": true,
+      "website": "https://diemafamily.nova.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Discovery",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Dr. Fit",
+      "isFree": true,
+      "website": "https://www.intheboxtv.eu/",
+      "priority": 5
+    },
+    {
+      "name": "eTV",
+      "isFree": true,
+      "website": "https://www.etv.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Eurocom",
+      "isFree": true,
+      "website": "https://eurocom.bg/",
+      "priority": 5
+    },
+    {
+      "name": "EuroFolk",
+      "isFree": true,
+      "website": "https://tv.eurofolk.com/en",
+      "priority": 5
+    },
+    {
+      "name": "Fantazzy",
+      "isFree": true,
+      "website": "https://fantazzy.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Hobby Lov",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hobby",
+      "isFree": true,
+      "website": "http://www.hobbytv.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Home One",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal",
+      "isFree": true,
+      "website": "https://rn-tv.com/%D0%BA%D0%B0%D0%BD%D0%B0%D0%BB-0/",
+      "priority": 5
+    },
+    {
+      "name": "Kanal 3",
+      "isFree": true,
+      "website": "https://kanal3.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Kanal 6",
+      "isFree": true,
+      "website": "https://kanal6.tv/",
+      "priority": 5
+    },
+    {
+      "name": "KISS 13",
+      "isFree": true,
+      "website": "https://kiss13.net/",
+      "priority": 5
+    },
+    {
+      "name": "MU-Vi.tv",
+      "isFree": true,
+      "website": "http://mu-vi.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Nova",
+      "isFree": true,
+      "keywords": "nova -news -sport",
+      "website": "https://nova.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Planet Earth",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "POTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RMTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SKAT",
+      "isFree": true,
+      "website": "http://www.skat.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Soul & Pepper",
+      "isFree": true,
+      "website": "https://soulandpepper.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Telemedia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TLC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV",
+      "isFree": true,
+      "website": "https://tv1.bg/",
+      "priority": 5
+    },
+    {
+      "name": "TVart",
+      "isFree": true,
+      "website": "https://www.tvart.info/",
+      "priority": 5
+    },
+    {
+      "name": "TV Darts",
+      "isFree": true,
+      "website": "https://bbgnews.bg/",
+      "priority": 5
+    },
+    {
+      "name": "TV Dobrudzha",
+      "isFree": true,
+      "website": "https://dobrudjatv.net/",
+      "priority": 5
+    },
+    {
+      "name": "TV Evropa",
+      "isFree": true,
+      "website": "http://www.tvevropa.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Shumen",
+      "isFree": true,
+      "website": "https://www.tvshumen.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Stara Zagora",
+      "isFree": true,
+      "website": "https://tvstz.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Stoychev",
+      "isFree": true,
+      "website": "https://www.tvstoichev.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVT",
+      "isFree": true,
+      "website": "http://see.bg/",
+      "priority": 5
+    },
+    {
+      "name": "TV Vraca",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Zagora",
+      "isFree": true,
+      "website": "https://zagoranews.bg/category/%D1%82%D0%B2-%D0%B7%D0%B0%D0%B3%D0%BE%D1%80%D0%B0/",
+      "priority": 5
+    },
+    {
+      "name": "Vivacom Arena",
+      "isFree": true,
+      "website": "http://www.vivacom.bg/bg/tv/ceni-i-oferti/vivacom-arena",
+      "priority": 5
+    },
+    {
+      "name": "VTK",
+      "isFree": true,
+      "website": "https://www.armymedia.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Woman",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "359TV",
+      "isFree": true,
+      "website": "https://359hiphop.com/live/",
+      "priority": 5
+    },
+    {
+      "name": "Balkanika",
+      "isFree": true,
+      "website": "http://www.balkanika.tv/",
+      "priority": 5
+    },
+    {
+      "name": "BG Music",
+      "isFree": true,
+      "website": "https://bgmusic.tv/",
+      "priority": 5
+    },
+    {
+      "name": "BOX",
+      "isFree": true,
+      "website": "https://box-tv.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Fen Folk",
+      "isFree": true,
+      "website": "https://fenfolktv.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Fen",
+      "isFree": true,
+      "website": "http://www.fentv.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Folklor",
+      "isFree": true,
+      "website": "http://folklor.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Hit Mix Music",
+      "isFree": true,
+      "website": "http://hitmixmusic.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Magic",
+      "isFree": true,
+      "website": "https://www.magic.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Planeta 4K",
+      "isFree": true,
+      "website": "http://planeta.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Planeta Folk",
+      "isFree": true,
+      "website": "http://planeta.tv/bg/planeta-folk/",
+      "priority": 5
+    },
+    {
+      "name": "Planeta",
+      "isFree": true,
+      "website": "http://planeta.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Roma",
+      "isFree": true,
+      "website": "http://www.romatv.bg/",
+      "priority": 5
+    },
+    {
+      "name": "The Voice",
+      "isFree": true,
+      "website": "https://thevoice.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Tiankov Folk",
+      "isFree": true,
+      "website": "http://tiankov.com/watch-online/",
+      "priority": 5
+    },
+    {
+      "name": "Tiankov Orient Folk",
+      "isFree": true,
+      "website": "http://tiankov.com/watch-online/",
+      "priority": 5
+    },
+    {
+      "name": "TV Rodina",
+      "isFree": true,
+      "website": "http://www.tvrodina.com/",
+      "priority": 5
+    },
+    {
+      "name": "V2Beat",
+      "isFree": true,
+      "website": "https://www.vibee.tv/webpage-player/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "action.box",
+      "isFree": true,
+      "website": "http://www.bulsatcom.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Action+",
+      "isFree": true,
+      "website": "http://tvplus.bg/",
+      "priority": 5
+    },
+    {
+      "name": "bTV Action",
+      "isFree": true,
+      "website": "https://www.btv.bg/action",
+      "priority": 5
+    },
+    {
+      "name": "bTV Cinema",
+      "isFree": true,
+      "website": "https://www.btv.bg/cinema",
+      "priority": 5
+    },
+    {
+      "name": "bTV Lady",
+      "isFree": true,
+      "website": "https://www.btv.bg/lady/",
+      "priority": 5
+    },
+    {
+      "name": "cine.box",
+      "isFree": true,
+      "website": "https://www.bulsatcom.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Cinema+",
+      "isFree": true,
+      "website": "http://tvplus.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Diema",
+      "isFree": true,
+      "keywords": "diema -family -sport -2 -4k -3",
+      "website": "https://diema.nova.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Kino Nova",
+      "isFree": true,
+      "website": "http://kinonova.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Movie Star",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nostalgia",
+      "isFree": true,
+      "website": "http://nostalgia.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Star",
+      "isFree": true,
+      "website": "http://starchannel-bg.com/",
+      "priority": 5
+    },
+    {
+      "name": "Star Crime",
+      "isFree": true,
+      "website": "https://www.starchannel-bg.com/",
+      "priority": 5
+    },
+    {
+      "name": "Star Life",
+      "isFree": true,
+      "website": "https://www.starchannel-bg.com/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "BHTV",
+      "isFree": true,
+      "website": "https://www.bhtv.eu/",
+      "priority": 4
+    },
+    {
+      "name": "Eparhiyski Glas",
+      "isFree": true,
+      "website": "https://mitropolia-sofia.org/glastv/",
+      "priority": 4
+    },
+    {
+      "name": "Hope Channel Bulgaria",
+      "isFree": true,
+      "website": "https://hopetv.bg/%d0%b3%d0%bb%d0%b5%d0%b4%d0%b0%d0%b9/",
+      "priority": 4
+    },
+    {
+      "name": "HTV",
+      "isFree": true,
+      "website": "https://www.htv.bg/",
+      "priority": 4
+    },
+    {
+      "name": "Plovdiv Orthodox",
+      "isFree": true,
+      "website": "http://www.plovdivskamitropolia.bg/",
+      "priority": 4
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Crime + Investigation",
+      "isFree": true,
+      "website": "http://www.historytv.eu/bg/crime-investigation-bg",
+      "priority": 5
+    },
+    {
+      "name": "H 2",
+      "isFree": true,
+      "website": "http://www.historytv.eu/bg/h2-bg",
+      "priority": 5
+    },
+    {
+      "name": "History",
+      "isFree": true,
+      "website": "http://www.historytv.eu/bg/history-bg",
+      "priority": 7
+    },
+    {
+      "name": "ID",
+      "isFree": true,
+      "website": "https://www.wbd.com/",
+      "priority": 5
+    },
+    {
+      "name": "Live 7",
+      "isFree": true,
+      "website": "https://www.live7.tv/",
+      "priority": 5
+    },
+    {
+      "name": "National Geographic",
+      "isFree": true,
+      "keywords": "national geographic -wild",
+      "website": "http://www.natgeotv.com/bg",
+      "priority": 7
+    },
+    {
+      "name": "National Geographic Wild",
+      "isFree": true,
+      "website": "http://natgeotv.com/bg/wild",
+      "priority": 7
+    },
+    {
+      "name": "The World",
+      "isFree": true,
+      "website": "https://theworld.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Viasat Explore",
+      "isFree": true,
+      "website": "https://viasatexplore.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Viasat History",
+      "isFree": true,
+      "website": "https://viasathistory.bg/",
+      "priority": 7
+    },
+    {
+      "name": "Viasat Nature",
+      "isFree": true,
+      "website": "https://viasatnature.bg/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Disney",
+      "isFree": true,
+      "website": "https://tv.disney.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Disney Junior",
+      "isFree": true,
+      "website": "https://tv.disney.bg/whats-on/disney-junior",
+      "priority": 5
+    },
+    {
+      "name": "EKids",
+      "isFree": true,
+      "website": "http://www.ekids.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Nickelodeon",
+      "isFree": true,
+      "website": "http://www.nick.bg/",
+      "priority": 5
+    },
+    {
+      "name": "Nick Jr.",
+      "isFree": true,
+      "website": "http://www.nickjr.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nicktoons",
+      "isFree": true,
+      "website": "https://nicktoons.bg/",
+      "priority": 5
+    },
+    {
+      "name": "RING",
+      "isFree": true,
+      "website": "https://www.btv.bg/ring/",
+      "priority": 5
+    },
+    {
+      "name": "Super Toons",
+      "isFree": true,
+      "website": "https://supertoons.bg/",
+      "priority": 5
+    }
+  ],
+  "Shop": [
+    {
+      "name": "Home Mall",
+      "isFree": true,
+      "priority": 4
+    }
+  ]
+}

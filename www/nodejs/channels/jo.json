@@ -1,0 +1,434 @@
+{
+  "Religious": [
+    {
+      "name": "Alerth Alnabawi",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Al Hakika",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Thakafah",
+      "isFree": true,
+      "website": "http://thakafah.tv/",
+      "priority": 4
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Toyor Al-Jannah",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Karameesh",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Roya Kids",
+      "isFree": true,
+      "keywords": "roya kids -originals -songs -stories",
+      "website": "https://www.roya.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Roya Kids Originals",
+      "isFree": true,
+      "website": "https://www.roya.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Roya Kids Songs",
+      "isFree": true,
+      "website": "https://www.roya.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Roya Kids Stories",
+      "isFree": true,
+      "website": "https://www.roya.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Tala Kids Club",
+      "isFree": true,
+      "website": "http://www.talakidsclub.com/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Al Mamlaka",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Amman",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Jordan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Roya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "7 Stars",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "A One",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Awdeh",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Azhari",
+      "isFree": true,
+      "website": "http://azharitv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Darsak Tawjihi",
+      "isFree": true,
+      "website": "https://darsak.gov.jo/",
+      "priority": 5
+    },
+    {
+      "name": "Deretna",
+      "isFree": true,
+      "website": "http://www.deretna.net/",
+      "priority": 5
+    },
+    {
+      "name": "Fact International",
+      "isFree": true,
+      "website": "http://factjo.com/",
+      "priority": 5
+    },
+    {
+      "name": "Hala",
+      "isFree": true,
+      "keywords": "hala -control -studio",
+      "website": "https://www.hala.jo/",
+      "priority": 5
+    },
+    {
+      "name": "Ismaoona",
+      "isFree": true,
+      "website": "https://www.ismaoona.com/",
+      "priority": 5
+    },
+    {
+      "name": "Jordan Archive",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Jordan Comedy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Jordan Drama",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Jordan Kitchen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Jordan Tourism",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Josat",
+      "isFree": true,
+      "website": "https://josat.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Kaifa",
+      "isFree": true,
+      "website": "http://www.kaifatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Qudaah",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Fann Jordan City View",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Fann Jordan Control Studio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Fann Jordan Studio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Yaqeen Jordan City View",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Yaqeen Jordan Control Studio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Yaqeen Jordan Studio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rotana Radio Jordan City View",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rotana Radio Jordan Control Studio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rotana Radio Jordan Studio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rotana Tarab Jordan City View",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rotana Tarab Jordan Control Studio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Roya Comedy",
+      "isFree": true,
+      "website": "https://www.roya.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Roya Kitchen",
+      "isFree": true,
+      "website": "https://www.roya.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Yarmouk",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Nojoum",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rotana Tarab Jordan: City View",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rotana Tarab Jordan: Control Studio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Amen FM",
+      "isFree": true,
+      "website": "http://amenfm.jo/",
+      "priority": 5
+    },
+    {
+      "name": "Jeish FM",
+      "isFree": true,
+      "website": "https://www.jeishfm.jo/",
+      "priority": 5
+    },
+    {
+      "name": "Jordan Songs",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Melody FM",
+      "isFree": true,
+      "keywords": "melody fm -jordan",
+      "website": "https://melody-fm.com/",
+      "priority": 5
+    },
+    {
+      "name": "Roya Music",
+      "isFree": true,
+      "website": "https://www.roya.tv/",
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Jawhara FM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Melody FM Jordan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Fann Jordan: City View",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Fann Jordan: Control Studio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Fann Jordan: Studio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Yaqeen Jordan: City View",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Yaqeen Jordan: Control Studio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Yaqeen Jordan: Studio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rotana Radio Jordan: City View",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rotana Radio Jordan: Control Studio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rotana Radio Jordan: Studio",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Alhaqeqa Aldawlia",
+      "isFree": true,
+      "website": "https://www.factjo.com/Pages.aspx?id=6",
+      "priority": 5
+    },
+    {
+      "name": "Altaghier",
+      "isFree": true,
+      "website": "https://altaghier.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ANB",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hala Control Studio",
+      "isFree": true,
+      "website": "https://www.hala.jo/",
+      "priority": 5
+    },
+    {
+      "name": "Jordan Now",
+      "isFree": true,
+      "website": "https://jordannowtv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Roya News",
+      "isFree": true,
+      "website": "https://royanews.tv/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Darsak",
+      "isFree": true,
+      "website": "https://darsak.gov.jo/",
+      "priority": 5
+    },
+    {
+      "name": "Darsak 2",
+      "isFree": true,
+      "website": "https://darsak.gov.jo/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Jordan Sport",
+      "isFree": true,
+      "keywords": "jordan sport -2",
+      "priority": 10
+    },
+    {
+      "name": "Jordan Sport 2",
+      "isFree": true,
+      "website": "https://www.jrtv.gov.jo/",
+      "priority": 10
+    },
+    {
+      "name": "Sport",
+      "isFree": true,
+      "website": "https://www.jrtv.gov.jo/",
+      "priority": 10
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Roya Drama",
+      "isFree": true,
+      "website": "https://www.roya.tv/",
+      "priority": 5
+    }
+  ]
+}

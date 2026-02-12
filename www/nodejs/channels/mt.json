@@ -1,0 +1,505 @@
+{
+  "Entertainment": [
+    {
+      "name": "One",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Smash",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "F Living",
+      "isFree": true,
+      "website": "https://fliving.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Melita More",
+      "isFree": true,
+      "website": "https://www.melita.com/",
+      "priority": 5
+    },
+    {
+      "name": "NET",
+      "isFree": true,
+      "website": "https://netondemand.mt/",
+      "priority": 5
+    },
+    {
+      "name": "Parliament of Malta",
+      "isFree": true,
+      "website": "http://www.parlament.mt/",
+      "priority": 5
+    },
+    {
+      "name": "TSN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TSN 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TSN 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TSN 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TSN 5",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TSN 6",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TSN 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TSN 8",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVMSport+",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Parliament",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "NET Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Smash Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Promotion",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Weather and Info",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Melita Sports",
+      "isFree": null,
+      "keywords": "melita sports 1",
+      "priority": 10
+    },
+    {
+      "name": "Melita Sports 2",
+      "isFree": null,
+      "keywords": "melita sports 2",
+      "priority": 10
+    },
+    {
+      "name": "Melita Sports 3",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Melita Sports 4",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "GO Weather and Info",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "GO Stars",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "GO Sports",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "GO Sports 2",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "GO Sports 3",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "GO Sports 4",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "GO Sports 5",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "GO Sports 6",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Live Casino",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BabyTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BBC First",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BBC News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Boomerang",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Cartoon Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Club MTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CNBC Europe",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CNN International",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CBS Reality",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Discovery Channel Europe",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "Disney",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "E!",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Euronews",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Eurosport",
+      "isFree": null,
+      "keywords": "eurosport -2",
+      "priority": 10
+    },
+    {
+      "name": "Eurosport 2",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "FashionTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Food Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "FX",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "FX Life",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Great! Movies",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Great! Romance",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Great!",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "HGTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "ITV Choice",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "ITV News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MGM",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Movies4Men",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV 00s",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV Global",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "National Geographic",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "Nickelodeon Global",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sky News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TLC",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Travel Channel International",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "VH1 Classic",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Daystar Television Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "EWTN",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "GOD",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Rai",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Rai 2",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Rai 3",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Rai 4",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Rai 5",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Rai YoYo",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Rai Gulp",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Rai News 24",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Rai Premium",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Italia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Rete 4",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canale 5",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "La 7",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Boing",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "La 7d",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Mediaset",
+      "isFree": null,
+      "priority": 5
+    }
+  ],
+  "Shop": [
+    {
+      "name": "ITV Shopping",
+      "isFree": true,
+      "website": "https://www.itv.com.mt/",
+      "priority": 4
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Med.TV",
+      "isFree": true,
+      "website": "https://med.tv/",
+      "priority": 5
+    },
+    {
+      "name": "National Geographic Wild",
+      "isFree": true,
+      "priority": 7
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Tokis",
+      "isFree": true,
+      "website": "https://www.go.com.mt/tv/tokis/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "TVMnews+",
+      "isFree": true,
+      "website": "https://tvmi.mt/live/3",
+      "priority": 5
+    }
+  ],
+  "Sports": [],
+  "Religious": [
+    {
+      "name": "UTV",
+      "isFree": true,
+      "website": "https://utv.mt/",
+      "priority": 4
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Xejk",
+      "isFree": true,
+      "website": "http://www.xejkmalta.com/",
+      "priority": 5
+    }
+  ]
+}

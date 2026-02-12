@@ -1,0 +1,2198 @@
+{
+  "News": [
+    {
+      "name": "N1",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Balkan",
+      "isFree": true,
+      "website": "http://www.balkantv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Bloomberg Adria",
+      "isFree": true,
+      "website": "https://bloombergadria.com/",
+      "priority": 5
+    },
+    {
+      "name": "Euronews Serbia",
+      "isFree": true,
+      "website": "https://www.euronews.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Front",
+      "isFree": true,
+      "website": "http://www.korpus.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Informer",
+      "isFree": true,
+      "website": "https://www.informer.rs/",
+      "priority": 5
+    },
+    {
+      "name": "N",
+      "isFree": true,
+      "keywords": "n1 -rs",
+      "website": "https://rs.n1info.com/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Kurir",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Marš",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV AS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV City Ub",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Novi Pazar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Red",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Belle Amie",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Hram",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Pi Canal Pirot",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Agro",
+      "isFree": true,
+      "website": "https://www.agrotv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Amari",
+      "isFree": true,
+      "website": "http://www.amaritv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "B",
+      "isFree": true,
+      "website": "https://www.tvprodaja.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Balkan Trip",
+      "isFree": true,
+      "website": "https://balkantrip.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Belle Amie",
+      "isFree": true,
+      "website": "http://www.belami.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Blic",
+      "isFree": true,
+      "website": "http://www.ringier.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Brainz",
+      "isFree": true,
+      "website": "https://brainz.center/",
+      "priority": 5
+    },
+    {
+      "name": "BTV",
+      "isFree": true,
+      "website": "http://btv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Cafe&Club",
+      "isFree": true,
+      "website": "https://www.muzzik.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Dankos plus",
+      "isFree": true,
+      "website": "http://www.dankostv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Decija",
+      "isFree": true,
+      "website": "http://decija.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Discovery",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Dunav",
+      "isFree": true,
+      "website": "https://dunavtelevizija.rs/",
+      "priority": 5
+    },
+    {
+      "name": "EDU",
+      "isFree": true,
+      "website": "http://www.edutelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "EG Melody",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Eko vizija",
+      "isFree": true,
+      "website": "http://ekovzija.rs/",
+      "priority": 5
+    },
+    {
+      "name": "EX YU Melody",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "FOX",
+      "isFree": true,
+      "keywords": "fox -crime -life -movies",
+      "website": "https://www.foxtv.rs/emisije/fox",
+      "priority": 5
+    },
+    {
+      "name": "Gradska M televizija",
+      "isFree": true,
+      "website": "http://www.gradska.tv/",
+      "priority": 5
+    },
+    {
+      "name": "HA HA",
+      "isFree": true,
+      "website": "http://www.pink.rs/haha",
+      "priority": 5
+    },
+    {
+      "name": "Happy",
+      "isFree": true,
+      "keywords": "happy -reality -1 -2",
+      "website": "https://happytv.rs/televizija",
+      "priority": 5
+    },
+    {
+      "name": "Happy Reality",
+      "isFree": true,
+      "website": "http://www.happytv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Happy Reality 2",
+      "isFree": true,
+      "website": "http://www.happytv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Hits Melody",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Humana TV Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hype 2",
+      "isFree": true,
+      "website": "http://www.bolja.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Hype",
+      "isFree": true,
+      "website": "http://www.hypetv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "IDJTV",
+      "isFree": true,
+      "website": "https://idjtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Insajder TV kanal",
+      "isFree": true,
+      "website": "http://www.insajder.net/",
+      "priority": 5
+    },
+    {
+      "name": "Insta",
+      "isFree": true,
+      "website": "https://www.instagram.com/narodnatv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "K",
+      "isFree": true,
+      "website": "http://k1tv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "KA",
+      "isFree": true,
+      "website": "http://www.katv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Kitchen",
+      "isFree": true,
+      "website": "http://kitchentv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Koreni",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LOL",
+      "isFree": true,
+      "website": "http://www.pink.rs/lol",
+      "priority": 5
+    },
+    {
+      "name": "Moj astrolog",
+      "isFree": true,
+      "website": "https://www.mojastrolog.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Moja",
+      "isFree": true,
+      "website": "https://www.rem.rs/en/media-service-providers-register/993#gsc.tab=0",
+      "priority": 5
+    },
+    {
+      "name": "Moj Happy zivot",
+      "isFree": true,
+      "website": "http://www.happytv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Mostnet",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Narodna",
+      "isFree": true,
+      "website": "https://pinkmediagroup.net/",
+      "priority": 5
+    },
+    {
+      "name": "Nova",
+      "isFree": true,
+      "keywords": "nova -max -series -sport",
+      "website": "https://nova.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Nova Max",
+      "isFree": true,
+      "website": "https://novas.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Nova Series",
+      "isFree": true,
+      "website": "https://novas.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Novosadska",
+      "isFree": true,
+      "website": "http://www.novosadska.tv/",
+      "priority": 5
+    },
+    {
+      "name": "NTV",
+      "isFree": true,
+      "website": "https://novosadska.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Pannon",
+      "isFree": true,
+      "website": "https://pannonrtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Pester",
+      "isFree": true,
+      "website": "http://www.pester.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Comedy",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Extra",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Family",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Fashion",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Kuvar",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Pedia",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Plus",
+      "isFree": true,
+      "website": "http://www.rtvpink.com/pinkplus/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Premium",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Reality",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Romance",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Show",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink SI",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pink Soap",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Style",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Thriller",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Western",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink World",
+      "isFree": true,
+      "keywords": "pink world -cinema",
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Zabava",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pop Melody",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Prva",
+      "isFree": true,
+      "keywords": "prva -files -kick -life -max -plus -world",
+      "website": "http://www.prva.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Prva Files",
+      "isFree": true,
+      "website": "http://prvafiles.prva.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Prva Kick",
+      "isFree": true,
+      "website": "http://prvakick.prva.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Prva Life",
+      "isFree": true,
+      "website": "http://prvalife.prva.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Prva Max",
+      "isFree": true,
+      "website": "http://prvamax.prva.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Prva Plus",
+      "isFree": true,
+      "website": "http://prvaplus.prva.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Prva World",
+      "isFree": true,
+      "website": "http://prvaworld.prva.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Q",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rock&Roll",
+      "isFree": true,
+      "website": "https://www.muzzik.tv/",
+      "priority": 5
+    },
+    {
+      "name": "RTP",
+      "isFree": true,
+      "website": "http://www.rtp.rs/",
+      "priority": 5
+    },
+    {
+      "name": "RTS",
+      "isFree": true,
+      "website": "http://www.rts.rs/page/tv/sr/news/20/rts-1.html",
+      "priority": 5
+    },
+    {
+      "name": "RTS 2",
+      "isFree": true,
+      "website": "http://www.rts.rs/page/tv/sr/news/21/rts-2.html",
+      "priority": 5
+    },
+    {
+      "name": "RTS 3",
+      "isFree": true,
+      "website": "http://www.rts.rs/page/tv/sr/news/255/rts-3.html",
+      "priority": 5
+    },
+    {
+      "name": "RTS Kolo",
+      "isFree": true,
+      "website": "http://www.rts.rs/page/tv/ci/news/2691/rts-kolo.html",
+      "priority": 5
+    },
+    {
+      "name": "RTS Nauka",
+      "isFree": true,
+      "website": "https://www.rts.rs/page/tv/ci/news/3107/rts-nauka.html",
+      "priority": 5
+    },
+    {
+      "name": "RTS Poletarac",
+      "isFree": true,
+      "website": "https://www.rts.rs/page/tv/ci/news/2709/rts-poletarac.html",
+      "priority": 5
+    },
+    {
+      "name": "RTS Svet",
+      "isFree": true,
+      "website": "http://www.rts.rs/page/tv/sr/news/22/rts-svet.html",
+      "priority": 5
+    },
+    {
+      "name": "RTS Trezor",
+      "isFree": true,
+      "website": "http://www.rts.rs/page/tv/ci/news/2697/rts-trezor.html",
+      "priority": 5
+    },
+    {
+      "name": "RTS Zivot",
+      "isFree": true,
+      "website": "http://www.rts.rs/page/tv/ci/news/2685/rts-zivot.html",
+      "priority": 5
+    },
+    {
+      "name": "RTV 2",
+      "isFree": true,
+      "website": "https://www.rtv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Bap",
+      "isFree": true,
+      "website": "http://www.rtvbap.rs/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Bosphorus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Branicevo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV GEM",
+      "isFree": true,
+      "website": "http://www.gemtv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "RTV SP",
+      "isFree": true,
+      "website": "http://www.rtvstarapazova.rs/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Srece",
+      "isFree": true,
+      "website": "http://www.rtvsrece.com/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Sumadija",
+      "isFree": true,
+      "website": "http://www.rtvsumadija.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sandzak",
+      "isFree": true,
+      "website": "http://www.sandzak.tv/",
+      "priority": 5
+    },
+    {
+      "name": "SAT",
+      "isFree": true,
+      "website": "http://www.sattelevizija.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sci Fi",
+      "isFree": true,
+      "website": "https://scifi.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Slobodna Televizija",
+      "isFree": true,
+      "website": "https://slobodna.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Sremska",
+      "isFree": true,
+      "website": "http://www.sremska.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Studio B",
+      "isFree": true,
+      "website": "https://studiob.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Super D+",
+      "isFree": true,
+      "website": "http://www.info24.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Super Sat",
+      "isFree": true,
+      "website": "https://info24.rs/",
+      "priority": 5
+    },
+    {
+      "name": "SUPERSTAR 2",
+      "isFree": true,
+      "website": "http://www.pink.rs/",
+      "priority": 5
+    },
+    {
+      "name": "SUPERSTAR",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Super TV Smederevo",
+      "isFree": true,
+      "website": "https://tvsuper.rs/",
+      "priority": 5
+    },
+    {
+      "name": "T",
+      "isFree": true,
+      "website": "https://t1.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Tanjug",
+      "isFree": true,
+      "website": "http://www.tanjug.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Televizija Fokus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televizija Pruga",
+      "isFree": true,
+      "website": "http://www.pruga.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Tesla",
+      "isFree": true,
+      "website": "http://www.tesla-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Timeless Dizi",
+      "isFree": true,
+      "website": "https://timelessdramachannel.com/dizi-srbija/",
+      "priority": 5
+    },
+    {
+      "name": "TMS Televizija Telemark",
+      "isFree": true,
+      "website": "http://www.tvtelemark.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Toxic Folk",
+      "isFree": true,
+      "website": "https://toxictv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Toxic",
+      "isFree": true,
+      "website": "https://toxictv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Turizam",
+      "isFree": true,
+      "website": "https://www.turizamtv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV 4S",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 5",
+      "isFree": true,
+      "keywords": "tv 5 -uzice",
+      "priority": 5
+    },
+    {
+      "name": "TV 5 Uzice",
+      "isFree": true,
+      "website": "http://www.tv5.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Apatin",
+      "isFree": true,
+      "website": "http://www.tvapatin.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV AS",
+      "isFree": true,
+      "website": "http://www.rtvas.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Backa",
+      "isFree": true,
+      "website": "http://www.tvbackavrbas.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Banat",
+      "isFree": true,
+      "website": "http://www.tvbanat.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Becej",
+      "isFree": true,
+      "website": "http://www.tvbecej.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Bor",
+      "isFree": true,
+      "website": "http://www.rtvbor.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Bujanovac",
+      "isFree": true,
+      "website": "http://www.rtv-bujanovac.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Caribrod",
+      "isFree": true,
+      "website": "http://www.rtcaribrod.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Centar",
+      "isFree": true,
+      "website": "https://tvcentar.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Cink",
+      "isFree": true,
+      "website": "http://www.cink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV City",
+      "isFree": true,
+      "website": "http://www.rtvcityub.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Delta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Diskos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV DR",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Forum",
+      "isFree": true,
+      "website": "http://www.foruminfo.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Fruska Gora",
+      "isFree": true,
+      "website": "http://www.tvfruskagora.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Galaksija 32",
+      "isFree": true,
+      "website": "http://www.rtvgalaksija.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV GM Plus",
+      "isFree": true,
+      "website": "http://www.gmpress.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Hit Plus Batocina",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Homolje",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV IKS",
+      "isFree": true,
+      "website": "http://www.infokanal.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Info 24",
+      "isFree": true,
+      "keywords": "tv info 24 -plus",
+      "website": "https://info24.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Info 24 plus",
+      "isFree": true,
+      "website": "https://info24.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Istok",
+      "isFree": true,
+      "website": "http://www.tvistok.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Jasenica",
+      "isFree": true,
+      "website": "http://www.tvjasenica.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Jefimija",
+      "isFree": true,
+      "website": "http://www.jefimija.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV K-",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV K 23",
+      "isFree": true,
+      "website": "http://www.k23tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Kanal 25",
+      "isFree": true,
+      "website": "http://www.tvkanal25.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Kanal 9",
+      "isFree": true,
+      "website": "https://www.kanal9tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Kanal M",
+      "isFree": true,
+      "website": "http://www.rtvparacin.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV K::CN",
+      "isFree": true,
+      "website": "http://tvkcn.net/",
+      "priority": 5
+    },
+    {
+      "name": "TV K::CN 2",
+      "isFree": true,
+      "website": "http://tvkcn.net/",
+      "priority": 5
+    },
+    {
+      "name": "TV K::CN 3",
+      "isFree": true,
+      "website": "http://tvkcn.net/",
+      "priority": 5
+    },
+    {
+      "name": "TV K::CN Istok",
+      "isFree": true,
+      "website": "http://tvkcn.net/",
+      "priority": 5
+    },
+    {
+      "name": "TV K::CN Jug",
+      "isFree": true,
+      "website": "http://tvkcn.net/",
+      "priority": 5
+    },
+    {
+      "name": "TV K:CN K",
+      "isFree": true,
+      "website": "http://tvkcn.net/",
+      "priority": 5
+    },
+    {
+      "name": "TV K:CN Raska",
+      "isFree": true,
+      "website": "http://tvkcn.net/",
+      "priority": 5
+    },
+    {
+      "name": "TV K::CN Sever",
+      "isFree": true,
+      "website": "https://tvkcn.net/",
+      "priority": 5
+    },
+    {
+      "name": "TV K::CN Zapad",
+      "isFree": true,
+      "website": "http://tvkcn.net/",
+      "priority": 5
+    },
+    {
+      "name": "TV Kikinda",
+      "isFree": true,
+      "website": "http://www.tvkikinda.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Kladovo",
+      "isFree": true,
+      "website": "http://www.tvkladovo.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Kragujevac",
+      "isFree": true,
+      "website": "http://www.rtk.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Kraljevo",
+      "isFree": true,
+      "website": "http://www.rtvkraljevo.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Krusevac",
+      "isFree": true,
+      "website": "http://www.rtk.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Kursumlija",
+      "isFree": true,
+      "website": "http://www.rtvkursumlija.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Lav",
+      "isFree": true,
+      "keywords": "tv lav -plus",
+      "priority": 5
+    },
+    {
+      "name": "TV Lav Plus",
+      "isFree": true,
+      "website": "http://www.tvlav.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Leskovac",
+      "isFree": true,
+      "website": "http://www.tvl.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Lotel Plus",
+      "isFree": true,
+      "website": "http://www.lotel.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Mag",
+      "isFree": true,
+      "website": "http://www.rtvmag.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Marsh",
+      "isFree": true,
+      "website": "http://marsh.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Melos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Mix",
+      "isFree": true,
+      "website": "http://www.mixtv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Mlava",
+      "isFree": true,
+      "website": "http://www.rtvmlava.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Most",
+      "isFree": true,
+      "website": "https://tvmost.info/",
+      "priority": 5
+    },
+    {
+      "name": "TV Mreza Most",
+      "isFree": true,
+      "website": "http://www.tvmost.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Nais",
+      "isFree": true,
+      "website": "http://www.televizija-nais.business.site/",
+      "priority": 5
+    },
+    {
+      "name": "TV Novi Becej",
+      "isFree": true,
+      "website": "http://www.tvnovibecej.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Palma plus",
+      "isFree": true,
+      "website": "http://ptt.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Pancevo",
+      "isFree": true,
+      "website": "http://www.rtvpancevo.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Panon",
+      "isFree": true,
+      "website": "http://www.pannonrtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV P Canal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Petrovec",
+      "isFree": true,
+      "website": "http://www.tvpetrovec.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Pi Kanal",
+      "isFree": true,
+      "website": "http://www.rtvpicanal.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Pirot",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Plana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Plus",
+      "isFree": true,
+      "website": "http://www.tvplus.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Podrinje",
+      "isFree": true,
+      "website": "http://www.rtvpodrinje.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Pozega",
+      "isFree": true,
+      "website": "https://mts.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Priboj",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Prima",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Raca",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Ras",
+      "isFree": true,
+      "website": "http://www.rastv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Ritam",
+      "isFree": true,
+      "website": "http://www.rtvritam.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Sabac",
+      "isFree": true,
+      "website": "http://www.sabac.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Saga",
+      "isFree": true,
+      "website": "http://www.magplus.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Santos",
+      "isFree": true,
+      "website": "http://www.rtvsantos.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Sezam",
+      "isFree": true,
+      "website": "http://www.tvkcn.net/",
+      "priority": 5
+    },
+    {
+      "name": "TV Skay",
+      "isFree": true,
+      "website": "http://www.skay.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Smederevo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Sokobanja",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Sombor",
+      "isFree": true,
+      "website": "http://www.rtvsrece.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Subotica",
+      "isFree": true,
+      "website": "http://www.tvsubotica.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Sunce",
+      "isFree": true,
+      "website": "http://www.rtvsunce.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Trans",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Trstenik",
+      "isFree": true,
+      "website": "http://www.rtvtrstenik.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV VA Plus",
+      "isFree": true,
+      "website": "https://www.valjevoplus.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Vranje",
+      "isFree": true,
+      "website": "http://www.rtv-vranje.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Vrnjacka Banja",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Vujic",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV YU Eco",
+      "isFree": true,
+      "website": "https://www.yueco.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Zlatar",
+      "isFree": true,
+      "website": "https://mts.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Ultra puls",
+      "isFree": true,
+      "website": "http://www.tvinfopuls.rs/",
+      "priority": 5
+    },
+    {
+      "name": "UNA",
+      "isFree": true,
+      "website": "https://unaworld.tv/",
+      "priority": 5
+    },
+    {
+      "name": "V 5",
+      "isFree": true,
+      "website": "http://vtv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Vesti",
+      "isFree": true,
+      "website": "http://www.pink.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Vranjska Plus",
+      "isFree": true,
+      "website": "http://www.vranjskaplustv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "VTV",
+      "isFree": true,
+      "website": "http://www.novosadska.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Zadruga Live",
+      "isFree": true,
+      "website": "http://www.zadruga.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Zadruga Live 2",
+      "isFree": true,
+      "website": "http://www.zadruga.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Zadruga Live 3",
+      "isFree": true,
+      "website": "http://www.zadruga.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Zadruga Live 4",
+      "isFree": true,
+      "website": "http://www.zadruga.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Zdravlje",
+      "isFree": true,
+      "website": "https://zdravljetv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Zelena TV zdravlje",
+      "isFree": true,
+      "website": "http://zelenatvzdravlje.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zona Plus",
+      "isFree": true,
+      "website": "http://tvzonaplus.rs/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Muzzik AMVA 2020",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Muzzik Cafe&Club Serbia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Muzzik HipHop Serbia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Muzzik Jeka Serbia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Muzzik Mediteraneo Serbia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Muzzik OKK Serbia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Muzzik Replay Serbia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Muzzik Rock&Roll Serbia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Muzzik Saculatac Serbia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Muzzik TV Serbia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Muzzik Worldwide Serbia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Duga Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bravo Music",
+      "isFree": true,
+      "website": "http://www.pink.rs/",
+      "priority": 5
+    },
+    {
+      "name": "CityPlay",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DM Sat",
+      "isFree": true,
+      "website": "http://www.dmsat.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ELECTRO",
+      "isFree": true,
+      "website": "https://www.muzzik.tv/",
+      "priority": 5
+    },
+    {
+      "name": "FLASHBACK",
+      "isFree": true,
+      "website": "https://www.muzzik.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Folk Melody",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Grand",
+      "isFree": true,
+      "website": "https://grand.online/grand-tv",
+      "priority": 5
+    },
+    {
+      "name": "JEKA",
+      "isFree": true,
+      "website": "https://www.muzzik.tv/",
+      "priority": 5
+    },
+    {
+      "name": "MOBA",
+      "isFree": true,
+      "website": "https://www.muzzik.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Moja Happy muzika",
+      "isFree": true,
+      "website": "http://www.happytv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Moja Happy zemlja",
+      "isFree": true,
+      "website": "http://www.happytv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "MTS",
+      "isFree": true,
+      "website": "https://muzzik.spectar.tv/#/electro",
+      "priority": 5
+    },
+    {
+      "name": "MUZZIK",
+      "isFree": true,
+      "website": "https://www.muzzik.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Muzzik HipHop",
+      "isFree": true,
+      "keywords": "muzzik hiphop -serbia",
+      "website": "https://www.muzzik.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Muzzik Mediteraneo",
+      "isFree": true,
+      "keywords": "muzzik mediteraneo -serbia",
+      "website": "https://www.muzzik.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Muzzik Replay",
+      "isFree": true,
+      "keywords": "muzzik replay -serbia",
+      "website": "https://www.muzzik.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Muzzik Saculatac",
+      "isFree": true,
+      "keywords": "muzzik saculatac -serbia",
+      "website": "https://www.muzzik.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Nisville",
+      "isFree": true,
+      "website": "http://nisville.com/",
+      "priority": 5
+    },
+    {
+      "name": "OKK",
+      "isFree": true,
+      "website": "https://muzzik.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Folk",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Folk 2",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Hits",
+      "isFree": true,
+      "keywords": "pink hits -2",
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Hits 2",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Koncert",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Music",
+      "isFree": true,
+      "keywords": "pink music -2",
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Music 2",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink n Roll",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "POP STAR",
+      "isFree": true,
+      "website": "https://muzzik.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Hit FM",
+      "isFree": true,
+      "website": "http://www.hitfm.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Karolina",
+      "isFree": true,
+      "website": "http://www.karolina.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Lola",
+      "isFree": true,
+      "website": "http://www.karolina.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Radio S",
+      "isFree": true,
+      "website": "http://www.smedia.rs/",
+      "priority": 5
+    },
+    {
+      "name": "RIVIERA",
+      "isFree": true,
+      "website": "https://muzzik.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "RTS Klasika",
+      "isFree": true,
+      "website": "https://www.rts.rs/page/tv/ci/news/3188/rts-klasika.html",
+      "priority": 5
+    },
+    {
+      "name": "RTS Muzika",
+      "isFree": true,
+      "website": "http://www.rts.rs/page/tv/ci/news/2703/rts-muzika.html",
+      "priority": 5
+    },
+    {
+      "name": "SEE MUZZIK",
+      "isFree": true,
+      "website": "https://muzzik.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "SENSE",
+      "isFree": true,
+      "website": "https://muzzik.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "Skymusic Entertainment",
+      "isFree": true,
+      "website": "http://www.skyentertainmentgroup.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TDI Radio",
+      "isFree": true,
+      "website": "http://www.tdiradio.com/",
+      "priority": 5
+    },
+    {
+      "name": "TIKTAK",
+      "isFree": true,
+      "website": "https://www.muzzik.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Top",
+      "isFree": true,
+      "website": "http://www.top-tv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Toxic Rap",
+      "isFree": true,
+      "website": "https://toxictv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "TV Duga+",
+      "isFree": true,
+      "website": "http://www.tvdugaplus.com/",
+      "priority": 5
+    },
+    {
+      "name": "WORLD WIDE MUZZIK",
+      "isFree": true,
+      "website": "https://muzzik.co.uk/",
+      "priority": 5
+    },
+    {
+      "name": "ZICO",
+      "isFree": true,
+      "website": "https://zico.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ZZ",
+      "isFree": true,
+      "website": "https://muzzik.co.uk/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Arena Esport",
+      "isFree": true,
+      "website": "https://www.tvarenasport.com/",
+      "priority": 10
+    },
+    {
+      "name": "Arena Fight",
+      "isFree": true,
+      "website": "https://www.tvarenasport.com/",
+      "priority": 5
+    },
+    {
+      "name": "Arena Sport",
+      "isFree": true,
+      "keywords": "arena sport 1 -premium",
+      "website": "https://www.tvarenasport.com/",
+      "priority": 10
+    },
+    {
+      "name": "Arena Sport 10",
+      "isFree": true,
+      "website": "https://www.tvarenasport.com/",
+      "priority": 10
+    },
+    {
+      "name": "Arena Sport 1 Premium",
+      "isFree": true,
+      "website": "https://www.tvarenasport.com/",
+      "priority": 10
+    },
+    {
+      "name": "Arena Sport 1x 2",
+      "isFree": true,
+      "website": "https://www.tvarenasport.com/",
+      "priority": 10
+    },
+    {
+      "name": "Arena Sport 2",
+      "isFree": true,
+      "keywords": "arena sport 2 -premium",
+      "website": "https://www.tvarenasport.com/",
+      "priority": 10
+    },
+    {
+      "name": "Arena Sport 2 Premium",
+      "isFree": true,
+      "website": "https://www.tvarenasport.com/",
+      "priority": 10
+    },
+    {
+      "name": "Arena Sport 3",
+      "isFree": true,
+      "keywords": "arena sport 3 -premium",
+      "website": "https://www.tvarenasport.com/",
+      "priority": 10
+    },
+    {
+      "name": "Arena Sport 3 Premium",
+      "isFree": true,
+      "website": "https://www.tvarenasport.com/",
+      "priority": 10
+    },
+    {
+      "name": "Arena Sport 4",
+      "isFree": true,
+      "keywords": "arena sport 4 -premium",
+      "website": "https://www.tvarenasport.com/",
+      "priority": 10
+    },
+    {
+      "name": "Arena Sport 4 Premium",
+      "isFree": true,
+      "website": "https://www.tvarenasport.com/",
+      "priority": 10
+    },
+    {
+      "name": "Arena Sport 5",
+      "isFree": true,
+      "keywords": "arena sport 5 -premium",
+      "website": "https://www.tvarenasport.com/",
+      "priority": 10
+    },
+    {
+      "name": "Arena Sport 5 Premium",
+      "isFree": true,
+      "website": "https://www.tvarenasport.com/",
+      "priority": 10
+    },
+    {
+      "name": "Arena Sport 6",
+      "isFree": true,
+      "website": "https://www.tvarenasport.com/",
+      "priority": 10
+    },
+    {
+      "name": "Arena Sport 7",
+      "isFree": true,
+      "website": "https://www.tvarenasport.com/",
+      "priority": 10
+    },
+    {
+      "name": "Arena Sport 8",
+      "isFree": true,
+      "website": "https://www.tvarenasport.com/",
+      "priority": 10
+    },
+    {
+      "name": "Arena Sport 9",
+      "isFree": true,
+      "website": "https://www.tvarenasport.com/",
+      "priority": 10
+    },
+    {
+      "name": "Arena Sport Adrenalin",
+      "isFree": true,
+      "website": "https://www.tvarenasport.com/",
+      "priority": 10
+    },
+    {
+      "name": "Arena Sport Tenis",
+      "isFree": true,
+      "website": "https://www.tvarenasport.com/",
+      "priority": 10
+    },
+    {
+      "name": "Fortuna",
+      "isFree": true,
+      "website": "http://www.rtvfortuna.com/",
+      "priority": 5
+    },
+    {
+      "name": "Lov i ribolov",
+      "isFree": true,
+      "website": "https://unitedmedia.net/media-outlet/lov-i-ribolov/",
+      "priority": 5
+    },
+    {
+      "name": "Nova Sport",
+      "isFree": true,
+      "website": "https://nova-sport.com/",
+      "priority": 10
+    },
+    {
+      "name": "SOS Kanal Plus",
+      "isFree": true,
+      "website": "https://www.soskanal.net/",
+      "priority": 5
+    },
+    {
+      "name": "Telebet",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Partizan",
+      "isFree": true,
+      "website": "http://www.partizan.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Zvezda",
+      "isFree": true,
+      "website": "http://crvenazvezdafk.com/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Cinemania",
+      "isFree": true,
+      "website": "http://www.unitedmedia.net/channel/cinemania/",
+      "priority": 5
+    },
+    {
+      "name": "CineStar TV",
+      "isFree": true,
+      "website": "https://cinestartvchannels.rs/kanal/cinestartv-1/",
+      "priority": 5
+    },
+    {
+      "name": "CineStar TV 2",
+      "isFree": true,
+      "website": "https://cinestartvchannels.rs/kanal/cinestartv-2/",
+      "priority": 5
+    },
+    {
+      "name": "CineStar TV Action",
+      "isFree": true,
+      "website": "https://cinestartvchannels.rs/kanal/cinestartv-action/",
+      "priority": 5
+    },
+    {
+      "name": "CineStar TV Comedy",
+      "isFree": true,
+      "website": "https://cinestartvchannels.rs/kanal/cinestar-tv-comedy-family/",
+      "priority": 5
+    },
+    {
+      "name": "CineStar TV Fantasy",
+      "isFree": true,
+      "website": "https://cinestartvchannels.rs/kanal/cinestartv-fantasy/",
+      "priority": 5
+    },
+    {
+      "name": "CineStar TV Premiere",
+      "isFree": true,
+      "website": "https://cinestartvchannels.rs/kanal/cinestartv-premiere-1/",
+      "priority": 5
+    },
+    {
+      "name": "CineStar TV Premiere 2",
+      "isFree": true,
+      "website": "https://cinestartvchannels.rs/kanal/cinestartv-premiere-2/",
+      "priority": 5
+    },
+    {
+      "name": "Elita live",
+      "isFree": true,
+      "website": "http://www.pink.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Elita live 2",
+      "isFree": true,
+      "website": "http://www.pink.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Elita live 3",
+      "isFree": true,
+      "website": "http://www.pink.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Elita live 4",
+      "isFree": true,
+      "website": "http://www.pink.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Euro Cinema",
+      "isFree": true,
+      "website": "http://www.centroscena.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Euro Cinema 2",
+      "isFree": true,
+      "website": "http://www.centroscena.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Euro Cinema 3",
+      "isFree": true,
+      "website": "http://www.centroscena.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Euro Cinema 4",
+      "isFree": true,
+      "website": "http://www.centroscena.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Film Klub",
+      "isFree": true,
+      "keywords": "film klub -extra",
+      "website": "http://www.filmklub.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Film Klub Extra",
+      "isFree": true,
+      "website": "http://www.filmklub.rs/",
+      "priority": 5
+    },
+    {
+      "name": "FOX Crime",
+      "isFree": true,
+      "website": "https://www.foxtv.rs/emisije/foxcrime",
+      "priority": 5
+    },
+    {
+      "name": "FOX Life",
+      "isFree": true,
+      "website": "https://www.foxtv.rs/emisije/foxlife",
+      "priority": 5
+    },
+    {
+      "name": "FOX Movies",
+      "isFree": true,
+      "website": "https://www.foxtv.rs/emisije/fox-movies",
+      "priority": 5
+    },
+    {
+      "name": "Pink Action",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Classic",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Crime & Mystery",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Film",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Horror",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Movies",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Sci-Fi & Fantasy",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Serije",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink World Cinema",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "RTS Drama",
+      "isFree": true,
+      "website": "http://www.rts.rs/page/tv/ci/news/2679/rts-drama.html",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Dexy",
+      "isFree": true,
+      "website": "https://www.dexy.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "IDJKids",
+      "isFree": true,
+      "website": "https://idjkids.tv",
+      "priority": 5
+    },
+    {
+      "name": "Kazbuka",
+      "isFree": true,
+      "website": "https://tsmedia.rs/a21660/en/tv-brands-and-partners/Kazbuka.html",
+      "priority": 5
+    },
+    {
+      "name": "Nickelodeon",
+      "isFree": true,
+      "website": "http://www.nick.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Nick Jr.",
+      "isFree": true,
+      "website": "http://www.nick.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Pikaboo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pink Kids",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Pink Super Kids",
+      "isFree": true,
+      "website": "http://www.rtvpink.co.rs/",
+      "priority": 5
+    },
+    {
+      "name": "Vavoom",
+      "isFree": true,
+      "website": "https://unitedmedia.net/sr/kanal/vavoom/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Djak",
+      "isFree": true,
+      "website": "https://djak.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Moje Happy drustvo",
+      "isFree": true,
+      "website": "http://www.happytv.rs/",
+      "priority": 5
+    },
+    {
+      "name": "National Geographic",
+      "isFree": true,
+      "keywords": "national geographic -wild",
+      "website": "https://nationalgeographic.rs/",
+      "priority": 7
+    },
+    {
+      "name": "National Geographic Wild",
+      "isFree": true,
+      "website": "https://www.natgeotv.com/rs",
+      "priority": 7
+    }
+  ],
+  "Shop": [
+    {
+      "name": "Shoppster",
+      "isFree": true,
+      "website": "https://www.shoppster.com/",
+      "priority": 4
+    }
+  ]
+}

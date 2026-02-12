@@ -1,0 +1,2472 @@
+{
+  "News": [
+    {
+      "name": "100% News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "24 Kanal",
+      "isFree": true,
+      "website": "https://24tv.ua/online/",
+      "priority": 5
+    },
+    {
+      "name": "Apostrophe",
+      "isFree": true,
+      "website": "https://apostrophe.ua/ua/tv",
+      "priority": 5
+    },
+    {
+      "name": "Army",
+      "isFree": true,
+      "website": "http://armyfm.com.ua/",
+      "priority": 5
+    },
+    {
+      "name": "CENTR",
+      "isFree": true,
+      "website": "https://centr.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Channel 24",
+      "isFree": true,
+      "website": "https://24tv.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Channel 5",
+      "isFree": true,
+      "website": "http://5.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Cherniveckiy promin",
+      "isFree": true,
+      "website": "https://promin.cv.ua/",
+      "priority": 5
+    },
+    {
+      "name": "ChP info",
+      "isFree": true,
+      "website": "https://magnolia-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Donbass Online",
+      "isFree": true,
+      "website": "https://www.donbas-online.com/",
+      "priority": 5
+    },
+    {
+      "name": "Donechchyna",
+      "isFree": true,
+      "website": "https://www.dtv.dn.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Dumskaya",
+      "isFree": true,
+      "website": "https://dumskaya.net/tv/",
+      "priority": 5
+    },
+    {
+      "name": "Espreso",
+      "isFree": true,
+      "website": "https://espreso.tv/",
+      "priority": 5
+    },
+    {
+      "name": "First Business",
+      "isFree": true,
+      "website": "http://fbc.net.ua/",
+      "priority": 5
+    },
+    {
+      "name": "FREEDOM",
+      "isFree": true,
+      "website": "https://tvfreedom.io/",
+      "priority": 5
+    },
+    {
+      "name": "IT 3",
+      "isFree": true,
+      "website": "https://it3.online/",
+      "priority": 5
+    },
+    {
+      "name": "I",
+      "isFree": true,
+      "website": "https://i-ua.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Konkurent",
+      "isFree": true,
+      "website": "https://konkurent.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Kyiv",
+      "isFree": true,
+      "website": "https://tv.kyiv.media/",
+      "priority": 5
+    },
+    {
+      "name": "Live",
+      "isFree": true,
+      "website": "https://novyny.live/kiev",
+      "priority": 5
+    },
+    {
+      "name": "My Ukraina",
+      "isFree": true,
+      "website": "https://weukraine.tv/",
+      "priority": 5
+    },
+    {
+      "name": "NASH",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Obozrevatel",
+      "isFree": true,
+      "website": "https://www.obozrevatel.com/tv",
+      "priority": 5
+    },
+    {
+      "name": "Obshchestvennoe Nezavisimoe Televidenie",
+      "isFree": true,
+      "website": "https://www.onttv.com.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Odesa",
+      "isFree": true,
+      "website": "https://novyny.live/odessa",
+      "priority": 5
+    },
+    {
+      "name": "Pershiy Nezalezhniy",
+      "isFree": true,
+      "website": "http://pnk.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Pershiy XTV Media",
+      "isFree": true,
+      "website": "https://trk1tv.xtvmedia.pp.ua/",
+      "priority": 5
+    },
+    {
+      "name": "PTV",
+      "isFree": true,
+      "website": "https://ptv.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Reporter",
+      "isFree": true,
+      "website": "https://reporter.od.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Suspilne",
+      "isFree": true,
+      "website": "https://suspilne.media/",
+      "priority": 5
+    },
+    {
+      "name": "Ternopil",
+      "isFree": true,
+      "website": "http://ternopil1.com",
+      "priority": 5
+    },
+    {
+      "name": "TSN",
+      "isFree": true,
+      "website": "https://tsn.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Ukraine World News",
+      "isFree": true,
+      "website": "https://uworld.news/",
+      "priority": 5
+    },
+    {
+      "name": "Ukr Live",
+      "isFree": true,
+      "website": "https://ukrlive.tv/",
+      "priority": 5
+    },
+    {
+      "name": "digital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "satellite",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Music Box",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "8",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Eko",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pershyi Avtomobilny",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nadiya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PORT MONE",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Discovery",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "TLC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "National Geographic",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Nat Geo Wild",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Da Vinci Learning",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Deutsche Welle",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTV Global",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nickelodeon Global",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nick Jr",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nicktoons",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AMC Networks",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "FX",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "FX Life",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kyiv 24 news",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ATR",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lale",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Grad TV Odesa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ukrinform",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Petro Poroshenko",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dmytro Firtash",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rinat Akhmetov",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Viktor Medvedchuk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Petro Dyminskyi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ihor Kolomoisky",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Andriy Sadovyi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Yevheniy Murayev",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Andrew Wilson",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "1,1 Marathon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "1,1 Media Group",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Inter",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ICTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NTN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TET",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Inter Media Group",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "STB",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zoom",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mega",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "5 kanal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Megogo Sport",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "M",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "1951: Marks the beginning of the modern era of Ukrainian television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "1952: The first television announcers appeared: Olga Danylenko - Elena Nikolaeva - and Novella Serpionova",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "1956: Launch of the first news broadcasts and the formation of the Kyiv Experimental Television Theater",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "1965: Introduction of the \"UT\" brand and establishment of a unified republican television service with UT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "1972: Launch of UT 2 television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "1976: Launch of UT 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "1980: Introduction of portable Betacam video equipment for field journalism",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "1991: Formation of the State TV and Radio Company of Ukraine following the country’s independence",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "2008: NTKU initiated internet broadcasting of its programming",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "April 7.2015: Enactment of legislation establishing public broadcasting in Ukraine",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "English Club",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kvartal TV International",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "К1",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Enter фильм",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "News One",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ZIK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pro Все",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cine, Mix",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Travel": [
+    {
+      "name": "BamBarBia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Travel Guide",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "EWTN Ukraine",
+      "isFree": true,
+      "website": "https://ewtn.org.ua/",
+      "priority": 4
+    },
+    {
+      "name": "Glas",
+      "isFree": true,
+      "website": "https://glas.org.ua/",
+      "priority": 4
+    },
+    {
+      "name": "Hope Channel Ukraine",
+      "isFree": true,
+      "website": "https://tv.hope.ua/",
+      "priority": 4
+    },
+    {
+      "name": "Novyi khrystyianskyi",
+      "isFree": true,
+      "website": "https://www.nc-tv.tv/",
+      "priority": 4
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Cine, Kids",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Audio stories",
+      "isFree": true,
+      "keywords": "ks tv | audio stories",
+      "website": "https://tv.kyivstar.ua/en/live-channels/61c48647b054c5945df39c44-ks-tv-audio-stories",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Kids",
+      "isFree": true,
+      "keywords": "ks tv | kids -planet | kids",
+      "website": "https://tv.kyivstar.ua/en/live-channels/5fc642585414554c17e4cb9e-ks-tv-kids-hd",
+      "priority": 5,
+      "_altWebsites": [
+        "https://tv.kyivstar.ua/en/live-channels/64d60202e4b02862812bdf7a-ks-tv-kids"
+      ]
+    },
+    {
+      "name": "KS TV - Kids Planet",
+      "isFree": true,
+      "keywords": "ks tv | kids planet",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64d602eee4b0286281387875-ks-tv-kids-planet",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Ninja Turtles",
+      "isFree": true,
+      "keywords": "ks tv | ninja turtles",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64f877b4e4b0a1c5df0f1a00-ks-tv-ninja-turtles",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Paramount, Kids",
+      "isFree": true,
+      "keywords": "ks tv | paramount kids",
+      "website": "https://tv.kyivstar.ua/en/live-channels/611ba845f51485075a2b4ff3-ks-tv-paramount-kids",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Paw Patrol",
+      "isFree": true,
+      "keywords": "ks tv | paw patrol",
+      "website": "https://tv.kyivstar.ua/en/live-channels/60f582e8d0348f88859cec49-ks-tv-paw-patrol-hd",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - SpongeBob",
+      "isFree": true,
+      "keywords": "ks tv | spongebob",
+      "website": "https://tv.kyivstar.ua/en/live-channels/60f580e1d0348f88859bda69-ks-tv-sponge-bob-hd",
+      "priority": 5
+    },
+    {
+      "name": "Malyatko",
+      "isFree": true,
+      "website": "http://malyatko-tv.com.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Nickelodeon Ukraine Pluto",
+      "isFree": true,
+      "website": "https://pluto.tv/en/live-tv/nick-ukraine-de",
+      "priority": 5
+    },
+    {
+      "name": "Niki Junior",
+      "isFree": true,
+      "website": "http://niki.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Niki Kids",
+      "isFree": true,
+      "website": "http://niki.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Pixel",
+      "isFree": true,
+      "website": "http://pixelua.tv/",
+      "priority": 5
+    },
+    {
+      "name": "PLUSPLUS",
+      "isFree": true,
+      "website": "http://www.plus-plus.tv/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Sport",
+      "priority": 10
+    },
+    {
+      "name": "Dynamo Kyiv",
+      "isFree": true,
+      "website": "http://video.fcdynamo.kiev.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Equalympic",
+      "isFree": true,
+      "website": "https://equalympic.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Football Hub",
+      "isFree": true,
+      "website": "https://footballhub.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Futbol",
+      "isFree": true,
+      "website": "https://footballua.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Futbol 2",
+      "isFree": true,
+      "website": "https://footballua.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Futbol 3",
+      "isFree": true,
+      "website": "https://footballua.tv/",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Football",
+      "isFree": true,
+      "keywords": "ks tv | football",
+      "website": "https://tv.kyivstar.ua/en/live-channels/644108bd7334922adf61c060-ks-tv-football",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Sport",
+      "isFree": true,
+      "keywords": "ks tv | sport",
+      "website": "https://tv.kyivstar.ua/en/live-channels/603539d5fe34f89e3586aa9a-ks-tv-sport-hd",
+      "priority": 10
+    },
+    {
+      "name": "KS TV - UPL",
+      "isFree": true,
+      "keywords": "ks tv | upl 1",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64c3b25f6fb4afb0e0d4fcde-ks-tv-upl-1",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - UPL 2",
+      "isFree": true,
+      "keywords": "ks tv | upl 2",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64c3b4096fb4afb0e0d9116d-ks-tv-upl-2",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - UPL 3",
+      "isFree": true,
+      "keywords": "ks tv | upl 3",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64c3b57b6fb4afb0e0e34ec1-ks-tv-upl-3",
+      "priority": 5
+    },
+    {
+      "name": "Ruh",
+      "isFree": true,
+      "website": "https://ua.tribuna.com/tv/",
+      "priority": 5
+    },
+    {
+      "name": "Setanta Sports, Ukraine",
+      "isFree": true,
+      "website": "https://setantasports.com/uk/",
+      "priority": 10,
+      "_altWebsites": [
+        "https://www.setanta.com.ua/"
+      ]
+    },
+    {
+      "name": "Shakhtar",
+      "isFree": true,
+      "website": "https://https//video.shakhtar.com/ru/shakhtartv",
+      "priority": 5
+    },
+    {
+      "name": "Sport 1 Baltic",
+      "isFree": true,
+      "website": "https://www.poverkhnost.tv/pages/index.php?c=10&s=152",
+      "priority": 10
+    },
+    {
+      "name": "Sport 2",
+      "isFree": true,
+      "keywords": "sport 2 -baltic",
+      "website": "https://www.poverkhnost.tv/pages/index.php?c=10&s=121",
+      "priority": 10
+    },
+    {
+      "name": "Sport 2 Baltic",
+      "isFree": true,
+      "website": "https://www.poverkhnost.tv/pages/index.php?c=10&s=125",
+      "priority": 10
+    },
+    {
+      "name": "Sport 3",
+      "isFree": true,
+      "website": "https://www.poverkhnost.tv/pages/index.php?c=10&s=161",
+      "priority": 10
+    },
+    {
+      "name": "Sport 4",
+      "isFree": true,
+      "website": "https://www.poverkhnost.tv/pages/index.php?c=10&s=124",
+      "priority": 10
+    },
+    {
+      "name": "XSport",
+      "isFree": true,
+      "website": "http://www.bighockey.ua/",
+      "priority": 10
+    },
+    {
+      "name": "XSport,",
+      "isFree": true,
+      "website": "http://www.bighockey.ua/",
+      "priority": 10
+    }
+  ],
+  "Local": [
+    {
+      "name": "TV7,",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "1 Krivoy Rog",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "1 Odessa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "34 Kanal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "7 Kanal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "A1 Odessa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Arhat TB",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BTB",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CNL Europa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Centralnyi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Che Pe Info",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Chernivtsi Promin",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Current Time",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Donezk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Duma",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EWTN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GIT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HTH",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HTK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hope",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "IHTEP",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Izmail",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "K",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kratu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Krim 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Micto",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Millet",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MostVideo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NTA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Olvia Sat Odessa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Orbita",
+      "isFree": true,
+      "website": "http://orbita.dn.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Pershiy Zakhidniy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Perviy Delovoy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Perviy Gorodskoy Krivoy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Perviy Gorodskoy Odessa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pravda TYT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pryamyi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Renome",
+      "isFree": true,
+      "website": "https://www.mediaholding100.com/",
+      "priority": 5
+    },
+    {
+      "name": "Reportior Odessa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rudana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Simon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Skrypin",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Svarogichi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TBN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TIS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 5 Zaporozhye",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 5",
+      "isFree": true,
+      "keywords": "tv 5 -zaporozhye | tv5",
+      "shortName": "TV 5",
+      "priority": 5
+    },
+    {
+      "name": "TVA Czernowitz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Treti Cifrovoj",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Trofey",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UATV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Yuzhnaya Volna",
+      "isFree": true,
+      "website": "http://volnatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Z Zaporozhye",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zdorovood TV Odessa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "1,1 International",
+      "isFree": true,
+      "website": "https://1plus1.international/",
+      "priority": 5
+    },
+    {
+      "name": "1,1 Marafon",
+      "isFree": true,
+      "website": "https://1plus1.ua/",
+      "priority": 5
+    },
+    {
+      "name": "1,1 Ukraina",
+      "isFree": true,
+      "website": "https://1plus1.ua/",
+      "priority": 5
+    },
+    {
+      "name": "2,2 Marathon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "4ever Theater",
+      "isFree": true,
+      "website": "https://lanet.tv/channels/4ever_theater/",
+      "priority": 5
+    },
+    {
+      "name": "6 sotok",
+      "isFree": true,
+      "website": "https://inter.ua/en/6-sotok",
+      "priority": 5
+    },
+    {
+      "name": "A1 Odesa",
+      "isFree": true,
+      "website": "https://a1online.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Arhat",
+      "isFree": true,
+      "website": "https://arhat.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Avers",
+      "isFree": true,
+      "website": "https://www.volynnews.com/avers/",
+      "priority": 5
+    },
+    {
+      "name": "Avtoradio Ukraine",
+      "isFree": true,
+      "website": "http://avtoradio.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Balta",
+      "isFree": true,
+      "website": "http://balta.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Bigudi",
+      "isFree": true,
+      "website": "https://biguditv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Black Sea",
+      "isFree": true,
+      "website": "https://blackseatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Channel 11",
+      "isFree": true,
+      "website": "https://11tv.dp.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Channel 12",
+      "isFree": true,
+      "website": "https://12kanal.com/",
+      "priority": 5
+    },
+    {
+      "name": "Channel 34",
+      "isFree": true,
+      "website": "https://34.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Channel 7 Ukraine",
+      "isFree": true,
+      "website": "https://7kanal.com.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Channel 8",
+      "isFree": true,
+      "website": "http://8tv.com.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Comedy Central",
+      "isFree": true,
+      "website": "https://paramountcomedy.com.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Continent E",
+      "isFree": true,
+      "website": "https://viasat.com.ua/channel/continent_e",
+      "priority": 5
+    },
+    {
+      "name": "Dacha",
+      "isFree": true,
+      "website": "https://korysnetv.com/telekanaly/dacha",
+      "priority": 5
+    },
+    {
+      "name": "DIM",
+      "isFree": true,
+      "website": "https://kanaldom.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Dnipro",
+      "isFree": true,
+      "website": "https://dnipro.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Donbass",
+      "isFree": true,
+      "keywords": "donbass -online",
+      "website": "http://www.donbass.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Epoque",
+      "isFree": true,
+      "website": "https://korysnetv.com/telekanaly/epokha",
+      "priority": 5
+    },
+    {
+      "name": "Fashion",
+      "isFree": true,
+      "website": "http://www.fashiontv.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Film TV Kinder",
+      "isFree": true,
+      "website": "https://catcast.tv/film-tvhd",
+      "priority": 5
+    },
+    {
+      "name": "Galychyna",
+      "isFree": true,
+      "website": "https://galtv.if.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Genuine",
+      "isFree": true,
+      "website": "https://gen-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "HDFASHION & LifeStyle",
+      "isFree": true,
+      "website": "https://hdfashion.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Herson Plyus",
+      "isFree": true,
+      "website": "https://khersontv.com/",
+      "priority": 5
+    },
+    {
+      "name": "HTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ICTV 2",
+      "isFree": true,
+      "website": "https://ictv.ua/ictv2/",
+      "priority": 5
+    },
+    {
+      "name": "Inshiy",
+      "isFree": true,
+      "website": "https://inshiy.com.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Inter,",
+      "isFree": true,
+      "website": "http://interplus.ua/",
+      "priority": 5
+    },
+    {
+      "name": "INTV",
+      "isFree": true,
+      "website": "https://intb.te.ua/",
+      "priority": 5
+    },
+    {
+      "name": "IRT",
+      "isFree": true,
+      "website": "https://www.irt.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Islandia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ITV",
+      "isFree": true,
+      "website": "https://itvmg.com/tv",
+      "priority": 5
+    },
+    {
+      "name": "K 2",
+      "isFree": true,
+      "website": "http://k2.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Karavan",
+      "isFree": true,
+      "website": "https://www.caravan-tv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Above the clouds",
+      "isFree": true,
+      "keywords": "ks tv | above the clouds relax",
+      "website": "https://tv.kyivstar.ua/en/live-channels/611d0c84f51485075ae81121-ks-tv-clouds-relax",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Air",
+      "isFree": true,
+      "keywords": "ks tv | air relax",
+      "website": "https://tv.kyivstar.ua/en/live-channels/611d09c4f51485075ae5d183-ks-tv-air-relax",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Animals",
+      "isFree": true,
+      "keywords": "ks tv | animals relax",
+      "website": "https://tv.kyivstar.ua/en/live-channels/611d0d69f51485075ae8dc9c-ks-tv-animals-relax",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Aquarium",
+      "isFree": true,
+      "keywords": "ks tv | aquarium relax",
+      "website": "https://tv.kyivstar.ua/en/live-channels/611d07c9f51485075ae46a9b-ks-tv-aquarium-relax",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Bar Duck",
+      "isFree": true,
+      "keywords": "ks tv | bar duck",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64c0d02ac394fe566c1fdfae-ks-tv-bar-duck",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Beach",
+      "isFree": true,
+      "keywords": "ks tv | beach relax",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Brilliant",
+      "isFree": true,
+      "keywords": "ks tv | brilliant",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64d6014ee4b02862812bba62-ks-tv-brilliant",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Charmed",
+      "isFree": true,
+      "keywords": "ks tv | charmed",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Comedy",
+      "isFree": true,
+      "keywords": "ks tv | comedy -series | comedy",
+      "website": "https://tv.kyivstar.ua/en/live-channels/5f99574855b4a5677105b49e-ks-tv-comedy-hd",
+      "priority": 5,
+      "_altWebsites": [
+        "https://tv.kyivstar.ua/en/live-channels/6425bcbc6e1448e07191cb7b-ks-tv-comedy-hd"
+      ]
+    },
+    {
+      "name": "KS TV - Comedyland",
+      "isFree": true,
+      "keywords": "ks tv | comedyland",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64d5fc8ae4b028628122256f-ks-tv-comedyland",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Comedy Series",
+      "isFree": true,
+      "keywords": "ks tv | comedy series",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64c0c9f6c394fe566c16768e-ks-tv-comedy-series",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Cop Wars",
+      "isFree": true,
+      "keywords": "ks tv | cop wars",
+      "website": "https://tv.kyivstar.ua/en/live-channels/6493029e8b94b9c41a08beda-ks-tv-cop-wars",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Crime",
+      "isFree": true,
+      "keywords": "ks tv | crime",
+      "website": "https://tv.kyivstar.ua/en/live-channels/633458df50347fd195aeeb37-ks-tv-crime-hd",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Crimean bridge it's over",
+      "isFree": true,
+      "keywords": "ks tv | crimean bridge it s over",
+      "website": "https://tv.kyivstar.ua/en/live-channels/634155b445b4e86497aa384f-ks-tv-crimean-bridge-its-over",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Culinary",
+      "isFree": true,
+      "keywords": "ks tv | culinary",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64f83591e4b0a1c5db131360-ks-tv-culinary",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Detective",
+      "isFree": true,
+      "keywords": "ks tv | detective",
+      "website": "https://tv.kyivstar.ua/en/live-channels/60f57a58d0348f888597bae9-ks-tv-detective-hd",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Doctors' hearts",
+      "isFree": true,
+      "keywords": "ks tv | doctors hearts",
+      "website": "https://tv.kyivstar.ua/en/live-channels/646df4f5e4b0f13e55a40d2f-ks-tv-doctors-hearts",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Dorama,",
+      "isFree": true,
+      "keywords": "ks tv | dorama",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64b90aeee4b071015a3d08b2-ks-tv-dorama-hd",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Drama",
+      "isFree": true,
+      "keywords": "ks tv | drama",
+      "website": "https://tv.kyivstar.ua/en/live-channels/60a7807d72f48fe0cd655927-ks-tv-drama-hd",
+      "priority": 5,
+      "_altWebsites": [
+        "https://tv.kyivstar.ua/en/live-channels/64e5f87646744d662a28159f-ks-tv-drama"
+      ]
+    },
+    {
+      "name": "KS TV - Drama,",
+      "isFree": true,
+      "keywords": "ks tv | drama",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64e5f87646744d662a28159f-ks-tv-drama",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - El secreto de Puente Viejo",
+      "isFree": true,
+      "keywords": "ks tv | el secreto de puente viejo",
+      "website": "https://tv.kyivstar.ua/en/live-channels/636a58801774ee006e1a03ac-ks-tv-el-secreto-de-puente-viejo",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Family",
+      "isFree": true,
+      "keywords": "ks tv | family -dramas",
+      "website": "https://tv.kyivstar.ua/en/live-channels/60a7816172f48fe0cd659ddb-ks-tv-family-hd",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Family Dramas",
+      "isFree": true,
+      "keywords": "ks tv | family dramas",
+      "website": "https://tv.kyivstar.ua/en/live-channels/6492fae38b94b9c419a4aa41-ks-tv-family-dramas",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Fantasy Art",
+      "isFree": null,
+      "keywords": "ks tv | fantasy art",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Fire",
+      "isFree": true,
+      "keywords": "ks tv | fire relax",
+      "website": "https://tv.kyivstar.ua/en/live-channels/611d0bcaf51485075ae7bbda-ks-tv-fire-relax",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Horror",
+      "isFree": true,
+      "keywords": "ks tv | horror",
+      "website": "https://tv.kyivstar.ua/en/live-channels/5fc63d815414554c17e49002-ks-tv-horror-hd",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Hot Films",
+      "isFree": null,
+      "keywords": "ks tv | hot films",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Humor,",
+      "isFree": true,
+      "keywords": "ks tv | humor",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64e5fd4e46744d662a50a976-ks-tv-humor",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Kremlin is on fire",
+      "isFree": true,
+      "keywords": "ks tv | kremlin is on fire",
+      "website": "https://tv.kyivstar.ua/en/live-channels/6304e56c32f43b289c680992-ks-tv-kremlin-is-on-fire",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Language travel",
+      "isFree": true,
+      "keywords": "ks tv | language travel",
+      "website": "https://tv.kyivstar.ua/en/live-channels/62961cdfa4f4e57c03440c51-ks-tv-language-travel",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - LEGO",
+      "isFree": true,
+      "keywords": "ks tv | lego",
+      "website": "https://tv.kyivstar.ua/en/live-channels/62fa02a618f45f37f1c11b8d-ks-tv-lego",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Lesbian Love",
+      "isFree": null,
+      "keywords": "ks tv | lesbian love",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Lullaby",
+      "isFree": true,
+      "keywords": "ks tv | lullaby relax",
+      "website": "https://tv.kyivstar.ua/en/live-channels/611d0e29f51485075ae8e50a-ks-tv-lullaby-relax",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Melodrama",
+      "isFree": true,
+      "keywords": "ks tv | melodrama",
+      "website": "https://tv.kyivstar.ua/en/live-channels/60f57eaad0348f88859a8eeb-ks-tv-melodrama-hd",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Mystic",
+      "isFree": true,
+      "keywords": "ks tv | mystic",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64aeb7b5e4b07101483f8e18-ks-tv-mystic",
+      "priority": 5,
+      "_altWebsites": [
+        "https://tv.kyivstar.ua/en/live-channels/64e5f1f446744d662a0b80c2-ks-tv-mystic"
+      ]
+    },
+    {
+      "name": "KS TV - Mystic,",
+      "isFree": true,
+      "keywords": "ks tv | mystic",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64e5f1f446744d662a0b80c2-ks-tv-mystic",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Our victory",
+      "isFree": true,
+      "keywords": "ks tv | our victory",
+      "website": "https://tv.kyivstar.ua/en/live-channels/6345522e355453e1e3139e39-ks-tv-our-victory",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Reality,",
+      "isFree": true,
+      "keywords": "ks tv | reality",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64e6006546744d662a6e6353-ks-tv-reality",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Secret 18,",
+      "isFree": null,
+      "keywords": "ks tv | secret 18",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Show",
+      "isFree": true,
+      "keywords": "ks tv | show",
+      "website": "https://tv.kyivstar.ua/en/live-channels/60353a84fe34f89e3586b17c-ks-tv-show-hd",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Space",
+      "isFree": true,
+      "keywords": "ks tv | space relax",
+      "website": "https://tv.kyivstar.ua/en/live-channels/644a18bff8f476b40042739f-ks-tv-space-relax",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Team,",
+      "isFree": true,
+      "keywords": "ks tv | team",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64e5b20c6fb4afb023b742eb-ks-tv-team",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - The Cop On Call",
+      "isFree": true,
+      "keywords": "ks tv | the cop on call",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64f83902e4b0a1c5db44272d-ks-tv-the-cop-on-call",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - The Dog",
+      "isFree": true,
+      "keywords": "ks tv | the dog",
+      "website": "https://tv.kyivstar.ua/en/live-channels/6400841a89b440f696275f7c-ks-tv-the-dog",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - The Lady and the Peasant",
+      "isFree": true,
+      "keywords": "ks tv | the lady and the peasant",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64b907ede4b071015a34cc2f-ks-tv-the-lady-and-the-peasant",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - The Lost World",
+      "isFree": true,
+      "keywords": "ks tv | the lost world",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64f87802e4b0a1c5df130154-ks-tv-the-lost-world",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - The whole country is talking",
+      "isFree": true,
+      "keywords": "ks tv | the whole country is talking",
+      "website": "https://tv.kyivstar.ua/en/live-channels/648adbe1e4b03140695bf056-ks-tv-the-whole-country-is-talking",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - The world inside out",
+      "isFree": true,
+      "keywords": "ks tv | the world inside out",
+      "website": "https://tv.kyivstar.ua/en/live-channels/5fd36b545414fee0a809cc16-ks-tv-the-world-inside-out-hd",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Warrior",
+      "isFree": true,
+      "keywords": "ks tv | warrior",
+      "website": "https://tv.kyivstar.ua/en/live-channels/62961a74a4f4e57c0343ca1a-ks-tv-warrior",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Waterfall",
+      "isFree": true,
+      "keywords": "ks tv | waterfall relax",
+      "website": "https://tv.kyivstar.ua/en/live-channels/611d100ff51485075aebcf58-ks-tv-waterfall-relax",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Water",
+      "isFree": true,
+      "keywords": "ks tv | water relax",
+      "website": "https://tv.kyivstar.ua/en/live-channels/611bc98ffeb4c2e51c22054f-ks-tv-water-relax",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - ZooSweet",
+      "isFree": true,
+      "keywords": "ks tv | zoosweet",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64c0cc90c394fe566c167cd6-ks-tv-zoosweet",
+      "priority": 5
+    },
+    {
+      "name": "Kus Kus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kvartal",
+      "isFree": true,
+      "website": "http://kvartaltv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Lanet",
+      "isFree": true,
+      "website": "https://lanet.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Lugansk 24",
+      "isFree": true,
+      "website": "https://www.gtrklnr.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mason",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Milady Television",
+      "isFree": true,
+      "website": "https://www.milady-tv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Misto,",
+      "isFree": true,
+      "website": "https://irt.pl.ua/",
+      "priority": 5
+    },
+    {
+      "name": "MTM",
+      "isFree": true,
+      "website": "https://tvmtm.online/#",
+      "priority": 5
+    },
+    {
+      "name": "Nauka",
+      "isFree": true,
+      "website": "http://nauka-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "NLO",
+      "isFree": true,
+      "website": "https://nlotv.com/ua/",
+      "priority": 5
+    },
+    {
+      "name": "Nobel",
+      "isFree": true,
+      "website": "https://noble.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Novyi",
+      "isFree": true,
+      "website": "https://novy.tv/",
+      "priority": 5
+    },
+    {
+      "name": "NTK",
+      "isFree": true,
+      "website": "https://www.ntktv.ua/",
+      "priority": 5
+    },
+    {
+      "name": "One Planet",
+      "isFree": true,
+      "website": "https://www.oneplanetnetwork.org/countries/europe-and-central-asia/ukraine",
+      "priority": 5
+    },
+    {
+      "name": "OTSE",
+      "isFree": true,
+      "website": "http://www.otsetv.ua/",
+      "priority": 5
+    },
+    {
+      "name": "OTV",
+      "isFree": true,
+      "website": "http://o-tv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Pershyi",
+      "isFree": true,
+      "keywords": "pershyi -avtomobilnyi -zahidnyi",
+      "website": "https://tv.suspilne.media/",
+      "priority": 5
+    },
+    {
+      "name": "Pershyi avtomobilnyi",
+      "isFree": true,
+      "website": "http://1auto.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Pershyi Zahidnyi",
+      "isFree": true,
+      "website": "https://1zahid.com/",
+      "priority": 5
+    },
+    {
+      "name": "Pervyy gorodskoy",
+      "isFree": true,
+      "website": "https://one.kr.ua/",
+      "priority": 5
+    },
+    {
+      "name": "PravdaTUT",
+      "isFree": true,
+      "keywords": "pravdatut -lviv",
+      "website": "http://pravdatut.ua/",
+      "priority": 5
+    },
+    {
+      "name": "PravdaTUT Lviv",
+      "isFree": true,
+      "website": "https://pravdatutnews.com/",
+      "priority": 5
+    },
+    {
+      "name": "Priamyi",
+      "isFree": true,
+      "website": "https://prm.ua/",
+      "priority": 5
+    },
+    {
+      "name": "ProUA",
+      "isFree": true,
+      "website": "https://4channel.com.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Provence",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Quiz",
+      "isFree": true,
+      "website": "https://www.poverkhnost.tv/pages/index.php?c=10&s=153",
+      "priority": 5
+    },
+    {
+      "name": "Rada",
+      "isFree": true,
+      "website": "http://www.rada.gov.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Rivne",
+      "isFree": true,
+      "website": "https://rivne1.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Rybalka",
+      "isFree": true,
+      "website": "https://rybalka.net.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Salt",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sfera",
+      "isFree": true,
+      "website": "http://sfera-tv.com.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Sonata",
+      "isFree": true,
+      "website": "http://sonata.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Super,",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Svarozhychy",
+      "isFree": true,
+      "website": "https://svarozhichi.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Svitlo",
+      "isFree": true,
+      "website": "https://korysnetv.com/telekanaly/epokha",
+      "priority": 5
+    },
+    {
+      "name": "Telekanal RAI",
+      "isFree": true,
+      "website": "https://rai.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Televsesvit",
+      "isFree": true,
+      "website": "http://www.televsesvit.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Terra",
+      "isFree": true,
+      "website": "https://terra-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tretiy Cifrovoy",
+      "isFree": true,
+      "website": "http://tretiy.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TRK Aleks",
+      "isFree": true,
+      "website": "http://alexua.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TRK Ildana",
+      "isFree": true,
+      "website": "https://ildana.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TRK Krug",
+      "isFree": true,
+      "website": "https://krug.com.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Trofei",
+      "isFree": true,
+      "website": "http://trofey.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV21 Ungvar",
+      "isFree": true,
+      "website": "http://tv21ungvar.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TVA",
+      "isFree": true,
+      "keywords": "tva -czernowitz",
+      "website": "https://tva.ua/",
+      "priority": 5
+    },
+    {
+      "name": "TV Dom",
+      "isFree": true,
+      "website": "https://tvdom.ua/",
+      "priority": 5
+    },
+    {
+      "name": "TVIQ",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UA Fashion",
+      "isFree": true,
+      "website": "https://www.fashiontv.com.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Ukraina 24",
+      "isFree": true,
+      "website": "https://ukraine24.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Ukraine",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ukraine 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UNIAN",
+      "isFree": true,
+      "website": "https://www.unian.net/",
+      "priority": 5
+    },
+    {
+      "name": "Viasat Explore",
+      "isFree": true,
+      "website": "https://viasat.com.ua/channel/viasat_explorer",
+      "priority": 5
+    },
+    {
+      "name": "Viasat Kino Comedy",
+      "isFree": true,
+      "website": "https://viasat.com.ua/channel/ViasatKinoComedy",
+      "priority": 5
+    },
+    {
+      "name": "Viasat Nature",
+      "isFree": true,
+      "website": "https://viasat.com.ua/channel/nature_hd",
+      "priority": 5
+    },
+    {
+      "name": "VITA",
+      "isFree": true,
+      "website": "http://vitatv.com.ua/",
+      "priority": 5
+    },
+    {
+      "name": "VTV Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zoryanyy",
+      "isFree": true,
+      "website": "https://zoryanyy.tv/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "ID Fashion",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Odessa Fashion",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Akademiya",
+      "isFree": true,
+      "website": "http://ak.od.ua/",
+      "priority": 5
+    },
+    {
+      "name": "Chemodan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Fauna",
+      "isFree": true,
+      "website": "http://www.fauna-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Indigo",
+      "isFree": true,
+      "website": "https://indigotv.com.ua/",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Documentary",
+      "isFree": true,
+      "keywords": "ks tv | documentary",
+      "website": "https://tv.kyivstar.ua/en/live-channels/5fc63f265414554c17e4938f-ks-tv-documentary-hd",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Education",
+      "isFree": true,
+      "keywords": "ks tv | education",
+      "website": "https://tv.kyivstar.ua/en/live-channels/63ca79c81c540dfd195989a7-ks-tv-education",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - History,",
+      "isFree": true,
+      "keywords": "ks tv | history",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64e5bc90e4b01e556c0af0cd-ks-tv-history",
+      "priority": 7
+    },
+    {
+      "name": "KS TV - Lives Of Famous People",
+      "isFree": true,
+      "keywords": "ks tv | lives of famous people",
+      "website": "https://tv.kyivstar.ua/en/live-channels/6492f7f08b94b9c41993be28-ks-tv-lives-of-famous-people",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Our Ukraine",
+      "isFree": true,
+      "keywords": "ks tv | our ukraine",
+      "website": "https://tv.kyivstar.ua/en/live-channels/60cb4abc59d4b53c1de8cbc5-ks-tv-our-ukraine",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Wild angel",
+      "isFree": true,
+      "keywords": "ks tv | wild angel",
+      "website": "https://tv.kyivstar.ua/en/live-channels/62961759a4f4e57c03410885-ks-tv-wild-angel",
+      "priority": 5
+    },
+    {
+      "name": "National Geographic Wild",
+      "isFree": true,
+      "website": "http://natgeotv.com/ua/wild",
+      "priority": 7
+    },
+    {
+      "name": "Viasat History",
+      "isFree": true,
+      "website": "https://viasat.com.ua/channel/viasat_history",
+      "priority": 7
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "M 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "4ever Music",
+      "isFree": true,
+      "website": "https://lanet.tv/channels/4ever_music/",
+      "priority": 5
+    },
+    {
+      "name": "Black",
+      "isFree": true,
+      "keywords": "black -sea -tv",
+      "priority": 5
+    },
+    {
+      "name": "ETNO kanal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EU Music",
+      "isFree": true,
+      "website": "http://rumusic.tv/",
+      "priority": 5
+    },
+    {
+      "name": "InRating",
+      "isFree": true,
+      "website": "https://www.inrating.ua/",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Concert",
+      "isFree": true,
+      "keywords": "ks tv | concert",
+      "website": "https://tv.kyivstar.ua/en/live-channels/5fd36a935414fee0a809c916-ks-tv-concert-hd",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - The Voice of the Country",
+      "isFree": true,
+      "keywords": "ks tv | the voice of the country",
+      "website": "https://tv.kyivstar.ua/en/live-channels/6035381dfe34f89e3586a630-ks-tv-the-voice-of-the-country-hd",
+      "priority": 5
+    },
+    {
+      "name": "Lux FM",
+      "isFree": true,
+      "website": "https://lux.fm/",
+      "priority": 5
+    },
+    {
+      "name": "MusicBox Ukraine",
+      "isFree": true,
+      "website": "http://musicboxua.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Muzvar",
+      "isFree": true,
+      "website": "https://muzvar.com/en/contact/",
+      "priority": 5
+    },
+    {
+      "name": "NASHE Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NASHE Retro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "¡Viva Latino!",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Radio Suite",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "4ever Cinema",
+      "isFree": true,
+      "website": "https://lanet.tv/channels/4ever_cinema/",
+      "priority": 5
+    },
+    {
+      "name": "4ever Drama",
+      "isFree": true,
+      "website": "https://lanet.tv/channels/4ever_drama/",
+      "priority": 5
+    },
+    {
+      "name": "Bolt",
+      "isFree": true,
+      "website": "http://bolt.starmediatv.ru/",
+      "priority": 5
+    },
+    {
+      "name": "Cine,",
+      "isFree": true,
+      "keywords": "cine -hit -kids -legend",
+      "website": "https://cineplus.volia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cine, Hit",
+      "isFree": true,
+      "website": "https://cineplus.volia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cine, Legend",
+      "isFree": true,
+      "website": "https://cineplus.volia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Enter Film",
+      "isFree": true,
+      "website": "http://enterfilm.com.ua/",
+      "priority": 5
+    },
+    {
+      "name": "FilmUADrama",
+      "isFree": true,
+      "website": "https://drama.film.ua/",
+      "priority": 5
+    },
+    {
+      "name": "FilmUA Live",
+      "isFree": true,
+      "website": "https://film.ua/ru/live",
+      "priority": 5
+    },
+    {
+      "name": "Hollywood Ukraine",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kino",
+      "isFree": true,
+      "website": "https://www.poverkhnost.tv/pages/index.php?c=10&s=155",
+      "priority": 5
+    },
+    {
+      "name": "Kinoliving",
+      "isFree": true,
+      "website": "https://viasat.com.ua/channel/Kinoliving",
+      "priority": 5
+    },
+    {
+      "name": "Kinowood",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Action",
+      "isFree": true,
+      "keywords": "ks tv | action",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64d60021e4b02862812b970c-ks-tv-action",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Blind Wedding",
+      "isFree": true,
+      "keywords": "ks tv | blind wedding",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Bollywood",
+      "isFree": true,
+      "keywords": "ks tv | bollywood",
+      "website": "https://tv.kyivstar.ua/en/live-channels/650853855194ee6d755fec65-ks-tv-bollywood",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Good cinema",
+      "isFree": true,
+      "keywords": "ks tv | good cinema",
+      "website": "https://tv.kyivstar.ua/en/live-channels/629618e6a4f4e57c0341f679-ks-tv-good-cinema",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Miniseries",
+      "isFree": true,
+      "keywords": "ks tv | miniseries",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64805be7e4b02dcd4a539baa-ks-tv-miniseries",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Our series",
+      "isFree": true,
+      "keywords": "ks tv | our series",
+      "website": "https://tv.kyivstar.ua/en/live-channels/60353b1ffe34f89e3586b513-ks-tv-our-series-hd",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Series",
+      "isFree": true,
+      "keywords": "ks tv | series -about -love",
+      "website": "https://tv.kyivstar.ua/en/live-channels/5fc643105414554c17e4ce62-ks-tv-series-hd",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Series about love",
+      "isFree": true,
+      "keywords": "ks tv | series about love",
+      "website": "https://tv.kyivstar.ua/en/live-channels/632982f766d411c45f59e106-ks-tv-series-about-love",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Spanish series",
+      "isFree": true,
+      "keywords": "ks tv | spanish series",
+      "website": "https://tv.kyivstar.ua/en/live-channels/636274ebb014181fd8828863-ks-tv-spanish-series",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Trailer",
+      "isFree": true,
+      "keywords": "ks tv | trailer",
+      "website": "https://tv.kyivstar.ua/en/live-channels/5f99281055b4a56770ddf089-ks-tv-trailer-hd",
+      "priority": 5
+    },
+    {
+      "name": "KS TV - Wife Swap",
+      "isFree": true,
+      "keywords": "ks tv | wife swap",
+      "website": "https://tv.kyivstar.ua/en/live-channels/6492fc238b94b9c419bc3075-ks-tv-wife-swap",
+      "priority": 5
+    },
+    {
+      "name": "Prokino",
+      "isFree": true,
+      "website": "https://viasat.com.ua/channel/ProKino",
+      "priority": 5
+    },
+    {
+      "name": "Star Cinema",
+      "isFree": true,
+      "website": "http://starcinema.starmediatv.ru/",
+      "priority": 5
+    },
+    {
+      "name": "Viasat Kino",
+      "isFree": true,
+      "keywords": "viasat kino -action -comedy -megahit -world",
+      "website": "https://viasat.com.ua/channel/ViasatKinohd",
+      "priority": 5
+    },
+    {
+      "name": "Viasat Kino Action",
+      "isFree": true,
+      "website": "https://viasat.com.ua/channel/Viasat_Kino_Action",
+      "priority": 5
+    },
+    {
+      "name": "Viasat Kino Megahit",
+      "isFree": true,
+      "website": "https://viasat.com.ua/channel/ViasatKinoMegahit_hd",
+      "priority": 5
+    },
+    {
+      "name": "Viasat Kino World",
+      "isFree": true,
+      "website": "https://viasat.com.ua/channel/ViasatKinoWorld",
+      "priority": 5
+    }
+  ],
+  "Shop": [
+    {
+      "name": "BoutiqueTV",
+      "isFree": true,
+      "website": "https://btq.tv/",
+      "priority": 4
+    },
+    {
+      "name": "BTQ",
+      "isFree": true,
+      "website": "https://gen-tv.com/",
+      "priority": 4
+    },
+    {
+      "name": "KS TV - Shopping Goddess",
+      "isFree": true,
+      "keywords": "ks tv | shopping goddess",
+      "website": "https://tv.kyivstar.ua/en/live-channels/64afa382e4b07101487321b1-ks-tv-shopping-goddess",
+      "priority": 4
+    },
+    {
+      "name": "Natali",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Rozpakui",
+      "isFree": true,
+      "website": "https://rozpakuy.tv/",
+      "priority": 4
+    },
+    {
+      "name": "TUSO",
+      "isFree": true,
+      "website": "https://tuso.ua/",
+      "priority": 4
+    }
+  ],
+  "Added": [
+    {
+      "name": "UA:First",
+      "priority": 5
+    }
+  ]
+}

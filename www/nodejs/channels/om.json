@@ -1,0 +1,61 @@
+{
+  "Religious": [
+    {
+      "name": "Al Istiqama",
+      "isFree": true,
+      "keywords": "al istiqama tv | alistiqama tv",
+      "priority": 4,
+      "website": "http://www.istiqama.tv/"
+    },
+    {
+      "name": "Oman TV",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Oman Sports",
+      "priority": 10
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Oman Althakafia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Oman Live",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Oman",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Majan",
+      "isFree": true,
+      "website": "http://www.majan-tv.com/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Oman TV Cultural",
+      "isFree": true,
+      "website": "http://part.gov.om/part/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Oman TV Mubashir",
+      "isFree": true,
+      "website": "http://part.gov.om/part/",
+      "priority": 5
+    }
+  ]
+}

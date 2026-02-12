@@ -1,0 +1,82 @@
+{
+  "Entertainment": [
+    {
+      "name": "CBC TV 8",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CaribVision",
+      "isFree": true,
+      "website": "https://www.caribvision.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Gone Viral",
+      "isFree": true,
+      "website": "http://www.goneviraltv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Gone Viral Vogue",
+      "isFree": true,
+      "website": "http://www.goneviraltv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Gone Viral X-treme",
+      "isFree": true,
+      "website": "http://www.goneviraltv.com/",
+      "priority": 5
+    },
+    {
+      "name": "MCTV Channel 118",
+      "isFree": true,
+      "website": "https://www.cbc.bb/mctv/",
+      "priority": 5
+    },
+    {
+      "name": "Parliament",
+      "isFree": true,
+      "website": "https://www.barbadosparliament.com/parliament_tv",
+      "priority": 5
+    },
+    {
+      "name": "Trident 10",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Gone Viral Music",
+      "isFree": true,
+      "website": "http://www.goneviraltv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Hitz 106.7 FM",
+      "isFree": true,
+      "website": "https://www.hitzfm106.com/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "RUSH Prime",
+      "isFree": true,
+      "priority": 6
+    },
+    {
+      "name": "RUSH Sports",
+      "isFree": true,
+      "keywords": "rush sports -2",
+      "priority": 10
+    },
+    {
+      "name": "RUSH Sports 2",
+      "isFree": true,
+      "priority": 10
+    }
+  ]
+}

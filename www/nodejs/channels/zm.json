@@ -1,0 +1,317 @@
+{
+  "Entertainment": [
+    {
+      "name": "TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ABN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Astro Television",
+      "isFree": true,
+      "website": "https://astrorixgroup.co.zm/astro-television/",
+      "priority": 5
+    },
+    {
+      "name": "Beats",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BTN-TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bulozi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Camnet",
+      "isFree": true,
+      "website": "https://camnettvafrica.com/",
+      "priority": 5
+    },
+    {
+      "name": "CBC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Chipata",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "City",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Crown",
+      "isFree": true,
+      "website": "https://crowntv.co.zm/",
+      "priority": 5
+    },
+    {
+      "name": "Flava",
+      "isFree": true,
+      "website": "https://flavaradioandtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Fresh",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HOT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ingoma",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KNC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mafken",
+      "isFree": true,
+      "website": "https://mafken.fm/",
+      "priority": 5
+    },
+    {
+      "name": "MOZO",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Muvi Nyimbo",
+      "isFree": true,
+      "website": "https://www.muvitv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Muvi",
+      "isFree": true,
+      "keywords": "muvi tv -2 -sports",
+      "website": "https://www.muvitv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Muvi TV 2",
+      "isFree": true,
+      "website": "https://www.muvitv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Northern Eagle Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "North West",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Parliament",
+      "isFree": true,
+      "website": "http://www.parliament.gov.zm/",
+      "priority": 5
+    },
+    {
+      "name": "Prime",
+      "isFree": true,
+      "priority": 6
+    },
+    {
+      "name": "Q TV Zambia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sun FM",
+      "isFree": true,
+      "website": "https://www.sunfmzambia.net/",
+      "priority": 5
+    },
+    {
+      "name": "Zambian",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zed",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ZNBC TV",
+      "isFree": true,
+      "website": "https://www.znbc.co.zm/tv1/",
+      "priority": 5
+    },
+    {
+      "name": "ZNBC TV 2",
+      "isFree": true,
+      "website": "https://www.znbc.co.zm/tv2/",
+      "priority": 5
+    },
+    {
+      "name": "ZNBC TV 3",
+      "isFree": true,
+      "website": "https://www.znbc.co.zm/tv3/",
+      "priority": 5
+    },
+    {
+      "name": "ZNBC TV 4",
+      "isFree": true,
+      "website": "https://www.znbc.co.zm/tv4/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Africa Unite",
+      "isFree": true,
+      "website": "https://www.africaunitetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Musanza",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Diamond",
+      "isFree": true,
+      "website": "https://diamondtvzambia.com/",
+      "priority": 5
+    },
+    {
+      "name": "KBN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Maluba",
+      "isFree": true,
+      "website": "https://www.malubamedia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Millennium TV Zambia",
+      "isFree": true,
+      "website": "https://www.millenniumtv.news/",
+      "priority": 5
+    },
+    {
+      "name": "ZANIS",
+      "isFree": true,
+      "website": "https://zanis.gov.zm/index.php/zanis-tv/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Edge",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Healing Center",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Hope Channel Zambia",
+      "isFree": true,
+      "website": "http://zambia.hopechannel.de/",
+      "priority": 4
+    },
+    {
+      "name": "Litovia",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Loyola",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Lumen TV-Z",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "NAC 28",
+      "isFree": true,
+      "website": "https://naczam.org.zm/en/",
+      "priority": 4
+    },
+    {
+      "name": "Revelation",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "TBN Zambia",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Muvi Bakadoli",
+      "isFree": true,
+      "website": "https://www.muvitv.com/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Muvi TV Sports",
+      "isFree": true,
+      "website": "https://www.muvitv.com/",
+      "priority": 10
+    },
+    {
+      "name": "Sun Sports",
+      "isFree": true,
+      "priority": 10
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Power",
+      "isFree": true,
+      "website": "https://powertv.powerhousemediazm.com/",
+      "priority": 5
+    },
+    {
+      "name": "Prism Africa",
+      "isFree": true,
+      "website": "http://prismafrica.net/",
+      "priority": 5
+    }
+  ]
+}

@@ -6,7 +6,45 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const debug = process.argv.includes('debug') || process.argv.includes('--inspect');
+const mainBundlePath = path.join(__dirname, '../www/nodejs/dist/main.js');
+
+// Check if bundle exists, if not, build it
+if (!fs.existsSync(mainBundlePath)) {
+    console.log('Bundle not found. Running build...');
+    try {
+        const buildProcess = spawn('npm', ['run', 'prepare'], { stdio: 'inherit', cwd: path.join(__dirname, '..') });
+        await new Promise((resolve, reject) => {
+            buildProcess.on('close', (code) => {
+                if (code === 0) {
+                    resolve();
+                } else {
+                    reject(new Error(`Build failed with code ${code}`));
+                }
+            });
+            buildProcess.on('error', reject);
+        });
+        console.log('Build completed.');
+    } catch (error) {
+        console.error('Failed to build bundle:', error.message);
+        process.exit(1);
+    }
+}
+
+// consider NODE_ENV
+const buildMode = readBuildModeFromBundle(mainBundlePath);
+const debug = buildMode === 'development';
+
+console.log(`Starting Megacubo in ${buildMode} mode...`);
+
+function readBuildModeFromBundle(bundlePath) {
+    try {
+        const content = fs.readFileSync(bundlePath, 'utf8');
+        const match = content.match(/__MEGACUBO_BUILD_MODE__\s*=\s*["'](production|development)["']/);
+        return match ? match[1] : null;
+    } catch (_) {
+        return null;
+    }
+}
 
 async function findElectronExecutable() {
     const relativePaths = [
@@ -47,6 +85,7 @@ async function findElectronExecutable() {
 findElectronExecutable().then(electronPath => {
     if (electronPath) {
         const params = []
+        const buildMode = readBuildModeFromBundle(mainBundlePath);
         if(debug) {
             params.push(...[
                 '--inspect',
@@ -57,7 +96,7 @@ findElectronExecutable().then(electronPath => {
             ])
         }
         const passedParamsOffset = process.argv.findLastIndex(arg => arg.includes('node') || arg.includes('megacubo')) + 1
-        params.push(path.join(__dirname, '../www/nodejs/dist/main.js'));
+        params.push(mainBundlePath);
         if(passedParamsOffset && passedParamsOffset < process.argv.length) {
             params.push('--')
             params.push(...process.argv.slice(passedParamsOffset))
@@ -66,6 +105,20 @@ findElectronExecutable().then(electronPath => {
             detached: true,
             stdio: 'ignore',
         };
+        // Give main process more heap to reduce OOM (env is inherited by Electron)
+        const env = { ...process.env }
+        if (!env.NODE_OPTIONS || !env.NODE_OPTIONS.includes('max-old-space-size')) {
+            env.NODE_OPTIONS = (env.NODE_OPTIONS || '').trim()
+                ? `${env.NODE_OPTIONS} --max-old-space-size=2048`
+                : '--max-old-space-size=2048'
+        }
+        if (buildMode) {
+            env.MEGACUBO_BUILD_MODE = buildMode;
+            if (debug) {
+                console.log(`Build mode: ${buildMode}`);
+            }
+        }
+        opts.env = env
         const child = spawn(electronPath, params, opts);
         if(debug) {                
             child.stdout.on('data', (data) => {

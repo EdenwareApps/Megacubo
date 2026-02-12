@@ -1,0 +1,788 @@
+{
+  "Sports": [
+    {
+      "name": "ORF Sport+",
+      "priority": 10
+    },
+    {
+      "name": "Red Bull",
+      "priority": 5
+    },
+    {
+      "name": "Swamiji",
+      "priority": 5
+    },
+    {
+      "name": "FUEL",
+      "isFree": true,
+      "website": "https://fuel.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Ischgl",
+      "isFree": true,
+      "website": "https://www.ischgl.com/",
+      "priority": 5
+    },
+    {
+      "name": "LAOLA",
+      "isFree": true,
+      "website": "https://www.laola1.at/de/",
+      "priority": 5
+    },
+    {
+      "name": "Paragliding",
+      "isFree": true,
+      "website": "https://www.paragliding.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Sport Austria",
+      "isFree": true,
+      "keywords": "sky sport austria -1 -2 -3 -4 -5 -6 -7 -8",
+      "website": "https://www.sky.at/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport Austria 2",
+      "isFree": true,
+      "website": "https://www.skysportaustria.at/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport Austria 3",
+      "isFree": true,
+      "website": "https://www.skysportaustria.at/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport Austria 4",
+      "isFree": true,
+      "website": "https://www.skysportaustria.at/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport Austria 5",
+      "isFree": true,
+      "website": "https://www.skysportaustria.at/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport Austria 6",
+      "isFree": true,
+      "website": "https://www.skysportaustria.at/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport Austria 7",
+      "isFree": true,
+      "website": "https://www.skysportaustria.at/",
+      "priority": 10
+    },
+    {
+      "name": "The Cycling",
+      "isFree": true,
+      "website": "https://www.streemfire.com/thecyclingchannel",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Antenne Vorarlberg",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kronehit",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Antenne Kaernten",
+      "isFree": true,
+      "website": "https://kaernten.antenne.at/",
+      "priority": 5
+    },
+    {
+      "name": "Antenne Steiermark",
+      "isFree": true,
+      "website": "https://steiermark.antenne.at/",
+      "priority": 5
+    },
+    {
+      "name": "GoTV",
+      "isFree": true,
+      "website": "http://www.gotv.at/",
+      "priority": 5
+    },
+    {
+      "name": "Hitradio O 3",
+      "isFree": true,
+      "website": "http://oe3.orf.at/",
+      "priority": 5
+    },
+    {
+      "name": "Jugoton",
+      "isFree": true,
+      "website": "https://cmc.com.hr/category/jugotontv/",
+      "priority": 5
+    },
+    {
+      "name": "Melodie Express",
+      "isFree": true,
+      "website": "https://www.melodie-express.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Melodie",
+      "isFree": true,
+      "website": "http://www.melodie.tv/",
+      "priority": 5
+    },
+    {
+      "name": "VM1 Sehen",
+      "isFree": true,
+      "website": "https://www.vm1.at/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Der Serienkanal -",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dorf",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Drama -",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "FS1 Salzburg",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Family -",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "K-TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Krone.TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ländle",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "M 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "M4TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ORF",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ORF 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ORF 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "P3tv",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Premium",
+      "priority": 5
+    },
+    {
+      "name": "R 9",
+      "isFree": true,
+      "keywords": "r9",
+      "priority": 5
+    },
+    {
+      "name": "RTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SchauTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Spotlight -",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Teins",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tirol",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UPPERA Community",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Uppera Balkan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "oe 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Abimago",
+      "isFree": true,
+      "website": "https://www.abimagotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "ARF",
+      "isFree": true,
+      "website": "https://www.arf.at/",
+      "priority": 5
+    },
+    {
+      "name": "ATV",
+      "isFree": true,
+      "keywords": "atv -aichfeld",
+      "website": "https://www.atv.at/",
+      "priority": 5
+    },
+    {
+      "name": "ATV 2",
+      "isFree": true,
+      "website": "https://www.atv2.at/",
+      "priority": 5
+    },
+    {
+      "name": "ATV Aichfeld",
+      "isFree": true,
+      "website": "https://www.aitv.at/",
+      "priority": 5
+    },
+    {
+      "name": "Balkan Radio Salzburg",
+      "isFree": true,
+      "website": "https://balkanradiosalzburg.com/",
+      "priority": 5
+    },
+    {
+      "name": "BTV Karnten",
+      "isFree": true,
+      "website": "https://www.btvon.at/",
+      "priority": 5
+    },
+    {
+      "name": "Canal+ First",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Comedy Central",
+      "isFree": true,
+      "website": "http://www.comedycentral.tv/",
+      "priority": 5
+    },
+    {
+      "name": "donau Kanal",
+      "isFree": true,
+      "website": "https://www.donaukanal.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Dreischwestern",
+      "isFree": true,
+      "website": "https://www.ewerke.at/3s-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Ennstal",
+      "isFree": true,
+      "website": "https://ennstal.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Gemeinde",
+      "isFree": true,
+      "website": "https://www.gemeindetv.at/",
+      "priority": 5
+    },
+    {
+      "name": "HiWay",
+      "isFree": true,
+      "website": "http://www.hiway-tv.at/",
+      "priority": 5
+    },
+    {
+      "name": "HT 1 Innviertel",
+      "isFree": true,
+      "website": "https://www.ht1.at/",
+      "priority": 5
+    },
+    {
+      "name": "kabel eins Austria",
+      "isFree": true,
+      "website": "http://www.kabeleins.at/",
+      "priority": 5
+    },
+    {
+      "name": "Kanal 3",
+      "isFree": true,
+      "website": "https://www.kanal3.tv/",
+      "priority": 5
+    },
+    {
+      "name": "KBTV",
+      "isFree": true,
+      "website": "https://www.kbtv.at/",
+      "priority": 5
+    },
+    {
+      "name": "Kitz-TV",
+      "isFree": true,
+      "website": "https://www.kitz-tv.at/",
+      "priority": 5
+    },
+    {
+      "name": "KT",
+      "isFree": true,
+      "website": "https://www.kt1.at/",
+      "priority": 5
+    },
+    {
+      "name": "Landeck",
+      "isFree": true,
+      "website": "https://www.landeck.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Landle",
+      "isFree": true,
+      "website": "https://www.laendletv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Linz-Land",
+      "isFree": true,
+      "website": "https://www.linzland.tv/",
+      "priority": 5
+    },
+    {
+      "name": "LT",
+      "isFree": true,
+      "website": "https://www.lt1.at/",
+      "priority": 5
+    },
+    {
+      "name": "Magenta",
+      "isFree": true,
+      "website": "https://tv.magenta.at/",
+      "priority": 5
+    },
+    {
+      "name": "MemaTV",
+      "isFree": true,
+      "website": "https://mema.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Muhlviertel",
+      "isFree": true,
+      "website": "https://www.muehlviertel.tv/",
+      "priority": 5
+    },
+    {
+      "name": "MurauTV",
+      "isFree": true,
+      "website": "https://www.murautv.at/",
+      "priority": 5
+    },
+    {
+      "name": "NON-N1-TV",
+      "isFree": true,
+      "website": "https://www.n1tv.at/",
+      "priority": 5
+    },
+    {
+      "name": "n-tv",
+      "isFree": true,
+      "website": "https://www.n-tv.de/",
+      "priority": 5
+    },
+    {
+      "name": "Okto",
+      "isFree": true,
+      "keywords": "okto",
+      "website": "http://okto.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ORF 2 Burgenland",
+      "isFree": true,
+      "website": "http://burgenland.orf.at/",
+      "priority": 5
+    },
+    {
+      "name": "ORF 2 Karnten",
+      "isFree": true,
+      "website": "http://kaernten.orf.at/",
+      "priority": 5
+    },
+    {
+      "name": "ORF 2 NO",
+      "isFree": true,
+      "website": "https://noe.orf.at/",
+      "priority": 5
+    },
+    {
+      "name": "ORF 2 Oberosterreich",
+      "isFree": true,
+      "website": "https://ooe.orf.at/",
+      "priority": 5
+    },
+    {
+      "name": "ORF 2 Salzburg",
+      "isFree": true,
+      "website": "http://salzburg.orf.at/",
+      "priority": 5
+    },
+    {
+      "name": "ORF 2 Steiermark",
+      "isFree": true,
+      "website": "http://steiermark.orf.at/",
+      "priority": 5
+    },
+    {
+      "name": "ORF 2 Tirol",
+      "isFree": true,
+      "website": "http://tirol.orf.at/",
+      "priority": 5
+    },
+    {
+      "name": "ORF 2 Vorarlberg",
+      "isFree": true,
+      "website": "http://vorarlberg.orf.at/",
+      "priority": 5
+    },
+    {
+      "name": "ORF 2 Wien",
+      "isFree": true,
+      "website": "http://wien.orf.at/",
+      "priority": 5
+    },
+    {
+      "name": "OTV",
+      "isFree": true,
+      "website": "https://otv.at/",
+      "priority": 5
+    },
+    {
+      "name": "ProSieben Austria",
+      "isFree": true,
+      "website": "http://www.prosieben.at/",
+      "priority": 5
+    },
+    {
+      "name": "ProSieben Maxx Austria",
+      "isFree": true,
+      "website": "https://www.prosiebenmaxx.at/",
+      "priority": 5
+    },
+    {
+      "name": "PTV Vienna",
+      "isFree": true,
+      "website": "https://ptv-vienna.at/",
+      "priority": 5
+    },
+    {
+      "name": "Puls 24",
+      "isFree": true,
+      "website": "https://www.puls4.com/Puls24",
+      "priority": 5
+    },
+    {
+      "name": "Puls 4",
+      "isFree": true,
+      "website": "https://www.puls4.com/",
+      "priority": 5
+    },
+    {
+      "name": "Qufstein.TV",
+      "isFree": true,
+      "website": "https://www.qufstein.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Regional TV Salzburg",
+      "isFree": true,
+      "website": "https://www.rts-salzburg.at/live/",
+      "priority": 5
+    },
+    {
+      "name": "SAT.1 Austria",
+      "isFree": true,
+      "website": "https://www.sat1.at/",
+      "priority": 5
+    },
+    {
+      "name": "SAT.1 Gold Austria",
+      "isFree": true,
+      "website": "https://www.sat1gold.at/",
+      "priority": 5
+    },
+    {
+      "name": "Schladming-Dachstein",
+      "isFree": true,
+      "website": "https://www.schladming-dachstein.at/de/Regionales-und-Angebote/Schladming-Dachstein-TV",
+      "priority": 5
+    },
+    {
+      "name": "sixx Austria",
+      "isFree": true,
+      "website": "http://www.sixx.at/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Sport Austria 8",
+      "isFree": true,
+      "website": "http://sky.de/",
+      "priority": 10
+    },
+    {
+      "name": "Steiermark",
+      "isFree": true,
+      "website": "https://www.steiermark-tv.at/",
+      "priority": 5
+    },
+    {
+      "name": "Stimmungsgarten",
+      "isFree": true,
+      "website": "https://www.stimmungsgarten.tv/livestream",
+      "priority": 5
+    },
+    {
+      "name": "STV1 Regionalfernsehen",
+      "isFree": true,
+      "website": "https://www.stv1.at/",
+      "priority": 5
+    },
+    {
+      "name": "Swamiji TV American",
+      "isFree": true,
+      "website": "https://swamiji.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Swamiji TV Australian",
+      "isFree": true,
+      "website": "https://swamiji.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Swamiji TV European",
+      "isFree": true,
+      "website": "https://swamiji.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TELE 5 Austria",
+      "isFree": true,
+      "website": "https://www.tele5.de/",
+      "priority": 5
+    },
+    {
+      "name": "TLC",
+      "isFree": true,
+      "website": "http://www.tlc.de/",
+      "priority": 5
+    },
+    {
+      "name": "TV 1 Oberosterreich",
+      "isFree": true,
+      "website": "https://tv1.nachrichten.at/",
+      "priority": 5
+    },
+    {
+      "name": "Viyana",
+      "isFree": true,
+      "website": "https://viyanatv.com/canli-izle",
+      "priority": 5
+    },
+    {
+      "name": "VOX",
+      "isFree": true,
+      "website": "https://www.vox.de/",
+      "priority": 5
+    },
+    {
+      "name": "Wachauer Fernsehen",
+      "isFree": true,
+      "website": "https://www.wachauer-fernsehen.at/",
+      "priority": 5
+    },
+    {
+      "name": "Waidwerk-TV",
+      "isFree": true,
+      "website": "https://waidwerk.tv/",
+      "priority": 5
+    },
+    {
+      "name": "WNTV",
+      "isFree": true,
+      "website": "https://www.wntv.at/",
+      "priority": 5
+    },
+    {
+      "name": "WT",
+      "isFree": true,
+      "website": "https://www.wt1.at/",
+      "priority": 5
+    },
+    {
+      "name": "Yu Planet",
+      "isFree": true,
+      "website": "https://yuplanet.at/",
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Hitradio Ö 3",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Action Movies -",
+      "priority": 5
+    },
+    {
+      "name": "Comedy Movies -",
+      "priority": 5
+    },
+    {
+      "name": "ServusTV",
+      "isFree": true,
+      "website": "https://www.servustv.com/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Arcadia World",
+      "isFree": true,
+      "website": "https://at.arcadiatelevision.com/at/",
+      "priority": 5
+    },
+    {
+      "name": "GipsyTv Wien",
+      "isFree": true,
+      "website": "https://gipsytv.com/",
+      "priority": 5
+    },
+    {
+      "name": "kabel eins Doku Austria",
+      "isFree": true,
+      "website": "https://www.kabeleinsdoku.at/",
+      "priority": 5
+    },
+    {
+      "name": "N24 Doku Austria",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ORF 2 Europe",
+      "isFree": true,
+      "website": "https://tv.orf.at/",
+      "priority": 5
+    },
+    {
+      "name": "ORF III",
+      "isFree": true,
+      "website": "http://tv.orf.at/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "eXXpress",
+      "isFree": true,
+      "website": "https://exxpress.at/",
+      "priority": 5
+    },
+    {
+      "name": "Kurier",
+      "isFree": true,
+      "website": "https://kurier.tv/",
+      "priority": 5
+    },
+    {
+      "name": "oe24.TV",
+      "isFree": true,
+      "website": "https://www.oe24.at/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "KIT-TV",
+      "isFree": true,
+      "website": "https://www.kit-tv.at/",
+      "priority": 4
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Nickelodeon Austria",
+      "isFree": true,
+      "website": "http://www.nickelodeon.at/",
+      "priority": 5
+    },
+    {
+      "name": "ORF Kids",
+      "isFree": true,
+      "website": "https://kids.orf.at/",
+      "priority": 5
+    }
+  ]
+}

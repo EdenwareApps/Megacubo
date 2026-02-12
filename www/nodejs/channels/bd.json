@@ -1,0 +1,630 @@
+{
+  "News": [
+    {
+      "name": "ATN News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Channel 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DBC News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ekushey",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Independent",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Jamuna",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "News 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Somoy News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bayanno",
+      "isFree": true,
+      "website": "https://bayanno.com/",
+      "priority": 5
+    },
+    {
+      "name": "Channel T",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CNN Bangla",
+      "isFree": true,
+      "website": "https://cnnbangla.com.bd/",
+      "priority": 5
+    },
+    {
+      "name": "Desh",
+      "isFree": true,
+      "website": "https://www.desh.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Falguni",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Jago News 24",
+      "isFree": true,
+      "website": "https://www.jagonews24.com/",
+      "priority": 5
+    },
+    {
+      "name": "NAN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "News 21 Bangla",
+      "isFree": true,
+      "website": "https://news21bangla.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Mass media in Bangladesh",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Telecommunications in Bangladesh",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Bangladesh Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BTV News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sangsad Bangladesh Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BTV Khulna",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BTV Mymensingh",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BTV Rajshahi",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BTV Rangpur",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BTV Sylhet",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Channel i",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Ekushey Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "NTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "RTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Banglavision",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "My",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Mohona Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Maasranga Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Channel 9",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "GTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Global Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Green",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Channel S",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Somoy",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Independent Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Ekattor",
+      "isFree": null,
+      "keywords": "ekattor",
+      "priority": 5,
+      "website": "https://ekattor.tv/"
+    },
+    {
+      "name": "Jamuna Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Star News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nexus Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Ekhon",
+      "isFree": null,
+      "keywords": "ekhon",
+      "website": "https://www.ekhon.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Gaan Bangla",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "STV-US",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Channel",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CSB News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Islamic",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Diganta Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Channel 16",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Amar",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Cambrian",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Channel 21",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Channel 52",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Khela",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Live",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Next",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Prime",
+      "isFree": null,
+      "priority": 6
+    },
+    {
+      "name": "TV Today",
+      "isFree": null,
+      "priority": 5
+    }
+  ],
+  "Local": [
+    {
+      "name": "BTV Chittagong",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "AB",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ATN Bangla",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BTV World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bangla Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bijoy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Boishakhi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Channel B",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Colosal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nexus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nokshi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SA",
+      "isFree": true,
+      "keywords": "sa tv | satv",
+      "priority": 5
+    },
+    {
+      "name": "Sangshad",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ananda",
+      "isFree": true,
+      "website": "http://anandatv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Asian",
+      "isFree": true,
+      "website": "https://www.asiantv.com.bd/",
+      "priority": 5
+    },
+    {
+      "name": "B24C",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bangla 21",
+      "isFree": true,
+      "website": "https://bangla21.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Bangla",
+      "isFree": true,
+      "keywords": "bangla tv -europe",
+      "website": "https://banglatv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Bangla TV Europe",
+      "isFree": true,
+      "website": "https://banglatv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Boishakhi TV Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BTV Chattogram",
+      "isFree": true,
+      "website": "https://btv.portal.gov.bd/",
+      "priority": 5
+    },
+    {
+      "name": "BTV National",
+      "isFree": true,
+      "website": "https://btv.portal.gov.bd/",
+      "priority": 5
+    },
+    {
+      "name": "Channel A",
+      "isFree": true,
+      "website": "https://channela1.com/",
+      "priority": 5
+    },
+    {
+      "name": "Deepto",
+      "isFree": true,
+      "website": "http://www.deepto.tv/",
+      "priority": 5
+    },
+    {
+      "name": "E Ten",
+      "isFree": true,
+      "website": "https://etentvbd.com/",
+      "priority": 5
+    },
+    {
+      "name": "Gazi",
+      "isFree": true,
+      "website": "http://gazitv.com/",
+      "priority": 5
+    },
+    {
+      "name": "HerNet",
+      "isFree": true,
+      "website": "https://hernet.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Jagoroni",
+      "isFree": true,
+      "website": "https://jagoroni.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Maasranga",
+      "isFree": true,
+      "website": "http://maasranga.tv/",
+      "priority": 5
+    },
+    {
+      "name": "MC",
+      "isFree": true,
+      "website": "https://mctvbd.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mohona",
+      "isFree": true,
+      "website": "http://www.mohona.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Nagorik",
+      "isFree": true,
+      "website": "https://nagorik.com/",
+      "priority": 5
+    },
+    {
+      "name": "NTV Europe",
+      "isFree": true,
+      "website": "https://europentv.ntvbd.com/",
+      "priority": 5
+    },
+    {
+      "name": "QTV Bangla",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rajdhani",
+      "isFree": true,
+      "website": "https://rajdhani.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Rupashi Bangla",
+      "isFree": true,
+      "website": "https://rupashibangla.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Sangsad",
+      "isFree": true,
+      "website": "http://www.parliament.gov.bd/index.php/en/medias/video-gallery/41-media-category/89-parliament-tv",
+      "priority": 5
+    },
+    {
+      "name": "Varendra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VOICE",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vokta",
+      "isFree": true,
+      "website": "https://vokta.tv/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Peace TV Bangla",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Al Dawah",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "ATN Islamic",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Madani Channel Bangla",
+      "isFree": true,
+      "website": "https://madanichannelbangla.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Makkah Live",
+      "isFree": true,
+      "website": "https://www.jagobd.com/makkahlive",
+      "priority": 4
+    },
+    {
+      "name": "Medina Live",
+      "isFree": true,
+      "website": "https://www.jagobd.com/medinalive",
+      "priority": 4
+    },
+    {
+      "name": "Panvision",
+      "isFree": true,
+      "website": "https://main.panvision.tv/",
+      "priority": 4
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "ATN Music",
+      "isFree": true,
+      "website": "http://atnmusic.tv/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Music",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [],
+  "Kids": [
+    {
+      "name": "Duronto",
+      "isFree": true,
+      "website": "http://www.duronto.tv/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Movie Bangla",
+      "isFree": true,
+      "website": "https://moviebangla.tv/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "T Sports",
+      "isFree": true,
+      "website": "https://www.tsports.com.bd/",
+      "priority": 10
+    }
+  ]
+}

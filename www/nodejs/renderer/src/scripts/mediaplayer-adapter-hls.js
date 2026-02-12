@@ -1,6 +1,16 @@
 import { MediaPlayerAdapterHTML5Video } from './mediaplayer-adapter'
 
-const { ErrorTypes, ErrorDetails, Events } = Hls
+// Helper function to safely get HLS constants
+const getHlsConstants = () => {
+        if (typeof Hls === 'undefined') {
+                throw new Error('Hls.js library is not loaded. Make sure hls.min.js is loaded before this module.')
+        }
+        return {
+                ErrorTypes: Hls.ErrorTypes,
+                ErrorDetails: Hls.ErrorDetails,
+                Events: Hls.Events
+        }
+}
 
 class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
         constructor(container) {
@@ -29,8 +39,20 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                         console.error('Bad source', src, mimetype)
                         return
                 }
+                // Lazy-load hls.min.js on first use to reduce renderer OOM at startup
+                if (typeof Hls === 'undefined') {
+                        if (typeof window.__loadVideoLib !== 'function') {
+                                this.emit('error', 'HLS library loader not available', true)
+                                return
+                        }
+                        return window.__loadVideoLib('hls').then(() => this.load(src, mimetype, additionalSubtitles, cookie, mediatype))
+                }
+                
+                const { ErrorTypes, ErrorDetails, Events } = getHlsConstants()
+                
                 this.active = true
-                // Reset fatal errors count on new load if enough time has passed or source changed                                                             
+                this._lastLevelParsingRecovery = 0
+                // Reset fatal errors count on new load if enough time has passed or source changed
                 const currentTime = this.time()
                 const srcChanged = src !== this.currentSrc
                 if (currentTime != this.lastFatalErrorTime || srcChanged) {
@@ -71,12 +93,33 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                 }
                 const hls = new Hls(config)
                 this.setTextTracks(this.object, additionalSubtitles)
-                hls.loadSource(this.currentSrc)
+                // IMPORTANT: attachMedia() must be called BEFORE loadSource() according to hls.js best practices
                 hls.attachMedia(this.object)
+                hls.loadSource(this.currentSrc)
                 hls.on(Events.ERROR, (event, data) => {
-                        console.error('HLS ERROR', data)
-                        if (!data) data = event
-                        if (!data) return
+                        // Normalize error data structure - hls.js can pass data directly or as event.data
+                        if (!data && event && typeof event === 'object') {
+                                // If event is the data object itself
+                                if (event.fatal !== undefined || event.type !== undefined || event.details !== undefined) {
+                                        data = event
+                                } else if (event.data) {
+                                        data = event.data
+                                }
+                        }
+                        
+                        if (!data || typeof data !== 'object') {
+                                console.warn('HLS ERROR: Invalid error data structure', { event, data })
+                                return
+                        }
+                        
+                        // Log error with sanitized data (avoid logging sensitive URLs in production)
+                        const errorInfo = {
+                                type: data.type,
+                                details: data.details,
+                                fatal: data.fatal,
+                                url: data.url ? data.url.substring(0, 100) + '...' : undefined
+                        }
+                        console.error('HLS ERROR', errorInfo)
 
                         // Prevent concurrent operations that could cause memory leaks
                         // Mas permitir erros críticos mesmo durante operações
@@ -142,17 +185,59 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                                         return
                                 }
 
-                                // Tratar levelParsingError com media sequence mismatch de forma especial
-                                // Este erro indica que o servidor reiniciou a sequência - não tentar skipSegment
-                                if (data.details === 'levelParsingError' && data.error && 
+                                // Tratar levelParsingError com media sequence mismatch: tentar recuperação leve
+                                // (loadSource apenas, sem unload/destroy) para evitar o reload completo que
+                                // desliga o player e pode atrapalhar quando a transmissão ia bem.
+                                if (data.details === 'levelParsingError' && data.error &&
                                     data.error.message && data.error.message.includes('media sequence mismatch')) {
-                                        console.error('HLS: Media sequence mismatch detected - server reset, doing full reload')
                                         const sequenceMismatchCount = this.fatalErrorsCount
-                                        this.isReloading = true
-                                        this.reload(() => {
-                                                this.fatalErrorsCount = sequenceMismatchCount
-                                                this.isReloading = false
-                                        })
+                                        const now = Date.now()
+                                        const lastRecovery = this._lastLevelParsingRecovery || 0
+                                        const recoveryInterval = 30000
+
+                                        if (now - lastRecovery > recoveryInterval) {
+                                                // Primeira vez ou passou 30s: tentar loadSource só (sem unload/destroy)
+                                                this._lastLevelParsingRecovery = now
+                                                console.warn('HLS: Media sequence mismatch - trying light recovery (loadSource) instead of full reload')
+                                                this.isReloading = true
+                                                setImmediate(() => {
+                                                        if (this.hls && this.currentSrc && this.active) {
+                                                                try {
+                                                                        this.hls.loadSource(this.currentSrc)
+                                                                } catch (e) {
+                                                                        console.warn('HLS: loadSource in light recovery failed:', e)
+                                                                        this._lastLevelParsingRecovery = 0
+                                                                        try {
+                                                                                this.reload(() => {
+                                                                                        this.fatalErrorsCount = sequenceMismatchCount
+                                                                                        this.isReloading = false
+                                                                                })
+                                                                        } catch (reloadErr) {
+                                                                                this.isReloading = false
+                                                                                this.emit('error', 'Failed to reload after sequence mismatch', true)
+                                                                                this.setState('')
+                                                                        }
+                                                                        return
+                                                                }
+                                                        }
+                                                        setTimeout(() => { this.isReloading = false }, 2000)
+                                                })
+                                        } else {
+                                                // Já tentou recuperação leve nos últimos 30s: fazer full reload
+                                                console.error('HLS: Media sequence mismatch - light recovery already tried, doing full reload')
+                                                try {
+                                                        this.isReloading = true
+                                                        this.reload(() => {
+                                                                this.fatalErrorsCount = sequenceMismatchCount
+                                                                this.isReloading = false
+                                                        })
+                                                } catch (reloadError) {
+                                                        console.error('HLS: Error during reload for media sequence mismatch:', reloadError)
+                                                        this.isReloading = false
+                                                        this.emit('error', 'Failed to reload after sequence mismatch', true)
+                                                        this.setState('')
+                                                }
+                                        }
                                         return
                                 }
 
@@ -192,41 +277,70 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                                                         this.skipSegment(data.frag).then(() => {
                                                                 // Wait a bit before reload to ensure skip completes
                                                                 setTimeout(() => {
-                                                                        if (!this.isReloading && this.hls) {
+                                                                        if (!this.isReloading && this.hls && this.active) {
+                                                                                try {
+                                                                                        this.isReloading = true
+                                                                                        this.reload(() => {
+                                                                                                this.fatalErrorsCount = mediaErrorsCount
+                                                                                                this.isReloading = false
+                                                                                        })
+                                                                                } catch (reloadError) {
+                                                                                        console.error('HLS: Error during reload after skipSegment:', reloadError)
+                                                                                        this.isReloading = false
+                                                                                        this.emit('error', 'Failed to reload after segment skip', true)
+                                                                                        this.setState('')
+                                                                                }
+                                                                        }
+                                                                }, 200)
+                                                        }).catch((skipError) => {
+                                                                // If skip fails, log and proceed with reload anyway
+                                                                console.warn('HLS: skipSegment failed, proceeding with reload:', skipError)
+                                                                if (!this.isReloading && this.hls && this.active) {
+                                                                        try {
                                                                                 this.isReloading = true
                                                                                 this.reload(() => {
                                                                                         this.fatalErrorsCount = mediaErrorsCount
                                                                                         this.isReloading = false
                                                                                 })
-                                                                        }
-                                                                }, 200)
-                                                        }).catch(() => {
-                                                                // If skip fails, proceed with reload anyway
-                                                                if (!this.isReloading && this.hls) {
-                                                                        this.isReloading = true
-                                                                        this.reload(() => {
-                                                                                this.fatalErrorsCount = mediaErrorsCount
+                                                                        } catch (reloadError) {
+                                                                                console.error('HLS: Error during reload after skipSegment failure:', reloadError)
                                                                                 this.isReloading = false
-                                                                        })
+                                                                                this.emit('error', 'Failed to reload after segment skip error', true)
+                                                                                this.setState('')
+                                                                        }
                                                                 }
                                                         })
                                                 } else {
                                                         // Skip segment not available or already in progress, just reload
-                                                        this.isReloading = true
-                                                        this.reload(() => {
-                                                                this.fatalErrorsCount = mediaErrorsCount
+                                                        try {
+                                                                this.isReloading = true
+                                                                this.reload(() => {
+                                                                        this.fatalErrorsCount = mediaErrorsCount
+                                                                        this.isReloading = false
+                                                                })
+                                                        } catch (reloadError) {
+                                                                console.error('HLS: Error during reload for MEDIA_ERROR:', reloadError)
                                                                 this.isReloading = false
-                                                        })
+                                                                this.emit('error', 'Failed to reload after media error', true)
+                                                                this.setState('')
+                                                        }
                                                 }
                                                 break
                                         case ErrorTypes.NETWORK_ERROR:
                                                 console.error('HLS fatal network error encountered, reload', this.fatalErrorsCount, '/', maxRetries)
                                                 const networkErrorsCount = this.fatalErrorsCount
-                                                this.isReloading = true
-                                                this.reload(() => {
-                                                        this.fatalErrorsCount = networkErrorsCount
+                                                try {
+                                                        this.isReloading = true
+                                                        this.reload(() => {
+                                                                this.fatalErrorsCount = networkErrorsCount
+                                                                this.isReloading = false
+                                                        })
+                                                } catch (reloadError) {
+                                                        console.error('HLS: Error during reload for NETWORK_ERROR:', reloadError)
                                                         this.isReloading = false
-                                                })
+                                                        this.emit('error', 'Failed to reload after network error', true)
+                                                        this.setState('')
+                                                }
                                                 break
                                         default:
                                                 console.error('HLS unknown fatal error encountered, destroy')
@@ -279,6 +393,15 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                         console.warn('Skip segment already in progress or HLS not available')
                         return Promise.resolve()
                 }
+
+                // Verify Hls.js is available before getting constants
+                if (typeof Hls === 'undefined') {
+                        console.error('Hls.js library not available in skipSegment')
+                        return Promise.resolve()
+                }
+
+                // Get HLS constants safely
+                const { Events } = getHlsConstants()
 
                 this.isSkippingSegment = true
                 return new Promise((resolve, reject) => {
@@ -468,12 +591,19 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                                         // Se já tentou carregar mas não há atividade, pode ser stream travado
                                         if (timeSinceLastProgress > 30000) {
                                                 console.error('HLS: Playback stalled, no progress detected')
-                                                if (!this.isReloading && !this.isSkippingSegment) {
+                                                if (!this.isReloading && !this.isSkippingSegment && this.active && this.hls) {
                                                         // Tentar reload uma vez
-                                                        this.isReloading = true
-                                                        this.reload(() => {
+                                                        try {
+                                                                this.isReloading = true
+                                                                this.reload(() => {
+                                                                        this.isReloading = false
+                                                                })
+                                                        } catch (reloadError) {
+                                                                console.error('HLS: Error during reload for stalled playback:', reloadError)
                                                                 this.isReloading = false
-                                                        })
+                                                                this.emit('error', 'Playback stalled and reload failed', true)
+                                                                this.setState('')
+                                                        }
                                                 }
                                         }
                                 }
@@ -524,12 +654,21 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                 if (this.hls) {
                         console.log('unload hls disconnect')
                         try {
-                                // Remover event listeners antes de destroy
-                                this.hls.off(Events.ERROR)
-                                this.hls.off(Events.FRAG_LOADED)
-                                this.hls.off(Events.FRAG_LOADING)
-                                this.hls.off(Events.MANIFEST_PARSED)
-                                this.hls.off(Events.LEVEL_UPDATED)
+                                // Verify Hls.js is available before cleanup
+                                if (typeof Hls !== 'undefined') {
+                                        // Get HLS constants safely
+                                        const { Events } = getHlsConstants()
+                                        // Remover event listeners antes de destroy
+                                        this.hls.off(Events.ERROR)
+                                        this.hls.off(Events.FRAG_LOADED)
+                                        this.hls.off(Events.FRAG_LOADING)
+                                        this.hls.off(Events.MANIFEST_PARSED)
+                                        this.hls.off(Events.LEVEL_UPDATED)
+                                        // Detach media element before destroy (best practice)
+                                        if (typeof this.hls.detachMedia === 'function') {
+                                                this.hls.detachMedia()
+                                        }
+                                }
                                 this.hls.destroy()
                         } catch (e) {
                                 console.error('Error destroying HLS in unload:', e)

@@ -1,0 +1,404 @@
+{
+  "Entertainment": [
+    {
+      "name": "NTV Afrique",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "A 12",
+      "isFree": true,
+      "website": "https://a12television.com/",
+      "priority": 5
+    },
+    {
+      "name": "BS",
+      "isFree": true,
+      "website": "https://www.bstelevision.com",
+      "priority": 5
+    },
+    {
+      "name": "Canal Nouvelle Generation",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ciel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Denguele",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DNTV",
+      "isFree": true,
+      "website": "https://dntv.ci/",
+      "priority": 5
+    },
+    {
+      "name": "ENFRI",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Golden Sweet",
+      "isFree": true,
+      "website": "https://golden-sweet.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Guide Love",
+      "isFree": true,
+      "website": "https://guidelove.ci/",
+      "priority": 5
+    },
+    {
+      "name": "Life",
+      "isFree": true,
+      "website": "https://www.lifetv.ci/",
+      "priority": 5
+    },
+    {
+      "name": "Miran",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MITG",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mondial Web",
+      "isFree": true,
+      "website": "https://mondialwebtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "NCI",
+      "isFree": true,
+      "website": "https://www.nci.ci/",
+      "priority": 5
+    },
+    {
+      "name": "NTV",
+      "isFree": true,
+      "keywords": "ntv -afrique",
+      "website": "http://www.notretelevision.org/",
+      "priority": 5
+    },
+    {
+      "name": "P'Africa",
+      "isFree": true,
+      "website": "https://pafricatv.info/",
+      "priority": 5
+    },
+    {
+      "name": "Passion Novelas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "REEL-TV",
+      "isFree": true,
+      "website": "https://reel-tv.ci/",
+      "priority": 5
+    },
+    {
+      "name": "Reflet",
+      "isFree": true,
+      "website": "https://reflet.tv/",
+      "priority": 5
+    },
+    {
+      "name": "RTI",
+      "isFree": true,
+      "website": "https://www.rti.ci/rti1",
+      "priority": 5
+    },
+    {
+      "name": "RTI 2",
+      "isFree": true,
+      "website": "https://www.rti.ci/rti2",
+      "priority": 5
+    },
+    {
+      "name": "RTI Bouake",
+      "isFree": true,
+      "website": "https://www.rti.ci/rtibouake",
+      "priority": 5
+    },
+    {
+      "name": "Schekina Miracles",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sikensi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Source Africa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tchaman",
+      "isFree": true,
+      "website": "https://www.tchamantv.ci/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Fontaine Vie",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Voir + Ivoire",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "2EFTV",
+      "isFree": true,
+      "website": "https://www.2eftv.com/",
+      "priority": 5
+    },
+    {
+      "name": "7 Info",
+      "isFree": true,
+      "website": "https://www.7info.ci/",
+      "priority": 5
+    },
+    {
+      "name": "BATIR-TV",
+      "isFree": true,
+      "website": "https://www.batirtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "BRVM",
+      "isFree": true,
+      "website": "https://brvmtv.org/",
+      "priority": 5
+    },
+    {
+      "name": "Business 24 Africa",
+      "isFree": true,
+      "website": "https://www.business24tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Champion",
+      "isFree": true,
+      "website": "https://www.championtv.ci/",
+      "priority": 5
+    },
+    {
+      "name": "TV La Capitale",
+      "isFree": true,
+      "website": "https://tvlacapitale.com/",
+      "priority": 5
+    },
+    {
+      "name": "UGF",
+      "isFree": true,
+      "website": "http://ugfinfo.net/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Afroculture",
+      "isFree": true,
+      "website": "https://myafroculture.com/",
+      "priority": 5
+    },
+    {
+      "name": "Afro Magic",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "A+ Ivoire",
+      "isFree": true,
+      "website": "https://www.a-plus.com/",
+      "priority": 5
+    },
+    {
+      "name": "UVCI",
+      "isFree": true,
+      "website": "https://uvci.tv/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Alpha et Omega",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Aya",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Benie",
+      "isFree": true,
+      "website": "https://www.benie.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Christ Live",
+      "isFree": true,
+      "website": "https://www.christlive.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Divin Amour",
+      "isFree": true,
+      "website": "http://divinamour.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Ecclesia",
+      "isFree": true,
+      "website": "http://ecclesiatvci.com/",
+      "priority": 4
+    },
+    {
+      "name": "Esperance",
+      "isFree": true,
+      "website": "https://esperancetv.umc.ci/",
+      "priority": 4
+    },
+    {
+      "name": "Exploits",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Grace",
+      "isFree": true,
+      "keywords": "grace tv -plus",
+      "priority": 4
+    },
+    {
+      "name": "Grace TV +",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Habacuc",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "LM TV French",
+      "isFree": true,
+      "website": "https://www.lumieredumonde.tv/",
+      "priority": 4
+    },
+    {
+      "name": "LuLi+",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Miracle TV+",
+      "isFree": true,
+      "website": "https://miracle-tvplus.com/en/",
+      "priority": 4
+    },
+    {
+      "name": "Mokadam",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Parole Parlee",
+      "isFree": true,
+      "website": "https://paroleparleetv.com/",
+      "priority": 4
+    },
+    {
+      "name": "RTVC",
+      "isFree": true,
+      "website": "https://rtvc.ci/",
+      "priority": 4
+    },
+    {
+      "name": "TV Al Bayane",
+      "isFree": true,
+      "website": "http://albayane.ci/",
+      "priority": 4
+    },
+    {
+      "name": "TV Chandelier",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Vases d'Honneur",
+      "isFree": true,
+      "website": "https://vasesdhonneur.org/",
+      "priority": 4
+    },
+    {
+      "name": "Yeshoua",
+      "isFree": true,
+      "website": "https://eglisedeyeshoua.com/",
+      "priority": 4
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Cine Max",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Novela",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Serie Max",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Fitini",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Ivoire",
+      "isFree": true,
+      "website": "https://ivoirechannel.ci/",
+      "priority": 5
+    },
+    {
+      "name": "Ivoire TV Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTI La 3",
+      "isFree": true,
+      "website": "https://www.rti.ci/rti3",
+      "priority": 5
+    }
+  ]
+}

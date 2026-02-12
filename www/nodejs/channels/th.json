@@ -1,0 +1,2588 @@
+{
+  "Local": [
+    {
+      "name": "ABC Australia",
+      "isFree": null,
+      "priority": 5,
+      "keywords": "abc australia -asia -pacific -tv -channel"
+    },
+    {
+      "name": "ABC News Live",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "ABP News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Al Arabiya",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Al Jazeera Arabic",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Al Jazeera English",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "ABS-CBN News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "And",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Anhui Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Animal Planet",
+      "isFree": null,
+      "keywords": "animal planet -asia",
+      "priority": 5
+    },
+    {
+      "name": "Animax",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Arirang",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Asian Food Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Astro",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "AXN",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "B4U Movies",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "B4U Music",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BBC Earth",
+      "isFree": null,
+      "priority": 5,
+      "_alt_origName": [
+        "BBC Earth (international TV channel)"
+      ]
+    },
+    {
+      "name": "BBC Lifestyle",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BBC News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "beIN Sports",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Bloomberg Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Cartoon Network",
+      "isFree": null,
+      "priority": 5,
+      "_alt_origName": [
+        "Cartoon Network (Southeast Asia)"
+      ]
+    },
+    {
+      "name": "Cartoonito",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Celestial Movies",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Channel V",
+      "isFree": null,
+      "keywords": "channel v -thailand",
+      "priority": 5
+    },
+    {
+      "name": "Cinemax",
+      "isFree": null,
+      "priority": 5,
+      "_alt_origName": [
+        "Cinemax (Asia)"
+      ]
+    },
+    {
+      "name": "Colors Cineplex",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Colors",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Cubavisión International",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Celestial Classic Movies",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CNA",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CNN International",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Christian Television Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CCTV- 4",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "China Education Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CGTN Documentary",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CNBC Asia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Crime & Investigation Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Daystar",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "DD India",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "DD News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "DD Sports",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Discovery Asia",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "Discovery",
+      "isFree": null,
+      "keywords": "discovery channel south east asian tv channel | discovery channel southeast asian tv channel",
+      "priority": 7,
+      "_alt_origName": [
+        "Discovery Channel (South East Asian TV channel)"
+      ]
+    },
+    {
+      "name": "Dragon Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "DreamWorks",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "DW-TV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "DZRH News Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Al Ekhbariya",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "EuroNews",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Fashion",
+      "isFree": null,
+      "keywords": "fashion tv | fashiontv",
+      "priority": 5
+    },
+    {
+      "name": "Food Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "FOX Business",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "FOX News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "France 24",
+      "isFree": null,
+      "keywords": "france 24 -english",
+      "priority": 5
+    },
+    {
+      "name": "GMA Life",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "GMA News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "GMA Pinoy",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "God",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Guangdong Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "HBO Asia",
+      "isFree": null,
+      "priority": 6
+    },
+    {
+      "name": "HBO Family",
+      "isFree": null,
+      "priority": 6
+    },
+    {
+      "name": "HBO Hits",
+      "isFree": null,
+      "priority": 6
+    },
+    {
+      "name": "HBO Signature",
+      "isFree": null,
+      "priority": 6
+    },
+    {
+      "name": "Henan Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "History",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "Hunan Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "i24NEWS",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Kartoon",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "KBS World",
+      "isFree": null,
+      "priority": 5,
+      "keywords": "kbs world -tv -channel"
+    },
+    {
+      "name": "Kix",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "KTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Kuwait",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Jiangsu Satellite",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Lifetime",
+      "isFree": null,
+      "priority": 5,
+      "_alt_origName": [
+        "Lifetime (TV network)"
+      ]
+    },
+    {
+      "name": "Lotus TV Macau",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Luxe.tv",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Mezzo",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Myanmar International",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "NDTV 24x 7",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "NHK World-Japan",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "NHK World Premium",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nickelodeon",
+      "isFree": null,
+      "priority": 5,
+      "_alt_origName": [
+        "Nickelodeon (Asia)"
+      ]
+    },
+    {
+      "name": "Nick Jr.",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sultanate of Oman Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Phoenix Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Phoenix Hong Kong",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Phoenix InfoNews",
+      "isFree": null,
+      "priority": 5,
+      "keywords": "phoenix infonews -channel"
+    },
+    {
+      "name": "Qatar",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Rai Italia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Red Bull",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Reuters",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Rock Action",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Rock Entertainment",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "RT",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "RTM TV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "RTP Internacional",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sahara One",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Saudi",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sony Entertainment Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sharjah",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Shenzhen Satellite",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sky News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sony Max",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sony SAB",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sony Sports Ten 5",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "SPOTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "StarPlus",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Stingray CMusic",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sudan",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sun",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Supreme Master Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TaiwanPlus",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Trinity Broadcasting Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "The Filipino",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Thrill",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Tianjin Television And Radio Station",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TLC",
+      "isFree": null,
+      "priority": 5,
+      "_alt_origName": [
+        "TLC (Asia)"
+      ]
+    },
+    {
+      "name": "Trace Sport Stars",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Trace Urban",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Travel Channel International",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TRT World",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV 3",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV5 Monde",
+      "isFree": null,
+      "keywords": "tv5 monde | tv5monde",
+      "priority": 5
+    },
+    {
+      "name": "TVB Jade",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVB Xing He",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVE Internacional",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVN",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVRI",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVRI Sport",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "TVRI World",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "UNTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Vatican Media",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Vietnam Today",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "VTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "VTV 4",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "VTV 7",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Warner",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "WION",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Xing Kong",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Yunnan Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Zee News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Zee",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Zhejiang Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "ZooMoo",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TrueVisions",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "True Spark",
+      "isFree": null,
+      "keywords": "true spark -jump -play",
+      "priority": 5
+    },
+    {
+      "name": "True Sport",
+      "isFree": null,
+      "keywords": "true sport -5 -7 -hd -1 -2 -3 -4",
+      "priority": 10
+    },
+    {
+      "name": "TNN",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Al Jazeera Media Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "AXN Asia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "DW News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Food Network Asia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Channel V Thailand",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Discovery Kids",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "Disney XD",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Disney",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Eve",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Fashion One",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "FOX Action Movies",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "FOX Family Movies",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "FOX Movies",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "FOX Sports",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Gem",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "HBO",
+      "isFree": null,
+      "priority": 6
+    },
+    {
+      "name": "KMTV Asia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV Thailand",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "National Geographic",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "Outdoor",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Paramount Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Red by HBO",
+      "isFree": null,
+      "priority": 6
+    },
+    {
+      "name": "Sony",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sports Illustrated Television",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "SundanceTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Turner Classic Movies",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "FX",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Baby",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "FOX Crime",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "FOX",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "FOX Life",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nat Geo Wild",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Star Chinese Movies",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Star World",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "T Sports",
+      "isFree": null,
+      "keywords": "t sports -7",
+      "priority": 10
+    },
+    {
+      "name": "Channel 3",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Spring News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Toonami",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Channel M",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Doxzilla",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Budsaba Cafe",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "France 24 English",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Television of Thailand",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Channel 5",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Channel 9 MCOT",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "ITV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Media of Thailand",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "FashionTV",
+      "isFree": null,
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Golf Channel Thailand",
+      "priority": 5
+    },
+    {
+      "name": "NBA",
+      "priority": 5
+    },
+    {
+      "name": "Sky Net Sports",
+      "keywords": "sky net sports -1 -2 -3 -4 -5 -6",
+      "priority": 10
+    },
+    {
+      "name": "Sky Net Sports 2",
+      "priority": 10
+    },
+    {
+      "name": "Sky Net Sports 3",
+      "priority": 10
+    },
+    {
+      "name": "Sky Net Sports 4",
+      "priority": 10
+    },
+    {
+      "name": "Sky Net Sports 5",
+      "priority": 10
+    },
+    {
+      "name": "Sky Net Sports 6",
+      "priority": 10
+    },
+    {
+      "name": "True Premier Football HD",
+      "shortName": "TPFH",
+      "priority": 5
+    },
+    {
+      "name": "True Premier Football HD 2",
+      "shortName": "TPFH 2",
+      "priority": 5
+    },
+    {
+      "name": "True Premier Football HD 3",
+      "shortName": "TPFH 3",
+      "priority": 5
+    },
+    {
+      "name": "True Premier Football HD 4",
+      "shortName": "TPFH 4",
+      "priority": 5
+    },
+    {
+      "name": "True Premier Football HD 5",
+      "shortName": "TPFH 5",
+      "priority": 5
+    },
+    {
+      "name": "True Sport 5",
+      "priority": 10
+    },
+    {
+      "name": "True Sport 7",
+      "priority": 10
+    },
+    {
+      "name": "True Sport HD",
+      "priority": 10
+    },
+    {
+      "name": "True Sport HD 2",
+      "priority": 10
+    },
+    {
+      "name": "True Sport HD 3",
+      "priority": 10
+    },
+    {
+      "name": "True Sport HD 4",
+      "priority": 10
+    },
+    {
+      "name": "Golf",
+      "isFree": true,
+      "keywords": "golf channel -thailand",
+      "website": "https://golfchannel-th.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sports One",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "True Premier Football",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/truepremierfootballhd1",
+      "priority": 5
+    },
+    {
+      "name": "True Premier Football 2",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/truepremierfootballhd2",
+      "priority": 5
+    },
+    {
+      "name": "True Premier Football 3",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/truepremierfootballhd3",
+      "priority": 5
+    },
+    {
+      "name": "True Premier Football 4",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/truepremierfootballhd4",
+      "priority": 5
+    },
+    {
+      "name": "True Premier Football 5",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/truepremierfootballhd5",
+      "priority": 5
+    },
+    {
+      "name": "True Premier Football 6",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/truepremierfootballhd6",
+      "priority": 5
+    },
+    {
+      "name": "True Premier Football 7",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/truepremierfootballhd7",
+      "priority": 5
+    },
+    {
+      "name": "True Premier Football 8",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/truepremierfootballhd8",
+      "priority": 5
+    },
+    {
+      "name": "TrueSports",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/truesport-hd",
+      "priority": 10
+    },
+    {
+      "name": "TrueSports 2",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/truesport-hd-2",
+      "priority": 10
+    },
+    {
+      "name": "TrueSports 3",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/truesport-hd-3",
+      "priority": 10
+    },
+    {
+      "name": "TrueSports 4",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/truesport-hd-4",
+      "priority": 10
+    },
+    {
+      "name": "TrueSports 5",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/truesport-5",
+      "priority": 10
+    },
+    {
+      "name": "TrueSports 7",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/truesport-7",
+      "priority": 10
+    },
+    {
+      "name": "True Tennis",
+      "isFree": true,
+      "keywords": "true tennis",
+      "website": "https://tv.trueid.net/live/true-tennis-hd",
+      "priority": 5
+    },
+    {
+      "name": "T Sports 7",
+      "isFree": true,
+      "website": "http://www.tsportschannel.com/",
+      "priority": 10
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "ALTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Channel 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Channel 8",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DLTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DLTV 10",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DLTV 11",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DLTV 12",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DLTV 13",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DLTV 14",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DLTV 15",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DLTV 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DLTV 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DLTV 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DLTV 5",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DLTV 6",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DLTV 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DLTV 8",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DLTV 9",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mono 29",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NBT Bangkok",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TPTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Muslim",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Thai PBS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Thairath TV 32",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "White",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "3HD",
+      "isFree": true,
+      "website": "https://ch3plus.com/",
+      "priority": 5
+    },
+    {
+      "name": "4050",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "54 Unity",
+      "isFree": true,
+      "website": "https://artv.watch/hy/TH/54UnityTV.th",
+      "priority": 5
+    },
+    {
+      "name": "A'lure",
+      "isFree": null,
+      "website": "https://monomax.page.link/q5pY",
+      "priority": 5
+    },
+    {
+      "name": "Amarin",
+      "isFree": true,
+      "website": "https://www.amarintv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ani+",
+      "isFree": true,
+      "website": "http://www.ipmtv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Baan Baan TV 73",
+      "isFree": true,
+      "website": "http://baanbaantv73.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bangkok",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bluesky",
+      "isFree": true,
+      "website": "https://www.blueskychanneltv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Boonjan Pannee TV 123",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Boonma",
+      "isFree": true,
+      "website": "http://www.boonmaonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Budsaba",
+      "isFree": true,
+      "website": "http://www.nextsteptv.com/budsaba/",
+      "priority": 5
+    },
+    {
+      "name": "Chic Station",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cool",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CSat North",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DDTV",
+      "isFree": true,
+      "website": "http://www.8875fm.com/",
+      "priority": 5
+    },
+    {
+      "name": "Doonee",
+      "isFree": true,
+      "website": "https://www.doonee.com/",
+      "priority": 5
+    },
+    {
+      "name": "Dopa",
+      "isFree": true,
+      "website": "http://www.comdopa.com/dopachannel/",
+      "priority": 5
+    },
+    {
+      "name": "Eakkaluk Thai",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "E-San Banhouw",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Esan",
+      "isFree": true,
+      "website": "https://www.mvtv.co.th/channel/esan-tv",
+      "priority": 5
+    },
+    {
+      "name": "Fahhai",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GMM 25",
+      "isFree": true,
+      "website": "https://www.gmm25.com/",
+      "priority": 5
+    },
+    {
+      "name": "Good Idea",
+      "isFree": true,
+      "website": "http://www.goodideatv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Happy TV 65",
+      "isFree": true,
+      "website": "https://www.mvtv.co.th/channel/happy-tv",
+      "priority": 5
+    },
+    {
+      "name": "Heart",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hero",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hit station",
+      "isFree": true,
+      "website": "http://www.mvtv.co.th/wp/index.php/hitstation_page",
+      "priority": 5
+    },
+    {
+      "name": "I-Asia",
+      "isFree": true,
+      "website": "https://www.iasiaonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "ID Station",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/idstation",
+      "priority": 5
+    },
+    {
+      "name": "IPM Show 2",
+      "isFree": true,
+      "website": "http://www.ipmtv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "IPM Show 3",
+      "isFree": true,
+      "website": "http://www.ipmtv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "IPM Show 4",
+      "isFree": true,
+      "website": "http://www.ipmtv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Just Fun",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kaset",
+      "isFree": true,
+      "website": "http://kasettv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Khongdee",
+      "isFree": true,
+      "website": "http://www.nextsteptv.com/khongdee/",
+      "priority": 5
+    },
+    {
+      "name": "Lanthung",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lido",
+      "isFree": true,
+      "website": "https://www.mvtv.co.th/channel/lidochannell",
+      "priority": 5
+    },
+    {
+      "name": "Live Sky",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Live Sky 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Live Sky 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Major Channel Mix",
+      "isFree": true,
+      "website": "https://www.mvtv.co.th/channel/mix-major-channel",
+      "priority": 5
+    },
+    {
+      "name": "Mangorn",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Maruay",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Maya",
+      "isFree": true,
+      "website": "http://www.maya-channel.com/",
+      "priority": 5
+    },
+    {
+      "name": "M",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MCOT",
+      "isFree": true,
+      "website": "https://tv.mcot.net/mcothd",
+      "priority": 5
+    },
+    {
+      "name": "Media",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mirror",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MONO29 Plus",
+      "isFree": true,
+      "website": "https://mono29.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mono Plus",
+      "isFree": true,
+      "website": "https://monoplus.mthai.com/",
+      "priority": 5
+    },
+    {
+      "name": "MVM",
+      "isFree": true,
+      "website": "https://www.mvtv.co.th/channel/v2h8-mvm",
+      "priority": 5
+    },
+    {
+      "name": "MV",
+      "isFree": true,
+      "website": "https://www.mvtv.co.th/channel/mvtv_home",
+      "priority": 5
+    },
+    {
+      "name": "MySci",
+      "isFree": true,
+      "website": "http://www.nextsteptv.com/mysci/",
+      "priority": 5
+    },
+    {
+      "name": "NBT 11",
+      "isFree": true,
+      "website": "http://nbt2hd.prd.go.th/",
+      "priority": 5
+    },
+    {
+      "name": "NBT 2",
+      "isFree": true,
+      "website": "http://nbt2hd.prd.go.th/",
+      "priority": 5
+    },
+    {
+      "name": "NBT TV Chiang Mai",
+      "isFree": true,
+      "website": "http://nbt2hd.prd.go.th/",
+      "priority": 5
+    },
+    {
+      "name": "NBT TV Phitsanulok",
+      "isFree": true,
+      "website": "http://nbt2hd.prd.go.th/",
+      "priority": 5
+    },
+    {
+      "name": "NBT TV Yala",
+      "isFree": true,
+      "website": "http://nbt2hd.prd.go.th/",
+      "priority": 5
+    },
+    {
+      "name": "NBT World",
+      "isFree": true,
+      "website": "https://thainews.prd.go.th/en/live",
+      "priority": 5
+    },
+    {
+      "name": "New Explorer",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "New TM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Next Kid",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "One 31",
+      "isFree": true,
+      "website": "https://www.one31.net/",
+      "priority": 5
+    },
+    {
+      "name": "Online Media TV 69",
+      "isFree": true,
+      "website": "https://www.mvtv.co.th/channel/%e0%b8%a1%e0%b9%88%e0%b8%a7%e0%b8%99%e0%b8%8a%e0%b8%b7%e0%b9%88%e0%b8%99",
+      "priority": 5
+    },
+    {
+      "name": "People",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ploen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Police",
+      "isFree": true,
+      "website": "https://www.policetv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "PPTV",
+      "isFree": true,
+      "website": "https://www.pptvhd36.com/",
+      "priority": 5
+    },
+    {
+      "name": "PSI AEC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PSI Saradee 99",
+      "isFree": true,
+      "website": "https://psisaradee99.com/",
+      "priority": 5
+    },
+    {
+      "name": "Rama",
+      "isFree": true,
+      "website": "https://med.mahidol.ac.th/ramachannel/",
+      "priority": 5
+    },
+    {
+      "name": "RS Mall",
+      "isFree": true,
+      "website": "https://www.rsmall.co.th/",
+      "priority": 5
+    },
+    {
+      "name": "RUSH Stories",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sakala",
+      "isFree": true,
+      "website": "https://www.mvtv.co.th/channel/sakalachannel",
+      "priority": 5
+    },
+    {
+      "name": "Samrujlok",
+      "isFree": true,
+      "website": "http://www.nextsteptv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sanook",
+      "isFree": true,
+      "website": "https://www.mvtv.co.th/channel/sanook-tv",
+      "priority": 5
+    },
+    {
+      "name": "SBB",
+      "isFree": true,
+      "website": "https://www.watsanghathan.com/content/5475/%E0%B8%AA%E0%B8%96%E0%B8%B2%E0%B8%99%E0%B8%B5%E0%B9%82%E0%B8%97%E0%B8%A3%E0%B8%97%E0%B8%B1%E0%B8%A8%E0%B8%99%E0%B9%8C%E0%B8%9C%E0%B9%88%E0%B8%B2%E0%B8%99%E0%B8%94%E0%B8%B2%E0%B8%A7%E0%B9%80%E0%B8%97%E0%B8%B5%E0%B8%A2%E0%B8%A1%E0%B8%A7%E0%B8%B1%E0%B8%94%E0%B8%AA%E0%B8%B1%E0%B8%87%E0%B8%86%E0%B8%97%E0%B8%B2%E0%B8%99-sbbtv",
+      "priority": 5
+    },
+    {
+      "name": "SBT",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Siam",
+      "isFree": true,
+      "website": "https://www.mvtv.co.th/channel/siamchannel",
+      "priority": 5
+    },
+    {
+      "name": "Smart SME",
+      "isFree": true,
+      "website": "https://www.smartsme.co.th/",
+      "priority": 5
+    },
+    {
+      "name": "STOU",
+      "isFree": true,
+      "website": "http://stouonline.stou.ac.th/tv/",
+      "priority": 5
+    },
+    {
+      "name": "Super Bun-Terng",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Suwannabhumi",
+      "isFree": true,
+      "website": "http://suwannabhumi.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TCNN 47",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Thaiban 83",
+      "isFree": true,
+      "website": "https://www.mvtv.co.th/channel/thaiban",
+      "priority": 5
+    },
+    {
+      "name": "Thai Chaiyo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Thai Channel 2 142",
+      "isFree": true,
+      "website": "http://thaich2.com/",
+      "priority": 5
+    },
+    {
+      "name": "Thai Lite TV 135",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Thainess",
+      "isFree": true,
+      "website": "http://thainesstv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Thai Parliament Television",
+      "isFree": true,
+      "website": "https://www.tpchannel.org/",
+      "priority": 5
+    },
+    {
+      "name": "Thairath",
+      "isFree": true,
+      "keywords": "thairath tv -32",
+      "website": "https://www.thairath.co.th/tv",
+      "priority": 5
+    },
+    {
+      "name": "Thai TV Global Network",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Thai Variety",
+      "isFree": true,
+      "website": "https://www.mvtv.co.th/channel/thaivariety",
+      "priority": 5
+    },
+    {
+      "name": "Thai Visions",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TNN 16",
+      "isFree": true,
+      "website": "https://www.tnnthailand.com/",
+      "priority": 5
+    },
+    {
+      "name": "TNN 2",
+      "isFree": true,
+      "website": "https://www.tnnthailand.com/",
+      "priority": 5
+    },
+    {
+      "name": "Topline",
+      "isFree": true,
+      "website": "http://www.toplinetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "True4U",
+      "isFree": true,
+      "website": "https://true4u.com/",
+      "priority": 5
+    },
+    {
+      "name": "True Asian More",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/true-asian-more",
+      "priority": 5
+    },
+    {
+      "name": "True Chinese More",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/true-chinese-more-hd",
+      "priority": 5
+    },
+    {
+      "name": "True Explore Life",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/true-explore-life",
+      "priority": 5
+    },
+    {
+      "name": "True Explore Sci",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/true-explore-3",
+      "priority": 5
+    },
+    {
+      "name": "True Explore Wild",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/true-explore-wild",
+      "priority": 5
+    },
+    {
+      "name": "True Inside",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/true-inside-hd",
+      "priority": 5
+    },
+    {
+      "name": "True Korean More",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/true-korean-more-hd",
+      "priority": 5
+    },
+    {
+      "name": "True Plookpanya",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/trueplookpanya",
+      "priority": 5
+    },
+    {
+      "name": "True Select",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/true-select",
+      "priority": 5
+    },
+    {
+      "name": "True Spark Jump",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/toon-channel",
+      "priority": 5
+    },
+    {
+      "name": "True Spark Play",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/true-spark",
+      "priority": 5
+    },
+    {
+      "name": "True X-Zyte",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/true-x-zyte-hd",
+      "priority": 5
+    },
+    {
+      "name": "TTD",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=1&channel=TTD1",
+      "priority": 5
+    },
+    {
+      "name": "T Variety",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVB Thai",
+      "isFree": true,
+      "website": "https://www.mvtv.co.th/channel/tvb-thai",
+      "priority": 5
+    },
+    {
+      "name": "TV Direct",
+      "isFree": true,
+      "website": "https://www.tvdirect.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Direct 10",
+      "isFree": true,
+      "website": "https://www.tvdirect.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Direct 2",
+      "isFree": true,
+      "website": "https://www.tvdirect.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Direct 3",
+      "isFree": true,
+      "website": "https://www.tvdirect.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Direct 4",
+      "isFree": true,
+      "website": "https://www.tvdirect.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Direct 7",
+      "isFree": true,
+      "website": "https://www.tvdirect.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Direct 8",
+      "isFree": true,
+      "website": "https://www.tvdirect.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Direct 9",
+      "isFree": true,
+      "website": "https://www.tvdirect.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TVD Momo 5",
+      "isFree": true,
+      "website": "https://www.tvdmomo.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Market",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Umm",
+      "isFree": true,
+      "website": "https://ummtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Very",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vip",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Voice",
+      "isFree": true,
+      "website": "https://www.voicetv.co.th/",
+      "priority": 5
+    },
+    {
+      "name": "Wisdom",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Wish Channel 68",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Workpoint",
+      "isFree": true,
+      "website": "http://www.workpointtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "World Entertainment TV 42",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Yateem",
+      "isFree": true,
+      "website": "https://yateem.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Zabb",
+      "isFree": true,
+      "website": "http://www.zabbtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zee Nung",
+      "isFree": true,
+      "website": "https://www.zeenung.com/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "FOX Thai",
+      "priority": 5
+    },
+    {
+      "name": "A Film",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Asian Hits",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "@TV",
+      "isFree": true,
+      "website": "http://attvthai.com/",
+      "priority": 5
+    },
+    {
+      "name": "BOX FILM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Drama",
+      "isFree": true,
+      "website": "https://www.mvtv.co.th/channel/ramachannel",
+      "priority": 5
+    },
+    {
+      "name": "FOX Movies Asia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "I-Movie",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Movies & sat Asia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MOVIES WORLD",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MOVIES WORLD 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MOVIES WORLD 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MV TV Series",
+      "isFree": true,
+      "website": "https://www.mvtv.co.th/channel/mvtv-series",
+      "priority": 5
+    },
+    {
+      "name": "Series +",
+      "isFree": true,
+      "website": "http://www.ipmtv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "True Film",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/true-film-hd",
+      "priority": 5
+    },
+    {
+      "name": "True Film 2",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/true-film-hd-2",
+      "priority": 5
+    },
+    {
+      "name": "True Film Asia",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/film-asia-hd",
+      "priority": 5
+    },
+    {
+      "name": "True Movie Hits",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/true-movie-hits",
+      "priority": 5
+    },
+    {
+      "name": "True Series",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/true-series",
+      "priority": 5
+    },
+    {
+      "name": "True Thai Film",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/thai-film",
+      "priority": 5
+    },
+    {
+      "name": "White Flix",
+      "isFree": true,
+      "website": "https://whiteflix.tv/livestream",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "H 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "History Asia",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Animal Show",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ETV",
+      "isFree": true,
+      "website": "http://www.etvthai.tv/",
+      "priority": 5
+    },
+    {
+      "name": "National Geographic Wild",
+      "isFree": true,
+      "website": "http://natgeotv.com/asia",
+      "priority": 7
+    },
+    {
+      "name": "OBEC TV",
+      "isFree": true,
+      "website": "http://www.obectv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Panyapiwat TV",
+      "isFree": true,
+      "website": "http://www.panyapiwat.ac.th/",
+      "priority": 5
+    },
+    {
+      "name": "Panyapiwat TV 2",
+      "isFree": true,
+      "website": "http://www.panyapiwat.ac.th/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "ASTV News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "13 Siam Thai",
+      "isFree": true,
+      "website": "https://www.13livetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Hi News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "JKN 18",
+      "isFree": true,
+      "website": "https://www.jknglobal.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kaset News",
+      "isFree": true,
+      "website": "http://www.mvtv.co.th/",
+      "priority": 5
+    },
+    {
+      "name": "Nation",
+      "isFree": true,
+      "website": "https://www.nationtv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "News",
+      "isFree": true,
+      "website": "https://news1live.com/",
+      "priority": 5
+    },
+    {
+      "name": "Top News",
+      "isFree": true,
+      "website": "https://www.topnews.co.th/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Boomerang",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Toonee",
+      "isFree": true,
+      "website": "https://toonee.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Toon Toon",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Boonniyom",
+      "isFree": true,
+      "website": "https://www.boonniyom.net/",
+      "priority": 4
+    },
+    {
+      "name": "CGNTV Thai",
+      "isFree": true,
+      "website": "https://thaicgntv.net/",
+      "priority": 4
+    },
+    {
+      "name": "Dharma",
+      "isFree": true,
+      "website": "https://dharmatelevision.tv/",
+      "priority": 4
+    },
+    {
+      "name": "TV Muslim Thailand",
+      "isFree": true,
+      "website": "http://tvmuslim.org/",
+      "priority": 4
+    }
+  ],
+  "Shop": [
+    {
+      "name": "Chomyut",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "GCJ O Shopping",
+      "isFree": true,
+      "keywords": "gcj o shopping -2",
+      "priority": 4
+    },
+    {
+      "name": "GCJ O Shopping 2",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "MVC",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=15&channel=MVC",
+      "priority": 4
+    },
+    {
+      "name": "MV Mall",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=30&channel=MVMALL%201",
+      "priority": 4
+    },
+    {
+      "name": "MV Mall 2",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=19&channel=MV%20Mall%202",
+      "priority": 4
+    },
+    {
+      "name": "MV Mall 4",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=4&channel=MV%20Mall%204_TTD%2014",
+      "priority": 4
+    },
+    {
+      "name": "Shop Ch",
+      "isFree": true,
+      "website": "https://www.shopch.in.th/",
+      "priority": 4
+    },
+    {
+      "name": "Tiger Shopping",
+      "isFree": true,
+      "website": "https://www.tigershoppingtv.com/",
+      "priority": 4
+    },
+    {
+      "name": "True Shopping",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/true-select-hd",
+      "priority": 4
+    },
+    {
+      "name": "True Store",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/true-store",
+      "priority": 4
+    },
+    {
+      "name": "TTD 2",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=22&channel=TTD2",
+      "priority": 4
+    },
+    {
+      "name": "TTD 3",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=23&channel=TTD3",
+      "priority": 4
+    },
+    {
+      "name": "TTD 4",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=22&channel=TTD4",
+      "priority": 4
+    },
+    {
+      "name": "TTD 5",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=25&channel=TTD5",
+      "priority": 4
+    },
+    {
+      "name": "TTD 6",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=24&channel=TTD6",
+      "priority": 4
+    },
+    {
+      "name": "TTD 7",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=27&channel=TTD7",
+      "priority": 4
+    },
+    {
+      "name": "TTD 8",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=26&channel=TTD8",
+      "priority": 4
+    },
+    {
+      "name": "TTD 9",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=27&channel=TTD9",
+      "priority": 4
+    },
+    {
+      "name": "V2H 10",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=38&channel=V2H10",
+      "priority": 4
+    },
+    {
+      "name": "V2H 11",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=40&channel=V2V11",
+      "priority": 4
+    },
+    {
+      "name": "V2H 12",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=41&channel=V2V12",
+      "priority": 4
+    },
+    {
+      "name": "V2H 13",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=41&channel=V2H13",
+      "priority": 4
+    },
+    {
+      "name": "V2H 14",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=42&channel=V2H14",
+      "priority": 4
+    },
+    {
+      "name": "V2H 15",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=43&channel=V2H15",
+      "priority": 4
+    },
+    {
+      "name": "V2H 2",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=30&channel=V2H2",
+      "priority": 4
+    },
+    {
+      "name": "V2H 3",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=32&channel=V2H3",
+      "priority": 4
+    },
+    {
+      "name": "V2H 4",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%E0%B8%8A%E0%B9%88%E0%B8%AD%E0%B8%87%E0%B8%A3%E0%B8%B2%E0%B8%A2%E0%B8%81%E0%B8%B2%E0%B8%A3/?no=32&channel=V2H4",
+      "priority": 4
+    },
+    {
+      "name": "V2H 5",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=34&channel=V2H5",
+      "priority": 4
+    },
+    {
+      "name": "V2H 6",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=35&channel=V2H6",
+      "priority": 4
+    },
+    {
+      "name": "V2H 7",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=36&channel=V2H7",
+      "priority": 4
+    },
+    {
+      "name": "V2H 8",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=36&channel=V2H8",
+      "priority": 4
+    },
+    {
+      "name": "V2H 9",
+      "isFree": true,
+      "website": "https://mvtv.co.th/%e0%b8%8a%e0%b9%88%e0%b8%ad%e0%b8%87%e0%b8%a3%e0%b8%b2%e0%b8%a2%e0%b8%81%e0%b8%b2%e0%b8%a3/?no=37&channel=V2H9",
+      "priority": 4
+    },
+    {
+      "name": "WorkShop",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Sweet Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "True Music",
+      "isFree": true,
+      "website": "https://tv.trueid.net/live/true-music-channel-hd",
+      "priority": 5
+    }
+  ]
+}

@@ -57,9 +57,6 @@ To learn more about the app's default [hotkeys](hotkeys.md) or [user interface](
 - **countries**: `[]`  
   *List of countries of interest for the user.*
 
-- **enable-console**: `false`  
-  *Enables or disables the console for debugging.*
-
 - **epg**: `""`  
   *Sets the Electronic Program Guide URLs. May be an array.*
 
@@ -113,9 +110,6 @@ To learn more about the app's default [hotkeys](hotkeys.md) or [user interface](
 
 - **lists**: `[]`  
   *Stores user-defined list URLs or paths.*
-
-- **lists-loader-concurrency**: `6`  
-  *Sets the concurrency level for loading lists.*
 
 - **live-window-time**: `180`  
   *Time in seconds for live window retention.*

@@ -1,0 +1,1639 @@
+{
+  "Entertainment": [
+    {
+      "name": "11",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "1TV Persian",
+      "isFree": true,
+      "keywords": "1tv persian | 1tvpersian",
+      "shortName": "1TvPersian",
+      "priority": 5
+    },
+    {
+      "name": "4 KURD",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "4 TURK BILLBOARD",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "4 TURK MUSIC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "4U",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ABADAN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AFLAK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AFN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AFTAB",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ALBORZ",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AMOOZESH",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AVA Family",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Kawthar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Zahra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ayeneh",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Azarbayjan Gharbi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Baran",
+      "isFree": true,
+      "website": "https://sepehrtv.ir/live/baran",
+      "priority": 5
+    },
+    {
+      "name": "Barya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bushehr",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dena",
+      "isFree": true,
+      "website": "http://yasouj.irib.ir/tv",
+      "priority": 5
+    },
+    {
+      "name": "ESFAHAN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ESHRAGH",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ecran",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "FARS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GEM Nature",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GEM Property",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GEM River",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GOLESTAN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HAMEDAN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HAMOON",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hasti",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Health Media",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Helal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hewad",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HodHod",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ILAM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "INTV Simaye Azadi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "IRANKALA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "IRINN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ITC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ITN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Iran Beauty",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Irane Farda",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "JAHANBIN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KERMAN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KERMANSHAH",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KH.JONOOBI",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KH.RAZAVI",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KH.SHOMALI",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KHOOZESTAN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KISH",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KORDESTAN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MAHABAD",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MAZANDARAN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MBC Persia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MOSTANAD",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Maah",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Manoto",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NAMAYESH",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NASIM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Negah",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nojoum",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Noor",
+      "isFree": true,
+      "website": "http://qom.irib.ir/tv",
+      "priority": 5
+    },
+    {
+      "name": "OFOGH",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "OMID",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "OXIR",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Omide Iran",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PBC Tapesh",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PERSIANA +",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PERSIANA BILLBOARD",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PERSIANA CLASSIC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PERSIANA COMEDY",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PERSIANA DOCUMENTARY",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PERSIANA ENTERTAINMENT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PERSIANA FAMILY",
+      "isFree": true,
+      "keywords": "persiana family -plus",
+      "priority": 5
+    },
+    {
+      "name": "PERSIANA FAMILY +",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PERSIANA IRANIAN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PERSIANA JUNIOR",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PERSIANA MUSIC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PERSIANA NOSTALGIA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "POKER",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "POUYA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Parnian",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pars",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Payam Javan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "QAZVIN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "QURAN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rangarang",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SABALAN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SAHAND",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SAHAR KURDI",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SALAMAT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SEMNAN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SEPEHR",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SHOMA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SNN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sahar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sharo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Solh",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TAMASHA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TBN Nejat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 5",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tin",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VARZESH",
+      "isFree": true,
+      "keywords": "varzesh farsi",
+      "priority": 5
+    },
+    {
+      "name": "VARZESH TV FARSI",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VOX",
+      "isFree": true,
+      "keywords": "vox1 -tvg",
+      "priority": 5
+    },
+    {
+      "name": "VOX1 TVG",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VOX 2",
+      "isFree": true,
+      "keywords": "vox2 -tvg",
+      "priority": 5
+    },
+    {
+      "name": "VOX2 TVG",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "YAZD",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "YourTime",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "iFILM",
+      "isFree": true,
+      "keywords": "ifilm -arabic -english -persian -2",
+      "priority": 5
+    },
+    {
+      "name": "247 Box",
+      "isFree": true,
+      "website": "https://247box.live/",
+      "priority": 5
+    },
+    {
+      "name": "Alwilayah TV Hausa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Amouzesh",
+      "isFree": true,
+      "website": "https://tv7.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Ara",
+      "isFree": true,
+      "website": "https://www.aratv.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Arax",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Arko",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Arvan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Asil",
+      "isFree": true,
+      "website": "http://webtv.islamasil.net/",
+      "priority": 5
+    },
+    {
+      "name": "Atrak",
+      "isFree": true,
+      "website": "http://en.atrak-group.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Atrina",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Azerbaijan",
+      "isFree": true,
+      "website": "http://urmia.irib.ir/tv",
+      "priority": 5
+    },
+    {
+      "name": "Boushehr",
+      "isFree": true,
+      "website": "http://boushehr.irib.ir/tv",
+      "priority": 5
+    },
+    {
+      "name": "Datis",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Energy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Eshragh Network",
+      "isFree": true,
+      "website": "https://telewebion.com/live/eshragh",
+      "priority": 5
+    },
+    {
+      "name": "FX",
+      "isFree": true,
+      "website": "https://fxtv.wns.live/",
+      "priority": 5
+    },
+    {
+      "name": "FX 2",
+      "isFree": true,
+      "website": "https://fxtv2.wns.live/",
+      "priority": 5
+    },
+    {
+      "name": "Golkhane",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Guilan",
+      "isFree": true,
+      "website": "http://guilan.irib.ir/tv",
+      "priority": 5
+    },
+    {
+      "name": "Irane Aryaee",
+      "isFree": true,
+      "website": "https://www.ieatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Iraneman",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "IRIB",
+      "isFree": true,
+      "website": "https://tv1.ir/",
+      "priority": 5
+    },
+    {
+      "name": "IRIB 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "IRIB Iran Kala",
+      "isFree": true,
+      "website": "http://www.iktv.ir/",
+      "priority": 5
+    },
+    {
+      "name": "IRIB Mostanad",
+      "isFree": true,
+      "website": "https://www.doctv.ir/",
+      "priority": 5
+    },
+    {
+      "name": "IRIB UHD",
+      "isFree": true,
+      "website": "https://www.irib.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Irkala",
+      "isFree": true,
+      "website": "https://www.iktv.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Isfahan",
+      "isFree": true,
+      "website": "http://isfahan.irib.ir/tv",
+      "priority": 5
+    },
+    {
+      "name": "ITV Life",
+      "isFree": true,
+      "website": "https://www.iradios.ca/itv",
+      "priority": 5
+    },
+    {
+      "name": "Jame-Jam TV",
+      "isFree": true,
+      "website": "http://www.jjtvn.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Jame-Jam TV 2",
+      "isFree": true,
+      "website": "http://www.jjtvn.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Jame-Jam TV 3",
+      "isFree": true,
+      "website": "http://www.jjtvn.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Jam",
+      "isFree": true,
+      "website": "https://telewebion.com/live/jam",
+      "priority": 5
+    },
+    {
+      "name": "Jannatul Baqi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Karoon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ketabnama",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Khalij-e Fars",
+      "isFree": true,
+      "website": "http://khalijefars.irib.ir/tv",
+      "priority": 5
+    },
+    {
+      "name": "Khavaran",
+      "isFree": true,
+      "website": "https://telewebion.com/live/khavaran",
+      "priority": 5
+    },
+    {
+      "name": "Khorasan Razavi",
+      "isFree": true,
+      "website": "http://mashhad.irib.ir/tv",
+      "priority": 5
+    },
+    {
+      "name": "Khozestan",
+      "isFree": true,
+      "website": "http://ahwaz.irib.ir/tv",
+      "priority": 5
+    },
+    {
+      "name": "LabbaykTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Maxx",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Namaquran",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nama",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Novin",
+      "isFree": true,
+      "website": "https://novin.live",
+      "priority": 5
+    },
+    {
+      "name": "Palestinetv",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Prima",
+      "isFree": true,
+      "website": "http://ecran-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Razavi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Roya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sabz",
+      "isFree": true,
+      "website": "http://golestan.irib.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Sahar Azeri",
+      "isFree": true,
+      "website": "https://azeri.sahartv.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Sahar Balkan",
+      "isFree": true,
+      "website": "https://balkan.sahartv.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Sahar Urdu",
+      "isFree": true,
+      "website": "https://urdu.sahartv.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Sarbedaran",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tabarestan",
+      "isFree": true,
+      "website": "http://mazandaran.irib.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Tehran",
+      "isFree": true,
+      "website": "https://tv5.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Tekyemadahi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tekyesokhanrani",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVA 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVA Avand",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVA Bourse",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVA Mahfel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVA Nava",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV ITN",
+      "isFree": true,
+      "website": "https://tvitn.com/",
+      "priority": 5
+    },
+    {
+      "name": "Valiasr-aj",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Velayat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "West Azerbaijan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zagros",
+      "isFree": true,
+      "website": "http://kermanshah.irib.ir/tv",
+      "priority": 5
+    },
+    {
+      "name": "Zanjan",
+      "isFree": true,
+      "website": "http://zanjan.irib.ir/tv",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Al Alam",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BBC Persian",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Channel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hispan",
+      "isFree": true,
+      "keywords": "hispan tv | hispantv",
+      "shortName": "HispanTV",
+      "priority": 5
+    },
+    {
+      "name": "Iran International",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mihan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Press TV English",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VoA Persian",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cafe Trade",
+      "isFree": true,
+      "website": "https://cafetrade.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Iran Press",
+      "isFree": true,
+      "website": "https://iranpress.com/",
+      "priority": 5
+    },
+    {
+      "name": "IRINN 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "IRNA 24",
+      "isFree": true,
+      "website": "https://www.irna.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Press",
+      "isFree": true,
+      "keywords": "press tv -english -french",
+      "website": "https://www.presstv.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Press TV French",
+      "isFree": true,
+      "website": "https://french.presstv.ir/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Al Wilayah",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "BeitolAbbas",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Icnet",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Imam Hussein",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Kalemeh",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Marjaeyat",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Mohabat",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Nour",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Payvand",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "SAT-7 PARS",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Salam",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Abalfadhl",
+      "isFree": true,
+      "website": "https://abalfadhl.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Al-Ahvaz",
+      "isFree": true,
+      "website": "http://www.al-ahvaz.ir/",
+      "priority": 4
+    },
+    {
+      "name": "Al-Kawthar",
+      "isFree": true,
+      "website": "https://www.alkawthartv.ir/",
+      "priority": 4
+    },
+    {
+      "name": "Assirat",
+      "isFree": true,
+      "website": "https://www.assirat.net/",
+      "priority": 4
+    },
+    {
+      "name": "Habib",
+      "isFree": true,
+      "website": "https://telewebion.com/live/habib",
+      "priority": 4
+    },
+    {
+      "name": "Iran Jewish",
+      "isFree": true,
+      "website": "http://iran620.com/",
+      "priority": 4
+    },
+    {
+      "name": "RasoulallahTv",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "towheedtv",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "WiseHumanTv",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "Sports": [
+    {
+      "name": "GEM Fit",
+      "priority": 5
+    },
+    {
+      "name": "Persiana Varzesh",
+      "priority": 5
+    },
+    {
+      "name": "Aio Sport",
+      "isFree": true,
+      "website": "https://www.aionet.ir",
+      "priority": 10
+    },
+    {
+      "name": "Aio Sport 2",
+      "isFree": true,
+      "website": "https://www.aionet.ir",
+      "priority": 10
+    },
+    {
+      "name": "IRIB 3",
+      "isFree": true,
+      "website": "https://tv3.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Telewebion Sport",
+      "isFree": true,
+      "keywords": "telewebion sport -2 -3",
+      "priority": 10
+    },
+    {
+      "name": "Telewebion Sport 2",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Telewebion Sport 3",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "TVA Sport",
+      "isFree": true,
+      "keywords": "tva sport -2",
+      "priority": 10
+    },
+    {
+      "name": "TVA Sport 2",
+      "isFree": true,
+      "priority": 10
+    }
+  ],
+  "Cooking": [
+    {
+      "name": "GEM Food",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Shop": [
+    {
+      "name": "Persian Bazar",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Persian TV",
+      "isFree": true,
+      "website": "https://persiantv1.com/",
+      "priority": 4
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Toonix",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HodHod Arabic",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HodHod Farsi",
+      "isFree": true,
+      "website": "https://hodhodfarsi.ir/",
+      "priority": 5
+    },
+    {
+      "name": "IRIB Omid",
+      "isFree": true,
+      "website": "http://www.omidtv.ir/",
+      "priority": 5
+    },
+    {
+      "name": "iToon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lenz Animation",
+      "isFree": true,
+      "website": "https://web.splus.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Nahal",
+      "isFree": true,
+      "website": "http://www.nahaltv.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Pooya",
+      "isFree": true,
+      "keywords": "pooya tv -plus",
+      "website": "http://www.pooyatv.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Pooya TV Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVA Kids",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "AVA Series",
+      "priority": 5
+    },
+    {
+      "name": "Faraz",
+      "priority": 5
+    },
+    {
+      "name": "GEM Academy",
+      "priority": 5
+    },
+    {
+      "name": "GEM Comedy",
+      "priority": 5
+    },
+    {
+      "name": "GEM Drama",
+      "priority": 5
+    },
+    {
+      "name": "GEM Onyx",
+      "priority": 5
+    },
+    {
+      "name": "GEM Series",
+      "priority": 5
+    },
+    {
+      "name": "GEM",
+      "priority": 5
+    },
+    {
+      "name": "Khatereh",
+      "priority": 5
+    },
+    {
+      "name": "PERSIANA CINEMA",
+      "priority": 5
+    },
+    {
+      "name": "Parsiland",
+      "priority": 5
+    },
+    {
+      "name": "Persian Film",
+      "priority": 5
+    },
+    {
+      "name": "Persiana Family Plus",
+      "priority": 5
+    },
+    {
+      "name": "Persiana Korea",
+      "priority": 5
+    },
+    {
+      "name": "Persiana Plus",
+      "priority": 5
+    },
+    {
+      "name": "SL",
+      "priority": 5
+    },
+    {
+      "name": "SL 2",
+      "priority": 5
+    },
+    {
+      "name": "Sepanj",
+      "priority": 5
+    },
+    {
+      "name": "Tapesh 2 Movies",
+      "priority": 5
+    },
+    {
+      "name": "TehranTV 24",
+      "priority": 5
+    },
+    {
+      "name": "iFILM Arabic",
+      "priority": 5
+    },
+    {
+      "name": "iFILM English",
+      "priority": 5
+    },
+    {
+      "name": "iFILM Persian 2",
+      "priority": 5
+    },
+    {
+      "name": "Afra Film",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Afra Series",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bravo Farsi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cafe Film",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cine Film",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Classic",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ekran Movies",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gold Star",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HomePlus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "iFilm 2",
+      "isFree": true,
+      "website": "https://fa2.ifilmtv.ir/",
+      "priority": 5
+    },
+    {
+      "name": "iFilm Persian",
+      "isFree": true,
+      "website": "http://www.ifilmtv.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Javanan",
+      "isFree": true,
+      "website": "https://javanan.com/",
+      "priority": 5
+    },
+    {
+      "name": "Lenz Film",
+      "isFree": true,
+      "website": "https://web.splus.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Meta Film",
+      "isFree": true,
+      "website": "https://metafilm.wns.live/",
+      "priority": 5
+    },
+    {
+      "name": "NewFlix",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PLTV",
+      "isFree": true,
+      "website": "https://www.parsilandtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "T2 Movies",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVA Film",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Avang",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Caltex",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Diyar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EBC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GEM 24b",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GEM AZ",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GEM Arabia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GEM Latino",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GEM Mifa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "High Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NAVAHANG",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PMC",
+      "isFree": true,
+      "keywords": "pmc -royale",
+      "priority": 5
+    },
+    {
+      "name": "PMC Royale",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Persiana Sonati",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "T 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ITV Persian Music",
+      "isFree": true,
+      "website": "https://www.iradios.ca/itv",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "GEM Modern Economy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Doc",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EPlanet",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HausaTV",
+      "isFree": true,
+      "website": "http://hausatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "IRIB 4",
+      "isFree": true,
+      "website": "https://tv4.ir/",
+      "priority": 5
+    },
+    {
+      "name": "Sahar Afghanistan",
+      "isFree": true,
+      "website": "https://af.sahartv.ir/livehttps://af.sahartv.ir/live",
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Iranintl.Radio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Farda",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Javan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Yar",
+      "isFree": true,
+      "priority": 5
+    }
+  ]
+}

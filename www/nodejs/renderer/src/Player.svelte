@@ -161,18 +161,6 @@ body.dialog #menu {
     transform: scale(var(--menu-fx-nav-default-deflate));
 }
 
-body.video:not(.menu-playing) #menu header .menu-location,
-body.video-playing.idle:not(.menu-playing) #menu header .menu-time,
-body.video:not(.menu-playing) #menu .content-out,
-body.video:not(.menu-playing) #menu #arrow {
-    visibility: hidden;
-}
-
-body.video.menu-playing #menu header .menu-location,
-body.video.menu-playing #menu .content-out {
-    visibility: visible;
-}
-
 body.video.idle {
     cursor: none !important;
 }

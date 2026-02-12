@@ -4,7 +4,7 @@
  */
 
 import { EventEmitter } from 'node:events';
-import { EPGErrorHandler } from '../epg/worker/EPGErrorHandler.js';
+import { ErrorHandler } from './ErrorHandler.mjs';
 
 export class AIRecommendationEngine extends EventEmitter {
     constructor(aiClient) {
@@ -43,7 +43,7 @@ export class AIRecommendationEngine extends EventEmitter {
             return score;
             
         } catch (error) {
-            EPGErrorHandler.warn('Semantic scoring failed:', error.message);
+            ErrorHandler.warn('Semantic scoring failed:', error.message);
             return 0.5; // Neutral fallback
         }
     }

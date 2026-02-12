@@ -1,7 +1,7 @@
 import osd from '../../osd/osd.js'
 import lang from '../../lang/lang.js';
 import { EventEmitter } from 'node:events';
-import Countries from '../../countries/countries.js';
+import countries from '@edenware/countries';
 import cloud from '../../cloud/cloud.js';
 import config from '../../config/config.js';
 import renderer from '../../bridge/bridge.js';
@@ -100,7 +100,7 @@ class PublicLists extends EventEmitter {
         this.type = 'public'
         this.id = 'public-lists'
         this.ready = ready()
-        this.countries = new Countries()
+        this.countries = countries
         this.load().catch(err => console.error(err))
         renderer.ready(async () => {
             global.menu.addFilter(this.hook.bind(this))
@@ -216,16 +216,7 @@ class PublicLists extends EventEmitter {
                                     selected: def == n.value,
                                     action: async () => {
                                         config.set('public-lists', n.value)
-                                        if(n.value == 'only') {
-                                            const prev = config.get('channel-grid')
-                                            if(prev != 'xxx') {
-                                                await storage.set('previous-channel-grid', prev, { permanent: true }).catch(err => console.error(err))
-                                                await global.channels.setGridType('xxx').catch(err => console.error(err))
-                                            }
-                                        } else if(config.get('channel-grid') == 'xxx') {
-                                            const prev = await storage.get('previous-channel-grid')
-                                            await global.channels.setGridType(prev || '').catch(err => console.error(err))
-                                        }
+                                        await global.channels.load(true).catch(err => console.error(err))
                                         process.nextTick(() => global.menu.refreshNow())
                                     }
                                 }

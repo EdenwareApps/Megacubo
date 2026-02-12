@@ -415,8 +415,8 @@ class StreamerGoNext extends StreamerSpeedo {
             return prev
         }
     }
-    async getNext(offset = 0) {
-        const entry = this.active ? this.active.data : this.lastActiveData
+    async getNext(offset = 0, fromEntry=null) {
+        const entry = fromEntry || (this.active ? this.active.data : this.lastActiveData)
         if (entry) {
             const entries = await this.getQueue()
             if (entries.length) {
@@ -817,6 +817,20 @@ class Streamer extends StreamerGoNext {
         });
         return ret;
     }
+    /**
+     * Play from multiple entries using AutoTuner for automatic stream selection
+     * This is used when we have multiple candidate streams and need to find the best working one
+     * 
+     * @param {Array} entries - Array of entry objects to try
+     * @param {string} name - Display name
+     * @param {string} megaURL - Original mega URL (if any)
+     * @param {string} txt - Loading text
+     * @param {number} connectId - Connection ID to track concurrent requests
+     * @param {string} mediaType - 'live' or 'video'
+     * @param {string} preferredStreamURL - Preferred stream URL if available
+     * @param {boolean} silent - Suppress UI feedback
+     * @returns {Promise<boolean>} Success status
+     */
     async playFromEntries(entries, name, megaURL, txt, connectId, mediaType, preferredStreamURL, silent) {
         if (this.opts.shadow) {
             throw 'in shadow mode';
@@ -865,7 +879,112 @@ class Streamer extends StreamerGoNext {
         busies.forEach(b => b.release())
         return !hasErr
     }
-    async playPromise(e, results, silent) {
+    /**
+     * Read entries from a mega URL without playing them
+     * @param {string} megaUrl - Mega URL to read entries from
+     * @param {Object} options - Additional options
+     * @param {string} options.mediaType - Override mediaType from URL (default: 'live' for search, opts.mediaType for direct URL)
+     * @param {Object} options.entryData - Additional data to merge into entries (e.g. programme)
+     * @returns {Promise<Array>} Array of entries matching the mega URL parameters
+     */
+    async read(megaUrl, options = {}) {
+        if (!mega.isMega(megaUrl)) {
+            throw new Error('Invalid mega URL');
+        }
+        
+        const opts = mega.parse(megaUrl);
+        if (!opts) {
+            throw new Error('Failed to parse mega URL');
+        }
+        
+        // If URL is provided directly, return single entry
+        if (opts.url) {
+            const entry = {
+                name: opts.name || 'Stream',
+                url: opts.url,
+                originalUrl: megaUrl,
+                mediaType: options.mediaType || opts.mediaType || 'live',
+                ...opts
+            };
+            if (options.entryData) {
+                Object.assign(entry, options.entryData);
+            }
+            return [entry];
+        }
+        
+        // Otherwise, search in lists using terms or name
+        const listsReady = await global.lists.ready(10);
+        if (listsReady !== true) {
+            throw new Error(global.lang.WAIT_LISTS_READY);
+        }
+        
+        // Process search terms - mega.parse() should return terms as array, but handle edge cases
+        let searchTerms = opts.terms;
+        if (searchTerms) {
+            // Ensure it's an array
+            if (!Array.isArray(searchTerms)) {
+                if (typeof searchTerms === 'string') {
+                    searchTerms = searchTerms.split(',').map(t => t.trim()).filter(t => t);
+                } else {
+                    searchTerms = null;
+                }
+            }
+        }
+        
+        // Fallback to name-based search if no terms or empty array
+        if (!searchTerms || searchTerms.length === 0) {
+            searchTerms = terms(opts.name);
+        }
+        
+        // Use mediaType from options or opts, but don't default to 'live' to avoid filtering issues
+        // Only pass type if explicitly specified in options or opts
+        const searchMediaType = options.mediaType !== undefined ? options.mediaType : (opts.mediaType !== undefined ? opts.mediaType : undefined);
+        
+        const searchOpts = {
+            safe: !global.lists.parentalControl.lazyAuth(),
+            limit: 1024
+        };
+        
+        // Only add type if explicitly specified (don't default to 'live')
+        // This matches the behavior when calling lists.search() without type option
+        if (searchMediaType !== undefined) {
+            searchOpts.type = searchMediaType;
+            // Explicitly set typeStrict to false to avoid over-filtering
+            searchOpts.typeStrict = false;
+        }
+        
+        const entries = await global.lists.search(searchTerms, searchOpts);
+        
+        // Enrich entries with original mega URL info
+        return entries.map(entry => {
+            entry.originalName = opts.name;
+            if (entry.rawname) {
+                entry.rawname = opts.name;
+            }
+            entry.originalUrl = megaUrl;
+            if (options.entryData) {
+                Object.assign(entry, options.entryData);
+            }
+            return entry;
+        });
+    }
+    
+    /**
+     * Main play method - handles different entry types and routes to appropriate playback method
+     * 
+     * Flow:
+     * 1. If results array provided -> playFromEntries() (multiple entries with AutoTuner)
+     * 2. If mega URL without direct URL -> read() + playFromEntries() (search and tune)
+     * 3. If direct URL -> intent() (single stream)
+     * 
+     * Errors are automatically handled unless silent=true or caller handles them manually.
+     * 
+     * @param {Object} e - Entry object with url, name, etc.
+     * @param {Array} results - Optional pre-fetched entries array
+     * @param {boolean} silent - Suppress UI feedback and error handling
+     * @returns {Promise<boolean>} Success status
+     */
+    async play(e, results, silent) {
         if (this.opts.shadow) {
             throw 'in shadow mode';
         }
@@ -910,32 +1029,32 @@ class Streamer extends StreamerGoNext {
             if (opts.name) {
                 name = opts.name
             }
-            let tms = opts.terms || terms(name)
             silent || (this.opts.shadow || global.osd.show(global.lang.TUNING_WAIT_X.format(name), 'fa-mega busy-x', 'streamer', 'persistent'))
-            const listsReady = await global.lists.ready(10)
-            if (listsReady !== true) {
+            
+            // Use read() to get entries from mega URL
+            // Don't pass mediaType explicitly - let read() use opts.mediaType from URL or default behavior
+            let entries;
+            try {
+                entries = await this.read(e.url, {
+                    entryData: {
+                        programme: e.programme
+                    }
+                });
+            } catch (err) {
+                if (this.connectId != connectId) {
+                    busy && busy.release()
+                    throw 'another play intent in progress'
+                }
                 silent || (this.opts.shadow || global.osd.hide('streamer'))
-                throw global.lang.WAIT_LISTS_READY
+                throw err
             }
-            let entries = await global.lists.search(tms, {
-                type: 'live',
-                safe: !global.lists.parentalControl.lazyAuth(),
-                limit: 1024
-            })         
+            
             if (this.connectId != connectId) {
                 busy && busy.release()
                 throw 'another play intent in progress'
             }
-            // console.error('ABOUT TO TUNE', terms, name, JSON.stringify(entries), opts)
+            
             if (entries.length) {
-                entries = entries.map(s => {
-                    s.originalName = name;
-                    if (s.rawname)
-                        s.rawname = name;
-                    s.originalUrl = e.url;
-                    s.programme = e.programme;
-                    return s;
-                });
                 succeeded = await this.playFromEntries(entries, name, e.url, txt, connectId, opts.mediaType, e.preferredStreamURL || this.findPreferredStreamURL(name), silent);
             }
             if (!succeeded) {
@@ -975,10 +1094,19 @@ class Streamer extends StreamerGoNext {
             }
         }
         busy && busy.release()
-        return succeeded
-    }
-    play(e, results, silent) {
-        return this.playPromise(e, results, silent).catch(silent ? console.error : global.menu.displayErr);
+        
+        // Return a promise that handles errors automatically when silent=false
+        // Callers can still use .catch() to handle errors manually if needed
+        // This maintains backward compatibility while allowing manual error handling
+        const result = Promise.resolve(succeeded);
+        if (!silent && typeof global !== 'undefined' && global.menu) {
+            // Add error handler, but allow it to be overridden by manual .catch()
+            return result.catch(err => {
+                global.menu.displayErr(err);
+                throw err; // Re-throw to allow manual handling if caller uses .catch()
+            });
+        }
+        return result;
     }
     async tune(e) {
         if (this.opts.shadow)

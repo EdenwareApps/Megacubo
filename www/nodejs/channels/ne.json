@@ -1,0 +1,113 @@
+{
+  "Entertainment": [
+    {
+      "name": "Télé Sahel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Annour",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 3 Monde",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 3 Niger",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dounia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Esperance",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tal",
+      "isFree": true,
+      "website": "https://www.ortn.ne/",
+      "priority": 5
+    },
+    {
+      "name": "Tambara",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tauraruwa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Sahel",
+      "isFree": true,
+      "website": "http://www.ortn.ne/",
+      "priority": 5
+    },
+    {
+      "name": "Tenere",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Wangari",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Anfani",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bonferey",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Labari",
+      "isFree": true,
+      "website": "https://www.labarinfo.com/",
+      "priority": 5
+    },
+    {
+      "name": "Niger 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Saraounia",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Fidelite",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sunna TV Ayneha",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Liptako",
+      "isFree": true,
+      "priority": 5
+    }
+  ]
+}

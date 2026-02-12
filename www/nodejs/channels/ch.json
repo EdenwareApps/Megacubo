@@ -1,0 +1,1009 @@
+{
+  "Entertainment": [
+    {
+      "name": "Canal 9",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Alpha Jura",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Alpha Neuchatel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Couleur 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cribs Maisons De Star",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Der Serienkanal -",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Die Neue Zeit",
+      "isFree": true,
+      "website": "https://www.die-neue-zeit.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Dieu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Drama -",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Family -",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Instant Saga",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal 9",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LFM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La Tele",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La Télé",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Leman Bleu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Loupe",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "One",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "QS 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTL Tëlee Lëtzebuerg",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTS Couleur 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rouge",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SWISS Sport TV 24 7",
+      "isFree": true,
+      "shortName": "SST 27",
+      "priority": 10
+    },
+    {
+      "name": "Schweiz 5",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Spotlight -",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVM 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVO",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele M",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleBarn",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleBielingue",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleTicino",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telebasel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telezürich",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "6ter Switzerland",
+      "isFree": true,
+      "website": "https://www.6play.fr/6ter",
+      "priority": 5
+    },
+    {
+      "name": "Ajoie",
+      "isFree": true,
+      "website": "https://www.journal-lajoie.ch/",
+      "priority": 5
+    },
+    {
+      "name": "ALF-TV",
+      "isFree": true,
+      "website": "https://www.alf-tv.ch/",
+      "priority": 5
+    },
+    {
+      "name": "Alpenland",
+      "isFree": true,
+      "website": "https://www.alpen-welle.ch/",
+      "priority": 5
+    },
+    {
+      "name": "Auftanken",
+      "isFree": true,
+      "website": "https://www.auftanken.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Blick",
+      "isFree": true,
+      "website": "https://www.blick.ch/",
+      "priority": 5
+    },
+    {
+      "name": "Blue City",
+      "isFree": true,
+      "website": "https://tv.blue.ch/",
+      "priority": 5
+    },
+    {
+      "name": "Blue Event",
+      "isFree": true,
+      "website": "https://tv.blue.ch/",
+      "priority": 5
+    },
+    {
+      "name": "Blue Event 2",
+      "isFree": true,
+      "website": "https://tv.blue.ch/",
+      "priority": 5
+    },
+    {
+      "name": "Blue Prime",
+      "isFree": true,
+      "website": "https://tv.blue.ch/",
+      "priority": 6
+    },
+    {
+      "name": "Blue Retro",
+      "isFree": true,
+      "website": "https://tv.blue.ch/",
+      "priority": 5
+    },
+    {
+      "name": "Blue Stars",
+      "isFree": true,
+      "website": "https://tv.blue.ch/",
+      "priority": 5
+    },
+    {
+      "name": "Blue Zoom D",
+      "isFree": true,
+      "website": "https://tv.blue.ch/",
+      "priority": 5
+    },
+    {
+      "name": "Blue Zoom F",
+      "isFree": true,
+      "website": "https://www.bluewin.ch/fr/index/livestream.html",
+      "priority": 5
+    },
+    {
+      "name": "Bodensee",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Alpha JU",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Alpha NE",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Carac",
+      "isFree": true,
+      "website": "https://carac.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Carac 2",
+      "isFree": true,
+      "website": "https://carac.tv/lives/carac-2",
+      "priority": 5
+    },
+    {
+      "name": "Carac 3",
+      "isFree": true,
+      "website": "https://carac.tv/lives/carac-3",
+      "priority": 5
+    },
+    {
+      "name": "Carac 4",
+      "isFree": true,
+      "website": "https://carac.tv/lives/carac-4",
+      "priority": 5
+    },
+    {
+      "name": "Carac 5",
+      "isFree": true,
+      "website": "https://carac.tv/lives/carac-5",
+      "priority": 5
+    },
+    {
+      "name": "Comedy Central",
+      "isFree": true,
+      "website": "http://www.comedycentral.ch/",
+      "priority": 5
+    },
+    {
+      "name": "Diaspora-TV Switzerland",
+      "isFree": true,
+      "website": "https://diaspora-tv.ch/",
+      "priority": 5
+    },
+    {
+      "name": "Drita",
+      "isFree": true,
+      "website": "https://drita.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ELIT TV Isvicre",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Game",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GVAX",
+      "isFree": true,
+      "website": "https://www.gvax.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Helvetia One",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HitExpress",
+      "isFree": true,
+      "website": "https://www.hitexpress.tv/",
+      "priority": 5
+    },
+    {
+      "name": "kabel eins Schweiz",
+      "isFree": true,
+      "website": "http://www.kabeleins.ch/",
+      "priority": 5
+    },
+    {
+      "name": "Kabelio Infokanal",
+      "isFree": true,
+      "website": "https://www.kabelio.ch/",
+      "priority": 5
+    },
+    {
+      "name": "Latinos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Loly",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "M 6",
+      "isFree": true,
+      "website": "https://www.6play.fr/m6",
+      "priority": 5
+    },
+    {
+      "name": "Max",
+      "isFree": true,
+      "website": "http://www.maxtv.ch/",
+      "priority": 5
+    },
+    {
+      "name": "My German",
+      "isFree": true,
+      "keywords": "my german tv -plus",
+      "website": "https://www.mygermantv.com/",
+      "priority": 5
+    },
+    {
+      "name": "My German TV +",
+      "isFree": true,
+      "website": "https://www.mygermantvplus.com/",
+      "priority": 5
+    },
+    {
+      "name": "NRTV",
+      "isFree": true,
+      "website": "http://www.nrtv.ch/",
+      "priority": 5
+    },
+    {
+      "name": "ProSieben Maxx Schweiz",
+      "isFree": true,
+      "website": "https://www.prosiebenmaxx.ch/",
+      "priority": 5
+    },
+    {
+      "name": "ProSieben Schweiz",
+      "isFree": true,
+      "website": "http://www.prosieben.ch/",
+      "priority": 5
+    },
+    {
+      "name": "Puls Acht",
+      "isFree": true,
+      "website": "https://www.puls8.ch/",
+      "priority": 5
+    },
+    {
+      "name": "QS24.tv",
+      "isFree": true,
+      "website": "https://www.qs24.tv/",
+      "priority": 5
+    },
+    {
+      "name": "REGA-TV",
+      "isFree": true,
+      "website": "https://rega-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "RegioTVplus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rheinwelten",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rhone",
+      "isFree": true,
+      "website": "https://www.rhonetv.ch/",
+      "priority": 5
+    },
+    {
+      "name": "Royal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "rrotv",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RSI La",
+      "isFree": true,
+      "website": "http://www.rsi.ch/la1/",
+      "priority": 5
+    },
+    {
+      "name": "RSI La 2",
+      "isFree": true,
+      "website": "http://www.rsi.ch/la2/",
+      "priority": 5
+    },
+    {
+      "name": "RTS",
+      "isFree": true,
+      "website": "https://www.rts.ch/",
+      "priority": 5
+    },
+    {
+      "name": "RTS 2",
+      "isFree": true,
+      "website": "https://www.rts.ch/",
+      "priority": 5
+    },
+    {
+      "name": "S",
+      "isFree": true,
+      "website": "https://www.oneplus.ch/",
+      "priority": 5
+    },
+    {
+      "name": "SAT.1 Gold Schweiz",
+      "isFree": true,
+      "website": "https://www.sat1gold.ch/",
+      "priority": 5
+    },
+    {
+      "name": "SAT.1 Schweiz",
+      "isFree": true,
+      "website": "https://www.sat1.ch/",
+      "priority": 5
+    },
+    {
+      "name": "Schaffhauser Fernsehen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SRF",
+      "isFree": true,
+      "website": "https://www.srf.ch/",
+      "priority": 5
+    },
+    {
+      "name": "SRF info",
+      "isFree": true,
+      "website": "https://www.srf.ch/",
+      "priority": 5
+    },
+    {
+      "name": "SRF zwei",
+      "isFree": true,
+      "website": "https://www.srf.ch/",
+      "priority": 5
+    },
+    {
+      "name": "Star",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sudostschweiz",
+      "isFree": true,
+      "website": "https://www.suedostschweiz.ch/tv",
+      "priority": 5
+    },
+    {
+      "name": "Swiss",
+      "isFree": true,
+      "website": "https://www.swiss1.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Syri",
+      "isFree": true,
+      "website": "https://syri.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Tele D",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleSwizz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Top",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Televista",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Z",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Zentralschweiz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleZuri",
+      "isFree": true,
+      "website": "https://www.telezueri.ch/",
+      "priority": 5
+    },
+    {
+      "name": "TF 1 Switzerland",
+      "isFree": true,
+      "website": "https://www.tf1.fr/",
+      "priority": 5
+    },
+    {
+      "name": "TFX Switzerland",
+      "isFree": true,
+      "website": "https://www.tf1.fr/tfx",
+      "priority": 5
+    },
+    {
+      "name": "TV 24",
+      "isFree": true,
+      "website": "https://www.oneplus.ch/",
+      "priority": 5
+    },
+    {
+      "name": "TV 25",
+      "isFree": true,
+      "website": "https://www.oneplus.ch/",
+      "priority": 5
+    },
+    {
+      "name": "TV4TNG",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Oberwallis",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Onex",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Rheintal",
+      "isFree": true,
+      "website": "https://www.tvrt.ch/",
+      "priority": 5
+    },
+    {
+      "name": "TV Suisse Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Val",
+      "isFree": true,
+      "website": "https://www.valtv.ch/",
+      "priority": 5
+    },
+    {
+      "name": "Vernier Visions",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "W9 Switzerland",
+      "isFree": true,
+      "website": "https://www.6play.fr/w9",
+      "priority": 5
+    }
+  ],
+  "Comedy": [
+    {
+      "name": "Juste pour Rire",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Meteonews",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "M Le Media",
+      "isFree": true,
+      "website": "https://www.mlemedia.ch/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Motorvision",
+      "priority": 5
+    },
+    {
+      "name": "Blue Sport",
+      "isFree": true,
+      "website": "https://tv.blue.ch/",
+      "priority": 10
+    },
+    {
+      "name": "Blue Sport 2",
+      "isFree": true,
+      "website": "https://tv.blue.ch/",
+      "priority": 10
+    },
+    {
+      "name": "MySports 2",
+      "isFree": true,
+      "keywords": "mysports 2 -french",
+      "website": "https://www.mysports.ch/de",
+      "priority": 10
+    },
+    {
+      "name": "MySports 2 French",
+      "isFree": true,
+      "website": "https://www.mysports.ch/de",
+      "priority": 10
+    },
+    {
+      "name": "MySports 3",
+      "isFree": true,
+      "keywords": "mysports 3 -french",
+      "website": "https://www.mysports.ch/de",
+      "priority": 10
+    },
+    {
+      "name": "MySports 3 French",
+      "isFree": true,
+      "website": "https://www.mysports.ch/de",
+      "priority": 10
+    },
+    {
+      "name": "MySports 4",
+      "isFree": true,
+      "keywords": "mysports 4 -french",
+      "website": "https://www.mysports.ch/de",
+      "priority": 10
+    },
+    {
+      "name": "MySports 4 French",
+      "isFree": true,
+      "website": "https://www.mysports.ch/de",
+      "priority": 10
+    },
+    {
+      "name": "MySports 5",
+      "isFree": true,
+      "keywords": "mysports 5 -french",
+      "website": "https://www.mysports.ch/de",
+      "priority": 10
+    },
+    {
+      "name": "MySports 5 French",
+      "isFree": true,
+      "website": "https://www.mysports.ch/de",
+      "priority": 10
+    },
+    {
+      "name": "MySports 6",
+      "isFree": true,
+      "keywords": "mysports 6 -french",
+      "website": "https://www.mysports.ch/de",
+      "priority": 10
+    },
+    {
+      "name": "MySports 6 French",
+      "isFree": true,
+      "website": "https://www.mysports.ch/de",
+      "priority": 10
+    },
+    {
+      "name": "MySports 7",
+      "isFree": true,
+      "keywords": "mysports 7 -french",
+      "website": "https://www.mysports.ch/de",
+      "priority": 10
+    },
+    {
+      "name": "MySports 7 French",
+      "isFree": true,
+      "website": "https://www.mysports.ch/de",
+      "priority": 10
+    },
+    {
+      "name": "MySports 8",
+      "isFree": true,
+      "keywords": "mysports 8 -french",
+      "website": "https://www.mysports.ch/de",
+      "priority": 10
+    },
+    {
+      "name": "MySports 8 French",
+      "isFree": true,
+      "website": "https://www.mysports.ch/de",
+      "priority": 10
+    },
+    {
+      "name": "MySports 9",
+      "isFree": true,
+      "keywords": "mysports 9 -french",
+      "website": "https://www.mysports.ch/de",
+      "priority": 10
+    },
+    {
+      "name": "MySports 9 French",
+      "isFree": true,
+      "website": "https://www.mysports.ch/de",
+      "priority": 10
+    },
+    {
+      "name": "MySports One",
+      "isFree": true,
+      "keywords": "mysports one -french",
+      "website": "https://www.mysports.ch/de",
+      "priority": 10
+    },
+    {
+      "name": "MySports One French",
+      "isFree": true,
+      "website": "https://www.mysports.ch/de",
+      "priority": 10
+    },
+    {
+      "name": "SKI",
+      "isFree": true,
+      "website": "https://www.skitv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Swiss Sport",
+      "isFree": true,
+      "priority": 10
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Radio 3i",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Argovia 90.3 FM Aarau",
+      "isFree": true,
+      "shortName": "RA9FA",
+      "priority": 5
+    },
+    {
+      "name": "Radio Pilatus",
+      "isFree": true,
+      "keywords": "radio pilatus",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Action Movies -",
+      "priority": 5
+    },
+    {
+      "name": "Comedy Movies -",
+      "priority": 5
+    },
+    {
+      "name": "Blue Action",
+      "isFree": true,
+      "website": "https://tv.blue.ch/",
+      "priority": 5
+    },
+    {
+      "name": "My Cinema Europe",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sofy",
+      "isFree": true,
+      "website": "https://sofy.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Wedo Movies Nordics",
+      "isFree": true,
+      "website": "https://wedotv.com/channels?program=wedo-movies-nordics",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "7+/Nick Schweiz",
+      "isFree": true,
+      "website": "https://tv.blue.ch/tv-guide",
+      "priority": 5
+    },
+    {
+      "name": "Nick Schweiz",
+      "isFree": true,
+      "website": "https://www.nick.de/programm/nickelodeon-ch",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Alpen-Welle",
+      "isFree": true,
+      "website": "https://www.alpen-welle.ch/",
+      "priority": 5
+    },
+    {
+      "name": "CH Music",
+      "isFree": true,
+      "website": "https://iptv.label-tv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Label TV",
+      "isFree": true,
+      "website": "https://iptv.label-tv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Label TV 2",
+      "isFree": true,
+      "website": "https://iptv.label-tv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Musig 24",
+      "isFree": true,
+      "website": "https://www.musig24.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Newcomer",
+      "isFree": true,
+      "website": "https://iptv.label-tv.net/",
+      "priority": 5
+    },
+    {
+      "name": "RADIO DISCOunt",
+      "isFree": true,
+      "website": "https://radio.discount/",
+      "priority": 5
+    },
+    {
+      "name": "Radio OneFive",
+      "isFree": true,
+      "website": "https://radioonefive.ch/",
+      "priority": 5
+    },
+    {
+      "name": "Rock-Label.TV",
+      "isFree": true,
+      "website": "https://www.rocklabel.tv/",
+      "priority": 5
+    },
+    {
+      "name": "SwissRock.TV",
+      "isFree": true,
+      "website": "https://swissrock.tv/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Immaculata",
+      "isFree": true,
+      "website": "https://www.immaculata-tv.ch/",
+      "priority": 4
+    },
+    {
+      "name": "JLM",
+      "isFree": true,
+      "website": "http://jlmtv.ch/index.php/home",
+      "priority": 4
+    },
+    {
+      "name": "RTV Islam",
+      "isFree": true,
+      "website": "https://rtvislam.com/",
+      "priority": 4
+    },
+    {
+      "name": "RTV Pendimi",
+      "isFree": true,
+      "website": "https://www.rtvpendimi.com/",
+      "priority": 4
+    },
+    {
+      "name": "Shiva Live",
+      "isFree": true,
+      "website": "https://shivalive.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Sivan",
+      "isFree": true,
+      "website": "http://sivantv.com/",
+      "priority": 4
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "First",
+      "isFree": true,
+      "website": "http://www.first-channel.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Decouverte",
+      "isFree": true,
+      "website": "https://tvdecouverte.ch/",
+      "priority": 5
+    },
+    {
+      "name": "Wedo Big Stories",
+      "isFree": true,
+      "website": "https://wedotv.com/channels?program=wedobigdocs",
+      "priority": 5
+    }
+  ],
+  "Shop": [
+    {
+      "name": "Premium Shopping",
+      "isFree": true,
+      "priority": 4
+    }
+  ]
+}

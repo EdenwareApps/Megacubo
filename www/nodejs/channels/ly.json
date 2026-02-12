@@ -1,0 +1,186 @@
+{
+  "News": [
+    {
+      "name": "Jamahiria",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Libya 218",
+      "isFree": true,
+      "keywords": "libya 218 -news",
+      "priority": 5
+    },
+    {
+      "name": "Libya 218 News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Libya Al Ahrar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Libya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "218 News",
+      "isFree": true,
+      "website": "https://www.218tv.net/218news-%d9%85%d8%a8%d8%a7%d8%b4%d8%b1/",
+      "priority": 5
+    },
+    {
+      "name": "218TV",
+      "isFree": true,
+      "website": "https://www.218tv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Al Masar",
+      "isFree": true,
+      "website": "https://almasartv.ly/",
+      "priority": 5
+    },
+    {
+      "name": "February",
+      "isFree": true,
+      "website": "https://www.februarychannel.com/",
+      "priority": 5
+    },
+    {
+      "name": "Jamahiriya",
+      "isFree": true,
+      "website": "https://aljamahiriya.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Libya Alhadath",
+      "isFree": true,
+      "website": "http://libyaalhadath.net/",
+      "priority": 5
+    },
+    {
+      "name": "Libya Panorama",
+      "isFree": true,
+      "website": "https://www.lpc.ly/",
+      "priority": 5
+    },
+    {
+      "name": "NLC News",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Alwasat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tanasuh",
+      "isFree": true,
+      "website": "https://tanasuh.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Abu Surra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Allibiya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Libya Alrasmia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Libya Al Wataniya",
+      "isFree": true,
+      "website": "http://www.ltv.ly/",
+      "priority": 5
+    },
+    {
+      "name": "Libya Mostakbal",
+      "isFree": true,
+      "website": "https://almustaqbal.ly/",
+      "priority": 5
+    },
+    {
+      "name": "Libya One",
+      "isFree": true,
+      "website": "https://libyaone.tv/livestream.html",
+      "priority": 5
+    },
+    {
+      "name": "New Libya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Lebda",
+      "isFree": true,
+      "website": "https://www.rtvlebda.com/",
+      "priority": 5
+    },
+    {
+      "name": "Salam",
+      "isFree": true,
+      "website": "https://www.toog.ly/ar",
+      "priority": 5
+    },
+    {
+      "name": "Waad",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Wasat",
+      "isFree": true,
+      "website": "http://wasat.tv/",
+      "priority": 5
+    }
+  ],
+  "Shop": [
+    {
+      "name": "Ali Gate",
+      "isFree": true,
+      "website": "https://aligate.com.ly/",
+      "priority": 4
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Libya Education",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Libya Sport",
+      "isFree": true,
+      "keywords": "libya sport tv -2",
+      "priority": 10
+    },
+    {
+      "name": "Libya Sport TV 2",
+      "isFree": true,
+      "priority": 10
+    }
+  ],
+  "Kids": [
+    {
+      "name": "NLC Kids",
+      "isFree": true,
+      "priority": 5
+    }
+  ]
+}

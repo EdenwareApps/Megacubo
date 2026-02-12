@@ -61,11 +61,12 @@ class Download extends EventEmitter {
             resume: true,
             decompress: true,
             headers: {
-                'accept': '*/*'
+                'accept': '*/*',
+                'user-agent': config.get('user-agent') || config.get('default-user-agent')
             },
             timeout: {
-                connect: config.get('connect-timeout') || 15,
-                response: config.get('read-timeout') || 10,
+                'connect': config.get('connect-timeout') || 15,
+                'response': config.get('read-timeout') || 10,
                 'accept-language': this.defaultAcceptLanguage()
             },
             followRedirect: true,
@@ -149,7 +150,7 @@ class Download extends EventEmitter {
 
     async start() {
         if (!validateURL(this.opts.url)) {
-            this.endWithError('Invalid URL', 400);
+            this.endWithError('Invalid URL: '+ this.opts.url, 400);
             return;
         }
         this.started = true;

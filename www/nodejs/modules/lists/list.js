@@ -2,8 +2,9 @@ import storage from '../storage/storage.js'
 import { EventEmitter } from "events";
 import ready from '../ready/ready.js'
 import ListIndex from "./list-index.js";
-import ConnRacing from "../conn-racing/conn-racing.js";
+import ConnRacing from '@edenware/conn-racing';
 import { terms, resolveListDatabaseKey, resolveListDatabaseFile } from "./tools.js";
+import { touchListMetaFile } from "./list-meta.js";
 
 class List extends EventEmitter {
     constructor(url, master) {
@@ -151,12 +152,13 @@ class List extends EventEmitter {
                 for await (const entry of this.indexer.db.walk({})) {
                     const groupPath = (entry.group || '').trim()
                     if (!groupPath) continue
+                    const lower = groupPath.toLowerCase()
+                    listGroupsSet.add(lower)
                     const segments = groupPath.split('/').filter(Boolean)
-                    if (!segments.length) continue
-                    const finalName = segments[segments.length - 1].trim().toLowerCase()
-                    if (finalName) {
-                        listGroupsSet.add(finalName)
-                    }
+                    segments.forEach(seg => {
+                        const s = seg.trim().toLowerCase()
+                        if (s) listGroupsSet.add(s)
+                    })
                 }
             }
 
@@ -202,7 +204,6 @@ class List extends EventEmitter {
         }
         
         const channelsIndex = await this.master.relevantKeywords();        
-        
         if (!channelsIndex || !channelsIndex.length) {
             console.error('no parent keywords', channelsIndex);
             values.relevantKeywords = 0;
@@ -211,13 +212,11 @@ class List extends EventEmitter {
             const validChannelsIndex = channelsIndex.filter(group => 
                 Array.isArray(group.terms) && group.terms.length > 0
             );
-            
             if (!validChannelsIndex || !validChannelsIndex.length) {
                 console.warn('no valid keywords after filtering', channelsIndex);
                 values.relevantKeywords = 0;
             } else {
-                const coverage = await this.indexer.db.coverage('nameTerms', validChannelsIndex);
-                console.log('coverage', coverage);
+                const coverage = await this.indexer.db.coverage('nameTerms', validChannelsIndex, {mediaType: ['live']});
                 values.relevantKeywords = coverage; // Scale to 0-100 range for consistence
             }
         }
@@ -264,6 +263,7 @@ class List extends EventEmitter {
     destroy() {
         if (!this.destroyed) {
             storage.touch(this.dataKey, { ttl: 24 * 3600 })
+            touchListMetaFile(this.url).catch(() => {})
             
             // Release storage holds immediately to prevent memory leaks
             if (this.hold) {
@@ -306,7 +306,9 @@ class List extends EventEmitter {
         return (this.indexer && this.indexer.db.walk) ? this.indexer.db.walk.bind(this.indexer.db) : () => {}
     }
     get index() {
-        return this.indexer ? this.indexer.index : {}
+        // Never return {} so list.index.groupsTypes always has live/vod/series arrays
+        if (!this.indexer) return { meta: {}, gids: {}, groupsTypes: { live: [], vod: [], series: [] }, length: 0 }
+        return this.indexer.index
     }
     get length() {
         return this.indexer ? this.indexer.length : 0

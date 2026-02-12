@@ -1,0 +1,154 @@
+{
+  "News": [
+    {
+      "name": "AfricaNews English",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BNL",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vox",
+      "isFree": true,
+      "website": "https://www.vox.cg/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Beb",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bilili",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DRTV International",
+      "isFree": true,
+      "website": "https://www.drtv.cg/",
+      "priority": 5
+    },
+    {
+      "name": "GOTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LUX",
+      "isFree": true,
+      "website": "https://luxmediagroup.org/",
+      "priority": 5
+    },
+    {
+      "name": "Maboke",
+      "isFree": true,
+      "website": "https://www.canalplus.com/cd/chaines/maboke-tv",
+      "priority": 5
+    },
+    {
+      "name": "MCR TV NF",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nazalis HDTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NTI",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SYNTY",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Congo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Top",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TPT+",
+      "isFree": true,
+      "website": "https://www.tptplus.tv/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Canal C Junior",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Cite de David RTV",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Esaie 45 Tele",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "RTA-OPH Monde",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "RTAS",
+      "isFree": true,
+      "website": "https://62fdf78065e78.site123.me/",
+      "priority": 4
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Culture +242",
+      "isFree": true,
+      "website": "https://www.cultureplus242site.com/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "EaDTV CONGO",
+      "isFree": true,
+      "website": "https://www.edtvcongosite.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ev-tele",
+      "isFree": true,
+      "website": "https://www.evtele.cg/",
+      "priority": 5
+    },
+    {
+      "name": "JOS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Obosso",
+      "isFree": true,
+      "website": "http://www.obosso.tv/",
+      "priority": 5
+    }
+  ]
+}

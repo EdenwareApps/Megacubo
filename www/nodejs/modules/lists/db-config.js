@@ -2,10 +2,11 @@ export default {
     create: false, // Read-only for existing lists
     allowIndexRebuild: true,
     compression: true,
-    termMapping: true, // Ativa term mapping globalmente
-    termMappingFields: ['nameTerms', 'groupTerms'], // Fields que usarão mapping (adapte com fields reais do seu índice)
-    indexedQueryMode: 'strict', // Ativa modo strict: só permite queries com fields indexados, lança erro иначе
-    // Para bypass em queries específicas: use { allowNonIndexed: true } nas opções de find/count
+    termMapping: true,
+    // Only these fields should use term mapping (other array:string fields remain as strings)
+    termMappingFields: ['nameTerms', 'groupTerms'],
+    indexedQueryMode: 'strict', // Enables strict mode: only allows queries with indexed fields, throws error otherwise
+    // To bypass in specific queries: use { allowNonIndexed: true } in find/count options
     fields: {
         url: 'string',              // Stream URL
         name: 'string',             // Stream name
@@ -34,9 +35,10 @@ export default {
         genre: 'string',          // Genre (tvg-genre)
         region: 'string',         // Region (region)
         categoryId: 'string',     // Category ID (category-id)
-        ageRestriction: 'string'   // Age restriction (age-restriction)
+        ageRestriction: 'string',   // Age restriction (age-restriction)
+        mediaType: 'string'       // Media type (vod, live)
     },
-    indexes: ['nameTerms', 'groupTerms', 'groups', 'group'], // Only the fields we want to index
+    indexes: ['nameTerms', 'groupTerms', 'group', 'groups', 'mediaType'], // removed to avoid term mapping (should remain as strings)
     integrityCheck: 'none', // Skip integrity check for speed
     streamingThreshold: 0.8, // Higher threshold for lists (80% of data)
     debugMode: false, // Disable debug mode for production

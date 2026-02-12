@@ -490,7 +490,7 @@ svelte-virtual-grid-viewport {
     display: flex;
     flex-wrap: wrap;
     border-radius: var(--radius);
-    transition: transform var(--menu-fx-nav-duration) ease-in-out 0s;
+    transition: transform var(--menu-fx-nav-duration) ease-in-out 0s, top var(--menu-fx-nav-duration) ease-in-out 0s;
     transform: none;    
     flex-direction: column;    
     overflow: scroll hidden;
@@ -502,9 +502,6 @@ svelte-virtual-grid-viewport {
 }
 #menu::-webkit-scrollbar {
     display: none;
-}
-div#arrow {
-    visibility: hidden;
 }
 .side-menu-toggle, .side-menu-toggle > div {
     width: 0 !important;
@@ -570,6 +567,9 @@ body.video #menubar  {
 }
 body.video:not(.menu-playing) .side-menu-out {
     display: none;
+}
+body.video:not(.menu-playing) #menu {
+    top: 100vh;
 }
 .side-menu-toggle i.fa-chevron-down {
     animation: fa-shake 5s 3 ease-in;
@@ -1098,9 +1098,6 @@ body.portrait span.entry-status-flag i.fas.fa-play {
     margin: calc(var(--padding-quarter) * 0.5) 0 0 calc(var(--padding-quarter) * 1.25);
     font-size: calc(var(--menu-entry-name-font-size) - (4 * var(--padding-quarter)));
 }
-body:not(.menu-playing) #menu-playing-close {
-    visibility: hidden;
-}
 body.menu-playing controls {
     visibility: hidden;
 }
@@ -1128,8 +1125,12 @@ body.video.menu-playing #main {
     cursor: pointer;
     color: #ffffff;
     right: calc(2.5 * var(--padding));
-    top: calc(2 * var(--padding));
+    top: -10vh;
     z-index: 1;
+    transition: top var(--menu-fx-nav-duration) ease-in-out 0s;
+}
+body.video.menu-playing #menu-playing-close {
+    top: calc(2 * var(--padding));
 }
 #menu-playing-close > div {
     position: relative;

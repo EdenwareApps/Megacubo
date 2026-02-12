@@ -8,9 +8,10 @@ class Limiter {
         this.lastCalled = 0; // Timestamp of the last time the function was called
         this.timeoutId = null; // Timeout ID of the scheduled function call
         this.isPaused = false; // Flag indicating if the limiter is paused
-        this.isPending = false; // Flag indicating if the function call is pending
+        this.pendingArgs = null; // Always keep the LATEST call pending
     }
-    async run(...args) {        
+
+    async run(...args) {
         this.lastCalled = Date.now()
         if(this.async) {
             await this.func(...args)
@@ -20,34 +21,51 @@ class Limiter {
         }
         this.fromNow()
     }
+
     // Call the function with arguments, but only if the time interval has elapsed
     async call(...args) {
-        // Do not call if paused
+        // Always update with the latest call
+        this.pendingArgs = args;
+
         if (this.isPaused) {
-            this.isPending = true
-            return
+            this.isPending = true;
+            return;
         }
+
         const now = Date.now();
         const timeSinceLastCall = now - this.lastCalled;
-        // Call immediately if enough time has passed since last call
+
         if (timeSinceLastCall >= this.intervalMs) {
+            // Execute immediately if enough time has passed
             clearTimeout(this.timeoutId);
-            this.lastCalled = now;
-            this.isPending = false;
             this.timeoutId = null;
-            await this.run(...args).catch(err => console.error(err))
-            this.lastCalled = Date.now()
+            this.pendingArgs = null;
+            await this.executePending();
         } else if (!this.timeoutId) {
-            // Otherwise, schedule a call for when the time interval has elapsed
+            // Schedule execution of the latest pending call
             const timeToWait = this.intervalMs - timeSinceLastCall;
             this.timeoutId = setTimeout(() => {
-                this.lastCalled = now;
-                this.isPending = false;
                 this.timeoutId = null;
-                this.run(...args).catch(err => console.error(err)).finally(() => {
-                    this.lastCalled = Date.now()
-                })
-            }, timeToWait)
+                this.executePending();
+            }, timeToWait);
+        }
+        // If timeout already exists, just update pendingArgs (latest call wins)
+    }
+
+    async executePending() {
+        if (!this.pendingArgs) return;
+
+        try {
+            const args = this.pendingArgs;
+            this.pendingArgs = null;
+            this.isPending = false;
+
+            await this.run(...args);
+        } catch (error) {
+            console.error('Limiter executePending failed:', error);
+            // Even on error, clear pending state to prevent getting stuck
+            this.pendingArgs = null;
+            this.isPending = false;
         }
     }
     // Pause the limiter, cancel any scheduled function call
@@ -63,19 +81,19 @@ class Limiter {
     }
     // Check if a function call is pending, call immediately if enough time has passed
     checkQueue() {
-        if (!this.isPending)
+        if (!this.pendingArgs)
             return;
         if (this.isPaused)
             return;
         const now = Date.now();
         const timeSinceLastCall = now - this.lastCalled;
         if (timeSinceLastCall >= this.intervalMs) {
-            this.call().catch(err => console.error(err))
+            this.executePending();
         } else {
             const timeToWait = this.intervalMs - timeSinceLastCall;
             this.timeoutId = setTimeout(async () => {
                 this.timeoutId = null
-                this.call().catch(err => console.error(err))
+                this.executePending();
             }, timeToWait);
         }
     }
@@ -87,7 +105,8 @@ class Limiter {
     // Call the function immediately and use current time as last called timestamp
     skip(...args) {
         this.lastCalled = 0;
-        this.call(...args).catch(err => console.error(err));
+        this.pendingArgs = args;
+        this.executePending();
     }
     // Destroy the limiter, cancel any scheduled function call
     destroy() {

@@ -1,0 +1,275 @@
+{
+  "Religious": [
+    {
+      "name": "Al Aqsa",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Holy Quran Radio Nablus",
+      "isFree": true,
+      "website": "https://quran-radio.com",
+      "priority": 4
+    },
+    {
+      "name": "Nativity",
+      "isFree": true,
+      "website": "https://nativitytv.ps/",
+      "priority": 4
+    },
+    {
+      "name": "Salam",
+      "isFree": true,
+      "website": "https://www.salam-tv.net/",
+      "priority": 4
+    },
+    {
+      "name": "Seraj",
+      "isFree": true,
+      "website": "https://seraj.tv/live",
+      "priority": 4
+    }
+  ],
+  "News": [
+    {
+      "name": "Palestine Today",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Najah News",
+      "isFree": true,
+      "website": "https://nn.najah.edu",
+      "priority": 5
+    },
+    {
+      "name": "Baladna",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kolalnas",
+      "isFree": true,
+      "website": "https://kolalnastv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ma'an",
+      "isFree": true,
+      "website": "https://www.maannews.net/",
+      "priority": 5
+    },
+    {
+      "name": "Palestine News Network",
+      "isFree": true,
+      "website": "https://pnn.ps/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "7ala",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ajyal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Alfajer TV 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Audeh",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hebron",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hekaya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mawal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Musawa",
+      "isFree": true,
+      "keywords": "musawa channel | musawachannel",
+      "shortName": "Musawa Channel",
+      "priority": 5
+    },
+    {
+      "name": "Nablus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Palestine Mubasher",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Palestine Satellite",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rajeen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Watar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Wattan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "palestiniantv",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al-Aqsa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Madina",
+      "isFree": true,
+      "website": "https://almadina.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Al Quds Today",
+      "isFree": true,
+      "website": "http://www.alqudstoday.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Awdah",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Fajer TV",
+      "isFree": true,
+      "website": "http://www.alfajertv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Fajer TV 2",
+      "isFree": true,
+      "website": "http://www.alfajertv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Hala Ramallah",
+      "isFree": true,
+      "website": "https://halaramallahtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Hebron Sat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hettin",
+      "isFree": true,
+      "website": "https://hettin.org",
+      "priority": 5
+    },
+    {
+      "name": "Palestine",
+      "isFree": true,
+      "website": "https://www.pbc.ps/live/",
+      "priority": 5
+    },
+    {
+      "name": "Raya",
+      "isFree": true,
+      "website": "https://www.rayatv.ps",
+      "priority": 5
+    },
+    {
+      "name": "Raya 2",
+      "isFree": true,
+      "website": "https://www.rayatv.ps",
+      "priority": 5
+    },
+    {
+      "name": "Raya 3",
+      "isFree": true,
+      "website": "https://www.rayatv.ps",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Falastini",
+      "isFree": true,
+      "website": "http://falastini.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Mawwal",
+      "isFree": true,
+      "website": "http://tv.mawwal.ps/",
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Marah FM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Albalad",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Shabab FM",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Al-Quds Open University",
+      "isFree": true,
+      "website": "https://www.qou.edu/",
+      "priority": 5
+    },
+    {
+      "name": "Palestine Edu",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Palestine Sport",
+      "isFree": true,
+      "website": "https://pbc.ps/",
+      "priority": 10
+    }
+  ]
+}

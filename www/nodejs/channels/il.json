@@ -1,0 +1,533 @@
+{
+  "News": [
+    {
+      "name": "Channel 2 News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Channel 2",
+      "isFree": true,
+      "keywords": "channel 2 -news",
+      "priority": 5
+    },
+    {
+      "name": "i24NEWS Arabic",
+      "isFree": true,
+      "website": "https://www.i24news.tv/ar/",
+      "priority": 5
+    },
+    {
+      "name": "i24NEWS English USA",
+      "isFree": true,
+      "website": "https://www.i24news.tv/en/",
+      "priority": 5
+    },
+    {
+      "name": "i24NEWS English World",
+      "isFree": true,
+      "website": "https://www.i24news.tv/en/",
+      "priority": 5
+    },
+    {
+      "name": "i24NEWS French",
+      "isFree": true,
+      "website": "https://www.i24news.tv/fr/",
+      "priority": 5
+    },
+    {
+      "name": "i24NEWS Hebrew",
+      "isFree": true,
+      "website": "https://www.i24news.tv/he",
+      "priority": 5
+    },
+    {
+      "name": "i24NEWS Updates",
+      "isFree": true,
+      "website": "https://www.i24news.tv/en/channels/i24news-updates",
+      "priority": 5
+    },
+    {
+      "name": "Relevant",
+      "isFree": true,
+      "website": "https://relevant.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "TV7 Israel News",
+      "isFree": true,
+      "website": "https://www.tv7israelnews.com/",
+      "priority": 5
+    },
+    {
+      "name": "Yes News",
+      "isFree": true,
+      "website": "https://www.yes.co.il/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Hidabroot",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Kabbalah for the People Israel",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Or Hachaim",
+      "isFree": true,
+      "website": "https://orhachaim.co.il/",
+      "priority": 4
+    },
+    {
+      "name": "Shelanu.TV",
+      "isFree": true,
+      "website": "https://www.shelanu.tv/",
+      "priority": 4
+    },
+    {
+      "name": "TBN Israel",
+      "isFree": true,
+      "website": "https://www.tbnisrael.com/",
+      "priority": 4
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Sport 2",
+      "priority": 10
+    },
+    {
+      "name": "Sport 3",
+      "priority": 10
+    },
+    {
+      "name": "Sport 4",
+      "priority": 10
+    },
+    {
+      "name": "Sports",
+      "priority": 10
+    },
+    {
+      "name": "5Gold",
+      "isFree": true,
+      "website": "http://www.sport5.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "5Live",
+      "isFree": true,
+      "website": "http://www.sport5.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "5Plus",
+      "isFree": true,
+      "website": "http://www.sport5.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "5Sport",
+      "isFree": true,
+      "keywords": "5sport -4k",
+      "website": "http://www.sport5.co.il/",
+      "priority": 10
+    },
+    {
+      "name": "5Sport 4K",
+      "isFree": true,
+      "website": "http://www.sport5.co.il/",
+      "priority": 10
+    },
+    {
+      "name": "5Stars",
+      "isFree": true,
+      "website": "http://www.sport5.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "One 2",
+      "isFree": true,
+      "website": "http://www.one.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "Sport",
+      "isFree": true,
+      "website": "https://sport1.maariv.co.il/",
+      "priority": 10
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "As a Child",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Channel 9",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hala",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Israel Pars",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KAN 11 Israel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kabbalah for the People",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Keshet 12",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Knesset",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Makan 33",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Musayof",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Reshet 13",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ynet Live",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Big Brother Israel",
+      "isFree": true,
+      "website": "http://www.mako.co.il/tv-bigbrother",
+      "priority": 5
+    },
+    {
+      "name": "Channel 13",
+      "isFree": true,
+      "website": "https://13tv.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "Comedy Central",
+      "isFree": true,
+      "website": "http://www.comedycentral.co.il/he/home",
+      "priority": 5
+    },
+    {
+      "name": "E!",
+      "isFree": true,
+      "website": "https://www.eonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ego",
+      "isFree": true,
+      "keywords": "ego -total",
+      "website": "https://www.ananey.com/channels/ego/",
+      "priority": 5
+    },
+    {
+      "name": "Ego Total",
+      "isFree": true,
+      "website": "https://www.ananey.com/channels/ego/",
+      "priority": 5
+    },
+    {
+      "name": "Food",
+      "isFree": true,
+      "website": "https://xnet.ynet.co.il/home/0",
+      "priority": 5
+    },
+    {
+      "name": "Good Life",
+      "isFree": true,
+      "website": "https://xnet.ynet.co.il/home/0",
+      "priority": 5
+    },
+    {
+      "name": "GTV",
+      "isFree": true,
+      "website": "http://www.g-tv.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "Home +",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Humour",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ILTV",
+      "isFree": true,
+      "website": "https://iltv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Kan 11",
+      "isFree": true,
+      "website": "https://www.kan.org.il/",
+      "priority": 5
+    },
+    {
+      "name": "Now 14",
+      "isFree": true,
+      "website": "https://www.now14.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "One",
+      "isFree": true,
+      "keywords": "one -2",
+      "website": "http://www.one.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "Ran TV Israel",
+      "isFree": true,
+      "website": "http://www.radioran.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "The Israeli Network",
+      "isFree": true,
+      "website": "https://tin.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Viva",
+      "isFree": true,
+      "keywords": "viva -plus -sheli",
+      "website": "https://viva.walla.co.il/item/1683908",
+      "priority": 5
+    },
+    {
+      "name": "Viva Plus",
+      "isFree": true,
+      "website": "https://viva.walla.co.il/item/1888338",
+      "priority": 5
+    },
+    {
+      "name": "Viva Sheli",
+      "isFree": true,
+      "website": "https://viva.walla.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "Wiz",
+      "isFree": true,
+      "website": "http://www.wiztv.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "Yam Tichoni 25",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Yes Docu",
+      "isFree": true,
+      "website": "https://www.yes.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "Yes DVDbox",
+      "isFree": true,
+      "website": "https://www.yes.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "Yes Israeli",
+      "isFree": true,
+      "website": "https://www.yes.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "Yes TV Comedy",
+      "isFree": true,
+      "website": "https://www.yes.co.il/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Channel 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Music",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Arutz HaYeladim",
+      "isFree": true,
+      "website": "https://www.kidstv.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "Disney",
+      "isFree": true,
+      "website": "http://www.disney.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "Disney Junior",
+      "isFree": true,
+      "website": "http://www.disney.co.il/disney-junior/",
+      "priority": 5
+    },
+    {
+      "name": "Hop!",
+      "isFree": true,
+      "website": "http://www.hop.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "Junior",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nickelodeon",
+      "isFree": true,
+      "website": "http://nick.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "Nick Jr.",
+      "isFree": true,
+      "website": "http://nick.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "TeenNick",
+      "isFree": true,
+      "website": "http://nick.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "Zoom",
+      "isFree": true,
+      "website": "http://zoomtv.co.il/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "AXN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bollyshow",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Yes Movies Action",
+      "isFree": true,
+      "website": "https://www.yes.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "Yes Movies Comedy",
+      "isFree": true,
+      "website": "https://www.yes.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "Yes Movies Drama",
+      "isFree": true,
+      "website": "https://www.yes.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "Yes Movies Kids",
+      "isFree": true,
+      "website": "https://www.yes.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "Yes TV Action",
+      "isFree": true,
+      "website": "https://www.yes.co.il/",
+      "priority": 5
+    },
+    {
+      "name": "Yes TV Drama",
+      "isFree": true,
+      "website": "https://www.yes.co.il/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "IETV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kan Educational",
+      "isFree": true,
+      "website": "https://www.kankids.org.il/",
+      "priority": 5
+    },
+    {
+      "name": "National Geographic",
+      "isFree": true,
+      "keywords": "national geographic -wild",
+      "website": "http://natgeotv.com/asia",
+      "priority": 7
+    },
+    {
+      "name": "National Geographic Wild",
+      "isFree": true,
+      "website": "http://natgeotv.com/asia",
+      "priority": 7
+    }
+  ],
+  "Shop": [
+    {
+      "name": "The Shopping",
+      "isFree": true,
+      "website": "https://www.21.tv/",
+      "priority": 4
+    }
+  ]
+}

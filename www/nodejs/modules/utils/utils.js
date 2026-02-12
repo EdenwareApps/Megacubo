@@ -454,6 +454,15 @@ export const insertEntry = (entry, entries, before, after) => {
     entries.splice(position, 0, entry)
 }
 
+export const translateCategoryName = (name, lang) => {
+    if (!lang) {
+        lang = globalThis.lang
+    }
+    let lname = 'CATEGORY_' + name.replace(' & ', ' ').replace(new RegExp(' +', 'g'), '_').toUpperCase();
+    let nname = lang[lname] || name;
+    return nname;
+}
+
 const allowedProtocols = new Set(['http:', 'https:', 'ftp:', 'rtmp:', 'rtmps:', 'rtmpt:', 'rtmpts:', 'rtmpe:', 'rtmpte:', 'rtmp://', 'rtmps://', 'rtmpt://', 'rtmpts://', 'rtmpe://', 'rtmpte://', 'rtp://', 'udp://', 'rtsp:', 'rtsps:', 'rtsp://', 'rtsps://', 'mms:', 'mmsh:', 'mmst:', 'mmsh://', 'mmst://', 'mega://', 'srt://', 'srtp://', 'tls://', 'tcp://'])
 
 export const validateURL = url => {
@@ -906,4 +915,175 @@ export const findSyncBytePosition = (buffer, from = 0) => {
         position = buffer.indexOf(SYNC_BYTE, position + 1) // move to the next sync byte
     }    
     return -1  // return -1 if no valid sync byte is found
+}
+
+/**
+ * Promise Leak Detector - Detects promises that never resolve/reject
+ * Works with async/await and regular promises
+ * 
+ * Usage:
+ *   const trackedPromise = trackPromise(myAsyncFunction(), 'myFunction')
+ *   await trackedPromise
+ * 
+ * Or wrap automatically:
+ *   const result = await trackPromise(myAsyncFunction(), 'myFunction', 5000)
+ * 
+ * @param {Promise} promise - The promise to track
+ * @param {string} name - Identifier for this promise (for logging)
+ * @param {number} timeoutMs - Timeout in milliseconds (default: 30000)
+ * @returns {Promise} - Wrapped promise that will reject on timeout
+ */
+export const trackPromise = (promise, name = 'unknown', timeoutMs = 30000) => {
+    if (!promise || typeof promise.then !== 'function') {
+        return Promise.resolve(promise)
+    }
+    
+    const promiseId = Math.random().toString(36).substr(2, 9)
+    const startTime = Date.now()
+    const stackTrace = new Error().stack
+    
+    let resolved = false
+    let timeoutId = null
+    
+    // Add to tracked promises map
+    trackedPromises.set(promiseId, {
+        promise: promise,
+        name: name,
+        startTime: startTime,
+        stack: stackTrace,
+        id: promiseId
+    })
+    
+    const cleanup = () => {
+        if (timeoutId) {
+            clearTimeout(timeoutId)
+            timeoutId = null
+        }
+        trackedPromises.delete(promiseId)
+    }
+    
+    const wrappedPromise = Promise.race([
+        promise.then(
+            result => {
+                resolved = true
+                cleanup()
+                return result
+            },
+            error => {
+                resolved = true
+                cleanup()
+                throw error
+            }
+        ),
+        new Promise((_, reject) => {
+            timeoutId = setTimeout(() => {
+                if (!resolved) {
+                    const elapsed = Date.now() - startTime
+                    const error = new Error(
+                        `Promise "${name}" never resolved/rejected after ${elapsed}ms (timeout: ${timeoutMs}ms)`
+                    )
+                    error.name = 'PromiseTimeoutError'
+                    error.promiseName = name
+                    error.elapsedMs = elapsed
+                    error.stack = stackTrace
+                    console.error('⚠️ PENDING PROMISE DETECTED:', {
+                        name,
+                        elapsedMs: elapsed,
+                        timeoutMs,
+                        stack: stackTrace
+                    })
+                    cleanup()
+                    reject(error)
+                }
+            }, timeoutMs)
+        })
+    ])
+    
+    // Store reference for cleanup if needed
+    wrappedPromise._tracked = true
+    wrappedPromise._name = name
+    wrappedPromise._startTime = startTime
+    
+    return wrappedPromise
+}
+
+/**
+ * Global promise tracker - tracks promises manually added via trackPromise()
+ * Note: We don't replace Promise globally as it causes compatibility issues
+ * Use trackPromise() individually for promises you want to track
+ * 
+ * Usage:
+ *   const pending = getPendingPromises()
+ *   console.log('Pending promises:', pending)
+ */
+const trackedPromises = new Map() // id -> { promise, name, startTime, stack }
+
+export const enablePromiseTracking = (checkIntervalMs = 60000, maxAgeMs = 300000) => {
+    // This function is kept for API compatibility but doesn't replace Promise globally
+    // Promise cannot be safely replaced globally without breaking compatibility
+    // Use trackPromise() individually instead
+    
+    // Periodic check for old pending promises (from trackPromise calls)
+    const checkInterval = setInterval(() => {
+        const now = Date.now()
+        const oldPromises = []
+        
+        for (const [id, info] of trackedPromises.entries()) {
+            const age = now - info.startTime
+            if (age > maxAgeMs) {
+                oldPromises.push({
+                    id,
+                    name: info.name,
+                    ageMs: age,
+                    stack: info.stack
+                })
+            }
+        }
+        
+        if (oldPromises.length > 0) {
+            console.warn(`⚠️ ${oldPromises.length} tracked promises pending for more than ${maxAgeMs}ms:`, oldPromises)
+        }
+    }, checkIntervalMs)
+    
+    // Cleanup on process exit
+    process.once('exit', () => {
+        clearInterval(checkInterval)
+        if (trackedPromises.size > 0) {
+            console.warn(`⚠️ ${trackedPromises.size} tracked promises still pending on exit`)
+        }
+    })
+    
+    return () => {
+        clearInterval(checkInterval)
+        trackedPromises.clear()
+    }
+}
+
+/**
+ * Get all currently pending tracked promises
+ * @returns {Array} Array of pending promise info
+ */
+export const getPendingPromises = () => {
+    const now = Date.now()
+    return Array.from(trackedPromises.values()).map(info => ({
+        id: info.id,
+        name: info.name,
+        ageMs: now - info.startTime,
+        stack: info.stack
+    }))
+}
+
+/**
+ * Track async function with automatic promise tracking
+ * Works seamlessly with async/await
+ * 
+ * Usage:
+ *   const trackedFn = trackAsyncFunction(myAsyncFunction, 'myFunction', 5000)
+ *   await trackedFn(arg1, arg2)
+ */
+export const trackAsyncFunction = (fn, name, timeoutMs = 30000) => {
+    return async (...args) => {
+        const promise = fn(...args)
+        return trackPromise(promise, name, timeoutMs)
+    }
 }

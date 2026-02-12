@@ -268,9 +268,22 @@
 			</div>
         </div>
         <App></App>
-        <!-- Load MPEGTS.js and hls.js externally to prevent worker-related issues due to double bundling -->
-        <script src="./dist/mpegts.js"></script>
-        <script src="./dist/hls.min.js"></script>
+        <!-- mpegts.js and hls.min.js are loaded on first use (lazy) to reduce renderer OOM at startup -->
+        <script>
+            window.__loadVideoLib = function(name) {
+                const src = name === 'hls' ? './dist/hls.min.js' : './dist/mpegts.js';
+                if (window.__videoLibLoaded && window.__videoLibLoaded[src]) return window.__videoLibLoaded[src];
+                window.__videoLibLoaded = window.__videoLibLoaded || {};
+                window.__videoLibLoaded[src] = new Promise(function(resolve, reject) {
+                    var s = document.createElement('script');
+                    s.src = src;
+                    s.onload = function() { resolve(); };
+                    s.onerror = reject;
+                    document.head.appendChild(s);
+                });
+                return window.__videoLibLoaded[src];
+            };
+        </script>
         <script>
             const splashProgressDiv = document.querySelector('#splash-progress')
             const isAndroid = document.URL.endsWith('android');

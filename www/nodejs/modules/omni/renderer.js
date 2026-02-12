@@ -181,7 +181,7 @@ export class OMNI extends OMNIUtils {
         this.typing = this.rinput.value
         if(!this.typing.length) return
         this.type = this.isNumeric(this.typing) ? 'numeric' : 'mixed'
-        this.updateIcon(this.type == 'numeric' ? 'fas fa-star' : 'fas fa-search')
+        this.updateIcon(this.type == 'numeric' ? 'fas fa-heart' : 'fas fa-search')
         if(this.opts.autoSubmit) {
             this.omniTimer = setTimeout(this.trigger.bind(this), this.opts.omniInterval)
         }

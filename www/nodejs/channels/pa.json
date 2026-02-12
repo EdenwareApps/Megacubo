@@ -1,0 +1,376 @@
+{
+  "Religious": [
+    {
+      "name": "Hosanna Vision",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "A&R Canal",
+      "isFree": true,
+      "website": "http://arministerio.com/",
+      "priority": 4
+    },
+    {
+      "name": "FETV",
+      "isFree": true,
+      "website": "https://fetv.org/",
+      "priority": 4
+    },
+    {
+      "name": "Istmo TV Panama",
+      "isFree": true,
+      "website": "https://istmotv.com/",
+      "priority": 4
+    },
+    {
+      "name": "MINFAV",
+      "isFree": true,
+      "website": "https://minfav.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Radio Hogar",
+      "isFree": true,
+      "website": "https://radiohogar.org/",
+      "priority": 4
+    },
+    {
+      "name": "RCTV Digital",
+      "isFree": true,
+      "website": "https://radioclaret.net/",
+      "priority": 4
+    },
+    {
+      "name": "Vision Latina",
+      "isFree": true,
+      "website": "https://visionlatinapanama.com/",
+      "priority": 4
+    },
+    {
+      "name": "Viva Canal 33",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "RPC",
+      "isFree": true,
+      "priority": 5,
+      "website": "http://www.rpctv.com/"
+    },
+    {
+      "name": "TVN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telemetro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ANTV",
+      "isFree": true,
+      "website": "https://www.asamblea.gob.pa/",
+      "priority": 5
+    },
+    {
+      "name": "ATV Panama",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BTV Panama",
+      "isFree": true,
+      "website": "https://www.btvpanama.com/",
+      "priority": 5
+    },
+    {
+      "name": "Caribeteve",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hispania",
+      "isFree": true,
+      "website": "https://hispaniaweb.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Luar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nex TV Canal 21",
+      "isFree": true,
+      "website": "https://nexpanama.com/",
+      "priority": 5
+    },
+    {
+      "name": "SerTV",
+      "isFree": true,
+      "keywords": "sertv -deportes",
+      "website": "https://sertv.gob.pa/",
+      "priority": 5
+    },
+    {
+      "name": "Tropical Moon Eventos",
+      "isFree": true,
+      "website": "https://tropicalmoontv.com/eventos-tv/",
+      "priority": 5
+    },
+    {
+      "name": "TVMax",
+      "isFree": true,
+      "website": "https://www.tvmax-9.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVP Geek",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Dreiko",
+      "isFree": true,
+      "keywords": "dreiko tv | dreikotv",
+      "shortName": "DreikoTv",
+      "priority": 5
+    },
+    {
+      "name": "Recreo",
+      "isFree": true,
+      "website": "https://sertv.gob.pa/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Oye",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "A Son de Salsa",
+      "isFree": true,
+      "website": "https://asondesalsa.com.pa/tv-online/",
+      "priority": 5
+    },
+    {
+      "name": "Drumba Bachata",
+      "isFree": true,
+      "website": "https://drumba.online/",
+      "priority": 5
+    },
+    {
+      "name": "Drumba Dembow",
+      "isFree": true,
+      "website": "https://drumba.online/",
+      "priority": 5
+    },
+    {
+      "name": "Drumba Merengue",
+      "isFree": true,
+      "website": "https://drumba.online/",
+      "priority": 5
+    },
+    {
+      "name": "Drumba Mix Music",
+      "isFree": true,
+      "website": "https://drumba.online/",
+      "priority": 5
+    },
+    {
+      "name": "Drumba Reggaeton",
+      "isFree": true,
+      "website": "https://drumba.online/",
+      "priority": 5
+    },
+    {
+      "name": "Drumba Reggae",
+      "isFree": true,
+      "website": "https://drumba.online/",
+      "priority": 5
+    },
+    {
+      "name": "Drumba Salsa",
+      "isFree": true,
+      "website": "https://drumba.online/",
+      "priority": 5
+    },
+    {
+      "name": "Drumba Tipico",
+      "isFree": true,
+      "website": "https://drumba.online/",
+      "priority": 5
+    },
+    {
+      "name": "Fabulosa Estereo 100.5 FM",
+      "isFree": true,
+      "website": "https://fabulosaestereo.com/",
+      "priority": 5
+    },
+    {
+      "name": "LaXitosa Panama",
+      "isFree": true,
+      "website": "https://laxitosapanama.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mas 23",
+      "isFree": true,
+      "website": "https://mas23tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Pindin",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Planet 100.9 FM",
+      "isFree": true,
+      "website": "https://planet1009.net/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Reforma Se Oye",
+      "isFree": true,
+      "website": "https://radioreformaseoye.com/",
+      "priority": 5
+    },
+    {
+      "name": "Salsa 106",
+      "isFree": true,
+      "website": "https://salsa106.com/salsa106-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Super Q Panama",
+      "isFree": true,
+      "website": "https://superqpanama.net/superqdigital/",
+      "priority": 5
+    },
+    {
+      "name": "Tropical Moon Cumbia",
+      "isFree": true,
+      "website": "https://tropicalmoontv.com/cumbia-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Tropical Moon Salsa",
+      "isFree": true,
+      "website": "https://tropicalmoontv.com/musica-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Tropical Moon Somos Cultura",
+      "isFree": true,
+      "website": "https://somoscultura247.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tropical Moon Urban",
+      "isFree": true,
+      "website": "https://tropicalmoontv.com/urban-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Tropi Q 99.7 FM",
+      "isFree": true,
+      "website": "https://tropiq.com/",
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Cabina RPC Radio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cabina Telemetro Radio",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Cable Onda Sports",
+      "isFree": true,
+      "website": "https://www.cospanama.com/",
+      "priority": 10
+    },
+    {
+      "name": "Hipodromo Presidente Remon",
+      "isFree": true,
+      "website": "https://www.hipodromo.com/index.php/carreras-en-vivo-2/",
+      "priority": 5
+    },
+    {
+      "name": "SerTV Deportes",
+      "isFree": true,
+      "website": "https://sertv.gob.pa/",
+      "priority": 5
+    },
+    {
+      "name": "Tigo Sports",
+      "isFree": true,
+      "website": "https://www.tigosports.com.pa/",
+      "priority": 10
+    },
+    {
+      "name": "UniCOS",
+      "isFree": true,
+      "website": "https://www.cospanama.com/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "ECO",
+      "isFree": true,
+      "website": "https://www.ecotvpanama.com/",
+      "priority": 5
+    },
+    {
+      "name": "Plus",
+      "isFree": true,
+      "website": "https://plustucanaldeopinion.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Ancon",
+      "isFree": true,
+      "website": "https://radioancon.com/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Somos Cultura",
+      "isFree": true,
+      "website": "https://somoscultura247.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tu Canal",
+      "isFree": true,
+      "website": "https://pancanal.com/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Teleclasicos",
+      "isFree": true,
+      "website": "https://www.teleclasico.com/",
+      "priority": 5
+    }
+  ]
+}

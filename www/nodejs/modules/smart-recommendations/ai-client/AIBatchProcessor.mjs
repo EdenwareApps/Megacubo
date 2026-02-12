@@ -3,7 +3,7 @@
  * Batches multiple requests into single API calls for efficiency
  */
 
-import { EPGErrorHandler } from '../../epg/worker/EPGErrorHandler.js';
+import { ErrorHandler } from '../ErrorHandler.mjs';
 
 export class AIBatchProcessor {
     constructor(aiClient, options = {}) {
@@ -84,7 +84,7 @@ export class AIBatchProcessor {
             });
 
         } catch (error) {
-            EPGErrorHandler.error(`Batch processing failed for ${operation}:`, error);
+            ErrorHandler.error(`Batch processing failed for ${operation}:`, error);
             
             // Reject all promises
             batch.forEach(item => {

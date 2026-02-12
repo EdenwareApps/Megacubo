@@ -33,6 +33,7 @@ class ListsDiscovery extends EventEmitter {
         this.ready = ready()
         this.saver = new Limiter(() => {
             storage.set(this.key, this.knownLists, {
+                personal: true,
                 permanent: true,
                 expiration: true
             });
@@ -59,10 +60,62 @@ class ListsDiscovery extends EventEmitter {
         Array.isArray(data) && this.add(data);
     }
     async reset() {
-        this.knownLists = [];
-        await this.save();
-        await this.update();
-        await this.save();
+        // Only reset discovery if necessary to avoid unnecessary network requests and processing
+        const shouldResetDiscovery = await this.shouldResetDiscovery();
+
+        if (shouldResetDiscovery) {
+            console.log('🔄 Complete reset: clearing discovery cache and rediscovering lists');
+            this.knownLists = [];
+            await this.save();
+            await this.update(); // forced rediscovery
+            await this.save();
+        } else {
+            console.log('🔄 Partial reset: maintaining discovery cache, only forcing reprocessing');
+            // Does not clear knownLists, only forces reprocessing of already discovered lists
+        }
+    }
+
+    async shouldResetDiscovery() {
+        // Check if a full rediscovery is necessary based on criteria such as time since last discovery, changes in active countries, or if the cache is empty or very small
+        const now = Date.now();
+
+        // Criterion 1: Time since last full discovery (> 24h)
+        if (!this.lastFullDiscovery) {
+            this.lastFullDiscovery = now;
+            return true; // first time, force discovery
+        }
+
+        const hoursSinceLastDiscovery = (now - this.lastFullDiscovery) / (1000 * 60 * 60);
+        if (hoursSinceLastDiscovery > 24) {
+            this.lastFullDiscovery = now;
+            return true; // more than 24h, rediscover
+        }
+
+        // Criterion 2: Change in active countries
+        try {
+            const currentCountries = await lang.getActiveCountries().catch(() => []);
+            const countriesChanged = !this.lastDiscoveryCountries ||
+                this.lastDiscoveryCountries.sort().join(',') !== currentCountries.sort().join(',');
+
+            if (countriesChanged) {
+                console.log('🌍 Active countries changed, forcing rediscovery:', {
+                    previous: this.lastDiscoveryCountries,
+                    current: currentCountries
+                });
+                this.lastFullDiscovery = now;
+                return true;
+            }
+        } catch (err) {
+            console.warn('❌ Error checking for active countries change:', err.message);
+        }
+
+        // Criterion 3: Cache empty or very small
+        if (!this.knownLists || this.knownLists.length < 10) {
+            this.lastFullDiscovery = now;
+            return true;
+        }
+
+        return false; // maintain existing cache
     }
     async save() {
         this.saver.call();
@@ -76,6 +129,14 @@ class ListsDiscovery extends EventEmitter {
         })
     }
     async update(provider, type) {
+        // Store current countries to detect future changes
+        try {
+            this.lastDiscoveryCountries = await lang.getActiveCountries().catch(() => []);
+        } catch (err) {
+            console.warn('❌ Error saving discovery countries:', err.message);
+            this.lastDiscoveryCountries = [];
+        }
+
         for (const provider of this.providers) {
             provider[0]._isLoaded = false
             await provider[0].discovery(lists => this.add(lists)).catch(err => console.error(err)).finally(() => {
@@ -133,7 +194,7 @@ class ListsDiscovery extends EventEmitter {
     }
     add(lists) {
         const now = new Date().getTime() / 1000;
-        const aYear = 365 * (30 * 24); // aprox
+        const aYear = 365 * (30 * 24); // approx
         const oneYearAgo = now - aYear, newOnes = [];
         Array.isArray(lists) && lists.forEach(list => {
             if (!list || !list.url)

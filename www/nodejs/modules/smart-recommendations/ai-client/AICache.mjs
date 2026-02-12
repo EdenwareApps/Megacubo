@@ -4,7 +4,7 @@
  */
 
 import storage from '../../storage/storage.js';
-import { EPGErrorHandler } from '../../epg/worker/EPGErrorHandler.js';
+import { ErrorHandler } from '../ErrorHandler.mjs';
 
 export class AICache {
     constructor(options = {}) {
@@ -17,7 +17,7 @@ export class AICache {
         // TTL by cache type
         this.ttlByType = {
             'analyze': 24 * 60 * 60 * 1000, // 24h
-            'expand': 60 * 60 * 1000, // 1h
+            'expand': 72 * 60 * 60 * 1000, // 72h (increased from 1h to reduce API calls)
             'cluster': 12 * 60 * 60 * 1000, // 12h
             'embedding': Infinity // Permanent
         };
@@ -99,7 +99,7 @@ export class AICache {
                 return storageCached.value;
             }
         } catch (error) {
-            EPGErrorHandler.warn('Cache storage read error:', error.message);
+            ErrorHandler.warn('Cache storage read error:', error.message);
         }
 
         this.stats.misses++;
@@ -125,7 +125,7 @@ export class AICache {
             await storage.set(key, entry, { ttl: Math.floor(ttl / 1000) });
             this.stats.storageWrites++;
         } catch (error) {
-            EPGErrorHandler.warn('Cache storage write error:', error.message);
+            ErrorHandler.warn('Cache storage write error:', error.message);
         }
 
         // Add to memory if appropriate
@@ -156,7 +156,7 @@ export class AICache {
             await storage.delete(key)
         } catch (error) {
             if (error?.code !== 'ENOENT') {
-                EPGErrorHandler.warn('Cache delete error:', error.message)
+                ErrorHandler.warn('Cache delete error:', error.message)
             }
         }
     }

@@ -1,0 +1,241 @@
+{
+  "Entertainment": [
+    {
+      "name": "Jamaica Online",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BOJTV",
+      "isFree": true,
+      "website": "https://bojtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "CEEN",
+      "isFree": true,
+      "website": "https://www.ceen.tv/",
+      "priority": 5
+    },
+    {
+      "name": "CVM",
+      "isFree": true,
+      "website": "https://www.cvmtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "DVP-TV",
+      "isFree": true,
+      "website": "https://dvptv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Eplus",
+      "isFree": true,
+      "website": "https://eplustv.online/",
+      "priority": 5
+    },
+    {
+      "name": "Hype",
+      "isFree": true,
+      "website": "http://www.hypetvjam.com/",
+      "priority": 5
+    },
+    {
+      "name": "Jamaica Travel",
+      "isFree": true,
+      "website": "https://www.visitjamaica.com/travel-channel/",
+      "priority": 5
+    },
+    {
+      "name": "JUICE",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lucky Play",
+      "isFree": true,
+      "website": "https://luckyplay.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mello",
+      "isFree": true,
+      "website": "https://mellotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "OPM",
+      "isFree": true,
+      "website": "https://opmtv.gov.jm/",
+      "priority": 5
+    },
+    {
+      "name": "PBC Jamaica",
+      "isFree": true,
+      "website": "https://pbcjamaica.org/",
+      "priority": 5
+    },
+    {
+      "name": "RETV",
+      "isFree": true,
+      "website": "http://realjamaicantelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVJ",
+      "isFree": true,
+      "keywords": "tvj -sports -network",
+      "website": "https://www.televisionjamaica.com/",
+      "priority": 5
+    },
+    {
+      "name": "World Vybz",
+      "isFree": true,
+      "website": "https://worlvybzradio.weebly.com/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Bess 100 FM",
+      "isFree": true,
+      "website": "https://www.bessfm.com/",
+      "priority": 5
+    },
+    {
+      "name": "JamVision",
+      "isFree": true,
+      "website": "http://cptcjamaica.com/jamvision/",
+      "priority": 5
+    },
+    {
+      "name": "JETV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NCU",
+      "isFree": true,
+      "website": "https://www.ncu.edu.jm/",
+      "priority": 5
+    },
+    {
+      "name": "UWI",
+      "isFree": true,
+      "website": "https://uwitv.global/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Bless",
+      "isFree": true,
+      "website": "http://blesstvjm.org/",
+      "priority": 4
+    },
+    {
+      "name": "Caribbean Gospel",
+      "isFree": true,
+      "website": "https://caribbeangospel.tv/",
+      "priority": 4
+    },
+    {
+      "name": "GNN",
+      "isFree": true,
+      "website": "https://www.gnmnsolutions.com/",
+      "priority": 4
+    },
+    {
+      "name": "Love",
+      "isFree": true,
+      "website": "https://love101.org/",
+      "priority": 4
+    },
+    {
+      "name": "Mercy and Truth Ministries Television",
+      "isFree": true,
+      "website": "https://www.mercyandtruth.tv/",
+      "priority": 4
+    },
+    {
+      "name": "PFM Family",
+      "isFree": true,
+      "website": "https://pfmfamily.org/",
+      "priority": 4
+    }
+  ],
+  "News": [
+    {
+      "name": "Business Access",
+      "isFree": true,
+      "website": "https://batvja.com/",
+      "priority": 5
+    },
+    {
+      "name": "Caribbean Business Exchange",
+      "isFree": true,
+      "website": "https://www.jamstockex.com/services/cbx/",
+      "priority": 5
+    },
+    {
+      "name": "CNS",
+      "isFree": true,
+      "website": "https://cnstvjamaica.wixsite.com/cnstv",
+      "priority": 5
+    },
+    {
+      "name": "JIS",
+      "isFree": true,
+      "website": "https://jis.gov.jm/jis-tv/",
+      "priority": 5
+    },
+    {
+      "name": "JNN",
+      "isFree": true,
+      "website": "https://www.televisionjamaica.com/jnn",
+      "priority": 5
+    },
+    {
+      "name": "REVO",
+      "isFree": true,
+      "website": "https://revonews.ai/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Fame95 FM",
+      "isFree": true,
+      "website": "https://www.fame95fm.com/",
+      "priority": 5
+    },
+    {
+      "name": "Flexx",
+      "isFree": true,
+      "website": "https://flexxfm.online/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "SportsMax",
+      "isFree": true,
+      "keywords": "sportsmax -2",
+      "website": "https://www.sportsmax.tv/",
+      "priority": 10
+    },
+    {
+      "name": "SportsMax 2",
+      "isFree": true,
+      "website": "https://www.sportsmax.tv/",
+      "priority": 10
+    },
+    {
+      "name": "TVJ Sports Network",
+      "isFree": true,
+      "website": "https://www.televisionjamaica.com/",
+      "priority": 10
+    }
+  ]
+}

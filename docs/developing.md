@@ -5,14 +5,39 @@
 
 # <span style="color: #2e86de;">IPTV Player Development Setup</span>
 
+## Prerequisites
+
+Before starting development, ensure you have:
+- **Node.js 22.12.0 or higher** (we recommend using [nvm](https://github.com/nvm-sh/nvm))
+- **Git** for cloning and dependency management
+- **At least 2GB free disk space**
+- **Stable internet connection**
+
+### Quick Setup Check
+```bash
+
+  # Verifies all prerequisites
+```
+
 ### IPTV Development with Electron (Windows/Linux/macOS)
 Easier and recommended way for **desktop IPTV app development**.
+
+#### Standard Installation
 ```
 git clone https://github.com/EdenwareApps/Megacubo.git
 cd Megacubo
 npm install
 npm run prepare  # Compiles and bundles the application
-npm run debug    # Starts app in development mode with debugging
+npm start        # Starts app (automatically detects development or production mode based on the last build)
+```
+
+#### Fresh Installation (Recommended for troubleshooting)
+```bash
+git clone https://github.com/EdenwareApps/Megacubo.git
+cd Megacubo
+npm run fresh-install  # Clean install with prerequisite checks
+npm run prepare        # Compiles and bundles the application
+npm start              # Starts app (automatically detects development or production mode based on the last build)
 ```
 
 See [contributing guide](contributing.md#requirements) for system requirements.

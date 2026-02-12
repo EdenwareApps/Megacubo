@@ -1,0 +1,233 @@
+{
+  "Entertainment": [
+    {
+      "name": "RTG",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ATV",
+      "isFree": true,
+      "website": "https://atvguinee.net/",
+      "priority": 5
+    },
+    {
+      "name": "Bauxite",
+      "isFree": true,
+      "website": "https://bauxitetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "BTA",
+      "isFree": true,
+      "website": "https://btagroupe.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cavi",
+      "isFree": true,
+      "website": "https://siaminfos.com/cavi-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Djoma",
+      "isFree": true,
+      "website": "https://djomatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Evasion",
+      "isFree": true,
+      "website": "https://groupeevasionguinee.info/",
+      "priority": 5
+    },
+    {
+      "name": "Fasso TV Kankan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Fatala",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Galaxie",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gangan RTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Guinee Afromusic",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GuineeBuzz",
+      "isFree": true,
+      "website": "http://www.guineebuzz.com/",
+      "priority": 5
+    },
+    {
+      "name": "Guinee TV",
+      "isFree": true,
+      "website": "https://guineetv1.com/",
+      "priority": 5
+    },
+    {
+      "name": "Happy",
+      "isFree": true,
+      "website": "https://groupehappymedias.com/",
+      "priority": 5
+    },
+    {
+      "name": "Horewoury",
+      "isFree": true,
+      "website": "https://horewoury.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kaback",
+      "isFree": true,
+      "website": "https://www.lerenifleur224.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kalac",
+      "isFree": true,
+      "website": "https://www.espacetvguinee.info/",
+      "priority": 5
+    },
+    {
+      "name": "Ledjely",
+      "isFree": true,
+      "website": "https://ledjely.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ocean",
+      "isFree": true,
+      "website": "https://oceanguinee.com/",
+      "priority": 5
+    },
+    {
+      "name": "Parlement",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTG 2",
+      "isFree": true,
+      "website": "https://rtgkoloma.info/tv/",
+      "priority": 5
+    },
+    {
+      "name": "Sab",
+      "isFree": true,
+      "website": "https://sabtvguinee.com/",
+      "priority": 5
+    },
+    {
+      "name": "Simandou",
+      "isFree": true,
+      "website": "https://simandou.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Star 21",
+      "isFree": true,
+      "website": "https://www.star21tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "West Africa",
+      "isFree": true,
+      "website": "https://westafricatv.net/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Africasport",
+      "isFree": true,
+      "website": "https://africasport.org/",
+      "priority": 10
+    },
+    {
+      "name": "TopGain Dog Racing",
+      "isFree": true,
+      "website": "http://topgain-guinee.com/",
+      "priority": 5
+    },
+    {
+      "name": "TopGain Keno",
+      "isFree": true,
+      "website": "http://topgain-guinee.com/",
+      "priority": 5
+    },
+    {
+      "name": "TopGain League",
+      "isFree": true,
+      "website": "http://topgain-guinee.com/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Afrik Info",
+      "isFree": true,
+      "website": "https://afrikinfomedias.com/tv/",
+      "priority": 5
+    },
+    {
+      "name": "Espace",
+      "isFree": true,
+      "website": "https://www.espacetvguinee.info/",
+      "priority": 5
+    },
+    {
+      "name": "FIM 24",
+      "isFree": true,
+      "website": "https://fimguinee.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tele 24",
+      "isFree": true,
+      "website": "https://www.tele24groupe.com/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "CIS",
+      "isFree": true,
+      "website": "http://www.cismedias.com/cis-tv/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "La Guinee Fe",
+      "isFree": true,
+      "website": "https://www.canalplus.com/chaines/guinee-fe",
+      "priority": 5
+    },
+    {
+      "name": "Sillywood",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Nourdine",
+      "isFree": true,
+      "priority": 4
+    }
+  ]
+}

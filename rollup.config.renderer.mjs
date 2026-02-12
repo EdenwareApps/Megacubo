@@ -4,7 +4,7 @@ import terser from '@rollup/plugin-terser';
 import svelte from 'rollup-plugin-svelte';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import builtins from 'rollup-plugin-node-builtins';
+import polyfills from 'rollup-plugin-polyfill-node';
 import json from '@rollup/plugin-json';
 import replace from '@rollup/plugin-replace';
 import copy from 'rollup-plugin-copy';
@@ -57,7 +57,7 @@ const rendererPlugins = [
     extensions: ['.js', '.cjs']
   }),
   json(),
-  builtins(),
+  polyfills(),
   replace(replaceOpts),
   isProduction && terser({
     compress: {

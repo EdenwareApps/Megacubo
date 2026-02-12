@@ -337,3 +337,16 @@ export const sniffStreamType = (e) => {
     // Return undefined for unknown (backward compatible)
     return undefined;
 }
+
+/** Heuristic: infer live/vod/series from group name when URL/name classification is unknown or live. */
+const GROUP_VOD_PATTERN = /\b(vod|movie|filme|film|cinema|on\s*demand|filmes|movies|document[aá]rio|documentarios|replay|catch[- ]?up|arquivo)\b/i;
+const GROUP_SERIES_PATTERN = /\b(series|s[eé]ries?|tv\s*show|shows|novelas?|anime|desenho|cartoon|sitcom|drama)\b|s\d+e\d+/i;
+
+export function inferTypeFromGroupName(groupName) {
+    if (!groupName || typeof groupName !== 'string') return null;
+    const g = groupName.trim();
+    if (!g) return null;
+    if (GROUP_SERIES_PATTERN.test(g)) return 'series';
+    if (GROUP_VOD_PATTERN.test(g)) return 'vod';
+    return null;
+}

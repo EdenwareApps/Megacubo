@@ -14,9 +14,15 @@ if (fs.existsSync(cacheDir)) {
   console.log('✓ Rollup cache cleared')
 }
 
+// Clear rollup-plugin-smart-cache directory
+const smartCacheDir = path.join(projectRoot, '.rollup-smart-cache')
+if (fs.existsSync(smartCacheDir)) {
+  fs.rmSync(smartCacheDir, { recursive: true, force: true })
+  console.log('✓ Smart cache (.rollup-smart-cache) cleared')
+}
+
 // Clear any temporary build files
 const tempFiles = [
-  'rollup.config.renderer.mjs',
   'rollup.config.main.mjs',
   'rollup.config.electron.mjs',
   'rollup.config.workers.mjs',

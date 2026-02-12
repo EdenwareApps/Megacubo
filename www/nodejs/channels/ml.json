@@ -1,0 +1,262 @@
+{
+  "Entertainment": [
+    {
+      "name": "ORTM",
+      "isFree": true,
+      "keywords": "ortm 1 | ortm1",
+      "shortName": "ORTM",
+      "priority": 5
+    },
+    {
+      "name": "9TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Advance",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Africable",
+      "isFree": true,
+      "website": "http://www.africabletelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Alafia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Balanzan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Beledougou",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bouctou",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cherifla",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Danaya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Energie",
+      "isFree": true,
+      "website": "https://energietv271817064.wordpress.com/",
+      "priority": 5
+    },
+    {
+      "name": "Jiguiya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kayes",
+      "isFree": true,
+      "website": "https://kayesinfos.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kene",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Liberte",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mousso",
+      "isFree": true,
+      "website": "https://i.imgur.com/egQqztS.jpg",
+      "priority": 5
+    },
+    {
+      "name": "Ndaar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ORTM 2",
+      "isFree": true,
+      "website": "https://www.ortm.ml/ortm2",
+      "priority": 5
+    },
+    {
+      "name": "Renouveau",
+      "isFree": true,
+      "website": "https://renouveautv.africa/",
+      "priority": 5
+    },
+    {
+      "name": "Segou",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Stella",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tafing",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TM",
+      "isFree": true,
+      "website": "https://www.tm1tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tropic",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "AES",
+      "isFree": true,
+      "website": "https://aes.ml/",
+      "priority": 5
+    },
+    {
+      "name": "Horon-TV",
+      "isFree": true,
+      "website": "https://horontv.ml/",
+      "priority": 5
+    },
+    {
+      "name": "Joliba TV News",
+      "isFree": true,
+      "website": "https://www.jolibatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "M 7",
+      "isFree": true,
+      "website": "https://m7tv.ml/",
+      "priority": 5
+    },
+    {
+      "name": "Mande",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Ambiance",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Anwar",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Bachir",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Dambe",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "ECF-TV",
+      "isFree": true,
+      "website": "https://eglisemali.org/",
+      "priority": 4
+    },
+    {
+      "name": "FTN-TV",
+      "isFree": true,
+      "website": "https://ftntv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Horonya",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Nieta",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Tele Frequence Sante",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "ZAHRA",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Benkouma",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ETV Afrique",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pinal",
+      "isFree": true,
+      "website": "https://pinaltv.ml/",
+      "priority": 5
+    },
+    {
+      "name": "TM.tv Kangaba",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "D 3",
+      "isFree": true,
+      "website": "https://d3tv.net/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "MANDEKA",
+      "isFree": true,
+      "website": "https://www.canalplus.com/ml/chaines/mandeka",
+      "priority": 5
+    }
+  ]
+}

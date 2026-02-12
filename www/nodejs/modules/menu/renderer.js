@@ -463,7 +463,7 @@ class MenuNav extends MenuStatusFlags {
     sideMenuTransition() {
         if (!this.sideMenuTransitionCache) {
             this.sideMenuTransitionCache = window.getComputedStyle(this.container).getPropertyValue('transition') || 
-                'transform var(--menu-fx-nav-duration) ease-in-out 0s'
+                'transform var(--menu-fx-nav-duration) ease-in-out 0s, top var(--menu-fx-nav-duration) ease-in-out 0s'
         }
         return this.sideMenuTransitionCache
     }
@@ -475,7 +475,7 @@ class MenuNav extends MenuStatusFlags {
             return
         }
         this.sideMenuTransitioning = left
-        this.container.style.transition = 'none'
+        //this.container.style.transition = 'none'
         this.container.addEventListener(behavior == 'smooth' ? 'scrollend' : 'scroll', () => {
             this.container.style.transition = transition
             this.sideMenuTransitioning = false

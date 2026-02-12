@@ -7,6 +7,10 @@ export class MemoryMonitor {
     this.gcThreshold = options.gcThreshold || EPG_CONFIG.memory.gcThreshold
     this.forceGcInterval = options.forceGcInterval || EPG_CONFIG.memory.forceGcInterval
     
+    // Disable memory monitoring by default since GC is not available in production
+    // and the monitor just generates log spam without providing real benefits
+    this.enabled = options.enabled !== undefined ? options.enabled : false
+    
     this.isMonitoring = false
     this.monitorInterval = null
     this.callbacks = {
@@ -17,6 +21,11 @@ export class MemoryMonitor {
   }
 
   startMonitoring() {
+    // Skip if monitoring is disabled
+    if (!this.enabled) {
+      return
+    }
+    
     if (this.isMonitoring) {
       EPGErrorHandler.warn('Memory monitor is already running')
       return

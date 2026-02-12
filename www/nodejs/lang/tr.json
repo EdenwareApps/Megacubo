@@ -98,6 +98,7 @@
    "CATEGORY_SHOP": "Mağaza",
    "CATEGORY_SPORTS": "Spor Dalları",
    "CATEGORY_TRAVEL": "Yolculuk",
+   "CATEGORY_XXX": "Yetişkin içerik",
    "CHANGE_DEST_FOLDER": "Hedef klasörü değiştir",
    "CHANGE_HOTKEY_MESSAGE": "Bu işlem için yeni bir tuş kombinasyonu girin veya iptal etmek için {0} tuşuna basın...",
    "CHANNEL_ADDED": "Kanal eklendi",

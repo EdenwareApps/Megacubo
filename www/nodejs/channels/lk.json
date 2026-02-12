@@ -1,0 +1,540 @@
+{
+  "Entertainment": [
+    {
+      "name": "Channel Eye",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hiru",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rupavahini",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Santhora",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sooriyan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Verbum",
+      "isFree": true,
+      "keywords": "verbum tv | verbumtv",
+      "shortName": "VerbumTV",
+      "priority": 5
+    },
+    {
+      "name": "Aksharaya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ART Television",
+      "isFree": true,
+      "website": "http://iwsholdings.com/",
+      "priority": 5
+    },
+    {
+      "name": "Asia",
+      "isFree": true,
+      "website": "https://www.asiatvnet.com/",
+      "priority": 5
+    },
+    {
+      "name": "Athavan",
+      "isFree": true,
+      "website": "https://athavantv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Beauty",
+      "isFree": true,
+      "website": "https://beautytv.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Capital",
+      "isFree": true,
+      "website": "https://capitaltv.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Channel One",
+      "isFree": true,
+      "website": "https://www.dialog.lk/television-channel-one-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Charana",
+      "isFree": true,
+      "website": "https://charanatv.lk",
+      "priority": 5
+    },
+    {
+      "name": "Citi Hitz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Colombo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DAN Comedy",
+      "isFree": true,
+      "website": "https://www.dantv.lk/",
+      "priority": 5
+    },
+    {
+      "name": "DAN Tamil Oli",
+      "isFree": true,
+      "website": "https://www.dantv.lk/",
+      "priority": 5
+    },
+    {
+      "name": "ETV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Haritha",
+      "isFree": true,
+      "website": "https://harithanetwork.com/",
+      "priority": 5
+    },
+    {
+      "name": "Hi",
+      "isFree": true,
+      "website": "http://hitv.dailymirror.lk/",
+      "priority": 5
+    },
+    {
+      "name": "ITN",
+      "isFree": true,
+      "website": "https://www.itntv.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Knowledge",
+      "isFree": true,
+      "website": "https://www.hirutv.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Monara",
+      "isFree": true,
+      "website": "https://monaratv.lk/",
+      "priority": 5
+    },
+    {
+      "name": "NDTV LANKA",
+      "isFree": true,
+      "website": "https://www.ndtvlanka.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Nethra",
+      "isFree": true,
+      "website": "https://nethratv.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Parliament of Sri Lanka",
+      "isFree": true,
+      "website": "https://www.parliament.lk/en/business-of-parliament/webcast/parliament-live",
+      "priority": 5
+    },
+    {
+      "name": "Pragna",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rangiri Sri Lanka",
+      "isFree": true,
+      "website": "http://www.rangirisrilanka.lk/tv/home.html",
+      "priority": 5
+    },
+    {
+      "name": "Ridee",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SBC",
+      "isFree": true,
+      "website": "https://sbc.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Shakthi",
+      "isFree": true,
+      "website": "https://shakthitv.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Shraddha",
+      "isFree": true,
+      "website": "https://www.shraddha.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Sirasa",
+      "isFree": true,
+      "website": "http://sirasatv.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Siyasa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Siyatha",
+      "isFree": true,
+      "website": "http://siyathatv.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Supreme",
+      "isFree": true,
+      "website": "https://www.supremetv.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Swarga",
+      "isFree": true,
+      "website": "http://swargatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Swarnavahini",
+      "isFree": true,
+      "keywords": "swarnavahini -france -uae",
+      "website": "https://swarnavahini.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Swarnavahini France",
+      "isFree": true,
+      "website": "https://liveat8.lk/LIVESS/",
+      "priority": 5
+    },
+    {
+      "name": "Swarnavahini UAE",
+      "isFree": true,
+      "website": "https://liveat8.lk/LIVESS/",
+      "priority": 5
+    },
+    {
+      "name": "The Buddhist",
+      "isFree": true,
+      "website": "https://www.thebuddhist.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TNL",
+      "isFree": true,
+      "website": "https://tnltv.lk/",
+      "priority": 5
+    },
+    {
+      "name": "TV",
+      "isFree": true,
+      "website": "http://tv1.lk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Derana",
+      "isFree": true,
+      "website": "http://www.derana.lk/",
+      "priority": 5
+    },
+    {
+      "name": "TV Didula",
+      "isFree": true,
+      "website": "https://www.tvdidula.lk/",
+      "priority": 5
+    },
+    {
+      "name": "UTV",
+      "isFree": true,
+      "website": "https://www.utv.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Vasantham",
+      "isFree": true,
+      "website": "https://www.vasantham.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Yarl",
+      "isFree": true,
+      "website": "https://www.dantv.lk/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Ada Derana 24x 7",
+      "isFree": true,
+      "website": "http://www.adaderana.lk/",
+      "priority": 5
+    },
+    {
+      "name": "DAN News",
+      "isFree": true,
+      "website": "https://www.dantv.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Lankasri",
+      "isFree": true,
+      "website": "https://lankasri.com/",
+      "priority": 5
+    },
+    {
+      "name": "News1st",
+      "isFree": true,
+      "website": "https://www.newsfirst.lk/live/",
+      "priority": 5
+    },
+    {
+      "name": "ThePapare",
+      "isFree": true,
+      "website": "https://www.thepapare.com/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "A/L Kuppiya Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Guru",
+      "isFree": true,
+      "website": "https://guru.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Imai",
+      "isFree": true,
+      "website": "https://imaitv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kalvi TV-",
+      "isFree": true,
+      "website": "https://www.dantv.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Kalvi TV- 2",
+      "isFree": true,
+      "website": "https://www.dantv.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Kalvi TV- 3",
+      "isFree": true,
+      "website": "https://www.dantv.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Kalvi TV- 4",
+      "isFree": true,
+      "website": "https://www.dantv.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Nenasa Sinhala A/L",
+      "isFree": true,
+      "website": "http://nenasa.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Nenasa Sinhala Grade 1- 5",
+      "isFree": true,
+      "website": "http://nenasa.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Nenasa Sinhala Grade 6- 9",
+      "isFree": true,
+      "website": "http://nenasa.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Nenasa Sinhala O/L",
+      "isFree": true,
+      "website": "http://nenasa.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Nenasa Tamil A/L",
+      "isFree": true,
+      "website": "http://nenasa.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Nenasa Tamil Grade 1- 5",
+      "isFree": true,
+      "website": "http://nenasa.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Nenasa Tamil Grade 6- 9",
+      "isFree": true,
+      "website": "http://nenasa.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Nenasa Tamil O/L",
+      "isFree": true,
+      "website": "http://nenasa.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Nenasa",
+      "isFree": true,
+      "website": "http://nenasa.lk/",
+      "priority": 5
+    },
+    {
+      "name": "VAPA",
+      "isFree": true,
+      "website": "https://www.dantv.lk/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "A Plus Kids",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Channel C",
+      "isFree": true,
+      "website": "http://www.channelc.lk/",
+      "priority": 5
+    },
+    {
+      "name": "DAN Music",
+      "isFree": true,
+      "website": "https://www.dantv.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Music",
+      "isFree": true,
+      "website": "https://musictv.lk/",
+      "priority": 5
+    },
+    {
+      "name": "Sindu",
+      "isFree": true,
+      "website": "https://www.sindutv.com/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Damsathara",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Dharmavahini",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Holy Mary",
+      "isFree": true,
+      "website": "https://www.dantv.lk/",
+      "priority": 4
+    },
+    {
+      "name": "Jaya",
+      "isFree": true,
+      "website": "https://www.jayatv.lk/",
+      "priority": 4
+    },
+    {
+      "name": "Karma",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Methmaga",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Meth",
+      "isFree": true,
+      "website": "https://methtv.lk/",
+      "priority": 4
+    },
+    {
+      "name": "Ohm",
+      "isFree": true,
+      "website": "https://www.dantv.lk/",
+      "priority": 4
+    },
+    {
+      "name": "Pirai",
+      "isFree": true,
+      "website": "https://www.dantv.lk/",
+      "priority": 4
+    },
+    {
+      "name": "Sathi",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sri Sankara",
+      "isFree": true,
+      "website": "https://www.srisankaratv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Three Vision",
+      "isFree": true,
+      "website": "https://3vision.lk/",
+      "priority": 4
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Gaja",
+      "isFree": true,
+      "website": "https://gajatv.lk/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Star Tamil Television",
+      "isFree": true,
+      "priority": 5
+    }
+  ]
+}

@@ -1,0 +1,188 @@
+{
+  "Local": [
+    {
+      "name": "Sahel",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Travel": [
+    {
+      "name": "Tunisie Immobilier",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "El Hiwar El Tounsi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Watania",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Watania 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Janoubiya",
+      "isFree": true,
+      "website": "https://ar.aljanoubiyatv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Attessia",
+      "isFree": true,
+      "website": "http://www.attessia.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Baya",
+      "isFree": true,
+      "website": "https://www.bayatv.net",
+      "priority": 5
+    },
+    {
+      "name": "Carthage+",
+      "isFree": true,
+      "website": "http://carthageplus.tv",
+      "priority": 5
+    },
+    {
+      "name": "CNB",
+      "isFree": true,
+      "website": "https://tvcnb.net/",
+      "priority": 5
+    },
+    {
+      "name": "Elhiwar Ettounsi",
+      "isFree": true,
+      "website": "https://www.elhiwarettounsi.com/",
+      "priority": 5
+    },
+    {
+      "name": "El Watania",
+      "isFree": true,
+      "website": "http://www.watania1.tn/",
+      "priority": 5
+    },
+    {
+      "name": "El Watania 2",
+      "isFree": true,
+      "website": "http://www.watania2.tn/",
+      "priority": 5
+    },
+    {
+      "name": "Hannibal",
+      "isFree": true,
+      "website": "http://www.hannibaltv.com.tn/",
+      "priority": 5
+    },
+    {
+      "name": "Nefzawa",
+      "isFree": true,
+      "website": "https://nefzawa.net/",
+      "priority": 5
+    },
+    {
+      "name": "Nessma El Jadida",
+      "isFree": true,
+      "website": "https://www.nessma.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Nationale Visuelle",
+      "isFree": true,
+      "website": "http://www.radionationale.tn/",
+      "priority": 5
+    },
+    {
+      "name": "Telvza",
+      "isFree": true,
+      "website": "http://www.telvza-tv.tn/",
+      "priority": 5
+    },
+    {
+      "name": "TT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tunisna",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "IFM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "JAWHARA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mosaique FM",
+      "isFree": true,
+      "website": "https://www.mosaiquefm.net/",
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Mosaïque FM",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Al Insen",
+      "isFree": true,
+      "website": "https://www.alinsen.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Zitouna",
+      "isFree": true,
+      "website": "https://zitounatv.net/",
+      "priority": 4
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Essaida",
+      "isFree": true,
+      "website": "https://www.essaidafm.com",
+      "priority": 5
+    },
+    {
+      "name": "Watania Educative",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "SPLTV",
+      "isFree": true,
+      "website": "https://spl-tv.com/live-tv/",
+      "priority": 5
+    }
+  ],
+  "Shop": [
+    {
+      "name": "TunisiaShop",
+      "isFree": true,
+      "priority": 4
+    }
+  ]
+}

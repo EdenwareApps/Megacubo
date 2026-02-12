@@ -98,6 +98,7 @@
    "CATEGORY_SHOP": "Winkel",
    "CATEGORY_SPORTS": "Sport",
    "CATEGORY_TRAVEL": "Reis",
+   "CATEGORY_XXX": "Inhoud voor volwassenen",
    "CHANGE_DEST_FOLDER": "Wijzig bestemmingsmap",
    "CHANGE_HOTKEY_MESSAGE": "Voer een nieuwe sleutelcombinatie in voor deze actie of druk op {0} om te annuleren...",
    "CHANNEL_ADDED": "Kanaal toegevoegd",

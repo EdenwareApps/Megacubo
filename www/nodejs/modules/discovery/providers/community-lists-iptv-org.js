@@ -1,7 +1,7 @@
 import osd from '../../osd/osd.js'
 import lang from "../../lang/lang.js";
 import { EventEmitter } from 'node:events';
-import Countries from "../../countries/countries.js";
+import countries from '@edenware/countries';
 import cloud from "../../cloud/cloud.js";
 import config from "../../config/config.js"
 import renderer from '../../bridge/bridge.js'
@@ -17,7 +17,7 @@ export default class CommunityListsIPTVORG extends EventEmitter {
         this.type = 'community'
         this.id = 'community-lists-iptv-org'
         this.ready = ready()
-        this.countries = new Countries();
+        this.countries = countries;
         this.forceRefreshFlag = false;
         this.load().catch(err => console.error(err));
         renderer.ready(() => menu.addFilter(this.hook.bind(this)));

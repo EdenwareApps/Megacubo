@@ -8,14 +8,20 @@ import { getFilename } from 'cross-dirname'
 
 const utils = setupUtils(getFilename())
 
+// Memory threshold in bytes (1.5GB warning, 2GB critical)
+const MEMORY_WARNING_THRESHOLD = 1.5 * 1024 * 1024 * 1024
+const MEMORY_CRITICAL_THRESHOLD = 2 * 1024 * 1024 * 1024
+
 class UpdaterWorker extends Common {
 	constructor() {
 		super()
 		this.debug = false
 		this._relevantKeywords = {}
 		this.info = {}
-		this.maxInfoEntries = 100 // Limit info entries to prevent memory accumulation
+		this.maxInfoEntries = 50 // Reduced from 100 to prevent memory accumulation
 		this.cleanupInterval = null
+		this.memoryCheckInterval = null
+		this.lastMemoryWarning = 0
 		this.setupMemoryManagement()
 	}
 
@@ -24,17 +30,53 @@ class UpdaterWorker extends Common {
 		this.cleanupInterval = setInterval(() => {
 			this.cleanupInfoEntries()
 		}, 30000) // Clean up every 30 seconds
+		
+		// Monitor memory usage and force GC when needed
+		this.memoryCheckInterval = setInterval(() => {
+			this.checkMemoryUsage()
+		}, 10000) // Check every 10 seconds
+	}
+	
+	checkMemoryUsage() {
+		const memUsage = process.memoryUsage()
+		const heapUsed = memUsage.heapUsed
+		const now = Date.now()
+		
+		if (heapUsed > MEMORY_CRITICAL_THRESHOLD) {
+			console.warn(`[updater-worker] CRITICAL: Memory usage ${Math.round(heapUsed / 1024 / 1024)}MB exceeds critical threshold`)
+			this.forceGarbageCollection()
+			// Clean up more aggressively
+			this.cleanupInfoEntries(true)
+		} else if (heapUsed > MEMORY_WARNING_THRESHOLD && now - this.lastMemoryWarning > 60000) {
+			console.warn(`[updater-worker] WARNING: Memory usage ${Math.round(heapUsed / 1024 / 1024)}MB approaching limit`)
+			this.lastMemoryWarning = now
+			this.forceGarbageCollection()
+		}
+	}
+	
+	forceGarbageCollection() {
+		// Try to trigger garbage collection if available
+		if (typeof global !== 'undefined' && typeof global.gc === 'function') {
+			try {
+				global.gc()
+			} catch (e) {
+				// GC not available in production
+			}
+		}
 	}
 
-	cleanupInfoEntries() {
+	cleanupInfoEntries(aggressive = false) {
+		const maxEntries = aggressive ? Math.floor(this.maxInfoEntries / 2) : this.maxInfoEntries
 		const entries = Object.keys(this.info)
-		if (entries.length > this.maxInfoEntries) {
+		if (entries.length > maxEntries) {
 			// Remove oldest entries (simple FIFO cleanup)
-			const toRemove = entries.slice(0, entries.length - this.maxInfoEntries)
+			const toRemove = entries.slice(0, entries.length - maxEntries)
 			toRemove.forEach(key => {
 				delete this.info[key]
 			})
-			console.log(`Cleaned up ${toRemove.length} old info entries`)
+			if (toRemove.length > 5) {
+				console.log(`[updater-worker] Cleaned up ${toRemove.length} old info entries`)
+			}
 		}
 	}
 	async setRelevantKeywords(relevantKeywords) {
@@ -50,6 +92,84 @@ class UpdaterWorker extends Common {
 	async getInfo() {
 		return this.info
 	}
+	async download(url, params = {}) {
+		if (!url) {
+			throw new Error('invalid url')
+		}
+		
+		const file = resolveListDatabaseFile(url)
+		let updater = null
+		
+		try {
+			updater = new UpdateListIndex({
+				url,
+				directURL: url,
+				file,
+				master: this,
+				updateMeta: {},
+				forceDownload: params.force === true,
+				timeout: params.timeout,
+				debug: this.debug
+			})
+			
+			// Download only - returns tempFilePath
+			const tempFilePath = await updater.download()
+			
+			// Don't destroy updater here - it will be reused for parsing
+			// Just return the temp file path
+			return tempFilePath
+		} catch (err) {
+			// Ensure cleanup on error
+			if (updater && !updater.destroyed) {
+				await updater.destroy().catch(cleanupErr => console.error('Error during updater cleanup:', cleanupErr))
+				updater = null
+			}
+			throw err
+		}
+	}
+	
+	async parseFromFile(tempFilePath, url, params = {}) {
+		if (!tempFilePath || !url) {
+			throw new Error('tempFilePath and url are required')
+		}
+		
+		const file = resolveListDatabaseFile(url)
+		let updater = null
+		
+		try {
+			updater = new UpdateListIndex({
+				url,
+				directURL: url,
+				file,
+				master: this,
+				updateMeta: {},
+				forceDownload: params.force === true,
+				timeout: params.timeout,
+				debug: this.debug
+			})
+			
+			// Parse from downloaded file
+			const result = await updater.parseFromFile(tempFilePath)
+			
+			// Always destroy updater to free memory
+			if (updater && !updater.destroyed) {
+				await updater.destroy().catch(err => console.error('Error during updater cleanup:', err))
+				updater = null
+			}
+			
+			return result
+		} catch (err) {
+			// Ensure cleanup on error
+			if (updater && !updater.destroyed) {
+				await updater.destroy().catch(cleanupErr => console.error('Error during updater cleanup:', cleanupErr))
+				updater = null
+			}
+			// Force GC after parsing to free memory
+			this.forceGarbageCollection()
+			throw err
+		}
+	}
+	
 	async update(url, params = {}) {
 		if (!url) {
 			return this.info[url] = 'invalid url'
@@ -186,6 +306,9 @@ class UpdaterWorker extends Common {
 				if (!updateSucceeded && should) {
 					utils.emit('update-end', { url, succeeded: false })
 				}
+				
+				// Force GC after each list update to prevent memory accumulation
+				this.forceGarbageCollection()
 			}
 		} else {
 			// Não precisa atualizar - emitir evento de fim imediatamente
@@ -268,46 +391,16 @@ class UpdaterWorker extends Common {
 		}
 		return true
 	}
-
-	async hasMissingMetaFile(url) {
-		try {
-			const file = resolveListDatabaseFile(url)
-			const metaFile = file.replace(/\.jdb$/i, '.meta.jdb')
-
-			// Check if main file exists
-			const mainStat = await storage.stat(file).catch(() => null)
-			if (!mainStat || mainStat.size < 1024) {
-				return false // Main file doesn't exist or is too small
-			}
-
-			// Check if meta file exists and has content
-			const metaStat = await storage.stat(metaFile).catch(() => null)
-			if (!metaStat || metaStat.size === 0) {
-				return true
-			}
-
-			// Additional check: verify meta file contains valid data
-			try {
-				const metaData = await getListMeta(url);
-				if (!metaData || typeof metaData.length !== 'number' || metaData.length === 0) {
-					return true
-				}
-			} catch (err) {
-
-				return true
-			}
-
-			return false
-		} catch (err) {
-
-			return false
-		}
-	}
 	async terminate() {
 		// Clean up resources
 		if (this.cleanupInterval) {
 			clearInterval(this.cleanupInterval)
 			this.cleanupInterval = null
+		}
+		
+		if (this.memoryCheckInterval) {
+			clearInterval(this.memoryCheckInterval)
+			this.memoryCheckInterval = null
 		}
 
 		// Clear info object to free memory
@@ -315,6 +408,9 @@ class UpdaterWorker extends Common {
 		
 		// Clear relevantKeywords to free memory
 		this._relevantKeywords = {}
+		
+		// Final GC before termination
+		this.forceGarbageCollection()
 	}
 }
 

@@ -1,0 +1,646 @@
+{
+  "Local": [
+    {
+      "name": "Canal 6",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nicavisión Canal 12",
+      "isFree": true,
+      "shortName": "NC",
+      "priority": 5
+    },
+    {
+      "name": "Telenica Canal 8",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Viva Nicaragua Canal 13",
+      "isFree": true,
+      "shortName": "VNC",
+      "priority": 5
+    },
+    {
+      "name": "Vos",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "JBN",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Asuncion TV 15",
+      "isFree": true,
+      "website": "http://asunciontv15.mex.tl/",
+      "priority": 4
+    },
+    {
+      "name": "Canal 21",
+      "isFree": true,
+      "website": "https://canal21nicaragua.com/",
+      "priority": 4
+    },
+    {
+      "name": "Canal 7 Fe Vision",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Canal Catolico de Nicaragua",
+      "isFree": true,
+      "website": "http://www.canalcatolico.org/",
+      "priority": 4
+    },
+    {
+      "name": "Canal Dunamis",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Crece",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Cristo",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Escuchame Radio",
+      "isFree": true,
+      "website": "https://escuchameradio.com/",
+      "priority": 4
+    },
+    {
+      "name": "Fe y Esperanza",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Natura TV Internacional",
+      "isFree": true,
+      "website": "https://www.naturatvinternacional.com/",
+      "priority": 4
+    },
+    {
+      "name": "Nexo",
+      "isFree": true,
+      "website": "https://nexotvnicaragua.com/",
+      "priority": 4
+    },
+    {
+      "name": "Olam7 Internacional",
+      "isFree": true,
+      "website": "https://olam7.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Olam Metro",
+      "isFree": true,
+      "website": "https://olammetro.com/",
+      "priority": 4
+    },
+    {
+      "name": "Purisima",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Radio Vision de Dios Stereo",
+      "isFree": true,
+      "website": "https://stereovisiondedios.com/",
+      "priority": 4
+    },
+    {
+      "name": "Radio Voz Cristiana 104.1 FM",
+      "isFree": true,
+      "website": "https://radiovozcristiana104.com/",
+      "priority": 4
+    },
+    {
+      "name": "TV 45",
+      "isFree": true,
+      "website": "http://tv45nicaragua.com/",
+      "priority": 4
+    },
+    {
+      "name": "TV Merced",
+      "isFree": true,
+      "website": "https://diocesisdematagalpamedia.org/",
+      "priority": 4
+    },
+    {
+      "name": "Vision Pentecostal",
+      "isFree": true,
+      "website": "https://visionpentecostal.wordpress.com/",
+      "priority": 4
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "WTV Canal 20",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Dia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Asamblea",
+      "isFree": true,
+      "website": "https://noticias.asamblea.gob.ni/asamblea-en-linea/",
+      "priority": 5
+    },
+    {
+      "name": "ATV Ocotal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 10",
+      "isFree": true,
+      "website": "http://www.canal10.com.ni/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 11",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 12",
+      "isFree": true,
+      "website": "http://www.canal12.com.ni/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 15 Sandino Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 15 Santo Tomas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 17 Nueva Guinea",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 2",
+      "isFree": true,
+      "website": "https://canal2tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 20",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 22 Voz e Imagen de la Autonomia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 23 Telecasa Bonanza",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 25 El Jicaro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 28 Tipitapa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 3.2 MNN",
+      "isFree": true,
+      "website": "https://canaltrespuntodos.wixsite.com/tvenvivo",
+      "priority": 5
+    },
+    {
+      "name": "Canal 3 Boaco",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 48 Masaya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 48 Telesebaco",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 55 El Lider",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 La Libertad",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 STV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 TV Granada",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 Wiwili",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 7 Boaco",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 7 Onda Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 9",
+      "isFree": true,
+      "keywords": "canal 9 -chinandega",
+      "priority": 5
+    },
+    {
+      "name": "Canal 9 Chinandega",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Cvision",
+      "isFree": true,
+      "website": "https://cvision.live/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Siempre 19 Sebaco",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal TV Dario",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal YesTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Caribbean",
+      "isFree": true,
+      "website": "https://caribbeantvni.com/",
+      "priority": 5
+    },
+    {
+      "name": "Casa 36",
+      "isFree": true,
+      "website": "https://casavision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ecovision Camoapa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Esteli Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ExtraPlus",
+      "isFree": true,
+      "website": "https://extraplustv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Jalapa Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "JinoTv",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "JTV Digital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ke Buena",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La Costenisima",
+      "isFree": true,
+      "website": "https://lacostenisima.com/",
+      "priority": 5
+    },
+    {
+      "name": "La Nueva Radio YA",
+      "isFree": true,
+      "website": "https://nuevaya.com.ni/",
+      "priority": 5
+    },
+    {
+      "name": "Leon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Matiguas TV Canal 42",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTV Chontales",
+      "isFree": true,
+      "website": "https://mtvchontales.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mulukuku TV Canal 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nandaime",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nicarao",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NorTV Canal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NOTIMATV",
+      "isFree": true,
+      "website": "https://radionotimat.com/",
+      "priority": 5
+    },
+    {
+      "name": "NTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ometepe",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Perla",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pinolero",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pixel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Cable",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV La Trinidad",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RUS",
+      "isFree": true,
+      "website": "https://radiouraccansiuna.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sabro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Segoviano Canal 21",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TcoTv",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Amistad",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Camoapa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telenorte",
+      "isFree": true,
+      "website": "http://telenorte.info",
+      "priority": 5
+    },
+    {
+      "name": "Television Rivense",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TN 8",
+      "isFree": true,
+      "website": "https://www.tn8.ni/",
+      "priority": 5
+    },
+    {
+      "name": "TV7 RACCN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Cable Acoyapa APOLO 11",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Centro Canal Regional",
+      "isFree": true,
+      "website": "https://tvcentroregional.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVesteli Canal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVmax Teustepe",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVNorte Ocotal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TW La Mark Televisiva",
+      "isFree": true,
+      "website": "https://twlamarktelevisiva.com/",
+      "priority": 5
+    },
+    {
+      "name": "Vida",
+      "isFree": true,
+      "website": "https://americabletv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Viva",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Campeones",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NicaSports",
+      "isFree": true,
+      "website": "https://nicasports.tv/",
+      "priority": 10
+    },
+    {
+      "name": "WRStv",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Canal 15",
+      "isFree": true,
+      "keywords": "canal 15 -sandino -vision -santo -tomas",
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 URACCAN",
+      "isFree": true,
+      "website": "https://www.uraccan.edu.ni/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Canal 4",
+      "isFree": true,
+      "website": "https://canal4.com.ni/",
+      "priority": 5
+    },
+    {
+      "name": "CDNN 23",
+      "isFree": true,
+      "website": "https://www.cdnn23.com/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Fabulosa",
+      "isFree": true,
+      "website": "https://www.radiofabulosafm.com/ftv.html",
+      "priority": 5
+    },
+    {
+      "name": "Futura",
+      "isFree": true,
+      "website": "https://radiofuturanicaragua.com/",
+      "priority": 5
+    },
+    {
+      "name": "La Rock 22",
+      "isFree": true,
+      "website": "https://rockfm.com.ni/",
+      "priority": 5
+    },
+    {
+      "name": "MegaBox",
+      "isFree": true,
+      "website": "https://megaboxmusica.com/",
+      "priority": 5
+    },
+    {
+      "name": "Megahit",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio 580",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleStereo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVONE Nicaragua",
+      "isFree": true,
+      "website": "https://tvonenicaragua.com/",
+      "priority": 5
+    }
+  ]
+}

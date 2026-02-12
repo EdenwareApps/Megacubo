@@ -2,203 +2,203 @@ import osd from '../osd/osd.js'
 import lang from '../lang/lang.js'
 import storage from '../storage/storage.js'
 import { EventEmitter } from 'node:events'
-import cloud from '../cloud/cloud.js'
-import pLimit from 'p-limit'
+import { getChannels, generate } from '@edenware/tv-channels-by-country'
 import Limiter from '../limiter/limiter.js'
-import config from '../config/config.js'
 import renderer from '../bridge/bridge.js'
 import ready from '../ready/ready.js'
+import { translateCategoryName } from '../utils/utils.js'
 
 export class ChannelsList extends EventEmitter {
-    constructor(type, countries) {
+    constructor(countries, options = {}) {
         super();
-        this.type = type
+        const { onlyFree = false, includeAdult = false } = options
         this.countries = countries
-        this.key = 'categories-'+ countries.join('-') +'-'+ this.type
+        this.onlyFree = onlyFree
+        this.includeAdult = includeAdult
         this.isChannelCache = {}
-        this.channelsIndex = {}
+        this.generatedCache = new Map();
+        this.channelsIndex = {}        
         this.categories = {}
-        this.epgAutoUpdateInterval = 600
+        this.userMods = { additions: {}, removals: {}, renames: {}, termChanges: {} }
+        this.baseCache = null
         this.limiter = new Limiter(async () => {
             await this.load().catch(err => console.error(err))
         }, 3000)
         this.setupListeners()
         this.ready = ready()
     }
+    get key() {
+        return 'categories-' + this.countries.join('-') + (this.onlyFree ? '-free' : '') + (this.includeAdult ? '-adult' : '')
+    }
+    get userModsKey() {
+        return this.key + '-mods'
+    }
     setupListeners() {
         renderer.ready(() => {
-            this.listsListeners = {
-                list: async () => {
-                    if(this.type == 'lists') {
-                        await this.limiter.call()
-                    }
-                },
-                epg: async () => {
-                    if(this.type == 'epg') {
-                        await this.limiter.call()
-                    }
-                }
-            }
-            global.lists.on('list-loaded', this.listsListeners.list)
-            global.lists.on('epg-update', this.listsListeners.epg)
-            global.lists.on('epg-loaded', this.listsListeners.epg)
-            global.lists.on('satisfied', this.listsListeners.list)
             this.limiter.call()
         })
     }
     async load(refresh) {
-        let fine, changed
-        let data = await storage.get(this.key).catch(err => console.error(err))
-        let len = data ? Object.keys(data).length : 0
-        if (data && len) {
-            this.categories = data
-            fine = true
-        }
-        if (!fine || refresh || this.type == 'epg') {
-            let err
-            data = await this.getActiveCategories().catch(e => err = e)
-            if (err) {
-                len = 0
-                console.error('channel.getActiveCategories error: ' + err)
-            } else {
-                len = Object.keys(data).length
-                this.channelsIndex = null
-                this.categories = data
-                await this.save(this.key)
-                fine = true
+        let changed = false
+        let err
+        const base = await this.get().catch(e => err = e)
+        if (err) {
+            console.error('channel.load error: ' + err)
+            this.scheduleRetry(15)
+            this.categories = {}
+        } else {
+            const mods = await storage.get(this.userModsKey).catch(err => console.error(err)) || { additions: {}, removals: {}, renames: {}, termChanges: {} }
+            this.categories = this.applyMods(base, mods)
+            // Sort categories and channels like in save()
+            let ordering = {};
+            Object.keys(this.categories).sort().forEach(k => {
+                if (!Array.isArray(this.categories[k])) return;
+                ordering[k] = this.categories[k].map(String).sort((a, b) => {
+                    let aa = a.indexOf(',');
+                    let bb = b.indexOf(',');
+                    aa = aa == -1 ? a : a.substr(0, aa);
+                    bb = bb == -1 ? b : b.substr(0, bb);
+                    return aa > bb ? 1 : -1;
+                });
+            });
+            this.categories = ordering;
+            this.baseCache = base
+            this.channelsIndex = null
+            this.isChannelCache = {}
+            if (refresh) {
                 changed = true
             }
-            if(this.type == 'epg' && len) {
-                this.schedule()
-            }
-        }
-        if(!len) {
-            this.schedule(15)
         }
         this.updateChannelsIndex(false)
-        if (!this.categories || typeof(this.categories) != 'object') {
+        if (!this.categories || typeof (this.categories) != 'object') {
             this.categories = {}
         }
         this.loaded = true
         this.emit('loaded', changed)
         this.ready.done()
     }
-    schedule(secs) {
-        if(!secs) {
-            secs = this.epgAutoUpdateInterval
-        }
-        this.epgAutoUpdateTimer && clearTimeout(this.epgAutoUpdateTimer)
-        this.epgAutoUpdateTimer = setTimeout(() => {
-            this.load().catch(err => console.error(err))
-        }, secs * 1000)
+    scheduleRetry(secs) {
+        this.retryTimer && clearTimeout(this.retryTimer)
+        this.retryTimer = setTimeout(() => {
+            this.load(true).catch(err => console.error(err))
+        }, (secs || 15) * 1000)
     }
     async reset() {
         delete this.categories
         await storage.delete(this.key).catch(err => console.error(err))
-        config.set('channel-grid', '')
+        await storage.delete(this.userModsKey).catch(err => console.error(err))
         await this.load(true)
     }
-    async getAdultCategories() {
-        return cloud.get('channels/adult')
+    /** Convert package format (category -> [{ name }]) to category -> [name strings] */
+    channelsByCategoryToNames(data) {
+        if (!data || typeof data !== 'object') return {}
+        return Object.fromEntries(
+            Object.entries(data).map(([cat, channels]) => [
+                cat,
+                Array.isArray(channels) ? channels.map(ch => (ch && ch.name) || ch).filter(Boolean) : []
+            ])
+        )
     }
-    async getEPGCategories(noFallback = false) {
-        try {
-            const data = await global.lists.epgLiveNowChannelsList()
-            if(!data || !data.categories || !Object.keys(data.categories).length) {
-                throw 'no categories'
-            }
-            return data.categories
-        } catch(e) {
-            console.error('channel.getEPGCategories error: '+ e)
-            if (noFallback || global.lists.epg?.loaded) {
-                return {}
-            }
-            return this.getAppRecommendedCategories()
+    async getKeywords(size = 64) {
+        const list = await this.generate()
+        const keywords = []
+        for (const ch of list) {
+            const ts = ch.keywords.split(' ')
+            const terms = ts.filter(t => t && typeof t === 'string' && t.length > 2 && !t.startsWith('-'))
+            const excludes = ts.filter(t => t && typeof t === 'string' && t.startsWith('-')).map(t => t.substr(1).toLowerCase())
+            keywords.push({terms, excludes})
+            if (keywords.length >= size) break
         }
+        return keywords
     }
-    async getPublicListsCategories() {
-        await global.lists.discovery.ready()
-        const ret = {}, limit = pLimit(2)
-        const groups = await global.lists.discovery.getProvider('public').entries(true, true, true)
-        const promises = groups.filter(g => g.renderer).map(g => {
-            return limit(async () => {
-                const entries = await g.renderer(g).catch(err => console.error(err))
-                if (Array.isArray(entries)) {
-                    ret[g.name] = [...new Set(entries.filter(e => e.name && e.type != 'action').map(e => e.name))]
-                }
-            })
-        })
-        await Promise.allSettled(promises)
-        return ret
-    }
-    async getListsCategories() {
-        const ret = {}        
-        let groups = await global.lists.groups(['live'], true)
-        if(!groups.length) {
-            groups = await global.lists.groups(['live'], false)
-        }
-        for (const group of groups) {
-            const entries = await global.lists.group(group).catch(err => console.error(err));
-            if (Array.isArray(entries)) {
-                let es = entries.map(e => {
-                    return e.name.split(' ').filter(w => {
-                        return w && !global.lists.tools.stopWords.has(w.toLowerCase());
-                    }).join(' ')
-                });
-                if (es.length)
-                    ret[group.name] = es;
-            }
-        }
-        return ret;
-    }
-    async getAppRecommendedCategories() {
-        let finished, received = 0
-        const limit = pLimit(2), data = {}, ret = {}
-        const maxChannelsToProcess = 1024
-        const maxChannelsPerCategory = 24
-        const minChannelsToCollect = maxChannelsToProcess / 3
-        const processCountry = async country => {
-            if (finished) return
-            let err
-            const priority = country == lang.countryCode
-            if (!priority && received >= maxChannelsToProcess) return
-            let map = await cloud.get('channels/'+ country).catch(e => err = e)
-            if (err) {
-                if(priority) {
-                    err = null
-                    map = await cloud.get('channels/'+ country, {
-                        bypassCache: true // force refresh
-                    }).catch(e => err = e)
-                }
-            }
-            if (err) return
-            data[country] = map
-            received += this.mapSize(map)
-        }
-        const promises = {}, promise = processCountry(this.countries[0])
-        for (const country of this.countries.slice(1)) {
-            promises[country] = limit(() => processCountry(country))
-        }
-        await promise
+    async generate(additionalOpts = {}) {
+        // Merge default options with additional ones
+        const opts = {
+            countries: this.countries,
+            mainCountryFull: true,
+            freeOnly: this.onlyFree === true,
+            retransmits: 'parents',
+            limit: 1024,
+            minPerCategory: 24,
+            ...additionalOpts
+        };
 
-        let retriableCountries = []
-        for (const country of this.countries) { // this.countries will be in the preferred order
-            const size = this.mapSize(ret)
-            if(promises[country] && size <= minChannelsToCollect) {
-                await promises[country].catch(err => console.error(err))
-            }
-            if(!data[country]) {
-                retriableCountries.push(country)
-                continue
-            }
-            await this.applyMapCategories(data[country], ret, maxChannelsPerCategory, country != lang.countryCode)
+        // Create a deterministic cache key from sorted options
+        const cacheKey = this.createCacheKey(opts);
+
+        // Return cached result if available
+        if (this.generatedCache.has(cacheKey)) {
+            return this.generatedCache.get(cacheKey);
         }
-        for (const country of retriableCountries) { // second pass required to collect remaining channels
-            if(!data[country]) continue
-            await this.applyMapCategories(data[country], ret, maxChannelsPerCategory, country != lang.countryCode)
+
+        // Generate channels with error optas handling
+        let generated;
+        try {
+            generated = await generate(opts);
+            if (!Array.isArray(generated)) {
+                console.warn('generate() did not return an array:', generated);
+                generated = [];
+            }
+        } catch (err) {
+            console.error('Error generating channels:', err);
+            generated = [];
         }
-        
-        finished = true
+
+        if (this.includeAdult) {
+            try {
+                const data = await getChannels('adult')
+                const adultCategories = this.channelsByCategoryToNames(data);
+                const adultChannels = Object.values(adultCategories).flat();
+                const existingNames = new Set(generated.map(ch => ch.name));
+                for (const chName of adultChannels) {
+                    if (!existingNames.has(chName)) {
+                        generated.push({ name: chName, category: 'Adult', keywords: chName.toLowerCase() });
+                    }
+                }
+            } catch (err) {
+                console.error('Error including adult channels:', err);
+            }
+        }
+
+        const categoryNameTranslationCache = new Map();
+        for (const ch of generated) {
+            if (ch.category) {
+                if (!categoryNameTranslationCache.has(ch.category)) {
+                    categoryNameTranslationCache.set(ch.category, translateCategoryName(ch.category));
+                }
+                ch.category = categoryNameTranslationCache.get(ch.category);
+            }
+        }
+
+        // Cache the result
+        this.generatedCache.set(cacheKey, generated);
+
+        // Limit cache size to prevent memory leaks (keep last 10 entries)
+        if (this.generatedCache.size > 10) {
+            const firstKey = this.generatedCache.keys().next().value;
+            this.generatedCache.delete(firstKey);
+        }
+
+        return generated;
+    }
+
+    createCacheKey(opts) {
+        // Create a stable string key from options
+        return Object.keys(opts)
+            .sort()
+            .map(key => `${key}:${JSON.stringify(opts[key])}`)
+            .join('|');
+    }
+    async get(onlyFree = false) {
+        const list = await this.generate({
+            freeOnly: onlyFree === true || this.onlyFree === true
+        }).catch(e => console.error(e)) || []
+        const ret = {}
+        for (const ch of list) {
+            if (!ch?.category || !ch?.name) continue
+            if (!ret[ch.category]) ret[ch.category] = []
+            ret[ch.category].push(ch.name)
+        }
         return ret
     }
     updateChannelsIndex(refresh) {
@@ -211,52 +211,13 @@ export class ChannelsList extends EventEmitter {
             });
             let keys = Object.keys(index);
             keys.sort((a, b) => { return index[a].length > index[b].length ? -1 : (index[a].length < index[b].length) ? 1 : 0; });
-            this.isChannelCache = {};
+            this.generatedCache.clear();
             this.channelsIndex = {};
             keys.forEach(k => this.channelsIndex[k] = index[k]);
         }
     }
     mapSize(n) {
         return Object.values(n).map(k => Array.isArray(k) ? k.length : 0).reduce((s, v) => s + v, 0);
-    }
-    applyMapCategories(map, target, maxChannelsPerCategory, weighted=false) {
-        for (const k of Object.keys(map)) {
-            const cat = this.translateKey(k)
-            if(!target[cat]) target[cat] = []
-            const left = maxChannelsPerCategory - target[cat].length
-            if (left > 0 && Array.isArray(map[k])) {
-                const slice = map[k].filter(s => !target[cat].includes(s)).slice(0, weighted ? left : undefined)
-                if (slice.length) {
-                    target[cat].push(...slice)
-                }
-            }
-        }
-        return target
-    }
-    translateKey(k) {
-        let lk = 'CATEGORY_' + k.replaceAll(' & ', ' ').replace(new RegExp(' +', 'g'), '_').toUpperCase();
-        let nk = lang[lk] || k;
-        return nk;
-    }
-    async getActiveCategories() {
-        let categories
-        switch (this.type) {
-            case 'public':
-                categories = await this.getPublicListsCategories();
-                break;
-            case 'lists':
-                categories = await this.getListsCategories();
-                break;
-            case 'xxx':
-                categories = await this.getAdultCategories();
-                break;
-            case 'epg':
-                categories = await this.getEPGCategories();
-                break;
-            default:
-                categories = await this.getAppRecommendedCategories();
-        }
-        return this.optimizeCategories(categories)
     }
     getCategories(compact) {
         return compact ? this.categories : this.expand(this.categories);
@@ -276,7 +237,10 @@ export class ChannelsList extends EventEmitter {
         }
         return name;
     }
-    expandName(name) {        
+    expandName(name) {
+        if (!name || typeof name !== 'string') {
+            return { name: '', terms: [] };
+        }
         let terms
         if (name.includes(',')) {
             terms = name.split(',').map(s => s = s.trim());
@@ -319,47 +283,102 @@ export class ChannelsList extends EventEmitter {
             }
         })
     }
-    optimizeCategories(data) { // remove redundant categories, whose entries are a subset of another category
-        const entries = Object.entries(data);
-        entries.sort((a, b) => b[1].length - a[1].length);
-    
-        const categoryMap = new Map();
-        const redundant = new Set();
-    
-        for (let i = 0; i < entries.length; i++) {
-            const [currentCat, currentChannels] = entries[i];
-            const currentSet = new Set(currentChannels);
-            categoryMap.set(currentCat, currentSet);
-    
-            for (let j = 0; j < i; j++) {
-                const [otherCat] = entries[j];
-                if (redundant.has(otherCat)) continue;
-    
-                const otherSet = categoryMap.get(otherCat);
-                let isSubset = true;
-                for (const channel of currentSet) {
-                    if (!otherSet.has(channel)) {
-                        isSubset = false;
-                        break;
+    computeMods(base, current) {
+        const mods = { additions: {}, removals: {}, renames: {}, termChanges: {} }
+        // For each category in base and current
+        const allCats = new Set([...Object.keys(base), ...Object.keys(current)])
+        for (const cat of allCats) {
+            const baseChannels = new Set(base[cat] || [])
+            const currentChannels = new Set(current[cat] || [])
+            // Additions: in current but not in base
+            const additions = [...currentChannels].filter(ch => !baseChannels.has(ch))
+            if (additions.length) {
+                mods.additions[cat] = additions
+            }
+            // Removals: in base but not in current
+            const removals = [...baseChannels].filter(ch => !currentChannels.has(ch))
+            if (removals.length) {
+                mods.removals[cat] = removals
+            }
+        }
+        // For renames and term changes, compare expanded names
+        for (const cat of allCats) {
+            const baseChannels = (base[cat] || []).map(ch => this.expandName(ch))
+            const currentChannels = (current[cat] || []).map(ch => this.expandName(ch))
+            // Create maps for quick lookup
+            const baseMap = new Map(baseChannels.map(({ name, terms }) => [name, terms.join(' ')]))
+            const currentMap = new Map(currentChannels.map(({ name, terms }) => [name, terms.join(' ')]))
+            // Renames: same terms but different name? Wait, renames are when name changes
+            // Actually, since we're comparing full strings, renames would be if the compact string changed but name is same? No.
+            // Renames are explicit user actions, but in computeMods, we need to detect if a channel was renamed.
+            // But since names are keys, if name changed, it's a new addition and removal.
+            // For simplicity, assume no renames detected here; renames are handled separately in editing.
+            // For term changes: if name same but terms different
+            for (const [name, currentTerms] of currentMap) {
+                const baseTerms = baseMap.get(name)
+                if (baseTerms !== undefined && baseTerms !== currentTerms) {
+                    if (!mods.termChanges[cat]) mods.termChanges[cat] = {}
+                    mods.termChanges[cat][name] = currentTerms
+                }
+            }
+        }
+        return mods
+    }
+    applyMods(base, mods) {
+        const result = JSON.parse(JSON.stringify(base)) // deep copy
+        // Apply removals
+        for (const [cat, channels] of Object.entries(mods.removals || {})) {
+            if (result[cat]) {
+                result[cat] = result[cat].filter(ch => !channels.includes(ch))
+            }
+        }
+        // Apply additions
+        for (const [cat, channels] of Object.entries(mods.additions || {})) {
+            if (!result[cat]) result[cat] = []
+            for (const ch of channels) {
+                if (!result[cat].includes(ch)) {
+                    result[cat].push(ch)
+                }
+            }
+        }
+        // Apply renames (if any, but currently not used in computeMods)
+        for (const [cat, renames] of Object.entries(mods.renames || {})) {
+            if (result[cat]) {
+                result[cat] = result[cat].map(ch => {
+                    const expanded = this.expandName(ch)
+                    const newName = renames[expanded.name]
+                    if (newName) {
+                        return this.compactName(newName, expanded.terms.join(' '))
                     }
-                }
-                if (isSubset) {
-                    redundant.add(currentCat);
-                    break;
-                }
+                    return ch
+                })
             }
         }
-    
-        const result = {};
-        for (const [category, channels] of entries) {
-            if (!redundant.has(category)) {
-                result[category] = channels;
+        // Apply term changes
+        for (const [cat, changes] of Object.entries(mods.termChanges || {})) {
+            if (result[cat]) {
+                result[cat] = result[cat].map(ch => {
+                    const expanded = this.expandName(ch)
+                    const newTerms = changes[expanded.name]
+                    if (newTerms !== undefined) {
+                        return this.compactName(expanded.name, newTerms)
+                    }
+                    return ch
+                })
             }
         }
-    
-        return result;
+        return result
     }    
     async save() {
+        if (!this.baseCache) {
+            // Fallback: fetch base if not cached
+            this.baseCache = await this.get().catch(err => {
+                console.error('Failed to fetch base for save:', err)
+                return {}
+            })
+        }
+        const mods = this.computeMods(this.baseCache, this.categories)
+        this.userMods = mods
         let ordering = {};
         Object.keys(this.categories).sort().forEach(k => {
             if (!Array.isArray(this.categories[k]))
@@ -374,19 +393,16 @@ export class ChannelsList extends EventEmitter {
         });
         this.categories = ordering;
         this.updateChannelsIndex(true);
-        await storage.set(this.key, this.categories, {
+        await storage.set(this.userModsKey, mods, {
             permanent: true,
             expiration: true
         });
     }
     destroy() {
-        this.destroyed = true;
-        this.loaded = true;
-        global.lists.removeListener('list-loaded', this.listsListeners.list);
-        global.lists.removeListener('epg-update', this.listsListeners.epg);
-        global.lists.removeListener('epg-loaded', this.listsListeners.epg);
-        global.lists.removeListener('satisfied', this.listsListeners.list);
-        this.emit('loaded');
+        this.destroyed = true
+        this.loaded = true
+        this.retryTimer && clearTimeout(this.retryTimer)
+        this.emit('loaded')
         this.ready.done()
     }
 }

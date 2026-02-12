@@ -1,0 +1,311 @@
+{
+  "Entertainment": [
+    {
+      "name": "CubaVision Internacional",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Artemisa Vision",
+      "isFree": true,
+      "website": "https://www.tvartemisa.icrt.cu/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Azul",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Habana",
+      "isFree": true,
+      "website": "https://www.canalhabana.icrt.cu/",
+      "priority": 5
+    },
+    {
+      "name": "Centro Norte Television",
+      "isFree": true,
+      "website": "https://caibariengaleria.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "Centrovision Yayabo",
+      "isFree": true,
+      "website": "https://www.tvcubana.icrt.cu/centroyayabo",
+      "priority": 5
+    },
+    {
+      "name": "CNC TV Granma",
+      "isFree": true,
+      "website": "https://www.cnctvgranma.cu/",
+      "priority": 5
+    },
+    {
+      "name": "Cubavision",
+      "isFree": true,
+      "keywords": "cubavision -internacional -plus",
+      "website": "https://www.tvcubana.icrt.cu/cartelera-de-la-tv-cubana/cubavision",
+      "priority": 5
+    },
+    {
+      "name": "Cubavision Plus",
+      "isFree": true,
+      "website": "https://www.tvcubana.icrt.cu/cartelera-de-la-tv-cubana/cubavisionplus",
+      "priority": 5
+    },
+    {
+      "name": "Gibaravision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Golfovision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Guines",
+      "isFree": true,
+      "website": "https://guinestv.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "Islavision",
+      "isFree": true,
+      "website": "https://www.islavision.icrt.cu/",
+      "priority": 5
+    },
+    {
+      "name": "Moa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Moron",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Multivision",
+      "isFree": true,
+      "website": "https://www.tvcubana.icrt.cu/cartelera-de-la-tv-cubana/multivision",
+      "priority": 5
+    },
+    {
+      "name": "Nuevavision",
+      "isFree": true,
+      "website": "https://www.radionuevitas.icrt.cu/",
+      "priority": 5
+    },
+    {
+      "name": "Palma",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Perlavision",
+      "isFree": true,
+      "website": "https://www.perlavision.cu/",
+      "priority": 5
+    },
+    {
+      "name": "Portada Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Primada Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sagua Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sandino Vision",
+      "isFree": true,
+      "website": "https://www.sandinovision.icrt.cu/",
+      "priority": 5
+    },
+    {
+      "name": "Solvision",
+      "isFree": true,
+      "website": "https://www.solvision.cu/",
+      "priority": 5
+    },
+    {
+      "name": "Telebandera",
+      "isFree": true,
+      "website": "https://radiociudadbandera.wordpress.com/",
+      "priority": 10
+    },
+    {
+      "name": "Telecristal",
+      "isFree": true,
+      "website": "https://www.telecristal.cu/",
+      "priority": 5
+    },
+    {
+      "name": "Telecubanacan",
+      "isFree": true,
+      "website": "https://www.telecubanacan.icrt.cu/",
+      "priority": 5
+    },
+    {
+      "name": "TeleMar",
+      "isFree": true,
+      "website": "https://telemarscn.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "Telemayabeque",
+      "isFree": true,
+      "website": "https://telemayabeque.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Pinar",
+      "isFree": true,
+      "website": "https://www.telepinar.cu/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Turquino",
+      "isFree": true,
+      "website": "https://www.tvsantiago.icrt.cu/",
+      "priority": 5
+    },
+    {
+      "name": "Television Avilena",
+      "isFree": true,
+      "website": "https://www.tvavila.icrt.cu/",
+      "priority": 5
+    },
+    {
+      "name": "Television Camaguey",
+      "isFree": true,
+      "website": "https://www.tvcamaguey.icrt.cu/",
+      "priority": 5
+    },
+    {
+      "name": "Television Serrana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TunasVision",
+      "isFree": true,
+      "website": "https://www.visiontunera.icrt.cu/",
+      "priority": 5
+    },
+    {
+      "name": "TV Yumuri",
+      "isFree": true,
+      "website": "https://www.tvyumuri.cu/",
+      "priority": 5
+    },
+    {
+      "name": "Cubavisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Multivisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RT en Español",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ArTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Islavisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Perlavisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Centrovisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Avileña",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Camagüey",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tunasvisión",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Canal Caribe",
+      "isFree": true,
+      "website": "https://www.tvcubana.icrt.cu/cartelera-de-la-tv-cubana/caribe",
+      "priority": 5
+    },
+    {
+      "name": "Prensa Latina",
+      "isFree": true,
+      "website": "https://www.prensa-latina.cu/",
+      "priority": 5
+    },
+    {
+      "name": "Senal ACN",
+      "isFree": true,
+      "website": "http://www.acn.cu/canal-senal-acn",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Canal Clave",
+      "isFree": true,
+      "website": "http://www.tvcubana.icrt.cu/cartelera-de-la-tv-cubana/canal-clave",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Canal Educativo",
+      "isFree": true,
+      "keywords": "canal educativo -2",
+      "website": "http://www.tvcubana.icrt.cu/cartelera-de-la-tv-cubana/educativo",
+      "priority": 5
+    },
+    {
+      "name": "Canal Educativo 2",
+      "isFree": true,
+      "website": "https://www.tvcubana.icrt.cu/cartelera-de-la-tv-cubana/educativo-2",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Tele Rebelde",
+      "isFree": true,
+      "website": "https://www.telerebelde.icrt.cu/",
+      "priority": 5
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "Sports": [
+    {
+      "name": "Türkmenistan Sport",
+      "priority": 10
+    },
+    {
+      "name": "Turkmenistan Sport",
+      "isFree": true,
+      "website": "http://turkmentv.gov.tm/",
+      "priority": 10
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Altyn Asyr",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Aşgabat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Miras",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Türkmen Owazy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Türkmenistan",
+      "isFree": true,
+      "keywords": "turkmenistan -sport",
+      "priority": 5
+    },
+    {
+      "name": "Ýaşlyk",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Arkadag",
+      "isFree": true,
+      "website": "http://turkmentv.gov.tm/",
+      "priority": 5
+    },
+    {
+      "name": "Asgabat",
+      "isFree": true,
+      "website": "http://turkmentv.gov.tm/",
+      "priority": 5
+    },
+    {
+      "name": "Turkmenistan",
+      "isFree": true,
+      "keywords": "turkmenistan -sport",
+      "website": "http://turkmentv.gov.tm/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Turkmen Owazy",
+      "isFree": true,
+      "website": "http://turkmentv.gov.tm/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Yaslyk",
+      "isFree": true,
+      "website": "http://turkmentv.gov.tm/",
+      "priority": 5
+    }
+  ]
+}

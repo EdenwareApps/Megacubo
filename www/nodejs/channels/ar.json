@@ -1,0 +1,2993 @@
+{
+  "Religious": [
+    {
+      "name": "Enlace Juvenil",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Enlace",
+      "isFree": true,
+      "shortName": "Enlace",
+      "website": "https://www.enlace.org",
+      "priority": 4
+    },
+    {
+      "name": "Nuevo Tiempo",
+      "isFree": true,
+      "website": "https://www.nuevotiempo.org",
+      "priority": 4
+    },
+    {
+      "name": "Canal Luz",
+      "isFree": true,
+      "keywords": "canal luz | canalluz",
+      "shortName": "canalLUZ",
+      "priority": 4
+    },
+    {
+      "name": "Canal 13 Jujuy",
+      "isFree": true,
+      "website": "http://www.canal13jujuy.com/",
+      "priority": 4
+    },
+    {
+      "name": "Canal 6 Viento Recio",
+      "isFree": true,
+      "website": "https://vientoreciointernacional.com.ar/",
+      "priority": 4
+    },
+    {
+      "name": "Canal Orbe 21",
+      "isFree": true,
+      "website": "https://canalorbe21.com/",
+      "priority": 4
+    },
+    {
+      "name": "Canal Santa Maria",
+      "isFree": true,
+      "website": "https://www.canalsantamaria.com.ar/",
+      "priority": 4
+    },
+    {
+      "name": "Radio Sublime Gracia",
+      "isFree": true,
+      "website": "https://sublimegraciatv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Sion",
+      "isFree": true,
+      "website": "https://siontv.com.ar/",
+      "priority": 4
+    },
+    {
+      "name": "TV Mana Argentina",
+      "isFree": true,
+      "website": "https://tvmana-argentina.com/",
+      "priority": 4
+    },
+    {
+      "name": "Unife",
+      "isFree": true,
+      "website": "https://www.unifetv.com/",
+      "priority": 4
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "5RTv",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "5TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Argentinísima Satelital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CANAL TDC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CANAL.9 MULTIVISION",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CN3 Pinamar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 10 Mar del Plata",
+      "isFree": true,
+      "shortName": "C1MDP",
+      "priority": 5
+    },
+    {
+      "name": "Canal 11 La Rioja",
+      "isFree": true,
+      "shortName": "C1LR",
+      "priority": 5
+    },
+    {
+      "name": "Canal 12 Puerto Madryn",
+      "isFree": true,
+      "shortName": "C1PM",
+      "priority": 5
+    },
+    {
+      "name": "Canal 13 La Rioja",
+      "isFree": true,
+      "shortName": "C1LR",
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Jujuy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 3 Pinamar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 3 Rosario",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 4",
+      "isFree": true,
+      "keywords": "canal 4 -balcarce -jujuy -posadas",
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Balcarce",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Jujuy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Posadas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 7 SALTA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 9",
+      "isFree": true,
+      "keywords": "canal 9 -televida",
+      "website": "https://www.elnueve.com.ar",
+      "priority": 5
+    },
+    {
+      "name": "Canal 9 Televida",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Chacra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cinco",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "El Trece",
+      "isFree": true,
+      "shortName": "Canal 13",
+      "website": "https://www.eltrecetv.com.ar",
+      "priority": 5
+    },
+    {
+      "name": "El Once",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Encuentro",
+      "isFree": true,
+      "website": "https://www.encuentro.gob.ar",
+      "priority": 5
+    },
+    {
+      "name": "GenTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La Voz de Tucuman",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LatinoKids",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Live Perú TV Streaming",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Magic Kids",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Medios Rioja",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Multivisión Federal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Net",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Power",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Quatro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SEO",
+      "isFree": true,
+      "keywords": "seo tv -novelas",
+      "priority": 5
+    },
+    {
+      "name": "Santa María",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "T5 Satelital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Pública",
+      "isFree": true,
+      "website": "https://www.tvpublica.com.ar",
+      "priority": 5
+    },
+    {
+      "name": "TVG América",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TangoTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Teleclásicos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telemax",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telesol",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telpin Canal 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telpin",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tierra Mía",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VerTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vorterix",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "13Max Television",
+      "isFree": true,
+      "website": "https://live-tv-channels.org/livetv/ar-13-max-tv.html",
+      "priority": 5
+    },
+    {
+      "name": "5 TV Olavarria",
+      "isFree": true,
+      "website": "https://www.digitalnews.com.ar/CanalLocal",
+      "priority": 5
+    },
+    {
+      "name": "ABTV Bariloche",
+      "isFree": true,
+      "website": "https://abtvbariloche.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Acequia",
+      "isFree": true,
+      "website": "https://www.acequia.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Agenda Necochense",
+      "isFree": true,
+      "website": "https://agendanecochense.com/",
+      "priority": 5
+    },
+    {
+      "name": "Aire de Santa Fe",
+      "isFree": true,
+      "website": "https://www.airedesantafe.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "America Internacional",
+      "isFree": true,
+      "website": "https://www.americatv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "America Satellite",
+      "isFree": true,
+      "website": "https://www.americatv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "America",
+      "isFree": true,
+      "website": "https://www.americatv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Antena 91",
+      "isFree": true,
+      "website": "http://www.antena91.com.ar/Reproductor.htm",
+      "priority": 5
+    },
+    {
+      "name": "Argentinisima Satelital",
+      "isFree": true,
+      "website": "http://argentinisimatv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Astro Net",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Atcco Canal 2",
+      "isFree": true,
+      "website": "https://www.atcco.com.ar/canal2",
+      "priority": 5
+    },
+    {
+      "name": "Aventuras",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AZM",
+      "isFree": true,
+      "website": "https://canalnueve.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Barricada",
+      "isFree": true,
+      "website": "https://www.barricadatv.org/?page_id=9173",
+      "priority": 5
+    },
+    {
+      "name": "Bayres",
+      "isFree": true,
+      "website": "https://bayrestv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Bolivar",
+      "isFree": true,
+      "website": "https://bolivartv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Bragado",
+      "isFree": true,
+      "website": "https://www.bragadotv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Bravo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BVC",
+      "isFree": true,
+      "website": "https://bvconline.com.ar/canal-bvc",
+      "priority": 5
+    },
+    {
+      "name": "Cable Imagen Armstrong",
+      "isFree": true,
+      "website": "https://cablearmstrong.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Cabletel Zarate Canal 4",
+      "isFree": true,
+      "website": "https://www.cabletel.net.ar/canal-local/",
+      "priority": 5
+    },
+    {
+      "name": "Cadena103.TV",
+      "isFree": true,
+      "website": "http://www.cadena103.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Cadena VIVO",
+      "isFree": true,
+      "website": "https://cadenavivo.com/",
+      "priority": 5
+    },
+    {
+      "name": "Calchaqui",
+      "isFree": true,
+      "website": "https://www.calchaquitv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal",
+      "isFree": true,
+      "website": "https://canal1.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 10 Cordoba",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 10 de Junin",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal10 Entre Rios",
+      "isFree": true,
+      "website": "https://www.10tv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 10 Goya",
+      "isFree": true,
+      "website": "http://www.identidadcorrentina.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 10 Neuquen",
+      "isFree": true,
+      "website": "http://neuquentvcanal10.com.ar/tv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal10 Nortevision",
+      "isFree": true,
+      "website": "https://www.nortevision.online/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 10 Nuevo Mundo",
+      "isFree": true,
+      "website": "https://nuevomundotv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 10 Salta",
+      "isFree": true,
+      "website": "https://el10tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 10 San Rafael",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal10 Tucuman",
+      "isFree": true,
+      "website": "https://canal10tucuman.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 10 TV Rio Negro",
+      "isFree": true,
+      "website": "https://diario10.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 11 de la Costa",
+      "isFree": true,
+      "website": "https://canal11delacosta.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 11 La Cumbre",
+      "isFree": true,
+      "website": "https://www.canal11lacumbre.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 11 Machagai",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 12 Trenque Lauquen",
+      "isFree": true,
+      "website": "https://noticiasdoce.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 12 Venado Tuerto",
+      "isFree": true,
+      "website": "https://www.12informa.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 12 Web",
+      "isFree": true,
+      "website": "https://canal12web.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 13",
+      "isFree": true,
+      "keywords": "canal 13 -jujuy -la -rioja -san -juan -luis",
+      "website": "https://imperiotv.com.ar/programas2913/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 13 San Juan",
+      "isFree": true,
+      "website": "https://www.canal13sanjuan.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 13 San Luis",
+      "isFree": true,
+      "website": "https://sanluismas.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 16 Pacifico",
+      "isFree": true,
+      "website": "http://pacifico929.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 20 Ceres",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 20 Villa Maria",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 21",
+      "isFree": true,
+      "website": "https://www.canal21tv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 22",
+      "isFree": true,
+      "website": "https://canal22web.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 29 Ensenada",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Alvarez",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Caleta Video Cable",
+      "isFree": true,
+      "website": "https://www.caletavideocable.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Canada Rosquin",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Ceres",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 CPTV",
+      "isFree": true,
+      "website": "https://cptv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Dean Funes",
+      "isFree": true,
+      "website": "https://canal2deanfunes.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 de Ushuaia",
+      "isFree": true,
+      "website": "https://www.canal2.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Gualeguay",
+      "isFree": true,
+      "website": "https://canal2gualeguay.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Jesus Maria",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Mar del Plata",
+      "isFree": true,
+      "website": "https://canal2mdp.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Misiones",
+      "isFree": true,
+      "website": "https://www.canal2misiones.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 NexTV Rafaela",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Perico",
+      "isFree": true,
+      "website": "http://canal2perico.com.ar/canal2/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Salta",
+      "isFree": true,
+      "website": "https://www.tvcanal2.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Sanagasta",
+      "isFree": true,
+      "website": "https://www.canal2sanagasta.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 San Cayetano",
+      "isFree": true,
+      "website": "https://cooptv.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Tevecon",
+      "isFree": true,
+      "website": "https://www.tevecon.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Tostado Cable",
+      "isFree": true,
+      "website": "https://tostado.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 2 Via Patagonica",
+      "isFree": true,
+      "website": "https://viapatagonica.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 30 Mar del Plata",
+      "isFree": true,
+      "website": "https://www.canal30mdptv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 34 San Juan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 35",
+      "isFree": true,
+      "website": "https://www.radiomasnoticias.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 36 El Bolson",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 3 Formosa",
+      "isFree": true,
+      "website": "https://agenfor.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 3 La Pampa",
+      "isFree": true,
+      "website": "https://tvpp.lapampa.gob.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 3 Las Heras",
+      "isFree": true,
+      "website": "http://www.canal3lasheras.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 3 Mendoza",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 3 Puerto Rico",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 3 Tacural",
+      "isFree": true,
+      "website": "https://canal3tacural.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 3 Trelew",
+      "isFree": true,
+      "website": "https://www.diariojornada.com.ar/canal3",
+      "priority": 5
+    },
+    {
+      "name": "Canal 40 Caucete",
+      "isFree": true,
+      "website": "https://canal40hd.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Bigand",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Carlos Pellegrini",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Castelli",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Chajari",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Eldorado",
+      "isFree": true,
+      "website": "https://www.canal4eldorado.com/en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Esquel",
+      "isFree": true,
+      "website": "https://canal4esquel.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Las Rosas",
+      "isFree": true,
+      "website": "https://www.canal4lasrosas.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Lobos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Mar de Ajo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Pergamino",
+      "isFree": true,
+      "website": "https://www.canal4pergamino.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 San Juan",
+      "isFree": true,
+      "website": "http://www.canal4sanjuan.com.ar/digital/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Tartagal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Teleaire",
+      "isFree": true,
+      "website": "https://canal4teleaire.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 4 Villa Constitucion",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 50 Morteros",
+      "isFree": true,
+      "website": "https://canal50.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 Airevision",
+      "isFree": true,
+      "website": "https://airevision.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 Canuelas",
+      "isFree": true,
+      "website": "https://mirael5.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 Colon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 Del Pueblo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 General Alvear",
+      "isFree": true,
+      "website": "https://www.canal5generalalvear.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 Monte Caseros",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 Pico Truncado",
+      "isFree": true,
+      "website": "http://www.canal5picotruncado.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 Quilmes",
+      "isFree": true,
+      "website": "http://www.canal5quilmes.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 San Clemente",
+      "isFree": true,
+      "website": "https://canal5sanclemente.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 San Jose",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 Santa Fe",
+      "isFree": true,
+      "website": "https://www.c5sf.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 Tucuman",
+      "isFree": true,
+      "website": "http://www.canal5tucuman.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 TV Chepes",
+      "isFree": true,
+      "website": "https://canal5tvchepes.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 5 TV Tandil",
+      "isFree": true,
+      "website": "https://madmultimedios.com.ar/contenido/545/television-en-vivo-mad-multimedios",
+      "priority": 5
+    },
+    {
+      "name": "Canal 6 BBT Salto",
+      "isFree": true,
+      "website": "https://salto.bbt.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 6 Cooperativo Freyre",
+      "isFree": true,
+      "website": "https://freyre.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 6 de Video Cable Concordia",
+      "isFree": true,
+      "website": "https://www.concordiavideocable.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 6 Entre Rios",
+      "isFree": true,
+      "website": "https://www.desdecrespo.com.ar/live",
+      "priority": 5
+    },
+    {
+      "name": "Canal 6 La Quiaca",
+      "isFree": true,
+      "website": "https://canal6lq.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 6 Libertador",
+      "isFree": true,
+      "website": "https://canalseis.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 6 Mar del Plata",
+      "isFree": true,
+      "website": "https://canal6mardelplata.weebly.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 6 Moreno",
+      "isFree": true,
+      "website": "https://canal6moreno.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 6 Posadas",
+      "isFree": true,
+      "website": "https://www.noticiasdel6.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 6 Telesur",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 79 La Costa",
+      "isFree": true,
+      "website": "https://canal79tv.com.ar/la-costa/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 79 Mar del Plata",
+      "isFree": true,
+      "website": "https://canal79tv.com.ar/mardelplata/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 79 Puan",
+      "isFree": true,
+      "website": "https://canal79tv.com.ar/puan/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 79 San Juan",
+      "isFree": true,
+      "website": "https://canal79tv.com.ar/san-juan/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 79 Santa Clara del Mar",
+      "isFree": true,
+      "website": "https://canal79tv.com.ar/santa-clara-del-mar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 79 Villa Maza",
+      "isFree": true,
+      "website": "https://canal79tv.com.ar/villa-maza/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 7 Chubut",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 7 Ibarreta",
+      "isFree": true,
+      "website": "https://canal7ibarreta.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 7 Jacobacci",
+      "isFree": true,
+      "website": "https://canal7jacobacci.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 7 Jujuy",
+      "isFree": true,
+      "website": "http://www.radiovisionjujuy.com.ar/canal7dejujuy",
+      "priority": 5
+    },
+    {
+      "name": "Canal 7 Neuquen",
+      "isFree": true,
+      "website": "https://www.c7neuquen.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 7",
+      "isFree": true,
+      "website": "http://canal7.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Catamarca",
+      "isFree": true,
+      "website": "https://canal8catamarca.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Mar del Plata",
+      "isFree": true,
+      "website": "https://canal8mardelplata.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Rufino",
+      "isFree": true,
+      "website": "https://www.canal8rufino.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Salta",
+      "isFree": true,
+      "website": "https://canal8.info/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 San Juan",
+      "isFree": true,
+      "website": "https://www.canal8sanjuan.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 8 Valle de Uco",
+      "isFree": true,
+      "website": "https://8digital.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 907 FM",
+      "isFree": true,
+      "website": "https://fm-comunicar.com.ar/contenido/8025/canal-907-en-vivo",
+      "priority": 5
+    },
+    {
+      "name": "Canal 99 Miramar",
+      "isFree": true,
+      "website": "https://radiocardinal.com.ar/canal-99/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 9 Chabas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal 9 Comodoro Rivadavia",
+      "isFree": true,
+      "website": "https://canalnueve.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 9 La Costa",
+      "isFree": true,
+      "website": "https://www.opiniondelacosta.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 9 La Rioja",
+      "isFree": true,
+      "website": "https://radioytelevisionriojana.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 9 Link",
+      "isFree": true,
+      "website": "http://www.9link.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 9 Litoral",
+      "isFree": true,
+      "website": "https://9digital.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 9 Norte Misionero",
+      "isFree": true,
+      "website": "https://nortemisionero.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 9 Proa Centro",
+      "isFree": true,
+      "website": "https://dgpc.com.ar/2015/1_cuat/vm06/tp/quienessomos.html",
+      "priority": 5
+    },
+    {
+      "name": "Canal 9 Resistencia",
+      "isFree": true,
+      "website": "http://noticiero9.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 9 Rio Cuarto",
+      "isFree": true,
+      "website": "https://canal9riocuartotv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 9 Santa Cruz",
+      "isFree": true,
+      "website": "https://canal9santacruz.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal AET",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Blu",
+      "isFree": true,
+      "website": "https://www.canalblu.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal CNR",
+      "isFree": true,
+      "website": "http://www.canacnr.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Coop",
+      "isFree": true,
+      "website": "http://www.canalcoop.com.ar/index.php",
+      "priority": 5
+    },
+    {
+      "name": "Canal de la Ciudad",
+      "isFree": true,
+      "website": "https://www.buenosaires.gob.ar/canaldelaciudad",
+      "priority": 5
+    },
+    {
+      "name": "Canal Rural",
+      "isFree": true,
+      "website": "https://www.elrural.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Siete",
+      "isFree": true,
+      "keywords": "canal siete -colon",
+      "website": "https://www.canalsiete.com.ar/vivo/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Siete Colon",
+      "isFree": true,
+      "website": "https://canalsietecolon.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal U",
+      "isFree": true,
+      "website": "https://www.cba24n.com.ar/canal-u-cordoba",
+      "priority": 5
+    },
+    {
+      "name": "Canal VEO",
+      "isFree": true,
+      "website": "https://veonoticias.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal XFN",
+      "isFree": true,
+      "website": "https://canalxfn.com/",
+      "priority": 5
+    },
+    {
+      "name": "Caras",
+      "isFree": true,
+      "website": "https://caras.perfil.com/carastv",
+      "priority": 5
+    },
+    {
+      "name": "Celta",
+      "isFree": true,
+      "website": "https://www.celtatv.com.ar/canal-local.php",
+      "priority": 5
+    },
+    {
+      "name": "Chilecito",
+      "isFree": true,
+      "website": "http://www.diariochilecito.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ciudad Magazine",
+      "isFree": true,
+      "website": "https://www.ciudad.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Ciudad Magica",
+      "isFree": true,
+      "website": "https://ciudadmagicafm.com.ar/ciudad-magica-tv/",
+      "priority": 5
+    },
+    {
+      "name": "CL3 Cablevision",
+      "isFree": true,
+      "website": "http://www.cl3cablevision.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "CN 23",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Comarca",
+      "isFree": true,
+      "website": "https://comarcasi.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Correa Radiovision",
+      "isFree": true,
+      "website": "https://www.correadigital.com.ar/canal12.html",
+      "priority": 5
+    },
+    {
+      "name": "Corrientes",
+      "isFree": true,
+      "website": "https://www.13maxtv.com/en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "CPEtv",
+      "isFree": true,
+      "website": "https://www.cpe.com.ar/cpetvvivo",
+      "priority": 5
+    },
+    {
+      "name": "Crossing Canal IPTV",
+      "isFree": true,
+      "website": "https://www.crossingcontenidos.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "CVision",
+      "isFree": true,
+      "website": "https://cvisiontv.com/",
+      "priority": 5
+    },
+    {
+      "name": "CyD Litoral",
+      "isFree": true,
+      "website": "https://www.ellitoral.com/um/cydlitoral-envivo-cableydiario",
+      "priority": 5
+    },
+    {
+      "name": "Diputados",
+      "isFree": true,
+      "website": "https://dtv.hcdn.gob.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Doce Misiones",
+      "isFree": true,
+      "website": "http://www.canal12misiones.com/",
+      "priority": 5
+    },
+    {
+      "name": "DSR Medios",
+      "isFree": true,
+      "website": "http://dsrmedios.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Eco",
+      "isFree": true,
+      "website": "https://www.eleco.com.ar/ecotv",
+      "priority": 5
+    },
+    {
+      "name": "El 10",
+      "isFree": true,
+      "website": "https://el10tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "El Doce",
+      "isFree": true,
+      "website": "https://eldoce.tv/",
+      "priority": 5
+    },
+    {
+      "name": "El Gourmet",
+      "isFree": true,
+      "website": "http://elgourmet.com/",
+      "priority": 5
+    },
+    {
+      "name": "El Nueve",
+      "isFree": true,
+      "website": "https://www.elnueve.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "El Ocho",
+      "isFree": true,
+      "website": "https://www.elocho.tv/",
+      "priority": 5
+    },
+    {
+      "name": "El Palomar",
+      "isFree": true,
+      "website": "http://tvabierta.weebly.com/el-palomar-tv.html",
+      "priority": 5
+    },
+    {
+      "name": "El Sauce",
+      "isFree": true,
+      "website": "https://coopluzvgb.com.ar/el-sauce-tv/",
+      "priority": 5
+    },
+    {
+      "name": "El Seis",
+      "isFree": true,
+      "website": "https://www.bariloche2000.com/",
+      "priority": 5
+    },
+    {
+      "name": "El SelloTV Madariaga",
+      "isFree": true,
+      "website": "https://elsellotv.com.ar",
+      "priority": 5
+    },
+    {
+      "name": "El Siete",
+      "isFree": true,
+      "website": "https://www.elsietetv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "El Trece Internacional Europe",
+      "isFree": true,
+      "website": "https://www.eltrecetv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "El Trece Internacional Latin America",
+      "isFree": true,
+      "website": "https://www.eltrecetv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "El Trece Satelital",
+      "isFree": true,
+      "website": "https://www.eltrecetv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "ENTV Viedma",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Garage TV Latin America",
+      "isFree": true,
+      "website": "http://elgarage.com/",
+      "priority": 5
+    },
+    {
+      "name": "Genesis 24",
+      "isFree": true,
+      "website": "https://genesis24.net/",
+      "priority": 5
+    },
+    {
+      "name": "GiraMundo",
+      "isFree": true,
+      "website": "https://comecuco.org/giramundo-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Glitz",
+      "isFree": true,
+      "website": "http://www.glitztvla.com/",
+      "priority": 5
+    },
+    {
+      "name": "IglgroupTv",
+      "isFree": true,
+      "website": "https://www.iglgroup.ar/",
+      "priority": 5
+    },
+    {
+      "name": "I.Sat",
+      "isFree": true,
+      "website": "http://www.isat.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Itel TV Canal 2",
+      "isFree": true,
+      "website": "https://iteltv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Kpop Mix",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KZO",
+      "isFree": true,
+      "website": "https://www.canalkzo.com/",
+      "priority": 5
+    },
+    {
+      "name": "La Nacion +",
+      "isFree": true,
+      "website": "http://lnmas.lanacion.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Lapacho TV Canal 11",
+      "isFree": true,
+      "website": "https://www.lapachotv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Latina TV 42.",
+      "isFree": true,
+      "website": "https://www.latinatv.com.ar/online/",
+      "priority": 5
+    },
+    {
+      "name": "Limay",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Linea Directa Radio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Link",
+      "isFree": true,
+      "website": "https://linktvcanal.com/",
+      "priority": 5
+    },
+    {
+      "name": "Litus",
+      "isFree": true,
+      "website": "http://www.litustv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Live Peru TV Streaming",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LTO Television",
+      "isFree": true,
+      "website": "https://lastejasonline.blogspot.com/p/lto-television.html",
+      "priority": 5
+    },
+    {
+      "name": "Malbec Play",
+      "isFree": true,
+      "website": "https://malbecplay.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mas Chic",
+      "isFree": true,
+      "website": "https://maschic.com/",
+      "priority": 5
+    },
+    {
+      "name": "Metro",
+      "isFree": true,
+      "keywords": "metro",
+      "website": "https://www.metropolitanafm.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Milenio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Milenium",
+      "isFree": true,
+      "website": "https://www.mileniumtv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Misiones Cuatro",
+      "isFree": true,
+      "website": "https://misionescuatro.com/videos-de-misionescuatro/",
+      "priority": 5
+    },
+    {
+      "name": "Monte",
+      "isFree": true,
+      "website": "http://canalmontetv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Moreno Vision",
+      "isFree": true,
+      "website": "https://morenovision.net/",
+      "priority": 5
+    },
+    {
+      "name": "Multimedios Colonia Avellaneda",
+      "isFree": true,
+      "website": "https://multimediosca.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Neo",
+      "isFree": true,
+      "website": "https://neotvdigital.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Neox",
+      "isFree": true,
+      "website": "https://sonicaargentina.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "NG Federal",
+      "isFree": true,
+      "website": "http://ngfederal.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Norte",
+      "isFree": true,
+      "website": "https://www.ntvcanal7.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Panc",
+      "isFree": true,
+      "website": "https://panctv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Paraguay TV Argentina",
+      "isFree": true,
+      "website": "https://www.paraguaytv.gov.py/",
+      "priority": 5
+    },
+    {
+      "name": "Patagonia",
+      "isFree": true,
+      "website": "https://www.patagoniatvtour.com/",
+      "priority": 5
+    },
+    {
+      "name": "Pinamar",
+      "isFree": true,
+      "website": "https://pinamartv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Play Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Plus TV Machagai",
+      "isFree": true,
+      "website": "http://www.plustv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "PowerHD",
+      "isFree": true,
+      "website": "https://www.radiopower.com.ar/powerhd/webroot/index.php?altvideoplayer=1",
+      "priority": 5
+    },
+    {
+      "name": "Power Max Radio",
+      "isFree": true,
+      "website": "https://www.fmpowermax.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Radio 3 Cadena Patagonia",
+      "isFree": true,
+      "website": "https://radio3cadenapatagonia.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Radiocanal",
+      "isFree": true,
+      "website": "https://www.radiocanal.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Radio FM Trujui",
+      "isFree": true,
+      "website": "https://fmtrujui.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Mitre",
+      "isFree": true,
+      "website": "https://radiomitre.cienradios.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Yguazu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RBD Radio Multimedia",
+      "isFree": true,
+      "website": "https://rbdradio.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Remanso",
+      "isFree": true,
+      "website": "https://remansotv.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Retro Magico",
+      "isFree": true,
+      "website": "https://www.solumedia.com.ar/video/retromagico/",
+      "priority": 5
+    },
+    {
+      "name": "San Luis CTV",
+      "isFree": true,
+      "website": "https://www.sanluisctv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "San Luis +",
+      "isFree": true,
+      "website": "https://sanluismas.com/",
+      "priority": 5
+    },
+    {
+      "name": "San Pedro",
+      "isFree": true,
+      "website": "https://www.sanpedrotv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Santa Fe Canal",
+      "isFree": true,
+      "website": "https://www.santafecanal.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Senate",
+      "isFree": true,
+      "website": "https://www.senado.gob.ar/parlamentario/sesiones/enVivo",
+      "priority": 5
+    },
+    {
+      "name": "Senillosa",
+      "isFree": true,
+      "website": "http://www.senillosatv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Sicardi",
+      "isFree": true,
+      "website": "https://sicarditv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Solive",
+      "isFree": true,
+      "website": "https://solivetv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Somos La Pampa",
+      "isFree": true,
+      "website": "https://www.somosnoticias.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Somos Rosario",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sony",
+      "isFree": true,
+      "website": "https://la.sonychannel.com/",
+      "priority": 5
+    },
+    {
+      "name": "Space",
+      "isFree": true,
+      "website": "https://canalspacela.com/",
+      "priority": 5
+    },
+    {
+      "name": "TDC Online",
+      "isFree": true,
+      "website": "https://tdconline.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "TechScience 365",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TEC",
+      "isFree": true,
+      "website": "http://www.tectv.gob.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Telecinco",
+      "isFree": true,
+      "website": "http://www.cablecanalriomayo.com.ar/telecinco-trelew/",
+      "priority": 5
+    },
+    {
+      "name": "Telecondor Satelital",
+      "isFree": true,
+      "website": "https://telecondorsatelital.es.tl/",
+      "priority": 5
+    },
+    {
+      "name": "Telecreativa",
+      "isFree": true,
+      "website": "https://telecreativa.com/",
+      "priority": 5
+    },
+    {
+      "name": "Telediario",
+      "isFree": true,
+      "website": "https://telediariotelevision.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Telediez",
+      "isFree": true,
+      "website": "http://www.infolibres.com/inicio/menuItem/2",
+      "priority": 5
+    },
+    {
+      "name": "Telefe",
+      "isFree": true,
+      "keywords": "telefe -bahia -blanca -buenos -aires -cordoba -internacional -mar -del -plata -rosario -salta -santa -fe -tucuman",
+      "website": "https://www.telefe.com",
+      "priority": 5
+    },
+    {
+      "name": "Telefe Bahia Blanca",
+      "isFree": true,
+      "website": "http://bahia.mitelefe.com/",
+      "priority": 5
+    },
+    {
+      "name": "Telefe Buenos Aires",
+      "isFree": true,
+      "website": "http://mitelefe.com/",
+      "priority": 5
+    },
+    {
+      "name": "Telefe Cordoba",
+      "isFree": true,
+      "website": "http://cordoba.telefe.com/",
+      "priority": 5
+    },
+    {
+      "name": "Telefe Internacional",
+      "isFree": true,
+      "website": "http://telefeinternacional.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Telefe Mar del Plata",
+      "isFree": true,
+      "website": "http://mardelplata.mitelefe.com/",
+      "priority": 5
+    },
+    {
+      "name": "Telefe Salta",
+      "isFree": true,
+      "website": "http://salta.mitelefe.com/",
+      "priority": 5
+    },
+    {
+      "name": "Telefe Santa Fe",
+      "isFree": true,
+      "website": "http://santafe.mitelefe.com/",
+      "priority": 5
+    },
+    {
+      "name": "Telefe Tucuman",
+      "isFree": true,
+      "website": "http://tucuman.telefe.com/",
+      "priority": 5
+    },
+    {
+      "name": "TeleJunin",
+      "isFree": true,
+      "website": "https://www.telejunin.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "TeleMix",
+      "isFree": true,
+      "website": "https://latelemix.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "Telenord",
+      "isFree": true,
+      "keywords": "telenord -corrientes",
+      "website": "https://www.telenord.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Posadas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Te lo Cuento y Que",
+      "isFree": true,
+      "website": "https://telocuentoyque.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Telpin TV Canal 2",
+      "isFree": true,
+      "website": "http://www.telpintv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Tierra Mia",
+      "isFree": true,
+      "website": "https://www.diario26.com/",
+      "priority": 5
+    },
+    {
+      "name": "TIV Television",
+      "isFree": true,
+      "website": "http://bieninformado.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "TRU",
+      "isFree": true,
+      "website": "https://www.trutv.ar/",
+      "priority": 5
+    },
+    {
+      "name": "TUM",
+      "isFree": true,
+      "website": "https://transmedia.unam.edu.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Turismo Vision Argentina",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 40",
+      "isFree": true,
+      "website": "https://rtv40.blogspot.com/p/tv40-en-vivo.html",
+      "priority": 5
+    },
+    {
+      "name": "TVC 5",
+      "isFree": true,
+      "website": "https://www.tvc5.net/tvc5",
+      "priority": 5
+    },
+    {
+      "name": "Tveo Mendoza",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVMAXCBA",
+      "isFree": true,
+      "website": "https://en.tvmaxcba.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Publica",
+      "isFree": true,
+      "keywords": "tv publica -fueguina -marcos -paz",
+      "website": "https://www.tvpublica.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "TV Publica Fueguina",
+      "isFree": true,
+      "website": "https://tvpublicafueguina.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "TV Publica Marcos Paz",
+      "isFree": true,
+      "website": "https://www.mediospublicos.marcospaz.net/",
+      "priority": 5
+    },
+    {
+      "name": "TV Solidaria",
+      "isFree": true,
+      "website": "https://solidariatv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Unirio",
+      "isFree": true,
+      "website": "https://uniriotv.unrc.edu.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Uniteve",
+      "isFree": true,
+      "website": "http://uniteve.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Urbana TeVe",
+      "isFree": true,
+      "website": "https://www.urbanateve.com/",
+      "priority": 5
+    },
+    {
+      "name": "Urban Mix",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UTN",
+      "isFree": true,
+      "website": "https://www.utnmedios.com/utn-tv",
+      "priority": 5
+    },
+    {
+      "name": "Valle",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VariedTV",
+      "isFree": true,
+      "website": "https://www.variedtv.online/",
+      "priority": 5
+    },
+    {
+      "name": "Viajar",
+      "isFree": true,
+      "website": "https://viajartv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Villa Mantero",
+      "isFree": true,
+      "website": "https://tv.villamantero.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Volver",
+      "isFree": true,
+      "website": "https://www.volver.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "VTV",
+      "isFree": true,
+      "keywords": "vtv -mendoza",
+      "website": "http://quierovertv.com/",
+      "priority": 5
+    },
+    {
+      "name": "VTV Mendoza",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "WOBI",
+      "isFree": true,
+      "website": "https://www.wobi.com/",
+      "priority": 5
+    },
+    {
+      "name": "Xama",
+      "isFree": true,
+      "website": "https://www.xama.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Xtrema Comedy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ZN Noticias",
+      "isFree": true,
+      "website": "http://www.znnoticias.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zonda",
+      "isFree": true,
+      "website": "https://www.diarioelzondasj.com.ar/canales-en-vivo-2/",
+      "priority": 5
+    },
+    {
+      "name": "AVC",
+      "isFree": true,
+      "priority": 5,
+      "website": "https://sites.google.com/view/avchd/inicio"
+    }
+  ],
+  "News": [
+    {
+      "name": "24/7 Canal de Noticias",
+      "isFree": true,
+      "shortName": "2CDN",
+      "priority": 5
+    },
+    {
+      "name": "Canal 26",
+      "isFree": true,
+      "website": "https://www.canal26.com",
+      "priority": 5
+    },
+    {
+      "name": "Informacion Periodística",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RT en Español",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TN Argentina",
+      "isFree": true,
+      "website": "https://tn.com.ar",
+      "priority": 5
+    },
+    {
+      "name": "VPItv",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "teleSUR",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "America Tucuman",
+      "isFree": true,
+      "website": "https://americatucuman.com/",
+      "priority": 5
+    },
+    {
+      "name": "ATV Argentina",
+      "isFree": true,
+      "website": "https://atvargentina.com/",
+      "priority": 5
+    },
+    {
+      "name": "C5N",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal E",
+      "isFree": true,
+      "website": "https://www.perfil.com/canal-e",
+      "priority": 5
+    },
+    {
+      "name": "CnAr Noticias",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cronica",
+      "isFree": true,
+      "website": "https://www.cronicatv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Demos Radio Visual",
+      "isFree": true,
+      "website": "https://demos.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "El Destape",
+      "isFree": true,
+      "website": "https://www.eldestapeweb.com/",
+      "priority": 5
+    },
+    {
+      "name": "EPS",
+      "isFree": true,
+      "website": "https://noticiaseps.com.ar/tvvivopop.html",
+      "priority": 5
+    },
+    {
+      "name": "Extra!",
+      "isFree": true,
+      "website": "https://www.canalextra.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "IP Noticias",
+      "isFree": true,
+      "website": "https://ip.digital/",
+      "priority": 5
+    },
+    {
+      "name": "Los Primeros",
+      "isFree": true,
+      "website": "https://losprimeros.tv/",
+      "priority": 6
+    },
+    {
+      "name": "Mercurio Noticias",
+      "isFree": true,
+      "website": "https://videostream.shockmedia.com.ar/public/mercuriotv",
+      "priority": 5
+    },
+    {
+      "name": "Multivision Federal",
+      "isFree": true,
+      "website": "https://multivision.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Pares",
+      "isFree": true,
+      "website": "https://parestv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Quantica",
+      "isFree": true,
+      "website": "https://quanticaradio.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Televideo Regional",
+      "isFree": true,
+      "website": "http://www.televideoinforma.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "TN",
+      "isFree": true,
+      "keywords": "tn -argentina",
+      "website": "https://tn.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "TV Sindical",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "AgrotendenciaTV",
+      "priority": 5
+    },
+    {
+      "name": "Claro Sports",
+      "priority": 10
+    },
+    {
+      "name": "DeporTV",
+      "priority": 5
+    },
+    {
+      "name": "America Sports",
+      "isFree": true,
+      "website": "http://www.amsports.com.ar/",
+      "priority": 10
+    },
+    {
+      "name": "Canal Showsport",
+      "isFree": true,
+      "website": "https://canalshowsport.com.ar/",
+      "priority": 10
+    },
+    {
+      "name": "CnAr Deportes",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ESPN Premium",
+      "isFree": true,
+      "website": "http://espn.com.ar/",
+      "priority": 10
+    },
+    {
+      "name": "FOX Sports",
+      "isFree": true,
+      "keywords": "fox sports -2 -3",
+      "priority": 10
+    },
+    {
+      "name": "FOX Sports 2",
+      "isFree": true,
+      "website": "http://www.foxsportsla.com/",
+      "priority": 10
+    },
+    {
+      "name": "FOX Sports 3",
+      "isFree": true,
+      "website": "http://www.foxsportsla.com/",
+      "priority": 10
+    },
+    {
+      "name": "HAPSATV",
+      "isFree": true,
+      "website": "https://www.palermo.com.ar/es/turf/c/hapsa-tv",
+      "priority": 5
+    },
+    {
+      "name": "TNT Sports",
+      "isFree": true,
+      "website": "https://tntsports.com.ar/",
+      "priority": 10
+    },
+    {
+      "name": "TyC Sports",
+      "isFree": true,
+      "keywords": "tyc sports -2 -3 -4 -latin -america -usa",
+      "website": "http://www.tycsports.com/",
+      "priority": 10
+    },
+    {
+      "name": "TyC Sports 2",
+      "isFree": true,
+      "website": "http://www.tycsports.com/",
+      "priority": 10
+    },
+    {
+      "name": "TyC Sports 3",
+      "isFree": true,
+      "website": "http://www.tycsports.com/",
+      "priority": 10
+    },
+    {
+      "name": "TyC Sports 4",
+      "isFree": true,
+      "website": "http://www.tycsports.com/",
+      "priority": 10
+    },
+    {
+      "name": "TyC Sports Latin America",
+      "isFree": true,
+      "website": "http://www.tycsports.com/global/internacional.php",
+      "priority": 10
+    },
+    {
+      "name": "TyC Sports USA",
+      "isFree": true,
+      "website": "http://www.tycsports.com/global/internacional.php",
+      "priority": 10
+    }
+  ],
+  "Local": [
+    {
+      "name": "Canal 10 Rio Negro",
+      "isFree": true,
+      "shortName": "C1RN",
+      "priority": 5
+    },
+    {
+      "name": "Canal C",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Provincial",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Catacama",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Chaco",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ciudad TV Resistencia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Fenix",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Maná Argentina",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleJunín",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telefe Rosario",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telenord Corrientes",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Anime Zone",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Boomerang Latinoamérica",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Locomotion",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pakapaka",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Toonizaki",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ANIMESTATION",
+      "isFree": true,
+      "website": "https://animestationtv.com/en-vivo.html",
+      "priority": 5
+    },
+    {
+      "name": "Disney Channel Latin America",
+      "isFree": true,
+      "website": "https://www.disneylatino.com/tv",
+      "priority": 5
+    },
+    {
+      "name": "Disney Jr. Latin America",
+      "isFree": true,
+      "website": "https://www.disneylatino.com/",
+      "priority": 5
+    },
+    {
+      "name": "Plim Plim",
+      "isFree": true,
+      "website": "https://plimplim.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Super Kaos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TATETI",
+      "isFree": true,
+      "website": "https://tatetibienvenida.tv/",
+      "priority": 5
+    },
+    {
+      "name": "The BD Network",
+      "isFree": true,
+      "website": "https://bdnetworktv.wixsite.com/bd-network/",
+      "priority": 5
+    },
+    {
+      "name": "Xtrema Anime",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Xtrema Cartoons",
+      "isFree": true,
+      "website": "https://xtrematv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Xtrema Retro Cartoons",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Auto": [
+    {
+      "name": "El Garage",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Comedy": [
+    {
+      "name": "SoloStandUp",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Cooking": [
+    {
+      "name": "Tastemade en Español",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "A Son de Salsa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MusicTop",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Planeta Multimedios",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Allegro",
+      "isFree": true,
+      "website": "https://allegrohd.com/",
+      "priority": 5
+    },
+    {
+      "name": "AlternaTV",
+      "isFree": true,
+      "website": "https://alternatv.ar",
+      "priority": 5
+    },
+    {
+      "name": "Azahares Radiovisual Multimedia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Beats Radio",
+      "isFree": true,
+      "website": "https://beatsradio.com.ar/cinco-tv-en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "Cadena Cover's Clasicos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Chamame",
+      "isFree": true,
+      "website": "https://chamametv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "CM El Canal de la Musica",
+      "isFree": true,
+      "website": "http://cmmusica.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Complejo Dance",
+      "isFree": true,
+      "website": "https://www.complejodance.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Cumbia Mix",
+      "isFree": true,
+      "website": "https://cumbiamix.com",
+      "priority": 5
+    },
+    {
+      "name": "Dance",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dial Radio",
+      "isFree": true,
+      "website": "https://dialradio.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Global",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ingenio FM",
+      "isFree": true,
+      "website": "https://www.ingeniofm.com/",
+      "priority": 5
+    },
+    {
+      "name": "LT 17",
+      "isFree": true,
+      "website": "https://radiolt17.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mas FM",
+      "isFree": true,
+      "website": "https://www.masfm.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mas Musica",
+      "isFree": true,
+      "website": "https://www.masmusica.com.ar/shop",
+      "priority": 5
+    },
+    {
+      "name": "Metropolitana FM",
+      "isFree": true,
+      "website": "http://www.metropolitana935fm.com.ar/p/video-en-vivo.html",
+      "priority": 5
+    },
+    {
+      "name": "Much",
+      "isFree": true,
+      "website": "http://muchla.com/",
+      "priority": 5
+    },
+    {
+      "name": "OneRadio",
+      "isFree": true,
+      "website": "https://oneradio1073.com/",
+      "priority": 5
+    },
+    {
+      "name": "Quiero Musica en mi Idioma",
+      "isFree": true,
+      "website": "https://www.qmusica.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Conexion Web",
+      "isFree": true,
+      "website": "https://radioconexionwebtv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Realpolitik",
+      "isFree": true,
+      "website": "https://realpolitik.fm/",
+      "priority": 5
+    },
+    {
+      "name": "Red Vision Radio",
+      "isFree": true,
+      "website": "https://redvisionradio.com/",
+      "priority": 5
+    },
+    {
+      "name": "Senal Urbana",
+      "isFree": true,
+      "website": "https://urbanaonline.ar/miranos-en-vivo/",
+      "priority": 5
+    },
+    {
+      "name": "Super Classics",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tango",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Estacion Mix",
+      "isFree": true,
+      "website": "https://radioestacionmix.jimdofree.com/",
+      "priority": 5
+    },
+    {
+      "name": "X Level Media",
+      "isFree": true,
+      "website": "https://xlevelmedia.com/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "CHIC Magazine",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hiperconectados Televisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Platzi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVU Universidad Nacional de La Plata",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Abra",
+      "isFree": true,
+      "website": "https://www.abratv.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Aunar",
+      "isFree": true,
+      "website": "https://www.tvpublica.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Canal A",
+      "isFree": true,
+      "website": "https://www.canalaonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Universidad",
+      "isFree": true,
+      "website": "https://canal.mdp.edu.ar/index.php",
+      "priority": 5
+    },
+    {
+      "name": "Catamarca",
+      "isFree": true,
+      "website": "http://catamarcartv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Conexion Educativa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Construir",
+      "isFree": true,
+      "website": "https://www.construirtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "El Histonauta",
+      "isFree": true,
+      "website": "https://xtrematv.com/variedades/",
+      "priority": 5
+    },
+    {
+      "name": "Encuentro Internacional",
+      "isFree": true,
+      "website": "http://encuentro.gob.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Mirador",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Senal U",
+      "isFree": true,
+      "website": "https://www.unidiversidad.com.ar/senalu",
+      "priority": 5
+    },
+    {
+      "name": "Teleteatrix",
+      "isFree": true,
+      "website": "http://www.teatrix.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Universidad",
+      "isFree": true,
+      "website": "https://tv.unlp.edu.ar/",
+      "priority": 5
+    },
+    {
+      "name": "UN 3",
+      "isFree": true,
+      "website": "https://un3.tv/",
+      "priority": 5
+    },
+    {
+      "name": "UNaM",
+      "isFree": true,
+      "website": "https://transmedia.unam.edu.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Xtrema Animal",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "CINE.AR",
+      "priority": 5
+    },
+    {
+      "name": "SEO TV Novelas",
+      "priority": 5
+    },
+    {
+      "name": "Cordoba",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cosmos",
+      "isFree": true,
+      "website": "https://fmcosmos.com/",
+      "priority": 5
+    },
+    {
+      "name": "Europa Europa",
+      "isFree": true,
+      "website": "https://www.europaeuropa.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Film & Arts",
+      "isFree": true,
+      "website": "https://www.filmandarts.tv/",
+      "priority": 5
+    },
+    {
+      "name": "LAMIL 35",
+      "isFree": true,
+      "website": "https://www.lamil35.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Maxima",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Video Club",
+      "isFree": true,
+      "website": "https://videoclub.com.ar/",
+      "priority": 5
+    },
+    {
+      "name": "Xtrema Accion",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Xtrema Asia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Xtrema Cine Clasico",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Xtrema Drama",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Xtrema Europa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Xtrema Family",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Xtrema Hindi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Xtrema Latina",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Xtrema Retro Series",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Xtrema Series",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Xtrema Suspenso",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Xtrema Terror",
+      "isFree": true,
+      "website": "https://xtrematv.com/?p=1456",
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Radio TV Neuquen",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Shop": [
+    {
+      "name": "Hogar Shopping Club",
+      "isFree": true,
+      "priority": 4
+    }
+  ]
+}

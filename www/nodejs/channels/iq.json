@@ -1,0 +1,828 @@
+{
+  "Religious": [
+    {
+      "name": "ABNsat",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Al-Jawadain",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Alkafeel: Between the two holy shrines",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Alkafeel: The Holy Tomb",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Alkafeel: The entrance of the holy sanctuary",
+      "isFree": true,
+      "shortName": "ATEOTHS",
+      "priority": 4
+    },
+    {
+      "name": "Alkafeel: The window of Al-Kafeel",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Dua",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Imam Hussein TV 1 Farsi",
+      "isFree": true,
+      "shortName": "IHT1F",
+      "priority": 4
+    },
+    {
+      "name": "Imam Hussein TV 2 Arabic",
+      "isFree": true,
+      "shortName": "IHT2A",
+      "priority": 4
+    },
+    {
+      "name": "Imam Hussein TV 3 English",
+      "isFree": true,
+      "shortName": "IHT3E",
+      "priority": 4
+    },
+    {
+      "name": "Imam Hussein TV 4 Urdu",
+      "isFree": true,
+      "shortName": "IHT4U",
+      "priority": 4
+    },
+    {
+      "name": "Karbala",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Al-Aimma",
+      "isFree": true,
+      "website": "https://alaimma.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Alquran",
+      "isFree": true,
+      "website": "https://www.karbala-tv.iq/quran/",
+      "priority": 4
+    },
+    {
+      "name": "Al Salam",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Amozhgary",
+      "isFree": true,
+      "website": "https://www.amozhgary.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Bayyinat",
+      "isFree": true,
+      "website": "http://www.bayyinat.tv/",
+      "priority": 4
+    },
+    {
+      "name": "BeitolAbbas",
+      "isFree": true,
+      "website": "http://beitolabbas.tv/",
+      "priority": 4
+    },
+    {
+      "name": "FarmodaTV",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Hadi TV",
+      "isFree": true,
+      "website": "https://en.haditv.co.uk/",
+      "priority": 4
+    },
+    {
+      "name": "Hadi TV 2",
+      "isFree": true,
+      "website": "https://en.haditv.co.uk/",
+      "priority": 4
+    },
+    {
+      "name": "Hadi TV 3",
+      "isFree": true,
+      "website": "https://az.haditv.co.uk/",
+      "priority": 4
+    },
+    {
+      "name": "Hadi TV 4",
+      "isFree": true,
+      "website": "https://fa.haditv.co.uk/",
+      "priority": 4
+    },
+    {
+      "name": "Hadi TV 5",
+      "isFree": true,
+      "website": "https://ha.haditv.co.uk/",
+      "priority": 4
+    },
+    {
+      "name": "Hadi TV 6",
+      "isFree": true,
+      "website": "https://en.haditv.co.uk/",
+      "priority": 4
+    },
+    {
+      "name": "Hadi TV 7",
+      "isFree": true,
+      "website": "https://ku.haditv.co.uk/live/HQ",
+      "priority": 4
+    },
+    {
+      "name": "Imam Ali",
+      "isFree": true,
+      "website": "https://www.imamali.net/",
+      "priority": 4
+    },
+    {
+      "name": "Imam Asr",
+      "isFree": true,
+      "website": "http://www.imamasrtv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Imam Hussein TV",
+      "isFree": true,
+      "keywords": "imam hussein tv 1 -farsi",
+      "website": "https://imamhussein1.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Imam Hussein TV 2",
+      "isFree": true,
+      "keywords": "imam hussein tv 2 -arabic",
+      "website": "https://imamhussein2.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Imam Hussein TV 3",
+      "isFree": true,
+      "keywords": "imam hussein tv 3 -english",
+      "website": "https://imamhussein3.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Imam Hussein TV 4",
+      "isFree": true,
+      "keywords": "imam hussein tv 4 -urdu",
+      "website": "https://imamhussein4.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Imam Hussein TV 5",
+      "isFree": true,
+      "website": "http://imamhussein.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Imam Hussein TV 6",
+      "isFree": true,
+      "website": "http://imamhussein.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Kalimat",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Karbala Documentary",
+      "isFree": true,
+      "website": "https://www.karbala-tv.iq/",
+      "priority": 4
+    },
+    {
+      "name": "Karbala Satellite",
+      "isFree": true,
+      "website": "https://www.karbala-tv.iq/",
+      "priority": 4
+    },
+    {
+      "name": "Marjaeyat TV Arabic",
+      "isFree": true,
+      "website": "https://marjaeyattv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Marjaeyat TV English",
+      "isFree": true,
+      "website": "https://marjaeyattv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Marjaeyat TV Persian",
+      "isFree": true,
+      "website": "https://marjaeyat.tv/",
+      "priority": 4
+    },
+    {
+      "name": "NRT 4",
+      "isFree": true,
+      "website": "https://www.nrttv.com/nrt2/",
+      "priority": 4
+    },
+    {
+      "name": "Quran",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Afarin",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Afarin Baxcha",
+      "isFree": true,
+      "website": "https://afarin.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Iraq Kids",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NRT 3 Kids",
+      "isFree": true,
+      "website": "https://www.nrttv.com/nrt2/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Al Hurra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Iraqiya News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Rafidain",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Sharqiya News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al-Etejah",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AlGhadeer",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dijlah",
+      "isFree": true,
+      "keywords": "dijlah -tarab",
+      "website": "http://www.dijlah.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Iraq 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KurdSat News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rudaw",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "I News",
+      "isFree": true,
+      "keywords": "i news | inews",
+      "shortName": "iNEWS",
+      "priority": 5
+    },
+    {
+      "name": "Al-Baghdadia",
+      "isFree": true,
+      "website": "https://albaghdadiatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Al Eshraq",
+      "isFree": true,
+      "website": "https://aleshraqtv.iq/",
+      "priority": 5
+    },
+    {
+      "name": "Al-Etejah Satellite",
+      "isFree": true,
+      "website": "http://www.aletejahtv.iq/",
+      "priority": 5
+    },
+    {
+      "name": "Al Iraqia News",
+      "isFree": true,
+      "website": "http://imn.iq/",
+      "priority": 5
+    },
+    {
+      "name": "Al Janoub",
+      "isFree": true,
+      "website": "https://aljanoub.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Al-Nujaba",
+      "isFree": true,
+      "website": "http://www.alnujaba-news.com/",
+      "priority": 5
+    },
+    {
+      "name": "Anwar TV 2",
+      "isFree": true,
+      "website": "https://anwartv2.com/",
+      "priority": 5
+    },
+    {
+      "name": "Channel 8",
+      "isFree": true,
+      "website": "https://channel8.com/english/",
+      "priority": 5
+    },
+    {
+      "name": "GK",
+      "isFree": true,
+      "website": "https://www.gksat.tv/",
+      "priority": 5
+    },
+    {
+      "name": "KNN",
+      "isFree": true,
+      "website": "https://www.knnc.net/live1.aspx",
+      "priority": 5
+    },
+    {
+      "name": "NRT",
+      "isFree": true,
+      "keywords": "nrt -2 -3 -kids -4",
+      "website": "https://www.nrttv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Shams",
+      "isFree": true,
+      "website": "https://shams.tv",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Iraqia Sport",
+      "priority": 10
+    },
+    {
+      "name": "Al Iraqia Sport",
+      "isFree": true,
+      "website": "http://imn.iq/",
+      "priority": 10
+    },
+    {
+      "name": "Shabab Sport",
+      "isFree": true,
+      "website": "http://shababsport.tv/",
+      "priority": 10
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Al Iraqiya Al 3ama",
+      "isFree": true,
+      "shortName": "AIA 3",
+      "priority": 5
+    },
+    {
+      "name": "Al Rasheed",
+      "isFree": true,
+      "website": "https://www.alrasheedmedia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Al Sharqiya",
+      "isFree": true,
+      "keywords": "al sharqiya -news",
+      "priority": 5
+    },
+    {
+      "name": "Al Sumaria",
+      "isFree": true,
+      "keywords": "al sumaria | alsumaria",
+      "priority": 5,
+      "website": "https://www.alsumaria.tv/"
+    },
+    {
+      "name": "Ava Entertainment",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cihan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gali Kurdistan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Iraq Future",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ishtar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KurdMax",
+      "isFree": true,
+      "keywords": "kurdmax -music -show -sorani",
+      "priority": 5
+    },
+    {
+      "name": "KurdMax Show",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KurdMax Sorani",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KurdSat",
+      "isFree": true,
+      "keywords": "kurdsat -news",
+      "priority": 5
+    },
+    {
+      "name": "Kurdistan 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kurdistan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MBC Iraq",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Net",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Payam",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Speda",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SterkTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "WAAR",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zagros",
+      "isFree": true,
+      "website": "https://www.zagrosnews.net/",
+      "priority": 5
+    },
+    {
+      "name": "7 Sky",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Afaq",
+      "isFree": true,
+      "website": "https://www.afaq.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Alahad",
+      "isFree": true,
+      "website": "https://alahad.iq/",
+      "priority": 5
+    },
+    {
+      "name": "Alawla",
+      "isFree": true,
+      "website": "https://alawla.tv/live.html",
+      "priority": 5
+    },
+    {
+      "name": "Al Ayyam",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al-Baghdadia 2",
+      "isFree": true,
+      "website": "https://albaghdadiatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Al Diwaniyah",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Alebaa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Fallujah",
+      "isFree": true,
+      "website": "http://www.alfallujah.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Al Forat",
+      "isFree": true,
+      "website": "https://alforatnews.iq/",
+      "priority": 5
+    },
+    {
+      "name": "Al Iraqia",
+      "isFree": true,
+      "keywords": "al iraqia -news -sport",
+      "website": "http://imn.iq/",
+      "priority": 5
+    },
+    {
+      "name": "AlKomail Satellite",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al-Masar Al-Oula Satellite",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Mawsleya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al-Naeem",
+      "isFree": true,
+      "website": "https://www.alnaeem-tv.iq/",
+      "priority": 5
+    },
+    {
+      "name": "Al Rabiaa",
+      "isFree": true,
+      "website": "https://www.alrabiaa.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Alshaaer",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Altaleaa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Anbar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Avar",
+      "isFree": true,
+      "website": "https://avartv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Babylon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bangawaz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Beladi Satellite",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dijlah Zaman",
+      "isFree": true,
+      "website": "https://www.dijlah.tv/index.php?page=pages&id=tarab",
+      "priority": 5
+    },
+    {
+      "name": "Diwan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EmanTv",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hona Baghdad",
+      "isFree": true,
+      "website": "http://honabaghdad.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Iraq Now",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kirkuk",
+      "isFree": true,
+      "website": "https://kirkuktv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Korek",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kurd",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KurdMax Kurmanci",
+      "isFree": true,
+      "website": "https://www.kurdmax.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Manu Chat",
+      "isFree": true,
+      "website": "http://www.manuchat.net/",
+      "priority": 5
+    },
+    {
+      "name": "Mixkurdy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NUBAR Plus +",
+      "isFree": true,
+      "website": "http://www.nubar.tv/",
+      "priority": 5
+    },
+    {
+      "name": "NUBAR",
+      "isFree": true,
+      "website": "https://www.nubar.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Parwardayi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "QTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Salahalddin",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Samarra",
+      "isFree": true,
+      "website": "http://www.samarra.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Shihab",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Speda Drama",
+      "isFree": true,
+      "website": "https://www.speda.net/tv2/",
+      "priority": 5
+    },
+    {
+      "name": "SPI",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tishk",
+      "isFree": true,
+      "website": "https://www.tishktv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Turkmeneli",
+      "isFree": true,
+      "website": "http://www.turkmenelitv.com/",
+      "priority": 5
+    },
+    {
+      "name": "UTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "W.TV",
+      "isFree": true,
+      "website": "https://www.wtv-watan.com/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Dijlah Tarab",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KurdMax Music",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Iraq Educational Sat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NRT 2",
+      "isFree": true,
+      "website": "https://www.nrttv.com/nrt2/",
+      "priority": 5
+    }
+  ]
+}

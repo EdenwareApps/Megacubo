@@ -1,5 +1,100 @@
 import storage from '../storage/storage.js'
+import fs from 'fs'
+import path from 'path'
+import { Database } from 'jexidb'
 import { resolveListDatabaseFile } from './tools.js'
+
+const META_DB_CONFIG = {
+    create: false,
+    allowIndexRebuild: true,
+    integrityCheck: 'none',
+    indexedQueryMode: 'permissive',
+    fields: { name: 'string', value: 'string' },
+    indexes: ['name']
+}
+
+/** Same TTL as list storage (24h). Touch meta file whenever list is touched. */
+export const LIST_META_TTL = 24 * 3600
+
+/**
+ * Path to .list-meta.jdb (JexiDB) for a list. Same folder as list .jdb (storage root).
+ * Name avoids clashing with mdb's .meta.jdb. Register/touch with LIST_META_TTL so
+ * cleanup respects same lifetime as the list.
+ */
+export function resolveListMetaPath(url) {
+    const jdb = resolveListDatabaseFile(url)
+    const base = path.basename(jdb).replace(/\.jdb$/i, '')
+    return path.join(path.dirname(jdb), base + '.list-meta.jdb')
+}
+
+async function readMetaFromFile(url) {
+    const metaPath = resolveListMetaPath(url)
+    let db = null
+    try {
+        await fs.promises.access(metaPath, fs.constants.F_OK)
+    } catch {
+        return null
+    }
+    try {
+        db = new Database(metaPath, { ...META_DB_CONFIG })
+        await db.init()
+        const rows = await db.find({ name: 'data' }, { limit: 1 })
+        await db.close()
+        db = null
+        const row = rows?.[0]
+        if (!row || typeof row.value !== 'string') return null
+        const data = JSON.parse(row.value)
+        return data && typeof data === 'object' ? data : null
+    } catch {
+        return null
+    } finally {
+        if (db && !db.destroyed && !db.closed) await db.close().catch(() => {})
+    }
+}
+
+export async function writeMetaToFile(url, data) {
+    const metaPath = resolveListMetaPath(url)
+    await fs.promises.mkdir(path.dirname(metaPath), { recursive: true })
+    const db = new Database(metaPath, {
+        ...META_DB_CONFIG,
+        clear: true,
+        create: true
+    })
+    try {
+        await db.init()
+        await db.insert({ name: 'data', value: JSON.stringify(data) })
+        await db.close()
+    } catch (e) {
+        await db.close().catch(() => {})
+        throw e
+    }
+    await storage.registerFile(metaPath, { ttl: LIST_META_TTL, size: 'auto', raw: true }).catch(() => {})
+}
+
+/** Touch meta file with same TTL as list so cleanup keeps same lifetime. Call when list is touched. */
+export async function touchListMetaFile(url) {
+    const metaPath = resolveListMetaPath(url)
+    try {
+        await fs.promises.access(metaPath, fs.constants.F_OK)
+    } catch {
+        return
+    }
+    await storage.registerFile(metaPath, { ttl: LIST_META_TTL, size: 'auto', raw: true }).catch(() => {})
+}
+
+// -----------------------------------------------------------------------------
+// Storage-based list meta (list-meta-* keys). Kept as fallback when .meta.jdb
+// is missing. Why it failed as primary source:
+// - Expiration: writeMetaJson uses 24h expiration. Storage cleanup deletes
+//   expired entries, so meta was removed after 24h.
+// - No hold: we never storage.hold(list-meta-key). Cleanup could delete when
+//   expired. List holds .meta.jdb via metaHold, not list-meta storage.
+// - Index sync: worker runs in separate process, has its own storage index.
+//   Worker set() updates worker index and writes .dat; main get() uses main
+//   index. If main never reloaded index after worker wrote, main would not
+//   see the key (index is process-local; storage-index.json may not be
+//   reloaded in time).
+// -----------------------------------------------------------------------------
 
 // Sanitize URL to create safe storage key
 function sanitizeStorageKey(url) {
@@ -74,40 +169,32 @@ function filterUndefinedValues(obj) {
     return filtered;
 }
 
+function ensureMetaShape(meta) {
+    if (!meta || typeof meta !== 'object') return null;
+    if (!meta.meta) meta.meta = {};
+    if (!meta.gids) meta.gids = {};
+    if (!meta.groupsTypes || typeof meta.groupsTypes !== 'object') meta.groupsTypes = {};
+    // Ensure groupsTypes always has live/vod/series arrays so lists.groups(types) can iterate safely
+    if (!Array.isArray(meta.groupsTypes.live)) meta.groupsTypes.live = [];
+    if (!Array.isArray(meta.groupsTypes.vod)) meta.groupsTypes.vod = [];
+    if (!Array.isArray(meta.groupsTypes.series)) meta.groupsTypes.series = [];
+    if (meta.length === undefined) meta.length = 0;
+    return meta;
+}
+
 // NEW: JSON-based metadata functions
 export async function getListMeta(url) {
-    // FIXED: Check cache first to minimize I/O
-    if (0 && metaCache.has(url)) {
-        const cached = metaCache.get(url);
-        // console.log(`📋 [CACHE_HIT] Using cached metadata for ${url}`);
-        return cached;
-    }
-    
     try {
-        // console.log(`📋 [JSON_META] Loading metadata for ${url}`);
+        const fromFile = await readMetaFromFile(url);
+        if (fromFile != null) {
+            const meta = ensureMetaShape(fromFile);
+            if (meta) return meta;
+        }
         const meta = await readMetaJson(url);
-        
-        // Ensure required fields exist
-        if (!meta.meta) meta.meta = {};
-        if (!meta.gids) meta.gids = {};
-        if (!meta.groupsTypes) meta.groupsTypes = {};
-        if (meta.length === undefined) meta.length = 0;
-        
-        // Cache the result
-        metaCache.set(url, meta);
-        
-        return meta;
+        return ensureMetaShape(meta) || ensureMetaShape({});
     } catch (error) {
         console.error(`❌ [JSON_META_ERROR] Error loading metadata for ${url}:`, error.message);
-        const fallbackMeta = {
-            groups: {},
-            meta: {},
-            gids: {},
-            groupsTypes: {},
-            length: 0
-        };
-        metaCache.set(url, fallbackMeta);
-        return fallbackMeta;
+        return ensureMetaShape({ meta: {}, gids: {}, groupsTypes: {}, length: 0 });
     }
 }
 
@@ -176,7 +263,11 @@ global.listMeta = {
     read: readMetaJson,
     write: writeMetaJson,
     sanitize: sanitizeStorageKey,
-    resolve: resolveListDatabaseFile
+    resolve: resolveListDatabaseFile,
+    resolveMetaPath: resolveListMetaPath,
+    writeToFile: writeMetaToFile,
+    touchMetaFile: touchListMetaFile,
+    metaTtl: LIST_META_TTL
 }
 
 

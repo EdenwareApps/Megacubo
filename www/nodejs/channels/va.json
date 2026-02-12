@@ -1,0 +1,42 @@
+{
+  "Entertainment": [
+    {
+      "name": "Vatican Media",
+      "isFree": true,
+      "website": "https://www.comunicazione.va/it/vatican-media.html",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Vatican News Deutsch",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Vatican News English",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Vatican News Espanol",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Vatican News Francais",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Vatican News Italiano",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Vatican News Portugues",
+      "isFree": true,
+      "priority": 4
+    }
+  ]
+}

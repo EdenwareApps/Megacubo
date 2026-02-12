@@ -1,6 +1,0 @@
-{
-    "name": "conn-racing",
-    "type": "module",
-"exports": "./conn-racing.js"
-  }
-  

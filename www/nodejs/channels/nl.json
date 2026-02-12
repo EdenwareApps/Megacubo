@@ -1,0 +1,2141 @@
+{
+  "Local": [
+    {
+      "name": "BR 6",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Feel Good",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ideaal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "JenZ",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LOE",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LON",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lansingerland",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ML 5",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Omroep Centraal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Connect",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Purmerend",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Rijnstreek",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Regio 8",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Regio 90",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Samen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Siris",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zuid West",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Omroep P&M",
+      "isFree": true,
+      "keywords": "omroep p m",
+      "priority": 5
+    },
+    {
+      "name": "Omroep Tilburg",
+      "isFree": true,
+      "keywords": "omroep tilburg",
+      "priority": 5
+    },
+    {
+      "name": "Omroep Hulst",
+      "isFree": true,
+      "keywords": "omroep hulst",
+      "website": "https://www.omroephulst.tv/live/",
+      "priority": 5
+    }
+  ],
+  "Shop": [
+    {
+      "name": "Tommy Teleshopping",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Breda Nu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DNO Streek",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Den Haag",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EDE",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Groningen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HK 13",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "InTrouble",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "InWild",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "InWonder",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Inshort",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Insight",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "L1 Limburg",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "L1mburg",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Meer",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NPO",
+      "isFree": true,
+      "website": "https://www.npo.nl",
+      "priority": 5
+    },
+    {
+      "name": "NPO 2",
+      "isFree": true,
+      "website": "https://www.npo.nl",
+      "priority": 5
+    },
+    {
+      "name": "NPO 3",
+      "isFree": true,
+      "website": "https://www.npo.nl",
+      "priority": 5
+    },
+    {
+      "name": "ORTS",
+      "isFree": true,
+      "website": "https://orts.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Omroep Brabant",
+      "isFree": true,
+      "keywords": "omroep brabant -radio",
+      "priority": 5
+    },
+    {
+      "name": "Omroep Flevoland",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Omroep Gelderland",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Omroep Ons West Brabant",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Omroep West",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Omroep Zeeland",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Omrop Fryslan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Omrop Fryslân",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Open Rotterdam",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Podium.TV",
+      "isFree": true,
+      "keywords": "podium tv -2 -3",
+      "priority": 5
+    },
+    {
+      "name": "Podium.TV 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Podium.TV 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RN 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Amstelveen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Arnhem",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Dordrecht",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Drenthe",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV GO!",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Maastricht",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV NOF",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV NOF 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Noord",
+      "isFree": true,
+      "keywords": "rtv noord -extra",
+      "priority": 5
+    },
+    {
+      "name": "RTV Noord Extra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Noordoost Friesland",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Oost",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Rijnmond",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Slingeland",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Utrecht",
+      "isFree": true,
+      "keywords": "rtv utrecht | rtvutrecht",
+      "priority": 5
+    },
+    {
+      "name": "Regio TV Nieuws",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Salto",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Salto 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Salto 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Salto ADE",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Silence",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Streek",
+      "isFree": true,
+      "keywords": "streek tv | streektv",
+      "priority": 5
+    },
+    {
+      "name": "TV Ellef",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Valkenburg",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UStad",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vechtdal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Xite",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ZO! 34",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "13th Street",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "1AlmereTV",
+      "isFree": true,
+      "website": "https://www.1almere.nl/",
+      "priority": 5
+    },
+    {
+      "name": "1Twente",
+      "isFree": true,
+      "website": "https://www.1twente.nl/kijk",
+      "priority": 5
+    },
+    {
+      "name": "A",
+      "isFree": true,
+      "website": "https://www.a1mediagroep.nl/",
+      "priority": 5
+    },
+    {
+      "name": "AAVISIE",
+      "isFree": true,
+      "website": "http://aavisie.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Albrandswaard",
+      "isFree": true,
+      "website": "http://www.albrandswaardtv.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Altena",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Assen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AT 5",
+      "isFree": true,
+      "website": "http://www.at5.nl/",
+      "priority": 5
+    },
+    {
+      "name": "ATOS",
+      "isFree": true,
+      "website": "https://www.atosrtv.nl/contact/",
+      "priority": 5
+    },
+    {
+      "name": "BBC",
+      "isFree": true,
+      "website": "https://www.bbcbenelux.com/zenders/nl",
+      "priority": 5
+    },
+    {
+      "name": "Beek",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Beleef KPN",
+      "isFree": true,
+      "website": "https://tv.kpn.com/details/899047263.1/beleef-kpn",
+      "priority": 5
+    },
+    {
+      "name": "BVN",
+      "isFree": true,
+      "website": "https://www.bvn.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Digitaal informatiekanaal",
+      "isFree": true,
+      "website": "http://www.canaldigitaal.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Castricum",
+      "isFree": true,
+      "website": "https://omroepcastricum.nl/",
+      "priority": 5
+    },
+    {
+      "name": "CBS Reality",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Centraal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Comedy Central",
+      "isFree": true,
+      "keywords": "comedy central -extra",
+      "website": "https://www.comedycentral.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Comedy Central Extra",
+      "isFree": true,
+      "website": "https://www.comedycentral.nl/extra",
+      "priority": 5
+    },
+    {
+      "name": "Delta",
+      "isFree": true,
+      "website": "https://www.delta.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Discovery",
+      "isFree": true,
+      "website": "https://www.discoveryplus.nl/zenders/discovery",
+      "priority": 7
+    },
+    {
+      "name": "Dit is Helmond",
+      "isFree": true,
+      "website": "https://ditishelmond.nl/",
+      "priority": 5
+    },
+    {
+      "name": "DRTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DTV Den Bosch",
+      "isFree": true,
+      "website": "https://dtvnieuws.nl/denbosch",
+      "priority": 5
+    },
+    {
+      "name": "DTV Maashorst",
+      "isFree": true,
+      "website": "https://dtvnieuws.nl/televisie-livestream",
+      "priority": 5
+    },
+    {
+      "name": "DTV Oss & Bernheze",
+      "isFree": true,
+      "website": "https://dtvnieuws.nl/nieuws",
+      "priority": 5
+    },
+    {
+      "name": "Dusk",
+      "isFree": null,
+      "website": "https://www.dusk-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Eerste Kamer",
+      "isFree": true,
+      "website": "https://www.eerstekamer.nl/",
+      "priority": 5
+    },
+    {
+      "name": "E! Europe",
+      "isFree": true,
+      "website": "https://www.eonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "EroX",
+      "isFree": null,
+      "website": "http://spiintl.com/channels/erox",
+      "priority": 5
+    },
+    {
+      "name": "Family 7",
+      "isFree": true,
+      "website": "http://www.family7.nl/",
+      "priority": 5
+    },
+    {
+      "name": "FashionBox",
+      "isFree": true,
+      "website": "http://www.fashionboxlive.com/",
+      "priority": 5
+    },
+    {
+      "name": "Fashionstream",
+      "isFree": true,
+      "website": "https://spiintl.com/channels/fashionstream",
+      "priority": 5
+    },
+    {
+      "name": "FunBox UHD",
+      "isFree": true,
+      "website": "http://www.funboxuhd.com/",
+      "priority": 5
+    },
+    {
+      "name": "Gametoon",
+      "isFree": true,
+      "website": "http://www.gametoon.com/",
+      "priority": 5
+    },
+    {
+      "name": "Gemeente Westland",
+      "isFree": true,
+      "website": "https://www.gemeentewestland.nl/contact-en-openingstijden",
+      "priority": 5
+    },
+    {
+      "name": "GHtv Holland",
+      "isFree": true,
+      "website": "https://ghtvholland.com/",
+      "priority": 5
+    },
+    {
+      "name": "GO-TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gouwestad",
+      "isFree": true,
+      "website": "https://rtvmiddenholland.nl/gouwestad/",
+      "priority": 5
+    },
+    {
+      "name": "Haarlem105",
+      "isFree": true,
+      "website": "https://haarlem105.nl/",
+      "priority": 5
+    },
+    {
+      "name": "HGTV",
+      "isFree": true,
+      "website": "https://www.hgtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Hofstreek",
+      "isFree": true,
+      "website": "https://hofstreek.nl/contact/",
+      "priority": 5
+    },
+    {
+      "name": "HOi",
+      "isFree": true,
+      "website": "https://www.hoimedia.com/",
+      "priority": 5
+    },
+    {
+      "name": "HTR",
+      "isFree": true,
+      "website": "https://htrmedia.evtmedia.nl/index.php/tv",
+      "priority": 5
+    },
+    {
+      "name": "Ijsselmond",
+      "isFree": true,
+      "website": "https://rtvijsselmond.nl/contact/",
+      "priority": 5
+    },
+    {
+      "name": "INFAST",
+      "isFree": true,
+      "website": "https://www.in.tv/channels/infast",
+      "priority": 5
+    },
+    {
+      "name": "INPLUS",
+      "isFree": true,
+      "website": "https://www.in.tv/channels/inplus",
+      "priority": 5
+    },
+    {
+      "name": "INTRAVEL",
+      "isFree": true,
+      "website": "https://www.in.tv/channels/intravel",
+      "priority": 5
+    },
+    {
+      "name": "KempenTV",
+      "isFree": true,
+      "website": "https://www.kempentv.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Kontakt",
+      "isFree": true,
+      "website": "https://tvkontakt.nl/",
+      "priority": 5
+    },
+    {
+      "name": "L",
+      "isFree": true,
+      "website": "https://www.l1.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Langstraat",
+      "isFree": true,
+      "website": "https://www.langstraatmedia.nl/langstraat-tv/",
+      "priority": 5
+    },
+    {
+      "name": "LEO Middelse",
+      "isFree": true,
+      "website": "https://leomiddelse.nl/live-tv-kijken/",
+      "priority": 5
+    },
+    {
+      "name": "LINQ",
+      "isFree": true,
+      "website": "http://www.linqmedia.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Loco",
+      "isFree": true,
+      "website": "https://www.locomediagroep.nl/contact",
+      "priority": 5
+    },
+    {
+      "name": "Lokaal 7",
+      "isFree": true,
+      "website": "https://www.lokaal7.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Lokale Omroep Zeewolde",
+      "isFree": true,
+      "website": "https://www.lokaleomroepzeewolde.nl/",
+      "priority": 5
+    },
+    {
+      "name": "LOK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LOS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Magic PowerRadio",
+      "isFree": true,
+      "website": "https://www.magic-powerradio.nl/video",
+      "priority": 5
+    },
+    {
+      "name": "MaLive",
+      "isFree": true,
+      "website": "https://malive.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Meiden van Holland Hard",
+      "isFree": null,
+      "website": "https://meidenvanholland.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Meppel",
+      "isFree": true,
+      "website": "https://www.rtvmeppel.nl/",
+      "priority": 5
+    },
+    {
+      "name": "MerweTV",
+      "isFree": true,
+      "website": "https://merwertv.nl/",
+      "priority": 5
+    },
+    {
+      "name": "MLA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTV",
+      "isFree": true,
+      "website": "https://www.mtv.nl/",
+      "priority": 5
+    },
+    {
+      "name": "NET 5",
+      "isFree": true,
+      "website": "https://www.net5.nl/",
+      "priority": 5
+    },
+    {
+      "name": "NH",
+      "isFree": true,
+      "website": "https://www.nhnieuws.nl/",
+      "priority": 5
+    },
+    {
+      "name": "NOOS",
+      "isFree": true,
+      "website": "https://noos.tv/",
+      "priority": 5
+    },
+    {
+      "name": "NPO 1 extra",
+      "isFree": true,
+      "website": "http://www.npo1extra.nl/",
+      "priority": 5
+    },
+    {
+      "name": "NPO 2 extra",
+      "isFree": true,
+      "website": "http://www.npo2extra.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Omroep Almere",
+      "isFree": true,
+      "website": "https://omroepalmere.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Omroep Berg en Dal",
+      "isFree": true,
+      "website": "https://www.omroepbergendal.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Omroep Best",
+      "isFree": true,
+      "website": "https://www.omroepbest.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Omroep Bollenstreek",
+      "isFree": true,
+      "website": "https://www.bollenstreekomroep.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Omroep Dommelland",
+      "isFree": true,
+      "website": "https://www.omroepdommelland.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Omroep Hoeksche Waard",
+      "isFree": true,
+      "website": "https://www.omroephw.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Omroep Horst aan de Maas",
+      "isFree": true,
+      "website": "https://omroephorstaandemaas.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Omroep Land van Cuijk",
+      "isFree": true,
+      "website": "https://omroeplvc.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Omroep Lingewaard",
+      "isFree": true,
+      "website": "https://www.omroeplingewaard.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Omroep Meierijstad",
+      "isFree": true,
+      "website": "https://www.omroepmeierij.nl/televisie",
+      "priority": 5
+    },
+    {
+      "name": "Omroep Peelrand",
+      "isFree": true,
+      "website": "https://omroeppeelrand.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Omroep RSH",
+      "isFree": true,
+      "website": "https://www.omroeprsh.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Omroep Sudwest",
+      "isFree": true,
+      "website": "https://omroepsudwest.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Omroep Venlo",
+      "isFree": true,
+      "website": "https://omroepvenlo.nl/televisie-livestream",
+      "priority": 5
+    },
+    {
+      "name": "Omroep Venray",
+      "isFree": true,
+      "website": "https://www.omroepvenray.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Omroep Vlaardingen",
+      "isFree": true,
+      "website": "https://omroepvlaardingen.nl/",
+      "priority": 5
+    },
+    {
+      "name": "ONS",
+      "isFree": true,
+      "website": "http://www.kijkbijons.nl/",
+      "priority": 5
+    },
+    {
+      "name": "OOG",
+      "isFree": true,
+      "website": "https://www.oogtv.nl/",
+      "priority": 5
+    },
+    {
+      "name": "OUTtv",
+      "isFree": true,
+      "website": "http://www.outtv.nl/",
+      "priority": 5
+    },
+    {
+      "name": "P&M",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Private",
+      "isFree": null,
+      "website": "https://www.privatetelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Proximus TV RegInfo",
+      "isFree": true,
+      "website": "https://www.pickx.be/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Continu",
+      "isFree": true,
+      "website": "https://radiocontinu.nl/",
+      "priority": 5
+    },
+    {
+      "name": "RadioToppers",
+      "isFree": true,
+      "website": "http://www.radio-toppers.net/",
+      "priority": 5
+    },
+    {
+      "name": "Redlight",
+      "isFree": null,
+      "website": "https://redlight.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Regio TV De Bilt",
+      "isFree": true,
+      "website": "https://regiotvdebilt.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Ronde Venen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ROS TV-Krant",
+      "isFree": true,
+      "website": "https://ros-tvkrant.nl/",
+      "priority": 5
+    },
+    {
+      "name": "RPL Woerden",
+      "isFree": true,
+      "website": "https://rplwoerden.nl/",
+      "priority": 5
+    },
+    {
+      "name": "RTL 4",
+      "isFree": true,
+      "website": "https://www.rtl.nl",
+      "priority": 5
+    },
+    {
+      "name": "RTL 5",
+      "isFree": true,
+      "website": "https://www.rtl.nl",
+      "priority": 5
+    },
+    {
+      "name": "RTL 7",
+      "isFree": true,
+      "website": "https://www.rtl.nl/",
+      "priority": 5
+    },
+    {
+      "name": "RTL 8",
+      "isFree": true,
+      "website": "https://www.rtl.nl/",
+      "priority": 5
+    },
+    {
+      "name": "RTL Lounge",
+      "isFree": true,
+      "website": "https://rtl.nl/",
+      "priority": 5
+    },
+    {
+      "name": "RTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV 1Amstelveen",
+      "isFree": true,
+      "website": "https://1amstelveen.nl/",
+      "priority": 5
+    },
+    {
+      "name": "RTV 527",
+      "isFree": true,
+      "website": "https://rtv527.nl/",
+      "priority": 5
+    },
+    {
+      "name": "RTV- 7",
+      "isFree": true,
+      "website": "https://www.rtv7.nl/",
+      "priority": 5
+    },
+    {
+      "name": "RTV 794",
+      "isFree": true,
+      "website": "https://www.rtv794.nl/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Focus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Hattem",
+      "isFree": true,
+      "website": "https://rtvhattem.nl/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Horizon",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV LOVE",
+      "isFree": true,
+      "website": "https://www.rtvlove.nl/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Meppel",
+      "isFree": true,
+      "website": "https://www.rtvmeppel.nl/",
+      "priority": 5
+    },
+    {
+      "name": "RTV NOF Achtkarspelen & Tytsjerksteradiel",
+      "isFree": true,
+      "website": "https://www.rtvnof.nl/",
+      "priority": 5
+    },
+    {
+      "name": "RTV NOF Noardeast Fryslan & Dantumadiel",
+      "isFree": true,
+      "website": "https://www.rtvnof.nl/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Nunspeet",
+      "isFree": true,
+      "website": "https://www.rtvnunspeet.nl/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Parkstad",
+      "isFree": true,
+      "website": "https://rtvparkstad.nl/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Rijnmond Extra",
+      "isFree": true,
+      "website": "https://www.rijnmond.nl/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Scheldemond",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Seaport",
+      "isFree": true,
+      "website": "https://www.rtvseaport.nl/",
+      "priority": 5
+    },
+    {
+      "name": "RTV SLOS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Veluwezoom",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Westerwolde",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV Zaanstreek",
+      "isFree": true,
+      "website": "https://www.rtvzaanstreek.nl/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Zulthe",
+      "isFree": true,
+      "website": "https://rtvzulthe.nl/",
+      "priority": 5
+    },
+    {
+      "name": "SBS 6",
+      "isFree": true,
+      "website": "https://www.sbs6.nl",
+      "priority": 5
+    },
+    {
+      "name": "SBS6 Classics",
+      "isFree": true,
+      "website": "https://www.kijk.nl/programmas/sbs6-classics-247",
+      "priority": 5
+    },
+    {
+      "name": "SBS 9",
+      "isFree": true,
+      "website": "https://www.sbs9.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Schagen",
+      "isFree": true,
+      "website": "https://noordkopcentraal.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Schie",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Schlager",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sleutelstad",
+      "isFree": true,
+      "website": "https://sleutelstad.nl/tv/",
+      "priority": 5
+    },
+    {
+      "name": "SLOGO",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SLOS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Slotstad",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SOL 2",
+      "isFree": true,
+      "website": "https://sol2.nl/",
+      "priority": 5
+    },
+    {
+      "name": "SRC",
+      "isFree": true,
+      "website": "https://www.src.fm/",
+      "priority": 5
+    },
+    {
+      "name": "STAR",
+      "isFree": true,
+      "website": "https://www.starchannel.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Streekstad Central",
+      "isFree": true,
+      "website": "https://streekstadcentraal.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Studio040",
+      "isFree": true,
+      "website": "https://studio040.nl/televisie/live",
+      "priority": 5
+    },
+    {
+      "name": "Studio Alphen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Studio Rheden",
+      "isFree": true,
+      "website": "https://www.studiorheden.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Tholen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TLC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Berghem",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Krimpenerwaard",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Nunspeet",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Oranje",
+      "isFree": true,
+      "website": "https://www.tvoranje.nl/",
+      "priority": 5
+    },
+    {
+      "name": "TV Rain",
+      "isFree": true,
+      "website": "https://tvrain.ru/",
+      "priority": 5
+    },
+    {
+      "name": "TV Stichtse Vecht",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tweede Kamer: Actualiteitenkanaal",
+      "isFree": true,
+      "website": "https://www.tweedekamer.nl/vergaderingen/livedebat/actualiteitenkanaal",
+      "priority": 5
+    },
+    {
+      "name": "Tweede Kamer: Aletta Jacobszaal",
+      "isFree": true,
+      "website": "https://www.tweedekamer.nl/vergaderingen/livedebat/aletta-jacobszaal",
+      "priority": 5
+    },
+    {
+      "name": "Tweede Kamer: Enquetezaal",
+      "isFree": true,
+      "website": "https://www.tweedekamer.nl/vergaderingen/livedebat/enquetezaal",
+      "priority": 5
+    },
+    {
+      "name": "Tweede Kamer: Groen van Prinstererzaal",
+      "isFree": true,
+      "website": "https://www.tweedekamer.nl/vergaderingen/livedebat/groen-van-prinstererzaal",
+      "priority": 5
+    },
+    {
+      "name": "Tweede Kamer: Klompezaal",
+      "isFree": true,
+      "website": "https://www.tweedekamer.nl/vergaderingen/livedebat/klompezaal",
+      "priority": 5
+    },
+    {
+      "name": "Tweede Kamer: Max van der Stoelzaal",
+      "isFree": true,
+      "website": "https://www.tweedekamer.nl/vergaderingen/livedebat/max-van-der-stoelzaal",
+      "priority": 5
+    },
+    {
+      "name": "Tweede Kamer: Plenaire zaal",
+      "isFree": true,
+      "website": "https://www.tweedekamer.nl/vergaderingen/livedebat/plenaire-zaal",
+      "priority": 5
+    },
+    {
+      "name": "Tweede Kamer: Suze Groenewegzaal",
+      "isFree": true,
+      "website": "https://www.tweedekamer.nl/vergaderingen/livedebat/suze-groenewegzaal",
+      "priority": 5
+    },
+    {
+      "name": "Tweede Kamer: Thorbeckezaal",
+      "isFree": true,
+      "website": "https://www.tweedekamer.nl/vergaderingen/livedebat/thorbeckezaal",
+      "priority": 5
+    },
+    {
+      "name": "Tweede Kamer: Tilanuskamer",
+      "isFree": true,
+      "website": "https://www.tweedekamer.nl/vergaderingen/livedebat/tilanuskamer",
+      "priority": 5
+    },
+    {
+      "name": "Tweede Kamer: Troelstrazaal",
+      "isFree": true,
+      "website": "https://www.tweedekamer.nl/vergaderingen/livedebat/troelstrazaal",
+      "priority": 5
+    },
+    {
+      "name": "Tweede Kamer: Vondelingkamer",
+      "isFree": true,
+      "website": "https://www.tweedekamer.nl/vergaderingen/livedebat/vondelingkamer",
+      "priority": 5
+    },
+    {
+      "name": "Tweede Kamer: Wttewaall van Stoetwegenzaal",
+      "isFree": true,
+      "website": "https://www.tweedekamer.nl/vergaderingen/livedebat/wttewaall-van-stoetwegenzaal",
+      "priority": 5
+    },
+    {
+      "name": "Twente",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tynaarlo Lokaal",
+      "isFree": true,
+      "website": "https://tynaarlolokaal.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Veronica / Disney Jr.",
+      "isFree": true,
+      "website": "https://www.veronicatv.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Visit-X",
+      "isFree": null,
+      "website": "https://www.visit-x.net/",
+      "priority": 5
+    },
+    {
+      "name": "VOS",
+      "isFree": true,
+      "website": "https://rtvos.nl/",
+      "priority": 5
+    },
+    {
+      "name": "WEEFF",
+      "isFree": true,
+      "website": "https://weeff.nl/weeff-tv/",
+      "priority": 5
+    },
+    {
+      "name": "WeertFM",
+      "isFree": true,
+      "website": "https://www.weertfm.nl/",
+      "priority": 5
+    },
+    {
+      "name": "WOS",
+      "isFree": true,
+      "keywords": "wos",
+      "priority": 5
+    },
+    {
+      "name": "X-MO",
+      "isFree": null,
+      "website": "http://www.xmo.tv/",
+      "priority": 5
+    },
+    {
+      "name": "XON",
+      "isFree": true,
+      "website": "https://www.xon.nu/",
+      "priority": 5
+    },
+    {
+      "name": "ZVT-AVS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "StreekTV",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "GO-RTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Qmusic",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Salto Brasa Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "100%",
+      "isFree": true,
+      "website": "https://www.100p.nl/",
+      "priority": 5
+    },
+    {
+      "name": "192TV",
+      "isFree": true,
+      "website": "http://www.192tv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "360TuneBox",
+      "isFree": true,
+      "website": "http://www.360tunebox.com/",
+      "priority": 5
+    },
+    {
+      "name": "BEATTV",
+      "isFree": true,
+      "website": "https://beatfm.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Dance Television",
+      "isFree": true,
+      "website": "https://www.dancetv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Deep House District",
+      "isFree": true,
+      "website": "https://www.dancetv.net/",
+      "priority": 5
+    },
+    {
+      "name": "FomixTV",
+      "isFree": true,
+      "website": "https://www.fomix.nl",
+      "priority": 5
+    },
+    {
+      "name": "GL 8",
+      "isFree": true,
+      "website": "https://gl8.nl/radio-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Hype Visual Radio",
+      "isFree": true,
+      "website": "https://www.hyperadio.nl/",
+      "priority": 5
+    },
+    {
+      "name": "NickMusic",
+      "isFree": true,
+      "website": "http://www.nickelodeon.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Radio JND",
+      "isFree": true,
+      "website": "https://radiojnd.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Radio",
+      "isFree": true,
+      "website": "https://www.radionl.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Stad den Haag",
+      "isFree": true,
+      "website": "https://www.radiostaddenhaag.com/",
+      "priority": 5
+    },
+    {
+      "name": "Rararadio",
+      "isFree": true,
+      "website": "https://www.rararadio.org/",
+      "priority": 5
+    },
+    {
+      "name": "SLAM!",
+      "isFree": true,
+      "website": "https://www.slam.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Stingray Brava",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Top 40",
+      "isFree": true,
+      "website": "https://www.top40.nl/top40-tv",
+      "priority": 5
+    },
+    {
+      "name": "XITE 60s & 70s Groove",
+      "isFree": true,
+      "website": "https://xite.com/",
+      "priority": 5
+    },
+    {
+      "name": "XITE Classic Country",
+      "isFree": true,
+      "website": "https://xite.com/",
+      "priority": 5
+    },
+    {
+      "name": "XITE Hits",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "XITE Just Chill",
+      "isFree": true,
+      "website": "https://xite.com/",
+      "priority": 5
+    },
+    {
+      "name": "XITE Reggae Vibes",
+      "isFree": true,
+      "website": "https://xite.com/",
+      "priority": 5
+    },
+    {
+      "name": "XITE Rock x Metal",
+      "isFree": true,
+      "website": "https://xite.com/",
+      "priority": 5
+    },
+    {
+      "name": "ZFM Zoetermeer",
+      "isFree": true,
+      "website": "https://www.zfmzoetermeer.nl/",
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "BNR Nieuwsradio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gigant FM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Omroep Brabant Radio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio 10",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio 350",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio 538",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio A",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Aalsmeer",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio RN 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio VOS FM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Veronica",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Animal Planet",
+      "isFree": true,
+      "website": "https://www.dplay.nl/zenders/animal-planet",
+      "priority": 5
+    },
+    {
+      "name": "DocuBox",
+      "isFree": true,
+      "website": "https://www.docuboxlive.com/",
+      "priority": 5
+    },
+    {
+      "name": "Docustream",
+      "isFree": true,
+      "website": "https://spiintl.com/channels/docustream",
+      "priority": 5
+    },
+    {
+      "name": "History",
+      "isFree": true,
+      "website": "https://history.nl/",
+      "priority": 7
+    },
+    {
+      "name": "Investigation Discovery",
+      "isFree": true,
+      "website": "https://www.discoverybenelux.nl/merken/investigation-discovery/",
+      "priority": 7
+    },
+    {
+      "name": "Jin",
+      "isFree": true,
+      "website": "https://jintv.net/en/contact/",
+      "priority": 5
+    },
+    {
+      "name": "National Geographic",
+      "isFree": true,
+      "keywords": "national geographic -wild",
+      "website": "http://www.nationalgeographic.nl/",
+      "priority": 7
+    },
+    {
+      "name": "National Geographic Wild",
+      "isFree": true,
+      "website": "https://www.nationalgeographic.nl/",
+      "priority": 7
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Boomerang",
+      "isFree": true,
+      "website": "https://www.boomerangtv.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Disney",
+      "isFree": true,
+      "website": "http://www.disney.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Disney Junior",
+      "isFree": true,
+      "website": "https://tv.disney.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Disney XD",
+      "isFree": true,
+      "website": "http://www.disneyxd.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Nickelodeon",
+      "isFree": true,
+      "keywords": "nickelodeon -scandinavia",
+      "website": "https://www.nickelodeon.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Nickelodeon Scandinavia",
+      "isFree": true,
+      "website": "http://www.nickelodeon.no/",
+      "priority": 5
+    },
+    {
+      "name": "Nick Jr.",
+      "isFree": true,
+      "keywords": "nick jr -scandinavia",
+      "website": "https://www.nickjr.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Nick Jr. Scandinavia",
+      "isFree": true,
+      "website": "http://www.nickjr.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Nicktoons",
+      "isFree": true,
+      "keywords": "nicktoons -scandinavia",
+      "website": "https://www.nickelodeon.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Nicktoons Scandinavia",
+      "isFree": true,
+      "website": "https://www.nickelodeon.se/nicktoons",
+      "priority": 5
+    },
+    {
+      "name": "NPO Zappelin Extra",
+      "isFree": true,
+      "website": "https://www.npo.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Pebble",
+      "isFree": true,
+      "website": "http://www.pebbletv.nl/",
+      "priority": 5
+    },
+    {
+      "name": "RTL Telekids",
+      "isFree": true,
+      "website": "https://www.rtl.nl/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "BTL",
+      "isFree": true,
+      "website": "https://btl-tv.com/",
+      "priority": 4
+    }
+  ],
+  "News": [
+    {
+      "name": "De Rechtspraak",
+      "isFree": true,
+      "website": "https://www.rechtspraak.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Eemland",
+      "isFree": true,
+      "website": "https://www.eemland1.nl/",
+      "priority": 5
+    },
+    {
+      "name": "NPO Nieuws",
+      "isFree": true,
+      "website": "https://www.npo.nl/nieuws",
+      "priority": 5
+    },
+    {
+      "name": "NPO Politiek en Nieuws",
+      "isFree": true,
+      "website": "https://npo.nl/start/live?channel=NPO+Politiek+en+Nieuws",
+      "priority": 5
+    },
+    {
+      "name": "RTL Z",
+      "isFree": true,
+      "website": "https://www.rtl.nl/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Dramastream",
+      "isFree": true,
+      "website": "https://spiintl.com/channels/dramastream",
+      "priority": 5
+    },
+    {
+      "name": "Film1 Action",
+      "isFree": true,
+      "website": "http://www.film1.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Film1 Drama",
+      "isFree": true,
+      "website": "http://www.film1.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Film1 Family",
+      "isFree": true,
+      "website": "http://www.film1.nl/",
+      "priority": 5
+    },
+    {
+      "name": "Film1 Premiere",
+      "isFree": true,
+      "website": "http://www.film1.nl/",
+      "priority": 5
+    },
+    {
+      "name": "FilmBox",
+      "isFree": true,
+      "keywords": "filmbox -action -africa -arthouse -baltics -extra -family -premium -stars",
+      "website": "https://www.filmbox.nl/",
+      "priority": 5
+    },
+    {
+      "name": "FilmBox Action",
+      "isFree": true,
+      "website": "https://www.filmbox.nl/",
+      "priority": 5
+    },
+    {
+      "name": "FilmBox Africa",
+      "isFree": true,
+      "website": "https://www.filmbox.nl/",
+      "priority": 5
+    },
+    {
+      "name": "FilmBox Arthouse",
+      "isFree": true,
+      "website": "https://www.filmbox.nl/",
+      "priority": 5
+    },
+    {
+      "name": "FilmBox Baltics",
+      "isFree": true,
+      "website": "https://www.filmbox.nl/",
+      "priority": 5
+    },
+    {
+      "name": "FilmBox Extra",
+      "isFree": true,
+      "website": "https://spiintl.com/channels/filmbox-extra-hd",
+      "priority": 5
+    },
+    {
+      "name": "FilmBox Family",
+      "isFree": true,
+      "website": "https://www.filmbox.nl/",
+      "priority": 5
+    },
+    {
+      "name": "FilmBox Premium",
+      "isFree": true,
+      "website": "https://spiintl.com/channels/filmbox-premium",
+      "priority": 5
+    },
+    {
+      "name": "FilmBox Stars",
+      "isFree": true,
+      "website": "http://hu.filmboxextra.pl/",
+      "priority": 5
+    },
+    {
+      "name": "Filmstream",
+      "isFree": true,
+      "website": "https://spiintl.com/channels/filmstream",
+      "priority": 5
+    },
+    {
+      "name": "Paramount Network",
+      "isFree": true,
+      "website": "https://www.paramountnetwork.nl/",
+      "priority": 5
+    },
+    {
+      "name": "RTL Crime",
+      "isFree": true,
+      "website": "https://www.rtl.nl/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "ESPN",
+      "isFree": true,
+      "keywords": "espn -2 -3 -4 -uhd",
+      "website": "https://www.espn.nl/",
+      "priority": 10
+    },
+    {
+      "name": "ESPN 2",
+      "isFree": true,
+      "website": "https://www.espn.nl/",
+      "priority": 10
+    },
+    {
+      "name": "ESPN 3",
+      "isFree": true,
+      "website": "https://www.espn.nl/",
+      "priority": 10
+    },
+    {
+      "name": "ESPN 4",
+      "isFree": true,
+      "website": "https://www.espn.nl/",
+      "priority": 10
+    },
+    {
+      "name": "ESPN UHD",
+      "isFree": true,
+      "website": "https://www.espn.nl/",
+      "priority": 10
+    },
+    {
+      "name": "Extreme Sports",
+      "isFree": true,
+      "website": "http://extreme.com/",
+      "priority": 10
+    },
+    {
+      "name": "Fast&FunBox",
+      "isFree": true,
+      "website": "https://spiintl.com/channels/fastandfunbox",
+      "priority": 5
+    },
+    {
+      "name": "Faststream",
+      "isFree": true,
+      "website": "https://spiintl.com/channels/faststream",
+      "priority": 5
+    },
+    {
+      "name": "FightBox",
+      "isFree": true,
+      "website": "http://www.fightbox.com",
+      "priority": 5
+    },
+    {
+      "name": "Fightstream",
+      "isFree": true,
+      "website": "https://spiintl.com/channels/fightstream",
+      "priority": 5
+    },
+    {
+      "name": "Sport Klub",
+      "isFree": true,
+      "keywords": "sport klub -1 -2 -3 -4 -4k -5 -6 -esports -fight -golf -start",
+      "website": "https://sportklub.n1info.rs/",
+      "priority": 10
+    },
+    {
+      "name": "Sport Klub 2",
+      "isFree": true,
+      "website": "https://sportklub.n1info.hr/",
+      "priority": 10
+    },
+    {
+      "name": "Sport Klub 3",
+      "isFree": true,
+      "website": "https://sportklub.n1info.hr/",
+      "priority": 10
+    },
+    {
+      "name": "Sport Klub 4",
+      "isFree": true,
+      "website": "https://sportklub.n1info.hr/",
+      "priority": 10
+    },
+    {
+      "name": "Sport Klub 4K",
+      "isFree": true,
+      "website": "http://sportklub.rs/",
+      "priority": 10
+    },
+    {
+      "name": "Sport Klub 5",
+      "isFree": true,
+      "website": "https://sportklub.n1info.hr/",
+      "priority": 10
+    },
+    {
+      "name": "Sport Klub 6",
+      "isFree": true,
+      "website": "https://sportklub.n1info.hr/",
+      "priority": 10
+    },
+    {
+      "name": "Sport Klub Esports",
+      "isFree": true,
+      "website": "http://sportklub.rs/esports",
+      "priority": 10
+    },
+    {
+      "name": "Sport Klub Fight",
+      "isFree": true,
+      "website": "http://sportklub.rs/",
+      "priority": 10
+    },
+    {
+      "name": "Sport Klub Golf",
+      "isFree": true,
+      "website": "http://sportklub.rs/",
+      "priority": 10
+    },
+    {
+      "name": "Sport Klub Start",
+      "isFree": true,
+      "website": "http://www.sportklub.com.hr/",
+      "priority": 10
+    },
+    {
+      "name": "Viaplay",
+      "isFree": true,
+      "website": "https://viaplay.com/nl-nl/",
+      "priority": 5
+    },
+    {
+      "name": "Viaplay TV+",
+      "isFree": true,
+      "website": "https://viaplay.com/nl-nl/",
+      "priority": 5
+    },
+    {
+      "name": "Ziggo Sport",
+      "isFree": true,
+      "keywords": "ziggo sport -2 -3 -4 -5 -6 -extra",
+      "website": "https://www.ziggosport.nl/",
+      "priority": 10
+    },
+    {
+      "name": "Ziggo Sport 2",
+      "isFree": true,
+      "website": "https://www.ziggosport.nl/",
+      "priority": 10
+    },
+    {
+      "name": "Ziggo Sport 3",
+      "isFree": true,
+      "website": "https://www.ziggosport.nl/",
+      "priority": 10
+    },
+    {
+      "name": "Ziggo Sport 4",
+      "isFree": true,
+      "website": "https://www.ziggosport.nl/",
+      "priority": 10
+    },
+    {
+      "name": "Ziggo Sport 5",
+      "isFree": true,
+      "website": "https://www.ziggosport.nl/",
+      "priority": 10
+    },
+    {
+      "name": "Ziggo Sport 6",
+      "isFree": true,
+      "website": "https://www.ziggosport.nl/",
+      "priority": 10
+    },
+    {
+      "name": "Ziggo Sport Extra",
+      "isFree": true,
+      "website": "https://www.ziggosport.nl/",
+      "priority": 10
+    }
+  ],
+  "Added": [
+    {
+      "name": "NOS",
+      "priority": 5
+    }
+  ]
+}

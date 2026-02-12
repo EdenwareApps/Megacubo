@@ -617,8 +617,54 @@ const appPackage = JSON.parse(readFileSync(appPackagePath, 'utf8'));
 delete appPackage.type; // Remove type: "module"
 writeFileSync(appPackagePath, JSON.stringify(appPackage, null, 2));
 
-// 11.5. Apply Linux sandbox fix before creating installer
+// Apply Linux category fix directly to electron-builder
+function applyLinuxCategoryFix() {
+  console.log('🔧 Applying Linux category fix...');
+
+  const linuxTargetHelperPath = join(rootDir, 'node_modules', 'electron-builder', 'node_modules', 'app-builder-lib', 'out', 'targets', 'LinuxTargetHelper.js');
+
+  if (!existsSync(linuxTargetHelperPath)) {
+    console.log('⚠️ LinuxTargetHelper.js not found, skipping category fix');
+    return;
+  }
+
+  try {
+    let content = readFileSync(linuxTargetHelperPath, 'utf8');
+
+    // Check if fix is already applied
+    if (content.includes('// Try linux.category as fallback')) {
+      console.log('✅ Linux category fix already applied');
+      return;
+    }
+
+    // Apply the fix
+    const searchPattern = /let category = targetSpecificOptions\.category;\s*if \(\(0, builder_util_1\.isEmptyOrSpaces\)\(category\)\) \{/;
+    const replacement = `let category = targetSpecificOptions.category;
+
+        // Try linux.category as fallback
+        if ((0, builder_util_1.isEmptyOrSpaces)(category)) {
+            category = (packager.config.linux || {}).category;
+        }
+
+        if ((0, builder_util_1.isEmptyOrSpaces)(category)) {`;
+
+    if (content.includes('let category = targetSpecificOptions.category;')) {
+      content = content.replace(searchPattern, replacement);
+      writeFileSync(linuxTargetHelperPath, content, 'utf8');
+      console.log('✅ Linux category fix applied successfully');
+    } else {
+      console.log('⚠️ Could not find target code for Linux category fix');
+    }
+  } catch (error) {
+    console.warn('⚠️ Failed to apply Linux category fix:', error.message);
+  }
+}
+
+// 11.5. Apply Linux fixes before creating installer
 if (targetPlatform === 'linux') {
+  // Apply Linux category fix before building
+  applyLinuxCategoryFix();
+
   console.log('🛠️ Applying Linux AppImage sandbox fix...');
 
   // The unpacked app directory (where electron executable is located)

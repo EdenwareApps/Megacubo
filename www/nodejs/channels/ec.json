@@ -1,0 +1,1235 @@
+{
+  "News": [
+    {
+      "name": "RTU",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cheme TV Noticias",
+      "isFree": true,
+      "website": "https://chemetvnoticias.com/",
+      "priority": 5
+    },
+    {
+      "name": "CORAPE Digital",
+      "isFree": true,
+      "website": "https://digitaltv.corape.org.ec/",
+      "priority": 5
+    },
+    {
+      "name": "Mario Pinto",
+      "isFree": true,
+      "website": "https://mpnoticias.com.ec/",
+      "priority": 5
+    },
+    {
+      "name": "PrensaEc",
+      "isFree": true,
+      "website": "https://prensa.ec/",
+      "priority": 5
+    },
+    {
+      "name": "Ecotel",
+      "isFree": true,
+      "website": "https://www.ecotel.tv/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "TV Universal",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "ABC",
+      "isFree": true,
+      "website": "https://www.enlace.org/",
+      "priority": 4
+    },
+    {
+      "name": "Ficoa",
+      "isFree": true,
+      "website": "https://iblups.com/ficoatv",
+      "priority": 4
+    },
+    {
+      "name": "IeanJesus Ecuador",
+      "isFree": true,
+      "website": "http://ieanjesus.org.ec/",
+      "priority": 4
+    },
+    {
+      "name": "TV Universal Ecuador",
+      "isFree": true,
+      "website": "https://www.universal.org.ec/",
+      "priority": 4
+    }
+  ],
+  "Local": [
+    {
+      "name": "Zaracay",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Canela",
+      "isFree": true,
+      "keywords": "canela tv | canelatv",
+      "shortName": "CanelaTV",
+      "priority": 5
+    },
+    {
+      "name": "Ecuador",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hechos Ecuador",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Latacunga",
+      "isFree": true,
+      "keywords": "latacunga tv | latacungatv",
+      "priority": 5
+    },
+    {
+      "name": "Loreto",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Multicanal Catamayo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Paraíso Digital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pasión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Princesa Estéreo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Puruwa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Teleamazonas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telerama",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UCSG",
+      "isFree": true,
+      "website": "https://catomedia.net/",
+      "priority": 5
+    },
+    {
+      "name": "Unisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Wuan+",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Alfa",
+      "isFree": true,
+      "website": "https://www.canalalfatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ally",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "America Estereo Guayaquil",
+      "isFree": true,
+      "website": "https://www.americaestereo.com/",
+      "priority": 5
+    },
+    {
+      "name": "America Estereo Ibarra",
+      "isFree": true,
+      "website": "https://www.americaestereo.com/",
+      "priority": 5
+    },
+    {
+      "name": "America Estereo Quito",
+      "isFree": true,
+      "website": "https://www.americaestereo.com/",
+      "priority": 5
+    },
+    {
+      "name": "America Estereo Tulcan",
+      "isFree": true,
+      "website": "https://www.americaestereo.com/",
+      "priority": 5
+    },
+    {
+      "name": "American",
+      "isFree": true,
+      "website": "https://americantvpelileo.com/",
+      "priority": 5
+    },
+    {
+      "name": "Antel Canal 29",
+      "isFree": true,
+      "website": "https://antelinternet.odoo.com/",
+      "priority": 5
+    },
+    {
+      "name": "Antena Uno Radiovideo",
+      "isFree": true,
+      "website": "https://www.antenauno.com/",
+      "priority": 5
+    },
+    {
+      "name": "Arena",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Asomavision",
+      "isFree": true,
+      "website": "https://www.asomavision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Austral",
+      "isFree": true,
+      "website": "https://www.australtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bacan Te Veo",
+      "isFree": true,
+      "website": "https://bacanteveo.com/",
+      "priority": 5
+    },
+    {
+      "name": "Balsero",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Brisa",
+      "isFree": true,
+      "website": "https://brisatv23.com/",
+      "priority": 5
+    },
+    {
+      "name": "Britel",
+      "isFree": true,
+      "website": "https://www.britel.ec/",
+      "priority": 5
+    },
+    {
+      "name": "C6 Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Calidad",
+      "isFree": true,
+      "website": "https://canalcalidadtv.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "Caluma TV Canal 9",
+      "isFree": true,
+      "website": "https://www.calumatvcanal9.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 9",
+      "isFree": true,
+      "website": "https://dvnet.ec/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Armonia",
+      "isFree": true,
+      "website": "https://armoniatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal Star",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal Sur",
+      "isFree": true,
+      "website": "https://www.loja.gob.ec/contenido/canal-sur",
+      "priority": 5
+    },
+    {
+      "name": "Canal Uno",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canar",
+      "isFree": true,
+      "website": "https://www.canartv.com.ec/",
+      "priority": 5
+    },
+    {
+      "name": "Capital Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Capricho",
+      "isFree": true,
+      "website": "https://www.caprichotvradio.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cariamanga",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Centro TV Ecuador",
+      "isFree": true,
+      "website": "https://centrotvec.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "Chone Vision",
+      "isFree": true,
+      "website": "https://chonevision.kuffocabletv.com/",
+      "priority": 5
+    },
+    {
+      "name": "CineCable",
+      "isFree": true,
+      "website": "https://www.cinecabletv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Clic",
+      "isFree": true,
+      "website": "https://clictv.ec/",
+      "priority": 5
+    },
+    {
+      "name": "Cocavision",
+      "isFree": true,
+      "website": "https://grupococavision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Colorados Vision",
+      "isFree": true,
+      "website": "https://coloradosvision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Conectate",
+      "isFree": true,
+      "website": "https://conectate.com.ec/",
+      "priority": 5
+    },
+    {
+      "name": "CONTV Guala",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Costa",
+      "isFree": true,
+      "website": "https://intercable.net.ec/tv/",
+      "priority": 5
+    },
+    {
+      "name": "Curiquingue",
+      "isFree": true,
+      "website": "https://curiquinguetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Digital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Duende",
+      "isFree": true,
+      "website": "http://duendetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Duran",
+      "isFree": true,
+      "website": "https://durantv.com.ec/",
+      "priority": 5
+    },
+    {
+      "name": "Ecovision",
+      "isFree": true,
+      "website": "https://ecovisiondigital.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ecuavisa",
+      "isFree": true,
+      "keywords": "ecuavisa -internacional",
+      "website": "https://www.ecuavisa.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ecuavisa Internacional",
+      "isFree": true,
+      "website": "https://www.ecuavisa.com/internacional",
+      "priority": 5
+    },
+    {
+      "name": "Ecuavision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Efinet TV Canal 6",
+      "isFree": true,
+      "website": "https://www.efinet-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "ELITE Television",
+      "isFree": true,
+      "website": "http://eliteradioytelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "ESTV Canal Peninsular",
+      "isFree": true,
+      "website": "https://www.estvymediosaliados.com/",
+      "priority": 5
+    },
+    {
+      "name": "Gamavision",
+      "isFree": true,
+      "website": "https://www.gamavision.com.ec/",
+      "priority": 5
+    },
+    {
+      "name": "Gaviota",
+      "isFree": true,
+      "website": "https://gaviotatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Gloriavision",
+      "isFree": true,
+      "website": "https://gloriavisiontv.com/",
+      "priority": 5
+    },
+    {
+      "name": "GM7 Digital",
+      "isFree": true,
+      "website": "https://www.vivalivetv.com/channel/gm7-digital",
+      "priority": 5
+    },
+    {
+      "name": "Hatv Gonzanama",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Imperio TV Canal 6",
+      "isFree": true,
+      "website": "https://imperiotvcanal6.blogspot.com/",
+      "priority": 5
+    },
+    {
+      "name": "INNTV Canal 3",
+      "isFree": true,
+      "website": "https://inntvnet.com/",
+      "priority": 5
+    },
+    {
+      "name": "Intercom",
+      "isFree": true,
+      "website": "https://www.intercom.ec/",
+      "priority": 5
+    },
+    {
+      "name": "Jama",
+      "isFree": true,
+      "website": "https://jamatv.ec/",
+      "priority": 5
+    },
+    {
+      "name": "Jipitv",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "JUVE Digital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KCHTV",
+      "isFree": true,
+      "website": "https://kchtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "La Mana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La Nueva Radio TV 97. 7",
+      "isFree": true,
+      "website": "http://www.lanuevaradiotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "La Pipol",
+      "isFree": true,
+      "website": "https://mipipoltv.com/",
+      "priority": 5
+    },
+    {
+      "name": "La Tele",
+      "isFree": true,
+      "website": "https://www.latele.com.ec/",
+      "priority": 5
+    },
+    {
+      "name": "La Victoria",
+      "isFree": true,
+      "website": "https://www.lavictoriatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Loja Television",
+      "isFree": true,
+      "website": "https://tvloja.com/canal-local",
+      "priority": 5
+    },
+    {
+      "name": "Macara",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Magica",
+      "isFree": true,
+      "website": "https://magicatv.ec/",
+      "priority": 5
+    },
+    {
+      "name": "Majestad Television",
+      "isFree": true,
+      "website": "https://majestadtv.ec/",
+      "priority": 5
+    },
+    {
+      "name": "MakroDigital Television",
+      "isFree": true,
+      "website": "https://makrodigitaltelevision.com",
+      "priority": 5
+    },
+    {
+      "name": "Manglar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Marca",
+      "isFree": true,
+      "website": "https://marcatv.ec/",
+      "priority": 5
+    },
+    {
+      "name": "Maxivision Canal 8",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Megavision",
+      "isFree": true,
+      "website": "https://www.megavisionsa.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mel Radio",
+      "isFree": true,
+      "website": "https://melradioytv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Monse Teve",
+      "isFree": true,
+      "website": "https://monsetevehd.com/",
+      "priority": 5
+    },
+    {
+      "name": "Montalvo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Multicanal",
+      "isFree": true,
+      "keywords": "multicanal -catamayo",
+      "website": "https://cbvision.net.ec/multicanal/",
+      "priority": 5
+    },
+    {
+      "name": "Nortvision",
+      "isFree": true,
+      "website": "https://nortvision.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Nuka",
+      "isFree": true,
+      "website": "https://nukatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "OKTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ondas Quevedenas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Oromar",
+      "isFree": true,
+      "website": "http://oromartv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Orovision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Orva",
+      "isFree": true,
+      "website": "https://orvatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "OTV Television de Otavalo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Palmas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Panorama TV Canal 41",
+      "isFree": true,
+      "website": "https://canal41sd.com/",
+      "priority": 5
+    },
+    {
+      "name": "Paris Radio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pasaje",
+      "isFree": true,
+      "website": "https://www.pasajetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Planeta",
+      "isFree": true,
+      "website": "https://planetaradiotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Plus",
+      "isFree": true,
+      "website": "https://plustv.com.ec/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Cima",
+      "isFree": true,
+      "website": "https://cimaradiotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio La Original",
+      "isFree": true,
+      "website": "https://www.laoriginaltvradio.com/",
+      "priority": 5
+    },
+    {
+      "name": "RecTV",
+      "isFree": true,
+      "website": "https://www.rectv.ec/",
+      "priority": 5
+    },
+    {
+      "name": "Red TVE Ventanas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "REY TV Canal 39",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rios Vision Canal 5",
+      "isFree": true,
+      "website": "https://www.patriciateve.com/canal-5/",
+      "priority": 5
+    },
+    {
+      "name": "RTRTV",
+      "isFree": true,
+      "website": "https://rtrtv.ec/",
+      "priority": 5
+    },
+    {
+      "name": "RTV",
+      "isFree": true,
+      "keywords": "rtv -naranjal",
+      "website": "https://www.rtvcanaloficial.com/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Naranjal",
+      "isFree": true,
+      "website": "https://rtvnaranjal.online/",
+      "priority": 5
+    },
+    {
+      "name": "Sacha TV Canal 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Saeta",
+      "isFree": true,
+      "website": "https://www.saetatvesmeraldas.com/",
+      "priority": 5
+    },
+    {
+      "name": "Satelital TV Canal 6",
+      "isFree": true,
+      "website": "https://www.satelitaltv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Scandalo",
+      "isFree": true,
+      "website": "https://scandalotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Senal Positiva",
+      "isFree": true,
+      "website": "https://senalpositiva.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sono Onda",
+      "isFree": true,
+      "website": "https://sonoonda.com/tv-online/",
+      "priority": 5
+    },
+    {
+      "name": "Sonovision",
+      "isFree": true,
+      "website": "https://miasonovision.ec/",
+      "priority": 5
+    },
+    {
+      "name": "Sucumbios",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sumpa",
+      "isFree": true,
+      "website": "http://www.santaelenacableteve.net",
+      "priority": 5
+    },
+    {
+      "name": "TC Television",
+      "isFree": true,
+      "website": "https://www.tctelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "TeleAndina Canal 23",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telecosta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Teledigital",
+      "isFree": true,
+      "website": "https://mediosecuador.com/television",
+      "priority": 5
+    },
+    {
+      "name": "Telemar",
+      "isFree": true,
+      "website": "https://telemartv.com/",
+      "priority": 5
+    },
+    {
+      "name": "TeleMilagro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telepremier Plus",
+      "isFree": true,
+      "website": "https://telepremier.ec/",
+      "priority": 5
+    },
+    {
+      "name": "Telesucesos",
+      "isFree": true,
+      "website": "http://www.telesucesos.net/",
+      "priority": 5
+    },
+    {
+      "name": "Television Manabita",
+      "isFree": true,
+      "website": "https://tvmanabita.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Tenguel TV Canal 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TropicTV Canal 6",
+      "isFree": true,
+      "website": "https://tropictv.naptelsa.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV 7 Guaranda",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Austro",
+      "isFree": true,
+      "website": "https://tvaustro.com/",
+      "priority": 5
+    },
+    {
+      "name": "TVC",
+      "isFree": true,
+      "website": "https://www.tvc.com.ec/",
+      "priority": 5
+    },
+    {
+      "name": "TV Chaco Canal 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Chunchi",
+      "isFree": true,
+      "website": "https://tvchunchi.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Cisne",
+      "isFree": true,
+      "website": "https://www.tvcisne.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Color Canal 36",
+      "isFree": true,
+      "website": "https://tvcolorcanal36.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Legislativa",
+      "isFree": true,
+      "website": "http://tvl.asambleanacional.gob.ec/",
+      "priority": 5
+    },
+    {
+      "name": "TvMas Encuentros",
+      "isFree": true,
+      "website": "https://tvmas.ec/",
+      "priority": 5
+    },
+    {
+      "name": "TV MICC",
+      "isFree": true,
+      "website": "https://miccotopaxiec.org/portfolio/tv-micc/",
+      "priority": 5
+    },
+    {
+      "name": "TVN Canal",
+      "isFree": true,
+      "website": "https://tvncanalhd.com.ec/",
+      "priority": 5
+    },
+    {
+      "name": "TVNet Lago Canal 3",
+      "isFree": true,
+      "website": "https://tvnetlago.com/",
+      "priority": 5
+    },
+    {
+      "name": "TvOro",
+      "isFree": true,
+      "website": "http://www.orobla.net",
+      "priority": 5
+    },
+    {
+      "name": "TVS Canal 13",
+      "isFree": true,
+      "website": "https://tvscanal13.com/",
+      "priority": 5
+    },
+    {
+      "name": "Unicentro Canal 6",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Unimax",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Unitv",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Unsion",
+      "isFree": true,
+      "website": "https://unsion.tv/",
+      "priority": 5
+    },
+    {
+      "name": "UV Television",
+      "isFree": true,
+      "website": "https://uvtelevision.com.ec/",
+      "priority": 5
+    },
+    {
+      "name": "Vision al Sur",
+      "isFree": true,
+      "website": "https://telecomunicacionesdelsur.com.ec/",
+      "priority": 5
+    },
+    {
+      "name": "VitoTVO",
+      "isFree": true,
+      "website": "https://vitotvo.com/",
+      "priority": 5
+    },
+    {
+      "name": "Yasuni",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zu Canal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LatacungaTV",
+      "isFree": true,
+      "website": "https://www.latacungatv.com/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Educa",
+      "isFree": true,
+      "keywords": "educa tv | educatv",
+      "shortName": "EducaTV",
+      "priority": 5
+    },
+    {
+      "name": "AcademiaTV",
+      "isFree": true,
+      "website": "https://www.academiatv.ec/",
+      "priority": 5
+    },
+    {
+      "name": "Ciracu",
+      "isFree": true,
+      "website": "https://ciracu.org/",
+      "priority": 5
+    },
+    {
+      "name": "Inti",
+      "isFree": true,
+      "website": "https://inti.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Manavision",
+      "isFree": true,
+      "website": "https://www.manavision.ec/",
+      "priority": 5
+    },
+    {
+      "name": "UBE",
+      "isFree": true,
+      "website": "https://ube.edu.ec/UBE_Tv",
+      "priority": 5
+    },
+    {
+      "name": "UEBI TV Online",
+      "isFree": true,
+      "website": "https://uebi.online/",
+      "priority": 5
+    },
+    {
+      "name": "UNIANDES",
+      "isFree": true,
+      "website": "https://uniandestv.com/",
+      "priority": 5
+    },
+    {
+      "name": "UTV",
+      "isFree": true,
+      "website": "https://www.utn.edu.ec/",
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "El Sol Radio y Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Elite Radio Televisión",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Impacto 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Visión Radio Televisión",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "EcuaMundo Radio",
+      "isFree": true,
+      "website": "https://ecuamundoradiotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ecua Stereo Radio",
+      "isFree": true,
+      "website": "https://ecuastereo.com/",
+      "priority": 5
+    },
+    {
+      "name": "El Sol Network",
+      "isFree": true,
+      "website": "https://elsolnetworktv.com/",
+      "priority": 5
+    },
+    {
+      "name": "El Sol",
+      "isFree": true,
+      "website": "http://www.elsolradiotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "FM Mundo",
+      "isFree": true,
+      "website": "https://fmmundo.com/fm-mundo-live/",
+      "priority": 5
+    },
+    {
+      "name": "Infinita",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La Perla Radio",
+      "isFree": true,
+      "website": "https://radiolaperlatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Latina Mix Radio",
+      "isFree": true,
+      "website": "https://latinamixradio.com/",
+      "priority": 5
+    },
+    {
+      "name": "Metropoli Medios",
+      "isFree": true,
+      "website": "https://metropolimedios.net/",
+      "priority": 5
+    },
+    {
+      "name": "Palmita Radio",
+      "isFree": true,
+      "website": "https://palmitaradiotvec.com/",
+      "priority": 5
+    },
+    {
+      "name": "PJ Digital Radio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Princesa Estereo",
+      "isFree": true,
+      "website": "https://princesaestereotvlaviajera.com/",
+      "priority": 5
+    },
+    {
+      "name": "Punto Rojo Radio",
+      "isFree": true,
+      "website": "https://www.radiopuntorojo.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Alegria 98.5 FM",
+      "isFree": true,
+      "website": "https://radioalegriafm.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Bonita 106. 7",
+      "isFree": true,
+      "website": "https://www.bonitalamana.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Cuenca Estereo",
+      "isFree": true,
+      "website": "https://radiocuencaestereo.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Fantastica 98.9 FM",
+      "isFree": true,
+      "website": "http://www.radiofantasticatulcan.com",
+      "priority": 5
+    },
+    {
+      "name": "Radio Monumental",
+      "isFree": true,
+      "website": "https://www.radiomonumental1510.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Online",
+      "isFree": true,
+      "website": "https://radioonline.ec/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Rocafuerte",
+      "isFree": true,
+      "website": "https://rocafuerteenmarcha.com/",
+      "priority": 5
+    },
+    {
+      "name": "Vos y",
+      "isFree": true,
+      "website": "https://www.vosytv.com/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "El Canal del Futbol",
+      "isFree": true,
+      "website": "https://www.elcanaldelfutbol.com/",
+      "priority": 5
+    },
+    {
+      "name": "Futbol Ecuatoriano",
+      "isFree": true,
+      "website": "https://elcanaldelfutbol.com/",
+      "priority": 5
+    },
+    {
+      "name": "GolTV Ecuador",
+      "isFree": true,
+      "website": "https://ecuador.goltv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "La Redonda",
+      "isFree": true,
+      "website": "https://laradioredonda.ec/la-redonda-tv/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Pantalla Clasica",
+      "isFree": true,
+      "website": "https://www.radiopasionecuador.com/",
+      "priority": 5
+    }
+  ]
+}

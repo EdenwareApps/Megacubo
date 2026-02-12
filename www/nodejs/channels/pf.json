@@ -1,0 +1,29 @@
+{
+  "Entertainment": [
+    {
+      "name": "TNTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal+ Polynesie",
+      "isFree": true,
+      "website": "https://www.canalplus.com/",
+      "priority": 5
+    },
+    {
+      "name": "Polynesie 1ere",
+      "isFree": true,
+      "website": "https://la1ere.francetvinfo.fr/polynesie/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Tahiti Web Radio",
+      "isFree": true,
+      "website": "https://www.tahitiwebradio.pf/",
+      "priority": 5
+    }
+  ]
+}

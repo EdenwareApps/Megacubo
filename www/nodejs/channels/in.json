@@ -1,0 +1,7081 @@
+{
+  "Entertainment": [
+    {
+      "name": "3 Tamil",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "5aab",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ACV",
+      "isFree": true,
+      "keywords": "acv -news -utsav -plus",
+      "priority": 5
+    },
+    {
+      "name": "ACV Utsav",
+      "isFree": true,
+      "keywords": "acv utsav -plus",
+      "priority": 5
+    },
+    {
+      "name": "ACV Utsav Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AVT KHYBER",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Aaj Tak",
+      "isFree": true,
+      "shortName": "Aaj Tak",
+      "website": "https://www.aajtak.in",
+      "priority": 5
+    },
+    {
+      "name": "Aathavan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Akaal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Amrita",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Anjan",
+      "isFree": true,
+      "website": "https://www.anjan.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Apna Punjab",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ashrafi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Asianet Middle East",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Assam Talks",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Boogle Bollywood",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CNBC TV 18",
+      "website": "https://www.cnbctv18.com",
+      "priority": 5
+    },
+    {
+      "name": "Channel Divya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Channel T",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Channel Win",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Channel Y",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Channel-S Live",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Colors",
+      "isFree": true,
+      "website": "https://www.colors.in",
+      "priority": 5
+    },
+    {
+      "name": "DD Bangla",
+      "isFree": true,
+      "retransmits": "Doordarshan",
+      "website": "https://www.ddindia.gov.in",
+      "priority": 5
+    },
+    {
+      "name": "DD Malayalam",
+      "isFree": true,
+      "retransmits": "Doordarshan",
+      "website": "https://www.ddindia.gov.in",
+      "priority": 5
+    },
+    {
+      "name": "DD National",
+      "isFree": true,
+      "website": "https://www.ddindia.gov.in",
+      "priority": 5
+    },
+    {
+      "name": "Dabangg",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Desi Beats",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Desi Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Disha",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dishum",
+      "isFree": true,
+      "website": "http://www.dishumtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Divya",
+      "isFree": true,
+      "keywords": "divya",
+      "priority": 5
+    },
+    {
+      "name": "DocuBay",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dream",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dreamz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dum TV Kannada",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EET",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Eawaz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Enter10 Bangla",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Enter10 Rangeela",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Epic",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Eye 95 America",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Fakt Marathi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "FastWay",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Filmeraa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Flowers",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Food Food",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GDNS Ludhiana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GSTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gabruu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gaunda Punjab",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Geo Kahani",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gurbani Healing",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hi Dosti",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hiru",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hulchul",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Imayam",
+      "isFree": true,
+      "website": "https://imayamtv.com/contact-us/",
+      "priority": 5
+    },
+    {
+      "name": "India",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Jaihind",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Janataa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Janta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Jeevan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KCL",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KCV",
+      "isFree": true,
+      "keywords": "kcv -movies",
+      "priority": 5
+    },
+    {
+      "name": "Kairali Arabia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kairali",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kairali We",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kalaignar",
+      "isFree": true,
+      "keywords": "kalaignar -murasu -seithikal -sirippoli",
+      "website": "https://www.kalaignartv.co.in/",
+      "priority": 5
+    },
+    {
+      "name": "Kalinga",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kannur One",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kannur Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kasthuri",
+      "isFree": true,
+      "keywords": "kasthuri",
+      "priority": 5
+    },
+    {
+      "name": "Kaumudy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kerala Vision",
+      "isFree": true,
+      "keywords": "kerala vision -news",
+      "priority": 5
+    },
+    {
+      "name": "Khabrain Abhi Tak",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Krishna Vani",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Life Punjabi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Life",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lok Sabha",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MH1 Prim",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MH1 Prime",
+      "isFree": true,
+      "keywords": "mh 1 prime | mh1 prime",
+      "priority": 6,
+      "website": "https://www.mhone.in/"
+    },
+    {
+      "name": "MK Six",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MK Tunes",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Makkal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Marutam",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mazhavil Manorama",
+      "isFree": true,
+      "keywords": "mazhavil manorama",
+      "priority": 5
+    },
+    {
+      "name": "Mirror Now",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Msign Media",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NDTV 24x 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NDTV India",
+      "isFree": true,
+      "website": "https://www.ndtv.com",
+      "priority": 5
+    },
+    {
+      "name": "Naaptol",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Namdhari",
+      "isFree": true,
+      "website": "https://namdhari.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Nandighosha",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "OTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Odisha",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "One",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Peace TV Bangla",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Polimer",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Prime Canada",
+      "isFree": true,
+      "priority": 6
+    },
+    {
+      "name": "Prive",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Public",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pulari",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Punjabi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Punjabi Zindabad",
+      "isFree": true,
+      "website": "https://tv.punjabizindabad.com/",
+      "priority": 5
+    },
+    {
+      "name": "Puthuyugam",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RSTV RajyaSabha",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Republic Bharat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Republic",
+      "isFree": true,
+      "shortName": "Republic",
+      "website": "https://www.republicworld.com",
+      "priority": 5
+    },
+    {
+      "name": "Rosebowl",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sada",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Safari",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sanskaar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Santhora Short Flim",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Santhora",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sardari",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Satsang",
+      "isFree": true,
+      "website": "https://app.sanskargroup.in/",
+      "priority": 5
+    },
+    {
+      "name": "Shekinah",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Shemaroo Bollywood Premier",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Shemaroo Kids",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Shemaroo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Shraddha",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sony Sab",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sony Six",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Star Family",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Star Maa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Star Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Surya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Swaraj Express",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TANGY PUNJABI",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV9 Telugu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tamil Vision",
+      "isFree": true,
+      "keywords": "tamil vision -international",
+      "priority": 5
+    },
+    {
+      "name": "Tamil Vision International",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tehelka",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UBL",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vaanavil",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Velicham",
+      "isFree": true,
+      "website": "http://www.velichamtv.org/",
+      "priority": 5
+    },
+    {
+      "name": "Wion",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Xplore",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee 24",
+      "isFree": true,
+      "keywords": "zee 24 -madhya -pradesh -chhattisgarh -taas",
+      "priority": 5
+    },
+    {
+      "name": "Zee 24 Madhya Pradesh Chhattisgarh",
+      "isFree": true,
+      "shortName": "Z2MPC",
+      "priority": 5
+    },
+    {
+      "name": "Zee 24 Taas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Bihar Jharkhand",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Bioskop",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Cafe",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Classic",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Hindustan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Marathi USA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Punjabi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Rajasthan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Salaam",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Smile USA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee TV APAC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee TV Canada",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee TV Middle East",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee TV Russia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee TV USA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Talkies",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Tamil",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Vajwa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee5 Originals",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee5 Romance",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zing",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Aakaash Aath",
+      "isFree": true,
+      "website": "http://www.aakashaath.com/",
+      "priority": 5
+    },
+    {
+      "name": "Aamar Bangla",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Aapka Colors",
+      "isFree": true,
+      "website": "http://www.aapkacolors.com/",
+      "priority": 5
+    },
+    {
+      "name": "ACV Plus",
+      "isFree": true,
+      "website": "https://www.hotstar.com/in/channels/asianet",
+      "priority": 5
+    },
+    {
+      "name": "Adithya",
+      "isFree": true,
+      "website": "http://www.sunnetwork.in/tv-channel-details.aspx?Channelid=13&channelname=ADITHYA%20TV&LanguageID=1&Type=1",
+      "priority": 5
+    },
+    {
+      "name": "Agamvani",
+      "isFree": true,
+      "website": "https://www.agamvani.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ahsas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Anmol",
+      "isFree": true,
+      "website": "https://www.zee5.com/live-tv/anmol-tv/0-9-zeeanmol",
+      "priority": 5
+    },
+    {
+      "name": "Aryan TV National",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Asianet",
+      "isFree": true,
+      "keywords": "asianet -middle -east -movies -news -bangla -kannada -tamil -plus -suvarna",
+      "website": "https://www.asianet.co.in/",
+      "priority": 5
+    },
+    {
+      "name": "Asianet Plus",
+      "isFree": true,
+      "website": "https://www.asianet.co.in/",
+      "priority": 5
+    },
+    {
+      "name": "Ate",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Azaad",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Big Ganga Talkies",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Big Magic",
+      "isFree": true,
+      "keywords": "big magic -punjab",
+      "website": "https://bigmagic.zee5.com/",
+      "priority": 5
+    },
+    {
+      "name": "Big Magic Punjab",
+      "isFree": true,
+      "website": "https://bigmagic.zee5.com/",
+      "priority": 5
+    },
+    {
+      "name": "Big Thrill",
+      "isFree": true,
+      "website": "http://www.reliancebroadcast.com/ourbusiness/bigthrill.html",
+      "priority": 5
+    },
+    {
+      "name": "Bindass Play",
+      "isFree": true,
+      "website": "http://www.bindass.com/",
+      "priority": 5
+    },
+    {
+      "name": "Brio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Calvary",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Captain",
+      "isFree": true,
+      "keywords": "captain -news",
+      "priority": 5
+    },
+    {
+      "name": "Care World",
+      "isFree": true,
+      "website": "http://www.careworldtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "CCV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Colors Asia Pacific",
+      "isFree": true,
+      "website": "https://www.colorstv.com/us/",
+      "priority": 5
+    },
+    {
+      "name": "Colors Bangla",
+      "isFree": true,
+      "keywords": "colors bangla -cinema",
+      "website": "https://www.colorstv.com/us/",
+      "priority": 5
+    },
+    {
+      "name": "Colors Gujarati",
+      "isFree": true,
+      "keywords": "colors gujarati -cinema",
+      "website": "https://www.colorstv.com/us/",
+      "priority": 5
+    },
+    {
+      "name": "Colors Gujrati",
+      "isFree": true,
+      "website": "https://www.colorstv.com/us/",
+      "priority": 5
+    },
+    {
+      "name": "Colors Infinity",
+      "isFree": true,
+      "website": "https://www.colorstv.com/us/",
+      "priority": 5
+    },
+    {
+      "name": "Colors Kannada",
+      "isFree": true,
+      "keywords": "colors kannada -cinema",
+      "website": "https://www.colorstv.com/us/",
+      "priority": 5
+    },
+    {
+      "name": "Colors Marathi",
+      "isFree": true,
+      "website": "https://www.colorstv.com/us/",
+      "priority": 5
+    },
+    {
+      "name": "Colors MENA",
+      "isFree": true,
+      "website": "https://www.colorstv.com/us/",
+      "priority": 5
+    },
+    {
+      "name": "Colors Odia",
+      "isFree": true,
+      "website": "https://www.colorstv.com/us/",
+      "priority": 5
+    },
+    {
+      "name": "Colors Rishtey Americas",
+      "isFree": true,
+      "website": "https://www.colorstv.com/us/",
+      "priority": 5
+    },
+    {
+      "name": "Colors Rishtey Asia",
+      "isFree": true,
+      "website": "https://www.colorstv.com/us/",
+      "priority": 5
+    },
+    {
+      "name": "Colors Rishtey Europe",
+      "isFree": true,
+      "website": "https://www.colorstv.com/us/",
+      "priority": 5
+    },
+    {
+      "name": "Colors Super",
+      "isFree": true,
+      "website": "https://www.colorstv.com/us/",
+      "priority": 5
+    },
+    {
+      "name": "Colors Tamil",
+      "isFree": true,
+      "website": "https://www.colorstv.com/us/",
+      "priority": 5
+    },
+    {
+      "name": "Comedy Central",
+      "isFree": true,
+      "website": "http://www.comedycentral.in/",
+      "priority": 5
+    },
+    {
+      "name": "CVR Health",
+      "isFree": true,
+      "website": "http://www.cvrinfo.com/health.html",
+      "priority": 5
+    },
+    {
+      "name": "Daijiworld",
+      "isFree": true,
+      "website": "https://www.daijiworld.com/",
+      "priority": 5
+    },
+    {
+      "name": "Dangal 2",
+      "isFree": true,
+      "website": "http://dangaltv.enterr10tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Dangal",
+      "isFree": true,
+      "website": "http://dangaltv.enterr10tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Darshana",
+      "isFree": true,
+      "keywords": "darshana tv -middle -east",
+      "website": "http://www.darshanatv.in/",
+      "priority": 5
+    },
+    {
+      "name": "Darshana TV Middle East",
+      "isFree": true,
+      "website": "http://www.darshanatv.in/",
+      "priority": 5
+    },
+    {
+      "name": "DD Arun Prabha",
+      "isFree": true,
+      "website": "https://prasarbharati.gov.in/doordarshan/",
+      "priority": 5
+    },
+    {
+      "name": "DD Assam",
+      "isFree": true,
+      "website": "https://prasarbharati.gov.in/doordarshan/",
+      "priority": 5
+    },
+    {
+      "name": "DD Bihar",
+      "isFree": true,
+      "website": "https://prasarbharati.gov.in/doordarshan/",
+      "priority": 5
+    },
+    {
+      "name": "DD Chandana",
+      "isFree": true,
+      "website": "https://prasarbharati.gov.in/doordarshan/",
+      "priority": 5
+    },
+    {
+      "name": "DD Chhattisgarh",
+      "isFree": true,
+      "website": "http://ddraipur.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "DD Girnar",
+      "isFree": true,
+      "website": "https://prasarbharati.gov.in/doordarshan/",
+      "priority": 5
+    },
+    {
+      "name": "DD Goa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DD Haryana",
+      "isFree": true,
+      "website": "https://prasarbharati.gov.in/doordarshan/",
+      "priority": 5
+    },
+    {
+      "name": "DD Himachal Pradesh",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DD Hissar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DD India",
+      "isFree": true,
+      "website": "https://prasarbharati.gov.in/doordarshan/",
+      "priority": 5
+    },
+    {
+      "name": "DD Jammu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DD Jharkhand",
+      "isFree": true,
+      "website": "http://www.ddjharkhand.com/",
+      "priority": 5
+    },
+    {
+      "name": "DD Kashir",
+      "isFree": true,
+      "website": "https://prasarbharati.gov.in/doordarshan/",
+      "priority": 5
+    },
+    {
+      "name": "DD Madhya Pradesh",
+      "isFree": true,
+      "website": "https://prasarbharati.gov.in/doordarshan/",
+      "priority": 5
+    },
+    {
+      "name": "DD Manipur",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DD Meghalaya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DD Nagaland",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DD Odia",
+      "isFree": true,
+      "website": "https://prasarbharati.gov.in/doordarshan/",
+      "priority": 5
+    },
+    {
+      "name": "DD Rajasthan",
+      "isFree": true,
+      "website": "https://prasarbharati.gov.in/doordarshan/",
+      "priority": 5
+    },
+    {
+      "name": "DD Retro",
+      "isFree": true,
+      "website": "https://prasarbharati.gov.in/doordarshan/",
+      "priority": 5
+    },
+    {
+      "name": "DD Sahyadri",
+      "isFree": true,
+      "website": "https://prasarbharati.gov.in/dd-sahyadri-homepage/",
+      "priority": 5
+    },
+    {
+      "name": "DD Saptagiri",
+      "isFree": true,
+      "website": "https://prasarbharati.gov.in/doordarshan/",
+      "priority": 5
+    },
+    {
+      "name": "DD Sikkim",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DD Tamil",
+      "isFree": true,
+      "website": "https://doordarshan.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "DD Tripura",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DD Urdu",
+      "isFree": true,
+      "website": "https://prasarbharati.gov.in/doordarshan/",
+      "priority": 5
+    },
+    {
+      "name": "DD Uttarakhand",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DD Uttar Pradesh",
+      "isFree": true,
+      "website": "https://prasarbharati.gov.in/dd-uttar-praesh-homepage/",
+      "priority": 5
+    },
+    {
+      "name": "DD Yadagiri",
+      "isFree": true,
+      "website": "https://prasarbharati.gov.in/doordarshan/",
+      "priority": 5
+    },
+    {
+      "name": "Dillagi",
+      "isFree": true,
+      "website": "http://www.dillagi.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Discovery",
+      "isFree": true,
+      "website": "http://www.discoverychannel.co.in/",
+      "priority": 7
+    },
+    {
+      "name": "Discovery Science",
+      "isFree": true,
+      "website": "http://www.discoverychannel.co.in/",
+      "priority": 7
+    },
+    {
+      "name": "Discovery Turbo",
+      "isFree": true,
+      "website": "http://www.discoverychannel.co.in/",
+      "priority": 7
+    },
+    {
+      "name": "Dish Buzz",
+      "isFree": true,
+      "keywords": "dish buzz -2",
+      "priority": 5
+    },
+    {
+      "name": "Dish Buzz 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Doctor Live",
+      "isFree": true,
+      "website": "https://doctorlivemedia.in/",
+      "priority": 5
+    },
+    {
+      "name": "DTamil",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Enterr 10",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Enterr 10 Bangla",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Enterr 10 Rangeela",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ETV Abhiruchi",
+      "isFree": true,
+      "website": "http://www.etv.co.in/channels/home?channelId=6",
+      "priority": 5
+    },
+    {
+      "name": "ETV Comedy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ETV Josh",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ETV Life",
+      "isFree": true,
+      "website": "http://www.etv.co.in/channels/home?channelId=7",
+      "priority": 5
+    },
+    {
+      "name": "ETV Plus",
+      "isFree": true,
+      "website": "http://www.etv.co.in/channels/home?channelId=5",
+      "priority": 5
+    },
+    {
+      "name": "ETV Telugu",
+      "isFree": true,
+      "website": "http://www.etv.co.in/channels/home?channelId=1",
+      "priority": 5
+    },
+    {
+      "name": "FashionTV",
+      "isFree": true,
+      "keywords": "fashiontv -mumbai",
+      "website": "http://www.fashiontvindia.in/",
+      "priority": 5
+    },
+    {
+      "name": "FashionTV Mumbai",
+      "isFree": true,
+      "website": "https://www.fashiontv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Firangi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Focus Hi Fi",
+      "isFree": true,
+      "website": "https://www.pingnetwork.in/channels/focus-hifi/",
+      "priority": 5
+    },
+    {
+      "name": "FOX",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Frontier",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "FX",
+      "isFree": true,
+      "website": "http://www.fxtvasia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Gangaur",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gemini Comedy",
+      "isFree": true,
+      "website": "http://www.sunnetwork.in/tv-channel-details.aspx?Channelid=42&channelname=GEMINI%20COMEDY&LanguageID=2&Type=2",
+      "priority": 5
+    },
+    {
+      "name": "Gemini Life",
+      "isFree": true,
+      "website": "http://www.sunnetwork.in/",
+      "priority": 5
+    },
+    {
+      "name": "Gemini",
+      "isFree": true,
+      "website": "http://www.sunnetwork.in/tv-channel-details.aspx?Channelid=4&channelname=GEMINI%20TV&LanguageID=2&Type=2",
+      "priority": 5
+    },
+    {
+      "name": "GosreeVision",
+      "isFree": true,
+      "website": "http://www.gosreetv.in/",
+      "priority": 5
+    },
+    {
+      "name": "HBO Defined",
+      "isFree": true,
+      "website": "http://www.hbodefined.in/",
+      "priority": 6
+    },
+    {
+      "name": "Hi Dost!",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Ishara",
+      "isFree": true,
+      "website": "https://www.isharachannel.com/contact-us/",
+      "priority": 5
+    },
+    {
+      "name": "Janapriyam",
+      "isFree": true,
+      "website": "https://janapriyam.com/",
+      "priority": 5
+    },
+    {
+      "name": "Jan TV Plus",
+      "isFree": true,
+      "website": "http://www.jantv.in/",
+      "priority": 5
+    },
+    {
+      "name": "Jonack",
+      "isFree": true,
+      "keywords": "jonack",
+      "website": "http://www.jonack.in/",
+      "priority": 5
+    },
+    {
+      "name": "Keralabhumi",
+      "isFree": true,
+      "website": "https://keralabhumi.in/",
+      "priority": 5
+    },
+    {
+      "name": "Khushboo Bangla",
+      "isFree": true,
+      "priority": 6
+    },
+    {
+      "name": "Kiran",
+      "isFree": true,
+      "website": "http://www.sunnetwork.in/tv-channel-details.aspx?Channelid=45&channelname=KIRAN&LanguageID=4&Type=4",
+      "priority": 5
+    },
+    {
+      "name": "KTV Bangla",
+      "isFree": true,
+      "website": "https://www.tribetv.in/",
+      "priority": 5
+    },
+    {
+      "name": "LOK",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mahaa Max",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Maha Punjabi",
+      "isFree": true,
+      "website": "http://www.mahapunjabi.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mahuaa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Maiboli",
+      "isFree": true,
+      "website": "http://www.maiboli.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Malar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mandra",
+      "isFree": true,
+      "website": "https://mandratv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mango",
+      "isFree": true,
+      "keywords": "mango -mobile -tv",
+      "priority": 5
+    },
+    {
+      "name": "Mango Mobile",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Manjari",
+      "isFree": true,
+      "website": "https://manjaritv.in/",
+      "priority": 5
+    },
+    {
+      "name": "Manoranjan",
+      "isFree": true,
+      "website": "http://www.manoranjantv.com/ManoranjanTv.aspx",
+      "priority": 5
+    },
+    {
+      "name": "Mayyazhi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MBC",
+      "isFree": true,
+      "website": "https://mbctv.co.in/",
+      "priority": 5
+    },
+    {
+      "name": "Mega 24",
+      "isFree": true,
+      "website": "http://www.megatv.in/mega24/index.html",
+      "priority": 5
+    },
+    {
+      "name": "Mega",
+      "isFree": true,
+      "website": "http://www.megatv.in/megatv/index.html",
+      "priority": 5
+    },
+    {
+      "name": "Metro",
+      "isFree": true,
+      "website": "http://www.metrotvtelugu.com/",
+      "priority": 5
+    },
+    {
+      "name": "MH One Dil Se",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MON TV Bangla",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTV",
+      "isFree": true,
+      "keywords": "mtv -beats",
+      "website": "http://www.mtvindia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nazara",
+      "isFree": true,
+      "website": "https://www.epicon.in/live-tv/nazara-live-tv",
+      "priority": 5
+    },
+    {
+      "name": "NCV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NDTV Good Times",
+      "isFree": true,
+      "website": "https://www.mygoodtimes.in/",
+      "priority": 5
+    },
+    {
+      "name": "NDTV Prime",
+      "isFree": true,
+      "website": "http://prime.ndtv.com/",
+      "priority": 6
+    },
+    {
+      "name": "Neo Prime",
+      "isFree": true,
+      "website": "http://www.neosports.tv/neoprime.aspx",
+      "priority": 6
+    },
+    {
+      "name": "Nepal",
+      "isFree": true,
+      "website": "http://www.nepal1tv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Network 10",
+      "isFree": true,
+      "website": "https://network10.in/",
+      "priority": 5
+    },
+    {
+      "name": "News 11",
+      "isFree": true,
+      "website": "http://news11.live/",
+      "priority": 5
+    },
+    {
+      "name": "NT",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NTC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pasand",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Prarthana Bhawan",
+      "isFree": true,
+      "website": "http://www.prarthanabhawantv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Prarthana",
+      "isFree": true,
+      "website": "https://www.tarangplus.in/all-channels/prarthana-tv",
+      "priority": 5
+    },
+    {
+      "name": "Pravasi",
+      "isFree": true,
+      "website": "https://pravasichannel.com/",
+      "priority": 5
+    },
+    {
+      "name": "PTC Punjabi",
+      "isFree": true,
+      "keywords": "ptc punjabi -gold",
+      "website": "https://www.ptcpunjabi.co.in/",
+      "priority": 5
+    },
+    {
+      "name": "PTC Punjabi Gold",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "R 9",
+      "isFree": true,
+      "website": "https://r9bharat.com/",
+      "priority": 5
+    },
+    {
+      "name": "Raftaar Media",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Raj Asia",
+      "isFree": true,
+      "website": "http://www.rajtvnet.in/",
+      "priority": 5
+    },
+    {
+      "name": "Raj",
+      "isFree": true,
+      "website": "http://www.rajtvnet.in/",
+      "priority": 5
+    },
+    {
+      "name": "Rajya Sabha",
+      "isFree": true,
+      "website": "https://rstv.nic.in/",
+      "priority": 5
+    },
+    {
+      "name": "Rakshana",
+      "isFree": true,
+      "website": "https://rakshanatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ramdhenu",
+      "isFree": true,
+      "website": "https://ramdhenutv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Rang",
+      "isFree": true,
+      "website": "https://www.rangtv.org/",
+      "priority": 5
+    },
+    {
+      "name": "Rengoni",
+      "isFree": true,
+      "website": "https://rengonitv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Roja",
+      "isFree": true,
+      "website": "https://rojatv.godaddysites.com/",
+      "priority": 5
+    },
+    {
+      "name": "Rongeen",
+      "isFree": true,
+      "website": "http://rongeentv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Rose",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "R Plus",
+      "isFree": true,
+      "keywords": "r plus -gold -news",
+      "website": "https://rplus.in/",
+      "priority": 5
+    },
+    {
+      "name": "R Plus Gold",
+      "isFree": true,
+      "website": "https://rplus.in/",
+      "priority": 5
+    },
+    {
+      "name": "RT",
+      "isFree": true,
+      "keywords": "rt -india",
+      "priority": 5
+    },
+    {
+      "name": "Rupasi Bangla",
+      "isFree": true,
+      "website": "https://www.ruposhibangla.in/",
+      "priority": 5
+    },
+    {
+      "name": "Saam",
+      "isFree": true,
+      "website": "https://www.saamtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sabha",
+      "isFree": true,
+      "website": "https://sabhatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sahara One",
+      "isFree": true,
+      "website": "http://www.saharaone.in/",
+      "priority": 5
+    },
+    {
+      "name": "Sai",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sansad TV",
+      "isFree": true,
+      "website": "https://sansadtv.nic.in/",
+      "priority": 5
+    },
+    {
+      "name": "Sansad TV 2",
+      "isFree": true,
+      "website": "https://sansadtv.nic.in/",
+      "priority": 5
+    },
+    {
+      "name": "Santvani",
+      "isFree": true,
+      "website": "https://www.santvani.in/",
+      "priority": 5
+    },
+    {
+      "name": "Saral Jeevan",
+      "isFree": true,
+      "website": "https://www.saraljeevan.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sarv Dharam Sangam",
+      "isFree": true,
+      "website": "http://www.sarvdharamsangam.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Shalini",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Shemaroo Marathi Bana",
+      "isFree": true,
+      "website": "https://shemaroomarathibana.com/",
+      "priority": 5
+    },
+    {
+      "name": "Shemaroo Umang",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Shree Bangla",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Shree Navgrah",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Shubh",
+      "isFree": true,
+      "website": "https://app.sanskargroup.in/",
+      "priority": 5
+    },
+    {
+      "name": "Siri Kannada",
+      "isFree": true,
+      "website": "https://www.sirikannada.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Sirippoli",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sony Aath",
+      "isFree": true,
+      "website": "https://www.aath.in/",
+      "priority": 5
+    },
+    {
+      "name": "Sony Entertainment Television",
+      "isFree": true,
+      "keywords": "sony entertainment television -asia",
+      "website": "https://www.setindia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sony Entertainment Television Asia",
+      "isFree": true,
+      "website": "https://www.setindia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sony Marathi",
+      "isFree": true,
+      "website": "https://www.sonymarathi.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sony Pal",
+      "isFree": true,
+      "website": "http://www.sonypal.in/",
+      "priority": 5
+    },
+    {
+      "name": "Sony SAB Asia",
+      "isFree": true,
+      "website": "https://www.sabtv.com/en_asia/",
+      "priority": 5
+    },
+    {
+      "name": "Star Jalsha",
+      "isFree": true,
+      "website": "https://www.hotstar.com/channels/star-jalsha",
+      "priority": 5
+    },
+    {
+      "name": "Star Kiran",
+      "isFree": true,
+      "website": "https://www.hotstar.com/channels/star-kiran",
+      "priority": 5
+    },
+    {
+      "name": "Star Maa Gold",
+      "isFree": true,
+      "website": "https://www.hotstar.com/channels/star-maa",
+      "priority": 5
+    },
+    {
+      "name": "Starnet",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Star Pravah",
+      "isFree": true,
+      "website": "https://www.hotstar.com/channels/star-pravah",
+      "priority": 5
+    },
+    {
+      "name": "Star Suvarna",
+      "isFree": true,
+      "keywords": "star suvarna -plus",
+      "website": "https://www.hotstar.com/channels/star-suvarna",
+      "priority": 5
+    },
+    {
+      "name": "Star Utsav",
+      "isFree": true,
+      "keywords": "star utsav -movies",
+      "website": "https://www.starttv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Star Vijay",
+      "isFree": true,
+      "website": "https://www.hotstar.com/1260000018",
+      "priority": 5
+    },
+    {
+      "name": "Star World",
+      "isFree": true,
+      "keywords": "star world -premiere",
+      "website": "http://www.hotstar.com/channels/star-world",
+      "priority": 5
+    },
+    {
+      "name": "Studio Yuva",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Subharti",
+      "isFree": true,
+      "website": "https://subhartimedia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Subin",
+      "isFree": true,
+      "website": "https://www.subintv.in/",
+      "priority": 5
+    },
+    {
+      "name": "Sun Bangla",
+      "isFree": true,
+      "website": "http://www.sunnetwork.in/tv-channel-details.aspx?Channelid=57&channelname=Sun%20Bangla",
+      "priority": 5
+    },
+    {
+      "name": "Sun Life",
+      "isFree": true,
+      "website": "http://www.sunnetwork.in/",
+      "priority": 5
+    },
+    {
+      "name": "Sun Marathi",
+      "isFree": true,
+      "website": "http://www.sunnetwork.in/",
+      "priority": 5
+    },
+    {
+      "name": "Sun Neo",
+      "isFree": true,
+      "website": "https://www.sunnetwork.in/tv-channel-details.aspx?Channelid=75&channelname=Sun%20Neo&type=7",
+      "priority": 5
+    },
+    {
+      "name": "Sun",
+      "isFree": true,
+      "website": "http://www.sun.in/",
+      "priority": 5
+    },
+    {
+      "name": "Superhitz",
+      "isFree": true,
+      "website": "https://www.airtel.in/",
+      "priority": 5
+    },
+    {
+      "name": "Suriya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Surya Bhojpuri",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Surya Comedy",
+      "isFree": true,
+      "website": "http://www.sunnetwork.in/tv-channel-details.aspx?Channelid=55&channelname=Surya%20Comedy",
+      "priority": 5
+    },
+    {
+      "name": "Swantham",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Swara Sagar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Taaza",
+      "isFree": true,
+      "website": "http://taazatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tamilan",
+      "isFree": true,
+      "website": "https://www.tamilantelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tarang",
+      "isFree": true,
+      "website": "https://www.tarangplus.in/all-channels/tarang-tv",
+      "priority": 5
+    },
+    {
+      "name": "Tata Sky 4K",
+      "isFree": true,
+      "website": "http://www.tatasky.com/wps/portal/TataSky/campaigns/4k",
+      "priority": 5
+    },
+    {
+      "name": "Tata Sky Aradhana",
+      "isFree": true,
+      "website": "https://www.tatasky.com/wps/portal/TataSky/services/tata-sky-services-spiritual/tata-sky-aradhana",
+      "priority": 5
+    },
+    {
+      "name": "Tata Sky Beauty",
+      "isFree": true,
+      "website": "https://www.tatasky.com/wps/portal/TataSky/services/tata-sky-services-learn/tata-sky-beauty",
+      "priority": 5
+    },
+    {
+      "name": "Tata Sky Comedy",
+      "isFree": true,
+      "website": "http://www.tatasky.com/wps/portal/TataSky/tataskycomedy",
+      "priority": 5
+    },
+    {
+      "name": "Tata Sky Cooking",
+      "isFree": true,
+      "website": "https://www.tatasky.com/wps/portal/TataSky/services/tataskyservices/tata-sky-cooking",
+      "priority": 5
+    },
+    {
+      "name": "Tata Sky Dance Studio",
+      "isFree": true,
+      "website": "https://www.tatasky.com/wps/portal/TataSky/tata-sky-dance-studio/",
+      "priority": 5
+    },
+    {
+      "name": "Tata Sky Family Health",
+      "isFree": true,
+      "website": "https://www.tatasky.com/wps/portal/TataSky/services/tata-sky-services-learn/tata-sky-family-health/",
+      "priority": 5
+    },
+    {
+      "name": "Tata Sky Fitness",
+      "isFree": true,
+      "website": "https://www.tatasky.com/dth/services/learn/fitness",
+      "priority": 5
+    },
+    {
+      "name": "Tata Sky Ibaadat",
+      "isFree": true,
+      "website": "https://www.tatasky.com/wps/portal/TataSky/services/tata-sky-services-spiritual/tata-sky-ibaadat",
+      "priority": 5
+    },
+    {
+      "name": "Tata Sky ShortsTV",
+      "isFree": true,
+      "website": "https://www.tatasky.com/wps/portal/TataSky/services/tata-sky-services-entertainment/tata-sky-shorts-tv",
+      "priority": 5
+    },
+    {
+      "name": "Tehzeeb",
+      "isFree": true,
+      "website": "https://www.tehzeebtv.in/",
+      "priority": 5
+    },
+    {
+      "name": "Telugu One",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Thanthi One",
+      "isFree": true,
+      "website": "https://www.thanthione.com/",
+      "priority": 5
+    },
+    {
+      "name": "Thendral",
+      "isFree": true,
+      "website": "https://www.thendraltv.in/",
+      "priority": 5
+    },
+    {
+      "name": "TLC",
+      "isFree": true,
+      "website": "http://www.tlcindia.co.in/",
+      "priority": 5
+    },
+    {
+      "name": "Topper",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Total TV Haryana",
+      "isFree": true,
+      "website": "http://totaltv.in/",
+      "priority": 5
+    },
+    {
+      "name": "Travel",
+      "isFree": true,
+      "website": "http://www.travelchanneltv.eu/",
+      "priority": 5
+    },
+    {
+      "name": "Travel Trendz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Travelxp",
+      "isFree": true,
+      "keywords": "travelxp -tamil",
+      "website": "http://www.travelxp.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Travelxp Tamil",
+      "isFree": true,
+      "website": "http://www.travelxptamil.com/",
+      "priority": 5
+    },
+    {
+      "name": "T-Sat Nipuna",
+      "isFree": true,
+      "website": "http://softnet.telangana.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "T-Sat Vidya",
+      "isFree": true,
+      "website": "http://softnet.telangana.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "TV 100 National",
+      "isFree": true,
+      "website": "http://www.tv100.info/",
+      "priority": 5
+    },
+    {
+      "name": "TV BRICS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Udaya Comedy",
+      "isFree": true,
+      "website": "http://www.sunnetwork.in/tv-channel-details.aspx?Channelid=30&channelname=Udaya%20Comedy&LanguageID=3&Type=3",
+      "priority": 5
+    },
+    {
+      "name": "Udaya",
+      "isFree": true,
+      "website": "http://www.sunnetwork.in/tv-channel-details.aspx?Channelid=27&channelname=UDAYA%20TV&LanguageID=3&Type=3",
+      "priority": 5
+    },
+    {
+      "name": "Unique",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vanitha",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vasanth",
+      "isFree": true,
+      "website": "https://vasanth.tv/",
+      "priority": 5
+    },
+    {
+      "name": "VCV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vendhar",
+      "isFree": true,
+      "website": "http://www.vendharmedia.in/",
+      "priority": 5
+    },
+    {
+      "name": "Vijay TV Asia",
+      "isFree": true,
+      "website": "https://www.hotstar.com/1260000018",
+      "priority": 5
+    },
+    {
+      "name": "Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vissa",
+      "isFree": true,
+      "website": "http://www.vissatv.in/",
+      "priority": 5
+    },
+    {
+      "name": "Vrinda",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VTU",
+      "isFree": true,
+      "website": "http://elearning.vtu.ac.in/",
+      "priority": 5
+    },
+    {
+      "name": "Wayanad Vision",
+      "isFree": true,
+      "website": "https://wayanadvision.in/",
+      "priority": 5
+    },
+    {
+      "name": "We One Kerala",
+      "isFree": true,
+      "website": "https://weonekeralaonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Win",
+      "isFree": true,
+      "website": "http://www.wintvindia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Yolo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Bangla Sonar",
+      "isFree": true,
+      "website": "https://www.zee5.com/live-tv/zee-bangla-sonar/0-9-zeebanglacinema",
+      "priority": 5
+    },
+    {
+      "name": "Zee Comedy Nation",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Dil Se",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Dunia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Ganga",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Horror Nights",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Kannada",
+      "isFree": true,
+      "keywords": "zee kannada -news",
+      "website": "https://zeekannada.zee5.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zee Keralam",
+      "isFree": true,
+      "keywords": "zee keralam",
+      "website": "https://zeekeralam.zee5.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zee Marathi",
+      "isFree": true,
+      "keywords": "zee marathi -usa",
+      "website": "https://zeemarathi.zee5.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zee Power",
+      "isFree": true,
+      "website": "https://www.zee5.com/live-tv/zee-power-hd/0-9-241",
+      "priority": 5
+    },
+    {
+      "name": "Zee Sarthak",
+      "isFree": true,
+      "website": "https://zeesarthak.zee5.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zee Telugu",
+      "isFree": true,
+      "keywords": "zee telugu -news",
+      "website": "https://zeetelugu.zee5.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zee",
+      "isFree": true,
+      "keywords": "zee tv -apac -canada -middle -east -russia -usa",
+      "website": "https://www.zee5.com",
+      "priority": 5
+    },
+    {
+      "name": "Zee Yuva",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Zest",
+      "isFree": true,
+      "website": "https://www.zeezest.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zindagi",
+      "isFree": true,
+      "website": "https://www.zee5.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zing Home",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zodiak",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mangalam",
+      "isFree": true,
+      "keywords": "mangalam",
+      "priority": 5
+    },
+    {
+      "name": "Times Now",
+      "isFree": true,
+      "keywords": "times now",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "A NEWSDONs TV- SWAG SADDA VAKRAA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ABP Ananda",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ABP Asmita",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ABP Hindi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ABP Majha",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ACV News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AKD Calcutta News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Amar Ujala",
+      "isFree": true,
+      "keywords": "amar ujala | amarujala",
+      "priority": 5
+    },
+    {
+      "name": "Asianet News",
+      "isFree": true,
+      "keywords": "asianet news -bangla -kannada -tamil",
+      "priority": 5
+    },
+    {
+      "name": "Asianet News Bangla",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Asianet News Kannada",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Asianet News Tamil",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CNBC Awaaz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CNBC Bajar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CNN NEWS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Channel NewsAsia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DD News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DW NEWS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dighvijay",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dunya News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ET Now",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ETV Andhra Pradesh",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ETV Telangana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "FASTWAY NEWS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Global Punjab",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "India News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "India Today",
+      "isFree": true,
+      "website": "https://www.indiatoday.in",
+      "priority": 5
+    },
+    {
+      "name": "Jan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Janam",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kairali News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kalaignar Seithikal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanak News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kerala Vision News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Khyber News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Malabar News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Malappuram",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Manorama News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mathrubhumi News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Media One",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NDTV Profit",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Naxtra News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nethra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "News 18 Assam",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "News 18 Bengali",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "News 18 Chhattisgarh",
+      "isFree": true,
+      "shortName": "N1C",
+      "priority": 5
+    },
+    {
+      "name": "News 18 Gujarati",
+      "isFree": true,
+      "keywords": "news 18 gujarati | news18 gujarati",
+      "priority": 5
+    },
+    {
+      "name": "News 18 Hindi",
+      "isFree": true,
+      "keywords": "news 18 hindi | news18 hindi",
+      "priority": 5
+    },
+    {
+      "name": "News 18 Jharkhand",
+      "isFree": true,
+      "shortName": "N1J",
+      "priority": 5
+    },
+    {
+      "name": "News 18 Kannada",
+      "isFree": true,
+      "keywords": "news 18 kannada | news18 kannada",
+      "priority": 5
+    },
+    {
+      "name": "News 18 Malayalam",
+      "isFree": true,
+      "shortName": "N1M",
+      "priority": 5
+    },
+    {
+      "name": "News 18 Odia",
+      "isFree": true,
+      "keywords": "news 18 odia | news18 odia",
+      "priority": 5
+    },
+    {
+      "name": "News 18 Punjab",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "News 18 Rajasthan",
+      "isFree": true,
+      "keywords": "news 18 rajasthan | news18 rajasthan",
+      "shortName": "N1R",
+      "priority": 5
+    },
+    {
+      "name": "News 18 Tamil",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "News 18 Urdu",
+      "isFree": true,
+      "keywords": "news 18 urdu | news18 urdu",
+      "priority": 5
+    },
+    {
+      "name": "News 18 Uttarakhand",
+      "isFree": true,
+      "shortName": "N1U",
+      "priority": 5
+    },
+    {
+      "name": "News 24",
+      "isFree": true,
+      "keywords": "news 24 | news24",
+      "priority": 5
+    },
+    {
+      "name": "News 7 Tamil",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "News J",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "News18 Bangla",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "News18 India",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "News18 Lokmat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Polimer News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pramaya News 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pratidin Time",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Puthiya Thalaimurai",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "R Plus News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Real News Kerala",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Reporter",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sathiyam",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sun News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Suvarna News 24 7",
+      "isFree": true,
+      "shortName": "SN 27",
+      "priority": 5
+    },
+    {
+      "name": "TV9 Kannada",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV9 News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Thanthi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Time",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Time Vision News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Twenty Four News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Business",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee News",
+      "isFree": true,
+      "keywords": "zee news -mpcg -uttar -pradesh -uttrakhand",
+      "priority": 5
+    },
+    {
+      "name": "Zee News MPCG",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee News Uttar Pradesh Uttrakhand",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "10",
+      "isFree": true,
+      "website": "https://www.10tv.in/",
+      "priority": 5
+    },
+    {
+      "name": "1Yes News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "22Scope News",
+      "isFree": true,
+      "website": "https://22scope.com/",
+      "priority": 5
+    },
+    {
+      "name": "24 News",
+      "isFree": true,
+      "website": "https://www.twentyfournews.com/",
+      "priority": 5
+    },
+    {
+      "name": "4 Sight News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "4TV News",
+      "isFree": true,
+      "website": "http://www.4tvhyd.com/",
+      "priority": 5
+    },
+    {
+      "name": "6 TV Bangla",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "6TV Telangana",
+      "isFree": true,
+      "website": "https://6tvtelugu.com/",
+      "priority": 5
+    },
+    {
+      "name": "6 TV Telugu",
+      "isFree": true,
+      "website": "http://6tvtelugu.com/",
+      "priority": 5
+    },
+    {
+      "name": "99TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "A1 TV Rajasthan",
+      "isFree": true,
+      "website": "http://www.a1live.in/",
+      "priority": 5
+    },
+    {
+      "name": "A2Z News",
+      "isFree": true,
+      "website": "https://a2znewslive.com/",
+      "priority": 5
+    },
+    {
+      "name": "Aalami Samay",
+      "isFree": true,
+      "website": "http://www.saharasamay.com/",
+      "priority": 5
+    },
+    {
+      "name": "ABN Andhra Jyoti",
+      "isFree": true,
+      "website": "https://www.andhrajyothy.com/",
+      "priority": 5
+    },
+    {
+      "name": "ABP Ganga",
+      "isFree": true,
+      "website": "https://www.abpganga.com/",
+      "priority": 5
+    },
+    {
+      "name": "ABP News",
+      "isFree": true,
+      "website": "https://www.abplive.com/",
+      "priority": 5
+    },
+    {
+      "name": "ABP Sanjha",
+      "isFree": true,
+      "website": "https://punjabi.abplive.com/",
+      "priority": 5
+    },
+    {
+      "name": "AJ Net News",
+      "isFree": true,
+      "website": "https://ajnetnews.com/",
+      "priority": 5
+    },
+    {
+      "name": "AMV Network",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Anaadi",
+      "isFree": true,
+      "website": "https://www.anaaditv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ananda Barta",
+      "isFree": true,
+      "website": "https://anandabarta.in/",
+      "priority": 5
+    },
+    {
+      "name": "ANB News",
+      "isFree": true,
+      "website": "https://anbnews.in/Index.aspx",
+      "priority": 5
+    },
+    {
+      "name": "ANN News",
+      "isFree": true,
+      "website": "https://asianewsnetwork.net/",
+      "priority": 5
+    },
+    {
+      "name": "APN",
+      "isFree": true,
+      "website": "https://www.apnlive.com/",
+      "priority": 5
+    },
+    {
+      "name": "Argus News",
+      "isFree": true,
+      "website": "https://argusnews.in/",
+      "priority": 5
+    },
+    {
+      "name": "Asianet Suvarna News",
+      "isFree": true,
+      "website": "https://kannada.asianetnews.com/",
+      "priority": 5
+    },
+    {
+      "name": "Awaaz India",
+      "isFree": true,
+      "website": "https://awaazindiatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bada Khabar",
+      "isFree": true,
+      "website": "https://badakhabar.in/",
+      "priority": 5
+    },
+    {
+      "name": "Bansal News",
+      "isFree": true,
+      "website": "https://bansalnews.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bharat 24",
+      "isFree": true,
+      "website": "https://www.bharat24live.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bharat Express",
+      "isFree": true,
+      "website": "https://bharatexpress.com/live-tv",
+      "priority": 5
+    },
+    {
+      "name": "Bharat Samachar",
+      "isFree": true,
+      "keywords": "bharat samachar",
+      "website": "https://www.bharatsamachartv.in/",
+      "priority": 5
+    },
+    {
+      "name": "Bharat Today",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bhaskar News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BIG",
+      "isFree": true,
+      "website": "https://www.bigtvlive.com/",
+      "priority": 5
+    },
+    {
+      "name": "BRK News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BT",
+      "isFree": true,
+      "website": "https://www.businesstoday.in/bt-tv",
+      "priority": 5
+    },
+    {
+      "name": "Btv News",
+      "isFree": true,
+      "website": "http://btvnewslive.com/",
+      "priority": 5
+    },
+    {
+      "name": "Business 24x 7",
+      "isFree": true,
+      "website": "https://business24x7.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Captain News",
+      "isFree": true,
+      "website": "http://captainnews.net/",
+      "priority": 5
+    },
+    {
+      "name": "CD News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Channel 100",
+      "isFree": true,
+      "keywords": "channel 100 -gold -platinum",
+      "website": "https://tv100.news/",
+      "priority": 5
+    },
+    {
+      "name": "Channel Dinraat",
+      "isFree": true,
+      "website": "http://www.channeldinraat.com/",
+      "priority": 5
+    },
+    {
+      "name": "Chardikla Gurbaani",
+      "isFree": true,
+      "website": "https://timetv.news/live-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Chardikla Time",
+      "isFree": true,
+      "keywords": "chardikla time tv -north -america",
+      "website": "https://timetv.news/live-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Chardikla Time TV North America",
+      "isFree": true,
+      "website": "https://timetv.news/live-tv/",
+      "priority": 5
+    },
+    {
+      "name": "CNBC TV18 Prime",
+      "isFree": true,
+      "website": "https://www.cnbctv18.com/prime/",
+      "priority": 6
+    },
+    {
+      "name": "Cnews Bharat",
+      "isFree": true,
+      "website": "https://cnewsbharat.com/hindi/live",
+      "priority": 5
+    },
+    {
+      "name": "CNN News 18",
+      "isFree": true,
+      "website": "https://www.news18.com/",
+      "priority": 5
+    },
+    {
+      "name": "CTVN AKD Plus",
+      "isFree": true,
+      "website": "https://ctvn.co.in/",
+      "priority": 5
+    },
+    {
+      "name": "CVR English",
+      "isFree": true,
+      "website": "http://www.cvrinfo.com/englishnews.html",
+      "priority": 5
+    },
+    {
+      "name": "CVR News",
+      "isFree": true,
+      "website": "http://www.cvrinfo.com/telugunews.html",
+      "priority": 5
+    },
+    {
+      "name": "Day & Night News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DD Mizoram",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DD News Gujarati",
+      "isFree": true,
+      "website": "https://ddnewsgujarati.com/",
+      "priority": 5
+    },
+    {
+      "name": "Dighvijay News 24x 7",
+      "isFree": true,
+      "website": "https://www.vijayavani.net/",
+      "priority": 5
+    },
+    {
+      "name": "DNN",
+      "isFree": true,
+      "website": "https://newsdnntv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Enlight News",
+      "isFree": true,
+      "website": "https://enlightnews.com/",
+      "priority": 5
+    },
+    {
+      "name": "Enrich",
+      "isFree": true,
+      "website": "https://www.enrichtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "ET Now Swadesh",
+      "isFree": true,
+      "website": "https://www.timesnownews.com/live-tv/et-now-swadesh",
+      "priority": 5
+    },
+    {
+      "name": "ETV News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Express News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "First India News",
+      "isFree": true,
+      "website": "https://firstindianews.com/",
+      "priority": 5
+    },
+    {
+      "name": "FM News",
+      "isFree": true,
+      "website": "https://fmnewsindia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Goa365",
+      "isFree": true,
+      "website": "https://www.goa365.tv",
+      "priority": 5
+    },
+    {
+      "name": "Good News Today",
+      "isFree": true,
+      "website": "https://www.gnttv.com/livetv",
+      "priority": 5
+    },
+    {
+      "name": "GS",
+      "isFree": true,
+      "website": "https://www.gstv.in/",
+      "priority": 5
+    },
+    {
+      "name": "Gujarat First",
+      "isFree": true,
+      "website": "https://www.gujaratfirst.com/",
+      "priority": 5
+    },
+    {
+      "name": "Gulistan News",
+      "isFree": true,
+      "website": "https://gulistannewstv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Har Khabar",
+      "isFree": true,
+      "website": "https://harkhabar.news/live-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Herald",
+      "isFree": true,
+      "website": "https://www.heraldgoa.in/herald-tv.php",
+      "priority": 5
+    },
+    {
+      "name": "High News",
+      "isFree": true,
+      "website": "https://www.highnewslive.com/",
+      "priority": 5
+    },
+    {
+      "name": "Hindi Khabar",
+      "isFree": true,
+      "website": "https://hindikhabar.com/",
+      "priority": 5
+    },
+    {
+      "name": "HMTV",
+      "isFree": true,
+      "website": "https://www.hmtvlive.com/",
+      "priority": 5
+    },
+    {
+      "name": "HNN 24x 7",
+      "isFree": true,
+      "website": "https://hnn24x7.com/",
+      "priority": 5
+    },
+    {
+      "name": "Hornbill",
+      "isFree": true,
+      "website": "https://www.hornbilltv.com/",
+      "priority": 5
+    },
+    {
+      "name": "IBC 24",
+      "isFree": true,
+      "website": "https://www.ibc24.in/",
+      "priority": 5
+    },
+    {
+      "name": "Ind 24",
+      "isFree": true,
+      "website": "https://ind24.tv/",
+      "priority": 5
+    },
+    {
+      "name": "India Ahead",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "India Daily Live",
+      "isFree": true,
+      "website": "https://www.theindiadaily.com/",
+      "priority": 5
+    },
+    {
+      "name": "India News Gujarati",
+      "isFree": true,
+      "website": "https://www.indiatvnews.com/cms/contact-us",
+      "priority": 5
+    },
+    {
+      "name": "India News Haryana",
+      "isFree": true,
+      "website": "https://www.indiatvnews.com/cms/contact-us",
+      "priority": 5
+    },
+    {
+      "name": "India News Joy Bangla",
+      "isFree": true,
+      "website": "https://www.indiatvnews.com/cms/contact-us",
+      "priority": 5
+    },
+    {
+      "name": "India News Madhya Pradesh/Chhattisgarh",
+      "isFree": true,
+      "website": "https://www.indiatvnews.com/cms/contact-us",
+      "priority": 5
+    },
+    {
+      "name": "India News Punjab/Himachal",
+      "isFree": true,
+      "website": "https://www.indiatvnews.com/cms/contact-us",
+      "priority": 5
+    },
+    {
+      "name": "India News Rajasthan",
+      "isFree": true,
+      "website": "https://www.indiatvnews.com/cms/contact-us",
+      "priority": 5
+    },
+    {
+      "name": "India News Uttar Pradesh",
+      "isFree": true,
+      "website": "https://www.indiatvnews.com/cms/contact-us",
+      "priority": 5
+    },
+    {
+      "name": "India Today International",
+      "isFree": true,
+      "website": "https://www.indiatoday.in/",
+      "priority": 5
+    },
+    {
+      "name": "India TV Speed News",
+      "isFree": true,
+      "website": "https://www.indiatvspeednews.com/livetv",
+      "priority": 5
+    },
+    {
+      "name": "Indiavision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "India Voice",
+      "isFree": true,
+      "website": "https://indiavoice.com/contact-us/",
+      "priority": 5
+    },
+    {
+      "name": "INews",
+      "isFree": true,
+      "website": "http://www.inewslive.net/",
+      "priority": 5
+    },
+    {
+      "name": "INH 24x 7",
+      "isFree": true,
+      "website": "https://www.inhnews.in/livetv",
+      "priority": 5
+    },
+    {
+      "name": "Jai Maharashtra",
+      "isFree": true,
+      "website": "https://www.jaimaharashtranews.com/",
+      "priority": 5
+    },
+    {
+      "name": "Janasri News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Jano Duniya",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Jantantra",
+      "isFree": true,
+      "website": "https://www.jantantratv.com/contact/",
+      "priority": 5
+    },
+    {
+      "name": "Jia News",
+      "isFree": true,
+      "website": "https://jianews.in/jianews/about-us",
+      "priority": 5
+    },
+    {
+      "name": "JK 24x7 News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kalaignar Seithigal",
+      "isFree": true,
+      "website": "https://www.kalaignarseithigal.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kashish News",
+      "isFree": true,
+      "website": "https://www.kashishnews.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kasthuri News 24",
+      "isFree": true,
+      "website": "http://www.kasthuritv.co.in/",
+      "priority": 5
+    },
+    {
+      "name": "Ken",
+      "isFree": true,
+      "website": "https://the-ken.com/",
+      "priority": 5
+    },
+    {
+      "name": "Khabar Fast",
+      "isFree": true,
+      "website": "https://www.khabarfast.com/",
+      "priority": 5
+    },
+    {
+      "name": "K News India",
+      "isFree": true,
+      "website": "https://knewsindia.in/",
+      "priority": 5
+    },
+    {
+      "name": "Kolkata",
+      "isFree": true,
+      "website": "https://www.kolkatatv.org/",
+      "priority": 5
+    },
+    {
+      "name": "Live India",
+      "isFree": true,
+      "website": "https://www.liveindia.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Living India News",
+      "isFree": true,
+      "website": "https://www.livingindianews.co.in/",
+      "priority": 5
+    },
+    {
+      "name": "Lokshahi News",
+      "isFree": true,
+      "website": "https://www.lokshahinews.com/",
+      "priority": 5
+    },
+    {
+      "name": "Lotus News",
+      "isFree": true,
+      "website": "http://www.lotusnews.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Madhimugam",
+      "isFree": true,
+      "website": "https://madhimugam.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mahaa News",
+      "isFree": true,
+      "website": "https://mahaanews.com/",
+      "priority": 5
+    },
+    {
+      "name": "Malabar Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Malai Murasu",
+      "isFree": true,
+      "website": "https://www.malaimurasu.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mantavya News",
+      "isFree": true,
+      "website": "https://mantavyanews.com/livetv/",
+      "priority": 5
+    },
+    {
+      "name": "Mh 1 News",
+      "isFree": true,
+      "website": "http://www.mhone.in/mhone-news/",
+      "priority": 5
+    },
+    {
+      "name": "MKN Marathi",
+      "isFree": true,
+      "website": "http://www.mknmarathi.com/",
+      "priority": 5
+    },
+    {
+      "name": "M Nadu",
+      "isFree": true,
+      "website": "https://mnadu.com/",
+      "priority": 5
+    },
+    {
+      "name": "Moon",
+      "isFree": true,
+      "website": "http://www.moontvlive.com/",
+      "priority": 5
+    },
+    {
+      "name": "M Sign Media",
+      "isFree": true,
+      "website": "https://msignmedia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Munsif",
+      "isFree": true,
+      "website": "https://munsifdaily.com/contact-us/",
+      "priority": 5
+    },
+    {
+      "name": "Nagaland",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nation First",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Naxatra News",
+      "isFree": true,
+      "website": "http://www.naxatranews.com/",
+      "priority": 5
+    },
+    {
+      "name": "NDTV Madhya Pradesh Chhattisgarh",
+      "isFree": true,
+      "website": "https://mpcg.ndtv.in/livetv-ndtvmpcg",
+      "priority": 5
+    },
+    {
+      "name": "NDTV Marathi",
+      "isFree": true,
+      "website": "https://marathi.ndtv.com/livetv-ndtvmarathi",
+      "priority": 5
+    },
+    {
+      "name": "NDTV Rajasthan",
+      "isFree": true,
+      "website": "https://rajasthan.ndtv.in/livetv-ndtvrajasthan",
+      "priority": 5
+    },
+    {
+      "name": "NE News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "News18 Assam North-East",
+      "isFree": true,
+      "website": "https://assam.news18.com/",
+      "priority": 5
+    },
+    {
+      "name": "News18 Bihar Jharkhand",
+      "isFree": true,
+      "website": "https://hindi.news18.com/",
+      "priority": 5
+    },
+    {
+      "name": "News18 JKLH",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "News18 Kerala",
+      "isFree": true,
+      "website": "https://malayalam.news18.com/",
+      "priority": 5
+    },
+    {
+      "name": "News18 Madhya Pradesh/Chhattisgarh",
+      "isFree": true,
+      "website": "https://hindi.news18.com/madhya-pradesh/",
+      "priority": 5
+    },
+    {
+      "name": "News18 Punjab/Haryana/Himachal",
+      "isFree": true,
+      "website": "https://punjab.news18.com/",
+      "priority": 5
+    },
+    {
+      "name": "News18 Tamil Nadu",
+      "isFree": true,
+      "website": "https://tamil.news18.com/",
+      "priority": 5
+    },
+    {
+      "name": "News18 Uttar Pradesh Uttarakhand",
+      "isFree": true,
+      "website": "https://hindi.news18.com/news/uttar-pradesh/",
+      "priority": 5
+    },
+    {
+      "name": "News 1 India",
+      "isFree": true,
+      "website": "https://www.news1india.in/",
+      "priority": 5
+    },
+    {
+      "name": "News 1st",
+      "isFree": true,
+      "website": "https://newsfirstlive.com/",
+      "priority": 5
+    },
+    {
+      "name": "News 24 MP & Chhattisgarh",
+      "isFree": true,
+      "website": "https://news24online.com/",
+      "priority": 5
+    },
+    {
+      "name": "News9Live",
+      "isFree": true,
+      "website": "https://www.news9live.com/digital-live-tv",
+      "priority": 5
+    },
+    {
+      "name": "News Bartaman 24x 7",
+      "isFree": true,
+      "website": "https://www.newsbartaman.com/",
+      "priority": 5
+    },
+    {
+      "name": "News Daily 24",
+      "isFree": true,
+      "website": "https://www.newsdaily24.in/",
+      "priority": 5
+    },
+    {
+      "name": "News India 24x 7",
+      "isFree": true,
+      "website": "https://newsindianetwork.com/",
+      "priority": 5
+    },
+    {
+      "name": "News Live",
+      "isFree": true,
+      "website": "https://www.newslivetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "News Malayalam 24x 7",
+      "isFree": true,
+      "website": "https://newsmalayalam.com/",
+      "priority": 5
+    },
+    {
+      "name": "News Nation",
+      "isFree": true,
+      "website": "https://www.newsnationtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "News State Maharashtra Goa",
+      "isFree": true,
+      "website": "https://www.newsnationtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "News State MP & CHG",
+      "isFree": true,
+      "website": "https://www.newsnationtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "News State UP & UK",
+      "isFree": true,
+      "website": "https://www.newsnationtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "News Tamil 24x 7",
+      "isFree": true,
+      "website": "https://newstamil.tv/",
+      "priority": 5
+    },
+    {
+      "name": "NewsTime Bangla",
+      "isFree": true,
+      "website": "https://newstimebangla.com/",
+      "priority": 5
+    },
+    {
+      "name": "News World India",
+      "isFree": true,
+      "website": "http://www.newsworldindia.in/",
+      "priority": 5
+    },
+    {
+      "name": "News World Odisha",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NewsX",
+      "isFree": true,
+      "keywords": "newsx -world",
+      "website": "https://www.newsx.com/",
+      "priority": 5
+    },
+    {
+      "name": "NewsX World",
+      "isFree": true,
+      "website": "https://www.newsx.com/",
+      "priority": 5
+    },
+    {
+      "name": "NK TV 24x 7",
+      "isFree": true,
+      "website": "https://www.nktv.in/",
+      "priority": 5
+    },
+    {
+      "name": "Northeast Live",
+      "isFree": true,
+      "website": "https://northeastlivetv.com/",
+      "priority": 5
+    },
+    {
+      "name": "NTV Telugu",
+      "isFree": true,
+      "website": "https://www.ntvtelugu.com/",
+      "priority": 5
+    },
+    {
+      "name": "Onkar Only Truth",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Patrika Rajasthan",
+      "isFree": true,
+      "website": "https://www.patrika.com/rajasthan-news/",
+      "priority": 5
+    },
+    {
+      "name": "Power",
+      "isFree": true,
+      "website": "https://www.powertvnews.in/",
+      "priority": 5
+    },
+    {
+      "name": "Prag News",
+      "isFree": true,
+      "website": "https://pragnews.com/",
+      "priority": 5
+    },
+    {
+      "name": "Prajaa TV Kannada",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Prameya News 7",
+      "isFree": true,
+      "website": "http://www.prameyanews7.com/",
+      "priority": 5
+    },
+    {
+      "name": "Prasar Bharati News Services",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pratham Khabar 24x 7",
+      "isFree": true,
+      "website": "https://prathamkhabartv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Prime9 News",
+      "isFree": true,
+      "website": "https://prime9news.com/",
+      "priority": 6
+    },
+    {
+      "name": "Prime News",
+      "isFree": true,
+      "priority": 6
+    },
+    {
+      "name": "Prime TV Goa",
+      "isFree": true,
+      "website": "https://www.primetvgoa.in/",
+      "priority": 6
+    },
+    {
+      "name": "Prudent Media",
+      "isFree": true,
+      "website": "https://www.prudentmedia.in/live-stream.php",
+      "priority": 5
+    },
+    {
+      "name": "PTC News",
+      "isFree": true,
+      "website": "https://www.ptcnews.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Public First",
+      "isFree": true,
+      "website": "https://publicfirstnews.com/live-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Pudhari News",
+      "isFree": true,
+      "website": "https://pudhari.news/",
+      "priority": 5
+    },
+    {
+      "name": "Raj News",
+      "isFree": true,
+      "keywords": "raj news -24x7 -kannada -malayalam -telugu",
+      "priority": 5
+    },
+    {
+      "name": "Raj News 24x 7",
+      "isFree": true,
+      "website": "http://www.rajtvnet.in/News/NEWS.aspx",
+      "priority": 5
+    },
+    {
+      "name": "Raj News Kannada",
+      "isFree": true,
+      "website": "http://www.rajkanada.in/",
+      "priority": 5
+    },
+    {
+      "name": "Raj News Malayalam",
+      "isFree": true,
+      "website": "http://www.rajtvnet.in/",
+      "priority": 5
+    },
+    {
+      "name": "Raj News Telugu",
+      "isFree": true,
+      "website": "http://www.rajtvnet.in/",
+      "priority": 5
+    },
+    {
+      "name": "Raj Pariwar",
+      "isFree": true,
+      "website": "http://www.rajtvnet.in/",
+      "priority": 5
+    },
+    {
+      "name": "RDX Goa",
+      "isFree": true,
+      "website": "https://rdxgoa.com/",
+      "priority": 5
+    },
+    {
+      "name": "Republic Bangla",
+      "isFree": true,
+      "website": "https://www.republicworld.com/",
+      "priority": 5
+    },
+    {
+      "name": "Republic Kannada",
+      "isFree": true,
+      "website": "https://kannada.republicworld.com/livetv.html",
+      "priority": 5
+    },
+    {
+      "name": "RT India",
+      "isFree": true,
+      "website": "https://www.rt.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sach Bedhadak",
+      "isFree": true,
+      "website": "https://www.sachbedhadak.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sadhna News Madhya Pradesh/Chhattisgarh",
+      "isFree": true,
+      "website": "http://www.sadhna.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sadhna News",
+      "isFree": true,
+      "website": "https://sadhnatv.com/live-stream-sadhan-group-of-news-channels/",
+      "priority": 5
+    },
+    {
+      "name": "Sadhna Plus",
+      "isFree": true,
+      "keywords": "sadhna plus -news",
+      "priority": 5
+    },
+    {
+      "name": "Sadhna Plus News",
+      "isFree": true,
+      "website": "http://www.sadhna.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sahana News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sakshi",
+      "isFree": true,
+      "website": "https://www.sakshi.com/",
+      "priority": 5
+    },
+    {
+      "name": "Salaam",
+      "isFree": true,
+      "website": "https://www.zee5.com/channels/details/zee-salaam/0-9-zeesalaam",
+      "priority": 5
+    },
+    {
+      "name": "Samachar Plus 24x 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Samay Bihar/Jharkhand",
+      "isFree": true,
+      "website": "http://www.saharasamay.com/",
+      "priority": 5
+    },
+    {
+      "name": "Samay Kolkata",
+      "isFree": true,
+      "website": "https://samaykolkata.com/",
+      "priority": 5
+    },
+    {
+      "name": "Samay Maharashtra/Gujarat",
+      "isFree": true,
+      "website": "http://www.saharasamay.com/",
+      "priority": 5
+    },
+    {
+      "name": "Samay MP/Chhattisgarh",
+      "isFree": true,
+      "website": "http://www.saharasamay.com/",
+      "priority": 5
+    },
+    {
+      "name": "Samay National",
+      "isFree": true,
+      "website": "http://www.saharasamay.com/",
+      "priority": 5
+    },
+    {
+      "name": "Samay Rajasthan",
+      "isFree": true,
+      "website": "http://www.saharasamay.com/",
+      "priority": 5
+    },
+    {
+      "name": "Samay UP/Uttarakhand",
+      "isFree": true,
+      "website": "http://www.saharasamay.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sandesh News",
+      "isFree": true,
+      "website": "https://sandesh.com/",
+      "priority": 5
+    },
+    {
+      "name": "Star Bharat",
+      "isFree": true,
+      "website": "http://www.hotstar.com/channels/star-bharat",
+      "priority": 5
+    },
+    {
+      "name": "STV Haryana News",
+      "isFree": true,
+      "website": "http://www.stvharyananews.in/",
+      "priority": 5
+    },
+    {
+      "name": "STV Samachar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sudarshan News",
+      "isFree": true,
+      "website": "http://www.sudarshannews.in/",
+      "priority": 5
+    },
+    {
+      "name": "Surya Samachar",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Suvarna News",
+      "isFree": true,
+      "keywords": "suvarna news -24 -7",
+      "website": "https://kannada.asianetnews.com/",
+      "priority": 5
+    },
+    {
+      "name": "Swadesh News",
+      "isFree": true,
+      "website": "https://www.swadeshnews.in/",
+      "priority": 5
+    },
+    {
+      "name": "Swaraj Express SMBC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Swatantra",
+      "isFree": true,
+      "website": "https://swatantralive.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tamil Janam",
+      "isFree": true,
+      "website": "https://janamtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Times Now Navbharat",
+      "isFree": true,
+      "website": "https://www.timesnownews.com/",
+      "priority": 5
+    },
+    {
+      "name": "Times Now World",
+      "isFree": true,
+      "website": "https://www.timesnownews.com/",
+      "priority": 5
+    },
+    {
+      "name": "T News",
+      "isFree": true,
+      "website": "https://tnews.media/",
+      "priority": 5
+    },
+    {
+      "name": "TOI Global",
+      "isFree": true,
+      "website": "https://timesofindia.indiatimes.com/toi-global-live-stream-24/7/videoshow/124336087.cms",
+      "priority": 5
+    },
+    {
+      "name": "TV5 Kannada",
+      "isFree": true,
+      "website": "https://tv5kannada.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV5 News",
+      "isFree": true,
+      "website": "http://www.tv5news.in/",
+      "priority": 5
+    },
+    {
+      "name": "TV9 Bangla",
+      "isFree": true,
+      "website": "https://www.tv9bangla.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV9 Bharatvarsh",
+      "isFree": true,
+      "website": "https://www.tv9hindi.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV9 Gujarati",
+      "isFree": true,
+      "website": "https://tv9gujarati.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV9 Marathi",
+      "isFree": true,
+      "website": "https://www.tv9marathi.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV9 Tamil",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Udaya News",
+      "isFree": true,
+      "website": "http://www.sunnetwork.in/tv-channel-details.aspx?Channelid=31&channelname=UDAYA%20NEWS&LanguageID=3&Type=3",
+      "priority": 5
+    },
+    {
+      "name": "V6 News",
+      "isFree": true,
+      "website": "https://www.v6velugu.com/",
+      "priority": 5
+    },
+    {
+      "name": "VBC News",
+      "isFree": true,
+      "website": "https://vbcnewsthodupuzha.com/",
+      "priority": 5
+    },
+    {
+      "name": "Venad News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VIP News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vismaya News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vistaar News",
+      "isFree": true,
+      "website": "https://vistaarnews.com/",
+      "priority": 5
+    },
+    {
+      "name": "Vistara News",
+      "isFree": true,
+      "website": "https://vistaranews.com/",
+      "priority": 5
+    },
+    {
+      "name": "VTV News",
+      "isFree": true,
+      "website": "https://www.vtvgujarati.com/",
+      "priority": 5
+    },
+    {
+      "name": "WeatherSpy",
+      "isFree": true,
+      "website": "https://www.weatherspy.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Yoganadam News",
+      "isFree": true,
+      "website": "https://yoganadam.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zee 24 Ghanta",
+      "isFree": true,
+      "website": "https://zeenews.india.com/bengali/",
+      "priority": 5
+    },
+    {
+      "name": "Zee 24 Kalak",
+      "isFree": true,
+      "website": "https://zeenews.india.com/gujarati",
+      "priority": 5
+    },
+    {
+      "name": "Zee Bharat",
+      "isFree": true,
+      "website": "https://www.zee5.com/channels/details/zee-hindustan/0-9-zeehindustan",
+      "priority": 5
+    },
+    {
+      "name": "Zee Delhi NCR Haryana",
+      "isFree": true,
+      "website": "https://www.zee5.com/global/live-tv/zee-delhi-ncr-haryana/0-9-zeekalinganews",
+      "priority": 5
+    },
+    {
+      "name": "Zee Kannada News",
+      "isFree": true,
+      "website": "https://zeenews.india.com/kannada/",
+      "priority": 5
+    },
+    {
+      "name": "Zee Madhya Pradesh Chhattisgarh",
+      "isFree": true,
+      "website": "https://zeenews.india.com/hindi/india/madhya-pradesh-chhattisgarh",
+      "priority": 5
+    },
+    {
+      "name": "Zee Malayalam News",
+      "isFree": true,
+      "website": "https://zeenews.india.com/malayalam/",
+      "priority": 5
+    },
+    {
+      "name": "Zee Odisha",
+      "isFree": true,
+      "website": "https://zeenews.india.com/hindi/zeeodisha",
+      "priority": 5
+    },
+    {
+      "name": "Zee Punjab Haryana Himachal",
+      "isFree": true,
+      "website": "https://zeenews.india.com/hindi/zeephh",
+      "priority": 5
+    },
+    {
+      "name": "Zee Telugu News",
+      "isFree": true,
+      "website": "https://zeenews.india.com/telugu/",
+      "priority": 5
+    },
+    {
+      "name": "Zee Uttar Pradesh/Uttarakhand",
+      "isFree": true,
+      "website": "https://zeenews.india.com/hindi/india/up-uttarakhand",
+      "priority": 5
+    },
+    {
+      "name": "ZillarBarta News",
+      "isFree": true,
+      "website": "https://www.zillarbarta.com/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Akaram Kidz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cartoon Network India",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Animax",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cartoon Network",
+      "isFree": true,
+      "keywords": "cartoon network -hdplus -india",
+      "website": "http://www.cartoonnetworkindia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Cartoon Network HD+",
+      "isFree": true,
+      "website": "http://www.cartoonnetworkindia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Chintu",
+      "isFree": true,
+      "website": "http://www.sunnetwork.in/tv-channel-details.aspx?Channelid=41&channelname=Chintu%20TV&type=3",
+      "priority": 5
+    },
+    {
+      "name": "Chithiram",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Chutti",
+      "isFree": true,
+      "website": "http://www.sunnetwork.in/tv-channel-details.aspx?Channelid=14&channelname=CHUTTI%20TV&type=1",
+      "priority": 5
+    },
+    {
+      "name": "D2h Kids",
+      "isFree": true,
+      "website": "https://www.d2h.com/",
+      "priority": 5
+    },
+    {
+      "name": "Da Vinci Learning",
+      "isFree": true,
+      "website": "https://www.davincikids.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Discovery Kids",
+      "isFree": true,
+      "website": "http://dkids.co.in/",
+      "priority": 7
+    },
+    {
+      "name": "Disney",
+      "isFree": true,
+      "website": "http://disney.in/",
+      "priority": 5
+    },
+    {
+      "name": "Disney International",
+      "isFree": true,
+      "website": "http://www.disneyinternationalhd.com/",
+      "priority": 5
+    },
+    {
+      "name": "Disney Junior",
+      "isFree": true,
+      "website": "http://www.disney.in/disneyjunior/",
+      "priority": 5
+    },
+    {
+      "name": "Disney Stories",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ETV Bala Bharat Malayalam",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ETV Bala Bharat Tamil",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ETV Bal Bharat",
+      "isFree": true,
+      "keywords": "etv bal bharat -gujarati -hindi -kannada -marathi -punjabi -telugu",
+      "priority": 5
+    },
+    {
+      "name": "ETV Bal Bharat Gujarati",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ETV Bal Bharat Hindi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ETV Bal Bharat Kannada",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ETV Bal Bharat Marathi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ETV Bal Bharat Punjabi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ETV Bal Bharat Telugu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ETV Balya Bharat Assamese",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ETV Balya Bharat Bangla",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ETV Balya Bharat Odia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gubbare",
+      "isFree": true,
+      "website": "https://www.in10media.com/gubbare",
+      "priority": 5
+    },
+    {
+      "name": "Hungama",
+      "isFree": true,
+      "website": "https://hungamatv.ga/",
+      "priority": 5
+    },
+    {
+      "name": "Kochu",
+      "isFree": true,
+      "website": "http://www.sunnetwork.in/tv-channel-details.aspx?Channelid=40&channelname=Kochu%20Tv&type=4",
+      "priority": 5
+    },
+    {
+      "name": "Kushi",
+      "isFree": true,
+      "website": "http://www.sunnetwork.in/tv-channel-details.aspx?Channelid=43&channelname=KUSHI%20TV&type=2",
+      "priority": 5
+    },
+    {
+      "name": "Nickelodeon",
+      "isFree": true,
+      "website": "http://www.nickindia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nick HD+",
+      "isFree": true,
+      "website": "http://www.nickindia.com/hdplus/",
+      "priority": 5
+    },
+    {
+      "name": "Nick Jr.",
+      "isFree": true,
+      "website": "http://nickjrindia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Pogo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sonic",
+      "isFree": true,
+      "website": "http://www.sonicgang.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sony Yay!",
+      "isFree": true,
+      "website": "https://www.sonyyay.com/",
+      "priority": 5
+    },
+    {
+      "name": "Super Hungama",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tata Sky Kids Cinema",
+      "isFree": true,
+      "website": "https://www.tatasky.com/wps/portal/TataSky/services/tata-sky-kids-cinema",
+      "priority": 5
+    },
+    {
+      "name": "ZB Cartoon",
+      "isFree": true,
+      "website": "https://www.zillarbarta.com/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "DD Sports",
+      "priority": 10
+    },
+    {
+      "name": "1 Sports",
+      "isFree": true,
+      "website": "https://1sport.in/",
+      "priority": 10
+    },
+    {
+      "name": "ESPN",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Eurosport",
+      "isFree": true,
+      "website": "https://eurosport.co.in/",
+      "priority": 10
+    },
+    {
+      "name": "Neo Sports",
+      "isFree": true,
+      "website": "http://www.neosports.tv/NeoSportsMain.aspx",
+      "priority": 10
+    },
+    {
+      "name": "Sony Sports Ten",
+      "isFree": true,
+      "website": "https://www.sonysportsnetwork.com/",
+      "priority": 10
+    },
+    {
+      "name": "Sony Sports Ten 2",
+      "isFree": true,
+      "website": "https://www.sonysportsnetwork.com/",
+      "priority": 10
+    },
+    {
+      "name": "Sony Sports Ten 3 Hindi",
+      "isFree": true,
+      "website": "https://www.sonysportsnetwork.com/",
+      "priority": 10
+    },
+    {
+      "name": "Sony Sports Ten 4",
+      "isFree": true,
+      "website": "https://www.sonysportsnetwork.com/",
+      "priority": 10
+    },
+    {
+      "name": "Sony Sports Ten 5",
+      "isFree": true,
+      "website": "https://www.sonysportsnetwork.com/",
+      "priority": 10
+    },
+    {
+      "name": "Star Sports",
+      "isFree": true,
+      "keywords": "star sports 1 -bangla -hindi -kannada -marathi -tamil -telugu",
+      "website": "https://www.startv.com/about-us/sports",
+      "priority": 10
+    },
+    {
+      "name": "Star Sports 1 Bangla",
+      "isFree": true,
+      "website": "https://www.startv.com/about-us/sports",
+      "priority": 10
+    },
+    {
+      "name": "Star Sports 1 Hindi",
+      "isFree": true,
+      "website": "https://www.startv.com/about-us/sports",
+      "priority": 10
+    },
+    {
+      "name": "Star Sports 1 Kannada",
+      "isFree": true,
+      "website": "https://www.startv.com/about-us/sports",
+      "priority": 10
+    },
+    {
+      "name": "Star Sports 1 Marathi",
+      "isFree": true,
+      "website": "https://www.startv.com/about-us/sports",
+      "priority": 10
+    },
+    {
+      "name": "Star Sports 1 Tamil",
+      "isFree": true,
+      "website": "https://www.startv.com/about-us/sports",
+      "priority": 10
+    },
+    {
+      "name": "Star Sports 1 Telugu",
+      "isFree": true,
+      "website": "https://www.startv.com/about-us/sports",
+      "priority": 10
+    },
+    {
+      "name": "Star Sports 2",
+      "isFree": true,
+      "keywords": "star sports 2 -hindi -kannada -tamil -telugu",
+      "website": "https://www.startv.com/about-us/sports",
+      "priority": 10
+    },
+    {
+      "name": "Star Sports 2 Hindi",
+      "isFree": true,
+      "website": "https://jiohotstar.com/",
+      "priority": 10
+    },
+    {
+      "name": "Star Sports 2 Kannada",
+      "isFree": true,
+      "website": "https://www.startv.com/about-us/sports/",
+      "priority": 10
+    },
+    {
+      "name": "Star Sports 2 Tamil",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Star Sports 2 Telugu",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Star Sports 3",
+      "isFree": true,
+      "website": "https://www.startv.com/about-us/sports",
+      "priority": 10
+    },
+    {
+      "name": "Star Sports Khel",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Star Sports Select",
+      "isFree": true,
+      "website": "https://www.startv.com/about-us/sports/",
+      "priority": 10
+    },
+    {
+      "name": "Star Sports Select 2",
+      "isFree": true,
+      "website": "https://www.startv.com/about-us/sports/",
+      "priority": 10
+    },
+    {
+      "name": "Ten Cricket",
+      "isFree": true,
+      "website": "https://www.sonypicturessportsnetwork.com/",
+      "priority": 5
+    }
+  ],
+  "Comedy": [
+    {
+      "name": "Kalaignar Sirippoli",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Local": [
+    {
+      "name": "Next TV Malabar",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Shubhsandesh",
+      "isFree": true,
+      "website": "https://www.shubhsandeshtv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Sri Sankara",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Aadinath",
+      "isFree": true,
+      "website": "https://aadinathtv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Aaseervatham",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Aastha",
+      "isFree": true,
+      "keywords": "aastha -bhajan -gujarati -international -kannada -prime -1 -2 -tamil -telugu",
+      "website": "http://www.aasthatv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Aastha Bhajan",
+      "isFree": true,
+      "website": "http://www.aasthatv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Aastha Gujarati",
+      "isFree": true,
+      "website": "http://www.aasthatv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Aastha International",
+      "isFree": true,
+      "website": "http://www.aasthatv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Aastha Kannada",
+      "isFree": true,
+      "website": "http://www.aasthatv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Aastha Prime",
+      "isFree": true,
+      "website": "http://www.aasthatv.tv/",
+      "priority": 6
+    },
+    {
+      "name": "Aastha Prime 2",
+      "isFree": true,
+      "website": "http://www.aasthatv.tv/",
+      "priority": 6
+    },
+    {
+      "name": "Aastha Tamil",
+      "isFree": true,
+      "website": "http://www.aasthatv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Aastha Telugu",
+      "isFree": true,
+      "website": "http://www.aasthatv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Adhyatm",
+      "isFree": true,
+      "website": "https://www.adhyatmhd.com/",
+      "priority": 4
+    },
+    {
+      "name": "Anand",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Angel",
+      "isFree": true,
+      "website": "https://www.angeltv.org/Africa.php?gmt=3",
+      "priority": 4
+    },
+    {
+      "name": "Aradana",
+      "isFree": true,
+      "website": "http://www.aradanatv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Arihant",
+      "isFree": true,
+      "website": "https://www.aasthatv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Awakening",
+      "isFree": true,
+      "website": "https://awakeningtv.in/",
+      "priority": 4
+    },
+    {
+      "name": "Bhakthi",
+      "isFree": true,
+      "website": "http://www.bhakthitv.in/",
+      "priority": 4
+    },
+    {
+      "name": "Bhakti Sagar",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Blessing TV Tamil",
+      "isFree": true,
+      "website": "http://www.blessingtv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "CVR OM Spiritual",
+      "isFree": true,
+      "website": "http://www.cvrinfo.com/omspiritual.html",
+      "priority": 4
+    },
+    {
+      "name": "Darshan 24",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Dharm Sandesh",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Dharsan",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Dheeran",
+      "isFree": true,
+      "website": "https://dheeran.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Divyavani",
+      "isFree": true,
+      "website": "http://www.divyavani.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Fateh",
+      "isFree": true,
+      "website": "https://www.fatehtvonline.com/",
+      "priority": 4
+    },
+    {
+      "name": "Goodness",
+      "isFree": true,
+      "website": "https://www.goodnesstv.in/about",
+      "priority": 4
+    },
+    {
+      "name": "GoodNews",
+      "isFree": true,
+      "website": "https://goodnewstelevision.com/",
+      "priority": 4
+    },
+    {
+      "name": "Good Shepherd",
+      "isFree": true,
+      "website": "https://goodshepherd.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Gospel TV India",
+      "isFree": true,
+      "website": "http://gospeltvindia.com/",
+      "priority": 4
+    },
+    {
+      "name": "Grace Family",
+      "isFree": true,
+      "website": "https://www.gracefamilytv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Grace",
+      "isFree": true,
+      "website": "http://gracetv.co/",
+      "priority": 4
+    },
+    {
+      "name": "Gregorian",
+      "isFree": true,
+      "website": "https://www.gregoriantv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Hare Krsna",
+      "isFree": true,
+      "website": "https://www.harekrsnatv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Harvest",
+      "isFree": true,
+      "keywords": "harvest tv -keralam",
+      "website": "https://harvesttv.in/",
+      "priority": 4
+    },
+    {
+      "name": "Harvest TV Keralam",
+      "isFree": true,
+      "website": "https://www.harvesttvkeralam.live/",
+      "priority": 4
+    },
+    {
+      "name": "Harvest USA",
+      "isFree": true,
+      "website": "https://harvesttv.in/harvest-usa-2/",
+      "priority": 4
+    },
+    {
+      "name": "Harvest Worship",
+      "isFree": true,
+      "website": "https://harvesttv.in/harvest-arabia/",
+      "priority": 4
+    },
+    {
+      "name": "Hebron",
+      "isFree": true,
+      "website": "https://hebrontv.in/",
+      "priority": 4
+    },
+    {
+      "name": "Hindu Dharmam",
+      "isFree": true,
+      "website": "http://www.hindudharmam.in/",
+      "priority": 4
+    },
+    {
+      "name": "Hope Channel India",
+      "isFree": true,
+      "website": "http://hopetvindia.org/",
+      "priority": 4
+    },
+    {
+      "name": "IPlus",
+      "isFree": true,
+      "website": "https://www.iplustv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Ishwar Bhakti",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Jehovah",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Jigyasa",
+      "isFree": true,
+      "website": "https://jigyasatv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Jinvani",
+      "isFree": true,
+      "website": "https://www.jinvanichannel.com/",
+      "priority": 4
+    },
+    {
+      "name": "Jothi",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Jyotish Duniya",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Kaatyayani",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Madha",
+      "isFree": true,
+      "website": "http://madhatv.in/",
+      "priority": 4
+    },
+    {
+      "name": "Mangal Kalash",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Mangalmay",
+      "isFree": true,
+      "website": "https://ashram.org/live/",
+      "priority": 4
+    },
+    {
+      "name": "Manna",
+      "isFree": true,
+      "website": "https://manna.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Mercy",
+      "isFree": true,
+      "website": "https://mercytv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "MH One Shraddha",
+      "isFree": true,
+      "website": "https://shraddha.mhone.in/",
+      "priority": 4
+    },
+    {
+      "name": "Nambikkai",
+      "isFree": true,
+      "website": "https://nambikkaitv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Nireekshana",
+      "isFree": true,
+      "website": "http://www.nireekshana.tv/",
+      "priority": 4
+    },
+    {
+      "name": "OM",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Paras Gold",
+      "isFree": true,
+      "website": "http://www.parastvchannel.com/",
+      "priority": 4
+    },
+    {
+      "name": "Paras",
+      "isFree": true,
+      "website": "http://www.parastvchannel.com/",
+      "priority": 4
+    },
+    {
+      "name": "Peace of Mind",
+      "isFree": true,
+      "website": "https://www.pmtv.in/",
+      "priority": 4
+    },
+    {
+      "name": "PMC Telugu",
+      "isFree": true,
+      "website": "https://www.pmconlinetv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Powervision",
+      "isFree": true,
+      "website": "https://www.powervisiontv.com/",
+      "priority": 4
+    },
+    {
+      "name": "PTC Simran",
+      "isFree": true,
+      "website": "https://www.ptcnetwork.com/channel/",
+      "priority": 4
+    },
+    {
+      "name": "Sadhna",
+      "isFree": true,
+      "keywords": "sadhna -news -madhya -pradesh -chhattisgarh -tv -plus",
+      "website": "http://www.sadhna.com/",
+      "priority": 4
+    },
+    {
+      "name": "Sadvidya",
+      "isFree": true,
+      "website": "http://www.sadvidyatv.in/",
+      "priority": 4
+    },
+    {
+      "name": "Salvation",
+      "isFree": true,
+      "website": "https://salvationtv.in/",
+      "priority": 4
+    },
+    {
+      "name": "Sankara",
+      "isFree": true,
+      "website": "https://www.srisankaratv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Sanskar",
+      "isFree": true,
+      "website": "https://app.sanskargroup.in/",
+      "priority": 4
+    },
+    {
+      "name": "Sanskar UK",
+      "isFree": true,
+      "website": "https://app.sanskargroup.in/",
+      "priority": 4
+    },
+    {
+      "name": "Sanskar USA",
+      "isFree": true,
+      "website": "https://app.sanskargroup.in/",
+      "priority": 4
+    },
+    {
+      "name": "Sanskar Web",
+      "isFree": true,
+      "website": "https://app.sanskargroup.in/",
+      "priority": 4
+    },
+    {
+      "name": "Sanskruti",
+      "isFree": true,
+      "website": "http://www.sanskruti.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Satsang Web",
+      "isFree": true,
+      "website": "https://app.sanskargroup.in/",
+      "priority": 4
+    },
+    {
+      "name": "Shalom",
+      "isFree": true,
+      "website": "https://shalomtv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Sidharth Bhakti",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Soham",
+      "isFree": true,
+      "website": "http://www.transmediaindia.com/soham/",
+      "priority": 4
+    },
+    {
+      "name": "Subhavaartha",
+      "isFree": true,
+      "website": "http://www.subhavaarthatv.com/",
+      "priority": 4
+    },
+    {
+      "name": "SVBC",
+      "isFree": true,
+      "keywords": "svbc -2 -3 -4",
+      "website": "http://www.svbcttd.com/SVBC%20LIVE%20TV.html",
+      "priority": 4
+    },
+    {
+      "name": "SVBC 2",
+      "isFree": true,
+      "website": "http://www.svbcttd.com/SVBC_LIVE_TAMIL.html",
+      "priority": 4
+    },
+    {
+      "name": "SVBC 3",
+      "isFree": true,
+      "website": "http://www.svbcttd.com/tv3.html",
+      "priority": 4
+    },
+    {
+      "name": "SVBC 4",
+      "isFree": true,
+      "website": "http://www.svbcttd.com/TV4.html",
+      "priority": 4
+    },
+    {
+      "name": "Total Bhakti",
+      "isFree": true,
+      "website": "https://app.sanskargroup.in/",
+      "priority": 4
+    },
+    {
+      "name": "Vedic",
+      "isFree": true,
+      "website": "https://www.aasthatv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Zainabia",
+      "isFree": true,
+      "website": "https://www.zainabiachannel.co.in/",
+      "priority": 4
+    },
+    {
+      "name": "ZB Bhakti",
+      "isFree": true,
+      "website": "https://www.zillarbarta.com/",
+      "priority": 4
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "&Flix",
+      "priority": 5
+    },
+    {
+      "name": "B4U Bhojpuri",
+      "priority": 5
+    },
+    {
+      "name": "B4U Hitz",
+      "priority": 5
+    },
+    {
+      "name": "B4U Kadak",
+      "priority": 5
+    },
+    {
+      "name": "B4U Plus",
+      "priority": 5
+    },
+    {
+      "name": "B4U movies",
+      "priority": 5
+    },
+    {
+      "name": "Bhojpuri Cinema",
+      "priority": 5
+    },
+    {
+      "name": "Box Cinema",
+      "priority": 5
+    },
+    {
+      "name": "Dhinchaak",
+      "keywords": "dhinchaak -2",
+      "priority": 5
+    },
+    {
+      "name": "Dhinchaak 2",
+      "priority": 5
+    },
+    {
+      "name": "KCV Movies",
+      "priority": 5
+    },
+    {
+      "name": "Maha Movie",
+      "priority": 5
+    },
+    {
+      "name": "Manoranjan Grand",
+      "priority": 5
+    },
+    {
+      "name": "Manoranjan Movies",
+      "priority": 5
+    },
+    {
+      "name": "Nee Cinema",
+      "priority": 5
+    },
+    {
+      "name": "Public Movies",
+      "priority": 5
+    },
+    {
+      "name": "Star Cinema",
+      "priority": 5
+    },
+    {
+      "name": "Studio One Plus",
+      "priority": 5
+    },
+    {
+      "name": "Studio One Yuva",
+      "priority": 5
+    },
+    {
+      "name": "Uthradam Movies",
+      "priority": 5
+    },
+    {
+      "name": "Utsav Gold",
+      "priority": 5
+    },
+    {
+      "name": "Wow Cinema One",
+      "priority": 5
+    },
+    {
+      "name": "Yupp Thirai",
+      "priority": 5
+    },
+    {
+      "name": "Zee Action",
+      "priority": 5
+    },
+    {
+      "name": "Zee Anmol Cinema",
+      "priority": 5
+    },
+    {
+      "name": "Zee Bangla",
+      "keywords": "zee bangla -cinema",
+      "priority": 5
+    },
+    {
+      "name": "Zee Bangla Cinema",
+      "priority": 5
+    },
+    {
+      "name": "Zee Bollywood",
+      "priority": 5
+    },
+    {
+      "name": "Zee Cinema",
+      "keywords": "zee cinema -middle -east -uk -usa",
+      "priority": 5
+    },
+    {
+      "name": "Zee Cinema Middle East",
+      "priority": 5
+    },
+    {
+      "name": "Zee Cinema UK",
+      "priority": 5
+    },
+    {
+      "name": "Zee Cinema USA",
+      "priority": 5
+    },
+    {
+      "name": "Zee Mundo",
+      "priority": 5
+    },
+    {
+      "name": "Abzy Cool",
+      "isFree": true,
+      "website": "https://abzy.com/",
+      "priority": 5
+    },
+    {
+      "name": "Abzy Dhakad",
+      "isFree": true,
+      "website": "https://abzy.com/",
+      "priority": 5
+    },
+    {
+      "name": "Abzy Movies",
+      "isFree": true,
+      "website": "https://abzy.com/",
+      "priority": 5
+    },
+    {
+      "name": "ADN Gold",
+      "isFree": true,
+      "website": "https://www.hotstar.com/ca",
+      "priority": 5
+    },
+    {
+      "name": "Airtel Movies",
+      "isFree": true,
+      "website": "https://www.airtel.in/",
+      "priority": 5
+    },
+    {
+      "name": "Airtel Movies 2",
+      "isFree": true,
+      "website": "https://www.airtel.in/",
+      "priority": 5
+    },
+    {
+      "name": "Airtel Movies 3",
+      "isFree": true,
+      "website": "https://www.airtel.in/",
+      "priority": 5
+    },
+    {
+      "name": "Alankar",
+      "isFree": true,
+      "website": "https://www.tarangplus.in/all-channels/alankar",
+      "priority": 5
+    },
+    {
+      "name": "All Time Movies",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Anandham",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "&pictures",
+      "isFree": true,
+      "website": "https://andtv.zee5.com/",
+      "priority": 5
+    },
+    {
+      "name": "&prive",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "&TV",
+      "isFree": true,
+      "website": "https://andtv.zee5.com/",
+      "priority": 5
+    },
+    {
+      "name": "&xplor",
+      "isFree": true,
+      "website": "https://andtv.zee5.com/",
+      "priority": 5
+    },
+    {
+      "name": "Anmol Cinema",
+      "isFree": true,
+      "keywords": "anmol cinema -2",
+      "website": "https://www.zee5.com/live-tv/anmol-cinema/0-9-zeeanmolcinema",
+      "priority": 5
+    },
+    {
+      "name": "Anmol Cinema 2",
+      "isFree": true,
+      "website": "https://www.zee5.com/tv-shows/zee-anmol-cinema-2/0-9-bigganga",
+      "priority": 5
+    },
+    {
+      "name": "Asianet Movies",
+      "isFree": true,
+      "website": "https://www.asianet.co.in/",
+      "priority": 5
+    },
+    {
+      "name": "AXN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bangla Talkies",
+      "isFree": true,
+      "website": "http://banglatalkies.com/",
+      "priority": 5
+    },
+    {
+      "name": "Bflix+ Movies",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cine 21",
+      "isFree": true,
+      "website": "http://www.cine21tv.in/",
+      "priority": 5
+    },
+    {
+      "name": "Cinema",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Colors Bangla Cinema",
+      "isFree": true,
+      "website": "https://www.colorstv.com/us/",
+      "priority": 5
+    },
+    {
+      "name": "Colors Cineplex",
+      "isFree": true,
+      "keywords": "colors cineplex -bollywood -superhits",
+      "website": "https://www.colorstv.com/us/",
+      "priority": 5
+    },
+    {
+      "name": "Colors Cineplex Bollywood",
+      "isFree": true,
+      "website": "https://www.colorstv.com/us/",
+      "priority": 5
+    },
+    {
+      "name": "Colors Cineplex Superhits",
+      "isFree": true,
+      "website": "https://www.colorstv.com/us/",
+      "priority": 5
+    },
+    {
+      "name": "Colors Gujarati Cinema",
+      "isFree": true,
+      "website": "https://www.colorstv.com/us/",
+      "priority": 5
+    },
+    {
+      "name": "Colors Kannada Cinema",
+      "isFree": true,
+      "website": "https://www.colorstv.com/us/",
+      "priority": 5
+    },
+    {
+      "name": "D2h Cinema",
+      "isFree": true,
+      "website": "https://www.d2h.com/",
+      "priority": 5
+    },
+    {
+      "name": "D2h Hollywood",
+      "isFree": true,
+      "website": "https://www.d2h.com/",
+      "priority": 5
+    },
+    {
+      "name": "D2h Movies",
+      "isFree": true,
+      "website": "https://www.d2h.com/",
+      "priority": 5
+    },
+    {
+      "name": "D2h Movies 2",
+      "isFree": true,
+      "website": "https://www.d2h.com/",
+      "priority": 5
+    },
+    {
+      "name": "Dhamaka Movies B4U",
+      "isFree": true,
+      "website": "http://b4uplus.com/",
+      "priority": 5
+    },
+    {
+      "name": "Enterr 10 Movies",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ETV Cinema",
+      "isFree": true,
+      "website": "http://www.etv.co.in/channels/home?channelId=8",
+      "priority": 5
+    },
+    {
+      "name": "Filamchi",
+      "isFree": true,
+      "keywords": "filamchi -bhojpuri",
+      "priority": 5
+    },
+    {
+      "name": "Filamchi Bhojpuri",
+      "isFree": true,
+      "website": "https://www.epicon.in/live-tv/filamchi-live-tv",
+      "priority": 5
+    },
+    {
+      "name": "Filmy",
+      "isFree": true,
+      "website": "http://www.sahara-one.com/",
+      "priority": 5
+    },
+    {
+      "name": "FOX Life",
+      "isFree": true,
+      "website": "https://www.disneystar.com/",
+      "priority": 5
+    },
+    {
+      "name": "Gemini Movies",
+      "isFree": true,
+      "website": "http://www.sunnetwork.in/tv-channel-details.aspx?Channelid=26&channelname=GEMINI%20MOVIES&LanguageID=2&Type=2",
+      "priority": 5
+    },
+    {
+      "name": "Goldmines",
+      "isFree": true,
+      "keywords": "goldmines -movies",
+      "priority": 5
+    },
+    {
+      "name": "Goldmines Movies",
+      "isFree": true,
+      "website": "https://goldmines.co.in",
+      "priority": 5
+    },
+    {
+      "name": "Indradhanu",
+      "isFree": true,
+      "website": "http://www.indradhanutv.org/",
+      "priority": 5
+    },
+    {
+      "name": "Indywood",
+      "isFree": true,
+      "website": "https://indywood.co.in/",
+      "priority": 5
+    },
+    {
+      "name": "Jalsha Movies",
+      "isFree": true,
+      "website": "http://www.jalshamovies.com/",
+      "priority": 5
+    },
+    {
+      "name": "Jaya Movie",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "J Movie",
+      "isFree": true,
+      "website": "http://jayamovies.jayatvnetwork.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kannada Cinema Club",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KTV",
+      "isFree": true,
+      "keywords": "ktv -bangla",
+      "website": "http://www.sunnetwork.in/tv-channel-details.aspx?Channelid=3&channelname=KTV&LanguageID=1&Type=1",
+      "priority": 5
+    },
+    {
+      "name": "Malayalam Cinema Club",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MBO",
+      "isFree": true,
+      "website": "https://www.yupptv.com/channels/mbo",
+      "priority": 5
+    },
+    {
+      "name": "MNX",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Movie on Demand",
+      "isFree": true,
+      "website": "http://www.dishtv.in/movie-on-demand.aspx",
+      "priority": 5
+    },
+    {
+      "name": "Movie on Demand 2",
+      "isFree": true,
+      "website": "http://www.dishtv.in/movie-on-demand.aspx",
+      "priority": 5
+    },
+    {
+      "name": "Movie on Demand Non Stop",
+      "isFree": true,
+      "website": "http://www.dishtv.in/movie-on-demand.aspx",
+      "priority": 5
+    },
+    {
+      "name": "MoviePlex",
+      "isFree": true,
+      "website": "http://indianfashion.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Movies Now",
+      "isFree": true,
+      "keywords": "movies now -plus",
+      "priority": 5
+    },
+    {
+      "name": "Movies Now +",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pitaara",
+      "isFree": true,
+      "keywords": "pitaara -international",
+      "priority": 5
+    },
+    {
+      "name": "Pitaara International",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pravah Picture",
+      "isFree": true,
+      "website": "https://www.hotstar.com/channels/star-pravah",
+      "priority": 5
+    },
+    {
+      "name": "Raj Digital Plus",
+      "isFree": true,
+      "website": "http://www.rajtvnet.in/",
+      "priority": 5
+    },
+    {
+      "name": "Rishtey Cineplex",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Roja Movies",
+      "isFree": true,
+      "website": "https://rojatv.godaddysites.com",
+      "priority": 5
+    },
+    {
+      "name": "Romedy Now",
+      "isFree": true,
+      "website": "http://www.romedynow.com/",
+      "priority": 5
+    },
+    {
+      "name": "Shemaroo Josh",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Shubh Cinema",
+      "isFree": true,
+      "website": "https://app.sanskargroup.in/",
+      "priority": 5
+    },
+    {
+      "name": "Sony Max",
+      "isFree": true,
+      "keywords": "sony max -2",
+      "website": "https://www.sonymax.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Sony Max 2",
+      "isFree": true,
+      "website": "https://www.sonymax2.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Sony Pix",
+      "isFree": true,
+      "keywords": "sony pix -south -asia",
+      "website": "http://www.sonypix.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sony Pix South Asia",
+      "isFree": true,
+      "website": "http://www.sonypix.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sony Wah",
+      "isFree": true,
+      "website": "https://www.sonywah.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Star Gold",
+      "isFree": true,
+      "keywords": "star gold -2 -romance -select -thrills",
+      "website": "https://hotstar.com/",
+      "priority": 5
+    },
+    {
+      "name": "Star Gold 2",
+      "isFree": true,
+      "website": "https://hotstar.com/",
+      "priority": 5
+    },
+    {
+      "name": "Star Gold Romance",
+      "isFree": true,
+      "website": "https://hotstar.com/",
+      "priority": 5
+    },
+    {
+      "name": "Star Gold Select",
+      "isFree": true,
+      "website": "https://hotstar.com/",
+      "priority": 5
+    },
+    {
+      "name": "Star Gold Thrills",
+      "isFree": true,
+      "website": "https://hotstar.com/",
+      "priority": 5
+    },
+    {
+      "name": "Star Life Africa",
+      "isFree": true,
+      "website": "https://www.disneystar.com/",
+      "priority": 5
+    },
+    {
+      "name": "Star Maa Movies",
+      "isFree": true,
+      "website": "https://www.hotstar.com/in/channels/maa-movies",
+      "priority": 5
+    },
+    {
+      "name": "Star Movies",
+      "isFree": true,
+      "keywords": "star movies -action -select",
+      "website": "http://www.starmovies.in/",
+      "priority": 5
+    },
+    {
+      "name": "Star Movies Action",
+      "isFree": true,
+      "website": "http://www.starmovies.in/",
+      "priority": 5
+    },
+    {
+      "name": "Star Movies Select",
+      "isFree": true,
+      "website": "http://www.starmovies.in/",
+      "priority": 5
+    },
+    {
+      "name": "Star Suvarna Plus",
+      "isFree": true,
+      "website": "https://www.hotstar.com/channels/star-suvarna",
+      "priority": 5
+    },
+    {
+      "name": "Star Utsav Movies",
+      "isFree": true,
+      "website": "https://www.starttv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Star World Premiere",
+      "isFree": true,
+      "website": "http://premiere.starworld.in/",
+      "priority": 5
+    },
+    {
+      "name": "Studio One +",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Suriyan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Surya Cinema",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Surya Movies",
+      "isFree": true,
+      "website": "http://www.sunnetwork.in/tv-channel-details.aspx?Channelid=45&channelname=Surya%20Movies&LanguageID=4&Type=4",
+      "priority": 5
+    },
+    {
+      "name": "Tamil Cinema Club",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tata Play Bollywood Premiere",
+      "isFree": true,
+      "website": "https://www.tatasky.com/wps/portal/TataSky/tata-sky-bollywood-premiere",
+      "priority": 5
+    },
+    {
+      "name": "Tata Play Theatre",
+      "isFree": true,
+      "website": "https://www.tatasky.com/dth/services/entertainment/theatre",
+      "priority": 5
+    },
+    {
+      "name": "Tata Sky Bangla Cinema",
+      "isFree": true,
+      "website": "https://www.tatasky.com/wps/portal/TataSky/services/tata-sky-bangla-cinema",
+      "priority": 5
+    },
+    {
+      "name": "Tata Sky Classic Cinema",
+      "isFree": true,
+      "website": "https://www.tatasky.com/wps/portal/TataSky/tata-sky-classic-cinema",
+      "priority": 5
+    },
+    {
+      "name": "Tata Sky Marathi Cinema",
+      "isFree": true,
+      "website": "https://www.tatasky.com/wps/portal/TataSky/services/tata-sky-services-regional/tata-sky-marathi-cinema",
+      "priority": 5
+    },
+    {
+      "name": "Telugu Cinema Club",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Thalaa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tolly",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tollywood",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Udaya Movies",
+      "isFree": true,
+      "website": "http://www.sunnetwork.in/tv-channel-details.aspx?Channelid=28&channelname=UDAYA%20MOVIES&LanguageID=3&Type=3",
+      "priority": 5
+    },
+    {
+      "name": "Vaa Movies",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vijay Super",
+      "isFree": true,
+      "website": "https://www.hotstar.com/1260000018",
+      "priority": 5
+    },
+    {
+      "name": "ZB Cinema",
+      "isFree": true,
+      "website": "https://www.zillarbarta.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zee Biskope",
+      "isFree": true,
+      "website": "https://www.zee5.com/channels/details/zee-biskope/0-9-216",
+      "priority": 5
+    },
+    {
+      "name": "Zee Bollymovies",
+      "isFree": true,
+      "website": "https://www.zee5.com/live-tv",
+      "priority": 5
+    },
+    {
+      "name": "Zee Chitramandir",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Cine Classic",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Cinemalu",
+      "isFree": true,
+      "keywords": "zee cinemalu",
+      "website": "http://www.zeecinemalu.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zee Plex",
+      "isFree": true,
+      "website": "https://zeeplex.in/",
+      "priority": 5
+    },
+    {
+      "name": "Zee South Flix",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zee Thirai",
+      "isFree": true,
+      "website": "https://www.zee5.com/channels/zee-thirai/0-9-224",
+      "priority": 5
+    },
+    {
+      "name": "Z ETC Bollywood",
+      "isFree": true,
+      "website": "http://www.etc.in/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "7S Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "9X Jalwa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "9X Jhakaas",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "9XM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Artist Aloud",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "B4U Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Desi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dhamaal",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dil Se",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "I Love",
+      "isFree": true,
+      "keywords": "i love | ilove",
+      "priority": 5
+    },
+    {
+      "name": "Isai Aruvi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Jhanjar Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kadak Hits",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kalaignar Murasu",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MH1 Music",
+      "isFree": true,
+      "keywords": "mh 1 music | mh1 music",
+      "priority": 5,
+      "website": "https://music.mhone.in/"
+    },
+    {
+      "name": "Mastiii",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mtunes Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Music India",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nazrana",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Peppers",
+      "isFree": true,
+      "website": "http://pepperstv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Pop Pataka",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Public Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Real",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Relax",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sana Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Show Box",
+      "isFree": true,
+      "keywords": "show box | showbox",
+      "priority": 5
+    },
+    {
+      "name": "Steelbird Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Surya Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tunes 6",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vaanvavil",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "9X Tashan",
+      "isFree": true,
+      "website": "https://www.9xtashan.in/",
+      "priority": 5
+    },
+    {
+      "name": "Aaryaa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ACV Jukebox",
+      "isFree": true,
+      "website": "https://www.hotstar.com/in/channels/asianet",
+      "priority": 5
+    },
+    {
+      "name": "Adipoli",
+      "isFree": true,
+      "website": "https://www.hungama.com/live-tv/adipoli/90691326/",
+      "priority": 5
+    },
+    {
+      "name": "Aditya Music",
+      "isFree": true,
+      "website": "http://adityamusic.com/",
+      "priority": 5
+    },
+    {
+      "name": "Balle Balle",
+      "isFree": true,
+      "website": "https://balleballe.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Bindass",
+      "isFree": true,
+      "keywords": "bindass -play",
+      "priority": 5
+    },
+    {
+      "name": "Channel V",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Dhoom Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ETV Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gabroo",
+      "isFree": true,
+      "website": "https://gabroo.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Gemini Music",
+      "isFree": true,
+      "website": "http://www.sunnetwork.in/tv-channel-details.aspx?Channelid=34&channelname=GEMINI%20MUSIC&LanguageID=2&Type=2",
+      "priority": 5
+    },
+    {
+      "name": "Insync",
+      "isFree": true,
+      "website": "http://www.insyncmusic.net/",
+      "priority": 5
+    },
+    {
+      "name": "Kalika",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Marutam Music",
+      "isFree": true,
+      "website": "https://mntv.in/",
+      "priority": 5
+    },
+    {
+      "name": "Mega Musiq",
+      "isFree": true,
+      "website": "http://www.megatv.in/megamusic/index.html",
+      "priority": 5
+    },
+    {
+      "name": "M Tunes",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MTV Beats",
+      "isFree": true,
+      "website": "http://www.mtvbeats.in/",
+      "priority": 5
+    },
+    {
+      "name": "Mu Odia",
+      "isFree": true,
+      "website": "http://www.muodiatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Music Fatafati",
+      "isFree": true,
+      "website": "http://www.fatafati.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Music Zone",
+      "isFree": true,
+      "website": "https://www.szonline.in/",
+      "priority": 5
+    },
+    {
+      "name": "Nazrana Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Orange Bangla",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pepsi MTV Indies",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "PTC Chakde",
+      "isFree": true,
+      "website": "http://www.ptcnetwork.tv/ptc-chakde/",
+      "priority": 5
+    },
+    {
+      "name": "PTC Dhol",
+      "isFree": true,
+      "website": "http://ptcnetwork.com/",
+      "priority": 5
+    },
+    {
+      "name": "PTC Music",
+      "isFree": true,
+      "website": "https://www.ptcnetwork.com/channel/",
+      "priority": 5
+    },
+    {
+      "name": "Punjabi Hits",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Raj Musix Kannada",
+      "isFree": true,
+      "website": "http://www.rajkanada.in/",
+      "priority": 5
+    },
+    {
+      "name": "Raj Musix Malayalam",
+      "isFree": true,
+      "website": "http://www.rajtvnet.in/",
+      "priority": 5
+    },
+    {
+      "name": "Raj Musix Tamil",
+      "isFree": true,
+      "website": "http://www.rajtvnet.in/",
+      "priority": 5
+    },
+    {
+      "name": "Raj Musix Telugu",
+      "isFree": true,
+      "website": "http://www.rajtvnet.in/",
+      "priority": 5
+    },
+    {
+      "name": "Sangeet Bangla",
+      "isFree": true,
+      "website": "https://www.sangeetbangla.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sangeet Bhojpuri",
+      "isFree": true,
+      "website": "https://www.sangeetbhojpuri.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sangeet Marathi",
+      "isFree": true,
+      "website": "https://www.sangeetmarathi.com/",
+      "priority": 5
+    },
+    {
+      "name": "Songdew",
+      "isFree": true,
+      "website": "https://songdew.com/songdew-tv",
+      "priority": 5
+    },
+    {
+      "name": "Sony Mix",
+      "isFree": true,
+      "website": "http://sonymix.tv/index.php",
+      "priority": 5
+    },
+    {
+      "name": "Star Maa Music",
+      "isFree": true,
+      "website": "https://www.hotstar.com/in/channels/star-maa",
+      "priority": 5
+    },
+    {
+      "name": "Sun Music",
+      "isFree": true,
+      "website": "http://www.sunnetwork.in/tv-channel-details.aspx?Channelid=9&channelname=SUN%20MUSIC&LanguageID=1&Type=1",
+      "priority": 5
+    },
+    {
+      "name": "Tabbar Hits",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tarang Music",
+      "isFree": true,
+      "website": "https://www.tarangplus.in/all-channels/tarang-music",
+      "priority": 5
+    },
+    {
+      "name": "Tata Sky Music+",
+      "isFree": true,
+      "website": "https://www.tatasky.com/wps/portal/TataSky/footerpages/mediaroom/TataSkyMusicPlus/",
+      "priority": 5
+    },
+    {
+      "name": "Udaya Music",
+      "isFree": true,
+      "website": "http://www.sunnetwork.in/tv-channel-details.aspx?Channelid=29&channelname=UDAYA%20MUSIC&LanguageID=3&Type=3",
+      "priority": 5
+    },
+    {
+      "name": "Ultimate",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VH",
+      "isFree": true,
+      "website": "http://www.vh1.in/",
+      "priority": 5
+    },
+    {
+      "name": "Vijay Takkar",
+      "isFree": true,
+      "website": "https://www.hotstar.com/1260000018",
+      "priority": 5
+    },
+    {
+      "name": "YRF Music",
+      "isFree": true,
+      "website": "https://www.yashrajfilms.com/divisions/yrf-digital/yrf-music-fast-channel",
+      "priority": 5
+    },
+    {
+      "name": "ZB Music",
+      "isFree": true,
+      "website": "https://www.zillarbarta.com/",
+      "priority": 5
+    },
+    {
+      "name": "Zing!",
+      "isFree": true,
+      "website": "http://www.zingtv.in/",
+      "priority": 5
+    },
+    {
+      "name": "Zoom",
+      "isFree": true,
+      "website": "https://www.zoomtventertainment.com/live-tv",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Ayush",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KITE Victers",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kappa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Andy Haryana",
+      "isFree": true,
+      "website": "http://www.andyharyana.com/",
+      "priority": 5
+    },
+    {
+      "name": "Animal Planet",
+      "isFree": true,
+      "website": "https://animalplanet.in/",
+      "priority": 5
+    },
+    {
+      "name": "BVG",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DD Bharati",
+      "isFree": true,
+      "website": "https://prasarbharati.gov.in/doordarshan/",
+      "priority": 5
+    },
+    {
+      "name": "DD Kisan",
+      "isFree": true,
+      "website": "https://prasarbharati.gov.in/dd-kisan-homepage/",
+      "priority": 5
+    },
+    {
+      "name": "DD Puducherry",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "DD Punjabi",
+      "isFree": true,
+      "website": "https://prasarbharati.gov.in/dd-punjabi-homepage/",
+      "priority": 5
+    },
+    {
+      "name": "Digi Shala",
+      "isFree": true,
+      "website": "http://cashlessindia.gov.in/digishala-educational-tv-channel-for-digital-payments-on-dd-free-dish.html",
+      "priority": 5
+    },
+    {
+      "name": "Dr Shuddhi",
+      "isFree": true,
+      "website": "https://shuddhi.com/",
+      "priority": 5
+    },
+    {
+      "name": "E-Vidya",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/index.php/schooledu",
+      "priority": 5
+    },
+    {
+      "name": "E-Vidya 10",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/index.php/schooledu",
+      "priority": 5
+    },
+    {
+      "name": "E-Vidya 11",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/index.php/schooledu",
+      "priority": 5
+    },
+    {
+      "name": "E-Vidya 12",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/index.php/schooledu",
+      "priority": 5
+    },
+    {
+      "name": "E-Vidya 2",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/index.php/schooledu",
+      "priority": 5
+    },
+    {
+      "name": "E-Vidya 3",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/index.php/schooledu",
+      "priority": 5
+    },
+    {
+      "name": "E-Vidya 4",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/index.php/schooledu",
+      "priority": 5
+    },
+    {
+      "name": "E-Vidya 5",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/index.php/schooledu",
+      "priority": 5
+    },
+    {
+      "name": "E-Vidya 6",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/index.php/schooledu",
+      "priority": 5
+    },
+    {
+      "name": "E-Vidya 7",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/index.php/schooledu",
+      "priority": 5
+    },
+    {
+      "name": "E-Vidya 8",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/index.php/schooledu",
+      "priority": 5
+    },
+    {
+      "name": "E-Vidya 9",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/index.php/schooledu",
+      "priority": 5
+    },
+    {
+      "name": "Gyandarshan",
+      "isFree": true,
+      "website": "http://gd.ignouonline.ac.in/gyandarshan/",
+      "priority": 5
+    },
+    {
+      "name": "Gyandhara",
+      "isFree": true,
+      "website": "http://gd.ignouonline.ac.in/gyandhara/",
+      "priority": 5
+    },
+    {
+      "name": "History TV 18",
+      "isFree": true,
+      "website": "http://www.historyindia.com/",
+      "priority": 7
+    },
+    {
+      "name": "India TV Aap Ki Adalat",
+      "isFree": true,
+      "website": "https://www.indiatv.in/video/aap-ki-adalat",
+      "priority": 5
+    },
+    {
+      "name": "Investigation Discovery",
+      "isFree": true,
+      "website": "https://www.discoverychannel.co.in/",
+      "priority": 7
+    },
+    {
+      "name": "Jaya Max",
+      "isFree": true,
+      "website": "http://jayamax.jayatvnetwork.com/",
+      "priority": 5
+    },
+    {
+      "name": "Jaya Plus",
+      "isFree": true,
+      "website": "http://jayaplus.jayanewslive.com/Landing.aspx",
+      "priority": 5
+    },
+    {
+      "name": "Jaya",
+      "isFree": true,
+      "website": "http://www.jayatvnetwork.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kalvi",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MediBizTV",
+      "isFree": true,
+      "website": "https://www.medibiztv.com/live/",
+      "priority": 5
+    },
+    {
+      "name": "National Geographic",
+      "isFree": true,
+      "keywords": "national geographic -wild",
+      "website": "https://natgeotv.com/in",
+      "priority": 7
+    },
+    {
+      "name": "National Geographic Wild",
+      "isFree": true,
+      "website": "https://www.natgeotv.com/in/wild",
+      "priority": 7
+    },
+    {
+      "name": "Shiksha",
+      "isFree": true,
+      "website": "https://shikshatv.live/",
+      "priority": 5
+    },
+    {
+      "name": "Sony BBC Earth",
+      "isFree": true,
+      "website": "http://www.bbcasia.com/channels/earth/",
+      "priority": 5
+    },
+    {
+      "name": "Swayam Prabha",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Swayam Prabha 10",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Swayam Prabha 11",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Swayam Prabha 12",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Swayam Prabha 13",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Swayam Prabha 14",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Swayam Prabha 15",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Swayam Prabha 16",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Swayam Prabha 17",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Swayam Prabha 18",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Swayam Prabha 19",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Swayam Prabha 2",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Swayam Prabha 20",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Swayam Prabha 21",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Swayam Prabha 22",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Swayam Prabha 3",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Swayam Prabha 4",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Swayam Prabha 5",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Swayam Prabha 6",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Swayam Prabha 7",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Swayam Prabha 8",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Swayam Prabha 9",
+      "isFree": true,
+      "website": "https://www.swayamprabha.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Tata Sky Classroom",
+      "isFree": true,
+      "website": "https://www.tatasky.com/wps/portal/TataSky/tata-sky-classroom",
+      "priority": 5
+    },
+    {
+      "name": "Tata Sky English",
+      "isFree": true,
+      "website": "https://www.tatasky.com/wps/portal/TataSky/services/tataskyservices/tata-sky-english-language",
+      "priority": 5
+    },
+    {
+      "name": "Tata Sky Fun Learn",
+      "isFree": true,
+      "website": "https://www.tatasky.com/wps/portal/TataSky/services/tataskyservices/tata-sky-fun-learn",
+      "priority": 5
+    },
+    {
+      "name": "Tata Sky Videoshala",
+      "isFree": true,
+      "website": "http://www.tatasky.com/",
+      "priority": 5
+    },
+    {
+      "name": "Utkarsh Channel",
+      "isFree": true,
+      "website": "https://utkarsh.com/",
+      "priority": 5
+    },
+    {
+      "name": "Utkarsh Channel 2",
+      "isFree": true,
+      "website": "https://utkarsh.com/",
+      "priority": 5
+    },
+    {
+      "name": "Utkarsh Channel 3",
+      "isFree": true,
+      "website": "https://utkarsh.com/",
+      "priority": 5
+    },
+    {
+      "name": "Utkarsh Channel 4",
+      "isFree": true,
+      "website": "https://utkarsh.com/",
+      "priority": 5
+    },
+    {
+      "name": "Vande Gujarat",
+      "isFree": true,
+      "website": "http://bisag.gujarat.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Vande Gujarat 10",
+      "isFree": true,
+      "website": "http://bisag.gujarat.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Vande Gujarat 11",
+      "isFree": true,
+      "website": "http://bisag.gujarat.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Vande Gujarat 12",
+      "isFree": true,
+      "website": "http://bisag.gujarat.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Vande Gujarat 13",
+      "isFree": true,
+      "website": "http://bisag.gujarat.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Vande Gujarat 14",
+      "isFree": true,
+      "website": "http://bisag.gujarat.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Vande Gujarat 15",
+      "isFree": true,
+      "website": "http://bisag.gujarat.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Vande Gujarat 16",
+      "isFree": true,
+      "website": "http://bisag.gujarat.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Vande Gujarat 2",
+      "isFree": true,
+      "website": "http://bisag.gujarat.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Vande Gujarat 3",
+      "isFree": true,
+      "website": "http://bisag.gujarat.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Vande Gujarat 4",
+      "isFree": true,
+      "website": "http://bisag.gujarat.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Vande Gujarat 5",
+      "isFree": true,
+      "website": "http://bisag.gujarat.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Vande Gujarat 6",
+      "isFree": true,
+      "website": "http://bisag.gujarat.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Vande Gujarat 7",
+      "isFree": true,
+      "website": "http://bisag.gujarat.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Vande Gujarat 8",
+      "isFree": true,
+      "website": "http://bisag.gujarat.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Vande Gujarat 9",
+      "isFree": true,
+      "website": "http://bisag.gujarat.gov.in/",
+      "priority": 5
+    },
+    {
+      "name": "Vyas",
+      "isFree": true,
+      "website": "https://cec.nic.in/cec/vyas",
+      "priority": 5
+    }
+  ],
+  "Shop": [
+    {
+      "name": "Best Deal",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Channel 100 Gold",
+      "isFree": true,
+      "website": "https://www.tatasky.com/",
+      "priority": 4
+    },
+    {
+      "name": "Channel 100 Platinum",
+      "isFree": true,
+      "website": "https://www.tatasky.com/",
+      "priority": 4
+    },
+    {
+      "name": "D2h Home",
+      "isFree": true,
+      "website": "https://www.d2h.com/",
+      "priority": 4
+    },
+    {
+      "name": "D2h Home 2",
+      "isFree": true,
+      "website": "https://www.d2h.com/",
+      "priority": 4
+    },
+    {
+      "name": "D2h Sajda",
+      "isFree": true,
+      "website": "https://www.d2h.com/",
+      "priority": 4
+    },
+    {
+      "name": "EZMall",
+      "isFree": true,
+      "website": "https://www.ezmall.com/",
+      "priority": 4
+    },
+    {
+      "name": "Home Shop",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Indology",
+      "isFree": true,
+      "website": "https://www.shopindology.com/",
+      "priority": 4
+    },
+    {
+      "name": "Naaptol Kannada",
+      "isFree": true,
+      "website": "https://www.naaptol.com/",
+      "priority": 4
+    },
+    {
+      "name": "Naaptol Malayalam",
+      "isFree": true,
+      "website": "https://www.naaptol.com/",
+      "priority": 4
+    },
+    {
+      "name": "Naaptol Tamil",
+      "isFree": true,
+      "website": "https://www.naaptol.com/",
+      "priority": 4
+    },
+    {
+      "name": "Naaptol Telugu",
+      "isFree": true,
+      "website": "https://www.naaptol.com/",
+      "priority": 4
+    },
+    {
+      "name": "Planet M Shopping",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Propex",
+      "isFree": true,
+      "website": "https://propextv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Shop CJ",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Telebrands India",
+      "isFree": true,
+      "website": "http://www.telebrandsindia.com/",
+      "priority": 4
+    }
+  ]
+}

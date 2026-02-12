@@ -1,0 +1,659 @@
+{
+  "Entertainment": [
+    {
+      "name": "Addis",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Abbay TV Entertainment",
+      "isFree": true,
+      "website": "https://abbaytv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Addis Media Network",
+      "isFree": true,
+      "keywords": "addis media network -plus",
+      "website": "https://www.amn.gov.et/",
+      "priority": 5
+    },
+    {
+      "name": "Addis Media Network Plus",
+      "isFree": true,
+      "website": "https://www.amn.gov.et/",
+      "priority": 5
+    },
+    {
+      "name": "Afri Health",
+      "isFree": true,
+      "website": "https://afrihealth.net/",
+      "priority": 5
+    },
+    {
+      "name": "Amhara",
+      "isFree": true,
+      "website": "https://www.amharaweb.com/",
+      "priority": 5
+    },
+    {
+      "name": "A Plus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Balageru",
+      "isFree": true,
+      "website": "https://www.balagerutv.com/",
+      "priority": 5
+    },
+    {
+      "name": "BGM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bisrat",
+      "isFree": true,
+      "website": "https://bisrattv.com/",
+      "priority": 5
+    },
+    {
+      "name": "BST",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canal+ Gebeta",
+      "isFree": true,
+      "website": "https://www.canalplus-ethiopia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Channel 29",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Debub",
+      "isFree": true,
+      "website": "https://srta.gov.et/",
+      "priority": 5
+    },
+    {
+      "name": "Dimtsi Weyane",
+      "isFree": true,
+      "website": "https://dimtsiweyane.co/",
+      "priority": 5
+    },
+    {
+      "name": "Dire",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "EBC",
+      "isFree": true,
+      "website": "http://www.ebc.et/",
+      "priority": 5
+    },
+    {
+      "name": "ETV Afaan Oromoo",
+      "isFree": true,
+      "website": "https://ebc.et/",
+      "priority": 5
+    },
+    {
+      "name": "ETV Entertainment",
+      "isFree": true,
+      "website": "http://www.ebc.et/",
+      "priority": 5
+    },
+    {
+      "name": "Fana",
+      "isFree": true,
+      "website": "https://www.fanabc.com/%e1%8d%8b%e1%8a%93-%e1%89%b2%e1%89%aa/",
+      "priority": 5
+    },
+    {
+      "name": "FIB",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GAMO",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hadiya.TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Harari",
+      "isFree": true,
+      "website": "https://hararimassmedia.gov.et/",
+      "priority": 5
+    },
+    {
+      "name": "Kaffa",
+      "isFree": true,
+      "website": "https://kaffatelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kana",
+      "isFree": true,
+      "website": "https://kanatelevision.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kegeberew",
+      "isFree": true,
+      "website": "https://kegeberew.com/",
+      "priority": 5
+    },
+    {
+      "name": "Kembata",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Menelik Television",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MO'AA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nahoo",
+      "isFree": true,
+      "website": "https://www.thenahootv.com/",
+      "priority": 5
+    },
+    {
+      "name": "NBC Ethiopia",
+      "isFree": true,
+      "website": "https://nbcethiopia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Oromia Broadcasting Service",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Prime Media",
+      "isFree": true,
+      "priority": 6
+    },
+    {
+      "name": "Qubee",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "River",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sidaama Media Network",
+      "isFree": true,
+      "website": "https://www.sidamamedianetwork.org/",
+      "priority": 5
+    },
+    {
+      "name": "Somali Region",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TBS",
+      "isFree": true,
+      "website": "https://tvtbs.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tigrai",
+      "isFree": true,
+      "website": "https://tigraitv.com/en/home/",
+      "priority": 5
+    },
+    {
+      "name": "TV 9 Ethio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Ifa Fayyinaa",
+      "isFree": true,
+      "website": "https://www.tvifa.org/",
+      "priority": 5
+    },
+    {
+      "name": "Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Waliif",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Winners Way",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Wolaita",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "YA",
+      "isFree": true,
+      "website": "https://www.yaet.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Ye Ethiopia Lijoch",
+      "isFree": true,
+      "website": "http://www.yeethiopialijoch.com/",
+      "priority": 5
+    },
+    {
+      "name": "Yegna",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "7 Spirits",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Africa TV",
+      "isFree": true,
+      "website": "http://africatv1.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Anointing",
+      "isFree": true,
+      "website": "https://www.anointingtv.org/",
+      "priority": 4
+    },
+    {
+      "name": "Arara",
+      "isFree": true,
+      "website": "https://www.araratv.tv/",
+      "priority": 4
+    },
+    {
+      "name": "As-Sunnah",
+      "isFree": true,
+      "website": "http://www.as-sunnah.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Bethel",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Bilal",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Catholic TV Ethiopia",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Christ Army",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Christ Jesus",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Christ Mission",
+      "isFree": true,
+      "website": "https://christmissionministry.org/cmtv/",
+      "priority": 4
+    },
+    {
+      "name": "Daewa",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "EOTC",
+      "isFree": true,
+      "website": "https://www.ethiopianorthodox.org/",
+      "priority": 4
+    },
+    {
+      "name": "Evangelical",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Fares",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Glory of God",
+      "isFree": true,
+      "website": "https://www.gloryofgod.tv/contact/",
+      "priority": 4
+    },
+    {
+      "name": "GMM",
+      "isFree": true,
+      "website": "https://gmmtv.org/",
+      "priority": 4
+    },
+    {
+      "name": "Gohe",
+      "isFree": true,
+      "website": "https://www.gohetv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Gospel",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Hamiltan",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Harima",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Heaven",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Heywet",
+      "isFree": true,
+      "website": "https://ekhc.net/",
+      "priority": 4
+    },
+    {
+      "name": "Holy Spirit",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Hope Channel Ethiopia",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Jesus",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "JPS",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "JSL",
+      "isFree": true,
+      "website": "https://www.jslchurch.com/",
+      "priority": 4
+    },
+    {
+      "name": "Kale Awadi",
+      "isFree": true,
+      "website": "https://kaleawadi.tv/contact-us/",
+      "priority": 4
+    },
+    {
+      "name": "LJ TV Worldwide",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Marsil",
+      "isFree": true,
+      "website": "http://www.marsiltv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Minber",
+      "isFree": true,
+      "website": "http://minbertv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Nesiha",
+      "isFree": true,
+      "website": "http://www.nesiha.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Nuuralhudaa",
+      "isFree": true,
+      "website": "https://nuuralhudaa.com/",
+      "priority": 4
+    },
+    {
+      "name": "Nuur",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Oromia Clergy Network",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Presence",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Zawya",
+      "isFree": true,
+      "priority": 4
+    }
+  ],
+  "News": [
+    {
+      "name": "Abbay TV News",
+      "isFree": true,
+      "website": "https://abbaytv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Afar",
+      "isFree": true,
+      "website": "http://www.afmma.gov.et/",
+      "priority": 5
+    },
+    {
+      "name": "Asham",
+      "isFree": true,
+      "website": "http://www.ashamtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "ETV Languages",
+      "isFree": true,
+      "website": "http://www.ebc.et/",
+      "priority": 5
+    },
+    {
+      "name": "ETV News",
+      "isFree": true,
+      "website": "http://www.ebc.et/",
+      "priority": 5
+    },
+    {
+      "name": "Hagerie",
+      "isFree": true,
+      "website": "https://hagerie.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Jeilu",
+      "isFree": true,
+      "website": "https://www.jeilumedia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mereja",
+      "isFree": true,
+      "website": "https://mereja.com/main/",
+      "priority": 5
+    },
+    {
+      "name": "Nabad",
+      "isFree": true,
+      "website": "http://nabadnews.com/",
+      "priority": 5
+    },
+    {
+      "name": "OBN",
+      "isFree": true,
+      "keywords": "obn -gaammee -horn -of -africa",
+      "website": "https://obn.com.et/",
+      "priority": 5
+    },
+    {
+      "name": "OBN Horn of Africa",
+      "isFree": true,
+      "website": "https://obn.com.et/",
+      "priority": 5
+    },
+    {
+      "name": "Walta",
+      "isFree": true,
+      "website": "https://waltainfo.com/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Ahadu",
+      "isFree": true,
+      "website": "https://ahaduradio.com/%e1%8a%a0%e1%88%90%e1%8b%b1-%e1%89%b2%e1%89%aa/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "ARTS",
+      "isFree": true,
+      "website": "http://www.artstv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Canal+ Discover",
+      "isFree": true,
+      "website": "https://www.canalplus-ethiopia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Ministry of Education",
+      "isFree": true,
+      "website": "http://www.moe.gov.et/",
+      "priority": 5
+    },
+    {
+      "name": "Xafiiska Waxbarashada DDS",
+      "isFree": true,
+      "website": "https://srs-educb.gov.et/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Canal+ Action",
+      "isFree": true,
+      "website": "https://www.canalplus-ethiopia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal+ Cinema",
+      "isFree": true,
+      "website": "https://www.canalplus-ethiopia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal+ Cinema 2",
+      "isFree": true,
+      "website": "https://www.canalplus-ethiopia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal+ Novela",
+      "isFree": true,
+      "website": "https://www.canalplus-ethiopia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal+ Novela 2",
+      "isFree": true,
+      "website": "https://www.canalplus-ethiopia.com/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Canal+ Dik Dik",
+      "isFree": true,
+      "website": "https://www.canalplus-ethiopia.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canal+ Jumbo",
+      "isFree": true,
+      "website": "https://www.canalplus-ethiopia.com/",
+      "priority": 5
+    },
+    {
+      "name": "ETV Yelijochalem",
+      "isFree": true,
+      "website": "http://www.ebc.et/",
+      "priority": 5
+    },
+    {
+      "name": "OBN Gaammee",
+      "isFree": true,
+      "website": "https://obn.com.et/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Canal+ Sport",
+      "isFree": true,
+      "website": "https://www.canalplus-ethiopia.com/",
+      "priority": 10
+    }
+  ]
+}

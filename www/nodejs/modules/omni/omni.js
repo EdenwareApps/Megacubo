@@ -34,7 +34,7 @@ class OMNI extends EventEmitter {
         // Don't show PROCESSING OSD here - let the search module handle its own OSD
         let err = null
         try {
-            await global.channels.search.go(text, 'live'); // will fallback live -> all automatically if no channels or groups were found
+            await global.channels.search.runSearch(text, 'live'); // will fallback live -> all automatically if no channels or groups were found
         } catch (e) {
             err = e
         }

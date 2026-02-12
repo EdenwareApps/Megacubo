@@ -1,0 +1,2192 @@
+{
+  "Religious": [
+    {
+      "name": "CGNTV Japan",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Better Life",
+      "isFree": true,
+      "website": "https://www.pod.tv/works/broadcast/",
+      "priority": 4
+    },
+    {
+      "name": "Happy Science",
+      "isFree": true,
+      "website": "https://happy-science.jp/",
+      "priority": 4
+    },
+    {
+      "name": "Hope Channel Japan",
+      "isFree": true,
+      "website": "https://www.hopechannel.jp/",
+      "priority": 4
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "ABC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BS 12",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BS Asahi",
+      "isFree": true,
+      "website": "https://www.bs-asahi.co.jp",
+      "priority": 5
+    },
+    {
+      "name": "BS Nippon",
+      "isFree": true,
+      "shortName": "BS NTV",
+      "website": "https://www.bs4.jp",
+      "priority": 5
+    },
+    {
+      "name": "BS TV Tokyo",
+      "isFree": true,
+      "website": "https://www.bs-tvtokyo.co.jp",
+      "priority": 5
+    },
+    {
+      "name": "BS-TBS",
+      "isFree": true,
+      "website": "https://www.bs-tbs.co.jp",
+      "priority": 5
+    },
+    {
+      "name": "CGNTV",
+      "isFree": true,
+      "keywords": "cgntv -japan",
+      "priority": 5
+    },
+    {
+      "name": "Disney Channel Japan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Family Gekijo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Fuji",
+      "isFree": true,
+      "keywords": "fuji tv -one",
+      "website": "https://www.fujitv.co.jp",
+      "priority": 5
+    },
+    {
+      "name": "Fuji TV One",
+      "isFree": true,
+      "retransmits": "Fuji TV",
+      "shortName": "Fuji",
+      "website": "https://www.fujitv.co.jp",
+      "priority": 5
+    },
+    {
+      "name": "GAORA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GTN Typhome",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hiroshima Weather Information",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Japanet Channel DX",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "KBS World",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MBS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MX Live",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NHK BS",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/bs",
+      "priority": 5
+    },
+    {
+      "name": "NHK BSP",
+      "isFree": true,
+      "shortName": "NHK BS PremiuM",
+      "website": "https://www.nhk.or.jp/bs",
+      "priority": 5
+    },
+    {
+      "name": "NHK E Osaka",
+      "isFree": true,
+      "retransmits": "NHK",
+      "shortName": "NHK E",
+      "website": "https://www.nhk.or.jp",
+      "priority": 5
+    },
+    {
+      "name": "NHK E Tokyo",
+      "isFree": true,
+      "retransmits": "NHK",
+      "shortName": "NHK E",
+      "website": "https://www.nhk.or.jp",
+      "priority": 5
+    },
+    {
+      "name": "NHK G Osaka",
+      "isFree": true,
+      "retransmits": "NHK",
+      "shortName": "NHK G",
+      "website": "https://www.nhk.or.jp",
+      "priority": 5
+    },
+    {
+      "name": "NHK G Tokyo",
+      "isFree": true,
+      "retransmits": "NHK",
+      "shortName": "NHK G",
+      "website": "https://www.nhk.or.jp",
+      "priority": 5
+    },
+    {
+      "name": "NHK General",
+      "isFree": true,
+      "retransmits": "NHK",
+      "shortName": "NHK G",
+      "website": "https://www.nhk.or.jp",
+      "priority": 5
+    },
+    {
+      "name": "NHK World",
+      "isFree": true,
+      "keywords": "nhk world -japan",
+      "website": "https://www3.nhk.or.jp/nhkworld",
+      "priority": 5
+    },
+    {
+      "name": "NHK华语视界",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nippon",
+      "isFree": true,
+      "website": "https://www.ntv.co.jp",
+      "priority": 5
+    },
+    {
+      "name": "Star",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Star 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Star 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TBS",
+      "isFree": true,
+      "website": "https://www.tbs.co.jp",
+      "priority": 5
+    },
+    {
+      "name": "TV Asahi",
+      "isFree": true,
+      "website": "https://www.tv-asahi.co.jp",
+      "priority": 5
+    },
+    {
+      "name": "TV Tokyo",
+      "isFree": true,
+      "website": "https://www.tv-tokyo.co.jp",
+      "priority": 5
+    },
+    {
+      "name": "Weather",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ABEMA Drama",
+      "isFree": true,
+      "keywords": "abema drama -2",
+      "website": "https://abema.tv/now-on-air/drama?lang=en",
+      "priority": 5
+    },
+    {
+      "name": "ABEMA Gold",
+      "isFree": true,
+      "website": "https://abema.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ABEMA Korean & Chinese",
+      "isFree": true,
+      "keywords": "abema korean chinese -2",
+      "website": "https://abema.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ABEMA Special",
+      "isFree": true,
+      "keywords": "abema special -2",
+      "website": "https://abema.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ABEMA Special 2",
+      "isFree": true,
+      "website": "https://abema.tv/now-on-air/special-plus?lang=en",
+      "priority": 5
+    },
+    {
+      "name": "AV King",
+      "isFree": null,
+      "website": "https://avking.jp/",
+      "priority": 5
+    },
+    {
+      "name": "BS 11",
+      "isFree": true,
+      "website": "https://www.bs11.jp/",
+      "priority": 5
+    },
+    {
+      "name": "BS Asahi 4K",
+      "isFree": true,
+      "website": "https://www.bs-asahi.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "BS Fuji",
+      "isFree": true,
+      "keywords": "bs fuji -4k",
+      "website": "https://www.bsfuji.tv/",
+      "shortName": "BS Fuji",
+      "priority": 5
+    },
+    {
+      "name": "BS Fuji 4K",
+      "isFree": true,
+      "website": "https://www.bsfuji.tv/top/list/4k.html",
+      "priority": 5
+    },
+    {
+      "name": "BS Nippon TV 4K",
+      "isFree": true,
+      "website": "https://www.bs4.jp/4k/",
+      "priority": 5
+    },
+    {
+      "name": "BSN YouTube",
+      "isFree": true,
+      "website": "https://www.bsnnet.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "BS Open University Main",
+      "isFree": true,
+      "website": "https://www.ouj.ac.jp/",
+      "priority": 5
+    },
+    {
+      "name": "BS Open University Sub",
+      "isFree": true,
+      "website": "https://www.ouj.ac.jp/",
+      "priority": 5
+    },
+    {
+      "name": "BS Shochiku Tokyu",
+      "isFree": true,
+      "website": "https://www.shochiku-tokyu.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "BS SKY PerfecTV!",
+      "isFree": true,
+      "website": "https://www.bs-sptv.com/",
+      "priority": 5
+    },
+    {
+      "name": "BS-TBS 4K",
+      "isFree": true,
+      "website": "https://bs.tbs.co.jp/4k/",
+      "priority": 5
+    },
+    {
+      "name": "BS TV Tokyo 4K",
+      "isFree": true,
+      "website": "https://www.tv-tokyo.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "BS Yoshimoto",
+      "isFree": true,
+      "website": "https://bsy.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Cable 4K",
+      "isFree": true,
+      "website": "https://www.cable4k.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Channel Ginga",
+      "isFree": true,
+      "website": "https://www.ch-ginga.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Cherry Bomb",
+      "isFree": null,
+      "website": "http://www.cherrybomb.co.jp/hd/ch.html",
+      "priority": 5
+    },
+    {
+      "name": "CLUB",
+      "isFree": true,
+      "website": "https://www.clubtv.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Discovery Turbo",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Dynamite",
+      "isFree": null,
+      "website": "https://dynamitetv.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Enter! 959",
+      "isFree": null,
+      "website": "https://www.cs959.com/",
+      "priority": 5
+    },
+    {
+      "name": "Entermei Tele",
+      "isFree": true,
+      "website": "https://www.entermeitele.com/",
+      "priority": 5
+    },
+    {
+      "name": "Family Gekijyo",
+      "isFree": true,
+      "website": "https://www.fami-geki.com/",
+      "priority": 5
+    },
+    {
+      "name": "Fishing Vision",
+      "isFree": true,
+      "website": "https://www.broadmedia.co.jp/en/broadcast/fishing-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Flamingo",
+      "isFree": null,
+      "website": "http://flamingo.fit/fla.html",
+      "priority": 5
+    },
+    {
+      "name": "FOX",
+      "isFree": true,
+      "website": "https://foxnetworks.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Fuji TV NEXT",
+      "isFree": true,
+      "website": "https://otn.fujitv.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Fuji TV TWO",
+      "isFree": true,
+      "website": "https://otn.fujitv.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Green",
+      "isFree": true,
+      "keywords": "green channel -2",
+      "website": "https://www.greenchannel.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Green Channel 2",
+      "isFree": true,
+      "website": "https://www.greenchannel.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Hikari",
+      "isFree": true,
+      "keywords": "hikari tv channel -2 -4k",
+      "website": "https://www.hikaritv.net/entry/lineup/tv/channel/101/",
+      "priority": 5
+    },
+    {
+      "name": "Hikari TV Channel 2",
+      "isFree": true,
+      "website": "https://www.hikaritv.net/entry/lineup/tv/channel/102/",
+      "priority": 5
+    },
+    {
+      "name": "Hikari TV Channel 4K",
+      "isFree": true,
+      "website": "https://www.hikaritv.net/entry/lineup/tv/channel/101/",
+      "priority": 5
+    },
+    {
+      "name": "Home Drama",
+      "isFree": true,
+      "website": "https://www.homedrama-ch.com/",
+      "priority": 5
+    },
+    {
+      "name": "House of Councillors",
+      "isFree": true,
+      "website": "https://www.webtv.sangiin.go.jp/webtv/index.php",
+      "priority": 5
+    },
+    {
+      "name": "House of Representatives Internet",
+      "isFree": true,
+      "website": "https://www.shugiintv.go.jp/en/",
+      "priority": 5
+    },
+    {
+      "name": "IBC 6 Box YouTube",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "IPCTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Japanese Government Internet",
+      "isFree": true,
+      "website": "https://nettv.gov-online.go.jp/index.html",
+      "priority": 5
+    },
+    {
+      "name": "J:COM Higashi Kanto",
+      "isFree": true,
+      "website": "https://c.myjcom.jp/town/higashi-kanto/",
+      "priority": 5
+    },
+    {
+      "name": "J:COM Premier",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "J:COM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Jidaigeki Senmon",
+      "isFree": true,
+      "website": "https://www.jidaigeki.com/",
+      "priority": 5
+    },
+    {
+      "name": "JLC",
+      "isFree": true,
+      "keywords": "jlc -680 -681 -682 -683 -684",
+      "website": "https://www.jlc.ne.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JLC 680",
+      "isFree": true,
+      "website": "https://www.jlc.ne.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JLC 681",
+      "isFree": true,
+      "website": "https://www.jlc.ne.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JLC 682",
+      "isFree": true,
+      "website": "https://www.jlc.ne.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JLC 683",
+      "isFree": true,
+      "website": "https://www.jlc.ne.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JLC 684",
+      "isFree": true,
+      "website": "https://www.jlc.ne.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JOAG-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/nagasaki/",
+      "priority": 5
+    },
+    {
+      "name": "JOAI-DTV",
+      "isFree": true,
+      "website": "https://www.atv.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JOAK-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/shutoken/",
+      "priority": 5
+    },
+    {
+      "name": "JOAP-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/okinawa/",
+      "priority": 5
+    },
+    {
+      "name": "JOAX-DTV",
+      "isFree": true,
+      "website": "https://www.ntv.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JOAY-DTV",
+      "isFree": true,
+      "website": "https://www.asahi.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JOBH-DTV",
+      "isFree": true,
+      "website": "https://www.tv-osaka.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JOBK-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/osaka/",
+      "priority": 5
+    },
+    {
+      "name": "JOBP-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/utsunomiya/",
+      "priority": 5
+    },
+    {
+      "name": "JOBR-DTV",
+      "isFree": true,
+      "website": "https://www.kbs-kyoto.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JOCK-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/nagoya/",
+      "priority": 5
+    },
+    {
+      "name": "JOCX-DTV",
+      "isFree": true,
+      "website": "https://www.fujitv.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JODF-DTV",
+      "isFree": true,
+      "website": "https://www.ibc.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JODR-DTV",
+      "isFree": true,
+      "website": "https://www.ohbsn.com/",
+      "priority": 5
+    },
+    {
+      "name": "JODX-DTV",
+      "isFree": true,
+      "website": "https://www.ktv.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JOEP-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/mito/",
+      "priority": 5
+    },
+    {
+      "name": "JOEX-DTV",
+      "isFree": true,
+      "website": "https://www.tv-asahi.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JOFG-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/fukui/",
+      "priority": 5
+    },
+    {
+      "name": "JOFK-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/hiroshima/",
+      "priority": 5
+    },
+    {
+      "name": "JOFP-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/fukushima/",
+      "priority": 5
+    },
+    {
+      "name": "JOGK-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/kumamoto/",
+      "priority": 5
+    },
+    {
+      "name": "JOHG-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/kagoshima/",
+      "priority": 5
+    },
+    {
+      "name": "JOHK-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/sendai/",
+      "priority": 5
+    },
+    {
+      "name": "JOHP-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/takamatsu/",
+      "priority": 5
+    },
+    {
+      "name": "JOIG-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/toyoma/",
+      "priority": 5
+    },
+    {
+      "name": "JOIK-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/hokkaido/",
+      "priority": 5
+    },
+    {
+      "name": "JOIP-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/oita/",
+      "priority": 5
+    },
+    {
+      "name": "JOIX-DTV",
+      "isFree": true,
+      "website": "https://www.ytv.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JOJG-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/yamagata/",
+      "priority": 5
+    },
+    {
+      "name": "JOJH-DTV",
+      "isFree": true,
+      "website": "https://www.tulip-tv.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JOJK-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/kanazawa/",
+      "priority": 5
+    },
+    {
+      "name": "JOKG-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/kofu/",
+      "priority": 5
+    },
+    {
+      "name": "JOKK-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/okayama/",
+      "priority": 5
+    },
+    {
+      "name": "JOKM-DTV",
+      "isFree": true,
+      "website": "https://www.tvk-yokohama.com/",
+      "priority": 5
+    },
+    {
+      "name": "JOLG-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/tottori/",
+      "priority": 5
+    },
+    {
+      "name": "JOLK-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/fukuoka/",
+      "priority": 5
+    },
+    {
+      "name": "JOMG-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/miyazaki/",
+      "priority": 5
+    },
+    {
+      "name": "JOML-DTV",
+      "isFree": true,
+      "website": "https://www.gtv.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JOMX-DTV",
+      "isFree": true,
+      "website": "https://s.mxtv.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JONK-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/nagano/",
+      "priority": 5
+    },
+    {
+      "name": "JONP-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/tsu/",
+      "priority": 5
+    },
+    {
+      "name": "JOOK-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/kyoto/",
+      "priority": 5
+    },
+    {
+      "name": "JOOP-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/gifu/",
+      "priority": 5
+    },
+    {
+      "name": "JOOY-DTV",
+      "isFree": true,
+      "website": "https://www.mbs.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JOPK-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/shizuoka/",
+      "priority": 5
+    },
+    {
+      "name": "JOPP-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/kobe/",
+      "priority": 5
+    },
+    {
+      "name": "JOQG-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/morioka",
+      "priority": 5
+    },
+    {
+      "name": "JOQK-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/niigata/",
+      "priority": 5
+    },
+    {
+      "name": "JOQP-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/otsu/",
+      "priority": 5
+    },
+    {
+      "name": "JORK-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/kochi/",
+      "priority": 5
+    },
+    {
+      "name": "JORP-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/wakayama/",
+      "priority": 5
+    },
+    {
+      "name": "JORX-DTV",
+      "isFree": true,
+      "website": "https://www.tbs.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JOSK-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/kitakyushu/",
+      "priority": 5
+    },
+    {
+      "name": "JOSP-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/saga/",
+      "priority": 5
+    },
+    {
+      "name": "JOTG-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/aomori/",
+      "priority": 5
+    },
+    {
+      "name": "JOTK-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/matsue/",
+      "priority": 5
+    },
+    {
+      "name": "JOTP-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/maebashi/",
+      "priority": 5
+    },
+    {
+      "name": "JOTX-DTV",
+      "isFree": true,
+      "website": "https://www.tv-tokyo.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JOUG-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/yamaguchi/",
+      "priority": 5
+    },
+    {
+      "name": "JOUH-DTV",
+      "isFree": true,
+      "website": "https://sun-tv.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JOUK-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/akita/",
+      "priority": 5
+    },
+    {
+      "name": "JOUP-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/nara/",
+      "priority": 5
+    },
+    {
+      "name": "JOUS-DTV",
+      "isFree": true,
+      "website": "https://www.teletama.jp/",
+      "priority": 5
+    },
+    {
+      "name": "JOWI-DTV",
+      "isFree": true,
+      "website": "https://www.tuy.co.jp",
+      "priority": 5
+    },
+    {
+      "name": "JOXK-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/tokushima/",
+      "priority": 5
+    },
+    {
+      "name": "JOZK-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/matsuyama/",
+      "priority": 5
+    },
+    {
+      "name": "KBS World Japan",
+      "isFree": true,
+      "website": "http://www.kbsworld.ne.jp/",
+      "priority": 5
+    },
+    {
+      "name": "kmp",
+      "isFree": null,
+      "website": "https://kmpch.jp/",
+      "priority": 5
+    },
+    {
+      "name": "KNTV",
+      "isFree": true,
+      "website": "http://www.kntv.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "LaLa",
+      "isFree": true,
+      "website": "https://www.discoveryjapan.jp/lalatv/",
+      "priority": 5
+    },
+    {
+      "name": "Medekiku",
+      "isFree": true,
+      "website": "http://medekiku.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Midnight Blue",
+      "isFree": null,
+      "website": "http://midnight-blue.com/mnb.html",
+      "priority": 5
+    },
+    {
+      "name": "MONDO",
+      "isFree": true,
+      "website": "https://www.discoveryjapan.jp/mondotv/",
+      "priority": 5
+    },
+    {
+      "name": "MTV",
+      "isFree": true,
+      "website": "http://www.mtvjapan.com/",
+      "priority": 5
+    },
+    {
+      "name": "Mystery",
+      "isFree": true,
+      "website": "https://www.mystery.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "NHK BS8K",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/bs4k8k/",
+      "priority": 5
+    },
+    {
+      "name": "NHK BSP4K",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/bs4k8k/",
+      "priority": 5
+    },
+    {
+      "name": "NHK BS Premium",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/",
+      "priority": 5
+    },
+    {
+      "name": "NHK World Premium",
+      "isFree": true,
+      "website": "http://www.nhkworldpremium.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nihon Jidai 4K",
+      "isFree": true,
+      "website": "https://www.nihon-eiga.com/nihon-jidai4k/",
+      "priority": 5
+    },
+    {
+      "name": "Nippon TV Plus",
+      "isFree": true,
+      "website": "https://www.ntv.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Nittele Plus",
+      "isFree": true,
+      "website": "http://www.nitteleplus.com/",
+      "priority": 5
+    },
+    {
+      "name": "Pachinko Pachislo",
+      "isFree": true,
+      "website": "https://www.pachitele.com/",
+      "priority": 5
+    },
+    {
+      "name": "Paradise",
+      "isFree": null,
+      "website": "https://www.paradisetv.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Phoenix Television",
+      "isFree": true,
+      "website": "http://www.daifutv.com/j/index.php?option=com_content&view=article&id=154&Itemid=174",
+      "priority": 5
+    },
+    {
+      "name": "Pigoo",
+      "isFree": null,
+      "website": "https://pigoo.jp/pigoohd/",
+      "priority": 5
+    },
+    {
+      "name": "Power Plat's",
+      "isFree": true,
+      "website": "http://www.powerplats.co.jp/powerplats/",
+      "priority": 5
+    },
+    {
+      "name": "PPV Choice 940",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "PPV Choice 941",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Rainbow",
+      "isFree": null,
+      "website": "https://www.rainbow-ch.com/",
+      "priority": 5
+    },
+    {
+      "name": "Record Japan",
+      "isFree": true,
+      "website": "http://recordjp.com/",
+      "priority": 10
+    },
+    {
+      "name": "Red Cherry",
+      "isFree": null,
+      "website": "http://red.cherrybomb.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Select Shopping",
+      "isFree": true,
+      "website": "https://www.pod.tv/works/broadcast/",
+      "priority": 5
+    },
+    {
+      "name": "Shigeki Strong",
+      "isFree": true,
+      "website": "https://shigeki-strong.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Shinnyo-en",
+      "isFree": true,
+      "website": "https://www.shinnyoen.org/",
+      "priority": 5
+    },
+    {
+      "name": "SITE777TV",
+      "isFree": true,
+      "website": "https://site777.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Sky A",
+      "isFree": true,
+      "website": "http://www.sky-a.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Perfect! Promo 599",
+      "isFree": true,
+      "website": "https://www.skyperfectv.co.jp/plan/channel/premium/599",
+      "priority": 5
+    },
+    {
+      "name": "Speed Channel",
+      "isFree": true,
+      "website": "http://www.speedchannel.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Speed Channel 2",
+      "isFree": true,
+      "website": "http://www.speedchannel.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Speed Channel 3",
+      "isFree": true,
+      "website": "http://www.speedchannel.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Speed Channel 4",
+      "isFree": true,
+      "website": "http://www.speedchannel.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Speed Channel 690",
+      "isFree": true,
+      "website": "http://www.speedchannel.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Speed Channel 691",
+      "isFree": true,
+      "website": "http://www.speedchannel.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Speed Channel 692",
+      "isFree": true,
+      "website": "http://www.speedchannel.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Speed Channel 693",
+      "isFree": true,
+      "website": "http://www.speedchannel.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Speed Channel 694",
+      "isFree": true,
+      "website": "http://www.speedchannel.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Speed Plus One 695",
+      "isFree": true,
+      "website": "http://www.speedchannel.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Splash",
+      "isFree": null,
+      "website": "http://splash.fit/spl.html",
+      "priority": 5
+    },
+    {
+      "name": "Star 4K",
+      "isFree": true,
+      "website": "https://www.star-ch.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Star BS 10",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sukachan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sukachan 12",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sukachan 4K",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sukachan 4K 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sukachan 5",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sukachan 6",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sukachan 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TABI",
+      "isFree": true,
+      "website": "https://www.discoveryjapan.jp/tabichannel/",
+      "priority": 5
+    },
+    {
+      "name": "Tachikawa & Seibuen Keirin",
+      "isFree": true,
+      "website": "http://tachikawa-seibuen-keirin.com/",
+      "priority": 5
+    },
+    {
+      "name": "TAKARAZUKA SKY STAGE",
+      "isFree": true,
+      "website": "https://www.tca-pictures.net/skystage/",
+      "priority": 5
+    },
+    {
+      "name": "TBS Channel",
+      "isFree": true,
+      "website": "http://www.tbs.co.jp/tbs-ch/tch1/",
+      "priority": 5
+    },
+    {
+      "name": "TBS Channel 2",
+      "isFree": true,
+      "website": "http://www.tbs.co.jp/tbs-ch/tch2/",
+      "priority": 5
+    },
+    {
+      "name": "Tetsudo",
+      "isFree": true,
+      "website": "https://tetsudo-ch.com/",
+      "priority": 5
+    },
+    {
+      "name": "The Filipino Channel Japan",
+      "isFree": true,
+      "website": "https://mytfc.com/",
+      "priority": 5
+    },
+    {
+      "name": "Toei",
+      "isFree": true,
+      "website": "http://www.toeich.jp/",
+      "priority": 5
+    },
+    {
+      "name": "TSS",
+      "isFree": true,
+      "website": "https://www.tss-tv.co.jp/index.html",
+      "priority": 5
+    },
+    {
+      "name": "Tsuri Vision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tulip TV YouTube",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TUY 6 Ch YouTube",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Asahi Channel",
+      "isFree": true,
+      "website": "https://www.tv-asahi.co.jp/ch/contents/osusume/ch1/",
+      "priority": 5
+    },
+    {
+      "name": "TV Asahi Channel 2",
+      "isFree": true,
+      "website": "https://www.tv-asahi.co.jp/ch/contents/osusume/ch2/",
+      "priority": 5
+    },
+    {
+      "name": "TV Japan",
+      "isFree": true,
+      "website": "https://tvjapan.net/",
+      "priority": 5
+    },
+    {
+      "name": "Vanilla Sky",
+      "isFree": null,
+      "website": "http://vanillasky-ch.jp/",
+      "priority": 5
+    },
+    {
+      "name": "WakuWaku Japan",
+      "isFree": true,
+      "keywords": "wakuwaku japan -south -east -asia -taiwan",
+      "website": "https://www.wakuwakujapan.com/",
+      "priority": 5
+    },
+    {
+      "name": "WakuWaku Japan South East Asia",
+      "isFree": true,
+      "website": "https://www.wakuwakujapan.com/",
+      "priority": 5
+    },
+    {
+      "name": "WakuWaku Japan Taiwan",
+      "isFree": true,
+      "website": "https://www.wakuwakujapan.com/",
+      "priority": 5
+    },
+    {
+      "name": "Worldmate",
+      "isFree": true,
+      "website": "https://www.worldmate.or.jp/",
+      "priority": 5
+    },
+    {
+      "name": "WOWOW 4K",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "WOWOW Live",
+      "isFree": true,
+      "website": "http://www.wowow.co.jp/live_ch/",
+      "priority": 5
+    },
+    {
+      "name": "WOWOW Prime",
+      "isFree": true,
+      "website": "http://www.wowow.co.jp/prime_ch/",
+      "priority": 6
+    },
+    {
+      "name": "Yose",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Zaptv",
+      "isFree": null,
+      "website": "https://zaptv.jp/",
+      "priority": 5
+    }
+  ],
+  "Shop": [
+    {
+      "name": "GSTV",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "QVC Japan",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Shop",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "ABEMA CM",
+      "isFree": true,
+      "website": "https://abema.tv/now-on-air/commercial?lang=en",
+      "priority": 4
+    },
+    {
+      "name": "QVC",
+      "isFree": true,
+      "keywords": "qvc -japan",
+      "website": "https://qvc.jp/",
+      "priority": 4
+    },
+    {
+      "name": "Shop Channel Plus",
+      "isFree": true,
+      "website": "https://www.shopch.jp/",
+      "priority": 4
+    }
+  ],
+  "Local": [
+    {
+      "name": "Gunma",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tokyo MX",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tokyo MX 2",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "J Sports",
+      "priority": 10
+    },
+    {
+      "name": "J Sports 2",
+      "priority": 10
+    },
+    {
+      "name": "J Sports 3",
+      "priority": 10
+    },
+    {
+      "name": "J Sports 4",
+      "priority": 10
+    },
+    {
+      "name": "New Japan Pro Wrestling World",
+      "priority": 5
+    },
+    {
+      "name": "ABEMA Fighting",
+      "isFree": true,
+      "website": "https://abema.tv/now-on-air/fighting-sports?lang=en",
+      "priority": 5
+    },
+    {
+      "name": "ABEMA Fishing",
+      "isFree": true,
+      "website": "https://abema.tv/channels/fishing/slots/AXVjCD1BnwWZqR?lang=en",
+      "priority": 5
+    },
+    {
+      "name": "ABEMA Keirin & Auto Racing",
+      "isFree": true,
+      "website": "https://abema.tv/now-on-air/keirin-auto?lang=en",
+      "priority": 5
+    },
+    {
+      "name": "ABEMA Mahjong",
+      "isFree": true,
+      "website": "https://abema.tv/now-on-air/mahjong?lang=en",
+      "priority": 5
+    },
+    {
+      "name": "ABEMA Shogi",
+      "isFree": true,
+      "website": "https://abema.tv/now-on-air/shogi?lang=en",
+      "priority": 5
+    },
+    {
+      "name": "ABEMA Sports",
+      "isFree": true,
+      "website": "https://abema.tv/now-on-air/world-sports?lang=en",
+      "priority": 10
+    },
+    {
+      "name": "Exciting Grand Prix",
+      "isFree": true,
+      "website": "https://www.exciting-gp.com/request.php",
+      "priority": 5
+    },
+    {
+      "name": "FIGHTING TV Samurai!",
+      "isFree": true,
+      "website": "https://www.samurai-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "GAORA SPORTS",
+      "isFree": true,
+      "website": "https://www.gaora.co.jp/",
+      "priority": 10
+    },
+    {
+      "name": "Golf Network",
+      "isFree": true,
+      "website": "https://www.golfnetwork.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Igo & Shogi",
+      "isFree": true,
+      "website": "https://www.igoshogi.net/",
+      "priority": 5
+    },
+    {
+      "name": "Local Horse Racing Nine 701",
+      "isFree": true,
+      "website": "https://keiba9.com/",
+      "priority": 5
+    },
+    {
+      "name": "Local Horse Racing Nine 702",
+      "isFree": true,
+      "website": "https://keiba9.com/",
+      "priority": 5
+    },
+    {
+      "name": "Local Horse Racing Nine 703",
+      "isFree": true,
+      "website": "https://keiba9.com/",
+      "priority": 5
+    },
+    {
+      "name": "Local Horse Racing Nine SELECT",
+      "isFree": true,
+      "website": "https://select.keiba9.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nittele G+",
+      "isFree": true,
+      "website": "https://www.gtasu.com/",
+      "priority": 5
+    },
+    {
+      "name": "Southern Kanto Regional Horse Racing",
+      "isFree": true,
+      "website": "https://www.nankan-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sports Live +",
+      "isFree": true,
+      "website": "https://www.sportslive-plus.com/",
+      "priority": 10
+    }
+  ],
+  "News": [
+    {
+      "name": "NHK Chinese Vision",
+      "isFree": true,
+      "retransmits": "NHK",
+      "priority": 5
+    },
+    {
+      "name": "NTV News 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Weather News",
+      "isFree": true,
+      "keywords": "weather news | weathernews",
+      "priority": 5
+    },
+    {
+      "name": "ABEMA Global News",
+      "isFree": true,
+      "website": "https://abema.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ABEMA News",
+      "isFree": true,
+      "keywords": "abema news -press -conference",
+      "website": "https://abema.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ABEMA News Press Conference",
+      "isFree": true,
+      "website": "https://abema.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Asahi Shimbun Digital",
+      "isFree": true,
+      "website": "https://www.asahi.com/",
+      "priority": 5
+    },
+    {
+      "name": "Business Breakthrough",
+      "isFree": true,
+      "website": "https://bb.bbt757.com/",
+      "priority": 5
+    },
+    {
+      "name": "Chukyo TV News",
+      "isFree": true,
+      "website": "https://www.ctv.co.jp/news/",
+      "priority": 5
+    },
+    {
+      "name": "CNNj",
+      "isFree": true,
+      "website": "https://www2.jctv.co.jp/cnnj/",
+      "priority": 5
+    },
+    {
+      "name": "HBC Hokkaido News 24",
+      "isFree": true,
+      "website": "https://www.hbc.co.jp/news/",
+      "priority": 5
+    },
+    {
+      "name": "Hokkaido News UHB",
+      "isFree": true,
+      "website": "https://www.uhb.jp/news/",
+      "priority": 5
+    },
+    {
+      "name": "HOME Hiroshima News",
+      "isFree": true,
+      "website": "https://www.home-tv.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "HTB Hokkaido News 24",
+      "isFree": true,
+      "website": "https://www.htb.co.jp/news/",
+      "priority": 5
+    },
+    {
+      "name": "Iwate Menkoi Television",
+      "isFree": true,
+      "website": "https://www.menkoi-tv.co.jp/sp/index.html",
+      "priority": 5
+    },
+    {
+      "name": "JapaNews 24",
+      "isFree": true,
+      "website": "https://news.tv-asahi.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Kagoshima News 24",
+      "isFree": true,
+      "website": "https://www.kts-tv.co.jp/news/",
+      "priority": 5
+    },
+    {
+      "name": "KANSAI News 24",
+      "isFree": true,
+      "website": "https://www.asahi.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "KBC News Live 24",
+      "isFree": true,
+      "website": "https://kbc.co.jp/news/",
+      "priority": 5
+    },
+    {
+      "name": "MBS News",
+      "isFree": true,
+      "website": "https://www.mbs.jp/news/",
+      "priority": 5
+    },
+    {
+      "name": "Metele News Live 24",
+      "isFree": true,
+      "website": "https://www.nagoyatv.com/news/",
+      "priority": 5
+    },
+    {
+      "name": "NBC Nagasaki",
+      "isFree": true,
+      "website": "https://www.nbc-nagasaki.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "NHK Chinese",
+      "isFree": true,
+      "keywords": "nhk chinese -vision",
+      "retransmits": "NHK",
+      "website": "https://www.nhk.or.jp/nhkworld/zh/",
+      "priority": 5
+    },
+    {
+      "name": "NHK Kishou-Saigai",
+      "isFree": true,
+      "retransmits": "NHK",
+      "website": "https://www.nhk.or.jp/kishou-saigai/live/",
+      "priority": 5
+    },
+    {
+      "name": "NHK World Espanol",
+      "isFree": true,
+      "website": "https://www3.nhk.or.jp/nhkworld/es/",
+      "priority": 5
+    },
+    {
+      "name": "NHK World-Japan",
+      "isFree": true,
+      "retransmits": "NHK",
+      "website": "https://www3.nhk.or.jp/nhkworld/",
+      "priority": 5
+    },
+    {
+      "name": "Niigata News NST",
+      "isFree": true,
+      "website": "https://www.nsttv.com/news/",
+      "priority": 5
+    },
+    {
+      "name": "Nikkei CNBC",
+      "isFree": true,
+      "website": "http://www.nikkei-cnbc.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "RBC NEWS Link",
+      "isFree": true,
+      "website": "https://www.rbc.co.jp/tv/tv_program/rbc-news-link/",
+      "priority": 5
+    },
+    {
+      "name": "RBC Okinawa News 24",
+      "isFree": true,
+      "website": "https://newsdig.tbs.co.jp/list/rbc",
+      "priority": 5
+    },
+    {
+      "name": "RKB NEWS 24",
+      "isFree": true,
+      "website": "https://rkb.jp/",
+      "priority": 5
+    },
+    {
+      "name": "SATV News 24H",
+      "isFree": true,
+      "website": "https://look.satv.co.jp",
+      "priority": 5
+    },
+    {
+      "name": "SORA Weather",
+      "isFree": true,
+      "website": "https://www.sora-otenkich.com/",
+      "priority": 5
+    },
+    {
+      "name": "STV News Hokkaido",
+      "isFree": true,
+      "website": "https://www.stv.jp/news/",
+      "priority": 5
+    },
+    {
+      "name": "Sun-TV News",
+      "isFree": true,
+      "website": "https://www.sun-tv.co.jp/suntvnews/",
+      "priority": 5
+    },
+    {
+      "name": "TBS News CS",
+      "isFree": true,
+      "website": "https://www.tbs.co.jp/cstbsnews/",
+      "priority": 5
+    },
+    {
+      "name": "TBS News Dig",
+      "isFree": true,
+      "website": "https://newsdig.tbs.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "TOS News",
+      "isFree": true,
+      "website": "https://tosonline.jp/",
+      "priority": 5
+    },
+    {
+      "name": "TV Shizuoka",
+      "isFree": true,
+      "website": "https://www.sut-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Weathernews",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "AT-X",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Animax Japan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ABEMA Anime",
+      "isFree": true,
+      "keywords": "abema anime -2 -80 -s -90 -live",
+      "website": "https://abema.tv/now-on-air/abema-anime?lang=en",
+      "priority": 5
+    },
+    {
+      "name": "ABEMA Anime 2",
+      "isFree": true,
+      "website": "https://abema.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ABEMA Anime 80's",
+      "isFree": true,
+      "website": "https://abema.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ABEMA Anime 90's",
+      "isFree": true,
+      "website": "https://abema.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ABEMA Anime LIVE",
+      "isFree": true,
+      "keywords": "abema anime live -2",
+      "website": "https://abema.tv/now-on-air/anime-live?lang=en",
+      "priority": 5
+    },
+    {
+      "name": "ABEMA Anime LIVE 2",
+      "isFree": true,
+      "website": "https://abema.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ABEMA Everyones Anime",
+      "isFree": true,
+      "website": "https://abema.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ABEMA Family Anime",
+      "isFree": true,
+      "website": "https://abema.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Cartoon Network",
+      "isFree": true,
+      "website": "https://www.cartoonnetwork.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Disney",
+      "isFree": true,
+      "keywords": "disney channel -japan",
+      "website": "https://www.disney.co.jp/tv/dc",
+      "priority": 5
+    },
+    {
+      "name": "Disney Junior",
+      "isFree": true,
+      "website": "https://www.disney.co.jp/tv/junior",
+      "priority": 5
+    },
+    {
+      "name": "Kids Station",
+      "isFree": true,
+      "website": "http://www.kids-station.com/",
+      "priority": 5
+    },
+    {
+      "name": "Pokemon Kids TV English",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pokemon Kids TV Japanese",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "ABEMA Drama 2",
+      "isFree": true,
+      "website": "https://abema.tv/",
+      "priority": 5
+    },
+    {
+      "name": "ABEMA Korean & Chinese 2",
+      "isFree": true,
+      "website": "https://abema.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Action",
+      "isFree": true,
+      "website": "https://www.axn.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Asia Dramatic",
+      "isFree": true,
+      "website": "https://www.asiadramatictv.com/",
+      "priority": 5
+    },
+    {
+      "name": "AXN",
+      "isFree": true,
+      "keywords": "axn -mystery",
+      "website": "https://www.axn.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "AXN Mystery",
+      "isFree": true,
+      "website": "https://www.mystery.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Channel NECO",
+      "isFree": true,
+      "website": "https://www.necoweb.com/neco/",
+      "priority": 5
+    },
+    {
+      "name": "Channel Neco International",
+      "isFree": true,
+      "website": "https://jedge.tv/en/nippon-tv-2/",
+      "priority": 5
+    },
+    {
+      "name": "Dlife",
+      "isFree": true,
+      "website": "https://www.dlife.jp",
+      "priority": 5
+    },
+    {
+      "name": "Eisei Gekijo",
+      "isFree": true,
+      "website": "https://eigeki.com/",
+      "priority": 5
+    },
+    {
+      "name": "FOX Movies",
+      "isFree": true,
+      "website": "http://tv.foxjapan.com/movies/",
+      "priority": 5
+    },
+    {
+      "name": "Movie Plus",
+      "isFree": true,
+      "website": "https://www.discoveryjapan.jp/movieplus/",
+      "priority": 5
+    },
+    {
+      "name": "Nihon Eiga Senmon",
+      "isFree": true,
+      "website": "https://www.nihon-eiga.com/",
+      "priority": 5
+    },
+    {
+      "name": "Star Channel 2",
+      "isFree": true,
+      "website": "http://www.star-ch.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Star Channel 3",
+      "isFree": true,
+      "website": "http://www.star-ch.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Super! Drama",
+      "isFree": true,
+      "website": "http://www.superdramatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "The Cinema",
+      "isFree": true,
+      "keywords": "the cinema -4k",
+      "website": "https://www.thecinema.jp/",
+      "priority": 5
+    },
+    {
+      "name": "The Cinema 4K",
+      "isFree": true,
+      "website": "https://www.thecinema.jp/cinema4k/",
+      "priority": 5
+    },
+    {
+      "name": "Universal",
+      "isFree": true,
+      "website": "http://www.universalchannel.jp/",
+      "priority": 5
+    },
+    {
+      "name": "V Paradise",
+      "isFree": true,
+      "website": "https://www.vpara.com/",
+      "priority": 5
+    },
+    {
+      "name": "WOWOW Cinema",
+      "isFree": true,
+      "website": "http://www.wowow.co.jp/cinema_ch/",
+      "priority": 5
+    },
+    {
+      "name": "WOWOW Plus",
+      "isFree": true,
+      "website": "https://www.wowowplus.jp/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "ABEMA Hip Hop",
+      "isFree": true,
+      "website": "https://abema.tv/now-on-air/hiphop?lang=en",
+      "priority": 5
+    },
+    {
+      "name": "ABEMA K World",
+      "isFree": true,
+      "website": "https://abema.tv/now-on-air/k-world?lang=en",
+      "priority": 5
+    },
+    {
+      "name": "ABEMA MTV Hits",
+      "isFree": true,
+      "website": "https://abema.tv/now-on-air/mahjong?lang=en",
+      "priority": 5
+    },
+    {
+      "name": "Dance",
+      "isFree": true,
+      "website": "https://www.dance-ch.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Kayo Pops",
+      "isFree": true,
+      "website": "https://www.kayopops.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Mnet Japan",
+      "isFree": true,
+      "website": "https://mnetjp.com/",
+      "priority": 5
+    },
+    {
+      "name": "Music Air",
+      "isFree": true,
+      "website": "https://www.musicair.co.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Music Graffiti",
+      "isFree": true,
+      "website": "https://www.graffititv.jp",
+      "priority": 5
+    },
+    {
+      "name": "Music Japan",
+      "isFree": true,
+      "website": "http://www.mjtv.jp/",
+      "priority": 5
+    },
+    {
+      "name": "MUSIC ON!",
+      "isFree": true,
+      "website": "http://www.m-on.jp/",
+      "priority": 5
+    },
+    {
+      "name": "Space Shower",
+      "isFree": true,
+      "keywords": "space shower tv -plus",
+      "website": "http://www.spaceshowertv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Space Shower TV Plus",
+      "isFree": true,
+      "website": "http://www.spaceshowertvplus.com/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "ABEMA QUEST by Discovery",
+      "isFree": true,
+      "website": "https://abema.tv/now-on-air/mahjong?lang=en",
+      "priority": 7
+    },
+    {
+      "name": "Animal Planet",
+      "isFree": true,
+      "website": "https://www.discoverychannel.jp/ja/ch/ap.html",
+      "priority": 5
+    },
+    {
+      "name": "History",
+      "isFree": true,
+      "website": "https://jp.history.com/",
+      "priority": 7
+    },
+    {
+      "name": "JOAB-DTV",
+      "isFree": true,
+      "website": "https://www.nhk.or.jp/shutoken/",
+      "priority": 5
+    },
+    {
+      "name": "National Geographic",
+      "isFree": true,
+      "keywords": "national geographic -wild",
+      "website": "http://natgeotv.jp/tv/",
+      "priority": 7
+    },
+    {
+      "name": "National Geographic Wild",
+      "isFree": true,
+      "website": "http://natgeotv.com/asia",
+      "priority": 7
+    },
+    {
+      "name": "NHK Educational",
+      "isFree": true,
+      "retransmits": "NHK",
+      "website": "https://www.nhk.or.jp/",
+      "priority": 5
+    }
+  ]
+}

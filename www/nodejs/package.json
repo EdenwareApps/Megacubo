@@ -2,7 +2,7 @@
   "name": "megacubo",
   "displayName": "Megacubo",
   "icon": "./default_icon.png",
-  "version": "17.6.2",
+  "version": "17.6.3",
   "megacubo": {
     "revision": "17570"
   },

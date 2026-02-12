@@ -98,6 +98,7 @@
    "CATEGORY_SHOP": "متجر",
    "CATEGORY_SPORTS": "رياضات",
    "CATEGORY_TRAVEL": "السفر",
+   "CATEGORY_XXX": "محتوى للبالغين",
    "CHANGE_DEST_FOLDER": "قم بتغيير مجلد الوجهة",
    "CHANGE_HOTKEY_MESSAGE": "أدخل مجموعة مفاتيح جديدة لهذه العملية أو اضغط على {0} لإلغاء...",
    "CHANNEL_ADDED": "أضيفت قناة",

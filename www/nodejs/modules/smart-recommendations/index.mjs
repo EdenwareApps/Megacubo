@@ -1,8 +1,9 @@
 import { EventEmitter } from 'node:events'
-import { EPGErrorHandler } from '../epg/worker/EPGErrorHandler.js'
+import { ErrorHandler } from './ErrorHandler.mjs'
 import { EnhancedRecommendations } from './EnhancedRecommendations.mjs'
 import { AITagExpansion } from './AITagExpansion.mjs'
 import { SmartCache } from './SmartCache.mjs'
+import { AIRecommendationEngine } from './AIRecommendationEngine.mjs'
 
 /**
  * Smart Recommendations Module
@@ -21,8 +22,7 @@ class SmartRecommendationsModule extends EventEmitter {
             semanticWeight: 0.6,
             traditionalWeight: 0.4,
             maxRecommendations: 50,
-            cacheSize: 2000,
-            learningEnabled: true
+            cacheSize: 2000
         }
     }
 
@@ -33,7 +33,7 @@ class SmartRecommendationsModule extends EventEmitter {
      */
     async initialize(aiClient, options = {}) {
         try {
-            EPGErrorHandler.info('🚀 Initializing Smart Recommendations System...')
+            ErrorHandler.info('🚀 Initializing Smart Recommendations System...')
             
             this.aiClient = aiClient
             this.config = { ...this.config, ...options }
@@ -61,10 +61,10 @@ class SmartRecommendationsModule extends EventEmitter {
             this.readyState = 1
             this.emit('initialized')
             
-            EPGErrorHandler.info('✅ Smart Recommendations System initialized successfully')
+            ErrorHandler.info('✅ Smart Recommendations System initialized successfully')
             
         } catch (error) {
-            EPGErrorHandler.error('❌ Failed to initialize Smart Recommendations System:', error)
+            ErrorHandler.error('❌ Failed to initialize Smart Recommendations System:', error)
             this.readyState = -1
             throw error
         }
@@ -114,7 +114,7 @@ class SmartRecommendationsModule extends EventEmitter {
             return recommendations
             
         } catch (error) {
-            EPGErrorHandler.error('Failed to get recommendations:', error)
+            ErrorHandler.error('Failed to get recommendations:', error)
             throw error
         }
     }
@@ -135,7 +135,7 @@ class SmartRecommendationsModule extends EventEmitter {
         try {
             return await this.aiTagExpansion.expandUserTags(userTags, options)
         } catch (error) {
-            EPGErrorHandler.warn('Tag expansion failed:', error)
+            ErrorHandler.warn('Tag expansion failed:', error)
             return userTags
         }
     }
@@ -175,7 +175,7 @@ class SmartRecommendationsModule extends EventEmitter {
             // Return as object (default)
             return expandedTags
         } catch (error) {
-            EPGErrorHandler.warn('expandTags failed:', error)
+            ErrorHandler.warn('expandTags failed:', error)
             return options.as === 'objects' ? [] : {}
         }
     }
@@ -249,7 +249,7 @@ class SmartRecommendationsModule extends EventEmitter {
      */
     async reset() {
         try {
-            EPGErrorHandler.info('🔄 Resetting Smart Recommendations System...')
+            ErrorHandler.info('🔄 Resetting Smart Recommendations System...')
             
             if (this.cache) {
                 this.cache.clear()
@@ -260,10 +260,10 @@ class SmartRecommendationsModule extends EventEmitter {
             this.readyState = 0
             this.emit('reset')
             
-            EPGErrorHandler.info('✅ Smart Recommendations System reset completed')
+            ErrorHandler.info('✅ Smart Recommendations System reset completed')
             
         } catch (error) {
-            EPGErrorHandler.error('❌ Failed to reset Smart Recommendations System:', error)
+            ErrorHandler.error('❌ Failed to reset Smart Recommendations System:', error)
             throw error
         }
     }
@@ -273,7 +273,7 @@ class SmartRecommendationsModule extends EventEmitter {
      */
     async destroy() {
         try {
-            EPGErrorHandler.info('🗑️ Destroying Smart Recommendations System...')
+            ErrorHandler.info('🗑️ Destroying Smart Recommendations System...')
             
             if (this.cache) {
                 this.cache.destroy()
@@ -287,10 +287,10 @@ class SmartRecommendationsModule extends EventEmitter {
             this.readyState = -1
             this.removeAllListeners()
             
-            EPGErrorHandler.info('✅ Smart Recommendations System destroyed')
+            ErrorHandler.info('✅ Smart Recommendations System destroyed')
             
         } catch (error) {
-            EPGErrorHandler.error('❌ Failed to destroy Smart Recommendations System:', error)
+            ErrorHandler.error('❌ Failed to destroy Smart Recommendations System:', error)
         }
     }
 }

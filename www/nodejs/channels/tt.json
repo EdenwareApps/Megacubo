@@ -1,0 +1,229 @@
+{
+  "Religious": [
+    {
+      "name": "The Islamic Network",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "3ABN Trinidad & Tobago",
+      "isFree": true,
+      "website": "https://3abntt.tv/",
+      "priority": 4
+    },
+    {
+      "name": "ACTN The Voice",
+      "isFree": true,
+      "website": "https://www.actnthevoice.com/",
+      "priority": 4
+    },
+    {
+      "name": "Bhakti",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "IBN",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Sankhya",
+      "isFree": true,
+      "website": "https://www.sankhyatv.com/",
+      "priority": 4
+    },
+    {
+      "name": "Sky 99.5 FM",
+      "isFree": true,
+      "website": "https://sky995fm.com/",
+      "priority": 4
+    },
+    {
+      "name": "The Parliament",
+      "isFree": true,
+      "website": "https://www.ttparliament.org/",
+      "priority": 4
+    },
+    {
+      "name": "Tobago Inspirational Network",
+      "isFree": true,
+      "website": "http://tin137.com/",
+      "priority": 4
+    },
+    {
+      "name": "Trinity",
+      "isFree": true,
+      "website": "https://www.tcn-tt.com/",
+      "priority": 4
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "95 The Ultimate One",
+      "isFree": true,
+      "website": "https://95theultimateone.com/",
+      "priority": 5
+    },
+    {
+      "name": "Plus",
+      "isFree": true,
+      "website": "https://tegotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Slam 100.5 FM",
+      "isFree": true,
+      "website": "https://slam1005.com/",
+      "priority": 5
+    },
+    {
+      "name": "Synergy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Wack",
+      "isFree": true,
+      "website": "https://wack.tv/",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Bizz",
+      "isFree": true,
+      "website": "https://www.bizzmedia.biz/",
+      "priority": 5
+    },
+    {
+      "name": "CCN TV 6",
+      "isFree": true,
+      "website": "https://www.tv6tnt.com/",
+      "priority": 5
+    },
+    {
+      "name": "CNC 3",
+      "isFree": true,
+      "website": "https://www.cnc3.co.tt/",
+      "priority": 5
+    },
+    {
+      "name": "Freedom 106.5 FM",
+      "isFree": true,
+      "website": "https://freedom1065.com/",
+      "priority": 5
+    },
+    {
+      "name": "Gayelle The Caribbean",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "M&E",
+      "isFree": true,
+      "website": "https://www.metvnow.com/",
+      "priority": 5
+    },
+    {
+      "name": "Real",
+      "isFree": true,
+      "website": "https://real-tv.live/",
+      "priority": 5
+    },
+    {
+      "name": "Tobago Channel 5",
+      "isFree": true,
+      "website": "https://tobagochannel5.com/",
+      "priority": 5
+    },
+    {
+      "name": "TTT",
+      "isFree": true,
+      "website": "http://www.ttt.live/",
+      "priority": 5
+    },
+    {
+      "name": "Vibe CT 105.1 FM",
+      "isFree": true,
+      "website": "https://vibect1051.com/",
+      "priority": 5
+    },
+    {
+      "name": "WESN",
+      "isFree": true,
+      "website": "https://www.wesncc.com/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Flow Sports",
+      "isFree": true,
+      "website": "https://watch.streambluu.com/",
+      "priority": 10
+    },
+    {
+      "name": "Flow Sports 2",
+      "isFree": true,
+      "website": "https://watch.streambluu.com/",
+      "priority": 10
+    },
+    {
+      "name": "Flow Sports Extra 3",
+      "isFree": true,
+      "website": "https://watch.streambluu.com/",
+      "priority": 10
+    },
+    {
+      "name": "Flow Sports Extra 4",
+      "isFree": true,
+      "website": "https://watch.streambluu.com/",
+      "priority": 10
+    },
+    {
+      "name": "Flow Sports Extra 5",
+      "isFree": true,
+      "website": "https://watch.streambluu.com/",
+      "priority": 10
+    },
+    {
+      "name": "Flow Sports Extra 6",
+      "isFree": true,
+      "website": "https://watch.streambluu.com/",
+      "priority": 10
+    },
+    {
+      "name": "Flow Sports Extra 7",
+      "isFree": true,
+      "website": "https://watch.streambluu.com/",
+      "priority": 10
+    },
+    {
+      "name": "Flow Sports Extra 8",
+      "isFree": true,
+      "website": "https://watch.streambluu.com/",
+      "priority": 10
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "ieTV",
+      "isFree": true,
+      "website": "https://www.ietvtt.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sangeet 106.1 FM",
+      "isFree": true,
+      "website": "https://sangeet1061.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Jaagriti",
+      "isFree": true,
+      "website": "https://sdmsjaagriti.com/",
+      "priority": 5
+    }
+  ]
+}

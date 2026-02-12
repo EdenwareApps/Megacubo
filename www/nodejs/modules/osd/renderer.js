@@ -112,11 +112,12 @@ export class OSD extends EventEmitter {
             this.messages.unshift({classes: ['osd-entry'], id})
         }
         this.messages[i].text = text
+        console.log('SHOW', text, icon, name, time)
         if(icon){
             if(!icon.includes('.')){
                 this.messages[i].icon = '<i class="'+ icon +'"></i>'
             } else {
-                this.messages[i].icon = '<img src="'+icon+'" style="display: none;" onload="this.style.display=&apos;inline-block&apos;" />'
+                this.messages[i].icon = '<img src="'+ icon +'" style="display: none;" onload="this.style.display=&apos;inline-block&apos;" />'
             }
         } else {
             this.messages[i].icon = ''

@@ -1,0 +1,289 @@
+{
+  "Entertainment": [
+    {
+      "name": "LRT",
+      "isFree": true,
+      "keywords": "lrt -lituanica",
+      "website": "http://www.lrt.lt/televizija/",
+      "priority": 5
+    },
+    {
+      "name": "LRT Lituanica",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Balticum Auksinis",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Balticum Platinum",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Balticum",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "BTV",
+      "isFree": true,
+      "website": "https://lnk.lt/tv-programa#btv",
+      "priority": 5
+    },
+    {
+      "name": "Delfi",
+      "isFree": true,
+      "website": "https://www.delfi.lt/video/puslapis/tv",
+      "priority": 5
+    },
+    {
+      "name": "Dzukijos",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Etaplius",
+      "isFree": true,
+      "website": "https://www.etaplius.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Ignalinos",
+      "isFree": true,
+      "website": "https://www.ignet.lt/",
+      "priority": 5
+    },
+    {
+      "name": "INIT Ekstra",
+      "isFree": true,
+      "website": "https://init-tv.lt/",
+      "priority": 5
+    },
+    {
+      "name": "INIT",
+      "isFree": true,
+      "website": "https://init-tv.lt/",
+      "priority": 5
+    },
+    {
+      "name": "Just",
+      "isFree": true,
+      "website": "https://just-tv.lt/",
+      "priority": 5
+    },
+    {
+      "name": "Jusu Panevezys",
+      "isFree": true,
+      "website": "https://jptv.lt/",
+      "priority": 5
+    },
+    {
+      "name": "Laisves",
+      "isFree": true,
+      "website": "https://laisves.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Lietuvos Rytas",
+      "isFree": true,
+      "website": "http://tv.lrytas.lt/",
+      "priority": 5
+    },
+    {
+      "name": "LNK",
+      "isFree": true,
+      "website": "https://lnk.lt/tv-programa#lnk",
+      "priority": 5
+    },
+    {
+      "name": "Marijampoles",
+      "isFree": true,
+      "website": "http://www.marijampolestv.lt/",
+      "priority": 5
+    },
+    {
+      "name": "PBK Lithuania",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pukas",
+      "isFree": true,
+      "website": "https://pukas.lt/",
+      "priority": 5
+    },
+    {
+      "name": "REN TV Lithuania",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Seimas tiesiogiai",
+      "isFree": true,
+      "website": "https://www.lrs.lt/sip/portal.show?p_r=25151&p_k=1",
+      "priority": 5
+    },
+    {
+      "name": "Siauliu",
+      "isFree": true,
+      "website": "https://stv.lt/",
+      "priority": 5
+    },
+    {
+      "name": "TV",
+      "isFree": true,
+      "website": "https://lnk.lt/tv-programa#tv1",
+      "priority": 5
+    },
+    {
+      "name": "TV 3",
+      "isFree": true,
+      "website": "https://www.tv3.lt/",
+      "priority": 5
+    },
+    {
+      "name": "TV 6",
+      "isFree": true,
+      "website": "http://tv6.tv3.lt/",
+      "priority": 5
+    },
+    {
+      "name": "TV 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV 8",
+      "isFree": true,
+      "website": "http://tv8.tv3.lt/",
+      "priority": 5
+    },
+    {
+      "name": "ZTV",
+      "isFree": true,
+      "website": "http://www.ztelevizija.lt/",
+      "priority": 5
+    },
+    {
+      "name": "Zvaigzde",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Media of Lithuania",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "2TV",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Radios": [
+    {
+      "name": "Power Hit Radio",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "INIT Play",
+      "isFree": true,
+      "website": "https://init-tv.lt/",
+      "priority": 5
+    },
+    {
+      "name": "LRT Klasika",
+      "isFree": true,
+      "website": "https://www.lrt.lt/",
+      "priority": 5
+    },
+    {
+      "name": "LRT Opus",
+      "isFree": true,
+      "website": "https://www.lrt.lt/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "Arena HD Baltic",
+      "isFree": true,
+      "website": "https://arenahd.tv/",
+      "priority": 5
+    },
+    {
+      "name": "KOK Fights",
+      "isFree": true,
+      "website": "https://kokfights.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sport",
+      "isFree": true,
+      "website": "https://www.sport1.lt/",
+      "priority": 10
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "BM",
+      "isFree": true,
+      "website": "https://www.bmtv.lt/",
+      "priority": 5
+    },
+    {
+      "name": "Kanal 7 Baltics",
+      "isFree": true,
+      "website": "https://kanal7.ee/ru",
+      "priority": 5
+    },
+    {
+      "name": "LRT Plius",
+      "isFree": true,
+      "website": "http://www.lrt.lt/televizija/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "GNTV",
+      "isFree": true,
+      "website": "https://www.gntv.lt/",
+      "priority": 5
+    },
+    {
+      "name": "Info",
+      "isFree": true,
+      "website": "https://lnk.lt/tv-programa#infotv",
+      "priority": 5
+    },
+    {
+      "name": "LRT Radijas",
+      "isFree": true,
+      "website": "https://www.lrt.lt/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Pingvinukas",
+      "isFree": true,
+      "website": "http://www.lolotv.lv/",
+      "priority": 5
+    }
+  ],
+  "Shop": [
+    {
+      "name": "TV Pirk Ir Imk",
+      "isFree": true,
+      "website": "https://tvpirkirimk.lt/",
+      "priority": 4
+    }
+  ]
+}

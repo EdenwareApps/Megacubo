@@ -98,6 +98,7 @@
    "CATEGORY_SHOP": "Магазин",
    "CATEGORY_SPORTS": "Виды спорта",
    "CATEGORY_TRAVEL": "Путешествовать",
+   "CATEGORY_XXX": "Контент для взрослых",
    "CHANGE_DEST_FOLDER": "Сменить папку назначения",
    "CHANGE_HOTKEY_MESSAGE": "Введите новую комбинацию клавиш для этого действия или нажмите {0}, чтобы отменить...",
    "CHANNEL_ADDED": "Добавлен канал",

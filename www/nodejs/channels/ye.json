@@ -1,0 +1,155 @@
+{
+  "News": [
+    {
+      "name": "Al Masirah",
+      "isFree": true,
+      "keywords": "al masirah -mubacher",
+      "priority": 5
+    },
+    {
+      "name": "Al Masirah Mubacher",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Alghad Almushreq",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Suhail",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Alghadye",
+      "isFree": true,
+      "website": "http://www.alghadye.com/",
+      "priority": 5
+    },
+    {
+      "name": "Belqees",
+      "isFree": true,
+      "website": "https://www.belqees.tv/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Alerth Alnabawi",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Al-Iman",
+      "isFree": true,
+      "website": "https://alemaanwebtv.net/",
+      "priority": 4
+    },
+    {
+      "name": "Alqubba Alkhadra",
+      "isFree": true,
+      "website": "https://alqubba-alkhadra.com/",
+      "priority": 4
+    },
+    {
+      "name": "Al-Sahat",
+      "isFree": true,
+      "website": "https://alsahattv.com.ye/live.php",
+      "priority": 4
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Alyaman Shabab",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Aden",
+      "isFree": true,
+      "website": "http://www.tvaden.net/",
+      "priority": 5
+    },
+    {
+      "name": "AIC",
+      "isFree": true,
+      "website": "https://www.aichdtv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Alghurfah",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al-Hawyah",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Allahdhah",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al Mahrah",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hadhramaut",
+      "isFree": true,
+      "website": "https://www.hadhramaut.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Sheba",
+      "isFree": true,
+      "website": "http://www.shebatv.net/",
+      "priority": 5
+    },
+    {
+      "name": "TV3ad",
+      "isFree": true,
+      "website": "https://tv3ad.net/",
+      "priority": 5
+    },
+    {
+      "name": "Yemenia",
+      "isFree": true,
+      "website": "https://www.yemeniatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Yemen Today",
+      "isFree": true,
+      "website": "http://www.yementoday.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Yemen",
+      "isFree": true,
+      "website": "https://yementv.tv/",
+      "priority": 5
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Yemen Documentary",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Yemen Education",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Yemen Shabab",
+      "isFree": true,
+      "website": "https://yemenshabab.net/",
+      "priority": 5
+    }
+  ]
+}

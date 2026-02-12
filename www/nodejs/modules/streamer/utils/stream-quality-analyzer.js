@@ -1,9 +1,16 @@
 import { kbfmt, kbsfmt } from '../../utils/utils.js'
 import { EventEmitter } from "events";
 import fs from "fs";
+import path from "path";
+import http from "http";
+import https from "https";
 import ffmpeg from "../../ffmpeg/ffmpeg.js";
+import paths from "../../paths/paths.js";
+import { tmpdir } from 'os';
 import { isSyncByteValid, findSyncBytePosition } from '../../utils/utils.js';
 import { createHash } from 'crypto';
+
+const HTTP_FETCH_TIMEOUT_MS = 25000;
 
 const TS_PACKET_SIZE = 188;
 const TS_MIN_PCR_DIFF = 2700000; // ~30 seconds at 90kHz
@@ -34,7 +41,7 @@ class StreamQualityAnalyzer extends EventEmitter {
             enabled: opts.staticDetection?.enabled !== false,
             samples: [], // Buffer samples for analysis
             minSamples: 2, // Minimum samples before analysis
-            minSampleSize: 50000,
+            minSampleSize: 48 * 1024, // Align with bitrate minCheckSize; ensures valid samples
             maxSampleSize: 2000000,
             packetsToAnalyze: 200,
             confidenceThreshold: 0.7,
@@ -51,7 +58,7 @@ class StreamQualityAnalyzer extends EventEmitter {
             debug: false,
             minCheckSize: 48 * 1024,
             maxCheckSize: 3 * (1024 * 1024),
-            checkingAmount: 2,
+            checkingAmount: 3, // Allow more samples for static detection (needs >= 2)
             maxCheckingFails: 8
         }, opts);
         this.checkedPaths = {};
@@ -424,24 +431,26 @@ class StreamQualityAnalyzer extends EventEmitter {
      * Add sample for static detection analysis
      */
     addStaticSample(buffer) {
-        if (!this.staticDetection.enabled || this.destroyed) return;
-        
-        if (!Buffer.isBuffer(buffer)) return;
-        
-        if (buffer.length < this.staticDetection.minSampleSize ||
-            buffer.length > this.staticDetection.maxSampleSize) {
+        if (!this.staticDetection.enabled || this.destroyed) {
+            this.staticDetection.debug && console.log('[StaticDbg] addStaticSample skip: enabled=' + this.staticDetection.enabled + ' destroyed=' + this.destroyed);
             return;
         }
-        
-        // Create a copy to avoid issues if buffer is reused
+        if (!Buffer.isBuffer(buffer)) {
+            this.staticDetection.debug && console.log('[StaticDbg] addStaticSample skip: not Buffer');
+            return;
+        }
+        const minSz = this.staticDetection.minSampleSize, maxSz = this.staticDetection.maxSampleSize;
+        if (buffer.length < minSz || buffer.length > maxSz) {
+            this.staticDetection.debug && console.log('[StaticDbg] addStaticSample skip: size=' + buffer.length + ' min=' + minSz + ' max=' + maxSz);
+            return;
+        }
         const bufferCopy = Buffer.from(buffer);
         this.staticDetection.samples.push(bufferCopy);
-        
+        this.staticDetection.debug && console.log('[StaticDbg] addStaticSample pushed, samples.length=' + this.staticDetection.samples.length + ' minSamples=' + this.staticDetection.minSamples);
         // Keep only recent samples
         if (this.staticDetection.samples.length > this.staticDetection.minSamples + 1) {
             this.staticDetection.samples.shift();
         }
-        
         // Analyze when we have enough samples
         if (this.staticDetection.samples.length >= this.staticDetection.minSamples) {
             this.checkStaticStream();
@@ -453,7 +462,6 @@ class StreamQualityAnalyzer extends EventEmitter {
      */
     checkStaticStream() {
         const samples = this.staticDetection.samples;
-        
         const results = [];
         for (const sample of samples) {
             const result = this.analyzeStaticContent(sample);
@@ -461,7 +469,11 @@ class StreamQualityAnalyzer extends EventEmitter {
                 results.push(result);
             }
         }
-        
+        const od = (m) => {
+            if (this.staticDetection.debug) console.log(m);
+            this.staticDetection.onDbg?.(m);
+        };
+        this.staticDetection.debug && console.log('[StaticDbg] checkStaticStream results.length=' + results.length + ' isStatic=' + JSON.stringify(results.map(r => r.isStatic)) + ' confidence=' + JSON.stringify(results.map(r => r.confidence)));
         if (results.length >= 2) {
             const staticCount = results.filter(r => r.isStatic).length;
             const confidence = staticCount / results.length;
@@ -470,8 +482,10 @@ class StreamQualityAnalyzer extends EventEmitter {
             const entropies = samples.map(s => this.calculateEntropy(s));
             const entropyVariance = this.calculateVariance(entropies);
             
+            // Require per-sample agreement: do not declare static solely on low variance when no sample said static (reduces false positives on live streams)
+            const varianceThreshold = 0.05;
             const isStatic = confidence >= this.staticDetection.confidenceThreshold ||
-                           entropyVariance < 0.1;
+                           (entropyVariance < varianceThreshold && staticCount >= 1);
             
             const avgConfidence = results.reduce((sum, r) => sum + r.confidence, 0) / results.length;
             const finalConfidence = Math.max(confidence, avgConfidence);
@@ -479,7 +493,7 @@ class StreamQualityAnalyzer extends EventEmitter {
             if (this.isStatic !== isStatic || Math.abs(this.staticConfidence - finalConfidence) > 0.1) {
                 this.isStatic = isStatic;
                 this.staticConfidence = finalConfidence;
-                
+                this.staticDetection.debug && console.log('[StaticDbg] static-stream-detected isStatic=' + isStatic + ' confidence=' + finalConfidence);
                 this.emit('static-stream-detected', {
                     isStatic,
                     confidence: finalConfidence,
@@ -534,15 +548,21 @@ class StreamQualityAnalyzer extends EventEmitter {
         }
         
         if (!size) {
-            let err;
-            const stat = await fs.promises.stat(file).catch(e => err = e);
-            if (err || !stat || stat.size < this.minSampleSize) {
-                if (deleteFileAfterChecking) {
-                    await fs.promises.unlink(file).catch(err => console.error(err));
+            if (this.isHTTP(file)) {
+                // HTTP/URL: cannot fs.stat; use placeholder so check() runs. ffmpeg.bitrate will
+                // download and set nfo.tempFilePath for addStaticSample in the check() callback.
+                size = this.opts.minCheckSize;
+            } else {
+                let err;
+                const stat = await fs.promises.stat(file).catch(e => err = e);
+                if (err || !stat || stat.size < this.minSampleSize) {
+                    if (deleteFileAfterChecking) {
+                        await fs.promises.unlink(file).catch(e => console.error(e));
+                    }
+                    return false;
                 }
-                return false;
+                size = stat.size;
             }
-            size = stat.size;
         }
         
         this.checkedPaths[file] = true;
@@ -595,6 +615,62 @@ class StreamQualityAnalyzer extends EventEmitter {
             this.checking = false;
             this.queue = [];
             this.clearSamples();
+        } else if (isHTTP) {
+            // Pre-fetch HTTP with our client: ffmpeg's HTTP to the proxy often fails (cancel/abort).
+            // Fetch to temp, addStaticSample from it, then ffmpeg.bitrate(localPath).
+            console.log('getBitrate', file, this.url, null, this.opts.minCheckSize);
+            const ext = (/\.(m4s|mts|m2ts|ts)(?=\?|$)/i.exec(file)?.[1]?.toLowerCase()) || 'ts';
+            const tempDir = (paths && paths.temp) || tmpdir();
+            const tempPath = path.join(tempDir, Math.random() + '.' + ext);
+            const lib = file.startsWith('https') ? https : http;
+            const req = lib.get(file, (res) => {
+                if (res.statusCode !== 200) {
+                    res.resume();
+                    this.checkingFails++;
+                    this.checking = false;
+                    this.pump();
+                    return;
+                }
+                const ws = fs.createWriteStream(tempPath);
+                res.pipe(ws);
+                ws.on('finish', () => {
+                    fs.stat(tempPath, (statErr, stat) => {
+                        if (statErr || !stat || stat.size < this.staticDetection.minSampleSize) {
+                            fs.unlink(tempPath, () => {});
+                            this.checkingFails++;
+                            this.checking = false;
+                            this.pump();
+                            return;
+                        }
+                        if (this.staticDetection?.enabled) {
+                            fs.readFile(tempPath, (re, buf) => {
+                                if (!re && buf && Buffer.isBuffer(buf) && !this.destroyed) this.addStaticSample(buf);
+                            });
+                        }
+                        ffmpeg.bitrate(tempPath, (err, bitrate, codecData, dimensions, nfo) => {
+                            fs.unlink(tempPath, () => {});
+                            if (!this.destroyed) {
+                                console.log('gotBitrate', file, bitrate, codecData, dimensions, nfo);
+                                if (codecData) { this.codecData = codecData; this.emit('codecData', codecData); }
+                                if (dimensions && !this._dimensions) { this._dimensions = dimensions; this.emit('dimensions', this._dimensions); }
+                                if (err) {
+                                    this.checkingFails++;
+                                    this.opts.minCheckSize += this.opts.minCheckSize * 0.5;
+                                    this.opts.maxCheckSize += this.opts.maxCheckSize * 0.5;
+                                    this.updateQueueSizeLimits();
+                                } else {
+                                    if (bitrate && bitrate > 0) this.save(bitrate);
+                                }
+                            }
+                            this.checking = false;
+                            this.pump();
+                        }, stat.size);
+                    });
+                });
+                ws.on('error', () => { fs.unlink(tempPath, () => {}); this.checkingFails++; this.checking = false; this.pump(); });
+            });
+            req.on('error', () => { fs.unlink(tempPath, () => {}); this.checkingFails++; this.checking = false; this.pump(); });
+            req.setTimeout(HTTP_FETCH_TIMEOUT_MS, () => { req.destroy(); fs.unlink(tempPath, () => {}); this.checkingFails++; this.checking = false; this.pump(); });
         } else {
             console.log('getBitrate', file, this.url, isHTTP ? null : size, this.opts.minCheckSize);
             ffmpeg.bitrate(file, (err, bitrate, codecData, dimensions, nfo) => {
@@ -631,6 +707,26 @@ class StreamQualityAnalyzer extends EventEmitter {
                     }
                     this.checking = false;
                     this.pump();
+                    // Reuse same sample for static detection (HTTP/HLS: temp from ffmpeg.info)
+                    if (nfo?.tempFilePath && this.staticDetection?.enabled) {
+                        const minSz = this.staticDetection.minSampleSize;
+                        this.staticDetection.debug && console.log('[StaticDbg] check() has tempFilePath, minSz=' + minSz);
+                        fs.stat(nfo.tempFilePath, (statErr, stat) => {
+                            this.staticDetection.debug && console.log('[StaticDbg] temp stat: err=' + !!statErr + ' size=' + (stat?.size ?? '') + ' skipSize=' + !!(statErr || !stat || stat.size < minSz));
+                            if (!statErr && stat && stat.size >= minSz) {
+                                fs.readFile(nfo.tempFilePath, (readErr, buf) => {
+                                    if (!readErr && buf && Buffer.isBuffer(buf) && !this.destroyed) this.addStaticSample(buf);
+                                    fs.unlink(nfo.tempFilePath, () => {});
+                                });
+                            } else {
+                                fs.unlink(nfo.tempFilePath, () => {});
+                            }
+                        });
+                    } else if (this.staticDetection?.debug && !nfo?.tempFilePath) {
+                        const m = '[StaticDbg] check() no tempFilePath (nfo.tempFilePath=' + !!nfo?.tempFilePath + ' enabled=' + this.staticDetection?.enabled + ')';
+                        console.log(m);
+                        this.staticDetection?.onDbg?.(m);
+                    }
                 }
             });
         }

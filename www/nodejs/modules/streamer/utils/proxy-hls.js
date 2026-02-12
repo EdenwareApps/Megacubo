@@ -1,14 +1,18 @@
 import Download from '../../download/download.js'
+import fs from 'fs';
+import path from 'path';
 import { absolutize, isWritable, joinPath, kbsfmt, prepareCORS, ucWords } from "../../utils/utils.js";
 import osd from '../../osd/osd.js'
 import lang from "../../lang/lang.js";
+import paths from '../../paths/paths.js';
 import StreamerProxyBase from "./proxy-base.js";
 import decodeEntities from "decode-entities";
 import { Parser as ManifestParser } from "m3u8-parser";
 import http from "http";
 import stoppable from "stoppable";
 import closed from "../../on-closed/on-closed.js";
-import config from "../../config/config.js"
+import config from "../../config/config.js";
+import { tmpdir } from 'os';
 
 class HLSJournal {
     constructor(url, altURL, master) {
@@ -33,9 +37,39 @@ class HLSJournal {
             let header = [], segments = {}, extinf, currentSegmentName;
             let m = content.match(new RegExp('EXT-X-MEDIA-SEQUENCE: *([0-9]+)', 'i'));
             if (m) {
-                this.currentMediaSequence = parseInt(m[1]);
-                if (this.initialMediaSequence != this.currentMediaSequence) {
-                    this.initialMediaSequence = this.currentMediaSequence;
+                const newMediaSequence = parseInt(m[1]);
+                // Detect media sequence reset: in live HLS streams, media-sequence should only increase.
+                // A reset typically happens when server restarts and sequence goes back to 0 or very low number.
+                // Be conservative: only clear journal if:
+                // 1. New value is much lower (more than 90% decrease OR back to near-zero)
+                // 2. New value is very low (< 100) indicating server restart
+                if (this.currentMediaSequence !== null && this.initialMediaSequence > 0 && newMediaSequence < this.currentMediaSequence) {
+                    const decrease = this.currentMediaSequence - newMediaSequence;
+                    const decreasePercent = decrease / this.currentMediaSequence;
+                    const isNearZero = newMediaSequence < 100;
+                    const isLargeDecrease = decreasePercent > 0.9 || decrease > 1000;
+                    
+                    if (isNearZero || isLargeDecrease) {
+                        // Server reset media sequence - clear journal to avoid mismatch
+                        console.warn('HLS: Media sequence reset detected', this.currentMediaSequence, '->', newMediaSequence, 
+                            `(${Math.round(decreasePercent * 100)}% decrease) - clearing journal`);
+                        this.journal = {};
+                        this.initialMediaSequence = newMediaSequence;
+                        this.currentMediaSequence = newMediaSequence;
+                    } else {
+                        // Small decrease - might be wraparound or server glitch, but not a full reset
+                        // Update sequence but keep journal (segments might still be valid)
+                        console.warn('HLS: Media sequence decreased but not resetting', this.currentMediaSequence, '->', newMediaSequence,
+                            `(${Math.round(decreasePercent * 100)}% decrease)`);
+                        this.initialMediaSequence = newMediaSequence;
+                        this.currentMediaSequence = newMediaSequence;
+                    }
+                } else {
+                    // First time or normal increment
+                    if (this.initialMediaSequence != newMediaSequence) {
+                        this.initialMediaSequence = newMediaSequence;
+                    }
+                    this.currentMediaSequence = newMediaSequence;
                 }
             }
             let seg = 0;
@@ -297,6 +331,10 @@ class HLSRequests extends StreamerProxyBase {
         if (this.debugUnfinishedRequests) {
             osd.show('unfinished: ' + Object.values(this.activeRequests).length, 'fas fa-info-circle', 'hlsu', 'persistent');
         }
+        // Accumulate segment bytes for bitrateChecker (avoid re-fetch): only for user segment requests
+        const maxAccum = 4 * 1024 * 1024;
+        let segmentChunks = (seg && !opts.shadowClient) ? [] : null;
+        let segmentBytes = 0;
         let ended, mediaType, end = () => {
             if (this.debugConns) {
                 console.error('REQUEST CONNECT END', (Date.now() / 1000) - now, url, request.statusCode);
@@ -324,6 +362,7 @@ class HLSRequests extends StreamerProxyBase {
                     }
                     if (manifest && manifest != this.activeManifest) {
                         this.activeManifest = manifest;
+                        this._bitrateStaticSampleCount = 0;
                         if (this.playlistsMeta[manifest]) {
                             if (this.playlistsMeta[manifest].bandwidth && !isNaN(this.playlistsMeta[manifest].bandwidth) && this.playlistsMeta[manifest].bandwidth > 0) {
                                 this.bitrateChecker.save(this.playlistsMeta[manifest].bandwidth, true);
@@ -337,9 +376,37 @@ class HLSRequests extends StreamerProxyBase {
                 }
                 if (this.activeManifest && this.committed) { // has downloaded at least one segment to know from where the player is starting
                     if (seg && this.bitrateChecker.acceptingSamples()) {
-                        if (!this.playlistsMeta[this.activeManifest] || !this.codecData || !(this.codecData.audio || this.codecData.video)) {
-                            this.committed && this.bitrateChecker.addSample(this.proxify(url));
+                        const minForStatic = (this.bitrateChecker?.staticDetection?.minSamples ?? 2) + 1;
+                        const underStaticLimit = (this._bitrateStaticSampleCount ?? 0) < minForStatic;
+                        const byCodec = !this.playlistsMeta[this.activeManifest] || !this.codecData || !(this.codecData.audio || this.codecData.video);
+                        if (this.opts.debug) {
+                            const m = '[StaticDbg] proxy-hls addSample? seg=' + !!seg + ' accepting=true underStaticLimit=' + underStaticLimit + ' count=' + (this._bitrateStaticSampleCount ?? 0) + ' byCodec=' + byCodec + ' willAdd=' + (byCodec || underStaticLimit);
+                            console.log(m);
+                            this.bitrateChecker?.staticDetection?.onDbg?.(m);
                         }
+                        if (byCodec || underStaticLimit) {
+                            if (underStaticLimit) this._bitrateStaticSampleCount = (this._bitrateStaticSampleCount ?? 0) + 1;
+                            // Use segment buffer we already downloaded (no re-fetch); fallback to URL if unavailable
+                            if (segmentChunks && segmentChunks.length > 0) {
+                                const buf = Buffer.concat(segmentChunks);
+                                const minSz = this.bitrateChecker?.staticDetection?.minSampleSize ?? 48 * 1024;
+                                if (buf.length >= minSz) {
+                                    const tempPath = path.join((paths && paths.temp) || tmpdir(), Math.random() + '.ts');
+                                    fs.writeFile(tempPath, buf, (err) => {
+                                        if (!err && this.committed) this.bitrateChecker.addSample(tempPath, buf.length, true);
+                                        else if (this.committed) this.bitrateChecker.addSample(this.proxify(url));
+                                    });
+                                } else if (this.committed) {
+                                    this.bitrateChecker.addSample(this.proxify(url));
+                                }
+                            } else if (this.committed) {
+                                this.bitrateChecker.addSample(this.proxify(url));
+                            }
+                        }
+                    } else if (this.opts.debug && seg) {
+                        const m = '[StaticDbg] proxy-hls addSample skip: acceptingSamples=' + this.bitrateChecker?.acceptingSamples?.();
+                        console.log(m);
+                        this.bitrateChecker?.staticDetection?.onDbg?.(m);
                     }
                     // Using nextTick to prevent "RangeError: Maximum call stack size exceeded"
                     // Prefetch após download completar (para garantir que está no cache)
@@ -392,7 +459,13 @@ class HLSRequests extends StreamerProxyBase {
                 }
             }
         });
-        request.on('data', chunk => this.downloadLog(this.len(chunk)));
+        request.on('data', chunk => {
+            this.downloadLog(this.len(chunk));
+            if (segmentChunks && segmentBytes < maxAccum) {
+                segmentChunks.push(chunk);
+                segmentBytes += chunk.length;
+            }
+        });
         request.once('end', end);
         return request;
     }

@@ -1,0 +1,68 @@
+{
+  "Entertainment": [
+    {
+      "name": "Fiji",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Channel 2",
+      "isFree": true,
+      "website": "http://fijione.tv/fiji-tv-to-launch-channel-2/",
+      "priority": 5
+    },
+    {
+      "name": "FBC 2",
+      "isFree": true,
+      "website": "https://www.fbcnews.com.fj/",
+      "priority": 5
+    },
+    {
+      "name": "FBC",
+      "isFree": true,
+      "website": "https://www.fbcnews.com.fj/",
+      "priority": 5
+    },
+    {
+      "name": "Fiji One",
+      "isFree": true,
+      "website": "https://fijionenews.com.fj/",
+      "priority": 5
+    },
+    {
+      "name": "Mai",
+      "isFree": true,
+      "website": "https://maitvfiji.com/",
+      "priority": 5
+    },
+    {
+      "name": "Parliament of Fiji",
+      "isFree": true,
+      "website": "http://www.parliament.gov.fj/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "FBC Pop",
+      "isFree": true,
+      "website": "https://www.fbcnews.com.fj/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "FBC Sports",
+      "isFree": true,
+      "website": "https://www.fbcnews.com.fj/",
+      "priority": 10
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Hope Channel Fiji",
+      "isFree": true,
+      "priority": 4
+    }
+  ]
+}

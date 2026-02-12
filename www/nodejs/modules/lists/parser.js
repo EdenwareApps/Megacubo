@@ -2,6 +2,9 @@ import { EventEmitter } from "events";
 import LineReader from "../line-reader/line-reader.js";
 import { absolutize, listNameFromURL } from '../utils/utils.js'
 import { distinguishM3UType, sanitizeName } from './tools.js'
+import StreamInfo from '../streamer/utils/stream-info.js'
+
+let streamInfo = null;
 
 // Object Pool para reutilizar objetos e reduzir pressão no GC
 class ObjectPool {
@@ -457,7 +460,14 @@ export class Parser extends EventEmitter {
         let hasError = false;
         let error = null;
         let resolved = false;
-        
+        // Back-pressure: pause read stream when queue grows faster than parse+insert
+        const LINE_QUEUE_HIGH = 8000;
+        const LINE_QUEUE_LOW = 2000;
+        const stream = this.opts && this.opts.stream;
+        const canPause = stream && typeof stream.pause === 'function';
+        const canResume = stream && typeof stream.resume === 'function';
+        const isPaused = () => stream && typeof stream.isPaused === 'function' && stream.isPaused();
+
         // Set up line event handler
         this.liner.on('line', (line) => {
             this.readen += (line.length + 1);
@@ -468,6 +478,9 @@ export class Parser extends EventEmitter {
             }
             
             lineQueue.push(line);
+            if (canPause && lineQueue.length > LINE_QUEUE_HIGH) {
+                stream.pause();
+            }
             if (pump) {
                 pump();
             }
@@ -551,7 +564,10 @@ export class Parser extends EventEmitter {
                 // Process all available lines
                 while (lineQueue.length > 0) {
                     const line = lineQueue.shift();
-                    
+                    if (canResume && lineQueue.length < LINE_QUEUE_LOW && isPaused()) {
+                        stream.resume();
+                    }
+
                     const hashed = line.startsWith('#');
                     if (!hashed && line.length < 6) {
                         continue;
@@ -605,6 +621,12 @@ export class Parser extends EventEmitter {
                             if (this.expectingPlaylist) {
                                 yield { type: 'playlist', entry: e };
                             } else {
+                                if (!e.mediaType) {
+                                    if (!streamInfo) {
+                                        streamInfo = new StreamInfo();
+                                    }
+                                    e.mediaType = streamInfo.mi.mediaType({ url: e.url }, '');
+                                }
                                 yield { type: 'entry', entry: e };
                             }
                             

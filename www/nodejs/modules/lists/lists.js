@@ -11,12 +11,17 @@ import config from "../config/config.js"
 import { getEPGInstance } from '../epg/index.js';
 import lang from '../lang/lang.js';
 import { resolveListDatabaseFile } from "./tools.js";
+import { resolveListMetaPath } from "./list-meta.js";
 import { ready } from '../bridge/bridge.js'
 import { inWorker } from '../paths/paths.js'
 import { forwardSlashes, parseCommaDelimitedURIs } from "../utils/utils.js";
+import { Fetcher } from './common.js';
+
 class ListsEPGTools extends Index {
     constructor(opts) {
         super(opts)
+        this.Fetcher = Fetcher;
+
         const { worker: epgWorker, epg } = getEPGInstance()
         this.epgWorker = epgWorker
         this.epg = epg
@@ -71,7 +76,8 @@ class ListsEPGTools extends Index {
         await global.lists.ready()
         
         // Set channel terms index when EPG starts
-        await this.epg.setChannelTermsIndex(global.channels.channelList.channelsIndex)
+        const channelTerms = global.channels?.channelList?.channelsIndex
+        if (channelTerms) await this.epg.setChannelTermsIndex(channelTerms)
 
         // Wait for EPG worker to be fully loaded before calling start()
         await new Promise(resolve => {
@@ -205,10 +211,12 @@ class ListsEPGTools extends Index {
         })
 
         // Reapply terms whenever channels finish loading (covers auto grid switching public/community)
-        global.channels.on('loaded', () => {
-            const idx = global.channels?.channelList?.channelsIndex
-            if (idx) {
-                this.epg.setChannelTermsIndex(idx)
+        global.channels.on('loaded', changed => {
+            if (changed) {
+                const idx = global.channels?.channelList?.channelsIndex
+                if (idx) {
+                    this.epg.setChannelTermsIndex(idx)
+                }
             }
         })
 
@@ -511,10 +519,12 @@ class Lists extends ListsEPGTools {
             }
         })
         ready(async () => {
-            global.channels.on('channel-grid-updated', keys => {
-                this._relevantKeywords = null
-                // Update channel terms index in EPG when channel list changes
-                this.epg.setChannelTermsIndex(global.channels.channelList.channelsIndex)
+            global.channels.on('loaded', changed => {
+                if (changed) {
+                    this._relevantKeywords = null
+                    const idx = global.channels?.channelList?.channelsIndex
+                    if (idx) this.epg.setChannelTermsIndex(idx)
+                }
             })
         });
         this.on('satisfied', () => {
@@ -537,21 +547,24 @@ class Lists extends ListsEPGTools {
                 this.manager.onCommunityIdle(info)
             }
         })
-        this.handleListsChange()     
-        this.updateState()   
-        this.emit('unsatisfied')
         
-        // Set para rastrear listas que estão sendo atualizadas
+        // Set to track lists that are being updated
         this.updatingLists = new Set()
         
-        // Initial check for loaded lists with missing meta files
-        setTimeout(async () => {
-            try {
-                await this.checkAndFixLoadedListsWithMissingMeta();
-            } catch (err) {
-                console.error('Error in initial meta file check:', err);
-            }
-        }, 2000); // Wait 2 seconds for lists to load
+        process.nextTick(() => {
+            this.handleListsChange()     
+            this.updateState()   
+            this.emit('unsatisfied')
+        
+            // Initial check for loaded lists with missing meta files
+            setTimeout(async () => {
+                try {
+                    await this.checkAndFixLoadedListsWithMissingMeta();
+                } catch (err) {
+                    console.error('Error in initial meta file check:', err);
+                }
+            }, 2000);
+        })
         
         // Periodic check for lists with missing meta files (every 5 minutes)
         this.metaCheckInterval = setInterval(async () => {
@@ -607,7 +620,15 @@ class Lists extends ListsEPGTools {
         const rmLists = this.myLists.filter(u => !myLists.includes(u));
         this.myLists = myLists;
         rmLists.forEach(u => this.remove(u));
-        this.loadCachedLists(newLists).catch(err => console.error(err)) // load them up if cached
+        
+        // Load cached lists first (if they exist)
+        this.loadCachedLists(newLists).catch(err => console.error(err))
+        
+        // Also enqueue new lists in loader to ensure they are downloaded if not cached
+        // This ensures manual additions are processed even if not cached
+        if (newLists.length > 0) {
+            this.loader.enqueue(newLists, 1).catch(err => console.error('Error enqueueing new lists:', err));
+        }
     }
     handleCommunityListsAmountChange(data, force) {
         if (force === true || this.communityListsAmount != data['communitary-mode-lists-amount']) {
@@ -746,7 +767,7 @@ class Lists extends ListsEPGTools {
     async filterCachedUrls(urls) {
         if (this.debug)
             console.log('filterCachedUrls', urls.join("\r\n"));
-        let loadedUrls = [], cachedUrls = [];
+        let loadedUrls = [], cachedUrls = [], urlsWithMissingMeta = [];
         urls = urls.filter(u => {
             if (typeof(this.lists[u]) == 'undefined') {
                 return true;
@@ -757,13 +778,18 @@ class Lists extends ListsEPGTools {
             const limit = pLimit(8), tasks = urls.map(url => {
                 return async () => {
                     let err;
-                    const has = await this.isListCached(url).catch(e => err = e);
+                    const fileInfo = await this.checkListFiles(url).catch(e => err = e);
                     if (this.debug)
-                        console.log('filterCachedUrls', url, has);
-                    if (has === true) {
+                        console.log('filterCachedUrls', url, fileInfo);
+                    if (fileInfo && fileInfo.isCached === true) {
                         cachedUrls.push(url);
                         if (!this.requesting[url]) {
                             this.requesting[url] = 'cached, not added';
+                        }
+                    } else if (fileInfo && fileInfo.hasMissingMeta === true) {
+                        urlsWithMissingMeta.push(url);
+                        if (!this.requesting[url]) {
+                            this.requesting[url] = 'missing meta';
                         }
                     } else {
                         if (!this.requesting[url]) {
@@ -775,9 +801,13 @@ class Lists extends ListsEPGTools {
             await Promise.allSettled(tasks).catch(err => console.error(err));
         }
         if (this.debug)
-            console.log('filterCachedUrls', loadedUrls.join("\r\n"), cachedUrls.join("\r\n"));
+            console.log('filterCachedUrls', loadedUrls.join("\r\n"), cachedUrls.join("\r\n"), urlsWithMissingMeta.join("\r\n"));
         loadedUrls.push(...cachedUrls);
-        return loadedUrls;
+        // Return object with both cachedUrls and urlsWithMissingMeta to avoid duplicate checkListFiles calls
+        return {
+            cachedUrls: loadedUrls,
+            urlsWithMissingMeta: urlsWithMissingMeta
+        };
     }
     updaterFinished(isFinished) {
         if(this.isUpdaterFinished != isFinished) {
@@ -787,23 +817,9 @@ class Lists extends ListsEPGTools {
         return this.isUpdaterFinished;
     }
     async relevantKeywords() {
-        const channelsIndex = []
-        Object.values(global.channels?.channelList?.channelsIndex || {}).map(tms => {
-            const entries = []
-            if (tms.includes('|')) {
-                entries.push(...tms.join(' ').split('|').map(s => s.trim().split(' ')))
-            } else {
-                entries.push(tms)
-            }
-            for (const entry of entries) {
-                const excludes = entry.filter(t => t.startsWith('-')).map(t => t.slice(1));
-                const terms = entry.filter(t => !t.startsWith('-'));
-                channelsIndex.push({ terms, excludes })
-            }
-        });
-        return channelsIndex;
+        return global.channels?.channelList?.getKeywords?.() || [];
     }
-    async loadCachedLists(lists) {
+    async loadCachedLists(lists, alreadyFiltered = false) {
         let hits = 0;
         if (this.debug) {
             console.log('Checking for cached lists...', lists);
@@ -811,12 +827,20 @@ class Lists extends ListsEPGTools {
         if (!lists.length) return hits
         
         // filterCachedUrls already checks for complete files (main + meta)
-        lists = await this.filterCachedUrls(lists)
+        // Skip filtering if already filtered to avoid duplicate I/O operations
+        if (!alreadyFiltered) {
+            const filterResult = await this.filterCachedUrls(lists);
+            // Handle both old format (array) and new format (object)
+            lists = Array.isArray(filterResult) ? filterResult : (filterResult.cachedUrls || []);
+        } else {
+            // If already filtered, ensure we have an array
+            lists = Array.isArray(lists) ? lists : (lists.cachedUrls || []);
+        }
         
         this.trim(); // helps to avoid too many lists in memory
         
         // Load lists that passed the filter (they have both main and meta files)
-        const loadLimit = pLimit(2);
+        const loadLimit = pLimit(1);
         const loadTasks = lists.map(url => {
             return async () => {
                 if (typeof(this.lists[url]) != 'undefined') {
@@ -1176,19 +1200,17 @@ class Lists extends ListsEPGTools {
                 if (this.debug) {
                     console.log('loadList else', url);
                 }
-                const contentAlreadyLoaded = await this.isSameContentLoaded(list);
+                let cErr;
+                const contentAlreadyLoaded = await this.isSameContentLoaded(list).catch(e => cErr = e);
                 if (this.debug) {
                     console.log('loadList contentAlreadyLoaded', contentAlreadyLoaded);
                 }
-                if (contentAlreadyLoaded) {
-                    this.requesting[url] = 'content already loaded';
+                if (cErr || contentAlreadyLoaded) {
+                    this.requesting[url] = cErr ? String(cErr) : 'content already loaded';
                     if (this.debug) {
                         console.log('Content already loaded', url);
                     }
-                    if (this.debug) {
-                        console.log('loadList end: already loaded');
-                    }
-                    throw 'content already loaded';
+                    throw cErr ? cErr : 'content already loaded';
                 } else {
                     let replace
                     this.requesting[url] = 'added';
@@ -1317,13 +1339,20 @@ class Lists extends ListsEPGTools {
     async isSameContentLoaded(list) {
         let err, alreadyLoaded, listDataFile = list.file, listIndexLength = list.length;
         const stat = await fs.promises.stat(listDataFile).catch(e => err = e);
-        if (err || stat.size == 0) {
-            return true; // force this list discarding
+        if (!err && !stat?.size) {
+            err = new Error('file empty or not found');
+        }
+        if (err) {
+            throw err; // force this list discarding
         } else {
             const size = stat.size;
             const limit = pLimit(3);
             const tasks = Object.keys(this.lists).map(url => {
                 return async () => {
+                    if (url === list.url) {
+                        return;
+                    }
+
                     // Skip lists that are being updated
                     if (this.isListUpdating(url)) {
                         return
@@ -1331,7 +1360,6 @@ class Lists extends ListsEPGTools {
                     if (!alreadyLoaded && url != list.url && this.lists[url] && this.lists[url].length == listIndexLength) {
                         let err;
                         const f = this.lists[url].file;
-                        const a = await fs.promises.stat(f).catch(e => err = e);
                         if (!err && !alreadyLoaded) {
                             if (this.debug) {
                                 console.log('already loaded', list.url, url, f, listDataFile, size, s.size);

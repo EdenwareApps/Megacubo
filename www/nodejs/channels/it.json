@@ -1,0 +1,4055 @@
+{
+  "Entertainment": [
+    {
+      "name": "20 Mediaset",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "AB",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Alto Adige",
+      "isFree": true,
+      "keywords": "alto adige tv | altoadige tv",
+      "priority": 5
+    },
+    {
+      "name": "Amuse Animation",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Antenna Tre Veneto",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Aurora Arte",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Azzurra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Big Name",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Boing Italia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Brescia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CANALE 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CANALE 8",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CBL Classic",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CG Entertainment",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CafeTV 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Camera dei Deputati",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canale 10",
+      "isFree": true,
+      "keywords": "canale 10 -ostia",
+      "priority": 5
+    },
+    {
+      "name": "Canale 10 Ostia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canale 2 Altamura",
+      "isFree": true,
+      "shortName": "C2A",
+      "priority": 5
+    },
+    {
+      "name": "Canale 21 Lazio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canale 5",
+      "isFree": true,
+      "website": "https://www.mediaset.it",
+      "priority": 5
+    },
+    {
+      "name": "Canale Europa",
+      "isFree": true,
+      "website": "https://www.canaleeuropa.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Carina",
+      "isFree": true,
+      "keywords": "carina tv | carinatv",
+      "priority": 5
+    },
+    {
+      "name": "Cartoonito",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Classical Harmony",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cusano Italia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cusano",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Deejay",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Donna",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Elive TV Brescia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Entella",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Esperia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Euro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "FM ITALIA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Focus",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Food Network",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Giallo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Gold 78",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HGTV Italia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "HSE 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Hilando Fino",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Humanity",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Icaro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Iris",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Italia",
+      "isFree": true,
+      "website": "https://www.mediaset.it",
+      "priority": 5
+    },
+    {
+      "name": "Italia 2",
+      "isFree": true,
+      "keywords": "italia 2 | italia 2 tv | italia2tv",
+      "priority": 5
+    },
+    {
+      "name": "Iunior",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kiss Kiss Napoli",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kiss Kiss",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La 5",
+      "isFree": true,
+      "keywords": "la 5 | la5",
+      "priority": 5
+    },
+    {
+      "name": "La C",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La TR3 Marsala",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lira",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lucania",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MMA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mecenate",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mediaset Extra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Mondo Kids",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Moods",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Motor",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Motor Trend",
+      "isFree": true,
+      "keywords": "motor trend | motortrend",
+      "priority": 5
+    },
+    {
+      "name": "My Surf",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NSL",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Napoli Canale 21",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Parole di Vita",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "People are Awesome",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Primocanale",
+      "isFree": true,
+      "keywords": "primocanale -italia",
+      "priority": 5
+    },
+    {
+      "name": "Primocanale Itália",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "R101",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RDS Social",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RMK TV Sciacca",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTC Telecalabria",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTL 102.5 BEST",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTP",
+      "isFree": true,
+      "website": "https://www.rtp.pt",
+      "priority": 5
+    },
+    {
+      "name": "RTTR TV Trento",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTTR Trento",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RTV San Marino",
+      "isFree": true,
+      "keywords": "rtv san marino -sport",
+      "priority": 5
+    },
+    {
+      "name": "RTV Sport",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "RTV 38",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rai",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rai 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rai 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rai 4",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rai 5",
+      "isFree": true,
+      "keywords": "rai 5",
+      "priority": 5
+    },
+    {
+      "name": "Rai Gulp",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rai Premium",
+      "priority": 5
+    },
+    {
+      "name": "Rai Scuola",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rai Sport",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Rai Storia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rai YoYo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Real Time",
+      "isFree": true,
+      "keywords": "real time -italia -it",
+      "priority": 5
+    },
+    {
+      "name": "Real Time Italia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ReggioTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rete 4",
+      "isFree": true,
+      "website": "https://www.mediaset.it",
+      "priority": 5
+    },
+    {
+      "name": "Rete 55",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rete 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rete Biella",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rete Oro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Retemia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Retesole Lazio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Reteveneta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sardegna Uno",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Senato",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Siena",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sophia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Spike",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sportitalia",
+      "isFree": true,
+      "keywords": "sportitalia -24 -motori -solocalcio",
+      "priority": 10
+    },
+    {
+      "name": "Sportitalia 24",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sportitalia Motori",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Sportitalia Solocalcio",
+      "isFree": true,
+      "priority": 10
+    },
+    {
+      "name": "Spotlight",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Stereo 5",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Studio 100 Puglia",
+      "isFree": true,
+      "shortName": "S1P",
+      "priority": 5
+    },
+    {
+      "name": "Super",
+      "isFree": true,
+      "keywords": "super -j -tv -teramo -oristano | super tv",
+      "priority": 5
+    },
+    {
+      "name": "Super J TV Teramo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Super TV Oristano",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Super!",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Supertoons",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TG Norba 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TGCOM 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TLN Tele Lazio Nord",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TRM",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TRM h24 Basilicata",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Luna",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Qui",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Sei",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Shows",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV UNO",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV7 Azzurra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV7 Benevento",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV7 Triveneta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVL",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVRS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Abruzzo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Diogene",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Liguria Sud",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Milano",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Pavia",
+      "isFree": true,
+      "keywords": "tele pavia | telepavia",
+      "priority": 5
+    },
+    {
+      "name": "Tele Pegaso Catania",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Pordenone",
+      "isFree": true,
+      "keywords": "tele pordenone | telepordenone",
+      "priority": 5
+    },
+    {
+      "name": "Tele Quattro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Studio Modena",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleArena",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleBoario",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleFormula",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleGenova",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleMia",
+      "isFree": true,
+      "keywords": "telemia -extra",
+      "priority": 5
+    },
+    {
+      "name": "TeleMia Extra",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleTerni",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleTusciaSabina 2000",
+      "isFree": true,
+      "shortName": "T 2",
+      "priority": 5
+    },
+    {
+      "name": "TeleVenezia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleVideo Agrigento",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telebelluno",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Chiara",
+      "isFree": true,
+      "keywords": "tele chiara | telechiara",
+      "shortName": "Telechiara",
+      "priority": 5
+    },
+    {
+      "name": "Telecolor Lombardia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telecupole",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telefoggia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telefriuli",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telegranda",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Teleliberta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telemolise",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telenord",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telenuova",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telesud Trapani",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Teleticino",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Teletricolore",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Teletubbies",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tevere",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Top Crime",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Top Crimine",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Top Series",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Trentino",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Umbria",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VH1 Italia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Vera",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Video Brescia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Video Calabria",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Videolina",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Videonovara",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Videostar Canale 193",
+      "isFree": true,
+      "shortName": "VC",
+      "priority": 5
+    },
+    {
+      "name": "Vuemme",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Wine",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Yvii TV Sicilia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "teleMonteneve",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "12 TV Parma",
+      "isFree": true,
+      "website": "https://www.12tvparma.it/",
+      "priority": 5
+    },
+    {
+      "name": "50 Canale",
+      "isFree": true,
+      "website": "https://50canale.tv/",
+      "priority": 5
+    },
+    {
+      "name": "7 Gold",
+      "isFree": true,
+      "website": "http://www.my7.tv/",
+      "priority": 5
+    },
+    {
+      "name": "A2i",
+      "isFree": true,
+      "website": "https://a2itv.com/",
+      "priority": 5
+    },
+    {
+      "name": "ABC",
+      "isFree": true,
+      "website": "https://abctv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Agrigento",
+      "isFree": true,
+      "website": "http://www.televideoagrigento.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Air Italia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Alma",
+      "isFree": true,
+      "website": "https://almamediaitalia.it/televisione/",
+      "priority": 5
+    },
+    {
+      "name": "Antenna 2",
+      "isFree": true,
+      "website": "https://players.fluidstream.it/Antenna2TV/",
+      "priority": 5
+    },
+    {
+      "name": "Antenna Sicilia",
+      "isFree": true,
+      "website": "https://www.lasiciliaweb.it/live-antennasicilia/",
+      "priority": 5
+    },
+    {
+      "name": "Antenna Sud",
+      "isFree": true,
+      "keywords": "antenna sud -extra",
+      "website": "https://www.antennasud.com/streaming/",
+      "priority": 5
+    },
+    {
+      "name": "Antenna Sud Extra",
+      "isFree": true,
+      "website": "https://www.antennasud.com/streaming-92/",
+      "priority": 5
+    },
+    {
+      "name": "Antenna Tre",
+      "isFree": true,
+      "keywords": "antenna tre -veneto",
+      "website": "https://antennatre.medianordest.it/",
+      "priority": 5
+    },
+    {
+      "name": "Apulia Web",
+      "isFree": true,
+      "website": "https://www.apuliawebtv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Arezzo",
+      "isFree": true,
+      "website": "https://www.arezzotv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Bella Liguria",
+      "isFree": true,
+      "website": "https://player.zerounocast.it/playerbellaliguria.html",
+      "priority": 5
+    },
+    {
+      "name": "Bella",
+      "isFree": true,
+      "website": "https://bellaradio.it/",
+      "priority": 5
+    },
+    {
+      "name": "Bergamo",
+      "isFree": true,
+      "website": "https://bergamotv.it/",
+      "priority": 5
+    },
+    {
+      "name": "BFC Forbes",
+      "isFree": true,
+      "website": "https://bfcvideo.com/category/forbes/",
+      "priority": 5
+    },
+    {
+      "name": "Bike",
+      "isFree": true,
+      "website": "https://bikechannel.it/",
+      "priority": 5
+    },
+    {
+      "name": "Blaze",
+      "isFree": true,
+      "website": "http://www.blazetv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Bom",
+      "isFree": true,
+      "website": "https://bomchannel.it/",
+      "priority": 5
+    },
+    {
+      "name": "Brindiamo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Caccia e Pesca",
+      "isFree": true,
+      "website": "http://www.cacciaepesca.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Calabria",
+      "isFree": true,
+      "website": "https://calabriatv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Cam Tele 3",
+      "isFree": true,
+      "website": "https://www.camtele3tv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Canale 162",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canale 165",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canale 21",
+      "isFree": true,
+      "keywords": "canale 21 -extra -lazio",
+      "website": "http://www.canale21.it/",
+      "priority": 5
+    },
+    {
+      "name": "Canale 21 Extra",
+      "isFree": true,
+      "website": "http://www.canale21.it/",
+      "priority": 5
+    },
+    {
+      "name": "Canale 3 Toscana",
+      "isFree": true,
+      "website": "https://canale3.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Canale 48",
+      "isFree": true,
+      "website": "https://www.canale48.it/",
+      "priority": 5
+    },
+    {
+      "name": "Canale 58",
+      "isFree": true,
+      "website": "https://www.canale58.com/",
+      "priority": 5
+    },
+    {
+      "name": "Canale 88",
+      "isFree": true,
+      "website": "https://50canale.tv/streaming/canale-88-dtt-streaming",
+      "priority": 5
+    },
+    {
+      "name": "Canale Dieci",
+      "isFree": true,
+      "website": "https://canaledieci.it/",
+      "priority": 5
+    },
+    {
+      "name": "Canale Italia",
+      "isFree": true,
+      "keywords": "canale italia -83 -84",
+      "website": "https://canaleitalia.it/",
+      "priority": 5
+    },
+    {
+      "name": "Canale Italia 83",
+      "isFree": true,
+      "website": "https://canaleitalia.it/",
+      "priority": 5
+    },
+    {
+      "name": "Canale Italia 84",
+      "isFree": true,
+      "website": "https://canaleitalia.it/",
+      "priority": 5
+    },
+    {
+      "name": "Capri Casino",
+      "isFree": true,
+      "website": "http://www.capri.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Capri Fashion",
+      "isFree": true,
+      "website": "http://www.retecapri.it/",
+      "priority": 5
+    },
+    {
+      "name": "CentoXCento",
+      "isFree": null,
+      "website": "https://www.centoxcento.net/",
+      "priority": 5
+    },
+    {
+      "name": "Channel 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cielo",
+      "isFree": true,
+      "keywords": "cielo",
+      "website": "https://www.cielotv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Class TV Moda",
+      "isFree": true,
+      "website": "http://www.tvmoda.it/",
+      "priority": 5
+    },
+    {
+      "name": "Comedy Central",
+      "isFree": true,
+      "website": "http://www.comedycentral.it/",
+      "priority": 5
+    },
+    {
+      "name": "Corallo Sat",
+      "isFree": true,
+      "website": "http://www.corallo.org/",
+      "priority": 5
+    },
+    {
+      "name": "Deluxe 139",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Discovery",
+      "isFree": true,
+      "website": "https://discoverychannel.it/",
+      "priority": 7
+    },
+    {
+      "name": "DI.TV 80",
+      "isFree": true,
+      "website": "http://www.di-tv.net/diretta-streaming/ditv-80/",
+      "priority": 5
+    },
+    {
+      "name": "Di.TV 92",
+      "isFree": true,
+      "website": "http://www.di-tv.net/diretta-streaming/streaming-di-tv-92/",
+      "priority": 5
+    },
+    {
+      "name": "DMAX",
+      "isFree": true,
+      "keywords": "dmax -it",
+      "website": "https://dmax.it/",
+      "priority": 5
+    },
+    {
+      "name": "E!",
+      "isFree": true,
+      "website": "https://www.eonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Emilia-Romagna 24",
+      "isFree": true,
+      "website": "https://www.modenaindiretta.it/",
+      "priority": 5
+    },
+    {
+      "name": "Epiqa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Espansione",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Extra",
+      "isFree": true,
+      "website": "https://www.extratv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Fano",
+      "isFree": true,
+      "website": "https://www.fanotv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Fire",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "FM",
+      "isFree": true,
+      "website": "https://www.fmtv.live/streaming/",
+      "priority": 5
+    },
+    {
+      "name": "FOX",
+      "isFree": true,
+      "website": "http://www.foxtv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Gambero Rosso",
+      "isFree": true,
+      "website": "https://www.gamberorosso.it/",
+      "priority": 5
+    },
+    {
+      "name": "Genius 240",
+      "isFree": true,
+      "website": "https://vaughn.live/geniussrl",
+      "priority": 5
+    },
+    {
+      "name": "Gold",
+      "isFree": true,
+      "keywords": "gold tv -sat",
+      "website": "https://www.goldtv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Gold TV Sat",
+      "isFree": true,
+      "website": "https://www.grupposciscione.it/gold-tv-sat/",
+      "priority": 5
+    },
+    {
+      "name": "GO-TV Canale 163",
+      "isFree": true,
+      "website": "https://www.go-tv.org/it/",
+      "priority": 5
+    },
+    {
+      "name": "Granducato",
+      "isFree": true,
+      "website": "https://www.telegranducato.it/live-tv/",
+      "priority": 5
+    },
+    {
+      "name": "GRP VERATV",
+      "isFree": true,
+      "website": "https://grp.it/diretta/",
+      "priority": 5
+    },
+    {
+      "name": "HGTV",
+      "isFree": true,
+      "keywords": "hgtv -italia",
+      "website": "https://homegardentv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Il 13",
+      "isFree": true,
+      "website": "http://www.iltredici.it/",
+      "priority": 5
+    },
+    {
+      "name": "Italia 7",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Italian Fishing",
+      "isFree": true,
+      "website": "https://www.italianfishingtv.it/",
+      "priority": 5
+    },
+    {
+      "name": "La4 Italia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LA 7",
+      "isFree": true,
+      "website": "https://www.la7.it/",
+      "priority": 5
+    },
+    {
+      "name": "La7 Cinema",
+      "isFree": true,
+      "website": "https://www.la7.it/la7cinema",
+      "priority": 5
+    },
+    {
+      "name": "LA7d",
+      "isFree": true,
+      "website": "https://www.la7.it/la7d",
+      "priority": 5
+    },
+    {
+      "name": "La 9",
+      "isFree": true,
+      "website": "http://www.la9.it/",
+      "priority": 5
+    },
+    {
+      "name": "Lab",
+      "isFree": true,
+      "website": "https://www.labtv.net/",
+      "priority": 5
+    },
+    {
+      "name": "LaC On Air",
+      "isFree": true,
+      "website": "https://www.lacplay.it/dirette/lac-onair/",
+      "priority": 5
+    },
+    {
+      "name": "La F",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "La Nuova",
+      "isFree": true,
+      "website": "https://www.lanuova.net/la-nuova-tv/",
+      "priority": 5
+    },
+    {
+      "name": "La Tr 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lazio",
+      "isFree": true,
+      "website": "https://www.laziotv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Le Cronache",
+      "isFree": true,
+      "website": "http://www.lecronache.info/diretta/",
+      "priority": 5
+    },
+    {
+      "name": "Life 120",
+      "isFree": true,
+      "website": "https://life120.it/",
+      "priority": 5
+    },
+    {
+      "name": "Lombardia",
+      "isFree": true,
+      "website": "https://www.lombardiatv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Love in Venice",
+      "isFree": true,
+      "website": "https://live-tv-channels.org/livetv/love-in-venice-live-stream",
+      "priority": 5
+    },
+    {
+      "name": "Luna",
+      "isFree": true,
+      "website": "https://www.teleliguriasud.it/diretta-lunatv/",
+      "priority": 5
+    },
+    {
+      "name": "MarcoPolo Travel",
+      "isFree": true,
+      "website": "https://marcopolo.tv/",
+      "priority": 5
+    },
+    {
+      "name": "MEDIA 24",
+      "isFree": true,
+      "website": "https://media24tv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Mediaset Extra 2",
+      "isFree": true,
+      "website": "https://www.mediasetplay.mediaset.it/mediasetextra",
+      "priority": 5
+    },
+    {
+      "name": "Mediaset Italia",
+      "isFree": true,
+      "website": "https://mediasetitalia.com/",
+      "priority": 5
+    },
+    {
+      "name": "MediaText",
+      "isFree": true,
+      "website": "https://www.mediatext.it/",
+      "priority": 5
+    },
+    {
+      "name": "Media",
+      "isFree": true,
+      "website": "https://www.media-tv.it/",
+      "priority": 5
+    },
+    {
+      "name": "MediterraniaTV",
+      "isFree": true,
+      "website": "https://www.mediterraneatv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Milanow",
+      "isFree": true,
+      "website": "https://www.mediapason.it/milanow/",
+      "priority": 5
+    },
+    {
+      "name": "Motori",
+      "isFree": true,
+      "website": "https://motori.tv/",
+      "priority": 5
+    },
+    {
+      "name": "MS",
+      "isFree": true,
+      "website": "http://mschannel.tv/",
+      "priority": 5
+    },
+    {
+      "name": "MS Motor",
+      "isFree": true,
+      "website": "http://www.msmotor.tv/",
+      "priority": 5
+    },
+    {
+      "name": "MTV",
+      "isFree": true,
+      "keywords": "mtv -music",
+      "website": "https://www.mtv.it/",
+      "priority": 5
+    },
+    {
+      "name": "NewSignal",
+      "isFree": true,
+      "website": "https://www.newsignal.it/",
+      "priority": 5
+    },
+    {
+      "name": "NoiTV",
+      "isFree": true,
+      "website": "https://www.noitv.it/live/",
+      "priority": 5
+    },
+    {
+      "name": "Nove",
+      "isFree": true,
+      "keywords": "nove -it",
+      "website": "https://www.nove.tv/",
+      "priority": 5
+    },
+    {
+      "name": "NTN",
+      "isFree": true,
+      "website": "https://www.nuovatvnazionale.it/",
+      "priority": 5
+    },
+    {
+      "name": "Nuova TV",
+      "isFree": true,
+      "website": "https://nuovatv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Nuova TV 2",
+      "isFree": true,
+      "website": "https://nuovatv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Odeon 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Onda",
+      "isFree": true,
+      "website": "https://www.ondatv.it/",
+      "priority": 5
+    },
+    {
+      "name": "ORF 1 Sudtirol",
+      "isFree": true,
+      "website": "https://tv.orf.at/",
+      "priority": 5
+    },
+    {
+      "name": "Otto",
+      "isFree": true,
+      "website": "https://www.ottochannel.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Paradise",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Partenope",
+      "isFree": true,
+      "website": "https://www.partenope.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Passione Lotto",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Peer TV Alto Adige",
+      "isFree": true,
+      "website": "https://www.peer.tv/it",
+      "priority": 5
+    },
+    {
+      "name": "Peer TV South Tyrol",
+      "isFree": true,
+      "website": "https://www.peer.tv/en",
+      "priority": 5
+    },
+    {
+      "name": "Peer TV Sudtirol",
+      "isFree": true,
+      "website": "https://www.peer.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Pesca e Caccia",
+      "isFree": true,
+      "website": "http://www.cacciaepesca.tv/pesca/",
+      "priority": 5
+    },
+    {
+      "name": "Premium Stories",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Prima Free",
+      "isFree": true,
+      "website": "https://www.primafree.net/",
+      "priority": 5
+    },
+    {
+      "name": "PrimAntenna",
+      "isFree": true,
+      "website": "https://www.primantenna.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Prima Tivvu",
+      "isFree": true,
+      "website": "http://www.primativvu.it/",
+      "priority": 5
+    },
+    {
+      "name": "Prima",
+      "isFree": true,
+      "keywords": "prima tv -napoli",
+      "website": "https://www.primatv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Prima TV Napoli",
+      "isFree": true,
+      "website": "http://www.primatvnapoli.com/",
+      "priority": 5
+    },
+    {
+      "name": "Promovideo",
+      "isFree": true,
+      "website": "https://www.promovideotv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Quadrifoglio",
+      "isFree": true,
+      "website": "https://www.quadrifogliotv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Quarto Canale Flegreo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Cusano Italia",
+      "isFree": true,
+      "website": "https://cusanoitaliatv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Norba",
+      "isFree": true,
+      "website": "https://radionorba.it/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Roma Television",
+      "isFree": true,
+      "website": "https://www.radioroma.it/diretta-radio-roma-television/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Ticino",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rai 4K",
+      "isFree": true,
+      "website": "http://www.rai.it/",
+      "priority": 5
+    },
+    {
+      "name": "Rai Alto Adige",
+      "isFree": true,
+      "website": "http://www.raialtoadige.rai.it/",
+      "priority": 5
+    },
+    {
+      "name": "Rai Italia",
+      "isFree": true,
+      "website": "http://www.raitalia.it/",
+      "priority": 5
+    },
+    {
+      "name": "Rai Ladinia",
+      "isFree": true,
+      "website": "http://www.railadinia.rai.it/la/index.php",
+      "priority": 5
+    },
+    {
+      "name": "Rainbow",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rai Radio 2 Visual",
+      "isFree": true,
+      "website": "https://www.raiplay.it/dirette/rairadio2",
+      "priority": 5
+    },
+    {
+      "name": "Rai Sudtirol",
+      "isFree": true,
+      "website": "http://www.raisudtirol.rai.it/de/index.php",
+      "priority": 5
+    },
+    {
+      "name": "Rai World Premium",
+      "isFree": true,
+      "website": "http://www.raicom.rai.it/canali-estero/",
+      "priority": 5
+    },
+    {
+      "name": "RDS Relax",
+      "isFree": true,
+      "website": "https://rdsrelax.it/",
+      "priority": 5
+    },
+    {
+      "name": "Rei",
+      "isFree": true,
+      "website": "https://www.reitv.it/live_tv.html",
+      "priority": 5
+    },
+    {
+      "name": "Rete 8",
+      "isFree": true,
+      "keywords": "rete 8 -sport -vga",
+      "website": "https://www.rete8.it/",
+      "priority": 5
+    },
+    {
+      "name": "Rete 82+",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Rete 8 VGA",
+      "isFree": true,
+      "website": "http://www.telerimini.it/",
+      "priority": 5
+    },
+    {
+      "name": "Retecapri",
+      "isFree": true,
+      "website": "http://www.retecapri.it/",
+      "priority": 5
+    },
+    {
+      "name": "Rete Chiara",
+      "isFree": true,
+      "website": "http://retechiara.it",
+      "priority": 5
+    },
+    {
+      "name": "ReteSette",
+      "isFree": true,
+      "website": "https://www.rete7.cloud/",
+      "priority": 5
+    },
+    {
+      "name": "Rete TV Italia",
+      "isFree": true,
+      "website": "https://www.retetvitalia.it",
+      "priority": 5
+    },
+    {
+      "name": "Roma TV 82",
+      "isFree": true,
+      "website": "https://www.grupposciscione.it/",
+      "priority": 5
+    },
+    {
+      "name": "Rossini",
+      "isFree": true,
+      "website": "https://www.rossinitv.it/",
+      "priority": 5
+    },
+    {
+      "name": "RTC Quarta Rete",
+      "isFree": true,
+      "website": "https://www.rtcquartarete.it",
+      "priority": 5
+    },
+    {
+      "name": "RTI Canale 14",
+      "isFree": true,
+      "website": "https://www.rticalabria.tv/",
+      "priority": 5
+    },
+    {
+      "name": "RTM",
+      "isFree": true,
+      "website": "https://www.mediasetplay.mediaset.it/mediasetextra",
+      "priority": 5
+    },
+    {
+      "name": "RTV Ilirida",
+      "isFree": true,
+      "keywords": "rtv ilirida -music",
+      "website": "http://radioilirida.it/home/",
+      "priority": 5
+    },
+    {
+      "name": "S",
+      "isFree": true,
+      "website": "https://www.soveratounotv.net/diretta-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Sardegna",
+      "isFree": true,
+      "website": "https://www.sardegna1.it/",
+      "priority": 5
+    },
+    {
+      "name": "SCT",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Seila",
+      "isFree": true,
+      "website": "https://seilatv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Sesta Rete",
+      "isFree": true,
+      "website": "https://sestarete.tv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Sfera",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sharing",
+      "isFree": true,
+      "website": "http://www.sharingtv.it/index.html#Diretta",
+      "priority": 5
+    },
+    {
+      "name": "Sicilia",
+      "isFree": true,
+      "website": "https://www.lyngsat.com/logo/tv/ss/sicilia_tv_it.png",
+      "priority": 5
+    },
+    {
+      "name": "Sisal TV",
+      "isFree": true,
+      "website": "http://www.sisal.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sisal TV 2",
+      "isFree": true,
+      "website": "http://www.sisal.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sisal TV 3",
+      "isFree": true,
+      "website": "http://www.sisal.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sisal TV 4",
+      "isFree": true,
+      "website": "http://www.sisal.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sisal TV 5",
+      "isFree": true,
+      "website": "http://www.sisal.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Arte",
+      "isFree": true,
+      "website": "https://arte.sky.it/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Atlantic",
+      "isFree": true,
+      "keywords": "sky atlantic -maratone",
+      "website": "http://skyatlantic.sky.it/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Atlantic Maratone",
+      "isFree": true,
+      "website": "http://skyatlantic.sky.it/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Investigation",
+      "isFree": true,
+      "website": "https://www.sky.it/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Serie Anime",
+      "isFree": true,
+      "website": "https://www.sky.it/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Uno",
+      "isFree": true,
+      "keywords": "sky uno -vetrina",
+      "website": "http://skyuno.sky.it/skyuno/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Uno Vetrina",
+      "isFree": true,
+      "website": "http://skyuno.sky.it/skyuno/",
+      "priority": 5
+    },
+    {
+      "name": "SNAI Virtuali",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SNAI Virtuali 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SNAI Virtuali 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SNAI Virtuali 8",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ST Europe",
+      "isFree": true,
+      "website": "https://www.globusmagazine.it/st-europe-channel-radiotelevision/",
+      "priority": 5
+    },
+    {
+      "name": "Super Six",
+      "isFree": true,
+      "website": "https://www.supersixtv.net/",
+      "priority": 5
+    },
+    {
+      "name": "T 9",
+      "isFree": true,
+      "website": "https://www.grupposciscione.it/t9-2/",
+      "priority": 5
+    },
+    {
+      "name": "Taurianova",
+      "isFree": true,
+      "website": "https://www.taurianovatv.it/",
+      "priority": 5
+    },
+    {
+      "name": "TCI",
+      "isFree": true,
+      "website": "https://www.tci-italia.it/",
+      "priority": 5
+    },
+    {
+      "name": "Tele A",
+      "isFree": true,
+      "website": "https://palpro.it/telea/",
+      "priority": 5
+    },
+    {
+      "name": "Teleacras",
+      "isFree": true,
+      "website": "https://www.teleacras.it/",
+      "priority": 5
+    },
+    {
+      "name": "Telebari",
+      "isFree": true,
+      "website": "https://www.telebari.it/diretta-tv",
+      "priority": 5
+    },
+    {
+      "name": "Telecity Liguria",
+      "isFree": true,
+      "website": "https://www.telecity.it/canali/telecity-liguria/",
+      "priority": 5
+    },
+    {
+      "name": "Telecity Lombardia",
+      "isFree": true,
+      "website": "https://www.telecity.it/canali/telecity-lombardia/",
+      "priority": 5
+    },
+    {
+      "name": "Telecity Piemonte",
+      "isFree": true,
+      "website": "https://www.telecity.it/canali/telecity-piemonte/",
+      "priority": 5
+    },
+    {
+      "name": "Telecity Valle d'Aosta",
+      "isFree": true,
+      "website": "https://www.telecity.it/canali/telecity-valle-daosta/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Clusone",
+      "isFree": true,
+      "website": "https://www.teleclusone.com/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Costa Smeralda",
+      "isFree": true,
+      "website": "http://www.telecostasmeralda.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Teleiblea 89",
+      "isFree": true,
+      "website": "https://reteiblea.it/streaming/",
+      "priority": 5
+    },
+    {
+      "name": "TeleJonio",
+      "isFree": true,
+      "website": "http://www.telejonio.com/",
+      "priority": 5
+    },
+    {
+      "name": "Telelombardia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TeleMajg",
+      "isFree": true,
+      "website": "http://www.telemajg.com/",
+      "priority": 5
+    },
+    {
+      "name": "Telemantova",
+      "isFree": true,
+      "website": "https://www.telemantova.it/",
+      "priority": 5
+    },
+    {
+      "name": "TeleMistretta",
+      "isFree": true,
+      "website": "https://www.telemistretta.it/",
+      "priority": 5
+    },
+    {
+      "name": "Tele Moda",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telemontecarlo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telenorba",
+      "isFree": true,
+      "website": "https://norbaonline.it/",
+      "priority": 5
+    },
+    {
+      "name": "TeleNordest",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Telenova",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele One 16",
+      "isFree": true,
+      "website": "https://www.mediaoneonline.it/diretta/",
+      "priority": 5
+    },
+    {
+      "name": "TeleRama",
+      "isFree": true,
+      "website": "https://www.trnews.it/",
+      "priority": 5
+    },
+    {
+      "name": "TeleReggio",
+      "isFree": true,
+      "website": "https://www.reggionline.com/telereggio-streaming-diretta/",
+      "priority": 5
+    },
+    {
+      "name": "Teleregione",
+      "isFree": true,
+      "keywords": "teleregione -live",
+      "website": "https://www.teleregionecolor.com/teleregione-live-stream/",
+      "priority": 5
+    },
+    {
+      "name": "Teleregione Live",
+      "isFree": true,
+      "website": "https://www.teleregionelive.it/streaming/",
+      "priority": 5
+    },
+    {
+      "name": "Teleromagna",
+      "isFree": true,
+      "website": "https://teleromagna.it/it/live/teleromagna",
+      "priority": 5
+    },
+    {
+      "name": "Tele Roma Uno",
+      "isFree": true,
+      "website": "http://www.teleromauno.com/",
+      "priority": 5
+    },
+    {
+      "name": "Telesardegna",
+      "isFree": true,
+      "website": "https://telesardegna.it/",
+      "priority": 5
+    },
+    {
+      "name": "Telesirio Web",
+      "isFree": true,
+      "website": "https://www.telesirio.it/",
+      "priority": 5
+    },
+    {
+      "name": "Telestense",
+      "isFree": true,
+      "website": "https://www.telestense.it/",
+      "priority": 5
+    },
+    {
+      "name": "Telesud",
+      "isFree": true,
+      "keywords": "telesud -trapani",
+      "website": "http://www.telesud.it/",
+      "priority": 5
+    },
+    {
+      "name": "Teletruria",
+      "isFree": true,
+      "website": "https://www.teletruria.it/",
+      "priority": 5
+    },
+    {
+      "name": "Teleuniverso",
+      "isFree": true,
+      "website": "https://www.teleuniverso.it/diretta-streaming/",
+      "priority": 5
+    },
+    {
+      "name": "Televallo",
+      "isFree": true,
+      "website": "https://www.televallo.it/",
+      "priority": 5
+    },
+    {
+      "name": "Ten",
+      "isFree": true,
+      "website": "https://www.tenonline.tv/diretta-tv/#gsc.tab=0",
+      "priority": 5
+    },
+    {
+      "name": "TLT Molise",
+      "isFree": true,
+      "website": "https://www.tltmolise.it/",
+      "priority": 5
+    },
+    {
+      "name": "Top Calcio 24",
+      "isFree": true,
+      "website": "http://www.mediapason.it/topcalcio24/",
+      "priority": 5
+    },
+    {
+      "name": "Top Planet",
+      "isFree": true,
+      "website": "https://www.mediapason.it/top-planet/",
+      "priority": 5
+    },
+    {
+      "name": "TRC Bologna",
+      "isFree": true,
+      "website": "https://www.bolognaindiretta.it/trc-bologna/",
+      "priority": 5
+    },
+    {
+      "name": "TRC Modena",
+      "isFree": true,
+      "website": "https://www.bolognaindiretta.it/trc-modena/",
+      "priority": 5
+    },
+    {
+      "name": "Tremedia",
+      "isFree": true,
+      "website": "https://www.tremedia.it/",
+      "priority": 5
+    },
+    {
+      "name": "TRG Media",
+      "isFree": true,
+      "website": "https://www.trgmedia.it/",
+      "priority": 5
+    },
+    {
+      "name": "TriS",
+      "isFree": true,
+      "website": "https://www.teletris.it/",
+      "priority": 5
+    },
+    {
+      "name": "TRM h 24",
+      "isFree": true,
+      "keywords": "trm h24 -basilicata",
+      "website": "https://www.trmtv.it/",
+      "priority": 5
+    },
+    {
+      "name": "TSN Lecco",
+      "isFree": true,
+      "website": "https://radiotsn.tv/tsn-lecco-live/",
+      "priority": 5
+    },
+    {
+      "name": "TSN Visual Radio",
+      "isFree": true,
+      "website": "https://radiotsn.tv/tsn-visual-radio/",
+      "priority": 5
+    },
+    {
+      "name": "TT24 Teletutto",
+      "isFree": true,
+      "website": "https://www.teletutto.it/in_diretta/12556.html",
+      "priority": 5
+    },
+    {
+      "name": "TT2 Teletutto",
+      "isFree": true,
+      "website": "https://www.teletutto.it/in_diretta/12550.html",
+      "priority": 5
+    },
+    {
+      "name": "TT Teletutto",
+      "isFree": true,
+      "website": "https://www.teletutto.it/in_diretta/",
+      "priority": 5
+    },
+    {
+      "name": "TV",
+      "isFree": true,
+      "website": "https://www.1web.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV 8",
+      "isFree": true,
+      "website": "https://www.tv8.it",
+      "priority": 5
+    },
+    {
+      "name": "TVA Vicenza",
+      "isFree": true,
+      "website": "https://tvavicenza.gruppovideomedia.it/",
+      "priority": 5
+    },
+    {
+      "name": "TV Campane",
+      "isFree": true,
+      "website": "https://tv.tvcampane.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Campane 2",
+      "isFree": true,
+      "website": "https://tv.tvcampane.com/",
+      "priority": 5
+    },
+    {
+      "name": "TV Prato",
+      "isFree": true,
+      "website": "https://www.tvprato.it/",
+      "priority": 5
+    },
+    {
+      "name": "TV Qui Modena",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Yes Italia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UniNettuno University",
+      "isFree": true,
+      "website": "https://www.uninettuno.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Unire Blu",
+      "isFree": true,
+      "website": "http://www.unire.gov.it/",
+      "priority": 5
+    },
+    {
+      "name": "Unire Sat",
+      "isFree": true,
+      "website": "http://www.unire.gov.it/",
+      "priority": 5
+    },
+    {
+      "name": "Unire",
+      "isFree": true,
+      "keywords": "unire tv -1 -2",
+      "website": "http://www.unire.gov.it/",
+      "priority": 5
+    },
+    {
+      "name": "Unire TV",
+      "isFree": true,
+      "website": "http://www.unire.gov.it/",
+      "priority": 5
+    },
+    {
+      "name": "Unire TV 2",
+      "isFree": true,
+      "website": "http://www.unire.gov.it/",
+      "priority": 5
+    },
+    {
+      "name": "Uno 4",
+      "isFree": true,
+      "website": "https://uno4.it/diretta/",
+      "priority": 5
+    },
+    {
+      "name": "Value 24",
+      "isFree": true,
+      "website": "https://www.value24.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Video 33",
+      "isFree": true,
+      "website": "https://www.video33.it/",
+      "priority": 5
+    },
+    {
+      "name": "Video Italia",
+      "isFree": true,
+      "website": "https://web.archive.org/web/20081205021909/http://www.videoitalia.it/",
+      "priority": 5
+    },
+    {
+      "name": "Videolina Sardegna",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Video Mediterraneo",
+      "isFree": true,
+      "website": "https://www.videomediterraneo.it/live/",
+      "priority": 5
+    },
+    {
+      "name": "VideoRegione",
+      "isFree": true,
+      "website": "https://videoregione.it/",
+      "priority": 5
+    },
+    {
+      "name": "VideoTouring",
+      "isFree": true,
+      "website": "https://progettotouring.it/videotouring/",
+      "priority": 5
+    },
+    {
+      "name": "Well",
+      "isFree": true,
+      "website": "https://www.welltv.eu/",
+      "priority": 5
+    },
+    {
+      "name": "Zelig",
+      "isFree": true,
+      "website": "https://www.areazelig.it/",
+      "priority": 5
+    },
+    {
+      "name": "CarinaTV",
+      "isFree": true,
+      "website": "https://www.carinatv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Italia2TV",
+      "isFree": true,
+      "website": "https://www.italia2tv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Telepavia",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Company",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Euro Indie Music Chart",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Video Rola",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "m2o",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "7 RadioVisione",
+      "isFree": true,
+      "website": "https://radio7note.com/",
+      "priority": 5
+    },
+    {
+      "name": "7 YOU & ME",
+      "isFree": true,
+      "website": "https://radioyoume.com",
+      "priority": 5
+    },
+    {
+      "name": "Babayaga",
+      "isFree": true,
+      "website": "https://www.babayaga.fun/",
+      "priority": 5
+    },
+    {
+      "name": "Classica",
+      "isFree": true,
+      "website": "http://www.mondoclassica.it/",
+      "priority": 5
+    },
+    {
+      "name": "Lombardia Radio",
+      "isFree": true,
+      "website": "http://www.lombardiaradiotv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Mojito",
+      "isFree": true,
+      "website": "http://www.mojitotv.it/",
+      "priority": 5
+    },
+    {
+      "name": "MTV Music",
+      "isFree": true,
+      "website": "http://www.mtv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Otto FM",
+      "isFree": true,
+      "website": "https://ottofm.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Adige",
+      "isFree": true,
+      "website": "https://www.radioadige.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Bruno",
+      "isFree": true,
+      "website": "http://www.radiobruno.it/radio-bruno-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Capital TiVu",
+      "isFree": true,
+      "website": "https://www.capital.it/tv/",
+      "priority": 5
+    },
+    {
+      "name": "Radiofreccia",
+      "isFree": true,
+      "website": "https://play.rtl.it/live/17/radiofreccia-radiovisione/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Italia Anni 60",
+      "isFree": true,
+      "website": "https://www.radioitaliaanni60.it/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Italia Trend",
+      "isFree": true,
+      "website": "https://www.radioitalia.it/radioitaliatrend.php",
+      "priority": 5
+    },
+    {
+      "name": "Radiolina",
+      "isFree": true,
+      "website": "https://radiolina.it/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Marte",
+      "isFree": true,
+      "website": "https://www.radiomarte.it/marte/radio-marte-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Millenium",
+      "isFree": true,
+      "website": "https://www.radiomillennium.it/streaming/streaming-radiomillenniumtv",
+      "priority": 5
+    },
+    {
+      "name": "RadioMusica",
+      "isFree": true,
+      "website": "https://radiomusicatv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Parsifal Radio Visione",
+      "isFree": true,
+      "website": "https://www.parsifal.it/desktop/",
+      "priority": 5
+    },
+    {
+      "name": "RTL 102.5 Bro&Sis",
+      "isFree": true,
+      "website": "https://play.rtl.it/live/16/bro-and-sis-tv/",
+      "priority": 5
+    },
+    {
+      "name": "RTL 102.5 Caliente",
+      "isFree": true,
+      "website": "https://play.rtl.it/live/44/rtl-1025-caliente-tv/",
+      "priority": 5
+    },
+    {
+      "name": "RTL 102.5 Disco",
+      "isFree": true,
+      "website": "https://play.rtl.it/live/21/rtl-1025-doc-tv/",
+      "priority": 5
+    },
+    {
+      "name": "RTL 102.5 Napule",
+      "isFree": true,
+      "website": "https://play.rtl.it/live/20/rtl-1025-napule-tv/",
+      "priority": 5
+    },
+    {
+      "name": "RTL 102.5 Traffic",
+      "isFree": true,
+      "website": "https://play.rtl.it/live/35/rtl-1025-news-tv/",
+      "priority": 5
+    },
+    {
+      "name": "RTV Ilirida Music",
+      "isFree": true,
+      "website": "http://radioilirida.it/home/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Classica",
+      "isFree": true,
+      "website": "https://skymedia.it/canali/classica/",
+      "priority": 5
+    },
+    {
+      "name": "SL 48",
+      "isFree": true,
+      "website": "http://www.sl48.tv/web/home.asp",
+      "priority": 5
+    },
+    {
+      "name": "Studio 7",
+      "isFree": true,
+      "website": "https://www.radiostudio7.net/tv",
+      "priority": 5
+    },
+    {
+      "name": "VH",
+      "isFree": true,
+      "keywords": "vh1 -italia",
+      "website": "https://www.mtv.it/topic/vh1",
+      "priority": 5
+    },
+    {
+      "name": "Zerouno TV Music",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Bloomberg",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Canale 2",
+      "isFree": true,
+      "keywords": "canale 2 -altamura",
+      "priority": 5
+    },
+    {
+      "name": "Class CNBC",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "ETV Marche",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Euronews",
+      "isFree": true,
+      "keywords": "euronews -italiano",
+      "website": "https://www.euronews.com",
+      "priority": 5
+    },
+    {
+      "name": "Euronews Italiano",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RAI News 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sky TG 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TSN Tele Sondrio News",
+      "isFree": true,
+      "keywords": "tsn tele sondrio news | tsn telesondrio news",
+      "priority": 5
+    },
+    {
+      "name": "TV7 News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Sondrio News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "A 3",
+      "isFree": true,
+      "website": "https://antennatre.medianordest.it/live/",
+      "priority": 5
+    },
+    {
+      "name": "Adnkronos",
+      "isFree": true,
+      "website": "https://www.adnkronos.com/",
+      "priority": 5
+    },
+    {
+      "name": "ByoBlu",
+      "isFree": true,
+      "website": "https://www.byoblu.com/diretta-tv/",
+      "priority": 5
+    },
+    {
+      "name": "CalabriaUno",
+      "isFree": true,
+      "website": "https://calabriauno.news/",
+      "priority": 5
+    },
+    {
+      "name": "Etna Espresso",
+      "isFree": true,
+      "website": "https://www.radioetnaespresso.com/",
+      "priority": 5
+    },
+    {
+      "name": "eTv Rete 7",
+      "isFree": true,
+      "website": "https://e-tv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Giornale Radio News",
+      "isFree": true,
+      "website": "https://giornaleradio.fm/canali-tv/giornale-radio-news-tv",
+      "priority": 5
+    },
+    {
+      "name": "Giornale Radio",
+      "isFree": true,
+      "website": "https://giornaleradio.fm/canali-tv/giornaleradio-tv",
+      "priority": 5
+    },
+    {
+      "name": "Info Media News",
+      "isFree": true,
+      "website": "https://infomedianews.com/",
+      "priority": 5
+    },
+    {
+      "name": "LaC News 24",
+      "isFree": true,
+      "website": "https://www.lacplay.it/dirette/lac-news24/",
+      "priority": 5
+    },
+    {
+      "name": "La Grande Italia",
+      "isFree": true,
+      "website": "https://grandeitaliatv.wordpress.com/",
+      "priority": 5
+    },
+    {
+      "name": "L'altro Corriere",
+      "isFree": true,
+      "website": "https://www.laltrocorriere.it/",
+      "priority": 5
+    },
+    {
+      "name": "Minformo",
+      "isFree": true,
+      "website": "https://www.minformo.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Pop Economy",
+      "isFree": true,
+      "website": "https://www.popeconomy.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Roma News",
+      "isFree": true,
+      "website": "https://www.radioroma.it/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Meteo 24",
+      "isFree": true,
+      "website": "https://meteo.sky.it",
+      "priority": 5
+    },
+    {
+      "name": "Sky TG24 Eventi",
+      "isFree": true,
+      "website": "https://tg24.sky.it/",
+      "priority": 5
+    },
+    {
+      "name": "Sky TG24 Primo Piano",
+      "isFree": true,
+      "website": "https://tg24.sky.it/",
+      "priority": 5
+    },
+    {
+      "name": "Sky TG24 Rassegne",
+      "isFree": true,
+      "website": "https://tg24.sky.it/",
+      "priority": 5
+    },
+    {
+      "name": "TCF",
+      "isFree": true,
+      "website": "https://www.tcftv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Telegela 647",
+      "isFree": true,
+      "website": "https://www.quotidianodigela.it/telegela/",
+      "priority": 5
+    },
+    {
+      "name": "Telejato",
+      "isFree": true,
+      "website": "https://www.telejato.it/",
+      "priority": 5
+    },
+    {
+      "name": "Teleradio Futura Nissa",
+      "isFree": true,
+      "website": "https://www.tfnweb.it/",
+      "priority": 5
+    },
+    {
+      "name": "tv9 Telemaremma",
+      "isFree": true,
+      "website": "https://www.tv9italia.it/",
+      "priority": 5
+    },
+    {
+      "name": "Zerouno TV News",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Padre Pio",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Tele Padre Pio",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Giovanni Paolo",
+      "isFree": true,
+      "website": "https://diretta.giovannipaolotv.it/",
+      "priority": 4
+    },
+    {
+      "name": "HopeMedia Italia",
+      "isFree": true,
+      "website": "https://hopemedia.it/",
+      "priority": 4
+    },
+    {
+      "name": "Maria Vision Italia",
+      "isFree": true,
+      "website": "https://www.mariavision.com/mvitaliaenvivo",
+      "priority": 4
+    },
+    {
+      "name": "Medjugorje Italia",
+      "isFree": true,
+      "website": "https://www.medjugorjeitaliatv.net/",
+      "priority": 4
+    },
+    {
+      "name": "Tele Dehon",
+      "isFree": true,
+      "website": "https://www.teledehon.it/",
+      "priority": 4
+    },
+    {
+      "name": "Telepace",
+      "isFree": true,
+      "website": "https://www.teleradiopace.tv/trasmissioni/",
+      "priority": 4
+    },
+    {
+      "name": "Telepace 2",
+      "isFree": true,
+      "website": "https://www.teleradiopace.tv/trasmissioni/",
+      "priority": 4
+    },
+    {
+      "name": "Telepace 3",
+      "isFree": true,
+      "website": "https://www.teleradiopace.tv/palinsesti-settimana/telepace-3-canale-115/",
+      "priority": 4
+    },
+    {
+      "name": "Telepace 4",
+      "isFree": true,
+      "website": "https://www.teleradiopace.tv/palinsesti-settimana/telepace-4-canale-218/",
+      "priority": 4
+    },
+    {
+      "name": "Telepace News",
+      "isFree": true,
+      "website": "https://www.teleradiopace.tv/trasmissioni/",
+      "priority": 4
+    },
+    {
+      "name": "Telepace Trento",
+      "isFree": true,
+      "website": "https://www.telepacetrento.it/diretta/",
+      "priority": 4
+    },
+    {
+      "name": "TeleSanDomenico",
+      "isFree": true,
+      "website": "https://www.tsdtv.it/",
+      "priority": 4
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "History Lab",
+      "isFree": true,
+      "priority": 7
+    },
+    {
+      "name": "Orler",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "7 STORIA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Arte Atelier",
+      "isFree": true,
+      "website": "http://www.arteatelier.it/",
+      "priority": 5
+    },
+    {
+      "name": "Arte Network Orler Canale Due",
+      "isFree": true,
+      "website": "https://www.artenetwork.it/streamingtv/",
+      "priority": 5
+    },
+    {
+      "name": "Arte Network Orler Canale Uno",
+      "isFree": true,
+      "website": "https://www.artenetwork.it/streamingtv/",
+      "priority": 5
+    },
+    {
+      "name": "Explorer HD",
+      "isFree": true,
+      "website": "https://www.explorertv.it/",
+      "priority": 5
+    },
+    {
+      "name": "History",
+      "isFree": true,
+      "keywords": "history -lab",
+      "website": "https://www.historychannel.it/",
+      "priority": 7
+    },
+    {
+      "name": "Nat Geo People",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "National Geographic",
+      "isFree": true,
+      "keywords": "national geographic -wild",
+      "website": "http://natgeotv.nationalgeographic.it/",
+      "priority": 7
+    },
+    {
+      "name": "National Geographic Wild",
+      "isFree": true,
+      "website": "http://www.natgeowild.it/",
+      "priority": 7
+    },
+    {
+      "name": "Paci Contemporary",
+      "isFree": true,
+      "website": "https://www.pacicontemporary.com/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Adventure",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sky Documentaries",
+      "isFree": true,
+      "website": "https://www.sky.it/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Nature",
+      "isFree": true,
+      "website": "https://www.sky.it/",
+      "priority": 5
+    },
+    {
+      "name": "Teatro",
+      "isFree": true,
+      "website": "http://www.teatrotv.it/",
+      "priority": 5
+    },
+    {
+      "name": "TeleAmbiente",
+      "isFree": true,
+      "website": "https://www.teleambiente.it/",
+      "priority": 5
+    },
+    {
+      "name": "Telearte",
+      "isFree": true,
+      "website": "https://www.teleartetv.it/streaming/",
+      "priority": 5
+    },
+    {
+      "name": "The Map Report",
+      "isFree": true,
+      "website": "https://www.themapreport.com/the-map-report-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Wedding",
+      "isFree": true,
+      "website": "https://www.weddingtv.it/",
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Action Movies",
+      "priority": 5
+    },
+    {
+      "name": "Cine 34",
+      "keywords": "cine 34 | cine34",
+      "priority": 5
+    },
+    {
+      "name": "Comedy Movies",
+      "priority": 5
+    },
+    {
+      "name": "Family Movies",
+      "priority": 5
+    },
+    {
+      "name": "Minerva Bizzarro Movies",
+      "priority": 5
+    },
+    {
+      "name": "Minerva Cinema Segreto",
+      "priority": 5
+    },
+    {
+      "name": "Rai Movie",
+      "keywords": "rai movie",
+      "priority": 5
+    },
+    {
+      "name": "AXN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bizzarro Movies",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cinema Segreto",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Crime + Investigation",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Horror",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Paramount Network",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Premium Action",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Premium Cinema",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Premium Cinema 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Premium Cinema 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Premium Crime",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sky Cinema 4K",
+      "isFree": true,
+      "website": "https://tg24.sky.it/spettacolo/skycinema/home.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Cinema Action",
+      "isFree": true,
+      "website": "https://tg24.sky.it/spettacolo/skycinema/home.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Cinema Classics",
+      "isFree": true,
+      "website": "https://tg24.sky.it/spettacolo/skycinema/home.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Cinema Collection",
+      "isFree": true,
+      "website": "https://tg24.sky.it/spettacolo/skycinema/home.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Cinema Comedy",
+      "isFree": true,
+      "website": "https://tg24.sky.it/spettacolo/skycinema/home.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Cinema Drama",
+      "isFree": true,
+      "website": "https://tg24.sky.it/spettacolo/skycinema/home.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Cinema Due",
+      "isFree": true,
+      "website": "https://tg24.sky.it/spettacolo/skycinema/home.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Cinema Family",
+      "isFree": true,
+      "website": "https://tg24.sky.it/spettacolo/skycinema/home.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Cinema Italia",
+      "isFree": true,
+      "website": "https://tg24.sky.it/spettacolo/skycinema/home.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Cinema Mania",
+      "isFree": true,
+      "website": "https://tg24.sky.it/spettacolo/skycinema/home.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Cinema Max",
+      "isFree": true,
+      "website": "https://tg24.sky.it/spettacolo/skycinema/home.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Cinema Romance",
+      "isFree": true,
+      "website": "https://tg24.sky.it/spettacolo/skycinema/home.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Cinema Suspense",
+      "isFree": true,
+      "website": "https://tg24.sky.it/spettacolo/skycinema/home.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Cinema Uno",
+      "isFree": true,
+      "website": "https://tg24.sky.it/spettacolo/skycinema/home.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Crime",
+      "isFree": true,
+      "website": "https://www.sky.com/tv/cinema",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 10",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 11",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 12",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 13",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 14",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 15",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 16",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 17",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 18",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 19",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 2",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 20",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 21",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 22",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 23",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 24",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 25",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 26",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 27",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 28",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 3",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 4",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 5",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 6",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 7",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 8",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Primafila 9",
+      "isFree": true,
+      "website": "http://www.sky.it/offerta-sky/servizi/sky-primafila.html",
+      "priority": 5
+    },
+    {
+      "name": "Sky Serie",
+      "isFree": true,
+      "keywords": "sky serie -anime",
+      "website": "https://www.sky.it/",
+      "priority": 5
+    },
+    {
+      "name": "Twentyseven",
+      "isFree": true,
+      "website": "https://www.mediasetplay.mediaset.it/27twentyseven",
+      "priority": 5
+    },
+    {
+      "name": "Warner",
+      "isFree": true,
+      "website": "https://warnertv.it/",
+      "priority": 5
+    }
+  ],
+  "Sports": [
+    {
+      "name": "RTV San Marino Sport",
+      "priority": 10
+    },
+    {
+      "name": "Rete8 Sport",
+      "keywords": "rete 8 sport | rete8 sport",
+      "priority": 10
+    },
+    {
+      "name": "ACI Sport",
+      "isFree": true,
+      "website": "https://www.acisport.it/",
+      "priority": 10
+    },
+    {
+      "name": "Class Horse",
+      "isFree": true,
+      "website": "https://www.classhorse.tv/",
+      "priority": 5
+    },
+    {
+      "name": "EQUtv",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GoldBet League",
+      "isFree": true,
+      "website": "https://games.goldbet.it/Providers/MixedProvider/Casino-GenericCasinoMixed",
+      "priority": 5
+    },
+    {
+      "name": "GoldBet Racing",
+      "isFree": true,
+      "website": "https://games.goldbet.it/Providers/MixedProvider/Casino-GenericCasinoMixed",
+      "priority": 5
+    },
+    {
+      "name": "Horse",
+      "isFree": true,
+      "website": "https://www.classhorse.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Inter",
+      "isFree": true,
+      "website": "https://www.inter.it/it/intertv",
+      "priority": 5
+    },
+    {
+      "name": "Lazio Style",
+      "isFree": true,
+      "website": "https://www.sslazio.it/",
+      "priority": 5
+    },
+    {
+      "name": "MadeinBO",
+      "isFree": true,
+      "website": "https://www.madeinbo.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Milan",
+      "isFree": true,
+      "website": "http://www.acmilan.com/",
+      "priority": 5
+    },
+    {
+      "name": "Nautical",
+      "isFree": true,
+      "website": "https://nauticalchannel.com/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Roma",
+      "isFree": true,
+      "keywords": "radio roma -news -television",
+      "website": "https://www.radioroma.it/diretta-radio-roma/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Calcio 10",
+      "isFree": true,
+      "website": "http://www.sky.it/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Calcio 11",
+      "isFree": true,
+      "website": "http://www.sky.it/",
+      "priority": 5
+    },
+    {
+      "name": "Sky Sport 24",
+      "isFree": true,
+      "website": "https://sport.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport 251",
+      "isFree": true,
+      "website": "http://www.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport 252",
+      "isFree": true,
+      "website": "http://www.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport 253",
+      "isFree": true,
+      "website": "http://www.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport 254",
+      "isFree": true,
+      "website": "http://www.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport 255",
+      "isFree": true,
+      "website": "http://www.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport 256",
+      "isFree": true,
+      "website": "http://www.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport 257",
+      "isFree": true,
+      "website": "http://www.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport 258",
+      "isFree": true,
+      "website": "http://www.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport 259",
+      "isFree": true,
+      "website": "http://www.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport 4K",
+      "isFree": true,
+      "website": "https://www.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport Action",
+      "isFree": true,
+      "website": "https://sport.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport Arena",
+      "isFree": true,
+      "website": "https://sport.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport Bar",
+      "isFree": true,
+      "website": "http://www.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport Bar 2",
+      "isFree": true,
+      "website": "http://www.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport Bar 3",
+      "isFree": true,
+      "website": "http://www.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport Basket",
+      "isFree": true,
+      "website": "https://sport.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport Calcio",
+      "isFree": true,
+      "website": "https://sport.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport F",
+      "isFree": true,
+      "website": "http://sport.sky.it/sport/formula1/home.html",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport Football",
+      "isFree": true,
+      "website": "https://sport.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport Golf",
+      "isFree": true,
+      "website": "https://sport.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport Legend",
+      "isFree": true,
+      "website": "http://www.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport Max",
+      "isFree": true,
+      "website": "https://sport.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport Mix",
+      "isFree": true,
+      "website": "https://www.sky.de/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport Moto GP",
+      "isFree": true,
+      "website": "http://sport.sky.it/sport/motogp/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport Tennis",
+      "isFree": true,
+      "website": "https://sport.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "Sky Sport Uno",
+      "isFree": true,
+      "website": "https://sport.sky.it/",
+      "priority": 10
+    },
+    {
+      "name": "SporTVL",
+      "isFree": true,
+      "website": "https://www.tvl.it/it/diretta-sportvl",
+      "priority": 10
+    },
+    {
+      "name": "SuperTennis",
+      "isFree": true,
+      "website": "https://www.supertennis.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TR Sport",
+      "isFree": true,
+      "website": "https://teleromagna.it/it/live/tr-sport",
+      "priority": 10
+    },
+    {
+      "name": "Udinese",
+      "isFree": true,
+      "website": "https://www.udinesetv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Zona DAZN",
+      "isFree": true,
+      "keywords": "zona dazn -2 -3 -4 -5",
+      "website": "https://www.dazn.com/en-IT/schedule",
+      "priority": 5
+    },
+    {
+      "name": "Zona DAZN 2",
+      "isFree": true,
+      "website": "https://www.dazn.com/en-IT/schedule",
+      "priority": 5
+    },
+    {
+      "name": "Zona DAZN 3",
+      "isFree": true,
+      "website": "https://www.dazn.com/en-IT/schedule",
+      "priority": 5
+    },
+    {
+      "name": "Zona DAZN 4",
+      "isFree": true,
+      "website": "https://www.dazn.com/en-IT/schedule",
+      "priority": 5
+    },
+    {
+      "name": "Zona DAZN 5",
+      "isFree": true,
+      "website": "https://www.dazn.com/en-IT/schedule",
+      "priority": 5
+    }
+  ],
+  "Shop": [
+    {
+      "name": "Donna Shopping",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "QVC Italia",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Antichita Chiossone",
+      "isFree": true,
+      "website": "https://www.chlw.it/",
+      "priority": 4
+    },
+    {
+      "name": "Arte Investimenti",
+      "isFree": true,
+      "website": "https://www.arteinvestimenti.it/",
+      "priority": 4
+    },
+    {
+      "name": "Casa Italia 53",
+      "isFree": true,
+      "website": "https://casaitalia.tv/streaming-tv/",
+      "priority": 4
+    },
+    {
+      "name": "GM 24",
+      "isFree": true,
+      "website": "https://www.gm24.it/",
+      "priority": 4
+    },
+    {
+      "name": "InWild",
+      "isFree": true,
+      "website": "https://www.inwild.com/",
+      "priority": 4
+    },
+    {
+      "name": "Juwelo",
+      "isFree": true,
+      "website": "https://www.juwelo.it/",
+      "priority": 4
+    },
+    {
+      "name": "Linea Gem",
+      "isFree": true,
+      "website": "https://www.lineagem.it/",
+      "priority": 4
+    },
+    {
+      "name": "Linea Italia",
+      "isFree": true,
+      "website": "https://www.lineaitalia.com/en/contacts/",
+      "priority": 4
+    },
+    {
+      "name": "QVC",
+      "isFree": true,
+      "keywords": "qvc -italia",
+      "website": "https://www.qvc.it/",
+      "priority": 4
+    },
+    {
+      "name": "Tele Shopping",
+      "isFree": true,
+      "website": "https://www.tele-shopping.it/",
+      "priority": 4
+    },
+    {
+      "name": "Tesory",
+      "isFree": true,
+      "website": "https://www.prontogold.tv/tesory-cannel-live-stream",
+      "priority": 4
+    },
+    {
+      "name": "Tiziana Lotto",
+      "isFree": true,
+      "website": "https://tizianalotto.it/",
+      "priority": 4
+    }
+  ],
+  "Radios": [
+    {
+      "name": "51 Radio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "RADIO FRECCIA",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio 105",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio 24",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio 51",
+      "isFree": true,
+      "keywords": "radio 51",
+      "priority": 5
+    },
+    {
+      "name": "Radio Birikina",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Capital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Ibiza",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Iglesias",
+      "isFree": true,
+      "keywords": "radio iglesias -sardegna",
+      "priority": 5
+    },
+    {
+      "name": "Radio Iglesias Sardegna",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Italia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Lombardia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Monte Carlo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Number One",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Piter Pan",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Radicale",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Radio",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Studio Delta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Taormina Sicilia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Radio Zeta",
+      "isFree": true,
+      "keywords": "radio zeta",
+      "priority": 5
+    },
+    {
+      "name": "Radio m2o",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Radio Sciacca",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Virgin Radio",
+      "isFree": true,
+      "keywords": "virgin radio tv -music",
+      "priority": 5
+    },
+    {
+      "name": "Visual Radio",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "BeJoy.kids",
+      "isFree": true,
+      "website": "https://www.bejoy.kids",
+      "priority": 5
+    },
+    {
+      "name": "Boing",
+      "isFree": true,
+      "keywords": "boing -africa -italia -plus",
+      "website": "https://www.boingtv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Boing Africa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Boing Plus",
+      "isFree": true,
+      "website": "https://www.boingtv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Boomerang",
+      "isFree": true,
+      "website": "http://www.boomerangtv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Cartoon Network",
+      "isFree": true,
+      "website": "http://www.cartoonnetwork.it/",
+      "priority": 5
+    },
+    {
+      "name": "DeA Junior",
+      "isFree": true,
+      "website": "https://www.deajunior.it/",
+      "priority": 5
+    },
+    {
+      "name": "DeA Kids",
+      "isFree": true,
+      "website": "https://www.deakids.it/",
+      "priority": 5
+    },
+    {
+      "name": "Frisbee",
+      "isFree": true,
+      "website": "https://www.frisbeetv.it/",
+      "priority": 5
+    },
+    {
+      "name": "K 2",
+      "isFree": true,
+      "website": "https://www.discoveryplus.com/it/channel/k2",
+      "priority": 5
+    },
+    {
+      "name": "Nickelodeon",
+      "isFree": true,
+      "website": "http://www.nicktv.it/",
+      "priority": 5
+    },
+    {
+      "name": "Nick Jr.",
+      "isFree": true,
+      "website": "http://www.nickjr.it/",
+      "priority": 5
+    }
+  ]
+}

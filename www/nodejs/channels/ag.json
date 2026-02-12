@@ -1,0 +1,28 @@
+{
+  "Entertainment": [
+    {
+      "name": "ABS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GIS",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pointe",
+      "isFree": true,
+      "website": "https://pointville.ag/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Jump268",
+      "isFree": true,
+      "website": "https://jump268.com/",
+      "priority": 5
+    }
+  ]
+}

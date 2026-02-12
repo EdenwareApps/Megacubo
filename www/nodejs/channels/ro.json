@@ -1,0 +1,2748 @@
+{
+  "News": [
+    {
+      "name": "Aleph News",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "B",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Aleph Business",
+      "isFree": true,
+      "website": "https://alephbusiness.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Antena 3 CNN",
+      "isFree": true,
+      "website": "https://www.antena3.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Canal 33",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Digi 24",
+      "isFree": true,
+      "website": "https://www.digi24.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Dotto",
+      "isFree": true,
+      "website": "https://dottotv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Euronews Romania",
+      "isFree": true,
+      "website": "https://www.euronews.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Informatia",
+      "isFree": true,
+      "website": "https://informatia-zilei.ro/live-informatia-tv/",
+      "priority": 5
+    },
+    {
+      "name": "Info TV Romania",
+      "isFree": true,
+      "website": "https://www.infotvromania.ro/",
+      "priority": 5
+    },
+    {
+      "name": "JOB",
+      "isFree": true,
+      "website": "https://jobtv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "MeteoTV.TV",
+      "isFree": true,
+      "website": "https://meteotv.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Observator News",
+      "isFree": true,
+      "website": "https://observatornews.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Ploiesti",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Prima News",
+      "isFree": true,
+      "website": "https://www.primaplay.ro/live/primanews",
+      "priority": 5
+    },
+    {
+      "name": "Profit News",
+      "isFree": true,
+      "website": "https://www.profit.ro/",
+      "priority": 5
+    },
+    {
+      "name": "PROTV News",
+      "isFree": true,
+      "website": "https://stirileprotv.ro/protvnews/",
+      "priority": 5
+    },
+    {
+      "name": "TeleMoldova +",
+      "isFree": true,
+      "website": "https://www.telemoldovaplus.ro/",
+      "priority": 5
+    },
+    {
+      "name": "TVR Info",
+      "isFree": true,
+      "website": "https://www.tvrplus.ro/live/tvr-info",
+      "priority": 5
+    },
+    {
+      "name": "TV SUD",
+      "isFree": true,
+      "website": "https://www.tvsud.ro/",
+      "priority": 5
+    },
+    {
+      "name": "TVRi",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVR Moldova",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Acasă",
+      "isFree": null,
+      "keywords": "acasa -gold",
+      "priority": 5
+    },
+    {
+      "name": "Acasă Gold",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Pro TV Chișinău",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Pro TV Internațional",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Antena",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Happy",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Antena 5",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Kanal D Romania",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Cinemaraton",
+      "isFree": null,
+      "keywords": "cinemaraton -moldova",
+      "priority": 5
+    },
+    {
+      "name": "Cinemaraton Moldova",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Medika",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nostalgia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Prima History",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "Prima Sport",
+      "isFree": null,
+      "keywords": "prima sport -1 -2 -3 -4 -5",
+      "priority": 10
+    },
+    {
+      "name": "Prima TV Moldova",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Național 24 Plus",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Atomic Academy",
+      "isFree": null,
+      "keywords": "atomic academy",
+      "website": "https://atomicacademytv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Angelus",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Cinethronix",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nașul",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "OTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "România",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sens",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Speranța",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Telestar",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Top Shop",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Digi Sport",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Music Channel Romania",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "UTV Romania",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Animal Planet Europe",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Cartoon Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Cartoonito",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Cinemax",
+      "isFree": null,
+      "keywords": "cinemax -2",
+      "priority": 5
+    },
+    {
+      "name": "Cinemax 2",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CNN International",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Discovery Channel Romania",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "Eurosport",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Eurosport 2",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "HBO",
+      "isFree": null,
+      "priority": 6
+    },
+    {
+      "name": "HGTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Investigation Discovery",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "TLC",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "AXN",
+      "isFree": null,
+      "keywords": "axn -black -crime -sci -fi -spin -white",
+      "priority": 5
+    },
+    {
+      "name": "AXN Black",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "AXN Spin",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "AXN White",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Kiss",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV",
+      "isFree": null,
+      "priority": 5,
+      "_alt_origName": [
+        "MTV (Romanian TV channel)"
+      ]
+    },
+    {
+      "name": "Nick Jr.",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nickelodeon Global",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "AMC",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Extreme Sports",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Film Cafe",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Minimax",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Baby",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "National Geographic",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "Disney",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Disney Junior",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Viasat Kino",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Viasat Explore",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Viasat History",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "BBC News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BBC Earth",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BBC First",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Diva Universal",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "E! Entertainment",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Crime & Investigation Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "The History",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "Bollywood Stars",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "FightBox",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Orange Info",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "SkyShowtime",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "SkyShowtime 2",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Al Jazeera Media Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Arte",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Auto Motor und Sport",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Balkanika MTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Bloomberg Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "China Global Television Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Deutsche Welle",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Duna",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Duck",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Fashion",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "France 24",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "KBS World",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Mezzo",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "ProSieben",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Rai",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Rai 3",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "RT",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "RTL Television",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sat.",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Trace Sport Stars",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "TV5Monde Europe",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVR Tîrgu-Mureș",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "FOX Kids",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Jetix",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Hallmark",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV Two",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Boom Sport",
+      "isFree": null,
+      "keywords": "boom sport -four -one -three -two",
+      "priority": 10
+    },
+    {
+      "name": "Telesport",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Playhouse Disney",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sport Klub",
+      "isFree": null,
+      "keywords": "sport klub -prime",
+      "priority": 10
+    },
+    {
+      "name": "Discovery Travel & Living",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "AXN Crime",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "AXN Sci Fi",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "KidsCo",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "DDTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Animax",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MGM",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "The Money",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVR News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Turner Classic Movies",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "C 8",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Comedy Central Extra",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Discovery World",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "Shorts",
+      "isFree": null,
+      "keywords": "shorts tv | shortstv",
+      "priority": 5
+    },
+    {
+      "name": "Nat Geo Wild",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVR",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Megamax",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV Rocks",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "VH1 Classic",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Fine Living",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Televiziunea Târgu-Mureș",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "VH",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TNT",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Boomerang",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Discovery Science",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "DTX",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Orange Sport",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Travel",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV Hits",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Club MTV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV 00s",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV 80s",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV 90s",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MTV Live",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BBC Entertainment",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "ESPN America",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "ESPN Classic",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Motorsport.tv",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Movies 24",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Outdoor",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sci Fi",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sundance",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Tele7ABC",
+      "isFree": null,
+      "keywords": "tele7abc",
+      "website": "https://tele7abc.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Transilvania",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "(HD)",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Party Mix",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Boom",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Exploris",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "NCN",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Zoom",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "HIT Music",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Hora",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "DocuBox",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Erox",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "FashionBox",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Fast&FunBox",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Filmbox",
+      "isFree": null,
+      "keywords": "filmbox -arthouse -extra -hd -family -premium",
+      "priority": 5
+    },
+    {
+      "name": "Filmbox Arthouse",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Filmbox Extra",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Filmbox Family",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Filmbox Premium",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "GameToon",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Timeless Drama",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Motorvision",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Myzen.tv",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Nautical",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "A+ Anime",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Info Dolce",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Cosmos",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Vox News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CineStar",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "ActionStar",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "ComedyStar",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "10",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Romantica",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVH 2.",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Money.ro",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Giga",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Mynele",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Universal",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "HBO Comedy",
+      "isFree": null,
+      "priority": 6
+    },
+    {
+      "name": "Dolce Info",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Digi Film",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVH Kids",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Neptun",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Discovery HD Showcase",
+      "isFree": null,
+      "priority": 7
+    },
+    {
+      "name": "Comedy Est",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "PRO Gold",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Telekom Info",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "București",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Arcadia TV World",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Linkpress",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Global News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Melos",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Money News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Apollonia",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "A+",
+      "isFree": null,
+      "keywords": "aplus -anime",
+      "priority": 5
+    },
+    {
+      "name": "Absolut",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Alpha",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "AKTA Info",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Antena News",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Antena TV Novela",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Bah",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "BBC Prime",
+      "isFree": null,
+      "priority": 6
+    },
+    {
+      "name": "Boom Action",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Boom Base",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Boom Cinema",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Boom Cinema 2",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Boom Comedy",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Boom Classic",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Boom Drama",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Boom Hop!",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Boom Indian",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Boom Karaoke",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Boom KidZone",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Boom Music",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Boom Public",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Boom Romance",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Boom Secrets",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Boom Smarty",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Boom Sport One",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Boom Sport Two",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Boom Sport Three",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Boom Sport Four",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Brava",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal M",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Canal Teleshop",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Cherry Music",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "CMT",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Diaspora",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Digi Film 2",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Digi Info",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Digi Premium",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "DoQ",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Eurochannel",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Eurosport 3",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Eurosport 4",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Eurosport 5",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Eurosport 3D",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "F+",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Flux",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "GoodLife",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "GSP TV 2",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "GSP TV 3",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "GSP TV 4",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Guide",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "IDA",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Interac",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Magic Action",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Magic Box",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Magic Classic",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Magic PPV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Magic PPV 2",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Magic PPV 3",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Magic PPV 4",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Magic Promo",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Magic X",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Meteo",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Mooz 4K",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MusicMix",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "MusiKlub",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "News Romania",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Noll",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "One",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Orion",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Partener",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Party",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Pax",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Pratech",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Pro TV Brașov",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Pro TV Arad",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Pro TV Buzău",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Pro TV Constanța",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Pro TV Iași",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Pro TV Oradea",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Pro TV Satu Mare",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Pro TV Tg. Mureș",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "PV",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "România Ta",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Senso",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Spark",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Sport1",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Sport Klub Prime",
+      "isFree": null,
+      "priority": 10
+    },
+    {
+      "name": "Stingray",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Style Network",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Teleshop 24",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "The Medical",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Top",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Tradiții",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TV OK",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVR București",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "TVRM Cultural",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "UTV 3D",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Vacanța",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Voyo Action",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Voyo Cinema",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Voyo Comedy",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Zeus",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "Zone Reality",
+      "isFree": null,
+      "priority": 5
+    },
+    {
+      "name": "ShortsTV",
+      "isFree": null,
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Alfa Omega",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Maria",
+      "isFree": true,
+      "website": "https://www.radiomaria.ro/",
+      "priority": 4
+    },
+    {
+      "name": "MISA",
+      "isFree": true,
+      "website": "https://misatv.ro/",
+      "priority": 4
+    },
+    {
+      "name": "SperantaTV",
+      "isFree": true,
+      "website": "http://www.sperantatv.ro/",
+      "priority": 4
+    }
+  ],
+  "Sports": [
+    {
+      "name": "AntenaSport",
+      "priority": 10
+    },
+    {
+      "name": "Digi Sport 2",
+      "isFree": true,
+      "website": "http://digisport.ro/",
+      "priority": 10
+    },
+    {
+      "name": "Digi Sport 3",
+      "isFree": true,
+      "website": "http://digisport.ro/",
+      "priority": 10
+    },
+    {
+      "name": "Digi Sport 4",
+      "isFree": true,
+      "website": "http://digisport.ro/",
+      "priority": 10
+    },
+    {
+      "name": "Liga Portugal",
+      "isFree": true,
+      "website": "https://antenaplay.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Orange Sport 2",
+      "isFree": true,
+      "website": "https://www.orangesport.ro/",
+      "priority": 10
+    },
+    {
+      "name": "Orange Sport 3",
+      "isFree": true,
+      "website": "https://www.orangesport.ro/",
+      "priority": 10
+    },
+    {
+      "name": "Orange Sport 4",
+      "isFree": true,
+      "website": "https://www.orangesport.ro/",
+      "priority": 10
+    },
+    {
+      "name": "Prima 4K",
+      "isFree": true,
+      "website": "http://www.primasport.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Prima Sport 2",
+      "isFree": true,
+      "website": "http://primasport.ro/",
+      "priority": 10
+    },
+    {
+      "name": "Prima Sport 3",
+      "isFree": true,
+      "website": "http://primasport.ro/",
+      "priority": 10
+    },
+    {
+      "name": "Prima Sport 4",
+      "isFree": true,
+      "website": "http://primasport.ro/",
+      "priority": 10
+    },
+    {
+      "name": "Prima Sport 5",
+      "isFree": true,
+      "website": "http://primasport.ro/",
+      "priority": 10
+    },
+    {
+      "name": "Realitatea Sportiva",
+      "isFree": true,
+      "website": "https://www.realitateasportiva.net/",
+      "priority": 10
+    },
+    {
+      "name": "Serie B",
+      "isFree": true,
+      "website": "https://antenaplay.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Sport Extra",
+      "isFree": true,
+      "website": "https://www.sportextra.ro/",
+      "priority": 10
+    }
+  ],
+  "Local": [
+    {
+      "name": "Columna",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Est",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "GTV",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Cooking": [
+    {
+      "name": "Cook&Play",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "7TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "A7TV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Agro",
+      "isFree": true,
+      "keywords": "agro tv | agrotv",
+      "shortName": "AgroTV",
+      "priority": 5
+    },
+    {
+      "name": "Antena Comedy",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Antena Cook and PLay",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Antena Monden",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Bucovina",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "CBN Family Romania",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cornea",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Credo",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Cromtel",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "H!t Music Channel Romania",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Iasi TV Life",
+      "isFree": true,
+      "keywords": "iasi tv life | iasitv life",
+      "priority": 5
+    },
+    {
+      "name": "Infinit",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Info",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Intermedia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kanal D",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Kapital",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Light",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lira",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "MEDIA REGIONAL",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Music",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NEst",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nasul",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Naşul",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nova TV Brasov",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Prima",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pro 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pro",
+      "isFree": true,
+      "keywords": "pro tv -international",
+      "priority": 5
+    },
+    {
+      "name": "Pro TV International",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Pro X",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Profit",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Profit.ro",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Realitatea",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sangeorz",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Somax",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Speranta",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Stars",
+      "isFree": true,
+      "keywords": "stars -direct",
+      "priority": 5
+    },
+    {
+      "name": "Stars Direct",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "SuperTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV SE",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVPlus Suceava",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR 3",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR Cluj",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR Craiova",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR Iași",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR International",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR Timișoara",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVR Târgu Mureș",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TVSat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Travel Mix",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "UTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "VP",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Acasa",
+      "isFree": true,
+      "keywords": "acasa -gold",
+      "website": "https://acasatv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Acasa Gold",
+      "isFree": true,
+      "website": "http://www.acasagold.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Alba Carolina",
+      "isFree": true,
+      "website": "https://www.carolinatv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Antena International",
+      "isFree": true,
+      "website": "http://antenainternational.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Antena Stars",
+      "isFree": true,
+      "website": "http://antenastars.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Arcadia Television",
+      "isFree": true,
+      "website": "http://www.arcadiatelevision.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Ardeal",
+      "isFree": true,
+      "website": "https://ardealtv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Arges",
+      "isFree": true,
+      "website": "https://argestv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Banat",
+      "isFree": true,
+      "website": "https://www.btv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Cardio TV SRC",
+      "isFree": true,
+      "website": "https://www.cardiotvsrc.ro/",
+      "priority": 5
+    },
+    {
+      "name": "CaTine",
+      "isFree": true,
+      "website": "https://catine.ro/",
+      "priority": 5
+    },
+    {
+      "name": "CBS Reality",
+      "isFree": true,
+      "website": "https://www.cbsreality.tv/eu/",
+      "priority": 5
+    },
+    {
+      "name": "Comedy Central",
+      "isFree": true,
+      "website": "http://www.comedycentral.com.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Comedy Play",
+      "isFree": true,
+      "website": "https://antenaplay.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Digi 4K",
+      "isFree": true,
+      "website": "https://www.digi4k.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Digi Animal World",
+      "isFree": true,
+      "website": "https://www.digi-animalworld.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Digi Life",
+      "isFree": true,
+      "website": "https://www.digi-life.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Digi World",
+      "isFree": true,
+      "website": "https://www.digi-world.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Discovery",
+      "isFree": true,
+      "website": "http://www.discovery.ro/",
+      "priority": 7
+    },
+    {
+      "name": "Diva",
+      "isFree": true,
+      "website": "http://www.divaromania.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Dobrogea",
+      "isFree": true,
+      "website": "https://www.dobrogea.tv/",
+      "priority": 5
+    },
+    {
+      "name": "E!",
+      "isFree": true,
+      "website": "https://www.eonline.com/",
+      "priority": 5
+    },
+    {
+      "name": "Erdely",
+      "isFree": true,
+      "website": "http://www.erdely.tv",
+      "priority": 5
+    },
+    {
+      "name": "Est TV Neamt",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Etno",
+      "isFree": true,
+      "website": "https://www.etno.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Favorit",
+      "isFree": true,
+      "website": "http://www.favorittv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Food Network",
+      "isFree": true,
+      "website": "http://foodnetwork.com/",
+      "priority": 5
+    },
+    {
+      "name": "HBO 3",
+      "isFree": true,
+      "website": "http://www.hbo.ro/",
+      "priority": 6
+    },
+    {
+      "name": "HD365",
+      "isFree": true,
+      "website": "https://www.hd365.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Hello Taste",
+      "isFree": true,
+      "website": "https://hellotaste.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Hunedoara",
+      "isFree": true,
+      "website": "https://netstreaming.eu/hunedoara1.htm",
+      "priority": 5
+    },
+    {
+      "name": "Inedit",
+      "isFree": true,
+      "website": "http://inedittv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Kanal D 2",
+      "isFree": true,
+      "website": "https://www.kanald2.ro",
+      "priority": 5
+    },
+    {
+      "name": "M9TV Romania",
+      "isFree": true,
+      "website": "http://m9tv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "MediCOOL",
+      "isFree": true,
+      "website": "https://antenaplay.ro/live/medicool-tv",
+      "priority": 5
+    },
+    {
+      "name": "Metropola",
+      "isFree": true,
+      "website": "https://www.metropolatv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Mireasa Extra",
+      "isFree": true,
+      "website": "https://antenaplay.ro/live/mireasa-extra",
+      "priority": 5
+    },
+    {
+      "name": "Mireasa+",
+      "isFree": true,
+      "website": "https://antenaplay.ro/live/mireasa-plus",
+      "priority": 5
+    },
+    {
+      "name": "Muscel",
+      "isFree": true,
+      "website": "http://musceltv.ro/site/",
+      "priority": 5
+    },
+    {
+      "name": "National 24 Plus",
+      "isFree": true,
+      "website": "http://www.n24plus.ro/",
+      "priority": 5
+    },
+    {
+      "name": "National",
+      "isFree": true,
+      "website": "https://www.nationaltv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Pro Arena",
+      "isFree": true,
+      "website": "http://www.proarena.ro/",
+      "priority": 5
+    },
+    {
+      "name": "PROFI 24",
+      "isFree": true,
+      "website": "https://profi24.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Qub",
+      "isFree": true,
+      "website": "https://www.qubtv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Radio Televizunea Diasporei",
+      "isFree": true,
+      "website": "http://www.rtvd.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Rapsodia",
+      "isFree": true,
+      "website": "https://www.rapsodiatv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Realitatea Plus",
+      "isFree": true,
+      "website": "https://www.realitatea.net/",
+      "priority": 5
+    },
+    {
+      "name": "Realitatea Star",
+      "isFree": true,
+      "website": "https://realitateastar.net/",
+      "priority": 5
+    },
+    {
+      "name": "Romance",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Romania",
+      "isFree": true,
+      "website": "https://www.romaniatv.net/",
+      "priority": 5
+    },
+    {
+      "name": "Roman",
+      "isFree": true,
+      "website": "https://romantv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Salajeanul INFO",
+      "isFree": true,
+      "website": "https://salajeanul.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Senate of Romania",
+      "isFree": true,
+      "website": "https://www.senat.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Smart",
+      "isFree": true,
+      "website": "https://smartv.media/",
+      "priority": 5
+    },
+    {
+      "name": "Taraf",
+      "isFree": true,
+      "website": "https://www.taraftv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "TeleM Botosani",
+      "isFree": true,
+      "website": "https://telembotosani.ro/",
+      "priority": 5
+    },
+    {
+      "name": "TeleM Iasi",
+      "isFree": true,
+      "website": "https://telem.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Timeless Dizi",
+      "isFree": true,
+      "website": "https://timelessdramachannel.com/dizi-romania/",
+      "priority": 5
+    },
+    {
+      "name": "Travel Mix 4K",
+      "isFree": true,
+      "website": "https://www.travelmix.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Trinitas",
+      "isFree": true,
+      "website": "https://www.trinitas.tv/",
+      "priority": 5
+    },
+    {
+      "name": "TV Arad",
+      "isFree": true,
+      "website": "https://tvarad.ro/",
+      "priority": 5
+    },
+    {
+      "name": "TV Buzau",
+      "isFree": true,
+      "website": "http://www.tvbuzau.ro/",
+      "priority": 5
+    },
+    {
+      "name": "TV Paprika",
+      "isFree": true,
+      "website": "http://www.tvpaprika.ro/",
+      "priority": 5
+    },
+    {
+      "name": "TVR Folclor",
+      "isFree": true,
+      "website": "http://folclor.tvr.ro/",
+      "priority": 5
+    },
+    {
+      "name": "TVR Iasi",
+      "isFree": true,
+      "website": "http://www.tvr.ro/",
+      "priority": 5
+    },
+    {
+      "name": "TVR Sport",
+      "isFree": true,
+      "website": "http://sport.tvr.ro/",
+      "priority": 10
+    },
+    {
+      "name": "TVR Targu-Mures",
+      "isFree": true,
+      "website": "http://www.tvr.ro/",
+      "priority": 5
+    },
+    {
+      "name": "TVR Timisoara",
+      "isFree": true,
+      "website": "http://www.tvr.ro/",
+      "priority": 5
+    },
+    {
+      "name": "VTV",
+      "isFree": true,
+      "website": "https://vtv.ro/",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Mooz Dance",
+      "isFree": true,
+      "keywords": "mooz dance | moozdance",
+      "shortName": "Mooz Dance",
+      "priority": 5
+    },
+    {
+      "name": "Mooz Hits",
+      "isFree": true,
+      "keywords": "mooz hits | moozhits",
+      "shortName": "Mooz Hits",
+      "priority": 5
+    },
+    {
+      "name": "Rock",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Atomic",
+      "isFree": true,
+      "website": "https://www.atomictv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "EMI",
+      "isFree": true,
+      "website": "https://www.emitv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Exclusiv",
+      "isFree": true,
+      "website": "https://www.exclusivtv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "H!t Music",
+      "isFree": true,
+      "keywords": "h t music channel -romania",
+      "website": "http://hitmusic.hu/",
+      "priority": 5
+    },
+    {
+      "name": "Impact TV Dance",
+      "isFree": true,
+      "website": "http://tvimpact.live/",
+      "priority": 5
+    },
+    {
+      "name": "Impact TV Manele",
+      "isFree": true,
+      "website": "http://tvimpact.live/",
+      "priority": 5
+    },
+    {
+      "name": "Magic",
+      "isFree": true,
+      "website": "https://www.magicfm.ro/magictv",
+      "priority": 5
+    },
+    {
+      "name": "Moinesti",
+      "isFree": true,
+      "website": "https://moinestifm.ro",
+      "priority": 5
+    },
+    {
+      "name": "Mooz",
+      "isFree": true,
+      "website": "https://mooz.tv/mooz-hd/",
+      "priority": 5
+    },
+    {
+      "name": "Mooz Ro!",
+      "isFree": true,
+      "website": "https://mooz.tv/mooz-ro/",
+      "priority": 5
+    },
+    {
+      "name": "Super",
+      "isFree": true,
+      "website": "https://www.supertv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Tele7music",
+      "isFree": true,
+      "website": "https://tele7music.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Tezaur",
+      "isFree": true,
+      "website": "http://www.tezaurtv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Traditional",
+      "isFree": true,
+      "website": "https://traditionaltv.net/",
+      "priority": 5
+    },
+    {
+      "name": "ZU",
+      "isFree": true,
+      "website": "https://zutv.ro/",
+      "priority": 5
+    }
+  ],
+  "Travel": [],
+  "Radios": [
+    {
+      "name": "Realitatea FM",
+      "isFree": true,
+      "priority": 5
+    }
+  ],
+  "Movies & Series": [
+    {
+      "name": "Pro Cinema",
+      "priority": 5
+    },
+    {
+      "name": "Bollywood Classic",
+      "isFree": true,
+      "website": "http://www.bollywoodtv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Bollywood Film",
+      "isFree": true,
+      "website": "http://www.bollywoodtv.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Bollywood",
+      "isFree": true,
+      "website": "https://www.isgmedia.com/channels.php?channel=bollywood-hd",
+      "priority": 5
+    },
+    {
+      "name": "Film Now",
+      "isFree": true,
+      "website": "http://www.digi-film.ro/",
+      "priority": 5
+    },
+    {
+      "name": "HBO 2",
+      "isFree": true,
+      "website": "http://www.hbo.ro/",
+      "priority": 6
+    },
+    {
+      "name": "Mireasa",
+      "isFree": true,
+      "keywords": "mireasa -extra",
+      "website": "https://antenaplay.ro/live/mireasa",
+      "priority": 5
+    },
+    {
+      "name": "Paramount Network",
+      "isFree": true,
+      "website": "https://www.paramountnetwork.hu/",
+      "priority": 5
+    },
+    {
+      "name": "Warner",
+      "isFree": true,
+      "website": "https://warnertv.ro/",
+      "priority": 5
+    }
+  ],
+  "Shop": [
+    {
+      "name": "24 Mix Teleshop",
+      "isFree": true,
+      "website": "https://www.24mix.ro/",
+      "priority": 4
+    }
+  ],
+  "Education & Culture": [
+    {
+      "name": "Da Vinci",
+      "isFree": true,
+      "website": "https://www.davincikids.tv/",
+      "priority": 5
+    },
+    {
+      "name": "History",
+      "isFree": true,
+      "website": "https://www.historytv.ro/",
+      "priority": 7
+    },
+    {
+      "name": "Nat Geo People",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "National Geographic Wild",
+      "isFree": true,
+      "website": "http://www.natgeowild.ro/",
+      "priority": 7
+    },
+    {
+      "name": "TVR Cultural",
+      "isFree": true,
+      "website": "http://www.tvr.ro/",
+      "priority": 5
+    }
+  ],
+  "Kids": [
+    {
+      "name": "JimJam",
+      "isFree": true,
+      "website": "http://ro.jimjam.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Nickelodeon",
+      "isFree": true,
+      "website": "http://www.nickelodeon.ro/",
+      "priority": 5
+    },
+    {
+      "name": "Nicktoons",
+      "isFree": true,
+      "website": "http://www.nicktoons.ro/",
+      "priority": 5
+    },
+    {
+      "name": "TeenNick",
+      "isFree": true,
+      "website": "http://www.nickelodeon.ro/",
+      "priority": 5
+    },
+    {
+      "name": "TraLaLa",
+      "isFree": true,
+      "website": "https://tv.tralala.ro/",
+      "priority": 5
+    }
+  ]
+}

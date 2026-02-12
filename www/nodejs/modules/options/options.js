@@ -932,77 +932,6 @@ class Options extends OptionsExportImport {
                 }
             },
             {
-                name: lang.PREFERRED_LIVESTREAM_FMT,
-                fa: 'fas fa-cog',
-                type: 'select',
-                renderer: async () => {
-                    const go = type => {
-                        let changed;
-                        const lists = config.get('lists').map(l => {
-                            const newUrl = global.lists.mi.setM3UStreamFmt(l[1], type || 'hls'); // hls as default, since it is adaptative and more compatible
-                            if (newUrl) {
-                                changed = true;
-                                l[1] = newUrl;
-                            }
-                            return l;
-                        });
-                        config.set('preferred-livestream-fmt', type);
-                        if (changed) {
-                            config.set('lists', lists);
-                        }
-                    };
-                    const def = String(config.get('preferred-livestream-fmt')), opts = [
-                        { name: 'Auto', type: 'action', selected: (!['mpegts', 'hls'].includes(def)), action: () => {
-                                go('');
-                            } },
-                        { name: 'MPEGTS', type: 'action', selected: (def == 'mpegts'), action: () => {
-                                go('mpegts');
-                            } },
-                        { name: 'HLS', type: 'action', selected: (def == 'hls'), action: () => {
-                                go('hls');
-                            } }
-                    ];
-                    return opts;
-                }
-            },
-            {
-                name: 'Unpause jumpback',
-                fa: 'fas fa-undo-alt',
-                type: 'select',
-                renderer: async () => {
-                    const def = config.get('unpause-jumpback'), opts = [
-                        { name: lang.DISABLED, type: 'action', selected: (def == 0), action: () => {
-                                config.set('unpause-jumpback', 0);
-                            } },
-                        { name: '2s', type: 'action', selected: (def == 2), action: () => {
-                                config.set('unpause-jumpback', 2);
-                            } },
-                        { name: '5s', type: 'action', selected: (def == 5), action: () => {
-                                config.set('unpause-jumpback', 5);
-                            } },
-                        { name: '10s', type: 'action', selected: (def == 10), action: () => {
-                                config.set('unpause-jumpback', 10);
-                            } }
-                    ];
-                    return opts;
-                }
-            },
-            {
-                name: lang.ELAPSED_TIME_TO_KEEP_CACHED + ' (' + lang.LIVE + ')',
-                fa: 'fas fa-hdd',
-                type: 'slider',
-                mask: 'time',
-                range: { start: 30, end: 7200 },
-                action: async (data, value) => {
-                    console.warn('ELAPSED_TIME_TO_KEEP_CACHED', data, value)
-                    config.set('live-window-time', value)
-                    global.streamer.active && global.streamer.reload()
-                },
-                value: () => {
-                    return config.get('live-window-time');
-                }
-            },
-            {
                 name: lang.TRANSCODE, type: 'group', fa: 'fas fa-film', renderer: this.transcodingEntries.bind(this)
             }
         ];
@@ -1017,99 +946,8 @@ class Options extends OptionsExportImport {
         }
         return opts;
     }
-    async connectivityEntries() {
-        const opts = [
-            {
-                name: lang.USE_KEEPALIVE, type: 'check',
-                action: (data, checked) => {
-                    config.set('use-keepalive', checked);
-                },
-                checked: () => config.get('use-keepalive'),
-                details: lang.RECOMMENDED
-            },
-            {
-                name: lang.CONNECT_TIMEOUT,
-                fa: 'fas fa-plug',
-                type: 'slider',
-                mask: 'time',
-                range: { start: 3, end: 60 },
-                action: (data, value) => {
-                    config.set('connect-timeout', value);
-                },
-                value: () => config.get('connect-timeout')
-            },
-            {
-                name: lang.BROADCAST_START_TIMEOUT,
-                fa: 'fas fa-plug',
-                type: 'slider',
-                mask: 'time',
-                range: { start: 20, end: 90 },
-                action: (data, value) => {
-                    config.set('broadcast-start-timeout', value);
-                },
-                value: () => config.get('broadcast-start-timeout')
-            },
-            {
-                name: 'IPv6 usage policy', type: 'select', fa: 'fas fa-globe',
-                renderer: async () => {
-                    // Some lists wont open using a browser user agent
-                    let def = config.get('preferred-ip-version');
-                    if (typeof(def) != 'number')
-                        def = 0;
-                    return [
-                        {
-                            name: lang.BLOCK,
-                            value: 4
-                        },
-                        {
-                            name: lang.ALLOW,
-                            value: 0
-                        },
-                        {
-                            name: lang.ONLY,
-                            value: 6
-                        }
-                    ].map(n => {
-                        return {
-                            name: n.name,
-                            type: 'action',
-                            selected: def == n.value,
-                            action: () => {
-                                config.set('preferred-ip-version', n.value);
-                            }
-                        };
-                    });
-                }
-            }
-        ];
-        if (!paths.android) {
-            opts.splice(1, 0, {
-                name: 'TCP Fast Open', type: 'check',
-                action: (data, checked) => {
-                    config.set('tcp-fast-open', checked);
-                    energy.askRestart();
-                },
-                checked: () => config.get('tcp-fast-open')
-            });
-        }
-        return opts;
-    }
     async tuneEntries() {
         let opts = [
-            {
-                name: lang.TEST_STREAMS_AUTO, type: 'check',
-                action: (data, checked) => {
-                    config.set('auto-test', checked);
-                },
-                checked: () => config.get('auto-test')
-            },
-            {
-                name: lang.TEST_STREAMS_TYPE, type: 'check',
-                action: (data, checked) => {
-                    config.set('status-flags-type', checked);
-                },
-                checked: () => config.get('status-flags-type')
-            },
             {
                 name: lang.SKIP_PLAY_CHECKING,
                 fa: 'fas fa-cog',
@@ -1131,28 +969,6 @@ class Options extends OptionsExportImport {
                     ];
                     return opts;
                 }
-            },
-            {
-                name: lang.TUNING_CONCURRENCY_LIMIT,
-                fa: 'fas fa-poll-h',
-                type: 'slider',
-                range: { start: 4, end: 32 },
-                action: (data, value) => {
-                    console.warn('TUNING_CONCURRENCY_LIMIT', data, value);
-                    config.set('tune-concurrency', value);
-                },
-                value: () => config.get('tune-concurrency')
-            },
-            {
-                name: lang.TUNING_FFMPEG_CONCURRENCY_LIMIT,
-                fa: 'fas fa-poll-h',
-                type: 'slider',
-                range: { start: 1, end: 8 },
-                action: (data, value) => {
-                    console.warn('TUNING_FFMPEG_CONCURRENCY_LIMIT', data, value);
-                    config.set('tune-ffmpeg-concurrency', value);
-                },
-                value: () => config.get('tune-ffmpeg-concurrency')
             },
             {
                 name: 'User agent', type: 'select', fa: 'fas fa-user-secret',
@@ -1245,13 +1061,6 @@ class Options extends OptionsExportImport {
                 }
             },
             {
-                name: 'Enable console logging', type: 'check', action: (data, checked) => {
-                    config.set('enable-console', checked);
-                }, checked: () => {
-                    return config.get('enable-console');
-                }
-            },
-            {
                 name: 'HLS prefetch', details: lang.RECOMMENDED, type: 'check', action: (data, checked) => {
                     config.set('hls-prefetching', checked);
                 }, checked: () => {
@@ -1259,78 +1068,10 @@ class Options extends OptionsExportImport {
                 }
             },
             {
-                name: 'Lists loading concurrency',
-                type: 'slider',
-                fa: 'fas fa-cog',
-                range: { start: 1, end: 20 },
-                action: (data, value) => {
-                    config.set('lists-loader-concurrency', value);
-                },
-                value: () => {
-                    return config.get('lists-loader-concurrency')
-                }
-            },
-            {
                 name: 'Debug credentials', fa: 'fas fa-key', type: 'action',
                 action: () => {
                     const { manager } = lists;
                     manager.debugCredentials().catch(e => menu.displayErr(e));
-                }
-            },
-            {
-                name: 'MPEGTS', fa: 'fas fa-film', type: 'group',
-                entries: [
-                    {
-                        name: 'MPEGTS persistent connections', type: 'check', action: (data, checked) => {
-                            config.set('mpegts-persistent-connections', checked);
-                        }, checked: () => {
-                            return config.get('mpegts-persistent-connections') === true;
-                        }
-                    },
-                    {
-                        name: 'MPEGTS use worker', type: 'check', action: (data, checked) => {
-                            config.set('mpegts-use-worker', checked);
-                        }, checked: () => {
-                            return config.get('mpegts-use-worker') === true;
-                        }
-                    },
-                    {
-                        name: 'MPEGTS packet filter',
-                        fa: 'fas fa-cog',
-                        type: 'select',
-                        renderer: async () => {
-                            const def = config.get('mpegts-packet-filter-policy'), opts = [
-                                { name: lang.AUTO, type: 'action', selected: (def == 1), action: () => {
-                                        config.set('mpegts-packet-filter-policy', 1)
-                                    } },
-                                { name: 'Trim larger packets, remove smaller ones', type: 'action', selected: (def == 4), action: () => {
-                                        config.set('mpegts-packet-filter-policy', 4)
-                                    } },
-                                { name: 'Remove invalid size packets', type: 'action', selected: (def == 2), action: () => {
-                                        config.set('mpegts-packet-filter-policy', 2)
-                                    } },
-                                { name: 'Ignore invalid size packets', type: 'action', selected: (def == 3), action: () => {
-                                        config.set('mpegts-packet-filter-policy', 3)
-                                    } },
-                                { name: 'Do not remove repetitions', type: 'action', selected: (def == -1), action: () => {
-                                        config.set('mpegts-packet-filter-policy', -1)
-                                    } }
-                            ]
-                            return opts
-                        }
-                    }
-                ]
-            },
-            {
-                name: 'FFmpeg CRF',
-                fa: 'fas fa-film',
-                type: 'slider',
-                range: { start: 15, end: 30 },
-                action: (data, value) => {
-                    config.set('ffmpeg-crf', value);
-                },
-                value: () => {
-                    return config.get('ffmpeg-crf');
                 }
             },
             {
@@ -1402,30 +1143,9 @@ class Options extends OptionsExportImport {
                     ];
                     return opts;
                 }
-            },
-            {
-                name: 'Config server base URL',
-                fa: 'fas fa-server',
-                type: 'input',
-                action: (e, value) => {
-                    if (!value) {
-                        value = cloud.defaultServer; // allow reset by leaving field empty
-                    }
-                    if (value != cloud.server) {
-                        cloud.testConfigServer(value).then(() => {
-                            osd.show('OK', 'fas fa-check-circle faclr-green', 'config-server', 'persistent');
-                            config.set('config-server', value);
-                            setTimeout(() => this.clearCache().catch(err => console.error(err)), 2000); // allow user to see OK message
-                        }).catch(e => menu.displayErr(e));
-                    }
-                },
-                value: () => {
-                    return config.get('config-server');
-                },
-                placeholder: cloud.defaultServer
             }
         ];
-        if (!paths.android) {
+        if (!paths.android && process.argv.includes('--inspect')) {
             opts.push({
                 name: 'DevTools',
                 type: 'action',
@@ -1454,13 +1174,6 @@ class Options extends OptionsExportImport {
                             name: lang.RESUME_PLAYBACK, type: 'check',
                             action: (data, checked) => config.set('resume', checked),
                             checked: () => config.get('resume')
-                        },
-                        {
-                            name: lang.TEST_STREAMS_AUTO, type: 'check',
-                            action: (data, checked) => {
-                                config.set('auto-test', checked);
-                            },
-                            checked: () => config.get('auto-test')
                         },
                         {
                             name: lang.AUTO_MINIPLAYER, type: 'check',
@@ -1661,20 +1374,13 @@ class Options extends OptionsExportImport {
             { name: lang.LANGUAGE, details: lang.SELECT_LANGUAGE, fa: 'fas fa-language', type: 'action', action: () => this.showLanguageEntriesDialog() },
             { name: lang.COUNTRIES, details: lang.COUNTRIES_HINT, fa: 'fas fa-globe', type: 'group', renderer: () => this.countriesEntries() },
             secOpt,
-            { name: lang.MANAGE_CHANNEL_LIST, fa: 'fas fa-list', type: 'group', details: lang.LIVE, renderer: global.channels.options.bind(global.channels) },
+            { name: lang.MANAGE_CHANNEL_LIST, fa: 'fas fa-stream', type: 'group', details: lang.LIVE, renderer: global.channels.options.bind(global.channels) },
             { name: lang.ADVANCED, fa: 'fas fa-cogs', type: 'group', renderer: async () => {
                     const opts = [
                         { name: lang.TUNE, fa: 'fas fa-satellite-dish', type: 'group', renderer: this.tuneEntries.bind(this) },
                         { name: lang.PLAYBACK, fa: 'fas fa-play', type: 'group', renderer: this.playbackEntries.bind(this) },
-                        { name: lang.CONNECTIVITY, fa: 'fas fa-network-wired', type: 'group', renderer: this.connectivityEntries.bind(this) },
                         {
                             name: lang.CLEAR_CACHE, icon: 'fas fa-broom', class: 'no-icon', type: 'action', action: () => this.requestClearCache()
-                        },
-                        {
-                            name: lang.RESET_CONFIG,
-                            type: 'action',
-                            fa: 'fas fa-undo-alt',
-                            action: () => this.resetConfig()
                         },
                         {
                             name: lang.DEVELOPER_OPTIONS,
@@ -1710,14 +1416,14 @@ class Options extends OptionsExportImport {
                             const ret = await menu.chooseFile();
                             await this.import(ret);
                         }
-                    },
-                    {
-                        name: lang.RESET_CONFIG,
-                        type: 'action',
-                        fa: 'fas fa-undo-alt',
-                        action: () => this.resetConfig()
                     }
                 ]
+            },
+            {
+                name: lang.RESET_CONFIG,
+                type: 'action',
+                fa: 'fas fa-undo-alt',
+                action: () => this.resetConfig()
             }
         ];
         return opts;
@@ -1760,7 +1466,7 @@ class Options extends OptionsExportImport {
             const sopts = this.prm() ? [lang.RECORDINGS, lang.TIMER] : [lang.TIMER, lang.THEMES];
             const details = sopts.join(', ');
             const headerOptions = [
-                { name: lang.TOOLS, side: true, fa: 'fas fa-box-open', type: 'group', details, renderer: this.tools.bind(this) },
+                { name: lang.TOOLS, side: true, fa: 'fas fa-tools', type: 'group', details, renderer: this.tools.bind(this) },
                 { name: lang.OPTIONS, side: true, fa: 'fas fa-cog', type: 'group', details: lang.CONFIGURE, renderer: this.entries.bind(this) },
                 { name: lang.ABOUT, side: true, fa: 'fas fa-info-circle', type: 'action', action: () => {
                         this.about().catch(e => menu.displayErr(e));

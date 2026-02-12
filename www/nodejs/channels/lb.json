@@ -1,0 +1,305 @@
+{
+  "News": [
+    {
+      "name": "Al Mayadeen",
+      "isFree": true,
+      "website": "https://www.almayadeen.net/",
+      "priority": 5
+    },
+    {
+      "name": "Nabaa",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Newvision",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "TV Seventeen",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Al-Manar",
+      "isFree": true,
+      "website": "https://www.almanar.com.lb/",
+      "priority": 5
+    },
+    {
+      "name": "ALWifak News",
+      "isFree": true,
+      "website": "https://www.alwifaknews.com/alwifaknewstv",
+      "priority": 5
+    },
+    {
+      "name": "Falestinona",
+      "isFree": true,
+      "website": "https://www.falestinona-tv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Palestine Al Yawm",
+      "isFree": true,
+      "website": "https://paltodaytv.com/",
+      "priority": 5
+    },
+    {
+      "name": "Red TV Lebanon",
+      "isFree": true,
+      "website": "https://redtvlebanon.com",
+      "priority": 5
+    },
+    {
+      "name": "SPI Lebanon",
+      "isFree": true,
+      "website": "https://spilebanon.com",
+      "priority": 5
+    },
+    {
+      "name": "UNews",
+      "isFree": true,
+      "website": "https://unews.com.lb/live",
+      "priority": 5
+    },
+    {
+      "name": "Voice of Lebanon",
+      "isFree": true,
+      "website": "https://www.vdl.me",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "Charity",
+      "isFree": true,
+      "keywords": "charity tv | charitytv",
+      "shortName": "CharityTV",
+      "priority": 4
+    },
+    {
+      "name": "Nour Al Koddas",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Nour Al Sharq",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Nour Mariam",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "NourSAT",
+      "isFree": true,
+      "priority": 4
+    },
+    {
+      "name": "Al-Iman",
+      "isFree": true,
+      "website": "https://www.alimantv.com.lb/",
+      "priority": 4
+    },
+    {
+      "name": "Al-waad",
+      "isFree": true,
+      "website": "https://al-waad.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Mariam",
+      "isFree": true,
+      "website": "https://noursat.tv/",
+      "priority": 4
+    },
+    {
+      "name": "New Vision",
+      "isFree": true,
+      "website": "https://www.newvision.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Nour Al Koddass",
+      "isFree": true,
+      "website": "https://noursat.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Nour El Shabeb",
+      "isFree": true,
+      "website": "https://noursat.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Noursat English",
+      "isFree": true,
+      "website": "https://noursat.tv/",
+      "priority": 4
+    },
+    {
+      "name": "Sheikh Youssef Ftouni",
+      "isFree": true,
+      "website": "https://youssefftouni.com/live-2/",
+      "priority": 4
+    },
+    {
+      "name": "Suboro",
+      "isFree": true,
+      "website": "https://suborotv.net/",
+      "priority": 4
+    }
+  ],
+  "Kids": [
+    {
+      "name": "Taha",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Nour Kids",
+      "isFree": true,
+      "website": "https://noursat.tv/tv/nour-kids/live",
+      "priority": 5
+    }
+  ],
+  "Music Videos": [
+    {
+      "name": "Aghani Aghani",
+      "isFree": true,
+      "website": "https://aghaniaghani.com/",
+      "priority": 5
+    },
+    {
+      "name": "Arabica",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "OneFM",
+      "isFree": true,
+      "website": "https://www.mtv.com.lb/OneTV/Live",
+      "priority": 5
+    },
+    {
+      "name": "One",
+      "isFree": true,
+      "website": "https://www.mtv.com.lb/OneTV/Live",
+      "priority": 5
+    }
+  ],
+  "Entertainment": [
+    {
+      "name": "Al Ittihad",
+      "isFree": true,
+      "website": "http://www.alittihad.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Al Jadeed",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Alhayat",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Future",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LBC",
+      "isFree": true,
+      "keywords": "lbc -international",
+      "priority": 5
+    },
+    {
+      "name": "LBC International",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "NBN",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "OTV",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Sawt El Mada",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Tele Liban",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "A",
+      "isFree": true,
+      "website": "http://atvch.com/",
+      "priority": 5
+    },
+    {
+      "name": "Hawacom",
+      "isFree": true,
+      "website": "http://www.hawacom.tv/",
+      "priority": 5
+    },
+    {
+      "name": "Khaleej Al Arab",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Khaleej Al Arab 2",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Lana",
+      "isFree": true,
+      "keywords": "lana tv -plus",
+      "website": "https://ltv.com.lb/",
+      "priority": 5
+    },
+    {
+      "name": "Lana TV Plus",
+      "isFree": true,
+      "website": "https://ltv.com.lb/",
+      "priority": 5
+    },
+    {
+      "name": "LB2 International",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "LBC Europe",
+      "isFree": true,
+      "website": "https://www.lbcgroup.tv/",
+      "priority": 5
+    },
+    {
+      "name": "MTV Lebanon",
+      "isFree": true,
+      "website": "http://www.mtv.com.lb/",
+      "priority": 5
+    },
+    {
+      "name": "Senses",
+      "isFree": true,
+      "priority": 5
+    }
+  ]
+}

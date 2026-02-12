@@ -116,3 +116,4 @@ android/app/release/output-metadata.json
 android/app/src/main/assets/public/nodejs/
 /www/nodejs/dist
 /www/nodejs/renderer/dist
+www/nodejs/modules/MODULES-NPM-ANALYSIS.md

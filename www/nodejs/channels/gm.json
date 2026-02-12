@@ -1,0 +1,48 @@
+{
+  "Entertainment": [
+    {
+      "name": "QTV Gambia",
+      "isFree": true,
+      "priority": 5
+    },
+    {
+      "name": "Block",
+      "isFree": true,
+      "website": "https://blocktvgambia.com/",
+      "priority": 5
+    },
+    {
+      "name": "GRTS",
+      "isFree": true,
+      "website": "https://www.grts.gm/",
+      "priority": 5
+    },
+    {
+      "name": "Paradise",
+      "isFree": true,
+      "website": "https://www.ptv.gm/",
+      "priority": 5
+    },
+    {
+      "name": "Star",
+      "isFree": true,
+      "website": "https://star.gm/",
+      "priority": 5
+    }
+  ],
+  "News": [
+    {
+      "name": "Eye Africa",
+      "isFree": true,
+      "website": "https://www.eyeafrica.tv/",
+      "priority": 5
+    }
+  ],
+  "Religious": [
+    {
+      "name": "MTA Gambia",
+      "isFree": true,
+      "priority": 4
+    }
+  ]
+}
