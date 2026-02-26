@@ -20,6 +20,7 @@ class CommunityLists extends EventEmitter {
         this.forceRefreshFlag = enable === true
     }
     async discovery(adder) {
+        let ret = []
         if (paths.ALLOW_COMMUNITY_LISTS) {
             const limit = pLimit(2)
             const parseUsersCount = s => parseInt(s.split(' ').shift().replace('.', ''));
@@ -40,13 +41,14 @@ class CommunityLists extends EventEmitter {
                             list.health = scoreLimit * (usersCount / maxUsersCount);
                             return list;
                         })
-                        adder(lists)
+                        adder && adder(lists)
+                        ret = ret.concat(lists)
                     }
                 }
             }).map(limit))
         }
         this.forceRefreshFlag = false
-        return []
+        return ret
     }
     showInfo() {
         menu.dialog([
@@ -141,14 +143,14 @@ class CommunityLists extends EventEmitter {
                                     { template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: lang.I_AGREE }
                                 ], 'lists-manager', 'back', true)
                             } else {
-                                config.set('communitary-mode-lists-amount', 0)
+                                config.set('community-mode-lists-amount', 0)
                                 menu.refreshNow(true) // epg options path
                             }
                         }, checked: () => {
-                            return config.get('communitary-mode-lists-amount') > 0
+                            return config.get('community-mode-lists-amount') > 0
                         } }
                 ]
-                if (config.get('communitary-mode-lists-amount') > 0) {
+                if (config.get('community-mode-lists-amount') > 0) {
                     options.push({
                         name: lang.RECEIVED_LISTS,
                         details: lang.SHARED_AND_LOADED,
@@ -163,11 +165,11 @@ class CommunityLists extends EventEmitter {
                         fa: 'fas fa-cog',
                         mask: '{0} ' + lang.COMMUNITY_LISTS.toLowerCase(),
                         value: () => {
-                            return config.get('communitary-mode-lists-amount');
+                            return config.get('community-mode-lists-amount');
                         },
                         range: { start: 5, end: 72 },
                         action: (data, value) => {
-                            config.set('communitary-mode-lists-amount', value);
+                            config.set('community-mode-lists-amount', value);
                         }
                     })
                     options.push({

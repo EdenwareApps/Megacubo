@@ -13,7 +13,7 @@ class Lookup {
     this.promises = {};    
     // OPTIMIZATION: Increased save interval from 10s to 60s to reduce storage write frequency
     // This prevents lock timeouts on 'global/lookup' key
-    this.limiter = new Limiter(() => this._save(), 60000);
+    this.limiter = new Limiter(async () => await this._save(), { intervalMs: 60000, async: true });
 
     // Create custom resolvers
     this.resolvers = Object.keys(servers).map(key => {
@@ -305,8 +305,8 @@ class Lookup {
   }
 
   // Saves the cache using storage
-  _save() {
-    storage.set(
+  async _save() {
+    await storage.set(
       this.cacheKey,
       { data: this.data, ttlData: this.ttlData },
       { permanent: true, expiration: true }

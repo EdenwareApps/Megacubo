@@ -21,6 +21,7 @@ class Menu extends EventEmitter {
         }
         this.rendering = true
         this.waitingRender = false
+        this.navigating = false
         this.path = ''
         this.filters = []
         this.outputFilters = []
@@ -28,19 +29,20 @@ class Menu extends EventEmitter {
         this.currentEntries = []
         this.openToken = 0
         this.backIcon = 'fas fa-chevron-left'
+        this.lastRecommendationsRefresh = 0
         this.liveSections = []
         this.softRefreshLimiter = {
             limiter: new Limiter(() => {
                 this.softRefresh()
                 this.deepRefreshLimiter.limiter.fromNow()
-            }, 5000),
+            }, { intervalMs: 5000, async: true, initialDelay: 1000 }),
             path: ''
         }
         this.deepRefreshLimiter = {
             limiter: new Limiter(p => {
                 this.deepRefresh(p)
                 this.softRefreshLimiter.limiter.fromNow()
-            }, 5000),
+            }, { intervalMs: 5000, initialDelay: 1000 }),
             path: ''
         }
         this.setupEventListeners()
@@ -56,14 +58,12 @@ class Menu extends EventEmitter {
                 this.deepRefreshLimiter.limiter.resume()
             })
             renderer.ui.on('menu-playing', showing => {                
-                if (global.streamer.active) {
-                    if (showing) {
-                        this.softRefreshLimiter.limiter.resume()
-                        this.deepRefreshLimiter.limiter.resume()
-                    } else {
-                        this.softRefreshLimiter.limiter.pause()
-                        this.deepRefreshLimiter.limiter.pause()
-                    }
+                if (global.streamer.active && !showing) {
+                    this.softRefreshLimiter.limiter.pause()
+                    this.deepRefreshLimiter.limiter.pause()
+                } else {
+                    this.softRefreshLimiter.limiter.resume()
+                    this.deepRefreshLimiter.limiter.resume()
                 }
             })
             osd.on('show', (text, icon, name, duration) => {
@@ -330,7 +330,7 @@ class Menu extends EventEmitter {
     }
     refresh(deep=false, p) {
         if (typeof(p) != 'string') p = this.path
-        if (p != this.path) return
+        if (p != this.path || this.navigating) return
         const type = deep === true ? 'deepRefreshLimiter' : 'softRefreshLimiter'
         if (this[type].path === this.path) {
             this[type].limiter.call()
@@ -369,10 +369,18 @@ class Menu extends EventEmitter {
     deepRefresh(p) {
         if (typeof(p) != 'string') p = this.path
         if (p != this.path || !this.rendering) return
+        const requestToken = ++this.openToken
         this.deepRead(p).then(async ret => {
+            if (requestToken !== this.openToken) {
+                if (this.opts.debug) {
+                    console.log('deepRefresh skipped (outdated)', { path: p, requestToken, currentToken: this.openToken })
+                }
+                return
+            }
             await this.render(ret.entries, p, {
                 parent: ret.parent,
-                icon: (ret.parent ? ret.fa : '') || 'fas fa-box-open'
+                icon: (ret.parent ? ret.fa : '') || 'fas fa-box-open',
+                openToken: requestToken
             })
         }).catch(err => this.displayErr(err))
     }
@@ -706,6 +714,20 @@ class Menu extends EventEmitter {
                 basePath,
                 page: this.pages[parentPath]
             })
+            
+            // Check if this is a recommendations-related path that might be outdated (only on home)
+            const isRecommendationsPath = parentPath === '' && (
+                destPath.includes(lang.RECOMMENDED_FOR_YOU) || 
+                (this.pages[parentPath] && this.pages[parentPath].some(e => e.hookId === 'recommendations'))
+            )
+            
+            if (isRecommendationsPath && (Date.now() - this.lastRecommendationsRefresh) > 5000) {
+                console.log('Detected outdated recommendations path on home, triggering refresh')
+                this.lastRecommendationsRefresh = Date.now()
+                this.refresh(true) // deep refresh
+                throw 'path not found - recommendations outdated'
+            }
+            
             throw 'path not found'
         }
     }
@@ -720,6 +742,7 @@ class Menu extends EventEmitter {
         this.emit('open', destPath)
         
         // Track menu.open() to detect hangs
+        this.navigating = true
         return trackPromise((async () => {
             let parentEntry, name = basename(destPath), parentPath = this.dirname(destPath)
             const finish = async (es) => {
@@ -823,23 +846,65 @@ class Menu extends EventEmitter {
                 await this.render(this.pages[this.path], this.path, { parent: parentEntry, openToken: requestToken })
                 return true
             }
-        })(), `menu.open(${destPath})`, 30000)
+        })(), `menu.open(${destPath})`, 30000).finally(() => {
+            // Delay 2 seconds before allowing new refresh to avoid rapid refresh cycles
+            setTimeout(() => {
+                this.navigating = false
+            }, 2000)
+        })
     }
-    async readEntry(e) {
+    async readEntry(e, parentPath) {
         // Track menu.readEntry() to detect hangs
-        return trackPromise((async () => {
-            let entries
-            if (!e)
-                return []
-            if (typeof(e.renderer) == 'function') {
-                entries = await e.renderer(e)
-            } else if (typeof(e.renderer) == 'string') {
-                entries = await storage.get(e.renderer)
-            } else {
-                entries = e.entries || []
-            }
-            return Array.isArray(entries) ? entries : []
-        })(), `menu.readEntry(${e?.name || 'unknown'})`, 15000)
+        const name = e?.name || 'unknown'
+        const timeoutMs = 30000
+        let entriesPromise
+        let rendererType = 'entries'
+        if (!e) {
+            return []
+        }
+        if (typeof(e.renderer) == 'function') {
+            rendererType = 'function'
+            entriesPromise = e.renderer(e)
+        } else if (typeof(e.renderer) == 'string') {
+            rendererType = 'storage'
+            entriesPromise = storage.get(e.renderer)
+        } else {
+            entriesPromise = e.entries || []
+        }
+
+        if (!entriesPromise || typeof entriesPromise.then !== 'function') {
+            return Array.isArray(entriesPromise) ? entriesPromise : []
+        }
+
+        let timeoutId
+        const timeoutPromise = new Promise(resolve => {
+            timeoutId = setTimeout(() => {
+                if (entriesPromise && typeof entriesPromise.cancel === 'function') {
+                    entriesPromise.cancel()
+                }
+                console.warn('menu.readEntry timeout:', {
+                    name,
+                    parentPath: parentPath || '',
+                    rendererType,
+                    entriesPromise,
+                    timeoutMs
+                })
+                resolve([])
+            }, timeoutMs)
+        })
+
+        const result = await trackPromise(
+            Promise.race([
+                entriesPromise.then(entries => Array.isArray(entries) ? entries : []),
+                timeoutPromise
+            ]),
+            `menu.readEntry(${name})`,
+            timeoutMs + 5000
+        )
+        if (timeoutId) {
+            clearTimeout(timeoutId)
+        }
+        return result
     }
     findEntryIndex(entries, name, tabindex, isFolder) {
         let ret = false
@@ -950,11 +1015,11 @@ class Menu extends EventEmitter {
             }
         }
         
-        // Add back button as first entry
         if (!entries.length) {
             entries.push(this.emptyEntry())
         }
         
+        // Add back button as first entry
         entries.unshift({
             name: lang.BACK,
             type: 'back',
@@ -975,6 +1040,21 @@ class Menu extends EventEmitter {
                     }
                 })
             }
+        }
+
+        const viewportSize = global.config.get('view-size')
+        const viewportLimit = 2 * (viewportSize.portrait.x * viewportSize.portrait.y)
+
+        if (entries.length > viewportLimit && !entries.some(e => e.name === lang.SCROLL_TO_TOP)) {
+            entries.push({
+                name: lang.SCROLL_TO_TOP,
+                fa: 'fas fa-arrow-up',
+                type: 'action',
+                class: 'entry-scroll-to-top',
+                action: () => {
+                    renderer.ui.emit('scroll-to-top')
+                }
+            })
         }
         
         for (let i = 0; i < entries.length; i++) {

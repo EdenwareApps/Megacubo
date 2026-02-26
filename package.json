@@ -25,7 +25,7 @@
     "url": "https://megacubo.tv"
   },
   "icon": "./www/nodejs/default_icon.png",
-  "version": "17.6.3",
+  "version": "17.6.4",
   "dependencies": {
     "@babel/runtime": "^7.27.6",
     "@babel/runtime-corejs3": "^7.26.9",
@@ -58,7 +58,7 @@
     "http-cookie-agent": "^6.0.8",
     "iconv-lite": "^0.6.3",
     "ionic-plugin-deeplinks": "^1.0.24",
-    "jexidb": "2.1.6",
+    "jexidb": "^2.1.8",
     "m3u8-parser": "^7.1.0",
     "mpegts.js": "^1.8.0",
     "node-cleanup": "^2.1.2",

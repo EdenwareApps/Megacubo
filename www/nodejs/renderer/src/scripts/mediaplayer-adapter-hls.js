@@ -63,7 +63,7 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                 if (this.hls) {
                         console.warn('HLS instance already exists, destroying before creating new one')
                         try {
-                                // Remover todos os event listeners antes de destroy
+                                // Remove all event listeners before destroy
                                 this.hls.off(Events.ERROR)
                                 this.hls.off(Events.FRAG_LOADED)
                                 this.hls.off(Events.FRAG_LOADING)
@@ -122,14 +122,14 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                         console.error('HLS ERROR', errorInfo)
 
                         // Prevent concurrent operations that could cause memory leaks
-                        // Mas permitir erros críticos mesmo durante operações
+                        // But allow critical errors even during operations
                         if (this.isReloading || this.isSkippingSegment) {
-                                // Apenas ignorar erros não-fatais durante operações
+                                // Only ignore non-fatal errors during operations
                                 if (!data.fatal && data.details !== 'bufferStalledError') {
                                         console.warn('HLS operation already in progress, ignoring non-critical error', this.isReloading, this.isSkippingSegment)
                                         return
                                 }
-                                // Erros fatais ou bufferStalledError devem ser processados mesmo durante operações
+                                // Fatal errors or bufferStalledError must be processed even during operations
                         }
 
                         if (data.details && data.frag && !data.fatal) {
@@ -142,7 +142,7 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                                         }
                                         this.lastBufferStallTime = now
                                         
-                                        // Se muitos stalls consecutivos em pouco tempo, tratar como fatal
+                                        // If many consecutive stalls in short time, treat as fatal
                                         if (this.bufferStallCount >= 5) {
                                                 console.error('HLS: Too many buffer stalls (', this.bufferStallCount, '), treating as fatal')
                                                 this.emit('error', 'Buffer stalling repeatedly', true)
@@ -156,7 +156,7 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                                 }
                                 
                                 if (data.details === 'fragParsingError' && data.error && data.error.message && data.error.message.includes('Found no media')) {
-                                        // Fragmento vazio - pular imediatamente sem retry
+                                        // Empty fragment - skip immediately without retry
                                         console.warn('Empty fragment detected, skipping immediately', data.frag.url)
                                         return this.skipSegment(data.frag)
                                 }
@@ -185,9 +185,9 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                                         return
                                 }
 
-                                // Tratar levelParsingError com media sequence mismatch: tentar recuperação leve
-                                // (loadSource apenas, sem unload/destroy) para evitar o reload completo que
-                                // desliga o player e pode atrapalhar quando a transmissão ia bem.
+                                // Handle levelParsingError with media sequence mismatch: try light recovery
+                                // (loadSource only, without unload/destroy) to avoid full reload that
+                                // turns off the player and can interfere when transmission was going well.
                                 if (data.details === 'levelParsingError' && data.error &&
                                     data.error.message && data.error.message.includes('media sequence mismatch')) {
                                         const sequenceMismatchCount = this.fatalErrorsCount
@@ -196,7 +196,7 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                                         const recoveryInterval = 30000
 
                                         if (now - lastRecovery > recoveryInterval) {
-                                                // Primeira vez ou passou 30s: tentar loadSource só (sem unload/destroy)
+                                                // First time or 30s passed: try loadSource only (without unload/destroy)
                                                 this._lastLevelParsingRecovery = now
                                                 console.warn('HLS: Media sequence mismatch - trying light recovery (loadSource) instead of full reload')
                                                 this.isReloading = true
@@ -221,9 +221,9 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                                                                 }
                                                         }
                                                         setTimeout(() => { this.isReloading = false }, 2000)
-                                                })
+                                                })   
                                         } else {
-                                                // Já tentou recuperação leve nos últimos 30s: fazer full reload
+                                                // Already tried light recovery in last 30s: do full reload
                                                 console.error('HLS: Media sequence mismatch - light recovery already tried, doing full reload')
                                                 try {
                                                         this.isReloading = true
@@ -241,26 +241,26 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                                         return
                                 }
 
-                                // Tratar bufferAppendError de forma menos agressiva
-                                // Buffer append errors são geralmente transitórios - não fazer reload fatal imediatamente
+                                // Handle bufferAppendError less aggressively
+                                // Buffer append errors are usually transient - don't do fatal reload immediately
                                 if (data.details === 'bufferAppendError') {
-                                        // Apenas tentar skip segment se houver fragmento e não for fatal
+                                        // Only try skip segment if there's a fragment and not fatal
                                         if (data.frag && !data.fatal && !this.isSkippingSegment && !this.isReloading) {
                                                 console.warn('HLS: bufferAppendError non-fatal - attempting skip segment')
                                                 return this.skipSegment(data.frag)
                                         }
                                         
-                                        // Se for fatal ou não houver fragmento, tratar através do switch abaixo
-                                        // (não retornar aqui, deixar continuar para o switch tratar como MEDIA_ERROR)
+                                        // If fatal or no fragment, handle through switch below
+                                        // (don't return here, let continue to switch handle as MEDIA_ERROR)
                                         if (data.fatal) {
                                                 console.warn('HLS: bufferAppendError fatal - will be handled by switch', { 
                                                         hasFrag: !!data.frag, 
                                                         isSkipping: this.isSkippingSegment, 
                                                         isReloading: this.isReloading 
-                                                })
-                                                // Não retornar - deixar continuar para o switch tratar
+                                                })    
+                                                // Don't return - let continue to switch handle
                                         } else {
-                                                // Se não for fatal e não tem frag, apenas ignorar
+                                                // If not fatal and no frag, just ignore
                                                 console.warn('HLS: bufferAppendError non-fatal without frag - ignored')
                                                 return
                                         }
@@ -350,15 +350,15 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                         }
                 })
                 
-                // Monitorar eventos HLS para detectar atividade real
+                // Monitor HLS events to detect real activity
                 hls.on(Events.FRAG_LOADED, (event, data) => {
-                        // Marcar que há atividade de download
+                        // Mark that there is download activity
                         this.lastFragmentLoad = Date.now()
                         this.bufferStallCount = 0 // Reset stall count on successful load
                 })
                 
                 hls.on(Events.FRAG_LOADING, (event, data) => {
-                        // Fragmento começando a carregar
+                        // Fragment starting to load
                         this.lastFragmentLoad = Date.now()
                 })
                 
@@ -368,24 +368,24 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                 })
                 
                 hls.on(Events.LEVEL_UPDATED, (event, data) => {
-                        // Playlist atualizada (para live streams)
+                        // Playlist updated (for live streams)
                         this.lastManifestUpdate = Date.now()
                 })
                 
                 this.hls = hls
                 this.connect()
                 
-                // Cancelar timeout anterior se existir
+                // Cancel previous timeout if exists
                 if (this.startMonitoringTimeout) {
                         clearTimeout(this.startMonitoringTimeout)
                         this.startMonitoringTimeout = null
                 }
                 
-                // Iniciar monitoramento de progresso após um delay
+                // Start progress monitoring after a delay
                 this.startMonitoringTimeout = setTimeout(() => {
                         this.startMonitoringTimeout = null
                         this.startProgressMonitoring()
-                }, 1000) // Aguardar 1s para garantir que HLS iniciou
+                }, 1000) // Wait 1s to ensure HLS started
         }
         skipSegment(frag) {
                 // Prevent concurrent skip operations that could cause memory leaks
@@ -405,7 +405,7 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
 
                 this.isSkippingSegment = true
                 return new Promise((resolve, reject) => {
-                        let flagClearedInTimeout = false // Rastrear se a flag foi agendada para limpeza no setTimeout
+                        let flagClearedInTimeout = false // Track if flag was scheduled for cleanup in setTimeout
                         try {
                                 // Verify HLS instance still exists
                                 if (!this.hls) {
@@ -443,8 +443,8 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                                 } else {
                                         const currentTime = this.hls.media ? this.hls.media.currentTime : 0
                                         
-                                        // Verificar se a distância do skip é significativa (pelo menos 0.5 segundos)
-                                        // Se for muito pequena, não vale a pena fazer skip - pode causar loop
+                                        // Check if skip distance is significant (at least 0.5 seconds)
+                                        // If too small, not worth skipping - can cause loop
                                         const skipDistance = Math.abs(start - currentTime)
                                         if (skipDistance < 0.5 && currentTime > 0) {
                                                 console.warn('HLS: Skip distance too small (', skipDistance.toFixed(3), 's), skipping operation', {
@@ -483,15 +483,15 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                                                 return
                                         }
 
-                                        // NÃO chamar startLoad imediatamente - isso pode causar loop infinito
-                                        // Em vez disso, usar um pequeno delay para permitir que o stopLoad complete
-                                        // e evitar que o HLS tente recarregar a playlist imediatamente
-                                        flagClearedInTimeout = true // Marcar que a flag será limpa no setTimeout
+                                        // DO NOT call startLoad immediately - this can cause infinite loop
+                                        // Instead, use a small delay to allow stopLoad to complete
+                                        // and prevent HLS from trying to reload playlist immediately
+                                        flagClearedInTimeout = true // Mark that flag will be cleared in setTimeout
                                         setTimeout(() => {
                                                 if (this.hls && !this.isReloading) {
                                                         this.hls.startLoad(start)
                                                 }
-                                                // Limpar flag após um delay adicional
+                                                // Clear flag after an additional delay
                                                 setTimeout(() => {
                                                         this.isSkippingSegment = false
                                                 }, 200)
@@ -506,7 +506,7 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                                                         }
                                                 })
                                         }
-                                        // Flag será limpa no setTimeout acima, não limpar no finally
+                                        // Flag will be cleared in setTimeout above, don't clear in finally
                                         resolve()
                                 }
                         } catch (e) {
@@ -515,13 +515,13 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                                 reject(e)
                         } finally {
                                 // Clear flag after a short delay to allow operation to complete
-                                // Apenas limpar se não foi agendado no setTimeout acima (caso do frag.loader)
-                                // Cancelar timeout anterior se existir
+                                // Only clear if not scheduled in setTimeout above (frag.loader case)
+                                // Cancel previous timeout if exists
                                 if (this.skipSegmentTimeout) {
                                         clearTimeout(this.skipSegmentTimeout)
                                 }
-                                // Só limpar aqui se não estamos no caminho do else (que já tem setTimeout próprio)
-                                // ou se ocorreu erro no caminho do frag.loader
+                                // Only clear here if not in else path (which already has its own setTimeout)
+                                // or if error occurred in frag.loader path
                                 if (!flagClearedInTimeout) {
                                         this.skipSegmentTimeout = setTimeout(() => {
                                                 this.skipSegmentTimeout = null
@@ -534,14 +534,14 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
         startProgressMonitoring() {
                 if (this.progressCheckInterval) return
                 
-                // Aguardar um pouco mais para garantir que hls está pronto
+                // Wait a bit more to ensure hls is ready
                 if (!this.hls || !this.hls.media) {
-                        // Cancelar timeout anterior se existir
+                        // Cancel previous timeout if exists
                         if (this.startMonitoringTimeout) {
                                 clearTimeout(this.startMonitoringTimeout)
                                 this.startMonitoringTimeout = null
                         }
-                        // Tentar novamente após 500ms
+                        // Try again after 500ms
                         this.startMonitoringTimeout = setTimeout(() => {
                                 this.startMonitoringTimeout = null
                                 this.startProgressMonitoring()
@@ -553,7 +553,7 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                 this.lastProgressValue = this.hls.media.currentTime || 0
                 
                 this.progressCheckInterval = setInterval(() => {
-                        // Verificações mais rigorosas para evitar memory leaks
+                        // Stricter checks to avoid memory leaks
                         if (!this.active || !this.hls || !this.hls.media || !this.hls.media.parentNode) {
                                 this.stopProgressMonitoring()
                                 return
@@ -565,18 +565,18 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                         const timeSinceLastFragment = now - this.lastFragmentLoad
                         const timeSinceLastManifest = now - this.lastManifestUpdate
                         
-                        // Se está em loading mas não há progresso há mais de 20s
+                        // If in loading state but no progress for more than 20s
                         if (this.state === 'loading') {
                                 const noProgress = Math.abs(currentTime - this.lastProgressValue) < 0.1
-                                // Verificar se já recebeu algum fragmento antes de considerar inatividade
+                                // Check if received any fragment before considering inactivity
                                 const noFragmentActivity = this.lastFragmentLoad > 0 && timeSinceLastFragment > 20000
                                 const isLive = this.mediatype === 'live'
                                 
-                                // Para live streams, verificar se playlist está sendo atualizada
-                                // Só verificar se já recebeu pelo menos uma atualização de manifest
+                                // For live streams, check if playlist is being updated
+                                // Only check if already received at least one manifest update
                                 if (isLive && this.lastManifestUpdate > 0 && timeSinceLastManifest > 30000) {
                                         console.warn('HLS: Playlist stale, no updates for', Math.round(timeSinceLastManifest/1000), 's')
-                                        // Tratar como erro fatal se playlist não atualiza há muito tempo
+                                        // Treat as fatal error if playlist doesn't update for too long
                                         if (timeSinceLastManifest > 60000) {
                                                 console.error('HLS: Playlist stale for too long, treating as error')
                                                 this.emit('error', 'Playlist stopped updating', true)
@@ -585,10 +585,10 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                                         }
                                 }
                                 
-                                // Se não há progresso e não há atividade de fragmentos há mais de 20s
+                                // If no progress and no fragment activity for more than 20s
                                 if (noProgress && noFragmentActivity && timeSinceLastProgress > 20000) {
                                         console.warn('HLS: No playback progress and no fragment activity for', Math.round(timeSinceLastProgress/1000), 's')
-                                        // Se já tentou carregar mas não há atividade, pode ser stream travado
+                                        // If already tried loading but no activity, might be stuck stream
                                         if (timeSinceLastProgress > 30000) {
                                                 console.error('HLS: Playback stalled, no progress detected')
                                                 if (!this.isReloading && !this.isSkippingSegment && this.active && this.hls) {
@@ -609,16 +609,16 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                                 }
                         }
                         
-                        // Atualizar valores
+                        // Update values
                         if (Math.abs(currentTime - this.lastProgressValue) >= 0.1) {
                                 this.lastProgressTime = now
                                 this.lastProgressValue = currentTime
-                                // Resetar buffer stall count quando há progresso real
+                                // Reset buffer stall count when there's real progress
                                 if (this.bufferStallCount > 0) {
                                         this.bufferStallCount = 0
                                 }
                         }
-                }, 2000) // Verificar a cada 2 segundos
+                }, 2000) // Check every 2 seconds
         }
         stopProgressMonitoring() {
                 if (this.progressCheckInterval) {
@@ -629,19 +629,19 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
         unload() {
                 console.log('unload hls')
                 
-                // Cancelar timeout de inicialização do monitoramento
+                // Cancel monitoring initialization timeout
                 if (this.startMonitoringTimeout) {
                         clearTimeout(this.startMonitoringTimeout)
                         this.startMonitoringTimeout = null
                 }
                 
-                // Cancelar timeout do skipSegment
+                // Cancel skipSegment timeout
                 if (this.skipSegmentTimeout) {
                         clearTimeout(this.skipSegmentTimeout)
                         this.skipSegmentTimeout = null
                 }
                 
-                // Limpar monitoramento
+                // Clear monitoring
                 this.stopProgressMonitoring()
                 
                 // Clear operation flags to prevent stuck states
@@ -658,7 +658,7 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                                 if (typeof Hls !== 'undefined') {
                                         // Get HLS constants safely
                                         const { Events } = getHlsConstants()
-                                        // Remover event listeners antes de destroy
+                                        // Remove event listeners before destroy
                                         this.hls.off(Events.ERROR)
                                         this.hls.off(Events.FRAG_LOADED)
                                         this.hls.off(Events.FRAG_LOADING)

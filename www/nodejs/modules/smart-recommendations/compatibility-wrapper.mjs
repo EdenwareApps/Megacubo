@@ -3,6 +3,7 @@ import smartRecommendations from './index.mjs'
 import { ErrorHandler } from './ErrorHandler.mjs'
 import storage from '../storage/storage.js'
 import lang from '../lang/lang.js'
+import config from '../config/config.js'
 import { Tags } from './tags.mjs'
 import { ready } from '../bridge/bridge.js'
 import PQueue from 'p-queue'
@@ -47,11 +48,15 @@ class SmartRecommendationsCompatibility extends EventEmitter {
             intervalCap: 1
         })
 
+        // Limiter for VOD cache updates (10 seconds between updates)
+        this.vodUpdateLimiter = new Limiter(async () => {
+            await this.updateVODCache()
+        }, { intervalMs: 10000, async: true, initialDelay: 2000 }) // Start with a delay to allow initial loading
+
         // Periodic update limiter (ensures at least one update every 5 minutes, max once per 3 seconds)
         this.updateLimiter = new Limiter(
             () => this.scheduleUpdate(),
-            1500,  // Minimum 1.5 seconds between updates (prevents too frequent calls)
-            true    // async
+            { intervalMs: 1500, async: true, initialDelay: 2000 }  // Minimum 1.5 seconds between updates (prevents too frequent calls)
         )
         
         // Periodic interval to ensure updates at least every 5 minutes
@@ -175,12 +180,80 @@ class SmartRecommendationsCompatibility extends EventEmitter {
             // Initialize client (test connection)
             await this.aiClient.initialize()
 
-            ErrorHandler.info('✅ AI Client initialized successfully for Smart Recommendations')
-            ErrorHandler.info(`📊 AI Client stats:`, this.aiClient.getStats())
-
         } catch (error) {
             ErrorHandler.error('❌ Failed to initialize AI Client:', error)
             // Non-fatal: AI Client will use fallback mode
+        }
+    }
+
+    /**
+     * Get the configured recommendation type from user settings
+     * @returns {string} 'live', 'vod', or 'auto'
+     */
+    getConfiguredRecommendationType() {
+        const configured = config.get('recommendations-type');
+        return configured || 'auto';
+    }
+
+    /**
+     * Get the effective recommendation type, resolving 'auto' based on user history
+     * @returns {string} 'live' or 'vod'
+     */
+    getEffectiveRecommendationType() {
+        const configured = this.getConfiguredRecommendationType();
+        
+        if (configured === 'auto') {
+            return this.getRecommendationTypeFromHistory();
+        }
+        
+        return configured;
+    }
+
+    /**
+     * Determine recommendation type based on user's viewing history
+     * @returns {string} 'live' or 'vod' based on most watched type
+     */
+    getRecommendationTypeFromHistory() {
+        try {
+            // Get recent history entries (last 50 to avoid performance issues)
+            const history = global.channels?.history?.get?.() || [];
+            const recentHistory = history.slice(-50);
+            
+            if (recentHistory.length === 0) {
+                return 'live'; // Default fallback
+            }
+            
+            let liveCount = 0;
+            let vodCount = 0;
+            
+            for (const entry of recentHistory) {
+                if (!entry || typeof entry !== 'object') continue;
+                
+                const classification = StreamClassifier.classify(entry);
+                
+                switch (classification) {
+                    case 'vod':
+                    case 'seems-vod':
+                        vodCount++;
+                        break;
+                    case 'live':
+                    case 'seems-live':
+                        liveCount++;
+                        break;
+                    default:
+                        // For unknown classifications (StreamClassifier found no clear indicators)
+                        // Default to live for truly ambiguous cases
+                        liveCount++;
+                        break;
+                }
+            }
+            
+            // Return the type with more views, defaulting to live if equal
+            return vodCount > liveCount ? 'vod' : 'live';
+            
+        } catch (error) {
+            ErrorHandler.warn('Failed to determine recommendation type from history:', error.message);
+            return 'live'; // Safe fallback
         }
     }
 
@@ -194,6 +267,8 @@ class SmartRecommendationsCompatibility extends EventEmitter {
                 this.someListLoaded = true
                 this.maybeUpdateCache().catch(err => ErrorHandler.warn('Failed to maybe update cache:', err.message))
             }
+            // Update VOD cache when lists are loaded
+            this.vodUpdateLimiter.call().catch(err => ErrorHandler.warn('Failed to update VOD cache:', err.message))
         })
 
         global.lists.on('epg-update', () => {
@@ -222,7 +297,6 @@ class SmartRecommendationsCompatibility extends EventEmitter {
         }
         global.channels.on('loaded', changed => {
             if (changed) {
-                ErrorHandler.info('📺 Channels loaded event, scheduling smart recommendations update')
                 channelsUpdate()
             }
         })
@@ -262,6 +336,27 @@ class SmartRecommendationsCompatibility extends EventEmitter {
     }
 
     /**
+     * Update VOD cache when lists are loaded
+     */
+    async updateVODCache() {
+        // Check if configured type is VOD before scheduling update
+        const configuredType = this.getEffectiveRecommendationType()
+        if (configuredType === 'vod') {
+            // Check if type changed from previous cache
+            const previousType = this.lastConfiguredType || 'live'
+            if (previousType !== configuredType) {
+                ErrorHandler.info(`Recommendation type changed from ${previousType} to ${configuredType}, clearing cache`)
+                await this.clearCache()
+                this.lastConfiguredType = configuredType
+            }
+            
+            // Schedule update to generate new VOD recommendations
+            // The limiter (10s) prevents excessive updates during mass list loading
+            await this.scheduleUpdate().catch(err => ErrorHandler.warn('Failed to schedule VOD update after list load:', err.message))
+        }
+    }
+
+    /**
      * Get recommendations - main API method
      * @param {Object} tags - User tags
      * @param {number} amount - Number of recommendations
@@ -288,9 +383,8 @@ class SmartRecommendationsCompatibility extends EventEmitter {
         // Allow fallback entries even if EPG is not fully loaded - don't return empty here
         // The caller (getEntriesWithSpecials) will handle fallback entries
         const epgLoaded = global.lists?.epg?.loaded
-        if (!Array.isArray(epgLoaded) || epgLoaded.length === 0) {
+        if (type === 'live' && (!Array.isArray(epgLoaded) || epgLoaded.length === 0)) {
             // Return empty to trigger fallback in getEntriesWithSpecials, but log for debugging
-            ErrorHandler.debug('EPG not loaded, will use fallback entries')
             return []
         }
 
@@ -352,7 +446,7 @@ class SmartRecommendationsCompatibility extends EventEmitter {
      * @param {Array} excludes - Channels to exclude
      * @returns {Promise<Array>} Channel recommendations
      */
-    async getChannels(amount = 5, excludes = []) {
+    async getChannels(amount = 5, excludes = [], userTags = null) {
 
         // getChannels can run before full init: only needs channelList (used for featuredEntries fallback when UI renders early)
         if (!global.channels?.channelList?.categories) {
@@ -371,7 +465,7 @@ class SmartRecommendationsCompatibility extends EventEmitter {
 
         // Transform to recommendation format using channels.toMetaEntry
         const transformedChannels = []
-        for (const channel of channels.slice(0, amount)) {
+        for (const channel of channels) {
             try {
                 // Skip invalid channels
                 if (!channel || typeof channel !== 'string' || !channel.trim()) {
@@ -408,6 +502,29 @@ class SmartRecommendationsCompatibility extends EventEmitter {
                     entry.terms = channelTerms
                 }
 
+                // Calculate relevance score based on user tags
+                if (userTags && typeof userTags === 'object') {
+                    let score = 0
+                    const channelLower = channelName.toLowerCase()
+                    const termsLower = channelTerms ? channelTerms.map(t => t.toLowerCase()) : []
+
+                    // Check if channel name matches user tags
+                    if (userTags[channelLower]) {
+                        score += userTags[channelLower] * 2 // Higher weight for exact match
+                    }
+
+                    // Check if any channel terms match user tags
+                    termsLower.forEach(term => {
+                        if (userTags[term]) {
+                            score += userTags[term]
+                        }
+                    })
+
+                    entry.score = score
+                } else {
+                    entry.score = 0 // Default score if no tags provided
+                }
+
                 transformedChannels.push(entry)
             } catch (error) {
                 ErrorHandler.warn('Failed to process channel in getChannels:', error.message)
@@ -415,7 +532,13 @@ class SmartRecommendationsCompatibility extends EventEmitter {
             }
         }
 
-        return transformedChannels
+        // Sort by score descending if userTags provided, otherwise keep original order
+        if (userTags && typeof userTags === 'object') {
+            transformedChannels.sort((a, b) => (b.score || 0) - (a.score || 0))
+        }
+
+        // Return only the requested amount
+        return transformedChannels.slice(0, amount)
     }
 
     /**
@@ -426,36 +549,95 @@ class SmartRecommendationsCompatibility extends EventEmitter {
      * @returns {Promise<Array>} Entries with special entries
      */
     async getEntriesWithSpecials(tags, amount = 25, options = {}) {
-        const { type = 'live' } = options
+        const {
+            type = 'live',
+            specials = false,
+            allowGenerate = false,
+            allowFallback = true,
+            cacheTimeoutMs = 200,
+            fallbackTimeoutMs = 400,
+            generateTimeoutMs = 1200
+        } = options
+
+        const withTimeout = async (promise, timeoutMs, fallback, label) => {
+            if (!timeoutMs || timeoutMs <= 0) {
+                return promise
+            }
+            let timeoutId
+            const timeoutPromise = new Promise(resolve => {
+                timeoutId = setTimeout(() => resolve(fallback), timeoutMs)
+            })
+            const safePromise = Promise.resolve(promise).catch(err => {
+                ErrorHandler.warn(`Smart entries ${label} failed:`, err?.message || err)
+                return fallback
+            })
+            try {
+                return await Promise.race([safePromise, timeoutPromise])
+            } finally {
+                if (timeoutId) clearTimeout(timeoutId)
+            }
+        }
 
         try {
-            let entries = await this.get(tags, amount, options)
+            let entries = []
+            const configuredType = this.getEffectiveRecommendationType()
+            const canUseCache = type === configuredType
 
-            // Add fallback entries if needed
+            if (canUseCache && Array.isArray(this.latestEntries) && this.latestEntries.length > 0) {
+                entries = this.latestEntries.slice(0, amount)
+            }
+
+            if (!entries.length && canUseCache) {
+                const cached = await withTimeout(this.getCache(true), cacheTimeoutMs, null, 'getCache')
+                if (Array.isArray(cached) && cached.length > 0) {
+                    entries = cached.slice(0, amount)
+                }
+            }
+
+            if (!entries.length && allowGenerate) {
+                entries = await withTimeout(this.get(tags, amount, options), generateTimeoutMs, [], 'get')
+            }
+
+            if (!entries.length) {
+                this.maybeUpdateCache().catch(err => {
+                    ErrorHandler.warn('Failed to schedule cache update:', err?.message || err)
+                })
+            }
+
             if (!Array.isArray(entries) || entries.length === 0) {
-                entries = await this.getFallbackEntries(type === 'vod', amount)
+                if (!allowFallback) {
+                    return []
+                }
+                entries = await withTimeout(this.getFallbackEntries(type === 'vod', amount), fallbackTimeoutMs, [], 'getFallbackEntries')
+            }
+
+            if (!Array.isArray(entries) || entries.length === 0) {
+                return []
             }
 
             // Add special entries
-            if (entries.length <= 5) {
-                entries.unshift(this.getImproveEntry())
-            }
+            if (specials === true) {
+                if (entries.length <= 5) {
+                    entries.unshift(this.getImproveEntry())
+                }
 
-            const interestsGroup = await this.buildManualInterestsGroupEntry()
-            if (type !== 'vod' && entries.length) {
+                // Add recommendation type configuration entry
+                entries.push(this.getRecommendationTypeEntry())
+
+                const interestsGroup = await this.buildManualInterestsGroupEntry()
                 if (interestsGroup) {
                     entries.push(interestsGroup)
                 }
                 entries.push(this.getWatchedEntry())
-            } else if (interestsGroup) {
-                entries.push(interestsGroup)
             }
-
             return entries
 
         } catch (error) {
             ErrorHandler.warn('Smart entries with specials failed:', error.message)
-            return this.getFallbackEntries(type === 'vod', amount)
+            if (!allowFallback) {
+                return []
+            }
+            return withTimeout(this.getFallbackEntries(type === 'vod', amount), fallbackTimeoutMs, [], 'getFallbackEntries')
         }
     }
 
@@ -477,126 +659,146 @@ class SmartRecommendationsCompatibility extends EventEmitter {
      * Perform actual update (internal method)
      */
     async performUpdate() {
-        if (!this.initialized) {
-            return
-        }
-
-        const amount = 48
-        let entries = []
-
-        // Always generate new recommendations in update()
-        let userContext
         try {
-            userContext = {
-                userId: this.getCurrentUserId(),
-                tags: await this.getUserTags(),
-                applyParentalControl: !global.lists?.parentalControl?.lazyAuth?.()
+            if (!this.initialized) {
+                return
             }
-        } catch (error) {
-            ErrorHandler.warn('Failed to create user context:', error.message)
-            userContext = {
-                userId: 'anonymous',
-                tags: { default: true },
-                applyParentalControl: true
-            }
-        }
 
-        let recommendations = []
-        try {
-            recommendations = await this.smartRecommendations.getRecommendations(userContext, {
-                limit: 3 * amount,
-                includeSemantic: true,
-                includeTraditional: true
-            })
-        } catch (error) {
-            ErrorHandler.warn('Smart recommendations getRecommendations failed:', error.message)
-            recommendations = []
-        }
+            const amount = 48
+            let entries = []
 
-        if (Array.isArray(recommendations) && recommendations.length) {
-            entries = this.transformRecommendations(recommendations)
-        } else { // let path open for next update
-            this.epgLoaded = false;
-            this.someListLoaded = false;         
-        }
-
-        // Fill with channels if needed
-        if (entries.length < amount) {
+            // Always generate new recommendations in update()
+            let userContext
             try {
-                const excludes = entries.map(e => {
-                    if (e && typeof e === 'object') {
-                        return e.originalName || e.name || ''
-                    }
-                    return ''
-                }).filter(name => name) // Remove empty names
-
-                const channels = await this.getChannels(amount - entries.length, excludes)
-                entries.push(...channels)
+                userContext = {
+                    userId: this.getCurrentUserId(),
+                    tags: await this.getUserTags(),
+                    applyParentalControl: !global.lists?.parentalControl?.lazyAuth?.()
+                }
             } catch (error) {
-                ErrorHandler.warn('Failed to get channel fallback:', error.message)
-                // Continue without channel fallback
+                ErrorHandler.warn('Failed to create user context:', error.message)
+                userContext = {
+                    userId: 'anonymous',
+                    tags: { default: true },
+                    applyParentalControl: true
+                }
             }
-        }
 
-        // Filter available channels BEFORE caching (non-intrusive test here)
-        if (entries.length > 0) {
+            let recommendations = []
+            const configuredType = this.getEffectiveRecommendationType()
+            if (!configuredType) {
+                ErrorHandler.warn('performUpdate: configuredType is not defined or falsy, skipping update')
+                return
+            }
             try {
-                const channelsToTest = {}
-                for (const entry of entries) {
-                    const name = entry?.programme?.channel || entry?.name
-                    const channel = global.channels.isChannel(name)
-                    if (channel && typeof(channelsToTest[channel.name]) === 'undefined') {
-                        channelsToTest[channel.name] = channel
-                    }
+                const recommendationOptions = {
+                    limit: 3 * amount,
+                    includeSemantic: true,
+                    includeTraditional: true
                 }
 
-                // Test availability for channels (limit to 32 to avoid blocking)
-                const availableChannels = await global.lists.has(Object.values(channelsToTest).slice(0, 32))
+                // Add VOD-specific options if configured for VOD
+                if (configuredType === 'vod') {
+                    recommendationOptions.type = 'vod'  // Use 'vod' consistently
+                    recommendationOptions.group = false
+                    recommendationOptions.typeStrict = true
+                }
 
-                // Separate available and non-available entries
-                const availableResults = []
-                const nonAvailableResults = []
+                recommendations = await this.smartRecommendations.getRecommendations(userContext, recommendationOptions)
+            } catch (error) {
+                ErrorHandler.warn('Smart recommendations getRecommendations failed:', error.message)
+                recommendations = []
+            }
 
-                if (availableChannels && typeof availableChannels === 'object') {
+            if (Array.isArray(recommendations) && recommendations.length) {
+                entries = this.transformRecommendations(recommendations)
+            } else { // let path open for next update
+                // For VOD, don't mark EPG as unloaded since VOD doesn't depend on EPG
+                if (configuredType !== 'vod') {
+                    this.epgLoaded = false;
+                }
+                this.someListLoaded = false;         
+            }
+
+            // Fill with channels if needed
+            if (entries.length < amount) {
+                try {
+                    const excludes = entries.map(e => {
+                        if (e && typeof e === 'object') {
+                            return e.originalName || e.name || ''
+                        }
+                        return ''
+                    }).filter(name => name) // Remove empty names
+
+                    const channels = await this.getChannels(amount - entries.length, excludes, userContext.tags)
+                    entries.push(...channels)
+                } catch (error) {
+                    ErrorHandler.warn('Failed to get channel fallback:', error.message)
+                    // Continue without channel fallback
+                }
+            }
+
+            // Filter available channels BEFORE caching (non-intrusive test here)
+            if (entries.length > 0) {
+                try {
+                    const channelsToTest = {}
                     for (const entry of entries) {
                         const name = entry?.programme?.channel || entry?.name
                         const channel = global.channels.isChannel(name)
-                        if (channel) {
-                            const isAvailable = availableChannels[channel.name]
-                            if (isAvailable) {
-                                availableResults.push(entry)
-                                continue
-                            }
+                        if (channel && typeof(channelsToTest[channel.name]) === 'undefined') {
+                            channelsToTest[channel.name] = channel
                         }
-                        nonAvailableResults.push(entry)
                     }
 
-                    // Cache with available entries first, then non-available as fallback
-                    entries = [...availableResults, ...nonAvailableResults]
+                    // Test availability for channels (limit to 32 to avoid blocking)
+                    const availableChannels = await global.lists.has(Object.values(channelsToTest).slice(0, 32))
 
-                    // If no available entries but we have non-available ones, include some anyway
-                    if (availableResults.length === 0 && nonAvailableResults.length > 0) {
-                        console.log('⚠️ No available recommendations, using non-available entries as fallback')
-                        entries = nonAvailableResults.slice(0, amount)
+                    // Separate available and non-available entries
+                    const availableResults = []
+                    const nonAvailableResults = []
+
+                    if (availableChannels && typeof availableChannels === 'object') {
+                        for (const entry of entries) {
+                            const name = entry?.programme?.channel || entry?.name
+                            const channel = global.channels.isChannel(name)
+                            if (channel) {
+                                const isAvailable = availableChannels[channel.name]
+                                if (isAvailable) {
+                                    availableResults.push(entry)
+                                    continue
+                                }
+                            }
+                            nonAvailableResults.push(entry)
+                        }
+
+                        // Cache with available entries first, then non-available as fallback
+                        entries = [...availableResults, ...nonAvailableResults]
+
+                        // If no available entries but we have non-available ones, include some anyway
+                        if (availableResults.length === 0 && nonAvailableResults.length > 0) {
+                            entries = nonAvailableResults.slice(0, amount)
+                        }
+                    } else {
+                        // If availableChannels is not available, use all entries
+                        ErrorHandler.warn('availableChannels is not an object, using all entries')
                     }
-                } else {
-                    // If availableChannels is not available, use all entries
-                    ErrorHandler.warn('availableChannels is not an object, using all entries')
+                } catch (error) {
+                    ErrorHandler.warn('Failed to filter available channels (lists.has), caching entries as-is:', error.message)
+                    // Keep entries unchanged so setCache() is still called below
                 }
-            } catch (error) {
-                ErrorHandler.warn('Failed to filter available channels (lists.has), caching entries as-is:', error.message)
-                // Keep entries unchanged so setCache() is still called below
             }
-        }
 
-        // Cache the results (already filtered by availability)
-        if (entries.length) {
-            await this.setCache(entries)
-            // Emit updated event to trigger UI refresh
-            this.emit('updated')
+            // Cache the results (already filtered by availability)
+            if (entries.length) {
+                await this.setCache(entries)
+                // Emit updated event to trigger UI refresh
+                this.emit('updated')
+            }
+            this.readyState = ((this.epgLoaded || !this.isEPGEnabled()) && this.listsLoaded) ? 4 : 3
+        } catch (error) {
+            ErrorHandler.error('performUpdate failed:', error.message, error.stack)
+            throw error
         }
-        this.readyState = ((this.epgLoaded || !this.isEPGEnabled()) && this.listsLoaded) ? 4 : 3
-
     }
 
     /**
@@ -611,7 +813,15 @@ class SmartRecommendationsCompatibility extends EventEmitter {
         // CRITICAL: Only use cached data, NEVER generate or test anything here
         const results = await this.getCache()
 
+        // Define configuredType to fix ReferenceError
+        const configuredType = this.getEffectiveRecommendationType()
+
+        // DEBUG: Log cache status and type
+        ErrorHandler.debug(`featuredEntries: cache results length=${results ? results.length : 'null'}, configuredType=${configuredType}, listsLoaded=${this.listsLoaded}, epgLoaded=${this.epgLoaded}`)
+        
         let currentEntryPosition = null
+        let nextEntryPosition = null
+        
         const topEntries = []
         const currentEntry = global.streamer.active?.data || global.streamer.lastActiveData || global.channels.history?.get(0)
         const currentEntryAtts = global.streamer.streamInfo.data?.[currentEntry.url]?.atts
@@ -639,7 +849,8 @@ class SmartRecommendationsCompatibility extends EventEmitter {
         // If no cache exists or results is null/empty, try fallback from latestEntries
         if ((!results || !Array.isArray(results) || results.length === 0) &&
             Array.isArray(this.latestEntries) && this.latestEntries.length > 0 &&
-            this.initialized && this.epgLoaded && this.listsLoaded) {
+            this.initialized && 
+            (this.listsLoaded && (configuredType === 'vod' || this.epgLoaded))) {
 
             const fromLatest = [...this.latestEntries]
             return this.dedupeFeaturedEntries(
@@ -651,6 +862,22 @@ class SmartRecommendationsCompatibility extends EventEmitter {
                 }).slice(0, amount),
                 topEntries
             )
+        }
+
+        // SPECIAL CASE: For VOD, if no cache but lists are loaded, force generation once
+        if ((!results || !Array.isArray(results) || results.length === 0) && 
+            configuredType === 'vod' && this.listsLoaded && this.initialized) {
+            try {
+                // Force generation for VOD when cache is empty but conditions are met
+                const vodResults = await this.get({}, amount, { type: 'vod' })
+                if (Array.isArray(vodResults) && vodResults.length > 0) {
+                    // Cache the results for future calls
+                    await this.setCache(vodResults)
+                    return this.dedupeFeaturedEntries(vodResults.slice(0, amount - topEntries.length), topEntries)
+                }
+            } catch (error) {
+                ErrorHandler.warn('featuredEntries: failed to force VOD generation:', error.message)
+            }
         }
 
         // If still no cache, use getChannels() as fallback since channel processing is now fast
@@ -771,12 +998,13 @@ class SmartRecommendationsCompatibility extends EventEmitter {
                 }
 
                 if (recommendations.length) {
+                    const configuredType = this.getEffectiveRecommendationType()
                     recommendations.push({
                         name: global.lang.MORE,
                         details: global.lang.RECOMMENDED_FOR_YOU,
                         fa: 'fas fa-plus',
                         type: 'group',
-                        renderer: this.getEntriesWithSpecials.bind(this, null, 25, { type: 'live' })
+                        renderer: this.getEntriesWithSpecials.bind(this, null, 25, { type: configuredType, specials: true }),
                     })
                     recommendations = recommendations.map(e => {
                         e.hookId = hookId
@@ -1689,6 +1917,74 @@ class SmartRecommendationsCompatibility extends EventEmitter {
     }
 
     /**
+     * Get recommendation type configuration entry
+     * @returns {Object} Recommendation type entry
+     */
+    getRecommendationTypeEntry() {
+        return {
+            name: global.lang.RECOMMENDATIONS_TYPE,
+            fa: 'fas fa-cog',
+            type: 'select',
+            renderer: async () => {
+                const key = 'recommendations-type'
+                const def = global.config?.get(key) || 'auto'
+                const effectiveType = this.getEffectiveRecommendationType()
+                const opts = [
+                    {
+                        name: global.lang.AUTO + (def === 'auto' ? ` (${effectiveType === 'live' ? global.lang.LIVE : global.lang.CATEGORY_MOVIES_SERIES})` : ''), 
+                        fa: 'fas fa-magic', 
+                        type: 'action', 
+                        selected: (def == 'auto'), 
+                        action: async () => {
+                            global.config?.set(key, 'auto')
+                            // Invalidate recommendations cache and trigger refresh
+                            this.invalidateRecommendationCaches('config-changed')
+                            await this.scheduleUpdate()
+
+                            if (global.menu?.refreshNow) {
+                                global.menu.refreshNow()
+                            }
+                        }
+                    },
+                    {
+                        name: global.lang.LIVE || 'Live', 
+                        fa: 'fas fa-tv', 
+                        type: 'action', 
+                        selected: (def == 'live'), 
+                        action: async () => {
+                            global.config?.set(key, 'live')
+                            // Invalidate recommendations cache and trigger refresh
+                            this.invalidateRecommendationCaches('config-changed')
+                            await this.scheduleUpdate()
+
+                            if (global.menu?.refreshNow) {
+                                global.menu.refreshNow()
+                            }
+                        }
+                    },
+                    {
+                        name: global.lang.CATEGORY_MOVIES_SERIES || 'Movies/Series', 
+                        fa: 'fas fa-film', 
+                        type: 'action', 
+                        selected: (def == 'vod'), 
+                        action: async () => {
+                            global.config?.set(key, 'vod')
+                            // Invalidate recommendations cache and trigger refresh
+                            this.invalidateRecommendationCaches('config-changed')
+                            await this.scheduleUpdate()
+
+                            if (global.menu?.refreshNow) {
+                                global.menu.refreshNow()
+                            }
+                        }
+                    }
+                ];
+                return opts;
+            }
+        }
+    }
+
+    /**
      * Get watched entry
      * @returns {Object} Watched entry
      */
@@ -1719,6 +2015,7 @@ class SmartRecommendationsCompatibility extends EventEmitter {
                 throw err
             })
         }
+        return Promise.resolve()
     }
 
     /**
@@ -1864,7 +2161,13 @@ class SmartRecommendationsCompatibility extends EventEmitter {
     }
 
     isCacheRich(cacheData) {
-        return cacheData && this.isCacheValid(cacheData) && cacheData.featured.some(e => !!e?.programme?.channel)
+        if(!cacheData || !this.isCacheValid(cacheData)) return false
+        const type = this.getEffectiveRecommendationType()
+        if (type === 'vod') {
+            return cacheData.featured.some(e => e && (e.url || e.name))
+        } else {
+            return cacheData.featured.some(e => !!e?.programme?.channel)
+        }
     }
 
     /**
@@ -2020,22 +2323,9 @@ class SmartRecommendationsCompatibility extends EventEmitter {
      * Clear cache from storage
      */
     async clearCache() {
-        try {
-            // Instead of dropping cached entries completely, preserve them but mark as expired.
-            // This allows featuredEntries() to still use in-memory fallbacks and avoids
-            // the home screen going empty after EPG/list updates.
-            const cacheData = await storage.get(this.cacheKey)
-            if (cacheData && Array.isArray(cacheData.featured) && cacheData.featured.length) {
-                cacheData.timestamp = 0
-                await storage.set(this.cacheKey, cacheData, { ttl: this.cacheTTLSeconds })
-                ErrorHandler.info('🗑️ Smart recommendations cache timestamp invalidated (entries preserved)')
-            } else {
-                await storage.set(this.cacheKey, null, { ttl: 0 })
-                ErrorHandler.info('🗑️ Smart recommendations cache cleared from storage (no entries to preserve)')
-            }
-        } catch (error) {
-            ErrorHandler.warn('Failed to clear cache from storage:', error.message)
-        }
+        // Delete cache completely by setting to null with ttl 0
+        await storage.set(this.cacheKey, null, { ttl: 0 })
+        await storage.set(this.lastChannelsCacheKey, null, { ttl: 0 })
     }
 
     /**

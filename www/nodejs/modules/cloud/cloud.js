@@ -38,6 +38,29 @@ class CloudConfiguration extends EventEmitter {
     }
 
     /**
+     * Get browser-like headers to avoid bot detection
+     * Uses user's current language/locale
+     * @returns {Object} - Headers object
+     */
+    getBrowserHeaders() {
+        const locale = lang.locale || 'en'
+        const acceptLanguage = `${locale};q=0.9,en-US;q=0.8,en;q=0.7`
+        
+        return {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'accept': 'application/json, text/plain, */*',
+            'accept-language': acceptLanguage,
+            'accept-encoding': 'gzip, deflate, br',
+            'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Windows"',
+            'sec-fetch-site': 'cross-site',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-dest': 'empty'
+        }
+    }
+
+    /**
      * Check if a URL has failed with 404 error in the last 24 hours
      * @param {string} url - The URL to check
      * @returns {boolean} - True if URL should be skipped due to recent 404
@@ -165,6 +188,7 @@ class CloudConfiguration extends EventEmitter {
             timeout: 10000,
             retry: 2,
             debug: this.debug,
+            headers: this.getBrowserHeaders()
         })
         if (!ret.country_code) throw new Error('Invalid response')
         return ret.country_code
@@ -176,7 +200,8 @@ class CloudConfiguration extends EventEmitter {
             responseType: 'json',
             timeout: 10000,
             retry: 2,
-            debug: this.debug
+            debug: this.debug,
+            headers: this.getBrowserHeaders()
         })
         if (data && data.version)
             return true
@@ -205,9 +230,32 @@ class CloudConfiguration extends EventEmitter {
                 responseType: 'json',
                 cacheTTL: this.expires[opts.expiralKey] || this.defaultTTL,
                 bypassCache: opts.bypassCache,
-                debug: this.debug
+                debug: this.debug,
+                headers: this.getBrowserHeaders()
             })
             this.debug && console.log(`Fetch completed for ${key}`, response)
+            
+            // Check if response is an error object (e.g., Imunify360 blocking)
+            if (response && typeof response === 'object' && response.message && !Array.isArray(response)) {
+                // Check if it's an error response instead of valid data
+                const errorPatterns = [
+                    'Access denied',
+                    'Imunify360',
+                    'bot-protection',
+                    'whitelisted',
+                    'blocked',
+                    'forbidden'
+                ]
+                const isError = errorPatterns.some(pattern => 
+                    response.message.toLowerCase().includes(pattern.toLowerCase())
+                )
+                
+                if (isError) {
+                    this.debug && console.log(`Server returned error response for ${key}:`, response.message)
+                    throw new Error(`Server error: ${response.message}`)
+                }
+            }
+            
             if (opts.validator && !opts.validator(response)) {
                 throw new Error('Validation failed')
             }
@@ -231,6 +279,28 @@ class CloudConfiguration extends EventEmitter {
                     error.includes('Not Found')
                 ))) {
                 this.markUrlAsFailed(url)
+            }
+            
+            // Check if error is from Imunify360 or bot protection
+            const isBlockageError = error.message && (
+                error.message.includes('Access denied') ||
+                error.message.includes('Imunify360') ||
+                error.message.includes('bot-protection') ||
+                error.message.includes('whitelisted') ||
+                error.message.includes('blocked') ||
+                error.message.includes('forbidden')
+            )
+            
+            if (isBlockageError) {
+                this.debug && console.log(`⚠️  Blocked by Imunify360, trying fallback for ${key}`)
+                try {
+                    const fallback = await this.readFallback(key)
+                    this.logSuccessfulFetch(key, fallback, 'fallback')
+                    return fallback
+                } catch (fallbackError) {
+                    this.debug && console.log(`Fallback also failed for ${key}`, fallbackError)
+                    throw new Error(`Unable to retrieve data for ${key} (blockage + fallback failed)`)
+                }
             }
             
             throw error
@@ -257,36 +327,29 @@ class CloudConfiguration extends EventEmitter {
         // Check cache with timeout (skip if bypassCache is true)
         let data = null
         if (!opts.bypassCache) {
-            data = await Promise.race([
-                storage.get(cacheKey),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('Storage timeout')), 5000))
-            ]).catch(err => {
-                this.debug && console.log(`Storage error for ${key}`, err)
-                return null
-            })
-
+            data = await storage.get(cacheKey)
             if (data) {
                 this.debug && console.log(`Cache hit for ${key}`)
                 return data
+            }
+
+            // Check if there is an ongoing fetch for this key (skip if bypassCache is true)
+            if (this.activeFetches.has(key)) {
+                this.debug && console.log(`Waiting for ongoing fetch for ${key}`)
+                return this.activeFetches.get(key) // Return the shared fetch promise
             }
         } else {
             this.debug && console.log(`Bypassing cache for ${key} (bypassCache: true)`)
         }
 
-        // Check if there is an ongoing fetch for this key (skip if bypassCache is true)
-        if (!opts.bypassCache && this.activeFetches.has(key)) {
-            this.debug && console.log(`Waiting for ongoing fetch for ${key}`)
-            return this.activeFetches.get(key) // Return the shared fetch promise
-        }
-
         // Create a new Promise for the fetch
         const fetchPromise = (async () => {
             try {
+                // fetch() already handles saving to cache internally
                 const result = await Promise.race([
                     this.fetch(key, opts),
                     new Promise((_, reject) => setTimeout(() => reject(new Error('Fetch timeout')), 10000))
                 ])
-                await this.saveToCache(key, result, opts)
                 return result
             } catch (fetchError) {
                 this.debug && console.log(`Fetch failed, trying fallback for ${key}`, fetchError)
@@ -300,11 +363,6 @@ class CloudConfiguration extends EventEmitter {
                 this.activeFetches.delete(key) // Always clear activeFetches
             }
         })()
-
-        // Add global error handler to prevent unhandled rejections
-        fetchPromise.catch(err => {
-            this.debug && console.log(`Fetch promise error for ${key}:`, err.message)
-        })
 
         this.activeFetches.set(key, fetchPromise)
 

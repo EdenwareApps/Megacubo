@@ -10,6 +10,7 @@ import { SmartCache } from './SmartCache.mjs'
 export class EnhancedRecommendations extends EventEmitter {
     constructor(aiClient) {
         super()
+        this.debug = false
         this.aiClient = aiClient
         this.aiTagExpansion = new AITagExpansion(aiClient)
         // SemanticContentDiscovery removed - not used
@@ -64,9 +65,16 @@ export class EnhancedRecommendations extends EventEmitter {
             // Check cache first
             let recommendations = this.cache.get(cacheKey)
             if (recommendations) {
+                if (this.debug) {
+                    console.log('getRecommendations: cache hit, returning', recommendations.length, 'cached recommendations');
+                }
                 this.performanceMetrics.cacheHitRate =
                     (this.performanceMetrics.cacheHitRate + 1) / 2
                 return recommendations
+            }
+
+            if (this.debug) {
+                console.log('getRecommendations: cache miss, generating new recommendations');
             }
 
             // Generate new recommendations
@@ -77,9 +85,13 @@ export class EnhancedRecommendations extends EventEmitter {
             if (recommendations && recommendations.length > 0) {
                 this.cache.set(cacheKey, recommendations,
                     [`user:${userContext.userId}`, 'recommendations'], 2)
-                ErrorHandler.debug(`Cached ${recommendations.length} recommendations for limit ${options.limit}`)
+                if (this.debug) {
+                    console.log(`Cached ${recommendations.length} recommendations for limit ${options.limit}`);
+                }
             } else {
-                ErrorHandler.warn(`Not caching empty recommendations for limit ${JSON.stringify(options.limit)}`)
+                if (this.debug) {
+                    console.log(`Not caching empty recommendations for limit ${JSON.stringify(options.limit)}`);
+                }
             }
 
             // Update performance metrics
@@ -103,6 +115,10 @@ export class EnhancedRecommendations extends EventEmitter {
      */
     async generateRecommendations(userContext, options) {
         try {
+            if (this.debug) {
+                console.log('Generating recommendations with options:', {userContext, options}, this);
+            }
+
             // 1. Expand user tags using AI semantic analysis with fallback
             const expansionStart = Date.now()
             let expandedTags = userContext.tags // Start with original tags
@@ -114,7 +130,9 @@ export class EnhancedRecommendations extends EventEmitter {
             if (cachedExpansion) {
                 // Use cached expanded tags
                 expandedTags = cachedExpansion
-                // Using cached expanded tags
+                if (this.debug) {
+                    console.log('Using cached expanded tags:', expandedTags);
+                }
                 
                 // Only schedule background refresh if cache is stale (older than 30 minutes)
                 // This prevents unnecessary API calls when fresh cache is available
@@ -133,7 +151,7 @@ export class EnhancedRecommendations extends EventEmitter {
 
             // 2. Get data with semantic filtering (EPG for live, multiSearch for VOD)
             let epgData
-            if (options.type === 'video' || options.type === 'vod') {
+            if (options.type === 'vod') {
                 // Use multiSearch for VOD content
                 epgData = await this.getSemanticVODData(expandedTags, userContext, {...options, group: false, typeStrict: true})
             } else {
@@ -155,22 +173,23 @@ export class EnhancedRecommendations extends EventEmitter {
                 targetAmount
             )
 
+            if (this.debug) {
+                console.log('generateRecommendations: returning', filteredRecommendations.length, 'filtered recommendations');
+            }
             return filteredRecommendations
 
         } catch (error) {
-            ErrorHandler.warn('Recommendation generation failed:', error.message)
+            if (this.debug) {
+                console.error('Recommendation generation failed:', error.message, error);
+            }
             throw error
         }
     }
 
     /**
      * Apply advanced filters to recommendations
-     * @param {Array} recommendations - Scored recommendations
-     * @param {Object} userContext - User context
-     * @param {number} targetAmount - Target amount to return (priority)
-     * @returns {Array} Filtered recommendations
      */
-    applyAdvancedFilters(recommendations, userContext, targetAmount = null) {
+    applyAdvancedFilters(recommendations, userContext, targetAmount) {
         let filtered = Array.isArray(recommendations) ? recommendations.slice() : []
 
         if (userContext.applyParentalControl) {
@@ -256,12 +275,17 @@ export class EnhancedRecommendations extends EventEmitter {
      * @param {Object} userContext - User context
      * @returns {Promise<Array>} EPG data
      */
-    async getSemanticEPGData(expandedTags, userContext) {
+    async getSemanticEPGData(expandedTags, userContext) {        
+        if (this.debug) {
+            console.log('getSemanticEPGData called with expandedTags:', expandedTags, 'userContext.tags:', userContext.tags);
+        }
         try {
             // Check if EPG is available and has data
             const epgManager = global.lists?.epg
             if (!epgManager || !epgManager.loaded?.length) {
-                ErrorHandler.warn('EPG Manager not available, cannot get semantic data')
+                if (this.debug) {
+                    console.log('EPG Manager not available, cannot get semantic data');
+                }
                 return []
             }
 
@@ -287,7 +311,9 @@ export class EnhancedRecommendations extends EventEmitter {
 
             // Get recommendations from EPG system
             const channelTermsArrays = global.channels?.channelList?.channelsIndex ? Object.values(global.channels.channelList.channelsIndex) : []
-            ErrorHandler.debug(`Calling getRecommendations with ${Object.keys(categories).length} categories and ${channelTermsArrays.length} channel term arrays`)
+            if (this.debug) {
+                console.log(`Calling getRecommendations with ${Object.keys(categories).length} categories and ${channelTermsArrays.length} channel term arrays`);
+            }
             
             // Pass null for chList to disable channel filtering and get all programmes
             const epgRecommendations = await global.lists.epg.getRecommendations(
@@ -304,11 +330,15 @@ export class EnhancedRecommendations extends EventEmitter {
                 score: typeof programme.score === 'number' ? programme.score : 0
             }))
 
-            ErrorHandler.debug(`Found ${programmes.length} programmes from EPG system using ${Object.keys(categories).length} categories`)
+            if (this.debug) {
+                console.log(`Found ${programmes.length} programmes from EPG system using ${Object.keys(categories).length} categories`);
+            }
             return this.applyAdvancedFilters(programmes, userContext, this.config.defaultLimit)
 
         } catch (error) {
-            ErrorHandler.warn('Failed to get semantic EPG data: '+ String(error))
+            if (this.debug) {
+                console.error('Failed to get semantic EPG data:', error);
+            }
             return []
         }
     }
@@ -322,18 +352,32 @@ export class EnhancedRecommendations extends EventEmitter {
      */
     async getSemanticVODData(expandedTags, userContext, options = {}) {
         try {
+            if (this.debug) {
+                console.log('getSemanticVODData called with options:', options);
+            }
             // Check if lists are available
             if (!global.lists || typeof global.lists.multiSearch !== 'function') {
-                ErrorHandler.warn('Lists multiSearch not available, cannot get VOD data')
+                if (this.debug) {
+                    console.log('Lists multiSearch not available, cannot get VOD data');
+                }
                 return []
             }
 
             // Build score map from tags (same format as multiSearch expects)
             const scoreMap = {}
 
-            // 1. Add user's original tags with full weight
+            // 1. Add user's original tags with normalized weights to ensure diversity
+            // For VOD, filter to only non-channel-related tags before normalizing
             if (userContext.tags) {
-                Object.entries(userContext.tags).forEach(([tag, weight]) => {
+                let filteredTags = userContext.tags
+                if (global.channels && typeof global.channels.isChannel === 'function') {
+                    filteredTags = Object.fromEntries(
+                        Object.entries(userContext.tags).filter(([tag]) => !global.channels.isChannel(tag))
+                    )
+                }
+                const normalizedTags = this.normalizeTagScores(filteredTags)
+                
+                Object.entries(normalizedTags).forEach(([tag, weight]) => {
                     scoreMap[tag] = weight
                 })
             }
@@ -348,7 +392,9 @@ export class EnhancedRecommendations extends EventEmitter {
             }
 
             if (Object.keys(scoreMap).length === 0) {
-                ErrorHandler.warn('No tags provided for VOD search')
+                if (this.debug) {
+                    console.log('No tags provided for VOD search');
+                }
                 return []
             }
 
@@ -360,11 +406,14 @@ export class EnhancedRecommendations extends EventEmitter {
                 typeStrict: options.typeStrict !== false // Search strictly if typeStrict is not false
             }
 
-            ErrorHandler.debug(`Calling multiSearch for VOD with ${Object.keys(scoreMap).length} tags, limit: ${searchOpts.limit}`)
-            console.log('multiSearch', scoreMap, searchOpts);
+            if (this.debug) {
+                console.log(`Calling multiSearch for VOD with ${Object.keys(scoreMap).length} tags, limit: ${searchOpts.limit}`);
+            }
             const vodEntries = await global.lists.multiSearch(scoreMap, searchOpts)
 
-            ErrorHandler.debug(`Found ${vodEntries.length} VOD entries from lists using ${Object.keys(scoreMap).length} tags`)
+            if (this.debug) {
+                console.log(`Found ${vodEntries.length} VOD entries from lists using ${Object.keys(scoreMap).length} tags`);
+            }
             
             // Transform to EPG-compatible format (similar to EPG programmes format)
             const programmes = vodEntries.map(entry => ({
@@ -387,7 +436,9 @@ export class EnhancedRecommendations extends EventEmitter {
             return programmes
 
         } catch (error) {
-            ErrorHandler.warn('Failed to get semantic VOD data: '+ String(error))
+            if (this.debug) {
+                console.log('Failed to get semantic VOD data:', error);
+            }
             return []
         }
     }
@@ -403,7 +454,9 @@ export class EnhancedRecommendations extends EventEmitter {
             // Check if EPG is loaded (loaded can be an array of URLs or boolean)
             const epgLoaded = global.lists?.epg?.loaded
             if (!epgLoaded || (Array.isArray(epgLoaded) && epgLoaded.length === 0)) {
-                ErrorHandler.warn('EPG not loaded, cannot get programmes')
+                if (this.debug) {
+                    console.log('EPG not loaded, cannot get programmes');
+                }
                 return []
             }
 
@@ -453,11 +506,15 @@ export class EnhancedRecommendations extends EventEmitter {
                 score: typeof programme.score === 'number' ? programme.score : 0
             }))
 
-            ErrorHandler.debug(`Found ${programmes.length} relevant programmes for user interests`)
+            if (this.debug) {
+                console.log(`Found ${programmes.length} relevant programmes for user interests`);
+            }
             return programmes
 
         } catch (error) {
-            ErrorHandler.warn('Failed to get programmes:', error.message)
+            if (this.debug) {
+                console.log('Failed to get programmes:', error.message);
+            }
             return []
         }
     }
@@ -492,11 +549,15 @@ export class EnhancedRecommendations extends EventEmitter {
                 fallback: true
             }))
 
-            ErrorHandler.debug(`Fallback recommendations: ${programmes.length} programmes`)
+            if (this.debug) {
+                console.log(`Fallback recommendations: ${programmes.length} programmes`);
+            }
             return programmes
 
         } catch (error) {
-            ErrorHandler.warn('Fallback recommendations failed:', error.message)
+            if (this.debug) {
+                console.log('Fallback recommendations failed:', error.message);
+            }
             return []
         }
     }
@@ -658,5 +719,52 @@ export class EnhancedRecommendations extends EventEmitter {
                 this.ongoingRefreshes.delete(cacheKey);
             }
         }, 1000) // Start after 1 second
+    }
+
+    /**
+     * Normalize tag scores to ensure diversity across the user's interest spectrum
+     * Prevents high-scoring tags from dominating recommendations
+     * @param {Object} tags - Original user tags with scores
+     * @returns {Object} Normalized tags
+     */
+    normalizeTagScores(tags) {
+        const entries = Object.entries(tags).filter(([, score]) => typeof score === 'number' && score > 0)
+        
+        if (entries.length === 0) return {}
+        if (entries.length === 1) return { [entries[0][0]]: 1.0 } // Single tag gets max score
+        
+        // Sort by score descending
+        entries.sort(([, a], [, b]) => b - a)
+        
+        const scores = entries.map(([, score]) => score)
+        const maxScore = scores[0]
+        const minScore = scores[scores.length - 1]
+        
+        // If all scores are the same, return as-is
+        if (maxScore === minScore) {
+            return Object.fromEntries(entries.map(([tag]) => [tag, 1.0]))
+        }
+        
+        const normalized = {}
+        
+        // Apply normalization to compress high scores and boost low scores
+        entries.forEach(([tag, score]) => {
+            // Min-max normalization
+            let normalizedScore = (score - minScore) / (maxScore - minScore)
+            
+            // Apply square root compression to prevent dominance of high scores
+            // This reduces the gap between high and low scores more effectively
+            normalizedScore = Math.sqrt(normalizedScore)
+            
+            // Ensure minimum score for diversity (boost low-interest tags)
+            normalizedScore = Math.max(normalizedScore, 0.3)
+            
+            // Scale to 0.3-1.0 range to maintain some differentiation
+            normalizedScore = normalizedScore * 0.7 + 0.3
+            
+            normalized[tag] = normalizedScore
+        })
+        
+        return normalized
     }
 }

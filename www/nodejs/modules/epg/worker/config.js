@@ -28,6 +28,7 @@ export const EPG_CONFIG = {
 // Database configuration options - OPTIMIZED with InsertSession
 export const PROGRAMME_DB_OPTS = {
   create: true,
+  ioTimeoutMs: 20000,
   integrityCheck: 'none',    // skip integrity check on init for speed
   allowIndexRebuild: true,   // auto-rebuild corrupted index files
   maxWriteBufferSize: 64 * 1024, // DRASTICALLY reduced to 64KB
@@ -56,6 +57,7 @@ export const PROGRAMME_DB_OPTS = {
 
 export const METADATA_DB_OPTS = {
   create: true,
+  ioTimeoutMs: 20000,
   integrityCheck: 'none',    // skip integrity check on init for speed
   allowIndexRebuild: true,   // auto-rebuild corrupted index files
   maxWriteBufferSize: 32 * 1024, // DRASTICALLY reduced to 32KB for metadata

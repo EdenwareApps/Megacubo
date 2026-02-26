@@ -31,13 +31,13 @@ class ListsDiscovery extends EventEmitter {
         });
         this.on('found', () => this.save().catch(err => console.error(err)));
         this.ready = ready()
-        this.saver = new Limiter(() => {
-            storage.set(this.key, this.knownLists, {
+        this.saver = new Limiter(async () => {
+            await storage.set(this.key, this.knownLists, {
                 personal: true,
                 permanent: true,
                 expiration: true
             });
-        }, 10000);
+        }, { intervalMs: 10000, async: true });
         this.restore().catch(err => console.error(err));
         renderer.ready(async () => {
             [
@@ -150,7 +150,7 @@ class ListsDiscovery extends EventEmitter {
         this.sort();
         const active = {
             public: ignoreSettings || config.get('public-lists'),
-            community: ignoreSettings || config.get('communitary-mode-lists-amount') > 0
+            community: ignoreSettings || config.get('community-mode-lists-amount') > 0
         };
         return this.domainCap(this.knownLists.filter(list => active[list.type] && types.includes(list.type)), amount)
     }

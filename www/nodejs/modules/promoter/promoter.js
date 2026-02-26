@@ -49,7 +49,7 @@ class Promoter {
     }
     async offer(type, skipRequirements) {
         const atts = {
-            communitary: config.get('communitary-mode-lists-amount') > 0,
+            community: config.get('community-mode-lists-amount') > 0,
             premium: options.prm(true),
             country: lang.countryCode,
             platform: process.platform,

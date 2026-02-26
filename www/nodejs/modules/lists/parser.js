@@ -6,7 +6,7 @@ import StreamInfo from '../streamer/utils/stream-info.js'
 
 let streamInfo = null;
 
-// Object Pool para reutilizar objetos e reduzir pressão no GC
+// Object Pool to reuse objects and reduce GC pressure
 class ObjectPool {
     constructor(createFn, resetFn) {
         this.pool = [];
@@ -228,7 +228,7 @@ export class Parser extends EventEmitter {
             return { g, a, e };
         }
         
-        // Processar URL e parâmetros em uma única passada
+        // Process URL and parameters in a single pass
         const urlData = this.processUrlInOnePass(e.url);
         e.url = urlData.url;
         if (urlData.params) {
@@ -240,7 +240,7 @@ export class Parser extends EventEmitter {
             return { g, a, e };
         }
         
-        // Resolver nome se não existir
+        // Resolve name if it doesn't exist
         if (!e.name) {
             e.name = e.gid || listNameFromURL(e.url);
         }
@@ -250,7 +250,7 @@ export class Parser extends EventEmitter {
             return { g, a, e };
         }
         
-        // Processar nome em uma única operação
+        // Process name in a single operation
         const name = e.name.replace(regexes['between-brackets'], '');
         if (name !== e.name) {
             e.rawname = e.name;
@@ -262,12 +262,12 @@ export class Parser extends EventEmitter {
             return { g, a, e };
         }
         
-        // Limpar ícone se existir
+        // Clean icon if it exists
         if (e.icon) {
             e.icon = e.icon.trim();
         }
         
-        // Aplicar atributos
+        // Apply attributes
         if (Object.keys(a).length) {
             Object.assign(e, a);
             a = this.createAttr();
@@ -304,7 +304,7 @@ export class Parser extends EventEmitter {
     processUrlInOnePass(url) {
         const result = { url, params: null };
         
-        // Verificar se tem parâmetros (pipe)
+        // Check if it has parameters (pipe)
         const pipeIndex = url.indexOf('|');
         if (pipeIndex !== -1 && regexes['m3u-url-params'].test(url)) {
             const urlPart = url.substring(0, pipeIndex);
@@ -320,7 +320,7 @@ export class Parser extends EventEmitter {
             result.url = urlPart;
         }
         
-        // Resolver URL relativa em uma única verificação
+        // Resolve relative URL in a single check
         const urlStart = result.url.substring(0, 8);
         const pos = urlStart.indexOf('//');
         if (pos === 0) {
@@ -436,7 +436,7 @@ export class Parser extends EventEmitter {
         // Clear resources
         this.liner && this.liner.destroy();
         
-        // Limpar pools de objetos
+        // Clear object pools
         // No object pools to clean up
         
         this.removeAllListeners();

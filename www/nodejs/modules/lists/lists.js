@@ -14,7 +14,7 @@ import { resolveListDatabaseFile } from "./tools.js";
 import { resolveListMetaPath } from "./list-meta.js";
 import { ready } from '../bridge/bridge.js'
 import { inWorker } from '../paths/paths.js'
-import { forwardSlashes, parseCommaDelimitedURIs } from "../utils/utils.js";
+import { forwardSlashes, parseCommaDelimitedURIs, trackPromise } from "../utils/utils.js";
 import { Fetcher } from './common.js';
 
 class ListsEPGTools extends Index {
@@ -192,7 +192,7 @@ class ListsEPGTools extends Index {
                 }
             }
             
-            // Detectar mudanças na configuração epg-suggestions
+            // Detect changes in epg-suggestions configuration
             if (keys.includes('epg-suggestions')) {
                 const suggestionsEnabled = config.get('epg-suggestions') !== false
                 console.log('🔄 EPG suggestions setting changed, updating EPGs...')
@@ -262,10 +262,24 @@ class ListsEPGTools extends Index {
         } else {
             if (Array.isArray(channelsList)) {
                 channelsList = channelsList.map(c => this.tools.applySearchRedirectsOnObject(c))
-                data = await this.epg.getMulti(channelsList, limit)
+                data = await trackPromise(
+                    this.epg.getMulti(channelsList, limit),
+                    `epgChannelsList.getMulti(${channelsList.length} channels)`,
+                    15000
+                ).catch(err => {
+                    console.warn('EPG getMulti timeout/error:', err.message || err);
+                    return [];
+                })
             } else {
                 channelsList = this.tools.applySearchRedirectsOnObject(channelsList)
-                data = await this.epg.get(channelsList, limit)
+                data = await trackPromise(
+                    this.epg.get(channelsList, limit),
+                    `epgChannelsList.get(${channelsList.name})`,
+                    12000
+                ).catch(err => {
+                    console.warn('EPG get timeout/error:', err.message || err);
+                    return [];
+                })
             }
         }
         return data
@@ -312,7 +326,14 @@ class ListsEPGTools extends Index {
 
         if (Array.isArray(channelOrList)) {
             const preparedList = channelOrList.map((item, index) => prepareDescriptor(item, index))
-            return this.epg.getLiveNowAndNext(preparedList, { limit, now })
+            return await trackPromise(
+                this.epg.getLiveNowAndNext(preparedList, { limit, now }),
+                `getLiveNowAndNext(bulk ${preparedList.length} channels)`,
+                15000
+            ).catch(err => {
+                console.warn('EPG getLiveNowAndNext (bulk) timeout/error:', err.message || err);
+                return {};
+            })
         }
 
         const prepared = prepareDescriptor(channelOrList, 0)
@@ -320,15 +341,36 @@ class ListsEPGTools extends Index {
             return null
         }
 
-        return this.epg.getLiveNowAndNext(prepared, { limit, now })
+        return await trackPromise(
+            this.epg.getLiveNowAndNext(prepared, { limit, now }),
+            `getLiveNowAndNext(${prepared.name})`,
+            10000
+        ).catch(err => {
+            console.warn('EPG getLiveNowAndNext timeout/error:', err.message || err);
+            return null;
+        })
     }
     async epgSearch(terms, nowLive) {
         if (!this.epg.loaded) return []
-        return this.epg.search(this.tools.applySearchRedirects(terms), nowLive)
+        return await trackPromise(
+            this.epg.search(this.tools.applySearchRedirects(terms), nowLive),
+            `epgSearch(${terms.join(' ')})`,
+            12000
+        ).catch(err => {
+            console.warn('EPG search timeout/error:', err.message || err);
+            return [];
+        })
     }
     async epgSearchChannel(terms, limit) {
         if (!this.epg.loaded) return {}
-        return this.epg.searchChannel(this.tools.applySearchRedirects(terms), limit);
+        return await trackPromise(
+            this.epg.searchChannel(this.tools.applySearchRedirects(terms), limit),
+            `epgSearchChannel(${terms.join(' ')})`,
+            10000
+        ).catch(err => {
+            console.warn('EPG searchChannel timeout/error:', err.message || err);
+            return {};
+        })
     }
     async epgLiveNowChannelsList() {
         
@@ -344,7 +386,14 @@ class ListsEPGTools extends Index {
         }
 
         const cached = await validCache().catch(() => null) // not expired cache
-        let data = cached || await this.epg.liveNowChannelsList()
+        let data = cached || await trackPromise(
+            this.epg.liveNowChannelsList(),
+            'epgLiveNowChannelsList()',
+            20000
+        ).catch(err => {
+            console.warn('EPG liveNowChannelsList timeout/error:', err.message || err);
+            return { categories: {} };
+        })
         if (data?.categories && Object.keys(data['categories']).length) {
             try {
                 let names = Object.keys(data['categories']).filter(c => c.length > 1).filter(c => this.parentalControl.allow(c))
@@ -459,7 +508,7 @@ class ListsEPGTools extends Index {
             }
         }
         
-        if(global?.channels?.trending.currentRawEntries) {
+        if(Array.isArray(global?.channels?.trending.currentRawEntries)) {
             global.channels.trending.currentRawEntries.forEach(e => {
                 if(e.epg) {
                     epgs.push(...parseCommaDelimitedURIs(e.epg).filter(u => !epgs.includes(u)))
@@ -507,14 +556,14 @@ class Lists extends ListsEPGTools {
         this.processedLists = new Map();
         this.requesting = {};
         this.satisfied = false;
-        this.communityListsAmount = config.get('communitary-mode-lists-amount');
+        this.communityListsAmount = config.get('community-mode-lists-amount');
         this.isFirstRun = !this.communityListsAmount && !config.get('lists').length;
         this.queue = new PQueue({concurrency: 4});
         config.on('change', (keys, data) => {
             if (keys.includes('lists')) {
                 this.handleListsChange();
             }
-            if (keys.includes('communitary-mode-lists-amount')) {
+            if (keys.includes('community-mode-lists-amount')) {
                 this.handleCommunityListsAmountChange(data);
             }
         })
@@ -631,8 +680,8 @@ class Lists extends ListsEPGTools {
         }
     }
     handleCommunityListsAmountChange(data, force) {
-        if (force === true || this.communityListsAmount != data['communitary-mode-lists-amount']) {
-            this.communityListsAmount = data['communitary-mode-lists-amount'];
+        if (force === true || this.communityListsAmount != data['community-mode-lists-amount']) {
+            this.communityListsAmount = data['community-mode-lists-amount'];
             // Force trim to remove community lists if quota is now 0
             this.trim();
         }
@@ -836,6 +885,32 @@ class Lists extends ListsEPGTools {
             // If already filtered, ensure we have an array
             lists = Array.isArray(lists) ? lists : (lists.cachedUrls || []);
         }
+
+        const publicListsActive = config.get('public-lists');
+        const communityListsQuota = Math.max(this.communityListsAmount - this.myLists.length, 0);
+        const loadedCommunityCount = this.loadedListsCount('community');
+        const remainingCommunitySlots = Math.max(communityListsQuota - loadedCommunityCount, 0);
+        const relevances = await this.getCachedRelevances(lists);
+        const listInfo = lists.map(url => {
+            const origin = this.myLists.includes(url)
+                ? 'own'
+                : (this.discovery.details(url, 'type') || 'community');
+            return { url, origin, relevance: relevances[url]?.total || 0 };
+        });
+
+        const owned = listInfo.filter(item => item.origin === 'own');
+        const community = listInfo.filter(item => item.origin === 'community');
+        const publicLists = listInfo.filter(item => item.origin === 'public');
+
+        const byRelevance = (a, b) => b.relevance - a.relevance || a.url.localeCompare(b.url);
+        community.sort(byRelevance);
+        publicLists.sort(byRelevance);
+
+        const selectedCommunity = remainingCommunitySlots > 0
+            ? community.slice(0, remainingCommunitySlots)
+            : [];
+        const selectedPublic = publicListsActive ? publicLists : [];
+        lists = [...owned, ...selectedCommunity, ...selectedPublic].map(item => item.url);
         
         this.trim(); // helps to avoid too many lists in memory
         
@@ -847,7 +922,7 @@ class Lists extends ListsEPGTools {
                     return; // Already loaded
                 }
                 
-                // Verificar se não está sendo atualizada antes de carregar (evita race conditions)
+                // Check if not being updated before loading (avoids race conditions)
                 if (this.isListUpdating(url)) {
                     if (this.debug) {
                         console.log(`Skipping ${url} - update in progress`)
@@ -881,26 +956,26 @@ class Lists extends ListsEPGTools {
     }
     
     /**
-     * Marca uma lista como sendo atualizada (ou não)
-     * @param {string} url - URL da lista
-     * @param {boolean} isUpdating - true se está sendo atualizada, false caso contrário
+     * Marks a list as being updated (or not)
+     * @param {string} url - List URL
+     * @param {boolean} isUpdating - true if being updated, false otherwise
      */
     markListUpdating(url, isUpdating) {
         if (isUpdating) {
             this.updatingLists.add(url)
-            // Se a lista já está carregada, marcar como "suspended" para evitar conflitos
+            // If list is already loaded, mark as "suspended" to avoid conflicts
             if (this.lists[url]) {
                 if (this.debug) {
                     console.log(`Suspending list during update: ${url}`)
                 }
-                // Não remover completamente, apenas marcar como "suspended"
+                // Don't remove completely, just mark as "suspended"
                 if (this.lists[url]) {
                     this.lists[url]._suspendedForUpdate = true
                 }
             }
         } else {
             this.updatingLists.delete(url)
-            // Remover marcação de suspensão se a lista existe
+            // Remove suspension marking if list exists
             if (this.lists[url]) {
                 this.lists[url]._suspendedForUpdate = false
             }
@@ -908,9 +983,9 @@ class Lists extends ListsEPGTools {
     }
     
     /**
-     * Verifica se uma lista está sendo atualizada
-     * @param {string} url - URL da lista
-     * @returns {boolean} true se está sendo atualizada
+     * Check if a list is being updated
+     * @param {string} url - List URL
+     * @returns {boolean} true if being updated
      */
     isListUpdating(url) {
         return this.updatingLists.has(url)
@@ -1051,13 +1126,13 @@ class Lists extends ListsEPGTools {
         try {
             await list.ready()
             try {
-                await list.verify()
+                await list.checkRelevance()
             } catch (e) {
-                console.error('List verify error:', url, e);
+                console.error('List checkRelevance error:', url, e);
                 throw e
             }
         } catch (e) {
-            list.verifyError = e
+            list.checkRelevanceError = e
             err = e
             
             // Check if the error is due to missing meta file
@@ -1424,7 +1499,7 @@ class Lists extends ListsEPGTools {
                 info[url].icon = this.lists[url].index.meta.icon
                 info[url].epg = this.lists[url].index.meta.epg
             }
-            info[url].private = false // communitary list
+            info[url].private = false // community list
         }
         this.getMyLists().forEach(l => {
             if (!info[l.url])
@@ -1697,6 +1772,19 @@ class Lists extends ListsEPGTools {
             console.log('✅ All lists have proper indexes!');
             return 0;
         }
+    }
+    
+    async getCachedRelevance(url) {
+        const cacheKey = 'list-relevance-' + url;
+        return await storage.get(cacheKey);
+    }
+    
+    async getCachedRelevances(urls) {
+        const relevances = {};
+        for (const url of urls) {
+            relevances[url] = await this.getCachedRelevance(url);
+        }
+        return relevances;
     }
 }
 if(inWorker) {

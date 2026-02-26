@@ -15,7 +15,7 @@ export class EPGUpdater extends EventEmitter {
     super()
     this.url = url
 
-    // Injeção de Dependências (Dependency Injection)
+    // Dependency Injection
     this.databaseFactory = dependencies.databaseFactory || DatabaseFactory
     this.parserFactory = dependencies.parserFactory || ParserFactory
     this.cacheManager = dependencies.cacheManager || new CacheManager(EPG_CONFIG.cache)

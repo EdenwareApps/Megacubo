@@ -48,7 +48,7 @@ To learn more about the app's default [hotkeys](hotkeys.md) or [user interface](
 - **channels-list-smart-sorting**: `0`  
   *Determines the smart sorting behavior of the channel list.*
 
-- **communitary-mode-lists-amount**: `0`  
+- **community-mode-lists-amount**: `0`  
   *Sets the number of lists accepted and loaded shared from users in the same region.*
 
 - **connect-timeout**: `10`  

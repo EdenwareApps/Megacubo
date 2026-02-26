@@ -151,16 +151,24 @@ process.on('uncaughtException', exception => {
     return false
 })
 
-const touchListener = (key, entry) => {
-    postMessage({ id: 0, type: 'event', data: 'storage-touch:' + JSON.stringify({ key, entry }) })
+global.__storageTouchBridge = (msg) => {
+    postMessage({ id: 0, type: 'event', data: 'storage-touch:' + JSON.stringify(msg) })
+}
+
+const touchListener = (msg) => {
+    postMessage({ id: 0, type: 'event', data: 'storage-touch:' + JSON.stringify(msg) })
 }
 const changeListener = () => {
     postMessage({ id: 0, type: 'event', data: 'config-change' })
 }
 config.on('change', changeListener)
-storage.on('touch', touchListener)
+storage.on('storage-touch', touchListener)
 
 const drivers = {}
+
+// Track which request IDs are currently processing
+const processingIds = new Set()
+
 const onMessage = msg => {
     if (Array.isArray(langListeners)) {
         // store messages while language is being reconstructed
@@ -222,6 +230,11 @@ const onMessage = msg => {
     } else if (msg.method == 'memoryUsage') {
         const data = { id: msg.id, type: 'resolve', data: process.memoryUsage() }
         postMessage(data)
+    } else if (msg.method == 'checkActivity') {
+        // Activity check - report if we're still processing this request
+        const processing = processingIds.has(msg.requestId)
+        postMessage({ type: 'activity-check', requestId: msg.requestId, processing })
+        return
     } else if (!drivers[msg.file]) {
         console.error('❌ Worker not found:', msg.file)
         console.error('Available drivers:', Object.keys(drivers))
@@ -233,8 +246,13 @@ const onMessage = msg => {
         postMessage(data)
     } else {
         let type, data = null
+        
+        // Mark this request as processing
+        processingIds.add(msg.id)
+        
         const promise = drivers[msg.file][msg.method].apply(drivers[msg.file], msg.args)
         if (!promise || typeof (promise.then) == 'undefined') {
+            processingIds.delete(msg.id)
             return postMessage({ id: -1, type: 'event', data: 'error: Not a promise (' + msg.method + ').' })
         }
         
@@ -248,6 +266,9 @@ const onMessage = msg => {
             // Log the error for debugging
             console.error('Worker method error:', msg.file, msg.method, err)
         }).finally(() => {
+            // Mark as no longer processing
+            processingIds.delete(msg.id)
+            
             const responseData = { id: msg.id, type, data }
             try {
                 postMessage(responseData)

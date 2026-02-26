@@ -23,7 +23,7 @@ export class ChannelsList extends EventEmitter {
         this.baseCache = null
         this.limiter = new Limiter(async () => {
             await this.load().catch(err => console.error(err))
-        }, 3000)
+        }, { intervalMs: 3000, async: true })
         this.setupListeners()
         this.ready = ready()
     }

@@ -16,7 +16,7 @@ android {
         applicationId "tv.megacubo.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionName '17.6.3'
+        versionName '17.6.4'
         versionCode getVersionCodeFromVersionName(versionName)
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {

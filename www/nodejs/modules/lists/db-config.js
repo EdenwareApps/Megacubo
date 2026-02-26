@@ -1,5 +1,6 @@
 export default {
     create: false, // Read-only for existing lists
+    ioTimeoutMs: 10000,
     allowIndexRebuild: true,
     compression: true,
     termMapping: true,

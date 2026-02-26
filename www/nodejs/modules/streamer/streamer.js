@@ -552,7 +552,7 @@ class Streamer extends StreamerGoNext {
                     config.set('ffmpeg-broadcast-pre-processing', 'mpegts')
                     this.reload()
                 }
-            }, 10000, true)
+            }, { intervalMs: 10000, async: true })
             renderer.ready(async () => {
                 global.menu.on('open', path => {
                     if (this.tuning && path.includes(global.lang.STREAMS)) {

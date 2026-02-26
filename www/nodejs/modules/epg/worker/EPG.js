@@ -187,7 +187,7 @@ export class EPG extends EPGUpdater {
         return
       }
 
-      // Verificar se db.count existe e é uma função
+      // Check if db.count exists and is a function
       if (!this.db.count || typeof this.db.count !== 'function') {
         console.warn(`Cannot calculate programme counts for ${this.url}: db.count is not available`)
         this._programmeCounts = {
@@ -199,7 +199,7 @@ export class EPG extends EPGUpdater {
         return
       }
 
-      // Verificar se db foi destruído ou fechado
+      // Check if database was destroyed or closed
       if (this.db.destroyed || this.db.closed) {
         console.warn(`Cannot calculate programme counts for ${this.url}: database is destroyed or closed`)
         this._programmeCounts = {
@@ -1216,14 +1216,14 @@ export class EPG extends EPGUpdater {
       this.debug && console.log('🔍 Debug: db.initialized=', this.db.initialized, 'db.length=', this.db?.length || 0)
       if (this.db.initialized && this.db.length > 0) {
         try {
-          // Verificar se db.count existe e é uma função
+          // Check if db.count exists and is a function
           if (!this.db.count || typeof this.db.count !== 'function') {
             console.warn(`Cannot calculate programme counts for ${this.url}: db.count is not available`)
             this.debug && console.log(`📊 EPG ${this.url}: Counts will be calculated when state changes to 'loaded'`)
             return Promise.resolve()
           }
 
-          // Verificar se db foi destruído ou fechado
+          // Check if database was destroyed or closed
           if (this.db.destroyed || this.db.closed) {
             console.warn(`Cannot calculate programme counts for ${this.url}: database is destroyed or closed`)
             this.debug && console.log(`📊 EPG ${this.url}: Counts will be calculated when state changes to 'loaded'`)

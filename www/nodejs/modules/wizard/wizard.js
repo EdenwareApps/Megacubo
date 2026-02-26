@@ -127,6 +127,8 @@ class Wizard extends EventEmitter {
             return;
         }
 
+        await new Promise(resolve => setTimeout(resolve, 100)); // Small delay to ensure dialog shows after other dialogs close
+
         const opts = [
             { template: 'question', text: messages[mode], fa: 'fas fa-spinner fa-spin' },
             { template: 'message', text: lang.WAIT_MOMENT }
@@ -143,17 +145,13 @@ class Wizard extends EventEmitter {
         })();
 
         const loadingId = 'loading'
-        // Mostrar dialog de loading
-        menu.dialog(opts, 'loading', true, loadingId);
+        const promises = [
+            loadingPromise,
+            new Promise(resolve => setTimeout(resolve, 1000)) // Ensure at least 1 second of loading screen for better UX
+        ];
 
-        // Wait for loading
-        await loadingPromise;
-
-        // Garantir tempo mínimo de exibição do loading (1 segundo)
-        const elapsedTime = Date.now() - startTime;
-        if (elapsedTime < 1000) {
-            await new Promise(resolve => setTimeout(resolve, 1000 - elapsedTime));
-        }
+        menu.dialog(opts, 'loading', true, loadingId);        
+        await Promise.allSettled(promises);
 
         // Close dialog after loading
         renderer.ui.emit('dialog-close', loadingId);
@@ -174,19 +172,19 @@ class Wizard extends EventEmitter {
                 } catch (err) {
                     console.error('Failed to add list:', err);
                     menu.displayErr(lang.INVALID_URL_MSG);
-                    // Se falhar, voltar ao início para perguntar o modo novamente
+                    // If it fails, return to start to ask mode again
                     return this.lists();
                 }
                 break;
             case 'public':
-                // Já configurado no loading screen
+                // Already configured in loading screen
                 break;
         }
 
         // Mark setup as complete based on mode
         const hasLists = mode === 'own-list' ? false : // wait for user to add
-                        mode === 'community' ? (config.get('communitary-mode-lists-amount') > 0) :
-                        true; // públicas sempre tem algo
+                        mode === 'community' ? (config.get('community-mode-lists-amount') > 0) :
+                        true; // public lists always have something
 
         if (hasLists) {
             config.set('setup-completed', true);
@@ -202,7 +200,7 @@ class Wizard extends EventEmitter {
             return;
         }
 
-        // Reutilizar lógica existente de waitForAutoRetry
+        // Reuse existing waitForAutoRetry logic
         const shouldDelay = () => {
             const current = lists?.manager?.noListsAutoRetryState;
             if (!current || current.exhausted) {

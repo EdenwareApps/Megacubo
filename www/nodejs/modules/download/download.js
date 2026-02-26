@@ -108,6 +108,23 @@ class Download extends EventEmitter {
             }
         }
 
+        // Extract credentials from authURL if provided
+        this.authCredentials = null;
+        if (this.opts.authURL) {
+            try {
+                const authUrl = new URL(this.opts.authURL.replace(/#.*$/, '')); // Remove hash part
+                if (authUrl.username && authUrl.password) {
+                    this.authCredentials = {
+                        username: authUrl.username,
+                        password: authUrl.password
+                    };
+                    this.opts.debug && console.log('[download] Extracted credentials from authURL');
+                }
+            } catch (err) {
+                this.opts.debug && console.log('[download] Failed to parse authURL:', err.message);
+            }
+        }
+
         if(typeof(this.opts['user-agent']) !== 'string') {
             this.opts['user-agent'] = config.get('user-agent') || config.get('default-user-agent');
         }
@@ -216,21 +233,31 @@ class Download extends EventEmitter {
         });
 
         const waiting = new Promise((resolve, reject) => {
-            this.once('data', resolve);
-            cacheStream.once('end', resolve);
+            let resolved = false;
+            const resolveOnce = (value) => {
+                if (!resolved) {
+                    resolved = true;
+                    resolve(value);
+                }
+            };
+            this.once('data', resolveOnce);
+            cacheStream.once('end', resolveOnce);
             cacheStream.once('error', (err) => {
+                if (resolved) return;
                 // Don't reject, just resolve with error info
                 this.opts.debug && console.log('[download] tryCache stream error:', err.message);
-                resolve({ error: err });
+                resolveOnce({ error: err });
             });
             // Add error handler for decompression errors
             this.once('decompression-error', (err) => {
+                if (resolved) return;
                 this.opts.debug && console.log('[download] tryCache decompression error:', err.message);
-                resolve({ decompressionError: err });
+                resolveOnce({ decompressionError: err });
             });
             setTimeout(() => {
+                if (resolved) return;
                 this.opts.debug && console.log('[download] tryCache timeout');
-                resolve({ timeout: true });
+                resolveOnce({ timeout: true });
             }, 5000);
         });
 
@@ -350,7 +377,7 @@ class Download extends EventEmitter {
                 clarifyTimeoutError: true
             },            
             validateStatus: function (status) {
-                return true; // Trata todos os códigos de status como sucesso
+                return true; // Treat all status codes as success
             },
             adapter: 'http',
             httpsAgent: this.opts.keepalive ? httpsAgentKeepAlive : httpsAgent,
@@ -368,6 +395,13 @@ class Download extends EventEmitter {
             if(domainWithPort) {
                 axiosConfig.headers['Host'] = domainWithPort;
             }
+        }
+
+        // Add HTTP Basic Auth header if credentials are available from authURL
+        if (this.authCredentials && !axiosConfig.headers['authorization']) {
+            const credentials = Buffer.from(`${this.authCredentials.username}:${this.authCredentials.password}`).toString('base64');
+            axiosConfig.headers['Authorization'] = `Basic ${credentials}`;
+            this.opts.debug && console.log('[download] Added HTTP Basic Auth header');
         }
 
         try {

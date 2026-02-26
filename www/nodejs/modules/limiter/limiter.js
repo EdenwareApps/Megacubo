@@ -1,17 +1,32 @@
+import { EventEmitter } from 'events';
+
 /* A class that limits access to a function to once every X seconds */
-class Limiter {
-    // constructor takes a function and a time interval in seconds
-    constructor(func, intervalMs = 5000, _async=true) {
-        this.async = _async
+class Limiter extends EventEmitter {
+    // constructor takes a function and an options object
+    constructor(func, options = {}) {
+        super();
+        const { intervalMs = 5000, async = true, debug = false, initialDelay = 0 } = options
+        this.debug = debug
+        this.async = async
         this.func = func;
         this.intervalMs = intervalMs;
-        this.lastCalled = 0; // Timestamp of the last time the function was called
         this.timeoutId = null; // Timeout ID of the scheduled function call
         this.isPaused = false; // Flag indicating if the limiter is paused
         this.pendingArgs = null; // Always keep the LATEST call pending
+        this.initialDelay = initialDelay; // Initial delay before the first call
+
+        // Internal promise to allow multiple callers to await the same pending execution
+        this._pendingCallPromise = null;
+        this._pendingCallResolve = null;
+
+        const lastCalled = Date.now() - this.intervalMs + this.initialDelay;
+        this.lastCalled = lastCalled; // Timestamp of the last time the function was called
     }
 
     async run(...args) {
+        if (this.debug) {
+            console.log('Limiter.run called with args:', args);
+        }
         this.lastCalled = Date.now()
         if(this.async) {
             await this.func(...args)
@@ -22,45 +37,92 @@ class Limiter {
         this.fromNow()
     }
 
-    // Call the function with arguments, but only if the time interval has elapsed
+    // Call the function with arguments, but only if the time interval has elapsed    
     async call(...args) {
+        if (this.debug) {
+            console.log('Limiter.call called with args:', args, 'isPaused:', this.isPaused, 'lastCalled:', this.lastCalled, 'timeoutId:', !!this.timeoutId);
+        }
         // Always update with the latest call
         this.pendingArgs = args;
 
         if (this.isPaused) {
+            if (this.debug) {
+                console.log('Limiter.call: paused, setting isPending');
+            }
             this.isPending = true;
             return;
         }
 
         const now = Date.now();
         const timeSinceLastCall = now - this.lastCalled;
+        if (this.debug) {
+            console.log('Limiter.call: timeSinceLastCall:', timeSinceLastCall, 'intervalMs:', this.intervalMs);
+        }
 
         if (timeSinceLastCall >= this.intervalMs) {
             // Execute immediately if enough time has passed
+            if (this.debug) {
+                console.log('Limiter.call: executing immediately');
+            }
             clearTimeout(this.timeoutId);
             this.timeoutId = null;
-            this.pendingArgs = null;
             await this.executePending();
-        } else if (!this.timeoutId) {
+            return;
+        }
+        if (this.timeoutId) {
+            if (this.debug) {
+                console.log('Limiter.call: timeout already exists, updating pendingArgs only');
+            }
+        } else {
             // Schedule execution of the latest pending call
+            if (this.debug) {
+                console.log('Limiter.call: scheduling');
+            }
             const timeToWait = this.intervalMs - timeSinceLastCall;
             this.timeoutId = setTimeout(() => {
+                if (this.debug) {
+                    console.log('Limiter.call timeout fired');
+                }
                 this.timeoutId = null;
                 this.executePending();
             }, timeToWait);
         }
+        // Multiple concurrent callers should await the same pending execution
+        if (!this._pendingCallPromise) {
+            this._pendingCallPromise = new Promise(resolve => { this._pendingCallResolve = resolve })
+        }
+        await this._pendingCallPromise
         // If timeout already exists, just update pendingArgs (latest call wins)
     }
 
     async executePending() {
-        if (!this.pendingArgs) return;
+        if (this.debug) {
+            console.log('Limiter.executePending called, pendingArgs:', this.pendingArgs);
+        }
+        if (!this.pendingArgs) {
+            if (this.debug) {
+                console.log('Limiter.executePending: no pendingArgs');
+            }
+            return;
+        }
 
         try {
             const args = this.pendingArgs;
             this.pendingArgs = null;
             this.isPending = false;
+            if (this.debug) {
+                console.log('Limiter.executePending: executing with args:', args);
+            }
 
             await this.run(...args);
+            this.emit('called', ...args);
+            // Resolve shared pending promise so all awaiters continue
+            try {
+                if (this._pendingCallResolve) this._pendingCallResolve()
+            } finally {
+                this._pendingCallResolve = null
+                this._pendingCallPromise = null
+            }
         } catch (error) {
             console.error('Limiter executePending failed:', error);
             // Even on error, clear pending state to prevent getting stuck
@@ -68,6 +130,7 @@ class Limiter {
             this.isPending = false;
         }
     }
+
     // Pause the limiter, cancel any scheduled function call
     pause() {
         clearTimeout(this.timeoutId);
@@ -104,6 +167,9 @@ class Limiter {
     }
     // Call the function immediately and use current time as last called timestamp
     skip(...args) {
+        if (this.debug) {
+            console.log('Limiter.skip called with args:', args);
+        }
         this.lastCalled = 0;
         this.pendingArgs = args;
         this.executePending();

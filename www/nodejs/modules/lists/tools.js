@@ -8,24 +8,24 @@ import { basename, forwardSlashes } from "../utils/utils.js";
 
 // Regexes otimizadas para sanitizeName
 const SANITIZE_REGEXES = {
-    // Regex consolidada para caracteres de controle e quebras de linha
+    // Consolidated regex for control characters and line breaks
     controlChars: new RegExp('[\\r\\n\\t\\x00-\\x1f\\x7f-\\x9f]', 'g'),
-    // Regex para aspas e barras invertidas
-    jsonChars: new RegExp('[\\"\\\\]', 'g'),
-    // Regex para múltiplos espaços
+    // Regex for quotes and backslashes
+    jsonChars: new RegExp('[\"\\\\]', 'g'),
+    // Regex for multiple spaces
     multipleSpaces: new RegExp('\\s+', 'g'),
-    // Regex para barras
+    // Regex for slashes
     slashes: new RegExp('/', 'g')
 };
 
-// Função otimizada de sanitização
+// Optimized sanitization function
 export const sanitizeName = s => {
-    // Early returns para casos comuns
+    // Early returns for common cases
     if (s == null) return 'Untitled ' + Math.floor(Math.random() * 10000);
     if (typeof s !== 'string') return 'Untitled ' + Math.floor(Math.random() * 10000);
     if (s.length === 0) return 'Untitled ' + Math.floor(Math.random() * 10000);
     
-    // Verificar caracteres de controle de forma mais eficiente
+    // Check control characters more efficiently
     let hasControlChars = false;
     for (let i = 0; i < s.length; i++) {
         const code = s.charCodeAt(i);
@@ -39,18 +39,18 @@ export const sanitizeName = s => {
         s = s.replace(SANITIZE_REGEXES.controlChars, ' ');
     }
     
-    // Aplicar limpezas em sequência otimizada
+    // Apply cleanups in optimized sequence
     s = s
         .replace(SANITIZE_REGEXES.jsonChars, ' ')
         .replace(SANITIZE_REGEXES.multipleSpaces, ' ')
         .trim();
     
-    // Se ficou vazio após limpeza, usar nome padrão
+    // If empty after cleanup, use default name
     if (!s) {
         return 'Untitled ' + Math.floor(Math.random() * 10000);
     }
     
-    // Tratar barras de forma otimizada - substituir por | para evitar problemas de navegação
+    // Handle slashes in optimized way - replace with | to avoid navigation issues
     if (s.includes('/')) {
         if (s.includes('[/')) {
             s = s.split('[/').join('[|');
@@ -58,7 +58,7 @@ export const sanitizeName = s => {
         s = s.replace(SANITIZE_REGEXES.slashes, ' | ');
     }
     
-    // Garantir que o nome não seja muito longo
+    // Ensure name is not too long
     if (s.length > 200) {
         s = s.substring(0, 200) + '...';
     }
@@ -752,13 +752,13 @@ class Tools extends TermsHandler {
         return entries
     }
     
-    // Fase 1: Algoritmo de Similaridade para Correção de Busca
+    // Phase 1: Similarity Algorithm for Search Correction
     levenshteinDistance(str1, str2) {
         const matrix = [];
         const len1 = str1.length;
         const len2 = str2.length;
         
-        // Inicializar matriz
+        // Initialize matrix
         for (let i = 0; i <= len1; i++) {
             matrix[i] = [i];
         }
@@ -766,14 +766,14 @@ class Tools extends TermsHandler {
             matrix[0][j] = j;
         }
         
-        // Calcular distância
+        // Calculate distance
         for (let i = 1; i <= len1; i++) {
             for (let j = 1; j <= len2; j++) {
                 const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
                 matrix[i][j] = Math.min(
-                    matrix[i - 1][j] + 1,      // deleção
-                    matrix[i][j - 1] + 1,      // inserção
-                    matrix[i - 1][j - 1] + cost // substituição
+                    matrix[i - 1][j] + 1,      // deletion
+                    matrix[i][j - 1] + 1,      // insertion
+                    matrix[i - 1][j - 1] + cost // substitution
                 );
             }
         }
@@ -788,7 +788,7 @@ class Tools extends TermsHandler {
         const maxLength = Math.max(searchTerm.length, validTerm.length);
         const lengthRatio = Math.min(searchTerm.length, validTerm.length) / maxLength;
         
-        // Score baseado na distância e proporção de tamanho
+        // Score based on distance and size ratio
         const distanceScore = 1 - (distance / maxLength);
         const finalScore = (distanceScore * 0.7) + (lengthRatio * 0.3);
         
@@ -813,21 +813,21 @@ class Tools extends TermsHandler {
         const suggestions = [];
         
         for (const validTerm of validTerms) {
-            // FP: Ignorar o próprio termo pesquisado (distância 0)
+            // FP: Ignore the search term itself (distance 0)
             if (validTerm.toLowerCase() === searchTerm.toLowerCase()) {
                 continue;
             }
             
             const result = this.calculateSimilarityScore(searchTerm, validTerm);
             
-            // Filtrar por score mínimo e distância máxima
-            // FP: Garantir que há alguma diferença (distância > 0)
+            // Filter by minimum score and maximum distance
+            // FP: Ensure there is some difference (distance > 0)
             if (result.score >= minSimilarityScore && result.distance > 0 && result.distance <= maxDistance) {
                 suggestions.push(result);
             }
         }
         
-        // Ordenar por score (maior primeiro) e limitar resultados
+        // Sort by score (highest first) and limit results
         return suggestions
             .sort((a, b) => b.score - a.score)
             .slice(0, maxSuggestions);

@@ -109,13 +109,13 @@ async function main() {
 
     let allGood = true;
 
-    // Verificações básicas
+    // Basic checks
     allGood &= checkNodeVersion();
     allGood &= checkNpm();
     allGood &= checkGit();
     allGood &= checkDiskSpace();
 
-    // Verificação de rede
+    // Network check
     const networkOk = await checkNetwork();
     allGood &= networkOk;
 

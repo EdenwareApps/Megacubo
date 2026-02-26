@@ -99,7 +99,7 @@ class ManagerEPG extends EventEmitter {
     async epgOptionsEntries() {
         const key = 'epg-'+ lang.locale
         const states = this.master.epg.state
-        const actives = new Set(states.epgs.map(epg => epg.url)) // usar epgs em vez de info
+        const actives = new Set(states.epgs.map(epg => epg.url)) // use epgs instead of info
         const knownEPGs = await this.master.searchEPGs(22, actives)
         const allEPGs = [...new Set([...actives, ...knownEPGs])].slice(0, 22)
         const options = allEPGs.map(url => {
@@ -459,7 +459,7 @@ class Manager extends ManagerFetch {
         this.communityAutoRetryLimit = 3;
         this.communityAutoRetryInFlight = false;
 
-        this.updateProgressLimiter = new Limiter(this.updateProgress.bind(this), 1000)
+        this.updateProgressLimiter = new Limiter(this.updateProgress.bind(this), { intervalMs: 1000 })
         this.master.on('state', info => this.updateProgressLimiter.call(info))
         this.master.on('satisfied', () => {
             // Reset loading dialog flag and force close when lists become satisfied
@@ -718,7 +718,7 @@ class Manager extends ManagerFetch {
                 makePrivate = false;
             } else if (!isURL || sensible) {
                 makePrivate = true;
-                config.set('communitary-mode-lists-amount', 0); // disable community lists to focus on user list
+                config.set('community-mode-lists-amount', 0); // disable community lists to focus on user list
             } else if (paths.ALLOW_COMMUNITY_LISTS) {
                 const chosen = await menu.dialog([
                     { template: 'question', text: lang.COMMUNITY_LISTS, fa: 'fas fa-users' },
@@ -728,10 +728,10 @@ class Manager extends ManagerFetch {
                 ], 'no'); // set local files as private
                 if (chosen == 'yes') {
                     makePrivate = false;
-                    osd.show(lang.COMMUNITY_THANKS_YOU, 'fas fa-heart faclr-purple', 'communitary-lists-thanks', 'normal');
+                    osd.show(lang.COMMUNITY_THANKS_YOU, 'fas fa-heart faclr-purple', 'community-lists-thanks', 'normal');
                 } else {
                     makePrivate = true;
-                    config.set('communitary-mode-lists-amount', 0); // disable community lists to focus on user lists
+                    config.set('community-mode-lists-amount', 0); // disable community lists to focus on user lists
                 }
             }
             this.setMeta(listUrl, 'private', makePrivate);
@@ -1102,7 +1102,7 @@ class Manager extends ManagerFetch {
         osd.hide('update-progress')
     }
     noListsEntry() {
-        if (config.get('communitary-mode-lists-amount') > 0) {
+        if (config.get('community-mode-lists-amount') > 0) {
             return this.noListsRetryEntry();
         } else {
             if (this.addingLists.size) {
@@ -1152,7 +1152,7 @@ class Manager extends ManagerFetch {
             fa: 'fas fa-plus-square',
             type: 'action',
             action: () => {
-                const offerCommunityMode = paths.ALLOW_COMMUNITY_LISTS && !config.get('communitary-mode-lists-amount');
+                const offerCommunityMode = paths.ALLOW_COMMUNITY_LISTS && !config.get('community-mode-lists-amount');
                 this.addListDialog(offerCommunityMode, atts).catch(e => menu.displayErr(e));
             }
         }, atts)
@@ -1384,7 +1384,7 @@ class Manager extends ManagerFetch {
             renderer: async () => {
                 let lists = this.get();
                 const extInfo = await this.master.info(true);
-                const doNotShareHint = !config.get('communitary-mode-lists-amount');
+                const doNotShareHint = !config.get('community-mode-lists-amount');
                 let ls = [];
                 for (const row of lists) {
                     let url = row[1];

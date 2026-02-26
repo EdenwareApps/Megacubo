@@ -6,6 +6,7 @@ import { resolveListDatabaseFile } from './tools.js'
 
 const META_DB_CONFIG = {
     create: false,
+    ioTimeoutMs: 10000,
     allowIndexRebuild: true,
     integrityCheck: 'none',
     indexedQueryMode: 'permissive',

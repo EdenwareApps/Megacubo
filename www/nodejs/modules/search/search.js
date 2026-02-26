@@ -56,7 +56,7 @@ class Search extends EventEmitter {
         this.currentResults = [];
         this.resultsAmountLimit = 256;
         
-        // Fase 2: Cache e configurações para sugestões
+        // Phase 2: Cache and settings for suggestions
         this.suggestionCache = new Map();
         this.validTermsCache = new Map();
         this.suggestionConfig = {
@@ -263,7 +263,7 @@ class Search extends EventEmitter {
         return es;
     }
     
-    // Fase 2: Métodos para cache e sugestões
+    // Phase 2: Methods for cache and suggestions
     async getIndexedTermsForList(listUrl) {
         if (this.validTermsCache.has(listUrl)) {
             return this.validTermsCache.get(listUrl);
@@ -275,11 +275,11 @@ class Search extends EventEmitter {
                 const nameTerms = list.indexer.db.indexManager.readColumnIndex('nameTerms');
                 const groupTerms = list.indexer.db.indexManager.readColumnIndex('groupTerms');
                 
-                // Combinar termos únicos
+                // Combine unique terms
                 const allTerms = new Set([...nameTerms, ...groupTerms]);
                 this.validTermsCache.set(listUrl, allTerms);
                 
-                // Limitar cache se necessário
+                // Limit cache if necessary
                 if (this.validTermsCache.size > this.suggestionConfig.cacheSize) {
                     const firstKey = this.validTermsCache.keys().next().value;
                     this.validTermsCache.delete(firstKey);
@@ -345,26 +345,26 @@ class Search extends EventEmitter {
         const words = searchTerm.split(' ');
         const suggestions = [];
         
-        // Para cada palavra na busca, tentar encontrar correções
+        // For each word in the search, try to find corrections
         for (let i = 0; i < words.length; i++) {
             const word = words[i];
             
-            // Buscar sugestões para esta palavra específica
+            // Search suggestions for this specific word
             const wordSuggestions = findSuggestions(word, validTerms, {
                 ...this.suggestionConfig,
                 maxSuggestions: 3
             });
             
-            // Para cada sugestão de palavra, criar uma sugestão de frase completa
+            // For each word suggestion, create a complete phrase suggestion
             for (const wordSuggestion of wordSuggestions) {
                 const correctedWords = [...words];
                 correctedWords[i] = wordSuggestion.term;
                 const correctedPhrase = correctedWords.join(' ');
                 
-                // Verificar se a frase corrigida não é idêntica à original
+                // Verify corrected phrase is not identical to original
                 if (correctedPhrase.toLowerCase() !== searchTerm.toLowerCase()) {
                     suggestions.push({
-                        score: wordSuggestion.score * 0.8, // Penalizar ligeiramente por ser correção parcial
+                        score: wordSuggestion.score * 0.8, // Slightly penalize for being partial correction
                         term: correctedPhrase,
                         distance: wordSuggestion.distance,
                         originalWord: word,
@@ -374,7 +374,7 @@ class Search extends EventEmitter {
             }
         }
         
-        // Ordenar por score e remover duplicatas
+        // Sort by score and remove duplicates
         const uniqueSuggestions = [];
         const seenTerms = new Set();
         
@@ -391,15 +391,15 @@ class Search extends EventEmitter {
     }
     
     async getResultsWithQuerySuggestions(terms, options = {}) {
-        // 1. Tentar busca normal primeiro
+        // 1. Try normal search first
         let results = await this.searchLists(terms, options);
         
-        // 2. Se não encontrou resultados, buscar sugestões
+        // 2. If no results found, search for suggestions
         if (results.length === 0) {
             const suggestions = await this.getQuerySuggestions(terms);
             
             if (suggestions.length > 0) {
-                // 3. Adicionar entrada de sugestão principal
+                // 3. Add main suggestion entry
                 const mainSuggestion = suggestions[0];
                 const suggestionEntry = {
                     name: lang.DID_YOU_MEAN.format(mainSuggestion.term),
@@ -414,7 +414,7 @@ class Search extends EventEmitter {
                 
                 results.unshift(suggestionEntry);
                 
-                // 4. Adicionar outras sugestões se existirem
+                // 4. Add other suggestions if they exist
                 for (let i = 1; i < Math.min(suggestions.length, this.suggestionConfig.maxSuggestions); i++) {
                     const suggestion = suggestions[i];
                     results.push({

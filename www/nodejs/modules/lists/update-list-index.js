@@ -104,6 +104,19 @@ class UpdateListIndex extends EventEmitter {
             listMetaIndexPath
         ]
 
+        // Add temporary files if they exist (.updating)
+        // Note: .backup files are always removed after success and don't need to be registered
+        const baseFile = this.file.replace(/\.jdb$/i, '')
+        const metaFileBase = this.metaFile.replace(/\.jdb$/i, '')
+        const temporaryFiles = [
+            baseFile + '.updating.jdb',
+            baseFile + '.updating.idx.jdb',
+            metaFileBase + '.updating.jdb',
+            metaFileBase + '.updating.idx.jdb'
+        ]
+        filesToRegister.push(...temporaryFiles)
+
+        let registeredAny = false
         for (const filePath of filesToRegister) {
             if (!filePath) {
                 continue
@@ -117,6 +130,7 @@ class UpdateListIndex extends EventEmitter {
                         size: 'auto',
                         raw: true
                     })
+                    registeredAny = true
                 } catch (err) {
                     console.warn('Storage registration failed for file:', filePath, err?.message || err)
                 }
@@ -124,6 +138,18 @@ class UpdateListIndex extends EventEmitter {
                 continue
             }
 
+        }
+
+        // If we registered any file, ensure the storage index is persisted promptly.
+        // Prefer the storage save limiter when available to avoid too-frequent disk writes.
+        try {
+            if (registeredAny) {
+                storage.save().catch(err => {
+                    console.warn('Storage save failed:', err?.message || err)
+                })                    
+            }
+        } catch (e) {
+            // Non-fatal: continue
         }
     }
 
@@ -661,6 +687,14 @@ class UpdateListIndex extends EventEmitter {
             // NOTE: InsertSession with enableAutoSave: true already auto-flushes at batchSize (1000)
             // This final commit ensures any remaining entries (< 500) are saved
             await this.insertSession.commit()
+            
+            // CRITICAL: Wait for all operations to complete before continuing
+            if (db && !db.destroyed && typeof db.waitForOperations === 'function') {
+                console.log(`⏳ Waiting for operations to complete...`)
+                await db.waitForOperations()
+                console.log(`✅ Operations completed, db.length after: ${db.length}`)
+            }
+            
             this._index.length = db.length
             this.insertSession = null
         } catch (commitErr) {
@@ -891,17 +925,23 @@ class UpdateListIndex extends EventEmitter {
                     // This ensures the file is fully written before parseFromFile starts reading
                     writeStream.once('finish', () => {
                         writeStreamFinished = true
-                        console.log(`[UpdateListIndex] WriteStream finished. Bytes written: ${bytesWritten}`)
+                        if (this.debug) {
+                            console.log(`[UpdateListIndex] WriteStream finished. Bytes written: ${bytesWritten}`)
+                        }
                         // Verify file was actually written
                         fs.promises.stat(tempFile).then(stats => {
-                            console.log(`[UpdateListIndex] File stats after write: size=${stats.size} bytes`)
+                            if (this.debug) {
+                                console.log(`[UpdateListIndex] File stats after write: size=${stats.size} bytes`)
+                            }
                             if (stats.size === 0) {
                                 console.error(`[UpdateListIndex] ERROR: Downloaded file is empty! Bytes written: ${bytesWritten}`)
                                 reject(new Error('Downloaded file is empty'))
                             } else {
                                 // Give a small delay to ensure file system has flushed
                                 setTimeout(() => {
-                                    console.log(`[UpdateListIndex] Download completed successfully: ${tempFile} (${stats.size} bytes)`)
+                                    if (this.debug) {
+                                        console.log(`[UpdateListIndex] Download completed successfully: ${tempFile} (${stats.size} bytes)`)
+                                    }
                                     resolve(true)
                                 }, 100)
                             }
@@ -1001,11 +1041,6 @@ class UpdateListIndex extends EventEmitter {
         const workingMetaFile = targetMetaFile.replace(/\.jdb$/i, '.updating.jdb')
         const workingMetaIndexFile = workingMetaFile.replace(/\.jdb$/i, '.idx.jdb')
 
-        const backupFile = targetFile.replace(/\.jdb$/i, '.backup.jdb')
-        const backupIndexFile = targetIndexFile.replace(/\.jdb$/i, '.backup.jdb')
-        const backupMetaFile = targetMetaFile.replace(/\.jdb$/i, '.backup.jdb')
-        const backupMetaIndexFile = targetMetaIndexFile.replace(/\.jdb$/i, '.backup.jdb')
-
         const exists = async path => {
             if (!path) return false
             try {
@@ -1026,11 +1061,7 @@ class UpdateListIndex extends EventEmitter {
                 removeIfExists(workingFile),
                 removeIfExists(workingIndexFile),
                 removeIfExists(workingMetaFile),
-                removeIfExists(workingMetaIndexFile),
-                removeIfExists(backupFile),
-                removeIfExists(backupIndexFile),
-                removeIfExists(backupMetaFile),
-                removeIfExists(backupMetaIndexFile)
+                removeIfExists(workingMetaIndexFile)
             ])
         }
 
@@ -1065,11 +1096,7 @@ class UpdateListIndex extends EventEmitter {
             removeIfExists(workingFile),
             removeIfExists(workingIndexFile),
             removeIfExists(workingMetaFile),
-            removeIfExists(workingMetaIndexFile),
-            removeIfExists(backupFile),
-            removeIfExists(backupIndexFile),
-            removeIfExists(backupMetaFile),
-            removeIfExists(backupMetaIndexFile)
+            removeIfExists(workingMetaIndexFile)
         ])
 
         const db = new Database(workingFile, {...dbConfig, clear: true, create: true})
@@ -1100,8 +1127,8 @@ class UpdateListIndex extends EventEmitter {
         try {
             // Parse from file
             if (this.debug) {
-            console.log(`[UpdateListIndex] Connecting to file: ${tempFilePath}`);
-        }
+                console.log(`[UpdateListIndex] Connecting to file: ${tempFilePath}`);
+            }
             const ret = await this.connect(tempFilePath).catch(e => {
                 console.error(`[UpdateListIndex] Connect error for ${tempFilePath}:`, e);
                 err = e;
@@ -1148,6 +1175,20 @@ class UpdateListIndex extends EventEmitter {
             }
 
             this._index.groupsTypes = this.sniffGroupsTypes(this.groups)
+
+            // CRITICAL: Wait for all pending write operations before closing
+            // This ensures data is persisted to disk
+            try {
+                if (db && !db.destroyed && typeof db.waitForOperations === 'function') {
+                    await db.waitForOperations()
+                }
+                if (mdb && !mdb.destroyed && typeof mdb.waitForOperations === 'function') {
+                    await mdb.waitForOperations()
+                }
+            } catch (waitErr) {
+                console.error('Database wait operations error:', waitErr)
+                // Continue - attempt close anyway
+            }
 
             try {
                 await db.close()
@@ -1251,11 +1292,6 @@ class UpdateListIndex extends EventEmitter {
         const workingMetaFile = targetMetaFile.replace(/\.jdb$/i, '.updating.jdb')
         const workingMetaIndexFile = workingMetaFile.replace(/\.jdb$/i, '.idx.jdb')
 
-        const backupFile = targetFile.replace(/\.jdb$/i, '.backup.jdb')
-        const backupIndexFile = targetIndexFile.replace(/\.jdb$/i, '.backup.jdb')
-        const backupMetaFile = targetMetaFile.replace(/\.jdb$/i, '.backup.jdb')
-        const backupMetaIndexFile = targetMetaIndexFile.replace(/\.jdb$/i, '.backup.jdb')
-
         const exists = async path => {
             if (!path) return false
             try {
@@ -1276,11 +1312,7 @@ class UpdateListIndex extends EventEmitter {
                 removeIfExists(workingFile),
                 removeIfExists(workingIndexFile),
                 removeIfExists(workingMetaFile),
-                removeIfExists(workingMetaIndexFile),
-                removeIfExists(backupFile),
-                removeIfExists(backupIndexFile),
-                removeIfExists(backupMetaFile),
-                removeIfExists(backupMetaIndexFile)
+                removeIfExists(workingMetaIndexFile)
             ])
         }
 
@@ -1315,11 +1347,7 @@ class UpdateListIndex extends EventEmitter {
             removeIfExists(workingFile),
             removeIfExists(workingIndexFile),
             removeIfExists(workingMetaFile),
-            removeIfExists(workingMetaIndexFile),
-            removeIfExists(backupFile),
-            removeIfExists(backupIndexFile),
-            removeIfExists(backupMetaFile),
-            removeIfExists(backupMetaIndexFile)
+            removeIfExists(workingMetaIndexFile)
         ])
 
         const db = new Database(workingFile, {...dbConfig, clear: true, create: true});
@@ -1410,6 +1438,20 @@ class UpdateListIndex extends EventEmitter {
             }
 
             this._index.groupsTypes = this.sniffGroupsTypes(this.groups)
+
+            // CRITICAL: Wait for all pending write operations before closing
+            // This ensures data is persisted to disk
+            try {
+                if (db && !db.destroyed && typeof db.waitForOperations === 'function') {
+                    await db.waitForOperations()
+                }
+                if (mdb && !mdb.destroyed && typeof mdb.waitForOperations === 'function') {
+                    await mdb.waitForOperations()
+                }
+            } catch (waitErr) {
+                console.error('Database wait operations error:', waitErr)
+                // Continue - attempt close anyway
+            }
 
             // Save and close main database
             try {
@@ -1663,7 +1705,9 @@ class UpdateListIndex extends EventEmitter {
                 if (this.cancelled || this.insertsDisabled) {
                     console.warn(`⚠️ WARNING: Processing was cancelled/disabled. Processed ${processedCount} entries but may have missed some.`)
                 } else {
-                    console.log(`✅ Parsing completed. Processed ${processedCount} entries (${itemCount} total items) from ${opts.tempFile || opts.url || 'stream'}`)
+                    if (this.debug) {
+                        console.log(`✅ Parsing completed. Processed ${processedCount} entries (${itemCount} total items) from ${opts.tempFile || opts.url || 'stream'}`)
+                    }
                     if (processedCount === 0 && itemCount > 0) {
                         console.warn(`⚠️ WARNING: Parser found ${itemCount} items but none were entries. This may indicate a parsing issue.`)
                     }

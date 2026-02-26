@@ -5,6 +5,7 @@ import ListIndex from "./list-index.js";
 import ConnRacing from '@edenware/conn-racing';
 import { terms, resolveListDatabaseKey, resolveListDatabaseFile } from "./tools.js";
 import { touchListMetaFile } from "./list-meta.js";
+import crypto from 'crypto';
 
 class List extends EventEmitter {
     constructor(url, master) {
@@ -123,7 +124,7 @@ class List extends EventEmitter {
         storage.set(cacheKey, { err }, atts).catch(err => console.error(err))
         throw err
     }
-    async verify() {
+    async checkRelevance() {
         await this.ready();
         
         // Verify that indexer exists and is available
@@ -133,6 +134,15 @@ class List extends EventEmitter {
         
         // Wait for indexer to be available and ready
         await this.indexer.ready()
+        
+        // CRITICAL: Validate that this.index and this.master are available
+        if (!this.index) {
+            throw new Error('List index not available - metadata may not be loaded')
+        }
+        
+        if (!this.master) {
+            throw new Error('List master not available - parent reference is null')
+        }
         
         // NEW: Validate that groups in metadata match groups in loaded list
         try {
@@ -163,21 +173,41 @@ class List extends EventEmitter {
             }
 
             if (this.master?.debug) {
-                console.log('verify: checking groups match', {
+                console.log('checkRelevance: checking groups match', {
                     url: this.url,
                     metaGroups: Array.from(metaGroupsSet),
                     listGroups: Array.from(listGroupsSet)
                 });
             }
 
+            // Check for missing groups and flag for rebuild if there's a mismatch
+            const missingGroups = []
             for (const groupName of metaGroupsSet) {
                 if (!listGroupsSet.has(groupName)) {
-                    throw new Error(`group '${groupName}' missing in list`)
+                    missingGroups.push(groupName)
                 }
+            }
+            
+            // If there are missing groups, rebuild groupsTypes from database
+            // This handles cases where list metadata is stale or corrupted
+            if (missingGroups.length > 0 && this.indexer && typeof this.indexer.buildGroupsTypesFromDb === 'function') {
+                if (this.master?.debug) {
+                    console.log('checkRelevance: detected missing groups, will auto-rebuild groupsTypes', {
+                        url: this.url,
+                        missingGroups
+                    });
+                }
+                // Rebuild groupsTypes from the database to fix the mismatch
+                await this.indexer.buildGroupsTypesFromDb(500).catch(err => {
+                    if (this.master?.debug) {
+                        console.log('checkRelevance: failed to rebuild groupsTypes', err.message);
+                    }
+                })
+                // After rebuild, continue without throwing - the data is valid
             }
         } catch (groupsErr) {
             if (this.master?.debug) {
-                console.log('verify: groups validation failed', this.url, groupsErr.message);
+                console.log('checkRelevance: groups validation failed', this.url, groupsErr.message);
             }
             throw new Error(`groups validation failed: ${groupsErr.message}`);
         }
@@ -185,6 +215,18 @@ class List extends EventEmitter {
         const index = this.index, values = {
             hits: 0
         };
+        
+        // Check cache for relevance
+        const keywords = this.master && typeof this.master.relevantKeywords === 'function' ? await this.master.relevantKeywords() : null;
+        const keywordsHash = keywords ? crypto.createHash('md5').update(JSON.stringify(keywords)).digest('hex') : '';
+        const cacheKey = 'list-relevance-' + this.url;
+        const cached = await storage.get(cacheKey);
+        if (cached && cached.keywordsHash === keywordsHash && cached.mtime === index.lastmtime) {
+            this.relevance = cached;
+            this.verified = true;
+            return cached;
+        }
+        
         const factors = {
             relevantKeywords: 1,
             mtime: 0.25
@@ -198,22 +240,31 @@ class List extends EventEmitter {
                 : (index.lastmtime - deadline) / (rangeSize / 100);
             values.total = (values.mtime * factors.mtime) / (factors.relevantKeywords + factors.mtime);
             values.debug = { values, factors };
+            values.keywordsHash = keywordsHash;
+            values.lastCalc = Date.now() / 1000;
+            const cacheValue = {
+                total: values.total,
+                relevantKeywords: values.relevantKeywords,
+                mtime: values.mtime,
+                keywordsHash: values.keywordsHash,
+                lastCalc: values.lastCalc
+            };
+            await storage.set(cacheKey, cacheValue, { ttl: 30 * 24 * 3600, permanent: true });
             this.relevance = values;
             this.verified = true;
             return values;
         }
-        
-        const channelsIndex = await this.master.relevantKeywords();        
-        if (!channelsIndex || !channelsIndex.length) {
-            console.error('no parent keywords', channelsIndex);
+            
+        if (!keywords || !keywords.length) {
+            console.error('no parent keywords', keywords);
             values.relevantKeywords = 0;
         } else {
             // Filter out coverage groups that don't have at least one term
-            const validChannelsIndex = channelsIndex.filter(group => 
+            const validChannelsIndex = keywords.filter(group => 
                 Array.isArray(group.terms) && group.terms.length > 0
             );
             if (!validChannelsIndex || !validChannelsIndex.length) {
-                console.warn('no valid keywords after filtering', channelsIndex);
+                console.warn('no valid keywords after filtering', keywords);
                 values.relevantKeywords = 0;
             } else {
                 const coverage = await this.indexer.db.coverage('nameTerms', validChannelsIndex, {mediaType: ['live']});
@@ -237,6 +288,16 @@ class List extends EventEmitter {
         values.total = total / maxtotal;
         values.debug = { values, factors, total, maxtotal, log };
         //console.warn('LIST RELEVANCE', this.url, index.lastmtime, Object.keys(values).map(k => k +': '+ values[k]).join(', '))
+        values.keywordsHash = keywordsHash;
+        values.lastCalc = Date.now() / 1000;
+        const cacheValue = {
+            total: values.total,
+            relevantKeywords: values.relevantKeywords,
+            mtime: values.mtime,
+            keywordsHash: values.keywordsHash,
+            lastCalc: values.lastCalc
+        };
+        await storage.set(cacheKey, cacheValue, { ttl: 30 * 24 * 3600, permanent: true });
         this.relevance = values;
         this.verified = true
         return values;
@@ -262,7 +323,14 @@ class List extends EventEmitter {
     }
     destroy() {
         if (!this.destroyed) {
-            storage.touch(this.dataKey, { ttl: 24 * 3600 })
+            let ttl = 24 * 3600;
+            if (this.relevance && typeof this.relevance.total === 'number') {
+                const days = 1 + 29 * (1 - this.relevance.total);
+                ttl = Math.round(days * 24 * 3600);
+            }
+            if (this.dataKey) {
+                storage.touch(this.dataKey, { ttl });
+            }
             touchListMetaFile(this.url).catch(() => {})
             
             // Release storage holds immediately to prevent memory leaks
@@ -296,6 +364,7 @@ class List extends EventEmitter {
             this.url = null;
             this.dataKey = null;
             this.file = null;
+            
             this.relevance = null;
             this.constants = null;
             

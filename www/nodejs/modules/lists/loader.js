@@ -59,7 +59,7 @@ class ListsLoader extends EventEmitter {
         });
         config.on('change', (keys, data) => {
             if (keys.includes('lists')) this.handleListsChange(data);
-            if (keys.includes('communitary-mode-lists-amount') || keys.includes('public-lists')) this.handleConfigChange(data);
+            if (keys.includes('community-mode-lists-amount') || keys.includes('public-lists')) this.handleConfigChange(data);
         });
         this.master.on('satisfied', () => this.adjustConcurrency(1));
         this.master.on('unsatisfied', () => this.adjustConcurrency(this.concurrency));
@@ -130,7 +130,7 @@ class ListsLoader extends EventEmitter {
     }
 
     handleConfigChange(data) {
-        const newCommunityAmount = data['communitary-mode-lists-amount'];
+        const newCommunityAmount = data['community-mode-lists-amount'];
         const newPublicLists = data['public-lists'];
         if (this.communityListsAmount !== newCommunityAmount || this.publicListsActive !== newPublicLists) {
             this.master.processedLists.clear();
@@ -247,6 +247,11 @@ class ListsLoader extends EventEmitter {
             const nonCachedUrls = urls.filter(u => !cached.includes(u) && !urlsWithMissingMeta.includes(u));
             const toEnqueue = [...nonCachedUrls, ...cached, ...urlsWithMissingMeta];
             console.log('[lists.loader] process() enqueue:', { total: toEnqueue.length, nonCached: nonCachedUrls.length });
+            
+            // Sort by cached relevance descending to prioritize high-relevance lists
+            const relevances = await this.master.getCachedRelevances(toEnqueue);
+            toEnqueue.sort((a, b) => (relevances[b]?.total || 0) - (relevances[a]?.total || 0));
+            
             this.enqueue(toEnqueue);
             // Wait for both queues to be idle
             await Promise.allSettled([
@@ -279,14 +284,14 @@ class ListsLoader extends EventEmitter {
     }
 
     async prepareUpdater() {
-        // Verifica se precisa recriar: se não existe, se o worker instance está finished, ou se o updater está finished
+        // Check if needs recreation: if doesn't exist, if worker instance is finished, or if updater is finished
         const needsRecreate = !this.updater || 
                               !this.updaterWorkerInstance || 
                               this.updaterWorkerInstance.finished || 
                               this.updater.finished;
         
         if (needsRecreate) {
-            // Limpa a referência anterior do worker instance se existir
+            // Clear previous worker instance reference if exists
             if (this.updaterWorkerInstance) {
                 try {
                     this.updaterWorkerInstance.terminate();
@@ -314,7 +319,7 @@ class ListsLoader extends EventEmitter {
             if (!this.updater?.update) throw new Error('Failed to create updater worker');
             console.log('[lists.loader] prepareUpdater() created new updater worker');
             
-            // Armazena a referência do worker para poder terminá-lo completamente
+            // Store worker reference to be able to terminate it completely
             this.updaterWorkerInstance = updaterWorker;
             
             this.once('destroy', () => {
@@ -344,14 +349,14 @@ class ListsLoader extends EventEmitter {
             this.updaterClients = 1;
             this.updater.on('progress', p => p?.url && this.emit('progresses', { ...this.progresses, [p.url]: p.progress }));
             
-            // Escutar eventos de início/fim de atualização
+            // Listen to update start/end events
             this.updater.on('update-start', ({ url }) => {
-                // Marcar lista como sendo atualizada no master
+                // Mark list as being updated in master
                 this.master.markListUpdating(url, true)
             })
             
             this.updater.on('update-end', ({ url, succeeded, skipped }) => {
-                // Remover marcação de atualização
+                // Remove update marking
                 this.master.markListUpdating(url, false)
                 
                 if (succeeded) {
@@ -372,7 +377,7 @@ class ListsLoader extends EventEmitter {
             })
             
             this.updater.on('update-error', ({ url, error }) => {
-                // Tratar erro se necessário - pode ser usado para logging ou retry logic
+                // Handle error if necessary - can be used for logging or retry logic
                 if (this.debug) {
                     console.error('Update error for list:', url, error)
                 }
@@ -413,7 +418,7 @@ class ListsLoader extends EventEmitter {
             this.updater.setRelevantKeywords(this.cachedKeywords).catch(console.error);
         } else {
             this.updaterClients++;
-            // Limpa timeout de terminação se existir
+            // Clear termination timeout if exists
             if (this.updaterTerminatingTimeout) {
                 clearTimeout(this.updaterTerminatingTimeout);
                 this.updaterTerminatingTimeout = null;
@@ -490,17 +495,17 @@ class ListsLoader extends EventEmitter {
 
     schedule(url, priority) {
         if (this.processes.some(p => p.url === url)) return;
-        console.log('[lists.loader] schedule():', url.substring(0, 60) + (url.length > 60 ? '...' : ''));
+        // console.log('[lists.loader] schedule():', url.substring(0, 60) + (url.length > 60 ? '...' : ''));
         let cancel, started = false, parsed = false, done = false;
         
-        // FASE 1: Download (concorrência 8)
+        // PHASE 1: Download (concurrency 8)
         const downloadPromise = this.downloadQueue.add(async () => {
             await this.waitIfPaused();
             if (cancel) {
                 done = true;
                 return;
             }
-            console.log('[lists.loader] download task start:', url.substring(0, 50) + '...');
+            // console.log('[lists.loader] download task start:', url.substring(0, 50) + '...');
             const key = resolveListDatabaseKey(url);
             await this.prepareUpdater();
             this.master.processedLists.set(url, null);
@@ -590,28 +595,29 @@ class ListsLoader extends EventEmitter {
                                 console.log(`[Loader] Parse completed for ${url}. Result:`, this.results[url]);
                             }
                             
-                            // Cleanup temp file AFTER parsing is complete
-                            fs.promises.unlink(fileInfo.tempFilePath).catch((err) => {
-                                console.warn(`[Loader] Failed to delete temp file ${fileInfo.tempFilePath}:`, err);
-                            });
-                            this.downloadedFiles.delete(url);
-                            
-                            storage.touch(key, {size: true, raw: true, expiration: true});
-                            touchListMetaFile(url).catch(() => {});
+							// Temp file cleanup is now handled by parseFromFile in worker
                             parsed = true;
                             done = true;
                             
-                            const list = this.master.lists[url];
-                            if (list?.indexer && typeof list.indexer.loadMeta === 'function') {
-                                list.indexer.loadMeta().catch(() => {});
+                            // CRITICAL: After successful update, invalidate cache and force reload
+                            // This ensures the main process sees the updated data (not the old cache)
+                            if (this.debug) {
+                                console.log(`[Loader] Invalidating cache for ${url} after update, forcing fresh load`);
                             }
-                            if (this.results[url] === true || (this.myLists.includes(url) && !list) || this.results[url] === 'already updated') {
+                            // Remove from cache and processed list to force reload
+                            if (this.master.lists[url]?.indexer?.db) {
+                                this.master.lists[url].indexer.db.destroy?.().catch(() => {});
+                            }
+                            // Delete from lists to force recre ation
+                            delete this.master.lists[url];
+                            this.master.processedLists.delete(url);
+                            
+                            if (this.results[url] === true || this.myLists.includes(url) || this.results[url] === 'already updated') {
                                 await this.master.loadList(url).catch(e => !String(e).match(/destroyed|list discarded|file not found/i) && console.error(e));
                             }
                         } catch (parseErr) {
                             console.error('Parse error for', url, parseErr);
-                            // Cleanup temp file on error
-                            fs.promises.unlink(fileInfo.tempFilePath).catch(() => {});
+                            // Temp file cleanup is now handled by parseFromFile in worker (even on error)
                             this.downloadedFiles.delete(url);
                             done = true;
                         }
@@ -677,7 +683,7 @@ class ListsLoader extends EventEmitter {
 
     async reload(url) {
         const key = resolveListDatabaseKey(url);
-        const file = storage.resolve(key);
+        const file = storage.resolve(key, 'jdb');
         const progressId = `reloading-${randomUUID()}`;
         const showProgress = p => p.progressId === progressId && osd.show(`${lang.RECEIVING_LIST} ${p.progress}%`, 'fa-mega busy-x', `progress-${progressId}`, 'persistent');
         

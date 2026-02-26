@@ -41,6 +41,9 @@ class Config extends EventEmitter {
                         if (typeof(data) == 'object' && data) {
                             this.data = Object.assign({}, this.defaults)
                             this.data = Object.assign(this.data, data)
+                            if (typeof(this.data['community-mode-lists-amount']) === 'undefined' && typeof(this.data['communitary-mode-lists-amount']) === 'number') {
+                                this.data['community-mode-lists-amount'] = this.data['communitary-mode-lists-amount']
+                            }
                         }
                     }
                 }

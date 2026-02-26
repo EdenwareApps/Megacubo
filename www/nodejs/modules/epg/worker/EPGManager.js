@@ -201,13 +201,13 @@ export default class EPGManager extends EPGPaginateChannelsList {
   activeEPGs() {
     const configuredEPGs = this.EPGs().filter(r => r.active).map(r => r.url)
     
-    // Se epg-suggestions está desabilitado, retornar apenas EPGs configurados
+    // If epg-suggestions is disabled, return only configured EPGs
     if (config.get('epg-suggestions') === false) {
       this.debug && console.log('EPG suggestions disabled, returning only configured EPGs:', configuredEPGs)
       return configuredEPGs
     }
     
-    // Se epg-suggestions está habilitado, incluir EPGs sugeridos também
+    // If epg-suggestions is enabled, include suggested EPGs too
     const suggestedEPGs = Object.keys(this.epgs).filter(url => this.epgs[url]?.suggested)
     const allActiveEPGs = [...new Set([...configuredEPGs, ...suggestedEPGs])]
     
@@ -237,7 +237,7 @@ export default class EPGManager extends EPGPaginateChannelsList {
       // Resetar flag suggesting
       this.suggesting = false
       
-      // Remover todos os EPGs sugeridos
+      // Remove all suggested EPGs
       for (const url of currentSuggestedEPGs) {
         try {
           await this.remove(url)
@@ -253,7 +253,7 @@ export default class EPGManager extends EPGPaginateChannelsList {
     } else if (enable && currentSuggestedEPGs.length === 0) {
       this.debug && console.log('🔄 Enabling EPG suggestions, triggering suggestion process...')
       
-      // Notificar o manager para recarregar sugestões
+      // Notify manager to reload suggestions
       utils.emit('reload-suggestions')
     } else {
       this.debug && console.log('🔄 No action needed for EPG suggestions toggle')
@@ -471,7 +471,7 @@ export default class EPGManager extends EPGPaginateChannelsList {
         this.debug && console.log(`🧹 Cleaning old data from ${url}...`)
         
         // Count old programmes before cleanup
-        // Verificar se db.count existe antes de chamar
+        // Check if db.count exists before calling
         let oldCount = 0
         if (epg.db && epg.db.count && typeof epg.db.count === 'function' && !epg.db.destroyed && !epg.db.closed) {
           oldCount = await epg.db.count({ end: { '<': now - maxAge } }).catch(() => 0)
@@ -629,14 +629,14 @@ export default class EPGManager extends EPGPaginateChannelsList {
 
   // ===== EPG Management =====
 
-  // Método helper para verificar se existe cache persistente no disco
+  // Helper method to check if persistent cache exists on disk
   async _hasPersistentCache(url) {
     try {
       // Resolver caminhos dos arquivos de cache
       const programmesFile = resolveListDatabaseFile('epg-programmes-' + url)
       const metadataFile = resolveListDatabaseFile('epg-metadata-' + url)
       
-      // Verificar se ambos os arquivos existem usando fs.existsSync (síncrono)
+      // Check if both files exist using fs.existsSync (synchronous)
       const programmesExists = fs.existsSync(programmesFile)
       const metadataExists = fs.existsSync(metadataFile)
       
@@ -647,19 +647,19 @@ export default class EPGManager extends EPGPaginateChannelsList {
     }
   }
 
-  // Método helper para obter mtime do cache persistente
+  // Helper method to get mtime of persistent cache
   async _getPersistentCacheMtime(url) {
     try {
       const metadataFile = resolveListDatabaseFile('epg-metadata-' + url)
       
-      // Criar instância temporária do database para ler mtime
+      // Create temporary database instance to read mtime
       const tempMdb = DatabaseFactory.createMetadataDB(metadataFile)
       await DatabaseFactory.initializeDB(tempMdb)
       
       // Buscar control key com timestamp
       const controlKey = tempMdb.findOne({ _type: 'control', key: 'lastmCtrlKey' })
       
-      // Limpar instância temporária
+      // Clean up temporary instance
       await tempMdb.destroy()
       
       return controlKey?.timestamp || null
@@ -726,17 +726,17 @@ export default class EPGManager extends EPGPaginateChannelsList {
       const untestedURLs = []     // Sem cache - testados normalmente
       
       for (const url of candidateUrls) {
-        // Se EPG já está carregado em memória, ignorar completamente
+        // If EPG is already loaded in memory, ignore completely
         if (this.epgs[url] && this.isLoaded(url)) {
           this.debug && console.log(`✅ EPG already loaded in memory: ${url} - skipping`)
           continue
         }
         
-        // Verificar se existe cache persistente
+        // Check if persistent cache exists
         const hasCache = await this._hasPersistentCache(url)
         
         if (hasCache) {
-          // Obter mtime do cache persistente
+          // Get persistent cache mtime
           const mtime = await this._getPersistentCacheMtime(url)
           
           if (mtime) {
@@ -770,7 +770,7 @@ export default class EPGManager extends EPGPaginateChannelsList {
         this.activeConnRacing.destroy()
       }
 
-      // 1. CARREGAR validCachedURLs IMEDIATAMENTE (ignorar ConnRacing)
+      // 1. LOAD validCachedURLs IMMEDIATELY (ignore ConnRacing)
       let loadedCount = 0
       const startTime = Date.now()
       
@@ -930,7 +930,7 @@ export default class EPGManager extends EPGPaginateChannelsList {
       return loadedCount
       
     } finally {
-      // Sempre resetar a flag e limpar referência do ConnRacing
+      // Always reset flag and clear ConnRacing reference
       this.suggesting = false
       this.activeConnRacing = null
     }
@@ -1454,7 +1454,7 @@ export default class EPGManager extends EPGPaginateChannelsList {
   }
 
   async updateState(force = false) {
-    // Usar _getStatus como base para manter consistência
+    // Use _getStatus as base to maintain consistency
     const status = await this._getStatus()
     
     // Create a more comprehensive hash that includes all relevant status fields
@@ -1506,7 +1506,7 @@ export default class EPGManager extends EPGPaginateChannelsList {
         }
       }
       
-      // Emitir update também para EPGs que mudaram de erro para loaded
+      // Emit update also for EPGs that changed from error to loaded
       const recoveredEPGs = status.epgs.filter(epg => 
         epg.readyState === 'loaded' && 
         this.previousErrorEPGs?.includes(epg.url)
@@ -1517,7 +1517,7 @@ export default class EPGManager extends EPGPaginateChannelsList {
         utils.emit('update', epg.url)
       })
       
-      // Atualizar listas de EPGs para próxima comparação
+      // Update EPG lists for next comparison
       this.previousLoadedEPGs = status.epgs
         .filter(epg => epg.readyState === 'loaded')
         .map(epg => epg.url)
@@ -2171,7 +2171,7 @@ export default class EPGManager extends EPGPaginateChannelsList {
 
                 const now = Date.now() / 1000
                 try {
-                  // Verificar se db.count existe antes de chamar
+                  // Check if db.count exists before calling
                   let expiredCount = 0
                   if (epg.db && epg.db.count && typeof epg.db.count === 'function' && !epg.db.destroyed && !epg.db.closed) {
                     expiredCount = await epg.db.count({ end: { '<': now } }).catch(() => 0)
@@ -2658,7 +2658,7 @@ export default class EPGManager extends EPGPaginateChannelsList {
 
       this.debug && console.log(`🎯 Using score() method for ${Object.keys(categoryScores).length} categories`)
 
-      // Debug: verificar dados nos EPGs antes de usar score()
+      // Debug: check data in EPGs before using score()
       for (const url in this.epgs) {
         const epg = this.epgs[url]
         if (!epg.db || !epg.db.initialized) {
@@ -2666,10 +2666,10 @@ export default class EPGManager extends EPGPaginateChannelsList {
           continue
         }
 
-        // Debug: verificar estrutura dos dados salvos
+        // Debug: check structure of saved data
         try {
           const maxResultSetSize = limit * 10 // wider range for filtering
-          // Usar score() com categoryScores reais
+          // Use score() with real categoryScores
           const scoredProgrammes = await epg.db.score('terms', categoryScores, {
             limit: maxResultSetSize, // Get more results for better selection
             sort: 'desc',

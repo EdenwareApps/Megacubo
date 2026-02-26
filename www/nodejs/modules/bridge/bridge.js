@@ -167,7 +167,7 @@ class BridgeServer extends EventEmitter {
             if (err) console.error(err)
             if (this.server) {
                 this.opts.port = this.server.address().port
-                console.log('Bridge server started', err)
+                console.log('Bridge server started', err || null)
                 this.uploadURL = 'http://' + this.opts.addr + ':' + this.opts.port + '/upload'
             }
             this.emit('connected', err, this.opts.port)

@@ -33,61 +33,61 @@ export default {
     'www/nodejs/dist/App.js',
     'www/nodejs/dist/capacitor.js',
 
-    // Dados essenciais
+    // Essential data
     'www/nodejs/dist/dayjs-locale/**',
     'www/nodejs/dist/defaults/**',
 
-    // Arquivos fonte e configuração
+    // Source files and configuration
     'www/nodejs/main.mjs',
     'www/nodejs/package.json',
     'www/nodejs/lang/**/*',
     'www/nodejs/modules/**/*',
     'www/nodejs/renderer/**/*',
 
-    // Exclusões críticas
+    // Critical exclusions
     '!www/nodejs/dist/electron.js.map',
     '!www/nodejs/dist/main.js.map',
     '!www/nodejs/dist/preload.js.map',
     '!www/nodejs/dist/*.worker.js.map',
     '!www/nodejs/modules/smart-recommendations/trias/**/*',
 
-    // Exclusões AGRESSIVAS de espaço em disco
-    '!android/**',  // Excluir diretório android completo
-    '!**/android/**',  // Excluir QUALQUER pasta android em qualquer lugar
-    '!releases/**',  // Excluir releases (APKs, builds antigos)
-    '!premium_files/**',  // Excluir arquivos premium não necessários para build
-    '!dist_optimized/**',  // Excluir builds otimizados antigos
-    '!patches/**',  // Excluir patches
-    '!assets/**',  // Excluir assets não utilizados no Electron
-    '!build/**',  // Excluir pasta build (exceto o que precisamos)
-    '!build/cast_channel.proto',  // MANTER apenas este arquivo necessário
-    '!build/ffmpeg/**',  // MANTER FFmpeg
+    // AGGRESSIVE disk space exclusions
+    '!android/**',  // Exclude complete android directory
+    '!**/android/**',  // Exclude ANY android folder anywhere
+    '!releases/**',  // Exclude releases (APKs, old builds)
+    '!premium_files/**',  // Exclude premium files not needed for build
+    '!dist_optimized/**',  // Exclude old optimized builds
+    '!patches/**',  // Exclude patches
+    '!assets/**',  // Exclude unused assets in Electron
+    '!build/**',  // Exclude build folder (except what we need)
+    '!build/cast_channel.proto',  // KEEP only this necessary file
+    '!build/ffmpeg/**',  // KEEP FFmpeg
 
-    // Exclusões de bibliotecas nativas
-    '!**/*.so',  // Excluir bibliotecas nativas Linux (.so)
-    '!**/*.dylib',  // Excluir bibliotecas macOS (.dylib)
-    '!**/*.dll',  // Excluir bibliotecas Windows (.dll) - serão incluídas apenas as necessárias
-    '!**/*.a',  // Excluir bibliotecas estáticas
-    '!**/*.lib',  // Excluir bibliotecas Windows
+    // Native library exclusions
+    '!**/*.so',  // Exclude Linux native libraries (.so)
+    '!**/*.dylib',  // Exclude macOS libraries (.dylib)
+    '!**/*.dll',  // Exclude Windows libraries (.dll) - only necessary ones will be included
+    '!**/*.a',  // Exclude static libraries
+    '!**/*.lib',  // Exclude Windows libraries
 
-    // Exclusões de desenvolvimento
-    '!node_modules/**',  // Excluir QUALQUER node_modules da raiz
-    '!**/build/**',  // Excluir pastas de build desnecessárias
-    '!www/nodejs/dist/node_modules/**',  // Excluir TODAS as dependências node_modules
-    '!**/*.map',  // Excluir source maps
-    '!**/*.ts',  // Excluir arquivos TypeScript
-    '!**/*.test.*',  // Excluir arquivos de teste
-    '!docs/**',  // Excluir documentação
-    '!*.md',  // Excluir arquivos markdown
-    '!*.cmd',  // Excluir scripts de comando
-    '!*.bat',  // Excluir arquivos batch
-    '!*.log',  // Excluir arquivos de log
-    '!*.txt',  // Excluir arquivos de texto não essenciais
-    '!*.aar',  // Excluir arquivos Android .aar
-    '!*.apk',  // Excluir arquivos Android .apk
-    '!*.zip',  // Excluir arquivos ZIP
-    '!*.exe',  // Excluir executáveis Windows (exceto os necessários)
-    '!fmpeg-kit-16KB-6.0.aar',  // Excluir arquivo específico do FFmpeg Android
+    // Development exclusions
+    '!node_modules/**',  // Exclude ANY node_modules from root
+    '!**/build/**',  // Exclude unnecessary build folders
+    '!www/nodejs/dist/node_modules/**',  // Exclude ALL node_modules dependencies
+    '!**/*.map',  // Exclude source maps
+    '!**/*.ts',  // Exclude TypeScript files
+    '!**/*.test.*',  // Exclude test files
+    '!docs/**',  // Exclude documentation
+    '!*.md',  // Exclude markdown files
+    '!*.cmd',  // Exclude command scripts
+    '!*.bat',  // Exclude batch files
+    '!*.log',  // Exclude log files
+    '!*.txt',  // Exclude non-essential text files
+    '!*.aar',  // Exclude Android .aar files
+    '!*.apk',  // Exclude Android .apk files
+    '!*.zip',  // Exclude ZIP files
+    '!*.exe',  // Exclude Windows executables (except necessary ones)
+    '!fmpeg-kit-16KB-6.0.aar',  // Exclude specific FFmpeg Android file
     '!fnr.exe',  // Excluir Find and Replace tool
   ],
 

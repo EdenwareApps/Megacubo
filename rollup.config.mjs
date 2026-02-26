@@ -65,10 +65,10 @@ const rendererPlugins = [
             drop_console: true,
             drop_debugger: true,
             passes: 1, // Reduce passes to avoid BigInt issues
-            // ✅ APENAS as desativações essenciais para BigInt
-            reduce_vars: false,     // ← Principal: evita reescrita de vars com BigInt
-            evaluate: false,        // ← Principal: evita avaliação de expressões BigInt
-            // Manter outras otimizações
+            // ✅ ONLY essential disables for BigInt
+            reduce_vars: false,     // ← Main: avoids rewriting vars with BigInt
+            evaluate: false,        // ← Main: avoids evaluating BigInt expressions
+            // Keep other optimizations
             unsafe: false,
             unsafe_comps: false,
             unsafe_math: false,
@@ -119,7 +119,7 @@ export default {};
 
 // helper for Node.js bundles
 function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals = null, isLargeFile = false, isMainProcess = false }) {
-  // Configurações específicas para main process
+  // Specific settings for main process
   const mainProcessConfig = isMainProcess ? {
     maxWorkers: 1, // Reduce workers to save memory
     keep_classnames: false, // Disable to save memory
@@ -128,7 +128,7 @@ function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals
       drop_console: isProduction, // Remove console logs in production
       drop_debugger: true,
       passes: 1,
-      unsafe: true, // Otimizações mais agressivas
+      unsafe: true, // More aggressive optimizations
       unsafe_comps: true,
       unsafe_math: true
     }
@@ -147,7 +147,7 @@ function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals
     sqliteResolvePlugin(), // Resolve node:sqlite to mock module (must be before resolve)
     resolve({
       ...baseResolveOpts,
-      // Configurações específicas para main process
+      // Specific settings for main process
       ...(isMainProcess ? { dedupe: [] } : {})
     }),
     commonjs({ 
@@ -182,10 +182,10 @@ function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals
             drop_console: true,
             drop_debugger: true,
             passes: 1, // Reduce passes to avoid BigInt issues
-            // ✅ APENAS as desativações essenciais para BigInt
-            reduce_vars: false,     // ← Principal: evita reescrita de vars com BigInt
-            evaluate: false,        // ← Principal: evita avaliação de expressões BigInt
-            // Manter outras otimizações
+            // ✅ ONLY essential disables for BigInt
+            reduce_vars: false,     // ← Main: avoids rewriting vars with BigInt
+            evaluate: false,        // ← Main: avoids evaluating BigInt expressions
+            // Keep other optimizations
             unsafe: false,
             unsafe_comps: false,
             unsafe_math: false,
@@ -200,28 +200,28 @@ function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals
     plugins,
     external: Array.isArray(externals) ? externals : external,
     watch: watchOpts,
-    maxParallelFileOps: isLargeFile || isMainProcess ? 1 : undefined, // Forçar 1 para main process
+    maxParallelFileOps: isLargeFile || isMainProcess ? 1 : undefined, // Force 1 for main process
     treeshake: isLargeFile ? false : (isMainProcess ? {
       // Tree shaking enabled for main.js with conservative settings
       moduleSideEffects: (id) => {
-        // Preservar módulos que podem ter side effects importantes
+        // Preserve modules that may have important side effects
         if (id.includes('analytics.js') || 
             id.includes('crashlog.js') ||
             id.includes('node-cleanup') ||
             id.includes('onexit')) {
-          return true; // Preservar side effects
+          return true; // Preserve side effects
         }
-        // Para módulos próprios, assumir que podem ter side effects (conservador)
+        // For own modules, assume they may have side effects (conservative)
         if (id.includes('www/nodejs/modules/') && !id.includes('node_modules')) {
-          return true; // Preservar módulos próprios por segurança
+          return true; // Preserve own modules for safety
         }
-        // Para node_modules, tentar tree shaking (mais seguro)
-        return false; // Permitir tree shaking em node_modules
+        // For node_modules, try tree shaking (safer)
+        return false; // Allow tree shaking in node_modules
       },
-      propertyReadSideEffects: false, // Propriedades podem ser tree-shaken
-      tryCatchDeoptimization: false // Não desotimizar try-catch
+      propertyReadSideEffects: false, // Properties can be tree-shaken
+      tryCatchDeoptimization: false // Do not deoptimize try-catch
     } : undefined),
-    // Configurações específicas para main process
+    // Specific settings for main process
     ...(isMainProcess ? {
       preserveEntrySignatures: 'allow-extension',
       onwarn(warning, warn) {
@@ -269,7 +269,7 @@ makeNodeBundle({
   input: 'www/nodejs/main.mjs',
   output: { format: 'cjs', file: 'www/nodejs/dist/main.js', inlineDynamicImports: true, sourcemap: false }, // Disable sourcemap for main process
   babelOpts: nodeBabelOpts,
-  isMainProcess: true, // Ativar otimizações específicas para main process
+  isMainProcess: true, // Enable main-process specific optimizations
   extraPlugins: [
     copy({ targets: [
       { src: 'node_modules/dayjs/locale/*.js', dest: 'www/nodejs/dist/dayjs-locale' },

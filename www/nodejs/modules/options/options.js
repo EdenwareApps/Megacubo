@@ -464,7 +464,7 @@ class OptionsExportImport extends OptionsGPU {
                         zip.extractEntryTo(entry, storage.opts.folder, false, true);
                     }
                     if (entry.entryName.startsWith('categories')) {
-                        zip.extractEntryTo(entry, storage.opts.folder, false, true, path.basename(storage.resolve(global.channels.channelList.key)));
+                        zip.extractEntryTo(entry, storage.opts.folder, false, true, path.basename(storage.resolve(global.channels.channelList.key, 'dat')));
                         global.channels.load();
                     }
                     if (entry.entryName.startsWith('icons')) {
@@ -502,8 +502,7 @@ class OptionsExportImport extends OptionsGPU {
         };
         add(config.file);
         [global.channels.bookmarks.key, global.channels.history.key, global.channels.channelList.key].forEach(key => {
-            files.push(storage.resolve(key, false));
-            files.push(storage.resolve(key, true));
+            files.push(storage.resolve(key, 'dat'))
         });
         files.forEach(add);
         add(global.theme.folder, 'Themes');
@@ -526,7 +525,7 @@ class Options extends OptionsExportImport {
         return entries;
     }
     async showLanguageEntriesDialog() {
-        const restart = config.get('communitary-mode-lists-amount');
+        const restart = config.get('community-mode-lists-amount');
         let options = [], def = lang.locale;
         let map = await lang.availableLocalesMap();
         Object.keys(map).forEach(id => {
@@ -1103,10 +1102,10 @@ class Options extends OptionsExportImport {
                             action: async (data) => {
                                 if (def == 0)
                                     return;
-                                config.set('communitary-mode-lists-amount', 0);
+                                config.set('community-mode-lists-amount', 0);
                                 await fs.promises.unlink(privateFile).catch(err => console.error(err));
                                 await fs.promises.unlink(communityFile).catch(err => console.error(err));
-                                config.set('communitary-mode-lists-amount', 0);
+                                config.set('community-mode-lists-amount', 0);
                                 menu.refreshNow();
                                 energy.askRestart();
                             }
@@ -1119,7 +1118,7 @@ class Options extends OptionsExportImport {
                                     return;
                                 await fs.promises.writeFile(privateFile, 'OK');
                                 await fs.promises.unlink(communityFile).catch(err => console.error(err));
-                                config.set('communitary-mode-lists-amount', 0);
+                                config.set('community-mode-lists-amount', 0);
                                 menu.refreshNow();
                                 await menu.info(lang.LEGAL_NOTICE, lang.TOS_CONTENT);
                                 energy.askRestart();
@@ -1134,7 +1133,7 @@ class Options extends OptionsExportImport {
                                 const { opts: { defaultCommunityModeReach } } = lists;
                                 await fs.promises.writeFile(communityFile, 'OK');
                                 await fs.promises.writeFile(privateFile, 'OK');
-                                config.set('communitary-mode-lists-amount', defaultCommunityModeReach);
+                                config.set('community-mode-lists-amount', defaultCommunityModeReach);
                                 menu.refreshNow();
                                 await menu.info(lang.LEGAL_NOTICE, lang.TOS_CONTENT);
                                 energy.askRestart();

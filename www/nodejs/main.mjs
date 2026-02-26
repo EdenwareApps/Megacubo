@@ -48,7 +48,6 @@ import promo from './modules/promoter/promoter.js'
 import mega from './modules/mega/mega.js'
 import ConnRacing from '@edenware/conn-racing'
 import { resolveListDatabaseKey } from './modules/lists/tools.js'
-import { argv } from 'process'
 
 const electronDistFile = path.join(__dirname, forwardSlashes(__dirname).includes('/dist') ? 'electron.js' : 'dist/electron.js')
 let electron = {}
@@ -77,22 +76,8 @@ async function initializeElectron() {
 
 // Initialize Electron - detect if running as main app or imported as library
 // Check multiple conditions to handle different execution contexts
-const argv1 = forwardSlashes(process.argv.filter(a => {
-    return !a.startsWith('-') && a.includes('.js')
-}).shift() || '')
 
-const isMainModule = !process.env.MEGACUBO_AS_LIBRARY && !globalThis.MEGACUBO_AS_MODULE && (
-    // Direct execution
-    import.meta.url === `file://${argv1}` || 
-    import.meta.url === `file:///${argv1}` ||
-
-    // Via bin.js or similar launchers
-    argv1.includes('bin.js') ||
-    argv1.includes('dist/main.js') ||
-    
-    // Command line arguments indicating app mode
-    (process.argv.includes('npm') && process.argv.includes('start'))
-)
+const isMainModule = !process.env.MEGACUBO_AS_LIBRARY && !globalThis.MEGACUBO_AS_MODULE
 
 if (isMainModule) {
     console.log('🚀 Running as main module, initializing Electron...')
@@ -100,18 +85,6 @@ if (isMainModule) {
 } else {
     console.log('📚 Running as imported library, skipping Electron initialization')
 }
-
-console.log('isMainModule', {
-    isMainModule,
-    importMetaUrl: import.meta.url,
-    argv1,
-    envFlags: {
-        MEGACUBO_AS_LIBRARY: Boolean(process.env.MEGACUBO_AS_LIBRARY),
-        MEGACUBO_AS_MODULE: Boolean(globalThis.MEGACUBO_AS_MODULE)
-    },
-    argv: process.argv,
-    electronDistFile
-})
 
 // Remote initialization moved to initElectronWindow function
 
@@ -263,7 +236,7 @@ streamer.tuning = null
 
 const setupCompleted = () => {
     const l = config.get('lists')
-    const fine = Boolean((l && l.length) || config.get('communitary-mode-lists-amount'))
+    const fine = Boolean((l && l.length) || config.get('community-mode-lists-amount'))
     const current = config.get('setup-completed')
     console.log('setupCompleted', { fine, current })
     if (fine !== current) {
@@ -359,7 +332,7 @@ const setupRendererHandlers = () => {
         switch (ret) {
             case 'agree':
                 menu.open('', 0).catch(e => menu.displayErr(e))
-                config.set('communitary-mode-lists-amount', lists.opts.defaultCommunityModeReach)
+                config.set('community-mode-lists-amount', lists.opts.defaultCommunityModeReach)
                 menu.info(lang.LEGAL_NOTICE, lang.TOS_CONTENT)
                 lists.loader.reset()
                 break
@@ -868,10 +841,8 @@ const init = async (locale, timezone) => {
     recommendations.on('updated', () => {
         console.log('🔄 Recommendations updated. Now: ' + parseInt(new Date().getTime()/1000))
         setTimeout(() => {
-            if (!menu.path) {
-                // Update home filters first
-                menu.updateHomeFilters().catch(err => console.error(err))
-            }
+            // Update home filters to clear outdated recommendation entries
+            menu.updateHomeFilters().catch(err => console.error('Menu updateHomeFilters after recommendations update failed:', err))
         }, 500)
     })
     streamer.on('streamer-connect', async (src, codecs, info) => {
@@ -909,7 +880,7 @@ const init = async (locale, timezone) => {
     })
     config.on('change', (keys, data) => {
         renderer.ui.emit('config', keys, data)
-        if (['lists', 'communitary-mode-lists-amount', 'interests'].some(k => keys.includes(k))) {
+        if (['lists', 'community-mode-lists-amount', 'interests'].some(k => keys.includes(k))) {
             menu.refresh()
             lists.loader.reset()
         }

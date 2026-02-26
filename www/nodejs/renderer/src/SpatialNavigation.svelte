@@ -14,7 +14,7 @@
     className: "selected",
     parentClassName: "selected-parent",
     selectedIndex: 0,
-    selectionMemory: {}, // Adicionado para armazenar memória por path
+    selectionMemory: {}, // Added to store memory by path
   });
 
   let lastSelected = null;
@@ -143,7 +143,7 @@
         emit = false;
       } else {
         state.selectedIndex = index;
-        saveSelectionMemory(); // Salva o estado da seleção
+        saveSelectionMemory(); // Save selection state
       }
     }
     lastSelected = { element, name: layout.name };

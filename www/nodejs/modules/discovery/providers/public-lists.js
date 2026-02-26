@@ -138,10 +138,13 @@ class PublicLists extends EventEmitter {
                 lists = lists.slice(0, maxLists)
             }
             if (!adder) return lists
-            adder(lists.map((list, i) => {
+            const ret = lists.map((list, i) => {
                 return { type: 'public', url: list, health: factor * (1 - (i * (1 / lists.length))) }
-            }))
+            })
+            adder && adder(ret)
+            return ret
         }
+        return []
     }
     async entries(local, silent, flat = false) {
         await this.ready();

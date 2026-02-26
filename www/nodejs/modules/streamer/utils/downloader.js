@@ -295,7 +295,7 @@ class Downloader extends StreamerAdapterBase {
             headers: this.getDefaultRequestHeaders(),
             timeout: this.timeoutOpts,
             decompress: false,
-            bypassCache: true
+            bypassCache: true // local download, no caching needed
         }
         const download = this.currentRequest = new Download(opts);
         download.on('error', error => {

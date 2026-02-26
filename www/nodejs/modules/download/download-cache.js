@@ -8,7 +8,7 @@ import config from '../config/config.js'
 const CACHE_PREFIX = 'dlc-'
 
 const url2id = url => {
-    return CACHE_PREFIX + url.replace(new RegExp('^https?://'), '').replace(new RegExp('[^A-Za-z0-9]+', 'g'), '-').substr(0, 255);
+    return CACHE_PREFIX + url.replace(new RegExp('^https?://'), '').replace(new RegExp('[^A-Za-z0-9]+', 'g'), '-').substring(0, 255);
 }
 
 class DownloadCacheFileReader extends EventEmitter {
@@ -55,7 +55,7 @@ class DownloadCacheChunks extends EventEmitter {
         this.setMaxListeners(99);
         this.folder = storage.opts.folder + '/';
         this.uid = url2id(url);
-        this.file = storage.resolve(this.uid);
+        this.file = storage.resolve(this.uid, 'dat');
         this.size = 0;
         this.created = false;
         this.writer = new Writer(this.file);
@@ -106,21 +106,24 @@ class DownloadCacheMap extends EventEmitter {
         this.prefix = CACHE_PREFIX;
     }
     async info(url) {
-        if (this.saving[url])
+        if (this.saving[url]) {
             return this.saving[url];
+        }
         const key = url2id(url);
-        const hkey = 'dch-' + key.substr(4);
+        const hkey = 'dch-' + key.substring(4);
         if (!storage.index[key] || !storage.index[hkey]) {
             return null;
         }
         const info = await storage.get(hkey).catch(() => {});
-        if (!info || !info.headers)
+        if (!info || !info.headers) {
             return null;
+        }
         
-        const file = storage.resolve(key);
+        const file = storage.resolve(key, 'dat');
         const stat = await fs.promises.stat(file).catch(() => {});
-        if (!stat || typeof(stat.size) != 'number')
+        if (!stat || typeof(stat.size) != 'number') {
             return null;
+        }
         return {
             status: info.statusCode,
             headers: info.headers,
@@ -137,7 +140,7 @@ class DownloadCacheMap extends EventEmitter {
             delete this.saving[url]
         }
         const key = url2id(url)
-        const hkey = 'dch-' + key.substr(4)
+        const hkey = 'dch-' + key.substring(4)
         await Promise.allSettled([
             storage.delete(key).catch(() => {}),
             storage.delete(hkey).catch(() => {})
@@ -154,7 +157,7 @@ class DownloadCacheMap extends EventEmitter {
         const url = downloader.currentURL;
         if (typeof(this.saving[url]) == 'undefined') {
             const uid = url2id(url);
-            const huid = 'dch-' + uid.substr(4);
+            const huid = 'dch-' + uid.substring(4);
             const time = parseInt((Date.now() / 1000));
             let ttl = time + opts.cacheTTL;
             if (downloader.responseHeaders && typeof(downloader.responseHeaders['x-cache-ttl']) != 'undefined') {

@@ -8,19 +8,22 @@ import path from "path";
 import config from "../config/config.js"
 import { moveFile, rmdir } from '../utils/utils.js'
 import { parse } from '../serialize/serialize.js'
+
+// Storage index version for compatibility checking
+const STORAGE_INDEX_VERSION = 2;
 import crypto from 'crypto'
 
 // Class to manage profile authentication
 class ProfileAuth {
     constructor() {
         this.authKeys = new Map(); // profileId -> encryptionKey
-        this.openProfiles = new Set(); // perfis sem criptografia
+        this.openProfiles = new Set(); // profiles without encryption
     }
 
     // Set encryption key for a profile
     setAuth(profileId, key) {
         if (!key) {
-            // Perfil aberto - sem criptografia
+            // Open profile - without encryption
             this.openProfiles.add(profileId);
             this.authKeys.delete(profileId);
         } else {
@@ -62,7 +65,7 @@ class StorageTools extends EventEmitter {
         this.indexFile = 'storage-index.json';
         this.locked = {};
         this.index = {};
-        this.knownExtensions = ['offsets.jdb', 'idx.jdb', 'dat', 'jdb'] // do not include 'json', those are handled by upgrade()
+        this.knownExtensions = ['offsets.jdb', 'idx.jdb', 'dat', 'jdb', 'idx', 'tmp', 'updating'] // do not include 'json', those are handled by upgrade()
 
         // Ensure storage folder exists synchronously in main process (avoids ENOENT on first write when packaged)
         if (this.opts.main && this.opts.folder) {
@@ -82,11 +85,50 @@ class StorageTools extends EventEmitter {
             return;
         this.lastSaveTime = (Date.now() / 1000)
         // Increase save interval to reduce file handle usage
-        this.saveLimiter = new Limiter(() => this.save(), 10000, true) // increased from 5000 to 10000
-        this.alignLimiter = new Limiter(() => this.align(), 10000, true) // increased from 5000 to 10000
+        this.saveLimiter = new Limiter(() => this._performSave(), { intervalMs: 10000, initialDelay: 2000, async: true }) // increased from 5000 to 10000
+        this.alignLimiter = new Limiter(() => this.align(), { intervalMs: 10000, async: true }) // increased from 5000 to 10000
+        // Add consistency checker for main process (runs every 5 minutes)
+        this.consistencyLimiter = new Limiter(() => this.checkConsistency(), { intervalMs: 300000, initialDelay: 60000, async: true })
+        this.consistencyIntervalId = null; // Track the interval ID
+        
         process.nextTick(() => {
             onexit(() => this.saveSync());
+            // Don't start automatic consistency checking here - let it be started explicitly
         });
+    }
+
+    // Return a safe path for the expiration sidecar corresponding to a data/index file
+    expiresPath(file) {
+        if (!file || typeof file !== 'string') return file + '.expires.json';
+        for (const ext of this.knownExtensions) {
+            const suffix = '.' + ext;
+            if (file.endsWith(suffix)) {
+                return file.slice(0, -suffix.length) + '.expires.json';
+            }
+        }
+        const idx = file.lastIndexOf('.');
+        if (idx !== -1) return file.slice(0, idx) + '.expires.json';
+        return file + '.expires.json';
+    }
+    
+    // Start automatic maintenance (consistency checking every 5 minutes)
+    startAutoMaintenance() {
+        if (!this.opts.main || this.consistencyIntervalId) return; // Only main process, and don't start if already running
+        
+        this.consistencyIntervalId = setInterval(() => {
+            this.consistencyLimiter.call();
+        }, 300000); // 5 minutes
+        
+        console.log('Storage: Automatic maintenance started (consistency check every 5 minutes)');
+    }
+    
+    // Stop automatic maintenance
+    stopAutoMaintenance() {
+        if (this.consistencyIntervalId) {
+            clearInterval(this.consistencyIntervalId);
+            this.consistencyIntervalId = null;
+            console.log('Storage: Automatic maintenance stopped');
+        }
     }
     async cleanup() {
         const now = (Date.now() / 1000)
@@ -111,6 +153,12 @@ class StorageTools extends EventEmitter {
                         
                         // Check if file is older than 1 hour
                         if ((now - mtime) > oneHour) {
+                            // Skip if currently locked (being written)
+                            if (this.locked[key]) {
+                                console.log(`Cleanup: Skipping locked key ${key}`);
+                                continue;
+                            }
+                            
                             // Check if file is in index and not expired
                             let indexEntry = this.index[key];
                             
@@ -126,7 +174,7 @@ class StorageTools extends EventEmitter {
                                 // File is not in index (even after auto-heal) or has expired - delete it
                                 await fs.promises.unlink(ffile).catch(() => {})
                                 // Also delete expiration sidecar if exists
-                                const expFile = ffile.replace(/\.dat$/, '.expires.json');
+                                const expFile = this.expiresPath(ffile);
                                 await fs.promises.unlink(expFile).catch(() => {})
                             }
                         }
@@ -161,7 +209,7 @@ class StorageTools extends EventEmitter {
                 delete this.index[k]
             }
         }
-        this.saveLimiter.call()
+        await this.save()
     }
     async compress(data) {
         return new Promise((resolve, reject) => {
@@ -258,7 +306,7 @@ class StorageTools extends EventEmitter {
                 await this.set(key, content, setOpts);
                 
                 // Verify new .expires.json was created before deleting old one
-                const newExpFile = tfile.replace(/\.dat$/, '.expires.json');
+                const newExpFile = this.expiresPath(tfile);
                 const newExpExists = await fs.promises.stat(this.opts.folder + '/' + newExpFile).catch(() => null);
                 
                 // Delete old .json file
@@ -296,6 +344,308 @@ class StorageTools extends EventEmitter {
         });
         return usage;
     }
+    
+    async recalculateSizes() {
+        const promises = Object.keys(this.index).map(async k => {
+            const entry = this.index[k];
+            
+            // If entry.file is set, verify it exists and has correct extension
+            if (entry && entry.file) {
+                try {
+                    const stat = await fs.promises.stat(entry.file).catch(() => null);
+                    if (!stat) {
+                        // File doesn't exist, remove from index
+                        delete this.index[k];
+                        return;
+                    }
+                    // Update size and time
+                    entry.size = stat.size;
+                    entry.time = Date.now() / 1000;
+                    return;
+                } catch (e) {
+                    // Ignore
+                }
+            }
+            
+            // Try to find the actual file by checking known extensions
+            let file = null;
+            let stat = null;
+            
+            // First try the resolve method (for files with entry.file set)
+            try {
+                file = this.resolve(k);
+                stat = await fs.promises.stat(file).catch(() => null);
+            } catch (e) {
+                // Ignore
+            }
+            
+            // If not found, try different extensions
+            if (!stat) {
+                for (const ext of this.knownExtensions) {
+                    try {
+                        file = this.resolve(k, ext);
+                        stat = await fs.promises.stat(file).catch(() => null);
+                        if (stat) break;
+                    } catch (e) {
+                        // Ignore
+                    }
+                }
+            }
+            
+            if (stat && typeof(stat.size) == 'number') {
+                // Update the index with the actual file size
+                entry.size = stat.size;
+                entry.time = Date.now() / 1000; // Update time to ensure merge prefers memory
+                // Also update entry.file if not set
+                if (!entry.file) {
+                    entry.file = file;
+                }
+            } else {
+                // File doesn't exist, remove from index
+                delete this.index[k];
+            }
+        });
+        await Promise.all(promises);
+        await this.save(); // Save the updated index
+    }
+
+    // Add consistency check method
+    async checkConsistency() {
+        if (!this.opts.main) return; // Only main process should check consistency
+        
+        const now = Date.now() / 1000;
+        let inconsistencies = 0;
+        
+        for (const [key, entry] of Object.entries(this.index)) {
+            // Check if file exists for index entry - try all known extensions
+            let file = null;
+            let stat = null;
+            
+            // First try default resolve (usually .dat)
+            try {
+                file = this.resolve(key);
+                stat = await fs.promises.stat(file).catch(() => null);
+            } catch (e) {
+                // Ignore
+            }
+            
+            // If not found, try different extensions
+            if (!stat) {
+                for (const ext of this.knownExtensions) {
+                    try {
+                        file = this.resolve(key, ext);
+                        stat = await fs.promises.stat(file).catch(() => null);
+                        if (stat) break;
+                    } catch (e) {
+                        // Ignore
+                    }
+                }
+            }
+            
+            if (!stat) {
+                // File missing - delete from index regardless of lock status
+                // If it was locked, the lock is stale since file doesn't exist
+                console.warn(`Storage consistency: File missing for index entry ${key}`);
+                delete this.index[key];
+                this.emit('delete', key);
+                inconsistencies++;
+            } else {
+                // Always ensure size is set correctly, even for locked files
+                if (typeof(entry.size) !== 'number' || entry.size !== stat.size) {
+                    if (typeof(entry.size) === 'number' && entry.size !== stat.size) {
+                        console.warn(`Storage consistency: Size mismatch for ${key} (index: ${entry.size}, file: ${stat.size})`);
+                    }
+                    entry.size = stat.size;
+                    inconsistencies++;
+                }
+            }
+        }
+        
+        // Check for orphaned files not in index
+        try {
+            const files = await fs.promises.readdir(this.opts.folder);
+            for (const file of files) {
+                if (file === this.indexFile) continue;
+                const ext = file.split('.').pop();
+                if (this.knownExtensions.includes(ext)) {
+                    const key = this.unresolve(file);
+                    if (!this.index[key]) {
+                        console.warn(`Storage consistency: Orphaned file ${file} not in index`);
+                        const filePath = this.opts.folder + '/' + file;
+                        if (ext === 'jdb') {
+                            console.log(`Storage consistency: Registering orphaned database file ${file}`);
+                            await this.touchFile(filePath, { permanent: true });
+                            console.log(`Storage consistency: Registered ${key} in index`);
+                        } else if (ext === 'idx') {
+                            console.log(`Storage consistency: Registering orphaned file ${file}`);
+                            const baseKey = this.unresolve(file.replace(/\.idx$/, ''));
+                            const baseExp = this.expiration(baseKey);
+                            const atts = baseExp ? { expiration: baseExp } : { ttl: 600 };
+                            await this.touchFile(filePath, atts);
+                            console.log(`Storage consistency: Registered ${key} in index`);
+                        } else if (ext === 'tmp' || ext === 'updating') {
+                            console.log(`Storage consistency: Registering orphaned file ${file}`);
+                            await this.touchFile(filePath, { ttl: 600 });
+                            console.log(`Storage consistency: Registered ${key} in index`);
+                        } else {
+                            // Remove other orphaned files
+                            await fs.promises.unlink(filePath).catch(() => {});
+                            console.log(`Storage consistency: Removed orphaned file ${file}`);
+                        }
+                        inconsistencies++;
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('Storage consistency: Error checking orphaned files:', e.message);
+        }
+        
+        if (inconsistencies > 0) {
+            console.log(`Storage consistency: Fixed ${inconsistencies} inconsistencies`);
+            // Recalculate sizes to ensure accuracy after registering orphaned files
+            await this.recalculateSizes();
+            // Trigger save via limiter (don't wait for it to complete immediately)
+            await this.save();
+        }
+        
+        return inconsistencies;
+    }
+
+    // Diagnostic method to compare index size with actual folder size (read-only)
+    async diagnoseStorage() {
+        let realSize = 0;
+        let fileCount = 0;
+        let indexFileCount = Object.keys(this.index).length;
+        let orphanedFiles = [];
+        let extensionStats = {};
+        let largestFiles = [];
+        let indexFileSize = 0;
+        
+        try {
+            const files = await fs.promises.readdir(this.opts.folder);
+            for (const file of files) {
+                const filePath = path.join(this.opts.folder, file);
+                const stat = await fs.promises.stat(filePath).catch(() => null);
+                if (stat && stat.isFile()) {
+                    // Exclude the index file from realSize calculation
+                    if (file === this.indexFile) {
+                        indexFileSize = stat.size;
+                        continue;
+                    }
+                    
+                    realSize += stat.size;
+                    fileCount++;
+                    
+                    // Track extension stats
+                    const ext = file.split('.').pop() || 'no-ext';
+                    if (!extensionStats[ext]) {
+                        extensionStats[ext] = { count: 0, size: 0 };
+                    }
+                    extensionStats[ext].count++;
+                    extensionStats[ext].size += stat.size;
+                    
+                    // Track largest files
+                    largestFiles.push({ name: file, size: stat.size });
+                    
+                    // Check if file is orphaned (not in index)
+                    const extCheck = file.split('.').pop();
+                    if (this.knownExtensions.includes(extCheck)) {
+                        const key = this.unresolve(file);
+                        if (!this.index[key]) {
+                            orphanedFiles.push({ name: file, size: stat.size });
+                        }
+                    }
+                }
+            }
+            
+            // Sort largest files
+            largestFiles.sort((a, b) => b.size - a.size);
+            largestFiles = largestFiles.slice(0, 10); // Top 10
+            
+            // Sort orphaned files by size
+            orphanedFiles.sort((a, b) => b.size - a.size);
+            
+        } catch (e) {
+            console.warn('Diagnose storage: Error reading folder:', e.message);
+            return { error: e.message };
+        }
+        
+        const indexSize = this.size();
+        const difference = realSize - indexSize;
+        
+        return {
+            indexSize,
+            realSize,
+            difference,
+            fileCount,
+            indexFileCount,
+            indexFileSize,
+            orphanedFiles,
+            extensionStats,
+            largestFiles,
+            folder: this.opts.folder
+        };
+    }
+    
+    // Comprehensive storage analysis and optional auto-fix
+    async analyzeAndFixStorage(opts = {}) {
+        const { autoFix = false, verbose = true } = opts;
+        
+        if (verbose) {
+            console.log('=== COMPLETE STORAGE ANALYSIS ===');
+        }
+        
+        // Get current diagnosis
+        const diagnosis = await this.diagnoseStorage();
+        if (diagnosis.error) {
+            return diagnosis;
+        }
+        
+        if (verbose) {
+            console.log(`Index size: ${(diagnosis.indexSize / 1024 / 1024).toFixed(2)} MB`);
+            console.log(`Real folder size: ${(diagnosis.realSize / 1024 / 1024).toFixed(2)} MB`);
+            console.log(`Difference: ${(diagnosis.difference / 1024 / 1024).toFixed(2)} MB`);
+            console.log(`Orphaned files: ${diagnosis.orphanedFiles.length}`);
+            console.log(`Index entries: ${diagnosis.indexFileCount}`);
+        }
+        
+        let fixesApplied = 0;
+        
+        if (autoFix) {
+            if (verbose) {
+                console.log('\n=== APPLYING AUTOMATIC FIXES ===');
+            }
+            
+            // Run consistency check to fix issues
+            const consistencyResult = await this.checkConsistency();
+            fixesApplied = consistencyResult || 0;
+            
+            if (verbose) {
+                console.log(`Inconsistencies fixed: ${fixesApplied}`);
+            }
+            
+            // Get updated diagnosis after fixes
+            const updatedDiagnosis = await this.diagnoseStorage();
+            if (verbose) {
+                console.log('\n=== AFTER FIXES ===');
+                console.log(`Index size: ${(updatedDiagnosis.indexSize / 1024 / 1024).toFixed(2)} MB`);
+                console.log(`Real folder size: ${(updatedDiagnosis.realSize / 1024 / 1024).toFixed(2)} MB`);
+                console.log(`Difference: ${((updatedDiagnosis.realSize - updatedDiagnosis.indexSize) / 1024 / 1024).toFixed(2)} MB`);
+                console.log(`Remaining orphaned files: ${updatedDiagnosis.orphanedFiles.length}`);
+            }
+            
+            return {
+                ...updatedDiagnosis,
+                fixesApplied,
+                originalDiagnosis: diagnosis
+            };
+        }
+        
+        return {
+            ...diagnosis,
+            fixesApplied: 0
+        };
+    }
 }
 
 class StorageHolding extends StorageTools {
@@ -331,6 +681,22 @@ class StorageIndex extends StorageHolding {
                 if (content && content.trim()) {
                     try {
                         const diskIndex = JSON.parse(content)
+                        
+                        // Check version compatibility
+                        if (diskIndex._version && diskIndex._version !== STORAGE_INDEX_VERSION) {
+                            console.warn(`Storage index version mismatch (disk: ${diskIndex._version}, current: ${STORAGE_INDEX_VERSION}), resetting index`);
+                            // Create backup of old version
+                            const backupPath = indexPath + '.v' + diskIndex._version + '.' + Date.now();
+                            fs.copyFileSync(indexPath, backupPath);
+                            this.index = {};
+                            // Trigger save via limiter
+                            this.save();
+                            return;
+                        }
+                        
+                        // Remove version from index data
+                        delete diskIndex._version;
+                        
                         // Merge with existing in-memory index if any
                         if (Object.keys(this.index || {}).length > 0) {
                             this.index = this.mergeIndexes(this.index, diskIndex)
@@ -344,7 +710,7 @@ class StorageIndex extends StorageHolding {
                         fs.copyFileSync(indexPath, backupPath)
                         // Reset to empty index
                         this.index = {}
-                        // Save the reset index
+                        // Trigger save via limiter
                         this.save()
                     }
                 } else {
@@ -501,7 +867,19 @@ class StorageIndex extends StorageHolding {
         return merged;
     }
 
-    async save() {
+    async save(options = {}) {
+        if (!this.opts.main) return // Only main process should save index
+        
+        // Use saveLimiter by default, unless skipLimiter is set
+        if (options.skipLimiter) {
+            return this._performSave()
+        } else {
+            return this.saveLimiter.call()
+        }
+    }
+
+    async _performSave() {
+        if (!this.opts.main) return // Only main process should save index
         if (this.mtime() < this.lastSaveTime)
             return
         // Ensure directory exists
@@ -525,18 +903,21 @@ class StorageIndex extends StorageHolding {
         // Merge indexes before saving
         const mergedIndex = this.mergeIndexes(this.index, diskIndex);
         
+        // Add version to index before saving
+        const indexWithVersion = { ...mergedIndex, _version: STORAGE_INDEX_VERSION };
+        
         // Use a more predictable filename to reduce file handle usage
-        const tmp = this.opts.folder +'/'+ 'temp_' + Date.now() +'.commit'
+        const tmp = this.opts.folder +'/'+ 'temp_' + Date.now() + '_' + process.pid + '_' + Math.floor(Math.random()*1000000) + '.commit'
         this.lastSaveTime = (Date.now() / 1000)
         try {
-            await fs.promises.writeFile(tmp, JSON.stringify(mergedIndex), 'utf8')
+            await fs.promises.writeFile(tmp, JSON.stringify(indexWithVersion), 'utf8')
             
             // Verify temp file exists before moving
             await fs.promises.access(tmp)
             
             await moveFile(tmp, indexPath);
             
-            // Update in-memory index to reflect merged state
+            // Update in-memory index to reflect merged state (without version)
             this.index = mergedIndex;
         } catch (err) {
             // Clean up temp file on error (check if it exists first)
@@ -549,7 +930,17 @@ class StorageIndex extends StorageHolding {
             console.error('Storage save error:', err)
         }
     }
-    saveSync() {
+
+    saveSync(options = {}) {
+        if (!this.opts.main) return // Only main process should save index
+        
+        // For sync operations, skipLimiter is always used (since limiter is async)
+        // This is called during process shutdown or error handling
+        return this._performSaveSync()
+    }
+
+    _performSaveSync() {
+        if (!this.opts.main) return // Only main process should save index
         if (this.mtime() < this.lastSaveTime)
             return
         this.lastSaveTime = (Date.now() / 1000)
@@ -571,8 +962,11 @@ class StorageIndex extends StorageHolding {
         // Merge indexes before saving
         const mergedIndex = this.mergeIndexes(this.index, diskIndex);
         
+        // Add version to index before saving
+        const indexWithVersion = { ...mergedIndex, _version: STORAGE_INDEX_VERSION };
+        
         const tmp = this.opts.folder + '/' + parseInt(Math.random() * 100000) + '.commit'
-        fs.writeFileSync(tmp, JSON.stringify(mergedIndex), 'utf8')
+        fs.writeFileSync(tmp, JSON.stringify(indexWithVersion), 'utf8')
         try {
             fs.unlinkSync(indexPath)
             fs.renameSync(tmp, indexPath)
@@ -639,9 +1033,10 @@ class StorageIndex extends StorageHolding {
             await Promise.allSettled(removalPromises);
         }
         
-        this.saveLimiter.call(); // always
+        await this.save(); // always
     }
     validateTouchSync(key, atts) {
+        if (!atts || typeof atts !== 'object') atts = {};
         const entry = this.index[key]
         if (!entry) return Object.keys(atts)
         if (entry.delete === true) {
@@ -654,15 +1049,15 @@ class StorageIndex extends StorageHolding {
                 }
             ]
         }
-        if (atts.expiration && atts.expiration < entry.expiration) {
+        if (atts.expiration && typeof entry.expiration === 'number' && atts.expiration < entry.expiration) {
             return false
         }
-        if (atts.time && atts.time < entry.time) {
+        if (atts.time && typeof entry.time === 'number' && atts.time < entry.time) {
             return false
         }
         const changed = Object.keys(atts).filter(k => {
             return (k === 'expiration' || k === 'time') ? 
-                (atts[k] > entry[k] && Math.abs(atts[k] - entry[k]) > 5) : // ignore minor time changes (performance), if something else changed it will pass
+                (typeof entry[k] === 'number' && atts[k] > entry[k] && Math.abs(atts[k] - entry[k]) > 5) : // ignore minor time changes (performance), if something else changed it will pass
                 (atts[k] != entry[k])
         }).map(k => {
             return {
@@ -686,20 +1081,21 @@ class StorageIndex extends StorageHolding {
             }
             return
         }
+        if (atts === false) return
         const time = parseInt((Date.now() / 1000))
-        if (!this.index[key]) {
-            if (atts === false) return
+        if (typeof this.index[key] !== 'object' || this.index[key] === null) {
             this.index[key] = {}
         }
         const entry = this.index[key]
-        if (!atts) atts = {}
+        if (typeof atts !== 'object' || atts === null) atts = {}
+        
         const prevAtts = Object.assign({}, atts)        
         atts = this.calcExpiration(atts || {}, entry)
         if (typeof(atts.expiration) != 'number' || !atts.expiration) {
             delete atts.expiration
         }
         atts.time = time
-        if (atts.size === 'auto' || typeof(entry.size) == 'undefined') {            
+        if (typeof(atts.size) != 'number') {            
             const stat = await fs.promises.stat(this.resolve(key)).catch(() => {})
             if (stat && stat.size) {
                 atts.size = stat.size
@@ -711,16 +1107,32 @@ class StorageIndex extends StorageHolding {
         this.index[key] = Object.assign(entry, atts)
         
         // Save expiration sidecar if expiration is present (only in main process to avoid race conditions)
-        if (this.opts.main && this.index[key]?.expiration) {
-            const file = this.resolve(key);
-            const expFile = file.replace(/\.dat$/, '.expires.json');
-            fs.promises.writeFile(expFile, String(this.index[key].expiration), 'utf8').catch(() => {});
+        if (this.opts.main) {
+            const value = this.index[key];
+            const expiration = value.expiration || prevValues.expiration;
+            if (expiration) {
+                const file = this.resolve(key);
+                const expFile = this.expiresPath(file);
+                if (expFile === file) {
+                    if (this.opts && this.opts.debug) console.warn(`[storage] Skipping writing expiration sidecar because computed expFile equals data file: ${file}`);
+                } else {
+                    fs.promises.writeFile(expFile, String(expiration), 'utf8').catch(() => {});
+                }
+            }
         }
         
         if(doNotPropagate !== true) { // IPC sync only
             this.emit('touch', key, this.index[key])
             if (this.opts.main) { // only main process should align/save index, worker will sync through IPC		
                 this.alignLimiter.call() // will call saver when done
+            } else {
+                // Worker: notify main process to persist index
+                if (this.emit && typeof this.emit === 'function') {
+                    if (paths.inWorker && typeof global.__storageTouchBridge === 'function' && this.listenerCount('storage-touch') === 0) {
+                        global.__storageTouchBridge({ key, entry: this.index[key] })
+                    }
+                    this.emit('storage-touch', { key, entry: this.index[key] })
+                }
             }
         }
     }
@@ -736,15 +1148,15 @@ class StorageIndex extends StorageHolding {
             }
             return
         }
+        if (atts === false) return
         
         const time = parseInt((Date.now() / 1000))
-        if (!this.index[key]) {
-            if (atts === false) return
+        if (typeof this.index[key] !== 'object' || this.index[key] === null) {
             this.index[key] = {}
         }
         
         const entry = this.index[key]
-        if (!atts) atts = {}
+        if (typeof atts !== 'object' || atts === null) atts = {}
         const prevAtts = Object.assign({}, atts)        
         atts = this.calcExpiration(atts || {}, entry)
         if (typeof(atts.expiration) != 'number' || !atts.expiration) {
@@ -752,7 +1164,7 @@ class StorageIndex extends StorageHolding {
         }
         atts.time = time
         
-        if (atts.size === 'auto' || typeof(entry.size) == 'undefined') {            
+        if (typeof(atts.size) != 'number') {            
             const stat = await fs.promises.stat(filePath).catch(() => {})
             if (stat && stat.size) {
                 atts.size = stat.size
@@ -765,15 +1177,27 @@ class StorageIndex extends StorageHolding {
         this.index[key] = Object.assign(entry, atts)
         
         // Save expiration sidecar if expiration is present (only in main process to avoid race conditions)
-        if (this.opts.main && this.index[key]?.expiration) {
-            const expFile = filePath.replace(/\.dat$/, '.expires.json');
-            fs.promises.writeFile(expFile, String(this.index[key].expiration), 'utf8').catch(() => {});
+        if (this.opts.main && this.index[key] && this.index[key].expiration) {
+            const expFile = this.expiresPath(filePath);
+            if (expFile === filePath) {
+                if (this.opts && this.opts.debug) console.warn(`[storage] Skipping writing expiration sidecar because computed expFile equals data file: ${filePath}`);
+            } else {
+                fs.promises.writeFile(expFile, String(this.index[key].expiration), 'utf8').catch(() => {});
+            }
         }
         
         if(doNotPropagate !== true) { // IPC sync only
             this.emit('touch', key, this.index[key])
             if (this.opts.main) { // only main process should align/save index, worker will sync through IPC		
                 this.alignLimiter.call() // will call saver when done
+            } else {
+                // Worker: notify main process to persist index
+                if (this.emit && typeof this.emit === 'function') {
+                    if (paths.inWorker && typeof global.__storageTouchBridge === 'function' && this.listenerCount('storage-touch') === 0) {
+                        global.__storageTouchBridge({ key, entry: this.index[key] })
+                    }
+                    this.emit('storage-touch', { key, entry: this.index[key] })
+                }
             }
         }
     }
@@ -782,7 +1206,7 @@ class StorageIndex extends StorageHolding {
         if (!filePath) {
             return
         }
-
+        
         const atts = {
             size: typeof opts.size !== 'undefined' ? opts.size : 'auto'
         }
@@ -840,7 +1264,8 @@ class StorageIO extends StorageIndex {
             clear: () => this.profileAuth.clearAuth(profileId)
         };
     }
-    async get(key, opts={}) {
+
+    async getOld(key, opts={}) {
         // Ensure initial migration was checked
         await this.ensureMigrationReady();
 
@@ -860,13 +1285,18 @@ class StorageIO extends StorageIndex {
         if (!this.hasValidScope(key)) {
             key = this.prepareKey(key);
 
-            // Try first as personal (with current profile)
-            let actualKey = `profiles/${this.currentProfile || 'default'}/${key}`;
-            let result = await this.getByKey(actualKey, opts);
+            // Try direct key first (for non-personal/non-sensitive data)
+            let result = await this.getByKey(key, opts);
+
+            // If not found, try as personal (with current profile)
+            if (result === null) {
+                let actualKey = `profiles/${this.currentProfile || 'default'}/${key}`;
+                result = await this.getByKey(actualKey, opts);
+            }
 
             // If not found, try as global
             if (result === null) {
-                actualKey = `global/${key}`;
+                let actualKey = `global/${key}`;
                 result = await this.getByKey(actualKey, opts);
             }
 
@@ -909,6 +1339,20 @@ class StorageIO extends StorageIndex {
         // Acquire lock and ensure it's released
         const lock = await this.lock(key, false);
         try {
+            // Revalidate row after potential async operations (race condition protection)
+            if (!this.index[key]) {
+                if(opts.throwIfMissing === true) {
+                    throw new Error('Key was deleted during processing: '+ key)
+                }
+                return null;
+            }
+            const row = this.index[key];
+            if (!row || !row.expiration) {
+                if(opts.throwIfMissing === true) {
+                    throw new Error('Key entry is invalid: '+ key)
+                }
+                return null;
+            }
             const now = (Date.now() / 1000)
             if (row.expiration < now) {
                 if(opts.throwIfMissing === true) {
@@ -937,7 +1381,7 @@ class StorageIO extends StorageIndex {
                             try {
                                 let j = parse(content);
                                 if (j && j != null) {
-                                    // Descriptografar se necessário
+                                    // Decrypt if necessary
                                     if (row.encrypted) {
                                         const profileId = this.extractProfileFromKey(key);
                                         const authKey = this.profileAuth.getAuth(profileId);
@@ -1080,7 +1524,7 @@ class StorageIO extends StorageIndex {
 
             await fs.promises.writeFile(backupFile, backupData, 'utf8');
 
-            // Atualizar index
+            // Update index
             await this.touch(backupKey, {
                 size: backupData.length,
                 permanent: true,
@@ -1149,7 +1593,7 @@ class StorageIO extends StorageIndex {
             const legacyFile = this.resolve(key);
             await fs.promises.unlink(legacyFile).catch(() => {});
 
-            // Remover do index se existir
+            // Remove from index if exists
             if (this.index[key]) {
                 delete this.index[key];
             }
@@ -1159,7 +1603,7 @@ class StorageIO extends StorageIndex {
     }
 
     isNewStructureKey(key) {
-        // Verificar se a chave já está na nova estrutura
+        // Check if the key is already in the new structure
         return this.hasValidScope(key);
     }
 
@@ -1196,7 +1640,7 @@ class StorageIO extends StorageIndex {
         return key.startsWith('global/') ? 'global' : 'personal';
     }
 
-    // Métodos de criptografia
+    // Encryption methods
     async encryptContent(content, key) {
         const iv = crypto.randomBytes(16);
         const cipher = crypto.createCipher('aes-256-gcm', key);
@@ -1225,11 +1669,12 @@ class StorageIO extends StorageIndex {
 
     async set(key, content, atts) {
         // Note: prepareKey is now called INSIDE applyScopeAndEncryption to avoid stripping scope slashes
-        // Processar novos parâmetros personal/sensitive
+        // Process new personal/sensitive parameters
         const processedAtts = this.processStorageAttributes(atts);
 
-        // Aplicar escopo e criptografia (prepareKey is applied to base key inside)
+        // Apply scope and encryption (prepareKey is applied to base key inside)
         const result = await this.applyScopeAndEncryption(key, content, processedAtts);
+        result.content = content; // preserve original content
 
         // Use write queue with the processed key
         return this.queueWrite(result.key, async () => {
@@ -1247,7 +1692,7 @@ class StorageIO extends StorageIndex {
                     result.atts.encoding = 'utf-8';
                 }
             }
-            let file = this.resolve(result.key);
+            let file = this.resolve(result.key, 'dat');
             if (result.atts.raw && typeof(result.content) != 'string' && !Buffer.isBuffer(result.content))
                 result.atts.raw = false;
             if (!result.atts.raw)
@@ -1261,19 +1706,23 @@ class StorageIO extends StorageIndex {
             // Save expiration sidecar file AFTER touch() (which calculates expiration via calcExpiration)
             const finalExp = this.index[result.key]?.expiration;
             if (typeof finalExp === 'number' && finalExp > 0) {
-                const expFile = file.replace(/\.dat$/, '.expires.json');
-                await fs.promises.writeFile(expFile, String(finalExp), 'utf8').catch(() => {});
+                const expFile = this.expiresPath(file);
+                if (expFile === file) {
+                    if (this.opts && this.opts.debug) console.warn(`[storage] Skipping writing expiration sidecar because computed expFile equals data file: ${file}`);
+                } else {
+                    await fs.promises.writeFile(expFile, String(finalExp), 'utf8').catch(() => {});
+                }
             }
 
             lock.release()
         });
     }
 
-    // Processa os atributos da nova API
+    // Process the attributes of the new API
     processStorageAttributes(atts = {}) {
         const processed = { ...atts };
 
-        // personal: true/false (padrão false)
+        // personal: true/false (default false)
         const personal = processed.personal || false;
         delete processed.personal;
 
@@ -1293,7 +1742,7 @@ class StorageIO extends StorageIndex {
         };
     }
 
-    // Aplica escopo e criptografia
+    // Apply scope and encryption
     async applyScopeAndEncryption(key, content, atts) {
         // Apply prepareKey to the BASE key first (before adding scope prefix)
         // This ensures slashes in scope prefixes are preserved
@@ -1305,14 +1754,16 @@ class StorageIO extends StorageIndex {
 
         const profileId = atts.profileId || this.currentProfile || 'default';
 
-        // Aplicar escopo - note: baseKey is already sanitized, scope prefix is added cleanly
+        // Apply scope - note: baseKey is already sanitized, scope prefix is added cleanly
         if (atts.personal) {
             finalKey = `profiles/${profileId}/${baseKey}`;
+        } else if (atts.sensitive) {
+            finalKey = `global/${baseKey}`; // Sensitive data goes to global with encryption
         } else {
-            finalKey = `global/${baseKey}`;
+            finalKey = baseKey; // No scope for non-personal, non-sensitive data
         }
 
-        // Aplicar criptografia se necessário
+        // Apply encryption if necessary
         if (atts.sensitive && !this.profileAuth.isOpen(profileId)) {
             const authKey = this.profileAuth.getAuth(profileId);
             if (authKey) {
@@ -1329,6 +1780,9 @@ class StorageIO extends StorageIndex {
     }
 
     hasValidScope(key) {
+        if (typeof key !== 'string' || !key.length) {
+            return false;
+        }
         return key.startsWith('global/') || key.startsWith('profiles/');
     }
 
@@ -1338,113 +1792,25 @@ class StorageIO extends StorageIndex {
         if (!this.hasValidScope(key)) {
             key = this.prepareKey(key);
 
-            // Try first as personal (with current profile)
-            let actualKey = `profiles/${this.currentProfile || 'default'}/${key}`;
-            let result = await this.getByKey(actualKey, opts);
+            // Try direct key first (for non-personal/non-sensitive data)
+            let result = await this.getByKey(key, opts);
+
+            // If not found, try as personal (with current profile)
+            if (result === null) {
+                let actualKey = `profiles/${this.currentProfile || 'default'}/${key}`;
+                result = await this.getByKey(actualKey, opts);
+            }
 
             // If not found, try as global
             if (result === null) {
-                actualKey = `global/${key}`;
+                let actualKey = `global/${key}`;
                 result = await this.getByKey(actualKey, opts);
             }
 
             return result;
         } else {
             // Key already has valid scope, use it directly
-            return this.getByKey(key, opts);
-        }
-    }
-
-    // Helper method to search by specific key
-    async getByKey(key, opts = {}) {
-        if (!this.index[key]) {
-            // Try auto-heal if not in index
-            const healed = await this.tryAutoHealKey(key).catch(() => false);
-            if (!healed) {
-                if(opts.throwIfMissing === true) {
-                    throw new Error('Key not found: '+ key)
-                }
-                return null;
-            }
-        }
-        const row = this.index[key]
-        if (!row) {
-            if(opts.throwIfMissing === true) {
-                throw new Error('Key not found: '+ key)
-            }
-            return null;
-        }
-
-        // grab this row to mem to avoid losing it due to its deletion in meanwhile, maybe using a lock() would be better
-        if (opts.encoding !== null && typeof(opts.encoding) != 'string') {
-            if (row.compress) {
-                opts.encoding = null
-            } else {
-                opts.encoding = 'utf-8'
-            }
-        }
-        await this.touch(key, false) // wait writing on file to finish before to re-enable access
-
-        // Acquire lock and ensure it's released
-        const lock = await this.lock(key, false);
-        try {
-            const now = (Date.now() / 1000)
-            if (row.expiration < now) {
-                if(opts.throwIfMissing === true) {
-                    throw new Error('Key expired: '+ key)
-                }
-                return null
-            }
-            const file = this.resolve(key);
-            const stat = await fs.promises.stat(file).catch(() => {});
-            const exists = stat && typeof(stat.size) == 'number';
-            if (exists) {
-                let err;
-                await this.touch(key, { size: stat.size });
-                let content = await fs.promises.readFile(file, { encoding: opts.encoding }).catch(e => err = e);
-                if (!err) {
-                    if (row.compress) {
-                        content = await this.decompress(content)
-                    }
-                    if (row.raw) {
-                        return content;
-                    } else {
-                        if (Buffer.isBuffer(content)) { // is buffer
-                            content = String(content);
-                        }
-                        if (content != 'undefined') {
-                            try {
-                                let j = parse(content);
-                                if (j && j != null) {
-                                    // Descriptografar se necessário
-                                    if (row.encrypted) {
-                                        const profileId = this.extractProfileFromKey(key);
-                                        const authKey = this.profileAuth.getAuth(profileId);
-                                        if (authKey) {
-                                            j = await this.decryptContent(j, authKey);
-                                        } else {
-                                            // Cannot decrypt - profile not authenticated
-                                            if (opts.throwIfMissing === true) {
-                                                throw new Error('Profile not authenticated: ' + profileId);
-                                            }
-                                            return null;
-                                        }
-                                    }
-                                    return j;
-                                }
-                            }
-                            catch (e) {}
-                        }
-                    }
-                }
-            }
-            if(opts.throwIfMissing === true) {
-                throw new Error('Key not found: '+ key)
-            }
-            return null;
-        } finally {
-            // Always release the lock
-            lock.release();
+            return await this.getByKey(key, opts);
         }
     }
 
@@ -1454,7 +1820,7 @@ class StorageIO extends StorageIndex {
         return match ? match[1] : 'default';
     }
 
-    // Métodos de criptografia
+    // Encryption methods
     async encryptContent(content, key) {
         const iv = crypto.randomBytes(16);
         const cipher = crypto.createCipher('aes-256-gcm', key);
@@ -1547,6 +1913,7 @@ class StorageIO extends StorageIndex {
         }
     }
     calcExpiration(atts, prevAtts) {
+        if (typeof atts !== 'object' || atts === null) atts = {};
         if (typeof(atts.expiration) == 'number') return atts
         const now = (Date.now() / 1000)
         if (typeof(atts.ttl) == 'number') {
@@ -1719,7 +2086,7 @@ class StorageIO extends StorageIndex {
         await fs.promises.mkdir(dir, { recursive: true }).catch(() => {})
         
         // Use a more predictable filename to reduce file handle usage
-        const tmpFile = path.join(dir, 'temp_' + Date.now()) + '.commit';
+        const tmpFile = path.join(dir, 'temp_' + Date.now() + '_' + process.pid + '_' + Math.floor(Math.random()*1000000)) + '.commit';
         
         const maxRetries = 3;
         let lastError;
@@ -1755,19 +2122,19 @@ class StorageIO extends StorageIndex {
                 }
                 
                 // Retry logic for specific errors
-                if ((err.code === 'ENOENT' || err.message.includes('Temporary file') || err.message.includes('empty')) && attempt < maxRetries - 1) {
-                    console.warn(`Storage write attempt ${attempt + 1} failed, retrying...`, err.message);
+                if ((err.code === 'ENOENT' || err.message.includes('Temporary file') || err.message.includes('empty') || err.message.includes('deleted')) && attempt < maxRetries - 1) {
+                    console.warn(`Storage write attempt ${attempt + 1} failed for ${path.basename(file)}, retrying...`, err.message);
                     await new Promise(resolve => setTimeout(resolve, 100 * (attempt + 1))); // Exponential backoff
                     continue;
                 }
                 
-                console.error('Storage write error:', err);
+                console.error(`Storage write error for ${path.basename(file)}:`, err.message);
                 throw err;
             }
         }
         
         // If we get here, all retries failed
-        console.error('Storage write failed after all retries:', lastError);
+        console.error(`Storage write failed after all retries for ${path.basename(file)}:`, lastError.message);
         throw lastError;
     }
     async delete(key, removeFile) {
@@ -2080,7 +2447,7 @@ class Storage extends StorageIO {
         }
     }
     
-    resolve(key, ext='dat') {
+    resolve(key, ext=null) {
         const originalKey = key;
 
         // Don't apply prepareKey if key already has valid scope prefix (global/ or profiles/)
@@ -2096,26 +2463,72 @@ class Storage extends StorageIO {
 
         for (const scopedKey of possibleKeys) {
             if (this.index[scopedKey]) {
-                if (this.index[scopedKey].file) { // still there?
-                    return this.index[scopedKey].file;
+                if (this.index[scopedKey].file && (typeof(ext) !== 'string' || this.index[scopedKey].file.endsWith('.' + ext))) { // use the indexed file if available
+                    // Check if the file actually exists
+                    try {
+                        fs.accessSync(this.index[scopedKey].file);
+                        return this.index[scopedKey].file;
+                    } catch (e) {
+                        // File doesn't exist, remove from index
+                        delete this.index[scopedKey];
+                    }
                 }
             }
         }
 
-        // Fallback: generate path based on key
-        // For scoped keys (global/xxx or profiles/xxx), convert slashes to safe chars for filename
-        // For simple keys, just use prepareKey
+        // Fallback: generate filename first
         let filename;
         if (this.hasValidScope(originalKey)) {
-            // Convert scoped key to safe filename: global/key -> globalkey, profiles/default/key -> profilesdefaultkey
-            filename = originalKey.replace(/\//g, '');
+            // Convert scoped key to safe filename: global/key -> global__key, profiles/default/key -> profiles__default__key
+            filename = originalKey.replace(/\//g, '__');
         } else {
             filename = this.prepareKey(originalKey);
         }
-        return this.opts.folder +'/'+ filename +'.'+ ext
+
+        // Try to find existing files with known extensions, preferring larger 'jdb' files
+        let candidateFiles = [];
+        for (const testExt of this.knownExtensions) {
+            if (typeof(ext) === 'string' && testExt !== ext) continue; // if specific ext requested, only try that
+            const filePath = this.opts.folder + '/' + filename + '.' + testExt;
+            try {
+                const stat = fs.statSync(filePath);
+                candidateFiles.push({ path: filePath, size: stat.size, ext: testExt });
+            } catch (e) {
+                // File doesn't exist
+            }
+        }
+        if (candidateFiles.length > 0) {
+            // Prefer 'jdb' files, and among them the largest
+            const jdbFiles = candidateFiles.filter(f => f.ext === 'jdb').sort((a, b) => b.size - a.size);
+            if (jdbFiles.length > 0) {
+                return jdbFiles[0].path;
+            }
+            // If no 'jdb', return the first (or largest if multiple)
+            candidateFiles.sort((a, b) => b.size - a.size);
+            return candidateFiles[0].path;
+        }
+
+        // If no existing file, generate default path with .dat extension
+        if (ext && !filename.endsWith('.' + ext)) {
+            return this.opts.folder + '/' + filename + '.' + ext;
+        } else if (!ext && !this.knownExtensions.some(knownExt => filename.endsWith('.' + knownExt))) {
+            // If no extension specified and filename doesn't have a known extension, add .dat
+            return this.opts.folder + '/' + filename + '.dat';
+        }
+        return this.opts.folder + '/' + filename;
     }
     unresolve(file) {
-        const key = this.prepareKey(path.basename(file).replace(new RegExp('\\.(json|offsets\\.jdb|idx\\.jdb|dat|jdb)$'), ''));
+        let basename = path.basename(file);
+        // Remove all known extensions recursively
+        const extPattern = new RegExp('\\.(json|offsets\\.jdb|idx\\.jdb|dat|jdb)$');
+        while (extPattern.test(basename)) {
+            basename = basename.replace(extPattern, '');
+        }
+        let key = this.prepareKey(basename);
+        // If the key contains '__', it's a scoped key, unscoped it
+        if (key.includes('__')) {
+            key = key.replace(/__/g, '/');
+        }
         this.touch(key, false); // touch to update entry time and so warmp up our interest on it
         return key;
     }
@@ -2124,5 +2537,12 @@ class Storage extends StorageIO {
     }
 }
 
-export default new Storage({ main: !paths.inWorker })
+let instance;
+if (globalThis.__storage_instance) {
+    instance = globalThis.__storage_instance;
+} else {
+    instance = new Storage({ main: !paths.inWorker });
+    globalThis.__storage_instance = instance;
+}
 
+export default instance;

@@ -409,7 +409,7 @@ class HLSRequests extends StreamerProxyBase {
                         this.bitrateChecker?.staticDetection?.onDbg?.(m);
                     }
                     // Using nextTick to prevent "RangeError: Maximum call stack size exceeded"
-                    // Prefetch após download completar (para garantir que está no cache)
+                    // Prefetch after download completes (to ensure it's in cache)
                     process.nextTick(() => {
                         if (config.get('hls-prefetching')) {
                             this.prefetch(opts).catch(err => {
@@ -421,20 +421,20 @@ class HLSRequests extends StreamerProxyBase {
             }
         };
         request.once('response', (status, headers) => {
-            // Iniciar prefetch mais cedo - assim que começar a receber dados
-            // Isso permite que o prefetch comece enquanto o segmento atual ainda está sendo baixado
+            // Start prefetch earlier - as soon as data starts arriving
+            // This allows prefetch to start while current segment is still being downloaded
             if (this.activeManifest && this.committed && this.validateStatus(status)) {
                 const seg = this.isSegmentURL(url);
                 if (seg && !opts.shadowClient && config.get('hls-prefetching')) {
-                    // Usar setTimeout curto para dar tempo do request atual estar bem estabelecido
-                    // e evitar conflitos com o download atual
+                    // Use short setTimeout to give time for current request to be well established
+                    // and avoid conflicts with current download
                     setTimeout(() => {
                         if (!this.destroyed) {
                             this.prefetch(opts).catch(err => {
                                 this.debugConns && console.warn('Prefetch error in response():', err);
                             });
                         }
-                    }, 100); // Pequeno delay para garantir estabilidade
+                    }, 100); // Small delay to ensure stability
                 }
             }
             if (this.validateStatus(status)) {
@@ -455,7 +455,7 @@ class HLSRequests extends StreamerProxyBase {
                 }
                 if (status == 404) {
                     this.report404ToJournal(url);
-                    status = 204; // Exoplayer doesn't plays well with 404 errors
+                    status = 204; // Exoplayer doesn't play well with 404 errors
                 }
             }
         });
@@ -478,13 +478,13 @@ class HLSRequests extends StreamerProxyBase {
             return
         }
         
-        // Verificar se segmento está na janela ao vivo antes de prefetchar
+        // Check if segment is in live window before prefetching
         if (!this.inLiveWindow(next)) {
             this.debugConns && console.warn('NOT PREFETCHING - segment outside live window', next);
             return
         }
         
-        // Contar apenas requests de segmentos do usuário (não playlists ou prefetches)
+        // Count only user segment requests (not playlists or prefetches)
         const userSegmentRequests = Object.keys(this.activeRequests).filter(url => {
             const req = this.activeRequests[url];
             return req && this.isSegmentURL(url) && (!req.opts || !req.opts.shadowClient);
@@ -495,7 +495,7 @@ class HLSRequests extends StreamerProxyBase {
             return
         }
         
-        // Verificar se já está sendo baixado (prefetch ou usuário)
+        // Check if already being downloaded (prefetch or user)
         if (this.activeRequests[next]) {
             this.debugConns && console.warn('NOT PREFETCHING - segment already downloading', next);
             return
@@ -503,7 +503,7 @@ class HLSRequests extends StreamerProxyBase {
         
         this.debugConns && console.warn('PREFETCHING', this.lastUserRequestedSegment, '=>', next);
         
-        // Não modificar opts original - criar cópia
+        // Don't modify original opts - create copy
         const nopts = Object.assign({}, opts);
         nopts.url = next;
         nopts.cachedOnly = false;
@@ -513,14 +513,14 @@ class HLSRequests extends StreamerProxyBase {
             const dl = await this.download(nopts);
             dl.start()
             
-            // Adicionar tratamento de erro - prefetch é opcional, não propagar erros
+            // Add error handling - prefetch is optional, don't propagate errors
             dl.on('error', err => {
                 this.debugConns && console.warn('PREFETCH ERROR', next, err.message || err);
-                // Não propagar erro - prefetch é opcional e não deve afetar playback
+                // Don't propagate error - prefetch is optional and shouldn't affect playback
             })
         } catch (err) {
             this.debugConns && console.warn('PREFETCH FAILED', next, err.message || err);
-            // Não propagar erro - prefetch é opcional
+            // Don't propagate error - prefetch is optional
         }
     }
     debugActiveRequests() {

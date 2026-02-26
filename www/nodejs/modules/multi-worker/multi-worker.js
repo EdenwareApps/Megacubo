@@ -39,6 +39,21 @@ class WorkerDriver extends EventEmitter {
         this.promises = {}
         this.instances = {}
         this.terminating = {}
+        // Activity check configuration
+        this.processingCalls = new Map(); // { id: { startTime, lastResponseTime, checkCount, file, method, operationTimeout, state } }
+        this.activityCheckInterval = 5000; // 5 seconds between checks (increased to reduce overhead)
+        this.maxActivityChecks = 10; // 10 checks = 50s to assume unresponsive worker
+        this.maxNoResponseTimeMs = 90000; // 90 seconds maximum time without any activity check response (increased for heavy operations)
+        this.activityCheckTimer = null
+        // Operation-specific timeouts (ms)
+        this.operationTimeouts = {
+            'parseFromFile': 180000, // 3 minutes for heavy parsing
+            'parseFromURL': 120000, // 2 minutes for URL parsing
+            'update': 180000, // 3 minutes for download + parse
+            'download': 120000, // 2 minutes for downloads
+            'start': 180000, // 3 minutes for full update flow
+            'default': 30000 // 30 seconds for other operations
+        }
     }
     proxy(file) {
         if (this.instances[file]) {
@@ -103,6 +118,8 @@ class WorkerDriver extends EventEmitter {
                         self.iterator++;
                         self.promises[id] = {
                             resolve: ret => {
+                                // Clean up activity monitoring
+                                self.processingCalls.delete(id);
                                 resolve(ret);
                                 delete self.promises[id];
                                 const pending = Object.values(self.promises).some(p => p.file == file);
@@ -112,18 +129,24 @@ class WorkerDriver extends EventEmitter {
                                 }
                             },
                             reject: err => {
+                                // Clean up activity monitoring
+                                self.processingCalls.delete(id);
                                 reject(err);
                             },
                             file,
-                            method
+                            method,
+                            args
                         }
                         if (DEBUG) {
                             self.promises[id].traceback = traceback()
                         }
                         try {
                              self.worker.postMessage({ method, id, file, args });
+                             // Start activity check monitoring
+                             self.startActivityMonitoring(id, file, method);
                         } catch (e) {
                             console.error({ e, method, id, file, args });
+                            self.processingCalls.delete(id);
                         }
                     });
                 };
@@ -178,6 +201,75 @@ class WorkerDriver extends EventEmitter {
             }
         })
     }
+    retryAll(file) {
+        if (!this.worker) {
+            console.warn('Cannot retry calls, worker not available');
+            return;
+        }
+        
+        const promisesToRetry = [];
+        Object.keys(this.promises).forEach(oldId => {
+            if (!file || this.promises[oldId].file == file) {
+                promisesToRetry.push({ oldId, data: this.promises[oldId] });
+            }
+        });
+        
+        if (promisesToRetry.length === 0) {
+            return;
+        }
+        
+        console.log(`🔄 Retrying ${promisesToRetry.length} worker calls with new IDs...`);
+        
+        for (const { oldId, data } of promisesToRetry) {
+            this.retrySingleCall(oldId);
+        }
+    }
+    
+    retrySingleCall(oldId) {
+        const data = this.promises[oldId];
+        if (!data) {
+            return;
+        }
+        
+        const { file, method } = data;
+        const args = data.args || [];
+        
+        try {
+            // Generate new ID for retry to avoid callback conflicts
+            const newId = this.iterator++;
+            
+            console.log(`🔄 Retrying single call ${file}.${method} - oldId: ${oldId} -> newId: ${newId}`);
+            
+            // Mark old call as retired (ignore responses to this ID)
+            const oldCall = this.processingCalls.get(oldId);
+            if (oldCall) {
+                oldCall.state = 'retired';
+            }
+            
+            // Copy resolve/reject to new ID
+            this.promises[newId] = {
+                resolve: data.resolve,
+                reject: data.reject,
+                file,
+                method,
+                args,
+                originalId: oldId // Track original ID for debugging
+            };
+            
+            // Delete old promise to prevent double-resolution
+            delete this.promises[oldId];
+            
+            // Send with new ID
+            this.worker.postMessage({ method, id: newId, file, args });
+            
+            // Start activity monitoring for new call
+            this.startActivityMonitoring(newId, file, method);
+        } catch (e) {
+            console.error(`Error retrying ${data.file}.${data.method}:`, e);
+            data.reject(new Error(`Failed to retry: ${e.message}`));
+            delete this.promises[oldId];
+        }
+    }
     load(file, exclusive) {
         if (paths.inWorker) {
             throw 'Cannot load a worker inside another worker: ' + file +' '+ global.file
@@ -204,10 +296,10 @@ class WorkerDriver extends EventEmitter {
             config.on('change', this.configChangeListener)
         });
         this.on('storage-touch', async msg => {
-            if(msg) {
+            if(msg && msg.key && msg.entry) {
                 const changed = storage.validateTouchSync(msg.key, msg.entry)
                 if (changed && changed.length) {
-                    await storage.touch(msg.key, msg.entry).catch(err => console.error(err))
+                    await storage.touch(msg.key, msg.entry, true).catch(err => console.error(err))
                 }
             }
         })
@@ -243,6 +335,194 @@ class WorkerDriver extends EventEmitter {
         file = path.relative(dirname, file)
         return file
     }
+    
+    // Activity Check: Start monitoring a call
+    startActivityMonitoring(id, file, method) {
+        // Determine operation-specific timeout
+        let operationTimeout = this.operationTimeouts.default;
+        if (method && this.operationTimeouts[method]) {
+            operationTimeout = this.operationTimeouts[method];
+        }
+        
+        this.processingCalls.set(id, {
+            startTime: Date.now(),
+            lastResponseTime: Date.now(), // Time of last activity check response
+            checkCount: 0,
+            file,
+            method,
+            operationTimeout, // Max total execution time for this operation
+            state: 'pending' // pending, retired, settled
+        });
+        
+        // Start periodic checks if not already running
+        if (!this.activityCheckTimer) {
+            this.activityCheckTimer = setInterval(() => {
+                this.performActivityCheck();
+            }, this.activityCheckInterval);
+        }
+    }
+    
+    // Activity Check: Perform periodic checks
+    performActivityCheck() {
+        if (!this.worker || !this.processingCalls.size) {
+            if (this.activityCheckTimer && this.processingCalls.size === 0) {
+                clearInterval(this.activityCheckTimer);
+                this.activityCheckTimer = null;
+            }
+            return;
+        }
+        
+        const now = Date.now();
+        const callsToReject = [];
+        
+        for (const [id, call] of this.processingCalls.entries()) {
+            // Skip retired calls (already retried)
+            if (call.state === 'retired') {
+                this.processingCalls.delete(id);
+                continue;
+            }
+            
+            // Check operation-specific timeout (max execution time)
+            if (now - call.startTime > call.operationTimeout) {
+                callsToReject.push({
+                    id,
+                    reason: `Operation timeout after ${call.operationTimeout}ms (${call.method})`,
+                    call
+                });
+                continue;
+            }
+            
+            // Check time without activity check response
+            // IMPORTANT: Use operationTimeout as limit (worker can take the full operation time to respond)
+            const maxNoResponseForThisCall = call.operationTimeout;
+            const timeSinceLastResponse = now - call.lastResponseTime;
+            if (timeSinceLastResponse > maxNoResponseForThisCall) {
+                callsToReject.push({
+                    id,
+                    reason: `No activity check response for ${timeSinceLastResponse}ms (max: ${maxNoResponseForThisCall}ms)`,
+                    call
+                });
+                continue;
+            }
+            
+            // Send activity check
+            try {
+                const timeSinceStart = now - call.startTime;
+                const percentComplete = Math.round((timeSinceStart / call.operationTimeout) * 100);
+                
+                if (percentComplete > 50) {
+                    // Log progress for long-running operations
+                    console.log(`⏱️ Operation in progress: ${call.file}.${call.method} (${Math.round(timeSinceStart/1000)}s / ${Math.round(call.operationTimeout/1000)}s, ${percentComplete}%)`);
+                }
+                
+                this.worker.postMessage({
+                    method: 'checkActivity',
+                    id: 0, // system check id
+                    requestId: id // original call id
+                });
+            } catch (e) {
+                console.error('Error sending activity check:', e.message);
+                callsToReject.push({
+                    id,
+                    reason: 'Failed to send activity check',
+                    call
+                });
+            }
+        }
+        
+        // Process rejections
+        for (const { id, reason, call } of callsToReject) {
+            if (this.promises[id]) {
+                console.warn(`⚠️ IPC timeout: ${call.file}.${call.method} - ${reason}`);
+                this.promises[id].reject(new Error(`IPC timeout: ${reason}`));
+                delete this.promises[id];
+            }
+            this.processingCalls.delete(id);
+        }
+    }
+    
+    // Activity Check: Process worker response
+    handleActivityCheck(requestId, isProcessing) {
+        const call = this.processingCalls.get(requestId);
+        if (!call) return; // Call already completed or retired
+        
+        // Skip if already retired (retry is happening)
+        if (call.state === 'retired') {
+            return;
+        }
+        
+        if (isProcessing) {
+            // Worker is still processing this request, all good
+            // Reset counter and response timer
+            call.checkCount = 0;
+            call.lastResponseTime = Date.now();
+            
+            this.debug && console.log(`✅ Worker still processing: ${call.file}.${call.method} (${requestId})`);
+        } else {
+            // Worker responded "I don't know this ID"
+            // This means: never received request OR lost state
+            
+            if (call.checkCount === 0) {
+                // First time worker says "don't know" → request never arrived
+                console.warn(`⚠️ Worker didn't receive request: ${call.file}.${call.method} (${requestId}) - Retrying...`);
+                
+                // Mark as retired and retry this single call with new ID
+                call.state = 'retired';
+                this.processingCalls.delete(requestId);
+                this.retrySingleCall(requestId);
+            } else if (call.checkCount < 3) {
+                // 2-3 consecutive "don't know" responses
+                // Worker might be in state transition, keep checking
+                call.checkCount++;
+                console.warn(`⚠️ Worker lost state: ${call.file}.${call.method} (${requestId}) - Check attempt ${call.checkCount}/3`);
+            } else {
+                // 3+ consecutive "don't know" responses → worker genuinely lost state
+                console.error(`❌ Worker lost state permanently: ${call.file}.${call.method} (${requestId}) - Restarting worker`);
+                
+                if (this.promises[requestId]) {
+                    this.promises[requestId].reject(
+                        new Error(`Worker lost state after ${call.checkCount} failed activity checks`)
+                    );
+                    delete this.promises[requestId];
+                }
+                
+                this.processingCalls.delete(requestId);
+                this.restartWorker();
+            }
+        }
+    }
+    
+    // Restart worker if unresponsive
+    restartWorker() {
+        if (this.finished) return;
+        
+        console.warn('🔄 Restarting unresponsive worker...');
+        
+        if (this.worker) {
+            try {
+                this.worker.terminate().catch(e => console.error(e));
+            } catch (e) {
+                console.error(e);
+            }
+            this.worker = null;
+            this.workerReady = false;
+        }
+        
+        this.processingCalls.clear();
+        
+        // Reinitialize worker
+        if (!this.finished) {
+            this.initializeWorker().then(() => {
+                // After worker is reinitialized, retry pending calls
+                console.log('🔄 Worker restarted, retrying pending calls...');
+                this.retryAll();
+            }).catch(err => {
+                console.error('❌ Failed to restart worker:', err.message);
+                this.rejectAll(null, 'worker restart failed');
+            });
+        }
+    }
+    
     terminate() {
         this.finished = true;
         // Clear any pending restart timeout
@@ -527,8 +807,20 @@ export default class ThreadWorkerDriver extends WorkerDriver {
                 return
             }
             
+            if (ret.type === 'activity-check') {
+                this.handleActivityCheck(ret.requestId, ret.processing)
+                return
+            }
+            
             if (ret.id) {
                 if (ret.id && typeof(this.promises[ret.id]) != 'undefined') {
+                    // Clean up activity monitoring before resolving
+                    const call = this.processingCalls.get(ret.id);
+                    if (call) {
+                        call.state = 'settled';
+                        this.processingCalls.delete(ret.id);
+                    }
+                    
                     if (ret.type == 'reject') {
                         const stack = this.promises[ret.id].traceback || ret.traceback || ret?.data?.stack || ''
                         ret.data = String(ret?.data?.message || ret.data) +'\n' + stack
@@ -536,7 +828,11 @@ export default class ThreadWorkerDriver extends WorkerDriver {
                     this.promises[ret.id][ret.type](ret.data);
                     delete this.promises[ret.id];
                 } else {
-                    console.warn('Callback repeated', ret);
+                    // Ignore response if promise doesn't exist (was retired or cleaned up)
+                    const call = this.processingCalls.get(ret.id);
+                    if (call?.state !== 'retired') {
+                        console.warn('Callback repeated or orphaned', ret);
+                    }
                 }
             } else {
                 let args = []
@@ -556,7 +852,13 @@ export default class ThreadWorkerDriver extends WorkerDriver {
                 }
                 const name = this.resolve(ret.file)
                 this.debug && console.log('🔍 MultiWorker: Resolving event:', { name, hasInstance: !!this.instances[name], args })
-                if (name && this.instances[name]) {
+                
+                // IPC sync events should ALWAYS be emitted on the driver (not instance)
+                // so that bindChangeListeners() can intercept them for cross-process sync
+                if (args[0] == 'storage-touch' || args[0] == 'config-change') {
+                    this.debug && console.log(`🔍 MultiWorker: ${args[0]} - emitting to driver for IPC`)
+                    this.emit(...args)
+                } else if (name && this.instances[name]) {
                     this.debug && console.log('🔍 MultiWorker: Emitting to instance:', name)
                     this.instances[name].emit(...args)
                 } else {

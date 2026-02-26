@@ -126,7 +126,18 @@ class Index extends Common {
                         }
 
                         let ret = false;
-                        ret = await list.indexer.db.exists(criteria);
+                        try {
+                            ret = await list.indexer.db.exists(criteria);
+                        } catch (err) {
+                            // list db file deleted?! check and maybe unload it
+                            if (err.message.includes('no such file')) {
+                                if (this.debug) {
+                                    console.warn(`Database for list ${url} seems to be deleted. Unloading list.`);
+                                }
+                                this.remove(url);
+                            }
+                            return;
+                        }
                         
                         if (ret) {
                             found = true;
@@ -246,8 +257,8 @@ class Index extends Common {
                 if (opts.typeStrict === true) {
                     return StreamClassifier.clearlyVOD(entry);
                 } else {
-                    // Quando typeStrict=false, incluir seemsVOD OU null (unknown)
-                    // Otimização: classificar uma vez e reutilizar o resultado
+                    // When typeStrict=false, include seemsVOD OR null (unknown)
+                    // Optimization: classify once and reuse the result
                     const classification = StreamClassifier.classify(entry);
                     return classification === 'vod' || classification === 'seems-vod' || classification === null;
                 }
@@ -255,8 +266,8 @@ class Index extends Common {
                 if (opts.typeStrict === true) {
                     return StreamClassifier.clearlyLive(entry);
                 } else {
-                    // Quando typeStrict=false, incluir seemsLive OU null (unknown)
-                    // Otimização: classificar uma vez e reutilizar o resultado
+                    // When typeStrict=false, include seemsLive OR null (unknown)
+                    // Optimization: classify once and reuse the result
                     const classification = StreamClassifier.classify(entry);
                     return classification === 'live' || classification === 'seems-live' || classification === null;
                 }
@@ -807,7 +818,7 @@ class Index extends Common {
         
         return this.adjustSearchResults(results, opts, limit)
     }
-    adjustSearchResults(entries, opts, limit) {
+    adjustSearchResults(entries, opts, limit, sort = false) {
         let map = {}, nentries = [];
         if (opts.type == 'live') {
             entries = StreamClassifier.filter(entries, 'live', opts.typeStrict === true);
@@ -827,35 +838,43 @@ class Index extends Common {
             entries = StreamClassifier.filter(entries, 'vod', opts.typeStrict === true);
             entries = StreamClassifier.prioritizeExtensions(entries, StreamClassifier.VIDEO_FORMATS, []);
         }
-        entries.forEach(e => {
-            // Skip entries without valid URL
-            if (!e || !e.url || typeof e.url !== 'string') {
-                return;
-            }
-            
-            let domain = getDomain(e.url);
-            if (typeof (map[domain]) == 'undefined') {
-                map[domain] = [];
-            }
-            map[domain].push(e);
-        });
-        let domains = Object.keys(map);
-        for (let i = 0; nentries.length < limit; i++) {
-            let keep;
-            domains.forEach(domain => {
-                if (!map[domain] || nentries.length >= limit)
+        const distributeDomains = config.get('commumnity-mode-lists-amount') > 0;
+        if (distributeDomains) {
+            entries.forEach(e => {
+                // Skip entries without valid URL
+                if (!e || !e.url || typeof e.url !== 'string') {
                     return;
-                if (map[domain].length > i) {
-                    keep = true;
-                    nentries.push(map[domain][i]);
-                } else {
-                    delete map[domain];
                 }
+                
+                let domain = getDomain(e.url);
+                if (typeof (map[domain]) == 'undefined') {
+                    map[domain] = [];
+                }
+                map[domain].push(e);
             });
-            if (!keep)
-                break;
+            let domains = Object.keys(map);
+            for (let i = 0; nentries.length < limit; i++) {
+                let keep;
+                domains.forEach(domain => {
+                    if (!map[domain] || nentries.length >= limit)
+                        return;
+                    if (map[domain].length > i) {
+                        keep = true;
+                        nentries.push(map[domain][i]);
+                    } else {
+                        delete map[domain];
+                    }
+                });
+                if (!keep)
+                    break;
+            }
+        } else {
+            nentries = entries;
         }
-        return this.tools.sort(nentries);
+        if (sort === true) {
+            return this.tools.sort(nentries);
+        }
+        return nentries;
     }
     ext(file) {
         return String(file).split('?')[0].split('#')[0].split('.').pop().toLowerCase();

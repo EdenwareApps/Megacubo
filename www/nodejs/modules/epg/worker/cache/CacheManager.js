@@ -123,9 +123,9 @@ export class CacheManager {
       return undefined
     }
     
-    // Retornar apenas os terms se entry for um objeto com timestamp
+    // Return only the terms if entry is an object with timestamp
     if (entry && typeof entry === 'object' && 'terms' in entry) {
-      // Verificar TTL
+      // Check TTL
       if (this._isExpired(entry.timestamp)) {
         this.termsCache.delete(id)
         this.metrics.evictions++
@@ -136,7 +136,7 @@ export class CacheManager {
       return entry.terms
     }
     
-    // Compatibilidade: se for apenas terms (formato antigo), retornar diretamente
+    // Compatibility: if it's just terms (old format), return directly
     this.metrics.hits++
     return entry
   }
@@ -146,8 +146,8 @@ export class CacheManager {
     
     // Prevent cache from growing too large
     if (this.termsCache.size >= this.maxSize) {
-      // MODIFICADO: Usar eviction parcial ao invés de clear completo
-      // Remove apenas 20% das entradas mais antigas (mais seguro durante parsing)
+      // MODIFIED: Use partial eviction instead of complete clear
+      // Remove only 20% of oldest entries (safer during parsing)
       console.warn('Terms cache size limit reached, evicting oldest 20%...')
       this._evictOldestEntries(this.termsCache, Math.floor(this.maxSize * 0.2))
     }
@@ -161,12 +161,12 @@ export class CacheManager {
 
   getAllTerms() {
     this._ensureTermsCache()
-    // Retornar um Map transformado que mapeia diretamente para os terms
-    // (compatibilidade com código que espera receber terms diretamente)
+    // Return a transformed Map that maps directly to terms
+    // (compatibility with code expecting to receive terms directly)
     const termsMap = new Map()
     for (const [id, entry] of this.termsCache.entries()) {
       if (entry && typeof entry === 'object' && 'terms' in entry) {
-        // Verificar TTL antes de incluir
+        // Check TTL before including
         if (!this._isExpired(entry.timestamp)) {
           termsMap.set(id, entry.terms)
         }

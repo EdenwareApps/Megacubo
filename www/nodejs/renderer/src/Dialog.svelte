@@ -55,10 +55,10 @@
     }
 
     export function end(cancel = false, targetDialogId = null, force = false) {
-        // Se um ID específico foi fornecido, remover diálogos com este ID da fila
+        // If a specific ID was provided, remove dialogs with this ID from the queue
         if (targetDialogId !== null) {
             removeQueuedDialogs(targetDialogId);
-            // Se o ID não corresponde ao diálogo atual, só remover da fila
+            // If the ID doesn't match the current dialog, only remove from queue
             if (currentDialogId !== targetDialogId) {
                 return true; // Removeu da fila com sucesso
             }

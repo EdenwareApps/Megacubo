@@ -31,7 +31,8 @@ export default class CommunityListsIPTVORG extends EventEmitter {
         }
     }
     async load(force = false) {
-        if (!Object.keys(this.data).length || force || this.forceRefreshFlag) {
+        const noData = !Object.keys(this.data).length;
+        if (noData || force || this.forceRefreshFlag) {
             const cloudOpts = (force || this.forceRefreshFlag) ? { bypassCache: true } : undefined;
             await cloud.get('configure', cloudOpts).then(c => {
                 this.data = c['sources'] || {};
@@ -53,10 +54,12 @@ export default class CommunityListsIPTVORG extends EventEmitter {
                 if (lists.length > maxLists) {
                     lists = lists.slice(0, maxLists);
                 }
-                adder(lists.map((list, i) => {
+                const ret = lists.map((list, i) => {
                     list = { type: 'community', url: list, health: factor * (1 - (i * (1 / lists.length))) };
                     return list;
-                }));
+                });
+                adder && adder(ret);
+                return ret;
             } else {
                 console.error('[CommunityListsIPTVORG] no list found for this language or country.');
             }
@@ -85,7 +88,7 @@ export default class CommunityListsIPTVORG extends EventEmitter {
         return entries;
     }
     async hook(entries, path) {
-        if (path.split('/').pop() == lang.COMMUNITY_LISTS && config.get('communitary-mode-lists-amount')) {
+        if (path.split('/').pop() == lang.COMMUNITY_LISTS && config.get('community-mode-lists-amount')) {
             entries.splice(entries.length - 1, 0, { name: lang.COUNTRIES, details: lang.ALL, fa: 'fas fa-globe', details: this.details, type: 'group', renderer: this.entries.bind(this) });
         }
         return entries;

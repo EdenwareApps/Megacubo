@@ -138,9 +138,28 @@ class MenuScrolling extends MenuIcons {
         document.body.classList[verticalLayout ? 'add' : 'remove']('portrait')
         this.sideMenuSync(true)
     }
-    scrollTop(y, animate) {
+    scrollTop(y, animate, suspendSnap) {
         // Ensure y is a valid number
         if (typeof(y) == 'number' && isFinite(y) && y >= 0 && this.scrollContainer.scrollTop != y) {
+            if (suspendSnap === true) {
+                // Temporarily disable scroll snap
+                const previousSnapType = this.scrollContainer.style.scrollSnapType
+                this.scrollContainer.style.scrollSnapType = 'none'
+                
+                // Listen for scroll end to restore snap type
+                const restoreSnapType = () => {
+                    this.scrollContainer.style.scrollSnapType = previousSnapType || 'y mandatory'
+                }
+                
+                if (animate) {
+                    // For smooth scrolling, wait for scrollend event
+                    this.scrollContainer.addEventListener('scrollend', restoreSnapType, { once: true })
+                } else {
+                    // For instant scrolling, restore immediately after
+                    setTimeout(restoreSnapType, 0)
+                }
+            }
+            
             this.scrollContainer.scroll({
                 top: y,
                 left: 0,
@@ -532,6 +551,11 @@ export class Menu extends MenuNav {
                 }
             } else {
                 this.wrap.querySelectorAll('.entry-busy').forEach(e => e.classList.remove('entry-busy'))
+            }
+        })
+        main.on('scroll-to-top', () => {
+            if (this.scrollContainer) {
+                this.scrollTop(0, false, true)
             }
         })
     }

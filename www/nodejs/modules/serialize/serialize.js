@@ -8,7 +8,7 @@ export function prepare(obj, visited = new WeakSet()) {
     }
     visited.add(obj);
 
-    // Se for array, processa com loop simples e flag de mudança.
+    // If array, process with simple loop and change flag.
     if (Array.isArray(obj)) {
         const result = new Array(obj.length);
         for (let i = 0; i < obj.length; i++) {
@@ -17,7 +17,7 @@ export function prepare(obj, visited = new WeakSet()) {
         return result;
     }
 
-    // Para tipos especiais, sempre gera novo valor.
+    // For special types, always generate new value.
     if (obj instanceof Date) {
         return obj.toISOString();
     }
@@ -39,7 +39,7 @@ export function prepare(obj, visited = new WeakSet()) {
     }
 
 
-    // Para objetos comuns, itera sobre as chaves próprias.
+    // For common objects, iterate over own keys.
     const keys = Object.keys(obj);
     const result = {};
     for (let i = 0; i < keys.length; i++) {

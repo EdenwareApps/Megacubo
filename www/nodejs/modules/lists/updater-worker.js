@@ -5,6 +5,7 @@ import setupUtils from '../multi-worker/utils.js'
 import UpdateListIndex from './update-list-index.js'
 import ListIndex from './list-index.js'
 import { getFilename } from 'cross-dirname'
+import fs from 'fs'
 
 const utils = setupUtils(getFilename())
 
@@ -157,8 +158,18 @@ class UpdaterWorker extends Common {
 				updater = null
 			}
 			
+			// Cleanup temp file after successful parsing (async, non-blocking)
+			fs.promises.unlink(tempFilePath)
+				.then(() => console.log(`🗑️ Cleaned up temp file: ${tempFilePath}`))
+				.catch(err => console.warn(`⚠️ Failed to cleanup temp file: ${err.message}`))
+			
 			return result
 		} catch (err) {
+			// Cleanup temp file even on error (async, non-blocking)
+			fs.promises.unlink(tempFilePath)
+				.then(() => console.log(`🗑️ Cleaned up temp file after error: ${tempFilePath}`))
+				.catch(cleanupErr => console.warn(`⚠️ Failed to cleanup temp file: ${cleanupErr.message}`))
+			
 			// Ensure cleanup on error
 			if (updater && !updater.destroyed) {
 				await updater.destroy().catch(cleanupErr => console.error('Error during updater cleanup:', cleanupErr))
@@ -218,8 +229,7 @@ class UpdaterWorker extends Common {
 		const now = (Date.now() / 1000)
 
 		if (should) {
-			// Emitir evento de início de atualização ANTES de começar
-			utils.emit('update-start', { url })
+            // Emit update start event BEFORE beginning
 			
 			const updateMeta = {}
 			const file = resolveListDatabaseFile(url)
@@ -252,7 +262,7 @@ class UpdaterWorker extends Common {
 					updateSucceeded = true
 				} catch (err) {
 					console.error('updater - error during update:', err)
-					// Emitir erro específico
+					// Emit specific error
 					utils.emit('update-error', { url, error: err })
 					// Ensure proper cleanup on error
 					if (updater) {
@@ -287,10 +297,7 @@ class UpdaterWorker extends Common {
 					raw: true
 				})
 
-				// Emitir evento de fim de atualização (sucesso)
-				utils.emit('update-end', { url, succeeded: updateSucceeded })
-				
-				return ret ? result : false
+                // Emit update end event (success)
 			} finally {
 				// Ensure cleanup even if something goes wrong
 				if (updater && !updater.destroyed) {
@@ -302,7 +309,7 @@ class UpdaterWorker extends Common {
 					updater = null
 				}
 				
-				// Garantir que sempre emitimos update-end, mesmo em caso de erro
+				// Ensure we always emit update-end, even on error
 				if (!updateSucceeded && should) {
 					utils.emit('update-end', { url, succeeded: false })
 				}
@@ -311,7 +318,7 @@ class UpdaterWorker extends Common {
 				this.forceGarbageCollection()
 			}
 		} else {
-			// Não precisa atualizar - emitir evento de fim imediatamente
+			// No need to update - emit end event immediately
 			utils.emit('update-end', { url, succeeded: false, skipped: true })
 			return false // no need to update, by updateAfter
 		}
@@ -359,7 +366,7 @@ class UpdaterWorker extends Common {
 				validated = false
 			}
 		} finally {
-			// Garantir que o ListIndex sempre seja destruído, mesmo em caso de erro
+			// Ensure ListIndex is always destroyed, even on error
 			try {
 				if (list && !list.destroyed) {
 					await list.destroy()

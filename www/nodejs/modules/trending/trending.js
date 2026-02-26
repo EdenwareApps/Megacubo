@@ -58,7 +58,7 @@ export default class Trending extends EntriesGroup {
     }
     showChannelOnHome() {
         const { manager } = lists;
-        return manager.get().length || config.get('communitary-mode-lists-amount');
+        return manager.get().length || config.get('community-mode-lists-amount');
     }
     async update(rawEntries = null) {
         this.updating = true;
@@ -295,7 +295,7 @@ export default class Trending extends EntriesGroup {
         return entries;
     }
     async order(entries) {
-        if (this.currentRawEntries) {
+        if (Array.isArray(this.currentRawEntries)) {
             let up = [], es = entries.slice(0);
             this.currentRawEntries.forEach(r => {
                 es.some((e, i) => {

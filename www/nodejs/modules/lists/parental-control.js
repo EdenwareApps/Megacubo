@@ -64,9 +64,9 @@ class ParentalControl extends EventEmitter {
                             if (attempts < maxAttempts) {
                                 const retry = await menu.dialog([
                                     { template: 'question', text: lang.PARENTAL_CONTROL, fa: 'fas fa-shield-alt' },
-                                    { template: 'message', text: lang.PASSWORD_SETUP_FAILED || 'A configuração da senha não foi concluída. Deseja tentar novamente?' },
-                                    { template: 'option', id: 'yes', fa: 'fas fa-redo', text: lang.YES || 'Sim' },
-                                    { template: 'option', id: 'no', fa: 'fas fa-times', text: lang.NO || 'Não' }
+                                    { template: 'message', text: lang.PASSWORD_SETUP_FAILED || 'Password setup was not completed. Do you want to try again?' },
+                                    { template: 'option', id: 'yes', fa: 'fas fa-redo', text: lang.YES || 'Yes' },
+                                    { template: 'option', id: 'no', fa: 'fas fa-times', text: lang.NO || 'No' }
                                 ], 'parental-control-retry', true);
                                 
                                 if (retry !== 'yes') {

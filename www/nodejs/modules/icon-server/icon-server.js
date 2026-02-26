@@ -110,7 +110,7 @@ class IconSearch extends IconDefault {
         })
     }
     updateTrendingIcons() {
-        if(!global.channels.trending.currentRawEntries) return
+        if(!Array.isArray(global.channels.trending.currentRawEntries)) return
         this.trendingIcons = {}
         global.channels.trending.currentRawEntries.forEach(e => {
             if (e.icon) {
@@ -325,6 +325,10 @@ class IconServerStore extends IconSearch {
         const { bytesRead } = await fd.read(content, 0, readSize, 0).catch(e => err = e)
         await fd.close()
         if(err) throw err
+        const stat = await fs.promises.stat(file);
+        if (stat.size < this.opts.minContentLength) {
+            return 0;
+        }
         return this.validate(content.slice(0, bytesRead))
     }
     async serve(file) {
@@ -335,15 +339,15 @@ class IconServerStore extends IconSearch {
         return this.url + 'icons-cache-' + key + '.dat';
     }
     async checkCache(key) {
-        const has = await storage.exists('icons-cache-' + key)
+        const has = await storage.exists('icons-cache-' + key, 'dat');
         if (has !== false) {
-            const resolved = storage.resolve('icons-cache-' + key);
+            const resolved = storage.resolve('icons-cache-' + key, 'dat');
             return resolved;
         }
         throw 'no http cache'
     }
     async saveCacheExpiration(key, valid) {
-        const file = storage.resolve('icons-cache-' + key);
+        const file = storage.resolve('icons-cache-' + key, 'dat');
         if (typeof(valid) != 'boolean') {
             const stat = await fs.promises.stat(file).catch(() => false);
             valid = stat && stat.size && stat.size > 25
@@ -360,7 +364,7 @@ class IconServerStore extends IconSearch {
         if (String(url).startsWith(suffix)) {            
             const key = this.key(url);
             const buffer = Buffer.from(url.substr(suffix.length), 'base64');
-            const storageFile = storage.resolve('icons-cache-' + key);
+            const storageFile = storage.resolve('icons-cache-' + key, 'dat');
             
             // Save buffer directly to file and register path in storage
             await storage.set('icons-cache-' + key, buffer, {ttl: this.ttlCache });
@@ -405,7 +409,7 @@ class IconServerStore extends IconSearch {
         if (this.opts.debug) {
             console.log('fetchURL', url, 'request', err);
         }
-        const storageFile = storage.resolve('icons-cache-' + key);
+        const storageFile = storage.resolve('icons-cache-' + key, 'dat');
         err = null;
         await this.limiter.download(async () => {
             if(!this.activeDownloads[url]) {
@@ -499,6 +503,7 @@ class IconServer extends IconServerStore {
             addr: '127.0.0.1',
             port: 0,
             maxContentLength: 1 * (1024 * 1024),
+            minContentLength: 512,
             folder: data + '/icons',
             debug: false
         };

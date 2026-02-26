@@ -214,10 +214,10 @@ class StreamClassifier {
             } else {
                 // Includes seems matches AND null (unknown) when typeStrict=false
                 if (type === 'vod') {
-                    // Quando typeStrict=false, incluir também null (unknown) como possível VOD válida
+                    // When typeStrict=false, also include null (unknown) as possible valid VOD
                     return classification === 'vod' || classification === 'seems-vod' || classification === null;
                 } else { // type === 'live'
-                    // Quando typeStrict=false, incluir também null (unknown) como possível live válida
+                    // When typeStrict=false, also include null (unknown) as possible valid live
                     return classification === 'live' || classification === 'seems-live' || classification === null;
                 }
             }

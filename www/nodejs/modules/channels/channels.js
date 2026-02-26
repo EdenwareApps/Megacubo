@@ -34,7 +34,7 @@ class ChannelsData extends EventEmitter {
         renderer.ready(async () => {
             this.load().catch(err => console.error(err))
             config.on('change', async (keys) => {
-                if (['parental-control', 'parental-control-terms', 'lists', 'public-lists', 'communitary-mode-lists-amount', 'countries'].some(k => keys.includes(k))) {
+                if (['parental-control', 'parental-control-terms', 'lists', 'public-lists', 'community-mode-lists-amount', 'countries'].some(k => keys.includes(k))) {
                     await this.load(true);
                 }
             })
@@ -43,7 +43,7 @@ class ChannelsData extends EventEmitter {
         })
     }
     async load(refresh) {
-        const publicMode = config.get('public-lists') && !config.get('lists').length && !config.get('communitary-mode-lists-amount')
+        const publicMode = config.get('public-lists') && !config.get('lists').length && !config.get('community-mode-lists-amount')
         const countries = await lang.getActiveCountries()
         const includeAdult = !!global.lists?.parentalControl?.lazyAuth?.()
         const onlyFree = publicMode
@@ -327,7 +327,8 @@ class ChannelsEPG extends ChannelsData {
     }
     async adjustEPGChannelEntryRenderer(e, detached) {
         const terms = this.entryTerms(e).filter(t => !t.startsWith('-'));
-        const options = [], results = await global.lists.epgSearchChannel(terms, 99)
+        const options = []
+        const results = await global.lists.epgSearchChannel(terms, 99)
         Object.keys(results).forEach(name => {
             let keys = Object.keys(results[name]);
             if (!keys.length)
@@ -1339,20 +1340,14 @@ class Channels extends ChannelsKids {
                     fa: 'fas fa-play-circle',
                     renderer: async () => {
                         try {
-                            const timeoutPromise = new Promise((_, reject) =>
-                                setTimeout(() => reject(new Error('Search timeout')), 10000)
-                            );
-                            return await Promise.race([
-                                global.lists.search(tms, {
-                                    type: atts.mediaType,
-                                    group: false,
-                                    safe: !global.lists.parentalControl.lazyAuth(),
-                                    limit: 1024
-                                }),
-                                timeoutPromise
-                            ]);
+                            return await global.lists.search(tms, {
+                                type: atts.mediaType,
+                                group: false,
+                                safe: !global.lists.parentalControl.lazyAuth(),
+                                limit: 1024
+                            })
                         } catch (error) {
-                            ErrorHandler.warn('Search failed in toMetaEntry renderer:', error.message);
+                            console.warn('Search failed in toMetaEntry renderer:', error.message);
                             return []; // Return empty array to prevent hanging
                         }
                     }

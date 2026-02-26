@@ -23,13 +23,13 @@ class StreamerPlaybackTimeout extends EventEmitter {
                     this.lastProgressValue = window.player?.current?.time() || 0
                     
                     const checkStuck = () => {
-                        // Verificar se player ainda está disponível
+                        // Check if player is still available
                         if (!window.player?.current) {
                             this.cancelTimeout()
                             return
                         }
                         
-                        // Verificar se realmente não há progresso antes de considerar travado
+                        // Check if there really is no progress before considering stuck
                         const currentTime = window.player.current?.time?.() || 0
                         const timeSinceCheck = Date.now() - this.lastProgressCheck
                         const progressMade = Math.abs(currentTime - this.lastProgressValue) >= 0.5
@@ -42,14 +42,14 @@ class StreamerPlaybackTimeout extends EventEmitter {
                             this.playbackTimeoutTimer = 0
                             main.emit('video-error', 'timeout', 'client playback timeout')
                         } else if (progressMade) {
-                            // Se houve algum progresso, resetar timer
-                            clearTimeout(this.playbackTimeoutTimer)  // Cancelar antes de criar novo
+                            // If there was progress, reset timer
+                            clearTimeout(this.playbackTimeoutTimer)  // Cancel before creating new
                             this.lastProgressCheck = Date.now()
                             this.lastProgressValue = currentTime
                             this.playbackTimeoutTimer = setTimeout(checkStuck, timeout)
                         } else {
-                            // Ainda não chegou no threshold, continuar aguardando
-                            clearTimeout(this.playbackTimeoutTimer)  // Cancelar antes de criar novo
+                            // Haven't reached threshold yet, continue waiting
+                            clearTimeout(this.playbackTimeoutTimer)  // Cancel before creating new
                             this.playbackTimeoutTimer = setTimeout(checkStuck, timeout)
                         }
                     }
