@@ -70,7 +70,7 @@
     "rollup-plugin-polyfill-node": "^0.13.0",
     "sanitize-filename": "^1.6.3",
     "stoppable": "^1.1.0",
-    "svelte": "^5.33.14",
+    "svelte": "^5.51.5",
     "swipey.js": "^1.0.3",
     "tough-cookie": "^4.1.4",
     "undici": "^6.21.2",
@@ -110,7 +110,7 @@
     "postcss": "^8.5.3",
     "postinstall-postinstall": "^2.1.0",
     "rimraf": "^6.0.1",
-    "rollup": "^4.42.0",
+    "rollup": "^4.59.0",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-delete": "^3.0.1",
     "rollup-plugin-import-css": "^4.0.1",
@@ -122,6 +122,9 @@
     "tv.megacubo.ffmpeg": "latest",
     "tv.megacubo.pip": "latest",
     "tv.megacubo.player": "latest"
+  },
+  "overrides": {
+    "tar": "^7.5.8"
   },
   "bin": {
     "megacubo": "./scripts/bin.js"

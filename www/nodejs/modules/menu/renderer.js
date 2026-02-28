@@ -48,6 +48,90 @@ class MenuBase extends EventEmitter {
             parent.electron.writeClipboard(text)
         }
     }
+    openFile(uploadURL, callbackId, mimetypes) {
+        return new Promise((resolve, reject) => {
+            if (!this.fileInputElement) {
+                this.fileInputElement = document.createElement('input')
+                this.fileInputElement.type = 'file'
+                this.fileInputElement.style.display = 'none'
+                document.body.appendChild(this.fileInputElement)
+            }
+            
+            // Reset the input
+            this.fileInputElement.value = ''
+            this.fileInputElement.onchange = null
+            
+            // Set accept attribute - extensions first for Android compatibility
+            if (mimetypes && mimetypes !== '*') {
+                let acceptValue = mimetypes
+                if (mimetypes.includes('audio/x-mpegurl') || mimetypes.includes('audio/mpegurl')) {
+                    // M3U/M3U8: extensions first, then MIME types
+                    acceptValue = '.m3u,.m3u8,audio/x-mpegurl,audio/mpegurl,application/vnd.apple.mpegurl,application/x-mpegURL'
+                } else if (mimetypes.includes('image/')) {
+                    acceptValue = '.jpg,.jpeg,.png,.gif,.webp,' + mimetypes
+                } else if (mimetypes.includes('video/')) {
+                    acceptValue = '.mp4,.webm,.ogg,.mkv,' + mimetypes
+                } else if (mimetypes.includes('application/json')) {
+                    acceptValue = '.json,' + mimetypes
+                }
+                this.fileInputElement.setAttribute('accept', acceptValue)
+            } else {
+                this.fileInputElement.removeAttribute('accept')
+            }
+            
+            // Set up change handler
+            this.fileInputElement.onchange = async (event) => {
+                if (this.fileInputElement.files && this.fileInputElement.files.length > 0) {
+                    const file = this.fileInputElement.files[0]
+                    console.log('File selected:', file.name, file.size, file.type)
+                    
+                    if (window.capacitor && uploadURL) {
+                        // For Capacitor/Android, upload the file via HTTP
+                        const formData = new FormData()
+                        formData.append('file', file)
+                        
+                        try {
+                            const response = await fetch(uploadURL, {
+                                method: 'POST',
+                                body: formData
+                            })
+                            
+                            if (!response.ok) {
+                                throw new Error('Upload failed: ' + response.statusText)
+                            }
+                            
+                            const result = await response.json()
+                            console.log('File uploaded successfully:', result)
+                            main.emit(callbackId, [result])
+                            resolve(result)
+                        } catch (err) {
+                            console.error('Error uploading file:', err)
+                            main.emit(callbackId, null)
+                            reject('Error uploading file: ' + err.message)
+                        }
+                    } else {
+                        // For Electron, use the existing method
+                        try {
+                            const filePath = parent.electron.showFilePath(file)
+                            main.emit(callbackId, [filePath])
+                            resolve(filePath)
+                        } catch (err) {
+                            console.error('Error getting file path:', err)
+                            main.emit(callbackId, null)
+                            reject('Bad file selected')
+                        }
+                    }
+                } else {
+                    console.error('No file selected')
+                    main.emit(callbackId, null)
+                    reject('File not selected')
+                }
+            }
+            
+            // Trigger the file picker
+            this.fileInputElement.click()
+        })
+    }
 }
 
 class MenuIcons extends MenuBase {

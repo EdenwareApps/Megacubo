@@ -234,9 +234,26 @@ class BridgeUtils extends BridgeServer {
         }
         console.warn('!!! RESOLVE FILE !!!', data)
         if (data) {
+            // Handle file path string (Electron)
+            if (typeof data === 'string') {
+                return check(data)
+            }
+            // Handle array with file path from upload response
             if (Array.isArray(data) && data.length) {
-                return check(data[0])
-            } else if (data.file && data.file.filepath && data.file.filepath) {
+                const item = data[0]
+                // Check if it has filepath property (from upload response)
+                if (item && item.filepath) {
+                    return check(item.filepath)
+                }
+                // Or if it's just a string file path
+                if (typeof item === 'string') {
+                    return check(item)
+                }
+            }
+            // Handle object with filepath property
+            if (data.filepath) {
+                return check(data.filepath)
+            } else if (data.file && data.file.filepath) {
                 return check(data.file.filepath)
             } else if (data.filename && data.filename.path) {
                 return check(data.filename.path)
@@ -248,7 +265,7 @@ class BridgeUtils extends BridgeServer {
         }
     }
     async importFileFromClient(data, target) {
-        console.warn('!!! IMPORT FILE !!!' + target + ' | ' + JSON.stringify(data))
+        console.warn('!!! IMPORT FILE !!!' + target + ' | ' + JSON.stringify(data, null, 2))
         const resolveFile = await this.resolveFileFromClient(data).catch(err => {
             console.error('DATA=' + JSON.stringify(data) + ' ' + err)
         })

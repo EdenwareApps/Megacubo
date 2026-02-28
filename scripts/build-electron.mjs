@@ -690,8 +690,11 @@ export ELECTRON_DISABLE_SANDBOX=1
 export ELECTRON_NO_SANDBOX=1
 export DISABLE_SANDBOX=1
 
+# Get the directory where this script is located
+DIR="$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
+
 # Execute original binary with sandbox disabled
-exec "${wrapperPath}" --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox "$@"
+exec "\${DIR}/megacubo-original" --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox "$@"
 `;
 
       console.log('📝 Creating wrapper script...');

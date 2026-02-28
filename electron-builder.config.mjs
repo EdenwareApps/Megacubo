@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, unlinkSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, unlinkSync, existsSync, renameSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { execSync } from 'child_process';
@@ -234,8 +234,11 @@ export ELECTRON_DISABLE_SANDBOX=1
 export ELECTRON_NO_SANDBOX=1
 export DISABLE_SANDBOX=1
 
+# Get the directory where this script is located
+DIR="$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
+
 # Launch electron with sandbox disabled
-exec "${electronBinPath}" --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox "$@"
+exec "\${DIR}/megacubo.original" --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox "$@"
 `;
 
       const wrapperPath = join(appOutDir, 'megacubo-wrapper');
