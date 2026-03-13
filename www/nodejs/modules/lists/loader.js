@@ -156,6 +156,7 @@ class ListsLoader extends EventEmitter {
 
     reset() {
         this.resetCommunityIdle();
+        this.resetPublicIdle();
         this.master.processedLists.clear();
         this.process();
     }
@@ -261,6 +262,13 @@ class ListsLoader extends EventEmitter {
             if (this.currentTaskId !== taskId || this.downloadQueue.size || this.parseQueue.size) return;
 
             this.maybeEmitCommunityIdle({
+                urls,
+                cached,
+                urlsWithMissingMeta,
+                listsCount: lists.length
+            });
+            // after community check also consider public lists idle condition
+            this.maybeEmitPublicIdle({
                 urls,
                 cached,
                 urlsWithMissingMeta,
@@ -704,6 +712,10 @@ class ListsLoader extends EventEmitter {
         this.notifiedCommunityIdle = false;
     }
 
+    resetPublicIdle() {
+        this.notifiedPublicIdle = false;
+    }
+
     maybeEmitCommunityIdle(context = {}) {
         if (this.notifiedCommunityIdle) {
             return;
@@ -728,6 +740,43 @@ class ListsLoader extends EventEmitter {
 
         this.notifiedCommunityIdle = true;
         this.emit('community-idle', {
+            urls: context.urls || [],
+            cached: context.cached || [],
+            missingMeta: Array.isArray(context.urlsWithMissingMeta) ? context.urlsWithMissingMeta.length : 0,
+            listsCount: context.listsCount || 0,
+            timestamp: Date.now()
+        });
+    }
+
+    maybeEmitPublicIdle(context = {}) {
+        if (this.notifiedPublicIdle) {
+            return;
+        }
+
+        // only trigger when public lists are active and no community requirement
+        if (!this.publicListsActive) {
+            return;
+        }
+        const requiresCommunity = Math.max(this.communityListsAmount - this.myLists.length, 0) > 0;
+        if (requiresCommunity) {
+            return;
+        }
+
+        // don't fire if we already have any loaded my lists
+        if (this.master.loadedListsCount('my') > 0) {
+            return;
+        }
+
+        if (this.processes.some(p => !p.done())) {
+            return;
+        }
+
+        if (this.downloadQueue.size || this.parseQueue.size) {
+            return;
+        }
+
+        this.notifiedPublicIdle = true;
+        this.emit('public-idle', {
             urls: context.urls || [],
             cached: context.cached || [],
             missingMeta: Array.isArray(context.urlsWithMissingMeta) ? context.urlsWithMissingMeta.length : 0,

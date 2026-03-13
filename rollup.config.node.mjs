@@ -209,7 +209,25 @@ function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals
 // Node.js bundles only
 makeNodeBundle({
   input: 'www/nodejs/main.mjs',
-  output: { format: 'cjs', file: 'www/nodejs/dist/main.js', inlineDynamicImports: true, sourcemap: false }, // Disable sourcemap for main process
+  output: { 
+    format: 'cjs', 
+    file: 'www/nodejs/dist/main.js', 
+    inlineDynamicImports: true, 
+    sourcemap: false,
+    // Polyfill Web APIs for Node.js < 20
+    banner: `
+// Polyfill Web APIs for undici (node-fetch wrapper)
+if (typeof globalThis.File === 'undefined' || typeof globalThis.Blob === 'undefined') {
+  try {
+    const { File: FileClass, Blob: BlobClass } = require('buffer');
+    if (typeof globalThis.File === 'undefined') globalThis.File = FileClass;
+    if (typeof globalThis.Blob === 'undefined') globalThis.Blob = BlobClass;
+  } catch (e) {
+    console.warn('Failed to apply Web API polyfills:', e.message);
+  }
+}
+    `.trim()
+  }, // Disable sourcemap for main process
   babelOpts: nodeBabelOpts,
   isMainProcess: true, // Enable main-process specific optimizations
   extraPlugins: [

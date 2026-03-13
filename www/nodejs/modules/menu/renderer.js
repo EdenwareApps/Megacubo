@@ -148,7 +148,6 @@ class MenuIcons extends MenuBase {
             'group': 'fas fa-box-open'
         }
         main.on('icon', data => {
-            console.log('icon', data);
             if (data.tabIndex == -1) return
             const fullPath = [data.path, data.name].filter(v => v).join('/')
             if (!this.icons[fullPath]) {

@@ -292,6 +292,7 @@
    "NOTIFY_UPDATES": "الإخطار عند توفر التحديثات",
    "NOT_FOUND": "غير موجودة",
    "NO_COMMUNITY_LISTS_FOUND": "لم يتم العثور على قوائم مجتمع",
+   "NO_PUBLIC_LISTS_FOUND": "لم يتم العثور على قوائم عامة",
    "NO_ICON": "لا يوجد أيقونة",
    "NO_INTERNET_CONNECTION": "لا يوجد اتصال بالانترنت",
    "NO_LIST": "لم يتم توفير قائمة صالحة",

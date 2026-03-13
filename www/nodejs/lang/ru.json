@@ -292,6 +292,7 @@
    "NOTIFY_UPDATES": "Уведомить, когда доступны обновления",
    "NOT_FOUND": "Не найден",
    "NO_COMMUNITY_LISTS_FOUND": "Уобщается не найдено",
+   "NO_PUBLIC_LISTS_FOUND": "Публичные списки не найдены",
    "NO_ICON": "Нет значка",
    "NO_INTERNET_CONNECTION": "Нет соединения с интернетом",
    "NO_LIST": "Нет действительного списка",

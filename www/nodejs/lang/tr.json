@@ -292,6 +292,7 @@
    "NOTIFY_UPDATES": "Güncellemelerin kullanılabilir olduğunu bildirin",
    "NOT_FOUND": "Bulunamadı",
    "NO_COMMUNITY_LISTS_FOUND": "Topluluk Listesi bulunamadı",
+   "NO_PUBLIC_LISTS_FOUND": "Herkese açık liste bulunamadı",
    "NO_ICON": "Simge yok",
    "NO_INTERNET_CONNECTION": "İnternet bağlantısı yok",
    "NO_LIST": "Geçerli bir liste yok",

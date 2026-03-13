@@ -285,6 +285,7 @@
    "LIVE": "Ao Vivo",
    "LOADING": "Carregando...",
    "LOADING_PUBLIC": "Carregando canais públicos…",
+  "NO_PUBLIC_LISTS_FOUND": "Nenhuma lista pública encontrada",
    "LOADING_RECOMMENDATIONS": "Carregando recomendações…",
    "LOAD_COMMUNITY_LISTS": "Carregar listas da comunidade",
    "LOW_DISK_SPACE_AVAILABLE": "Seu dispositivo está ficando sem espaço ({0} disponível). Isso pode afetar o desempenho do aplicativo.",

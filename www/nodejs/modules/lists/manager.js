@@ -447,6 +447,7 @@ class Manager extends ManagerFetch {
         this.key = 'lists';
         this.inputMemory = {}
         this.communityRetryPromptOpen = false;
+        this.publicRetryPromptOpen = false;
 		this.noListsAutoRetryState = {
 			attempts: 0,
 			timer: null,
@@ -542,6 +543,38 @@ class Manager extends ManagerFetch {
         } finally {
             osd.hide('community-retry');
             this.communityRetryPromptOpen = false;
+        }
+    }
+
+    // similar retry dialog when public mode finishes without any lists
+    async onPublicIdle(info = {}) {
+        if (this.publicRetryPromptOpen) {
+            return;
+        }
+        // only show when public lists are actually active
+        const publicActive = config.get('public-lists');
+        if (!publicActive) {
+            return;
+        }
+
+        this.publicRetryPromptOpen = true;
+        try {
+            const choice = await menu.dialog([
+                { template: 'question', text: lang.LOADING_PUBLIC, fa: 'fas fa-globe' },
+                { template: 'message', text: lang.NO_PUBLIC_LISTS_FOUND || lang.NO_COMMUNITY_LISTS_FOUND },
+                { template: 'option', text: lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle' },
+                { template: 'option', text: lang.RETRY, id: 'retry', fa: 'fas fa-sync-alt' }
+            ], 'retry');
+
+            if (choice === 'retry') {
+                osd.show(lang.LOADING_PUBLIC, 'fa-mega busy-x', 'public-retry', 'persistent');
+                await this.master.loader.reset();
+            }
+        } catch (err) {
+            console.error('public idle dialog failed:', err);
+        } finally {
+            osd.hide('public-retry');
+            this.publicRetryPromptOpen = false;
         }
     }
     async expandEntries(entries, path) {
@@ -879,7 +912,8 @@ class Manager extends ManagerFetch {
     }
 
     showLoadingDialog() {
-        if (this.loadingDialogShown) {
+        // don't show any loading dialog while the wizard is still active
+        if (global.wizardPending || (global.wizard && global.wizard.active) || this.loadingDialogShown) {
             return;
         }
 
@@ -911,6 +945,14 @@ class Manager extends ManagerFetch {
         })
     }
 
+    handleWizardComplete() {
+        if (global.wizardPending || (global.wizard && global.wizard.active)) {
+            return;
+        }
+        // Re-run the latest progress state once the wizard is out of the way
+        this.updateProgress(this.master?.state || {})
+    }
+
     areRecommendationsPlaceholders() {
         try {
             // Check if any entry is placeholders (busy entries)
@@ -922,7 +964,11 @@ class Manager extends ManagerFetch {
         }
     }
 
-    updateProgress(info) {
+    updateProgress(info = {}) {
+        // don't update while wizard is active or still pending
+        if (global.wizardPending || (global.wizard && global.wizard.active)) {
+            return;
+        }
         // Don't show loading indicators before setup is completed
         if (!config.get('setup-completed')) {
             return;

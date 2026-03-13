@@ -292,6 +292,7 @@
    "NOTIFY_UPDATES": "अपडेट उपलब्ध होने पर सूचित करें",
    "NOT_FOUND": "नहीं मिला",
    "NO_COMMUNITY_LISTS_FOUND": "कोई सामुदायिक सूची नहीं मिली",
+   "NO_PUBLIC_LISTS_FOUND": "कोई सार्वजनिक सूची नहीं मिली",
    "NO_ICON": "कोई आइकन नहीं",
    "NO_INTERNET_CONNECTION": "कोई इंटरनेट कनेक्शन नहीं",
    "NO_LIST": "कोई मान्य सूची प्रदान नहीं की गई",

@@ -596,6 +596,11 @@ class Lists extends ListsEPGTools {
                 this.manager.onCommunityIdle(info)
             }
         })
+        this.loader.on('public-idle', info => {
+            if (this.manager && typeof this.manager.onPublicIdle === 'function') {
+                this.manager.onPublicIdle(info)
+            }
+        })
         
         // Set to track lists that are being updated
         this.updatingLists = new Set()

@@ -292,6 +292,7 @@
    "NOTIFY_UPDATES": "更新がいつ利用可能かを通知します",
    "NOT_FOUND": "見つかりません",
    "NO_COMMUNITY_LISTS_FOUND": "コミュニティリストは見つかりません",
+   "NO_PUBLIC_LISTS_FOUND": "公開リストが見つかりません",
    "NO_ICON": "アイコンはありません",
    "NO_INTERNET_CONNECTION": "インターネット接続はありません",
    "NO_LIST": "有効なリストは提供されていません",

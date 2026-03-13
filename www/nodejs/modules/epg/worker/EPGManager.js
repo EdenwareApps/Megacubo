@@ -2344,38 +2344,82 @@ export default class EPGManager extends EPGPaginateChannelsList {
   }
 
   async getLiveNowAndNext(channelOrList, options = {}) {
-    const desiredLimit = Math.max(1, Number(options.limit) || 2)
-    const nowOption = options.now
-
-    if (Array.isArray(channelOrList)) {
-      const results = {}
-      await Promise.allSettled(channelOrList.map(async (item, index) => {
-        const prepared = this._prepareChannelDescriptor(item)
-        const key =
-          prepared?.name ||
-          prepared?.searchName ||
-          (typeof item === 'string' ? item : `channel-${index}`)
-
-        if (!prepared || prepared.searchName === '-') {
-          results[key] = null
-          return
-        }
-
-        try {
-          const resolution = await this._resolveChannelProgrammes(prepared, desiredLimit, {
-            prepared: true,
-            now: nowOption
-          })
-          results[key] = resolution || null
-        } catch (err) {
-          console.error(`Error resolving live/next for ${key}:`, err)
-          results[key] = null
-        }
-      }))
-      return results
+    // Safeguard: input validation
+    if (!channelOrList || (typeof channelOrList !== 'object' && typeof channelOrList !== 'string')) {
+      console.warn('getLiveNowAndNext: invalid input:', channelOrList);
+      return Array.isArray(channelOrList) ? {} : null;
     }
 
-    return this._resolveChannelProgrammes(channelOrList, desiredLimit, { now: nowOption })
+    const desiredLimit = Math.max(1, Number(options.limit) || 2);
+    const nowOption = options.now;
+
+    // Detailed logging at the start
+    const opStart = Date.now();
+    const isBulk = Array.isArray(channelOrList);
+    if (isBulk) {
+      console.info(`[getLiveNowAndNext] Starting bulk for ${channelOrList.length} channels`);
+    } else {
+      console.info(`[getLiveNowAndNext] Starting for channel:`, channelOrList?.name || channelOrList);
+    }
+
+    try {
+      if (isBulk) {
+        const results = {};
+        // Limit concurrency to 8 channels simultaneously
+        const queue = new PQueue({ concurrency: 8 });
+        await Promise.allSettled(channelOrList.map((item, index) => queue.add(async () => {
+          const prepared = this._prepareChannelDescriptor(item);
+          const key =
+            prepared?.name ||
+            prepared?.searchName ||
+            (typeof item === 'string' ? item : `channel-${index}`);
+
+          if (!prepared || prepared.searchName === '-') {
+            results[key] = null;
+            return;
+          }
+
+          try {
+            const t0 = Date.now();
+            const resolution = await this._resolveChannelProgrammes(prepared, desiredLimit, {
+              prepared: true,
+              now: nowOption
+            });
+            const t1 = Date.now();
+            results[key] = resolution || null;
+            // console.info(`[getLiveNowAndNext] Channel '${key}' resolved in ${t1 - t0}ms`);
+          } catch (err) {
+            console.error(`[getLiveNowAndNext] Error resolving channel '${key}':`, err);
+            results[key] = null;
+          }
+        })));
+        const opEnd = Date.now();
+        console.info(`[getLiveNowAndNext] Bulk completed (${channelOrList.length} channels) in ${opEnd - opStart}ms`);
+        // Safeguard: always return object
+        return results;
+      }
+
+      // Single channel detailed logging
+      const t0 = Date.now();
+      const prepared = this._prepareChannelDescriptor(channelOrList);
+      if (!prepared || prepared.searchName === '-') {
+        console.warn('[getLiveNowAndNext] Invalid channel:', channelOrList);
+        return null;
+      }
+      try {
+        const resolution = await this._resolveChannelProgrammes(prepared, desiredLimit, { now: nowOption });
+        const t1 = Date.now();
+        console.info(`[getLiveNowAndNext] Channel '${prepared.name || prepared.searchName}' resolved in ${t1 - t0}ms`);
+        return resolution || null;
+      } catch (err) {
+        console.error(`[getLiveNowAndNext] Error resolving channel '${prepared.name || prepared.searchName}':`, err);
+        return null;
+      }
+    } catch (err) {
+      // Safeguard: never propagate error
+      console.error('[getLiveNowAndNext] Unexpected error:', err);
+      return isBulk ? {} : null;
+    }
   }
 
   async validateChannels(data) {

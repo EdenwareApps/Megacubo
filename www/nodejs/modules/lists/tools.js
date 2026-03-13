@@ -96,11 +96,9 @@ class TermsHandler {
     constructor() {
         this.countryCodes = new Set(countries.getCountries()); // precompute country codes as Set
         this.regexes = regexes;
-        // Allow Unicode letters, numbers, and specific symbols
-        // \p{L} = Unicode letters (supports cirílico, chinês, árabe, etc.)
-        // \p{N} = Unicode numbers, \p{M} = combining marks (acentos, etc.)
-        // Flag 'u' enables Unicode property escapes
-        this.allowedCharsRegex = new RegExp('[^ \\p{L}\\p{N}\\p{M}\\-\\+\\*@$|]+', 'gu') // remove chars not allowed (keep | for OR logic)
+        // Allow letters, numbers, and specific symbols (works on older Node versions)
+        // Match characters that are NOT: space, word characters (a-z, A-Z, 0-9, _), or symbols: - + * @ $ |
+        this.allowedCharsRegex = /[^\w\s\-\+\*@$|]/gu // remove chars not allowed (keep | for OR logic)
         this.sanitizeName = sanitizeName;
         this.searchRedirects = [];
         this.stopWords = new Set(['sd', '4k', 'hd', 'h264', 'h.264', 'fhd', 'uhd', 'null', 'undefined']); // common words to ignore on searching

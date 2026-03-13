@@ -94,8 +94,7 @@ function readNodeOutputs() {
 
 function readRendererOutputs() {
   const map = new Map()
-  const p = path.join(__dirname, 'www/nodejs/renderer/dist/App.js')
-  if (fs.existsSync(p)) map.set('www/nodejs/renderer/dist/App.js', fs.readFileSync(p))
+  walkDirForMap(path.join(__dirname, 'www/nodejs/renderer/dist'), __dirname, map)
   return map
 }
 

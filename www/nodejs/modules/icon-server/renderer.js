@@ -1,3 +1,5 @@
+import './offscreen-polyfill.js'
+
 export class ImageProcessor {
     constructor(main) {
         this.main = main;
@@ -20,11 +22,28 @@ export class ImageProcessor {
         
         this.worker = new Worker(URL.createObjectURL(new Blob([`
 
+            // Ensure OffscreenCanvas exists in worker scope via a minimal polyfill
+            (function(global){
+                if (typeof global.OffscreenCanvas !== 'undefined') return;
+                class OffscreenCanvas {
+                    constructor(w,h){
+                        this._canvas = (typeof self !== 'undefined' && typeof self.document !== 'undefined') ? self.document.createElement('canvas') : null;
+                        if (this._canvas) { this._canvas.width = w; this._canvas.height = h }
+                        Object.defineProperty(this, 'width', { get: () => this._canvas ? this._canvas.width : w, set: v => { if (this._canvas) this._canvas.width = v } });
+                        Object.defineProperty(this, 'height', { get: () => this._canvas ? this._canvas.height : h, set: v => { if (this._canvas) this._canvas.height = v } });
+                    }
+                    getContext(t, opts){ return this._canvas ? this._canvas.getContext(t, opts) : null }
+                    convertToBlob(options){ return new Promise((resolve) => { if (!this._canvas) return resolve(new Blob()); this._canvas.toBlob(resolve, options && options.type, options && options.quality); }) }
+                }
+                global.OffscreenCanvas = OffscreenCanvas;
+            })(typeof self !== 'undefined' ? self : globalThis);
+
             const ALPHA_IGNORE_LEVEL = 255 * 0.1; // More strict - only consider truly transparent pixels (alpha < 10%)
             const STEP_COUNT = 72;
             const DEBUG = false;
             const MAX_DIMENSION = 512;
             const MIN_CROP_SIZE = 16; // Minimum size to prevent tiny images
+            const HAS_OFFSCREEN_CANVAS = typeof OffscreenCanvas !== 'undefined';
             
             // Memory pool for reusable objects
             const memoryPool = {
@@ -60,6 +79,9 @@ export class ImageProcessor {
 
             self.colors = async function(url, count = 5) {
                 DEBUG && console.log('Processing colors for URL:', url)
+                if (!HAS_OFFSCREEN_CANVAS) {
+                    return []
+                }
                 const { imageData } = await loadImageData(url, 36, 36)
                 const dominantColors = await getLazyFunction('dominantColors', () => getDominantColors)(imageData, count)
                 return dominantColors
@@ -67,6 +89,9 @@ export class ImageProcessor {
 
             self.hasTransparency = async function(url) {
                 DEBUG && console.log('Checking transparency for URL:', url)
+                if (!HAS_OFFSCREEN_CANVAS) {
+                    return false
+                }
                 const { imageData } = await loadImageData(url, 128, 128) // Small size for speed
                 return await isAlpha(imageData)
             }
@@ -74,6 +99,9 @@ export class ImageProcessor {
             self.transform = async function(url, opts = {}) {
                 opts = Object.assign({ autocrop: true, shouldBeAlpha: 0 }, opts)
                 DEBUG && console.log('Transforming image with options:', opts)
+                if (!HAS_OFFSCREEN_CANVAS) {
+                    return { url, alpha: false, changed: false, unsupported: true }
+                }
                 const {canvas, ctx, imageBitmap, imageData} = await loadImageData(url)
                 const alpha = await isAlpha(imageData)
 
@@ -117,6 +145,9 @@ export class ImageProcessor {
             }
                     
             self.resize = async (url, width, height) => {
+                if (!HAS_OFFSCREEN_CANVAS) {
+                    return url
+                }
                 const { canvas } = await loadImageData(url, width, height)
                 return dataURLFromImageBitmap(canvas)
             }

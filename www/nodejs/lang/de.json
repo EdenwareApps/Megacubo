@@ -292,6 +292,7 @@
    "NOTIFY_UPDATES": "Benachrichtigen Sie, wann Updates verfügbar sind",
    "NOT_FOUND": "Nicht gefunden",
    "NO_COMMUNITY_LISTS_FOUND": "Keine Gemeinschaft liste gefunden",
+   "NO_PUBLIC_LISTS_FOUND": "Keine öffentlichen Listen gefunden",
    "NO_ICON": "Kein Symbol",
    "NO_INTERNET_CONNECTION": "Keine Internetverbindung",
    "NO_LIST": "Keine gültige Liste angegeben",

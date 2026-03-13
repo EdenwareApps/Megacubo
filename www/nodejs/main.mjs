@@ -232,6 +232,7 @@ if (debug) {
 }
 
 global.activeEPG = ''
+global.wizardPending = true
 streamer.tuning = null
 
 const setupCompleted = () => {
@@ -887,6 +888,11 @@ const init = async (locale, timezone) => {
     })
     renderer.ready(async () => {
         const setupComplete = setupCompleted()
+        // remember if wizard still needs to run
+        global.wizardPending = !setupComplete;
+        const manager = lists.manager
+        menu.addFilter(downloads.hook.bind(downloads))
+        lists.loader.reset()
         if (!setupComplete) {
             // Ensure menu is ready before starting wizard
             await new Promise(resolve => {
@@ -903,8 +909,8 @@ const init = async (locale, timezone) => {
             global.wizard = wizard
             await wizard.init()
         }
-        menu.addFilter(downloads.hook.bind(downloads))
-        lists.loader.reset()
+        global.wizardPending = false;
+        manager?.handleWizardComplete?.();
         await crashlog.send().catch(err => console.error(err))
 
         let c = {}

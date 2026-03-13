@@ -300,6 +300,7 @@
    "NOTIFY_UPDATES": "Notifique cuándo hay actualizaciones disponibles",
    "NOT_FOUND": "No encontrado",
    "NO_COMMUNITY_LISTS_FOUND": "No se encontró ninguna lista de la comunidad",
+   "NO_PUBLIC_LISTS_FOUND": "No se encontraron listas públicas",
    "NO_ICON": "Sin icono",
    "NO_INTERNET_CONNECTION": "Sin conexión a Internet",
    "NO_LIST": "Agrega una lista válida",

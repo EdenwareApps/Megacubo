@@ -18,6 +18,9 @@ class Index extends Common {
         this.hasCacheTTL = 30000; // 30 seconds
         // Cache per list+term for permanent caching while list is loaded (immutable)
         this.hasCachePerList = new Map(); // Map<listUrl, Map<termKey, result>>
+        // Track lists with temporary issues to skip until recovered
+        this.listErrorCounts = new Map();
+        this.listBadUntil = new Map();
     }
     optimizeSearchOpts(opts) {
         let nopts = {};
@@ -29,183 +32,50 @@ class Index extends Common {
     async has(terms, opts) {
         if (!terms.length) return {};
         if (!opts) opts = {};
-        
         const results = {};
-        const limiter = pLimit(8);
-        const listUrls = Object.keys(this.lists);
-        const tasks = [];
-        
-        for (const term of terms) {
-            const cacheKey = `${term.name}:${JSON.stringify(term.terms)}`;
-            const cached = this.hasCache.get(cacheKey);
-            
-            // Check global cache first (for backward compatibility)
-            if (cached && (Date.now() - cached.timestamp) < this.hasCacheTTL) {
-                results[term.name] = cached.result;
-                continue;
-            }
-            
-            const arrTerms = Array.isArray(term.terms) ? term.terms : this.tools.terms(term.terms);
-            // Extract excludes (terms starting with '-') and filter them from arrTerms
-            const excludes = [];
-            const filteredTerms = [];
-            for (const t of arrTerms) {
-                if (t.startsWith('-')) {
-                    excludes.push(t.substr(1)); // Remove '-' prefix
-                } else {
-                    filteredTerms.push(t);
-                }
-            }
-            // Use exists() for faster index-only check (no disk I/O)
-            const useAll = !opts.partial; // $all when partial is false
-            let found = false;
-            const termTasks = []; // Tasks for this specific term
-            const abortController = new AbortController(); // For early exit
-            
-            // Check per-list cache first (for loaded/immutable lists)
-            let foundInCache = false;
-            for (const url of listUrls) {
-                const list = this.lists[url];
-                if (!list || !list.indexer || !list.indexer.db) continue;
-                
-                // Check if list is loaded and immutable (not updating)
-                // List is considered loaded if it has indexer, db, and length > 0
-                const isListLoaded = list.indexer && list.indexer.db && list.length > 0 && !(this.isListUpdating && this.isListUpdating(url));
-                if (isListLoaded) {
-                    const listCache = this.hasCachePerList.get(url) || new Map();
-                    const termKey = `${term.name}:${JSON.stringify(term.terms)}`;
-                    const cachedResult = listCache.get(termKey);
-                    
-                    if (cachedResult !== undefined) {
-                        if (cachedResult === true) {
-                            found = true;
-                            foundInCache = true;
-                            results[term.name] = true;
-                            break; // Found in cache, no need to check other lists
-                        }
-                        // If cached as false, continue checking other lists
-                    }
-                }
-            }
-            
-            if (foundInCache) {
-                // Update global cache for backward compatibility
-                this.hasCache.set(cacheKey, {
-                    result: true,
-                    timestamp: Date.now()
-                });
-                continue;
-            }
-
-            // If not found in cache, search in lists
-            for (const url of listUrls) {
-                const task = limiter(async () => {
-                    // Early exit: if already found or aborted, skip
-                    if (found || abortController.signal.aborted) {
-                        return;
-                    }
-                    
-                    try {
-                        if (this.isListUpdating && this.isListUpdating(url)) {
-                            return;
-                        }
-                        const list = this.lists[url];
-                        if (!list || !list.indexer || !list.indexer.db) {
-                            return;
-                        }
-                        
-                        // Use exists() for ultra-fast index-only check (no disk I/O)
-                        // Prefer indexManager.exists() directly (synchronous, faster) if available
-                        // Build criteria object with nameTerms and mediaType filter
-                        const criteria = {
-                            nameTerms: useAll ? { $all: filteredTerms } : filteredTerms[0],
-                            mediaType: { '!=': 'video' } // Filter out VOD entries for has() (live streams only)
-                        };
-                        if (excludes.length > 0) {
-                            criteria.$not = { nameTerms: { $in: excludes } };
-                        }
-
-                        let ret = false;
-                        try {
-                            ret = await list.indexer.db.exists(criteria);
-                        } catch (err) {
-                            // list db file deleted?! check and maybe unload it
-                            if (err.message.includes('no such file')) {
-                                if (this.debug) {
-                                    console.warn(`Database for list ${url} seems to be deleted. Unloading list.`);
-                                }
-                                this.remove(url);
-                            }
-                            return;
-                        }
-                        
-                        if (ret) {
-                            found = true;
-                            abortController.abort(); // Cancel other tasks for this term
-                            
-                            // Cache result permanently for this list (since it's immutable)
-                            const isListLoaded = list.indexer && list.indexer.db && list.length > 0 && !(this.isListUpdating && this.isListUpdating(url));
-                            if (isListLoaded) {
-                                if (!this.hasCachePerList.has(url)) {
-                                    this.hasCachePerList.set(url, new Map());
-                                }
-                                const listCache = this.hasCachePerList.get(url);
-                                const termKey = `${term.name}:${JSON.stringify(term.terms)}`;
-                                listCache.set(termKey, true);
-                            }
-                        }
-                    } catch (error) {
-                        if (this.debug) {
-                            console.warn(`Has error in ${url}:`, error.message);
-                        }
-                    }
-                });
-                termTasks.push(task);
-                tasks.push(task);
-            }
-
-            // Task to process results after all search tasks for this term complete
-            const resultTask = limiter(async () => {
-                await Promise.all(termTasks); // Wait only for this term's search tasks
-                if (found) {
-                    results[term.name] = true;
-                    this.hasCache.set(cacheKey, {
-                        result: true,
-                        timestamp: Date.now()
-                    });
-                } else {
-                    results[term.name] = false;
-                    this.hasCache.set(cacheKey, {
-                        result: false,
-                        timestamp: Date.now()
-                    });
-                    
-                    // Cache negative results per list too (for loaded lists)
-                    for (const url of listUrls) {
-                        const list = this.lists[url];
-                        if (!list || !list.indexer || !list.indexer.db) continue;
-                        
-                        const isListLoaded = list.ready && !(this.isListUpdating && this.isListUpdating(url));
-                        if (isListLoaded) {
-                            if (!this.hasCachePerList.has(url)) {
-                                this.hasCachePerList.set(url, new Map());
-                            }
-                            const listCache = this.hasCachePerList.get(url);
-                            const termKey = `${term.name}:${JSON.stringify(term.terms)}`;
-                            listCache.set(termKey, false);
-                        }
-                    }
-                }
+        const listUrls = Object.keys(this.lists).sort((a, b) => {
+            return this.lists[b].length - this.lists[a].length;
+        });
+        let remainingNames = new Set(terms.map(t => t.name));
+        for (const url of listUrls) {
+            if (remainingNames.size === 0) break; // early exit global
+            const list = this.lists[url];
+            if (!list || !list.indexer || !list.indexer.db) continue;
+            if (this.isListUpdating && this.isListUpdating(url)) continue;
+            if (this._isBadList && this._isBadList(url)) continue;
+            // Só consulta termos ainda não encontrados
+            const criteriaArray = terms.filter(term => remainingNames.has(term.name)).map(term => {
+                const arrTerms = Array.isArray(term.terms) ? term.terms : this.tools.terms(term.terms);
+                const excludes = arrTerms.filter(t => t.startsWith('-')).map(t => t.substr(1));
+                const filteredTerms = arrTerms.filter(t => !t.startsWith('-'));
+                const options = Object.assign({}, opts, term.options || {});
+                if (excludes.length > 0) options.excludes = excludes;
+                if (!opts.partial) options.$all = true;
+                return {
+                    id: term.name,
+                    field: 'nameTerms',
+                    terms: filteredTerms,
+                    options
+                };
             });
-            tasks.push(resultTask);
+            if (criteriaArray.length === 0) continue;
+            try {
+                const db = list.indexer.db;
+                if (!db.multiExists) continue;
+                const res = await db.multiExists(criteriaArray);
+                for (const [k, v] of Object.entries(res)) {
+                    if (v) {
+                        results[k] = true;
+                        remainingNames.delete(k);
+                    } else if (!(k in results)) {
+                        results[k] = false;
+                    }
+                }
+            } catch (e) {
+                // erro na lista, ignora
+            }
         }
-        
-        if (tasks.length > 0) {
-            await Promise.all(tasks);
-        }
-        
-        this.cleanupCache();
-        
+        this.cleanupCache && this.cleanupCache();
         return results;
     }
     
@@ -232,6 +102,43 @@ class Index extends Common {
         if (this.hasCachePerList && this.hasCachePerList.has(url)) {
             this.hasCachePerList.delete(url);
         }
+        this.listErrorCounts && this.listErrorCounts.delete(url);
+        this.listBadUntil && this.listBadUntil.delete(url);
+    }
+
+    _isBadList(url) {
+        if (!this.listBadUntil) return false;
+        const until = this.listBadUntil.get(url);
+        return !!(until && Date.now() < until);
+    }
+
+    _recordListError(url) {
+        if (!url) return;
+        const count = (this.listErrorCounts.get(url) || 0) + 1;
+        this.listErrorCounts.set(url, count);
+        const label = url.split('/').pop().split('?')[0].substring(0, 40);
+        if (count >= 3) {
+            console.warn(`List ${url} failed ${count} times, unloading for reload`);
+            this.listErrorCounts.delete(url);
+            this.listBadUntil.delete(url);
+            this.remove(url);
+            if (global.osd) {
+                global.osd.show('List failed: ' + label, 'fas fa-times-circle faclr-red', this._listOsdId(url), 'normal');
+            }
+        } else {
+            const backoff = 30000 * count;
+            console.warn(`List ${url} error #${count}, skipping for ${backoff / 1000}s`);
+            this.listBadUntil.set(url, Date.now() + backoff);
+        }
+    }
+
+    _listOsdId(url) {
+        let hash = 0;
+        for (let i = 0; i < url.length; i++) {
+            hash = ((hash << 5) - hash) + url.charCodeAt(i);
+            hash |= 0;
+        }
+        return 'list-error-' + Math.abs(hash);
     }
     async multiSearch(terms, opts = {}) {        
         if (!terms || !Object.keys(terms).length) {
@@ -739,6 +646,9 @@ class Index extends Common {
                         if (this.isListUpdating && this.isListUpdating(url)) {
                             return;
                         }
+                        if (this._isBadList(url)) {
+                            return;
+                        }
                         // Add null check for list and indexer to prevent TypeError
                         if (!this.lists[url] || !this.lists[url].indexer || !this.lists[url].indexer.db) {
                             return;
@@ -778,9 +688,13 @@ class Index extends Common {
                         }
                     }
                 } catch (error) {
-                    // ULTRA-OPTIMIZATION: Graceful error handling without blocking other searches
-                    if (this.debug) {
+                    if (this.debug || error.message.includes('timeout')) {
                         console.warn(`Search error in ${url}:`, error.message);
+                    }
+                    if (error.message.includes('no such file') || error.message.includes('destroyed') || error.message.includes('closed')) {
+                        this.remove(url);
+                    } else if (error.message.includes('timeout')) {
+                        this._recordListError(url);
                     }
                 }
                 }));

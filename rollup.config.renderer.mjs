@@ -74,19 +74,34 @@ const watchOpts = {
   exclude: ['node_modules/**']
 };
 
-// Main Svelte app
-export default {
-  input: 'www/nodejs/renderer/src/App.svelte',
-  output: {
-    file: 'www/nodejs/renderer/dist/App.js',
-    format: 'iife',
-    name: 'App',
-    sourcemap: !isProduction
+// Main Svelte app and Capacitor bridge bundle
+export default [
+  {
+    input: 'www/nodejs/renderer/src/App.svelte',
+    output: {
+      file: 'www/nodejs/renderer/dist/App.js',
+      format: 'iife',
+      name: 'App',
+      sourcemap: !isProduction
+    },
+    plugins: rendererPlugins,
+    watch: watchOpts,
+    external: ['electron', /.+\.(node|native)$/]
   },
-  plugins: rendererPlugins,
-  watch: watchOpts,
-  external: ['electron', /.+\.(node|native)$/]
-};
+  {
+    input: 'capacitor.mjs',
+    output: {
+      file: 'www/nodejs/renderer/dist/capacitor.js',
+      format: 'iife',
+      name: 'capacitor',
+      inlineDynamicImports: true,
+      sourcemap: !isProduction
+    },
+    plugins: rendererPlugins,
+    watch: watchOpts,
+    external: ['electron', /.+\.(node|native)$/]
+  }
+];
 
 // Copy static assets (executed separately)
 if (isProduction || process.argv.includes('--copy-assets')) {
