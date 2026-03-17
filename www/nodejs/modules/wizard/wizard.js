@@ -21,13 +21,15 @@ class Wizard extends EventEmitter {
         return !!paths.android;
     }
     async init() {
+        // Reset completion so interrupted/closed wizard does not mark setup complete prematurely.
+        config.set('setup-completed', false);
         if (!lang.isTrusted) {
             await options.showLanguageEntriesDialog();
         }
         await this.lists();
         await this.performance();
         this.active = false;
-        // setup-completed is now handled in configureInitialState()
+        // setup-completed is now handled after loading results
     }
     async lists() {
         this.active = true;
@@ -53,7 +55,11 @@ class Wizard extends EventEmitter {
         // SCREEN 5: Loading / preparation
         await this.showLoadingScreen(mode);
 
-        return true;
+        // Mark setup completed only if lists are effectively loaded
+        const hasLoadedLists = lists.loaded(true);
+        config.set('setup-completed', Boolean(hasLoadedLists));
+
+        return Boolean(hasLoadedLists);
     }
     async performance() {
         let ram = await diag.checkMemory().catch(err => {
@@ -135,26 +141,38 @@ class Wizard extends EventEmitter {
         ];
 
         // Show dialog and wait for loading
-        const startTime = Date.now();
         const loadingPromise = (async () => {
             if (mode === 'community') {
-                await this.waitForAutoRetry();
+                const timeoutMs = 15000;
+                const waitForReady = async () => {
+                    if (lists.loaded(true)) {
+                        return;
+                    }
+                    await this.waitForAutoRetry();
+                };
+                await Promise.race([
+                    waitForReady(),
+                    new Promise(resolve => setTimeout(resolve, timeoutMs))
+                ]);
             } else if (mode === 'public') {
                 config.set('public-lists', 'only');
             }
         })();
 
-        const loadingId = 'loading'
+        const loadingId = 'wizard-loading';
         const promises = [
             loadingPromise,
             new Promise(resolve => setTimeout(resolve, 1000)) // Ensure at least 1 second of loading screen for better UX
         ];
 
-        menu.dialog(opts, 'loading', true, loadingId);        
-        await Promise.allSettled(promises);
-
-        // Close dialog after loading
-        renderer.ui.emit('dialog-close', loadingId);
+        menu.dialog(opts, 'loading', true, loadingId);
+        try {
+            await Promise.allSettled(promises);
+        } finally {
+            // Close dialog after loading (always attempt to close)
+            renderer.ui.emit('dialog-close', loadingId);
+            console.info('[wizard] showLoadingScreen done, closed', loadingId);
+        }
     }
 
     async configureInitialState(mode) {
@@ -181,16 +199,9 @@ class Wizard extends EventEmitter {
                 break;
         }
 
-        // Mark setup as complete based on mode
-        const hasLists = mode === 'own-list' ? false : // wait for user to add
-                        mode === 'community' ? (config.get('community-mode-lists-amount') > 0) :
-                        true; // public lists always have something
-
-        if (hasLists) {
-            config.set('setup-completed', true);
-        } else {
-            config.set('setup-completed', false);
-        }
+        // Do not mark setup complete here. finish state is set after loading screen based on actual loaded lists.
+        // This avoids prematurely marking setup complete if user closes app before completing wizard.
+        config.set('setup-completed', false);
     }
 
     async waitForAutoRetry() {
@@ -200,15 +211,20 @@ class Wizard extends EventEmitter {
             return;
         }
 
+        const startTime = Date.now();
         // Reuse existing waitForAutoRetry logic
         const shouldDelay = () => {
             const current = lists?.manager?.noListsAutoRetryState;
             if (!current || current.exhausted) {
                 return false;
             }
-            // FIX: Don't consider attempts === 0 if lists are already loaded
+            // Don't wait if lists are already loaded
             if (lists.loaded(true)) {
-                return false; // Don't wait if lists are already loaded
+                return false;
+            }
+            // Always stop after 30s wall-clock to avoid indefinite loop
+            if (Date.now() - startTime > 30000) {
+                return false;
             }
             return Boolean(current.timer || current.awaitingResult || current.attempts === 0);
         };

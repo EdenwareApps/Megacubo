@@ -22,16 +22,18 @@ class ListsLoader extends EventEmitter {
         this.master = master;
         this.debug = master.debug;
         this.opts = opts;
+
         // Parse concurrency: 2 allows faster list loading; worker has 2560MB heap
-        this.concurrency = 2;
+        this.defaultParsingConcurrency = 1;
+        this.parsingConcurrency = this.defaultParsingConcurrency;
         
         // Download (8) and parse (2) - parse was bottleneck with 1
-        this.downloadQueue = new PQueue({ concurrency: 8 });
-        this.parseQueue = new PQueue({ concurrency: 2 });
+        this.downloadQueue = new PQueue({ concurrency: 4 });
+        this.parseQueue = new PQueue({ concurrency: this.parsingConcurrency });
         
         // Track downloaded files waiting for parsing
-        this.downloadedFiles = new Map(); // url -> { tempFilePath, updater }
-        
+        this.downloadedFiles = new Map(); // url -> { tempFilePath, size, url }
+
         this.osdID = 'lists-loader';
         this.pings = {};
         this.results = {};
@@ -62,7 +64,75 @@ class ListsLoader extends EventEmitter {
             if (keys.includes('community-mode-lists-amount') || keys.includes('public-lists')) this.handleConfigChange(data);
         });
         this.master.on('satisfied', () => this.adjustConcurrency(1));
-        this.master.on('unsatisfied', () => this.adjustConcurrency(this.concurrency));
+        this.master.on('unsatisfied', () => this.adjustConcurrency(this.defaultParsingConcurrency));
+    }
+
+    getNextFileToParse() {
+        if (!this.downloadedFiles.size) return null;
+
+        let selected = null;
+        for (const file of this.downloadedFiles.values()) {
+            if (!selected || file.size < selected.size) {
+                selected = file;
+            }
+        }
+
+        if (selected) {
+            this.downloadedFiles.delete(selected.url);
+        }
+
+        return selected;
+    }
+
+    async parseNextFile() {
+        const fileInfo = this.getNextFileToParse();
+        if (!fileInfo) return;
+
+        const { url, tempFilePath, size } = fileInfo;
+        const proc = this.processes.find(p => p.url === url);
+        const processTimes = this.processTimes?.get(url) || {};
+        processTimes.parseStart = Date.now();
+        this.processTimes?.set(url, processTimes);
+        this.debug && console.log(`[Loader] Parse worker started for ${url}, size=${size}`);
+
+        try {
+            await this.prepareUpdater();
+            this.results[url] = await this.updater.parseFromFile(tempFilePath, url).catch(e => {
+                console.error(`[Loader] Parse error for ${url}:`, e);
+                return e;
+            });
+
+            const parsedOk = this.results[url] === true || this.results[url] === 'already updated' || (this.myLists.includes(url) && this.results[url] === 'updated');
+
+            if (parsedOk) {
+                if (this.master.lists[url]?.indexer?.db) {
+                    this.master.lists[url].indexer.db.destroy?.().catch(() => {});
+                }
+                delete this.master.lists[url];
+                this.master.processedLists.delete(url);
+
+                await this.master.loadList(url).catch(e => {
+                    if (!String(e).match(/destroyed|list discarded|file not found/i)) {
+                        console.error(e);
+                    }
+                });
+            }
+        } catch (err) {
+            console.error('[Loader] parseNextFile error for', url, err);
+        } finally {
+            this.downloadedFiles.delete(url);
+            processTimes.parseEnd = Date.now();
+            this.processTimes?.set(url, processTimes);
+            if (this.debug) {
+                const downloadTime = processTimes.downloadStart ? `${processTimes.downloadEnd - processTimes.downloadStart}ms` : 'n/a';
+                const parseTime = processTimes.parseStart && processTimes.parseEnd ? `${processTimes.parseEnd - processTimes.parseStart}ms` : 'n/a';
+                console.log(`[Loader] Parse complete for ${url} size=${size} downloadTime=${downloadTime} parseTime=${parseTime}`);
+            }
+            if (proc) {
+                proc.setParsed?.();
+                proc.setDone?.();
+            }
+        }
     }
 
     setupRecommendationsListeners() {
@@ -105,8 +175,8 @@ class ListsLoader extends EventEmitter {
     }
 
     adjustConcurrency(concurrency) {
-        if (concurrency === this.concurrency) return;
-        this.concurrency = concurrency;
+        if (concurrency === this.parsingConcurrency) return;
+        this.parsingConcurrency = concurrency;
         this.parseQueue.concurrency = concurrency;
         this.process();
     }
@@ -162,8 +232,15 @@ class ListsLoader extends EventEmitter {
     }
 
     async process(recursion = 0) {
-        if (recursion > 5 || (!this.publicListsActive && !this.communityListsAmount)) {
-            console.log('[lists.loader] process() early exit:', { recursion, publicListsActive: this.publicListsActive, communityListsAmount: this.communityListsAmount });
+        if (recursion > 5) {
+            console.log('[lists.loader] process() early exit: recursion limit reached', { recursion });
+            return;
+        }
+        if (!this.publicListsActive && !this.communityListsAmount) {
+            console.log('[lists.loader] process() early exit: public lists disabled and no community lists requested', {
+                publicListsActive: this.publicListsActive,
+                communityListsAmount: this.communityListsAmount
+            });
             return;
         }
         if (recursion === 0 && this.isProcessing) {
@@ -551,86 +628,30 @@ class ListsLoader extends EventEmitter {
                     }
                     return; // Exit early, don't enqueue parsing
                 } else if (tempFilePath) {
-                    // Store downloaded file info for parsing queue
-                    started = true; // download completed
-                    this.downloadedFiles.set(url, { tempFilePath, url: url });
-                    
-                    // Enqueue parsing immediately
+                    // Download succeeded and produced a temp file
+                    started = true;
+                    const stats = await fs.promises.stat(tempFilePath).catch(() => null);
+                    if (!stats || !stats.size) {
+                        console.error(`[Loader] Temp file is empty or missing after download for ${url}: ${tempFilePath}`);
+                        fs.promises.unlink(tempFilePath).catch(() => {});
+                        this.results[url] = new Error('Downloaded file is empty');
+                        done = true;
+                        return;
+                    }
+
+                    const now = Date.now();
+                    this.downloadedFiles.set(url, { url, tempFilePath, size: stats.size });
+                    if (!this.processTimes) this.processTimes = new Map();
+                    this.processTimes.set(url, { downloadStart: now, downloadEnd: now, downloadSize: stats.size });
+                    this.debug && console.log(`[Loader] Download completed (size ${stats.size}) for ${url}`);
+
+                    // Enqueue generic parse worker (SJF happens in parseNextFile)
                     this.parseQueue.add(async () => {
-                        if (cancel) {
-                            // Cleanup temp file if cancelled
-                            const fileInfo = this.downloadedFiles.get(url);
-                            if (fileInfo && fileInfo.tempFilePath) {
-                                fs.promises.unlink(fileInfo.tempFilePath).catch(() => {});
-                            }
-                            this.downloadedFiles.delete(url);
-                            this.results[url] = new Error('Cancelled');
-                            done = true;
-                            return;
-                        }
-                        
-                        const fileInfo = this.downloadedFiles.get(url);
-                        if (!fileInfo || !fileInfo.tempFilePath) {
-                            console.error('Downloaded file info not found for:', url);
-                            this.results[url] = new Error('Downloaded file info not found');
-                            done = true;
-                            return;
-                        }
-                        
-                        try {
-                            // Verify file exists and has content before parsing
-                            const fileStats = await fs.promises.stat(fileInfo.tempFilePath).catch(() => null);
-                            if (!fileStats || fileStats.size === 0) {
-                                console.error(`[Loader] Temp file is empty or missing for ${url}: ${fileInfo.tempFilePath}`);
-                                this.results[url] = new Error('Downloaded file is empty');
-                                fs.promises.unlink(fileInfo.tempFilePath).catch(() => {});
-                                this.downloadedFiles.delete(url);
-                                done = true;
-                                return;
-                            }
-                            
-                            // Parse from downloaded file using updater worker
-                            if (this.debug) {
-                                console.log(`[Loader] Starting parse for ${url} from file: ${fileInfo.tempFilePath} (${fileStats.size} bytes)`);
-                            }
-                            await this.prepareUpdater();
-                            this.results[url] = await this.updater.parseFromFile(fileInfo.tempFilePath, url).catch(e => {
-                                console.error(`[Loader] Parse error for ${url}:`, e);
-                                return e;
-                            });
-                            
-                            if (this.debug) {
-                                console.log(`[Loader] Parse completed for ${url}. Result:`, this.results[url]);
-                            }
-                            
-							// Temp file cleanup is now handled by parseFromFile in worker
-                            parsed = true;
-                            done = true;
-                            
-                            // CRITICAL: After successful update, invalidate cache and force reload
-                            // This ensures the main process sees the updated data (not the old cache)
-                            if (this.debug) {
-                                console.log(`[Loader] Invalidating cache for ${url} after update, forcing fresh load`);
-                            }
-                            // Remove from cache and processed list to force reload
-                            if (this.master.lists[url]?.indexer?.db) {
-                                this.master.lists[url].indexer.db.destroy?.().catch(() => {});
-                            }
-                            // Delete from lists to force recre ation
-                            delete this.master.lists[url];
-                            this.master.processedLists.delete(url);
-                            
-                            if (this.results[url] === true || this.myLists.includes(url) || this.results[url] === 'already updated') {
-                                await this.master.loadList(url).catch(e => !String(e).match(/destroyed|list discarded|file not found/i) && console.error(e));
-                            }
-                        } catch (parseErr) {
-                            console.error('Parse error for', url, parseErr);
-                            // Temp file cleanup is now handled by parseFromFile in worker (even on error)
-                            this.downloadedFiles.delete(url);
-                            done = true;
-                        }
+                        await this.parseNextFile();
                     }, { priority });
-                        } else {
+
+                    // Parsing will complete in parseNextFile and mark done via process object
+                } else {
                     // Fallback: use full start() for compatibility (xtream/mag, etc)
                     started = true;
                     try {
@@ -660,14 +681,18 @@ class ListsLoader extends EventEmitter {
             }
         }, { priority });
         
+        let doneFlag = done;
+        let parsedFlag = parsed;
         this.processes.push({
             promise: downloadPromise,
             // started = true when download completed (meaning "downloaded")
             started: () => started,
             // parsed = true when parsing completed
-            parsed: () => parsed,
+            parsed: () => parsedFlag,
             cancel: () => cancel = true,
-            done: () => done || cancel,
+            done: () => doneFlag || cancel,
+            setDone: () => { doneFlag = true; },
+            setParsed: () => { parsedFlag = true; },
             priority,
             url
         });

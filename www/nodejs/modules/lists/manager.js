@@ -921,17 +921,19 @@ class Manager extends ManagerFetch {
 
         // Use the same dialogId as wizard to avoid collisions
         renderer.ready(() => {
+            if (global.wizardPending || (global.wizard && global.wizard.active)) {
+                return;
+            }
             const mode = this.master.communityListsAmount > 0 ? 'community' : 'public';
             const messages = {
                 community: lang.PREPARING_STREAMS,
                 public: lang.LOADING_PUBLIC
-            };    
+            };
             const opts = [
                 { template: 'question', text: messages[mode], fa: 'fas fa-spinner fa-spin' },
                 { template: 'message', text: lang.WAIT_MOMENT }
             ];
-    
-            menu.dialog(opts, 'loading', true, 'loading');
+            menu.dialog(opts, 'loading', true, 'lists-loading');
         })
     }
 
@@ -941,7 +943,7 @@ class Manager extends ManagerFetch {
         }
         this.loadingDialogShown = false;
         renderer.ready(() => {
-            renderer.ui.emit('dialog-close', 'loading');
+            renderer.ui.emit('dialog-close', 'lists-loading');
         })
     }
 

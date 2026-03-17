@@ -237,9 +237,12 @@ streamer.tuning = null
 
 const setupCompleted = () => {
     const l = config.get('lists')
-    const fine = Boolean((l && l.length) || config.get('community-mode-lists-amount'))
+    const hasLists = Boolean(l && l.length)
+    const hasCommunity = Boolean(config.get('community-mode-lists-amount'))
+    const publicLoaded = lists.loaded ? Boolean(lists.loaded(true)) : false
     const current = config.get('setup-completed')
-    console.log('setupCompleted', { fine, current })
+    const fine = Boolean(hasLists || hasCommunity || (current && publicLoaded))
+    console.log('setupCompleted', { fine, current, hasLists, hasCommunity, publicLoaded })
     if (fine !== current) {
         config.set('setup-completed', fine)
     }

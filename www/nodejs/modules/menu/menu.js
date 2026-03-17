@@ -31,6 +31,9 @@ class Menu extends EventEmitter {
         this.backIcon = 'fas fa-chevron-left'
         this.lastRecommendationsRefresh = 0
         this.liveSections = []
+        // Entradas revogadas da home com avoidImmediateRemoval
+        this.staleHomeEntries = []
+        this.staleHomeCleanupTimer = null
         this.softRefreshLimiter = {
             limiter: new Limiter(() => {
                 this.softRefresh()
@@ -46,6 +49,50 @@ class Menu extends EventEmitter {
             path: ''
         }
         this.setupEventListeners()
+    }
+    // Adiciona entradas revogadas da home em staleHomeEntries
+    retainStaleHomeEntries(oldEntries, newEntries) {
+        const now = Date.now()
+        const newNames = newEntries.map(e => e.name)
+        for (const entry of oldEntries) {
+            if (
+                entry.avoidImmediateRemoval === true &&
+                !newNames.includes(entry.name)
+                // Não existe uma nova entrada com o mesmo nome
+            ) {
+                // Verifica se já existe uma entrada mais nova com o mesmo nome
+                const already = this.staleHomeEntries.find(e => e.name === entry.name)
+                if (!already) {
+                    this.staleHomeEntries.push({
+                        ...entry,
+                        _staleTimestamp: now
+                    })
+                }
+            }
+        }
+        this.scheduleStaleHomeCleanup()
+    }
+    // Limpa entradas expiradas de staleHomeEntries
+    cleanupStaleHomeEntries() {
+        const now = Date.now()
+        const maxAge = 5 * 60 * 1000 // 5 minutos
+        this.staleHomeEntries = this.staleHomeEntries.filter(e => (now - e._staleTimestamp) < maxAge)
+        this.scheduleStaleHomeCleanup()
+    }
+    // Agenda limpeza automática com base no tempo restante da entrada mais antiga
+    scheduleStaleHomeCleanup() {
+        if (this.staleHomeCleanupTimer) {
+            clearTimeout(this.staleHomeCleanupTimer)
+            this.staleHomeCleanupTimer = null
+        }
+        if (!this.staleHomeEntries.length) return
+        const now = Date.now()
+        const oldest = this.staleHomeEntries.reduce((min, e) => e._staleTimestamp < min ? e._staleTimestamp : min, this.staleHomeEntries[0]._staleTimestamp)
+        const maxAge = 5 * 60 * 1000
+        const timeLeft = Math.max(0, maxAge - (now - oldest))
+        this.staleHomeCleanupTimer = setTimeout(() => {
+            this.cleanupStaleHomeEntries()
+        }, timeLeft)
     }
     setupEventListeners() {
         renderer.ready(async () => {
@@ -271,7 +318,11 @@ class Menu extends EventEmitter {
         }
     }
     async updateHomeFilters() {
+        // Antes de atualizar, salva as entradas antigas
+        const oldEntries = Array.isArray(this.pages['']) ? this.pages[''].slice() : []
         this.pages[''] = await this.applyFilters([], '')
+        // Após atualizar, verifica entradas revogadas
+        this.retainStaleHomeEntries(oldEntries, this.pages[''])
         this.path || this.refresh()
     }
     async dialog(opts, def, mandatory, dialogId = null) {
@@ -628,9 +679,9 @@ class Menu extends EventEmitter {
             if (parts.length) {
                 let previousPage = page
                 let name = parts.shift()
-                let newPage = page ? page + '/' + name : name
-                let entry = this.findEntry(pages[page], name, newPage)
-                page = newPage
+                let fullPath = page ? page + '/' + name : name
+                let entry = this.findEntry(pages[page], name, {fullPath})
+                page = fullPath
                 if (entry && ['group', 'select'].includes(entry.type)) {
                     parent = entry
                     let entries = await this.readEntry(entry, page)
@@ -648,9 +699,9 @@ class Menu extends EventEmitter {
                     console.error('deep path not found, falling back', destPath, this.pages[destPath])
                     return finish(this.pages[destPath])
                 }
-                if (typeof(this.pages[newPage]) != 'undefined') { // fallback
-                    console.error('deep path not found, falling back', newPage, this.pages[newPage])
-                    return finish(this.pages[newPage])
+                if (typeof(this.pages[fullPath]) != 'undefined') { // fallback
+                    console.error('deep path not found, falling back', fullPath, this.pages[fullPath])
+                    return finish(this.pages[fullPath])
                 }
                 console.error('deep path not found, falling back', previousPage, this.pages[previousPage])
                 return finish(this.pages[previousPage])
@@ -701,6 +752,13 @@ class Menu extends EventEmitter {
                 return finish(this.pages[destPath], e)
             }
         } else {
+            // Busca em staleHomeEntries se for home
+            if (parentPath === '') {
+                const stale = this.findEntry(this.pages[parentPath], basePath, {tabindex, isFolder, path: ''})
+                if (stale) {
+                    return finish([stale])
+                }
+            }
             // maybe it's a 'ghost' page like search results, which is not linked on navigation
             // but shown directly via render() instead
             if (typeof(this.pages[destPath]) != 'undefined') { // fallback
@@ -714,20 +772,6 @@ class Menu extends EventEmitter {
                 basePath,
                 page: this.pages[parentPath]
             })
-            
-            // Check if this is a recommendations-related path that might be outdated (only on home)
-            const isRecommendationsPath = parentPath === '' && (
-                destPath.includes(lang.RECOMMENDED_FOR_YOU) || 
-                (this.pages[parentPath] && this.pages[parentPath].some(e => e.hookId === 'recommendations'))
-            )
-            
-            if (isRecommendationsPath && (Date.now() - this.lastRecommendationsRefresh) > 5000) {
-                console.log('Detected outdated recommendations path on home, triggering refresh')
-                this.lastRecommendationsRefresh = Date.now()
-                this.refresh(true) // deep refresh
-                throw 'path not found - recommendations outdated'
-            }
-            
             throw 'path not found'
         }
     }
@@ -804,11 +848,11 @@ class Menu extends EventEmitter {
                 // Try to find entry in ret.entries first, but if not found, try in this.pages[parentPath]
                 // This handles cases where the entry was filtered out or the array was modified
                 let e = this.findEntry(ret.entries, name, {
-                    tabindex, isFolder, fullPath: destPath
+                    tabindex, isFolder, fullPath: destPath, path: parentPath === '' ? '' : parentPath
                 })
                 if (!e && Array.isArray(this.pages[parentPath])) {
                     e = this.findEntry(this.pages[parentPath], name, {
-                        tabindex, isFolder, fullPath: destPath
+                        tabindex, isFolder, fullPath: destPath, path: parentPath === '' ? '' : parentPath
                     })
                 }
                 if (this.opts.debug) {
@@ -960,6 +1004,18 @@ class Menu extends EventEmitter {
                 name,
                 type: 'group',
                 entries: this.pages[opts.fullPath]
+            }
+        }
+        // Busca em staleHomeEntries apenas se path for home
+        const currentPath = typeof opts.fullPath === 'string' ? opts.fullPath : (typeof opts.path === 'string' ? opts.path : '')
+        if (currentPath === '' && this.staleHomeEntries && this.staleHomeEntries.length) {
+            const now = Date.now()
+            const maxAge = 5 * 60 * 1000
+            // Remove expiradas e busca
+            this.staleHomeEntries = this.staleHomeEntries.filter(e => (now - e._staleTimestamp) < maxAge)
+            const stale = this.staleHomeEntries.find(e => e.name === name)
+            if (stale) {
+                return stale
             }
         }
     }

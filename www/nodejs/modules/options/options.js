@@ -816,6 +816,7 @@ class Options extends OptionsExportImport {
         ], 'no');
         if (ret == 'yes') {
             // Explicitly clear setup-completed before clearing config
+            osd.show(lang.PROCESSING, 'fa-mega busy-x', 'reset-config', 'persistent');
             config.set('setup-completed', false);
             try {
                 rmdirSync(paths.data, false)
@@ -825,7 +826,8 @@ class Options extends OptionsExportImport {
             }
             await storage.clear(true)
             await fs.promises.unlink(config.file).catch(err => console.error(err))
-            energy.restart();
+            energy.restart()
+            osd.hide('reset-config');
         }
     }
     async transcodingEntries() {
