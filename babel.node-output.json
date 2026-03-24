@@ -1,0 +1,32 @@
+{
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "targets": {
+          "node": "14.0.0"
+        },
+        "modules": "cjs"
+      }
+    ]
+  ],
+  "plugins": [
+    [
+      "@babel/plugin-syntax-import-attributes",
+      {
+        "deprecatedAssertSyntax": true
+      }
+    ]
+  ],
+  "generatorOpts": {
+    "retainLines": true,
+    "compact": true,
+    "minified": true
+  },
+  "env": {
+    "development": {
+      "compact": false
+    }
+  }
+}
+
