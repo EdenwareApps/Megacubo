@@ -121,8 +121,10 @@ const runRollupAsync = (configFile, description) => {
     if (!nodeOptions.includes('--max-old-space-size')) {
       nodeOptions = (nodeOptions ? `${nodeOptions} ` : '') + '--max-old-space-size=8192'
     }
-    // Add --expose-gc to enable garbage collection in child process
-    if (!nodeOptions.includes('--expose-gc')) {
+    // Avoid adding --expose-gc to NODE_OPTIONS on Node 22+ because it is rejected
+    // by the runtime. The GC plugin logs a warning if global.gc is unavailable.
+    const nodeMajorVersion = Number(process.versions.node.split('.')[0])
+    if (nodeMajorVersion < 22 && !nodeOptions.includes('--expose-gc')) {
       nodeOptions = (nodeOptions ? `${nodeOptions} ` : '') + '--expose-gc'
     }
     
