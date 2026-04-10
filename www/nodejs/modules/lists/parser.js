@@ -278,6 +278,9 @@ export class Parser extends EventEmitter {
         e.group = g;
         e.groups = g.split('/');
         e.groupName = e.groups[e.groups.length - 1];
+
+        // Fill missing structured hints (age/lang/country) before emitting.
+        e = this.processEntryWithDetection(e);
         
         // Debug logging for final entry
         if (this.debug) {
@@ -716,87 +719,129 @@ export class Parser extends EventEmitter {
         return 0; // Default: no restriction
     }
     
+    lower(value) {
+        return typeof value === 'string' ? value.toLowerCase() : '';
+    }
+
+    extractBracketCode(value) {
+        if (typeof value !== 'string') return '';
+        const start = value.indexOf('[');
+        if (start === -1) return '';
+        const end = value.indexOf(']', start + 1);
+        if (end === -1) return '';
+        const code = value.slice(start + 1, end).trim();
+        if (code.length !== 2) return '';
+        const a = code.charCodeAt(0) | 32;
+        const b = code.charCodeAt(1) | 32;
+        if (a < 97 || a > 122 || b < 97 || b > 122) return '';
+        return code.toUpperCase();
+    }
+
+    detectCountryFromUrl(url) {
+        if (!url || typeof url !== 'string') return '';
+        const cleaned = url.trim().replace(/^[a-z]+:\/\//i, '').split(/[?#]/)[0];
+        const host = cleaned.split('/')[0].split('@').pop();
+        if (!host) return '';
+        const parts = host.split('.');
+        if (parts.length < 2) return '';
+        const tld = parts[parts.length - 1].toLowerCase();
+        const tldMap = {
+            br: 'BR', es: 'ES', fr: 'FR', de: 'DE', us: 'US', mx: 'MX', ar: 'AR',
+            cl: 'CL', co: 'CO', pe: 'PE', it: 'IT', pt: 'PT', gb: 'GB', uk: 'GB',
+            nl: 'NL', se: 'SE', no: 'NO', fi: 'FI', dk: 'DK', ie: 'IE', ru: 'RU',
+            jp: 'JP', kr: 'KR', cn: 'CN', in: 'IN', au: 'AU', nz: 'NZ', za: 'ZA',
+            tr: 'TR', eg: 'EG', ch: 'CH', at: 'AT', be: 'BE', pl: 'PL'
+        };
+        return tldMap[tld] || '';
+    }
+
     detectLanguageFromEntry(entry) {
         // Priority 1: Direct language attribute
         if (entry.lang) {
-            return entry.lang.toLowerCase();
+            return this.lower(entry.lang);
         }
-        
+
         // Priority 2: Channel name detection [PT-BR], [ES], etc.
         if (entry.name) {
-            const langMatch = entry.name.match(/\[(\w{2}(-\w{2})?)\]/i);
-            if (langMatch) {
-                return langMatch[1].toLowerCase();
+            const code = this.extractBracketCode(entry.name);
+            if (code) {
+                return code.toLowerCase();
             }
         }
-        
+
         // Priority 3: URL path detection
         if (entry.url) {
-            const url = entry.url.toLowerCase();
-            const pathMatch = url.match(/\/(\w{2})\//);
+            const url = this.lower(entry.url);
+            const pathMatch = url.match(/\/([a-z]{2})(?:\/|$)/);
             if (pathMatch) {
                 return pathMatch[1];
             }
         }
-        
+
         // Priority 4: Group title detection
         if (entry.group) {
-            const group = entry.group.toLowerCase();
+            const group = this.lower(entry.group);
             if (group.includes('portuguese') || group.includes('brasil')) return 'pt';
             if (group.includes('spanish') || group.includes('espanol')) return 'es';
             if (group.includes('english') || group.includes('usa')) return 'en';
             if (group.includes('french') || group.includes('francais')) return 'fr';
         }
-        
+
         return ''; // Default: no language detected
     }
-    
+
     detectCountryFromEntry(entry) {
         // Priority 1: Direct country attribute
         if (entry.country) {
-            return entry.country.toUpperCase();
+            return String(entry.country).toUpperCase();
         }
-        
+
         // Priority 2: Region attribute
         if (entry.region) {
-            const region = entry.region.toLowerCase();
+            const region = this.lower(entry.region);
             if (region.includes('brazil') || region.includes('brasil')) return 'BR';
             if (region.includes('spain') || region.includes('espanha')) return 'ES';
             if (region.includes('usa') || region.includes('united states')) return 'US';
             if (region.includes('france')) return 'FR';
             if (region.includes('germany') || region.includes('deutschland')) return 'DE';
         }
-        
-        // Priority 3: Channel name detection [BR], [US], etc.
+
+        // Priority 3: URL domain / TLD detection
+        const urlCountry = this.detectCountryFromUrl(entry.url);
+        if (urlCountry) {
+            return urlCountry;
+        }
+
+        // Priority 4: Channel name detection [BR], [US], etc.
         if (entry.name) {
-            const countryMatch = entry.name.match(/\[(\w{2})\]/i);
-            if (countryMatch) {
-                return countryMatch[1].toUpperCase();
+            const countryCode = this.extractBracketCode(entry.name);
+            if (countryCode) {
+                return countryCode;
             }
         }
-        
-        // Priority 4: URL path detection
+
+        // Priority 5: URL path detection
         if (entry.url) {
-            const url = entry.url.toLowerCase();
-            const pathMatch = url.match(/\/(\w{2})\//);
+            const url = this.lower(entry.url);
+            const pathMatch = url.match(/\/([a-z]{2})(?:\/|$)/);
             if (pathMatch) {
                 return pathMatch[1].toUpperCase();
             }
         }
-        
-        // Priority 5: Group title detection
+
+        // Priority 6: Group title detection
         if (entry.group) {
-            const group = entry.group.toLowerCase();
+            const group = this.lower(entry.group);
             if (group.includes('brasil') || group.includes('brazil')) return 'BR';
             if (group.includes('espanha') || group.includes('spain')) return 'ES';
             if (group.includes('usa') || group.includes('america')) return 'US';
             if (group.includes('france')) return 'FR';
             if (group.includes('germany') || group.includes('deutschland')) return 'DE';
         }
-        
+
         return ''; // Default: no country detected
     }
-    
+
     // Enhanced entry processing with intelligent detection
     processEntryWithDetection(entry) {
         // Apply intelligent detection

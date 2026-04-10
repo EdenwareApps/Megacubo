@@ -644,6 +644,19 @@ export default class ThreadWorkerDriver extends WorkerDriver {
                     reject(error)
                 }
             }
+
+            // If there are queued calls for drivers that were added before the worker became ready,
+            // ensure we request their loadWorker now so later calls don't fail with "worker not found".
+            const pendingDriverFiles = new Set(
+                otherCalls
+                    .filter(call => !this.loadWorkerSent.has(call.file))
+                    .map(call => call.file)
+            )
+            for (const file of pendingDriverFiles) {
+                console.log(`🔄 Sending pending loadWorker for ${file}`)
+                this.worker.postMessage({ method: 'loadWorker', file })
+                this.loadWorkerSent.add(file)
+            }
             
             // Wait for drivers to load, then process other calls
             if (otherCalls.length > 0) {

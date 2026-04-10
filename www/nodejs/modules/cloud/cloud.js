@@ -19,7 +19,7 @@ class CloudConfiguration extends EventEmitter {
         }
         this.debug = opts.debug || false
         this.defaultTTL = 300
-        this.defaultServer = 'https://app.megacubo.net/stats'
+        this.defaultServer = 'https://stats.megacubo.net'
         this.server = config.get('config-server') || this.defaultServer
         this.activeFetches = new Map() // Track active fetches by key
         this.failed404Cache = new Map() // Track URLs that returned 404 errors

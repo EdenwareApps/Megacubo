@@ -3,10 +3,9 @@ import lang from "../lang/lang.js";
 import { EventEmitter } from 'node:events';
 import options from "../options/options.js";
 import lists from "../lists/lists.js";
-import https from "https";
+import cloud from "../cloud/cloud.js";
 import paths from '../paths/paths.js'
 import { ready } from '../bridge/bridge.js'
-import { isWritable } from '../utils/utils.js'
 
 class AnalyticsBase extends EventEmitter {
     constructor() {

@@ -4,7 +4,7 @@ class StreamerProxyBase extends StreamerAdapterBase {
         super('', opts);
         this.typeMismatchCheckingThreshold = 512 * 1024; // m3u8 with more de 512KB will be checked if it's not a ts stream instead
         this.connectable = false;
-        this.isCacheableRegex = new RegExp('^.*\\.(m4s|mts|m2ts|ts|key)', 'i');
+        this.isCacheableRegex = new RegExp('^.*\\.(m4s|mts|m2ts|ts|key)(?:$|[?#])', 'i');
         this.segmentExts = {
             'ts': null,
             'mts': null,

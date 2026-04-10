@@ -5,6 +5,7 @@ import zlib from 'zlib'
 import { EPG_CONFIG } from '../config.js'
 import { EPGErrorHandler } from '../EPGErrorHandler.js'
 import { time } from '../../../utils/utils.js'
+import DownloadSafety from '../../../utils/download-safety.js'
 
 export class ParserFactory {
   // Helper function to ensure errors are Error objects
@@ -245,6 +246,14 @@ export class ParserFactory {
         const error = new Error(`HTTP ${code}`)
         error.isHttpError = true
         error.statusCode = code
+        onError(error)
+        return
+      }
+
+      if (DownloadSafety.isHtmlContentType(headers)) {
+        const error = new Error(`Rejected suspicious HTML response: ${DownloadSafety.getContentType(headers)}`)
+        error.isNetworkError = true
+        request.destroy()
         onError(error)
         return
       }

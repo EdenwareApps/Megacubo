@@ -12,6 +12,7 @@ import paths from '../paths/paths.js';
 import path from 'path';
 import pLimit from 'p-limit';
 import Icon from './icon.js';
+import DownloadSafety from '../utils/download-safety.js';
 import http from 'http';
 import Reader from '../reader/reader.js';
 import closed from '../on-closed/on-closed.js';
@@ -457,7 +458,13 @@ class IconServerStore extends IconSearch {
                     timeout: 15,
                     maxContentLength: this.opts.maxContentLength,
                     headers,
-                    cacheTTL: this.ttlBadCache
+                    cacheTTL: this.ttlBadCache,
+                    onHeadersReceived: (statusCode, headers) => {
+                        if (DownloadSafety.isHtmlContentType(headers)) {
+                            return false;
+                        }
+                        return true;
+                    }
                 }).catch(e => err = e)
             }
             await this.activeDownloads[url]

@@ -753,13 +753,36 @@ class Download extends EventEmitter {
         const promise = new Promise((resolve, reject) => {
             dl = new Download({ ...opts });
             dl.on('response', (statusCode, headers) => {
-                if (statusCode >= 200 && statusCode < 400) {
-                    stream = fs.createWriteStream(opts.file);
-                    dl.on('data', chunk => stream.write(chunk));
-                } else {
+                const handleHeaders = async () => {
+                    if (typeof opts.onHeadersReceived === 'function') {
+                        const result = await opts.onHeadersReceived(statusCode, headers, dl);
+                        if (result === false) {
+                            throw new Error('Headers rejected by onHeadersReceived');
+                        }
+                    }
+
+                    if (statusCode >= 200 && statusCode < 400) {
+                        stream = fs.createWriteStream(opts.file);
+                        dl.on('data', chunk => stream.write(chunk));
+                    } else {
+                        dl.destroy();
+                        throw new Error(`HTTP error ${statusCode}`);
+                    }
+                };
+
+                handleHeaders().catch(err => {
+                    if (stream) {
+                        stream.destroy();
+                    }
                     dl.destroy();
-                    reject(`HTTP error ${statusCode}`);
-                }
+                    if (opts.file) {
+                        fs.unlink(opts.file, () => {
+                            reject(err);
+                        });
+                    } else {
+                        reject(err);
+                    }
+                });
             });
             dl.on('error', reject);
             dl.on('end', () => {

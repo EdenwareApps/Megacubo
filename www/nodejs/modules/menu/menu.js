@@ -114,11 +114,11 @@ class Menu extends EventEmitter {
                 }
             })
             osd.on('show', (text, icon, name, duration) => {
-                if(duration == 'persistent' && text.includes('...')) {
-                    if(!this.osdBusies) this.osdBusies = {}
-                    if(!this.osdBusies[name]) this.osdBusies[name] = this.setBusy(name, 2000)
+                if (duration == 'persistent' && typeof text === 'string' && text.includes('...')) {
+                    if (!this.osdBusies) this.osdBusies = {}
+                    if (!this.osdBusies[name]) this.osdBusies[name] = this.setBusy(name, 2000)
                 } else {
-                    if(this.osdBusies && this.osdBusies[name]) {
+                    if (this.osdBusies && this.osdBusies[name]) {
                         this.osdBusies[name].release()
                         delete this.osdBusies[name]
                     }
@@ -320,7 +320,9 @@ class Menu extends EventEmitter {
     async updateHomeFilters() {
         // Antes de atualizar, salva as entradas antigas
         const oldEntries = Array.isArray(this.pages['']) ? this.pages[''].slice() : []
-        this.pages[''] = await this.applyFilters([], '')
+        let entries = await this.applyFilters([], '')
+        entries = await this.applyOutputFilters(entries, '')
+        this.pages[''] = entries
         // Após atualizar, verifica entradas revogadas
         this.retainStaleHomeEntries(oldEntries, this.pages[''])
         this.path || this.refresh()
@@ -520,7 +522,7 @@ class Menu extends EventEmitter {
             for (let i = 0; i < entries.length; i++) {
                 if (entries[i].type == 'back') {
                     entries[i].path = this.dirname(path)
-                } else {
+                } else if (typeof(entries[i].path) !== 'string' || !entries[i].path) {
                     entries[i].path = basePath + entries[i].name
                 }
                 if (typeof(entries[i].checked) == 'function') {
@@ -640,21 +642,35 @@ class Menu extends EventEmitter {
             if (this.opts.debug) {
                 console.log('action ' + destPath + ' | ' + dir, tabindex)
             }
-            if (typeof(this.pages[dir]) == 'undefined') {
+            let entriesSource = Array.isArray(this.pages[dir]) ? this.pages[dir] : undefined
+            if (!entriesSource && dir === this.path && Array.isArray(this.currentEntries)) {
+                entriesSource = this.currentEntries
+                if (this.opts.debug) {
+                    console.warn('action fallback to currentEntries for', destPath)
+                }
+            }
+            if (!Array.isArray(entriesSource)) {
                 console.error(dir + 'NOT FOUND IN', this.pages)
             } else {
-                const inSelect = this.pages[dir].some(e => typeof(e.selected) != 'undefined')
-                let i = this.findEntryIndex(this.pages[dir], name, tabindex)
+                const inSelect = entriesSource.some(e => typeof(e.selected) != 'undefined')
+                let i = this.findEntryIndex(entriesSource, name, tabindex)
+                if (i === false && entriesSource !== this.currentEntries && dir === this.path && Array.isArray(this.currentEntries)) {
+                    if (this.opts.debug) {
+                        console.warn('action fallback to currentEntries because entry not found in pages', destPath)
+                    }
+                    i = this.findEntryIndex(this.currentEntries, name, tabindex)
+                    entriesSource = this.currentEntries
+                }
                 if(typeof(i) == 'number') {
                     if (inSelect) {
-                        this.pages[dir].forEach((e, j) => {
-                            this.pages[dir][i].selected = j == i    
+                        entriesSource.forEach((e, j) => {
+                            entriesSource[i].selected = j == i    
                         })
                     }
-                    this.emit('action', this.pages[dir][i])
+                    this.emit('action', entriesSource[i])
                     return true
                 } else {
-                    console.error('ACTION ' + name + ' (' + tabindex + ') NOT FOUND IN ', { dir, destPath, keys: Object.keys(this.pages) }, this.pages[dir])
+                    console.error('ACTION ' + name + ' (' + tabindex + ') NOT FOUND IN ', { dir, destPath, keys: Object.keys(this.pages) }, entriesSource)
                 }
             }
         })(), `menu.action(${destPath})`, 30000)
@@ -710,9 +726,9 @@ class Menu extends EventEmitter {
         }
         return next()
     }
-    async read(destPath, tabindex, allowCache) {
+    async read(destPath, tabindex, allowCache, isFolder) {
         if (this.opts.debug) {
-            console.error('read', destPath, tabindex, allowCache)
+            console.error('read', destPath, tabindex, allowCache, isFolder)
         }
         const refPath = this.path
         if (['.', '/'].includes(destPath)) {
@@ -754,7 +770,7 @@ class Menu extends EventEmitter {
         } else {
             // Busca em staleHomeEntries se for home
             if (parentPath === '') {
-                const stale = this.findEntry(this.pages[parentPath], basePath, {tabindex, isFolder, path: ''})
+                const stale = this.findEntry(this.pages[parentPath], basePath, {tabindex, isFolder: false, path: ''})
                 if (stale) {
                     return finish([stale])
                 }
@@ -838,7 +854,7 @@ class Menu extends EventEmitter {
                     }
                 }
             }
-            let ret = await this[deep === true ? 'deepRead' : 'read'](parentPath, undefined)
+            let ret = await this[deep === true ? 'deepRead' : 'read'](parentPath, undefined, undefined, isFolder)
             if (this.opts.debug) {
                 console.log('readen2', {ret, page: this.pages[parentPath], parentPath, name, destPath, tabindex, deep, isFolder, backInSelect}, traceback())
             }
@@ -1183,10 +1199,12 @@ class Menu extends EventEmitter {
                     item.type = 'stream'
                 }
             }
-            if (typeof item.path !== 'string') {
+            if (typeof item.path !== 'string' || !item.path) {
                 item.path = item.type === 'back'
                     ? this.dirname(path)
                     : (path ? `${path}/${item.name}` : item.name)
+            } else if (path && !item.path.includes('/') && item.path === item.name) {
+                item.path = `${path}/${item.path}`
             }
             return item
         })

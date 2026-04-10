@@ -17,6 +17,7 @@ import { EventEmitter } from "events";
 import { sniffStreamType, inferTypeFromGroupName } from './stream-classifier.js'
 import dbConfig from "./db-config.js";
 import Reader from '../reader/reader.js';
+import DownloadSafety from '../utils/download-safety.js';
 
 const LIST_STORAGE_TTL = 24 * 3600
 
@@ -172,6 +173,8 @@ class UpdateListIndex extends EventEmitter {
             this.indexMeta[name] = headers[k]
         })
     }
+
+
     connect(path) {
         return new Promise((resolve, reject) => {
             // Check if path is a local file (not a URL)
@@ -285,6 +288,11 @@ class UpdateListIndex extends EventEmitter {
                     resolved = true
                     this.parseHeadersMeta(headers)
                     if (statusCode >= 200 && statusCode < 300) {
+                        if (DownloadSafety.isHtmlContentType(headers)) {
+                            this.stream.destroy()
+                            reject(new Error(`Rejected suspicious HTML response: ${DownloadSafety.getContentType(headers)}`))
+                            return
+                        }
                         if (this.stream.totalContentLength) {
                             this.contentLength = this.stream.totalContentLength
                         }
@@ -572,6 +580,17 @@ class UpdateListIndex extends EventEmitter {
         entryToInsert.groupTerms = this._cachedGroupTerms
         this.master.prepareEntry(entryToInsert)
 
+        // Normalize parser/attribute country hints to ISO-2.
+        if (typeof entryToInsert.country === 'string') {
+            entryToInsert.country = entryToInsert.country.trim().toUpperCase()
+            if (entryToInsert.country.length > 2) {
+                entryToInsert.country = entryToInsert.country.substring(0, 2)
+            }
+            if (!/^[A-Z]{2}$/.test(entryToInsert.country)) {
+                entryToInsert.country = ''
+            }
+        }
+
         // Sanitize entry to prevent JSON serialization issues
         this.sanitizeEntryForJSON(entryToInsert)
 
@@ -658,6 +677,18 @@ class UpdateListIndex extends EventEmitter {
             let groupStreamType = (groupType === 'vod' || groupType === 'series') ? groupType : (rawStreamType || groupType || 'live')
             if (groupStreamType && Object.prototype.hasOwnProperty.call(groupData.typeCounts, groupStreamType)) {
                 groupData.typeCounts[groupStreamType] += 1
+            }
+        }
+
+        // Aggregate country evidence per list for post-index ranking.
+        if (entryToInsert.country) {
+            this.countryStats.total += 1
+            this.countryStats.counts[entryToInsert.country] = (this.countryStats.counts[entryToInsert.country] || 0) + 1
+            if (groupKey) {
+                if (!this.countryStats.groups[entryToInsert.country]) {
+                    this.countryStats.groups[entryToInsert.country] = new Set()
+                }
+                this.countryStats.groups[entryToInsert.country].add(groupKey)
             }
         }
 
@@ -835,11 +866,17 @@ class UpdateListIndex extends EventEmitter {
             this.stream = new Download(opts)
             let finishTimeout = null // Declare in outer scope
             let writeStream = null
+            let sniffedHtml = false
             
             this.stream.on('redirect', (url, headers) => this.parseHeadersMeta(headers))
             this.stream.on('response', async (statusCode, headers) => {
                 this.parseHeadersMeta(headers)
                 if (statusCode >= 200 && statusCode < 300) {
+                    if (DownloadSafety.isHtmlContentType(headers)) {
+                        this.stream.destroy()
+                        reject(new Error(`Rejected suspicious HTML response: ${DownloadSafety.getContentType(headers)}`))
+                        return
+                    }
                     if (this.stream.totalContentLength) {
                         this.contentLength = this.stream.totalContentLength
                     }
@@ -884,6 +921,18 @@ class UpdateListIndex extends EventEmitter {
                             // Buffer chunks while draining
                             dataBuffer.push(chunk)
                             return
+                        }
+
+                        if (!sniffedHtml) {
+                            sniffedHtml = true
+                            const sample = typeof chunk === 'string' ? chunk : chunk.toString('utf8')
+                            if (DownloadSafety.isHtmlBodySample(sample)) {
+                                writeStream.destroy()
+                                fs.promises.unlink(tempFile).catch(() => {})
+                                this.tempFiles = this.tempFiles.filter(f => f !== tempFile)
+                                reject(new Error('Rejected suspicious HTML body response'))
+                                return
+                            }
                         }
                         
                         const canWrite = writeStream.write(chunk)
@@ -1174,6 +1223,13 @@ class UpdateListIndex extends EventEmitter {
                 this._index.meta = { ...this._index.meta, ...this.indexMeta }
             }
 
+            const detectedCountriesTop = this.computeDetectedCountriesTop(8)
+            if (detectedCountriesTop.length) {
+                this._index.meta.detectedCountries = detectedCountriesTop.map(c => c.code)
+                this._index.meta.detectedCountry = detectedCountriesTop[0].code
+                this._index.meta.detectedCountriesStats = detectedCountriesTop
+            }
+
             this._index.groupsTypes = this.sniffGroupsTypes(this.groups)
 
             // CRITICAL: Wait for all pending write operations before closing
@@ -1219,6 +1275,14 @@ class UpdateListIndex extends EventEmitter {
                     indexData.gids = this._index.gids && Object.keys(this._index.gids).length > 0 ? this._index.gids : (existingMeta.gids || {})
                     indexData.groupsTypes = this._index.groupsTypes != null ? this._index.groupsTypes : (existingMeta.groupsTypes || { live: [], vod: [], series: [] })
                     indexData.length = this._index.length
+
+                    const detectedCountries = Array.isArray(this._index.meta?.detectedCountries) ? this._index.meta.detectedCountries : []
+                    const detectedCountriesStats = Array.isArray(this._index.meta?.detectedCountriesStats) ? this._index.meta.detectedCountriesStats : []
+                    if (detectedCountries.length) {
+                        indexData.detectedCountries = detectedCountries
+                        indexData.detectedCountry = this._index.meta.detectedCountry
+                        indexData.detectedCountriesStats = detectedCountriesStats
+                    }
 
                     const saveSuccess = await setListMeta(this.url, indexData)
                     if (!saveSuccess) {
@@ -1437,6 +1501,13 @@ class UpdateListIndex extends EventEmitter {
                 this._index.meta = { ...this._index.meta, ...this.indexMeta };
             }
 
+            const detectedCountriesTop = this.computeDetectedCountriesTop(8)
+            if (detectedCountriesTop.length) {
+                this._index.meta.detectedCountries = detectedCountriesTop.map(c => c.code)
+                this._index.meta.detectedCountry = detectedCountriesTop[0].code
+                this._index.meta.detectedCountriesStats = detectedCountriesTop
+            }
+
             this._index.groupsTypes = this.sniffGroupsTypes(this.groups)
 
             // CRITICAL: Wait for all pending write operations before closing
@@ -1485,6 +1556,14 @@ class UpdateListIndex extends EventEmitter {
                     indexData.gids = this._index.gids && Object.keys(this._index.gids).length > 0 ? this._index.gids : (existingMeta.gids || {});
                     indexData.groupsTypes = this._index.groupsTypes != null ? this._index.groupsTypes : (existingMeta.groupsTypes || { live: [], vod: [], series: [] });
                     indexData.length = this._index.length;
+
+                    const detectedCountries = Array.isArray(this._index.meta?.detectedCountries) ? this._index.meta.detectedCountries : []
+                    const detectedCountriesStats = Array.isArray(this._index.meta?.detectedCountriesStats) ? this._index.meta.detectedCountriesStats : []
+                    if (detectedCountries.length) {
+                        indexData.detectedCountries = detectedCountries
+                        indexData.detectedCountry = this._index.meta.detectedCountry
+                        indexData.detectedCountriesStats = detectedCountriesStats
+                    }
 
                     // Save with key-value structure (preserves existing data automatically)
                     const saveSuccess = await setListMeta(this.url, indexData);
@@ -1879,6 +1958,24 @@ class UpdateListIndex extends EventEmitter {
 
         return ret
     }
+    computeDetectedCountriesTop(limit = 8) {
+        const results = []
+        const counts = this.countryStats.counts || {}
+        const groupsMap = this.countryStats.groups || {}
+
+        for (const [code, streams] of Object.entries(counts)) {
+            if (!/^[A-Z]{2}$/.test(code) || streams <= 0) {
+                continue
+            }
+            const groupsCount = groupsMap[code] ? groupsMap[code].size : 0
+            // Sublinear stream weight + group diversity to reduce raw-volume bias.
+            const score = Math.sqrt(streams) + (groupsCount * 0.6)
+            results.push({ code, streams, groupsCount, score })
+        }
+
+        results.sort((a, b) => b.score - a.score || b.streams - a.streams || a.code.localeCompare(b.code))
+        return results.slice(0, limit)
+    }
     isGroupSeried(entries) {
         if (!Array.isArray(entries)) return false
         const names = entries
@@ -1974,6 +2071,12 @@ class UpdateListIndex extends EventEmitter {
         this.lastURL = null
         this._lastCachedGroupKey = ''
         this._cachedGroupTerms = []
+
+        this.countryStats = {
+            total: 0,
+            counts: {},
+            groups: {}
+        }
         
         // Clean up temp files and streams
         this.tempFiles = []
