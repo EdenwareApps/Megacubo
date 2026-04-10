@@ -719,6 +719,10 @@ const initElectronWindow = async () => {
             console.error('❌ Bridge ready error:', err)
             return
         }
+        if (!port) {
+            console.error('❌ Bridge port unavailable, cannot load renderer')
+            return
+        }
         console.log('🌉 Bridge ready, loading URL on port:', port)
         window.loadURL('http://127.0.0.1:'+ port +'/renderer/electron.html', { userAgent: renderer.ui.ua })
         window.setAlwaysOnTop(true) // trick to take focus

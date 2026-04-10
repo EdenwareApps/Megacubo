@@ -131,8 +131,10 @@ class BridgeServer extends EventEmitter {
                 if (typeof (this.map[pathname]) != 'undefined') {
                     pathname = this.map[pathname]
                     mapped = true
+                } else {
+                    pathname = path.join(paths.cwd, pathname)
                 }
-                pathname = path.resolve(paths.cwd, pathname)
+                pathname = path.normalize(pathname)
                 if (!pathname || (!mapped && !await isUnderRootAsync(pathname, paths.cwd))) {
                     response.statusCode = 403;
                     response.end();
