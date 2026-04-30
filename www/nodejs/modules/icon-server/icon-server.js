@@ -451,6 +451,8 @@ class IconServerStore extends IconSearch {
                     headers['Referer'] = urlObj.origin + '/';
                 }
                 
+                let htmlBodyChecked = false
+                let htmlSample = ''
                 this.activeDownloads[url] = Download.file({
                     url,
                     file: storageFile,
@@ -459,11 +461,33 @@ class IconServerStore extends IconSearch {
                     maxContentLength: this.opts.maxContentLength,
                     headers,
                     cacheTTL: this.ttlBadCache,
-                    onHeadersReceived: (statusCode, headers) => {
-                        if (DownloadSafety.isHtmlContentType(headers)) {
-                            return false;
+                    onHeadersReceived: (statusCode, headers, dl) => {
+                        const suspiciousHtmlHeader = DownloadSafety.isHtmlContentType(headers)
+                        if (!suspiciousHtmlHeader) {
+                            return true
                         }
-                        return true;
+
+                        dl.on('data', chunk => {
+                            if (htmlBodyChecked) {
+                                return
+                            }
+                            htmlSample += typeof chunk === 'string' ? chunk : chunk.toString('utf8')
+                            if (htmlSample.length > 2048) {
+                                htmlSample = htmlSample.slice(0, 2048)
+                            }
+                            if (DownloadSafety.isSuspiciousResponse(headers, htmlSample)) {
+                                const err = new Error(`Rejected suspicious HTML response: ${DownloadSafety.getContentType(headers)}`)
+                                dl.destroy()
+                                fs.promises.unlink(storageFile).catch(() => {})
+                                dl.emit('error', err)
+                                return
+                            }
+                            if (DownloadSafety.isProbablyM3U(htmlSample) || htmlSample.length >= 1024) {
+                                htmlBodyChecked = true
+                            }
+                        })
+
+                        return true
                     }
                 }).catch(e => err = e)
             }

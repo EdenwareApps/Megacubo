@@ -49,9 +49,10 @@ class WorkerDriver extends EventEmitter {
         this.operationTimeouts = {
             'parseFromFile': 180000, // 3 minutes for heavy parsing
             'parseFromURL': 120000, // 2 minutes for URL parsing
-            'update': 180000, // 3 minutes for download + parse
+            'update': 300000, // 5 minutes for download + parse
+            'updateList': 300000, // 5 minutes for full update flow (large lists)
             'download': 120000, // 2 minutes for downloads
-            'start': 180000, // 3 minutes for full update flow
+            'start': 300000, // 5 minutes for full update flow
             'default': 30000 // 30 seconds for other operations
         }
     }

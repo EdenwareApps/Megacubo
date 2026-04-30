@@ -241,7 +241,7 @@ export class ParserFactory {
     request.once('response', (code, headers) => {
       EPGErrorHandler.info('Download response received:', code, 'Content-Type:', headers?.['content-type'] || headers?.['Content-Type'])
       EPGErrorHandler.debug('Download response:', JSON.stringify({ code, headers }, null, 2))
-      
+
       if (code !== 200) {
         const error = new Error(`HTTP ${code}`)
         error.isHttpError = true
@@ -250,17 +250,11 @@ export class ParserFactory {
         return
       }
 
-      if (DownloadSafety.isHtmlContentType(headers)) {
-        const error = new Error(`Rejected suspicious HTML response: ${DownloadSafety.getContentType(headers)}`)
-        error.isNetworkError = true
-        request.destroy()
-        onError(error)
-        return
-      }
+      const suspiciousHtmlHeader = DownloadSafety.isHtmlContentType(headers)
 
       // Check if Download class is already handling decompression
       const downloadHandlesDecompression = request.opts && request.opts.decompress === true
-      
+
       // Determine if content is gzipped - prioritize URL extension over headers
       const isGzippedByUrl = url.includes('.gz')
       const isGzippedByHeaders = headers && (
@@ -271,54 +265,86 @@ export class ParserFactory {
         (headers['content-type'] && headers['content-type'].includes('gzip')) ||
         (headers['Content-Type'] && headers['Content-Type'].includes('gzip'))
       )
-      
+
       const isGzipped = isGzippedByUrl || isGzippedByHeaders
 
       // For .gz files, always do manual decompression since the server might not send proper headers
       // For other gzipped content, only do manual decompression if Download is not handling it
       if (isGzippedByUrl || (isGzippedByHeaders && !downloadHandlesDecompression)) {
         EPGErrorHandler.info(`Setting up manual gzip decompression (URL has .gz: ${isGzippedByUrl}, headers indicate gzip: ${isGzippedByHeaders}, Download handles decompression: ${downloadHandlesDecompression})`)
-        this._setupGzipHandlers(request, parser, receivedRef, onProgress)
+        this._setupGzipHandlers(request, parser, receivedRef, onProgress, suspiciousHtmlHeader, headers, onError)
       } else {
         EPGErrorHandler.info('Using direct handlers (Download handling decompression or not gzipped)')
-        this._setupDirectHandlers(request, parser, receivedRef, onProgress)
+        this._setupDirectHandlers(request, parser, receivedRef, onProgress, suspiciousHtmlHeader, headers, onError)
       }
     })
   }
 
-  static _setupGzipHandlers(request, parser, receivedRef, onProgress) {
+  static _setupGzipHandlers(request, parser, receivedRef, onProgress, suspiciousHtmlHeader, headers, onError) {
     EPGErrorHandler.info('Setting up gzip decompression')
     const gunzip = zlib.createGunzip()
     let gunzipEnded = false
-    
+    let htmlSample = ''
+    let htmlBodyChecked = false
+
+    const rejectSuspiciousHtml = () => {
+      const error = new Error(`Rejected suspicious HTML response: ${DownloadSafety.getContentType(headers)}`)
+      error.isNetworkError = true
+      EPGErrorHandler.warn('Rejected suspicious HTML response after body analysis:', DownloadSafety.getContentType(headers))
+      try {
+        request.destroy()
+      } catch (e) {
+        EPGErrorHandler.debug('Error destroying request after suspicious HTML detection:', e.message)
+      }
+      try {
+        if (parser && typeof parser.destroy === 'function') {
+          parser.destroy()
+        }
+      } catch (e) {
+        EPGErrorHandler.debug('Error destroying parser after suspicious HTML detection:', e.message)
+      }
+      onError(error)
+    }
+
     gunzip.on('error', err => {
       EPGErrorHandler.warn('Gunzip error occurred:', err.message, '- continuing with partial data')
       gunzipEnded = true
-      // Emit decompression error event for cache cleanup
       request.emit('decompression-error', err)
-      // Don't destroy request immediately - let it finish naturally
-      // This allows the parser to process whatever data was already received
       EPGErrorHandler.info('Gunzip error occurred, but allowing parser to finish processing existing data')
     })
-    
-    // CRITICAL FIX: Connect gunzip output to parser (pipe handles data automatically)
+
+    gunzip.on('data', chunk => {
+      if (suspiciousHtmlHeader && !htmlBodyChecked) {
+        htmlSample += typeof chunk === 'string' ? chunk : chunk.toString('utf8')
+        if (htmlSample.length > 2048) {
+          htmlSample = htmlSample.slice(0, 2048)
+        }
+        if (DownloadSafety.isSuspiciousResponse(headers, htmlSample)) {
+          rejectSuspiciousHtml()
+          return
+        }
+        if (htmlSample.length >= 2048) {
+          htmlBodyChecked = true
+        }
+      }
+    })
+
     gunzip.pipe(parser)
-    
+
     gunzip.on('end', () => {
       EPGErrorHandler.debug('Gunzip ended')
       gunzipEnded = true
       parser?.end()
     })
-    
+
     request.on('data', chunk => {
       receivedRef.value += chunk.length
       EPGErrorHandler.debug('Received chunk:', chunk.length, 'bytes, total:', receivedRef.value)
-      
-      // CRITICAL FIX: Call onProgress callback to update EPGManager
+
       if (onProgress && typeof onProgress === 'function') {
         onProgress(receivedRef.value)
       }
-      
+
       if (!gunzipEnded) {
         try {
           gunzip.write(chunk)
@@ -327,7 +353,7 @@ export class ParserFactory {
         }
       }
     })
-    
+
     request.once('end', () => {
       EPGErrorHandler.debug('Download ended, ending gunzip')
       if (!gunzipEnded) {
@@ -341,7 +367,7 @@ export class ParserFactory {
         }
       }, 1000) // 1 second delay to allow processing to complete
     })
-    
+
     request.on('error', (err) => {
       EPGErrorHandler.warn('Download error occurred:', err.message, '- ending gunzip gracefully')
       if (!gunzipEnded) {
@@ -354,16 +380,51 @@ export class ParserFactory {
     })
   }
 
-  static _setupDirectHandlers(request, parser, receivedRef, onProgress) {
+  static _setupDirectHandlers(request, parser, receivedRef, onProgress, suspiciousHtmlHeader, headers, onError) {
     EPGErrorHandler.info('Setting up plain text download')
+    let htmlSample = ''
+    let htmlBodyChecked = false
+
+    const rejectSuspiciousHtml = () => {
+      const error = new Error(`Rejected suspicious HTML response: ${DownloadSafety.getContentType(headers)}`)
+      error.isNetworkError = true
+      EPGErrorHandler.warn('Rejected suspicious HTML response after body analysis:', DownloadSafety.getContentType(headers))
+      try {
+        request.destroy()
+      } catch (e) {
+        EPGErrorHandler.debug('Error destroying request after suspicious HTML detection:', e.message)
+      }
+      try {
+        if (parser && typeof parser.destroy === 'function') {
+          parser.destroy()
+        }
+      } catch (e) {
+        EPGErrorHandler.debug('Error destroying parser after suspicious HTML detection:', e.message)
+      }
+      onError(error)
+    }
+
     request.on('data', chunk => {
       receivedRef.value += chunk.length
-      
-      // CRITICAL FIX: Call onProgress callback to update EPGManager
+
+      if (suspiciousHtmlHeader && !htmlBodyChecked) {
+        htmlSample += typeof chunk === 'string' ? chunk : chunk.toString('utf8')
+        if (htmlSample.length > 2048) {
+          htmlSample = htmlSample.slice(0, 2048)
+        }
+        if (DownloadSafety.isSuspiciousResponse(headers, htmlSample)) {
+          rejectSuspiciousHtml()
+          return
+        }
+        if (htmlSample.length >= 2048) {
+          htmlBodyChecked = true
+        }
+      }
+
       if (onProgress && typeof onProgress === 'function') {
         onProgress(receivedRef.value)
       }
-      
+
       parser?.write(chunk)
     })
     

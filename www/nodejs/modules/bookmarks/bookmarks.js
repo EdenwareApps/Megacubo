@@ -132,7 +132,8 @@ class Bookmarks extends EntriesGroup {
             type: 'stream', details: e.group || '',
             icon: e.originalIcon || e.icon || '',
             terms: { 'name': this.channels.entryTerms(e, true) },
-            url: e.originalUrl || e.url
+            url: e.originalUrl || e.url,
+            source: e.source
         }
     }
     async entries() {        

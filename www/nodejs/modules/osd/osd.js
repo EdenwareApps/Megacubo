@@ -7,7 +7,7 @@ class OSD extends EventEmitter {
         super()
     }
     show(text, icon, name, time) {
-        if(icon && icon.includes('exclamation')) {
+        if (typeof icon === 'string' && icon.includes('exclamation')) {
             console.error('OSD.show', text, icon, name, time, traceback())
         }
         if (renderer.ui && typeof renderer.ui.emit === 'function') {

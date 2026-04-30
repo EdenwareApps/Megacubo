@@ -1151,6 +1151,17 @@ class Channels extends ChannelsKids {
         }
         return terms
     }
+    mergeStreams(oldStreams, newStreams) {
+        // Merge old and new streams, keeping the order of oldStreams and adding any new ones at the end, unique by 'url'
+        const merged = [...oldStreams];
+        const oldUrls = new Set(oldStreams.map(s => s.url));
+        newStreams.forEach(s => {
+            if (!oldUrls.has(s.url)) {
+                merged.push(s);
+            }
+        });
+        return merged;
+    }
     async toMetaEntryRenderer(e, _category, epgNow) {
         // Track toMetaEntryRenderer() to detect hangs - this opens the metaEntry dialog
         // Get channelName before wrapping to use in tracking name
@@ -1206,9 +1217,11 @@ class Channels extends ChannelsKids {
                         fa: 'fas fa-play-circle faclr-green',
                         url,
                         group: category,
-                        action: data => {
+                        action: async data => {
                             data.name = e.name;
-                            global.streamer.play(data, streams);
+                            const freshStreams = await this.get(terms)
+                            const mergedStreams = this.mergeStreams(streams, freshStreams);
+                            global.streamer.play(data, mergedStreams);
                             this.watchNowAuto = menu.path;
                         }
                     })

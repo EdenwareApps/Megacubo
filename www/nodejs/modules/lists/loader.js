@@ -24,11 +24,11 @@ class ListsLoader extends EventEmitter {
         this.opts = opts;
 
         // Parse concurrency: 2 allows faster list loading; worker has 2560MB heap
-        this.defaultParsingConcurrency = 1;
+        this.defaultParsingConcurrency = 2;
         this.parsingConcurrency = this.defaultParsingConcurrency;
         
         // Download (8) and parse (2) - parse was bottleneck with 1
-        this.downloadQueue = new PQueue({ concurrency: 4 });
+        this.downloadQueue = new PQueue({ concurrency: 8 });
         this.parseQueue = new PQueue({ concurrency: this.parsingConcurrency });
         
         // Track downloaded files waiting for parsing
@@ -573,9 +573,14 @@ class ListsLoader extends EventEmitter {
         touchListMetaFile(url).catch(() => {});
         console.log('addListNow result', url, result);
         this.updater?.close();
+        const file = storage.resolve(key, 'jdb');
+        const fileExists = await fs.promises.access(file, fs.constants.F_OK).then(() => true).catch(() => false);
+        console.log(`addListNow: database file ${fileExists ? 'found' : 'missing'} for ${url}`, file);
         try {
-            await this.master.loadList(url);
-        } catch(e) {}
+            await this.master.loadList(url, undefined, true);
+        } catch(e) {
+            console.error(`addListNow: loadList failed for ${url}`, e);
+        }
     }
 
     schedule(url, priority) {
@@ -730,7 +735,7 @@ class ListsLoader extends EventEmitter {
         touchListMetaFile(url).catch(() => {});
         this.updater.removeListener('progress', showProgress);
         osd.hide(`progress-${progressId}`);
-        return this.master.loadList(url);
+        return this.master.loadList(url, undefined, true);
     }
 
     resetCommunityIdle() {

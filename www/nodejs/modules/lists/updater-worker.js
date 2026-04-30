@@ -19,6 +19,7 @@ class UpdaterWorker extends Common {
 		this.debug = false
 		this._relevantKeywords = {}
 		this.info = {}
+		this._downloaders = new Map()
 		this.maxInfoEntries = 50 // Reduced from 100 to prevent memory accumulation
 		this.cleanupInterval = null
 		this.memoryCheckInterval = null
@@ -93,6 +94,14 @@ class UpdaterWorker extends Common {
 	async getInfo() {
 		return this.info
 	}
+	_cleanupDownloader(tempFilePath) {
+		if (!tempFilePath) return null
+		const updater = this._downloaders.get(tempFilePath)
+		if (updater) {
+			this._downloaders.delete(tempFilePath)
+		}
+		return updater
+	}
 	async download(url, params = {}) {
 		if (!url) {
 			throw new Error('invalid url')
@@ -115,6 +124,7 @@ class UpdaterWorker extends Common {
 			
 			// Download only - returns tempFilePath
 			const tempFilePath = await updater.download()
+			this._downloaders.set(tempFilePath, updater)
 			
 			// Don't destroy updater here - it will be reused for parsing
 			// Just return the temp file path
@@ -135,23 +145,28 @@ class UpdaterWorker extends Common {
 		}
 		
 		const file = resolveListDatabaseFile(url)
-		let updater = null
+		let updater = this._cleanupDownloader(tempFilePath)
 		
 		try {
-			updater = new UpdateListIndex({
-				url,
-				directURL: url,
-				file,
-				master: this,
-				updateMeta: {},
-				forceDownload: params.force === true,
-				timeout: params.timeout,
-				debug: this.debug
-			})
+			if (!updater) {
+				updater = new UpdateListIndex({
+					url,
+					directURL: url,
+					file,
+					master: this,
+					updateMeta: {},
+					forceDownload: params.force === true,
+					timeout: params.timeout,
+					debug: this.debug
+				})
+			}
 			
 			// Parse from downloaded file
+			if (this.debug) {
+				console.log(`[UpdaterWorker] parseFromFile start tempFilePath=${tempFilePath} url=${url}`)
+			}
 			const result = await updater.parseFromFile(tempFilePath)
-			
+	
 			// Always destroy updater to free memory
 			if (updater && !updater.destroyed) {
 				await updater.destroy().catch(err => console.error('Error during updater cleanup:', err))
@@ -160,15 +175,31 @@ class UpdaterWorker extends Common {
 			
 			// Cleanup temp file after successful parsing (async, non-blocking)
 			fs.promises.unlink(tempFilePath)
-				.then(() => console.log(`🗑️ Cleaned up temp file: ${tempFilePath}`))
-				.catch(err => console.warn(`⚠️ Failed to cleanup temp file: ${err.message}`))
+				.then(() => {
+					console.log(`🗑️ Cleaned up temp file: ${tempFilePath}`)
+					if (this.debug) {
+						console.log(`[UpdaterWorker] parseFromFile success cleanup tempFilePath=${tempFilePath}`)
+					}
+				})
+				.catch(err => {
+					if (err.code !== 'ENOENT') {
+						console.warn(`⚠️ Failed to cleanup temp file: ${err.message}`)
+					}
+				})
 			
 			return result
 		} catch (err) {
+			if (this.debug) {
+				console.error(`[UpdaterWorker] parseFromFile error for tempFilePath=${tempFilePath} url=${url}:`, err)
+			}
 			// Cleanup temp file even on error (async, non-blocking)
 			fs.promises.unlink(tempFilePath)
 				.then(() => console.log(`🗑️ Cleaned up temp file after error: ${tempFilePath}`))
-				.catch(cleanupErr => console.warn(`⚠️ Failed to cleanup temp file: ${cleanupErr.message}`))
+				.catch(cleanupErr => {
+					if (cleanupErr.code !== 'ENOENT') {
+						console.warn(`⚠️ Failed to cleanup temp file: ${cleanupErr.message}`)
+					}
+				})
 			
 			// Ensure cleanup on error
 			if (updater && !updater.destroyed) {

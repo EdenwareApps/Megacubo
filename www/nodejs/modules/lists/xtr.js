@@ -15,13 +15,16 @@ class Xtr extends EventEmitter {
         parts = authAddr.split('@')[0].split('/').pop().split(':');
         this.user = parts[0];
         this.pass = parts[1];
+        this.userEncoded = encodeURIComponent(this.user);
+        this.passEncoded = encodeURIComponent(this.pass);
         this.addr = authAddr.replace(this.user + ':' + this.pass + '@', '');
+        this.addr = this.addr.replace(/\/+$/, '');
         this.meta = {};
         this.foundStreams = 0;
     }
     async execute(action) {
         let err;
-        const url = this.addr + '/player_api.php?username=' + this.user + '&password=' + this.pass + '&action=' + action;
+        const url = this.addr + '/player_api.php?username=' + this.userEncoded + '&password=' + this.passEncoded + '&action=' + action;
         const data = await Download.get({
             url,
             timeout: 30,
@@ -32,8 +35,17 @@ class Xtr extends EventEmitter {
             maxRedirects: 1
         }).catch(e => err = e);
         this.debugInfo && this.debugInfo.push({ url, data, err });
-        if (err)
+        if (err) {
+            const errStr = String(err);
+            const authMatch = errStr.match(/HTTP error (401|403)/);
+            if (authMatch) {
+                const code = authMatch[1];
+                const authErr = new Error(`XTR authentication failed (${code}). Please check username/password and account permissions.`);
+                authErr.originalError = err;
+                throw authErr;
+            }
             throw err;
+        }
         return data;
     }
     async getSeriesStreams(id) {
@@ -52,7 +64,7 @@ class Xtr extends EventEmitter {
                         group: root + '/' + season,
                         stream_icon: episode.info.movie_image || streams.info.cover,
                         stream_id: episode.id,
-                        stream_url: this.addr + '/series/' + this.user + '/' + this.pass + '/' + episode.id + '.' + episode.container_extension
+                        stream_url: this.addr + '/series/' + this.userEncoded + '/' + this.passEncoded + '/' + episode.id + '.' + episode.container_extension
                     });
                 });
             });
@@ -106,7 +118,7 @@ class Xtr extends EventEmitter {
             series = []
         }
         this.cmap = { names, parents, series };
-        this.meta.epg = this.addr + '/xmltv.php?username=' + this.user + '&pass=' + this.pass;
+        this.meta.epg = this.addr + '/xmltv.php?username=' + this.userEncoded + '&pass=' + this.passEncoded;
         this.emit('meta', this.meta);
     }
     async run() {
@@ -158,7 +170,7 @@ class Xtr extends EventEmitter {
                     }
                 }
                 const url = s.stream_url ||
-                    (this.addr + '/' + type + '/' + this.user + '/' + this.pass + '/' + s.stream_id + '.' + ext);
+                    (this.addr + '/' + type + '/' + this.userEncoded + '/' + this.passEncoded + '/' + s.stream_id + '.' + ext);
                 this.emit('entry', {
                     name, group,
                     icon: s.stream_icon,

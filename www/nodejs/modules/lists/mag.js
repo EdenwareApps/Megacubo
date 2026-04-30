@@ -16,6 +16,12 @@ class Mag extends EventEmitter {
         if (this.addr.endsWith('/')) {
             this.addr = this.addr.substr(0, this.addr.length - 1);
         }
+        try {
+            const parsed = new URL(this.addr);
+            this.isCPortal = parsed.pathname === '/c' || parsed.pathname === '/c/';
+        } catch (e) {
+            this.isCPortal = this.addr.includes('/c/') || this.addr.endsWith('/c');
+        }
         this.headers = {
             'user-agent': 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 4 rev: 1812 Mobile Safari/533.3',
             'cookie': 'mac=' + encodeURIComponent(this.mac) + '; stb_lang=en; timezone=Europe%2FAmsterdam',
@@ -37,7 +43,12 @@ class Mag extends EventEmitter {
     }
     async execute(atts, progress, endpoint = '/portal.php', retries = 2) {
         let err;
-        let path = endpoint;
+        let path = endpoint || '';
+        if (path && !path.startsWith('/')) {
+            path = '/' + path;
+        }
+        path += path.includes('?') ? '&' : '?';
+        path += Object.keys(atts).map(k => k + '=' + atts[k]).join('&');
         const options = {
             timeout: 30,
             responseType: 'json',
@@ -68,6 +79,13 @@ class Mag extends EventEmitter {
                     (String(err).includes('Expected') && String(err).includes('JSON'))) {
                     // Retry on JSON parsing errors
                     return this.execute(atts, progress, endpoint, retries);
+                }
+                // Fall back for /c/ portals that do not expose /portal.php, only on 404/405
+                if (endpoint === '/portal.php' && this.isCPortal && /HTTP error (404|405)/.test(String(err))) {
+                    if (this.debugInfo) {
+                        console.warn('[Mag] falling back from /portal.php to root /c/ portal after HTTP 404/405', options.url, String(err));
+                    }
+                    return this.execute(atts, progress, '', retries);
                 }
             }
             // Wrap JSON parsing errors with more context

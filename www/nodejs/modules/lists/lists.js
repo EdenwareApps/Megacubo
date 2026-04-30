@@ -11,7 +11,7 @@ import config from "../config/config.js"
 import { getEPGInstance } from '../epg/index.js';
 import lang from '../lang/lang.js';
 import { resolveListDatabaseFile } from "./tools.js";
-import { resolveListMetaPath } from "./list-meta.js";
+import { getListMeta, resolveListMetaPath } from "./list-meta.js";
 import { ready } from '../bridge/bridge.js'
 import { inWorker } from '../paths/paths.js'
 import { forwardSlashes, parseCommaDelimitedURIs, trackPromise } from "../utils/utils.js";
@@ -710,50 +710,83 @@ class Lists extends ListsEPGTools {
         }
         this.loader.reset();
     }
+
     async checkListFiles(url) {
         const file = resolveListDatabaseFile(url)
         const metaFile = file.replace(/\.jdb$/i, '.meta.jdb')
-        
+        const listMetaFile = resolveListMetaPath(url)
+
+        let mainStat = null
+        let metaStat = null
+        let listMetaStat = null
+
         try {
-            const [mainStat, metaStat] = await Promise.all([
-                fs.promises.stat(file),
-                fs.promises.stat(metaFile)
-            ])
-            
-            const hasMain = mainStat && mainStat.size >= 1024
-            const hasMeta = metaStat && metaStat.size > 0
-            
+            mainStat = await fs.promises.stat(file)
+        } catch (err) {
             return {
-                hasMain,
-                hasMeta,
-                isCached: hasMain && hasMeta,
-                hasMissingMeta: hasMain && !hasMeta,
-                mainSize: mainStat?.size || 0,
-                metaSize: metaStat?.size || 0
+                hasMain: false,
+                hasMeta: false,
+                isCached: false,
+                hasMissingMeta: false,
+                mainSize: 0,
+                metaSize: 0
             }
-        } catch (e) {
-            // Check if main file exists but meta file doesn't
+        }
+
+        try {
+            metaStat = await fs.promises.stat(metaFile)
+        } catch (err) {
+            metaStat = null
+        }
+
+        try {
+            listMetaStat = await fs.promises.stat(listMetaFile)
+        } catch (err) {
+            listMetaStat = null
+        }
+
+        const hasMain = mainStat && mainStat.size >= 1024
+        let hasMeta = false
+        let metaSize = 0
+
+        if (metaStat && metaStat.size > 0) {
+            hasMeta = true
+            metaSize += metaStat.size
+        }
+
+        if (!hasMeta && listMetaStat && listMetaStat.size > 0) {
             try {
-                const mainStat = await fs.promises.stat(file)
-                const hasMain = mainStat && mainStat.size >= 1024
-                return {
-                    hasMain,
-                    hasMeta: false,
-                    isCached: false,
-                    hasMissingMeta: hasMain,
-                    mainSize: mainStat?.size || 0,
-                    metaSize: 0
+                const metaData = await getListMeta(url)
+                const hasValidMeta = metaData && typeof metaData === 'object' && (
+                    Object.keys(metaData.meta || {}).length > 0 ||
+                    Object.keys(metaData.gids || {}).length > 0 ||
+                    Array.isArray(metaData.groupsTypes?.live) ||
+                    Array.isArray(metaData.groupsTypes?.vod) ||
+                    Array.isArray(metaData.groupsTypes?.series) ||
+                    typeof metaData.length === 'number'
+                )
+                if (hasValidMeta) {
+                    hasMeta = true
+                    metaSize += listMetaStat.size
+                } else {
+                    if (this.debug) {
+                        console.log('checkListFiles: list-meta.jdb exists but metadata is invalid for', url)
+                    }
                 }
-            } catch (mainErr) {
-                return {
-                    hasMain: false,
-                    hasMeta: false,
-                    isCached: false,
-                    hasMissingMeta: false,
-                    mainSize: 0,
-                    metaSize: 0
+            } catch (err) {
+                if (this.debug) {
+                    console.log('checkListFiles: failed to read list-meta.jdb for', url, err)
                 }
             }
+        }
+
+        return {
+            hasMain,
+            hasMeta,
+            isCached: hasMain && hasMeta,
+            hasMissingMeta: hasMain && !hasMeta,
+            mainSize: mainStat?.size || 0,
+            metaSize
         }
     }
     
@@ -895,6 +928,7 @@ class Lists extends ListsEPGTools {
         const communityListsQuota = Math.max(this.communityListsAmount - this.myLists.length, 0);
         const loadedCommunityCount = this.loadedListsCount('community');
         const remainingCommunitySlots = Math.max(communityListsQuota - loadedCommunityCount, 0);
+        await this.computeCachedRelevances(lists);
         const relevances = await this.getCachedRelevances(lists);
         const listInfo = lists.map(url => {
             const origin = this.myLists.includes(url)
@@ -949,7 +983,11 @@ class Lists extends ListsEPGTools {
             };
         }).map(loadLimit);
         
-        await Promise.allSettled(loadTasks).catch(err => console.error(err));
+        const settled = await Promise.allSettled(loadTasks).catch(err => {
+            console.error('loadCachedLists: Promise.allSettled failed', err);
+            return [];
+        });
+        console.log('loadCachedLists: settled results', JSON.stringify(settled, null, 2));
         
         // Final trim after all lists are loaded to enforce limits
         this.trim();
@@ -1078,7 +1116,7 @@ class Lists extends ListsEPGTools {
         this.updateState()
         return this.state.progress > 99
     }
-    async loadList(url, contentLength) {
+    async loadList(url, contentLength, forceReload = false) {
         url = forwardSlashes(url)
         this.processedLists.has(url) || this.processedLists.set(url, 1)
         if (typeof(contentLength) != 'number') { // contentLength controls when the list should refresh
@@ -1097,7 +1135,7 @@ class Lists extends ListsEPGTools {
             console.log('loadList start', url);
         }
         if (this.lists[url]) {
-            if (this.lists[url].contentLength == contentLength) {
+            if (!forceReload && this.lists[url].contentLength == contentLength && this.lists[url].ready.is()) {
                 return this.lists[url]
             }
             this.remove(url)
@@ -1264,6 +1302,10 @@ class Lists extends ListsEPGTools {
                         console.log('List ' + url + ' already discarded.')
                     }
                 }
+                if (this.lists[url]) {
+                    this.remove(url);
+                }
+                this.updateState();
                 throw 'list discarded';
             } else {
                 if (this.debug) {
@@ -1290,6 +1332,10 @@ class Lists extends ListsEPGTools {
                     if (this.debug) {
                         console.log('Content already loaded', url);
                     }
+                    if (this.lists[url]) {
+                        this.remove(url);
+                    }
+                    this.updateState();
                     throw cErr ? cErr : 'content already loaded';
                 } else {
                     let replace
@@ -1438,9 +1484,9 @@ class Lists extends ListsEPGTools {
                         return
                     }
                     if (!alreadyLoaded && url != list.url && this.lists[url] && this.lists[url].length == listIndexLength) {
-                        let err;
                         const f = this.lists[url].file;
-                        if (!err && !alreadyLoaded) {
+                        const s = await fs.promises.stat(f).catch(() => null);
+                        if (s && !alreadyLoaded) {
                             if (this.debug) {
                                 console.log('already loaded', list.url, url, f, listDataFile, size, s.size);
                             }
@@ -1790,6 +1836,39 @@ class Lists extends ListsEPGTools {
             relevances[url] = await this.getCachedRelevance(url);
         }
         return relevances;
+    }
+
+    async computeCachedRelevances(urls) {
+        const relevances = await this.getCachedRelevances(urls);
+        const missing = urls.filter(url => relevances[url] == null);
+        if (!missing.length) {
+            return;
+        }
+        if (this.debug) {
+            console.log('Computing missing relevance for cached lists:', missing);
+        }
+        const limit = pLimit(2);
+        const tasks = missing.map(url => limit(async () => {
+            let list;
+            try {
+                list = new List(url, this);
+                await list.ready();
+                await list.checkRelevance();
+            } catch (err) {
+                if (this.debug) {
+                    console.error('Failed to compute cached relevance for', url, err);
+                }
+            } finally {
+                if (list) {
+                    try {
+                        list.destroy();
+                    } catch (_err) {
+                        // ignore
+                    }
+                }
+            }
+        }));
+        await Promise.allSettled(tasks);
     }
 }
 if(inWorker) {

@@ -113,8 +113,8 @@ export class OSD extends EventEmitter {
         }
         this.messages[i].text = text
         console.log('SHOW', text, icon, name, time)
-        if(icon){
-            if(!icon.includes('.')){
+        if (typeof icon === 'string' && icon.length > 0) {
+            if (!icon.includes('.')) {
                 this.messages[i].icon = '<i class="'+ icon +'"></i>'
             } else {
                 this.messages[i].icon = '<img src="'+ icon +'" style="display: none;" onload="this.style.display=&apos;inline-block&apos;" />'

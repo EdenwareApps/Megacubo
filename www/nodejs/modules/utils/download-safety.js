@@ -6,7 +6,9 @@ class DownloadSafety {
 
     static isHtmlContentType(headers) {
         const type = this.getContentType(headers)
-        return /^(text\/html|application\/xhtml\+xml|application\/html|text\/xml|application\/xml|application\/javascript|application\/x-javascript|text\/javascript)$/.test(type)
+        // Only reject known HTML/JavaScript response types.
+        // XML responses are often valid EPG payloads and should not be rejected solely by content type.
+        return /^(text\/html|application\/xhtml\+xml|application\/html|application\/javascript|application\/x-javascript|text\/javascript)$/.test(type)
     }
 
     static isHtmlBodySample(sample) {
@@ -19,8 +21,23 @@ class DownloadSafety {
                /(window\.location|location\.href|document\.write|document\.location|<meta[^>]*http-equiv=["']refresh["'])/i.test(snippet)
     }
 
+    static isProbablyM3U(sample) {
+        if (!sample) {
+            return false
+        }
+        const content = typeof sample === 'string' ? sample : sample.toString('utf8')
+        const snippet = content.slice(0, 2048)
+        return /(^|\r?\n)\s*#EXTM3U/i.test(snippet) || /(^|\r?\n)\s*#EXTINF/i.test(snippet)
+    }
+
     static isSuspiciousResponse(headers, sample) {
-        return this.isHtmlContentType(headers) || this.isHtmlBodySample(sample)
+        if (!this.isHtmlContentType(headers)) {
+            return false
+        }
+        if (this.isProbablyM3U(sample)) {
+            return false
+        }
+        return this.isHtmlBodySample(sample)
     }
 }
 

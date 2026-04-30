@@ -287,12 +287,11 @@ class UpdateListIndex extends EventEmitter {
                 this.stream.on('response', async (statusCode, headers) => {
                     resolved = true
                     this.parseHeadersMeta(headers)
+                    const suspiciousHtmlHeader = DownloadSafety.isHtmlContentType(headers)
+                    let htmlBodyChecked = false
+                    let htmlSample = ''
+
                     if (statusCode >= 200 && statusCode < 300) {
-                        if (DownloadSafety.isHtmlContentType(headers)) {
-                            this.stream.destroy()
-                            reject(new Error(`Rejected suspicious HTML response: ${DownloadSafety.getContentType(headers)}`))
-                            return
-                        }
                         if (this.stream.totalContentLength) {
                             this.contentLength = this.stream.totalContentLength
                         }
@@ -373,6 +372,24 @@ class UpdateListIndex extends EventEmitter {
                                 this.stream.on('data', (chunk) => {
                                     if (writeStreamError || readStreamResolved) return
                                     
+                                    if (suspiciousHtmlHeader && !htmlBodyChecked) {
+                                        htmlSample += typeof chunk === 'string' ? chunk : chunk.toString('utf8')
+                                        if (htmlSample.length > 2048) {
+                                            htmlSample = htmlSample.slice(0, 2048)
+                                        }
+                                        if (DownloadSafety.isHtmlBodySample(htmlSample)) {
+                                            writeStream.destroy()
+                                            this.stream.destroy()
+                                            fs.promises.unlink(tempFile).catch(() => {})
+                                            this.tempFiles = this.tempFiles.filter(f => f !== tempFile)
+                                            reject(new Error(`Rejected suspicious HTML response: ${DownloadSafety.getContentType(headers)}`))
+                                            return
+                                        }
+                                        if (DownloadSafety.isProbablyM3U(htmlSample) || htmlSample.length >= 1024) {
+                                            htmlBodyChecked = true
+                                        }
+                                    }
+
                                     const canWrite = writeStream.write(chunk)
                                     bytesWritten += chunk.length
                                     
@@ -455,7 +472,7 @@ class UpdateListIndex extends EventEmitter {
                                 })
                                 
                                 this.stream.on('error', (err) => {
-                                    writeStream.destroy()
+                                    clearInactivityTimeout()
                                     if (readStream) {
                                         readStream.destroy()
                                     }
@@ -542,23 +559,26 @@ class UpdateListIndex extends EventEmitter {
 
         const existingEntry = this.lastCachedEntry && this.lastCachedEntry.url === e.url ? this.lastCachedEntry : null
         if (existingEntry) {
-            // Merge names if they are different and not sequential
-            const existingName = existingEntry.name.trim()
-            const newName = e.name.trim()
+            const existingName = String(existingEntry.name || '').trim()
+            const newName = String(e.name || '').trim()
+            const existingGroup = String(existingEntry.group || '').trim()
+            const newGroup = String(e.group || '').trim()
+            const sameName = existingName && newName && existingName === newName
+            const sameGroup = existingGroup === newGroup
 
-            // Check if names are different and not sequential
-            if (newName !== existingName && !this.isSequentialText(existingName, newName)) {
-                // Merge the names using the intelligent mergeNames function
+            // Skip only exact duplicate rows. Do not collapse channels that share URL.
+            if (sameName && sameGroup) {
+                return
+            }
+
+            // For same URL and same group, merge non-sequential names instead of inserting duplicate.
+            if (sameGroup && existingName && newName && existingName !== newName && !this.isSequentialText(existingName, newName)) {
                 existingEntry.name = this.master.tools.mergeNames(existingName, newName)
+                return
             }
-            /*
-            else if (newName === existingName) {
-                // Same text - keep only one entry (already have it)
-            } else {
-                // Sequential text - keep only the first one
-            }
-            */
-            return // Don't insert duplicate URL
+
+            // Force a new insert for same URL when metadata differs.
+            this.lastCachedEntry = null
         }
 
         // Cache current entry for potential merge with the next item
@@ -807,6 +827,9 @@ class UpdateListIndex extends EventEmitter {
                 // Return null to signal fallback to full start()
                 // Clean up temp file if created
                 if (this.tempFiles.includes(tempFile)) {
+                    if (this.debug) {
+                        console.log(`[UpdateListIndex] fallback cleanup tempFile for xtream/mag: ${tempFile}`)
+                    }
                     fs.promises.unlink(tempFile).catch(() => {})
                     this.tempFiles = this.tempFiles.filter(f => f !== tempFile)
                 }
@@ -822,6 +845,9 @@ class UpdateListIndex extends EventEmitter {
                 if (url === urls[urls.length - 1]) {
                     // Clean up temp file on final error
                     if (this.tempFiles.includes(tempFile)) {
+                        if (this.debug) {
+                            console.log(`[UpdateListIndex] download failed on final URL, deleting tempFile: ${tempFile}`)
+                        }
                         fs.promises.unlink(tempFile).catch(() => {})
                         this.tempFiles = this.tempFiles.filter(f => f !== tempFile)
                     }
@@ -833,6 +859,9 @@ class UpdateListIndex extends EventEmitter {
 
         // Clean up temp file if we get here
         if (this.tempFiles.includes(tempFile)) {
+            if (this.debug) {
+                console.log(`[UpdateListIndex] all urls failed, deleting tempFile: ${tempFile}`)
+            }
             fs.promises.unlink(tempFile).catch(() => {})
             this.tempFiles = this.tempFiles.filter(f => f !== tempFile)
         }
@@ -864,26 +893,103 @@ class UpdateListIndex extends EventEmitter {
             }
 
             this.stream = new Download(opts)
-            let finishTimeout = null // Declare in outer scope
+            if (this.debug) {
+                console.log(`[UpdateListIndex] downloadToFile start url=${url} tempFile=${tempFile}`)
+            }
+            let inactivityTimeout = null // Declare in outer scope
             let writeStream = null
             let sniffedHtml = false
-            
+            let htmlSample = ''
+            let responseStatusCode = 0
+            let responseContentLength = 0
+            let finished = false
+            let bytesWritten = 0
+            let finishTimeout = null
+
+            const logTempFileAction = (action, err) => {
+                if (this.debug) {
+                    console.log(`[UpdateListIndex] tempFile action=${action} url=${url} tempFile=${tempFile}` + (err ? ` err=${err.message || err}` : ''))
+                }
+            }
+
+            const cleanupTempFile = async (reason) => {
+                logTempFileAction(`cleanup:${reason}`)
+                try {
+                    await fs.promises.unlink(tempFile)
+                } catch (unlinkErr) {
+                    if (this.debug) {
+                        console.warn(`[UpdateListIndex] cleanupTempFile failed: ${tempFile}`, unlinkErr)
+                    }
+                }
+                this.tempFiles = this.tempFiles.filter(f => f !== tempFile)
+            }
+
+            const clearInactivityTimeout = () => {
+                if (inactivityTimeout) {
+                    clearTimeout(inactivityTimeout)
+                    inactivityTimeout = null
+                }
+            }
+
+            const finalize = (action, value) => {
+                if (finished) return
+                finished = true
+                clearInactivityTimeout()
+                if (finishTimeout) {
+                    clearTimeout(finishTimeout)
+                    finishTimeout = null
+                }
+
+                if (action === 'resolve') {
+                    resolve(value)
+                } else {
+                    cleanupTempFile('finalize-reject')
+                    reject(value instanceof Error ? value : new Error(value))
+                }
+            }
+
+            const scheduleInactivityTimeout = () => {
+                clearInactivityTimeout()
+                inactivityTimeout = setTimeout(() => {
+                    if (finished || (writeStream && writeStream.writableEnded)) {
+                        return
+                    }
+                    console.warn(`[UpdateListIndex] WriteStream inactivity timeout after 30s. Bytes written: ${bytesWritten}`)
+                    fs.promises.stat(tempFile).then(stats => {
+                        if (stats.size > 0) {
+                            if (this.debug) {
+                                console.log(`[UpdateListIndex] File has content (${stats.size} bytes), resolving despite inactivity timeout`)
+                            }
+                            finalize('resolve', true)
+                        } else {
+                            finalize('reject', new Error('Download timeout - file is empty'))
+                        }
+                    }).catch(() => {
+                        finalize('reject', new Error('Download timeout - file verification failed'))
+                    })
+                }, 30000)
+            }
+
             this.stream.on('redirect', (url, headers) => this.parseHeadersMeta(headers))
             this.stream.on('response', async (statusCode, headers) => {
                 this.parseHeadersMeta(headers)
                 if (statusCode >= 200 && statusCode < 300) {
-                    if (DownloadSafety.isHtmlContentType(headers)) {
-                        this.stream.destroy()
-                        reject(new Error(`Rejected suspicious HTML response: ${DownloadSafety.getContentType(headers)}`))
-                        return
-                    }
+                    // Don't reject solely on text/html headers; some playlist sources incorrectly send HTML content-type.
+                    // The actual body is validated below and will still reject real HTML responses.
                     if (this.stream.totalContentLength) {
                         this.contentLength = this.stream.totalContentLength
+                    } else if (responseContentLength > 0) {
+                        this.contentLength = responseContentLength
                     }
                     if (this.stream.totalContentLength > 0 && (this.stream.totalContentLength == this.updateMeta.contentLength)) {
                         this.stream.destroy()
                         // Clean up temp file if no update needed
-                        fs.promises.unlink(tempFile).catch(() => {})
+                        if (this.debug) {
+                            console.log(`[UpdateListIndex] no update needed, removing tempFile=${tempFile} contentLength=${this.stream.totalContentLength}`)
+                        }
+                        fs.promises.unlink(tempFile).catch(err => {
+                            if (this.debug) console.warn(`[UpdateListIndex] failed to delete tempFile no-update: ${tempFile}`, err)
+                        })
                         this.tempFiles = this.tempFiles.filter(f => f !== tempFile)
                         resolve(false) // no need to update
                         return
@@ -892,19 +998,13 @@ class UpdateListIndex extends EventEmitter {
                     writeStream = fs.createWriteStream(tempFile)
                     this.writeStreams.push(writeStream)
 
-                    writeStream.on('error', (err) => {
-                        console.error('UpdateListIndex download writeStream error:', err)
-                        reject(err)
-                    })
-
                     // Handle backpressure - Download doesn't have pause/resume methods
                     // So we'll buffer chunks if writeStream can't accept them
                     let dataBuffer = []
                     let isDraining = false
-                    
+
                     const processBufferedData = () => {
                         isDraining = false
-                        // Process buffered chunks
                         while (dataBuffer.length > 0 && !isDraining) {
                             const bufferedChunk = dataBuffer.shift()
                             const canWriteBuffered = writeStream.write(bufferedChunk)
@@ -915,139 +1015,107 @@ class UpdateListIndex extends EventEmitter {
                             }
                         }
                     }
-                    
+
                     const processData = (chunk) => {
+                        if (finished) return
                         if (isDraining) {
-                            // Buffer chunks while draining
                             dataBuffer.push(chunk)
                             return
                         }
 
                         if (!sniffedHtml) {
-                            sniffedHtml = true
-                            const sample = typeof chunk === 'string' ? chunk : chunk.toString('utf8')
-                            if (DownloadSafety.isHtmlBodySample(sample)) {
+                            htmlSample += typeof chunk === 'string' ? chunk : chunk.toString('utf8')
+                            if (htmlSample.length > 2048) {
+                                htmlSample = htmlSample.slice(0, 2048)
+                            }
+                            if (DownloadSafety.isHtmlBodySample(htmlSample)) {
+                                clearInactivityTimeout()
                                 writeStream.destroy()
-                                fs.promises.unlink(tempFile).catch(() => {})
-                                this.tempFiles = this.tempFiles.filter(f => f !== tempFile)
-                                reject(new Error('Rejected suspicious HTML body response'))
+                                finalize('reject', new Error('Rejected suspicious HTML body response'))
                                 return
                             }
+                            if (DownloadSafety.isProbablyM3U(htmlSample) || htmlSample.length >= 2048) {
+                                sniffedHtml = true
+                            }
                         }
-                        
+                        scheduleInactivityTimeout()
                         const canWrite = writeStream.write(chunk)
                         if (!canWrite) {
-                            // WriteStream is full, start buffering
                             isDraining = true
                             writeStream.once('drain', processBufferedData)
                         }
                     }
-                    
+
                     this.stream.on('data', processData)
 
-                    let streamEnded = false
-                    let writeStreamFinished = false
-                    
                     this.stream.once('end', () => {
-                        streamEnded = true
+                        if (finished) return
                         writeStream.end()
                     })
-                    
-                    this.stream.on('error', (err) => {
-                        writeStream.destroy()
-                        reject(err)
-                    })
 
-                    let bytesWritten = 0
                     writeStream.on('drain', () => {
                         // Track when backpressure is released
                     })
-                    
-                    // Track bytes written
+
                     const originalWrite = writeStream.write.bind(writeStream)
                     writeStream.write = function(chunk, encoding, callback) {
                         bytesWritten += chunk ? chunk.length : 0
                         return originalWrite(chunk, encoding, callback)
                     }
-                    
-                    // CRITICAL: Wait for writeStream to finish completely before resolving
-                    // This ensures the file is fully written before parseFromFile starts reading
+
                     writeStream.once('finish', () => {
-                        writeStreamFinished = true
+                        if (finished) return
                         if (this.debug) {
                             console.log(`[UpdateListIndex] WriteStream finished. Bytes written: ${bytesWritten}`)
                         }
-                        // Verify file was actually written
                         fs.promises.stat(tempFile).then(stats => {
                             if (this.debug) {
                                 console.log(`[UpdateListIndex] File stats after write: size=${stats.size} bytes`)
                             }
                             if (stats.size === 0) {
-                                console.error(`[UpdateListIndex] ERROR: Downloaded file is empty! Bytes written: ${bytesWritten}`)
-                                reject(new Error('Downloaded file is empty'))
+                                finalize('reject', new Error('Downloaded file is empty'))
                             } else {
-                                // Give a small delay to ensure file system has flushed
                                 setTimeout(() => {
+                                    if (finished) return
                                     if (this.debug) {
                                         console.log(`[UpdateListIndex] Download completed successfully: ${tempFile} (${stats.size} bytes)`)
                                     }
-                                    resolve(true)
+                                    finalize('resolve', true)
                                 }, 100)
                             }
                         }).catch(err => {
                             console.error(`[UpdateListIndex] Failed to verify downloaded file:`, err)
-                            reject(new Error('Failed to verify downloaded file: ' + err.message))
+                            finalize('reject', new Error('Failed to verify downloaded file: ' + err.message))
                         })
                     })
-                    
-                    // Add timeout to prevent hanging if stream never finishes
-                    finishTimeout = setTimeout(() => {
-                        if (!writeStreamFinished) {
-                            console.warn(`[UpdateListIndex] WriteStream finish timeout after 30s. Bytes written: ${bytesWritten}`)
-                            fs.promises.stat(tempFile).then(stats => {
-                                if (stats.size > 0) {
-                                    if (this.debug) {
-                                        console.log(`[UpdateListIndex] File has content (${stats.size} bytes), resolving despite timeout`)
-                                    }
-                                    writeStreamFinished = true
-                                    resolve(true)
-                                } else {
-                                    reject(new Error('Download timeout - file is empty'))
-                                }
-                            }).catch(() => {
-                                reject(new Error('Download timeout - file verification failed'))
-                            })
-                        }
-                    }, 30000) // 30 second timeout
-                    
-                    writeStream.once('finish', () => {
-                        clearTimeout(finishTimeout)
-                    })
-                    
-                    // Also handle error case
+
                     writeStream.once('error', (err) => {
-                        clearTimeout(finishTimeout)
-                        reject(err)
+                        if (finished) return
+                        clearInactivityTimeout()
+                        finalize('reject', err)
                     })
 
                     this.stream.on('error', (err) => {
+                        if (finished) return
+                        clearInactivityTimeout()
                         writeStream.destroy()
-                        reject(err)
+                        finalize('reject', err)
                     })
+
+                    scheduleInactivityTimeout()
                 } else {
                     reject(new Error(`HTTP ${statusCode}`))
                 }
             })
 
             this.stream.on('error', (err) => {
-                if (finishTimeout) clearTimeout(finishTimeout)
+                if (finished) {
+                    return
+                }
                 if (writeStream) {
                     writeStream.destroy()
                 }
-                // Clean up empty file on error
-                fs.promises.unlink(tempFile).catch(() => {})
-                this.tempFiles = this.tempFiles.filter(f => f !== tempFile)
-                reject(err)
+                finalize('reject', err)
             })
             
             // Start the download stream
@@ -1059,18 +1127,51 @@ class UpdateListIndex extends EventEmitter {
      * Parse from a downloaded file
      */
     async parseFromFile(tempFilePath) {
-        if (!tempFilePath || !await fs.promises.access(tempFilePath).then(() => true).catch(() => false)) {
+        if (this.debug) {
+            console.log(`[UpdateListIndex] parseFromFile start tempFilePath=${tempFilePath}`)
+        }
+
+        const waitForFile = async (path, interval = 200, attempts = 10) => {
+            for (let i = 0; i < attempts; i++) {
+                const exists = await fs.promises.access(path).then(() => true).catch(() => false)
+                if (exists) {
+                    if (this.debug) {
+                        console.log(`[UpdateListIndex] parseFromFile found file after ${i} check(s): ${path}`)
+                    }
+                    return true
+                }
+                await new Promise(resolve => setTimeout(resolve, interval))
+            }
+            return false
+        }
+
+        if (!tempFilePath || !await waitForFile(tempFilePath)) {
+            if (this.debug) {
+                console.error(`[UpdateListIndex] parseFromFile failing because temp file was missing: ${tempFilePath}`)
+            }
             throw new Error('Temp file not found: ' + tempFilePath)
         }
         
         // Verify file size before parsing
-        const stats = await fs.promises.stat(tempFilePath).catch(() => null);
+        const stats = await fs.promises.stat(tempFilePath).catch(() => null)
         if (!stats) {
+            if (this.debug) {
+                console.error(`[UpdateListIndex] parseFromFile stat unavailable for tempFilePath=${tempFilePath}`)
+            }
             throw new Error('Temp file stats not available: ' + tempFilePath)
         }
         
         if (stats.size === 0) {
+            if (this.debug) {
+                console.error(`[UpdateListIndex] parseFromFile temp file is empty: ${tempFilePath}`)
+            }
             throw new Error('Temp file is empty: ' + tempFilePath)
+        }
+
+        // Set contentLength from file size when server didn't provide Content-Length header
+        // This ensures progress and parser heuristics use actual file size.
+        if (!(this.contentLength > 0)) {
+            this.contentLength = stats.size
         }
         
         // Only log file info in debug mode
@@ -1231,37 +1332,52 @@ class UpdateListIndex extends EventEmitter {
             }
 
             this._index.groupsTypes = this.sniffGroupsTypes(this.groups)
+            
+            const finalizeStartedAt = Date.now()
+            const finalizeTimings = {
+                source: 'parseFromFile',
+                url: this.url
+            }
 
             // CRITICAL: Wait for all pending write operations before closing
             // This ensures data is persisted to disk
+            const waitOpsStartedAt = Date.now()
             try {
+                const pendingOps = []
                 if (db && !db.destroyed && typeof db.waitForOperations === 'function') {
-                    await db.waitForOperations()
+                    pendingOps.push(db.waitForOperations())
                 }
                 if (mdb && !mdb.destroyed && typeof mdb.waitForOperations === 'function') {
-                    await mdb.waitForOperations()
+                    pendingOps.push(mdb.waitForOperations())
+                }
+                if (pendingOps.length) {
+                    await Promise.all(pendingOps)
                 }
             } catch (waitErr) {
                 console.error('Database wait operations error:', waitErr)
                 // Continue - attempt close anyway
+            } finally {
+                finalizeTimings.waitOpsMs = Date.now() - waitOpsStartedAt
             }
 
-            try {
-                await db.close()
-            } catch (saveErr) {
-                console.error('Database save/close error:', saveErr)
-                err = saveErr
+            const closeStartedAt = Date.now()
+            const [dbCloseResult, mdbCloseResult] = await Promise.allSettled([
+                db && !db.destroyed ? db.close() : Promise.resolve(),
+                mdb && !mdb.destroyed ? mdb.close() : Promise.resolve()
+            ])
+            finalizeTimings.closeMs = Date.now() - closeStartedAt
+            if (dbCloseResult.status === 'rejected') {
+                console.error('Database save/close error:', dbCloseResult.reason)
+                err = dbCloseResult.reason
             }
-
-            try {
-                await mdb.close()
-            } catch (metaCloseErr) {
-                console.error('Metadata save/close error:', metaCloseErr)
+            if (mdbCloseResult.status === 'rejected') {
+                console.error('Metadata save/close error:', mdbCloseResult.reason)
                 if (!err) {
-                    err = metaCloseErr
+                    err = mdbCloseResult.reason
                 }
             }
 
+            const metaStartedAt = Date.now()
             if (this._index.length > 0) {
                 try {
                     const existingMeta = await getListMeta(this.url)
@@ -1284,30 +1400,55 @@ class UpdateListIndex extends EventEmitter {
                         indexData.detectedCountriesStats = detectedCountriesStats
                     }
 
-                    const saveSuccess = await setListMeta(this.url, indexData)
-                    if (!saveSuccess) {
+                    const [metaDbSaveResult, metaFileWriteResult] = await Promise.allSettled([
+                        setListMeta(this.url, indexData),
+                        writeMetaToFile(this.url, indexData)
+                    ])
+
+                    if (metaDbSaveResult.status === 'rejected') {
+                        console.error('Metadata database error:', metaDbSaveResult.reason)
+                        err = metaDbSaveResult.reason
+                    } else if (!metaDbSaveResult.value) {
                         console.error(`❌ Metadata database save failed for ${this.url}`)
                         err = new Error('Meta file save failed')
                     }
-                    await writeMetaToFile(this.url, indexData).catch(e => console.error('Write .meta.jdb failed:', this.url, e?.message || e))
+
+                    if (metaFileWriteResult.status === 'rejected') {
+                        console.error('Write .meta.jdb failed:', this.url, metaFileWriteResult.reason?.message || metaFileWriteResult.reason)
+                    }
                 } catch (metaErr) {
                     console.error('Metadata database error:', metaErr)
                     err = metaErr
                 }
             }
+            finalizeTimings.metaMs = Date.now() - metaStartedAt
 
+            const swapStartedAt = Date.now()
             try {
-                await replaceTargetWithWorking(workingFile, targetFile)
-                await replaceTargetWithWorking(workingIndexFile, targetIndexFile)
-                await replaceTargetWithWorking(workingMetaFile, targetMetaFile)
-                await replaceTargetWithWorking(workingMetaIndexFile, targetMetaIndexFile)
+                const swapDataFiles = async () => {
+                    await replaceTargetWithWorking(workingFile, targetFile)
+                    await replaceTargetWithWorking(workingIndexFile, targetIndexFile)
+                }
+                const swapMetaFiles = async () => {
+                    await replaceTargetWithWorking(workingMetaFile, targetMetaFile)
+                    await replaceTargetWithWorking(workingMetaIndexFile, targetMetaIndexFile)
+                }
+                await Promise.all([swapDataFiles(), swapMetaFiles()])
             } catch (swapErr) {
                 console.error('Database swap error:', swapErr)
                 err = swapErr
                 throw swapErr
+            } finally {
+                finalizeTimings.swapMs = Date.now() - swapStartedAt
             }
 
+            const registerStartedAt = Date.now()
             await this.registerStorageArtifacts(LIST_STORAGE_TTL)
+            finalizeTimings.registerArtifactsMs = Date.now() - registerStartedAt
+            finalizeTimings.totalFinalizeMs = Date.now() - finalizeStartedAt
+            finalizeTimings.indexLength = this._index.length
+            finalizeTimings.foundStreams = this.foundStreams
+            console.info(`[lists.finalize] ${JSON.stringify(finalizeTimings)}`)
 
             if (this.invalidEntriesCount > 0) {
                 console.error('List ' + this.url + ' has ' + this.invalidEntriesCount + ' invalid entries')
@@ -1510,38 +1651,52 @@ class UpdateListIndex extends EventEmitter {
 
             this._index.groupsTypes = this.sniffGroupsTypes(this.groups)
 
+            const finalizeStartedAt = Date.now()
+            const finalizeTimings = {
+                source: 'start',
+                url: this.url
+            }
+
             // CRITICAL: Wait for all pending write operations before closing
             // This ensures data is persisted to disk
+            const waitOpsStartedAt = Date.now()
             try {
+                const pendingOps = []
                 if (db && !db.destroyed && typeof db.waitForOperations === 'function') {
-                    await db.waitForOperations()
+                    pendingOps.push(db.waitForOperations())
                 }
                 if (mdb && !mdb.destroyed && typeof mdb.waitForOperations === 'function') {
-                    await mdb.waitForOperations()
+                    pendingOps.push(mdb.waitForOperations())
+                }
+                if (pendingOps.length) {
+                    await Promise.all(pendingOps)
                 }
             } catch (waitErr) {
                 console.error('Database wait operations error:', waitErr)
                 // Continue - attempt close anyway
+            } finally {
+                finalizeTimings.waitOpsMs = Date.now() - waitOpsStartedAt
             }
 
-            // Save and close main database
-            try {
-                await db.close()
-            } catch (saveErr) {
-                console.error('Database save/close error:', saveErr)
-                err = saveErr
-            }
+            const closeStartedAt = Date.now()
+            const [dbCloseResult, mdbCloseResult] = await Promise.allSettled([
+                db && !db.destroyed ? db.close() : Promise.resolve(),
+                mdb && !mdb.destroyed ? mdb.close() : Promise.resolve()
+            ])
+            finalizeTimings.closeMs = Date.now() - closeStartedAt
 
-            try {
-                await mdb.close()
-            } catch (metaCloseErr) {
-                console.error('Metadata save/close error:', metaCloseErr)
+            if (dbCloseResult.status === 'rejected') {
+                console.error('Database save/close error:', dbCloseResult.reason)
+                err = dbCloseResult.reason
+            }
+            if (mdbCloseResult.status === 'rejected') {
+                console.error('Metadata save/close error:', mdbCloseResult.reason)
                 if (!err) {
-                    err = metaCloseErr
+                    err = mdbCloseResult.reason
                 }
             }
 
-            // Only save meta file if we actually found unique streams and have valid index data
+            const metaStartedAt = Date.now()
             if (this._index.length > 0) {
                 try {
                     // Get existing metadata to preserve important data
@@ -1565,14 +1720,22 @@ class UpdateListIndex extends EventEmitter {
                         indexData.detectedCountriesStats = detectedCountriesStats
                     }
 
-                    // Save with key-value structure (preserves existing data automatically)
-                    const saveSuccess = await setListMeta(this.url, indexData);
+                    const [metaDbSaveResult, metaFileWriteResult] = await Promise.allSettled([
+                        setListMeta(this.url, indexData),
+                        writeMetaToFile(this.url, indexData)
+                    ])
 
-                    if (!saveSuccess) {
+                    if (metaDbSaveResult.status === 'rejected') {
+                        console.error('Metadata database error:', metaDbSaveResult.reason)
+                        err = metaDbSaveResult.reason
+                    } else if (!metaDbSaveResult.value) {
                         console.error(`❌ Metadata database save failed for ${this.url}`);
                         err = new Error('Meta file save failed');
                     }
-                    await writeMetaToFile(this.url, indexData).catch(e => console.error('Write .meta.jdb failed:', this.url, e?.message || e));
+
+                    if (metaFileWriteResult.status === 'rejected') {
+                        console.error('Write .meta.jdb failed:', this.url, metaFileWriteResult.reason?.message || metaFileWriteResult.reason)
+                    }
                 } catch (metaErr) {
                     console.error('Metadata database error:', metaErr)
                     err = metaErr
@@ -1581,7 +1744,9 @@ class UpdateListIndex extends EventEmitter {
                 // FIXED: Do NOT delete existing meta file - preserve existing data even if no new streams found
                 // The existing metadata might contain important information from previous updates
             }
+            finalizeTimings.metaMs = Date.now() - metaStartedAt
 
+            const swapStartedAt = Date.now()
             try {
                 await replaceTargetWithWorking(workingFile, targetFile)
                 await replaceTargetWithWorking(workingIndexFile, targetIndexFile)
@@ -1591,6 +1756,8 @@ class UpdateListIndex extends EventEmitter {
                 console.error('Database swap error:', swapErr)
                 err = swapErr
                 throw swapErr
+            } finally {
+                finalizeTimings.swapMs = Date.now() - swapStartedAt
             }
 
             // Log debug information to a relative path instead of hardcoded absolute path
@@ -1599,7 +1766,13 @@ class UpdateListIndex extends EventEmitter {
             await fs.promises.appendFile(logPath, `${new Date().toISOString()} - ${db.length} - ${dataFileSize} - ${this.insertPromises.length} - ${err || 'success'}\n`).catch(() => { })
             await fs.promises.appendFile(logPath, JSON.stringify(db.indexManager.index) + '\n').catch(() => { })
 
+            const registerStartedAt = Date.now()
             await this.registerStorageArtifacts(LIST_STORAGE_TTL)
+            finalizeTimings.registerArtifactsMs = Date.now() - registerStartedAt
+            finalizeTimings.totalFinalizeMs = Date.now() - finalizeStartedAt
+            finalizeTimings.indexLength = this._index.length
+            finalizeTimings.foundStreams = this.foundStreams
+            console.info(`[lists.finalize] ${JSON.stringify(finalizeTimings)}`)
 
             // NOTE: Do NOT destroy databases here!
             // Both main and metadata databases are persistent and used by ListIndex in main process

@@ -29,9 +29,102 @@ class Index extends Common {
         });
         return nopts;
     }
+
+    normalizeTerms(terms) {
+        if (!Array.isArray(terms)) return [];
+        return [...terms].slice().sort();
+    }
+
+    normalizeOptions(options) {
+        const normalizeValue = value => {
+            if (Array.isArray(value)) {
+                return [...value].map(normalizeValue).sort((a, b) => {
+                    const sa = JSON.stringify(a);
+                    const sb = JSON.stringify(b);
+                    if (sa < sb) return -1;
+                    if (sa > sb) return 1;
+                    return 0;
+                });
+            }
+            if (value && typeof value === 'object') {
+                const normalized = {};
+                Object.keys(value).sort().forEach(k => {
+                    normalized[k] = normalizeValue(value[k]);
+                });
+                return normalized;
+            }
+            return value;
+        };
+
+        const normalized = {};
+        Object.keys(options).sort().forEach(k => {
+            normalized[k] = normalizeValue(options[k]);
+        });
+        return normalized;
+    }
+
+    makeHasCacheKey(criteriaArray) {
+        return criteriaArray
+            .map(c => {
+                const options = c.options ? Object.assign({}, c.options) : {};
+                return JSON.stringify({
+                    id: c.id,
+                    field: c.field,
+                    terms: this.normalizeTerms(c.terms),
+                    options: this.normalizeOptions(options)
+                });
+            })
+            .sort()
+            .join('|');
+    }
+
+    makeHasTermKey(term, opts) {
+        const options = Object.assign({}, opts, term.options || {});
+        return JSON.stringify({
+            name: term.name,
+            field: term.field || 'nameTerms',
+            terms: this.normalizeTerms(term.terms),
+            options: this.normalizeOptions(options)
+        });
+    }
+
+    makeHasQueryKey(terms, opts) {
+        const normalized = terms.map(term => {
+            const options = Object.assign({}, opts, term.options || {});
+            return {
+                name: term.name,
+                terms: this.normalizeTerms(Array.isArray(term.terms) ? term.terms : this.tools.terms(term.terms)),
+                options: this.normalizeOptions(options)
+            };
+        }).sort((a, b) => a.name.localeCompare(b.name));
+        return JSON.stringify(normalized);
+    }
+
+    getPerListCache(url, termKey) {
+        if (!this.hasCachePerList.has(url)) return undefined;
+        const listCache = this.hasCachePerList.get(url);
+        return listCache.get(termKey);
+    }
+
+    setPerListCache(url, termKey, result) {
+        let listCache = this.hasCachePerList.get(url);
+        if (!listCache) {
+            listCache = new Map();
+            this.hasCachePerList.set(url, listCache);
+        }
+        listCache.set(termKey, result);
+    }
+
     async has(terms, opts) {
         if (!terms.length) return {};
         if (!opts) opts = {};
+
+        const queryKey = this.makeHasQueryKey(terms, opts);
+        const cached = this.hasCache.get(queryKey);
+        if (cached && (Date.now() - cached.timestamp) <= this.hasCacheTTL) {
+            return Object.assign({}, cached.value);
+        }
+
         const results = {};
         const listUrls = Object.keys(this.lists).sort((a, b) => {
             return this.lists[b].length - this.lists[a].length;
@@ -62,7 +155,33 @@ class Index extends Common {
             try {
                 const db = list.indexer.db;
                 if (!db.multiExists) continue;
-                const res = await db.multiExists(criteriaArray);
+
+                const uncached = [];
+                for (const criterion of criteriaArray) {
+                    const termKey = this.makeHasTermKey(criterion, opts);
+                    const cachedValue = this.getPerListCache(url, termKey);
+                    if (typeof cachedValue !== 'undefined') {
+                        if (cachedValue) {
+                            results[criterion.id] = true;
+                            remainingNames.delete(criterion.id);
+                        } else if (!(criterion.id in results)) {
+                            results[criterion.id] = false;
+                        }
+                    } else {
+                        uncached.push({ criterion, termKey });
+                    }
+                }
+
+                let res = {};
+                if (uncached.length > 0) {
+                    const queryArray = uncached.map(item => item.criterion);
+                    res = await db.multiExists(queryArray);
+                    for (const item of uncached) {
+                        const value = !!res[item.criterion.id];
+                        this.setPerListCache(url, item.termKey, value);
+                    }
+                }
+
                 for (const [k, v] of Object.entries(res)) {
                     if (v) {
                         results[k] = true;
@@ -75,6 +194,7 @@ class Index extends Common {
                 // erro na lista, ignora
             }
         }
+        this.hasCache.set(queryKey, { timestamp: Date.now(), value: Object.assign({}, results) });
         this.cleanupCache && this.cleanupCache();
         return results;
     }
@@ -102,6 +222,7 @@ class Index extends Common {
         if (this.hasCachePerList && this.hasCachePerList.has(url)) {
             this.hasCachePerList.delete(url);
         }
+        this.hasCache && this.hasCache.clear();
         this.listErrorCounts && this.listErrorCounts.delete(url);
         this.listBadUntil && this.listBadUntil.delete(url);
     }

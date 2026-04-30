@@ -727,6 +727,10 @@ class Manager extends ManagerFetch {
         }
     }
     async addList(listUrl, name, fromCommunity) {
+        if (!listUrl || typeof listUrl !== 'string') {
+            throw lang.INVALID_URL_MSG;
+        }
+        listUrl = listUrl.trim();
         let err;
         const uid = parseInt(Math.random() * 100000);
         osd.show(lang.RECEIVING_LIST, 'fa-mega busy-x', 'add-list-progress-' + uid, 'persistent');
@@ -938,12 +942,15 @@ class Manager extends ManagerFetch {
     }
 
     hideLoadingDialog() {
-        if (!this.loadingDialogShown) {
-            return;
-        }
+        const wasShown = this.loadingDialogShown;
         this.loadingDialogShown = false;
         renderer.ready(() => {
             renderer.ui.emit('dialog-close', 'lists-loading');
+            if (menu?.dialogs?.end) {
+                // Close the loading dialog from queue or active dialog by ID without forcing unrelated dialogs.
+                const closed = menu.dialogs.end(false, 'lists-loading', false);
+                console.info('[lists.manager] hideLoadingDialog end result', { closed, dialogId: 'lists-loading' });
+            }
         })
     }
 
@@ -1001,6 +1008,8 @@ class Manager extends ManagerFetch {
                 this.hideUpdateProgress()
                 m = -1; // do not show 'lists updated' message yet
             }
+
+            this.master.isFirstRun = false;
         } else {
             // Lists are not ready OR there's active progress - show loading dialog
             this.showLoadingDialog()
@@ -1243,6 +1252,9 @@ class Manager extends ManagerFetch {
     }
     async addListDialogFile() {
         const file = await menu.chooseFile('audio/x-mpegurl')
+        if (!file) {
+            throw 'No file selected'
+        }
         return this.addList(file)
     }
     async communityModeDialog() {
