@@ -1,124 +1,282 @@
 # Megacubo
+
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
+
 <p align="center">
   <a href="https://megacubo.tv" target="_blank">
-    <img src="https://static.megacubo.tv/wp-content/uploads/2022/03/cropped-default_icon-192x192.png" alt="Megacubo logo" title="Megacubo logo" />
+    <img src="https://static.megacubo.tv/wp-content/uploads/2022/03/cropped-default_icon-192x192.png" width="140" alt="Megacubo logo" title="Megacubo logo" />
   </a>
 </p>
 
-Megacubo is an intuitive, multi-language and cross-platform IPTV player with support for history, bookmarks and much more.
-
-You can add as many IPTV lists you want (M3U format) and with Miniplayer mode, you can work or navigate on your PC while watching any broadcast.
-
-<br/>
-
-# Releases
-Want to use the software, go to [our releases folder](https://github.com/EdenwareApps/megacubo/releases) to get it.
-
-<br/>
+<h1 align="center">Megacubo</h1>
 
 <p align="center">
-  <img width="800" src="https://static.megacubo.tv/files/print-megacubo-en-1.jpg" alt="Megacubo UI screenshot" title="Megacubo UI screenshot" />
+  Cross-platform IPTV player for Windows, Linux, macOS and Android with support for M3U playlists, live TV streams, bookmarks, history, miniplayer mode and community lists.
 </p>
 
 <p align="center">
-  <img  width="800" src="https://static.megacubo.tv/files/print-megacubo-en-2.jpg" alt="Megacubo player screenshot" title="Megacubo player screenshot" />
+  <a href="https://megacubo.tv">Website</a>
+  ·
+  <a href="https://github.com/EdenwareApps/Megacubo/releases">Releases</a>
+  ·
+  <a href="https://megacubo.tv/en/english/">Download</a>
+  ·
+  <a href="https://github.com/EdenwareApps/Megacubo/issues">Issues</a>
 </p>
 
-<br/>
+---
+
+## Why use Megacubo?
+
+The internet already contains thousands of publicly available TV channels, radio stations, live streams and community broadcasts from around the world. Many broadcasters distribute their own streams online, including free-to-air channels, public networks and independent media.
+
+Megacubo helps users organize and access this open media ecosystem in one place through personal playlists and community discovery features. The application itself does not decide what users watch — users are responsible for the sources and playlists they add and access.
+
+Many people use Megacubo to:
+- watch free-to-air channels already available in their country
+- access publicly available broadcaster streams
+- organize personal IPTV/M3U playlists
+- watch international public channels
+- listen to radio streams
+- use miniplayer mode while working or studying
+- access community-shared public streams
+
+Megacubo was designed as a flexible media player focused on accessibility, organization and cross-platform compatibility.
+
+---
+
+# Features
+
+- IPTV player with M3U support
+- Live TV and radio streaming
+- Community mode
+- Miniplayer / Picture-in-picture mode
+- Bookmarks and watch history
+- Multi-language interface
+- Cross-platform support
+- Hardware accelerated playback
+- Chromecast support
+- External player support
+- Electron-based desktop app
+- Android support
+- Open source
+
+---
+
+# Platforms
+
+| Platform | Supported |
+|---|---|
+| Windows | ✅ |
+| Linux | ✅ |
+| macOS | ✅ |
+| Android | ✅ |
+
+---
+
+# Screenshots
+
+<p align="center">
+  <img width="900" src="https://static.megacubo.tv/files/print-megacubo-en-1.jpg" alt="Megacubo UI screenshot" title="Megacubo UI screenshot" />
+</p>
+
+<p align="center">
+  <img width="900" src="https://static.megacubo.tv/files/print-megacubo-en-2.jpg" alt="Megacubo player screenshot" title="Megacubo player screenshot" />
+</p>
+
+---
+
+# Download
+
+## Recommended Download
+
+The latest official builds, installers and platform-specific packages are available on the official website:
+
+➡️ https://megacubo.tv
+
+The website provides:
+- Windows installer
+- Linux packages
+- macOS builds
+- Android version
+- latest stable releases
+- setup instructions
+
+---
+
+## GitHub Releases
+
+Portable and release assets are also available in the GitHub Releases section:
+
+➡️ https://github.com/EdenwareApps/Megacubo/releases
+
+---
 
 # Quick Start
 
-If you're new to Megacubo, we recommend following these steps:
+If you're new to Megacubo:
 
-1. **Install** the app for your platform ([Installation Guide](./docs/installation.md))
-2. **Set up** your preferences using the setup wizard ([Setup Guide](./docs/setup-wizard.md))
-3. **Add** your first IPTV list ([IPTV Lists Guide](./docs/using-iptv-lists.md))
-4. **Start watching** live TV ([Watching Guide](./docs/watching-live-tv.md))
+1. [Install the app](https://megacubo.tv) for your platform
+2. Open Megacubo
+3. Add your M3U playlist or community source
+4. Start watching live streams and channels
+
+---
+
+# Installation
+
+## Windows
+
+Download from:
+- https://megacubo.tv
+- or GitHub Releases
+
+## Linux
+
+Megacubo supports Linux desktop environments and distributions through:
+- AppImage
+- Snap
+- Flatpak
+
+Linux users can also build directly from source.
+
+## macOS
+
+macOS builds are available from the official website and releases section.
+
+## Android
+
+Android version available on the official website.
+
+---
 
 # Development
 
-## Getting Started with Development
-
-To contribute or build Megacubo from source:
+## Getting Started
 
 ```bash
-# Clone the repository
+# clone repository
 git clone https://github.com/EdenwareApps/Megacubo.git
+
+# enter folder
 cd Megacubo
 
-# Install dependencies
+# install dependencies
 npm install
 
-# Prepare the project (compile and bundle)
+# prepare project
 npm run prepare
 
-# Run in development mode
+# run development build
 npm run debug
-
-# Build optimized installers
-npm run build:electron:linux    # Linux (AppImage, Snap, Flatpak)
-npm run build:electron:win      # Windows (NSIS, MSI)
-npm run build:electron:mac      # macOS (DMG)
 ```
 
-> **Note:** See [DEVELOPING.md](DEVELOPING.md) and [BUILDING.md](BUILDING.md) for detailed build instructions.
+---
 
-<br/>
+## Build Installers
+
+```bash
+# Linux
+npm run build:electron:linux
+
+# Windows
+npm run build:electron:win
+
+# macOS
+npm run build:electron:mac
+```
+
+See:
+- DEVELOPING.md
+- BUILDING.md
+
+for detailed instructions.
+
+---
 
 # Documentation
 
 ## Getting Started
-- **[Introduction](./docs/introduction.md)** - What is Megacubo and main features
-- **[Installation](./docs/installation.md)** - How to install on all platforms
-- **[Setup Wizard](./docs/setup-wizard.md)** - Initial configuration guide
+
+- [Introduction](./docs/introduction.md)
+- [Installation](./docs/installation.md)
+- [Setup Wizard](./docs/setup-wizard.md)
 
 ## User Guide
-- **[User Interface](./docs/ui-overview.md)** - Interface overview and navigation
-- **[Using IPTV Lists](./docs/using-iptv-lists.md)** - Adding and managing M3U playlists
-- **[Community Mode](./docs/community-mode.md)** - Sharing and accessing community lists
-- **[Watching Live TV](./docs/watching-live-tv.md)** - Player controls and features
-- **[Performance](./docs/performance.md)** - Optimization and performance settings
 
-## Advanced Features
-- **[Recommendations](./docs/recommendations.md)** - Content recommendation system
+- [User Interface](./docs/ui-overview.md)
+- [Using IPTV Lists](./docs/using-iptv-lists.md)
+- [Community Mode](./docs/community-mode.md)
+- [Watching Live TV](./docs/watching-live-tv.md)
+- [Performance](./docs/performance.md)
 
-## Support & Help
-- **[Troubleshooting](./docs/troubleshooting.md)** - Common issues and solutions
-- **[FAQ](./docs/faq.md)** - Frequently asked questions
-- **[Support & Contact](./docs/support.md)** - Getting help and support
+## Advanced
 
-## Development & Build
-- **[Building](./BUILDING.md)** - How to build installers for Windows, Linux and macOS
-- **[Contributing](./docs/contributing.md)** - How to contribute to the project
+- [Recommendations](./docs/recommendations.md)
+
+## Help
+
+- [Troubleshooting](./docs/troubleshooting.md)
+- [FAQ](./docs/faq.md)
+- [Support](./docs/support.md)
+
+## Development
+
+- [Building](./BUILDING.md)
+- [Contributing](./docs/contributing.md)
 
 ## Legal
-- **[Legal Notice](./docs/legal.md)** - Legal information and terms
 
-## Available Languages
+- [Legal Notice](./docs/legal.md)
 
-| Language | Code | Language | Code | Language | Code | Language | Code |
-|----------|------|----------|------|----------|------|----------|------|
-| Arabic | `ar` | Bengali | `bn` | Dutch | `nl` | English | `en` |
-| French | `fr` | German | `de` | Greek | `el` | Hindi | `hi` |
-| Indonesian | `id` | Italian | `it` | Japanese | `ja` | Polish | `pl` |
-| Portuguese | `pt` | Russian | `ru` | Spanish | `es` | Swahili | `sw` |
-| Albanian | `sq` | Turkish | `tr` | Ukrainian | `ua` | Urdu | `ur` |
-| Chinese | `zh` | Telugu | `te` | Punjabi | `pa` | - | - |
+---
 
-You can help us adding [more languages](https://github.com/EdenwareApps/megacubo/tree/master/www/nodejs-project/lang)?
+# Community Mode
 
-<br/>
+Megacubo includes a community mode where users may discover and share publicly available streams and playlists.
+
+Users remain responsible for:
+- the playlists they add
+- the streams they access
+- compliance with local laws and broadcaster rights
+
+Megacubo does not host media content itself.
+
+---
+
+# Available Languages
+
+| Language | Code | Language | Code |
+|---|---|---|---|
+| Arabic | `ar` | Bengali | `bn` |
+| Chinese | `zh` | Dutch | `nl` |
+| English | `en` | French | `fr` |
+| German | `de` | Greek | `el` |
+| Hindi | `hi` | Indonesian | `id` |
+| Italian | `it` | Japanese | `ja` |
+| Polish | `pl` | Portuguese | `pt` |
+| Russian | `ru` | Spanish | `es` |
+| Swahili | `sw` | Turkish | `tr` |
+| Ukrainian | `ua` | Urdu | `ur` |
+| Telugu | `te` | Punjabi | `pa` |
+
+Want to help translating Megacubo?
+
+➡️ https://github.com/EdenwareApps/megacubo/tree/master/www/nodejs-project/lang
+
+---
+
+# Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=EdenwareApps/Megacubo&type=Date)](https://www.star-history.com/#EdenwareApps/Megacubo&Date)
 
-<br/>
+---
 
 # Contributing
 
-Big thanks to these amazing folks who’ve rocked this project:
+Big thanks to everyone who contributed to Megacubo.
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
@@ -139,15 +297,35 @@ Big thanks to these amazing folks who’ve rocked this project:
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-Please, feel free to contribute to the project by opening a discussion under Issues section or [sending your PR](https://github.com/EdenwareApps/megacubo/blob/master/DEVELOPING.md).
+Please feel free to:
+- open issues
+- submit pull requests
+- improve translations
+- improve documentation
+- contribute channel metadata
+- report bugs
+- suggest features
 
-You can help us by [improving/creating translations](https://github.com/EdenwareApps/megacubo/tree/master/www/nodejs-project/lang) and the [known channel names list for your country](https://github.com/EdenwareApps/world-tv-channels).
-
-<br/>
+---
 
 # Support
 
-For support and help:
-- **Issues section**: [github.com/EdenwareApps/Megacubo/issues](https://github.com/EdenwareApps/Megacubo/issues)
-- **Website**: [megacubo.tv](https://megacubo.tv/en/english/)
-- **Email**: contact@megacubo.tv
+## GitHub Issues
+
+https://github.com/EdenwareApps/Megacubo/issues
+
+## Official Website
+
+https://megacubo.tv
+
+## Email
+
+contact@megacubo.tv
+
+---
+
+# Disclaimer
+
+Megacubo is a media player application.
+
+The project does not provide, host or own TV channels or copyrighted streams. Users are responsible for the playlists, streams and content sources they access through the software.
