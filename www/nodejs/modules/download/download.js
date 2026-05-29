@@ -631,9 +631,10 @@ class Download extends EventEmitter {
         if (this.timeout) {
             clearTimeout(this.timeout);
         }
+        const timeoutSeconds = typeof this.opts?.timeout?.[type] === 'number' ? this.opts.timeout[type] : 10;
         this.timeout = setTimeout(() => {
             this.endWithError('Timeout', 504);
-        }, (this.opts.timeout[type] || 10) * 1000);
+        }, timeoutSeconds * 1000);
     }
 
     endWithError(err, statusCode = 500) {
@@ -642,7 +643,11 @@ class Download extends EventEmitter {
         this.statusCode = statusCode;
         
         if (!this.listenerCount('error')) {
-            this.on('error', err => console.log('[download] Error:', err));
+            this.on('error', err => {
+                if (this.opts?.debug) {
+                    console.log('[download] Error:', err);
+                }
+            });
         }
         try {
             this.emit('error', err);
@@ -650,7 +655,7 @@ class Download extends EventEmitter {
             console.error('[download] Error emitting error event:', emitError);
         }
         
-        this.opts.debug && console.error('[download] endWithError', err);
+        this.opts?.debug && console.error('[download] endWithError', err);
         this.end();
     }
 
@@ -763,7 +768,7 @@ class Download extends EventEmitter {
 
                     if (statusCode >= 200 && statusCode < 400) {
                         stream = fs.createWriteStream(opts.file);
-                        dl.on('data', chunk => stream.write(chunk));
+                        dl.on('data', chunk => !stream.destroyed && stream.write(chunk));
                     } else {
                         dl.destroy();
                         throw new Error(`HTTP error ${statusCode}`);

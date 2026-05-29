@@ -2,7 +2,7 @@ import { moveFile } from "../utils/utils.js";
 import paths from "../paths/paths.js";
 import os from "os";
 import fs from "fs";
-import FormData from "form-data";
+import https from "https";
 import http from "http";
 import cloud from "../cloud/cloud.js";
 import { stringify } from "../serialize/serialize.js";
@@ -38,24 +38,34 @@ class Crashlog {
     }
     post(content) {
         return new Promise((resolve, reject) => {
-            const form = new FormData();
-            form.append('log', String(content));
-            const parts = cloud.server.split('/')
-            const basePath = parts.length > 2 ? '/'+ parts.slice(3) : ''
+            const serverUrl = cloud.server && cloud.server.toString().trim()
+                ? cloud.server
+                : 'https://stats.megacubo.net'
+            const url = new URL(serverUrl.startsWith('http') ? serverUrl : `https://${serverUrl}`)
+            const body = JSON.stringify({ log: String(content) })
+            const reportPath = `${url.pathname.replace(/\/$/, '')}/report`
+            const protocol = url.protocol === 'https:' ? https : http
+
             const options = {
-                method: 'post',
-                host: parts[2],
-                path: basePath +'/report/index.php',
-                headers: form.getHeaders()
+                method: 'POST',
+                hostname: url.hostname,
+                port: url.port || (url.protocol === 'https:' ? 443 : 80),
+                path: reportPath,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(body)
+                }
             }
-            let resolved, req = http.request(options, res => {
+
+            let resolved = false
+            const req = protocol.request(options, res => {
                 res.setEncoding('utf8');
                 let data = '';
                 res.on('data', (d) => {
                     data += d;
                 });
                 res.once('end', () => {
-                    if (data.includes('OK')) {                        
+                    if (data.includes('OK')) {
                         fs.stat(this.crashLogFile, (err, stat) => {
                             if (stat && stat.file) {
                                 fs.appendFile(this.crashLogFile, content, () => {
@@ -84,7 +94,7 @@ class Crashlog {
                     reject(e);
                 }
             });
-            form.pipe(req);
+            req.write(body)
             req.end();
         });
     }

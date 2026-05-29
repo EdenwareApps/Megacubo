@@ -140,6 +140,11 @@ process.on('uncaughtException', (err, origin) => {
         console.warn('File operation error handled gracefully:', err.message)
         return false // Don't crash the process
     }
+
+    if (err && err.message && err.message.includes('Rejected suspicious HTML response')) {
+        console.warn('Suspicious download response handled gracefully:', err.message)
+        return false
+    }
     
     return false
 })
@@ -147,6 +152,12 @@ process.on('uncaughtException', (err, origin) => {
 process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection:', reason)
     crashlog.save('unhandledRejection', reason)
+    
+    if (reason && ((typeof reason === 'string' && reason.includes('Rejected suspicious HTML response')) ||
+        (reason.message && reason.message.includes('Rejected suspicious HTML response')))) {
+        console.warn('Suspicious download response handled gracefully:', reason.message || reason)
+        return // Don't crash the process
+    }
     
     // Handle HTTP 403 errors specifically
     if (reason && typeof reason === 'string' && reason.includes('Access forbidden (403)')) {

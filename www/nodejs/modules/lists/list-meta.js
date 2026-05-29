@@ -8,6 +8,7 @@ const META_DB_CONFIG = {
     create: false,
     ioTimeoutMs: 10000,
     allowIndexRebuild: true,
+    indexIdleUnloadMs: 0,
     integrityCheck: 'none',
     indexedQueryMode: 'permissive',
     fields: { name: 'string', value: 'string' },

@@ -2,6 +2,7 @@ export default {
     create: false, // Read-only for existing lists
     ioTimeoutMs: 10000,
     allowIndexRebuild: true,
+    indexIdleUnloadMs: 0,
     compression: true,
     termMapping: true,
     // Only these fields should use term mapping (other array:string fields remain as strings)

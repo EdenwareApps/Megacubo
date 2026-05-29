@@ -68,6 +68,12 @@ class MediaPlayerAdapterHTML5TS extends MediaPlayerAdapterHTML5Video {
 			if (!this.mpegts) {
 				throw new Error('Failed to create MPEGTS player')
 			}
+			if (!this.object) {
+				console.error('MPEGTS load failed: media element is not available');
+				this.emit('error', 'Media element not available', true)
+				this.setState('')
+				return
+			}
 			
 			this.mpegts.attachMediaElement(this.object)
 		} catch (createError) {

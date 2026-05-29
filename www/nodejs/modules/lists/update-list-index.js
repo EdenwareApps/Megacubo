@@ -1258,6 +1258,7 @@ class UpdateListIndex extends EventEmitter {
             clear: false,
             create: true,
             allowIndexRebuild: true,
+            indexIdleUnloadMs: 0,
             integrityCheck: 'none',
             indexedQueryMode: 'permissive',
             fields: {
@@ -1569,6 +1570,7 @@ class UpdateListIndex extends EventEmitter {
             clear: false, // Do not clear existing meta data
             create: true,
             allowIndexRebuild: true,
+            indexIdleUnloadMs: 0,
             integrityCheck: 'none', // Disable integrity check for performance
             indexedQueryMode: 'permissive', //permissive mode to allow queries on non-indexed fields
             fields: {

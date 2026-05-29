@@ -468,31 +468,43 @@ class IconServerStore extends IconSearch {
                         }
 
                         dl.on('data', chunk => {
-                            if (htmlBodyChecked) {
-                                return
-                            }
-                            htmlSample += typeof chunk === 'string' ? chunk : chunk.toString('utf8')
-                            if (htmlSample.length > 2048) {
-                                htmlSample = htmlSample.slice(0, 2048)
-                            }
-                            if (DownloadSafety.isSuspiciousResponse(headers, htmlSample)) {
-                                const err = new Error(`Rejected suspicious HTML response: ${DownloadSafety.getContentType(headers)}`)
-                                dl.destroy()
+                            try {
+                                if (htmlBodyChecked) {
+                                    return
+                                }
+                                htmlSample += typeof chunk === 'string' ? chunk : chunk.toString('utf8')
+                                if (htmlSample.length > 2048) {
+                                    htmlSample = htmlSample.slice(0, 2048)
+                                }
+                                if (DownloadSafety.isSuspiciousResponse(headers, htmlSample)) {
+                                    const err = new Error(`Rejected suspicious HTML response: ${DownloadSafety.getContentType(headers)}`)
+                                    fs.promises.unlink(storageFile).catch(() => {})
+                                    dl.endWithError(err)
+                                    return
+                                }
+                                if (DownloadSafety.isProbablyM3U(htmlSample) || htmlSample.length >= 1024) {
+                                    htmlBodyChecked = true
+                                }
+                            } catch (err) {
                                 fs.promises.unlink(storageFile).catch(() => {})
-                                dl.emit('error', err)
-                                return
-                            }
-                            if (DownloadSafety.isProbablyM3U(htmlSample) || htmlSample.length >= 1024) {
-                                htmlBodyChecked = true
+                                dl.endWithError(err)
                             }
                         })
 
                         return true
                     }
-                }).catch(e => err = e)
+                }).catch(e => {
+                    err = e
+                    return undefined
+                })
             }
-            await this.activeDownloads[url]
-            delete this.activeDownloads[url]
+            try {
+                await this.activeDownloads[url]
+            } catch (downloadErr) {
+                err = err || downloadErr
+            } finally {
+                delete this.activeDownloads[url]
+            }
         })
         if (err) {
             this.downloadErrors[url] = {error: String(err), ttl: time() + 60}

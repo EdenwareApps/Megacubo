@@ -193,6 +193,9 @@ export default class ListIndex extends EventEmitter {
             if (this.destroyed) {
                 err = new Error('destroyed')
             }
+            if (!err && this.db && typeof this.db.length === 'number' && this.db.length > 2000 && this.db.indexManager) {
+                this.db.indexManager.indexIdleUnloadMs = 20000
+            }
             if (err) {
                 // Ensure db is set to null when initialization fails
                 this.db = null

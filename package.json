@@ -25,7 +25,7 @@
     "url": "https://megacubo.tv"
   },
   "icon": "./www/nodejs/default_icon.png",
-  "version": "17.6.5",
+  "version": "17.6.8",
   "dependencies": {
     "@babel/runtime": "^7.27.6",
     "@babel/runtime-corejs3": "^7.26.9",
@@ -51,14 +51,13 @@
     "esm-itter": "^0.3.0",
     "exec-finder": "^0.0.2",
     "fast-json-clone": "^1.0.2",
-    "form-data": "^4.0.0",
     "formidable": "^3.5.1",
     "get-folder-size": "^5.0.0",
     "hls.js": "^1.6.5",
     "http-cookie-agent": "^6.0.8",
     "iconv-lite": "^0.6.3",
     "ionic-plugin-deeplinks": "^1.0.24",
-    "jexidb": "^2.1.9",
+    "jexidb": "^2.2.0",
     "m3u8-parser": "^7.1.0",
     "mpegts.js": "^1.8.0",
     "node-cleanup": "^2.1.2",
@@ -427,6 +426,10 @@
     "build:electron:win": "node scripts/build-electron.mjs win",
     "build:electron:linux": "node scripts/build-electron.mjs linux",
     "build:electron:mac": "node scripts/build-electron.mjs mac",
-    "build:electron:all": "node scripts/build-electron.mjs all"
+    "build:electron:all": "node scripts/build-electron.mjs all",
+    "website:test:e2e": "npm run website:test:e2e:autoport && npm run website:test:e2e:dev",
+    "website:test:e2e:autoport": "node website/scripts/playwright-run.mjs",
+    "website:test:e2e:dev": "npm --prefix website run test:e2e:dev",
+    "website:docs:start": "cd website && npx docusaurus start --host=127.0.0.1 --port=3009"
   }
 }

@@ -1168,6 +1168,13 @@ class Lists extends ListsEPGTools {
         this.lists[url] = list;
         try {
             await list.ready()
+            if (list.destroyed) {
+                if (this.debug) {
+                    console.log('loadList aborted: list destroyed during initialization', url);
+                }
+                this.lists[url] && this.remove(url);
+                throw new Error('destroyed')
+            }
             try {
                 await list.checkRelevance()
             } catch (e) {
@@ -1322,10 +1329,17 @@ class Lists extends ListsEPGTools {
                 if (this.debug) {
                     console.log('loadList else', url);
                 }
+                if (list.destroyed) {
+                    if (this.debug) {
+                        console.log('loadList aborted: list destroyed before content comparison', url);
+                    }
+                    this.lists[url] && this.remove(url);
+                    throw new Error('destroyed');
+                }
                 let cErr;
                 const contentAlreadyLoaded = await this.isSameContentLoaded(list).catch(e => cErr = e);
                 if (this.debug) {
-                    console.log('loadList contentAlreadyLoaded', contentAlreadyLoaded);
+                    console.log('loadList contentAlreadyLoaded', contentAlreadyLoaded, 'error', cErr);
                 }
                 if (cErr || contentAlreadyLoaded) {
                     this.requesting[url] = cErr ? String(cErr) : 'content already loaded';
@@ -1463,7 +1477,21 @@ class Lists extends ListsEPGTools {
         return err || !connectable;
     }
     async isSameContentLoaded(list) {
-        let err, alreadyLoaded, listDataFile = list.file, listIndexLength = list.length;
+        if (!list || list.destroyed) {
+            if (this.debug) {
+                console.log('isSameContentLoaded skipped: list destroyed or unavailable', list?.url);
+            }
+            return false;
+        }
+        const listDataFile = list.file;
+        if (!listDataFile || typeof listDataFile !== 'string') {
+            if (this.debug) {
+                console.warn('isSameContentLoaded skipped: invalid list data file path', { url: list.url, listDataFile });
+            }
+            return false;
+        }
+
+        let err, alreadyLoaded, listIndexLength = list.length;
         const stat = await fs.promises.stat(listDataFile).catch(e => err = e);
         if (!err && !stat?.size) {
             err = new Error('file empty or not found');

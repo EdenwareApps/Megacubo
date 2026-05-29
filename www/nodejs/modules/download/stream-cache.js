@@ -22,14 +22,14 @@ class StreamCache extends StreamBase {
         const url = this.opts.url
         const row = await cacheMap.info(url)
         if (!row || !row.status || row.dlid == this.opts.uid || row.file === undefined) {
-            // Emit error instead of throwing
-            this.emit('error', new Error('Cache empty'));
+            // Prefer emitError to avoid unhandled EventEmitter errors when no listener is attached.
+            this.emitError(new Error('Cache empty'));
             return false;
         }
         const stat = await fs.promises.stat(row.file).catch(() => null)
         if (!stat || !stat.size) {
-            // Emit error instead of throwing
-            this.emit('error', new Error('Cache empty *'));
+            // Prefer emitError to avoid unhandled EventEmitter errors when no listener is attached.
+            this.emitError(new Error('Cache empty *'));
             return false;
         }
         let range;

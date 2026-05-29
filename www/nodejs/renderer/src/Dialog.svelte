@@ -45,7 +45,7 @@
             } else {
                 main.menu.emit("reset")
             }
-            const input = container.querySelector("input, textarea");
+            const input = container?.querySelector("input, textarea");
             if (input && input !== document.activeElement) {
                 input.focus();
                 await new Promise(resolve => setTimeout(resolve, 10));
@@ -118,7 +118,7 @@
                 }
                 return !isOption;
             }).map(e => {
-                if (e.text && e.text.includes('\n')) {
+                if (typeof e.text === 'string' && e.text.includes('\n')) {
                     e.text = e.text.replace(new RegExp('\r?\n', 'g'), '<br />');
                 }
                 return e;
@@ -135,7 +135,7 @@
     function sendCallback(id, cb, cancel) {
         if (cancel) id = null;
         if (id === "submit") {
-            const input = container.querySelector("input, textarea");
+            const input = container?.querySelector("input, textarea");
             if (input) id = content.value; // Use content.value for consistency
         }
         if (typeof cb === "function") {
@@ -296,7 +296,7 @@
         }
         if (currentCallback) {
             if (id === 'submit') {
-                const input = container.querySelector("input, textarea");
+                const input = container?.querySelector("input, textarea");
                 if (input) id = input.value;
             }
             currentCallback(id);
@@ -368,7 +368,7 @@
 
     $effect(() => {
         if (visible && container) {
-            const defaultElement = container.querySelector(
+            const defaultElement = container?.querySelector(
                 `#dialog-template-option-${content.defaultIndex}`
             );
             if (defaultElement) {
@@ -442,9 +442,38 @@
                     }
                 }
             }}
+            onkeydown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    if (!mandatory) {
+                        end(true);
+                        e.preventDefault();
+                    } else {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                }
+            }}
         >
             <div 
                 class="dialog-content"
+                role="button"
+                tabindex="-1"
+                onkeydown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        const target = e.target;
+                        const dialogContent = e.currentTarget;
+                        const dialogWrap = container?.querySelector('.dialog-wrap');
+                        const isOutsideDialogWrap = dialogContent.contains(target) && (!dialogWrap || !dialogWrap.contains(target));
+                        if (isOutsideDialogWrap) {
+                            if (!mandatory) {
+                                end(true);
+                            }
+                            e.preventDefault();
+                            e.stopPropagation();
+                            return false;
+                        }
+                    }
+                }}
                 onmousedown={(e) => {
                     // CRITICAL: Handle clicks on .dialog-content (but not on .dialog-wrap)
                     const target = e.target;

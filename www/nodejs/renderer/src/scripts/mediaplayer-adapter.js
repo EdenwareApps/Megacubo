@@ -222,37 +222,40 @@ class MediaPlayerAdapterHTML5 extends MediaPlayerAdapter {
 			})
 			
 			this.object.addEventListener('timeupdate', event => {
-				if (!this.active || !this.object) return
-				try {
-					this.emit('timeupdate', this.object.currentTime)
-					if(this.state === 'loading') {
-						this.processState()
-					}
-				} catch (e) {
-					console.error('Error in timeupdate handler:', e)
-				}
-			})
-			
-			this.object.addEventListener('durationchange', event => {
-				if (!this.active || !this.object) return
-				try {
-					if(this.object.duration && this.duration != this.object.duration){
-						this.duration = this.object.duration
-						if(this.duration && this.errorsCount){
-							this.errorsCount = 0
-						}
-					}
-					this.emit('durationchange')
-				} catch (e) {
-					console.error('Error in durationchange handler:', e)
-				}
-			})
-			
-			this.object.addEventListener('loadedmetadata', event => {
-				if (!this.active || !this.object) return
-				try {
-					if(this.object.videoHeight){
-						let r = this.object.videoWidth / this.object.videoHeight
+                const object = this.object
+                if (!this.active || !object) return
+                try {
+                    this.emit('timeupdate', object.currentTime)
+                    if(this.state === 'loading') {
+                        this.processState()
+                    }
+                } catch (e) {
+                    console.error('Error in timeupdate handler:', e)
+                }
+            })
+            
+            this.object.addEventListener('durationchange', event => {
+                const object = this.object
+                if (!this.active || !object) return
+                try {
+                    if(object.duration && this.duration != object.duration){
+                        this.duration = object.duration
+                        if(this.duration && this.errorsCount){
+                            this.errorsCount = 0
+                        }
+                    }
+                    this.emit('durationchange')
+                } catch (e) {
+                    console.error('Error in durationchange handler:', e)
+                }
+            })
+            
+            this.object.addEventListener('loadedmetadata', event => {
+                const object = this.object
+                if (!this.active || !object) return
+                try {
+                    if(object.videoHeight){
+                        let r = object.videoWidth / object.videoHeight
 						if(r > 0 && !this.hasReceivedRatio){
 							this.hasReceivedRatio = true
 							this.emit('setup-ratio', r)

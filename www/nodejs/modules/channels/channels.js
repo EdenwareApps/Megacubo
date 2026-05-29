@@ -447,12 +447,16 @@ class ChannelsEditing extends ChannelsEPG {
                                 iconFallback: 'fas fa-times-circle',
                                 action: async () => {
                                     let err;
-                                    const r = await icons.fetchURL(image);
+                                    const r = await icons.fetchURL(image).catch(e => err = e);
+                                    if (err) {
+                                        return menu.displayErr(err);
+                                    }
                                     const ret = await icons.adjust(r.file, { shouldBeAlpha: false }).catch(e => menu.displayErr(e));
                                     const destFile = await icons.saveDefaultFile(terms, ret.file).catch(e => err = e);
+                                    if (err) {
+                                        return menu.displayErr(err);
+                                    }
                                     this.emit('edited', 'icon', e, destFile);
-                                    if (err)
-                                        throw err;
                                     console.log('icon changed', terms, destFile);
                                     menu.refreshNow();
                                     osd.show(lang.ICON_CHANGED, 'fas fa-check-circle', 'channels', 'normal');
@@ -463,7 +467,11 @@ class ChannelsEditing extends ChannelsEPG {
                         ret.push({
                             name: lang.OPEN_URL, type: 'input', fa: 'fas fa-link', action: async (err, val) => {
                                 console.log('from-url', terms, '');
-                                const fetched = await icons.fetchURL(val);
+                                let fetchErr;
+                                const fetched = await icons.fetchURL(val).catch(e => fetchErr = e);
+                                if (fetchErr) {
+                                    return menu.displayErr(fetchErr);
+                                }
                                 const ret = await icons.adjust(fetched.file, { shouldBeAlpha: false });
                                 const destFile = await icons.saveDefaultFile(terms, ret.file);
                                 this.emit('edited', 'icon', e, destFile);

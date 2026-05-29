@@ -91,6 +91,12 @@ class MediaPlayerAdapterHTML5HLS extends MediaPlayerAdapterHTML5Video {
                         levelLoadingMaxRetryTimeout: timeout,
                         manifestLoadingMaxRetryTimeout: timeout
                 }
+                if (!this.object) {
+                        console.error('HLS load failed: media element is not available');
+                        this.emit('error', 'Media element not available', true);
+                        this.setState('');
+                        return;
+                }
                 const hls = new Hls(config)
                 this.setTextTracks(this.object, additionalSubtitles)
                 // IMPORTANT: attachMedia() must be called BEFORE loadSource() according to hls.js best practices

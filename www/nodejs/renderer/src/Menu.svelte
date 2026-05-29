@@ -126,7 +126,8 @@
                     if (direction == 'up' || direction == 'down') {
                         let playing = main?.menu?.inPlayer?.()
                         if (!playing) {
-                            let n = main?.menu?.container ? [...main.menu.container.querySelectorAll('entry-nav')][direction == 'down' ? 'shift' : 'pop']() : null
+                            const entryNavs = main?.menu?.container?.querySelectorAll?.('entry-nav') || [];
+                            const n = direction == 'down' ? entryNavs[0] : entryNavs[entryNavs.length - 1];
                             spatialNavigation.focus(n)
                             return true
                         } else if(direction == 'up' || direction == 'left') {
