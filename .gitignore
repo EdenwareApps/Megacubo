@@ -117,3 +117,6 @@ android/app/src/main/assets/public/nodejs/
 /www/nodejs/dist
 /www/nodejs/renderer/dist
 www/nodejs/modules/MODULES-NPM-ANALYSIS.md
+www/nodejs/log.txt
+www/nodejs/modules/lists/index.has-multiexists-patch.js
+www/nodejs/modules/lists/loader - Copia.js

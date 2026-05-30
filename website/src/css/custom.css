@@ -1,0 +1,95 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+:root {
+  --ifm-color-primary: #6c63ff;
+  --ifm-background-color: #0f1115;
+  --ifm-font-color-base: #e6e6e6;
+  --ifm-navbar-background-color: #111318;
+  --ifm-footer-background-color: #111318;
+  --ifm-card-background-color: #161a22;
+  --ifm-code-background: #0d1118;
+  --ifm-code-font-size: 95%;
+  --ifm-heading-font-weight: 700;
+  --ifm-font-family-base: 'Inter', system-ui, sans-serif;
+  --ifm-font-family-heading: 'Inter', system-ui, sans-serif;
+  --ifm-color-primary-dark: #584ce2;
+  --ifm-color-primary-darker: #4539c6;
+  --ifm-color-primary-light: #8b7dff;
+  --ifm-color-primary-lighter: #a696ff;
+  --ifm-color-primary-lightest: #c4b9ff;
+  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.08);
+}
+
+body {
+  background-color: var(--ifm-background-color);
+}
+
+.navbar--dark {
+  background-color: var(--ifm-navbar-background-color);
+}
+
+.footer--dark {
+  background-color: var(--ifm-footer-background-color);
+}
+
+.card {
+  background-color: var(--ifm-card-background-color);
+}
+
+.hero {
+  background: linear-gradient(135deg, #111318 0%, #191f2b 100%);
+}
+
+img {
+  border-radius: 14px;
+}
+
+.theme-light,
+:root[data-theme='light'] {
+  --ifm-color-primary: #6c63ff;
+  --ifm-background-color: #f9fafb;
+  --ifm-font-color-base: #111827;
+  --ifm-navbar-background-color: #ffffff;
+  --ifm-footer-background-color: #ffffff;
+  --ifm-card-background-color: #ffffff;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --ifm-color-primary: #6c63ff;
+    --ifm-background-color: #f9fafb;
+    --ifm-font-color-base: #111827;
+    --ifm-navbar-background-color: #ffffff;
+    --ifm-footer-background-color: #ffffff;
+    --ifm-card-background-color: #ffffff;
+  }
+}
+
+.theme-light .theme-layout-navbar,
+:root[data-theme='light'] .theme-layout-navbar {
+  background: #f2f2f2 !important;
+}
+
+.theme-light #__docusaurus_skipToContent_fallback,
+:root[data-theme='light'] #__docusaurus_skipToContent_fallback {
+  background: linear-gradient(to bottom, #ffffff, #f2f2f2) !important;
+}
+
+.theme-dark,
+:root[data-theme='dark'] {
+  --ifm-color-primary: #6c63ff;
+  --ifm-background-color: #0f1115;
+  --ifm-font-color-base: #e6e6e6;
+  --ifm-navbar-background-color: #111318;
+  --ifm-footer-background-color: #111318;
+  --ifm-card-background-color: #161a22;
+}
+
+.theme-dark #__docusaurus_skipToContent_fallback,
+:root[data-theme='dark'] #__docusaurus_skipToContent_fallback {
+  background: #1a1c1f !important;
+}

@@ -1,0 +1,22 @@
+{
+  "title": {
+    "message": "Megacubo Docs",
+    "description": "The title in the navbar"
+  },
+  "logo.alt": {
+    "message": "Megacubo Logo",
+    "description": "The alt text of navbar logo"
+  },
+  "item.label.Documentation": {
+    "message": "Documentação",
+    "description": "Navbar item with label Documentation"
+  },
+  "item.label.GitHub": {
+    "message": "GitHub",
+    "description": "Navbar item with label GitHub"
+  },
+  "item.label.Website": {
+    "message": "Site",
+    "description": "Navbar item with label Website"
+  }
+}

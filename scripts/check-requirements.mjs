@@ -127,7 +127,7 @@ async function main() {
         process.exit(0);
     } else {
         log('❌ Some requirements not met. Please fix the issues above.', 'red');
-        log('\nFor help, check docs/developing.md', 'yellow');
+        log('\nFor help, check website/docs/developing.md', 'yellow');
         process.exit(1);
     }
 }

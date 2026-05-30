@@ -200,27 +200,27 @@ for detailed instructions.
 
 ## Getting Started
 
-- [Introduction](./docs/introduction.md)
-- [Installation](./docs/installation.md)
-- [Setup Wizard](./docs/setup-wizard.md)
+- [Introduction](./website/docs/introduction.md)
+- [Installation](./website/docs/installation.md)
+- [Setup Wizard](./website/docs/setup-wizard.md)
 
 ## User Guide
 
-- [User Interface](./docs/ui-overview.md)
-- [Using IPTV Lists](./docs/using-iptv-lists.md)
-- [Community Mode](./docs/community-mode.md)
-- [Watching Live TV](./docs/watching-live-tv.md)
-- [Performance](./docs/performance.md)
+- [User Interface](./website/docs/ui-overview.md)
+- [Using IPTV Lists](./website/docs/using-iptv-lists.md)
+- [Community Mode](./website/docs/community-mode.md)
+- [Watching Live TV](./website/docs/watching-live-tv.md)
+- [Performance](./website/docs/performance.md)
 
 ## Advanced
 
-- [Recommendations](./docs/recommendations.md)
+- [Recommendations](./website/docs/recommendations.md)
 
 ## Help
 
-- [Troubleshooting](./docs/troubleshooting.md)
-- [FAQ](./docs/faq.md)
-- [Support](./docs/support.md)
+- [Troubleshooting](./website/docs/troubleshooting.md)
+- [FAQ](./website/docs/faq.md)
+- [Support](./website/docs/support.md)
 
 ## Development
 

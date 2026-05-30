@@ -1,0 +1,78 @@
+{
+  "version.label": {
+    "message": "Próximo",
+    "description": "The label for version current"
+  },
+  "sidebar.tutorialSidebar.doc.Building": {
+    "message": "Construção",
+    "description": "The label for the doc item 'Building' in sidebar 'tutorialSidebar', linking to the doc building"
+  },
+  "sidebar.tutorialSidebar.doc.Community Mode": {
+    "message": "Modo Comunidade",
+    "description": "The label for the doc item 'Community Mode' in sidebar 'tutorialSidebar', linking to the doc community-mode"
+  },
+  "sidebar.tutorialSidebar.doc.Configuring": {
+    "message": "Configurando",
+    "description": "The label for the doc item 'Configuring' in sidebar 'tutorialSidebar', linking to the doc configuring"
+  },
+  "sidebar.tutorialSidebar.doc.Contributing": {
+    "message": "Contribuindo",
+    "description": "The label for the doc item 'Contributing' in sidebar 'tutorialSidebar', linking to the doc contributing"
+  },
+  "sidebar.tutorialSidebar.doc.Developing": {
+    "message": "Desenvolvendo",
+    "description": "The label for the doc item 'Developing' in sidebar 'tutorialSidebar', linking to the doc developing"
+  },
+  "sidebar.tutorialSidebar.doc.FAQ": {
+    "message": "FAQ",
+    "description": "The label for the doc item 'FAQ' in sidebar 'tutorialSidebar', linking to the doc faq"
+  },
+  "sidebar.tutorialSidebar.doc.Hotkeys": {
+    "message": "Atalhos",
+    "description": "The label for the doc item 'Hotkeys' in sidebar 'tutorialSidebar', linking to the doc hotkeys"
+  },
+  "sidebar.tutorialSidebar.doc.Installation": {
+    "message": "Instalação",
+    "description": "The label for the doc item 'Installation' in sidebar 'tutorialSidebar', linking to the doc installation"
+  },
+  "sidebar.tutorialSidebar.doc.Introduction": {
+    "message": "Introdução",
+    "description": "The label for the doc item 'Introduction' in sidebar 'tutorialSidebar', linking to the doc introduction"
+  },
+  "sidebar.tutorialSidebar.doc.Legal": {
+    "message": "Legal",
+    "description": "The label for the doc item 'Legal' in sidebar 'tutorialSidebar', linking to the doc legal"
+  },
+  "sidebar.tutorialSidebar.doc.Performance": {
+    "message": "Desempenho",
+    "description": "The label for the doc item 'Performance' in sidebar 'tutorialSidebar', linking to the doc performance"
+  },
+  "sidebar.tutorialSidebar.doc.Recommendations": {
+    "message": "Recomendações",
+    "description": "The label for the doc item 'Recommendations' in sidebar 'tutorialSidebar', linking to the doc recommendations"
+  },
+  "sidebar.tutorialSidebar.doc.Setup Wizard": {
+    "message": "Assistente de Configuração",
+    "description": "The label for the doc item 'Setup Wizard' in sidebar 'tutorialSidebar', linking to the doc setup-wizard"
+  },
+  "sidebar.tutorialSidebar.doc.Support": {
+    "message": "Suporte",
+    "description": "The label for the doc item 'Support' in sidebar 'tutorialSidebar', linking to the doc support"
+  },
+  "sidebar.tutorialSidebar.doc.Troubleshooting": {
+    "message": "Solução de Problemas",
+    "description": "The label for the doc item 'Troubleshooting' in sidebar 'tutorialSidebar', linking to the doc troubleshooting"
+  },
+  "sidebar.tutorialSidebar.doc.UI Overview": {
+    "message": "Visão Geral da Interface",
+    "description": "The label for the doc item 'UI Overview' in sidebar 'tutorialSidebar', linking to the doc ui-overview"
+  },
+  "sidebar.tutorialSidebar.doc.Using IPTV Lists": {
+    "message": "Usando Listas IPTV",
+    "description": "The label for the doc item 'Using IPTV Lists' in sidebar 'tutorialSidebar', linking to the doc using-iptv-lists"
+  },
+  "sidebar.tutorialSidebar.doc.Watching Live TV": {
+    "message": "Assistindo TV ao Vivo",
+    "description": "The label for the doc item 'Watching Live TV' in sidebar 'tutorialSidebar', linking to the doc watching-live-tv"
+  }
+}
