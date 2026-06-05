@@ -200,36 +200,36 @@ for detailed instructions.
 
 ## Getting Started
 
-- [Introduction](./website/docs/introduction.md)
-- [Installation](./website/docs/installation.md)
-- [Setup Wizard](./website/docs/setup-wizard.md)
+- [Introduction](https://edenwareapps.github.io/Megacubo/docs/introduction)
+- [Installation](https://edenwareapps.github.io/Megacubo/docs/installation)
+- [Setup Wizard](https://edenwareapps.github.io/Megacubo/docs/setup-wizard)
 
 ## User Guide
 
-- [User Interface](./website/docs/ui-overview.md)
-- [Using IPTV Lists](./website/docs/using-iptv-lists.md)
-- [Community Mode](./website/docs/community-mode.md)
-- [Watching Live TV](./website/docs/watching-live-tv.md)
-- [Performance](./website/docs/performance.md)
+- [User Interface](https://edenwareapps.github.io/Megacubo/docs/ui-overview)
+- [Using IPTV Lists](https://edenwareapps.github.io/Megacubo/docs/using-iptv-lists)
+- [Community Mode](https://edenwareapps.github.io/Megacubo/docs/community-mode)
+- [Watching Live TV](https://edenwareapps.github.io/Megacubo/docs/watching-live-tv)
+- [Performance](https://edenwareapps.github.io/Megacubo/docs/performance)
 
 ## Advanced
 
-- [Recommendations](./website/docs/recommendations.md)
+- [Recommendations](https://edenwareapps.github.io/Megacubo/docs/recommendations)
 
 ## Help
 
-- [Troubleshooting](./website/docs/troubleshooting.md)
-- [FAQ](./website/docs/faq.md)
-- [Support](./website/docs/support.md)
+- [Troubleshooting](https://edenwareapps.github.io/Megacubo/docs/troubleshooting)
+- [FAQ](https://edenwareapps.github.io/Megacubo/docs/faq)
+- [Support](https://edenwareapps.github.io/Megacubo/docs/support)
 
 ## Development
 
-- [Building](./BUILDING.md)
-- [Contributing](./docs/contributing.md)
+- [Building](https://edenwareapps.github.io/Megacubo/docs/building)
+- [Contributing](https://edenwareapps.github.io/Megacubo/docs/contributing)
 
 ## Legal
 
-- [Legal Notice](./docs/legal.md)
+- [Legal Notice](https://edenwareapps.github.io/Megacubo/docs/legal)
 
 ---
 
