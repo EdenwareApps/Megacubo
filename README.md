@@ -270,7 +270,7 @@ Want to help translating Megacubo?
 
 # Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=EdenwareApps/Megacubo&type=Date)](https://www.star-history.com/#EdenwareApps/Megacubo&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=EdenwareApps/Megacubo&type=Date)](https://star-history.dera.page/#EdenwareApps/Megacubo&Date)
 
 ---
 
