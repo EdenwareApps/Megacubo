@@ -404,8 +404,8 @@ class ListsLoader extends EventEmitter {
             try {
                 updaterWorker = new MultiWorker({
                     resourceLimits: {
-                        maxOldGenerationSizeMb: 2560,
-                        maxYoungGenerationSizeMb: 384
+                        maxOldGenerationSizeMb: 4096,
+                        maxYoungGenerationSizeMb: 512
                     }
                 });
                 this.updater = updaterWorker.load(path.join(getDirname(), 'updater-worker.js'));

@@ -173,45 +173,58 @@ export class ImageProcessor {
             async function loadImageData(url, width, height) {
                 if (typeof(url) !== 'string') return url
                 
-                // Add browser-like headers to bypass hotlink protection
-                const headers = {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-                    'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
-                    'Accept-Language': 'en-US,en;q=0.9,pt;q=0.8',
-                    'Accept-Encoding': 'gzip, deflate, br',
-                    'Cache-Control': 'no-cache',
-                    'Pragma': 'no-cache',
-                    'Sec-Fetch-Dest': 'image',
-                    'Sec-Fetch-Mode': 'no-cors',
-                    'Sec-Fetch-Site': 'cross-site',
-                    'Sec-Ch-Ua': '"Not A(Brand";v="99", "Google Chrome";v="121", "Chromium";v="121"',
-                    'Sec-Ch-Ua-Mobile': '?0',
-                    'Sec-Ch-Ua-Platform': '"Windows"',
-                    'DNT': '1',
-                    'Connection': 'keep-alive',
-                    'Upgrade-Insecure-Requests': '1'
-                };
-                
-                // Add specific referer based on domain
+                // Add browser-like headers only for third-party hosts, to bypass hotlink
+                // protection. Our own local servers (node backend / downloads / icon server)
+                // already send CORS headers and need no spoofing; sending non-CORS-safelisted
+                // headers to them would force a CORS preflight that gets rejected now that
+                // webSecurity is enabled.
+                let headers = null;
                 try {
-                    const urlObj = new URL(url);
-                    const domain = urlObj.hostname;
-                    
-                    if (domain.includes('github.com') || domain.includes('raw.githubusercontent.com')) {
-                        headers['Referer'] = 'https://github.com/';
-                    } else if (domain.includes('imgur.com') || domain.includes('i.imgur.com')) {
-                        headers['Referer'] = 'https://imgur.com/';
-                    } else if (domain.includes('wikipedia.org') || domain.includes('wikimedia.org')) {
-                        headers['Referer'] = 'https://www.wikipedia.org/';
-                    } else {
-                        headers['Referer'] = urlObj.origin + '/';
+                    const host = new URL(url).hostname;
+                    const isLocal = !host || host === 'localhost' || host === '127.0.0.1' || host === '[::1]' || host.endsWith('.localhost');
+                    if (!isLocal) {
+                        headers = {
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+                            'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+                            'Accept-Language': 'en-US,en;q=0.9,pt;q=0.8',
+                            'Accept-Encoding': 'gzip, deflate, br',
+                            'Cache-Control': 'no-cache',
+                            'Pragma': 'no-cache',
+                            'Sec-Fetch-Dest': 'image',
+                            'Sec-Fetch-Mode': 'no-cors',
+                            'Sec-Fetch-Site': 'cross-site',
+                            'Sec-Ch-Ua': '"Not A(Brand";v="99", "Google Chrome";v="121", "Chromium";v="121"',
+                            'Sec-Ch-Ua-Mobile': '?0',
+                            'Sec-Ch-Ua-Platform': '"Windows"',
+                            'DNT': '1',
+                            'Connection': 'keep-alive',
+                            'Upgrade-Insecure-Requests': '1'
+                        };
+
+                        // Add specific referer based on domain
+                        try {
+                            const urlObj = new URL(url);
+                            const domain = urlObj.hostname;
+
+                            if (domain.includes('github.com') || domain.includes('raw.githubusercontent.com')) {
+                                headers['Referer'] = 'https://github.com/';
+                            } else if (domain.includes('imgur.com') || domain.includes('i.imgur.com')) {
+                                headers['Referer'] = 'https://imgur.com/';
+                            } else if (domain.includes('wikipedia.org') || domain.includes('wikimedia.org')) {
+                                headers['Referer'] = 'https://www.wikipedia.org/';
+                            } else {
+                                headers['Referer'] = urlObj.origin + '/';
+                            }
+                        } catch (e) {
+                            // If URL parsing fails, use a generic referer
+                            headers['Referer'] = 'https://www.google.com/';
+                        }
                     }
                 } catch (e) {
-                    // If URL parsing fails, use a generic referer
-                    headers['Referer'] = 'https://www.google.com/';
+                    // Unparseable URL: let fetch deal with it
                 }
                 
-                const response = await fetch(url, { headers })
+                const response = await fetch(url, headers ? { headers } : undefined)
                 if (!response.ok) {
 
                     throw new Error(\`Error fetching image: \${response.statusText} - \${url}\`)

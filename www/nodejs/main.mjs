@@ -545,7 +545,7 @@ const updatePrompt = async (c) => {
 }
 const initElectronWindow = async () => {
     console.log('🪟 Starting Electron window initialization...')
-    const { app, BrowserWindow, globalShortcut, Menu } = electron
+    const { app, BrowserWindow, globalShortcut, Menu, shell } = electron
     
     // Initialize remote before creating window
     if (electron.remote) {
@@ -625,7 +625,33 @@ const initElectronWindow = async () => {
     app.on('browser-window-created', (_, window) => {
         console.log('Browser window created')
         electron.remote.enable(window.webContents)
-        
+
+        // Harden navigation: the UI is served from http://127.0.0.1 and must never
+        // navigate to third-party origins. External URLs are opened in the system
+        // browser instead of being loaded inside the window (which could otherwise
+        // read cross-origin localhost resources when webSecurity is disabled).
+        const isLocalURL = url => {
+            try {
+                const { protocol, hostname } = new URL(url)
+                return (protocol === 'http:' || protocol === 'https:') &&
+                    (hostname === '127.0.0.1' || hostname === 'localhost' || hostname === '[::1]' || hostname === '::1')
+            } catch {
+                return false
+            }
+        }
+        window.webContents.on('will-navigate', (event, url) => {
+            if (!isLocalURL(url)) {
+                event.preventDefault()
+                shell.openExternal(url)
+            }
+        })
+        window.webContents.setWindowOpenHandler(({ url }) => {
+            if (!isLocalURL(url)) {
+                shell.openExternal(url)
+            }
+            return { action: 'deny' }
+        })
+
         // Capture renderer console logs and errors (only warnings and errors by default)
         window.webContents.on('console-message', (event, level, message, line, sourceId) => {
             // Only log warnings and errors, skip info and debug messages
@@ -704,9 +730,18 @@ const initElectronWindow = async () => {
             nodeIntegrationInSubFrames: false,
             preload: path.join(paths.cwd, 'dist/preload.js'),
             experimentalFeatures: true,
+            // Must stay true: with false, Electron does not accept OS drag-and-drop at all
+            // (shows the "not allowed" cursor), so DragDrop.svelte never receives the drop.
+            // DragDrop.svelte handles drops via DOM events + preventDefault, and the
+            // will-navigate / setWindowOpenHandler guards below still prevent any actual
+            // window navigation when a link or file is dropped.
             navigateOnDragDrop: true,
             devTools: debug,
-            webSecurity: false // desabilita o webSecurity
+            // The renderer UI is served from 127.0.0.1 and all cross-origin I/O goes through
+            // the local node backend (which already sends CORS headers via prepareCORS), so
+            // webSecurity stays ENABLED. If some legacy feature ever needs it off, set
+            // "web-security": false in config.json to test.
+            webSecurity: config.get('web-security', true)
         }
     })
     console.log('✅ BrowserWindow created successfully')

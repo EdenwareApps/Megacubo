@@ -2395,14 +2395,14 @@ class Storage extends StorageIO {
                 
                 if (this.unlockListeners[key]) {
                     // Add write operations to the front of the queue for priority
-                    const queueItem = { resolve, reject, write, timeout };
+                    const queueItem = { resolve, reject, write, timeout, timeoutMs };
                     if (write) {
                         this.unlockListeners[key].unshift(queueItem);
                     } else {
                         this.unlockListeners[key].push(queueItem);
                     }
                 } else {
-                    this.unlockListeners[key] = [{ resolve, reject, write, timeout }];
+                    this.unlockListeners[key] = [{ resolve, reject, write, timeout, timeoutMs }];
                 }
             } else {
                 if (write) {
@@ -2451,11 +2451,21 @@ class Storage extends StorageIO {
     // Cleanup method for stuck locks
     cleanupLock(key) {
         try {
-            // Clear any pending listeners for this key
+            // Reject any pending waiters so they don't hang forever
+            // (previously their timeouts were cleared and their promises were orphaned)
             if (this.unlockListeners[key]) {
-                this.unlockListeners[key].forEach(listener => {
-                    if (listener.timeout) {
+                const pending = this.unlockListeners[key];
+                this.unlockListeners[key] = [];
+                pending.forEach(listener => {
+                    if (listener && listener.timeout) {
                         clearTimeout(listener.timeout);
+                    }
+                    if (listener && typeof listener.reject === 'function') {
+                        try {
+                            listener.reject(new Error(`Mutex acquisition timeout after ${listener.timeoutMs || 60000}ms`));
+                        } catch (err) {
+                            // Ignore - promise may already be settled
+                        }
                     }
                 });
                 delete this.unlockListeners[key];

@@ -216,8 +216,11 @@ class MPEGTSProcessor extends EventEmitter {
             if (this.debug) {
                 console.log('[joiner] pcr data emit = ' + kbfmt(chunk.length));
             }
+            // Capture the length BEFORE emitting: the worker listener may zero-copy
+            // transfer (detach) the buffer, which would make chunk.length 0 afterwards.
+            const emittedLen = chunk ? chunk.length : 0;
             chunk && this.emit('data', chunk);
-            if (chunk && chunk.length) {
+            if (emittedLen) {
                 this.hasEmittedPackets = true;
                 this.pendingNonTS = false;
             }

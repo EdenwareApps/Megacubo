@@ -187,6 +187,14 @@ function makeNodeBundle({ input, output, babelOpts, extraPlugins = [], externals
             id.includes('onexit')) {
           return true; // Preserve side effects
         }
+        // youtubei.js relies on a module-level side effect (Platform.load) in
+        // dist/src/platform/node.js to register the Node shim (fetch, crypto,
+        // Cache, eval...). Without it the library throws "Platform is not
+        // loaded". Keep ALL youtubei.js side effects to avoid tree-shaking the
+        // platform registration away.
+        if (id.includes('youtubei.js')) {
+          return true; // Preserve side effects
+        }
         // For own modules, assume they may have side effects (conservative)
         if (id.includes('www/nodejs/modules/') && !id.includes('node_modules')) {
           return true; // Preserve own modules for safety

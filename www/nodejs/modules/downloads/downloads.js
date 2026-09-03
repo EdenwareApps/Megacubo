@@ -95,8 +95,10 @@ class Downloads extends EventEmitter {
                 }
                 pathname = decodeURIComponentSafe(pathname);
                 const ext = path.parse(pathname).ext;
+                let mapped = false;
                 if (typeof(this.map[pathname]) != 'undefined') {
                     pathname = this.map[pathname];
+                    mapped = true;
                 } else {
                     pathname = path.join(this.folder, pathname);
                 }
@@ -148,20 +150,32 @@ class Downloads extends EventEmitter {
                     try {
                         resolvedPath = fs.realpathSync(path.resolve(paths.cwd, pathname))
                     } catch (err) {
-                        res.statusCode = 403;
+                        res.writeHead(403, prepareCORS({ 'content-length': 0 }, req));
                         res.end();
                         return;
                     }
-                    const root = fs.realpathSync(path.resolve(paths.cwd))
-                    if (!resolvedPath.startsWith(root + path.sep)) {
-                        res.statusCode = 403;
-                        res.end();
-                        return;
+                    // Files explicitly registered via serve()/serveContent()/import()
+                    // (this.map) are an internal allowlist — they may live outside
+                    // paths.cwd (e.g. cached channel icons under paths.data/storage),
+                    // so trust them. Non-mapped requests must stay inside app-owned
+                    // roots (cwd/temp/data) to block path traversal.
+                    if (!mapped) {
+                        const root = fs.realpathSync(path.resolve(paths.cwd));
+                        const tempRoot = path.resolve(paths.temp);
+                        const dataRoot = path.resolve(paths.data);
+                        const allowed = resolvedPath.startsWith(root + path.sep)
+                            || resolvedPath.startsWith(tempRoot + path.sep)
+                            || resolvedPath.startsWith(dataRoot + path.sep);
+                        if (!allowed) {
+                            res.writeHead(403, prepareCORS({ 'content-length': 0 }, req));
+                            res.end();
+                            return;
+                        }
                     }
                     pathname = resolvedPath
                     fs.stat(pathname, (err, stat) => {
                         if (err) {
-                            res.statusCode = 404;
+                            res.writeHead(404, prepareCORS({ 'content-length': 0 }, req));
                             res.end();
                             return;
                         }

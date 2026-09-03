@@ -22,6 +22,7 @@ class Menu extends EventEmitter {
         this.rendering = true
         this.waitingRender = false
         this.navigating = false
+        this._suppressAutoAdvance = 0
         this.path = ''
         this.filters = []
         this.outputFilters = []
@@ -407,6 +408,8 @@ class Menu extends EventEmitter {
             page = this.pages[p]
             delete this.pages[p]
         }
+        // Refreshing should keep the current page, never auto-advance
+        this._suppressAutoAdvance++
         this.open(p).then(() => {
             if(page && !this.pages[p]) {
                 this.pages[p] = page
@@ -417,6 +420,10 @@ class Menu extends EventEmitter {
                 this.pages[p] = page
             }
             this.open(p).catch(e => this.displayErr(err))
+        }).finally(() => {
+            if (this._suppressAutoAdvance > 0) {
+                this._suppressAutoAdvance--
+            }
         })
     }
     deepRefresh(p) {
@@ -483,7 +490,15 @@ class Menu extends EventEmitter {
                 await this.render(this.pages[p], p, {parent: {name: p.split('/').pop(), fa}})
                 if (isSearch) return
             }
-            await this.open(p, undefined, deep, true, true, true).catch(e => this.displayErr(e))
+            // When going back, do not re-advance into single-folder pages
+            this._suppressAutoAdvance++
+            try {
+                await this.open(p, undefined, deep, true, true, true).catch(e => this.displayErr(e))
+            } finally {
+                if (this._suppressAutoAdvance > 0) {
+                    this._suppressAutoAdvance--
+                }
+            }
         } else {
             await this.refresh()
         }
@@ -684,6 +699,154 @@ class Menu extends EventEmitter {
             return path.substr(0, i)
         }
     }
+    // Groups coming from IPTV playlists carry list-relative paths (e.g.
+    // "Canais/GLOBO" from an M3U group-title). Convert such a path into an
+    // absolute menu path by matching the already-navigated list prefix against
+    // the current page path. Returns null when the path doesn't look relative
+    // (i.e. it's already absolute or can't be matched to the current page).
+    resolveRelativePath(destPath, contextPath) {
+        if (!destPath || !contextPath) {
+            return null
+        }
+        const dp = String(destPath), cp = String(contextPath)
+        // Already-known pages and paths already under the current page are
+        // absolute keys — never rewrite them.
+        if (typeof(this.pages[dp]) != 'undefined' || dp === cp || dp.startsWith(cp + '/')) {
+            return null
+        }
+        const dSegs = dp.split('/')
+        // Find the longest prefix of the list-relative path that is a suffix of
+        // the current page path. That prefix is the part of the list path already
+        // represented by the current page; the remainder must be appended to it.
+        let overlap = 0
+        for (let n = 1; n <= dSegs.length; n++) {
+            const p = dSegs.slice(0, n).join('/')
+            if (cp.endsWith('/' + p) || cp === p) {
+                overlap = n
+            }
+        }
+        if (!overlap) {
+            return null
+        }
+        const rest = dSegs.slice(overlap).join('/')
+        return rest ? `${cp}/${rest}` : cp
+    }
+    // Resolve a possibly list-relative/leaked path coming from the renderer
+    // into an absolute navigable menu path before open()/select() use it.
+    // List entries from IPTV playlists carry paths relative to the list
+    // (group-title), e.g. "Canais/GLOBO" or a single-segment "HBO".
+    resolveDestPath(destPath) {
+        if (!destPath || ['.', '/'].includes(destPath)) {
+            return destPath
+        }
+        const str = String(destPath)
+        // Already a known page or inside the current page -> it's absolute.
+        if (typeof(this.pages[str]) != 'undefined' || str === this.path ||
+            (this.path && str.startsWith(this.path + '/'))) {
+            return str
+        }
+        const r = this.resolveRelativePath(str, this.path)
+        if (r) {
+            return r
+        }
+        // Single-segment list-relative path (e.g. a top-level list group like
+        // "HBO"): find the rendered page that contains an entry with this name
+        // and re-home the path to its real location.
+        if (!str.includes('/')) {
+            const host = this.findEntryPage(str)
+            if (host) {
+                return `${host}/${str}`
+            }
+        }
+        return str
+    }
+    // Searches all already-rendered pages for one that contains a list entry
+    // with the given name (prefers entries carrying a `source`), so a leaked
+    // single-segment path can be re-homed to its real location.
+    findEntryPage(name) {
+        for (const pagePath of Object.keys(this.pages)) {
+            const entries = this.pages[pagePath]
+            if (!Array.isArray(entries) || !entries.length || pagePath === name || pagePath.endsWith('/' + name)) {
+                continue
+            }
+            if (entries.some(e => e && e.source && (e.name === name || basename(e.path || '') === name))) {
+                return pagePath
+            }
+        }
+        return null
+    }
+    // Returns the navigable (absolute) path for an entry being rendered at
+    // `pagePath`. Converts list-relative paths (group-title) into absolute
+    // menu paths so the renderer never leaks a path the menu can't open later.
+    // Also records `listRoots[source]` (the list root page per source) so that
+    // entries rendered outside their own list (home, recommendations, search)
+    // can still be re-homed to the correct list page.
+    absoluteEntryPath(item, pagePath) {
+        const p = item.path
+        if (typeof p !== 'string' || !p) {
+            return item.type === 'back'
+                ? this.dirname(pagePath)
+                : (pagePath ? `${pagePath}/${item.name}` : item.name)
+        }
+        if (!pagePath) {
+            // Rendered on the home page. A list-relative single-segment path is
+            // only navigable if we already know the list root for its source.
+            if (item.source && !p.includes('/') && this.listRoots && this.listRoots[item.source]) {
+                return `${this.listRoots[item.source]}/${p}`
+            }
+            return p
+        }
+        if (!p.includes('/')) {
+            // Single-segment path: relative to the list root of this entry's
+            // source. Top-level list groups (e.g. "HBO") are rendered at the
+            // list root page, so remember that page as the root. When the path
+            // was shortened/merged (name != path) we avoid recording a root, as
+            // the current page may not be the actual list root.
+            if (item.source && this.listRoots && this.listRoots[item.source]) {
+                return `${this.listRoots[item.source]}/${p}`
+            }
+            if (item.source && p === item.name) {
+                this.listRoots = this.listRoots || {}
+                this.listRoots[item.source] = pagePath
+            }
+            return `${pagePath}/${p}`
+        }
+        const resolved = this.resolveRelativePath(p, pagePath)
+        if (resolved) {
+            if (item.source && resolved.endsWith('/' + p)) {
+                // Record the list root page for this source so entries rendered
+                // outside their own list (home, recommendations, search) can be
+                // re-homed. The candidate is `resolved` minus the list-relative
+                // path `p`; it is the true root only when `p` is the full path
+                // from the list root. When `p` is a *partial* relative path the
+                // candidate lands on a nested folder, so never replace an
+                // already-known (shallower) root with a deeper one.
+                this.listRoots = this.listRoots || {}
+                const candidate = resolved.slice(0, -(p.length + 1))
+                const current = this.listRoots[item.source]
+                const depth = s => String(s).split('/').length
+                if (!current || depth(candidate) < depth(current)) {
+                    this.listRoots[item.source] = candidate
+                }
+            }
+            return resolved
+        }
+        // Path already absolute under the current page (known page, equal to
+        // pagePath, or starting with `pagePath/`): resolveRelativePath() returns
+        // null for these, but they must NOT be re-prefixed with the list root —
+        // doing so would duplicate the prefix (e.g. turning
+        // "Minhas Listas/raw ManoTV/Canais/GLOBO/Globorj.br" into
+        // "Minhas Listas/raw ManoTV/Minhas Listas/raw ManoTV/Canais/GLOBO/Globorj.br").
+        if (p === pagePath || p.startsWith(pagePath + '/') || typeof(this.pages[p]) != 'undefined') {
+            return p
+        }
+        // Nested list-relative path that didn't match the current page — fall
+        // back to the known list root for this entry's source, if any.
+        if (item.source && this.listRoots && this.listRoots[item.source]) {
+            return `${this.listRoots[item.source]}/${p}`
+        }
+        return p
+    }
     async deepRead(destPath, tabindex) {
         if (['.', '/'].includes(destPath)) {
             destPath = ''
@@ -792,9 +955,16 @@ class Menu extends EventEmitter {
             throw 'path not found'
         }
     }
-    async open(destPath, tabindex, deep, isFolder, backInSelect) {
+    async open(destPath, tabindex, deep, isFolder, backInSelect, options = {}) {
         if (!destPath || ['.', '/'].includes(destPath)) {
             destPath = ''
+        }
+        // IPTV list groups may carry list-relative paths (e.g. "Canais/GLOBO"
+        // or a single-segment "HBO") when the click comes from a page cached
+        // before path resolution. Resolve such paths into absolute navigable
+        // menu paths before navigating.
+        if (destPath) {
+            destPath = this.resolveDestPath(destPath)
         }
         if (this.opts.debug) {
             console.error('open', destPath, tabindex)
@@ -818,6 +988,26 @@ class Menu extends EventEmitter {
                         console.log('backInSelect', backInSelect, parentEntry, destPath)
                     }
                     return this.open(this.dirname(destPath), -1, deep, isFolder, backInSelect)
+                }
+                // Auto-advance: if this folder contains only one subfolder (ignoring Back),
+                // enter it automatically, chaining deeper when needed, without rendering
+                // the intermediate (single-folder) pages.
+                const autoAdvanceDepth = options.autoAdvanceDepth || 0
+                const autoChild = (!this._suppressAutoAdvance && autoAdvanceDepth < 8)
+                    ? this.shouldAutoAdvance(es)
+                    : null
+                if (autoChild) {
+                    if (this.opts.debug) {
+                        console.log('auto-advance', destPath || '/', '->', autoChild.name, '(depth ' + autoAdvanceDepth + ')')
+                    }
+                    if(!destPath || !parentEntry || parentEntry.type == 'group') {
+                        this.path = destPath
+                    }
+                    this.pages[destPath] = this.addMetaEntries(es, destPath, parentPath)
+                    const childPath = destPath ? `${destPath}/${autoChild.name}` : autoChild.name
+                    return this.open(childPath, undefined, deep, isFolder, backInSelect, {
+                        autoAdvanceDepth: autoAdvanceDepth + 1
+                    })
                 }
                 if(!destPath || !parentEntry || parentEntry.type == 'group') {
                     this.path = destPath
@@ -954,9 +1144,13 @@ class Menu extends EventEmitter {
             }, timeoutMs)
         })
 
+        // Return a shallow copy so menu filters (which unshift/push meta entries
+        // in place) never corrupt the cached source array (e.entries). Otherwise
+        // softRefresh() re-reads the same mutated array and re-runs filters over
+        // it, stacking entries like "Adicionar em Favoritos" on every access.
         const result = await trackPromise(
             Promise.race([
-                entriesPromise.then(entries => Array.isArray(entries) ? entries : []),
+                entriesPromise.then(entries => Array.isArray(entries) ? entries.slice() : []),
                 timeoutPromise
             ]),
             `menu.readEntry(${name})`,
@@ -1036,9 +1230,34 @@ class Menu extends EventEmitter {
             }
         }
     }
+    isFolderEntry(e) {
+        if (!e || typeof e !== 'object') return false
+        if (e.type === 'group') return true
+        if (e.type) return false // any other explicit type (back/action/stream/select/check/input/slider) is not a folder
+        return typeof e.renderer === 'function' || Array.isArray(e.entries)
+    }
+    // Returns the single subfolder when a folder contains only one subfolder
+    // (ignoring Back). Returns null otherwise.
+    shouldAutoAdvance(entries) {
+        if (!Array.isArray(entries)) return null
+        let candidate = null, count = 0
+        for (const e of entries) {
+            if (!e || typeof e !== 'object') continue
+            if (e.type === 'back' || e.name === lang.BACK) continue
+            count++
+            if (!this.isFolderEntry(e)) return null
+            candidate = e
+        }
+        if (count !== 1 || !candidate || !candidate.name) return null
+        if (candidate.type !== 'group') candidate.type = 'group'
+        return candidate
+    }
     async select(destPath, tabindex) {
         if (this.opts.debug) {
             console.log('select ' + destPath + ', ' + tabindex)
+        }
+        if (destPath) {
+            destPath = this.resolveDestPath(destPath)
         }
         let ret = await this.read(destPath, tabindex)
         if (ret && ret != -1) {
@@ -1200,12 +1419,9 @@ class Menu extends EventEmitter {
                     item.type = 'stream'
                 }
             }
-            if (typeof item.path !== 'string' || !item.path) {
-                item.path = item.type === 'back'
-                    ? this.dirname(path)
-                    : (path ? `${path}/${item.name}` : item.name)
-            } else if (path && !item.path.includes('/') && item.path === item.name) {
-                item.path = `${path}/${item.path}`
+            const absolute = this.absoluteEntryPath(item, path)
+            if (absolute !== undefined) {
+                item.path = absolute
             }
             return item
         })

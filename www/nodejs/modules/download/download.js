@@ -311,17 +311,24 @@ class Download extends EventEmitter {
 
     isSocketHangUpError(error) {
         // Check for socket hang up errors
-        if (error.message && error.message.includes('socket hang up')) {
+        if (error && error.message && error.message.includes('socket hang up')) {
             return true;
         }
         
-        // Check for ECONNRESET error code
-        if (error.code === 'ECONNRESET') {
-            return true;
-        }
-        
-        // Check for other connection-related errors that should be retried
-        if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+        // Transient connection-level errors that should be retried with backoff
+        // (broadened to reduce how often transient network/DNS issues surface to the user)
+        const code = error && error.code;
+        if (code && [
+            'ECONNRESET',
+            'ECONNABORTED',
+            'ETIMEDOUT',
+            'EHOSTUNREACH',
+            'ENETUNREACH',
+            'ENETDOWN',
+            'ECONNREFUSED',
+            'EPIPE',
+            'EAI_AGAIN'
+        ].includes(code)) {
             return true;
         }
         

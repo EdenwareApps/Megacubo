@@ -62,6 +62,7 @@
         <i class="fas fa-chevron-down"></i>
     </div>
 </controls>
+<div id="video-click-layer" aria-hidden="true"></div>
 <div class="curtain curtain-a"></div>
 <div class="curtain curtain-b"></div>
 <div id="paused-layer" class="control-layer">
@@ -169,6 +170,24 @@ video {
     object-fit: fill;
     width: inherit;
     height: inherit;
+    display: block;
+}
+
+/* Invisible click layer over the video (click to toggle play/pause).
+   Sits above the video (z-index 0) but below the controls/seekbar
+   (z-index 1) and the control layers (z-index 3), so clicks over those
+   UI elements are not intercepted. Hidden during .menu-playing and when
+   no video is active. */
+#video-click-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    display: none;
+}
+body.video:not(.menu-playing) #video-click-layer {
     display: block;
 }
 

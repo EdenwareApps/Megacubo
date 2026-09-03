@@ -1,16 +1,30 @@
 import Download from '../../download/download.js'
 import StreamerHLSIntent from './hls.js';
-import ytdl from '@distube/ytdl-core';
+import { Innertube } from 'youtubei.js';
 import StreamerProxy from '../utils/proxy.js';
 import StreamerHLSProxy from '../utils/proxy-hls.js';
-import downloads from '../../downloads/downloads.js';
-import fs from 'fs';
 import config from '../../config/config.js'
-import paths from '../../paths/paths.js';
 import { getDomain } from '../../utils/utils.js';
 
 const YTDomainRegex = new RegExp('^(youtu\\.be|youtube\\.com|[a-z]{1,6}\\.youtube\\.com)$');
 const YTIDRegex = new RegExp('(v=|/v/|/embed/|/shorts/|\\.be/)([A-Za-z0-9\\-_]+)');
+
+// Innertube sessions are expensive to create (~1-2s). Create once and reuse.
+// The ANDROID client is the one that returns the HLS manifest URL for live
+// streams (and a progressive audio+video format for VODs).
+let innertubePromise = null;
+function getInnertube() {
+    if (!innertubePromise) {
+        innertubePromise = Innertube.create({
+            retrieve_player: true,
+            enable_session_cache: false
+        }).catch(err => {
+            innertubePromise = null; // allow a fresh session on next call
+            throw err;
+        });
+    }
+    return innertubePromise;
+}
 
 class StreamerYTHLSIntent extends StreamerHLSIntent {
     constructor(data, opts, info) {
@@ -20,55 +34,19 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
         this.mediaType = 'live';
     }
 
-    generateMasterPlaylist(tracks) {
-        let resolutionMap = {
-            '144p': '256x144',
-            '240p': '426x240',
-            '360p': '640x360',
-            '480p': '854x480',
-            '720p': '1280x720',
-            '1080p': '1920x1080',
-            '1440p': '2560x1440'
-        };
-
-        let body = `#EXTM3U
-#EXT-X-VERSION:3
-#EXT-X-INDEPENDENT-SEGMENTS
-`;
-
-        tracks.map(track => {
-            body += '#EXT-X-STREAM-INF:BANDWIDTH=' + track.bitrate + ',AVERAGE-BANDWIDTH=' + track.bitrate;
-            if (resolutionMap[track.qualityLabel]) {
-                body += ',RESOLUTION=' + resolutionMap[track.qualityLabel];
+    async getYouTubeInfo(id) {
+        let lastErr;
+        for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+                const yt = await getInnertube();
+                return await yt.getInfo(id, { client: 'ANDROID' });
+            } catch (err) {
+                lastErr = err;
+                console.error(`[yt] getInfo attempt ${attempt + 1} failed:`, err?.message || err);
+                innertubePromise = null; // force a fresh session next attempt
             }
-            body += "\r\n" + track.url + "\r\n";
-        });
-
-        return body;
-    }
-
-    async getYTInfo(id) {
-        let info, err, retries = 5, url = 'https://www.youtube.com/watch?v=' + id;
-        
-        const requestOptions = {
-            rejectUnauthorized: false,
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-            }
-        };
-
-        while ((!info || !info.formats) && retries) {
-            retries--;
-            info = await ytdl.getInfo(url, { requestOptions })
-                .catch(e => {
-                    console.error(e);
-                    if (String(e).match(/Status code: 4/)) retries = 0;
-                    err = e;
-                });
         }
-
-        if (!info) throw err;
-        return info;
+        throw lastErr;
     }
 
     validateTrackConnectivity(url) {
@@ -120,15 +98,21 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
     async _startVideo(info) {
         this.mimetype = this.mimeTypes.video;
         this.mediaType = 'video';
-        
-        info.formats = info.formats.filter(fmt => 
-            fmt.hasAudio && fmt.hasVideo && !fmt.isDashMPD
-        );
 
-        let ret = await this.selectTrackBW(
-            info.formats, 
-            global.streamer?.downlink
-        );
+        // Progressive formats carry audio+video in a single URL
+        // (youtubei.js exposes them on streaming_data.formats).
+        let formats = (info.streaming_data?.formats || [])
+            .filter(fmt => fmt.has_video && fmt.has_audio && fmt.url)
+            .map(fmt => ({
+                url: fmt.url,
+                mimeType: fmt.mime_type,
+                bitrate: fmt.bitrate || fmt.average_bitrate || 0,
+                qualityLabel: fmt.quality_label
+            }));
+
+        if (!formats.length) throw 'No playable YouTube format';
+
+        let ret = await this.selectTrackBW(formats, global.streamer?.downlink);
 
         this.mimetype = ret.mimetype;
         this.prx = new StreamerProxy({...this.opts});
@@ -146,34 +130,37 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
         const matches = this.data.url.match(YTIDRegex);
         if (!matches?.[2]) throw 'Bad YT URL';
 
-        let info = await this.getYTInfo(matches[2]);
-        this.data.name = info.videoDetails.title;
+        let info = await this.getYouTubeInfo(matches[2]);
 
-        let tracks = info.formats
-            .filter(s => s.isHLS && (s.hasVideo || s.hasAudio))
-            .map(s => ({
-                ...s,
-                url: this.prx?.proxify(s.url) || s.url
-            }));
+        if (info.basic_info?.title) {
+            this.data.name = info.basic_info.title;
+        }
+        if (info.playability_status?.status !== 'OK') {
+            throw info.playability_status?.reason || `Not playable (${info.playability_status?.status})`;
+        }
 
-        if (!tracks.length) return this._startVideo(info);
+        // Live streams: the ANDROID client returns the HLS master URL directly.
+        // Proxy it as-is — StreamerHLSProxy rewrites the child playlists and
+        // enables adaptive quality switching (no custom master needed).
+        const hlsUrl = info.streaming_data?.hls_manifest_url;
+        if (hlsUrl) {
+            this.mediaType = 'live';
+            this.mimetype = this.mimeTypes.hls;
 
-        const mw = config.get('hls-prefetching');
-        this.prx = new (mw ? StreamerHLSProxy : StreamerProxy)({...this.opts});
-        this.connectAdapter(this.prx);
-        await this.prx.start();
+            const mw = config.get('hls-prefetching');
+            this.prx = new (mw ? StreamerHLSProxy : StreamerProxy)({...this.opts});
+            this.connectAdapter(this.prx);
+            await this.prx.start();
 
-        const { temp } = paths;
-        let file = `${temp}/master.m3u8`;
-        
-        await fs.promises.writeFile(file, this.generateMasterPlaylist(tracks));
-        let url = await downloads.serve(file);
-        
-        this.endpoint = this.prx.proxify(url);
-        return { 
-            endpoint: this.endpoint, 
-            mimetype: this.mimetype 
-        };
+            this.endpoint = this.prx.proxify(hlsUrl);
+            return { 
+                endpoint: this.endpoint, 
+                mimetype: this.mimetype 
+            };
+        }
+
+        // VOD / no HLS manifest: fall back to a progressive (audio+video) format
+        return this._startVideo(info);
     }
 }
 

@@ -1,7 +1,7 @@
 {
 	"allow-edit-channel-list": true,
 	"animate-background": "slow-desktop",
-	"auto-test": false,
+	"auto-test": true,
 	"autocrop-logos": true,
 	"background-color": "#1A0838",
 	"background-transparency": 85,

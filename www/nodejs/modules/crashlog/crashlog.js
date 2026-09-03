@@ -67,7 +67,7 @@ class Crashlog {
                 res.once('end', () => {
                     if (data.includes('OK')) {
                         fs.stat(this.crashLogFile, (err, stat) => {
-                            if (stat && stat.file) {
+                            if (stat && stat.isFile()) {
                                 fs.appendFile(this.crashLogFile, content, () => {
                                     fs.unlink(this.crashFile, () => {})
                                 })

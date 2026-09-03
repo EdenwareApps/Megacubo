@@ -1588,13 +1588,19 @@ class StreamerClientControls extends StreamerAudioUI {
             bt.addEventListener('touchstart', () => main.menu.emit('focus', bt), {passive: true})
         })
         this.emit('draw')
-        document.querySelector('#menu').addEventListener('click', e => {
-            if(e.target.id == 'menu'){
+        // Invisible layer over the video: click to toggle play/pause.
+        // The layer is rendered by Player.svelte at z-index 0, below the
+        // controls/seekbar (z-index 1) and the control layers (z-index 3),
+        // so clicks over those UI elements are not intercepted. The layer
+        // is hidden while .menu-playing or when no video is active.
+        const videoClickLayer = document.querySelector('#video-click-layer')
+        if(videoClickLayer){
+            videoClickLayer.addEventListener('click', () => {
                 if(this.active && !main.menu?.dialogs?.inDialog() && !main.menu?.isVisible()){
                     this.playOrPauseNotIdle()
                 }
-            }
-        })
+            })
+        }
     }
     buildElementFromHTML(code) {
         const wrap = document.createElement('span')

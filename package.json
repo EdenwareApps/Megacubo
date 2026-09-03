@@ -25,14 +25,13 @@
     "url": "https://megacubo.tv"
   },
   "icon": "./www/nodejs/default_icon.png",
-  "version": "17.6.9",
+  "version": "17.7.0",
   "dependencies": {
     "@babel/runtime": "^7.27.6",
     "@babel/runtime-corejs3": "^7.26.9",
     "@capacitor/core": "^7.0.0",
-    "@distube/ytdl-core": "^4.16.12",
     "@edenware/conn-racing": "^1.0.2",
-    "@edenware/countries": "^1.0.0",
+    "@edenware/countries": "^1.0.1",
     "@edenware/tv-channels-by-country": "1.0.7",
     "@electron/remote": "^2.1.2",
     "adm-zip": "^0.6.0",
@@ -58,6 +57,7 @@
     "iconv-lite": "^0.6.3",
     "ionic-plugin-deeplinks": "^1.0.24",
     "jexidb": "^2.2.0",
+    "koffi": "^2.11.0",
     "m3u8-parser": "^7.1.0",
     "mpegts.js": "^1.8.0",
     "node-cleanup": "^2.1.2",
@@ -74,6 +74,7 @@
     "tough-cookie": "^4.1.4",
     "undici": "^6.28.0",
     "xmltv-stream": "^0.4.2",
+    "youtubei.js": "^18.0.0",
     "ytsr": "^3.8.4"
   },
   "devDependencies": {
@@ -103,7 +104,7 @@
     "cordova-plugin-device": "^3.0.0",
     "core-js": "^3.41.0",
     "cross-env": "^10.1.0",
-    "electron": "^35.2.1",
+    "electron": "^44.1.1",
     "electron-builder": "^26.8.1",
     "patch-package": "^8.0.1",
     "postcss": "^8.5.23",
@@ -124,7 +125,6 @@
   },
   "overrides": {
     "tar": "^7.5.21",
-    "ajv": "^6.14.0",
     "minimatch@3": "3.1.4",
     "minimatch@5": "5.1.8",
     "minimatch@8": "8.0.6",
@@ -422,7 +422,7 @@
     },
     "buildVersion": "17.6.2",
     "compression": "maximum",
-    "electronVersion": "35.2.1"
+    "electronVersion": "44.1.1"
   },
   "scripts": {
     "postinstall": "patch-package",

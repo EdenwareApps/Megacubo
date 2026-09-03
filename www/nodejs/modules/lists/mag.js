@@ -33,6 +33,12 @@ class Mag extends EventEmitter {
         this.genres = {};
         this.meta = {};
         this.foundStreams = 0;
+        // Cancellation flag: when set, run()/emitEntries stop emitting new entries.
+        // Prevents orphan emissions after the parent UpdateListIndex has finalized/closed its DB.
+        this.cancelled = false;
+    }
+    cancel() {
+        this.cancelled = true;
     }
     emitProgress(p) {
         p = parseInt(p);
@@ -116,6 +122,7 @@ class Mag extends EventEmitter {
         let i = 0;
         const genreIds = Object.keys(this.genres.vod);
         for (const genre of genreIds) {
+            if (this.cancelled) return
             i++;
             const streams = await this.execute({
                 type: 'vod',
@@ -227,9 +234,12 @@ class Mag extends EventEmitter {
         });
     }
     emitEntries(streams, type) {
+        if (this.cancelled) return
         if (Array.isArray(streams)) {
             const category = (type == 'live') ? (global.lang.LIVE || 'Live') : (global.lang.CATEGORY_MOVIES_SERIES || 'Movies & Series');
             for (const stream of streams) {
+                // Stop emitting as soon as this Mag has been cancelled (e.g. parent timed out)
+                if (this.cancelled) break
                 let cmd = stream.cmd.split(' ').pop();
                 if (!cmd.startsWith('http')) {
                     cmd = this.fakeHost + cmd;
@@ -252,6 +262,7 @@ class Mag extends EventEmitter {
         }
     }
     destroy() {
+        this.cancelled = true
         this.emit('finish');
     }
 }

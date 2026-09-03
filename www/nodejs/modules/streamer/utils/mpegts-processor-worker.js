@@ -7,7 +7,9 @@ const utils = setupUtils(getFilename())
 class MPEGTSProcessorWorker {
 	constructor() {
 		this.processor = new MPEGTSProcessor()
-		this.processor.on('data', chunk => utils.emit('data', chunk))
+		// emitBinary sends raw Buffers (zero-copy when possible) instead of JSON.stringify,
+		// drastically reducing the worker heap usage (fixes ERR_WORKER_OUT_OF_MEMORY)
+		this.processor.on('data', chunk => utils.emitBinary('data', chunk))
 		this.processor.on('fail', err => {
 			console.error('WORKER FAILED', err)
 			utils.emit('fail', err)

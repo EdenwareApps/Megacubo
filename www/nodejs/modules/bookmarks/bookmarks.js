@@ -95,8 +95,18 @@ class Bookmarks extends EntriesGroup {
                     }
                 };
             }
-            if (bookmarker)
-                entries.unshift(bookmarker);
+            if (bookmarker) {
+                // Idempotent like insertEntry(): only one add/remove-to-bookmarks
+                // meta entry may exist. softRefresh() re-runs filters over the
+                // same (already filtered) entries; without this guard the entry
+                // would stack on every refresh.
+                const addName = lang.ADD_TO.format(lang.BOOKMARKS)
+                const removeName = lang.REMOVE_FROM.format(lang.BOOKMARKS)
+                const hasMeta = entries.some(e => e.type === 'action' && (e.name === addName || e.name === removeName))
+                if (!hasMeta) {
+                    entries.unshift(bookmarker)
+                }
+            }
         }
         return entries;
     }

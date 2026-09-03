@@ -21,6 +21,12 @@ class Xtr extends EventEmitter {
         this.addr = this.addr.replace(/\/+$/, '');
         this.meta = {};
         this.foundStreams = 0;
+        // Cancellation flag: when set, run()/emitEntries stop emitting new entries.
+        // Prevents orphan emissions after the parent UpdateListIndex has finalized/closed its DB.
+        this.cancelled = false;
+    }
+    cancel() {
+        this.cancelled = true;
     }
     async execute(action) {
         let err;
@@ -139,6 +145,7 @@ class Xtr extends EventEmitter {
         };
         const tasks = ['live', 'vod', ...this.cmap.series].map(s => {
             return async () => {
+                if (this.cancelled) return
                 if (typeof(s) == 'string') {
                     this.emitEntries(await this.execute('get_' + s + '_streams'), s);
                 } else {
@@ -150,11 +157,14 @@ class Xtr extends EventEmitter {
         await Promise.allSettled(tasks);
     }
     emitEntries(streams, type) {
+        if (this.cancelled) return
         if (Array.isArray(streams)) {
             if (type == 'vod')
                 type = 'movie';
             const defaultExt = type == 'live' ? this.livefmt() : 'mp4';
             for (const s of streams) {
+                // Stop emitting as soon as this Xtr has been cancelled (e.g. parent timed out)
+                if (this.cancelled) break
                 // stream_type: "live"
                 const ext = s.container_extension || defaultExt;
                 let name = s.name;
@@ -181,6 +191,7 @@ class Xtr extends EventEmitter {
         }
     }
     destroy() {
+        this.cancelled = true
         this.emit('finish');
     }
 }

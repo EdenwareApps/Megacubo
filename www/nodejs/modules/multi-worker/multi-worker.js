@@ -574,8 +574,8 @@ class WorkerDriver extends EventEmitter {
 }
 
 const DEFAULT_RESOURCE_LIMITS = {
-    maxOldGenerationSizeMb: 2048,  // 2GB default (was 1536) to reduce OOM on heavy EPG/updater load
-    maxYoungGenerationSizeMb: 256
+    maxOldGenerationSizeMb: 2560,  // 2.5GB default (was 2048) to reduce OOM on heavy EPG/updater load
+    maxYoungGenerationSizeMb: 320
 }
 
 export default class ThreadWorkerDriver extends WorkerDriver {
@@ -871,6 +871,31 @@ export default class ThreadWorkerDriver extends WorkerDriver {
                         console.warn('Callback repeated or orphaned', ret);
                     }
                 }
+            } else if (ret.buffer !== undefined) {
+                // Binary event: raw Buffer sent by the worker (emitBinary), bypassing
+                // JSON.stringify/parse - this avoids the ~10-15x memory amplification
+                // that caused ERR_WORKER_OUT_OF_MEMORY in binary-emitting workers.
+                let buffer
+                if (Buffer.isBuffer(ret.buffer)) {
+                    buffer = ret.buffer
+                } else if (ret.buffer instanceof Uint8Array) {
+                    // View over the (possibly transferred) ArrayBuffer - no extra copy
+                    buffer = Buffer.from(ret.buffer.buffer, ret.buffer.byteOffset, ret.buffer.byteLength)
+                } else {
+                    buffer = Buffer.from(ret.buffer)
+                }
+                const evtType = String(ret.data)
+                const name = this.resolve(ret.file)
+                this.debug && console.log('🔍 MultiWorker: Resolving binary event:', { name, evtType, size: buffer.length })
+
+                if (evtType == 'storage-touch' || evtType == 'config-change') {
+                    this.emit(evtType, buffer)
+                } else if (name && this.instances[name]) {
+                    this.instances[name].emit(evtType, buffer)
+                } else {
+                    this.emit(evtType, buffer)
+                }
+                return
             } else {
                 let args = []
                 let pos = (ret.data.length > 32 ? ret.data.substr(0, 32) : ret.data).indexOf(':');

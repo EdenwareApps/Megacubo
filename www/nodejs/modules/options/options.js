@@ -124,7 +124,7 @@ class PerformanceProfiles extends Timer {
         this.profiles = {
             high: {
                 'animate-background': 'slow-desktop',
-                'auto-test': false,
+                'auto-test': true,
                 'autocrop-logos': true,
                 'broadcast-start-timeout': 40,
                 'connect-timeout': 15,
@@ -516,6 +516,7 @@ class Options extends OptionsExportImport {
     constructor() {
         super()
         renderer.ui.on('devtools', () => this.devtools());
+        this.watchCountriesNavigation()
     }
     async tools() {
         let entries = [
@@ -611,6 +612,52 @@ class Options extends OptionsExportImport {
             osd.hide('countries');
         }
     }
+    // True when `p` refers to a page inside the Countries section
+    // (Options > Countries and its sub-pages, e.g. All > <locale>).
+    isCountriesPath(p) {
+        const prefix = lang.OPTIONS + '/' + lang.COUNTRIES
+        return typeof p === 'string' && (p === prefix || p.startsWith(prefix + '/'))
+    }
+    // Snapshot the active countries when entering the Countries section and,
+    // when leaving it by any means (Back button, Home key, direct navigation),
+    // reset the discovery lists and ask for a restart if the set changed.
+    watchCountriesNavigation() {
+        menu.on('open', async path => {
+            const wasInCountries = this.isCountriesPath(menu.path)
+            const nowInCountries = this.isCountriesPath(path)
+            if (wasInCountries === nowInCountries) return
+            if (nowInCountries) {
+                // Entering the section: keep the original active countries so
+                // changes can be detected on leave.
+                let actives = config.get('countries')
+                if (!actives || !actives.length) {
+                    actives = await lang.getActiveCountries().catch(err => {
+                        console.error(err)
+                        return []
+                    })
+                }
+                this.countriesEntriesOriginalActives = (actives || []).slice(0)
+                return
+            }
+            // Leaving the section: reset discovery and ask for restart if the
+            // set of active countries changed while inside the section.
+            let actives = config.get('countries')
+            if (!actives || !actives.length) {
+                actives = await lang.getActiveCountries().catch(err => {
+                    console.error(err)
+                    return []
+                })
+            }
+            const original = this.countriesEntriesOriginalActives
+            if (!Array.isArray(original)) return
+            const current = (actives || []).slice(0)
+            if (original.slice().sort().join(',') != current.slice().sort().join(',')) {
+                await lists.discovery.reset()
+                energy.askRestart()
+                this.countriesEntriesOriginalActives = current
+            }
+        })
+    }
     async countriesEntries(chosenLocale, path) {
         if (!path) {
             path = menu.path;
@@ -620,12 +667,13 @@ class Options extends OptionsExportImport {
         if (!chosenLocale && !map.length) {
             map = await lang.getCountriesMap([lang.locale]);
         }
+        // If "Countries" (inside Options) is empty, go straight to "All" (Todos)
+        if (!chosenLocale && !map.length) {
+            return [await this.allCountriesGroup(path)];
+        }
         let actives = config.get('countries');
         if (!actives || !actives.length) {
             actives = await lang.getActiveCountries();
-        }
-        if (typeof(this.countriesEntriesOriginalActives) == 'undefined') {
-            this.countriesEntriesOriginalActives = actives.slice(0);
         }
         entries.push({
             name: lang.BACK,
@@ -634,39 +682,35 @@ class Options extends OptionsExportImport {
             path: lang.OPTIONS,
             tabindex: 0,
             action: async () => {
-                osd.hide('click-back-to-save');
-                let actives = config.get('countries');
-                if (!actives.length) {
-                    actives = await lang.getActiveCountries();
-                }
-                if (this.countriesEntriesOriginalActives.sort().join(',') != actives.sort().join(',')) {
-                    await lists.discovery.reset();
-                    energy.askRestart();
-                }
+                // Country-change detection now runs on the menu 'open' event
+                // when leaving the Countries section, so it also covers the
+                // Home key and any other navigation out of the section.
                 menu.open(lang.OPTIONS).catch(e => menu.displayErr(e));
             }
         });
-        if (map.some(row => !actives.includes(row.code))) {
-            entries.push({
-                name: lang.SELECT_ALL,
-                type: 'action',
-                fa: 'fas fa-check-circle',
-                action: () => {
-                    config.set('countries', map.map(row => row.code));
-                    menu.refreshNow();
-                }
-            });
-        } else {
-            entries.push({
-                name: lang.DESELECT_ALL,
-                type: 'action',
-                fa: 'fas fa-times-circle',
-                action: () => {
-                    config.set('countries', []);
-                    menu.refreshNow();
-                }
-            });
-        }        
+        if (map.length > 1) {
+            if (map.some(row => !actives.includes(row.code))) {
+                entries.push({
+                    name: lang.SELECT_ALL,
+                    type: 'action',
+                    fa: 'fas fa-check-circle',
+                    action: () => {
+                        config.set('countries', map.map(row => row.code));
+                        menu.refreshNow();
+                    }
+                });
+            } else {
+                entries.push({
+                    name: lang.DESELECT_ALL,
+                    type: 'action',
+                    fa: 'fas fa-times-circle',
+                    action: () => {
+                        config.set('countries', []);
+                        menu.refreshNow();
+                    }
+                });
+            }
+        }
         entries.push(...lists.tools.sort(map).map(row => {
             return {
                 name: row.name,
@@ -690,32 +734,34 @@ class Options extends OptionsExportImport {
             };
         }));
         if (chosenLocale !== true) {
-            let options = [], def = lang.locale;
-            let map = await lang.availableLocalesMap();
-            Object.keys(map).forEach(id => {
-                options.push({
-                    name: map[id] || id,
-                    type: 'group',
-                    fa: 'fas fa-language',
-                    renderer: async () => this.countriesEntries(id, path)
-                });
-            });
-            options.push({
-                name: lang.OTHER_COUNTRIES,
-                details: lang.ALL,
-                fa: 'fas fa-chevron-right',
-                type: 'group',
-                renderer: () => this.countriesEntries(true, path)
-            });
-            entries.push({
-                name: lang.ALL,
-                fa: 'fas fa-chevron-right',
-                type: 'group',
-                entries: options
-            });
+            entries.push(await this.allCountriesGroup(path));
         }
-        osd.show(lang.WHEN_READY_CLICK_BACK.format(lang.BACK), 'fas fa-info-circle', 'click-back-to-save', 'normal')
         return entries
+    }
+    async allCountriesGroup(path) {
+        const options = [];
+        const map = await lang.availableLocalesMap();
+        Object.keys(map).forEach(id => {
+            options.push({
+                name: map[id] || id,
+                type: 'group',
+                fa: 'fas fa-language',
+                renderer: async () => this.countriesEntries(id, path)
+            });
+        });
+        options.push({
+            name: lang.OTHER_COUNTRIES,
+            details: lang.ALL,
+            fa: 'fas fa-chevron-right',
+            type: 'group',
+            renderer: () => this.countriesEntries(true, path)
+        });
+        return {
+            name: lang.ALL,
+            fa: 'fas fa-chevron-right',
+            type: 'group',
+            entries: options
+        };
     }
     tos() {
         renderer.ui.emit('open-external-url', 'https://megacubo.net/tos');
@@ -949,6 +995,20 @@ class Options extends OptionsExportImport {
     }
     async tuneEntries() {
         let opts = [
+            {
+                name: lang.TEST_STREAMS_AUTO, type: 'check',
+                action: (data, checked) => {
+                    config.set('auto-test', checked);
+                },
+                checked: () => config.get('auto-test')
+            },
+            {
+                name: lang.TEST_STREAMS_TYPE, type: 'check',
+                action: (data, checked) => {
+                    config.set('status-flags-type', checked);
+                },
+                checked: () => config.get('status-flags-type')
+            },
             {
                 name: lang.SKIP_PLAY_CHECKING,
                 fa: 'fas fa-cog',

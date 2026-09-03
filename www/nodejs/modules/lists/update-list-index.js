@@ -54,6 +54,13 @@ class UpdateListIndex extends EventEmitter {
         // OPTIMIZATION: Initialize InsertSession properties for batch operations
         this.insertSession = null
 
+        // Guard flag: set to true once the operation starts finalizing/closing its DB.
+        // Prevents late (orphan) inserts from hitting a closed database.
+        this._operationEnded = false
+        // Tracks in-flight async insert promises so finalization can await them
+        // before closing the DB (prevents "Database is closed" races).
+        this._pendingInserts = new Set()
+
         // Cache only the last processed entry to merge consecutive duplicates
         this.lastCachedEntry = null
         this.lastURL = null
@@ -533,16 +540,15 @@ class UpdateListIndex extends EventEmitter {
     }
 
     async insert(e, db) {
-        // Check if cancelled or inserts disabled
-        if (this.cancelled || this.insertsDisabled) {
+        // Check if cancelled, inserts disabled, or the operation is already finalizing
+        if (this.cancelled || this.insertsDisabled || this._operationEnded) {
 
             return
         }
 
-        // Check if database is still valid
-        if (!db || db.destroyed) {
-            console.error('Database is destroyed, disabling inserts')
-            this.cancelled = true
+        // Check if database is still valid AND open (not closed by a concurrent finalize)
+        if (!db || db.destroyed || db.closed) {
+            console.warn('Database is closed/destroyed, disabling inserts')
             this.insertsDisabled = true
             return
         }
@@ -715,11 +721,24 @@ class UpdateListIndex extends EventEmitter {
 
         // OPTIMIZATION: Initialize InsertSession if not already done
         if (!this.insertSession) {
-            this.insertSession = db.beginInsertSession({
-                batchSize: 1000,
-                enableAutoSave: true
-            })
-
+            // Guard against a DB that got closed between the check above and now
+            // (e.g. an orphan emission racing with finalization). Never throw here:
+            // a rejection from this path surfaces as an unhandledRejection in the worker.
+            if (db.closed || db.destroyed) {
+                console.warn('Database closed before InsertSession creation, disabling inserts')
+                this.insertsDisabled = true
+                return
+            }
+            try {
+                this.insertSession = db.beginInsertSession({
+                    batchSize: 1000,
+                    enableAutoSave: true
+                })
+            } catch (sessionErr) {
+                console.error('Failed to create InsertSession (database closed?), disabling inserts:', sessionErr)
+                this.insertsDisabled = true
+                return
+            }
         }
 
         // OPTIMIZATION: Add to InsertSession instead of batch processing
@@ -1341,6 +1360,9 @@ class UpdateListIndex extends EventEmitter {
                 url: this.url
             }
 
+            // Mark the operation as finalizing so late (orphan) inserts are ignored
+            this._operationEnded = true
+
             // CRITICAL: Wait for all pending write operations before closing
             // This ensures data is persisted to disk
             const waitOpsStartedAt = Date.now()
@@ -1660,6 +1682,9 @@ class UpdateListIndex extends EventEmitter {
                 url: this.url
             }
 
+            // Mark the operation as finalizing so late (orphan) inserts are ignored
+            this._operationEnded = true
+
             // CRITICAL: Wait for all pending write operations before closing
             // This ensures data is persisted to disk
             const waitOpsStartedAt = Date.now()
@@ -1816,7 +1841,20 @@ class UpdateListIndex extends EventEmitter {
             Object.assign(this.indexMeta, meta)
         })
         xtr.on('entry', async entry => {
-            await this.insert(entry, db)
+            // Never insert after the operation has finished/finalized or the DB is closed.
+            // Orphan emissions from a timed-out Xtr must not touch a closed DB.
+            if (this._operationEnded || this.cancelled || this.insertsDisabled || !db || db.destroyed || db.closed) {
+                return
+            }
+            const insertPromise = this.insert(entry, db)
+            this._pendingInserts && this._pendingInserts.add(insertPromise)
+            try {
+                await insertPromise
+            } catch (insertErr) {
+                console.error('Xparse entry insert error:', insertErr)
+            } finally {
+                this._pendingInserts && this._pendingInserts.delete(insertPromise)
+            }
         })
 
         // Add timeout wrapper for xparse operations
@@ -1828,6 +1866,16 @@ class UpdateListIndex extends EventEmitter {
             await Promise.race([xtr.run(), timeoutPromise])
         } catch (e) {
             err = e
+        } finally {
+            // CRITICAL: Stop any further entry emissions from the (possibly still running) Xtr.
+            // The 120s timeout race can leave run() alive after this method returns; cancelling
+            // here prevents it from emitting into a closed database.
+            xtr.cancel()
+            // Wait for all in-flight inserts to settle so no writes race with db.close()
+            if (this._pendingInserts && this._pendingInserts.size) {
+                await Promise.allSettled(Array.from(this._pendingInserts))
+                this._pendingInserts.clear()
+            }
         }
 
         xtr.destroy()
@@ -1844,7 +1892,19 @@ class UpdateListIndex extends EventEmitter {
             Object.assign(this.indexMeta, meta)
         })
         mag.on('entry', async entry => {
-            await this.insert(entry, db)
+            // Never insert after the operation has finished/finalized or the DB is closed.
+            if (this._operationEnded || this.cancelled || this.insertsDisabled || !db || db.destroyed || db.closed) {
+                return
+            }
+            const insertPromise = this.insert(entry, db)
+            this._pendingInserts && this._pendingInserts.add(insertPromise)
+            try {
+                await insertPromise
+            } catch (insertErr) {
+                console.error('Mparse entry insert error:', insertErr)
+            } finally {
+                this._pendingInserts && this._pendingInserts.delete(insertPromise)
+            }
         })
 
         // Add timeout wrapper for mparse operations
@@ -1857,6 +1917,13 @@ class UpdateListIndex extends EventEmitter {
                 console.warn('MPARSE: JSON parsing error occurred but some streams were already processed:', err.message || err)
                 // Don't throw - allow partial success
                 err = null
+            }
+        } finally {
+            // Stop any further entry emissions and wait for in-flight inserts
+            mag.cancel()
+            if (this._pendingInserts && this._pendingInserts.size) {
+                await Promise.allSettled(Array.from(this._pendingInserts))
+                this._pendingInserts.clear()
             }
         }
 
@@ -2244,6 +2311,14 @@ class UpdateListIndex extends EventEmitter {
         this.lastURL = null
         this._lastCachedGroupKey = ''
         this._cachedGroupTerms = []
+
+        // Reset finalization guards for the next operation
+        this._operationEnded = false
+        if (this._pendingInserts) {
+            this._pendingInserts.clear()
+        } else {
+            this._pendingInserts = new Set()
+        }
 
         this.countryStats = {
             total: 0,
