@@ -270,7 +270,19 @@ Want to help translating Megacubo?
 
 # Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=EdenwareApps/Megacubo&type=Date)](https://www.star-history.com/#EdenwareApps/Megacubo&Date)
+<!--
+  Star History chart — uses a sealed_token (encrypted GitHub token) because GitHub
+  restricted the stargazers endpoint. If the chart breaks, regenerate it at
+  https://www.star-history.com/ -> "Show real-time chart on your README.md".
+-->
+
+<a href="https://www.star-history.com/?repos=EdenwareApps%2FMegacubo&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=EdenwareApps/Megacubo&type=date&theme=dark&legend=top-left&sealed_token=VBDYo6A4xqk1EXwysmDPPB5z9ThZqfFd0zGCaMuXH0jxCZl9aKSjPtQJInWb7ioWrlcZAj4Kkb9Pzq5T9DPLj_UNlanqKrCM1nrbSgEgflaQc-ZE3rdb84aoVrH0I0ele22KL_hClWarl7Nm109UA6SN06VxTXldSdzmIbM3Zx4Jr6TXKMXLgXclx6Eo" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=EdenwareApps/Megacubo&type=date&legend=top-left&sealed_token=VBDYo6A4xqk1EXwysmDPPB5z9ThZqfFd0zGCaMuXH0jxCZl9aKSjPtQJInWb7ioWrlcZAj4Kkb9Pzq5T9DPLj_UNlanqKrCM1nrbSgEgflaQc-ZE3rdb84aoVrH0I0ele22KL_hClWarl7Nm109UA6SN06VxTXldSdzmIbM3Zx4Jr6TXKMXLgXclx6Eo" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=EdenwareApps/Megacubo&type=date&legend=top-left&sealed_token=VBDYo6A4xqk1EXwysmDPPB5z9ThZqfFd0zGCaMuXH0jxCZl9aKSjPtQJInWb7ioWrlcZAj4Kkb9Pzq5T9DPLj_UNlanqKrCM1nrbSgEgflaQc-ZE3rdb84aoVrH0I0ele22KL_hClWarl7Nm109UA6SN06VxTXldSdzmIbM3Zx4Jr6TXKMXLgXclx6Eo" />
+ </picture>
+</a>
 
 ---
 
