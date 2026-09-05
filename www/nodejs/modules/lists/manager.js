@@ -279,6 +279,11 @@ class ManagerEPG extends EventEmitter {
                             type: 'group',
                             renderer: async () => {
                                 return this.epgCategoryEntries(c)
+                            },
+                            // Renders the category right away (fast) and enriches
+                            // it with now-playing EPG data in the background.
+                            posRenderer: async (es) => {
+                                return this.epgCategoryPosRenderer(es)
                             }
                         }
                     }))
@@ -297,16 +302,19 @@ class ManagerEPG extends EventEmitter {
             }
         };
     }
+    // Fast renderer: builds the per-channel group entries of an EPG category
+    // without touching the EPG worker, so opening a category feels instant. The
+    // costly now-playing lookup happens later in epgCategoryPosRenderer.
     async epgCategoryEntries(category) {
         await renderer.ready(true)
-        let terms = {}, chs = category.entries.map(e => {
+        const chs = category.entries.map(e => {
             const data = global.channels.isChannel(e.name)
             if (data) {
-                e.nameTerms = terms[e.name] = data.terms
+                e.nameTerms = data.terms
                 return e
             }
         }).filter(e => e)
-        chs = chs.map(c => {
+        return chs.map(c => {
             return {
                 name: translateCategoryName(c.name),
                 type: 'group',
@@ -317,8 +325,15 @@ class ManagerEPG extends EventEmitter {
                 }
             };
         })
-        // Reorder entries so that those with 'programme' come first
-        let allEntries = await global.channels.epgChannelsAddLiveNow(chs, false);
+    }
+    // posRenderer: once the category is already on screen, asks the EPG worker
+    // which channels are live right now, then disables and moves to the end the
+    // ones without a programme, so "on air" channels appear first.
+    async epgCategoryPosRenderer(es) {
+        if (!Array.isArray(es) || !es.length) {
+            return Array.isArray(es) ? es : []
+        }
+        const allEntries = await global.channels.epgChannelsAddLiveNow(es, false)
         for (let entry of allEntries) {
             if (!entry.programme) {
                 entry.class = (entry.class || '') + ' entry-disabled';

@@ -1,4 +1,5 @@
 import { Common } from "../lists/common.js";
+import fs from 'fs';
 import pLimit from "p-limit";
 import config from "../config/config.js"
 import { getDomain } from "../utils/utils.js";
@@ -743,13 +744,53 @@ class Index extends Common {
         // OPTIMIZATION: Increase concurrency limit for better parallelization
         const limiter = pLimit(4) // Increased from 2 to 4
         
-        // OPTIMIZATION: Use all available lists (no EPG lists in this module)
-        const sortedUrls = Object.keys(this.lists);
+        // OPTIMIZATION: Use all available lists (no EPG lists in this module),
+        // searching ready/warm lists first so matches and early termination
+        // happen before cold DBs or busy lists are reached.
+        // A list is "busy" (not safely/cheaply searchable right now) when it is flagged as
+        // updating, is being downloaded/parsed by the loader, OR has a concurrent writer
+        // working file (<file>.updating.jdb) present - reading such a list would fall back to
+        // a full streaming scan (jexidb sentinel => 'busy'), which is exactly the multi-second
+        // stall we are avoiding. Precompute the set once (no per-comparison stat calls).
+        const busySet = new Set();
+        for (const url in this.lists) {
+            const list = this.lists[url];
+            if (this.isListUpdating && this.isListUpdating(url)) {
+                busySet.add(url);
+            } else if (this.loader && this.loader.progresses && Object.prototype.hasOwnProperty.call(this.loader.progresses, url)) {
+                busySet.add(url);
+            } else if (list && list.file && fs.existsSync(list.file.replace(/\.jdb$/i, '.updating.jdb'))) {
+                busySet.add(url);
+            }
+        }
+        const isBusy = (url) => busySet.has(url);
+        const sortedUrls = Object.keys(this.lists).sort((a, b) => {
+            const la = this.lists[a], lb = this.lists[b];
+            const aUpd = isBusy(a);
+            const bUpd = isBusy(b);
+            if (aUpd !== bUpd) return aUpd ? 1 : -1;
+            const aim = la && la.indexer && la.indexer.db && la.indexer.db.indexManager;
+            const bim = lb && lb.indexer && lb.indexer.db && lb.indexer.db.indexManager;
+            const aWarm = !!(aim && aim.indexLoaded);
+            const bWarm = !!(bim && bim.indexLoaded);
+            if (aWarm !== bWarm) return aWarm ? -1 : 1;
+            // Bigger lists first: more likely to contain a match early.
+            return ((lb && lb.length) || 0) - ((la && la.length) || 0);
+        });
         
         const tasks = []
         
         // ULTRA-OPTIMIZATION: More aggressive early termination
         let shouldStop = false;
+
+        // Burst guard: while many lists are updating/downloading at once, do not
+        // force idle-unloaded (cold) DBs to reload their index - that I/O contends
+        // with the updater and stalls searches for seconds. Warm/ready DBs are
+        // always searched; cold ones wait until the burst settles.
+        const updatingNow =
+            ((this.updatingLists && this.updatingLists.size) || 0) +
+            (this.loader && this.loader.progresses ? Object.keys(this.loader.progresses).length : 0);
+        const skipColdDuringBurst = updatingNow >= 2;
         
         for (const url of sortedUrls) {
             if (shouldStop) break;
@@ -764,8 +805,8 @@ class Index extends Common {
                     }
                     
                     try {
-                        // Skip lists that are being updated
-                        if (this.isListUpdating && this.isListUpdating(url)) {
+                        // Skip lists that are being updated or downloaded right now
+                        if (isBusy(url)) {
                             return;
                         }
                         if (this._isBadList(url)) {
@@ -773,6 +814,11 @@ class Index extends Common {
                         }
                         // Add null check for list and indexer to prevent TypeError
                         if (!this.lists[url] || !this.lists[url].indexer || !this.lists[url].indexer.db) {
+                            return;
+                        }
+                        // Burst guard: skip cold index reloads while the updater is busy.
+                        const db = this.lists[url].indexer.db;
+                        if (skipColdDuringBurst && db.indexManager && !db.indexManager.indexLoaded) {
                             return;
                         }
                         // ULTRA-OPTIMIZATION: Skip count() - go directly to find() with limit
@@ -787,38 +833,38 @@ class Index extends Common {
                         }
                         
                         const ret = await this.lists[url].indexer.db.find(queryToExecute, queryOpts)
-                    
-                    // ULTRA-OPTIMIZATION: Process results more efficiently with early termination
-                    for (const r of ret) {
-                        if (shouldStop || results.length >= maxWorkingSetLimit) {
-                            shouldStop = true;
-                            break;
-                        }                        
                         
-                        r.source = url
-                        if (already.has(r.url)) {
-                            continue;
+                        // ULTRA-OPTIMIZATION: Process results more efficiently with early termination
+                        for (const r of ret) {
+                            if (shouldStop || results.length >= maxWorkingSetLimit) {
+                                shouldStop = true;
+                                break;
+                            }                        
+                            
+                            r.source = url
+                            if (already.has(r.url)) {
+                                continue;
+                            }
+                            
+                            already.add(r.url);
+                            results.push(r);
+                            
+                            // ULTRA-OPTIMIZATION: Immediate termination when we have enough results
+                            if (results.length >= maxWorkingSetLimit) {
+                                shouldStop = true;
+                                break;
+                            }
                         }
-                        
-                        already.add(r.url);
-                        results.push(r);
-                        
-                        // ULTRA-OPTIMIZATION: Immediate termination when we have enough results
-                        if (results.length >= maxWorkingSetLimit) {
-                            shouldStop = true;
-                            break;
+                    } catch (error) {
+                        if (this.debug || error.message.includes('timeout')) {
+                            console.warn(`Search error in ${url}:`, error.message);
+                        }
+                        if (error.message.includes('no such file') || error.message.includes('destroyed') || error.message.includes('closed')) {
+                            this.remove(url);
+                        } else if (error.message.includes('timeout')) {
+                            this._recordListError(url);
                         }
                     }
-                } catch (error) {
-                    if (this.debug || error.message.includes('timeout')) {
-                        console.warn(`Search error in ${url}:`, error.message);
-                    }
-                    if (error.message.includes('no such file') || error.message.includes('destroyed') || error.message.includes('closed')) {
-                        this.remove(url);
-                    } else if (error.message.includes('timeout')) {
-                        this._recordListError(url);
-                    }
-                }
                 }));
             }
         }

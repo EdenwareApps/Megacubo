@@ -785,8 +785,10 @@ class StreamerProxyHLS extends HLSRequests {
             console.log('req starting...', req.url);
         }
         let ended, url = this.unproxify(req.url);
-        let reqHeaders = req.headers;
-        reqHeaders = this.removeHeaders(reqHeaders, this.requestHeadersRemoval);
+        // IMPORTANT: clone req.headers before removeHeaders() — it deletes keys in place,
+        // and prepareCORS(headers, req) must still read the browser's `Origin` header to
+        // echo it back (otherwise ACAO = this proxy's own origin and CORS blocks the HLS).
+        let reqHeaders = this.removeHeaders(Object.assign({}, req.headers), this.requestHeadersRemoval);
         if (this.type == 'network-proxy') {
             reqHeaders['x-from-network-proxy'] = '1';
         } else {
@@ -863,7 +865,7 @@ class StreamerProxyHLS extends HLSRequests {
         download.once('response', (statusCode, headers) => {
             //console.warn('RECEIVING RESPONSE', statusCode, headers, download.currentURL, download)
             headers = this.removeHeaders(headers, this.responseHeadersRemoval);
-            headers = prepareCORS(headers, url);
+            headers = prepareCORS(headers, req);
             if (this.opts.forceExtraHeaders) {
                 Object.assign(headers, this.opts.forceExtraHeaders);
             }

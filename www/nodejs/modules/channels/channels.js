@@ -1084,7 +1084,10 @@ class Channels extends ChannelsKids {
             return entries;
         })(), `channels.get(${typeof terms === 'string' ? terms : 'terms'})`, 15000)
     }
-    async searchChannels(terms, partial) {
+    // Fast live-search helper: returns name-matched channels ONLY, without
+    // touching the EPG worker. Used by the search module to paint the channel
+    // results right away and then merge the EPG "on air" hits in a second paint.
+    async searchChannelsFast(terms, partial) {
         if (typeof (terms) == 'string') {
             terms = global.lists.tools.terms(terms)
         }
@@ -1120,10 +1123,35 @@ class Channels extends ChannelsKids {
                 }
             }
         })
-        console.log(clone(entries))
+        return entries
+    }
+
+    // Live channel search. Returns the name-matched channels (fast) merged with
+    // the EPG "on air" programme hits that also match the terms, skipping the
+    // channels already found by name. The EPG worker part can be slow; callers
+    // that want a two-phase UI should first render searchChannelsFast() and then
+    // append the hits returned here once they are ready.
+    async searchChannels(terms, partial) {
+        const entries = await this.searchChannelsFast(terms, partial)
+
+        // Preserve the original early return: without the channel index there is
+        // nothing to search for, so skip the (slow) EPG merge entirely.
+        if (!this.channelList || !this.channelList.channelsIndex || typeof this.channelList.channelsIndex !== 'object') {
+            return entries
+        }
+
+        const already = {}
+        for (const e of entries) {
+            if (e && typeof (e.name) == 'string') {
+                already[e.name] = null
+            }
+        }
 
         let epgEntries = []
         try {
+            if (typeof (terms) == 'string') {
+                terms = global.lists.tools.terms(terms)
+            }
             const epgResults = await this.epgSearch(terms, true)
             epgEntries = epgResults.map(e => {
                 const ch = this.isChannel(e.programme.channel)

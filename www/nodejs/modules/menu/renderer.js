@@ -658,6 +658,11 @@ export class Menu extends MenuNav {
         }
         return ss
     }
+    getIndex(index) {
+        const entry = this.currentEntries[index]
+        if (!entry) return null
+        return this.wrap.querySelector(`[tabindex="${entry.tabindex}"]`)
+    }
     diffEntries(a, b) {
         let diff
         ['name', 'details', 'fa', 'type', 'prepend', 'class'].some(p => {

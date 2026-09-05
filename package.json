@@ -56,7 +56,7 @@
     "http-cookie-agent": "^6.0.8",
     "iconv-lite": "^0.6.3",
     "ionic-plugin-deeplinks": "^1.0.24",
-    "jexidb": "^2.2.0",
+    "jexidb": "^2.2.5",
     "koffi": "^2.11.0",
     "m3u8-parser": "^7.1.0",
     "mpegts.js": "^1.8.0",
@@ -426,6 +426,7 @@
   },
   "scripts": {
     "postinstall": "patch-package",
+    "test": "node --test --test-force-exit test/*.test.mjs",
     "check-requirements": "node scripts/check-requirements.mjs",
     "prepare": "npm run build:debug",
     "prepare:prod": "npm run build",

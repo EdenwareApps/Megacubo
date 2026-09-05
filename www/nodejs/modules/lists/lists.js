@@ -221,7 +221,8 @@ class ListsEPGTools extends Index {
                 // Reapply channel terms index when suggestions setting changes (coalesced)
                 this.applyChannelTermsIndex()
                 if (suggestionsEnabled) {
-                    this.epgSuggest().catch(err => console.error('❌ Error suggesting EPGs:', err))
+                    // Retry on timeout so re-enabling suggestions never gets stuck
+                    this.runEpgSuggestWithRetry()
                 }
             }
         })
@@ -234,7 +235,28 @@ class ListsEPGTools extends Index {
             }
         })
 
-        return await this.epgSuggest()
+        // Fire-and-forget with automatic retry: a cold EPG suggestion bootstrap
+        // downloads many EPGs and can legitimately run for minutes. Awaiting it
+        // here would make initializeEPG() reject on an IPC timeout even though
+        // the worker keeps loading in the background. Readiness is reported later
+        // by the 'state'/'epg-update' events as each source finishes loading.
+        this.runEpgSuggestWithRetry()
+        return true
+    }
+    // Runs the EPG suggestion bootstrap without blocking initialization and
+    // retries after a delay whenever a call fails (e.g. IPC timeout during a long
+    // cold download), so a single slow attempt never leaves the EPG stuck.
+    runEpgSuggestWithRetry(retries = 2, delayMs = 20000) {
+        const attempt = remaining => {
+            this.epgSuggest().catch(err => {
+                console.error('❌ EPG suggest failed:', err?.message || err)
+                if (remaining > 0) {
+                    console.warn(`🔄 EPG suggest failed; retrying in ${Math.round(delayMs / 1000)}s (${remaining} left)...`)
+                    setTimeout(() => attempt(remaining - 1), delayMs)
+                }
+            })
+        }
+        attempt(retries)
     }
     async epgSuggest() {
         const activeEPG = config.get('epg-' + lang.locale)

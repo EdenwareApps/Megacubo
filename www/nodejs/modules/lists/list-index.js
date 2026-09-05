@@ -187,8 +187,11 @@ export default class ListIndex extends EventEmitter {
             }
 
             // Open database file - on Windows, if file is locked, this will fail gracefully
-            // and we'll retry or handle the error appropriately
-            this.db = new Database(this.file, {...dbConfig, create: false});
+            // and we'll retry or handle the error appropriately.
+            // readOnly: never create/write/rebuild/auto-flush from the read side.
+            // updatingSentinel: while the writer's working file ("<file>.updating.jdb")
+            // exists, skip in-place refresh/repair and fall back to a clean read.
+            this.db = new Database(this.file, {...dbConfig, create: false, readOnly: true, updatingSentinel: true});
             const ret = await this.db.init().catch(e => err = e)
             if (this.destroyed) {
                 err = new Error('destroyed')

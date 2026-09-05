@@ -534,7 +534,7 @@ if (process.platform == 'android') {
     }
 }
 export const prepareCORS = (headers, url, forceOrigin) => {
-    let origin = typeof(forceorigin) == 'string' ? forceOrigin : '*';
+    let origin = typeof(forceOrigin) == 'string' ? forceOrigin : '*';
     if (url) {
         if (typeof(url) != 'string') { // is req object
             const requestOrigin = url.headers && url.headers.origin;

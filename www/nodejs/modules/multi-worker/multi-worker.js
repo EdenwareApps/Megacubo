@@ -55,7 +55,7 @@ class WorkerDriver extends EventEmitter {
             'start': 300000, // 5 minutes for full update flow
             'push': 60000, // 1 minute for push operations (was timing out at 30s)
             'setChannelTermsIndex': 120000, // 2 minutes for channel terms indexing
-            'suggest': 60000, // 1 minute for suggest operations
+            'suggest': 300000, // 5 minutes for suggest operations (cold bootstrap downloads many EPGs)
             'default': 30000 // 30 seconds for other operations
         }
     }

@@ -440,7 +440,8 @@ class Menu extends EventEmitter {
             await this.render(ret.entries, p, {
                 parent: ret.parent,
                 icon: (ret.parent ? ret.fa : '') || 'fas fa-box-open',
-                openToken: requestToken
+                openToken: requestToken,
+                baseEntries: ret.baseEntries
             })
         }).catch(err => this.displayErr(err))
     }
@@ -851,10 +852,10 @@ class Menu extends EventEmitter {
         if (['.', '/'].includes(destPath)) {
             destPath = ''
         }
-        let page, parent
+        let page, parent, base
         const parts = destPath ? destPath.split('/') : []
         const pages = { '': this.pages[''] }
-        const finish = entries => ({entries, parent})
+        const finish = entries => ({entries, parent, baseEntries: base})
         let next = async () => {
             if (parts.length) {
                 let previousPage = page
@@ -867,6 +868,12 @@ class Menu extends EventEmitter {
                     let entries = await this.readEntry(entry, page)
                     entries = await this.applyFilters(entries, page)
                     if (entry.type == 'group') {
+                        if (fullPath === destPath) {
+                            // Keep this folder's raw renderer output (before the
+                            // injected nav meta) so deepRefresh() can hand it to
+                            // the folder's posRenderer for late enrichment.
+                            base = entries.slice()
+                        }
                         entries = this.addMetaEntries(entries, page)
                     }
                     this.pages[page] = pages[page] = entries
@@ -875,6 +882,7 @@ class Menu extends EventEmitter {
                     }
                     return next()
                 }
+                base = undefined
                 if (typeof(this.pages[destPath]) != 'undefined') { // fallback
                     console.error('deep path not found, falling back', destPath, this.pages[destPath])
                     return finish(this.pages[destPath])
@@ -976,7 +984,7 @@ class Menu extends EventEmitter {
         this.navigating = true
         return trackPromise((async () => {
             let parentEntry, name = basename(destPath), parentPath = this.dirname(destPath)
-            const finish = async (es) => {
+            const finish = async (es, renderOpts = {}) => {
                 if (requestToken !== this.openToken) {
                     if (this.opts.debug) {
                         console.log('open finish skipped (outdated)', { destPath, requestToken, currentToken: this.openToken })
@@ -1014,7 +1022,11 @@ class Menu extends EventEmitter {
                 }
                 es = this.addMetaEntries(es, destPath, parentPath)
                 this.pages[this.path] = es
-                await this.render(this.pages[this.path], this.path, { parent: parentEntry, openToken: requestToken })
+                await this.render(this.pages[this.path], this.path, {
+                    parent: parentEntry,
+                    openToken: requestToken,
+                    ...renderOpts
+                })
                 return true
             }
             if (this.opts.debug) {
@@ -1035,13 +1047,17 @@ class Menu extends EventEmitter {
                         }
                         let es = await this.readEntry(e, parentPath)
                         es = await this.applyFilters(es, destPath)
-                        return this.render(es, destPath, { parent: e, openToken: requestToken })
+                        return this.render(es, destPath, {
+                            parent: e,
+                            openToken: requestToken,
+                            ...(typeof e.posRenderer === 'function' ? { baseEntries: es.slice() } : {})
+                        })
                     } else if(e.type == 'group') {
                         // Handle normal groups (like "Recomendado para você")
                         parentEntry = e
                         let es = await this.readEntry(e, parentPath)
                         es = await this.applyFilters(es, destPath)
-                        return finish(es)
+                        return finish(es, typeof e.posRenderer === 'function' ? { baseEntries: es.slice() } : {})
                     }
                 }
             }
@@ -1070,7 +1086,7 @@ class Menu extends EventEmitter {
                     if (e.type == 'group') {
                         let es = await this.readEntry(e, parentPath)
                         es = await this.applyFilters(es, destPath)
-                        return finish(es)
+                        return finish(es, typeof e.posRenderer === 'function' ? { baseEntries: es.slice() } : {})
                     } else if (e.type == 'select') {
                         if (backInSelect) {
                             return this.open(this.dirname(destPath), -1, deep, isFolder, backInSelect)
@@ -1406,7 +1422,9 @@ class Menu extends EventEmitter {
             }
             return
         }
-        const prepared = processed.map(entry => {
+        // Prepare an entry for display: infer its type when unset and make its
+        // path absolute. Extracted so the posRenderer output can be re-prepared.
+        const prepare = entry => {
             const item = { ...entry }
             if (!item.type) {
                 if (item.name === lang.BACK) {
@@ -1424,7 +1442,8 @@ class Menu extends EventEmitter {
                 item.path = absolute
             }
             return item
-        })
+        }
+        const prepared = processed.map(prepare)
         let withMeta = this.addMetaEntries(prepared, path, opts.backTo)
         const emitEntries = entriesToEmit => {
             if (!this.rendering) {
@@ -1447,12 +1466,53 @@ class Menu extends EventEmitter {
         if (typeof path === 'string') {
             this.path = path
         }
+        // First paint right away: as soon as the folder's renderer returned, so
+        // navigation feels instant even when the display still needs to be
+        // enriched with costly data (EPG now playing, etc.) afterwards.
         emitEntries(withMeta)
-        if (!this.rendering || !this.posFilters.length) {
+
+        // A folder entry may also declare a posRenderer (analogous to renderer).
+        // Once the first paint is out, it enriches the entries the renderer
+        // produced and the page is painted again with the enriched data. It is
+        // only run when the caller can supply the renderer's raw output
+        // (opts.baseEntries), so the injected nav meta entries (Back, Test
+        // Streams, etc.) never leak into it.
+        const entryPosRenderer = (typeof opts.posRenderer === 'function' && opts.posRenderer) ||
+            (opts.parent && typeof opts.parent.posRenderer === 'function' ? opts.parent.posRenderer : null)
+        const hasBase = Array.isArray(opts.baseEntries)
+        const willRunPosRenderer = !!entryPosRenderer && (hasBase || typeof opts.posRenderer === 'function')
+        if (!this.rendering || (!willRunPosRenderer && !this.posFilters.length)) {
             return
         }
-        const enriched = await this.applyPosFilters(withMeta, path)
-        const finalEntries = Array.isArray(enriched) ? enriched : withMeta
+        let finalEntries = withMeta
+        if (willRunPosRenderer) {
+            if (this.opts.debug) {
+                console.log('Menu posRenderer for', path)
+            }
+            const base = hasBase ? opts.baseEntries : processed
+            let out
+            try {
+                out = await entryPosRenderer(base, { path, entry: opts.parent })
+            } catch (err) {
+                console.error('Menu posRenderer failed for', path, err)
+            }
+            // posRenderer may return a brand-new (e.g. reordered) array or mutate
+            // the base entries in place and return nothing. Re-prepare + re-add
+            // meta either way so the rendered page reflects the enriched data.
+            finalEntries = this.addMetaEntries((Array.isArray(out) ? out : base).map(prepare), path, opts.backTo)
+        }
+        if (typeof openToken === 'number' && openToken !== this.openToken) {
+            if (this.opts.debug) {
+                console.log('render skipped after posRenderer (outdated)', { path, openToken, currentToken: this.openToken })
+            }
+            return
+        }
+        if (this.posFilters.length) {
+            const enriched = await this.applyPosFilters(finalEntries, path)
+            if (Array.isArray(enriched)) {
+                finalEntries = enriched
+            }
+        }
         if (typeof openToken === 'number' && openToken !== this.openToken) {
             if (this.opts.debug) {
                 console.log('render skipped after pos filters (outdated)', { path, openToken, currentToken: this.openToken })

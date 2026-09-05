@@ -40,7 +40,7 @@ class StreamerProxy extends StreamerProxyBase {
                 if (data && typeof(data) != 'number' && isWritable(this.connections[uid].response)) {
                     if (!this.connections[uid].response.headersSent) {
                         const origin = this.type == 'network-proxy' ? '*' : undefined;
-                        this.connections[uid].response.writeHead(500, prepareCORS(response, undefined, origin));
+                        this.connections[uid].response.writeHead(500, prepareCORS(this.connections[uid].response, undefined, origin));
                     }
                     this.connections[uid].response.end(data);
                 } else {
@@ -391,8 +391,12 @@ class StreamerProxy extends StreamerProxyBase {
         if (this.opts.debug || this.opts.agnostic) {
             console.error('[Proxy] Request:', req.url, '-> unproxified:', url, 'uid:', uid, 'addr:', this.opts.addr, 'port:', this.opts.port)
         }
-        let reqHeaders = req.headers;
-        reqHeaders = this.removeHeaders(reqHeaders, ['cookie', 'referer', 'origin', 'user-agent']);
+        // IMPORTANT: clone req.headers before removeHeaders() — removeHeaders DELETES keys
+        // in place, and prepareCORS(headers, req) below must still see the browser's
+        // `Origin` header to echo it back. Without this, ACAO becomes this proxy's own
+        // origin and the browser blocks the cross-origin HLS request
+        // ("ACAO value ... not equal to the supplied origin").
+        let reqHeaders = this.removeHeaders(Object.assign({}, req.headers), ['cookie', 'referer', 'origin', 'user-agent']);
         if (this.type == 'network-proxy') {
             reqHeaders['x-from-network-proxy'] = '1';
         } else {
@@ -457,7 +461,7 @@ class StreamerProxy extends StreamerProxyBase {
         download.once('response', (statusCode, headers) => {
             const origin = this.type == 'network-proxy' ? '*' : undefined;
             headers = this.removeHeaders(headers, this.responseHeadersRemoval);
-            headers = prepareCORS(headers, url, origin);
+            headers = prepareCORS(headers, req, origin);
             if (this.opts.forceExtraHeaders) {
                 Object.assign(headers, this.opts.forceExtraHeaders);
             }

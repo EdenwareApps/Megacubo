@@ -778,6 +778,44 @@ class Tools extends TermsHandler {
         
         return matrix[len1][len2];
     }
+
+    /**
+     * Cheap EXACT check: is the Levenshtein distance between a and b at most maxDistance?
+     * Single-row DP with values capped at maxDistance+1 and early exit as soon as an
+     * entire row exceeds maxDistance (an optimal path is non-decreasing in cost, so a
+     * full row above maxDistance means the final distance is too). Never rejects a
+     * candidate the full DP would accept, so results stay identical.
+     */
+    editDistanceAtMost(a, b, maxDistance) {
+        if (maxDistance < 0) return false;
+        if (a === b) return true;
+        const lenA = a.length, lenB = b.length;
+        if (Math.abs(lenA - lenB) > maxDistance) return false;
+
+        const cap = maxDistance + 1;
+        let prev = new Array(lenB + 1);
+        let curr = new Array(lenB + 1);
+        for (let j = 0; j <= lenB; j++) {
+            prev[j] = j > maxDistance ? cap : j;
+        }
+        for (let i = 1; i <= lenA; i++) {
+            curr[0] = i > maxDistance ? cap : i;
+            let rowMin = curr[0];
+            const aCode = a.charCodeAt(i - 1);
+            for (let j = 1; j <= lenB; j++) {
+                const cost = aCode === b.charCodeAt(j - 1) ? 0 : 1;
+                let v = prev[j] + 1;
+                if (curr[j - 1] + 1 < v) v = curr[j - 1] + 1;
+                if (prev[j - 1] + cost < v) v = prev[j - 1] + cost;
+                if (v > cap) v = cap;
+                curr[j] = v;
+                if (v < rowMin) rowMin = v;
+            }
+            if (rowMin > maxDistance) return false;
+            const tmp = prev; prev = curr; curr = tmp;
+        }
+        return prev[lenB] <= maxDistance;
+    }
     
     calculateSimilarityScore(searchTerm, validTerm) {
         if (!searchTerm || !validTerm) return 0;
@@ -808,11 +846,29 @@ class Tools extends TermsHandler {
             return [];
         }
         
+        const query = searchTerm.toLowerCase();
+        const queryLength = query.length;
         const suggestions = [];
         
         for (const validTerm of validTerms) {
+            const validLower = validTerm.toLowerCase();
+
             // FP: Ignore the search term itself (distance 0)
-            if (validTerm.toLowerCase() === searchTerm.toLowerCase()) {
+            if (validLower === query) {
+                continue;
+            }
+            
+            // Cheap reject: edit distance is always >= |len(a) - len(b)|, so a term
+            // whose length differs from the query by more than maxDistance can never
+            // satisfy distance <= maxDistance. This avoids running the full DP matrix
+            // for the vast majority of (much longer) terms.
+            if (Math.abs(queryLength - validTerm.length) > maxDistance) {
+                continue;
+            }
+            
+            // Exact early-exit bound (identical to full DP for the <= maxDistance
+            // decision): only a tiny window of candidates reaches the real matrix.
+            if (!this.editDistanceAtMost(query, validLower, maxDistance)) {
                 continue;
             }
             

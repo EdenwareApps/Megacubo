@@ -59,12 +59,20 @@ class Search extends EventEmitter {
         // Phase 2: Cache and settings for suggestions
         this.suggestionCache = new Map();
         this.validTermsCache = new Map();
+        this.allTermsCache = null; // merged suggestion vocabulary { fp, terms }, reused across queries
+        this._layer3EmptyCache = null; // short-lived "full catalog scan returned 0" per term/type
         this.suggestionConfig = {
             maxSuggestions: 3,
             minSimilarityScore: 0.7,
             maxDistance: 2,
             enableSubstringSearch: true,
-            cacheSize: 1000
+            cacheSize: 1000,
+            // Cold (idle-unloaded) DBs reloaded per vocabulary build; the rest are
+            // only included once warmed up by normal use (avoids an I/O burst).
+            maxSuggestionForceLoads: 3,
+            // Hard cap on the merged vocabulary so findSuggestions stays bounded
+            // even when many large lists are loaded.
+            maxVocabularyTerms: 100000
         };
     }
     getMenuEntriesForLive() {
@@ -136,6 +144,8 @@ class Search extends EventEmitter {
     async fetchSearchResults(value, mediaType, excludeUrls) {
         const allResults = [];
         const searchSources = [];
+        const started = Date.now();
+        const elapsed = (label) => console.log(`⏱ ${label}: ${Date.now() - started}ms`);
 
         if (mediaType === 'live') {
             console.log('🔍 Layer 1: Searching live channels...');
@@ -144,6 +154,7 @@ class Search extends EventEmitter {
                 return [];
             });
             this.mergeLayerResults(allResults, searchSources, live, 'Live', { excludeUrls });
+            elapsed('Layer 1 (live)');
         }
 
         if (allResults.length < this.resultsAmountLimit && mediaType === 'live') {
@@ -153,24 +164,43 @@ class Search extends EventEmitter {
                 return [];
             });
             this.mergeLayerResults(allResults, searchSources, epg, 'EPG', { excludeUrls });
+            elapsed('Layer 2 (EPG)');
         }
 
-        if (allResults.length < this.resultsAmountLimit) {
+        // Short-lived negative cache: when a full catalog scan for a term just
+        // returned zero (conclusive, after scanning the ready lists), repeat
+        // searches for the same term within a few seconds skip the expensive scan.
+        const scanKey = mediaType + ':' + String(Array.isArray(value) ? value.join(' ') : value).toLowerCase().trim()
+        const cachedEmpty = !excludeUrls && this._layer3EmptyCache &&
+            this._layer3EmptyCache.key === scanKey &&
+            (Date.now() - this._layer3EmptyCache.at) < 6000
+
+        if (allResults.length < this.resultsAmountLimit && !cachedEmpty) {
             console.log('🔍 Layer 3: Searching all content...');
             const allContent = await this.searchListsAndUpdateState(value, { type: mediaType, group: mediaType === 'all' }, excludeUrls).catch(e => {
                 console.warn('All search failed:', e);
                 return [];
             });
             this.mergeLayerResults(allResults, searchSources, allContent, 'All', { excludeUrls });
+            elapsed('Layer 3 (all)');
+            // Only cache when this scan is conclusive (nothing found) - skipping a
+            // repeat then loses nothing.
+            if (!excludeUrls && allContent.length === 0) {
+                this._layer3EmptyCache = { key: scanKey, at: Date.now() }
+            }
         }
 
         if (allResults.length < this.resultsAmountLimit && allResults.length < 20) {
             console.log('🔍 Layer 4: Adding suggestions...');
-            const suggestions = await this.getResultsWithQuerySuggestions(value, { mediaType }).catch(e => {
+            // When the previous layers already returned nothing for this type, the
+            // internal rescan inside getResultsWithQuerySuggestions would only repeat
+            // that work -> go straight to the suggestion lookup.
+            const suggestions = await this.getResultsWithQuerySuggestions(value, { mediaType, skipRescan: allResults.length === 0 }).catch(e => {
                 console.warn('Suggestions failed:', e);
                 return [];
             });
             this.mergeLayerResults(allResults, searchSources, suggestions, 'Suggestions', {});
+            elapsed('Layer 4 (suggestions)');
         }
 
         console.log(`🎯 Final results: ${allResults.length}/${this.resultsAmountLimit} (sources: ${searchSources.join(', ')})`);
@@ -190,10 +220,72 @@ class Search extends EventEmitter {
         if (!value) return false;
         if (!mediaType) mediaType = 'all';
 
+        // Coalesce overlapping identical searches (e.g. dialer repeats): if the
+        // exact same query is already running, don't start a second full pipeline.
+        const key = mediaType + ':' + String(Array.isArray(value) ? value.join(' ') : value).toLowerCase().trim()
+        if (this._runningSearchKey === key) {
+            return true
+        }
+        // Skip an identical search that JUST finished: re-running it only renders the
+        // same list again (visible entries flash / disappear / reappear).
+        if (!excludeUrls && this._lastSearchKey === key && (Date.now() - (this._lastSearchAt || 0)) < 1200) {
+            return true
+        }
+        this._runningSearchKey = key
+
         osd.show(lang.SEARCHING, 'fas fa-search busy-x', 'search', 'persistent');
 
+        // Two-phase live search, but only paint the fast preview if the full search
+        // is still running after 250ms. When the full result set returns quickly (now
+        // the common case) we render ONCE - avoiding the entries
+        // "appear -> disappear -> reappear" flash from a preview-then-replace.
+        let previewFastPromise = null
+        if (mediaType === 'live' && !excludeUrls) {
+            const tms = Array.isArray(value) ? value : terms(value)
+            if (Array.isArray(tms) && tms.length) {
+                previewFastPromise = this.channels.searchChannelsFast(tms, this.searchInaccurate)
+            }
+        }
+
         try {
-            const { results, searchSources } = await this.fetchSearchResults(value, mediaType, excludeUrls);
+            const fullPromise = this.fetchSearchResults(value, mediaType, excludeUrls)
+                .then(result => ({ result }))
+                .catch(err => ({ err }))
+
+            // Give the full search up to 250ms; only if it is still running do we
+            // paint the fast channel preview so the user sees something right away.
+            const fullRace = await Promise.race([
+                fullPromise.then(() => 'full'),
+                new Promise(resolve => setTimeout(() => resolve('preview'), 250))
+            ])
+
+            if (fullRace === 'preview' && previewFastPromise) {
+                try {
+                    const tms = Array.isArray(value) ? value : terms(value)
+                    const fast = await previewFastPromise
+                    const preview = fast.map(e => this.channels.toMetaEntry(e))
+                    if (preview.length) {
+                        const u = ucWords(tms.join(' '))
+                        this.currentSearch = {
+                            name: u,
+                            url: mega.build(u, { terms: tms, mediaType: 'live' })
+                        }
+                        if (!menu.path) menu.path = lang.SEARCH
+                        menu.render(this.withSearchActions('live', preview, excludeUrls), menu.path, {
+                            icon: 'fas fa-search',
+                            backTo: '/'
+                        })
+                    }
+                } catch (err) {
+                    console.warn('Live search preview failed:', err)
+                }
+            }
+
+            const settled = await fullPromise
+            if (settled.err) {
+                throw settled.err
+            }
+            const { results, searchSources } = settled.result
 
             osd.hide('search');
             this.emit('search', { query: value });
@@ -217,6 +309,12 @@ class Search extends EventEmitter {
             osd.hide('search');
             menu.displayErr(err);
             return false;
+        } finally {
+            this._lastSearchKey = key
+            this._lastSearchAt = Date.now()
+            if (this._runningSearchKey === key) {
+                this._runningSearchKey = null
+            }
         }
     }
 
@@ -268,44 +366,105 @@ class Search extends EventEmitter {
         if (this.validTermsCache.has(listUrl)) {
             return this.validTermsCache.get(listUrl);
         }
-        
+
+        const list = lists.lists[listUrl];
+        if (!list || !list.indexer) {
+            return new Set();
+        }
+
         try {
-            const list = lists.lists[listUrl];
-            if (list && list.indexer && list.indexer.db) {
-                const nameTerms = list.indexer.db.indexManager.readColumnIndex('nameTerms');
-                const groupTerms = list.indexer.db.indexManager.readColumnIndex('groupTerms');
-                
-                // Combine unique terms
-                const allTerms = new Set([...nameTerms, ...groupTerms]);
-                this.validTermsCache.set(listUrl, allTerms);
-                
-                // Limit cache if necessary
-                if (this.validTermsCache.size > this.suggestionConfig.cacheSize) {
-                    const firstKey = this.validTermsCache.keys().next().value;
-                    this.validTermsCache.delete(firstKey);
-                }
-                
-                return allTerms;
+            // Wait for the list DB (and its in-memory index) to finish opening.
+            await list.indexer.ready();
+
+            const db = list.indexer.db;
+            if (!db || !db.indexManager) {
+                return new Set();
             }
+
+            // readColumnIndex() only reads the in-memory index. If the index was
+            // idle-unloaded it would return an empty Set, so make sure it is
+            // loaded from disk again before reading the column terms.
+            if (!db.indexManager.indexLoaded && typeof db._ensureLazyIndexLoaded === 'function') {
+                await db._ensureLazyIndexLoaded();
+            }
+
+            const nameTerms = db.indexManager.readColumnIndex('nameTerms');
+            const groupTerms = db.indexManager.readColumnIndex('groupTerms');
+
+            // Combine unique terms
+            const allTerms = new Set([...nameTerms, ...groupTerms]);
+            this.validTermsCache.set(listUrl, allTerms);
+
+            // Limit cache if necessary
+            if (this.validTermsCache.size > this.suggestionConfig.cacheSize) {
+                const firstKey = this.validTermsCache.keys().next().value;
+                this.validTermsCache.delete(firstKey);
+            }
+
+            return allTerms;
         } catch (err) {
             console.warn('Error getting valid terms for list:', err);
         }
-        
+
         return new Set();
     }
     
     async getIndexedTermsFromAllLists() {
-        const allTerms = new Set();
-        
-        for (const [url, list] of Object.entries(lists.lists || {})) {
-            try {
-                const terms = await this.getIndexedTermsForList(url);
-                terms.forEach(term => allTerms.add(term));
-            } catch (err) {
-                console.warn('Error getting terms from list:', url, err);
+        const all = lists.lists || {};
+
+        // Only lists that actually own an opened index DB can contribute terms.
+        const candidates = [];
+        let totalLength = 0;
+        for (const url in all) {
+            const list = all[url];
+            if (list && list.indexer && list.indexer.db && list.indexer.db.indexManager) {
+                candidates.push(url);
+                totalLength += list.indexer.db.length || 0;
             }
         }
-        
+
+        // Fingerprint over WHICH lists are available + how many channels they hold.
+        // Warming a cold DB does NOT change it, so overlapping searches reuse the
+        // cached vocabulary instead of rebuilding it for every run.
+        const fingerprint = candidates.sort().join('\u0000') + '#' + totalLength;
+        if (this.allTermsCache && this.allTermsCache.fp === fingerprint) {
+            return this.allTermsCache.terms;
+        }
+
+        const started = Date.now();
+        const maxTerms = this.suggestionConfig.maxVocabularyTerms;
+        const allTerms = new Set();
+        let forceLoadsLeft = this.suggestionConfig.maxSuggestionForceLoads;
+
+        for (const url of candidates) {
+            if (allTerms.size >= maxTerms) break;
+
+            const indexManager = all[url].indexer.db.indexManager;
+
+            // Reading a cold DB forces disk I/O; reload only a few per build and
+            // let the rest participate once warmed up by normal search use.
+            const wasLoaded = indexManager.indexLoaded;
+            if (!wasLoaded && forceLoadsLeft <= 0) continue;
+
+            let terms;
+            try {
+                terms = await this.getIndexedTermsForList(url);
+            } catch (err) {
+                console.warn('Error getting terms from list:', url, err);
+                continue;
+            }
+            if (!wasLoaded) forceLoadsLeft--;
+
+            if (terms && terms.size) {
+                for (const term of terms) {
+                    allTerms.add(term);
+                    if (allTerms.size >= maxTerms) break;
+                }
+            }
+        }
+
+        console.log(`⏱ Suggestions vocabulary: ${allTerms.size} terms from ${candidates.length} lists in ${Date.now() - started}ms`);
+        this.allTermsCache = { fp: fingerprint, terms: allTerms };
         return allTerms;
     }
     
@@ -391,12 +550,15 @@ class Search extends EventEmitter {
     }
     
     async getResultsWithQuerySuggestions(terms, options = {}) {
-        // 1. Try normal search first
-        let results = await this.searchLists(terms, options);
-        
+        // 1. Try normal search first, unless the caller already scanned everything
+        //    and found nothing (skipRescan) - avoids repeating a full catalog scan.
+        const started = Date.now();
+        let results = options.skipRescan ? [] : await this.searchLists(terms, options);
+
         // 2. If no results found, search for suggestions
         if (results.length === 0) {
             const suggestions = await this.getQuerySuggestions(terms);
+            console.log(`⏱ getQuerySuggestions: ${Date.now() - started}ms`);
             
             if (suggestions.length > 0) {
                 // 3. Add main suggestion entry
@@ -438,8 +600,10 @@ class Search extends EventEmitter {
         if (!Array.isArray(tms)) {
             tms = terms(tms)
         }
+        const started = Date.now()
         const map = {}, entries = []        
         const es = await this.searchLists(tms, {groupsOnly: true})
+        console.log(`⏱ findMatchingGroups searchLists: ${Date.now() - started}ms (${es.length} entries)`)
         for (const e of es) {
             if (!Array.isArray(e.groupTerms) || !e.groupTerms.length || !match(tms, e.groupTerms)) {
                 continue;
@@ -618,6 +782,7 @@ class Search extends EventEmitter {
         }
     }
     async fetchLiveResults($terms) {        
+        const started = Date.now();
         if (!Array.isArray($terms)) {
             $terms = terms($terms)
         }
@@ -633,9 +798,15 @@ class Search extends EventEmitter {
         }
 
         let es = await this.channels.searchChannels($terms, this.searchInaccurate)
+        console.log(`⏱ fetchLiveResults/searchChannels: ${Date.now() - started}ms`)
         es = es.map(e => this.channels.toMetaEntry(e))
 
-        const gs = await this.findMatchingGroups($terms)
+        // While the updater is finalizing many lists at once, skip the heavy group
+        // scan (it would contend with those writes); group hits come back once the
+        // burst settles.
+        const updatingBurst = lists.updatingLists && lists.updatingLists.size >= 2
+        const gs = updatingBurst ? [] : await this.findMatchingGroups($terms)
+        console.log(`⏱ fetchLiveResults/findMatchingGroups: ${Date.now() - started}ms`)
         es.push(...gs)
 
         const minResultsWanted = 256
@@ -644,7 +815,9 @@ class Search extends EventEmitter {
             if (Array.isArray(ys)) {
                 es.push(...ys.slice(0, minResultsWanted - es.length));
             }
+            console.log(`⏱ fetchLiveResults/youtube: ${Date.now() - started}ms`)
         }
+        console.log(`⏱ fetchLiveResults/total: ${Date.now() - started}ms`)
         if (paths.ALLOW_ADDING_LISTS && !lists.loaded(true)) {
             es.unshift(lists.manager.noListsEntry());
         }
