@@ -866,7 +866,9 @@ class Options extends OptionsExportImport {
             config.set('setup-completed', false);
             try {
                 rmdirSync(paths.data, false)
-                rmdirSync(paths.temp, false)
+                // Factory reset: clear the entire temp base (all per-process instance
+                // folders, including leftovers from previous runs/crashes).
+                rmdirSync(paths.tempRoot || paths.temp, false)
             } catch(e) {
                 console.error(e)
             }

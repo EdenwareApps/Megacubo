@@ -36,15 +36,24 @@ if(paths.inWorker) {
     const existingFiles = fs.readdirSync(paths.cwd);
     if (paths.android && paths.android.getDataPath) {
         const data = paths.android.getDataPath();
-        const temp = data.includes('files') ? data.replace('files', 'cache') : tmpdir()
-        Object.assign(paths, { data, temp });
+        Object.assign(paths, { data });
+        paths.tempRoot = data.includes('files') ? data.replace('files', 'cache') : tmpdir()
     } else {
         if (existingFiles.includes('.portable')) {
-            Object.assign(paths, { data: paths.cwd + '/.portable/Data', temp: paths.cwd + '/.portable/temp' });
+            Object.assign(paths, { data: paths.cwd + '/.portable/Data' });
+            paths.tempRoot = paths.cwd + '/.portable/temp';
         } else {
             Object.assign(paths, envPaths(paths.manifest.window.title, { suffix: '' }));
+            paths.tempRoot = paths.temp;
         }
     }
+    // Isolate the temp workspace per OS process. Every Megacubo instance (installed
+    // app, dev electron, etc.) shares the same tempRoot, and the exit cleanup used to
+    // wipe that whole folder recursively - deleting another running instance's
+    // in-flight files (e.g. list-*.tmp downloads) and causing "Temp file not found"
+    // mid-parse. Worker threads inherit `paths` via workerData.paths and share the
+    // same PID, so this instance folder stays consistent across the process + workers.
+    paths.temp = paths.tempRoot + '/instance-' + process.pid;
     Object.keys(paths).forEach(type => {
         if (typeof(paths[type]) != 'string')
             return

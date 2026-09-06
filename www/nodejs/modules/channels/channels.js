@@ -749,14 +749,28 @@ class Channels extends ChannelsKids {
         this.history = new History(this)
         this.bookmarks = new Bookmarks(this)
         this.search = new Search(this)
+        // Jump List user tasks must only be managed from the installed (packaged)
+        // app. Running from source makes process.execPath point at the generic
+        // electron.exe, and tasks registered against it fail to relaunch the app
+        // (Electron tries to load the mega:// argument as the app path).
+        this.isPackagedApp = false
     }
     async updateUserTasks(app) {
         if (process.platform != 'win32') return
         if (app) { // set from cache, Electron won't set after window is opened
+            // When running from source (npm start) process.execPath is the generic
+            // node_modules electron.exe. A Jump List task registered against it is
+            // relaunched by Windows as `electron.exe <mega://...>` — without the app
+            // bundle path — so Electron treats the URL as the app to load and fails
+            // with "Unable to find Electron app at ...". Only register tasks from the
+            // installed (packaged) exe, which loads the app from its own resources.
+            this.isPackagedApp = !!app.isPackaged
+            if (!this.isPackagedApp) return
             const tasks = await storage.get('user-tasks')
             if (tasks && Array.isArray(tasks) && tasks.length > 0) {
                 try {
-                    // Validate tasks before passing to setUserTasks
+                    // Validate tasks before passing to setUserTasks and drop stale
+                    // ones (e.g. cached during a dev run pointing at electron.exe)
                     const validTasks = tasks.filter(task => {
                         return task &&
                             typeof task === 'object' &&
@@ -765,7 +779,8 @@ class Channels extends ChannelsKids {
                             typeof task.description === 'string' &&
                             typeof task.program === 'string' &&
                             typeof task.iconPath === 'string' &&
-                            typeof task.iconIndex === 'number'
+                            typeof task.iconIndex === 'number' &&
+                            task.program === String(process.execPath)
                     })
 
                     if (validTasks.length > 0 && !app.setUserTasks(validTasks)) {
@@ -777,6 +792,10 @@ class Channels extends ChannelsKids {
             }
             return
         }
+        // Same reason as above: never keep tasks refreshed while running from
+        // source, otherwise they would get cached pointing at the generic
+        // electron.exe and be picked up later by the packaged app.
+        if (!this.isPackagedApp) return
         const limit = 12
         const entries = []
 
@@ -834,9 +853,12 @@ class Channels extends ChannelsKids {
                 return null;
             }
 
-            // Ensure all required fields are properly formatted
+            // Ensure all required fields are properly formatted.
+            // arguments must be a plain command-line argument string (no JSON
+            // quoting): Windows launches the task as program + arguments and any
+            // JSON escaping/quotes would corrupt the deep link.
             return {
-                arguments: JSON.stringify(String(entry.url)),
+                arguments: String(entry.url),
                 title: String(entry.name).substring(0, 100), // Limit title length
                 description: String(entry.name).substring(0, 100), // Limit description length
                 program: String(process.execPath),

@@ -2,6 +2,7 @@ import { EventEmitter } from "events";
 import { isLocal, listNameFromURL, validateURL } from '../utils/utils.js'
 import osd from '../osd/osd.js'
 import lang from "../lang/lang.js";
+import mega from '../mega/mega.js';
 import renderer from '../bridge/bridge.js'
 import { distinguishM3UType } from '../lists/tools.js'
 import config from '../config/config.js'
@@ -12,6 +13,17 @@ class OMNI extends EventEmitter {
         renderer.ui.on('omni', (text, type) => this.open(text, type))
     }
     async open(text, type) {
+        if (typeof text == 'string') {
+            text = text.trim()
+            // open-url/omni sometimes receives the raw HTML of a menu/channel row
+            // (e.g. <a ... href="mega://SBT" ...>) instead of the plain URL — usually
+            // when a copied/selected element is pasted/activated. Extract the real
+            // href so the link is opened instead of tokenizing the markup into search.
+            if (text.includes('<a ') || text.includes('href=')) {
+                const m = text.match(/href\s*=\s*["']([^"']+)["']/)
+                if (m && m[1]) text = m[1].trim()
+            }
+        }
         if (type == 'numeric') {
             const n = parseInt(text), es = global.channels.bookmarks.get().filter(e => e.bookmarkId == n);
             if (es.length) {
@@ -28,6 +40,14 @@ class OMNI extends EventEmitter {
                     return
                 }
             }
+        } else if (mega.isMega(text)) {
+            const data = mega.parse(text) || {}
+            const e = { name: data.name || text, url: text, terms: data.terms || { name: global.lists.tools.terms(data.name || text), group: [] } }
+            return global.streamer.play(e).catch(err => {
+                if (err !== 'another play intent in progress') {
+                    console.error('streamer.play error:', err)
+                }
+            })
         } else if(validateURL(text) || isLocal(text)) {
             return this.openURL(text).catch(e => global.menu.displayErr(e))
         }

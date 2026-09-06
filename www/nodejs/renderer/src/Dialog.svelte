@@ -448,12 +448,22 @@
             }}
             onkeydown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
-                    if (!mandatory) {
-                        end(true);
-                        e.preventDefault();
-                    } else {
+                    const target = e.target;
+                    const overlay = e.currentTarget;
+                    const dialogWrap = container?.querySelector('.dialog-wrap');
+                    // Only dismiss the dialog when the key event truly comes from
+                    // outside the dialog content. When the focus is inside (e.g. the
+                    // text input or an option button), let the control handle it
+                    // (submit) instead of bubbling up here and cancelling with an
+                    // empty result.
+                    const isOutsideDialogWrap = overlay.contains(target) && (!dialogWrap || !dialogWrap.contains(target));
+                    if (isOutsideDialogWrap) {
+                        if (!mandatory) {
+                            end(true);
+                        }
                         e.preventDefault();
                         e.stopPropagation();
+                        if (mandatory) return false;
                     }
                 }
             }}
@@ -555,6 +565,18 @@
                                             data-mask={entry.mask||''} 
                                             value={entry.value} 
                                             onchange={handleInputChange}
+                                            oninput={handleInputChange}
+                                            onkeydown={(e) => {
+                                                // Enter inside a text prompt must SUBMIT
+                                                // (default option) with the typed value,
+                                                // not bubble to the overlay and cancel.
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    const defId = text2id(String(content.defaultIndex || 'submit'));
+                                                    container?.querySelector(`#dialog-template-option-${defId}`)?.click();
+                                                }
+                                            }}
                                             aria-label={entry.plainText || plainText(entry.text)}
                                         />
                                     </span>
