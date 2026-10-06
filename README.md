@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://megacubo.tv" target="_blank">
-    <img src="https://static.megacubo.tv/wp-content/uploads/2022/03/cropped-default_icon-192x192.png" width="140" alt="Megacubo logo" title="Megacubo logo" />
+    <img src="https://static.megacubo.tv/icon-192.png" width="192" alt="Megacubo logo" title="Megacubo logo" />
   </a>
 </p>
 
