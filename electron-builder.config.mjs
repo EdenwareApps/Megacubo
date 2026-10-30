@@ -43,6 +43,7 @@ export default {
     'www/nodejs/lang/**/*',
     'www/nodejs/modules/**/*',
     'www/nodejs/renderer/**/*',
+    'www/nodejs/data/**',
 
     // Critical exclusions
     '!www/nodejs/dist/electron.js.map',

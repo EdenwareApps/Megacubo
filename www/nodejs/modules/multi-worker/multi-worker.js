@@ -616,6 +616,26 @@ export default class ThreadWorkerDriver extends WorkerDriver {
             this.workerData = { paths, bytenode: true, android: !!paths.android, '$lang': getLangObject() }
             this.workerFile = paths.cwd +'/dist/worker.js'
             this.workerData.paths.android = !!paths.android
+
+            // Installation integrity check: without the worker entry points every background
+            // feature (EPG, lists, icons) dies with "Cannot find module" and the app keeps
+            // running half-broken (BUG_REPORT_17.7.0_17581.md, bug 2).
+            const requiredWorkerFiles = [
+                this.workerFile,
+                paths.cwd + '/dist/updater-worker.js',
+                paths.cwd + '/dist/mpegts-processor-worker.js',
+                paths.cwd + '/dist/EPGManager.js'
+            ]
+            const missingWorkerFiles = requiredWorkerFiles.filter(file => !fs.existsSync(file))
+            if (missingWorkerFiles.length) {
+                const msg = 'Incomplete installation, missing: ' + missingWorkerFiles.join(', ')
+                console.error('❌ ' + msg)
+                osd.show(lang.INSTALL_CORRUPTED + ' (' + missingWorkerFiles[0] + ')', 'fas fa-exclamation-triangle faclr-red', 'install-corrupted', 'long')
+                this.finished = true
+                crashlog.save('Worker error: Installation incomplete', msg)
+                this.rejectAll(null, msg)
+                return
+            }
             
             // Add configuration for worker logging
             this.workerLogsEnabled = config.get('worker-logs-enabled', true)
@@ -631,6 +651,7 @@ export default class ThreadWorkerDriver extends WorkerDriver {
                 maxOldGenerationSizeMb: config.get('worker-max-old-generation-mb', DEFAULT_RESOURCE_LIMITS.maxOldGenerationSizeMb),
                 maxYoungGenerationSizeMb: config.get('worker-max-young-generation-mb', DEFAULT_RESOURCE_LIMITS.maxYoungGenerationSizeMb)
             }
+            this.resourceLimits = resourceLimits
             this.worker = new Worker(this.workerFile, {
                 type: 'commonjs', // (file == distFile ? 'commonjs' : 'module'),
                 workerData: this.workerData, // leave stdout/stderr undefined
@@ -742,7 +763,10 @@ export default class ThreadWorkerDriver extends WorkerDriver {
                 let msg = 'Worker exited out of memory, fix the settings and restart the app.';
                 osd.show(msg, 'fas fa-exclamation-triangle faclr-red', 'out-of-memory', 'long');
             }
-            crashlog.save('Worker error: ', err);
+            crashlog.save('Worker error: ', err, {
+                worker: this.workerFile,
+                heapLimitMb: (this.resourceLimits || {}).maxOldGenerationSizeMb ?? DEFAULT_RESOURCE_LIMITS.maxOldGenerationSizeMb
+            });
             this.rejectAll(null, serr);
         }, true);
         this.worker.on('exit', () => {

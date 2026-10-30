@@ -1436,6 +1436,42 @@ class Options extends OptionsExportImport {
             { name: lang.PERFORMANCE_MODE, details: lang.SELECT, fa: 'fas fa-tachometer-alt', type: 'action', action: () => this.performance() },
             { name: lang.LANGUAGE, details: lang.SELECT_LANGUAGE, fa: 'fas fa-language', type: 'action', action: () => this.showLanguageEntriesDialog() },
             { name: lang.COUNTRIES, details: lang.COUNTRIES_HINT, fa: 'fas fa-globe', type: 'group', renderer: () => this.countriesEntries() },
+            { name: lang.CONTENT_PROFILE, details: lang.CONTENT_PROFILE_HINT, fa: 'fas fa-user-tag', type: 'select', renderer: async () => {
+                    const current = paths.EDITION
+                    const file = paths.data + '/EDITION.md'
+                    const set = async (code) => {
+                        // Sem BOM e sem quebra de linha: é a gramática que o instalador grava e
+                        // que o servidor espera (contrato C3).
+                        await fs.promises.writeFile(file, code, 'utf8');
+                        menu.refreshNow();
+                        energy.askRestart();
+                    }
+                    const opts = []
+                    // Um código que esta tela não conhece (ex.: `premium`, vindo da página de
+                    // preços) é mostrado, não apagado: escolher é ato explícito do usuário, e
+                    // sobrescrever o que ele não pediu para mudar seria perda silenciosa.
+                    if (current != 'generic' && current != 'ero') {
+                        opts.push({ name: lang.CONTENT_PROFILE_DETECTED.replace('%s', current), type: 'action', selected: true, action: async () => {} })
+                    }
+                    opts.push({
+                        name: lang.CONTENT_PROFILE_GENERIC,
+                        type: 'action', selected: (current == 'generic'),
+                        action: async (data) => {
+                            if (current == 'generic')
+                                return;
+                            await set('generic');
+                        }
+                    }, {
+                        name: lang.CONTENT_PROFILE_ERO,
+                        type: 'action', selected: (current == 'ero'),
+                        action: async (data) => {
+                            if (current == 'ero')
+                                return;
+                            await set('ero');
+                        }
+                    });
+                    return opts;
+                } },
             secOpt,
             { name: lang.MANAGE_CHANNEL_LIST, fa: 'fas fa-stream', type: 'group', details: lang.LIVE, renderer: global.channels.options.bind(global.channels) },
             { name: lang.ADVANCED, fa: 'fas fa-cogs', type: 'group', renderer: async () => {

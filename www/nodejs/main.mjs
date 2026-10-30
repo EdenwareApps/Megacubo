@@ -116,11 +116,42 @@ Object.assign(global, {
 
 process.env.UV_THREADPOOL_SIZE = 16
 
+// Conditions the app recovers from on purpose (user network, credentials, HTTP status,
+// file-descriptor noise). They are logged locally but must not be uploaded: they dominated
+// the error collector and hid real defects (see BUG_REPORT_17.7.0_17581.md, bugs 1/7/9).
+const isExpectedCondition = err => {
+    const msg = String((err && err.message) || err || '')
+    const code = err && err.code
+    return (
+        code === 'EBADF' ||
+        msg.includes('Access forbidden (403)') ||
+        msg.includes('Authentication required (401)') ||
+        msg.includes('HTTP error') ||
+        msg.includes('Max retries exceeded') ||
+        msg.includes('Cannot resolve') ||
+        msg.includes('socket hang up') ||
+        msg.includes('Timeout [') ||
+        msg === 'Timeout' ||
+        msg.includes('Rejected suspicious HTML response')
+    )
+}
+
+// Same as above but worth a single report per app run: a slow disk or a partial installation
+// can still be told apart from a storm of duplicates this way.
+const reportedHandled = new Set()
+const reportHandled = (type, err, signature) => {
+    if (isExpectedCondition(err) || reportedHandled.has(signature)) {
+        return false
+    }
+    reportedHandled.add(signature)
+    crashlog.save(type, err)
+    return true
+}
+
 process.on('uncaughtException', (err, origin) => {
     console.error({err, origin})
     console.error('uncaughtException: ' + err.message, err.stack)
-    crashlog.save('uncaughtException', err)
-    
+
     // Handle database operation errors gracefully
     if (err && err.message && (
         err.message.includes('Mutex acquisition timeout') ||
@@ -128,6 +159,7 @@ process.on('uncaughtException', (err, origin) => {
         err.message.includes('Database is destroyed')
     )) {
         console.warn('Database operation error handled gracefully, continuing...')
+        reportHandled('uncaughtException', err, 'database')
         return false // Don't crash the process
     }
     
@@ -138,6 +170,7 @@ process.on('uncaughtException', (err, origin) => {
         err.code === 'EACCES'
     )) {
         console.warn('File operation error handled gracefully:', err.message)
+        reportHandled('uncaughtException', err, 'file/' + err.code)
         return false // Don't crash the process
     }
 
@@ -145,14 +178,16 @@ process.on('uncaughtException', (err, origin) => {
         console.warn('Suspicious download response handled gracefully:', err.message)
         return false
     }
-    
+
+    // Anything else is a real defect: uploaded only once the handled conditions above were
+    // ruled out (was reported before them, which flooded the collector).
+    crashlog.save('uncaughtException', err)
     return false
 })
 
 process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection:', reason)
-    crashlog.save('unhandledRejection', reason)
-    
+
     if (reason && ((typeof reason === 'string' && reason.includes('Rejected suspicious HTML response')) ||
         (reason.message && reason.message.includes('Rejected suspicious HTML response')))) {
         console.warn('Suspicious download response handled gracefully:', reason.message || reason)
@@ -172,6 +207,7 @@ process.on('unhandledRejection', (reason, promise) => {
         reason.message.includes('Database is destroyed')
     )) {
         console.warn('Database operation error handled gracefully, continuing...')
+        reportHandled('unhandledRejection', reason, 'database')
         return // Don't crash the process
     }
     
@@ -182,6 +218,7 @@ process.on('unhandledRejection', (reason, promise) => {
         reason.code === 'EACCES'
     )) {
         console.warn('File operation error handled gracefully:', reason.message)
+        reportHandled('unhandledRejection', reason, 'file/' + reason.code)
         return // Don't crash the process
     }
     
@@ -193,6 +230,15 @@ process.on('unhandledRejection', (reason, promise) => {
         console.warn('HTTP/Network error handled gracefully:', reason.message || reason)
         return // Don't crash the process
     }
+
+    // Any other expected/network condition is logged but not uploaded (see bug 1/9)
+    if (isExpectedCondition(reason)) {
+        console.warn('Expected condition handled gracefully:', reason.message || reason)
+        return // Don't crash the process
+    }
+
+    // Real defect: uploaded only after the handled conditions above were ruled out
+    crashlog.save('unhandledRejection', reason)
 })
 onexit(() => {
     global.isExiting = true
@@ -587,6 +633,15 @@ const initElectronWindow = async () => {
     }
 
     const features = ['SharedImageManager', 'PlatformHEVCDecoderSupport', 'VaapiVideoDecoder'];
+
+    // The in-process GPU decision belongs to the config, never to the command line:
+    // legacy Windows shortcuts still carry `--in-process-gpu` and would force the GPU
+    // (and any GPU crash) into the main process. Drop whatever came from argv here and
+    // let the config decide below - `disable-gpu-sandbox` is kept on purpose (MSIX fix).
+    if (appCmd.hasSwitch('in-process-gpu')) {
+        appCmd.removeSwitch('in-process-gpu')
+        console.error('[gpu] "in-process-gpu" came from the command line and was dropped - config value: ' + (config.get('in-process-gpu') !== false))
+    };
     ['in-process-gpu', 'disable-gpu-sandbox'].forEach(f => {
         if(config.get(f) !== false) {
             appCmd.appendSwitch(f)

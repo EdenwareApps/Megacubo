@@ -182,6 +182,7 @@
       "www/nodejs/lang/**/*",
       "www/nodejs/modules/**/*",
       "www/nodejs/renderer/**/*",
+      "www/nodejs/data/**",
       "!www/nodejs/dist/electron.js.map",
       "!www/nodejs/dist/main.js.map",
       "!www/nodejs/dist/preload.js.map",

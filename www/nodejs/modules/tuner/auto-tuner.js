@@ -33,6 +33,8 @@ class AutoTuner extends EventEmitter {
             this.entries = this.sort(this.entries, preferredStreamServers, this.opts.preferredStreamURL)
             this.tuner = new Tuner(this.entries, this.opts, this.opts.megaURL)
             this.tuner.on('success', (e, nfo, n) => {
+                // destroy() nulls succeededs/tuner while intents may still be running
+                if (this.destroyed || !this.succeededs || !this.tuner) return
                 if (typeof(this.succeededs[n]) == 'undefined') {
                     this.succeededs[n] = 0;
                     if (!this.paused) {
@@ -193,6 +195,9 @@ class AutoTuner extends EventEmitter {
                             if (!this.headless) {
                                 
                                 let ret = await global.streamer.commit(n)
+                                if (this.destroyed || !this.commitResults || !this.succeededs) { // destroyed during the commit
+                                    return;
+                                }
                                 this.commitResults[n.nid] = ret
                                 if (ret !== true) {
                                     menu.displayErr('TUNER COMMIT ERROR ' + ret + ' - ' + n.data.name);
@@ -244,6 +249,9 @@ class AutoTuner extends EventEmitter {
         return e;
     }
     getQueue() {
+        if (!this.succeededs || !this.tuner || this.destroyed) {
+            return { index: [], busyDomains: [], slotCount: 0, ffmpegBasedSlotCount: 0 };
+        }
         const busyDomains = []; // don't lock here considering Tuner busy domains
         let slotCount = config.get('tune-concurrency');
         let ffmpegBasedSlotCount = config.get('tune-ffmpeg-concurrency');
@@ -321,7 +329,7 @@ class AutoTuner extends EventEmitter {
             this.succeededs[nid] = 1;
             intent.once('destroy', () => {
                 const timeoutId = setTimeout(() => {
-                    if (intent && !this.destroyed) {
+                    if (intent && !this.destroyed && this.succeededs) {
                         this.succeededs[nid] = 3;
                         this.intents = this.intents.filter(n => n.nid != nid);
                         intent = null;
@@ -335,6 +343,11 @@ class AutoTuner extends EventEmitter {
                 }
             });
             intent.start().then(() => {
+                if (this.destroyed) { // destroyed while the intent was starting
+                    this.intents = this.intents.filter(n => n && n.nid != nid);
+                    intent = null;
+                    return;
+                }
                 if (this.paused) {
                     this.succeededs[nid] = 0;
                     intent.destroy();
@@ -344,6 +357,10 @@ class AutoTuner extends EventEmitter {
                 this.results[nid] = [true, intent.type];
                 this.succeededs[nid] = 2;
                 this.emit('success', intent);
+                if (this.destroyed) { // a 'success' listener may have destroyed the tuner
+                    intent = null;
+                    return;
+                }
                 // destroy other intents
                 this.intents.filter(nt => nt && nt.nid != nid).forEach(nt => {
                     if (nt.committed) {
@@ -357,6 +374,11 @@ class AutoTuner extends EventEmitter {
                 this.intents = [];
                 intent = null;
             }).catch(err => {
+                if (this.destroyed) { // the tuner was destroyed while this intent was starting
+                    this.intents = this.intents.filter(n => n && n.nid != nid);
+                    intent = null;
+                    return;
+                }
                 if (intent) {
                     if (this.succeededs[nid] != 0) { // not destroyed by other intent commit
                         console.error('INTENT FAILED', err);
@@ -411,6 +433,7 @@ class AutoTuner extends EventEmitter {
         return ret;
     }
     logText(showStreams) {
+        if (!this.tuner) return 'auto-tuner destroyed';
         let ret = [], info = Object.values(this.log());
         ret.push(this.tuner.entries.length + ' streams');
         ret.push(...info.map(e => {
@@ -425,6 +448,7 @@ class AutoTuner extends EventEmitter {
         return ret.join("\r\n");
     }
     has(url) {
+        if (!this.tuner) return false;
         return this.tuner.entries.some(e => e.url == url);
     }
     finish() {

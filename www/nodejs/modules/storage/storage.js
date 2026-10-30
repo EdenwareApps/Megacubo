@@ -2383,7 +2383,11 @@ class Storage extends StorageIO {
                 console.error(`Lock timeout for key: ${key}, write: ${write}, timeout: ${timeoutMs}ms`);
                 // Don't reject immediately, try to clean up first
                 this.cleanupLock(key);
-                reject(new Error(`Mutex acquisition timeout after ${timeoutMs}ms`));
+                // Carry the key/write flag: the message alone could not be attributed to any
+                // storage operation in the crash reports (BUG_REPORT_17.7.0_17581.md, bug 7).
+                const lockTimeoutError = new Error(`Mutex acquisition timeout after ${timeoutMs}ms (key: ${key}, write: ${write})`);
+                lockTimeoutError.code = 'MUTEX_TIMEOUT';
+                reject(lockTimeoutError);
                 // Log diagnostic info for debugging contention
                 console.warn(`Mutex timeout diagnostic: key=${key}, write=${write}, timeout=${timeoutMs}ms`);
             }, timeoutMs);
@@ -2462,7 +2466,12 @@ class Storage extends StorageIO {
                     }
                     if (listener && typeof listener.reject === 'function') {
                         try {
-                            listener.reject(new Error(`Mutex acquisition timeout after ${listener.timeoutMs || 60000}ms`));
+                            // Carry the key/write flag: the message alone could not be attributed
+                            // to any storage operation in the crash reports
+                            // (BUG_REPORT_17.7.0_17581.md, bug 7).
+                            const lockTimeoutError = new Error(`Mutex acquisition timeout after ${listener.timeoutMs || 60000}ms (key: ${key}, write: ${listener.write})`);
+                            lockTimeoutError.code = 'MUTEX_TIMEOUT';
+                            listener.reject(lockTimeoutError);
                         } catch (err) {
                             // Ignore - promise may already be settled
                         }

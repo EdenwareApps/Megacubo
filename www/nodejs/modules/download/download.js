@@ -11,6 +11,14 @@ import { HttpCookieAgent, HttpsCookieAgent } from 'http-cookie-agent/http';
 import { CookieJar } from 'tough-cookie';
 import qs from 'querystring';
 
+// Host label appended to download errors so the crash collector can attribute them to a
+// provider (see BUG_REPORT_17.7.0_17581.md, request #1). Credentials are stripped and it
+// never throws. Keeps the message prefix intact for the callers that match on it.
+const hostLabel = url => {
+    const host = getDomain(url);
+    return host ? ` [${host}]` : '';
+}
+
 const lookup = async (hostname, options, callback) => {
     try {
         const ip = await resolver.lookup(hostname, options);
@@ -620,17 +628,18 @@ class Download extends EventEmitter {
                 }
             } else {
                 // Provide more specific error messages for common HTTP status codes
-                let errorMessage = `HTTP error ${response.status}`;
+                const where = hostLabel(this.currentURL || this.opts.url)
+                let errorMessage = `HTTP error ${response.status}${where}`;
                 if (response.status === 458) {
-                    errorMessage = `License/Geographic restriction (458) - Content may be blocked in your region or requires valid subscription`;
+                    errorMessage = `License/Geographic restriction (458) - Content may be blocked in your region or requires valid subscription${where}`;
                 } else if (response.status === 403) {
-                    errorMessage = `Access forbidden (403) - Check credentials or permissions`;
+                    errorMessage = `Access forbidden (403) - Check credentials or permissions${where}`;
                 } else if (response.status === 401) {
-                    errorMessage = `Authentication required (401) - Invalid or expired credentials`;
+                    errorMessage = `Authentication required (401) - Invalid or expired credentials${where}`;
                 } else if (response.status === 404) {
-                    errorMessage = `Content not found (404) - Stream may be unavailable`;
+                    errorMessage = `Content not found (404) - Stream may be unavailable${where}`;
                 } else if (response.status === 503) {
-                    errorMessage = `Service unavailable (503) - Server may be under maintenance`;
+                    errorMessage = `Service unavailable (503) - Server may be under maintenance${where}`;
                 }
                 this.endWithError(errorMessage, response.status);
             }
@@ -649,6 +658,14 @@ class Download extends EventEmitter {
 
     endWithError(err, statusCode = 500) {
         if (this.ended) return;
+        // Attribute the failure to a host, without changing the message prefix that callers
+        // match on (see BUG_REPORT_17.7.0_17581.md, request #1).
+        if (typeof err === 'string') {
+            const where = hostLabel(this.currentURL || this.opts?.url);
+            if (where && !err.includes(where)) {
+                err += where;
+            }
+        }
         this.errors.push(String(err));
         this.statusCode = statusCode;
         
@@ -746,8 +763,8 @@ class Download extends EventEmitter {
                         reject(e);
                     }
                 } else {
-                    console.error(`HTTP error ${dl.statusCode}`);
-                    reject(`HTTP error ${dl.statusCode}`);
+                    console.error(`HTTP error ${dl.statusCode}${hostLabel(dl.currentURL || opts.url)}`);
+                    reject(`HTTP error ${dl.statusCode}${hostLabel(dl.currentURL || opts.url)}`);
                 }
                 dl.destroy();
             });
@@ -793,7 +810,7 @@ class Download extends EventEmitter {
                         });
                     } else {
                         dl.destroy();
-                        throw new Error(`HTTP error ${statusCode}`);
+                        throw new Error(`HTTP error ${statusCode}${hostLabel(dl.currentURL || opts.url)}`);
                     }
                 };
 
@@ -821,11 +838,12 @@ class Download extends EventEmitter {
                     });
                     stream.end();
                 } else if (!success) {
+                    const where = hostLabel(dl.currentURL || opts.url);
                     if (stream) {
                         stream.destroy();
-                        fs.unlink(opts.file, () => reject(`HTTP error ${dl.statusCode}`));
+                        fs.unlink(opts.file, () => reject(`HTTP error ${dl.statusCode}${where}`));
                     } else {
-                        reject(`HTTP error ${dl.statusCode}`);
+                        reject(`HTTP error ${dl.statusCode}${where}`);
                     }
                     dl.destroy();
                 }

@@ -98,9 +98,9 @@ requiredDeps.forEach(dep => {
   }
 });
 
-// 3. Copy lang and renderer folders
-console.log('🌍 Copying lang and renderer folders...');
-const sourceDirs = ['lang', 'renderer'];
+// 3. Copy lang, renderer and data folders
+console.log('🌍 Copying lang, renderer and data folders...');
+const sourceDirs = ['lang', 'renderer', 'data'];
 sourceDirs.forEach(dir => {
   const src = join(rootDir, 'www', 'nodejs', dir);
   const dest = join(rootDir, 'temp', 'clean-app', dir);

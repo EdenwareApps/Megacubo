@@ -13,7 +13,7 @@
 <h1 align="center">Megacubo</h1>
 
 <p align="center">
-  Cross-platform IPTV player for Windows, Linux, macOS and Android with support for M3U playlists, live TV streams, bookmarks, history, miniplayer mode and community lists.
+  <strong>Megacubo is a free, open-source M3U/IPTV player</strong> for Windows, Linux, macOS and Android. It plays playlists and streams that you or the community provide — it does not sell, bundle or host TV content.
 </p>
 
 <p align="center">
@@ -57,7 +57,7 @@ Megacubo was designed as a flexible media player focused on accessibility, organ
 - Multi-language interface
 - Cross-platform support
 - Hardware accelerated playback
-- Chromecast support
+- Optional premium add-ons (scheduled recordings, Cast support)
 - External player support
 - Electron-based desktop app
 - Android support

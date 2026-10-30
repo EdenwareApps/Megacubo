@@ -7,6 +7,28 @@ import { workerData } from 'worker_threads'
 import { createRequire } from 'node:module';
 import mainPackageJson from '../../package.json' with { type: 'json' };
 
+/**
+ * Código de origem gravado pelo instalador (contrato C3).
+ *
+ * O arquivo tem uma linha, sem quebra no fim, e o instalador grava o que conseguiu ler do
+ * próprio nome. Qualquer falha — arquivo ausente, ilegível, conteúdo estranho — devolve
+ * `generic`: este valor é acessório, e o boot não pode depender dele.
+ *
+ * O BOM é removido porque o Inno grava UTF-8 e a presença do BOM não é garantida por contrato.
+ *
+ * A allowlist é a de C1 (README do contrato): os valores permitidos são C1 ∪ {`generic`}.
+ * Só o formato não basta — sem a lista, `admin` passaria como se fosse origem.
+ */
+function readEdition(dataDir) {
+    try {
+        const raw = fs.readFileSync(dataDir + '/EDITION.md', 'utf8')
+        const code = raw.replace(/^\uFEFF/, '').trim().toLowerCase()
+        return ['ero', 'adult', 'player', 'premium', 'compare', 'blog', 'support', 'home', 'generic'].includes(code) ? code : 'generic'
+    } catch (e) {
+        return 'generic'
+    }
+}
+
 const paths = {}
 paths.inWorker = workerData && Object.keys(workerData).length
 if(paths.inWorker) {
@@ -65,6 +87,10 @@ if(paths.inWorker) {
     })
     paths.ALLOW_ADDING_LISTS = existingFiles.includes('ALLOW_ADDING_LISTS.md')
     paths.ALLOW_COMMUNITY_LISTS = paths.ALLOW_ADDING_LISTS && existingFiles.includes('ALLOW_COMMUNITY.md')
+    // Depois do laço acima, de propósito: aquele laço chama `mkdir` em toda chave string de
+    // `paths`, então uma chave atribuída antes dele viraria um DIRETÓRIO com o nome do código
+    // (ou, pior, um `mkdir` relativo ao cwd). `EDITION` é um valor, não um caminho.
+    paths.EDITION = readEdition(paths.data)
 }
 
 export default paths
